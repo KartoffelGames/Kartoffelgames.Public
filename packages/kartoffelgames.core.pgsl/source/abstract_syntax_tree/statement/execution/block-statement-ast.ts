@@ -40,7 +40,7 @@ export class BlockStatementAst extends AbstractSyntaxTree<BlockStatementCst, Blo
                 if (lStatementAst instanceof ReturnStatementAst) {
                     // When the statement has no expression, the return type is void.
                     if (!lStatementAst.data.expression) {
-                        lStatementData.returnType = new PgslVoidType(pContext);
+                        lStatementData.returnType = new PgslVoidType().process(pContext);
                         continue;
                     }
 

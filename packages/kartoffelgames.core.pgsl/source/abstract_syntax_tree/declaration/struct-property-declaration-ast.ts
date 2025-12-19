@@ -140,8 +140,8 @@ export class StructPropertyDeclarationAst extends AbstractSyntaxTree<StructPrope
         }
 
         const lNumericTypeList: Array<PgslNumericType> = [
-            new PgslNumericType(pContext, PgslNumericType.typeName.float32),
-            new PgslNumericType(pContext, PgslNumericType.typeName.signedInteger)
+            new PgslNumericType(PgslNumericType.typeName.float32).process(pContext),
+            new PgslNumericType(PgslNumericType.typeName.signedInteger).process(pContext)
         ];
 
         // Type must be a numeric scalar, or numeric vector.
@@ -156,7 +156,7 @@ export class StructPropertyDeclarationAst extends AbstractSyntaxTree<StructPrope
             // Can be a vector2..4 of a numeric type.
             for (let lDimension: number = 2; lDimension <= 4; lDimension++) {
                 for (const lNumericType of lNumericTypeList) {
-                    const lVectorType: PgslType = new PgslVectorType(pContext, lDimension, lNumericType);
+                    const lVectorType: PgslType = new PgslVectorType(lDimension, lNumericType).process(pContext);
                     if (pType.isImplicitCastableInto(lVectorType)) {
                         return true;
                     }

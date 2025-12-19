@@ -74,11 +74,11 @@ export class ComparisonExpressionAst extends AbstractSyntaxTree<ComparisonExpres
 
         // Any value is converted into a boolean type.
         const lResolveType: PgslType = (() => {
-            const lBooleanDefinition: PgslBooleanType = new PgslBooleanType(pContext);
+            const lBooleanDefinition: PgslBooleanType = new PgslBooleanType().process(pContext);
 
             // Wrap boolean into a vector when it is a vector expression.
             if (lLeftExpression.data.resolveType instanceof PgslVectorType) {
-                return new PgslVectorType(pContext, lLeftExpression.data.resolveType.dimension, lBooleanDefinition);
+                return new PgslVectorType(lLeftExpression.data.resolveType.dimension, lBooleanDefinition).process(pContext);
             }
 
             return lBooleanDefinition;

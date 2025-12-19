@@ -131,10 +131,8 @@ export abstract class PgslType {
 
     /**
      * Creates a new PGSL type instance.
-     * 
-     * @param _pContext - The context of the type definition. Just to force the derived classes to use it.
      */
-    public constructor(_pContext: AbstractSyntaxTreeContext) {
+    public constructor() {
         this.mTypeProperties = null;
     }
 
@@ -143,9 +141,13 @@ export abstract class PgslType {
      * Must be called by derived classes during their construction.
      * 
      * @param pContext - The context of the type definition.
+     * 
+     * @returns The current type instance for chaining.
      */
-    protected initType(pContext: AbstractSyntaxTreeContext): void {
-        this.mTypeProperties = this.process(pContext);
+    public process(pContext: AbstractSyntaxTreeContext): this {
+        this.mTypeProperties = this.onProcess(pContext);
+
+        return this;
     }
 
     /**
@@ -185,7 +187,7 @@ export abstract class PgslType {
      * 
      * @returns The type properties that define this type's characteristics.
      */
-    protected abstract process(pContext: AbstractSyntaxTreeContext): PgslTypeProperties;
+    protected abstract onProcess(pContext: AbstractSyntaxTreeContext): PgslTypeProperties;
 }
 
 /**

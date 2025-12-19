@@ -28,7 +28,7 @@ export class EnumDeclarationAst extends AbstractSyntaxTree<EnumDeclarationCst, E
         // Fallback to invalid type.
         if (lProperties.size === 0) {
             pContext.pushIncident(`Enum ${this.cst.name} has no values`, this);
-            lFirstPropertyType = new PgslInvalidType(pContext);
+            lFirstPropertyType = new PgslInvalidType().process(pContext);
         } else {
             // Get first property type.
             lFirstPropertyType = lProperties.values().next().value!.data.resolveType;
@@ -68,8 +68,8 @@ export class EnumDeclarationAst extends AbstractSyntaxTree<EnumDeclarationCst, E
             lPropertyList.set(lProperty.name, lExpressionAst);
 
             // Validate property type.
-            const lIsNumeric: boolean = lExpressionAst.data.resolveType.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger));
-            const lIsString: boolean = lExpressionAst.data.resolveType.isImplicitCastableInto(new PgslStringType(pContext));
+            const lIsNumeric: boolean = lExpressionAst.data.resolveType.isImplicitCastableInto(new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext));
+            const lIsString: boolean = lExpressionAst.data.resolveType.isImplicitCastableInto(new PgslStringType().process(pContext));
 
             // All values need to be string or integer.
             if (!lIsNumeric && !lIsString) {

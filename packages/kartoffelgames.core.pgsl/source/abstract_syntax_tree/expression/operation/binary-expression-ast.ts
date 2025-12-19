@@ -69,8 +69,8 @@ export class BinaryExpressionAst extends AbstractSyntaxTree<BinaryExpressionCst,
             lRightValueType = lRightExpression.data.resolveType;
         }
 
-        const lUnsignedInteger: PgslNumericType = new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger);
-        const lSignedInteger: PgslNumericType = new PgslNumericType(pContext, PgslNumericType.typeName.signedInteger);
+        const lUnsignedInteger: PgslNumericType = new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
+        const lSignedInteger: PgslNumericType = new PgslNumericType(PgslNumericType.typeName.signedInteger).process(pContext);
 
         // Left value need to be a integer numeric.
         if (!lLeftValueType.isImplicitCastableInto(lUnsignedInteger) && !lLeftValueType.isImplicitCastableInto(lSignedInteger)) {

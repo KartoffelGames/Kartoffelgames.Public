@@ -22,17 +22,13 @@ export class PgslStructType extends PgslType {
     /**
      * Constructor for struct type.
      * 
-     * @param pContext - The context for validation and error reporting.
      * @param pStructName - The name of the struct type.
      */
-    public constructor(pContext: AbstractSyntaxTreeContext, pStructName: string) {
-        super(pContext);
+    public constructor(pStructName: string) {
+        super();
 
         // Set data.
         this.mStructName = pStructName;
-
-        // Initialize type.
-        this.initType(pContext);
     }
 
     /**
@@ -86,7 +82,7 @@ export class PgslStructType extends PgslType {
      * 
      * @returns Type properties aggregated from struct fields.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
         // Read struct trace information.
         const lStruct: StructDeclarationAst | undefined = pContext.getStruct(this.mStructName);
 

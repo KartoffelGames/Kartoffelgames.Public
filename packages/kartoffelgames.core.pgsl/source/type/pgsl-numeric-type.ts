@@ -36,17 +36,13 @@ export class PgslNumericType extends PgslType {
     /**
      * Constructor for numeric type.
      * 
-     * @param pContext - The trace context for validation and error reporting.
      * @param pNumericType - The specific numeric type variant.
      */
-    public constructor(pContext: AbstractSyntaxTreeContext, pNumericType: PgslNumericTypeName) {
-        super(pContext);
+    public constructor(pNumericType: PgslNumericTypeName) {
+        super();
 
         // Set data.
         this.mNumericType = pNumericType;
-
-        // Initialize type.
-        this.initType(pContext);
     }
 
     /**
@@ -130,7 +126,7 @@ export class PgslNumericType extends PgslType {
      * 
      * @returns Type properties for numeric types.
      */
-    protected override process(_pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(_pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
         // A concrete numeric type is any type that is not abstract.
         const lIsConcrete: boolean = this.mNumericType !== PgslNumericType.typeName.abstractFloat && this.mNumericType !== PgslNumericType.typeName.abstractInteger;
 

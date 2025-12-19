@@ -1,3 +1,4 @@
+import { Exception } from "@kartoffelgames/core";
 import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
 import { IExpressionAst } from '../abstract_syntax_tree/expression/i-expression-ast.interface.ts';
 import { PgslValueFixedState } from '../enum/pgsl-value-fixed-state.ts';
@@ -37,7 +38,7 @@ export class PgslBuildInType extends PgslType {
     }
 
     private readonly mBuildInType: PgslBuildInTypeName;
-    private readonly mUnderlyingType: PgslType;
+    private mUnderlyingType: PgslType | null;
     private readonly mTemplate: IExpressionAst | null;
 
     /**
@@ -55,6 +56,10 @@ export class PgslBuildInType extends PgslType {
      * @returns The underlying PGSL type.
      */
     public get underlyingType(): PgslType {
+        if (!this.mUnderlyingType) {
+            throw new Exception("Underlying type has not been initialized.", this);
+        }
+
         return this.mUnderlyingType;
     }
 
@@ -74,18 +79,15 @@ export class PgslBuildInType extends PgslType {
      * @param pType - The specific built-in type variant.
      * @param pTemplate - Optional template expression for parameterized types.
      */
-    public constructor(pContext: AbstractSyntaxTreeContext, pType: PgslBuildInTypeName, pTemplate: IExpressionAst | null) {
-        super(pContext);
+    public constructor(pType: PgslBuildInTypeName, pTemplate: IExpressionAst | null) {
+        super();
 
         // Set data.
         this.mBuildInType = pType;
         this.mTemplate = pTemplate;
 
-        // Determine the underlying type based on the built-in type.
-        this.mUnderlyingType = this.determinateAliasedType(pContext, this.mBuildInType, pTemplate);
-
-        // Initialize type.
-        this.initType(pContext);
+        // Set underlying type as uninitialized.
+        this.mUnderlyingType = null
     }
 
     /**
@@ -99,11 +101,11 @@ export class PgslBuildInType extends PgslType {
     public override equals(pTarget: PgslType): boolean {
         // Check if target is also a built-in type with the same variant.
         if (pTarget instanceof PgslBuildInType) {
-            return this.mBuildInType === pTarget.mBuildInType && this.mUnderlyingType.equals(pTarget.mUnderlyingType);
+            return this.mBuildInType === pTarget.mBuildInType && this.underlyingType.equals(pTarget.underlyingType);
         }
 
         // Check if the underlying type equals the target type.
-        return this.mUnderlyingType.equals(pTarget);
+        return this.underlyingType.equals(pTarget);
     }
 
     /**
@@ -116,7 +118,7 @@ export class PgslBuildInType extends PgslType {
      */
     public override isExplicitCastableInto(pTarget: PgslType): boolean {
         // Check if aliased type is explicit castable into target type.
-        return this.mUnderlyingType.isExplicitCastableInto(pTarget);
+        return this.underlyingType.isExplicitCastableInto(pTarget);
     }
 
     /**
@@ -129,7 +131,7 @@ export class PgslBuildInType extends PgslType {
      */
     public override isImplicitCastableInto(pTarget: PgslType): boolean {
         // Check if aliased type is implicit castable into target type.
-        return this.mUnderlyingType.isImplicitCastableInto(pTarget);
+        return this.underlyingType.isImplicitCastableInto(pTarget);
     }
 
     /**
@@ -140,26 +142,26 @@ export class PgslBuildInType extends PgslType {
      * 
      * @returns Type properties copied from the underlying type.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
         // Only clip distance needs validation.
         if (this.mBuildInType === PgslBuildInType.typeName.clipDistances) {
             this.validateClipDistancesTemplate(pContext);
         }
 
-        // Underlying type.
-        const lUnderlyingType: PgslType = this.mUnderlyingType;
+        // Determine the underlying type based on the built-in type.
+        this.mUnderlyingType = this.determinateAliasedType(pContext, this.mBuildInType, this.mTemplate);
 
         // Copy all properties from the underlying type.
         return {
-            storable: lUnderlyingType.storable,
-            hostShareable: lUnderlyingType.hostShareable,
-            composite: lUnderlyingType.composite,
-            constructible: lUnderlyingType.constructible,
-            fixedFootprint: lUnderlyingType.fixedFootprint,
-            indexable: lUnderlyingType.indexable,
-            concrete: lUnderlyingType.concrete,
-            scalar: lUnderlyingType.scalar,
-            plain: lUnderlyingType.plain,
+            storable: this.mUnderlyingType.storable,
+            hostShareable: this.mUnderlyingType.hostShareable,
+            composite: this.mUnderlyingType.composite,
+            constructible: this.mUnderlyingType.constructible,
+            fixedFootprint: this.mUnderlyingType.fixedFootprint,
+            indexable: this.mUnderlyingType.indexable,
+            concrete: this.mUnderlyingType.concrete,
+            scalar: this.mUnderlyingType.scalar,
+            plain: this.mUnderlyingType.plain,
         };
     }
 
@@ -182,7 +184,7 @@ export class PgslBuildInType extends PgslType {
         }
 
         // Template needs to be a unsigned integer.
-        if (!this.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger))) {
+        if (!this.isImplicitCastableInto(new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext))) {
             pContext.pushIncident(`Clip distance built-in template value must be an unsigned integer.`);
         }
     }
@@ -201,57 +203,57 @@ export class PgslBuildInType extends PgslType {
         // Big ass switch case.
         switch (pBuildInType) {
             case PgslBuildInType.typeName.position: {
-                const lFloatType = new PgslNumericType(pContext, PgslNumericType.typeName.float32);
-                return new PgslVectorType(pContext, 4, lFloatType);
+                const lFloatType = new PgslNumericType(PgslNumericType.typeName.float32).process(pContext);
+                return new PgslVectorType(4, lFloatType).process(pContext);
             }
             case PgslBuildInType.typeName.localInvocationId: {
-                return new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger);
+                return new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
             }
             case PgslBuildInType.typeName.globalInvocationId: {
-                const lUnsignedIntType = new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger);
-                return new PgslVectorType(pContext, 3, lUnsignedIntType);
+                const lUnsignedIntType = new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
+                return new PgslVectorType(3, lUnsignedIntType).process(pContext);
             }
             case PgslBuildInType.typeName.workgroupId: {
-                const lUnsignedIntType = new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger);
-                return new PgslVectorType(pContext, 3, lUnsignedIntType);
+                const lUnsignedIntType = new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
+                return new PgslVectorType(3, lUnsignedIntType).process(pContext);
             }
             case PgslBuildInType.typeName.numWorkgroups: {
-                const lUnsignedIntType = new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger);
-                return new PgslVectorType(pContext, 3, lUnsignedIntType);
+                const lUnsignedIntType = new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
+                return new PgslVectorType(3, lUnsignedIntType).process(pContext);
             }
             case PgslBuildInType.typeName.vertexIndex: {
-                return new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger);
+                return new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
             }
             case PgslBuildInType.typeName.instanceIndex: {
-                return new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger);
+                return new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
             }
             case PgslBuildInType.typeName.fragDepth: {
-                return new PgslNumericType(pContext, PgslNumericType.typeName.float32);
+                return new PgslNumericType(PgslNumericType.typeName.float32).process(pContext);
             }
             case PgslBuildInType.typeName.sampleIndex: {
-                return new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger);
+                return new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
             }
             case PgslBuildInType.typeName.sampleMask: {
-                return new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger);
+                return new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
             }
             case PgslBuildInType.typeName.localInvocationIndex: {
-                return new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger);
+                return new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
             }
             case PgslBuildInType.typeName.frontFacing: {
-                return new PgslBooleanType(pContext);
+                return new PgslBooleanType().process(pContext);
             }
             case PgslBuildInType.typeName.clipDistances: {
                 // ClipDistances is an array<f32, N> where N is determined by the template
-                
-                // Create a new float number type.
-                const lFloatType = new PgslNumericType(pContext, PgslNumericType.typeName.float32);
 
-                return new PgslArrayType(pContext, lFloatType, pTemplate);
+                // Create a new float number type.
+                const lFloatType = new PgslNumericType(PgslNumericType.typeName.float32).process(pContext);
+
+                return new PgslArrayType(lFloatType, pTemplate).process(pContext);
             }
             default: {
                 // Unknown built-in type
                 pContext.pushIncident(`Unknown built-in type: ${pBuildInType}`);
-                return new PgslInvalidType(pContext);
+                return new PgslInvalidType().process(pContext);
             }
         }
     }

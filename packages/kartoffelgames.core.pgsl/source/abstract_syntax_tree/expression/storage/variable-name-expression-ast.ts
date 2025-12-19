@@ -47,7 +47,7 @@ export class VariableNameExpressionAst extends AbstractSyntaxTree<VariableNameEx
                 // Expression meta data.
                 fixedState: PgslValueFixedState.Variable,
                 isStorage: false,
-                resolveType: new PgslEnumType(pContext, lEnumDefinition.data.name),
+                resolveType: new PgslEnumType(lEnumDefinition.data.name).process(pContext),
                 constantValue: null,
                 storageAddressSpace: PgslValueAddressSpace.Module
             };
@@ -62,7 +62,7 @@ export class VariableNameExpressionAst extends AbstractSyntaxTree<VariableNameEx
             // Expression meta data.
             fixedState: PgslValueFixedState.Variable,
             isStorage: false,
-            resolveType: new PgslInvalidType(pContext),
+            resolveType: new PgslInvalidType().process(pContext),
             constantValue: null,
             storageAddressSpace: PgslValueAddressSpace.Function
         };

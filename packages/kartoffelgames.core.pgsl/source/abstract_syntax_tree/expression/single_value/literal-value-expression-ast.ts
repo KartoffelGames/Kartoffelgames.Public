@@ -47,10 +47,10 @@ export class LiteralValueExpressionAst extends AbstractSyntaxTree<LiteralValueEx
     private convertData(pContext: AbstractSyntaxTreeContext, pTextValue: string): [PgslType, number] {
         // Might be a boolean
         if (pTextValue === 'true') {
-            return [new PgslBooleanType(pContext), 1];
+            return [new PgslBooleanType().process(pContext), 1];
         }
         if (pTextValue === 'false') {
-            return [new PgslBooleanType(pContext), 0];
+            return [new PgslBooleanType().process(pContext), 0];
         }
 
         // Might be a integer.
@@ -76,7 +76,7 @@ export class LiteralValueExpressionAst extends AbstractSyntaxTree<LiteralValueEx
                 }
             }
 
-            return [new PgslNumericType(pContext, lSuffixType), lNumber];
+            return [new PgslNumericType(lSuffixType).process(pContext), lNumber];
         }
 
         // Might be a float.
@@ -122,7 +122,7 @@ export class LiteralValueExpressionAst extends AbstractSyntaxTree<LiteralValueEx
                 }
             }
 
-            return [new PgslNumericType(pContext, lSuffixType), lNumber];
+            return [new PgslNumericType(lSuffixType).process(pContext), lNumber];
         }
 
         throw new Exception(`Type not valid for literal "${pTextValue}".`, this);

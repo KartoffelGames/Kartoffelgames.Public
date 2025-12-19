@@ -31,7 +31,7 @@ export class IndexedValueExpressionAst extends AbstractSyntaxTree<IndexedValueEx
         }
 
         // Value needs to be a unsigned numeric value.
-        if (!lIndex.data.resolveType.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger))) {
+        if (!lIndex.data.resolveType.isImplicitCastableInto(new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext))) {
             pContext.pushIncident('Index needs to be a unsigned numeric value.', this);
         }
 

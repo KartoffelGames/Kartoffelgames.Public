@@ -43,7 +43,7 @@ export class ReturnStatementAst extends AbstractSyntaxTree<ReturnStatementCst, R
             }
 
             // Determine the return type of the return statement.
-            const lReturnType: PgslType = lExpression?.data.resolveType ?? new PgslVoidType(pContext);
+            const lReturnType: PgslType = lExpression?.data.resolveType ?? new PgslVoidType().process(pContext);
 
             // Validate that the return type matches the function declaration.
             if (!lReturnType.isImplicitCastableInto(lFunctionHeader.returnType?.data.type)) {

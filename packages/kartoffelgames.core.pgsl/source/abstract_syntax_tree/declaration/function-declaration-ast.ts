@@ -53,7 +53,7 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                     lReturnTypeDeclaration = new TypeDeclarationAst(lHeader.returnType).process(pContext);
 
                     // Read block return type.
-                    const lBlockReturnType: PgslType = lBlock.data.returnType ?? new PgslVoidType(pContext);
+                    const lBlockReturnType: PgslType = lBlock.data.returnType ?? new PgslVoidType().process(pContext);
 
                     // Check for correct return type in function block.
                     if (lBlockReturnType.isImplicitCastableInto(lReturnTypeDeclaration.data.type)) {

@@ -32,17 +32,13 @@ export class PgslSamplerType extends PgslType {
     /**
      * Constructor for sampler type.
      * 
-     * @param pContext - The context for validation and error reporting.
      * @param pComparison - Whether this is a comparison sampler.
      */
-    public constructor(pContext: AbstractSyntaxTreeContext, pComparison: boolean) {
-        super(pContext);
+    public constructor(pComparison: boolean) {
+        super();
 
         // Set data.
         this.mComparision = pComparison;
-
-        // Initialize type.
-        this.initType(pContext);
     }
 
     /**
@@ -96,7 +92,7 @@ export class PgslSamplerType extends PgslType {
      * 
      * @returns Type properties for sampler types.
      */
-    protected override process(_pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(_pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
         return {
             storable: false,
             hostShareable: false,

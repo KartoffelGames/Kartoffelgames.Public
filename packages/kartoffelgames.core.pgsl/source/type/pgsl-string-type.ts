@@ -17,16 +17,6 @@ export class PgslStringType extends PgslType {
     }
 
     /**
-     * Constructor. Initializes type.
-     * 
-     * @param pContext - The context of the type definition.
-     */
-    public constructor(pContext: AbstractSyntaxTreeContext) {
-        super(pContext);
-        this.initType(pContext);
-    }
-
-    /**
      * Check if type is equal to target type.
      * 
      * @param pTarget - Target type.
@@ -69,7 +59,7 @@ export class PgslStringType extends PgslType {
      * 
      * @returns Type properties for string type.
      */
-    protected override process(_Context: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(_Context: AbstractSyntaxTreeContext): PgslTypeProperties {
         return {
             storable: false,
             hostShareable: false,

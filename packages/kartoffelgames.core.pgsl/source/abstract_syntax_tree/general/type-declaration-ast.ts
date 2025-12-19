@@ -119,7 +119,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
 
         // Type not found.
         pContext.pushIncident(`Typename "${this.cst.typeName}" not defined.`, this);
-        return new PgslInvalidType(pContext);
+        return new PgslInvalidType().process(pContext);
     }
 
     /**
@@ -179,7 +179,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         })();
 
         if (lTypeTemplate === null) {
-            return new PgslInvalidType(pContext);
+            return new PgslInvalidType().process(pContext);
         }
 
         // Second length parameter.
@@ -201,7 +201,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
 
 
         // Build BuildInType definition.
-        return new PgslArrayType(pContext, lTypeTemplate.data.type, lLengthParameter);
+        return new PgslArrayType(lTypeTemplate.data.type, lLengthParameter).process(pContext);
     }
 
     /**
@@ -222,7 +222,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
             pContext.pushIncident(`Boolean can't have templates values.`, this);
         }
 
-        return new PgslBooleanType(pContext);
+        return new PgslBooleanType().process(pContext);
     }
 
     /**
@@ -257,7 +257,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
 
 
         // Build BuildInType definition without template.
-        return new PgslBuildInType(pContext, pRawName as any, lTemplateExpression);
+        return new PgslBuildInType(pRawName as any, lTemplateExpression).process(pContext);
     }
 
     /**
@@ -304,14 +304,14 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         const lInnerTypeDefinition: TypeDeclarationAstTemplate = pRawTemplate[0];
         if (lInnerTypeDefinition.type !== 'TypeDeclaration') {
             pContext.pushIncident(`Matrix template parameter needs to be a type definition.`, this);
-            return new PgslInvalidType(pContext);
+            return new PgslInvalidType().process(pContext);
         }
 
         // Build inner type.
         const lInnerTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(lInnerTypeDefinition).process(pContext);
 
         // Build matrix definition.
-        return new PgslMatrixType(pContext, pRawName as any, lInnerTypeDeclaration.data.type);
+        return new PgslMatrixType(pRawName as any, lInnerTypeDeclaration.data.type).process(pContext);
     }
 
     /**
@@ -333,7 +333,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         }
 
         // Build numeric definition.
-        return new PgslNumericType(pContext, pRawName as any);
+        return new PgslNumericType(pRawName as any).process(pContext);
     }
 
     /**
@@ -358,7 +358,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         const lInnerType: PgslType = lInnerTypeDeclaration.data.type;
 
         // Build pointer type definition.
-        return new PgslPointerType(pContext, lInnerType);
+        return new PgslPointerType(lInnerType).process(pContext);
     }
 
     /**
@@ -380,7 +380,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         }
 
         // Build numeric definition.
-        return new PgslSamplerType(pContext, pRawName === PgslSamplerType.typeName.samplerComparison);
+        return new PgslSamplerType(pRawName === PgslSamplerType.typeName.samplerComparison).process(pContext);
     }
 
     /**
@@ -404,7 +404,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         // String should never be used directly.
         pContext.pushIncident(`String type can't be explicit defined.`, this);
 
-        return new PgslStringType(pContext);
+        return new PgslStringType().process(pContext);
     }
 
     /**
@@ -426,7 +426,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         }
 
         // Create new struct type definition.
-        return new PgslStructType(pContext, pRawName);
+        return new PgslStructType(pRawName).process(pContext);
     }
 
     /**
@@ -457,7 +457,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         }
 
         // Build texture type definition.
-        return new PgslTextureType(pContext, pRawName as any, lTemplateAstList);
+        return new PgslTextureType(pRawName as any, lTemplateAstList).process(pContext);
     }
 
     /**
@@ -491,14 +491,14 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         const lInnerTypeDefinition: TypeDeclarationAstTemplate = pRawTemplate[0];
         if (lInnerTypeDefinition.type !== 'TypeDeclaration') {
             pContext.pushIncident(`Vector template parameter needs to be a type definition.`, this);
-            return new PgslInvalidType(pContext);
+            return new PgslInvalidType().process(pContext);
         }
 
         // Build inner type.
         const lInnerTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(lInnerTypeDefinition).process(pContext);
 
         // Build vector definition.
-        return new PgslVectorType(pContext, lVectorDimension, lInnerTypeDeclaration.data.type);
+        return new PgslVectorType(lVectorDimension, lInnerTypeDeclaration.data.type).process(pContext);
     }
 
     /**
@@ -519,7 +519,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
             pContext.pushIncident(`Void type can't have template parameters.`, this);
         }
 
-        return new PgslVoidType(pContext);
+        return new PgslVoidType().process(pContext);
     }
 }
 

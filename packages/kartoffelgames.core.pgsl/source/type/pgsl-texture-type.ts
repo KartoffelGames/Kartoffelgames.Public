@@ -1,3 +1,4 @@
+import { Exception } from "@kartoffelgames/core";
 import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
 import { IExpressionAst } from "../abstract_syntax_tree/expression/i-expression-ast.interface.ts";
 import { TypeDeclarationAst } from '../abstract_syntax_tree/general/type-declaration-ast.ts';
@@ -108,9 +109,7 @@ export class PgslTextureType extends PgslType {
 
     private readonly mTemplateList: Array<IExpressionAst | TypeDeclarationAst>;
     private readonly mTextureType: PgslTextureTypeName;
-    private readonly mAccess: PgslAccessMode;
-    private readonly mFormat: PgslTexelFormat;
-    private readonly mSampledType: PgslType;
+    private mTextureTypeParameter: PgslTextureTypeParameter | null
 
     /**
      * Gets the texture type variant.
@@ -127,7 +126,10 @@ export class PgslTextureType extends PgslType {
      * @returns The texel format.
      */
     public get format(): PgslTexelFormat {
-        return this.mFormat;
+        if(!this.mTextureTypeParameter) {
+            throw new Exception('Texture type parameter is not initialized.', this);
+        }
+        return this.mTextureTypeParameter.format;
     }
 
     /**
@@ -136,7 +138,10 @@ export class PgslTextureType extends PgslType {
      * @returns The sampled type.
      */
     public get sampledType(): PgslType {
-        return this.mSampledType;
+        if(!this.mTextureTypeParameter) {
+            throw new Exception('Texture type parameter is not initialized.', this);
+        }
+        return this.mTextureTypeParameter.sampledType;
     }
 
     /**
@@ -145,31 +150,27 @@ export class PgslTextureType extends PgslType {
      * @returns The access mode.
      */
     public get access(): PgslAccessMode {
-        return this.mAccess;
+        if(!this.mTextureTypeParameter) {
+            throw new Exception('Texture type parameter is not initialized.', this);
+        }
+        return this.mTextureTypeParameter.access;
     }
 
     /**
      * Constructor for texture type.
      * 
-     * @param pContext - The context for validation and error reporting.
      * @param pTextureType - The specific texture type variant.
      * @param pTemplateList - Template parameters for the texture (varies by texture type).
      */
-    public constructor(pContext: AbstractSyntaxTreeContext, pTextureType: PgslTextureTypeName, pTemplateList: Array<IExpressionAst | TypeDeclarationAst>) {
-        super(pContext);
+    public constructor(pTextureType: PgslTextureTypeName, pTemplateList: Array<IExpressionAst | TypeDeclarationAst>) {
+        super();
 
         // Set data.
         this.mTextureType = pTextureType;
         this.mTemplateList = pTemplateList;
 
-        // Parse template parameters and validate them.
-        const lTextureParameter: PgslTextureTypeParameter = this.parseTextureParameter(pContext);
-        this.mAccess = lTextureParameter.access;
-        this.mFormat = lTextureParameter.format;
-        this.mSampledType = lTextureParameter.sampledType;
-
-        // Initialize type.
-        this.initType(pContext);
+        // Initialize empty texture type parameters.
+        this.mTextureTypeParameter = null;
     }
 
     /**
@@ -240,11 +241,14 @@ export class PgslTextureType extends PgslType {
      * Collect type properties for texture types.
      * Textures are storable, concrete, but not constructible or hostShareable.
      * 
-     * @param _pContext - Context (unused for texture properties).
+     * @param pContext - Context.
      * 
      * @returns Type properties defining texture characteristics.
      */
-    protected override process(_pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+        // Parse template parameters and validate them.
+        this.mTextureTypeParameter = this.parseTextureParameter(pContext);
+
         return {
             composite: false,
             indexable: false,
@@ -278,7 +282,7 @@ export class PgslTextureType extends PgslType {
         const lTypeParameter: PgslTextureTypeParameter = {
             access: PgslAccessModeEnum.values.Read,
             format: PgslTexelFormatEnum.values.Bgra8unorm,
-            sampledType: new PgslNumericType(pContext, PgslNumericType.typeName.float32)
+            sampledType: new PgslNumericType(PgslNumericType.typeName.float32).process(pContext)
         };
 
         // Validate and parse each template parameter.

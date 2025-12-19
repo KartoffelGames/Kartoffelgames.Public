@@ -43,19 +43,23 @@ export class UnaryExpressionAst extends AbstractSyntaxTree<UnaryExpressionCst, U
         }
 
         const lCastableIntoNumeric = (pType: PgslType, pIncludeUnsigned: boolean, pIncludeFloat: boolean): boolean => {
-            if (pIncludeFloat && pType.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.float16))) {
+            const lFloar16Type = new PgslNumericType(PgslNumericType.typeName.float16).process(pContext);
+            if (pIncludeFloat && pType.isImplicitCastableInto(lFloar16Type)) {
                 return true;
             }
 
-            if (pIncludeFloat && pType.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.float32))) {
+            const lFloat32Type = new PgslNumericType(PgslNumericType.typeName.float32).process(pContext);
+            if (pIncludeFloat && pType.isImplicitCastableInto(lFloat32Type)) {
                 return true;
             }
 
-            if (pType.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger))) {
+            const lUnsignedIntegerType = new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
+            if (pType.isImplicitCastableInto(lUnsignedIntegerType)) {
                 return true;
             }
 
-            if (pIncludeUnsigned && pType.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.signedInteger))) {
+            const lSignedIntegerType = new PgslNumericType(PgslNumericType.typeName.signedInteger).process(pContext);
+            if (pIncludeUnsigned && pType.isImplicitCastableInto(lSignedIntegerType)) {
                 return true;
             }
 
@@ -81,7 +85,7 @@ export class UnaryExpressionAst extends AbstractSyntaxTree<UnaryExpressionCst, U
 
                 // Convert an abstract integer into a signed integer.
                 if (lResolveType instanceof PgslNumericType && lResolveType.numericTypeName === PgslNumericType.typeName.abstractInteger) {
-                    lResolveType = new PgslNumericType(pContext, PgslNumericType.typeName.signedInteger);
+                    lResolveType = new PgslNumericType(PgslNumericType.typeName.signedInteger).process(pContext);
                 }
 
                 break;

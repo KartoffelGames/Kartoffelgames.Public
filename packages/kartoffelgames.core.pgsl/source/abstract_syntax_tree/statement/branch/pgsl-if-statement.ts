@@ -38,7 +38,7 @@ export class IfStatementAst extends AbstractSyntaxTree<IfStatementCst, IfStateme
         }
 
         // Expression must be a boolean.
-        if (!lExpression.data.resolveType.isImplicitCastableInto(new PgslBooleanType(pContext))) {
+        if (!lExpression.data.resolveType.isImplicitCastableInto(new PgslBooleanType().process(pContext))) {
             pContext.pushIncident('Expression of if must resolve into a boolean.', lExpression);
         }
 

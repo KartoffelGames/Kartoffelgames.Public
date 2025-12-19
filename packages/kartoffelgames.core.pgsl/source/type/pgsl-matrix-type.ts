@@ -1,3 +1,4 @@
+import { Exception } from "@kartoffelgames/core";
 import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
 import { PgslNumericType } from './pgsl-numeric-type.ts';
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
@@ -30,7 +31,7 @@ export class PgslMatrixType extends PgslType {
     }
 
     private readonly mInnerType: PgslType;
-    private readonly mVectorTypeDefinition: PgslVectorType;
+    private mVectorTypeDefinition: PgslVectorType;
     private readonly mRowCount: number;
     private readonly mColumnCount: number;
 
@@ -77,8 +78,8 @@ export class PgslMatrixType extends PgslType {
      * @param pMatrixType - The specific matrix dimension type.
      * @param pInnerType - The inner element type of the matrix.
      */
-    public constructor(pContext: AbstractSyntaxTreeContext, pMatrixType: PgslMatrixTypeName, pInnerType: PgslType) {
-        super(pContext);
+    public constructor(pMatrixType: PgslMatrixTypeName, pInnerType: PgslType) {
+        super();
 
         // Set data.
         this.mInnerType = pInnerType;
@@ -87,10 +88,7 @@ export class PgslMatrixType extends PgslType {
         [this.mColumnCount, this.mRowCount] = this.getMatrixDimensions(pMatrixType);
 
         // Create underlying vector type based on matrix type.
-        this.mVectorTypeDefinition = new PgslVectorType(pContext, this.mColumnCount, pInnerType);
-
-        // Initialize type.
-        this.initType(pContext);
+        this.mVectorTypeDefinition = new PgslVectorType(this.mColumnCount, pInnerType);
     }
 
     /**
@@ -170,9 +168,12 @@ export class PgslMatrixType extends PgslType {
      * 
      * @returns Type properties for matrix types.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+        // Process vector type definition.
+        this.mVectorTypeDefinition.process(pContext)
+
         // Must be Float.
-        if (this.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.float32))) {
+        if (!this.isImplicitCastableInto(new PgslNumericType(PgslNumericType.typeName.float32).process(pContext))) {
             pContext.pushIncident('Matrix type must be a Float32');
         }
 

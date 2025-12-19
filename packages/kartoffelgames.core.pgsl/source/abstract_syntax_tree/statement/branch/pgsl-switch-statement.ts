@@ -28,7 +28,9 @@ export class SwitchStatementAst extends AbstractSyntaxTree<SwitchStatementCst, S
         // Trace block in switch scope
         return pContext.pushScope('switch', () => {
             const lCastableIntoInteger = (pType: PgslType) => {
-                return pType.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.signedInteger)) || pType.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger));
+                const lSignedIntegerType = new PgslNumericType(PgslNumericType.typeName.signedInteger).process(pContext);
+                const lUnsignedIntegerType = new PgslNumericType( PgslNumericType.typeName.unsignedInteger).process(pContext);
+                return pType.isImplicitCastableInto(lSignedIntegerType) || pType.isImplicitCastableInto(lUnsignedIntegerType);
             };
 
             // Expression resolve type must be a unsigned integer.

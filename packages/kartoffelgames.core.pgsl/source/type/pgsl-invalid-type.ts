@@ -8,16 +8,6 @@ import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
  */
 export class PgslInvalidType extends PgslType {
     /**
-     * Constructor. Initializes type.
-     * 
-     * @param pContext - The context of the type definition.
-     */
-    public constructor(pContext: AbstractSyntaxTreeContext) {
-        super(pContext);
-        this.initType(pContext);
-    }
-
-    /**
      * Check if this invalid type is equal to the target type.
      * Invalid types are never equal to any type, including other invalid types.
      * 
@@ -61,7 +51,7 @@ export class PgslInvalidType extends PgslType {
      * 
      * @returns Type properties indicating the type is completely unusable.
      */
-    protected override process(_pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(_pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
         return {
             storable: false,
             hostShareable: false,

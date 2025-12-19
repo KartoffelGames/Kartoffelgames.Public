@@ -46,20 +46,12 @@ export class PgslVectorType extends PgslType {
      * @param pVectorDimension - The vector dimension (2, 3, or 4).
      * @param pInnerType - The inner element type of the vector.
      */
-    public constructor(pContext: AbstractSyntaxTreeContext, pVectorDimension: number, pInnerType: PgslType) {
-        super(pContext);
-
-        // Validate vector dimension.
-        if (pVectorDimension < 2 || pVectorDimension > 4) {
-            pContext.pushIncident('Invalid vector dimension. Must be 2, 3, or 4.');
-        }
+    public constructor(pVectorDimension: number, pInnerType: PgslType) {
+        super();
 
         // Set data.
         this.mInnerType = pInnerType;
         this.mVectorDimension = pVectorDimension;
-
-        // Initialize type.
-        this.initType(pContext);
     }
 
     /**
@@ -139,7 +131,12 @@ export class PgslVectorType extends PgslType {
      * 
      * @returns Type properties for vector types.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+        // Validate vector dimension.
+        if (this.mVectorDimension < 2 || this.mVectorDimension > 4) {
+            pContext.pushIncident('Invalid vector dimension. Must be 2, 3, or 4.');
+        }
+
         // Must be scalar.
         if (!this.mInnerType.scalar) {
             pContext.pushIncident('Vector type must have a scalar inner type');

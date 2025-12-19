@@ -104,11 +104,7 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
                     }
 
                     // Build vectorN type from vector type.
-                    const lVectorType: PgslVectorType = new PgslVectorType(
-                        pContext,
-                        lPropertyName.length,
-                        lExpressionType.innerType
-                    );
+                    const lVectorType: PgslVectorType = new PgslVectorType(lPropertyName.length, lExpressionType.innerType).process(pContext);
 
                     return {
                         type: lVectorType,
@@ -136,7 +132,7 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
                 // Expression meta data.
                 fixedState: PgslValueFixedState.Variable,
                 isStorage: false,
-                resolveType: new PgslInvalidType(pContext),
+                resolveType: new PgslInvalidType().process(pContext),
                 constantValue: null,
                 storageAddressSpace: PgslValueAddressSpace.Function
             };

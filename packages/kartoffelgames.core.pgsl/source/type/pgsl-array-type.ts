@@ -20,8 +20,8 @@ export class PgslArrayType extends PgslType {
     }
 
     private readonly mInnerType: PgslType;
-    private readonly mLength: number | null;
     private readonly mLengthExpression: IExpressionAst | null;
+    private readonly mLength: number | null;
 
     /**
      * Gets the inner element type of the array.
@@ -30,15 +30,6 @@ export class PgslArrayType extends PgslType {
      */
     public get innerType(): PgslType {
         return this.mInnerType;
-    }
-
-    /**
-     * Gets the length of the array if it's fixed-size.
-     * 
-     * @returns The array length, or null for runtime-sized arrays.
-     */
-    public get length(): number | null {
-        return this.mLength;
     }
 
     /**
@@ -51,40 +42,31 @@ export class PgslArrayType extends PgslType {
     }
 
     /**
+     * Gets the length of the array if it's fixed-size.
+     * 
+     * @returns The array length, or null for runtime-sized arrays.
+     */
+    public get length(): number | null {
+        return this.mLength;
+    }
+
+    /**
      * Constructor for array type.
      * 
-     * @param pContext - The trace context for validation and error reporting.
      * @param pType - The inner element type of the array.
      * @param pLengthExpression - Optional length expression for fixed-size arrays.
      */
-    public constructor(pContext: AbstractSyntaxTreeContext, pType: PgslType, pLengthExpression: IExpressionAst | null) {
-        super(pContext);
+    public constructor(pType: PgslType, pLengthExpression: IExpressionAst | null) {
+        super();
 
         this.mInnerType = pType;
         this.mLengthExpression = pLengthExpression;
-
-        // Inner type must be storable and have fixed footprint.
-        if (!this.mInnerType.storable) {
-            pContext.pushIncident(`Array inner type must be storable.`);
-        }
-        if (!this.mInnerType.fixedFootprint) {
-            pContext.pushIncident(`Array inner type must have a fixed footprint.`);
-        }
+        this.mLength = null;
 
         // Read length expression as number.
-        if (pLengthExpression) {
-            if (typeof pLengthExpression.data.constantValue === 'number') {
-                this.mLength = pLengthExpression.data.constantValue;
-            } else {
-                pContext.pushIncident(`Array length expression must be a constant integer.`, pLengthExpression);
-                this.mLength = null;
-            }
-        } else {
-            this.mLength = null;
+        if (pLengthExpression && typeof pLengthExpression.data.constantValue === 'number') {
+            this.mLength = pLengthExpression.data.constantValue;
         }
-
-        // Initialize type.
-        this.initType(pContext);
     }
 
     /**
@@ -165,7 +147,20 @@ export class PgslArrayType extends PgslType {
      * 
      * @returns Type properties for array types.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+        // Inner type must be storable and have fixed footprint.
+        if (!this.mInnerType.storable) {
+            pContext.pushIncident(`Array inner type must be storable.`);
+        }
+        if (!this.mInnerType.fixedFootprint) {
+            pContext.pushIncident(`Array inner type must have a fixed footprint.`);
+        }
+
+        // Read length expression as number.
+        if (this.mLengthExpression && typeof this.mLengthExpression.data.constantValue !== 'number') {
+            pContext.pushIncident(`Array length expression must be a constant integer.`, this.mLengthExpression);
+        }
+
         // Validate length expression when set.
         if (this.mLengthExpression) {
             // Length expression must be constant.
@@ -174,7 +169,7 @@ export class PgslArrayType extends PgslType {
             }
 
             // Length expression must be an unsigned integer scalar.
-            if (!this.mLengthExpression.data.resolveType.isImplicitCastableInto(new PgslNumericType(pContext, PgslNumericType.typeName.unsignedInteger))) {
+            if (!this.mLengthExpression.data.resolveType.isImplicitCastableInto(new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext))) {
                 pContext.pushIncident(`Array length expression must be of unsigned integer type.`, this.mLengthExpression);
             }
         }

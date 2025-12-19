@@ -42,12 +42,12 @@ export class LogicalExpressionAst extends AbstractSyntaxTree<LogicalExpressionCs
         const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.right, pContext);
 
         // Validate left side type.
-        if (!lLeftExpression.data.resolveType.isImplicitCastableInto(new PgslBooleanType(pContext))) {
+        if (!lLeftExpression.data.resolveType.isImplicitCastableInto(new PgslBooleanType().process(pContext))) {
             pContext.pushIncident('Left side of logical expression needs to be a boolean', this);
         }
 
         // Validate right side type.
-        if (!lRightExpression.data.resolveType.isImplicitCastableInto(new PgslBooleanType(pContext))) {
+        if (!lRightExpression.data.resolveType.isImplicitCastableInto(new PgslBooleanType().process(pContext))) {
             pContext.pushIncident('Right side of logical expression needs to be a boolean', this);
         }
 
@@ -60,7 +60,7 @@ export class LogicalExpressionAst extends AbstractSyntaxTree<LogicalExpressionCs
             // Expression meta data.
             fixedState: Math.min(lLeftExpression.data.fixedState, lRightExpression.data.fixedState),
             isStorage: false,
-            resolveType: new PgslBooleanType(pContext),
+            resolveType: new PgslBooleanType().process(pContext),
             constantValue: null,
             storageAddressSpace: PgslValueAddressSpace.Inherit
         };

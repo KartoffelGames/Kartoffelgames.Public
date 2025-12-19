@@ -9,7 +9,7 @@ import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
  */
 export class PgslEnumType extends PgslType {
     private readonly mEnumName: string;
-    private readonly mEnumDeclaration: EnumDeclarationAst | null;
+    private mEnumDeclaration: EnumDeclarationAst | null;
 
     /**
      * Gets the enum declaration AST node associated with this enum type.
@@ -35,17 +35,14 @@ export class PgslEnumType extends PgslType {
      * @param pContext - The context for validation and error reporting.
      * @param pEnumName - The name of the enum type.
      */
-    public constructor(pContext: AbstractSyntaxTreeContext, pEnumName: string) {
-        super(pContext);
+    public constructor(pEnumName: string) {
+        super();
 
         // Set data.
         this.mEnumName = pEnumName;
 
         // Read enum declaration.
-        this.mEnumDeclaration = pContext.getEnum(pEnumName) ?? null;
-
-        // Initialize type.
-        this.initType(pContext);
+        this.mEnumDeclaration = null;
     }
 
     /**
@@ -99,7 +96,10 @@ export class PgslEnumType extends PgslType {
      * 
      * @returns Type properties aggregated from enum fields.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+        // Read enum declaration.
+        this.mEnumDeclaration = pContext.getEnum(this.mEnumName) ?? null;
+
         // Read enum trace information.
         if (!this.mEnumDeclaration) {
             pContext.pushIncident(`Name '${this.mEnumName}' does not resolve to a enum declaration.`);

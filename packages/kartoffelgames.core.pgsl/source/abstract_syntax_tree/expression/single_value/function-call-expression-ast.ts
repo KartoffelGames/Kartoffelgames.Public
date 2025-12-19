@@ -31,7 +31,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
                 // Expression meta data.
                 fixedState: PgslValueFixedState.Variable,
                 isStorage: false,
-                resolveType: new PgslInvalidType(pContext),
+                resolveType: new PgslInvalidType().process(pContext),
                 constantValue: null,
                 storageAddressSpace: PgslValueAddressSpace.Inherit
             };
@@ -69,7 +69,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
         }
 
         // Get the return type from the matched function header.
-        const lReturnType: PgslType = lFunctionHeader?.returnType?.data.type ?? new PgslInvalidType(pContext);
+        const lReturnType: PgslType = lFunctionHeader?.returnType?.data.type ?? new PgslInvalidType().process(pContext);
 
         return {
             // Expression data.

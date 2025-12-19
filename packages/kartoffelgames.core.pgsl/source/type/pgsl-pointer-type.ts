@@ -37,17 +37,14 @@ export class PgslPointerType extends PgslType {
      * @param pContext - The context for validation and error reporting.
      * @param pReferenceType - The type that this pointer references.
      */
-    public constructor(pContext: AbstractSyntaxTreeContext, pReferenceType: PgslType) {
-        super(pContext);
+    public constructor(pReferenceType: PgslType) {
+        super();
 
         // Set data.
         this.mReferencedType = pReferenceType;
 
         // No address space assigned yet.
         this.mAssignedAddressSpace = null;
-
-        // Initialize type.
-        this.initType(pContext);
     }
 
     /**
@@ -117,7 +114,7 @@ export class PgslPointerType extends PgslType {
      * 
      * @returns Type properties for pointer types.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
         // Only storable types can be referenced by pointers.
         if (!this.mReferencedType.storable) {
             pContext.pushIncident('Referenced types of pointers need to be storable');

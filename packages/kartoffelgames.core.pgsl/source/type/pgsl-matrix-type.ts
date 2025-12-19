@@ -173,7 +173,7 @@ export class PgslMatrixType extends PgslType {
         this.mVectorTypeDefinition.process(pContext)
 
         // Must be Float.
-        if (!this.isImplicitCastableInto(new PgslNumericType(PgslNumericType.typeName.float32).process(pContext))) {
+        if (!this.mInnerType.isImplicitCastableInto(new PgslNumericType(PgslNumericType.typeName.float32).process(pContext))) {
             pContext.pushIncident('Matrix type must be a Float32');
         }
 

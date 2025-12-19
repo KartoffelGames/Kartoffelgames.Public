@@ -87,9 +87,6 @@ export class EnumDeclarationAst extends AbstractSyntaxTree<EnumDeclarationCst, E
             }
         }
 
-        // Register enum declaration.
-        pContext.registerEnum(this.cst.name, this);
-
         return lPropertyList;
     }
 }

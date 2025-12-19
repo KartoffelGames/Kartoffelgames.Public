@@ -19,7 +19,7 @@ export class ComparisonExpressionAst extends AbstractSyntaxTree<ComparisonExpres
      * 
      * @param pContext - Validation context.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): ComparisonExpressionAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): ComparisonExpressionAstData {
         // Try to convert operator.
         let lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.cst.operator);
         if (!lOperator) {

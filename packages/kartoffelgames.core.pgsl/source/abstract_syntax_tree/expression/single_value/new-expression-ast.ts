@@ -40,7 +40,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                             textValue: pParameterList.length.toString(),
                             range: lConcreteTypeExpression.cst.range
                         };
-                        const lConstantLengthExpressionAst: LiteralValueExpressionAst = new LiteralValueExpressionAst(lConstantLengthExpressionCst, pContext);
+                        const lConstantLengthExpressionAst: LiteralValueExpressionAst = new LiteralValueExpressionAst(lConstantLengthExpressionCst).process(pContext);
 
                         // Construct fixed array type.
                         return new PgslArrayType(pContext, lElementType, lConstantLengthExpressionAst);
@@ -613,7 +613,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
      * 
      * @param pContext - Build context.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): NewExpressionAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): NewExpressionAstData {
         // Read call definitions.
         const lCallDefinitions: Array<PgslNewExpressionCallDefinition> | null = NewExpressionAst.callDefinition(this.cst.typeName);
         if (!lCallDefinitions) {

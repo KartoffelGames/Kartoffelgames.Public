@@ -17,7 +17,7 @@ export class AddressOfExpressionAst extends AbstractSyntaxTree<AddressOfExpressi
      * 
      * @param pContext - Validation context.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): AddressOfExpressionAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): AddressOfExpressionAstData {
         // Read attachment of inner expression.
         const lVariable: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression, pContext);
 

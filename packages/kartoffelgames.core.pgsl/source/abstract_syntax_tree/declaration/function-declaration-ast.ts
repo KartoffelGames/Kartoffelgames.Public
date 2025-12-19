@@ -20,9 +20,9 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
      * 
      * @param pContext - Build context.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): FunctionDeclarationAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): FunctionDeclarationAstData {
         // Create attribute list.
-        const lAttributes: AttributeListAst = new AttributeListAst(this.cst.attributeList, this, pContext);
+        const lAttributes: AttributeListAst = new AttributeListAst(this.cst.attributeList, this).process(pContext);
 
         // Build return data.
         const lResultData = {
@@ -40,17 +40,17 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                 const lParameter: Array<FunctionDeclarationAstDataParameter> = lHeader.parameters.map((pParameterCst) => {
                     return {
                         name: pParameterCst.name,
-                        type: new TypeDeclarationAst(pParameterCst.typeDeclaration, pContext)
+                        type: new TypeDeclarationAst(pParameterCst.typeDeclaration).process(pContext)
                     };
                 });
 
                 // Create block for each header.
-                const lBlock: BlockStatementAst = new BlockStatementAst(this.cst.block, pContext);
+                const lBlock: BlockStatementAst = new BlockStatementAst(this.cst.block).process(pContext);
 
                 // Build return type.
                 let lReturnTypeDeclaration: TypeDeclarationAst | null = null;
                 if (lHeader.returnType) {
-                    lReturnTypeDeclaration = new TypeDeclarationAst(lHeader.returnType, pContext);
+                    lReturnTypeDeclaration = new TypeDeclarationAst(lHeader.returnType).process(pContext);
 
                     // Read block return type.
                     const lBlockReturnType: PgslType = lBlock.data.returnType ?? new PgslVoidType(pContext);

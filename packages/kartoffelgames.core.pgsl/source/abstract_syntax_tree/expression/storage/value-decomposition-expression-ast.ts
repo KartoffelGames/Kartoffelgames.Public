@@ -22,7 +22,7 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
      * 
      * @param pContext - Validation context.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): ValueDecompositionExpressionAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): ValueDecompositionExpressionAstData {
         // Build value expression.
         const lValue: IExpressionAst = ExpressionAstBuilder.build(this.cst.value, pContext);
 

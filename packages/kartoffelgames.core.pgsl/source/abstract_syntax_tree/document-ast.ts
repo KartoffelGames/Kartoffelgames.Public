@@ -6,25 +6,13 @@ import { IDeclarationAst } from "./declaration/i-declaration-ast.interface.ts";
 
 export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData> {
     /**
-     * Constructor.
-     * 
-     * @param pData - Initial data.
-     * @param pMeta - Syntax tree meta data.
-     * @param pBuildIn - Buildin value.
-     */
-    public constructor(pCst: DocumentCst) {
-        // The document AST creates its own context.
-        super(pCst, new AbstractSyntaxTreeContext());
-    }
-
-    /**
      * Process document data.
      * 
      * @param pContext - The syntax tree context.
      * 
      * @returns Processed document data.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): DocumentAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): DocumentAstData {
         // Document is the only ast that create its own context object.
         pContext.setDocument(this);
 

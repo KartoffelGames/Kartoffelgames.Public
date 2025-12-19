@@ -12,7 +12,7 @@ export class ContinueStatementAst extends AbstractSyntaxTree<ContinueStatementCs
      * 
      * @param pContext - Validation context.
      */
-    protected process(pContext: AbstractSyntaxTreeContext): ContinueStatementAstData {
+    protected onProcess(pContext: AbstractSyntaxTreeContext): ContinueStatementAstData {
         // Only in Loops
         if (!pContext.hasScope('loop')) {
             pContext.pushIncident('Continue statement can only be used within loops.', this);

@@ -15,7 +15,7 @@ export class StringValueExpressionAst extends AbstractSyntaxTree<StringValueExpr
      * 
      * @param pContext - Validation context.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): StringValueExpressionAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): StringValueExpressionAstData {
         return {
             // Expression data.
             value: this.cst.textValue,

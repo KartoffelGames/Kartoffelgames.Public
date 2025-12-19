@@ -1,18 +1,14 @@
-import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum.ts';
 import type { ForStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
+import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum.ts';
 import { PgslBooleanType } from '../../../type/pgsl-boolean-type.ts';
 import { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
 import { BlockStatementAst } from '../execution/block-statement-ast.ts';
+import { VariableDeclarationStatementAst } from '../execution/pgsl-variable-declaration-statement.ts';
 import type { IStatementAst } from '../i-statement-ast.interface.ts';
 import { StatementAstData } from '../i-statement-ast.interface.ts';
-import { AssignmentStatementAst } from '../execution/pgsl-assignment-statement.ts';
-import { FunctionCallStatementAst } from '../execution/pgsl-function-call-statement.ts';
-import { IncrementDecrementStatementAst } from '../execution/pgsl-increment-decrement-statement.ts';
-import { VariableDeclarationStatementAst } from '../execution/pgsl-variable-declaration-statement.ts';
-import { IValueStoreAst } from "../../i-value-store-ast.interface.ts";
 import { StatementAstBuilder } from "../statement-ast-builder.ts";
 
 /**
@@ -24,13 +20,13 @@ export class ForStatementAst extends AbstractSyntaxTree<ForStatementCst, ForStat
      * 
      * @param pContext - Validation context.
      */
-    protected process(pContext: AbstractSyntaxTreeContext): ForStatementAstData {
+    protected onProcess(pContext: AbstractSyntaxTreeContext): ForStatementAstData {
         // Trace block in own loop scope and trace child trees.
         return pContext.pushScope('loop', () => {
             // Trace optional init declaration. Do it first to make variable available in expression and update traces.
             let lInit: VariableDeclarationStatementAst | null = null;
             if (this.cst.init) {
-                lInit = new VariableDeclarationStatementAst(this.cst.init, pContext);
+                lInit = new VariableDeclarationStatementAst(this.cst.init).process(pContext);
 
                 // Variable must be a let
                 if (lInit.data.declarationType !== PgslDeclarationType.Let) {
@@ -62,7 +58,7 @@ export class ForStatementAst extends AbstractSyntaxTree<ForStatementCst, ForStat
             }
 
             // Trace block.
-            const lBlock: BlockStatementAst = new BlockStatementAst(this.cst.block, pContext);
+            const lBlock: BlockStatementAst = new BlockStatementAst(this.cst.block).process(pContext);
 
             return {
                 init: lInit,

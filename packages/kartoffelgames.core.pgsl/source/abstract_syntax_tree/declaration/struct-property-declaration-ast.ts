@@ -29,23 +29,22 @@ export class StructPropertyDeclarationAst extends AbstractSyntaxTree<StructPrope
      * Creates an instance of StructPropertyDeclarationAst.
      * 
      * @param pConcreteSyntaxTree - Concrete syntax tree node.
-     * @param pContext - Abstract syntax tree context.
      * @param pStruct - The struct this property belongs to.
      */
-    public constructor(pConcreteSyntaxTree: StructPropertyDeclarationCst, pContext: AbstractSyntaxTreeContext, pStruct: StructDeclarationAst) {
-        super(pConcreteSyntaxTree, pContext);
+    public constructor(pConcreteSyntaxTree: StructPropertyDeclarationCst, pStruct: StructDeclarationAst) {
+        super(pConcreteSyntaxTree);
         this.mStruct = pStruct;
     }
 
     /**
      * Validate data of current structure.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): StructPropertyDeclarationAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): StructPropertyDeclarationAstData {
         // Create attribute list.
-        const lAttributes: AttributeListAst = new AttributeListAst(this.cst.attributeList, this, pContext);
+        const lAttributes: AttributeListAst = new AttributeListAst(this.cst.attributeList, this).process(pContext);
 
         // Get property type.
-        const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(this.cst.typeDeclaration, pContext);
+        const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(this.cst.typeDeclaration).process(pContext);
         const lType: PgslType = lTypeDeclaration.data.type;
 
         // Validate property type.

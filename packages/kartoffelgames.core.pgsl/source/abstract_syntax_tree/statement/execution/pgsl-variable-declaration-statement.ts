@@ -23,7 +23,7 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
      * 
      * @param pContext - Validation context.
      */
-    protected process(pContext: AbstractSyntaxTreeContext): VariableDeclarationStatementAstData {
+    protected onProcess(pContext: AbstractSyntaxTreeContext): VariableDeclarationStatementAstData {
         // Parse declaration type.
         let lDeclarationType: PgslDeclarationType | undefined = EnumUtil.cast(PgslDeclarationType, this.cst.declarationType);
         if (!lDeclarationType) {
@@ -33,7 +33,7 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
         }
 
         // Create type declaration.
-        const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(this.cst.typeDeclaration, pContext);
+        const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(this.cst.typeDeclaration).process(pContext);
         const lType: PgslType = lTypeDeclaration.data.type;
 
         // Expression value has a fixed byte size.

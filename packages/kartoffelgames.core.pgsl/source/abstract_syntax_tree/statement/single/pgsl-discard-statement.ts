@@ -12,7 +12,7 @@ export class DiscardStatementAst extends AbstractSyntaxTree<DiscardStatementCst,
      * 
      * @param _pContext - Validation context.
      */
-    protected process(_pContext: AbstractSyntaxTreeContext): DiscardStatementAstData {
+    protected onProcess(_pContext: AbstractSyntaxTreeContext): DiscardStatementAstData {
         // Nothing really to validate.
         return {};
     }

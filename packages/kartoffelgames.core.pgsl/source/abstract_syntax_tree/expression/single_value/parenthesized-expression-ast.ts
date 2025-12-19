@@ -14,7 +14,7 @@ export class ParenthesizedExpressionAst extends AbstractSyntaxTree<Parenthesized
      * 
      * @param pContext - Validation context.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): ParenthesizedExpressionAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): ParenthesizedExpressionAstData {
         // Read attachment of inner expression.
         const lExpression: IExpressionAst  = ExpressionAstBuilder.build(this.cst.expression, pContext);
 

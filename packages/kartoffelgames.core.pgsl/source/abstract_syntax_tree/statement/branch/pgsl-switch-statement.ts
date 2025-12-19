@@ -18,7 +18,7 @@ export class SwitchStatementAst extends AbstractSyntaxTree<SwitchStatementCst, S
      * 
      * @param pContext - Validation context.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): SwitchStatementAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): SwitchStatementAstData {
         // Trace expression.
         const lExpression: IExpressionAst | null = ExpressionAstBuilder.build(this.cst.expression, pContext);
         if (!lExpression) {
@@ -44,7 +44,7 @@ export class SwitchStatementAst extends AbstractSyntaxTree<SwitchStatementCst, S
                 const lCaseExpressions: Array<IExpressionAst> = [];
 
                 // Validate case block.
-                const lCaseBlock: BlockStatementAst = new BlockStatementAst(lCaseData.block, pContext);
+                const lCaseBlock: BlockStatementAst = new BlockStatementAst(lCaseData.block).process(pContext);
 
                 // Validate any case value.
                 for (const lCaseValue of lCaseData.expressions) {
@@ -83,7 +83,7 @@ export class SwitchStatementAst extends AbstractSyntaxTree<SwitchStatementCst, S
             }
 
             // Trace default block.
-            const lDefault: BlockStatementAst = new BlockStatementAst(this.cst.default, pContext);
+            const lDefault: BlockStatementAst = new BlockStatementAst(this.cst.default).process(pContext);
 
             return {
                 expression: lExpression,

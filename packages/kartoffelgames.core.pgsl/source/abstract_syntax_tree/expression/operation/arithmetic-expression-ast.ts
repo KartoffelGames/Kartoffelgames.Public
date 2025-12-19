@@ -15,7 +15,7 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
      * 
      * @param pContext - Validation trace.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): ArithmeticExpressionAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): ArithmeticExpressionAstData {
         // Create list of all arithmetic operations.
         const lComparisonList: Array<PgslOperator> = [
             PgslOperator.Plus,

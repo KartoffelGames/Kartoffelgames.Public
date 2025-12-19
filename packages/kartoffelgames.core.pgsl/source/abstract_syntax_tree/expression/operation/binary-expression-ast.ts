@@ -16,7 +16,7 @@ export class BinaryExpressionAst extends AbstractSyntaxTree<BinaryExpressionCst,
      * 
      * @param pContext - Validation context.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): BinaryExpressionAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): BinaryExpressionAstData {
         // Try to convert operator.
         let lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.cst.operator);
         if(!lOperator) {

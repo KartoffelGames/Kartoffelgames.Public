@@ -16,7 +16,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
     /**
      * Validate data of current structure.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): FunctionCallExpressionAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): FunctionCallExpressionAstData {
         const lFunctionDeclaration: FunctionDeclarationAst | undefined = pContext.getFunction(this.cst.functionName);
 
         // Should be a function declaration otherwise it cant be validated further.

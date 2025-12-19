@@ -14,9 +14,9 @@ export class StructDeclarationAst extends AbstractSyntaxTree<StructDeclarationCs
     /**
      * Trace data of current structure.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): StructDeclarationAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): StructDeclarationAstData {
         // Create attribute list.
-        const lAttributes: AttributeListAst = new AttributeListAst(this.cst.attributeList, this, pContext);
+        const lAttributes: AttributeListAst = new AttributeListAst(this.cst.attributeList, this).process(pContext);
 
         // Check if struct is already defined.
         if (pContext.getStruct(this.cst.name)) {
@@ -30,7 +30,7 @@ export class StructDeclarationAst extends AbstractSyntaxTree<StructDeclarationCs
         // Validate properties.
         for (let lIndex: number = 0; lIndex < this.cst.properties.length; lIndex++) {
             // Read property.
-            const lProperty: StructPropertyDeclarationAst = new StructPropertyDeclarationAst(this.cst.properties[lIndex], pContext, this);
+            const lProperty: StructPropertyDeclarationAst = new StructPropertyDeclarationAst(this.cst.properties[lIndex], this).process(pContext);
 
             // Validate property name.
             if (lProperties.has(lProperty.data.name)) {

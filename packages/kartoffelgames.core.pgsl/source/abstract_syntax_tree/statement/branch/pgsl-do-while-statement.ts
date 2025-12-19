@@ -16,7 +16,7 @@ export class DoWhileStatementAst extends AbstractSyntaxTree<DoWhileStatementCst,
      * 
      * @param pContext - Validation trace.
      */
-    protected process(pContext: AbstractSyntaxTreeContext): DoWhileStatementAstData {
+    protected onProcess(pContext: AbstractSyntaxTreeContext): DoWhileStatementAstData {
         // Trace block in own loop scope.
         return pContext.pushScope('loop', () => {
             // Read attachments of expression.
@@ -28,7 +28,7 @@ export class DoWhileStatementAst extends AbstractSyntaxTree<DoWhileStatementCst,
             }
 
             // Create block statement.
-            const lBlock: BlockStatementAst = new BlockStatementAst(this.cst.block, pContext);
+            const lBlock: BlockStatementAst = new BlockStatementAst(this.cst.block).process(pContext);
 
             return {
                 expression: lExpression,

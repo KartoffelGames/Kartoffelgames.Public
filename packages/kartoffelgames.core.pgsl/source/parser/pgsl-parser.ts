@@ -23,6 +23,7 @@ import { PgslToken } from './pgsl-token.enum.ts';
 import { PgslInterpolateSamplingEnum } from "../buildin/pgsl-interpolate-sampling-enum.ts";
 import { PgslAccessModeEnum } from "../buildin/pgsl-access-mode-enum.ts";
 import { PgslTranspilationMeta } from "../transpilation/pgsl-transpilation-meta.ts";
+import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
 
 export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
     private static readonly STATIC_TYPE_NAMES: Set<string> = new Set<string>([
@@ -168,8 +169,10 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         // Append buildin declarations to the document.
         lDocumentCst.buildInDeclarations.push(...lBuildInEnumList);
 
+        const lContext: AbstractSyntaxTreeContext = new AbstractSyntaxTreeContext();
+
         // Build and return PgslParserResult.
-        return new DocumentAst(lDocumentCst);
+        return new DocumentAst(lDocumentCst).process(lContext);
     }
 
     /**

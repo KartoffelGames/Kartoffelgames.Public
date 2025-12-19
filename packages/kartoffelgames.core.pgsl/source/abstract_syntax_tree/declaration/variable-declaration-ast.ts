@@ -38,12 +38,12 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
      * Validate data of current structure.
      * https://www.w3.org/TR/WGSL/#var-and-value
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): VariableDeclarationAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): VariableDeclarationAstData {
         // Create attribute list.
-        const lAttributes: AttributeListAst = new AttributeListAst(this.cst.attributeList, this, pContext);
+        const lAttributes: AttributeListAst = new AttributeListAst(this.cst.attributeList, this).process(pContext);
 
         // Read type of type declaration.
-        const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(this.cst.typeDeclaration, pContext);
+        const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(this.cst.typeDeclaration).process(pContext);
         const lType: PgslType = lTypeDeclaration.data.type;
 
         // Read optional expression attachment.

@@ -17,7 +17,7 @@ export class IncrementDecrementStatementAst extends AbstractSyntaxTree<Increment
      * 
      * @param pContext - Validation context.
      */
-    protected process(pContext: AbstractSyntaxTreeContext): IncrementDecrementStatementAstData {
+    protected onProcess(pContext: AbstractSyntaxTreeContext): IncrementDecrementStatementAstData {
         // Create list of all bit operations.
         const lIncrementDecrementOperatorList: Array<PgslOperator> = [
             PgslOperator.Increment,

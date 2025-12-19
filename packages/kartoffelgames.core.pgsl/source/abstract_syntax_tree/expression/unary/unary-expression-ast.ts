@@ -20,7 +20,7 @@ export class UnaryExpressionAst extends AbstractSyntaxTree<UnaryExpressionCst, U
      * 
      * @param pContext - Validation context.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): UnaryExpressionAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): UnaryExpressionAstData {
         // Build expression.
         const lExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression, pContext);
 

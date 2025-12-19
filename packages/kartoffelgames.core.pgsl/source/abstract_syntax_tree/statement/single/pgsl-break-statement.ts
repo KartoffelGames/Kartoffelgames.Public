@@ -12,7 +12,7 @@ export class BreakStatementAst extends AbstractSyntaxTree<BreakStatementCst, Bre
      * 
      * @param pContext - Validation context.
      */
-    protected process(pContext: AbstractSyntaxTreeContext): BreakStatementAstData {
+    protected onProcess(pContext: AbstractSyntaxTreeContext): BreakStatementAstData {
         // Only in Loops and switch.
         if (!pContext.hasScope('loop') && !pContext.hasScope('switch')) {
             pContext.pushIncident('Break statement can only be used within loops or switch statements.', this);

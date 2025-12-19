@@ -17,7 +17,7 @@ export class AssignmentStatementAst extends AbstractSyntaxTree<AssignmentStateme
      * 
      * @param pContext - Validation context.
      */
-    protected process(pContext: AbstractSyntaxTreeContext): AssignmentStatementAstData {
+    protected onProcess(pContext: AbstractSyntaxTreeContext): AssignmentStatementAstData {
         // Try to parse assignment.
         const lAssignment: PgslAssignment | undefined = EnumUtil.cast(PgslAssignment, this.cst.assignment);
         if (!lAssignment) {

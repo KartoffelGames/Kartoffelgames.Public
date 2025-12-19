@@ -18,7 +18,7 @@ export class BlockStatementAst extends AbstractSyntaxTree<BlockStatementCst, Blo
      * 
      * @param pContext - Context.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): BlockStatementAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): BlockStatementAstData {
         // Create new scope and validate all statements.
         return pContext.pushScope('inherit', () => {
             // Prepare data containers.

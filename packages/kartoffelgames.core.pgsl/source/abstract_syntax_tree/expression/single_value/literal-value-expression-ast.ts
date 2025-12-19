@@ -18,7 +18,7 @@ export class LiteralValueExpressionAst extends AbstractSyntaxTree<LiteralValueEx
      * 
      * @param pContext - Validation context.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): LiteralValueExpressionAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): LiteralValueExpressionAstData {
         // Convert value.
         const [lResolveType, lValue] = this.convertData(pContext, this.cst.textValue);
 

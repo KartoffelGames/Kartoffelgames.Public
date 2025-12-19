@@ -11,28 +11,16 @@ import { DeclarationAstData, IDeclarationAst } from './i-declaration-ast.interfa
  */
 export class AliasDeclarationAst extends AbstractSyntaxTree<AliasDeclarationCst, AliasDeclarationAstData> implements IDeclarationAst {
     /**
-     * Constructor.
-     * 
-     * @param pName - Alias name.
-     * @param pType - Aliased type.
-     * @param pAttributeList - Declaration attribute list.
-     * @param pMeta - Syntax tree meta data.
-     */
-    public constructor(pCst: AliasDeclarationCst, pContext: AbstractSyntaxTreeContext) {
-        super(pCst, pContext);
-    }
-
-    /**
      * Process the declaration.
      * 
      * @param pContext - Context.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): AliasDeclarationAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): AliasDeclarationAstData {
         // Create attribute list.
-        const lAttributes: AttributeListAst = new AttributeListAst(this.cst.attributeList, this, pContext);
+        const lAttributes: AttributeListAst = new AttributeListAst(this.cst.attributeList, this).process(pContext);
 
         // Read type of type declaration.
-        const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(this.cst.typeDefinition, pContext);
+        const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(this.cst.typeDefinition).process(pContext);
 
         // Check if alias with same name already exists.
         if (pContext.getAlias(this.cst.name)) {

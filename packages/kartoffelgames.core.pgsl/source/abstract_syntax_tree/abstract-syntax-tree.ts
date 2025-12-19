@@ -7,7 +7,7 @@ import { AbstractSyntaxTreeContext } from "./abstract-syntax-tree-context.ts";
  */
 export abstract class AbstractSyntaxTree<TCst extends Cst<string> = Cst<string>, TData extends object = {}> {
     private readonly mMeta: AbstractSyntaxTreeMeta;
-    private readonly mData: TData;
+    private mData: TData | null;
     private readonly mConcreteSyntaxTree: TCst;
 
     /**
@@ -21,6 +21,10 @@ export abstract class AbstractSyntaxTree<TCst extends Cst<string> = Cst<string>,
      * Get syntax tree data.
      */
     public get data(): Readonly<TData> {
+        if (this.mData === null) {
+            throw new Error("Abstract syntax tree data is not yet processed.");
+        }
+
         return this.mData;
     }
 
@@ -36,7 +40,7 @@ export abstract class AbstractSyntaxTree<TCst extends Cst<string> = Cst<string>,
      * 
      * @param pConcreteSyntaxTree - Concrete syntax tree node.
      */
-    public constructor(pConcreteSyntaxTree: TCst, pContext: AbstractSyntaxTreeContext) {
+    public constructor(pConcreteSyntaxTree: TCst,) {
         // Save meta information.
         this.mMeta = [
             pConcreteSyntaxTree.range[0],
@@ -47,17 +51,32 @@ export abstract class AbstractSyntaxTree<TCst extends Cst<string> = Cst<string>,
 
         this.mConcreteSyntaxTree = pConcreteSyntaxTree;
 
-        // Trace the syntax tree to build up data.
-        this.mData = this.process(pContext);
+        // Set empty initial data.
+        this.mData = null;
     }
 
     /**
-     * process the concrete syntax tree.
+     * Process the concrete syntax tree.
+     * Builds up the abstract structure of the syntax tree.
+     * 
+     * @param pContext - Processing context.
+     * 
+     * @returns This syntax tree node. 
+     */
+    public process(pContext: AbstractSyntaxTreeContext): this {
+        // Process syntax tree to build up data.
+        this.mData = this.onProcess(pContext);
+
+        return this;
+    }
+
+    /**
+     * Process the concrete syntax tree.
      * Builds up the abstract structure of the syntax tree.
      * 
      * @param pContext - Processing context.
      */
-    protected abstract process(pContext: AbstractSyntaxTreeContext): TData;
+    protected abstract onProcess(pContext: AbstractSyntaxTreeContext): TData;
 }
 
 /**

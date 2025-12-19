@@ -16,7 +16,7 @@ export class IfStatementAst extends AbstractSyntaxTree<IfStatementCst, IfStateme
      * 
      * @param pContext - Validation context.
      */
-    protected process(pContext: AbstractSyntaxTreeContext): IfStatementAstData {
+    protected onProcess(pContext: AbstractSyntaxTreeContext): IfStatementAstData {
         // Validate expression.
         const lExpression: IExpressionAst | null = ExpressionAstBuilder.build(this.cst.expression, pContext);
         if (!lExpression) {
@@ -24,16 +24,16 @@ export class IfStatementAst extends AbstractSyntaxTree<IfStatementCst, IfStateme
         }
 
         // Validate block.
-        const lBlock: BlockStatementAst = new BlockStatementAst(this.cst.block, pContext);
+        const lBlock: BlockStatementAst = new BlockStatementAst(this.cst.block).process(pContext);
 
         // Validate else block.
         let lElse: BlockStatementAst | IfStatementAst | null = null;
         if (this.cst.else) {
             // Check if else is another if statement or a block
             if (this.cst.else.type === 'IfStatement') {
-                lElse = new IfStatementAst(this.cst.else as any, pContext);
+                lElse = new IfStatementAst(this.cst.else as any).process(pContext);
             } else {
-                lElse = new BlockStatementAst(this.cst.else as any, pContext);
+                lElse = new BlockStatementAst(this.cst.else as any).process(pContext);
             }
         }
 

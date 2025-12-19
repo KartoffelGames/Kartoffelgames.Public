@@ -26,21 +26,12 @@ import { ExpressionAstBuilder } from "../expression/expression-ast-builder.ts";
  */
 export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, TypeDeclarationAstData> {
     /**
-     * Constructor.
-     * 
-     * @param pMeta - Syntax tree meta data.
-     */
-    public constructor(pConcreteSyntaxTree: TypeDeclarationCst, pContext: AbstractSyntaxTreeContext) {
-        super(pConcreteSyntaxTree, pContext);
-    }
-
-    /**
      * Process this syntax tree node and its children.
      * Only traces the templates as they are the only children.
      * 
      * @param pContext - Ast build context.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): TypeDeclarationAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): TypeDeclarationAstData {
         return {
             type: this.resolveType(pContext)
         };
@@ -184,7 +175,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
                 return null;
             }
 
-            return new TypeDeclarationAst(lTypeTemplate, pContext);
+            return new TypeDeclarationAst(lTypeTemplate).process(pContext);
         })();
 
         if (lTypeTemplate === null) {
@@ -317,7 +308,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         }
 
         // Build inner type.
-        const lInnerTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(lInnerTypeDefinition, pContext);
+        const lInnerTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(lInnerTypeDefinition).process(pContext);
 
         // Build matrix definition.
         return new PgslMatrixType(pContext, pRawName as any, lInnerTypeDeclaration.data.type);
@@ -363,7 +354,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         };
 
         // Create a new type declaration without pointer.
-        const lInnerTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(lConcreteTypeDeclaration, pContext);
+        const lInnerTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(lConcreteTypeDeclaration).process(pContext);
         const lInnerType: PgslType = lInnerTypeDeclaration.data.type;
 
         // Build pointer type definition.
@@ -456,7 +447,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         for (const lTemplate of pRawTemplate) {
             if (lTemplate.type === 'TypeDeclaration') {
                 // Build type declaration template.
-                lTemplateAstList.push(new TypeDeclarationAst(lTemplate, pContext));
+                lTemplateAstList.push(new TypeDeclarationAst(lTemplate).process(pContext));
             } else {
                 const lTemplateExpression: IExpressionAst = ExpressionAstBuilder.build(lTemplate, pContext);
 
@@ -504,7 +495,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         }
 
         // Build inner type.
-        const lInnerTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(lInnerTypeDefinition, pContext);
+        const lInnerTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(lInnerTypeDefinition).process(pContext);
 
         // Build vector definition.
         return new PgslVectorType(pContext, lVectorDimension, lInnerTypeDeclaration.data.type);

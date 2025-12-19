@@ -28,31 +28,31 @@ export class StatementAstBuilder {
     public static build(pCst: StatementCst, pContext: AbstractSyntaxTreeContext): IStatementAst {
         switch (pCst.type) {
             case 'BlockStatement':
-                return new BlockStatementAst(pCst as BlockStatementCst, pContext);
+                return new BlockStatementAst(pCst as BlockStatementCst).process(pContext);
             case 'AssignmentStatement':
-                return new AssignmentStatementAst(pCst as AssignmentStatementCst, pContext);
+                return new AssignmentStatementAst(pCst as AssignmentStatementCst).process(pContext);
             case 'FunctionCallStatement':
-                return new FunctionCallStatementAst(pCst as FunctionCallStatementCst, pContext);
+                return new FunctionCallStatementAst(pCst as FunctionCallStatementCst).process(pContext);
             case 'IncrementDecrementStatement':
-                return new IncrementDecrementStatementAst(pCst as IncrementDecrementStatementCst, pContext);
+                return new IncrementDecrementStatementAst(pCst as IncrementDecrementStatementCst).process(pContext);
             case 'VariableDeclarationStatement':
-                return new VariableDeclarationStatementAst(pCst as VariableDeclarationStatementCst, pContext);
+                return new VariableDeclarationStatementAst(pCst as VariableDeclarationStatementCst).process(pContext);
             case 'BreakStatement':
-                return new BreakStatementAst(pCst as BreakStatementCst, pContext);
+                return new BreakStatementAst(pCst as BreakStatementCst).process(pContext);
             case 'ContinueStatement':
-                return new ContinueStatementAst(pCst as ContinueStatementCst, pContext);
+                return new ContinueStatementAst(pCst as ContinueStatementCst).process(pContext);
             case 'DiscardStatement':
-                return new DiscardStatementAst(pCst as DiscardStatementCst, pContext);
+                return new DiscardStatementAst(pCst as DiscardStatementCst).process(pContext);
             case 'DoWhileStatement':
-                return new DoWhileStatementAst(pCst as DoWhileStatementCst, pContext);
+                return new DoWhileStatementAst(pCst as DoWhileStatementCst).process(pContext);
             case 'ForStatement':
-                return new ForStatementAst(pCst as ForStatementCst, pContext);
+                return new ForStatementAst(pCst as ForStatementCst).process(pContext);
             case 'IfStatement':
-                return new IfStatementAst(pCst as IfStatementCst, pContext);
+                return new IfStatementAst(pCst as IfStatementCst).process(pContext);
             case 'SwitchStatement':
-                return new SwitchStatementAst(pCst as SwitchStatementCst, pContext);
+                return new SwitchStatementAst(pCst as SwitchStatementCst).process(pContext);
             case 'WhileStatement':
-                return new WhileStatementAst(pCst as WhileStatementCst, pContext);
+                return new WhileStatementAst(pCst as WhileStatementCst).process(pContext);
         }
 
         throw new Exception(`Statement type '${pCst.type}' is not recognized in AST builder.`, StatementAstBuilder);

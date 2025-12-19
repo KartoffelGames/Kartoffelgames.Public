@@ -15,7 +15,7 @@ export class ReturnStatementAst extends AbstractSyntaxTree<ReturnStatementCst, R
     /**
      * Validate data of current structure.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): ReturnStatementAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): ReturnStatementAstData {
         // Build child expression.
         let lExpression: IExpressionAst | null = null;
         if (this.cst.expression) {

@@ -23,15 +23,15 @@ export abstract class DeclarationAstBuilder {
     public static build(pCst: DeclarationCst, pContext: AbstractSyntaxTreeContext): IDeclarationAst {
         switch (pCst.type) {
             case 'AliasDeclaration':
-                return new AliasDeclarationAst(pCst as AliasDeclarationCst, pContext);
+                return new AliasDeclarationAst(pCst as AliasDeclarationCst).process(pContext);
             case 'EnumDeclaration':
-                return new EnumDeclarationAst(pCst as EnumDeclarationCst, pContext);
+                return new EnumDeclarationAst(pCst as EnumDeclarationCst).process(pContext);
             case 'FunctionDeclaration':
-                return new FunctionDeclarationAst(pCst as FunctionDeclarationCst, pContext);
+                return new FunctionDeclarationAst(pCst as FunctionDeclarationCst).process(pContext);
             case 'VariableDeclaration':
-                return new VariableDeclarationAst(pCst as VariableDeclarationCst, pContext);
+                return new VariableDeclarationAst(pCst as VariableDeclarationCst).process(pContext);
             case 'StructDeclaration':
-                return new StructDeclarationAst(pCst as StructDeclarationCst, pContext);
+                return new StructDeclarationAst(pCst as StructDeclarationCst).process(pContext);
         }
 
         throw new Exception(`Declaration AST Builder: Could not build declaration of type '${pCst.type}'.`, DeclarationAstBuilder);

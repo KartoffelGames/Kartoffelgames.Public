@@ -58,8 +58,8 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
      * @param pMeta - Syntax tree meta data.
      * @param pAttributes - Attribute list.
      */
-    public constructor(pCst: AttributeListCst, pAttachedDeclaration: IDeclarationAst, pContext: AbstractSyntaxTreeContext) {
-        super(pCst, pContext);
+    public constructor(pCst: AttributeListCst, pAttachedDeclaration: IDeclarationAst) {
+        super(pCst);
 
         // Init empty attribute list.
         this.mAttachedDeclaration = pAttachedDeclaration;
@@ -101,7 +101,7 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
     /**
      * Validate data of current structure.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): AttributeListAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): AttributeListAstData {
         // Create attribute list data.
         const lAttributeListData: AttributeListAstData = {
             attributes: new Map<PgslAttributeName, Array<IExpressionAst>>()

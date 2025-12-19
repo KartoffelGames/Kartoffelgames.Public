@@ -17,7 +17,7 @@ export class LogicalExpressionAst extends AbstractSyntaxTree<LogicalExpressionCs
      * 
      * @param pContext - Validation context.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): LogicalExpressionAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): LogicalExpressionAstData {
         // Try to convert operator.
         let lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.cst.operator);
         if(!lOperator) {

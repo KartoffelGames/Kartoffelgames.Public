@@ -15,7 +15,7 @@ export class FunctionCallStatementAst extends AbstractSyntaxTree<FunctionCallSta
      * 
      * @param pContext - Validation context.
      */
-    protected process(pContext: AbstractSyntaxTreeContext): FunctionCallStatementAstData {
+    protected onProcess(pContext: AbstractSyntaxTreeContext): FunctionCallStatementAstData {
         // Build a function call expression cst.
         const lFunctionCallCst: FunctionCallExpressionCst = {
             type: 'FunctionCallExpression',

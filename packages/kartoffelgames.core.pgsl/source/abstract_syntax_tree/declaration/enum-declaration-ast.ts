@@ -17,9 +17,9 @@ export class EnumDeclarationAst extends AbstractSyntaxTree<EnumDeclarationCst, E
     /**
      * Validate data of current structure.
      */
-    protected override process(pContext: AbstractSyntaxTreeContext): EnumDeclarationAstData {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): EnumDeclarationAstData {
         // Create attribute list.
-        const lAttributes: AttributeListAst = new AttributeListAst(this.cst.attributeList, this, pContext);
+        const lAttributes: AttributeListAst = new AttributeListAst(this.cst.attributeList, this).process(pContext);
 
         const lProperties: ReadonlyMap<string, IExpressionAst> = this.processProperties(pContext);
 
@@ -40,7 +40,7 @@ export class EnumDeclarationAst extends AbstractSyntaxTree<EnumDeclarationCst, E
         }
 
         // Register enum.
-        pContext.registerEnum(this.cst.name,this);
+        pContext.registerEnum(this.cst.name, this);
 
         return {
             attributes: lAttributes,

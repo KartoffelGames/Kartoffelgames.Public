@@ -29,35 +29,35 @@ export class ExpressionAstBuilder {
     public static build(pCst: ExpressionCst, pContext: AbstractSyntaxTreeContext): IExpressionAst {
         switch (pCst.type) {
             case 'ArithmeticExpression':
-                return new ArithmeticExpressionAst(pCst as ArithmeticExpressionCst, pContext);
+                return new ArithmeticExpressionAst(pCst as ArithmeticExpressionCst).process(pContext);
             case 'BinaryExpression':
-                return new BinaryExpressionAst(pCst as BinaryExpressionCst, pContext);
+                return new BinaryExpressionAst(pCst as BinaryExpressionCst).process(pContext);
             case 'ComparisonExpression':
-                return new ComparisonExpressionAst(pCst as ComparisonExpressionCst, pContext);
+                return new ComparisonExpressionAst(pCst as ComparisonExpressionCst).process(pContext);
             case 'LogicalExpression':
-                return new LogicalExpressionAst(pCst as LogicalExpressionCst, pContext);
+                return new LogicalExpressionAst(pCst as LogicalExpressionCst).process(pContext);
             case 'AddressOfExpression':
-                return new AddressOfExpressionAst(pCst as AddressOfExpressionCst, pContext);
+                return new AddressOfExpressionAst(pCst as AddressOfExpressionCst).process(pContext);
             case 'LiteralValueExpression':
-                return new LiteralValueExpressionAst(pCst as LiteralValueExpressionCst, pContext);
+                return new LiteralValueExpressionAst(pCst as LiteralValueExpressionCst).process(pContext);
             case 'FunctionCallExpression':
-                return new FunctionCallExpressionAst(pCst as FunctionCallExpressionCst, pContext);
+                return new FunctionCallExpressionAst(pCst as FunctionCallExpressionCst).process(pContext);
             case 'ParenthesizedExpression':
-                return new ParenthesizedExpressionAst(pCst as ParenthesizedExpressionCst, pContext);
+                return new ParenthesizedExpressionAst(pCst as ParenthesizedExpressionCst).process(pContext);
             case 'StringValueExpression':
-                return new StringValueExpressionAst(pCst as StringValueExpressionCst, pContext);
+                return new StringValueExpressionAst(pCst as StringValueExpressionCst).process(pContext);
             case 'NewExpression':
-                return new NewExpressionAst(pCst as NewExpressionCst, pContext);
+                return new NewExpressionAst(pCst as NewExpressionCst).process(pContext);
             case 'IndexedValueExpression':
-                return new IndexedValueExpressionAst(pCst as IndexedValueExpressionCst, pContext);
+                return new IndexedValueExpressionAst(pCst as IndexedValueExpressionCst).process(pContext);
             case 'PointerExpression':
-                return new PointerExpressionAst(pCst as PointerExpressionCst, pContext);
+                return new PointerExpressionAst(pCst as PointerExpressionCst).process(pContext);
             case 'VariableNameExpression':
-                return new VariableNameExpressionAst(pCst as VariableNameExpressionCst, pContext);
+                return new VariableNameExpressionAst(pCst as VariableNameExpressionCst).process(pContext);
             case 'ValueDecompositionExpression':
-                return new ValueDecompositionExpressionAst(pCst as ValueDecompositionExpressionCst, pContext);
+                return new ValueDecompositionExpressionAst(pCst as ValueDecompositionExpressionCst).process(pContext);
             case 'UnaryExpression':
-                return new UnaryExpressionAst(pCst as UnaryExpressionCst, pContext);
+                return new UnaryExpressionAst(pCst as UnaryExpressionCst).process(pContext);
         }
     }
 }

@@ -16,7 +16,7 @@ export class WhileStatementAst extends AbstractSyntaxTree<WhileStatementCst, Whi
      * 
      * @param pContext - Validation context.
      */
-    protected process(pContext: AbstractSyntaxTreeContext): WhileStatementAstData {
+    protected onProcess(pContext: AbstractSyntaxTreeContext): WhileStatementAstData {
         // Trace expression.
         const lExpression: IExpressionAst | null = ExpressionAstBuilder.build(this.cst.expression, pContext);
         if (!lExpression) {
@@ -26,7 +26,7 @@ export class WhileStatementAst extends AbstractSyntaxTree<WhileStatementCst, Whi
         // Trace block in own loop scope.
         return pContext.pushScope('loop', () => {
             // Create block statement.
-            const lBlock: BlockStatementAst = new BlockStatementAst(this.cst.block, pContext);
+            const lBlock: BlockStatementAst = new BlockStatementAst(this.cst.block).process(pContext);
 
             // Expression must be a boolean.
             if (!lExpression.data.resolveType.isImplicitCastableInto(new PgslBooleanType(pContext))) {

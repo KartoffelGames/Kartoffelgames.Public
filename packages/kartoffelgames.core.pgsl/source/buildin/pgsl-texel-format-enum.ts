@@ -2,16 +2,22 @@ import type { EnumDeclarationCst, EnumDeclarationValueCst } from "../concrete_sy
 import { StringValueExpressionCst } from "../concrete_syntax_tree/expression.type.ts";
 
 export class PgslTexelFormatEnum {
+    private static mValidValues: Set<string> | null = null;
+
     /**
      * Valid values set.
      */
-    private static readonly mValidValues: Set<string> = (() => {
-        const lSet = new Set<string>();
-        for (const lKey in PgslTexelFormatEnum.values) {
-            lSet.add(PgslTexelFormatEnum.values[lKey as keyof typeof PgslTexelFormatEnum.values]);
+    private static get validValues(): Set<string> {
+        if (!PgslTexelFormatEnum.mValidValues) {
+            const lSet = new Set<string>();
+            for (const lKey in PgslTexelFormatEnum.values) {
+                lSet.add(PgslTexelFormatEnum.values[lKey as keyof typeof PgslTexelFormatEnum.values]);
+            }
+            PgslTexelFormatEnum.mValidValues = lSet;
         }
-        return lSet;
-    })();
+
+        return PgslTexelFormatEnum.mValidValues;
+    }
 
     /**
      * Enum values.
@@ -74,7 +80,7 @@ export class PgslTexelFormatEnum {
      * @returns True if the value is valid, false otherwise.
      */
     public static containsValue(pValue: string): pValue is PgslTexelFormat {
-        return PgslTexelFormatEnum.mValidValues.has(pValue);
+        return PgslTexelFormatEnum.validValues.has(pValue);
     }
 }
 

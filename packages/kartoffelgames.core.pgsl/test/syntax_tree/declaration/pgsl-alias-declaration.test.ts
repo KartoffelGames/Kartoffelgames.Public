@@ -389,9 +389,11 @@ Deno.test('PgslAliasDeclaration - Error', async (pContext) => {
 
         // Evaluation. Error should mention invalid template parameters.
         expect(lTranspilationResult.incidents.some(pIncident =>
-            // There is no explicit error for the invalid type inside a template, so we check for the undefined variable error.
-            pIncident.message.includes(`Variable "${lInvalidTemplateParameter}" not defined.`)
+            pIncident.message.includes(`First array template parameter must be a type.`)
         )).toBe(true);
+        expect(lTranspilationResult.incidents.some(pIncident =>
+            pIncident.message.includes('Variable "NotANumber" not defined.')
+        )).toBe(true); 
     });
 
     await pContext.step('Duplicate alias names', () => {

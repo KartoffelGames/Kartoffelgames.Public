@@ -178,10 +178,6 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
             return new TypeDeclarationAst(lTypeTemplate).process(pContext);
         })();
 
-        if (lTypeTemplate === null) {
-            return new PgslInvalidType().process(pContext);
-        }
-
         // Second length parameter.
         let lLengthParameter: IExpressionAst | null = (() => {
             if (pRawTemplate.length > 1) {
@@ -199,6 +195,9 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
             return null;
         })();
 
+        if (lTypeTemplate === null) {
+            return new PgslInvalidType().process(pContext);
+        }
 
         // Build BuildInType definition.
         return new PgslArrayType(lTypeTemplate.data.type, lLengthParameter).process(pContext);

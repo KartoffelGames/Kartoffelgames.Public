@@ -2,16 +2,22 @@ import type { EnumDeclarationCst, EnumDeclarationValueCst } from "../concrete_sy
 import { StringValueExpressionCst } from "../concrete_syntax_tree/expression.type.ts";
 
 export class PgslInterpolateTypeEnum {
+    private static mValidValues: Set<string> | null = null;
+
     /**
      * Valid values set.
      */
-    private static readonly mValidValues: Set<string> = (() => {
-        const lSet = new Set<string>();
-        for (const lKey in PgslInterpolateTypeEnum.values) {
-            lSet.add(PgslInterpolateTypeEnum.values[lKey as keyof typeof PgslInterpolateTypeEnum.values]);
+    private static get validValues(): Set<string> {
+        if (!PgslInterpolateTypeEnum.mValidValues) {
+            const lSet = new Set<string>();
+            for (const lKey in PgslInterpolateTypeEnum.values) {
+                lSet.add(PgslInterpolateTypeEnum.values[lKey as keyof typeof PgslInterpolateTypeEnum.values]);
+            }
+            PgslInterpolateTypeEnum.mValidValues = lSet;
         }
-        return lSet;
-    })();
+
+        return PgslInterpolateTypeEnum.mValidValues;
+    }
 
     /**
      * Enum values.
@@ -53,14 +59,14 @@ export class PgslInterpolateTypeEnum {
     })();
 
     /**
-     * Check if the given value is a valid access mode.
+     * Check if the given value is a valid interpolate type.
      * 
      * @param pValue - Value to check.
      * 
      * @returns True if the value is valid, false otherwise.
      */
     public static containsValue(pValue: string): pValue is PgslInterpolateType {
-        return PgslInterpolateTypeEnum.mValidValues.has(pValue);
+        return PgslInterpolateTypeEnum.validValues.has(pValue);
     }
 }
 

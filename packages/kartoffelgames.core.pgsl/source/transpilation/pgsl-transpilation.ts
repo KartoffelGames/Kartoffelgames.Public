@@ -32,23 +32,23 @@ export class PgslTranspilation {
      * @returns The transpiled code as a string.
      */
     public transpile(pInstance: AbstractSyntaxTree): PgslTranspilationResult {
-        // Read processor for the instance.
-        const lProcessor: IPgslTranspilerProcessor<AbstractSyntaxTree> | undefined = this.mTranspilationProcessors.get(pInstance.constructor as PgslSyntaxTreeConstructor);
-        if (!lProcessor) {
-            throw new Error(`No transpilation processor found for syntax tree of type '${pInstance.constructor.name}'.`);
-        }
+        // Create transpilation meta object.
+        const lTranspilationMeta: PgslTranspilationMeta = new PgslTranspilationMeta();
 
         // Create callbacks.
         const lTranspile: PgslTranspilerProcessorTranspile = (pInstance: AbstractSyntaxTree): string => {
-            return this.transpile(pInstance).code;
-        };
+            // Read processor for the instance.
+            const lProcessor: IPgslTranspilerProcessor<AbstractSyntaxTree> | undefined = this.mTranspilationProcessors.get(pInstance.constructor as PgslSyntaxTreeConstructor);
+            if (!lProcessor) {
+                throw new Error(`No transpilation processor found for syntax tree of type '${pInstance.constructor.name}'.`);
+            }
 
-        // Create transpilation meta object.
-        const lTranspilationMeta: PgslTranspilationMeta = new PgslTranspilationMeta(); 
+            return lProcessor.process(pInstance, lTranspile, lTranspilationMeta);
+        };
 
         // Create result.
         return {
-            code: lProcessor.process(pInstance, lTranspile, lTranspilationMeta),
+            code: lTranspile(pInstance),
             sourceMap: null,
             meta: lTranspilationMeta
         };

@@ -75,7 +75,7 @@ export class PgslParserResult {
         this.mIncidents = this.convertIncidents(pDocument);
 
         // Skip metadata extraction if there are incidents.
-        if (pDocument.data.incidents.length > 0) {
+        if (this.mIncidents.length > 0) {
             // Set empty metadata on incidents.
             this.mMeta = {
                 bindings: [],

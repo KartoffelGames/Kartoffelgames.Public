@@ -2,16 +2,22 @@ import type { EnumDeclarationCst, EnumDeclarationValueCst } from "../concrete_sy
 import { StringValueExpressionCst } from "../concrete_syntax_tree/expression.type.ts";
 
 export class PgslAccessModeEnum {
+    private static mValidValues: Set<string> | null = null;
+
     /**
      * Valid values set.
      */
-    private static readonly mValidValues: Set<string> = (() => {
-        const lSet = new Set<string>();
-        for (const lKey in PgslAccessModeEnum.values) {
-            lSet.add(PgslAccessModeEnum.values[lKey as keyof typeof PgslAccessModeEnum.values]);
+    private static get validValues(): Set<string> {
+        if (!PgslAccessModeEnum.mValidValues) {
+            const lSet = new Set<string>();
+            for (const lKey in PgslAccessModeEnum.values) {
+                lSet.add(PgslAccessModeEnum.values[lKey as keyof typeof PgslAccessModeEnum.values]);
+            }
+            PgslAccessModeEnum.mValidValues = lSet;
         }
-        return lSet;
-    })();
+
+        return PgslAccessModeEnum.mValidValues;
+    }
 
     /**
      * Enum values.
@@ -60,7 +66,7 @@ export class PgslAccessModeEnum {
      * @returns True if the value is valid, false otherwise.
      */
     public static containsValue(pValue: string): pValue is PgslAccessMode {
-        return PgslAccessModeEnum.mValidValues.has(pValue);
+        return PgslAccessModeEnum.validValues.has(pValue);
     }
 }
 

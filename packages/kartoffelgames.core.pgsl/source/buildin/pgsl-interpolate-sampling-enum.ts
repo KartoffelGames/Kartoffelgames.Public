@@ -2,16 +2,22 @@ import type { EnumDeclarationCst, EnumDeclarationValueCst } from "../concrete_sy
 import { StringValueExpressionCst } from "../concrete_syntax_tree/expression.type.ts";
 
 export class PgslInterpolateSamplingEnum {
+    private static mValidValues: Set<string> | null = null;
+
     /**
      * Valid values set.
      */
-    private static readonly mValidValues: Set<string> = (() => {
-        const lSet = new Set<string>();
-        for (const lKey in PgslInterpolateSamplingEnum.values) {
-            lSet.add(PgslInterpolateSamplingEnum.values[lKey as keyof typeof PgslInterpolateSamplingEnum.values]);
+    private static get validValues(): Set<string> {
+        if (!PgslInterpolateSamplingEnum.mValidValues) {
+            const lSet = new Set<string>();
+            for (const lKey in PgslInterpolateSamplingEnum.values) {
+                lSet.add(PgslInterpolateSamplingEnum.values[lKey as keyof typeof PgslInterpolateSamplingEnum.values]);
+            }
+            PgslInterpolateSamplingEnum.mValidValues = lSet;
         }
-        return lSet;
-    })();
+
+        return PgslInterpolateSamplingEnum.mValidValues;
+    }
 
     /**
      * Enum values.
@@ -62,7 +68,7 @@ export class PgslInterpolateSamplingEnum {
      * @returns True if the value is valid, false otherwise.
      */
     public static containsValue(pValue: string): pValue is PgslInterpolateSampling {
-        return PgslInterpolateSamplingEnum.mValidValues.has(pValue);
+        return PgslInterpolateSamplingEnum.validValues.has(pValue);
     }
 }
 

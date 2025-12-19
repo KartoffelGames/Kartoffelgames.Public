@@ -103,7 +103,7 @@ export class PgslParserResultBinding {
 
         // Check for null binding information.
         if (pValue.data.bindingInformation === null) {
-            throw new Exception('Binding information is null in PgslValueTrace.', this);
+            throw new Exception(`Binding information is not defined for variable ${pValue.data.name}.`, this);
         }
 
         // Read binding information incides from transpilation meta.

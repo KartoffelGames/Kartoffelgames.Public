@@ -339,13 +339,13 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
          */
         const lNameRestrictedTypeDeclarationSyntaxTreeGraph: Graph<PgslToken, object, TypeDeclarationCst> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
-                .optional('pointer', PgslToken.OperatorMultiply)
                 .required('name', PgslToken.Identifier)
                 .optional('templateList<-list', GraphNode.new<PgslToken>()
                     .required(PgslToken.TemplateListStart)
                     .required('list<-list', lTypeDeclarationTemplateListGraph)
                     .required(PgslToken.TemplateListEnd)
-                );
+                )
+                .optional('pointer', PgslToken.OperatorMultiply);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): TypeDeclarationCst => {
             // Check of type name is valid.
             // Identifier must be a defined type. If we dont check this here, a normal variable name could be parsed as type.

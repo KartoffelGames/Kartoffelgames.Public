@@ -27,8 +27,6 @@ import { PgslSamplerType } from '../../../source/type/pgsl-sampler-type.ts';
 import { PgslTextureType } from '../../../source/type/pgsl-texture-type.ts';
 import { PgslVectorType } from '../../../source/type/pgsl-vector-type.ts';
 
-// TODO: Check PgslParserResult for registered bindings.
-
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();
 

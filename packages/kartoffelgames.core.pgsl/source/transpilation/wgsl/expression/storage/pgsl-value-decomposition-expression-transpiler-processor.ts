@@ -24,11 +24,11 @@ export class PgslValueDecompositionExpressionTranspilerProcessor implements IPgs
      */
     public process(pInstance: ValueDecompositionExpressionAst, pTranspile: PgslTranspilerProcessorTranspile): string {
         // When the value is a enum, transpille as constant.
-        if (pInstance.data.resolveType instanceof PgslEnumType) {
+        if (pInstance.data.value.data.resolveType instanceof PgslEnumType) {
             // Read enum declaration.
-            const lPgslEnumTrace: EnumDeclarationAst | null = pInstance.data.resolveType.enumDeclaration;
+            const lPgslEnumTrace: EnumDeclarationAst | null = pInstance.data.value.data.resolveType.enumDeclaration;
             if (!lPgslEnumTrace) {
-                throw new Exception(`Enum type for "${pInstance.data.resolveType.enumName}" not found but was traced.`, this);
+                throw new Exception(`Enum type for "${pInstance.data.value.data.resolveType.enumName}" not found but was traced.`, this);
             }
 
             // Read enum value. If not found, transpile as normal property value decomposition.

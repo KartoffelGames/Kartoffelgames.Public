@@ -13,7 +13,7 @@ import { AnyConstructor } from "@std/expect/expect";
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();
 
-Deno.test('PgslAliasDeclaration - Parsing', async (pContext) => {
+Deno.test('AliasDeclarationAst - Parsing', async (pContext) => {
     await pContext.step('Scalar Types', async (pContext) => {
         await pContext.step('Float', () => {
             // Setup.
@@ -157,7 +157,7 @@ Deno.test('PgslAliasDeclaration - Parsing', async (pContext) => {
     });
 });
 
-Deno.test('PgslAliasDeclaration - Transpilation', async (pContext) => {
+Deno.test('AliasDeclarationAst - Transpilation', async (pContext) => {
     await pContext.step('Scalar Types', async (pContext) => {
         await pContext.step('Float', () => {
             // Setup.
@@ -317,7 +317,7 @@ Deno.test('PgslAliasDeclaration - Transpilation', async (pContext) => {
     });
 });
 
-Deno.test('PgslAliasDeclaration - Error', async (pContext) => {
+Deno.test('AliasDeclarationAst - Error', async (pContext) => {
     await pContext.step('Undefined type in alias', () => {
         // Setup.
         const lAliasName: string = 'TestAlias';

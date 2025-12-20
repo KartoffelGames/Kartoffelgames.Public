@@ -12,7 +12,7 @@ import { StringValueExpressionAst } from "../../../source/abstract_syntax_tree/e
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();
 
-Deno.test('PgslEnumDeclaration - Parsing', async (pContext) => {
+Deno.test('EnumDeclarationAst - Parsing', async (pContext) => {
     await pContext.step('Numeric enum', async (pContext) => {
         await pContext.step('Integer enum', () => {
             // Setup.
@@ -107,7 +107,7 @@ Deno.test('PgslEnumDeclaration - Parsing', async (pContext) => {
     });
 });
 
-Deno.test('PgslEnumDeclaration - Transpilation', async (pContext) => {
+Deno.test('EnumDeclarationAst - Transpilation', async (pContext) => {
     await pContext.step('Numeric enum', async (pContext) => {
         await pContext.step('Enum value usage in variable', () => {
             // Setup.
@@ -196,7 +196,7 @@ Deno.test('PgslEnumDeclaration - Transpilation', async (pContext) => {
     });
 });
 
-Deno.test('PgslEnumDeclaration - Error', async (pContext) => {
+Deno.test('EnumDeclarationAst - Error', async (pContext) => {
     await pContext.step('Duplicate value names', () => {
         // Setup.
         const lEnumName: string = 'TestEnum';

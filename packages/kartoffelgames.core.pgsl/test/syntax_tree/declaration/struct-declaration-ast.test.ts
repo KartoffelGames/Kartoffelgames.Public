@@ -12,7 +12,7 @@ import { StructPropertyDeclarationAst } from "../../../source/abstract_syntax_tr
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();
 
-Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
+Deno.test('StructDeclarationAst - Parsing', async (pContext) => {
     await pContext.step('Types', async (pContext) => {
         await pContext.step('Numeric property', () => {
             // Setup.
@@ -402,7 +402,7 @@ Deno.test('PgslStructDeclaration - Parsing', async (pContext) => {
     });
 });
 
-Deno.test('PgslStructDeclaration - Transpilation', async (pContext) => {
+Deno.test('StructDeclarationAst - Transpilation', async (pContext) => {
     await pContext.step('Types', async (pContext) => {
         await pContext.step('Numeric property', () => {
             // Setup.
@@ -824,7 +824,7 @@ Deno.test('PgslStructDeclaration - Transpilation', async (pContext) => {
     });
 });
 
-Deno.test('PgslStructDeclaration - Error Cases', async (pContext) => {
+Deno.test('StructDeclarationAst - Error Cases', async (pContext) => {
     await pContext.step('Duplicate struct names', () => {
         // Setup.
         const lStructName: string = 'TestDuplicateStruct';

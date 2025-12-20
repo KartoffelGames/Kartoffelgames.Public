@@ -41,21 +41,21 @@ export type EnumDeclarationValueCst = {
 
 export type FunctionDeclarationCst = {
     name: string;
-    headers: Array<FunctionDeclarationHeaderCst>;
-    isGeneric: boolean;
+    declarations: Array<FunctionDeclarationHeaderCst>;
     isConstant: boolean;
-    block: BlockStatementCst;
-    attributeList: AttributeListCst;
 } & DeclarationCst<'FunctionDeclaration'>;
 
 export type FunctionDeclarationHeaderCst = {
+    attributeList: AttributeListCst;
+    generics: Array<Array<TypeDeclarationCst>>;
     parameters: Array<FunctionDeclarationParameterCst>;
-    returnType: TypeDeclarationCst;
+    returnType: TypeDeclarationCst | number; // Number indicates generic return type of the header.
+    block: BlockStatementCst;
 } & DeclarationCst<'FunctionDeclarationHeader'>;
 
 export type FunctionDeclarationParameterCst = {
     name: string;
-    typeDeclaration: TypeDeclarationCst;
+    typeDeclaration: TypeDeclarationCst | number; // Number indicates generic parameter type of the header.
 } & DeclarationCst<'FunctionDeclarationParameter'>;
 
 /*

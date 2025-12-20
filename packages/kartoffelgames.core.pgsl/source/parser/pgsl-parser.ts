@@ -101,11 +101,19 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         // Initialize user defined type name set.
         this.mUserDefinedTypeNames = new Set<string>();
 
-        // Define expression graphs use the mime object of core graph for defining.
-        const lExpressionGraphs: PgslParserExpressionGraphs = this.defineExpressionGraphs();
+        // Create a mimic core graph object to pass to statement and declaration graph definitions.
+        const lCoreGraphs: PgslParserCoreGraphs = {
+            typeDeclaration: null as any,
+            attributeList: null as any
+        }
 
+        // Define expression graphs use the mime object of core graph for defining.
+        const lExpressionGraphs: PgslParserExpressionGraphs = this.defineExpressionGraphs(lCoreGraphs);
+        
         // Create actual core graphs and assign them to the mime object.
-        const lCoreGraphs: PgslParserCoreGraphs = this.defineCoreGraphs(lExpressionGraphs);
+        const lLoadedCoreGraphs: PgslParserCoreGraphs = this.defineCoreGraphs(lExpressionGraphs);
+        lCoreGraphs.typeDeclaration = lLoadedCoreGraphs.typeDeclaration;
+        lCoreGraphs.attributeList = lLoadedCoreGraphs.attributeList;
 
         const lStatementGraphs: PgslParserStatementGraphs = this.defineStatementGraphs(lCoreGraphs, lExpressionGraphs);
 
@@ -398,8 +406,12 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
 
     /**
      * Define graphs only for resolving expressions.
+     * 
+     * @param pCoreGraphs - Core graphs for type declarations and attribute lists.
+     * 
+     * @returns Expression graphs.
      */
-    private defineExpressionGraphs(): PgslParserExpressionGraphs {
+    private defineExpressionGraphs(pCoreGraphs: PgslParserCoreGraphs): PgslParserExpressionGraphs {
         // lExpressionSyntaxTreeGraph
 
         /**
@@ -718,6 +730,23 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         });
 
         /**
+         * Recursive list of type declarations seperated with comma.
+         * ```
+         * - "<TYPE_DECLARATION>"
+         * - "<TYPE_DECLARATION>, <TYPE_DECLARATION>"
+         * - "<TYPE_DECLARATION>, <TYPE_DECLARATION>, <TYPE_DECLARATION>"
+         * ```
+         */
+        const lFunctionCallGenericListGraph: Graph<PgslToken, object, { list: Array<TypeDeclarationCst>; }> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required('list[]', pCoreGraphs.typeDeclaration)
+                .optional('list<-list', GraphNode.new<PgslToken>()
+                    .required(PgslToken.Comma)
+                    .required('list<-list', lFunctionCallGenericListGraph) // Self reference
+                );
+        });
+
+        /**
          * Function call expression. Expression called as function.
          * ```
          * - "<EXPRESSION>()"
@@ -727,6 +756,11 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         const lFunctionCallExpressionGraph: Graph<PgslToken, object, FunctionCallExpressionCst> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('name', PgslToken.Identifier)
+                .optional('generics<-list', GraphNode.new<PgslToken>()
+                    .required(PgslToken.TemplateListStart)
+                    .required('list<-list', lFunctionCallGenericListGraph)
+                    .required(PgslToken.TemplateListEnd)
+                )
                 .required(PgslToken.ParenthesesStart)
                 .optional('parameters<-list', lExpressionListGraph)
                 .required(PgslToken.ParenthesesEnd);
@@ -736,6 +770,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 type: 'FunctionCallExpression',
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 functionName: pData.name,
+                genericList: pData.generics ?? [],
                 parameterList: pData.parameters ?? []
             } satisfies FunctionCallExpressionCst;
         });
@@ -750,17 +785,15 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         const lNewExpressionGraph: Graph<PgslToken, object, NewExpressionCst> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.KeywordNew)
-                .required('type', PgslToken.Identifier)
-                .required(PgslToken.ParenthesesStart)
-                .optional('parameters<-list', lExpressionListGraph)
-                .required(PgslToken.ParenthesesEnd);
+                .required('statement', lFunctionCallExpressionGraph)
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): NewExpressionCst => {
             // Create function call expression syntax tree.
             return {
                 type: 'NewExpression',
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                typeName: pData.type,
-                parameterList: pData.parameters ?? []
+                typeName: pData.statement.functionName,
+                parameterList: pData.statement.parameterList,
+                genericList: pData.statement.genericList
             } satisfies NewExpressionCst;
         });
 
@@ -802,7 +835,8 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
             expression: lExpressionSyntaxTreeGraph,
             expressionList: lExpressionListGraph,
             literalExpression: lLiteralValueExpressionGraph,
-            stringExpression: lStringValueExpressionGraph
+            stringExpression: lStringValueExpressionGraph,
+            functionCallExpression: lFunctionCallExpressionGraph
         };
     }
 
@@ -1194,16 +1228,14 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
          */
         const lFunctionCallStatementGraph: Graph<PgslToken, object, FunctionCallStatementCst> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
-                .required('name', PgslToken.Identifier)
-                .required(PgslToken.ParenthesesStart)
-                .optional('parameters<-list', pExpressionGraphs.expressionList)
-                .required(PgslToken.ParenthesesEnd);
+                .required('statement', pExpressionGraphs.functionCallExpression)
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): FunctionCallStatementCst => {
             return {
                 type: 'FunctionCallStatement',
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                functionName: pData.name,
-                parameterList: pData.parameters ?? []
+                functionName: pData.statement.functionName,
+                parameterList: pData.statement.parameterList,
+                genericList: pData.statement.genericList
             } satisfies FunctionCallStatementCst;
         });
 
@@ -1478,23 +1510,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 );
         });
 
-        const lFunctionHeaderGraph: Graph<PgslToken, object, FunctionDeclarationHeaderCst> = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required(PgslToken.ParenthesesStart)
-                .optional('parameters<-list', lFunctionParameterListGraph)
-                .required(PgslToken.ParenthesesEnd)
-                .required(PgslToken.Colon)
-                .required('returnType', pCoreGraphs.typeDeclaration);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): FunctionDeclarationHeaderCst => {
-            return {
-                type: 'FunctionDeclarationHeader',
-                buildIn: false,
-                range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                parameters: pData.parameters ?? [],
-                returnType: pData.returnType
-            } satisfies FunctionDeclarationHeaderCst;
-        });
-
         /**
          * Function declaration graph. Function with parameters and body.
          * ```
@@ -1507,22 +1522,36 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 .required('attributes', pCoreGraphs.attributeList)
                 .required(PgslToken.KeywordFunction)
                 .required('name', PgslToken.Identifier)
-                .required('header', lFunctionHeaderGraph)
+                .required(PgslToken.ParenthesesStart)
+                .optional('parameters<-list', lFunctionParameterListGraph)
+                .required(PgslToken.ParenthesesEnd)
+                .required(PgslToken.Colon)
+                .required('returnType', pCoreGraphs.typeDeclaration)
                 .required('block', pStatementGraphs.blockStatement);
+
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): FunctionDeclarationCst => {
             // Save function as a user defined type.
             this.mUserDefinedTypeNames.add(pData.name);
 
+            // Build function header.
+            const lFunctionHeader: FunctionDeclarationHeaderCst = {
+                type: 'FunctionDeclarationHeader',
+                buildIn: false,
+                range: this.createTokenBoundParameter(pStartToken, pEndToken),
+                attributeList: pData.attributes,
+                generics: [], // User functions do not support generics.
+                parameters: pData.parameters ?? [],
+                returnType: pData.returnType,
+                block: pData.block
+            };
+
             return {
                 type: 'FunctionDeclaration',
                 isConstant: false,
-                isGeneric: false,
                 buildIn: false,
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 name: pData.name,
-                headers: [pData.header],
-                block: pData.block,
-                attributeList: pData.attributes
+                declarations: [lFunctionHeader]
             } satisfies FunctionDeclarationCst;
         });
 
@@ -1584,6 +1613,7 @@ type PgslParserExpressionGraphs = {
     expressionList: Graph<PgslToken, object, { list: Array<ExpressionCst<ExpressionCstType>>; }>;
     literalExpression: Graph<PgslToken, object, LiteralValueExpressionCst>;
     stringExpression: Graph<PgslToken, object, StringValueExpressionCst>;
+    functionCallExpression: Graph<PgslToken, object, FunctionCallExpressionCst>;
 };
 
 type PgslParserStatementGraphs = {

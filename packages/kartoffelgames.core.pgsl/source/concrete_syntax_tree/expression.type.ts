@@ -1,4 +1,4 @@
-import type { Cst } from "./general.type.ts";
+import type { Cst, TypeDeclarationCst } from "./general.type.ts";
 
 /*
  * Core.
@@ -43,11 +43,13 @@ export type AddressOfExpressionCst = {
 export type FunctionCallExpressionCst = {
     functionName: string;
     parameterList: Array<ExpressionCst<ExpressionCstType>>;
+    genericList: Array<TypeDeclarationCst>;
 } & ExpressionCst<'FunctionCallExpression'>;
 
 export type NewExpressionCst = {
     typeName: string;
     parameterList: Array<ExpressionCst<ExpressionCstType>>;
+    genericList: Array<TypeDeclarationCst>;
 } & ExpressionCst<'NewExpression'>;
 
 export type LiteralValueExpressionCst = {

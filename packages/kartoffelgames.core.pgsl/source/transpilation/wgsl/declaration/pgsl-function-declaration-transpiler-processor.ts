@@ -29,7 +29,7 @@ export class PgslFunctionDeclarationTranspilerProcessor implements IPgslTranspil
 
         // Use first declaration only for transpilation.
         const lSoleHeader: FunctionDeclarationAstDataDeclaration = pInstance.data.declarations[0];
-        if (!lSoleHeader.returnType) {
+        if (typeof lSoleHeader.returnType === 'number') {
             throw new Exception(`Unable to transpile function "${pInstance.data.name}" with generic return type.`, this);
         }
 
@@ -38,7 +38,7 @@ export class PgslFunctionDeclarationTranspilerProcessor implements IPgslTranspil
 
         // Transpile function parameter list.
         const lParameterList: string = lSoleHeader.parameter.map((pParameter) => {
-            if (!pParameter.type) {
+            if (typeof pParameter.type === 'number') {
                 throw new Exception(`Unable to transpile function "${pInstance.data.name}" with generic parameter type.`, this);
             }
 

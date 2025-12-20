@@ -21,6 +21,7 @@ export class FunctionCallStatementAst extends AbstractSyntaxTree<FunctionCallSta
             type: 'FunctionCallExpression',
             functionName: this.cst.functionName,
             parameterList: this.cst.parameterList,
+            genericList: this.cst.genericList,
             range: this.cst.range
         }
 

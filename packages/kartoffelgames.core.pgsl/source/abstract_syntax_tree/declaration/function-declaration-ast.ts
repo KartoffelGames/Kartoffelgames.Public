@@ -21,59 +21,114 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
      * @param pContext - Build context.
      */
     protected override onProcess(pContext: AbstractSyntaxTreeContext): FunctionDeclarationAstData {
-        // Create attribute list.
-        const lAttributes: AttributeListAst = new AttributeListAst(this.cst.attributeList, this).process(pContext);
+        // If it is a function with multiple headers no attributelist is allowed.
+        if (this.cst.declarations.length > 1) {
+            for (const lDeclarations of this.cst.declarations) {
+                if (lDeclarations.attributeList.attributes.length > 0) {
+                    pContext.pushIncident(`Functions with multiple headers cannot have generic parameters.`, this);
+                    break;
+                }
+            }
+        }
 
         // Build return data.
         const lResultData = {
-            attributes: lAttributes,
             isConstant: this.cst.isConstant,
-            isGeneric: this.cst.isGeneric,
             name: this.cst.name,
-            declarations: new Array<FunctionDeclarationAstDataDeclaration>()
+            declarations: new Array<FunctionDeclarationAstDataDeclaration>(),
+
+            // Create empty attributes list to satisfy type.
+            attributes: new AttributeListAst({
+                type: 'AttributeList',
+                attributes: [],
+                range: this.cst.range,
+            }, this).process(pContext)
         } satisfies FunctionDeclarationAstData;
 
         // Each header must be validated in a separate scope.
-        for (const lHeader of this.cst.headers) {
+        for (const lDeclaration of this.cst.declarations) {
+            // Create attribute list for this declaration.
+            const lAttributes: AttributeListAst = new AttributeListAst(lDeclaration.attributeList, this).process(pContext);
+
             pContext.pushScope('function', () => {
                 // Create parameter list.
-                const lParameter: Array<FunctionDeclarationAstDataParameter> = lHeader.parameters.map((pParameterCst) => {
-                    return {
-                        name: pParameterCst.name,
-                        type: new TypeDeclarationAst(pParameterCst.typeDeclaration).process(pContext)
-                    };
-                });
+                let lParameterList: Array<FunctionDeclarationAstDataParameter> = new Array<FunctionDeclarationAstDataParameter>();
+                for (const lParameter of lDeclaration.parameters) {
+                    // Check for generic parameter.
+                    if (typeof lParameter.typeDeclaration === 'number') {
+                        // Validate generic parameter index.
+                        const lGenericIndex: number = lParameter.typeDeclaration;
+                        if (lGenericIndex < 0 || lGenericIndex >= lDeclaration.generics.length) {
+                            pContext.pushIncident(`Generic parameter index ${lGenericIndex} is out of bounds.`, this);
+                        }
 
-                // Create block for each header.
-                const lBlock: BlockStatementAst = new BlockStatementAst(this.cst.block).process(pContext);
-
-                // Build return type.
-                let lReturnTypeDeclaration: TypeDeclarationAst | null = null;
-                if (lHeader.returnType) {
-                    lReturnTypeDeclaration = new TypeDeclarationAst(lHeader.returnType).process(pContext);
-
-                    // Read block return type.
-                    const lBlockReturnType: PgslType = lBlock.data.returnType ?? new PgslVoidType().process(pContext);
-
-                    // Check for correct return type in function block.
-                    if (lBlockReturnType.isImplicitCastableInto(lReturnTypeDeclaration.data.type)) {
-                        pContext.pushIncident(`Function block return type does not match the declared return type.`, lBlock);
+                        lParameterList.push({
+                            name: lParameter.name,
+                            type: lGenericIndex
+                        });
+                    } else {
+                        lParameterList.push({
+                            name: lParameter.name,
+                            type: new TypeDeclarationAst(lParameter.typeDeclaration).process(pContext)
+                        });
                     }
                 }
 
-                // Add declaration data.
-                lResultData.declarations.push({
-                    parameter: lParameter,
-                    returnType: lReturnTypeDeclaration,
-                    block: lBlock
-                });
-            }, this);
-        }
+                // Create block for each header.
+                const lBlock: BlockStatementAst = new BlockStatementAst(lDeclaration.block).process(pContext);
 
-        // Find entry point.
-        const lEntryPoint: FunctionDeclarationAstDataEntryPoint | null = this.readEntryPoint(lAttributes, pContext);
-        if (lEntryPoint) {
-            (<FunctionDeclarationAstData>lResultData).entryPoint = lEntryPoint;
+                // Build return type.
+                let lReturnTypeDeclaration: TypeDeclarationAst | number = (() => {
+                    // Check for generic return type. Generic types arent validated for the block return type.
+                    if (typeof lDeclaration.returnType === 'number') {
+                        // Validate generic return type index.
+                        const lGenericIndex: number = lDeclaration.returnType;
+                        if (lGenericIndex < 0 || lGenericIndex >= lDeclaration.generics.length) {
+                            pContext.pushIncident(`Generic return type index ${lGenericIndex} is out of bounds.`, this);
+                        }
+                        return lGenericIndex;
+                    }
+
+                    const lReturnType: TypeDeclarationAst = new TypeDeclarationAst(lDeclaration.returnType).process(pContext);
+
+                    // If function is not built-in check for correct return type in function block.
+                    if (!lDeclaration.buildIn) {
+                        // Read block return type.
+                        const lBlockReturnType: PgslType = lBlock.data.returnType ?? new PgslVoidType().process(pContext);
+
+                        // Check for correct return type in function block.
+                        if (lBlockReturnType.isImplicitCastableInto(lReturnType.data.type)) {
+                            pContext.pushIncident(`Function block return type does not match the declared return type.`, lBlock);
+                        }
+                    }
+
+                    return lReturnType;
+                })();
+
+                // Convert all generics to types. O(n²) fuck it.
+                const lGenericList: Array<Array<PgslType>> = lDeclaration.generics.map((pGenericTypeList) => {
+                    return pGenericTypeList.map((pGenericTypeCst) => {
+                        const lGenericType: TypeDeclarationAst = new TypeDeclarationAst(pGenericTypeCst).process(pContext);
+                        return lGenericType.data.type;
+                    });
+                });
+
+                const lDeclarationResult: FunctionDeclarationAstDataDeclaration = {
+                    parameter: lParameterList,
+                    returnType: lReturnTypeDeclaration,
+                    block: lBlock,
+                    generics: lGenericList
+                };
+
+                // Find entry point.
+                const lEntryPoint: FunctionDeclarationAstDataEntryPoint | null = this.readEntryPoint(lAttributes, pContext);
+                if (lEntryPoint) {
+                    lDeclarationResult.entryPoint = lEntryPoint;
+                }
+
+                // Add declaration data.
+                lResultData.declarations.push(lDeclarationResult);
+            }, this);
         }
 
         return lResultData;
@@ -147,9 +202,9 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
 export type FunctionDeclarationAstDataParameter = {
     /**
      * Function parameter type.
-     * When null, the function uses the defined generic type as parameter type.
+     * Number indicates generic parameter type of the header.
      */
-    readonly type: TypeDeclarationAst | null;
+    readonly type: TypeDeclarationAst | number;
 
     /**
      * Function parameter name.
@@ -162,20 +217,30 @@ export type FunctionDeclarationAstDataParameter = {
  */
 export type FunctionDeclarationAstDataDeclaration = {
     /**
+     * Function generic types.
+     */
+    generics: Array<Array<PgslType>>;
+
+    /**
      * Function parameter list.
      */
     parameter: Array<FunctionDeclarationAstDataParameter>;
 
     /**
      * Function result type.
-     * When null, the function uses the defined generic type as result type.
+     * When a number, the function uses the defined generic type as result type.
      */
-    returnType: TypeDeclarationAst | null;
+    returnType: TypeDeclarationAst | number;
 
     /**
      * Function block.
      */
     block: BlockStatementAst;
+
+    /**
+     * Function entry point information.
+     */
+    entryPoint?: FunctionDeclarationAstDataEntryPoint;
 };
 
 /**
@@ -235,14 +300,4 @@ export type FunctionDeclarationAstData = {
      * Function parameter list.
      */
     declarations: ReadonlyArray<FunctionDeclarationAstDataDeclaration>;
-
-    /**
-     * Function generic.
-     */
-    isGeneric: boolean;
-
-    /**
-     * Function entry point information.
-     */
-    entryPoint?: FunctionDeclarationAstDataEntryPoint;
 } & DeclarationAstData;

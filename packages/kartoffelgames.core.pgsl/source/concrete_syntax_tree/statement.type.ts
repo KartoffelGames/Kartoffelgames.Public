@@ -73,6 +73,7 @@ export type AssignmentStatementCst = {
 export type FunctionCallStatementCst = {
     functionName: string;
     parameterList: Array<ExpressionCst<ExpressionCstType>>;
+    genericList: Array<TypeDeclarationCst>;
 } & StatementCst<'FunctionCallStatement'>;
 
 export type IncrementDecrementStatementCst = {

@@ -14,6 +14,8 @@ import { ExpressionAstBuilder } from "../expression-ast-builder.ts";
 import { ExpressionAstData, IExpressionAst } from "../i-expression-ast.interface.ts";
 import { LiteralValueExpressionAst } from "./literal-value-expression-ast.ts";
 
+// TODO: Support generics by using the function call expression under the hood.
+
 /**
  * PGSL syntax tree of a new call expression with optional template list.
  */

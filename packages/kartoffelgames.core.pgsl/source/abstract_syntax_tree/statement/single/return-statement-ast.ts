@@ -46,8 +46,10 @@ export class ReturnStatementAst extends AbstractSyntaxTree<ReturnStatementCst, R
             const lReturnType: PgslType = lExpression?.data.resolveType ?? new PgslVoidType().process(pContext);
 
             // Validate that the return type matches the function declaration.
-            if (!lReturnType.isImplicitCastableInto(lFunctionHeader.returnType?.data.type)) {
-                pContext.pushIncident(`Return type does not match function declaration.`, this);
+            if (typeof lFunctionHeader.returnType !== 'number') {
+                if (!lReturnType.isImplicitCastableInto(lFunctionHeader.returnType.data.type)) {
+                    pContext.pushIncident(`Return type does not match function declaration.`, this);
+                }
             }
         })();
 

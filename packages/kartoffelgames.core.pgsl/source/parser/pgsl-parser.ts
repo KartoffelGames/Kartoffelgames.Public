@@ -311,12 +311,51 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         const lTypeDeclarationTemplateListGraph: Graph<PgslToken, object, { list: Array<ExpressionCst<ExpressionCstType> | TypeDeclarationCst>; }> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('list[]', [
-                    lTypeDeclarationSyntaxTreeGraph,
+                    lNameRestrictedTypeDeclarationSyntaxTreeGraph,
                     pExpressionGraphs.expression,
                 ]).optional('list<-list', GraphNode.new<PgslToken>()
                     .required(PgslToken.Comma)
                     .required('list<-list', lTypeDeclarationTemplateListGraph) // Self reference.
                 );
+        });
+
+        /**
+         * Type declaration with a optional pointer icon and optional type template list.
+         * Restricts type name to known types only.
+         * ```
+         * - "<IDENTIFIER>"
+         * - "<IDENTIFIER><<TEMPLATE_LIST>>"
+         * - "*<IDENTIFIER>"
+         * - "*<IDENTIFIER><<TEMPLATE_LIST>>"
+         * ```
+         */
+        const lNameRestrictedTypeDeclarationSyntaxTreeGraph: Graph<PgslToken, object, TypeDeclarationCst> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .optional('pointer', PgslToken.OperatorMultiply)
+                .required('name', PgslToken.Identifier)
+                .optional('templateList<-list', GraphNode.new<PgslToken>()
+                    .required(PgslToken.TemplateListStart)
+                    .required('list<-list', lTypeDeclarationTemplateListGraph)
+                    .required(PgslToken.TemplateListEnd)
+                );
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): TypeDeclarationCst => {
+            // Check of type name is valid.
+            // Identifier must be a defined type. If we dont check this here, a normal variable name could be parsed as type.
+            if (!PgslParser.STATIC_TYPE_NAMES.has(pData.name) && !this.mUserDefinedTypeNames.has(pData.name)) {
+                return Symbol(`Identifier '${pData.name}' not recognized as a type.`) as any;
+            }
+
+            // Define root structure of type definition syntax tree structure data and apply type name.
+            const lTemplateList: Array<ExpressionCst<ExpressionCstType> | TypeDeclarationCst> = pData.templateList ?? [];
+
+            // Create type definition syntax tree.
+            return {
+                type: 'TypeDeclaration',
+                range: this.createTokenBoundParameter(pStartToken, pEndToken),
+                typeName: pData.name,
+                template: lTemplateList,
+                isPointer: !!pData.pointer
+            } satisfies TypeDeclarationCst;
         });
 
         /**
@@ -338,12 +377,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                     .required(PgslToken.TemplateListEnd)
                 );
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): TypeDeclarationCst => {
-            // Check of type name is valid.
-            // Identifier must be a defined type. If we dont check this here, a normal variable name could be parsed as type.
-            if (!PgslParser.STATIC_TYPE_NAMES.has(pData.name) && !this.mUserDefinedTypeNames.has(pData.name)) {
-                return Symbol(`Identifier '${pData.name}' not recognized as a type.`) as any;
-            }
-
             // Define root structure of type definition syntax tree structure data and apply type name.
             const lTemplateList: Array<ExpressionCst<ExpressionCstType> | TypeDeclarationCst> = pData.templateList ?? [];
 

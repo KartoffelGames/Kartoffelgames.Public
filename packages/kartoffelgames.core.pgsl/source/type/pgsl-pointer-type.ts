@@ -19,7 +19,7 @@ export class PgslPointerType extends PgslType {
      * @returns The assigned address space, or null if not yet assigned.
      */
     public get assignedAddressSpace(): PgslValueAddressSpace {
-        return this.mAssignedAddressSpace ?? PgslValueAddressSpace.Module;
+        return this.mAssignedAddressSpace ?? PgslValueAddressSpace.Function;
     }
 
     /**

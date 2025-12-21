@@ -1,6 +1,8 @@
 import { Exception } from "@kartoffelgames/core";
 import { FunctionDeclarationAst, FunctionDeclarationAstDataDeclaration } from '../../../abstract_syntax_tree/declaration/function-declaration-ast.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-pgsl-transpiler-processor.interface.ts';
+import { PgslType } from "../../../type/pgsl-type.ts";
+import { PgslVoidType } from "../../../type/pgsl-void-type.ts";
 
 export class PgslFunctionDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<FunctionDeclarationAst> {
     /**
@@ -33,8 +35,9 @@ export class PgslFunctionDeclarationTranspilerProcessor implements IPgslTranspil
             throw new Exception(`Unable to transpile function "${pInstance.data.name}" with generic return type.`, this);
         }
 
-        // Transpile return type.
-        const lReturnType: string = pTranspile(lSoleHeader.returnType);
+        // Transpile return type. use empty string for void type.
+        const lReturnType: PgslType = lSoleHeader.returnType.data.type;
+        const lReturnTypeName: string | null = lReturnType instanceof PgslVoidType ? null : pTranspile(lSoleHeader.returnType);
 
         // Transpile function parameter list.
         const lParameterList: string = lSoleHeader.parameter.map((pParameter) => {
@@ -42,8 +45,8 @@ export class PgslFunctionDeclarationTranspilerProcessor implements IPgslTranspil
                 throw new Exception(`Unable to transpile function "${pInstance.data.name}" with generic parameter type.`, this);
             }
 
-            return ` ${pParameter.name}: ${pTranspile(pParameter.type)}`;
-        }).join(', ');
+            return `${pParameter.name}:${pTranspile(pParameter.type)}`;
+        }).join(',');
 
         // Transpile attributes.
         const lAttributes: string = (() => {
@@ -59,11 +62,11 @@ export class PgslFunctionDeclarationTranspilerProcessor implements IPgslTranspil
                     return `@fragment `;
                 }
                 case 'compute': {
-                    if(!lSoleHeader.entryPoint.workgroupSize) {
+                    if (!lSoleHeader.entryPoint.workgroupSize) {
                         throw new Exception(`Compute entry point for function "${pInstance.data.name}" is missing workgroup size definition.`, this);
                     }
 
-                    return `@compute @workgroup_size(${lSoleHeader.entryPoint.workgroupSize.x}, ${lSoleHeader.entryPoint.workgroupSize.y}, ${lSoleHeader.entryPoint.workgroupSize.z}) `;
+                    return `@compute @workgroup_size(${lSoleHeader.entryPoint.workgroupSize.x},${lSoleHeader.entryPoint.workgroupSize.y},${lSoleHeader.entryPoint.workgroupSize.z}) `;
                 }
             }
         })();
@@ -72,8 +75,8 @@ export class PgslFunctionDeclarationTranspilerProcessor implements IPgslTranspil
         let lResult: string = `${lAttributes}fn ${pInstance.data.name}(${lParameterList})`;
 
         // Add return type when it is not void/empty.
-        if (lReturnType !== '') {
-            lResult += `->${lReturnType}`;
+        if (lReturnTypeName !== null) {
+            lResult += `->${lReturnTypeName}`;
         }
 
         // Add function block.

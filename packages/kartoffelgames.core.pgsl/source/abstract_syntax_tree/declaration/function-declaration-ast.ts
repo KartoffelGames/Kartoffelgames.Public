@@ -31,6 +31,11 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
             }
         }
 
+        // Check if function is already defined in current scope.
+        if (pContext.getFunction(this.cst.name)) {
+            pContext.pushIncident(`Function "${this.cst.name}" is already defined.`, this);
+        }
+
         // Build return data.
         const lResultData = {
             isConstant: this.cst.isConstant,
@@ -131,6 +136,9 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
             }, this);
         }
 
+        // Register function in current scope.
+        pContext.registerFunction(this.cst.name, this);
+
         return lResultData;
     }
 
@@ -165,7 +173,7 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                 const lWorkGroupSizeTraceZ: IExpressionAst = lAttributeParameter[2];
 
                 // Check if all parameters are constants.
-                if (lWorkGroupSizeTraceX.data.fixedState === PgslValueFixedState.Constant && lWorkGroupSizeTraceY.data.fixedState === PgslValueFixedState.Constant && lWorkGroupSizeTraceZ.data.fixedState === PgslValueFixedState.Constant) {
+                if (lWorkGroupSizeTraceX.data.fixedState !== PgslValueFixedState.Constant || lWorkGroupSizeTraceY.data.fixedState !== PgslValueFixedState.Constant || lWorkGroupSizeTraceZ.data.fixedState !== PgslValueFixedState.Constant) {
                     pContext.pushIncident(`All compute attribute parameters need to be constant expressions.`, pAttributes);
                     return null;
                 }
@@ -176,17 +184,17 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                 const lWorkGroupSizeZ: string | number | null = lWorkGroupSizeTraceZ.data.constantValue;
 
                 // Check if all parameters are numbers.
-                if (typeof lWorkGroupSizeX !== 'number' || typeof lWorkGroupSizeY !== 'number' || typeof lWorkGroupSizeZ !== 'number') {
-                    pContext.pushIncident(`All compute attribute parameters need to be constant number expressions.`, pAttributes);
+                if (!Number.isInteger(lWorkGroupSizeX) || !Number.isInteger(lWorkGroupSizeY) || !Number.isInteger(lWorkGroupSizeZ)) {
+                    pContext.pushIncident(`All compute attribute parameters need to be constant integer expressions.`, pAttributes);
                     return null;
                 }
 
                 return {
                     stage: 'compute',
                     workgroupSize: {
-                        x: lWorkGroupSizeX,
-                        y: lWorkGroupSizeY,
-                        z: lWorkGroupSizeZ
+                        x: lWorkGroupSizeX as number,
+                        y: lWorkGroupSizeY as number,
+                        z: lWorkGroupSizeZ as number
                     }
                 };
             }

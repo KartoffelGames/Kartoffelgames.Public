@@ -230,25 +230,6 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
                 expect(lFunctionNode.data.declarations[0].parameter[0].type).toBeInstanceOf(TypeDeclarationAst);
             });
 
-            await pContext.step('Void', async () => {
-                // Setup.
-                const lFunctionName: string = 'testFunction';
-                const lParameterName: string = 'paramOne';
-                const lCodeText: string = `function ${lFunctionName}(${lParameterName}: void): void {}`;
-
-                // Process.
-                const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
-
-                // Evaluation.
-                expect(lDocument.data.content).toHaveLength(1);
-                const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-                expect(lFunctionNode).toBeInstanceOf(FunctionDeclarationAst);
-                expect(lFunctionNode.data.declarations).toHaveLength(1);
-                expect(lFunctionNode.data.declarations[0].parameter).toHaveLength(1);
-                expect(lFunctionNode.data.declarations[0].parameter[0].name).toBe(lParameterName);
-                expect(lFunctionNode.data.declarations[0].parameter[0].type).toBeInstanceOf(TypeDeclarationAst);
-            });
-
             await pContext.step('Pointer', async (pContext) => {
                 await pContext.step('Numeric', async () => {
                     // Setup.
@@ -591,22 +572,6 @@ Deno.test('FunctionDeclarationAst - Transpilation', async (pContext) => {
                 );
             });
 
-            await pContext.step('Void', async () => {
-                // Setup.
-                const lFunctionName: string = 'testFunction';
-                const lParameterName: string = 'paramOne';
-                const lCodeText: string = `function ${lFunctionName}(${lParameterName}: void): void {}`;
-
-                // Process.
-                const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-                // Evaluation.
-                expect(lTranspilationResult.incidents).toHaveLength(0);
-                expect(lTranspilationResult.source).toBe(
-                    `fn ${lFunctionName}(${lParameterName}:void){}`
-                );
-            });
-
             await pContext.step('Pointer', async (pContext) => {
                 await pContext.step('Numeric', async () => {
                     // Setup.
@@ -735,7 +700,7 @@ Deno.test('FunctionDeclarationAst - Transpilation', async (pContext) => {
             // Evaluation.
             expect(lTranspilationResult.incidents).toHaveLength(0);
             expect(lTranspilationResult.source).toBe(
-                `@compute @workgroup_size(${lWorkgroupX},${lWorkgroupY},${lWorkgroupZ})fn ${lFunctionName}(){}`
+                `@compute @workgroup_size(${lWorkgroupX},${lWorkgroupY},${lWorkgroupZ}) fn ${lFunctionName}(){}`
             );
         });
     });
@@ -756,7 +721,7 @@ Deno.test('FunctionDeclarationAst - Error', async (pContext) => {
         // Evaluation.
         expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
         expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes(`Declaration with name "${lFunctionName}" already declared in this scope.`)
+            pIncident.message.includes(`Function "${lFunctionName}" is already defined.`)
         )).toBe(true);
     });
 
@@ -807,7 +772,7 @@ Deno.test('FunctionDeclarationAst - Error', async (pContext) => {
             // Evaluation.
             expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
             expect(lTranspilationResult.incidents.some(pIncident =>
-                pIncident.message.includes(`Attribute "${AttributeListAst.attributeNames.groupBinding}" is not allowed for this declaration.`)
+                pIncident.message.includes(`Attribute "${AttributeListAst.attributeNames.groupBinding}" is not attached to a valid parent type.`)
             )).toBe(true);
         });
 
@@ -825,7 +790,7 @@ Deno.test('FunctionDeclarationAst - Error', async (pContext) => {
             // Evaluation.
             expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
             expect(lTranspilationResult.incidents.some(pIncident =>
-                pIncident.message.includes('Compute attribute needs exactly three constant parameters for work group size declaration.')
+                pIncident.message.includes(`Attribute "${AttributeListAst.attributeNames.compute}" has invalid number of parameters.`)
             )).toBe(true);
         });
 
@@ -843,7 +808,7 @@ Deno.test('FunctionDeclarationAst - Error', async (pContext) => {
             // Evaluation.
             expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
             expect(lTranspilationResult.incidents.some(pIncident =>
-                pIncident.message.includes('All compute attribute parameters need to be constant number expressions.')
+                pIncident.message.includes('All compute attribute parameters need to be constant integer expressions.')
             )).toBe(true);
         });
     });

@@ -4,8 +4,8 @@ import { PgslVoidType } from '../../../type/pgsl-void-type.ts';
 import { AbstractSyntaxTreeContext } from "../../abstract-syntax-tree-context.ts";
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
-import { BreakStatementAst } from "../single/pgsl-break-statement.ts";
-import { ContinueStatementAst } from "../single/pgsl-continue-statement.ts";
+import { BreakStatementAst } from "../single/break-statement-ast.ts";
+import { ContinueStatementAst } from "../single/continue-statement-ast.ts";
 import { ReturnStatementAst } from '../single/return-statement-ast.ts';
 import { StatementAstBuilder } from "../statement-ast-builder.ts";
 

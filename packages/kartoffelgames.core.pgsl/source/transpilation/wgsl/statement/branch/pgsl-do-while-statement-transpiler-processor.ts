@@ -1,4 +1,4 @@
-import { DoWhileStatementAst } from '../../../../abstract_syntax_tree/statement/branch/pgsl-do-while-statement.ts';
+import { DoWhileStatementAst } from '../../../../abstract_syntax_tree/statement/branch/do-while-statement-ast.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslDoWhileStatementTranspilerProcessor implements IPgslTranspilerProcessor<DoWhileStatementAst> {

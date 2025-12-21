@@ -1,4 +1,4 @@
-import { FunctionCallStatementAst } from '../../../../abstract_syntax_tree/statement/execution/pgsl-function-call-statement.ts';
+import { FunctionCallStatementAst } from '../../../../abstract_syntax_tree/statement/execution/function-call-statement-ast.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslFunctionCallStatementTranspilerProcessor implements IPgslTranspilerProcessor<FunctionCallStatementAst> {

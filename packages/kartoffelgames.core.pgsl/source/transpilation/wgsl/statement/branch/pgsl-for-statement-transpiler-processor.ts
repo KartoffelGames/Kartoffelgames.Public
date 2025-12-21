@@ -1,4 +1,4 @@
-import { ForStatementAst } from '../../../../abstract_syntax_tree/statement/branch/pgsl-for-statement.ts';
+import { ForStatementAst } from '../../../../abstract_syntax_tree/statement/branch/for-statement-ast.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslForStatementTranspilerProcessor implements IPgslTranspilerProcessor<ForStatementAst> {

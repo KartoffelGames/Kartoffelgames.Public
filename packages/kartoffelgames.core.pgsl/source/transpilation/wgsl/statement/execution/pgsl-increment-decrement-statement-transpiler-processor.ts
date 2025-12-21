@@ -1,4 +1,4 @@
-import { IncrementDecrementStatementAst } from '../../../../abstract_syntax_tree/statement/execution/pgsl-increment-decrement-statement.ts';
+import { IncrementDecrementStatementAst } from '../../../../abstract_syntax_tree/statement/execution/increment-decrement-statement-ast.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslIncrementDecrementStatementTranspilerProcessor implements IPgslTranspilerProcessor<IncrementDecrementStatementAst> {

@@ -1,4 +1,4 @@
-import { AssignmentStatementAst } from '../../../../abstract_syntax_tree/statement/execution/pgsl-assignment-statement.ts';
+import { AssignmentStatementAst } from '../../../../abstract_syntax_tree/statement/execution/assignment-statement-ast.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslAssignmentStatementTranspilerProcessor implements IPgslTranspilerProcessor<AssignmentStatementAst> {

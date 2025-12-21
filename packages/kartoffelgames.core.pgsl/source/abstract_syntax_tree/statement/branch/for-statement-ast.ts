@@ -6,7 +6,7 @@ import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
 import { BlockStatementAst } from '../execution/block-statement-ast.ts';
-import { VariableDeclarationStatementAst } from '../execution/pgsl-variable-declaration-statement.ts';
+import { VariableDeclarationStatementAst } from '../execution/variable-declaration-statement-ast.ts';
 import type { IStatementAst } from '../i-statement-ast.interface.ts';
 import { StatementAstData } from '../i-statement-ast.interface.ts';
 import { StatementAstBuilder } from "../statement-ast-builder.ts";

@@ -6,10 +6,10 @@ import type { FunctionDeclarationAst } from './declaration/function-declaration-
 import { StructDeclarationAst } from "./declaration/struct-declaration-ast.ts";
 import type { DocumentAst } from './document-ast.ts';
 import { IValueStoreAst } from "./i-value-store-ast.interface.ts";
-import { DoWhileStatementAst } from "./statement/branch/pgsl-do-while-statement.ts";
-import { ForStatementAst } from "./statement/branch/pgsl-for-statement.ts";
-import { WhileStatementAst } from "./statement/branch/pgsl-while-statement.ts";
-import { SwitchStatementAst } from "./statement/branch/pgsl-switch-statement.ts";
+import { DoWhileStatementAst } from "./statement/branch/do-while-statement-ast.ts";
+import { ForStatementAst } from "./statement/branch/for-statement-ast.ts";
+import { WhileStatementAst } from "./statement/branch/while-statement-ast.ts";
+import { SwitchStatementAst } from "./statement/branch/switch-statement-ast.ts";
 
 /**
  * Represents a syntax tree context for building abstract syntax trees.

@@ -1,4 +1,4 @@
-import { BreakStatementAst } from '../../../../abstract_syntax_tree/statement/single/pgsl-break-statement.ts';
+import { BreakStatementAst } from '../../../../abstract_syntax_tree/statement/single/break-statement-ast.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslBreakStatementTranspilerProcessor implements IPgslTranspilerProcessor<BreakStatementAst> {

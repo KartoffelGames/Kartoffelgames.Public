@@ -1,4 +1,4 @@
-import { SwitchStatementAst } from '../../../../abstract_syntax_tree/statement/branch/pgsl-switch-statement.ts';
+import { SwitchStatementAst } from '../../../../abstract_syntax_tree/statement/branch/switch-statement-ast.ts';
 import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
 
 export class PgslSwitchStatementTranspilerProcessor implements IPgslTranspilerProcessor<SwitchStatementAst> {

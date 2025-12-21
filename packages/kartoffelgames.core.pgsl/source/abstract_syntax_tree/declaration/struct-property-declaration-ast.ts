@@ -48,10 +48,10 @@ export class StructPropertyDeclarationAst extends AbstractSyntaxTree<StructPrope
         const lType: PgslType = lTypeDeclaration.data.type;
 
         // Validate property type.
-        if (!lType.concrete) {
+        if (!lType.data.concrete) {
             pContext.pushIncident(`Property type must be concrete.`, this);
         }
-        if (!lType.plain) {
+        if (!lType.data.plain) {
             pContext.pushIncident(`Property type must be plain.`, this);
         }
 

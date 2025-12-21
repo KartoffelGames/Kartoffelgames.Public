@@ -138,7 +138,7 @@ export class PgslVectorType extends PgslType {
         }
 
         // Must be scalar.
-        if (!this.mInnerType.scalar) {
+        if (!this.mInnerType.data.scalar) {
             pContext.pushIncident('Vector type must have a scalar inner type');
         }
 
@@ -148,13 +148,13 @@ export class PgslVectorType extends PgslType {
             indexable: true,
 
             // Copy of inner type properties.
-            scalar: this.mInnerType.scalar,
-            plain: this.mInnerType.plain,
-            concrete: this.mInnerType.concrete,
-            storable: this.mInnerType.storable,
-            hostShareable: this.mInnerType.hostShareable,
-            constructible: this.mInnerType.constructible,
-            fixedFootprint: this.mInnerType.fixedFootprint
+            scalar: this.mInnerType.data.scalar,
+            plain: this.mInnerType.data.plain,
+            concrete: this.mInnerType.data.concrete,
+            storable: this.mInnerType.data.storable,
+            hostShareable: this.mInnerType.data.hostShareable,
+            constructible: this.mInnerType.data.constructible,
+            fixedFootprint: this.mInnerType.data.fixedFootprint
         };
     }
 }

@@ -114,13 +114,13 @@ export class PgslStructType extends PgslType {
             // Check all properties for their characteristics
             for (const lPropertyDeclaration of lStruct.data.properties) {
                 // Check if property is constructible
-                lConstructible &&= lPropertyDeclaration.data.typeDeclaration.data.type.constructible;
+                lConstructible &&= lPropertyDeclaration.data.typeDeclaration.data.type.data.constructible;
 
                 // Check if property is host shareable
-                lHostShareable &&= lPropertyDeclaration.data.typeDeclaration.data.type.hostShareable;
+                lHostShareable &&= lPropertyDeclaration.data.typeDeclaration.data.type.data.hostShareable;
 
                 // For fixed footprint: all properties must be fixed
-                lFixedFootprint &&= lPropertyDeclaration.data.typeDeclaration.data.type.fixedFootprint;
+                lFixedFootprint &&= lPropertyDeclaration.data.typeDeclaration.data.type.data.fixedFootprint;
             }
 
             return [lConstructible, lHostShareable, lFixedFootprint];

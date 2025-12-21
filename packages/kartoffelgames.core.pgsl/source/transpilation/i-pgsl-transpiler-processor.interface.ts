@@ -6,7 +6,7 @@ export interface IPgslTranspilerProcessor<TTarget extends AbstractSyntaxTree> {
     /**
      * The target abstract syntax tree constructor that this processor handles.
      */
-    readonly target: IAnyParameterConstructor<TTarget>;
+    readonly target: IAnyParameterConstructor<TTarget> | Array<IAnyParameterConstructor<TTarget>>;
 
     /**
      * Function type for transpilation processors that convert specific syntax tree node types

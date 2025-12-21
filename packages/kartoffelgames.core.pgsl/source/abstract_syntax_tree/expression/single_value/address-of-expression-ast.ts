@@ -30,7 +30,7 @@ export class AddressOfExpressionAst extends AbstractSyntaxTree<AddressOfExpressi
         const lVariableResolveType: PgslType = lVariable.data.resolveType;
 
         // Type of expression needs to be storable.
-        if (!lVariableResolveType.storable) {
+        if (!lVariableResolveType.data.storable) {
             pContext.pushIncident(`Target of address needs to storable`, this);
         }
 

@@ -183,13 +183,13 @@ export class PgslMatrixType extends PgslType {
             indexable: true,
 
             // Copy of inner type properties.
-            concrete: this.innerType.concrete,
-            scalar: this.innerType.scalar,
-            plain: this.innerType.plain,
-            storable: this.mInnerType.storable,
-            hostShareable: this.mInnerType.hostShareable,
-            constructible: this.mInnerType.constructible,
-            fixedFootprint: this.mInnerType.fixedFootprint
+            concrete: this.innerType.data.concrete,
+            scalar: this.innerType.data.scalar,
+            plain: this.innerType.data.plain,
+            storable: this.mInnerType.data.storable,
+            hostShareable: this.mInnerType.data.hostShareable,
+            constructible: this.mInnerType.data.constructible,
+            fixedFootprint: this.mInnerType.data.fixedFootprint
         };
     }
 

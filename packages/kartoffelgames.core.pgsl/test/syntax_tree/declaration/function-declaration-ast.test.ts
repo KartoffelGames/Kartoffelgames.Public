@@ -418,7 +418,7 @@ Deno.test('FunctionDeclarationAst - Transpilation', async (pContext) => {
             // Evaluation.
             expect(lTranspilationResult.incidents).toHaveLength(0);
             expect(lTranspilationResult.source).toBe(
-                `fn ${lFunctionName}()->array<f32,3>{return array<f32,3>(1.0,2.0,3.0);}`
+                `fn ${lFunctionName}()->array<f32,3>{return array(1.0,2.0,3.0);}`
             );
         });
 
@@ -434,7 +434,7 @@ Deno.test('FunctionDeclarationAst - Transpilation', async (pContext) => {
             // Evaluation.
             expect(lTranspilationResult.incidents).toHaveLength(0);
             expect(lTranspilationResult.source).toBe(
-                `fn ${lFunctionName}()->vec3<f32>{return vec3<f32>(1.0,2.0,3.0);}`
+                `fn ${lFunctionName}()->vec3<f32>{return vec3(1.0,2.0,3.0);}`
             );
         });
 
@@ -450,7 +450,7 @@ Deno.test('FunctionDeclarationAst - Transpilation', async (pContext) => {
             // Evaluation.
             expect(lTranspilationResult.incidents).toHaveLength(0);
             expect(lTranspilationResult.source).toBe(
-                `fn ${lFunctionName}()->mat2x2<f32>{return mat2x2<f32>(1.0,2.0,3.0,4.0);}`
+                `fn ${lFunctionName}()->mat2x2<f32>{return mat2x2(1.0,2.0,3.0,4.0);}`
             );
         });
 

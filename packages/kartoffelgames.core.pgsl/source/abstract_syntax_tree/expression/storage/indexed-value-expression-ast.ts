@@ -26,7 +26,7 @@ export class IndexedValueExpressionAst extends AbstractSyntaxTree<IndexedValueEx
         const lIndex: IExpressionAst = ExpressionAstBuilder.build(this.cst.index, pContext);
 
         // Value needs to be indexable.
-        if (!lValue.data.resolveType.indexable) {
+        if (!lValue.data.resolveType.data.indexable) {
             pContext.pushIncident('Value of index expression needs to be a indexable composite value.', this);
         }
 

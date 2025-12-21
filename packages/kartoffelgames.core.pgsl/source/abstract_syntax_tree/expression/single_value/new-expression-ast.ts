@@ -30,7 +30,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>): PgslType => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.concrete;
+                            return pParam.data.resolveType.data.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
@@ -58,7 +58,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.concrete;
+                            return pParam.data.resolveType.data.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
@@ -75,7 +75,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.concrete;
+                            return pParam.data.resolveType.data.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
@@ -115,7 +115,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.concrete;
+                            return pParam.data.resolveType.data.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
@@ -173,7 +173,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.concrete;
+                            return pParam.data.resolveType.data.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type vector parameter.
@@ -227,7 +227,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.concrete;
+                            return pParam.data.resolveType.data.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
@@ -242,7 +242,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.concrete;
+                            return pParam.data.resolveType.data.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
@@ -264,7 +264,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.concrete;
+                            return pParam.data.resolveType.data.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
@@ -279,7 +279,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.concrete;
+                            return pParam.data.resolveType.data.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
@@ -301,7 +301,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.concrete;
+                            return pParam.data.resolveType.data.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
@@ -316,7 +316,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.concrete;
+                            return pParam.data.resolveType.data.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
@@ -338,7 +338,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.concrete;
+                            return pParam.data.resolveType.data.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
@@ -353,7 +353,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.concrete;
+                            return pParam.data.resolveType.data.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
@@ -375,7 +375,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.concrete;
+                            return pParam.data.resolveType.data.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
@@ -390,7 +390,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.concrete;
+                            return pParam.data.resolveType.data.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
@@ -412,7 +412,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.concrete;
+                            return pParam.data.resolveType.data.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
@@ -427,7 +427,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.concrete;
+                            return pParam.data.resolveType.data.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
@@ -449,7 +449,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.concrete;
+                            return pParam.data.resolveType.data.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
@@ -464,7 +464,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.concrete;
+                            return pParam.data.resolveType.data.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
@@ -486,7 +486,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.concrete;
+                            return pParam.data.resolveType.data.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
@@ -501,7 +501,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.concrete;
+                            return pParam.data.resolveType.data.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
@@ -523,7 +523,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.concrete;
+                            return pParam.data.resolveType.data.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
@@ -538,7 +538,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
                         // Find the first concrete numeric type and check if all others match.
                         const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.concrete;
+                            return pParam.data.resolveType.data.concrete;
                         }) ?? pParameterList[0];
 
                         // Get element type from concrete type expression.
@@ -622,7 +622,6 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
             pContext.pushIncident(`Type '${this.cst.typeName}' cannot be constructed with 'new'.`, this);
             return {
                 // Expression data.
-                typeName: this.cst.typeName,
                 parameterList: new Array<IExpressionAst>(),
 
                 // Expression meta.
@@ -651,12 +650,12 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                 }
 
                 // Must be constructable.
-                if (!lParameterExpression.data.resolveType.constructible) {
+                if (!lParameterExpression.data.resolveType.data.constructible) {
                     pContext.pushIncident(`New expression type must be constructible.`, this);
                 }
 
                 // Must be fixed.
-                if (!lParameterExpression.data.resolveType.fixedFootprint) {
+                if (!lParameterExpression.data.resolveType.data.fixedFootprint) {
                     pContext.pushIncident(`New expression type must be length fixed.`, this);
                 }
             }
@@ -731,7 +730,6 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
 
             return {
                 // Expression data.
-                typeName: this.cst.typeName,
                 parameterList: lParameterExpressionList,
 
                 // Expression meta.
@@ -745,7 +743,6 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
 
         return {
             // Expression data.
-            typeName: this.cst.typeName,
             parameterList: lParameterExpressionList,
 
             // Expression meta.
@@ -772,6 +769,5 @@ type PgslNewExpressionDynamicCallDefinition = {
 };
 
 export type NewExpressionAstData = {
-    typeName: string;
     parameterList: Array<IExpressionAst>;
 } & ExpressionAstData;

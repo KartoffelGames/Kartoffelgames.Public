@@ -153,15 +153,15 @@ export class PgslBuildInType extends PgslType {
 
         // Copy all properties from the underlying type.
         return {
-            storable: this.mUnderlyingType.storable,
-            hostShareable: this.mUnderlyingType.hostShareable,
-            composite: this.mUnderlyingType.composite,
-            constructible: this.mUnderlyingType.constructible,
-            fixedFootprint: this.mUnderlyingType.fixedFootprint,
-            indexable: this.mUnderlyingType.indexable,
-            concrete: this.mUnderlyingType.concrete,
-            scalar: this.mUnderlyingType.scalar,
-            plain: this.mUnderlyingType.plain,
+            storable: this.mUnderlyingType.data.storable,
+            hostShareable: this.mUnderlyingType.data.hostShareable,
+            composite: this.mUnderlyingType.data.composite,
+            constructible: this.mUnderlyingType.data.constructible,
+            fixedFootprint: this.mUnderlyingType.data.fixedFootprint,
+            indexable: this.mUnderlyingType.data.indexable,
+            concrete: this.mUnderlyingType.data.concrete,
+            scalar: this.mUnderlyingType.data.scalar,
+            plain: this.mUnderlyingType.data.plain,
         };
     }
 

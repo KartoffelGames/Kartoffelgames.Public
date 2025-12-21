@@ -65,7 +65,13 @@ export class PgslTranspilation {
      * @template T - The specific syntax tree type that extends BasePgslSyntaxTree.
      */
     public addProcessor<T extends AbstractSyntaxTree>(pProcessor: IPgslTranspilerProcessor<T>): void {
-        this.mTranspilationProcessors.set(pProcessor.target, pProcessor);
+        if (Array.isArray(pProcessor.target)) {
+            for (const lTarget of pProcessor.target) {
+                this.mTranspilationProcessors.set(lTarget, pProcessor as IPgslTranspilerProcessor<AbstractSyntaxTree>);
+            }
+        } else {
+            this.mTranspilationProcessors.set(pProcessor.target, pProcessor);
+        }
     }
 }
 

@@ -111,7 +111,7 @@ export class PgslEnumType extends PgslType {
             indexable: false,
             storable: false,
             scalar: false,
-            concrete: this.mEnumDeclaration?.data.underlyingType.concrete ?? false,
+            concrete: this.mEnumDeclaration?.data.underlyingType.data.concrete ?? false,
             plain: false,
             hostShareable: false,
             constructible: false,

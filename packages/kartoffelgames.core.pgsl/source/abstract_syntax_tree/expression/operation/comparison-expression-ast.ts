@@ -63,7 +63,7 @@ export class ComparisonExpressionAst extends AbstractSyntaxTree<ComparisonExpres
         }
 
         // Both values need to be numeric or boolean.
-        if (!lValueType.scalar) {
+        if (!lValueType.data.scalar) {
             pContext.pushIncident(`Comparison can only be between scalar values.`, this);
         }
 

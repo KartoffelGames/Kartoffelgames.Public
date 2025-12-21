@@ -32,7 +32,7 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
         const lExpressionType: PgslType = lValue.data.resolveType;
 
         // Must be compositeable.
-        if (!lExpressionType.composite) {
+        if (!lExpressionType.data.composite) {
             pContext.pushIncident(`Type must be a compositeable type.`, this);
         }
 

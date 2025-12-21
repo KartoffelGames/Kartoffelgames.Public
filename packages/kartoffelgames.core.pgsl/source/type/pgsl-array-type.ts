@@ -149,10 +149,10 @@ export class PgslArrayType extends PgslType {
      */
     protected override onProcess(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
         // Inner type must be storable and have fixed footprint.
-        if (!this.mInnerType.storable) {
+        if (!this.mInnerType.data.storable) {
             pContext.pushIncident(`Array inner type must be storable.`);
         }
-        if (!this.mInnerType.fixedFootprint) {
+        if (!this.mInnerType.data.fixedFootprint) {
             pContext.pushIncident(`Array inner type must have a fixed footprint.`);
         }
 
@@ -175,20 +175,20 @@ export class PgslArrayType extends PgslType {
         }
 
         // Inner type must be plain.
-        if (!this.mInnerType.plain) {
+        if (!this.mInnerType.data.plain) {
             pContext.pushIncident(`Array inner type must be a plain type.`);
         }
 
         // Inner type must be fixed.
-        if (!this.mInnerType.fixedFootprint) {
+        if (!this.mInnerType.data.fixedFootprint) {
             pContext.pushIncident(`Array inner type must have a fixed footprint.`);
         }
 
         // Is fixed when length expression is set and inner type is fixed.
-        const lIsFixed: boolean = (!this.mLengthExpression) ? false : this.mInnerType.fixedFootprint;
+        const lIsFixed: boolean = (!this.mLengthExpression) ? false : this.mInnerType.data.fixedFootprint;
 
         // Is constructible when inner type is constructible and array is fixed.
-        const lIsConstructible: boolean = (!lIsFixed) ? false : this.mInnerType.constructible;
+        const lIsConstructible: boolean = (!lIsFixed) ? false : this.mInnerType.data.constructible;
 
         return {
             composite: false,
@@ -197,11 +197,11 @@ export class PgslArrayType extends PgslType {
             scalar: false,
 
             // Copy of inner type attachment.
-            concrete: this.mInnerType.concrete,
+            concrete: this.mInnerType.data.concrete,
             fixedFootprint: lIsFixed,
             constructible: lIsConstructible,
-            storable: this.mInnerType.storable,
-            hostShareable: this.mInnerType.hostShareable,
+            storable: this.mInnerType.data.storable,
+            hostShareable: this.mInnerType.data.hostShareable,
         };
     }
 }

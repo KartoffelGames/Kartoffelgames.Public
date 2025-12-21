@@ -116,7 +116,7 @@ export class PgslPointerType extends PgslType {
      */
     protected override onProcess(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
         // Only storable types can be referenced by pointers.
-        if (!this.mReferencedType.storable) {
+        if (!this.mReferencedType.data.storable) {
             pContext.pushIncident('Referenced types of pointers need to be storable');
         }
 

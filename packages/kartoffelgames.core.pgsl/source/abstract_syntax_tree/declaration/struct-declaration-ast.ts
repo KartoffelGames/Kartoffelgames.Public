@@ -45,7 +45,7 @@ export class StructDeclarationAst extends AbstractSyntaxTree<StructDeclarationCs
             // Skip for last property. 
             if (lIndex !== this.cst.properties.length - 1) {
                 // Validate if properties dont have fixed length.
-                if (!lProperty.data.typeDeclaration.data.type.fixedFootprint) {
+                if (!lProperty.data.typeDeclaration.data.type.data.fixedFootprint) {
                     pContext.pushIncident('Only the last property of a struct can have a variable length.', lProperty);
                 }
             }

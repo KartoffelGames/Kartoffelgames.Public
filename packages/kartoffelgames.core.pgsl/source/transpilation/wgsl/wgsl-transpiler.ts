@@ -20,6 +20,7 @@ import { PgslVariableNameExpressionTranspilerProcessor } from './expression/stor
 import { PgslUnaryExpressionTranspilerProcessor } from './expression/unary/pgsl-unary-expression-transpiler-processor.ts';
 import { PgslDocumentTranspilerProcessor } from './pgsl-document-transpiler-processor.ts';
 import { PgslTypeDeclarationTranspilerProcessor } from './pgsl-type-declaration-transpiler-processor.ts';
+import { PgslTypeTranspilerProcessor } from "./pgsl-type-transpiler-processor.ts";
 import { PgslDoWhileStatementTranspilerProcessor } from './statement/branch/pgsl-do-while-statement-transpiler-processor.ts';
 import { PgslForStatementTranspilerProcessor } from './statement/branch/pgsl-for-statement-transpiler-processor.ts';
 import { PgslIfStatementTranspilerProcessor } from './statement/branch/pgsl-if-statement-transpiler-processor.ts';
@@ -59,6 +60,7 @@ export class WgslTranspiler extends PgslTranspilation {
 
         // General. Attributes have no transpilation processor, they are only used during trace.
         this.addProcessor(new PgslTypeDeclarationTranspilerProcessor());
+        this.addProcessor(new PgslTypeTranspilerProcessor());
 
         // Expressions - Operations
         this.addProcessor(new PgslArithmeticExpressionTranspilerProcessor());

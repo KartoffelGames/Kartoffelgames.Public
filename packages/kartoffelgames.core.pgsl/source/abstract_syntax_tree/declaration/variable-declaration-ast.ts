@@ -268,12 +268,12 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
     private validateDeclaration(pContext: AbstractSyntaxTreeContext, pAttributes: AttributeListAst, pDeclarationType: PgslDeclarationType, pType: PgslType, pExpression: IExpressionAst | null): void {
         // A bunch of specific validation function to easy build a validation for each declaration type.
         const lMustBeConstructible = () => {
-            if (!pType.constructible) {
+            if (!pType.data.constructible) {
                 pContext.pushIncident(`The type of declaration type "${this.cst.declarationType}" must be constructible.`, this);
             }
         };
         const lMustBeScalar = () => {
-            if (!pType.scalar) {
+            if (!pType.data.scalar) {
                 pContext.pushIncident(`The type of declaration type "${this.cst.declarationType}" must be a scalar type.`, this);
             }
         };
@@ -288,12 +288,12 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
             }
         };
         const lMustBeHostShareable = () => {
-            if (!pType.hostShareable) {
+            if (!pType.data.hostShareable) {
                 pContext.pushIncident(`The type of declaration type "${this.cst.declarationType}" must be host shareable.`, this);
             }
         };
         const lMustHaveFixedFootprint = () => {
-            if (!pType.fixedFootprint) {
+            if (!pType.data.fixedFootprint) {
                 pContext.pushIncident(`The type of declaration type "${this.cst.declarationType}" must have a fixed footprint.`, this);
             }
         };
@@ -303,7 +303,7 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
             }
         };
         const lMustBePlain = () => {
-            if (!pType.plain) {
+            if (!pType.data.plain) {
                 pContext.pushIncident(`The type of declaration type "${this.cst.declarationType}" must be a plain type.`, this);
                 return;
             }

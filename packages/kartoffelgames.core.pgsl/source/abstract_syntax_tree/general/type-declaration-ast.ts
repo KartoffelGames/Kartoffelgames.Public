@@ -199,7 +199,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
             return new PgslInvalidType().process(pContext);
         }
 
-        // Build BuildInType definition.
+        // Build array definition.
         return new PgslArrayType(lTypeTemplate.data.type, lLengthParameter).process(pContext);
     }
 
@@ -239,7 +239,12 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
 
         // Validate build in type with template.
         const lTemplateExpression: IExpressionAst | null = (() => {
-            if (pRawTemplate.length > 1) {
+            if (pRawTemplate.length > 0) {
+                // Only one template allowed.
+                if (pRawTemplate.length > 1) {
+                    pContext.pushIncident(`Build-in type supports only a single template value.`, this);
+                }
+
                 // Build in types support only a single expression parameter.
                 const lTemplateExpression: TypeDeclarationAstTemplate = pRawTemplate[0];
                 if (!lTemplateExpression || lTemplateExpression.type === 'TypeDeclaration') {

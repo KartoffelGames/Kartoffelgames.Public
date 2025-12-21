@@ -184,7 +184,7 @@ export class PgslBuildInType extends PgslType {
         }
 
         // Template needs to be a unsigned integer.
-        if (!this.isImplicitCastableInto(new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext))) {
+        if (!this.mTemplate.data.resolveType.isImplicitCastableInto(new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext))) {
             pContext.pushIncident(`Clip distance built-in template value must be an unsigned integer.`);
         }
     }

@@ -8,6 +8,7 @@ import { DocumentAst } from "../../../source/abstract_syntax_tree/document-ast.t
 import { AttributeListAst } from '../../../source/abstract_syntax_tree/general/attribute-list-ast.ts';
 import { TypeDeclarationAst } from "../../../source/abstract_syntax_tree/general/type-declaration-ast.ts";
 import { StructPropertyDeclarationAst } from "../../../source/abstract_syntax_tree/declaration/struct-property-declaration-ast.ts";
+import { PgslBuildInType } from "../../../source/type/pgsl-build-in-type.ts";
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();
@@ -522,6 +523,269 @@ Deno.test('StructDeclarationAst - Transpilation', async (pContext) => {
 
             // Evaluation. Transpiled output uses alias resolved type.
             expect(lTranspilationResult.source).toBe(`struct ${lStructName}{${lPropertyName}:f32}`);
+        });
+
+        await pContext.step('BuildIn', async (pContext) => {
+            await pContext.step('VertexIndex', () => {
+                // Setup.
+                const lStructName: string = 'TestVertexIndexStruct';
+                const lPropertyName: string = 'vertexIndexProperty';
+                const lCodeText: string = `
+                    struct ${lStructName} {
+                        ${lPropertyName}: ${PgslBuildInType.typeName.vertexIndex}
+                    }
+                `;
+
+                // Process.
+                const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+                // Evaluation. No errors.
+                expect(lTranspilationResult.incidents).toHaveLength(0);
+
+                // Evaluation. Transpiled output.
+                expect(lTranspilationResult.source).toBe(`struct ${lStructName}{@builtin(vertex_index)${lPropertyName}:u32}`);
+            });
+
+            await pContext.step('InstanceIndex', () => {
+                // Setup.
+                const lStructName: string = 'TestInstanceIndexStruct';
+                const lPropertyName: string = 'instanceIndexProperty';
+                const lCodeText: string = `
+                    struct ${lStructName} {
+                        ${lPropertyName}: ${PgslBuildInType.typeName.instanceIndex}
+                    }
+                `;
+
+                // Process.
+                const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+                // Evaluation. No errors.
+                expect(lTranspilationResult.incidents).toHaveLength(0);
+
+                // Evaluation. Transpiled output.
+                expect(lTranspilationResult.source).toBe(`struct ${lStructName}{@builtin(instance_index)${lPropertyName}:u32}`);
+            });
+
+            await pContext.step('Position', () => {
+                // Setup.
+                const lStructName: string = 'TestPositionStruct';
+                const lPropertyName: string = 'positionProperty';
+                const lCodeText: string = `
+                    struct ${lStructName} {
+                        ${lPropertyName}: ${PgslBuildInType.typeName.position}
+                    }
+                `;
+
+                // Process.
+                const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+                // Evaluation. No errors.
+                expect(lTranspilationResult.incidents).toHaveLength(0);
+
+                // Evaluation. Transpiled output.
+                expect(lTranspilationResult.source).toBe(`struct ${lStructName}{@builtin(position)${lPropertyName}:vec4<f32>}`);
+            });
+
+            await pContext.step('FrontFacing', () => {
+                // Setup.
+                const lStructName: string = 'TestFrontFacingStruct';
+                const lPropertyName: string = 'frontFacingProperty';
+                const lCodeText: string = `
+                    struct ${lStructName} {
+                        ${lPropertyName}: ${PgslBuildInType.typeName.frontFacing}
+                    }
+                `;
+
+                // Process.
+                const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+                // Evaluation. No errors.
+                expect(lTranspilationResult.incidents).toHaveLength(0);
+
+                // Evaluation. Transpiled output.
+                expect(lTranspilationResult.source).toBe(`struct ${lStructName}{@builtin(front_facing)${lPropertyName}:bool}`);
+            });
+
+            await pContext.step('FragDepth', () => {
+                // Setup.
+                const lStructName: string = 'TestFragDepthStruct';
+                const lPropertyName: string = 'fragDepthProperty';
+                const lCodeText: string = `
+                    struct ${lStructName} {
+                        ${lPropertyName}: ${PgslBuildInType.typeName.fragDepth}
+                    }
+                `;
+
+                // Process.
+                const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+                // Evaluation. No errors.
+                expect(lTranspilationResult.incidents).toHaveLength(0);
+
+                // Evaluation. Transpiled output.
+                expect(lTranspilationResult.source).toBe(`struct ${lStructName}{@builtin(frag_depth)${lPropertyName}:f32}`);
+            });
+
+            await pContext.step('SampleIndex', () => {
+                // Setup.
+                const lStructName: string = 'TestSampleIndexStruct';
+                const lPropertyName: string = 'sampleIndexProperty';
+                const lCodeText: string = `
+                    struct ${lStructName} {
+                        ${lPropertyName}: ${PgslBuildInType.typeName.sampleIndex}
+                    }
+                `;
+
+                // Process.
+                const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+                // Evaluation. No errors.
+                expect(lTranspilationResult.incidents).toHaveLength(0);
+
+                // Evaluation. Transpiled output.
+                expect(lTranspilationResult.source).toBe(`struct ${lStructName}{@builtin(sample_index)${lPropertyName}:u32}`);
+            });
+
+            await pContext.step('SampleMask', () => {
+                // Setup.
+                const lStructName: string = 'TestSampleMaskStruct';
+                const lPropertyName: string = 'sampleMaskProperty';
+                const lCodeText: string = `
+                    struct ${lStructName} {
+                        ${lPropertyName}: ${PgslBuildInType.typeName.sampleMask}
+                    }
+                `;
+
+                // Process.
+                const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+                // Evaluation. No errors.
+                expect(lTranspilationResult.incidents).toHaveLength(0);
+
+                // Evaluation. Transpiled output.
+                expect(lTranspilationResult.source).toBe(`struct ${lStructName}{@builtin(sample_mask)${lPropertyName}:u32}`);
+            });
+
+            await pContext.step('LocalInvocationId', () => {
+                // Setup.
+                const lStructName: string = 'TestLocalInvocationIdStruct';
+                const lPropertyName: string = 'localInvocationIdProperty';
+                const lCodeText: string = `
+                    struct ${lStructName} {
+                        ${lPropertyName}: ${PgslBuildInType.typeName.localInvocationId}
+                    }
+                `;
+
+                // Process.
+                const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+                // Evaluation. No errors.
+                expect(lTranspilationResult.incidents).toHaveLength(0);
+
+                // Evaluation. Transpiled output.
+                expect(lTranspilationResult.source).toBe(`struct ${lStructName}{@builtin(local_invocation_id)${lPropertyName}:u32}`);
+            });
+
+            await pContext.step('LocalInvocationIndex', () => {
+                // Setup.
+                const lStructName: string = 'TestLocalInvocationIndexStruct';
+                const lPropertyName: string = 'localInvocationIndexProperty';
+                const lCodeText: string = `
+                    struct ${lStructName} {
+                        ${lPropertyName}: ${PgslBuildInType.typeName.localInvocationIndex}
+                    }
+                `;
+
+                // Process.
+                const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+                // Evaluation. No errors.
+                expect(lTranspilationResult.incidents).toHaveLength(0);
+
+                // Evaluation. Transpiled output.
+                expect(lTranspilationResult.source).toBe(`struct ${lStructName}{@builtin(local_invocation_index)${lPropertyName}:u32}`);
+            });
+
+            await pContext.step('GlobalInvocationId', () => {
+                // Setup.
+                const lStructName: string = 'TestGlobalInvocationIdStruct';
+                const lPropertyName: string = 'globalInvocationIdProperty';
+                const lCodeText: string = `
+                    struct ${lStructName} {
+                        ${lPropertyName}: ${PgslBuildInType.typeName.globalInvocationId}
+                    }
+                `;
+
+                // Process.
+                const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+                // Evaluation. No errors.
+                expect(lTranspilationResult.incidents).toHaveLength(0);
+
+                // Evaluation. Transpiled output.
+                expect(lTranspilationResult.source).toBe(`struct ${lStructName}{@builtin(global_invocation_id)${lPropertyName}:vec3<u32>}`);
+            });
+
+            await pContext.step('WorkgroupId', () => {
+                // Setup.
+                const lStructName: string = 'TestWorkgroupIdStruct';
+                const lPropertyName: string = 'workgroupIdProperty';
+                const lCodeText: string = `
+                    struct ${lStructName} {
+                        ${lPropertyName}: ${PgslBuildInType.typeName.workgroupId}
+                    }
+                `;
+
+                // Process.
+                const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+                // Evaluation. No errors.
+                expect(lTranspilationResult.incidents).toHaveLength(0);
+
+                // Evaluation. Transpiled output.
+                expect(lTranspilationResult.source).toBe(`struct ${lStructName}{@builtin(workgroup_id)${lPropertyName}:vec3<u32>}`);
+            });
+
+            await pContext.step('NumWorkgroups', () => {
+                // Setup.
+                const lStructName: string = 'TestNumWorkgroupsStruct';
+                const lPropertyName: string = 'numWorkgroupsProperty';
+                const lCodeText: string = `
+                    struct ${lStructName} {
+                        ${lPropertyName}: ${PgslBuildInType.typeName.numWorkgroups}
+                    }
+                `;
+
+                // Process.
+                const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+                // Evaluation. No errors.
+                expect(lTranspilationResult.incidents).toHaveLength(0);
+
+                // Evaluation. Transpiled output.
+                expect(lTranspilationResult.source).toBe(`struct ${lStructName}{@builtin(num_workgroups)${lPropertyName}:vec3<u32>}`);
+            });
+
+            await pContext.step('ClipDistances', () => {
+                // Setup.
+                const lStructName: string = 'TestClipDistancesStruct';
+                const lPropertyName: string = 'clipDistancesProperty';
+                const lArraySize: number = 5;
+                const lCodeText: string = `
+                    struct ${lStructName} {
+                        ${lPropertyName}: ${PgslBuildInType.typeName.clipDistances}<${lArraySize}>
+                    }
+                `;
+
+                // Process.
+                const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+                // Evaluation. No errors.
+                expect(lTranspilationResult.incidents).toHaveLength(0);
+
+                // Evaluation. Transpiled output.
+                expect(lTranspilationResult.source).toBe(`struct ${lStructName}{@builtin(clip_distances)${lPropertyName}:array<f32,${lArraySize}>}`);
+            });
         });
     });
 

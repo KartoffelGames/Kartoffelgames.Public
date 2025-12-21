@@ -19,6 +19,6 @@ export class PgslBlockStatementTranspilerProcessor implements IPgslTranspilerPro
      */
     public process(pInstance: BlockStatementAst, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Transpile all statements.
-        return `{\n${pInstance.data.statementList.map(pStatement => pTranspile(pStatement)).join('\n')}\n}`;
+        return `{${pInstance.data.statementList.map(pStatement => pTranspile(pStatement)).join('')}}`;
     }
 }

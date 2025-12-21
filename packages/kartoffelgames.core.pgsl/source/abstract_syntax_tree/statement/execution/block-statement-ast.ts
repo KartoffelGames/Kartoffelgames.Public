@@ -27,7 +27,7 @@ export class BlockStatementAst extends AbstractSyntaxTree<BlockStatementCst, Blo
                 returnType: null as PgslType | null,
                 isContinuing: null as boolean | null,
                 isBreaking: null as boolean | null
-            } satisfies BlockStatementAstData;
+            };
 
             for (const lStatement of this.cst.statements) {
                 // Build statement.
@@ -38,13 +38,7 @@ export class BlockStatementAst extends AbstractSyntaxTree<BlockStatementCst, Blo
 
                 // Check for return statement.
                 if (lStatementAst instanceof ReturnStatementAst) {
-                    // When the statement has no expression, the return type is void.
-                    if (!lStatementAst.data.expression) {
-                        lStatementData.returnType = new PgslVoidType().process(pContext);
-                        continue;
-                    }
-
-                    lStatementData.returnType = lStatementAst.data.expression.data.resolveType;
+                    lStatementData.returnType = lStatementAst.data.returnType;
                     continue;
                 }
 
@@ -61,14 +55,19 @@ export class BlockStatementAst extends AbstractSyntaxTree<BlockStatementCst, Blo
                 }
             }
 
-            return lStatementData satisfies BlockStatementAstData;
+            return {
+                statementList: lStatementData.statementList,
+                returnType: lStatementData.returnType ?? new PgslVoidType().process(pContext),
+                isContinuing: lStatementData.isContinuing ?? false,
+                isBreaking: lStatementData.isBreaking ?? false
+            } satisfies BlockStatementAstData;
         }, this);
     }
 }
 
 export type BlockStatementAstData = {
     statementList: ReadonlyArray<IStatementAst>;
-    returnType: PgslType | null;
-    isContinuing: boolean | null;
-    isBreaking: boolean | null;
+    returnType: PgslType;
+    isContinuing: boolean;
+    isBreaking: boolean;
 } & StatementAstData;

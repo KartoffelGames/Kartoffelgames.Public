@@ -45,15 +45,35 @@ export class PgslFunctionDeclarationTranspilerProcessor implements IPgslTranspil
             return ` ${pParameter.name}: ${pTranspile(pParameter.type)}`;
         }).join(', ');
 
-        // Transpile attribute list.
-        let lResult: string = pTranspile(pInstance.data.attributes);
+        // Transpile attributes.
+        const lAttributes: string = (() => {
+            if (!lSoleHeader.entryPoint) {
+                return '';
+            }
 
-        // Create function declaration head without return type.
-        lResult += `fn ${pInstance.data.name}(${lParameterList})`;
+            switch (lSoleHeader.entryPoint.stage) {
+                case 'vertex': {
+                    return `@vertex `;
+                }
+                case 'fragment': {
+                    return `@fragment `;
+                }
+                case 'compute': {
+                    if(!lSoleHeader.entryPoint.workgroupSize) {
+                        throw new Exception(`Compute entry point for function "${pInstance.data.name}" is missing workgroup size definition.`, this);
+                    }
+
+                    return `@compute @workgroup_size(${lSoleHeader.entryPoint.workgroupSize.x}, ${lSoleHeader.entryPoint.workgroupSize.y}, ${lSoleHeader.entryPoint.workgroupSize.z}) `;
+                }
+            }
+        })();
+
+        // Create function declaration head without return type. Attributes contains trailing space.
+        let lResult: string = `${lAttributes}fn ${pInstance.data.name}(${lParameterList})`;
 
         // Add return type when it is not void/empty.
         if (lReturnType !== '') {
-            lResult += ` -> ${lReturnType}`;
+            lResult += `->${lReturnType}`;
         }
 
         // Add function block.

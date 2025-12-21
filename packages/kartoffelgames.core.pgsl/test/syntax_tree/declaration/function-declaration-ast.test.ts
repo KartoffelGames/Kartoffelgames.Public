@@ -342,7 +342,7 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
             // Setup.
             const lFunctionName: string = 'testFunction';
             const lCodeText: string = `
-                [${AttributeListAst.attributeNames.vertex}]
+                [${AttributeListAst.attributeNames.vertex}()]
                 function ${lFunctionName}(): void {}
             `;
 
@@ -362,7 +362,7 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
             // Setup.
             const lFunctionName: string = 'testFunction';
             const lCodeText: string = `
-                [${AttributeListAst.attributeNames.fragment}]
+                [${AttributeListAst.attributeNames.fragment}()]
                 function ${lFunctionName}(): void {}
             `;
 
@@ -686,7 +686,7 @@ Deno.test('FunctionDeclarationAst - Transpilation', async (pContext) => {
             // Setup.
             const lFunctionName: string = 'testFunction';
             const lCodeText: string = `
-                [${AttributeListAst.attributeNames.vertex}]
+                [${AttributeListAst.attributeNames.vertex}()]
                 function ${lFunctionName}(): void {}
             `;
 
@@ -704,7 +704,7 @@ Deno.test('FunctionDeclarationAst - Transpilation', async (pContext) => {
             // Setup.
             const lFunctionName: string = 'testFunction';
             const lCodeText: string = `
-                [${AttributeListAst.attributeNames.fragment}]
+                [${AttributeListAst.attributeNames.fragment}()]
                 function ${lFunctionName}(): void {}
             `;
 

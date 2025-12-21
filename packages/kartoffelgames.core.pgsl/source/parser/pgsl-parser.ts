@@ -377,13 +377,13 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
          */
         const lTypeDeclarationSyntaxTreeGraph: Graph<PgslToken, object, TypeDeclarationCst> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
-                .optional('pointer', PgslToken.OperatorMultiply)
                 .required('name', PgslToken.Identifier)
                 .optional('templateList<-list', GraphNode.new<PgslToken>()
                     .required(PgslToken.TemplateListStart)
                     .required('list<-list', lTypeDeclarationTemplateListGraph)
                     .required(PgslToken.TemplateListEnd)
-                );
+                )
+                .optional('pointer', PgslToken.OperatorMultiply);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): TypeDeclarationCst => {
             // Define root structure of type definition syntax tree structure data and apply type name.
             const lTemplateList: Array<ExpressionCst<ExpressionCstType> | TypeDeclarationCst> = pData.templateList ?? [];

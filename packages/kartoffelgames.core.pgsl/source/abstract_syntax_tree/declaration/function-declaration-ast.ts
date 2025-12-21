@@ -94,10 +94,10 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                     // If function is not built-in check for correct return type in function block.
                     if (!lDeclaration.buildIn) {
                         // Read block return type.
-                        const lBlockReturnType: PgslType = lBlock.data.returnType ?? new PgslVoidType().process(pContext);
+                        const lBlockReturnType: PgslType = lBlock.data.returnType;
 
                         // Check for correct return type in function block.
-                        if (lBlockReturnType.isImplicitCastableInto(lReturnType.data.type)) {
+                        if (!lBlockReturnType.isImplicitCastableInto(lReturnType.data.type)) {
                             pContext.pushIncident(`Function block return type does not match the declared return type.`, lBlock);
                         }
                     }

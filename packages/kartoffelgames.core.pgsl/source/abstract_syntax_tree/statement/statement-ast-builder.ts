@@ -1,4 +1,4 @@
-import { AssignmentStatementCst, BlockStatementCst, BreakStatementCst, ContinueStatementCst, DiscardStatementCst, DoWhileStatementCst, ForStatementCst, FunctionCallStatementCst, IfStatementCst, IncrementDecrementStatementCst, StatementCst, SwitchStatementCst, VariableDeclarationStatementCst, WhileStatementCst } from "../../concrete_syntax_tree/statement.type.ts";
+import { AssignmentStatementCst, BlockStatementCst, BreakStatementCst, ContinueStatementCst, DiscardStatementCst, DoWhileStatementCst, ForStatementCst, FunctionCallStatementCst, IfStatementCst, IncrementDecrementStatementCst, ReturnStatementCst, StatementCst, SwitchStatementCst, VariableDeclarationStatementCst, WhileStatementCst } from "../../concrete_syntax_tree/statement.type.ts";
 import { AbstractSyntaxTreeContext } from "../abstract-syntax-tree-context.ts";
 import { BlockStatementAst } from "./execution/block-statement-ast.ts";
 import { AssignmentStatementAst } from "./execution/pgsl-assignment-statement.ts";
@@ -15,6 +15,7 @@ import { SwitchStatementAst } from "./branch/pgsl-switch-statement.ts";
 import { WhileStatementAst } from "./branch/pgsl-while-statement.ts";
 import { IStatementAst } from "./i-statement-ast.interface.ts";
 import { Exception } from "@kartoffelgames/core";
+import { ReturnStatementAst } from "./single/return-statement-ast.ts";
 
 export class StatementAstBuilder {
     /**
@@ -53,6 +54,8 @@ export class StatementAstBuilder {
                 return new SwitchStatementAst(pCst as SwitchStatementCst).process(pContext);
             case 'WhileStatement':
                 return new WhileStatementAst(pCst as WhileStatementCst).process(pContext);
+            case 'ReturnStatement':
+                return new ReturnStatementAst(pCst as ReturnStatementCst).process(pContext);
         }
 
         throw new Exception(`Statement type '${pCst.type}' is not recognized in AST builder.`, StatementAstBuilder);

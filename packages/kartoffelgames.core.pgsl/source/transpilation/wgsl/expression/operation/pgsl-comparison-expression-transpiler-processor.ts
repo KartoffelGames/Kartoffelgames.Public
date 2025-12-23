@@ -18,6 +18,6 @@ export class PgslComparisonExpressionTranspilerProcessor implements IPgslTranspi
      * @returns Transpiled WGSL code.
      */
     public process(pInstance: ComparisonExpressionAst, pTranspile: PgslTranspilerProcessorTranspile): string {
-        return `${pTranspile(pInstance.data.leftExpression)} ${pInstance.data.operatorName} ${pTranspile(pInstance.data.rightExpression)}`;
+        return `${pTranspile(pInstance.data.leftExpression)}${pInstance.data.operatorName}${pTranspile(pInstance.data.rightExpression)}`;
     }
 }

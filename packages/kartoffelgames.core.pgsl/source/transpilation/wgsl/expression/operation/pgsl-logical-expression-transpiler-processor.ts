@@ -18,6 +18,6 @@ export class PgslLogicalExpressionTranspilerProcessor implements IPgslTranspiler
      * @returns Transpiled WGSL code.
      */
     public process(pInstance: LogicalExpressionAst, pTranspile: PgslTranspilerProcessorTranspile): string {
-        return `${pTranspile(pInstance.data.leftExpression)} ${pInstance.data.operatorName} ${pTranspile(pInstance.data.rightExpression)}`;
+        return `${pTranspile(pInstance.data.leftExpression)}${pInstance.data.operatorName}${pTranspile(pInstance.data.rightExpression)}`;
     }
 }

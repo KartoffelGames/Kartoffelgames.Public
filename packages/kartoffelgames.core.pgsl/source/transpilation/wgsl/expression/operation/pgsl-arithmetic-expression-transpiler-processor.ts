@@ -18,6 +18,6 @@ export class PgslArithmeticExpressionTranspilerProcessor implements IPgslTranspi
      * @returns Transpiled WGSL code.
      */
     process(pInstance: ArithmeticExpressionAst, pTranspile: PgslTranspilerProcessorTranspile): string {
-        return `${pTranspile(pInstance.data.leftExpression)} ${pInstance.data.operator} ${pTranspile(pInstance.data.rightExpression)}`;
+        return `${pTranspile(pInstance.data.leftExpression)}${pInstance.data.operator}${pTranspile(pInstance.data.rightExpression)}`;
     }
 }

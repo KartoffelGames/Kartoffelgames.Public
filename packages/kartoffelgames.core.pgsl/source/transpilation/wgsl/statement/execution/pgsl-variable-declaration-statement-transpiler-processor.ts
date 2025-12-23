@@ -22,9 +22,9 @@ export class PgslVariableDeclarationStatementTranspilerProcessor implements IPgs
 
         // Depending on the expression presence, create the declaration with or without an initialization value.
         if(pInstance.data.expression){
-            return `${pInstance.data.declarationType} ${pInstance.data.name}: ${pTranspile(pInstance.data.typeDeclaration)} = ${pTranspile(pInstance.data.expression)};`;
+            return `${pInstance.data.declarationType} ${pInstance.data.name}:${pTranspile(pInstance.data.typeDeclaration)}=${pTranspile(pInstance.data.expression)};`;
         } else {
-            return `${pInstance.data.declarationType} ${pInstance.data.name}: ${pTranspile(pInstance.data.typeDeclaration)};`;
+            return `${pInstance.data.declarationType} ${pInstance.data.name}:${pTranspile(pInstance.data.typeDeclaration)};`;
         }
     }
 }

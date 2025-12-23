@@ -14,6 +14,8 @@ import { PgslAccessModeEnum } from "../../../buildin/pgsl-access-mode-enum.ts";
 import { IValueStoreAst, ValueStoreAstData } from "../../i-value-store-ast.interface.ts";
 import { PgslType } from "../../../type/pgsl-type.ts";
 
+// TODO: Declaration types var should not exist. let should be transpiled to var in WGSL. And const to let or const based on usage.
+
 /**
  * PGSL structure holding a variable declaration for a function scope variable.
  */

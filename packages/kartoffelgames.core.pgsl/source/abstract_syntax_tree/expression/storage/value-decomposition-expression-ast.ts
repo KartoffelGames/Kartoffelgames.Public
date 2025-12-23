@@ -88,7 +88,7 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
 
                 case lExpressionType instanceof PgslVectorType: {
                     // Validate swizzle name.
-                    if (!/[rgba]{1,4}|[xyzw]{1,4}/.test(lPropertyName)) {
+                    if (!/^([rgba]{1,4}|[xyzw]{1,4})$/.test(lPropertyName)) {
                         pContext.pushIncident(`Swizzle name "${lPropertyName}" can't be used to access vector.`, this);
                     }
 

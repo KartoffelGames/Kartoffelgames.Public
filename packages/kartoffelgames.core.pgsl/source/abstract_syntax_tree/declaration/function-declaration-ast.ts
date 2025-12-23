@@ -1,5 +1,8 @@
 import { FunctionDeclarationCst } from "../../concrete_syntax_tree/declaration.type.ts";
+import { PgslDeclarationType } from "../../enum/pgsl-declaration-type.enum.ts";
+import { PgslValueAddressSpace } from "../../enum/pgsl-value-address-space.enum.ts";
 import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
+import { PgslInvalidType } from "../../type/pgsl-invalid-type.ts";
 import { PgslType } from "../../type/pgsl-type.ts";
 import { PgslVoidType } from "../../type/pgsl-void-type.ts";
 import { AbstractSyntaxTreeContext } from "../abstract-syntax-tree-context.ts";
@@ -7,6 +10,7 @@ import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
 import { IExpressionAst } from "../expression/i-expression-ast.interface.ts";
 import { AttributeListAst } from '../general/attribute-list-ast.ts';
 import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
+import { IValueStoreAst } from "../i-value-store-ast.interface.ts";
 import { BlockStatementAst } from '../statement/execution/block-statement-ast.ts';
 import { DeclarationAstData, IDeclarationAst } from "./i-declaration-ast.interface.ts";
 
@@ -59,6 +63,8 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                 // Create parameter list.
                 let lParameterList: Array<FunctionDeclarationAstDataParameter> = new Array<FunctionDeclarationAstDataParameter>();
                 for (const lParameter of lDeclaration.parameters) {
+                    let lParameterData: FunctionDeclarationAstDataParameter;
+
                     // Check for generic parameter.
                     if (typeof lParameter.typeDeclaration === 'number') {
                         // Validate generic parameter index.
@@ -67,16 +73,40 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                             pContext.pushIncident(`Generic parameter index ${lGenericIndex} is out of bounds.`, this);
                         }
 
-                        lParameterList.push({
+                        lParameterData = {
                             name: lParameter.name,
                             type: lGenericIndex
-                        });
+                        };
                     } else {
-                        lParameterList.push({
+                        lParameterData = {
                             name: lParameter.name,
                             type: new TypeDeclarationAst(lParameter.typeDeclaration).process(pContext)
-                        });
+                        };
                     }
+
+                    lParameterList.push(lParameterData);
+
+                    const lParameterType: PgslType = (() => {
+                        if (typeof lParameterData.type === 'number') {
+                            // Generic type, cannot be resolved yet.
+                            return new PgslInvalidType().process(pContext);
+                        }
+
+                        return lParameterData.type.data.type;
+                    })();
+
+                    // Register parameter in current scope.
+                    pContext.addValue(lParameter.name, {
+                        data: {
+                            fixedState: PgslValueFixedState.Variable,
+                            declarationType: PgslDeclarationType.Var,
+                            addressSpace: PgslValueAddressSpace.Function,
+                            type: lParameterType,
+                            name: lParameter.name,
+                            constantValue: null,
+                            accessMode: "read"
+                        }
+                    } satisfies IValueStoreAst);
                 }
 
                 // Create block for each header.

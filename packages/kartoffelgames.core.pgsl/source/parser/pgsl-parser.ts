@@ -105,11 +105,11 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         const lCoreGraphs: PgslParserCoreGraphs = {
             typeDeclaration: null as any,
             attributeList: null as any
-        }
+        };
 
         // Define expression graphs use the mime object of core graph for defining.
         const lExpressionGraphs: PgslParserExpressionGraphs = this.defineExpressionGraphs(lCoreGraphs);
-        
+
         // Create actual core graphs and assign them to the mime object.
         const lLoadedCoreGraphs: PgslParserCoreGraphs = this.defineCoreGraphs(lExpressionGraphs);
         lCoreGraphs.typeDeclaration = lLoadedCoreGraphs.typeDeclaration;
@@ -339,13 +339,13 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
          */
         const lNameRestrictedTypeDeclarationSyntaxTreeGraph: Graph<PgslToken, object, TypeDeclarationCst> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
+                .optional('pointer', PgslToken.OperatorMultiply)
                 .required('name', PgslToken.Identifier)
                 .optional('templateList<-list', GraphNode.new<PgslToken>()
                     .required(PgslToken.TemplateListStart)
                     .required('list<-list', lTypeDeclarationTemplateListGraph)
                     .required(PgslToken.TemplateListEnd)
-                )
-                .optional('pointer', PgslToken.OperatorMultiply);
+                );
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): TypeDeclarationCst => {
             // Check of type name is valid.
             // Identifier must be a defined type. If we dont check this here, a normal variable name could be parsed as type.
@@ -377,13 +377,13 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
          */
         const lTypeDeclarationSyntaxTreeGraph: Graph<PgslToken, object, TypeDeclarationCst> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
+                .optional('pointer', PgslToken.OperatorMultiply)
                 .required('name', PgslToken.Identifier)
                 .optional('templateList<-list', GraphNode.new<PgslToken>()
                     .required(PgslToken.TemplateListStart)
                     .required('list<-list', lTypeDeclarationTemplateListGraph)
                     .required(PgslToken.TemplateListEnd)
-                )
-                .optional('pointer', PgslToken.OperatorMultiply);
+                );
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): TypeDeclarationCst => {
             // Define root structure of type definition syntax tree structure data and apply type name.
             const lTemplateList: Array<ExpressionCst<ExpressionCstType> | TypeDeclarationCst> = pData.templateList ?? [];
@@ -785,7 +785,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         const lNewExpressionGraph: Graph<PgslToken, object, NewExpressionCst> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.KeywordNew)
-                .required('statement', lFunctionCallExpressionGraph)
+                .required('statement', lFunctionCallExpressionGraph);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): NewExpressionCst => {
             // Create function call expression syntax tree.
             return {
@@ -1228,7 +1228,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
          */
         const lFunctionCallStatementGraph: Graph<PgslToken, object, FunctionCallStatementCst> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
-                .required('statement', pExpressionGraphs.functionCallExpression)
+                .required('statement', pExpressionGraphs.functionCallExpression);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): FunctionCallStatementCst => {
             return {
                 type: 'FunctionCallStatement',

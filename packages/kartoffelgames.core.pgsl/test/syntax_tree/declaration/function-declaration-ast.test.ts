@@ -235,7 +235,7 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
                     // Setup.
                     const lFunctionName: string = 'testFunction';
                     const lParameterName: string = 'paramOne';
-                    const lParameterType: string = `${PgslNumericType.typeName.float32}*`;
+                    const lParameterType: string = `*${PgslNumericType.typeName.float32}`;
                     const lCodeText: string = `function ${lFunctionName}(${lParameterName}: ${lParameterType}): void {}`;
 
                     // Process.
@@ -255,7 +255,7 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
                     // Setup.
                     const lFunctionName: string = 'testFunction';
                     const lParameterName: string = 'paramOne';
-                    const lParameterType: string = `${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>*`;
+                    const lParameterType: string = `*${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>`;
                     const lCodeText: string = `function ${lFunctionName}(${lParameterName}: ${lParameterType}): void {}`;
 
                     // Process.
@@ -275,7 +275,7 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
                     // Setup.
                     const lFunctionName: string = 'testFunction';
                     const lParameterName: string = 'paramOne';
-                    const lParameterType: string = `${PgslArrayType.typeName.array}<${PgslNumericType.typeName.float32},7>*`;
+                    const lParameterType: string = `*${PgslArrayType.typeName.array}<${PgslNumericType.typeName.float32},7>`;
                     const lCodeText: string = `function ${lFunctionName}(${lParameterName}: ${lParameterType}): void {}`;
 
                     // Process.
@@ -577,7 +577,7 @@ Deno.test('FunctionDeclarationAst - Transpilation', async (pContext) => {
                     // Setup.
                     const lFunctionName: string = 'testFunction';
                     const lParameterName: string = 'paramOne';
-                    const lParameterType: string = `${PgslNumericType.typeName.float32}*`;
+                    const lParameterType: string = `*${PgslNumericType.typeName.float32}`;
                     const lCodeText: string = `function ${lFunctionName}(${lParameterName}: ${lParameterType}): void {}`;
 
                     // Process.
@@ -594,7 +594,7 @@ Deno.test('FunctionDeclarationAst - Transpilation', async (pContext) => {
                     // Setup.
                     const lFunctionName: string = 'testFunction';
                     const lParameterName: string = 'paramOne';
-                    const lParameterType: string = `${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>*`;
+                    const lParameterType: string = `*${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>`;
                     const lCodeText: string = `function ${lFunctionName}(${lParameterName}: ${lParameterType}): void {}`;
 
                     // Process.
@@ -611,7 +611,7 @@ Deno.test('FunctionDeclarationAst - Transpilation', async (pContext) => {
                     // Setup.
                     const lFunctionName: string = 'testFunction';
                     const lParameterName: string = 'paramOne';
-                    const lParameterType: string = `${PgslArrayType.typeName.array}<${PgslNumericType.typeName.float32},7>*`;
+                    const lParameterType: string = `*${PgslArrayType.typeName.array}<${PgslNumericType.typeName.float32},7>`;
                     const lCodeText: string = `function ${lFunctionName}(${lParameterName}: ${lParameterType}): void {}`;
 
                     // Process.

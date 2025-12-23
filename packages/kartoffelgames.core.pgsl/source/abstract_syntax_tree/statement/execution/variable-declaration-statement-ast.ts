@@ -70,18 +70,18 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
         if (!(lType instanceof PgslPointerType)) {
             // Type needs to be storable.
             if (!lType.data.storable) {
-                throw new Exception(`Type is not storable or a pointer of it.`, this);
+                pContext.pushIncident(`Type is not storable or a pointer of it.`, this);
             }
 
             // Const declaration type needs to be constructible.
             if (this.cst.declarationType === PgslDeclarationType.Const && !lType.data.constructible) {
-                throw new Exception(`Constant variable declarations can only be of a constructible type.`, this);
+                pContext.pushIncident(`Constant variable declarations can only be of a constructible type.`, this);
             }
         }
 
         // Validate const value need to have a initialization.
         if (this.cst.declarationType === PgslDeclarationType.Const && !this.cst.expression) {
-            throw new Exception(`Constants need a initializer value.`, this);
+            pContext.pushIncident(`Constants need a initializer value.`, this);
         }
 
         // Push variable to current scope.

@@ -8,6 +8,7 @@ import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 import type { LiteralValueExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
 import { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
+import { PgslInvalidType } from "../../../type/pgsl-invalid-type.ts";
 
 /**
  * PGSL syntax tree for a single literal value of boolean, float, integer or uinteger.
@@ -125,7 +126,9 @@ export class LiteralValueExpressionAst extends AbstractSyntaxTree<LiteralValueEx
             return [new PgslNumericType(lSuffixType).process(pContext), lNumber];
         }
 
-        throw new Exception(`Type not valid for literal "${pTextValue}".`, this);
+        pContext.pushIncident(`No matching Type for literal "${pTextValue}".`, this);
+
+        return [new PgslInvalidType().process(pContext), 0];
     }
 }
 

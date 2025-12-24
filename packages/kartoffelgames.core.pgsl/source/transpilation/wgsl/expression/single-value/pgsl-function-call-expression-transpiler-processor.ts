@@ -18,6 +18,6 @@ export class PgslFunctionCallExpressionTranspilerProcessor implements IPgslTrans
      * @returns Transpiled WGSL code.
      */
     public process(pInstance: FunctionCallExpressionAst, pTranspile: PgslTranspilerProcessorTranspile): string {
-        return `${pInstance.data.name}(${pInstance.data.parameters.map(pParam => pTranspile(pParam)).join(', ')})`;
+        return `${pInstance.data.name}(${pInstance.data.parameters.map(pParam => pTranspile(pParam)).join(',')})`;
     }
 }

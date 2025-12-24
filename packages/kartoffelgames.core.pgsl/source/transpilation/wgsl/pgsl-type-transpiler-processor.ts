@@ -166,7 +166,7 @@ export class PgslTypeTranspilerProcessor implements IPgslTranspilerProcessor<Pgs
      * @returns The WGSL matrix type string.
      */
     private transpileMatrixType(pType: PgslMatrixType, pTranspile: PgslTranspilerProcessorTranspile): string {
-        const lMatrixTypename: string = `mat${pType.rowCount}x${pType.columnCount}`;
+        const lMatrixTypename: string = `mat${pType.columnCount}x${pType.rowCount}`;
 
         // None concrete inner types are expressed as unknown matrices.
         if (!pType.data.concrete) {

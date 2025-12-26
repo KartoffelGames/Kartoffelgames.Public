@@ -577,6 +577,22 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         });
 
         /**
+         * Recursive list of indexed value indices.
+         * ```
+         * - "[<EXPRESSION>]"
+         * - "[<EXPRESSION>][<EXPRESSION>]"
+         * - "[<EXPRESSION>][<EXPRESSION>][<EXPRESSION>]"
+         * ```
+         */
+        const lIndexedValueIndexListGraph: Graph<PgslToken, object, { indices: Array<ExpressionCst<ExpressionCstType>>; }> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required(PgslToken.ListStart)
+                .required('indices[]', lExpressionSyntaxTreeGraph)
+                .required(PgslToken.ListEnd)
+                .optional('indices<-indices', lIndexedValueIndexListGraph);
+        });
+
+        /**
          * Indexed value expression. An expressions value accessed through another expression.
          * ```
          * - "<EXPRESSION>[<EXPRESSION>]"
@@ -585,16 +601,23 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         const lIndexedValueExpressionGraph: Graph<PgslToken, object, IndexedValueExpressionCst> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('value', lExpressionSyntaxTreeGraph)
-                .required(PgslToken.ListStart)
-                .required('indexExpression', lExpressionSyntaxTreeGraph)
-                .required(PgslToken.ListEnd);
+                .required('indices<-indices', lIndexedValueIndexListGraph);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): IndexedValueExpressionCst => {
-            return {
-                type: 'IndexedValueExpression',
-                range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                value: pData.value,
-                index: pData.indexExpression
-            } satisfies IndexedValueExpressionCst;
+            // Create a nested index value expression.
+            let lNextedExpression: IndexedValueExpressionCst = pData.value as IndexedValueExpressionCst;
+            for (const lIndexExpression of pData.indices) {
+                // Buffer last created inner expression to be insered into new decomposition expression cst.
+                const lInnerExpression: ExpressionCst<ExpressionCstType> = lNextedExpression;
+
+                lNextedExpression = {
+                    type: 'IndexedValueExpression',
+                    range: this.createTokenBoundParameter(pStartToken, pEndToken),
+                    value: lInnerExpression,
+                    index: lIndexExpression
+                } satisfies IndexedValueExpressionCst;
+            }
+
+            return lNextedExpression;
         });
 
         /**

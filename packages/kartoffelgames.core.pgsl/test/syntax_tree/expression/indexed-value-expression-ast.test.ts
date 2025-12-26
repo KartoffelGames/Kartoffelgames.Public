@@ -135,7 +135,7 @@ Deno.test('IndexedValueExpressionAst - Parsing', async (pContext) => {
         await pContext.step('Scalar Indexing', async () => {
             // Setup.
             const lMatrixItemIndex: number = 2;
-            const lVectorItemIndex: number = 0;
+            const lVectorItemIndex: number = 1;
             const lVariableName: string = 'numericMatrix';
             const lCodeText: string = `
                 function testFunction(): void {
@@ -157,7 +157,9 @@ Deno.test('IndexedValueExpressionAst - Parsing', async (pContext) => {
             expect(lExpressionNode).toBeInstanceOf(IndexedValueExpressionAst);
 
             const lIndexExpression: LiteralValueExpressionAst = lExpressionNode.data.index as LiteralValueExpressionAst;
-            const lVariableExpression: VariableNameExpressionAst = lExpressionNode.data.value as VariableNameExpressionAst;
+            const lInnerIndexedValueExpression: IndexedValueExpressionAst = lExpressionNode.data.value as IndexedValueExpressionAst;
+            const lVariableExpression: VariableNameExpressionAst = lInnerIndexedValueExpression.data.value as VariableNameExpressionAst;
+
 
             // Evaluation. Correct types.
             const lResultType: PgslNumericType = lExpressionNode.data.resolveType as PgslNumericType;
@@ -165,7 +167,7 @@ Deno.test('IndexedValueExpressionAst - Parsing', async (pContext) => {
 
             // Evaluation. Correct structure.
             expect(lIndexExpression).toBeInstanceOf(LiteralValueExpressionAst);
-            expect(lIndexExpression.data.constantValue).toBe(lMatrixItemIndex);
+            expect(lIndexExpression.data.constantValue).toBe(lVectorItemIndex);
             expect(lVariableExpression).toBeInstanceOf(VariableNameExpressionAst);
             expect(lVariableExpression.data.variableName).toBe(lVariableName);
         });

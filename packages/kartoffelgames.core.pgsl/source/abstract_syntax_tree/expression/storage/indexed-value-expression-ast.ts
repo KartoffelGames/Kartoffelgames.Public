@@ -35,6 +35,11 @@ export class IndexedValueExpressionAst extends AbstractSyntaxTree<IndexedValueEx
             pContext.pushIncident('Index needs to be a unsigned numeric value.', this);
         }
 
+        // Index cannot be negative constant.
+        if (typeof lIndex.data.constantValue === 'number' && lIndex.data.constantValue < 0) {
+            pContext.pushIncident('Index needs to be a unsigned numeric value.', this);
+        }
+
         const lResolveType: PgslType = (() => {
             switch (true) {
                 case lValue.data.resolveType instanceof PgslArrayType: {

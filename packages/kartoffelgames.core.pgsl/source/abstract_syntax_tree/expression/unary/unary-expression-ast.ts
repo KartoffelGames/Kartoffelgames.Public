@@ -67,12 +67,18 @@ export class UnaryExpressionAst extends AbstractSyntaxTree<UnaryExpressionCst, U
         };
 
         let lResolveType: PgslType = lExpression.data.resolveType;
+        let lConstantValue: string | number | null = lExpression.data.constantValue;
 
         // Validate type for each.
         switch (lOperator) {
             case PgslOperator.BinaryNegate: {
                 if (!lCastableIntoNumeric(lValueType, true, false)) {
                     pContext.pushIncident(`Binary negation only valid for numeric type.`, this);
+                }
+
+                // Binary negate constant value.
+                if(typeof lConstantValue === 'number') {
+                    lConstantValue = ~lConstantValue;
                 }
 
                 break;
@@ -83,11 +89,21 @@ export class UnaryExpressionAst extends AbstractSyntaxTree<UnaryExpressionCst, U
                     break;
                 }
 
+                // Negate constant value.
+                if(typeof lConstantValue === 'number') {
+                    lConstantValue = -lConstantValue;
+                }
+
                 break;
             }
             case PgslOperator.Not: {
                 if (!(lValueType instanceof PgslBooleanType)) {
                     pContext.pushIncident(`Boolean negation only valid for boolean type.`, this);
+                }
+
+                // Negate constant value.
+                if(typeof lConstantValue === 'number') {
+                    lConstantValue = -lConstantValue;
                 }
 
                 break;
@@ -106,7 +122,7 @@ export class UnaryExpressionAst extends AbstractSyntaxTree<UnaryExpressionCst, U
             fixedState: PgslValueFixedState.Variable,
             isStorage: false,
             resolveType: lResolveType,
-            constantValue: lExpression.data.constantValue,
+            constantValue: lConstantValue,
             storageAddressSpace: lExpression.data.storageAddressSpace
         };
     }

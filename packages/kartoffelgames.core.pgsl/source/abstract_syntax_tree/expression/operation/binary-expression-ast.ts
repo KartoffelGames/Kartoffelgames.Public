@@ -88,7 +88,7 @@ export class BinaryExpressionAst extends AbstractSyntaxTree<BinaryExpressionCst,
             }
 
             // Right must be assignable to unsigned integer.
-            if (!lRightValueType.isImplicitCastableInto(lUnsignedInteger)) {
+            if (!lRightValueType.isImplicitCastableInto(lUnsignedInteger) || typeof lRightExpression.data.constantValue === 'number' && lRightExpression.data.constantValue < 0) {
                 pContext.pushIncident(`Right expression of a shift operation must be an unsigned integer type.`, this);
             }
         }

@@ -314,8 +314,10 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         // Build inner type.
         const lInnerTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(lInnerTypeDefinition).process(pContext);
 
+        const [pColumns, pRows] = PgslMatrixType.dimensionsOf(pRawName as any);
+
         // Build matrix definition.
-        return new PgslMatrixType(pRawName as any, lInnerTypeDeclaration.data.type).process(pContext);
+        return new PgslMatrixType(pColumns, pRows, lInnerTypeDeclaration.data.type).process(pContext);
     }
 
     /**

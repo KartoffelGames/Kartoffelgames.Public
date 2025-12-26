@@ -233,7 +233,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         // Get element type from concrete type expression.
                         const lElementType: PgslType = lConcreteTypeExpression.data.resolveType;
 
-                        return new PgslMatrixType(PgslMatrixType.typeName.matrix22, lElementType).process(pContext);
+                        return new PgslMatrixType(2, 2, lElementType).process(pContext);
                     }
                 },
                 {
@@ -253,7 +253,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                             pContext.pushIncident(`Matrix22 construction from vectors requires vectors of dimension 2.`, lConcreteTypeExpression);
                         }
 
-                        return new PgslMatrixType(PgslMatrixType.typeName.matrix22, lVectorType.innerType).process(pContext);
+                        return new PgslMatrixType(2, 2, lVectorType.innerType).process(pContext);
                     }
                 }
             ];
@@ -270,7 +270,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         // Get element type from concrete type expression.
                         const lElementType: PgslType = lConcreteTypeExpression.data.resolveType;
 
-                        return new PgslMatrixType(PgslMatrixType.typeName.matrix23, lElementType).process(pContext);
+                        return new PgslMatrixType(2, 3, lElementType).process(pContext);
                     }
                 },
                 {
@@ -290,7 +290,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                             pContext.pushIncident(`Matrix23 construction from vectors requires vectors of dimension 3.`, lConcreteTypeExpression);
                         }
 
-                        return new PgslMatrixType(PgslMatrixType.typeName.matrix23, lVectorType.innerType).process(pContext);
+                        return new PgslMatrixType(2, 3, lVectorType.innerType).process(pContext);
                     }
                 }
             ];
@@ -307,7 +307,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         // Get element type from concrete type expression.
                         const lElementType: PgslType = lConcreteTypeExpression.data.resolveType;
 
-                        return new PgslMatrixType(PgslMatrixType.typeName.matrix24, lElementType).process(pContext);
+                        return new PgslMatrixType(2, 4, lElementType).process(pContext);
                     }
                 },
                 {
@@ -327,7 +327,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                             pContext.pushIncident(`Matrix24 construction from vectors requires vectors of dimension 4.`, lConcreteTypeExpression);
                         }
 
-                        return new PgslMatrixType(PgslMatrixType.typeName.matrix24, lVectorType.innerType).process(pContext);
+                        return new PgslMatrixType(2, 4, lVectorType.innerType).process(pContext);
                     }
                 }
             ];
@@ -344,7 +344,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         // Get element type from concrete type expression.
                         const lElementType: PgslType = lConcreteTypeExpression.data.resolveType;
 
-                        return new PgslMatrixType(PgslMatrixType.typeName.matrix32, lElementType).process(pContext);
+                        return new PgslMatrixType(3, 2, lElementType).process(pContext);
                     }
                 },
                 {
@@ -364,7 +364,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                             pContext.pushIncident(`Matrix32 construction from vectors requires vectors of dimension 2.`, lConcreteTypeExpression);
                         }
 
-                        return new PgslMatrixType(PgslMatrixType.typeName.matrix32, lVectorType.innerType).process(pContext);
+                        return new PgslMatrixType(3, 2, lVectorType.innerType).process(pContext);
                     }
                 }
             ];
@@ -381,7 +381,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         // Get element type from concrete type expression.
                         const lElementType: PgslType = lConcreteTypeExpression.data.resolveType;
 
-                        return new PgslMatrixType(PgslMatrixType.typeName.matrix33, lElementType).process(pContext);
+                        return new PgslMatrixType(3, 3, lElementType).process(pContext);
                     }
                 },
                 {
@@ -401,7 +401,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                             pContext.pushIncident(`Matrix33 construction from vectors requires vectors of dimension 3.`, lConcreteTypeExpression);
                         }
 
-                        return new PgslMatrixType(PgslMatrixType.typeName.matrix33, lVectorType.innerType).process(pContext);
+                        return new PgslMatrixType(3, 3, lVectorType.innerType).process(pContext);
                     }
                 }
             ];
@@ -418,7 +418,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         // Get element type from concrete type expression.
                         const lElementType: PgslType = lConcreteTypeExpression.data.resolveType;
 
-                        return new PgslMatrixType(PgslMatrixType.typeName.matrix34, lElementType).process(pContext);
+                        return new PgslMatrixType(3, 4, lElementType).process(pContext);
                     }
                 },
                 {
@@ -438,7 +438,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                             pContext.pushIncident(`Matrix34 construction from vectors requires vectors of dimension 4.`, lConcreteTypeExpression);
                         }
 
-                        return new PgslMatrixType(PgslMatrixType.typeName.matrix34, lVectorType.innerType).process(pContext);
+                        return new PgslMatrixType(3, 4, lVectorType.innerType).process(pContext);
                     }
                 }
             ];
@@ -455,7 +455,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         // Get element type from concrete type expression.
                         const lElementType: PgslType = lConcreteTypeExpression.data.resolveType;
 
-                        return new PgslMatrixType(PgslMatrixType.typeName.matrix42, lElementType).process(pContext);
+                        return new PgslMatrixType(4, 2, lElementType).process(pContext);
                     }
                 },
                 {
@@ -475,7 +475,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                             pContext.pushIncident(`Matrix42 construction from vectors requires vectors of dimension 2.`, lConcreteTypeExpression);
                         }
 
-                        return new PgslMatrixType(PgslMatrixType.typeName.matrix42, lVectorType.innerType).process(pContext);
+                        return new PgslMatrixType(4, 2, lVectorType.innerType).process(pContext);
                     }
                 }
             ];
@@ -492,7 +492,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         // Get element type from concrete type expression.
                         const lElementType: PgslType = lConcreteTypeExpression.data.resolveType;
 
-                        return new PgslMatrixType(PgslMatrixType.typeName.matrix43, lElementType).process(pContext);
+                        return new PgslMatrixType(4, 3, lElementType).process(pContext);
                     }
                 },
                 {
@@ -512,7 +512,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                             pContext.pushIncident(`Matrix43 construction from vectors requires vectors of dimension 3.`, lConcreteTypeExpression);
                         }
 
-                        return new PgslMatrixType(PgslMatrixType.typeName.matrix43, lVectorType.innerType).process(pContext);
+                        return new PgslMatrixType(4, 3, lVectorType.innerType).process(pContext);
                     }
                 }
             ];
@@ -529,7 +529,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         // Get element type from concrete type expression.
                         const lElementType: PgslType = lConcreteTypeExpression.data.resolveType;
 
-                        return new PgslMatrixType(PgslMatrixType.typeName.matrix44, lElementType).process(pContext);
+                        return new PgslMatrixType(4, 4, lElementType).process(pContext);
                     }
                 },
                 {
@@ -549,7 +549,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                             pContext.pushIncident(`Matrix44 construction from vectors requires vectors of dimension 4.`, lConcreteTypeExpression);
                         }
 
-                        return new PgslMatrixType(PgslMatrixType.typeName.matrix44, lVectorType.innerType).process(pContext);
+                        return new PgslMatrixType(4, 4, lVectorType.innerType).process(pContext);
                     }
                 }
             ];

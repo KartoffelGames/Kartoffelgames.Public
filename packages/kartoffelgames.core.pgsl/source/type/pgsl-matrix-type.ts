@@ -13,6 +13,29 @@ import { PgslVectorType } from './pgsl-vector-type.ts';
  */
 export class PgslMatrixType extends PgslType {
     /**
+     * Gets the matrix dimensions for a given matrix type.
+     * 
+     * @param pMatrixType - The matrix type to get dimensions for.
+     * 
+     * @returns The matrix dimensions as [rows, columns].
+     */
+    public static dimensionsOf(pMatrixType: PgslMatrixTypeName): [columns: number, rows: number] {
+        switch (pMatrixType) {
+            case PgslMatrixType.typeName.matrix22: return [2, 2];
+            case PgslMatrixType.typeName.matrix32: return [3, 2];
+            case PgslMatrixType.typeName.matrix42: return [4, 2];
+            case PgslMatrixType.typeName.matrix23: return [2, 3];
+            case PgslMatrixType.typeName.matrix33: return [3, 3];
+            case PgslMatrixType.typeName.matrix43: return [4, 3];
+            case PgslMatrixType.typeName.matrix24: return [2, 4];
+            case PgslMatrixType.typeName.matrix34: return [3, 4];
+            case PgslMatrixType.typeName.matrix44: return [4, 4];
+            default:
+                return [2, 2]; // Default fallback
+        }
+    }
+
+    /**
      * Type names for all available matrix dimensions.
      * Maps matrix type names to their string representations.
      */
@@ -74,18 +97,20 @@ export class PgslMatrixType extends PgslType {
     /**
      * Constructor for matrix type.
      * 
-     * @param pContext - The context for validation and error reporting.
-     * @param pMatrixType - The specific matrix dimension type.
+     * @param pColumnCount - The number of columns in the matrix.
+     * @param pRowCount - The number of rows in the matrix.
      * @param pInnerType - The inner element type of the matrix.
      */
-    public constructor(pMatrixType: PgslMatrixTypeName, pInnerType: PgslType) {
+    public constructor(pColumnCount: number, pRowCount: number, pInnerType: PgslType) {
         super();
 
         // Set data.
         this.mInnerType = pInnerType;
+        this.mColumnCount = pColumnCount;
+        this.mRowCount = pRowCount;
 
         // Get matrix dimensions.
-        [this.mColumnCount, this.mRowCount] = this.getMatrixDimensions(pMatrixType);
+        //this.m = this.getMatrixDimensions(pColumnCount, pRowCount);
 
         // Create underlying vector type based on matrix type.
         this.mVectorTypeDefinition = new PgslVectorType(this.mColumnCount, pInnerType);
@@ -170,7 +195,7 @@ export class PgslMatrixType extends PgslType {
      */
     protected override onProcess(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
         // Process vector type definition.
-        this.mVectorTypeDefinition.process(pContext)
+        this.mVectorTypeDefinition.process(pContext);
 
         // Must be Float.
         if (!this.mInnerType.isImplicitCastableInto(new PgslNumericType(PgslNumericType.typeName.float32).process(pContext))) {
@@ -191,29 +216,6 @@ export class PgslMatrixType extends PgslType {
             constructible: this.mInnerType.data.constructible,
             fixedFootprint: this.mInnerType.data.fixedFootprint
         };
-    }
-
-    /**
-     * Gets the matrix dimensions for a given matrix type.
-     * 
-     * @param pMatrixType - The matrix type to get dimensions for.
-     * 
-     * @returns The matrix dimensions as [rows, columns].
-     */
-    private getMatrixDimensions(pMatrixType: PgslMatrixTypeName): [columns: number, rows: number] {
-        switch (pMatrixType) {
-            case PgslMatrixType.typeName.matrix22: return [2, 2];
-            case PgslMatrixType.typeName.matrix32: return [3, 2];
-            case PgslMatrixType.typeName.matrix42: return [4, 2];
-            case PgslMatrixType.typeName.matrix23: return [2, 3];
-            case PgslMatrixType.typeName.matrix33: return [3, 3];
-            case PgslMatrixType.typeName.matrix43: return [4, 3];
-            case PgslMatrixType.typeName.matrix24: return [2, 4];
-            case PgslMatrixType.typeName.matrix34: return [3, 4];
-            case PgslMatrixType.typeName.matrix44: return [4, 4];
-            default:
-                return [2, 2]; // Default fallback
-        }
     }
 }
 

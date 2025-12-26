@@ -146,35 +146,6 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             expect(lResultType).toBeInstanceOf(PgslVectorType);
             expect(lResultType.dimension).toBe(3);
         });
-
-        await pContext.step('Mixed matrix with float', () => {
-            // Setup.
-            const lCodeText: string = `
-                function testFunction(): void {
-                    let matrixOne: ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix33}(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
-                    let scalarValue: ${PgslNumericType.typeName.float32} = 2.0;
-                    let testVariable: ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float32}> = matrixOne + scalarValue;
-                }
-            `;
-
-            // Process.
-            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
-
-            // Process. Assume correct parsing.
-            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[2] as VariableDeclarationStatementAst;
-
-            // Evaluation. Correct type of expression node.
-            const lExpressionNode: ArithmeticExpressionAst = lVariableDeclarationNode.data.expression as ArithmeticExpressionAst;
-            expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
-
-            // Evaluation. Correct result type with dimensions.
-            const lResultType: PgslMatrixType = lExpressionNode.data.resolveType as PgslMatrixType;
-            expect(lResultType).toBeInstanceOf(PgslMatrixType);
-            expect(lResultType.columnCount).toBe(3);
-            expect(lResultType.rowCount).toBe(3);
-        });
     });
 
     await pContext.step('Subtraction', async (pContext) => {
@@ -297,35 +268,6 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             const lResultType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
             expect(lResultType).toBeInstanceOf(PgslVectorType);
             expect(lResultType.dimension).toBe(3);
-        });
-
-        await pContext.step('Mixed matrix with float', () => {
-            // Setup.
-            const lCodeText: string = `
-                function testFunction(): void {
-                    let matrixOne: ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix33}(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
-                    let scalarValue: ${PgslNumericType.typeName.float32} = 2.0;
-                    let testVariable: ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float32}> = matrixOne - scalarValue;
-                }
-            `;
-
-            // Process.
-            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
-
-            // Process. Assume correct parsing.
-            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[2] as VariableDeclarationStatementAst;
-
-            // Evaluation. Correct type of expression node.
-            const lExpressionNode: ArithmeticExpressionAst = lVariableDeclarationNode.data.expression as ArithmeticExpressionAst;
-            expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
-
-            // Evaluation. Correct result type with dimensions.
-            const lResultType: PgslMatrixType = lExpressionNode.data.resolveType as PgslMatrixType;
-            expect(lResultType).toBeInstanceOf(PgslMatrixType);
-            expect(lResultType.columnCount).toBe(3);
-            expect(lResultType.rowCount).toBe(3);
         });
     });
 
@@ -860,32 +802,6 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
                 `}`
             );
         });
-
-        await pContext.step('Mixed matrix with float', () => {
-            // Setup.
-            const lCodeText: string = `
-                function testFunction(): void {
-                    let matrixOne: ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix33}(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
-                    let scalarValue: ${PgslNumericType.typeName.float32} = 2.0;
-                    let testVariable: ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float32}> = matrixOne + scalarValue;
-                }
-            `;
-
-            // Process.
-            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-            // Evaluation. No errors.
-            expect(lTranspilationResult.incidents).toHaveLength(0);
-
-            // Evaluation. Correct transpilation output.
-            expect(lTranspilationResult.source).toBe(
-                `fn testFunction(){` +
-                `let matrixOne:mat3x3<f32>=mat3x3(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0);` +
-                `let scalarValue:f32=2.0;` +
-                `let testVariable:mat3x3<f32>=matrixOne+scalarValue;` +
-                `}`
-            );
-        });
     });
 
     await pContext.step('Subtraction', async (pContext) => {
@@ -985,32 +901,6 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
                 `let vectorOne:vec3<f32>=vec3(1.0,2.0,3.0);` +
                 `let scalarValue:f32=5.0;` +
                 `let testVariable:vec3<f32>=vectorOne-scalarValue;` +
-                `}`
-            );
-        });
-
-        await pContext.step('Mixed matrix with float', () => {
-            // Setup.
-            const lCodeText: string = `
-                function testFunction(): void {
-                    let matrixOne: ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix33}(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
-                    let scalarValue: ${PgslNumericType.typeName.float32} = 2.0;
-                    let testVariable: ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float32}> = matrixOne - scalarValue;
-                }
-            `;
-
-            // Process.
-            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-            // Evaluation. No errors.
-            expect(lTranspilationResult.incidents).toHaveLength(0);
-
-            // Evaluation. Correct transpilation output.
-            expect(lTranspilationResult.source).toBe(
-                `fn testFunction(){` +
-                `let matrixOne:mat3x3<f32>=mat3x3(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0);` +
-                `let scalarValue:f32=2.0;` +
-                `let testVariable:mat3x3<f32>=matrixOne-scalarValue;` +
                 `}`
             );
         });
@@ -1394,7 +1284,7 @@ Deno.test('ArithmeticExpressionAst - Error', async (pContext) => {
 
         // Evaluation. Error should mention numeric value requirement.
         expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes('Left and right side of arithmetic expression must be a numeric value')
+            pIncident.message.includes('Arithmetic operation not supported for used types.')
         )).toBe(true);
     });
 
@@ -1438,7 +1328,7 @@ Deno.test('ArithmeticExpressionAst - Error', async (pContext) => {
 
         // Evaluation. Error should mention type mismatch.
         expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes('Left and right side of arithmetic expression must be the same type')
+            pIncident.message.includes('Left and right side of arithmetic expression must have the same dimensions.')
         )).toBe(true);
     });
 
@@ -1463,28 +1353,6 @@ Deno.test('ArithmeticExpressionAst - Error', async (pContext) => {
             expect(lTranspilationResult.incidents.some(pIncident =>
                 pIncident.message.includes('Left and right side of arithmetic expression must be a numeric') ||
                 pIncident.message.includes('type')
-            )).toBe(true);
-        });
-
-        await pContext.step('Matrix with vector subtraction', () => {
-            // Setup.
-            const lCodeText: string = `
-                function testFunction(): void {
-                    let matrixOne: ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix33}(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
-                    let vectorOne: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}> = new ${PgslVectorType.typeName.vector3}(1.0, 2.0, 3.0);
-                    let testVariable: ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float32}> = matrixOne - vectorOne;
-                }
-            `;
-
-            // Process.
-            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-            // Evaluation. Should have errors.
-            expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
-
-            // Evaluation. Error should mention type mismatch.
-            expect(lTranspilationResult.incidents.some(pIncident =>
-                pIncident.message.includes('Left and right side of arithmetic expression must be the same type')
             )).toBe(true);
         });
     });

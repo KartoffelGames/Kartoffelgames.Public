@@ -34,8 +34,6 @@ export class AddressOfExpressionAst extends AbstractSyntaxTree<AddressOfExpressi
             pContext.pushIncident(`Target of address needs to storable`, this);
         }
 
-        // TODO: No vector item.
-
         return {
             // Expression data.
             variable: lVariable,

@@ -53,7 +53,7 @@ export class PgslPointerType extends PgslType {
      * @param pAddressSpace - Address space of pointer type.
      * @param pContext - Context. 
      */
-    public assignAddressSpace(pAddressSpace: PgslValueAddressSpace, pContext: AbstractSyntaxTreeContext) { // TODO: Needs to be tested and called on ast processing (VariableDeclaration, VariableStatement, FunctionCall).
+    public assignAddressSpace(pAddressSpace: PgslValueAddressSpace, pContext: AbstractSyntaxTreeContext) {
         // When a address space is already assigned and the new one is different, report an error.
         if (this.mAssignedAddressSpace !== null && this.mAssignedAddressSpace !== pAddressSpace) {
             pContext.pushIncident('Pointer address space is already assigned and cannot be changed');

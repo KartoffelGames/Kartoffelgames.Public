@@ -144,7 +144,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         // Setup #IFDEF. Fill Replaced '#IFDEFs, #ENDIFDEF with same amount of spaces and newlines.
         // Remove any other # statements as they do nothing. Replace with same amount of spaces and newlines.
 
-        // TODO: Replace comments with same amount of spaces ans newlines.
+        // TODO: Replace comments with same amount of spaces and newlines.
 
         // Clear user defined type names.
         this.mUserDefinedTypeNames = new Set<string>();

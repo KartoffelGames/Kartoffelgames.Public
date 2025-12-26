@@ -130,10 +130,12 @@ Deno.test('FunctionCallExpressionAst - Parsing', async (pContext) => {
             // Process. Assume correct parsing.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[1] as FunctionDeclarationAst;
             const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
+            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[1] as VariableDeclarationStatementAst;
 
-            // Evaluation. Correct expression type.
-            const lExpressionNode: FunctionCallExpressionAst = lFunctionDeclaration.block.data.statementList[1] as FunctionCallExpressionAst;
+            // Evaluation. Correct type of expression node.
+            const lExpressionNode: FunctionCallExpressionAst = lVariableDeclarationNode.data.expression as FunctionCallExpressionAst;
             expect(lExpressionNode).toBeInstanceOf(FunctionCallExpressionAst);
+
 
             // Evaluation. Correct parameter count.
             expect(lExpressionNode.data.parameters).toHaveLength(1);
@@ -305,7 +307,7 @@ Deno.test('FunctionCallExpressionAst - Transpilation', async (pContext) => {
                 // Evaluation. Correct transpilation output.
                 expect(lTranspilationResult.source).toBe(
                     `fn ${lFunctionName}(pPointer:ptr<function,f32>)->f32{` +
-                    `return 1.0;`+
+                    `return 1.0;` +
                     `}` +
                     `fn mainFunction(){` +
                     `let testValue:f32=5.0;` +
@@ -338,7 +340,7 @@ Deno.test('FunctionCallExpressionAst - Transpilation', async (pContext) => {
                 expect(lTranspilationResult.source).toBe(
                     `var<private> ${lVariableName}:f32;` +
                     `fn ${lFunctionName}(pPointer:ptr<private,f32>)->f32{` +
-                    `return 1.0;`+
+                    `return 1.0;` +
                     `}` +
                     `fn mainFunction(){` +
                     `let resultValue:f32=${lFunctionName}(&${lVariableName});` +
@@ -370,7 +372,7 @@ Deno.test('FunctionCallExpressionAst - Transpilation', async (pContext) => {
                 expect(lTranspilationResult.source).toBe(
                     `var<workgroup> ${lVariableName}:f32;` +
                     `fn ${lFunctionName}(pPointer:ptr<workgroup,f32>)->f32{` +
-                    `return 1.0;` + 
+                    `return 1.0;` +
                     `}` +
                     `fn mainFunction(){` +
                     `let resultValue:f32=${lFunctionName}(&${lVariableName});` +
@@ -403,7 +405,7 @@ Deno.test('FunctionCallExpressionAst - Transpilation', async (pContext) => {
                 expect(lTranspilationResult.source).toBe(
                     `@group(0)@binding(0)var<uniform> ${lVariableName}:f32;` +
                     `fn ${lFunctionName}(pPointer:ptr<uniform,f32>)->f32{` +
-                    `return 1.0;`+
+                    `return 1.0;` +
                     `}` +
                     `fn mainFunction(){` +
                     `let resultValue:f32=${lFunctionName}(&${lVariableName});` +
@@ -436,7 +438,7 @@ Deno.test('FunctionCallExpressionAst - Transpilation', async (pContext) => {
                 expect(lTranspilationResult.source).toBe(
                     `@group(0)@binding(0)var<storage,read> ${lVariableName}:f32;` +
                     `fn ${lFunctionName}(pPointer:ptr<storage,f32>)->f32{` +
-                    `return 1.0;`+
+                    `return 1.0;` +
                     `}` +
                     `fn mainFunction(){` +
                     `let resultValue:f32=${lFunctionName}(&${lVariableName});` +

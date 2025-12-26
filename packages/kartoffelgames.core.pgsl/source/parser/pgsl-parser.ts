@@ -598,6 +598,21 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         });
 
         /**
+         * List of names for value decomposition seperated by member delimiter.
+         * ```
+         * - ".<IDENTIFIER>"
+         * - ".<IDENTIFIER>.<IDENTIFIER>"
+         * - ".<IDENTIFIER>.<IDENTIFIER>.<IDENTIFIER>"
+         * ```
+         */
+        const lValueDecompositionNameListGraph: Graph<PgslToken, object, { names: Array<string>; }> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required(PgslToken.MemberDelimiter)
+                .required('names[]', PgslToken.Identifier)
+                .optional('names<-names', lValueDecompositionNameListGraph); // Self reference
+        });
+
+        /**
          * Value decomposition expression. An expressions value accessed through an identifier.
          * Can be eighter a value decomposition or a enum decomposition.
          * ```
@@ -607,15 +622,23 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         const lValueDecompositionExpressionGraph: Graph<PgslToken, object, ValueDecompositionExpressionCst> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required('leftExpression', lExpressionSyntaxTreeGraph)
-                .required(PgslToken.MemberDelimiter)
-                .required('propertyName', PgslToken.Identifier);
+                .required('names<-names', lValueDecompositionNameListGraph);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): ValueDecompositionExpressionCst => {
-            return {
-                type: 'ValueDecompositionExpression',
-                range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                value: pData.leftExpression,
-                property: pData.propertyName
-            } satisfies ValueDecompositionExpressionCst;
+            // Create a nested Value decomposition Expression.
+            let lNextedExpression: ValueDecompositionExpressionCst = pData.leftExpression as ValueDecompositionExpressionCst;
+            for (const lName of pData.names) {
+                // Buffer last created inner expression to be insered into new decomposition expression cst.
+                const lInnerExpression: ExpressionCst<ExpressionCstType> = lNextedExpression;
+
+                lNextedExpression = {
+                    type: 'ValueDecompositionExpression',
+                    range: this.createTokenBoundParameter(pStartToken, pEndToken),
+                    value: lInnerExpression,
+                    property: lName
+                } satisfies ValueDecompositionExpressionCst;
+            }
+
+            return lNextedExpression;
         });
 
         /**

@@ -93,43 +93,82 @@ Deno.test('IndexedValueExpressionAst - Parsing', async (pContext) => {
         expect(lVariableExpression.data.variableName).toBe(lVariableName);
     });
 
-    await pContext.step('Matrix Indexing', async () => {
-        // Setup.
-        const lMatrixItemIndex: number = 2;
-        const lVariableName: string = 'numericMatrix';
-        const lCodeText: string = `
-            function testFunction(): void {
-                let ${lVariableName}: ${PgslMatrixType.typeName.matrix22}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix22}(1, 2, 3, 4);
-                let numericVector: ${PgslVectorType.typeName.vector2}<${PgslNumericType.typeName.float32}> = ${lVariableName}[${lMatrixItemIndex}];
-            }
-        `;
+    await pContext.step('Matrix Indexing', async (pContext) => {
+        await pContext.step('Vector Indexing', async () => {
+            // Setup.
+            const lMatrixItemIndex: number = 2;
+            const lVariableName: string = 'numericMatrix';
+            const lCodeText: string = `
+                function testFunction(): void {
+                    let ${lVariableName}: ${PgslMatrixType.typeName.matrix22}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix22}(1, 2, 3, 4);
+                    let numericVector: ${PgslVectorType.typeName.vector2}<${PgslNumericType.typeName.float32}> = ${lVariableName}[${lMatrixItemIndex}];
+                }
+            `;
 
-        // Process.
-        const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+            // Process.
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
-        // Process. Assume correct parsing.
-        const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-        const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-        const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[1] as VariableDeclarationStatementAst;
+            // Process. Assume correct parsing.
+            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+            const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
+            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[1] as VariableDeclarationStatementAst;
 
-        // Evaluation. Correct type of child node.
-        const lExpressionNode: IndexedValueExpressionAst = lVariableDeclarationNode.data.expression as IndexedValueExpressionAst;
-        expect(lExpressionNode).toBeInstanceOf(IndexedValueExpressionAst);
+            // Evaluation. Correct type of child node.
+            const lExpressionNode: IndexedValueExpressionAst = lVariableDeclarationNode.data.expression as IndexedValueExpressionAst;
+            expect(lExpressionNode).toBeInstanceOf(IndexedValueExpressionAst);
 
-        const lIndexExpression: LiteralValueExpressionAst = lExpressionNode.data.index as LiteralValueExpressionAst;
-        const lVariableExpression: VariableNameExpressionAst = lExpressionNode.data.value as VariableNameExpressionAst;
+            const lIndexExpression: LiteralValueExpressionAst = lExpressionNode.data.index as LiteralValueExpressionAst;
+            const lVariableExpression: VariableNameExpressionAst = lExpressionNode.data.value as VariableNameExpressionAst;
 
-        // Evaluation. Correct types.
-        const lResultType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
-        expect(lResultType).toBeInstanceOf(PgslVectorType);
-        expect(lResultType.dimension).toBe(2);
-        expect(lResultType.innerType).toBeInstanceOf(PgslNumericType);
+            // Evaluation. Correct types.
+            const lResultType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
+            expect(lResultType).toBeInstanceOf(PgslVectorType);
+            expect(lResultType.dimension).toBe(2);
+            expect(lResultType.innerType).toBeInstanceOf(PgslNumericType);
 
-        // Evaluation. Correct structure.
-        expect(lIndexExpression).toBeInstanceOf(LiteralValueExpressionAst);
-        expect(lIndexExpression.data.constantValue).toBe(lMatrixItemIndex);
-        expect(lVariableExpression).toBeInstanceOf(VariableNameExpressionAst);
-        expect(lVariableExpression.data.variableName).toBe(lVariableName);
+            // Evaluation. Correct structure.
+            expect(lIndexExpression).toBeInstanceOf(LiteralValueExpressionAst);
+            expect(lIndexExpression.data.constantValue).toBe(lMatrixItemIndex);
+            expect(lVariableExpression).toBeInstanceOf(VariableNameExpressionAst);
+            expect(lVariableExpression.data.variableName).toBe(lVariableName);
+        });
+        await pContext.step('Scalar Indexing', async () => {
+            // Setup.
+            const lMatrixItemIndex: number = 2;
+            const lVectorItemIndex: number = 0;
+            const lVariableName: string = 'numericMatrix';
+            const lCodeText: string = `
+                function testFunction(): void {
+                    let ${lVariableName}: ${PgslMatrixType.typeName.matrix22}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix22}(1, 2, 3, 4);
+                    let numeric: ${PgslNumericType.typeName.float32} = ${lVariableName}[${lMatrixItemIndex}][${lVectorItemIndex}];
+                }
+            `;
+
+            // Process.
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+            // Process. Assume correct parsing.
+            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+            const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
+            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[1] as VariableDeclarationStatementAst;
+
+            // Evaluation. Correct type of child node.
+            const lExpressionNode: IndexedValueExpressionAst = lVariableDeclarationNode.data.expression as IndexedValueExpressionAst;
+            expect(lExpressionNode).toBeInstanceOf(IndexedValueExpressionAst);
+
+            const lIndexExpression: LiteralValueExpressionAst = lExpressionNode.data.index as LiteralValueExpressionAst;
+            const lVariableExpression: VariableNameExpressionAst = lExpressionNode.data.value as VariableNameExpressionAst;
+
+            // Evaluation. Correct types.
+            const lResultType: PgslNumericType = lExpressionNode.data.resolveType as PgslNumericType;
+            expect(lResultType).toBeInstanceOf(PgslNumericType);
+
+            // Evaluation. Correct structure.
+            expect(lIndexExpression).toBeInstanceOf(LiteralValueExpressionAst);
+            expect(lIndexExpression.data.constantValue).toBe(lMatrixItemIndex);
+            expect(lVariableExpression).toBeInstanceOf(VariableNameExpressionAst);
+            expect(lVariableExpression.data.variableName).toBe(lVariableName);
+        });
     });
 });
 

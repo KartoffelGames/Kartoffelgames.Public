@@ -362,7 +362,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
         await pContext.step('Loop Parsing with existing items', () => {
             // Setup.
             const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
-            const lCodeTextList: Array<string> = ['const','ident','ident','ident','ident','ident'];
+            const lCodeTextList: Array<string> = ['const', 'ident', 'ident', 'ident', 'ident', 'ident'];
 
             // Setup. Define graph part and set as root.
             const lLoopGraph = Graph.define(() => {

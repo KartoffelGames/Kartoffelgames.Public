@@ -18,9 +18,9 @@ const gPgslParser: PgslParser = new PgslParser();
 Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
     await pContext.step('Addition', async (pContext) => {
         await pContext.step('Float', () => {
-            // Setup.
-            const lLeftValue: number = 5.0;
-            const lRightValue: number = 3.0;
+            // Setup. Use string to ensure correct number insertion.
+            const lLeftValue: string = '5.0';
+            const lRightValue: string = '3.0';
             const lCodeText: string = `
                 function testFunction(): void {
                     let testVariable: ${PgslNumericType.typeName.float32} = ${lLeftValue} + ${lRightValue};
@@ -51,15 +51,15 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             const lLeftExpression: LiteralValueExpressionAst = lExpressionNode.data.leftExpression as LiteralValueExpressionAst;
             const lRightExpression: LiteralValueExpressionAst = lExpressionNode.data.rightExpression as LiteralValueExpressionAst;
             expect(lLeftExpression).toBeInstanceOf(LiteralValueExpressionAst);
-            expect(lLeftExpression.data.constantValue).toBe(lLeftValue);
+            expect(lLeftExpression.data.constantValue).toBe(parseFloat(lLeftValue));
             expect(lRightExpression).toBeInstanceOf(LiteralValueExpressionAst);
-            expect(lRightExpression.data.constantValue).toBe(lRightValue);
+            expect(lRightExpression.data.constantValue).toBe(parseFloat(lRightValue));
         });
 
         await pContext.step('Integer', () => {
-            // Setup.
-            const lLeftValue: number = 5;
-            const lRightValue: number = 3;
+            // Setup. Use string to ensure correct number insertion.
+            const lLeftValue: string = '5';
+            const lRightValue: string = '3';
             const lCodeText: string = `
                 function testFunction(): void {
                     let testVariable: ${PgslNumericType.typeName.signedInteger} = ${lLeftValue} + ${lRightValue};
@@ -179,9 +179,9 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
     await pContext.step('Subtraction', async (pContext) => {
         await pContext.step('Float', () => {
-            // Setup.
-            const lLeftValue: number = 5.0;
-            const lRightValue: number = 3.0;
+            // Setup. Use string to ensure correct number insertion.
+            const lLeftValue: string = '5.0';
+            const lRightValue: string = '3.0';
             const lCodeText: string = `
                 function testFunction(): void {
                     let testVariable: ${PgslNumericType.typeName.float32} = ${lLeftValue} - ${lRightValue};
@@ -210,9 +210,9 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
         });
 
         await pContext.step('Integer', () => {
-            // Setup.
-            const lLeftValue: number = 5;
-            const lRightValue: number = 3;
+            // Setup. Use string to ensure correct number insertion.
+            const lLeftValue: string = '5';
+            const lRightValue: string = '3';
             const lCodeText: string = `
                 function testFunction(): void {
                     let testVariable: ${PgslNumericType.typeName.signedInteger} = ${lLeftValue} - ${lRightValue};
@@ -331,9 +331,9 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
     await pContext.step('Multiplication', async (pContext) => {
         await pContext.step('Float', () => {
-            // Setup.
-            const lLeftValue: number = 5.0;
-            const lRightValue: number = 3.0;
+            // Setup. Use string to ensure correct number insertion.
+            const lLeftValue: string = '5.0';
+            const lRightValue: string = '3.0';
             const lCodeText: string = `
                 function testFunction(): void {
                     let testVariable: ${PgslNumericType.typeName.float32} = ${lLeftValue} * ${lRightValue};
@@ -362,9 +362,9 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
         });
 
         await pContext.step('Integer', () => {
-            // Setup.
-            const lLeftValue: number = 5;
-            const lRightValue: number = 3;
+            // Setup. Use string to ensure correct number insertion.
+            const lLeftValue: string = '5';
+            const lRightValue: string = '3';
             const lCodeText: string = `
                 function testFunction(): void {
                     let testVariable: ${PgslNumericType.typeName.signedInteger} = ${lLeftValue} * ${lRightValue};
@@ -514,9 +514,9 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
     await pContext.step('Division', async (pContext) => {
         await pContext.step('Float', () => {
-            // Setup.
-            const lLeftValue: number = 6.0;
-            const lRightValue: number = 3.0;
+            // Setup. Use string to ensure correct number insertion.
+            const lLeftValue: string = '6.0';
+            const lRightValue: string = '3.0';
             const lCodeText: string = `
                 function testFunction(): void {
                     let testVariable: ${PgslNumericType.typeName.float32} = ${lLeftValue} / ${lRightValue};
@@ -545,9 +545,9 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
         });
 
         await pContext.step('Integer', () => {
-            // Setup.
-            const lLeftValue: number = 6;
-            const lRightValue: number = 3;
+            // Setup. Use string to ensure correct number insertion.
+            const lLeftValue: string = '6';
+            const lRightValue: string = '3';
             const lCodeText: string = `
                 function testFunction(): void {
                     let testVariable: ${PgslNumericType.typeName.signedInteger} = ${lLeftValue} / ${lRightValue};
@@ -637,9 +637,9 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
 
     await pContext.step('Modulo', async (pContext) => {
         await pContext.step('Float', () => {
-            // Setup.
-            const lLeftValue: number = 7.0;
-            const lRightValue: number = 3.0;
+            // Setup. Use string to ensure correct number insertion.
+            const lLeftValue: string = '7.0';
+            const lRightValue: string = '3.0';
             const lCodeText: string = `
                 function testFunction(): void {
                     let testVariable: ${PgslNumericType.typeName.float32} = ${lLeftValue} % ${lRightValue};
@@ -668,9 +668,9 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
         });
 
         await pContext.step('Integer', () => {
-            // Setup.
-            const lLeftValue: number = 7;
-            const lRightValue: number = 3;
+            // Setup. Use string to ensure correct number insertion.
+            const lLeftValue: string = '7';
+            const lRightValue: string = '3';
             const lCodeText: string = `
                 function testFunction(): void {
                     let testVariable: ${PgslNumericType.typeName.signedInteger} = ${lLeftValue} % ${lRightValue};

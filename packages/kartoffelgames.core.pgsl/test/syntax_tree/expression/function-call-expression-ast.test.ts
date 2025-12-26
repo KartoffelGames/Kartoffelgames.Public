@@ -434,7 +434,7 @@ Deno.test('FunctionCallExpressionAst - Transpilation', async (pContext) => {
 
                 // Evaluation. Correct transpilation output.
                 expect(lTranspilationResult.source).toBe(
-                    `@group(0)@binding(0)var<storage,read_write> ${lVariableName}:f32;` +
+                    `@group(0)@binding(0)var<storage,read> ${lVariableName}:f32;` +
                     `fn ${lFunctionName}(pPointer:ptr<storage,f32>)->f32{` +
                     `return 1.0;`+
                     `}` +

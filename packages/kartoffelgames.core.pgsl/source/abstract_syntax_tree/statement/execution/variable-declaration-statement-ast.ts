@@ -77,6 +77,11 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
             if (this.cst.declarationType === PgslDeclarationType.Const && !lType.data.constructible) {
                 pContext.pushIncident(`Constant variable declarations can only be of a constructible type.`, this);
             }
+        } else {
+            // If a expression is present, read the address space and attach it to the pointer type.
+            if (lExpression) {
+                lType.assignAddressSpace(lExpression.data.storageAddressSpace, pContext);
+            }
         }
 
         // Validate const value need to have a initialization.

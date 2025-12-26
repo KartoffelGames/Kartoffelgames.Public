@@ -324,10 +324,10 @@ Deno.test('ValueDecompositionExpressionAst - Transpilation', async (pContext) =>
             // Setup.
             const lEnumName: string = 'TestEnum';
             const lValueName: string = 'testValueOne';
-            const lExpectedValue: number = 1;
+            const lEnumValue: number = 1;
             const lCodeText: string = `
                 enum ${lEnumName} {
-                    ${lValueName} = ${lExpectedValue},
+                    ${lValueName} = ${lEnumValue},
                     testValueTwo = 2
                 }
                 function testFunction(): void {
@@ -344,7 +344,7 @@ Deno.test('ValueDecompositionExpressionAst - Transpilation', async (pContext) =>
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:i32=${lExpectedValue};` +
+                `let testVariable:i32=${lEnumValue};` +
                 `}`
             );
         });

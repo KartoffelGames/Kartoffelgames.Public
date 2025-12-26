@@ -122,7 +122,6 @@ Deno.test('ParenthesizedExpressionAst - Transpilation', async (pContext) => {
         await pContext.step('Single value', () => {
             // Setup.
             const lValueOne: number = 42.0;
-            const lExpectedValue: number = 42;
             const lCodeText: string = `
                 function testFunction(): void {
                     let testVariable: ${PgslNumericType.typeName.float32} = (${lValueOne});
@@ -138,7 +137,7 @@ Deno.test('ParenthesizedExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:f32=(${lExpectedValue});` +
+                `let testVariable:f32=(${lValueOne});` +
                 `}`
             );
         });

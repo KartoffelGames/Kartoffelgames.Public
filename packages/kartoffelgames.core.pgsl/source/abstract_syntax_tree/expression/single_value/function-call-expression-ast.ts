@@ -2,6 +2,7 @@ import type { FunctionCallExpressionCst } from '../../../concrete_syntax_tree/ex
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import { PgslInvalidType } from '../../../type/pgsl-invalid-type.ts';
+import { PgslPointerType } from "../../../type/pgsl-pointer-type.ts";
 import { PgslType } from "../../../type/pgsl-type.ts";
 import { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
@@ -68,14 +69,57 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             return new TypeDeclarationAst(pGenericTypeDeclarationCst).process(pContext).data.type;
         });
 
-        // Find a matching function header.
-        const lFunctionHeaderReturnType: PgslType | null = this.matchFunctionHeaderReturnType(pContext, lFunctionDeclaration, lGenericParameterList, lParameterList);
-        if (!lFunctionHeaderReturnType) {
+        // Try to match function header.
+        const lMatchedFunctionHeader: FunctionHeaderMatchResult | null = this.matchFunctionHeader(pContext, lFunctionDeclaration, lGenericParameterList, lParameterList);
+        if (!lMatchedFunctionHeader) {
             pContext.pushIncident(`No matching function header found for function '${this.cst.functionName}'.`, this);
         }
 
         // Get the return type from the matched function header.
-        const lReturnType: PgslType = lFunctionHeaderReturnType ? lFunctionHeaderReturnType : new PgslInvalidType().process(pContext);
+        const lReturnType: PgslType = (() => {
+            if (!lMatchedFunctionHeader) {
+                return new PgslInvalidType().process(pContext);
+            }
+
+            // When return type is not generic, return its type.
+            if (typeof lMatchedFunctionHeader.header.returnType !== 'number') {
+                return lMatchedFunctionHeader.header.returnType.data.type;
+            }
+
+            const lGenericIndex: number = lMatchedFunctionHeader.header.returnType;
+
+            // When return type is generic, return the infered type.
+            const lInferedReturnType: PgslType | null = lMatchedFunctionHeader.genericTypes.get(lGenericIndex) ?? null;
+            if (!lInferedReturnType) {
+                pContext.pushIncident(`Function return type ${lGenericIndex} of function '${this.cst.functionName}' can not be inferred.`, this);
+                return new PgslInvalidType().process(pContext);
+            }
+
+            return lInferedReturnType;
+        })();
+
+        // For any used pointer type, try to assign its expression address space is correct.
+        if (lMatchedFunctionHeader) {
+            for (let lParameterIndex = 0; lParameterIndex < lMatchedFunctionHeader.header.parameter.length; lParameterIndex++) {
+                const lParameterType: PgslType = (() => {
+                    // When parameter type is not generic return its type declaration.
+                    const lParameterTypeDeclaration: number | TypeDeclarationAst = lMatchedFunctionHeader.header.parameter[lParameterIndex].type;
+                    if (typeof lParameterTypeDeclaration !== 'number') {
+                        return lParameterTypeDeclaration.data.type;
+                    }
+
+                    // When parameter type is generic, return the infered type declaration.
+                    const lGenericIndex: number = lParameterTypeDeclaration;
+                    return lMatchedFunctionHeader.genericTypes.get(lGenericIndex)!;
+                })();
+
+                // Assign address space to pointer types.
+                if (lParameterType instanceof PgslPointerType) {
+                    const lParameterExpressionAddressSpace: PgslValueAddressSpace = lParameterList[lParameterIndex].data.storageAddressSpace;
+                    lParameterType.assignAddressSpace(lParameterExpressionAddressSpace, pContext);
+                }
+            }
+        }
 
         return {
             // Expression data.
@@ -91,7 +135,17 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
         };
     }
 
-    private matchFunctionHeaderReturnType(pContext: AbstractSyntaxTreeContext, pFunctionDeclaration: FunctionDeclarationAst, pGenericList: Array<PgslType>, pParameterList: Array<IExpressionAst>): PgslType | null {
+    /**
+     * Match function declaration headers against provided generics and parameters.
+     * 
+     * @param pContext - Process context.
+     * @param pFunctionDeclaration - Function declaation of call.
+     * @param pGenericList - Generic types used for this call.
+     * @param pParameterList - Parameter expressions used for this call.
+     * 
+     * @returns Matched function header and infered generics or null when no match is found. 
+     */
+    private matchFunctionHeader(pContext: AbstractSyntaxTreeContext, pFunctionDeclaration: FunctionDeclarationAst, pGenericList: Array<PgslType>, pParameterList: Array<IExpressionAst>): FunctionHeaderMatchResult | null {
         // Check each function header for a match.
         FUNCTION_HEADER_LOOP: for (const lFunctionHeader of pFunctionDeclaration.data.declarations) {
             // Parameter count needs to match.
@@ -171,26 +225,20 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
                 }
             }
 
-            // When return type is not generic, return its type.
-            if (typeof lFunctionHeader.returnType !== 'number') {
-                return lFunctionHeader.returnType.data.type;
-            }
-
-            const lGenericIndex: number = lFunctionHeader.returnType;
-
-            // When return type is generic, return the infered type.
-            const lInferedReturnType: PgslType | null = lInferedGenericTypes.get(lGenericIndex) ?? null;
-            if (!lInferedReturnType) {
-                pContext.pushIncident(`Function return type ${lGenericIndex} of function '${this.cst.functionName}' can not be inferred.`, this);
-                return new PgslInvalidType().process(pContext);
-            }
-
-            return lInferedReturnType;
+            return {
+                header: lFunctionHeader,
+                genericTypes: lInferedGenericTypes
+            };
         }
 
         return null;
     }
 }
+
+type FunctionHeaderMatchResult = {
+    header: FunctionDeclarationAstDataDeclaration;
+    genericTypes: Map<number, PgslType>;
+};
 
 export type FunctionCallExpressionAstData = {
     name: string;

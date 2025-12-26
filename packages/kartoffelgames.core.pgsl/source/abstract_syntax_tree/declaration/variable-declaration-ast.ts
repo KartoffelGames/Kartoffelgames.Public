@@ -15,6 +15,7 @@ import { ValueStoreAstData, IValueStoreAst } from "../i-value-store-ast.interfac
 import { DeclarationAstData, IDeclarationAst } from './i-declaration-ast.interface.ts';
 import { ExpressionAstBuilder } from "../expression/expression-ast-builder.ts";
 import { IExpressionAst } from "../expression/i-expression-ast.interface.ts";
+import { PgslPointerType } from "../../type/pgsl-pointer-type.ts";
 
 /**
  * PGSL syntax tree for a alias declaration.
@@ -69,6 +70,11 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
         if (lExpression && !lExpression.data.resolveType.isImplicitCastableInto(lType)) {
             // Expression type is not castable into declaration type.
             pContext.pushIncident(`Initializing value has incompatible type.`, this);
+        }
+
+        // For pointer types, assign address space from expression.
+        if(lExpression && lType instanceof PgslPointerType) {
+            lType.assignAddressSpace(lExpression.data.storageAddressSpace, pContext);
         }
 
         // Read meta data.

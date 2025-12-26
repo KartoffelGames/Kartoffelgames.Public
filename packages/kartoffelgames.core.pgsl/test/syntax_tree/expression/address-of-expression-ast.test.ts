@@ -325,7 +325,7 @@ Deno.test('AddressOfExpressionAst - Transpilation', async (pContext) => {
 
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
-                `var<private>${lVariableName}:f32;` +
+                `var<private> ${lVariableName}:f32;` +
                 `fn testFunction(){` +
                 `let pointerVariable:ptr<private,f32>=&${lVariableName};` +
                 `}`
@@ -352,7 +352,7 @@ Deno.test('AddressOfExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `@group(0)@binding(0)`+
-                `var<storage, read>${lVariableName}:f32;` +
+                `var<storage,read> ${lVariableName}:f32;` +
                 `fn testFunction(){` +
                 `let pointerVariable:ptr<storage,f32>=&${lVariableName};` +
                 `}`

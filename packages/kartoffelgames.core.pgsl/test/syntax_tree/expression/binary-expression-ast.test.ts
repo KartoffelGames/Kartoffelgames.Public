@@ -17,9 +17,9 @@ const gPgslParser: PgslParser = new PgslParser();
 Deno.test('BinaryExpressionAst - Parsing', async (pContext) => {
     await pContext.step('Bitwise Operations', async (pContext) => {
         await pContext.step('Binary OR', () => {
-            // Setup.
-            const lLeftValue: number = 5;
-            const lRightValue: number = 3;
+            // Setup. Use string to ensure correct number insertion.
+            const lLeftValue: string = '5';
+            const lRightValue: string = '3';
             const lCodeText: string = `
                 function testFunction(): void {
                     let testVariable: ${PgslNumericType.typeName.signedInteger} = ${lLeftValue} | ${lRightValue};
@@ -50,13 +50,13 @@ Deno.test('BinaryExpressionAst - Parsing', async (pContext) => {
             const lLeftExpression: LiteralValueExpressionAst = lExpressionNode.data.leftExpression as LiteralValueExpressionAst;
             const lRightExpression: LiteralValueExpressionAst = lExpressionNode.data.rightExpression as LiteralValueExpressionAst;
             expect(lLeftExpression).toBeInstanceOf(LiteralValueExpressionAst);
-            expect(lLeftExpression.data.constantValue).toBe(lLeftValue);
+            expect(lLeftExpression.data.constantValue).toBe(parseFloat(lLeftValue));
             expect(lRightExpression).toBeInstanceOf(LiteralValueExpressionAst);
-            expect(lRightExpression.data.constantValue).toBe(lRightValue);
+            expect(lRightExpression.data.constantValue).toBe(parseFloat(lRightValue));
         });
 
         await pContext.step('Binary AND', () => {
-            // Setup.
+            // Setup. Use string to ensure correct number insertion.
             const lLeftValue: number = 5;
             const lRightValue: number = 3;
             const lCodeText: string = `
@@ -87,9 +87,9 @@ Deno.test('BinaryExpressionAst - Parsing', async (pContext) => {
         });
 
         await pContext.step('Binary XOR', () => {
-            // Setup.
-            const lLeftValue: number = 5;
-            const lRightValue: number = 3;
+            // Setup. Use string to ensure correct number insertion.
+            const lLeftValue: string = '5';
+            const lRightValue: string = '3';
             const lCodeText: string = `
                 function testFunction(): void {
                     let testVariable: ${PgslNumericType.typeName.signedInteger} = ${lLeftValue} ^ ${lRightValue};

@@ -215,7 +215,6 @@ Deno.test('UnaryExpressionAst - Transpilation', async (pContext) => {
         await pContext.step('Negation float', () => {
             // Setup.
             const lValue: number = 5.0;
-            const lExpectedValue: number = 5;
             const lCodeText: string = `
                 function testFunction(): void {
                     let testVariable: ${PgslNumericType.typeName.float32} = -${lValue};
@@ -231,7 +230,7 @@ Deno.test('UnaryExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:f32=-${lExpectedValue};` +
+                `let testVariable:f32=-${lValue};` +
                 `}`
             );
         });
@@ -240,7 +239,7 @@ Deno.test('UnaryExpressionAst - Transpilation', async (pContext) => {
             // Setup.
             const lCodeText: string = `
                 function testFunction(): void {
-                    let testVector: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}> = new ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}>(1.0, 2.0, 3.0);
+                    let testVector: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}> = new ${PgslVectorType.typeName.vector3}(1.0, 2.0, 3.0);
                     let testVariable: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}> = -testVector;
                 }
             `;

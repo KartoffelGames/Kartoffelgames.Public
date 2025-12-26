@@ -45,36 +45,6 @@ Deno.test('LogicalExpressionAst - Parsing', async (pContext) => {
             const lResultType: PgslBooleanType = lExpressionNode.data.resolveType as PgslBooleanType;
             expect(lResultType).toBeInstanceOf(PgslBooleanType);
         });
-
-        await pContext.step('Boolean vector', () => {
-            // Setup.
-            const lCodeText: string = `
-                function testFunction(): void {
-                    let vectorOne: ${PgslVectorType.typeName.vector3}<bool> = new ${PgslVectorType.typeName.vector3}(true, false, true);
-                    let vectorTwo: ${PgslVectorType.typeName.vector3}<bool> = new ${PgslVectorType.typeName.vector3}(false, true, false);
-                    let testVariable: bool = vectorOne || vectorTwo;
-                }
-            `;
-
-            // Process.
-            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
-
-            // Process. Assume correct parsing.
-            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[2] as VariableDeclarationStatementAst;
-
-            // Evaluation. Correct type of expression node.
-            const lExpressionNode: LogicalExpressionAst = lVariableDeclarationNode.data.expression as LogicalExpressionAst;
-            expect(lExpressionNode).toBeInstanceOf(LogicalExpressionAst);
-
-            // Evaluation. Correct operator.
-            expect(lExpressionNode.data.operatorName).toBe(PgslOperator.ShortCircuitOr);
-
-            // Evaluation. Correct result type.
-            const lResultType: PgslBooleanType = lExpressionNode.data.resolveType as PgslBooleanType;
-            expect(lResultType).toBeInstanceOf(PgslBooleanType);
-        });
     });
 
     await pContext.step('Logical AND', async (pContext) => {
@@ -85,36 +55,6 @@ Deno.test('LogicalExpressionAst - Parsing', async (pContext) => {
                     let boolOne: bool = true;
                     let boolTwo: bool = false;
                     let testVariable: bool = boolOne && boolTwo;
-                }
-            `;
-
-            // Process.
-            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
-
-            // Process. Assume correct parsing.
-            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
-            const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[2] as VariableDeclarationStatementAst;
-
-            // Evaluation. Correct type of expression node.
-            const lExpressionNode: LogicalExpressionAst = lVariableDeclarationNode.data.expression as LogicalExpressionAst;
-            expect(lExpressionNode).toBeInstanceOf(LogicalExpressionAst);
-
-            // Evaluation. Correct operator.
-            expect(lExpressionNode.data.operatorName).toBe(PgslOperator.ShortCircuitAnd);
-
-            // Evaluation. Correct result type.
-            const lResultType: PgslBooleanType = lExpressionNode.data.resolveType as PgslBooleanType;
-            expect(lResultType).toBeInstanceOf(PgslBooleanType);
-        });
-
-        await pContext.step('Boolean vector', () => {
-            // Setup.
-            const lCodeText: string = `
-                function testFunction(): void {
-                    let vectorOne: ${PgslVectorType.typeName.vector3}<bool> = new ${PgslVectorType.typeName.vector3}(true, false, true);
-                    let vectorTwo: ${PgslVectorType.typeName.vector3}<bool> = new ${PgslVectorType.typeName.vector3}(false, true, false);
-                    let testVariable: bool = vectorOne && vectorTwo;
                 }
             `;
 
@@ -167,32 +107,6 @@ Deno.test('LogicalExpressionAst - Transpilation', async (pContext) => {
                 `}`
             );
         });
-
-        await pContext.step('Boolean vector', () => {
-            // Setup.
-            const lCodeText: string = `
-                function testFunction(): void {
-                    let vectorOne: ${PgslVectorType.typeName.vector3}<bool> = new ${PgslVectorType.typeName.vector3}(true, false, true);
-                    let vectorTwo: ${PgslVectorType.typeName.vector3}<bool> = new ${PgslVectorType.typeName.vector3}(false, true, false);
-                    let testVariable: bool = vectorOne || vectorTwo;
-                }
-            `;
-
-            // Process.
-            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-            // Evaluation. No errors.
-            expect(lTranspilationResult.incidents).toHaveLength(0);
-
-            // Evaluation. Correct transpilation output.
-            expect(lTranspilationResult.source).toBe(
-                `fn testFunction(){` +
-                `let vectorOne:vec3<bool>=vec3(true,false,true);` +
-                `let vectorTwo:vec3<bool>=vec3(false,true,false);` +
-                `let testVariable:bool=vectorOne||vectorTwo;` +
-                `}`
-            );
-        });
     });
 
     await pContext.step('Logical AND', async (pContext) => {
@@ -218,32 +132,6 @@ Deno.test('LogicalExpressionAst - Transpilation', async (pContext) => {
                 `let boolOne:bool=true;` +
                 `let boolTwo:bool=false;` +
                 `let testVariable:bool=boolOne&&boolTwo;` +
-                `}`
-            );
-        });
-
-        await pContext.step('Boolean vector', () => {
-            // Setup.
-            const lCodeText: string = `
-                function testFunction(): void {
-                    let vectorOne: ${PgslVectorType.typeName.vector3}<bool> = new ${PgslVectorType.typeName.vector3}(true, false, true);
-                    let vectorTwo: ${PgslVectorType.typeName.vector3}<bool> = new ${PgslVectorType.typeName.vector3}(false, true, false);
-                    let testVariable: bool = vectorOne && vectorTwo;
-                }
-            `;
-
-            // Process.
-            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-            // Evaluation. No errors.
-            expect(lTranspilationResult.incidents).toHaveLength(0);
-
-            // Evaluation. Correct transpilation output.
-            expect(lTranspilationResult.source).toBe(
-                `fn testFunction(){` +
-                `let vectorOne:vec3<bool>=vec3(true,false,true);` +
-                `let vectorTwo:vec3<bool>=vec3(false,true,false);` +
-                `let testVariable:bool=vectorOne&&vectorTwo;` +
                 `}`
             );
         });

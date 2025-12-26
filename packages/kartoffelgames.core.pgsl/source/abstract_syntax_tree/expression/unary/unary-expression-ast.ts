@@ -83,11 +83,6 @@ export class UnaryExpressionAst extends AbstractSyntaxTree<UnaryExpressionCst, U
                     break;
                 }
 
-                // Convert an abstract integer into a signed integer.
-                if (lResolveType instanceof PgslNumericType && lResolveType.numericTypeName === PgslNumericType.typeName.abstractInteger) {
-                    lResolveType = new PgslNumericType(PgslNumericType.typeName.signedInteger).process(pContext);
-                }
-
                 break;
             }
             case PgslOperator.Not: {

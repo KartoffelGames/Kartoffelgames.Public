@@ -1,7 +1,7 @@
 import { IncrementDecrementStatementAst } from '../../../../abstract_syntax_tree/statement/execution/increment-decrement-statement-ast.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslIncrementDecrementStatementTranspilerProcessor implements ITranspilerProcessor<IncrementDecrementStatementAst> {
+export class IncrementDecrementStatementAstTranspilerProcessor implements ITranspilerProcessor<IncrementDecrementStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

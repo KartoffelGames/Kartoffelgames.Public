@@ -1,7 +1,7 @@
 import { ForStatementAst } from '../../../../abstract_syntax_tree/statement/branch/for-statement-ast.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslForStatementTranspilerProcessor implements ITranspilerProcessor<ForStatementAst> {
+export class ForStatementAstTranspilerProcessor implements ITranspilerProcessor<ForStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

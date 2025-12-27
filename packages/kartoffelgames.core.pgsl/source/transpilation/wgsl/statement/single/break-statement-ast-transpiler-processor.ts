@@ -1,7 +1,7 @@
 import { BreakStatementAst } from '../../../../abstract_syntax_tree/statement/single/break-statement-ast.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslBreakStatementTranspilerProcessor implements ITranspilerProcessor<BreakStatementAst> {
+export class BreakStatementAstTranspilerProcessor implements ITranspilerProcessor<BreakStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

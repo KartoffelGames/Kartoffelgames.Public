@@ -1,7 +1,7 @@
 import { ParenthesizedExpressionAst } from '../../../../abstract_syntax_tree/expression/single_value/parenthesized-expression-ast.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslParenthesizedExpressionTranspilerProcessor implements ITranspilerProcessor<ParenthesizedExpressionAst> {
+export class ParenthesizedExpressionAstTranspilerProcessor implements ITranspilerProcessor<ParenthesizedExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

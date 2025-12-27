@@ -1,7 +1,7 @@
 import { VariableDeclarationStatementAst } from '../../../../abstract_syntax_tree/statement/execution/variable-declaration-statement-ast.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslVariableDeclarationStatementTranspilerProcessor implements ITranspilerProcessor<VariableDeclarationStatementAst> {
+export class VariableDeclarationStatementAstTranspilerProcessor implements ITranspilerProcessor<VariableDeclarationStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

@@ -12,4 +12,6 @@ export interface IVoidParameterConstructor<T> {
  * 
  * @experimental @alpha
  */
-export type IAnyParameterConstructor<T> = Function & { prototype: T };
+export interface IAnyParameterConstructor<T> {
+    new(...args: any[]): T;
+}

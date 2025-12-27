@@ -1,7 +1,7 @@
 import { ArithmeticExpressionAst } from '../../../../abstract_syntax_tree/expression/operation/arithmetic-expression-ast.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslArithmeticExpressionTranspilerProcessor implements ITranspilerProcessor<ArithmeticExpressionAst> {
+export class ArithmeticExpressionAstTranspilerProcessor implements ITranspilerProcessor<ArithmeticExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

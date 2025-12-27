@@ -1,7 +1,7 @@
 import { PointerExpressionAst } from '../../../../abstract_syntax_tree/expression/storage/pointer-expression-ast.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslPointerExpressionTranspilerProcessor implements ITranspilerProcessor<PointerExpressionAst> {
+export class PointerExpressionAstTranspilerProcessor implements ITranspilerProcessor<PointerExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

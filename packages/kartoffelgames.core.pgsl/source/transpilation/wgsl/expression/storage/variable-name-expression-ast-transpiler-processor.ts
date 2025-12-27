@@ -3,7 +3,7 @@ import { VariableNameExpressionAst } from '../../../../abstract_syntax_tree/expr
 import type { ITranspilerProcessor } from '../../../i-transpiler-processor.interface.ts';
 import { PgslEnumType } from '../../../../abstract_syntax_tree/type/pgsl-enum-type.ts';
 
-export class PgslVariableNameExpressionTranspilerProcessor implements ITranspilerProcessor<VariableNameExpressionAst> {
+export class VariableNameExpressionAstTranspilerProcessor implements ITranspilerProcessor<VariableNameExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

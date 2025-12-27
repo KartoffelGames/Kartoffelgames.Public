@@ -1,40 +1,40 @@
 import { Transpiler } from '../transpiler.ts';
 import { FunctionDeclarationAstTranspilerProcessor } from './declaration/function-declaration-ast-transpiler-processor.ts';
 import { StructDeclarationAstTranspilerProcessor } from './declaration/struct-declaration-ast-transpiler-processor.ts';
-import { StructPropertyDeclarationAstTranspilerProcessor } from './declaration/struct-property-ast-declaration-transpiler-processor.ts';
+import { StructPropertyDeclarationAstTranspilerProcessor } from './declaration/struct-property-declaration-ast-transpiler-processor.ts';
 import { VariableDeclarationAstTranspilerProcessor } from './declaration/variable-declaration-ast-transpiler-processor.ts';
-import { PgslArithmeticExpressionTranspilerProcessor } from './expression/operation/pgsl-arithmetic-expression-transpiler-processor.ts';
-import { PgslBinaryExpressionTranspilerProcessor } from './expression/operation/pgsl-binary-expression-transpiler-processor.ts';
-import { PgslComparisonExpressionTranspilerProcessor } from './expression/operation/pgsl-comparison-expression-transpiler-processor.ts';
-import { PgslLogicalExpressionTranspilerProcessor } from './expression/operation/pgsl-logical-expression-transpiler-processor.ts';
-import { PgslAddressOfExpressionTranspilerProcessor } from './expression/single-value/pgsl-address-of-expression-transpiler-processor.ts';
-import { PgslFunctionCallExpressionTranspilerProcessor } from './expression/single-value/pgsl-function-call-expression-transpiler-processor.ts';
-import { PgslLiteralValueExpressionTranspilerProcessor } from './expression/single-value/pgsl-literal-value-expression-transpiler-processor.ts';
-import { PgslNewCallExpressionTranspilerProcessor } from './expression/single-value/pgsl-new-expression-transpiler-processor.ts';
-import { PgslParenthesizedExpressionTranspilerProcessor } from './expression/single-value/pgsl-parenthesized-expression-transpiler-processor.ts';
-import { PgslStringValueExpressionTranspilerProcessor } from './expression/single-value/pgsl-string-value-expression-transpiler-processor.ts';
-import { PgslIndexedValueExpressionTranspilerProcessor } from './expression/storage/pgsl-indexed-value-expression-transpiler-processor.ts';
-import { PgslPointerExpressionTranspilerProcessor } from './expression/storage/pgsl-pointer-expression-transpiler-processor.ts';
-import { PgslValueDecompositionExpressionTranspilerProcessor } from './expression/storage/pgsl-value-decomposition-expression-transpiler-processor.ts';
-import { PgslVariableNameExpressionTranspilerProcessor } from './expression/storage/pgsl-variable-name-expression-transpiler-processor.ts';
-import { PgslUnaryExpressionTranspilerProcessor } from './expression/unary/pgsl-unary-expression-transpiler-processor.ts';
 import { DocumentAstTranspilerProcessor } from './document-ast-transpiler-processor.ts';
-import { TypeDeclarationAstTranspilerProcessor } from './type-declaration-ast-transpiler-processor.ts';
+import { ArithmeticExpressionAstTranspilerProcessor } from './expression/operation/arithmetic-expression-ast-transpiler-processor.ts';
+import { BinaryExpressionAstTranspilerProcessor } from './expression/operation/binary-expression-ast-transpiler-processor.ts';
+import { ComparisonExpressionAstTranspilerProcessor } from './expression/operation/comparison-expression-ast-transpiler-processor.ts';
+import { LogicalExpressionAstTranspilerProcessor } from './expression/operation/logical-expression-ast-transpiler-processor.ts';
+import { AddressOfExpressionAstTranspilerProcessor } from './expression/single-value/address-of-expression-ast-transpiler-processor.ts';
+import { FunctionCallExpressionAstTranspilerProcessor } from './expression/single-value/function-call-expression-ast-transpiler-processor.ts';
+import { LiteralValueExpressionAstTranspilerProcessor } from './expression/single-value/literal-value-expression-ast-transpiler-processor.ts';
+import { NewCallExpressionAstTranspilerProcessor } from './expression/single-value/new-expression-ast-transpiler-processor.ts';
+import { ParenthesizedExpressionAstTranspilerProcessor } from './expression/single-value/parenthesized-expression-ast-transpiler-processor.ts';
+import { StringValueExpressionAstTranspilerProcessor } from './expression/single-value/string-value-expression-ast-transpiler-processor.ts';
+import { IndexedValueExpressionAstTranspilerProcessor } from './expression/storage/indexed-value-expression-ast-transpiler-processor.ts';
+import { PointerExpressionAstTranspilerProcessor } from './expression/storage/pointer-expression-ast-transpiler-processor.ts';
+import { ValueDecompositionExpressionAstTranspilerProcessor } from './expression/storage/value-decomposition-expression-ast-transpiler-processor.ts';
+import { VariableNameExpressionAstTranspilerProcessor } from './expression/storage/variable-name-expression-ast-transpiler-processor.ts';
+import { UnaryExpressionAstTranspilerProcessor } from './expression/unary/unary-expression-ast-transpiler-processor.ts';
+import { DoWhileStatementAstTranspilerProcessor } from './statement/branch/do-while-statement-ast-transpiler-processor.ts';
+import { ForStatementAstTranspilerProcessor } from './statement/branch/for-statement-ast-transpiler-processor.ts';
+import { IfStatementAstTranspilerProcessor } from './statement/branch/if-statement-ast-transpiler-processor.ts';
+import { SwitchStatementAstTranspilerProcessor } from './statement/branch/switch-statement-ast-transpiler-processor.ts';
+import { WhileStatementAstTranspilerProcessor } from './statement/branch/while-statement-ast-transpiler-processor.ts';
+import { AssignmentStatementAstTranspilerProcessor } from './statement/execution/assignment-statement-ast-transpiler-processor.ts';
+import { BlockStatementAstTranspilerProcessor } from './statement/execution/block-statement-ast-transpiler-processor.ts';
+import { FunctionCallStatementAstTranspilerProcessor } from './statement/execution/function-call-statement-ast-transpiler-processor.ts';
+import { IncrementDecrementStatementAstTranspilerProcessor } from './statement/execution/increment-decrement-statement-ast-transpiler-processor.ts';
+import { VariableDeclarationStatementAstTranspilerProcessor } from './statement/execution/variable-declaration-statement-ast-transpiler-processor.ts';
+import { BreakStatementAstTranspilerProcessor } from './statement/single/break-statement-ast-transpiler-processor.ts';
+import { ContinueStatementAstTranspilerProcessor } from './statement/single/continue-statement-ast-transpiler-processor.ts';
+import { DiscardStatementAstTranspilerProcessor } from './statement/single/discard-statement-ast-transpiler-processor.ts';
+import { ReturnStatementAstTranspilerProcessor } from './statement/single/return-statement-ast-transpiler-processor.ts';
 import { TypeAstTranspilerProcessor } from './type-ast-transpiler-processor.ts';
-import { PgslDoWhileStatementTranspilerProcessor } from './statement/branch/pgsl-do-while-statement-transpiler-processor.ts';
-import { PgslForStatementTranspilerProcessor } from './statement/branch/pgsl-for-statement-transpiler-processor.ts';
-import { PgslIfStatementTranspilerProcessor } from './statement/branch/pgsl-if-statement-transpiler-processor.ts';
-import { PgslSwitchStatementTranspilerProcessor } from './statement/branch/pgsl-switch-statement-transpiler-processor.ts';
-import { PgslWhileStatementTranspilerProcessor } from './statement/branch/pgsl-while-statement-transpiler-processor.ts';
-import { PgslAssignmentStatementTranspilerProcessor } from './statement/execution/pgsl-assignment-statement-transpiler-processor.ts';
-import { PgslBlockStatementTranspilerProcessor } from './statement/execution/pgsl-block-statement-transpiler-processor.ts';
-import { PgslFunctionCallStatementTranspilerProcessor } from './statement/execution/pgsl-function-call-statement-transpiler-processor.ts';
-import { PgslIncrementDecrementStatementTranspilerProcessor } from './statement/execution/pgsl-increment-decrement-statement-transpiler-processor.ts';
-import { PgslVariableDeclarationStatementTranspilerProcessor } from './statement/execution/pgsl-variable-declaration-statement-transpiler-processor.ts';
-import { PgslBreakStatementTranspilerProcessor } from './statement/single/pgsl-break-statement-transpiler-processor.ts';
-import { PgslContinueStatementTranspilerProcessor } from './statement/single/pgsl-continue-statement-transpiler-processor.ts';
-import { PgslDiscardStatementTranspilerProcessor } from './statement/single/pgsl-discard-statement-transpiler-processor.ts';
-import { PgslReturnStatementTranspilerProcessor } from './statement/single/pgsl-return-statement-transpiler-processor.ts';
+import { TypeDeclarationAstTranspilerProcessor } from './type-declaration-ast-transpiler-processor.ts';
 
 /**
  * WGSL (WebGPU Shading Language) transpiler for PGSL syntax trees.
@@ -63,46 +63,46 @@ export class WgslTranspiler extends Transpiler {
         this.addProcessor(new TypeAstTranspilerProcessor());
 
         // Expressions - Operations
-        this.addProcessor(new PgslArithmeticExpressionTranspilerProcessor());
-        this.addProcessor(new PgslBinaryExpressionTranspilerProcessor());
-        this.addProcessor(new PgslComparisonExpressionTranspilerProcessor());
-        this.addProcessor(new PgslLogicalExpressionTranspilerProcessor());
+        this.addProcessor(new ArithmeticExpressionAstTranspilerProcessor());
+        this.addProcessor(new BinaryExpressionAstTranspilerProcessor());
+        this.addProcessor(new ComparisonExpressionAstTranspilerProcessor());
+        this.addProcessor(new LogicalExpressionAstTranspilerProcessor());
 
         // Expressions - Single Values
-        this.addProcessor(new PgslAddressOfExpressionTranspilerProcessor());
-        this.addProcessor(new PgslFunctionCallExpressionTranspilerProcessor());
-        this.addProcessor(new PgslLiteralValueExpressionTranspilerProcessor());
-        this.addProcessor(new PgslNewCallExpressionTranspilerProcessor());
-        this.addProcessor(new PgslParenthesizedExpressionTranspilerProcessor());
-        this.addProcessor(new PgslStringValueExpressionTranspilerProcessor());
+        this.addProcessor(new AddressOfExpressionAstTranspilerProcessor());
+        this.addProcessor(new FunctionCallExpressionAstTranspilerProcessor());
+        this.addProcessor(new LiteralValueExpressionAstTranspilerProcessor());
+        this.addProcessor(new NewCallExpressionAstTranspilerProcessor());
+        this.addProcessor(new ParenthesizedExpressionAstTranspilerProcessor());
+        this.addProcessor(new StringValueExpressionAstTranspilerProcessor());
 
         // Expressions - Storage
-        this.addProcessor(new PgslIndexedValueExpressionTranspilerProcessor());
-        this.addProcessor(new PgslPointerExpressionTranspilerProcessor());
-        this.addProcessor(new PgslValueDecompositionExpressionTranspilerProcessor());
-        this.addProcessor(new PgslVariableNameExpressionTranspilerProcessor());
+        this.addProcessor(new IndexedValueExpressionAstTranspilerProcessor());
+        this.addProcessor(new PointerExpressionAstTranspilerProcessor());
+        this.addProcessor(new ValueDecompositionExpressionAstTranspilerProcessor());
+        this.addProcessor(new VariableNameExpressionAstTranspilerProcessor());
 
         // Expressions - Unary
-        this.addProcessor(new PgslUnaryExpressionTranspilerProcessor());
+        this.addProcessor(new UnaryExpressionAstTranspilerProcessor());
 
         // Statements - Execution
-        this.addProcessor(new PgslAssignmentStatementTranspilerProcessor());
-        this.addProcessor(new PgslBlockStatementTranspilerProcessor());
-        this.addProcessor(new PgslFunctionCallStatementTranspilerProcessor());
-        this.addProcessor(new PgslIncrementDecrementStatementTranspilerProcessor());
-        this.addProcessor(new PgslVariableDeclarationStatementTranspilerProcessor());
+        this.addProcessor(new AssignmentStatementAstTranspilerProcessor());
+        this.addProcessor(new BlockStatementAstTranspilerProcessor());
+        this.addProcessor(new FunctionCallStatementAstTranspilerProcessor());
+        this.addProcessor(new IncrementDecrementStatementAstTranspilerProcessor());
+        this.addProcessor(new VariableDeclarationStatementAstTranspilerProcessor());
 
         // Statements - Branch
-        this.addProcessor(new PgslDoWhileStatementTranspilerProcessor());
-        this.addProcessor(new PgslForStatementTranspilerProcessor());
-        this.addProcessor(new PgslIfStatementTranspilerProcessor());
-        this.addProcessor(new PgslSwitchStatementTranspilerProcessor());
-        this.addProcessor(new PgslWhileStatementTranspilerProcessor());
+        this.addProcessor(new DoWhileStatementAstTranspilerProcessor());
+        this.addProcessor(new ForStatementAstTranspilerProcessor());
+        this.addProcessor(new IfStatementAstTranspilerProcessor());
+        this.addProcessor(new SwitchStatementAstTranspilerProcessor());
+        this.addProcessor(new WhileStatementAstTranspilerProcessor());
 
         // Statements - Single
-        this.addProcessor(new PgslBreakStatementTranspilerProcessor());
-        this.addProcessor(new PgslContinueStatementTranspilerProcessor());
-        this.addProcessor(new PgslDiscardStatementTranspilerProcessor());
-        this.addProcessor(new PgslReturnStatementTranspilerProcessor());
+        this.addProcessor(new BreakStatementAstTranspilerProcessor());
+        this.addProcessor(new ContinueStatementAstTranspilerProcessor());
+        this.addProcessor(new DiscardStatementAstTranspilerProcessor());
+        this.addProcessor(new ReturnStatementAstTranspilerProcessor());
     }
 }

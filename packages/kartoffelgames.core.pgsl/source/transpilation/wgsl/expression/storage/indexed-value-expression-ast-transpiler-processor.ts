@@ -1,7 +1,7 @@
 import { IndexedValueExpressionAst } from '../../../../abstract_syntax_tree/expression/storage/indexed-value-expression-ast.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslIndexedValueExpressionTranspilerProcessor implements ITranspilerProcessor<IndexedValueExpressionAst> {
+export class IndexedValueExpressionAstTranspilerProcessor implements ITranspilerProcessor<IndexedValueExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

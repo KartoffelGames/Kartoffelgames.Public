@@ -44,7 +44,6 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<PgslType
             PgslStringType,
             PgslStructType,
             PgslTextureType,
-            PgslType,
             PgslVectorType,
             PgslVoidType,
         ];

@@ -1,7 +1,7 @@
 import { LiteralValueExpressionAst } from '../../../../abstract_syntax_tree/expression/single_value/literal-value-expression-ast.ts';
-import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
+import type { ITranspilerProcessor } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslLiteralValueExpressionTranspilerProcessor implements ITranspilerProcessor<LiteralValueExpressionAst> {
+export class LiteralValueExpressionAstTranspilerProcessor implements ITranspilerProcessor<LiteralValueExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

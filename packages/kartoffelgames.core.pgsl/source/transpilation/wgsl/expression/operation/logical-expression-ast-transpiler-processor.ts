@@ -1,7 +1,7 @@
 import { LogicalExpressionAst } from '../../../../abstract_syntax_tree/expression/operation/logical-expression-ast.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslLogicalExpressionTranspilerProcessor implements ITranspilerProcessor<LogicalExpressionAst> {
+export class LogicalExpressionAstTranspilerProcessor implements ITranspilerProcessor<LogicalExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

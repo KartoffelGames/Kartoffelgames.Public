@@ -5,7 +5,7 @@ import type { IExpressionAst } from '../../../../abstract_syntax_tree/expression
 import type { EnumDeclarationAst } from '../../../../abstract_syntax_tree/declaration/enum-declaration-ast.ts';
 import { PgslEnumType } from '../../../../abstract_syntax_tree/type/pgsl-enum-type.ts';
 
-export class PgslValueDecompositionExpressionTranspilerProcessor implements ITranspilerProcessor<ValueDecompositionExpressionAst> {
+export class ValueDecompositionExpressionAstTranspilerProcessor implements ITranspilerProcessor<ValueDecompositionExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

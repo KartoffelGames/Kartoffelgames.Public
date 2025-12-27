@@ -1,7 +1,7 @@
 import { BlockStatementAst } from '../../../../abstract_syntax_tree/statement/execution/block-statement-ast.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslBlockStatementTranspilerProcessor implements ITranspilerProcessor<BlockStatementAst> {
+export class BlockStatementAstTranspilerProcessor implements ITranspilerProcessor<BlockStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

@@ -1,7 +1,7 @@
 import { SwitchStatementAst } from '../../../../abstract_syntax_tree/statement/branch/switch-statement-ast.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslSwitchStatementTranspilerProcessor implements ITranspilerProcessor<SwitchStatementAst> {
+export class SwitchStatementAstTranspilerProcessor implements ITranspilerProcessor<SwitchStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

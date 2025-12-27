@@ -1,7 +1,7 @@
 import { AssignmentStatementAst } from '../../../../abstract_syntax_tree/statement/execution/assignment-statement-ast.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslAssignmentStatementTranspilerProcessor implements ITranspilerProcessor<AssignmentStatementAst> {
+export class AssignmentStatementAstTranspilerProcessor implements ITranspilerProcessor<AssignmentStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

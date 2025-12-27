@@ -1,7 +1,7 @@
 import { UnaryExpressionAst } from '../../../../abstract_syntax_tree/expression/unary/unary-expression-ast.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslUnaryExpressionTranspilerProcessor implements ITranspilerProcessor<UnaryExpressionAst> {
+export class UnaryExpressionAstTranspilerProcessor implements ITranspilerProcessor<UnaryExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

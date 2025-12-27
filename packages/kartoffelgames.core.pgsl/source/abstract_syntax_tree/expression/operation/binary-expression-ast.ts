@@ -1,14 +1,14 @@
-import { EnumUtil, Exception } from '@kartoffelgames/core';
+import { EnumUtil } from '@kartoffelgames/core';
+import type { BinaryExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
+import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
+import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { PgslNumericType } from '../../type/pgsl-numeric-type.ts';
 import type { PgslType } from '../../type/pgsl-type.ts';
 import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
-import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
-import type { BinaryExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
-import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
+import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 
 export class BinaryExpressionAst extends AbstractSyntaxTree<BinaryExpressionCst, BinaryExpressionAstData> implements IExpressionAst {
     /**

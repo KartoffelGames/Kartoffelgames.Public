@@ -6,8 +6,17 @@ import { PgslParserResultType, type PgslParserResultTypeAlignmentType } from './
  * Handles mathematical vectors with a specified element type and dimension count.
  */
 export class PgslParserResultVectorType extends PgslParserResultType {
-    private readonly mElementType: PgslParserResultType;
     private readonly mDimension: number;
+    private readonly mElementType: PgslParserResultType;
+    
+    /**
+     * Gets the number of dimensions in this vector.
+     *
+     * @returns The dimension count.
+     */
+    public get dimension(): number {
+        return this.mDimension;
+    }
 
     /**
      * Gets the type of elements contained in this vector type.
@@ -16,15 +25,6 @@ export class PgslParserResultVectorType extends PgslParserResultType {
      */
     public get elementType(): PgslParserResultType {
         return this.mElementType;
-    }
-
-    /**
-     * Gets the number of dimensions in this vector.
-     *
-     * @returns The dimension count.
-     */
-    public get dimension(): number {
-        return this.mDimension;
     }
 
     /**

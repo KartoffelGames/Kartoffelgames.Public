@@ -10,6 +10,7 @@ export class PgslStringType extends PgslType {
      * Type names for string types.
      * Maps string type names to their string representations.
      */
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     public static get typeName() {
         return {
             string: 'string'
@@ -55,11 +56,11 @@ export class PgslStringType extends PgslType {
     /**
      * Collect type properties for string type.
      * 
-     * @param _Context - Context.
+     * @param _pContext - Context.
      * 
      * @returns Type properties for string type.
      */
-    protected override onProcess(_Context: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(_pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
         return {
             storable: false,
             hostShareable: false,

@@ -2,38 +2,10 @@ import type { EnumDeclarationCst, EnumDeclarationValueCst } from '../../concrete
 import type { StringValueExpressionCst } from '../../concrete_syntax_tree/expression.type.ts';
 
 export class PgslInterpolateSamplingEnum {
-    private static mValidValues: Set<string> | null = null;
-
-    /**
-     * Valid values set.
-     */
-    private static get validValues(): Set<string> {
-        if (!PgslInterpolateSamplingEnum.mValidValues) {
-            const lSet = new Set<string>();
-            for (const lKey in PgslInterpolateSamplingEnum.values) {
-                lSet.add(PgslInterpolateSamplingEnum.values[lKey as keyof typeof PgslInterpolateSamplingEnum.values]);
-            }
-            PgslInterpolateSamplingEnum.mValidValues = lSet;
-        }
-
-        return PgslInterpolateSamplingEnum.mValidValues;
-    }
-
-    /**
-     * Enum values.
-     */
-    public static readonly values = {
-        Center: 'center',
-        Centroid: 'centroid',
-        Sample: 'sample',
-        First: 'first',
-        Either: 'either'
-    } as const;
-
     /**
      * Concrete syntax tree representation.
      */
-    public static readonly cst: EnumDeclarationCst = (() => {
+    public static readonly CST: EnumDeclarationCst = (() => {
         return {
             type: 'EnumDeclaration',
             buildIn: true,
@@ -44,21 +16,49 @@ export class PgslInterpolateSamplingEnum {
                 range: [0, 0, 0, 0],
                 attributes: []
             },
-            values: Object.entries(PgslInterpolateSamplingEnum.values).map<EnumDeclarationValueCst>(([name, value]) => {
+            values: Object.entries(PgslInterpolateSamplingEnum.VALUES).map<EnumDeclarationValueCst>(([pName, pValue]) => {
                 return {
                     type: 'EnumDeclarationValue',
                     buildIn: true,
                     range: [0, 0, 0, 0],
-                    name: name,
+                    name: pName,
                     value: {
                         type: 'StringValueExpression',
                         range: [0, 0, 0, 0],
-                        textValue: value
+                        textValue: pValue
                     } satisfies StringValueExpressionCst
                 };
             })
         };
     })();
+    
+    /**
+     * Enum values.
+     */
+    public static readonly VALUES = {
+        Center: 'center',
+        Centroid: 'centroid',
+        Sample: 'sample',
+        First: 'first',
+        Either: 'either'
+    } as const;
+
+    private static mValidValues: Set<string> | null = null;
+
+    /**
+     * Valid values set.
+     */
+    private static get validValues(): Set<string> {
+        if (!PgslInterpolateSamplingEnum.mValidValues) {
+            const lSet = new Set<string>();
+            for (const lKey in PgslInterpolateSamplingEnum.VALUES) {
+                lSet.add(PgslInterpolateSamplingEnum.VALUES[lKey as keyof typeof PgslInterpolateSamplingEnum.VALUES]);
+            }
+            PgslInterpolateSamplingEnum.mValidValues = lSet;
+        }
+
+        return PgslInterpolateSamplingEnum.mValidValues;
+    }
 
     /**
      * Check if the given value is a valid access mode.
@@ -72,4 +72,4 @@ export class PgslInterpolateSamplingEnum {
     }
 }
 
-export type PgslInterpolateSampling = (typeof PgslInterpolateSamplingEnum.values)[keyof typeof PgslInterpolateSamplingEnum.values];
+export type PgslInterpolateSampling = (typeof PgslInterpolateSamplingEnum.VALUES)[keyof typeof PgslInterpolateSamplingEnum.VALUES];

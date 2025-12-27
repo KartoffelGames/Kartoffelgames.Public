@@ -1,12 +1,11 @@
-import { Exception } from '@kartoffelgames/core';
+import type { PointerExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
+import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
+import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { PgslPointerType } from '../../type/pgsl-pointer-type.ts';
 import type { PgslType } from '../../type/pgsl-type.ts';
-import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
-import type { PointerExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
-import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
+import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 
 /**
  * PGSL structure holding a pointer to a value (*pointer).

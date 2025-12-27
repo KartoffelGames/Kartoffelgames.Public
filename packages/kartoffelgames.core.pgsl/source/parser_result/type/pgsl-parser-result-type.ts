@@ -2,8 +2,17 @@
  * Abstract base class for representing parsed PGSL types.
  */
 export abstract class PgslParserResultType {
-    private readonly mType: PgslParserResultTypeType;
     private readonly mAlignmentType: PgslParserResultTypeAlignmentType;
+    private readonly mType: PgslParserResultTypeType;
+    
+    /**
+     * Gets the alignment type of this type.
+     *
+     * @returns The alignment type (uniform, storage, or packed).
+     */
+    public get alignmentType(): PgslParserResultTypeAlignmentType {
+        return this.mAlignmentType;
+    }
 
     /**
      * Gets the type category of this PGSL type.
@@ -12,15 +21,6 @@ export abstract class PgslParserResultType {
      */
     public get type(): PgslParserResultTypeType {
         return this.mType;
-    }
-
-    /**
-     * Gets the alignment type of this type.
-     *
-     * @returns The alignment type (uniform, storage, or packed).
-     */
-    public get alignmentType(): PgslParserResultTypeAlignmentType {
-        return this.mAlignmentType;
     }
 
     /**

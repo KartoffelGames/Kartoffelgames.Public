@@ -2,8 +2,17 @@
  * Represents an incident (error or warning) encountered during PGSL parsing.
  */
 export class PgslParserResultIncident {
-    private readonly mMessage: string;
     private readonly mBoundary: PgslParserResultIncidentBoundary;
+    private readonly mMessage: string;
+    
+    /**
+     * Gets the column number of the incident.
+     *
+     * @returns The column number as a number.
+     */
+    public get column(): number {
+        return this.mBoundary.column;
+    }
 
     /**
      * Gets the line number of the incident.
@@ -12,15 +21,6 @@ export class PgslParserResultIncident {
      */
     public get line(): number {
         return this.mBoundary.line;
-    }
-
-    /**
-     * Gets the column number of the incident.
-     *
-     * @returns The column number as a number.
-     */
-    public get column(): number {
-        return this.mBoundary.column;
     }
 
     /**

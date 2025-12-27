@@ -10,6 +10,7 @@ export class PgslBooleanType extends PgslType {
      * Type names for boolean types.
      * Maps boolean type names to their string representations.
      */
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     public static get typeName() {
         return {
             boolean: 'bool'

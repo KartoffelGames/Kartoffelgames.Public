@@ -19,6 +19,7 @@ export class PgslBuildInType extends PgslType {
      * Type names for all available built-in types.
      * Maps built-in type names to their string representations.
      */
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     public static get typeName() {
         return {
             vertexIndex: 'VertexIndex',
@@ -38,8 +39,9 @@ export class PgslBuildInType extends PgslType {
     }
 
     private readonly mBuildInType: PgslBuildInTypeName;
-    private mUnderlyingType: PgslType | null;
     private readonly mTemplate: IExpressionAst | null;
+    private mUnderlyingType: PgslType | null;
+    
 
     /**
      * Gets the built-in type variant name.
@@ -48,6 +50,15 @@ export class PgslBuildInType extends PgslType {
      */
     public get buildInType(): PgslBuildInTypeName {
         return this.mBuildInType;
+    }
+
+    /**
+     * Gets the template expression for parameterized built-in types.
+     * 
+     * @returns The template expression or null if not applicable.
+     */
+    public get template(): IExpressionAst | null {
+        return this.mTemplate;
     }
 
     /**
@@ -61,15 +72,6 @@ export class PgslBuildInType extends PgslType {
         }
 
         return this.mUnderlyingType;
-    }
-
-    /**
-     * Gets the template expression for parameterized built-in types.
-     * 
-     * @returns The template expression or null if not applicable.
-     */
-    public get template(): IExpressionAst | null {
-        return this.mTemplate;
     }
 
     /**
@@ -166,30 +168,6 @@ export class PgslBuildInType extends PgslType {
     }
 
     /**
-     * Validates the template parameter for ClipDistances built-in type.
-     * The template must be a constant unsigned integer expression.
-     * 
-     * @param pContext - Trace context for error reporting.
-     */
-    private validateClipDistancesTemplate(pContext: AbstractSyntaxTreeContext): void {
-        // Template must be provided for ClipDistances.
-        if (!this.mTemplate) {
-            pContext.pushIncident(`Clip distance built-in template value must have a value expression.`);
-            return;
-        }
-
-        // Template needs to be a constant.
-        if (this.mTemplate.data.fixedState < PgslValueFixedState.Constant) {
-            pContext.pushIncident(`Clip distance built-in template value must be a constant.`);
-        }
-
-        // Template needs to be a unsigned integer.
-        if (!this.mTemplate.data.resolveType.isImplicitCastableInto(new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext))) {
-            pContext.pushIncident(`Clip distance built-in template value must be an unsigned integer.`);
-        }
-    }
-
-    /**
      * Determines the underlying type for a given built-in type.
      * Maps each built-in type to its corresponding PGSL type representation.
      * 
@@ -255,6 +233,30 @@ export class PgslBuildInType extends PgslType {
                 pContext.pushIncident(`Unknown built-in type: ${pBuildInType}`);
                 return new PgslInvalidType().process(pContext);
             }
+        }
+    }
+
+    /**
+     * Validates the template parameter for ClipDistances built-in type.
+     * The template must be a constant unsigned integer expression.
+     * 
+     * @param pContext - Trace context for error reporting.
+     */
+    private validateClipDistancesTemplate(pContext: AbstractSyntaxTreeContext): void {
+        // Template must be provided for ClipDistances.
+        if (!this.mTemplate) {
+            pContext.pushIncident(`Clip distance built-in template value must have a value expression.`);
+            return;
+        }
+
+        // Template needs to be a constant.
+        if (this.mTemplate.data.fixedState < PgslValueFixedState.Constant) {
+            pContext.pushIncident(`Clip distance built-in template value must be a constant.`);
+        }
+
+        // Template needs to be a unsigned integer.
+        if (!this.mTemplate.data.resolveType.isImplicitCastableInto(new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext))) {
+            pContext.pushIncident(`Clip distance built-in template value must be an unsigned integer.`);
         }
     }
 }

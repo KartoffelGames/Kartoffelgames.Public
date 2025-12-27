@@ -1,13 +1,12 @@
+import type { VariableNameExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
+import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
+import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
+import type { IValueStoreAst } from '../../i-value-store-ast.interface.ts';
 import { PgslEnumType } from '../../type/pgsl-enum-type.ts';
 import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';
-import type { PgslType } from '../../type/pgsl-type.ts';
-import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
-import type { VariableNameExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
-import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
-import type { IValueStoreAst } from '../../i-value-store-ast.interface.ts';
 
 /**
  * PGSL structure holding single variable name.

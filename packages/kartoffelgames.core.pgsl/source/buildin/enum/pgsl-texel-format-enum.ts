@@ -2,27 +2,40 @@ import type { EnumDeclarationCst, EnumDeclarationValueCst } from '../../concrete
 import type { StringValueExpressionCst } from '../../concrete_syntax_tree/expression.type.ts';
 
 export class PgslTexelFormatEnum {
-    private static mValidValues: Set<string> | null = null;
-
     /**
-     * Valid values set.
+     * Concrete syntax tree representation.
      */
-    private static get validValues(): Set<string> {
-        if (!PgslTexelFormatEnum.mValidValues) {
-            const lSet = new Set<string>();
-            for (const lKey in PgslTexelFormatEnum.values) {
-                lSet.add(PgslTexelFormatEnum.values[lKey as keyof typeof PgslTexelFormatEnum.values]);
-            }
-            PgslTexelFormatEnum.mValidValues = lSet;
-        }
-
-        return PgslTexelFormatEnum.mValidValues;
-    }
+    public static readonly CST: EnumDeclarationCst = (() => {
+        return {
+            type: 'EnumDeclaration',
+            buildIn: true,
+            range: [0, 0, 0, 0],
+            name: 'TexelFormat',
+            attributeList: {
+                type: 'AttributeList',
+                range: [0, 0, 0, 0],
+                attributes: []
+            },
+            values: Object.entries(PgslTexelFormatEnum.VALUES).map<EnumDeclarationValueCst>(([pName, pValue]) => {
+                return {
+                    type: 'EnumDeclarationValue',
+                    buildIn: true,
+                    range: [0, 0, 0, 0],
+                    name: pName,
+                    value: {
+                        type: 'StringValueExpression',
+                        range: [0, 0, 0, 0],
+                        textValue: pValue
+                    } satisfies StringValueExpressionCst
+                };
+            })
+        };
+    })();
 
     /**
      * Enum values.
      */
-    public static readonly values = {
+    public static readonly VALUES = {
         Rgba8unorm: 'rgba8unorm',
         Rgba8snorm: 'rgba8snorm',
         Rgba8uint: 'rgba8uint',
@@ -42,35 +55,22 @@ export class PgslTexelFormatEnum {
         Bgra8unorm: 'bgra8unorm'
     } as const;
 
+    private static mValidValues: Set<string> | null = null;
+
     /**
-     * Concrete syntax tree representation.
+     * Valid values set.
      */
-    public static readonly cst: EnumDeclarationCst = (() => {
-        return {
-            type: 'EnumDeclaration',
-            buildIn: true,
-            range: [0, 0, 0, 0],
-            name: 'TexelFormat',
-            attributeList: {
-                type: 'AttributeList',
-                range: [0, 0, 0, 0],
-                attributes: []
-            },
-            values: Object.entries(PgslTexelFormatEnum.values).map<EnumDeclarationValueCst>(([name, value]) => {
-                return {
-                    type: 'EnumDeclarationValue',
-                    buildIn: true,
-                    range: [0, 0, 0, 0],
-                    name: name,
-                    value: {
-                        type: 'StringValueExpression',
-                        range: [0, 0, 0, 0],
-                        textValue: value
-                    } satisfies StringValueExpressionCst
-                };
-            })
-        };
-    })();
+    private static get validValues(): Set<string> {
+        if (!PgslTexelFormatEnum.mValidValues) {
+            const lSet = new Set<string>();
+            for (const lKey in PgslTexelFormatEnum.VALUES) {
+                lSet.add(PgslTexelFormatEnum.VALUES[lKey as keyof typeof PgslTexelFormatEnum.VALUES]);
+            }
+            PgslTexelFormatEnum.mValidValues = lSet;
+        }
+
+        return PgslTexelFormatEnum.mValidValues;
+    }
 
     /**
      * Check if the given value is a valid access mode.
@@ -84,4 +84,4 @@ export class PgslTexelFormatEnum {
     }
 }
 
-export type PgslTexelFormat = (typeof PgslTexelFormatEnum.values)[keyof typeof PgslTexelFormatEnum.values];
+export type PgslTexelFormat = (typeof PgslTexelFormatEnum.VALUES)[keyof typeof PgslTexelFormatEnum.VALUES];

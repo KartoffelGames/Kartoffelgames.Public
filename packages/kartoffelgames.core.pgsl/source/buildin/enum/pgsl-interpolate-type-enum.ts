@@ -2,36 +2,10 @@ import type { EnumDeclarationCst, EnumDeclarationValueCst } from '../../concrete
 import type { StringValueExpressionCst } from '../../concrete_syntax_tree/expression.type.ts';
 
 export class PgslInterpolateTypeEnum {
-    private static mValidValues: Set<string> | null = null;
-
-    /**
-     * Valid values set.
-     */
-    private static get validValues(): Set<string> {
-        if (!PgslInterpolateTypeEnum.mValidValues) {
-            const lSet = new Set<string>();
-            for (const lKey in PgslInterpolateTypeEnum.values) {
-                lSet.add(PgslInterpolateTypeEnum.values[lKey as keyof typeof PgslInterpolateTypeEnum.values]);
-            }
-            PgslInterpolateTypeEnum.mValidValues = lSet;
-        }
-
-        return PgslInterpolateTypeEnum.mValidValues;
-    }
-
-    /**
-     * Enum values.
-     */
-    public static readonly values = {
-        Perspective: 'perspective',
-        Linear: 'linear',
-        Flat: 'flat'
-    } as const;
-
     /**
      * Concrete syntax tree representation.
      */
-    public static readonly cst: EnumDeclarationCst = (() => {
+    public static readonly CST: EnumDeclarationCst = (() => {
         return {
             type: 'EnumDeclaration',
             buildIn: true,
@@ -42,21 +16,47 @@ export class PgslInterpolateTypeEnum {
                 range: [0, 0, 0, 0],
                 attributes: []
             },
-            values: Object.entries(PgslInterpolateTypeEnum.values).map<EnumDeclarationValueCst>(([name, value]) => {
+            values: Object.entries(PgslInterpolateTypeEnum.VALUES).map<EnumDeclarationValueCst>(([pName, pValue]) => {
                 return {
                     type: 'EnumDeclarationValue',
                     buildIn: true,
                     range: [0, 0, 0, 0],
-                    name: name,
+                    name: pName,
                     value: {
                         type: 'StringValueExpression',
                         range: [0, 0, 0, 0],
-                        textValue: value
+                        textValue: pValue
                     } satisfies StringValueExpressionCst
                 };
             })
         };
     })();
+    
+    /**
+     * Enum values.
+     */
+    public static readonly VALUES = {
+        Perspective: 'perspective',
+        Linear: 'linear',
+        Flat: 'flat'
+    } as const;
+
+    private static mValidValues: Set<string> | null = null;
+
+    /**
+     * Valid values set.
+     */
+    private static get validValues(): Set<string> {
+        if (!PgslInterpolateTypeEnum.mValidValues) {
+            const lSet = new Set<string>();
+            for (const lKey in PgslInterpolateTypeEnum.VALUES) {
+                lSet.add(PgslInterpolateTypeEnum.VALUES[lKey as keyof typeof PgslInterpolateTypeEnum.VALUES]);
+            }
+            PgslInterpolateTypeEnum.mValidValues = lSet;
+        }
+
+        return PgslInterpolateTypeEnum.mValidValues;
+    }
 
     /**
      * Check if the given value is a valid interpolate type.
@@ -70,4 +70,4 @@ export class PgslInterpolateTypeEnum {
     }
 }
 
-export type PgslInterpolateType = (typeof PgslInterpolateTypeEnum.values)[keyof typeof PgslInterpolateTypeEnum.values];
+export type PgslInterpolateType = (typeof PgslInterpolateTypeEnum.VALUES)[keyof typeof PgslInterpolateTypeEnum.VALUES];

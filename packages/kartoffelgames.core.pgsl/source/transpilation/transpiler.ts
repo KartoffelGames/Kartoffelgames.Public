@@ -22,6 +22,26 @@ export class Transpiler {
     }
 
     /**
+     * Adds a transpilation processor for a specific syntax tree constructor.
+     * This method handles type casting to suppress TypeScript warnings while
+     * maintaining type safety at runtime.
+     * 
+     * @param pConstructor - The constructor of the syntax tree type.
+     * @param pProcessor - The transpilation processor function for the syntax tree type.
+     *
+     * @template T - The specific syntax tree type that extends BasePgslSyntaxTree.
+     */
+    public addProcessor<T extends AbstractSyntaxTree>(pProcessor: ITranspilerProcessor<T>): void {
+        if (Array.isArray(pProcessor.target)) {
+            for (const lTarget of pProcessor.target) {
+                this.mTranspilationProcessors.set(lTarget, pProcessor as ITranspilerProcessor<AbstractSyntaxTree>);
+            }
+        } else {
+            this.mTranspilationProcessors.set(pProcessor.target, pProcessor);
+        }
+    }
+
+    /**
      * Transpiles a PGSL syntax tree instance into target language code.
      * Processes the given instance using the appropriate transpilation processor
      * and returns the generated code as a string.
@@ -52,26 +72,6 @@ export class Transpiler {
             sourceMap: null,
             meta: lTranspilationMeta
         };
-    }
-
-    /**
-     * Adds a transpilation processor for a specific syntax tree constructor.
-     * This method handles type casting to suppress TypeScript warnings while
-     * maintaining type safety at runtime.
-     * 
-     * @param pConstructor - The constructor of the syntax tree type.
-     * @param pProcessor - The transpilation processor function for the syntax tree type.
-     *
-     * @template T - The specific syntax tree type that extends BasePgslSyntaxTree.
-     */
-    public addProcessor<T extends AbstractSyntaxTree>(pProcessor: ITranspilerProcessor<T>): void {
-        if (Array.isArray(pProcessor.target)) {
-            for (const lTarget of pProcessor.target) {
-                this.mTranspilationProcessors.set(lTarget, pProcessor as ITranspilerProcessor<AbstractSyntaxTree>);
-            }
-        } else {
-            this.mTranspilationProcessors.set(pProcessor.target, pProcessor);
-        }
     }
 }
 

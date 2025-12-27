@@ -2,7 +2,6 @@ import { Exception } from '@kartoffelgames/core';
 import { CodeParser, Graph, GraphNode, type LexerToken } from '@kartoffelgames/core-parser';
 import { AbstractSyntaxTreeContext } from '../abstract_syntax_tree/abstract-syntax-tree-context.ts';
 import { DocumentAst } from '../abstract_syntax_tree/document-ast.ts';
-import { AttributeListAst } from '../abstract_syntax_tree/general/attribute-list-ast.ts';
 import { PgslArrayType } from '../abstract_syntax_tree/type/pgsl-array-type.ts';
 import { PgslBooleanType } from '../abstract_syntax_tree/type/pgsl-boolean-type.ts';
 import { PgslBuildInType } from '../abstract_syntax_tree/type/pgsl-build-in-type.ts';
@@ -168,10 +167,10 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
 
         // Define buildin enums.
         const lBuildInEnumList: Array<DeclarationCst<DeclarationCstType>> = [
-            PgslAccessModeEnum.cst,
-            PgslInterpolateSamplingEnum.cst,
-            PgslInterpolateTypeEnum.cst,
-            PgslTexelFormatEnum.cst
+            PgslAccessModeEnum.CST,
+            PgslInterpolateSamplingEnum.CST,
+            PgslInterpolateTypeEnum.CST,
+            PgslTexelFormatEnum.CST
         ];
 
         // Append buildin declarations to the document.
@@ -401,6 +400,300 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         return {
             attributeList: lAttributeListSyntaxTreeGraph,
             typeDeclaration: lTypeDeclarationSyntaxTreeGraph
+        };
+    }
+
+    /**
+     * Define all declaration graphs used at module scope.
+     */
+    private defineDeclarationGraphs(pCoreGraphs: PgslParserCoreGraphs, pExpressionGraphs: PgslParserExpressionGraphs, pStatementGraphs: PgslParserStatementGraphs): PgslParserDeclarationGraphs {
+        /**
+         * Variable declaration graph. Module-level variable declaration with attributes.
+         * ```
+         * - "<ATTRIBUTE_LIST> storage <IDENTIFIER>: <TYPE>;"
+         * - "<ATTRIBUTE_LIST> uniform <IDENTIFIER>: <TYPE>;"
+         * - "<ATTRIBUTE_LIST> workgroup <IDENTIFIER>: <TYPE>;"
+         * - "<ATTRIBUTE_LIST> private <IDENTIFIER>: <TYPE>;"
+         * - "<ATTRIBUTE_LIST> const <IDENTIFIER>: <TYPE>;"
+         * - "<ATTRIBUTE_LIST> param <IDENTIFIER>: <TYPE>;"
+         * - "<ATTRIBUTE_LIST> storage <IDENTIFIER>: <TYPE> = <EXPRESSION>;"
+         * - "<ATTRIBUTE_LIST> uniform <IDENTIFIER>: <TYPE> = <EXPRESSION>;"
+         * - "<ATTRIBUTE_LIST> workgroup <IDENTIFIER>: <TYPE> = <EXPRESSION>;"
+         * - "<ATTRIBUTE_LIST> private <IDENTIFIER>: <TYPE> = <EXPRESSION>;"
+         * - "<ATTRIBUTE_LIST> const <IDENTIFIER>: <TYPE> = <EXPRESSION>;"
+         * - "<ATTRIBUTE_LIST> param <IDENTIFIER>: <TYPE> = <EXPRESSION>;"
+         * ```
+         */
+        const lVariableDeclarationGraph: Graph<PgslToken, object, VariableDeclarationCst> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required('attributes', pCoreGraphs.attributeList)
+                .required('declarationType', [
+                    PgslToken.KeywordDeclarationStorage,
+                    PgslToken.KeywordDeclarationUniform,
+                    PgslToken.KeywordDeclarationWorkgroup,
+                    PgslToken.KeywordDeclarationPrivate,
+                    PgslToken.KeywordDeclarationConst,
+                    PgslToken.KeywordDeclarationParam,
+                    PgslToken.KeywordDeclarationLet,
+                    PgslToken.KeywordDeclarationVar
+                ])
+                .required('variableName', PgslToken.Identifier)
+                .required(PgslToken.Colon)
+                .required('type', pCoreGraphs.typeDeclaration)
+                .required('initialization', [
+                    PgslToken.Semicolon,
+                    GraphNode.new<PgslToken>()
+                        .required(PgslToken.Assignment)
+                        .required('expression', pExpressionGraphs.expression)
+                        .required(PgslToken.Semicolon)
+                ]);
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): VariableDeclarationCst => {
+            return {
+                type: 'VariableDeclaration',
+                buildIn: false,
+                range: this.createTokenBoundParameter(pStartToken, pEndToken),
+                name: pData.variableName,
+                declarationType: pData.declarationType,
+                typeDeclaration: pData.type,
+                expression: typeof pData.initialization !== 'string' ? pData.initialization.expression : null,
+                attributeList: pData.attributes
+            } satisfies VariableDeclarationCst;
+        });
+
+        /**
+         * Alias declaration graph. Type alias declaration.
+         * ```
+         * - "<ATTRIBUTE_LIST> alias <IDENTIFIER> = <TYPE>;"
+         * ```
+         */
+        const lAliasDeclarationGraph: Graph<PgslToken, object, AliasDeclarationCst> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required('attributes', pCoreGraphs.attributeList)
+                .required(PgslToken.KeywordAlias)
+                .required('name', PgslToken.Identifier)
+                .required(PgslToken.Assignment)
+                .required('type', pCoreGraphs.typeDeclaration)
+                .required(PgslToken.Semicolon);
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): AliasDeclarationCst => {
+            // Save alias as a user defined type.
+            this.mUserDefinedTypeNames.add(pData.name);
+
+            return {
+                type: 'AliasDeclaration',
+                buildIn: false,
+                range: this.createTokenBoundParameter(pStartToken, pEndToken),
+                name: pData.name,
+                typeDefinition: pData.type,
+                attributeList: pData.attributes
+            } satisfies AliasDeclarationCst;
+        });
+
+        /**
+         * Struct property declaration graph. Single property within a struct.
+         * ```
+         * - "[<ATTRIBUTES>] <IDENTIFIER>: <TYPE>"
+         * ```
+         */
+        const lStructPropertyDeclarationGraph: Graph<PgslToken, object, StructPropertyDeclarationCst> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required('attributes', pCoreGraphs.attributeList)
+                .required('name', PgslToken.Identifier)
+                .required(PgslToken.Colon)
+                .required('type', pCoreGraphs.typeDeclaration);
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): StructPropertyDeclarationCst => {
+            return {
+                type: 'StructPropertyDeclaration',
+                buildIn: false,
+                range: this.createTokenBoundParameter(pStartToken, pEndToken),
+                name: pData.name,
+                typeDeclaration: pData.type,
+                attributeList: pData.attributes
+            } satisfies StructPropertyDeclarationCst;
+        });
+
+        /**
+         * List of struct properties separated by comma.
+         */
+        const lStructPropertyListGraph: Graph<PgslToken, object, { list: Array<StructPropertyDeclarationCst>; }> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required('list[]', lStructPropertyDeclarationGraph)
+                .optional('list<-list', GraphNode.new<PgslToken>()
+                    .required(PgslToken.Comma)
+                    .required('list<-list', lStructPropertyListGraph) // Self reference.
+                );
+        });
+
+        /**
+         * Struct declaration graph. Struct with properties.
+         * ```
+         * - "[<ATTRIBUTES>] struct <IDENTIFIER> { }"
+         * - "[<ATTRIBUTES>] struct <IDENTIFIER> { <PROPERTY_LIST> }"
+         * ```
+         */
+        const lStructDeclarationGraph: Graph<PgslToken, object, StructDeclarationCst> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required('attributes', pCoreGraphs.attributeList)
+                .required(PgslToken.KeywordStruct)
+                .required('name', PgslToken.Identifier)
+                .required(PgslToken.BlockStart)
+                .optional('properties<-list', lStructPropertyListGraph)
+                .required(PgslToken.BlockEnd);
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): StructDeclarationCst => {
+            // Save struct as a user defined type.
+            this.mUserDefinedTypeNames.add(pData.name);
+
+            return {
+                type: 'StructDeclaration',
+                buildIn: false,
+                range: this.createTokenBoundParameter(pStartToken, pEndToken),
+                name: pData.name,
+                properties: pData.properties ?? [],
+                attributeList: pData.attributes
+            } satisfies StructDeclarationCst;
+        });
+
+        /**
+         * Single enum value with name and value.
+         */
+        const lEnumValueGraph: Graph<PgslToken, object, EnumDeclarationValueCst> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required('name', PgslToken.Identifier)
+                .required(PgslToken.Assignment)
+                .required('value', [
+                    pExpressionGraphs.literalExpression,
+                    pExpressionGraphs.stringExpression
+                ]);
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): EnumDeclarationValueCst => {
+            return {
+                type: 'EnumDeclarationValue',
+                buildIn: false,
+                range: this.createTokenBoundParameter(pStartToken, pEndToken),
+                name: pData.name,
+                value: pData.value
+            } satisfies EnumDeclarationValueCst;
+        });
+
+        /**
+         * List of enum values separated by comma.
+         */
+        const lEnumValueListGraph: Graph<PgslToken, object, { list: Array<EnumDeclarationValueCst>; }> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required('list[]', lEnumValueGraph)
+                .optional('list<-list', GraphNode.new<PgslToken>()
+                    .required(PgslToken.Comma)
+                    .required('list<-list', lEnumValueListGraph) // Self reference.
+                );
+        });
+
+        /**
+         * Enum declaration graph. Enum with values.
+         * ```
+         * - "[<ATTRIBUTES>] enum <IDENTIFIER> { <VALUE_LIST> }"
+         * ```
+         */
+        const lEnumDeclarationGraph: Graph<PgslToken, object, EnumDeclarationCst> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required('attributes', pCoreGraphs.attributeList)
+                .required(PgslToken.KeywordEnum)
+                .required('name', PgslToken.Identifier)
+                .required(PgslToken.BlockStart)
+                .optional('values<-list', lEnumValueListGraph)
+                .required(PgslToken.BlockEnd);
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): EnumDeclarationCst => {
+            // Save enum as a user defined type.
+            this.mUserDefinedTypeNames.add(pData.name);
+
+            return {
+                type: 'EnumDeclaration',
+                buildIn: false,
+                range: this.createTokenBoundParameter(pStartToken, pEndToken),
+                name: pData.name,
+                values: pData.values ?? [],
+                attributeList: pData.attributes
+            } satisfies EnumDeclarationCst;
+        });
+
+        /**
+         * Function parameter with name and type.
+         */
+        const lFunctionParameterGraph: Graph<PgslToken, object, FunctionDeclarationParameterCst> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required('name', PgslToken.Identifier)
+                .required(PgslToken.Colon)
+                .required('type', pCoreGraphs.typeDeclaration);
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): FunctionDeclarationParameterCst => {
+            return {
+                type: 'FunctionDeclarationParameter',
+                buildIn: false,
+                range: this.createTokenBoundParameter(pStartToken, pEndToken),
+                name: pData.name,
+                typeDeclaration: pData.type
+            } satisfies FunctionDeclarationParameterCst;
+        });
+
+        /**
+         * List of function parameters separated by comma.
+         */
+        const lFunctionParameterListGraph: Graph<PgslToken, object, { list: Array<FunctionDeclarationParameterCst>; }> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required('list[]', lFunctionParameterGraph)
+                .optional('list<-list', GraphNode.new<PgslToken>()
+                    .required(PgslToken.Comma)
+                    .required('list<-list', lFunctionParameterListGraph) // Self reference.
+                );
+        });
+
+        /**
+         * Function declaration graph. Function with parameters and body.
+         * ```
+         * - "[<ATTRIBUTES>] fn <IDENTIFIER>(): <TYPE> <BLOCK>"
+         * - "[<ATTRIBUTES>] fn <IDENTIFIER>(<PARAMETER_LIST>): <TYPE> <BLOCK>"
+         * ```
+         */
+        const lFunctionDeclarationGraph: Graph<PgslToken, object, FunctionDeclarationCst> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required('attributes', pCoreGraphs.attributeList)
+                .required(PgslToken.KeywordFunction)
+                .required('name', PgslToken.Identifier)
+                .required(PgslToken.ParenthesesStart)
+                .optional('parameters<-list', lFunctionParameterListGraph)
+                .required(PgslToken.ParenthesesEnd)
+                .required(PgslToken.Colon)
+                .required('returnType', pCoreGraphs.typeDeclaration)
+                .required('block', pStatementGraphs.blockStatement);
+
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): FunctionDeclarationCst => {
+            // Save function as a user defined type.
+            this.mUserDefinedTypeNames.add(pData.name);
+
+            // Build function header.
+            const lFunctionHeader: FunctionDeclarationHeaderCst = {
+                type: 'FunctionDeclarationHeader',
+                buildIn: false,
+                range: this.createTokenBoundParameter(pStartToken, pEndToken),
+                attributeList: pData.attributes,
+                generics: [], // User functions do not support generics.
+                parameters: pData.parameters ?? [],
+                returnType: pData.returnType,
+                block: pData.block
+            };
+
+            return {
+                type: 'FunctionDeclaration',
+                isConstant: false,
+                buildIn: false,
+                range: this.createTokenBoundParameter(pStartToken, pEndToken),
+                name: pData.name,
+                declarations: [lFunctionHeader]
+            } satisfies FunctionDeclarationCst;
+        });
+
+        return {
+            variableDeclaration: lVariableDeclarationGraph,
+            aliasDeclaration: lAliasDeclarationGraph,
+            enumDeclaration: lEnumDeclarationGraph,
+            structDeclaration: lStructDeclarationGraph,
+            functionDeclaration: lFunctionDeclarationGraph
         };
     }
 
@@ -887,6 +1180,44 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
     }
 
     /**
+     * Define root graph.
+     */
+    private defineModuleScopeGraph(pDeclarationGraphs: PgslParserDeclarationGraphs): Graph<PgslToken, object, DocumentCst> {
+        /**
+         * List of declaration graphs.
+         */
+        const lModuleScopeDeclarationListGraph: Graph<PgslToken, object, { list: Array<DeclarationCst<DeclarationCstType>>; }> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required('list[]', [
+                    pDeclarationGraphs.aliasDeclaration as Graph<PgslToken, object, DeclarationCst<DeclarationCstType>>,
+                    pDeclarationGraphs.variableDeclaration as Graph<PgslToken, object, DeclarationCst<DeclarationCstType>>,
+                    pDeclarationGraphs.enumDeclaration as Graph<PgslToken, object, DeclarationCst<DeclarationCstType>>,
+                    pDeclarationGraphs.structDeclaration as Graph<PgslToken, object, DeclarationCst<DeclarationCstType>>,
+                    pDeclarationGraphs.functionDeclaration as Graph<PgslToken, object, DeclarationCst<DeclarationCstType>>
+                ])
+                .optional('list<-list', lModuleScopeDeclarationListGraph); // Self reference.
+        });
+
+        /**
+         * Root graph. Wrapps all valid declaration graphs.
+         */
+        const lModuleScopeGraph = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required('list<-list', lModuleScopeDeclarationListGraph);
+        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): DocumentCst => {
+            return {
+                type: 'Document',
+                range: this.createTokenBoundParameter(pStartToken, pEndToken),
+                buildInDeclarations: [],
+                declarations: pData.list ?? []
+            } satisfies DocumentCst;
+        });
+
+        // Return module scope graph.
+        return lModuleScopeGraph;
+    }
+
+    /**
      * Define all statements and flows used inside function scope.
      */
     private defineStatementGraphs(pCoreGraphs: PgslParserCoreGraphs, pExpressionGraphs: PgslParserExpressionGraphs): PgslParserStatementGraphs {
@@ -1314,338 +1645,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         return {
             blockStatement: lBlockStatementGraph
         };
-    }
-
-    /**
-     * Define all declaration graphs used at module scope.
-     */
-    private defineDeclarationGraphs(pCoreGraphs: PgslParserCoreGraphs, pExpressionGraphs: PgslParserExpressionGraphs, pStatementGraphs: PgslParserStatementGraphs): PgslParserDeclarationGraphs {
-        /**
-         * Variable declaration graph. Module-level variable declaration with attributes.
-         * ```
-         * - "<ATTRIBUTE_LIST> storage <IDENTIFIER>: <TYPE>;"
-         * - "<ATTRIBUTE_LIST> uniform <IDENTIFIER>: <TYPE>;"
-         * - "<ATTRIBUTE_LIST> workgroup <IDENTIFIER>: <TYPE>;"
-         * - "<ATTRIBUTE_LIST> private <IDENTIFIER>: <TYPE>;"
-         * - "<ATTRIBUTE_LIST> const <IDENTIFIER>: <TYPE>;"
-         * - "<ATTRIBUTE_LIST> param <IDENTIFIER>: <TYPE>;"
-         * - "<ATTRIBUTE_LIST> storage <IDENTIFIER>: <TYPE> = <EXPRESSION>;"
-         * - "<ATTRIBUTE_LIST> uniform <IDENTIFIER>: <TYPE> = <EXPRESSION>;"
-         * - "<ATTRIBUTE_LIST> workgroup <IDENTIFIER>: <TYPE> = <EXPRESSION>;"
-         * - "<ATTRIBUTE_LIST> private <IDENTIFIER>: <TYPE> = <EXPRESSION>;"
-         * - "<ATTRIBUTE_LIST> const <IDENTIFIER>: <TYPE> = <EXPRESSION>;"
-         * - "<ATTRIBUTE_LIST> param <IDENTIFIER>: <TYPE> = <EXPRESSION>;"
-         * ```
-         */
-        const lVariableDeclarationGraph: Graph<PgslToken, object, VariableDeclarationCst> = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required('attributes', pCoreGraphs.attributeList)
-                .required('declarationType', [
-                    PgslToken.KeywordDeclarationStorage,
-                    PgslToken.KeywordDeclarationUniform,
-                    PgslToken.KeywordDeclarationWorkgroup,
-                    PgslToken.KeywordDeclarationPrivate,
-                    PgslToken.KeywordDeclarationConst,
-                    PgslToken.KeywordDeclarationParam,
-                    PgslToken.KeywordDeclarationLet,
-                    PgslToken.KeywordDeclarationVar
-                ])
-                .required('variableName', PgslToken.Identifier)
-                .required(PgslToken.Colon)
-                .required('type', pCoreGraphs.typeDeclaration)
-                .required('initialization', [
-                    PgslToken.Semicolon,
-                    GraphNode.new<PgslToken>()
-                        .required(PgslToken.Assignment)
-                        .required('expression', pExpressionGraphs.expression)
-                        .required(PgslToken.Semicolon)
-                ]);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): VariableDeclarationCst => {
-            return {
-                type: 'VariableDeclaration',
-                buildIn: false,
-                range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                name: pData.variableName,
-                declarationType: pData.declarationType,
-                typeDeclaration: pData.type,
-                expression: typeof pData.initialization !== 'string' ? pData.initialization.expression : null,
-                attributeList: pData.attributes
-            } satisfies VariableDeclarationCst;
-        });
-
-        /**
-         * Alias declaration graph. Type alias declaration.
-         * ```
-         * - "<ATTRIBUTE_LIST> alias <IDENTIFIER> = <TYPE>;"
-         * ```
-         */
-        const lAliasDeclarationGraph: Graph<PgslToken, object, AliasDeclarationCst> = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required('attributes', pCoreGraphs.attributeList)
-                .required(PgslToken.KeywordAlias)
-                .required('name', PgslToken.Identifier)
-                .required(PgslToken.Assignment)
-                .required('type', pCoreGraphs.typeDeclaration)
-                .required(PgslToken.Semicolon);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): AliasDeclarationCst => {
-            // Save alias as a user defined type.
-            this.mUserDefinedTypeNames.add(pData.name);
-
-            return {
-                type: 'AliasDeclaration',
-                buildIn: false,
-                range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                name: pData.name,
-                typeDefinition: pData.type,
-                attributeList: pData.attributes
-            } satisfies AliasDeclarationCst;
-        });
-
-        /**
-         * Struct property declaration graph. Single property within a struct.
-         * ```
-         * - "[<ATTRIBUTES>] <IDENTIFIER>: <TYPE>"
-         * ```
-         */
-        const lStructPropertyDeclarationGraph: Graph<PgslToken, object, StructPropertyDeclarationCst> = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required('attributes', pCoreGraphs.attributeList)
-                .required('name', PgslToken.Identifier)
-                .required(PgslToken.Colon)
-                .required('type', pCoreGraphs.typeDeclaration);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): StructPropertyDeclarationCst => {
-            return {
-                type: 'StructPropertyDeclaration',
-                buildIn: false,
-                range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                name: pData.name,
-                typeDeclaration: pData.type,
-                attributeList: pData.attributes
-            } satisfies StructPropertyDeclarationCst;
-        });
-
-        /**
-         * List of struct properties separated by comma.
-         */
-        const lStructPropertyListGraph: Graph<PgslToken, object, { list: Array<StructPropertyDeclarationCst>; }> = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required('list[]', lStructPropertyDeclarationGraph)
-                .optional('list<-list', GraphNode.new<PgslToken>()
-                    .required(PgslToken.Comma)
-                    .required('list<-list', lStructPropertyListGraph) // Self reference.
-                );
-        });
-
-        /**
-         * Struct declaration graph. Struct with properties.
-         * ```
-         * - "[<ATTRIBUTES>] struct <IDENTIFIER> { }"
-         * - "[<ATTRIBUTES>] struct <IDENTIFIER> { <PROPERTY_LIST> }"
-         * ```
-         */
-        const lStructDeclarationGraph: Graph<PgslToken, object, StructDeclarationCst> = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required('attributes', pCoreGraphs.attributeList)
-                .required(PgslToken.KeywordStruct)
-                .required('name', PgslToken.Identifier)
-                .required(PgslToken.BlockStart)
-                .optional('properties<-list', lStructPropertyListGraph)
-                .required(PgslToken.BlockEnd);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): StructDeclarationCst => {
-            // Save struct as a user defined type.
-            this.mUserDefinedTypeNames.add(pData.name);
-
-            return {
-                type: 'StructDeclaration',
-                buildIn: false,
-                range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                name: pData.name,
-                properties: pData.properties ?? [],
-                attributeList: pData.attributes
-            } satisfies StructDeclarationCst;
-        });
-
-        /**
-         * Single enum value with name and value.
-         */
-        const lEnumValueGraph: Graph<PgslToken, object, EnumDeclarationValueCst> = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required('name', PgslToken.Identifier)
-                .required(PgslToken.Assignment)
-                .required('value', [
-                    pExpressionGraphs.literalExpression,
-                    pExpressionGraphs.stringExpression
-                ]);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): EnumDeclarationValueCst => {
-            return {
-                type: 'EnumDeclarationValue',
-                buildIn: false,
-                range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                name: pData.name,
-                value: pData.value
-            } satisfies EnumDeclarationValueCst;
-        });
-
-        /**
-         * List of enum values separated by comma.
-         */
-        const lEnumValueListGraph: Graph<PgslToken, object, { list: Array<EnumDeclarationValueCst>; }> = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required('list[]', lEnumValueGraph)
-                .optional('list<-list', GraphNode.new<PgslToken>()
-                    .required(PgslToken.Comma)
-                    .required('list<-list', lEnumValueListGraph) // Self reference.
-                );
-        });
-
-        /**
-         * Enum declaration graph. Enum with values.
-         * ```
-         * - "[<ATTRIBUTES>] enum <IDENTIFIER> { <VALUE_LIST> }"
-         * ```
-         */
-        const lEnumDeclarationGraph: Graph<PgslToken, object, EnumDeclarationCst> = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required('attributes', pCoreGraphs.attributeList)
-                .required(PgslToken.KeywordEnum)
-                .required('name', PgslToken.Identifier)
-                .required(PgslToken.BlockStart)
-                .optional('values<-list', lEnumValueListGraph)
-                .required(PgslToken.BlockEnd);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): EnumDeclarationCst => {
-            // Save enum as a user defined type.
-            this.mUserDefinedTypeNames.add(pData.name);
-
-            return {
-                type: 'EnumDeclaration',
-                buildIn: false,
-                range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                name: pData.name,
-                values: pData.values ?? [],
-                attributeList: pData.attributes
-            } satisfies EnumDeclarationCst;
-        });
-
-        /**
-         * Function parameter with name and type.
-         */
-        const lFunctionParameterGraph: Graph<PgslToken, object, FunctionDeclarationParameterCst> = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required('name', PgslToken.Identifier)
-                .required(PgslToken.Colon)
-                .required('type', pCoreGraphs.typeDeclaration);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): FunctionDeclarationParameterCst => {
-            return {
-                type: 'FunctionDeclarationParameter',
-                buildIn: false,
-                range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                name: pData.name,
-                typeDeclaration: pData.type
-            } satisfies FunctionDeclarationParameterCst;
-        });
-
-        /**
-         * List of function parameters separated by comma.
-         */
-        const lFunctionParameterListGraph: Graph<PgslToken, object, { list: Array<FunctionDeclarationParameterCst>; }> = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required('list[]', lFunctionParameterGraph)
-                .optional('list<-list', GraphNode.new<PgslToken>()
-                    .required(PgslToken.Comma)
-                    .required('list<-list', lFunctionParameterListGraph) // Self reference.
-                );
-        });
-
-        /**
-         * Function declaration graph. Function with parameters and body.
-         * ```
-         * - "[<ATTRIBUTES>] fn <IDENTIFIER>(): <TYPE> <BLOCK>"
-         * - "[<ATTRIBUTES>] fn <IDENTIFIER>(<PARAMETER_LIST>): <TYPE> <BLOCK>"
-         * ```
-         */
-        const lFunctionDeclarationGraph: Graph<PgslToken, object, FunctionDeclarationCst> = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required('attributes', pCoreGraphs.attributeList)
-                .required(PgslToken.KeywordFunction)
-                .required('name', PgslToken.Identifier)
-                .required(PgslToken.ParenthesesStart)
-                .optional('parameters<-list', lFunctionParameterListGraph)
-                .required(PgslToken.ParenthesesEnd)
-                .required(PgslToken.Colon)
-                .required('returnType', pCoreGraphs.typeDeclaration)
-                .required('block', pStatementGraphs.blockStatement);
-
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): FunctionDeclarationCst => {
-            // Save function as a user defined type.
-            this.mUserDefinedTypeNames.add(pData.name);
-
-            // Build function header.
-            const lFunctionHeader: FunctionDeclarationHeaderCst = {
-                type: 'FunctionDeclarationHeader',
-                buildIn: false,
-                range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                attributeList: pData.attributes,
-                generics: [], // User functions do not support generics.
-                parameters: pData.parameters ?? [],
-                returnType: pData.returnType,
-                block: pData.block
-            };
-
-            return {
-                type: 'FunctionDeclaration',
-                isConstant: false,
-                buildIn: false,
-                range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                name: pData.name,
-                declarations: [lFunctionHeader]
-            } satisfies FunctionDeclarationCst;
-        });
-
-        return {
-            variableDeclaration: lVariableDeclarationGraph,
-            aliasDeclaration: lAliasDeclarationGraph,
-            enumDeclaration: lEnumDeclarationGraph,
-            structDeclaration: lStructDeclarationGraph,
-            functionDeclaration: lFunctionDeclarationGraph
-        };
-    }
-
-    /**
-     * Define root graph.
-     */
-    private defineModuleScopeGraph(pDeclarationGraphs: PgslParserDeclarationGraphs): Graph<PgslToken, object, DocumentCst> {
-        /**
-         * List of declaration graphs.
-         */
-        const lModuleScopeDeclarationListGraph: Graph<PgslToken, object, { list: Array<DeclarationCst<DeclarationCstType>>; }> = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required('list[]', [
-                    pDeclarationGraphs.aliasDeclaration as Graph<PgslToken, object, DeclarationCst<DeclarationCstType>>,
-                    pDeclarationGraphs.variableDeclaration as Graph<PgslToken, object, DeclarationCst<DeclarationCstType>>,
-                    pDeclarationGraphs.enumDeclaration as Graph<PgslToken, object, DeclarationCst<DeclarationCstType>>,
-                    pDeclarationGraphs.structDeclaration as Graph<PgslToken, object, DeclarationCst<DeclarationCstType>>,
-                    pDeclarationGraphs.functionDeclaration as Graph<PgslToken, object, DeclarationCst<DeclarationCstType>>
-                ])
-                .optional('list<-list', lModuleScopeDeclarationListGraph); // Self reference.
-        });
-
-        /**
-         * Root graph. Wrapps all valid declaration graphs.
-         */
-        const lModuleScopeGraph = Graph.define(() => {
-            return GraphNode.new<PgslToken>()
-                .required('list<-list', lModuleScopeDeclarationListGraph);
-        }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): DocumentCst => {
-            return {
-                type: 'Document',
-                range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                buildInDeclarations: [],
-                declarations: pData.list ?? []
-            } satisfies DocumentCst;
-        });
-
-        // Return module scope graph.
-        return lModuleScopeGraph;
     }
 }
 

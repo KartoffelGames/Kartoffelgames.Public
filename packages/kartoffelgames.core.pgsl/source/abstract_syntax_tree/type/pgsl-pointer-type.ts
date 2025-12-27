@@ -8,9 +8,9 @@ import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
  * Pointers allow indirect access to values and are used for referencing data.
  */
 export class PgslPointerType extends PgslType {
-    private readonly mReferencedType: PgslType;
     private mAssignedAddressSpace: PgslValueAddressSpace | null;
-
+    private readonly mReferencedType: PgslType;
+    
     /**
      * Gets the assigned address space for this pointer.
      * The address space defines where the pointer points to (e.g., function, module, etc.).
@@ -53,7 +53,7 @@ export class PgslPointerType extends PgslType {
      * @param pAddressSpace - Address space of pointer type.
      * @param pContext - Context. 
      */
-    public assignAddressSpace(pAddressSpace: PgslValueAddressSpace, pContext: AbstractSyntaxTreeContext) {
+    public assignAddressSpace(pAddressSpace: PgslValueAddressSpace, pContext: AbstractSyntaxTreeContext): void {
         // When a address space is already assigned and the new one is different, report an error.
         if (this.mAssignedAddressSpace !== null && this.mAssignedAddressSpace !== pAddressSpace) {
             pContext.pushIncident('Pointer address space is already assigned and cannot be changed');

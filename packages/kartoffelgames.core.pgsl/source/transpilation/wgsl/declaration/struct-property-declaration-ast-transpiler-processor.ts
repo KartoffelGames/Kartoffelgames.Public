@@ -66,20 +66,20 @@ export class StructPropertyDeclarationAstTranspilerProcessor implements ITranspi
             // Convert interpolation type to string.
             const lInterpolationTypeString: string = (() => {
                 switch (pInstance.data.meta.interpolation.type) {
-                    case PgslInterpolateTypeEnum.values.Linear: return 'linear';
-                    case PgslInterpolateTypeEnum.values.Flat: return 'flat';
-                    case PgslInterpolateTypeEnum.values.Perspective: return 'perspective';
+                    case PgslInterpolateTypeEnum.VALUES.Linear: return 'linear';
+                    case PgslInterpolateTypeEnum.VALUES.Flat: return 'flat';
+                    case PgslInterpolateTypeEnum.VALUES.Perspective: return 'perspective';
                 }
             })();
 
             // Convert sampling type to string.
             const lSamplingTypeString: string = (() => {
                 switch (pInstance.data.meta.interpolation.sampling) {
-                    case PgslInterpolateSamplingEnum.values.Center: return 'center';
-                    case PgslInterpolateSamplingEnum.values.Centroid: return 'centroid';
-                    case PgslInterpolateSamplingEnum.values.Either: return 'either';
-                    case PgslInterpolateSamplingEnum.values.First: return 'first';
-                    case PgslInterpolateSamplingEnum.values.Sample: return 'sample';
+                    case PgslInterpolateSamplingEnum.VALUES.Center: return 'center';
+                    case PgslInterpolateSamplingEnum.VALUES.Centroid: return 'centroid';
+                    case PgslInterpolateSamplingEnum.VALUES.Either: return 'either';
+                    case PgslInterpolateSamplingEnum.VALUES.First: return 'first';
+                    case PgslInterpolateSamplingEnum.VALUES.Sample: return 'sample';
                 }
             })();
 

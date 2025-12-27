@@ -1,5 +1,5 @@
 import { StringValueExpressionAst } from '../../../../abstract_syntax_tree/expression/single_value/string-value-expression-ast.ts';
-import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
+import type { ITranspilerProcessor } from '../../../i-transpiler-processor.interface.ts';
 
 export class StringValueExpressionAstTranspilerProcessor implements ITranspilerProcessor<StringValueExpressionAst> {
     /**

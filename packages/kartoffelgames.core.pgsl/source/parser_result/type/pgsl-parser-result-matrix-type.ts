@@ -5,9 +5,18 @@ import { PgslParserResultType, type PgslParserResultTypeAlignmentType } from './
  * Handles mathematical matrices with a specified element type and dimension count.
  */
 export class PgslParserResultMatrixType extends PgslParserResultType {
+    private readonly mColumns: number;
     private readonly mElementType: PgslParserResultType;
     private readonly mRows: number;
-    private readonly mColumns: number;
+    
+    /**
+     * Gets the number of columns in this matrix.
+     *
+     * @returns The column count.
+     */
+    public get columns(): number {
+        return this.mColumns;
+    }
 
     /**
      * Gets the type of elements contained in this matrix type.
@@ -25,15 +34,6 @@ export class PgslParserResultMatrixType extends PgslParserResultType {
      */
     public get rows(): number {
         return this.mRows;
-    }
-
-    /**
-     * Gets the number of columns in this matrix.
-     *
-     * @returns The column count.
-     */
-    public get columns(): number {
-        return this.mColumns;
     }
 
     /**

@@ -17,13 +17,13 @@ import type { SwitchStatementAst } from './statement/branch/switch-statement-ast
  */
 export class AbstractSyntaxTreeContext {
     private readonly mAliases: Map<string, AliasDeclarationAst>;
+    private readonly mBindingNames: Map<string, Map<string, number>>;
+    private mDocument: DocumentAst | null;
     private readonly mEnums: Map<string, EnumDeclarationAst>;
     private readonly mFunctions: Map<string, FunctionDeclarationAst>;
-    private readonly mStructs: Map<string, StructDeclarationAst>;
-    private mScope: AbstractSyntaxTreeScope | null;
-    private mDocument: DocumentAst | null;
     private readonly mIncidents: Array<AbstractSyntaxTreeIncident>;
-    private readonly mBindingNames: Map<string, Map<string, number>>;
+    private mScope: AbstractSyntaxTreeScope | null;
+    private readonly mStructs: Map<string, StructDeclarationAst>;
 
     /**
      * Gets the document associated with this context.
@@ -50,18 +50,6 @@ export class AbstractSyntaxTreeContext {
     }
 
     /**
-     * Pushes an incident to the context for later analysis or reporting.
-     *
-     * @param pMessage - The message describing the incident.
-     * @param pSyntaxTree - Optional syntax tree node associated with the incident.
-     *
-     * @throws {Error} When the context is sealed.
-     */
-    public pushIncident(pMessage: string, pSyntaxTree?: AbstractSyntaxTree): void {
-        this.mIncidents.push(new AbstractSyntaxTreeIncident(pMessage, pSyntaxTree));
-    }
-
-    /**
      * Creates a new syntax tree context scope.
      */
     public constructor() {
@@ -80,70 +68,27 @@ export class AbstractSyntaxTreeContext {
     }
 
     /**
-     * Execute action in a new scope.
-     * Creates a new scope, executes the provided action within that scope,
-     * and then automatically removes the scope when the action completes.
-     *
-     * @typeParam T - Result type of the scope action.
-     *
-     * @param pType - Type of scope to create.
-     * @param pScopeAction - Action to execute within the new scope.
-     * @param pOwner - The owner of the scope.
+     * Sets a value in this scope.
      * 
-     * @returns The result of the scope action.
-     */
-    public pushScope<T = void>(pType: AbstractSyntaxTreeContextScopeType, pScopeAction: () => T, pOwner: AbstractSyntaxTree): T {
-        // Save the current scope.
-        const lLastScope: AbstractSyntaxTreeScope | null = this.mScope;
-
-        // Replace current level with new scope.
-        this.mScope = {
-            type: pType,
-            parent: lLastScope,
-            values: new Map<string, IValueStoreAst>(),
-            owner: pOwner
-        };
-
-        // execute scope action and restore last scope afterwards.
-        try {
-            return pScopeAction();
-        } finally {
-            this.mScope = lLastScope;
-        }
-    }
-
-    /**
+     * @param pName - The name of the value.
+     * @param pValue - The value to store.
      * 
-     * @param pDocument 
+     * @throws Error if the value already exists in this scope.
      */
-    public setDocument(pDocument: DocumentAst): void {
-        if (this.mDocument) {
-            throw new Exception(`Document is already set for this scope.`, this);
-        }
-
-        this.mDocument = pDocument;
-    }
-
-    /**
-     * Searches for a value in this scope and parent scopes.
-     * Returns the value store if found, otherwise null.
-     * 
-     * @param pName 
-     */
-    public getValue(pName: string): IValueStoreAst | null {
+    public addValue(pName: string, pValue: IValueStoreAst): boolean {
+        // Ensure there is an active scope.
         if (!this.mScope) {
-            return null;
+            throw new Exception(`Cannot add value '${pName}' because there is no active scope.`, this);
         }
 
-        // Check if value exists in any scope.
-        let lCurrentScope: AbstractSyntaxTreeScope | null = this.mScope;
-        do {
-            if (lCurrentScope.values.has(pName)) {
-                return lCurrentScope.values.get(pName)!;
-            }
-        } while (lCurrentScope = lCurrentScope.parent); // Thats correct, assignment in condition.
+        // Throw if value already exists in this scope.
+        if (this.mScope.values.has(pName)) {
+            return false;
+        }
 
-        return null;
+        this.mScope.values.set(pName, pValue);
+
+        return true;
     }
 
     /**
@@ -191,27 +136,25 @@ export class AbstractSyntaxTreeContext {
     }
 
     /**
-     * Sets a value in this scope.
+     * Searches for a value in this scope and parent scopes.
+     * Returns the value store if found, otherwise null.
      * 
-     * @param pName - The name of the value.
-     * @param pValue - The value to store.
-     * 
-     * @throws Error if the value already exists in this scope.
+     * @param pName 
      */
-    public addValue(pName: string, pValue: IValueStoreAst): boolean {
-        // Ensure there is an active scope.
+    public getValue(pName: string): IValueStoreAst | null {
         if (!this.mScope) {
-            throw new Exception(`Cannot add value '${pName}' because there is no active scope.`, this);
+            return null;
         }
 
-        // Throw if value already exists in this scope.
-        if (this.mScope.values.has(pName)) {
-            return false;
-        }
+        // Check if value exists in any scope.
+        let lCurrentScope: AbstractSyntaxTreeScope | null = this.mScope;
+        do {
+            if (lCurrentScope.values.has(pName)) {
+                return lCurrentScope.values.get(pName)!;
+            }
+        } while (lCurrentScope = lCurrentScope.parent); // Thats correct, assignment in condition.
 
-        this.mScope.values.set(pName, pValue);
-
-        return true;
+        return null;
     }
 
     /**
@@ -239,6 +182,51 @@ export class AbstractSyntaxTreeContext {
     }
 
     /**
+     * Pushes an incident to the context for later analysis or reporting.
+     *
+     * @param pMessage - The message describing the incident.
+     * @param pSyntaxTree - Optional syntax tree node associated with the incident.
+     *
+     * @throws {Error} When the context is sealed.
+     */
+    public pushIncident(pMessage: string, pSyntaxTree?: AbstractSyntaxTree): void {
+        this.mIncidents.push(new AbstractSyntaxTreeIncident(pMessage, pSyntaxTree));
+    }
+
+    /**
+     * Execute action in a new scope.
+     * Creates a new scope, executes the provided action within that scope,
+     * and then automatically removes the scope when the action completes.
+     *
+     * @typeParam T - Result type of the scope action.
+     *
+     * @param pType - Type of scope to create.
+     * @param pScopeAction - Action to execute within the new scope.
+     * @param pOwner - The owner of the scope.
+     * 
+     * @returns The result of the scope action.
+     */
+    public pushScope<T = void>(pType: AbstractSyntaxTreeContextScopeType, pScopeAction: () => T, pOwner: AbstractSyntaxTree): T {
+        // Save the current scope.
+        const lLastScope: AbstractSyntaxTreeScope | null = this.mScope;
+
+        // Replace current level with new scope.
+        this.mScope = {
+            type: pType,
+            parent: lLastScope,
+            values: new Map<string, IValueStoreAst>(),
+            owner: pOwner
+        };
+
+        // execute scope action and restore last scope afterwards.
+        try {
+            return pScopeAction();
+        } finally {
+            this.mScope = lLastScope;
+        }
+    }
+
+    /**
      * Sets an alias to the current scope.
      *
      * @param pAst - The alias information.
@@ -246,6 +234,33 @@ export class AbstractSyntaxTreeContext {
      */
     public registerAlias(pName: string, pAst: AliasDeclarationAst): void {
         this.mAliases.set(pName, pAst);
+    }
+
+    /**
+     * Registers a binding name in the current context.
+     * Retuns true if the binding name was newly registered, false if it already existed.
+     * 
+     * @param pBindGroupName - The bind group name. 
+     * @param pBindingName - The binding name.
+     * 
+     * @returns True if the binding name was newly registered, false if it already existed.
+     */
+    public registerBindingName(pBindGroupName: string, pBindingName: string): boolean {
+        // Create bind group map if it does not exist.
+        if (!this.mBindingNames.has(pBindGroupName)) {
+            this.mBindingNames.set(pBindGroupName, new Map<string, number>());
+        }
+
+        const lBindingMap: Map<string, number> = this.mBindingNames.get(pBindGroupName)!;
+
+        // Check if binding name already exists.
+        if (lBindingMap.has(pBindingName)) {
+            return false;
+        }
+
+        // Register new binding name.
+        lBindingMap.set(pBindingName, lBindingMap.size);
+        return true;
     }
 
     /**
@@ -279,30 +294,16 @@ export class AbstractSyntaxTreeContext {
     }
 
     /**
-     * Registers a binding name in the current context.
-     * Retuns true if the binding name was newly registered, false if it already existed.
+     * Sets the document for this context.
      * 
-     * @param pBindGroupName - The bind group name. 
-     * @param pBindingName - The binding name.
-     * 
-     * @returns True if the binding name was newly registered, false if it already existed.
+     * @param pDocument - The document AST node to set.
      */
-    public registerBindingName(pBindGroupName: string, pBindingName: string): boolean { 
-        // Create bind group map if it does not exist.
-        if (!this.mBindingNames.has(pBindGroupName)) {
-            this.mBindingNames.set(pBindGroupName, new Map<string, number>());
+    public setDocument(pDocument: DocumentAst): void {
+        if (this.mDocument) {
+            throw new Exception(`Document is already set for this scope.`, this);
         }
 
-        const lBindingMap: Map<string, number> = this.mBindingNames.get(pBindGroupName)!;
-
-        // Check if binding name already exists.
-        if (lBindingMap.has(pBindingName)) {
-            return false;
-        }
-
-        // Register new binding name.
-        lBindingMap.set(pBindingName, lBindingMap.size);
-        return true;
+        this.mDocument = pDocument;
     }
 }
 

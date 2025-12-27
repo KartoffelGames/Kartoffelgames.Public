@@ -11,11 +11,11 @@ import { PgslParserResultIncident } from './pgsl-parser-result.incident.ts';
  * source maps, metadata, and any incidents encountered during parsing.
  */
 export class PgslParserResult {
+    private readonly mIncidents: Array<PgslParserResultIncident>;
+    private readonly mMeta: PgslParserResultMeta;
     private readonly mSource: string;
     private readonly mSourceMap: string | null;
-    private readonly mMeta: PgslParserResultMeta;
-    private readonly mIncidents: Array<PgslParserResultIncident>;
-
+    
     /**
      * Gets the list of bindings extracted from the PGSL source.
      * 
@@ -91,21 +91,6 @@ export class PgslParserResult {
     }
 
     /**
-     * Converts trace incidents to parser result incidents.
-     * 
-     * @param pTrace - The trace containing incidents. 
-     * 
-     * @returns An array of parser result incidents.
-     */
-    private convertIncidents(pDocument: DocumentAst): Array<PgslParserResultIncident> {
-        return pDocument.data.incidents.map(incident => new PgslParserResultIncident(
-            incident.message,
-            incident.syntaxTree?.meta[0] ?? 0,
-            incident.syntaxTree?.meta[1] ?? 0
-        ));
-    }
-
-    /**
      * Converts trace bindings to parser result bindings.
      * 
      * @param pTrace - Parser trace.
@@ -129,6 +114,21 @@ export class PgslParserResult {
             lBindings.push(new PgslParserResultBinding(lValue, pDocument, pMeta));
         }
         return lBindings;
+    }
+
+    /**
+     * Converts trace incidents to parser result incidents.
+     * 
+     * @param pTrace - The trace containing incidents. 
+     * 
+     * @returns An array of parser result incidents.
+     */
+    private convertIncidents(pDocument: DocumentAst): Array<PgslParserResultIncident> {
+        return pDocument.data.incidents.map(pIncident => new PgslParserResultIncident(
+            pIncident.message,
+            pIncident.syntaxTree?.meta[0] ?? 0,
+            pIncident.syntaxTree?.meta[1] ?? 0
+        ));
     }
 
     /**

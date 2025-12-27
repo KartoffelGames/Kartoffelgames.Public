@@ -1,14 +1,13 @@
-import { Exception } from '@kartoffelgames/core';
+import type { LiteralValueExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
+import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
+import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
+import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';
 import { PgslNumericType, type PgslNumericTypeName } from '../../type/pgsl-numeric-type.ts';
 import type { PgslType } from '../../type/pgsl-type.ts';
-import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
-import type { LiteralValueExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
-import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
-import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';
 
 /**
  * PGSL syntax tree for a single literal value of boolean, float, integer or uinteger.

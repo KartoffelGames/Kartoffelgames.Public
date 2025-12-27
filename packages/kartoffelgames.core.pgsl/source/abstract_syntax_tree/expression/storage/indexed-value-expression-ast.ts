@@ -1,15 +1,14 @@
-import { Exception } from '@kartoffelgames/core';
+import type { IndexedValueExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
+import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
+import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { PgslArrayType } from '../../type/pgsl-array-type.ts';
 import { PgslMatrixType } from '../../type/pgsl-matrix-type.ts';
 import { PgslNumericType } from '../../type/pgsl-numeric-type.ts';
 import type { PgslType } from '../../type/pgsl-type.ts';
 import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
-import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
-import type { IndexedValueExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
-import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
+import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 
 /**
  * PGSL structure holding a variable with index expression.

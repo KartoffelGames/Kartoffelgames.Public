@@ -11,6 +11,7 @@ export class PgslNumericType extends PgslType {
      * Type names for all available numeric types.
      * Maps numeric type names to their string representations.
      */
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     public static get typeName() {
         return {
             signedInteger: 'int',

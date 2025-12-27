@@ -2,9 +2,6 @@ import type { FunctionDeclarationCst } from '../../concrete_syntax_tree/declarat
 import { PgslDeclarationType } from '../../enum/pgsl-declaration-type.enum.ts';
 import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
 import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
-import { PgslInvalidType } from '../type/pgsl-invalid-type.ts';
-import type { PgslType } from '../type/pgsl-type.ts';
-import { PgslVoidType } from '../type/pgsl-void-type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
@@ -12,6 +9,8 @@ import { AttributeListAst } from '../general/attribute-list-ast.ts';
 import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
 import type { IValueStoreAst } from '../i-value-store-ast.interface.ts';
 import { BlockStatementAst } from '../statement/execution/block-statement-ast.ts';
+import { PgslInvalidType } from '../type/pgsl-invalid-type.ts';
+import type { PgslType } from '../type/pgsl-type.ts';
 import type { DeclarationAstData, IDeclarationAst } from './i-declaration-ast.interface.ts';
 
 /**

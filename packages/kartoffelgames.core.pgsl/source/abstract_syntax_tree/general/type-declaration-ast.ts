@@ -38,91 +38,6 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
     }
 
     /**
-     * Resolve the type definition based on the current trace context.
-     * 
-     * @param pContext - Trace to use for type resolution.
-     * 
-     * @returns Resolved type.
-     */
-    private resolveType(pContext: AbstractSyntaxTreeContext): PgslType {
-        // Type to pointer.
-        if (this.cst.isPointer) {
-            return this.resolvePointer(pContext, this.cst.typeName, this.cst.template);
-        }
-
-        let lType: PgslType | null = null;
-
-        // Try to parse to void type.
-        if ((lType = this.resolveVoid(pContext, this.cst.typeName, this.cst.template)) !== null) {
-            return lType;
-        }
-
-        // Try to parse to struct type.
-        if ((lType = this.resolveStruct(pContext, this.cst.typeName, this.cst.template)) !== null) {
-            return lType;
-        }
-
-        // Try to parse alias type.
-        if ((lType = this.resolveAlias(pContext, this.cst.typeName, this.cst.template)) !== null) {
-            return lType;
-        }
-
-        // Try to parse enum type.
-        if ((lType = this.resolveEnum(pContext, this.cst.typeName, this.cst.template)) !== null) {
-            return lType;
-        }
-
-        // Try to parse build in type.
-        if ((lType = this.resolveBuildIn(pContext, this.cst.typeName, this.cst.template)) !== null) {
-            return lType;
-        }
-
-        // Try to parse numeric type.
-        if ((lType = this.resolveNumeric(pContext, this.cst.typeName, this.cst.template)) !== null) {
-            return lType;
-        }
-
-        // Try to parse boolean type.
-        if ((lType = this.resolveBoolean(pContext, this.cst.typeName, this.cst.template)) !== null) {
-            return lType;
-        }
-
-        // Try to parse string type.
-        if ((lType = this.resolveString(pContext, this.cst.typeName, this.cst.template)) !== null) {
-            return lType;
-        }
-
-        // Try to parse vector type.
-        if ((lType = this.resolveVector(pContext, this.cst.typeName, this.cst.template)) !== null) {
-            return lType;
-        }
-
-        // Try to parse matrix type.
-        if ((lType = this.resolveMatrix(pContext, this.cst.typeName, this.cst.template)) !== null) {
-            return lType;
-        }
-
-        // Try to parse sampler type.
-        if ((lType = this.resolveSampler(pContext, this.cst.typeName, this.cst.template)) !== null) {
-            return lType;
-        }
-
-        // Try to parse array type.
-        if ((lType = this.resolveArray(pContext, this.cst.typeName, this.cst.template)) !== null) {
-            return lType;
-        }
-
-        // Try to parse texture type.
-        if ((lType = this.resolveTexture(pContext, this.cst.typeName, this.cst.template)) !== null) {
-            return lType;
-        }
-
-        // Type not found.
-        pContext.pushIncident(`Typename "${this.cst.typeName}" not defined.`, this);
-        return new PgslInvalidType().process(pContext);
-    }
-
-    /**
      * Try to resolve raw type as alias type.
      * 
      * @param pRawName - Type raw name.
@@ -314,10 +229,10 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         // Build inner type.
         const lInnerTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(lInnerTypeDefinition).process(pContext);
 
-        const [pColumns, pRows] = PgslMatrixType.dimensionsOf(pRawName as any);
+        const [lColumns, lRows] = PgslMatrixType.dimensionsOf(pRawName as any);
 
         // Build matrix definition.
-        return new PgslMatrixType(pColumns, pRows, lInnerTypeDeclaration.data.type).process(pContext);
+        return new PgslMatrixType(lColumns, lRows, lInnerTypeDeclaration.data.type).process(pContext);
     }
 
     /**
@@ -464,6 +379,91 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
 
         // Build texture type definition.
         return new PgslTextureType(pRawName as any, lTemplateAstList).process(pContext);
+    }
+
+    /**
+     * Resolve the type definition based on the current trace context.
+     * 
+     * @param pContext - Trace to use for type resolution.
+     * 
+     * @returns Resolved type.
+     */
+    private resolveType(pContext: AbstractSyntaxTreeContext): PgslType {
+        // Type to pointer.
+        if (this.cst.isPointer) {
+            return this.resolvePointer(pContext, this.cst.typeName, this.cst.template);
+        }
+
+        let lType: PgslType | null = null;
+
+        // Try to parse to void type.
+        if ((lType = this.resolveVoid(pContext, this.cst.typeName, this.cst.template)) !== null) {
+            return lType;
+        }
+
+        // Try to parse to struct type.
+        if ((lType = this.resolveStruct(pContext, this.cst.typeName, this.cst.template)) !== null) {
+            return lType;
+        }
+
+        // Try to parse alias type.
+        if ((lType = this.resolveAlias(pContext, this.cst.typeName, this.cst.template)) !== null) {
+            return lType;
+        }
+
+        // Try to parse enum type.
+        if ((lType = this.resolveEnum(pContext, this.cst.typeName, this.cst.template)) !== null) {
+            return lType;
+        }
+
+        // Try to parse build in type.
+        if ((lType = this.resolveBuildIn(pContext, this.cst.typeName, this.cst.template)) !== null) {
+            return lType;
+        }
+
+        // Try to parse numeric type.
+        if ((lType = this.resolveNumeric(pContext, this.cst.typeName, this.cst.template)) !== null) {
+            return lType;
+        }
+
+        // Try to parse boolean type.
+        if ((lType = this.resolveBoolean(pContext, this.cst.typeName, this.cst.template)) !== null) {
+            return lType;
+        }
+
+        // Try to parse string type.
+        if ((lType = this.resolveString(pContext, this.cst.typeName, this.cst.template)) !== null) {
+            return lType;
+        }
+
+        // Try to parse vector type.
+        if ((lType = this.resolveVector(pContext, this.cst.typeName, this.cst.template)) !== null) {
+            return lType;
+        }
+
+        // Try to parse matrix type.
+        if ((lType = this.resolveMatrix(pContext, this.cst.typeName, this.cst.template)) !== null) {
+            return lType;
+        }
+
+        // Try to parse sampler type.
+        if ((lType = this.resolveSampler(pContext, this.cst.typeName, this.cst.template)) !== null) {
+            return lType;
+        }
+
+        // Try to parse array type.
+        if ((lType = this.resolveArray(pContext, this.cst.typeName, this.cst.template)) !== null) {
+            return lType;
+        }
+
+        // Try to parse texture type.
+        if ((lType = this.resolveTexture(pContext, this.cst.typeName, this.cst.template)) !== null) {
+            return lType;
+        }
+
+        // Type not found.
+        pContext.pushIncident(`Typename "${this.cst.typeName}" not defined.`, this);
+        return new PgslInvalidType().process(pContext);
     }
 
     /**

@@ -18,21 +18,21 @@ export class PgslParserResultArrayType extends PgslParserResultType {
     }
 
     /**
-     * Gets the length of the array-like type.
-     *
-     * @returns The length if fixed, null if runtime-sized.
-     */
-    public get length(): number | null {
-        return this.mLength;
-    }
-
-    /**
      * Gets whether this array-like type is runtime-sized.
      *
      * @returns True if runtime-sized, false if fixed-size.
      */
     public get isRuntimeSized(): boolean {
         return this.mLength === null;
+    }
+
+    /**
+     * Gets the length of the array-like type.
+     *
+     * @returns The length if fixed, null if runtime-sized.
+     */
+    public get length(): number | null {
+        return this.mLength;
     }
 
     /**

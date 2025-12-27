@@ -25,29 +25,20 @@ import { PgslParserResultVectorType } from './type/pgsl-parser-result-vector-typ
  * Represents a binding result from PGSL parser with type and location information.
  */
 export class PgslParserResultBinding {
-    private readonly mType: PgslParserResultType;
-    private readonly mBindingType: PgslParserResultBindingType;
-    private readonly mBindGroupName: string;
     private readonly mBindGroupIndex: number;
-    private readonly mBindLocationName: string;
+    private readonly mBindGroupName: string;
     private readonly mBindLocationIndex: number;
+    private readonly mBindLocationName: string;
+    private readonly mBindingType: PgslParserResultBindingType;
+    private readonly mType: PgslParserResultType;
 
     /**
-     * Gets the type information for the binding.
+     * Gets the index of the bind group.
      *
-     * @returns The parser result type.
+     * @returns The bind group index.
      */
-    public get type(): PgslParserResultType {
-        return this.mType;
-    }
-
-    /**
-     * Gets the type of binding.
-     *
-     * @returns The binding type (uniform or storage).
-     */
-    public get bindingType(): PgslParserResultBindingType {
-        return this.mBindingType;
+    public get bindGroupIndex(): number {
+        return this.mBindGroupIndex;
     }
 
     /**
@@ -60,12 +51,12 @@ export class PgslParserResultBinding {
     }
 
     /**
-     * Gets the index of the bind group.
+     * Gets the index of the bind location.
      *
-     * @returns The bind group index.
+     * @returns The bind location index.
      */
-    public get bindGroupIndex(): number {
-        return this.mBindGroupIndex;
+    public get bindLocationIndex(): number {
+        return this.mBindLocationIndex;
     }
 
     /**
@@ -78,12 +69,21 @@ export class PgslParserResultBinding {
     }
 
     /**
-     * Gets the index of the bind location.
+     * Gets the type of binding.
      *
-     * @returns The bind location index.
+     * @returns The binding type (uniform or storage).
      */
-    public get bindLocationIndex(): number {
-        return this.mBindLocationIndex;
+    public get bindingType(): PgslParserResultBindingType {
+        return this.mBindingType;
+    }
+
+    /**
+     * Gets the type information for the binding.
+     *
+     * @returns The parser result type.
+     */
+    public get type(): PgslParserResultType {
+        return this.mType;
     }
 
     /**
@@ -154,20 +154,20 @@ export class PgslParserResultBinding {
 
             // Vector types.
             case pType instanceof PgslVectorType: {
-                const elementType = this.convertType(pType.innerType, pDocument) as PgslParserResultNumericType;
-                return new PgslParserResultVectorType(elementType, pType.dimension, lAlignmentType);
+                const lElementType = this.convertType(pType.innerType, pDocument) as PgslParserResultNumericType;
+                return new PgslParserResultVectorType(lElementType, pType.dimension, lAlignmentType);
             }
 
             // Matrix types.
             case pType instanceof PgslMatrixType: {
-                const elementType = this.convertType(pType.innerType, pDocument) as PgslParserResultNumericType;
-                return new PgslParserResultMatrixType(elementType, pType.rowCount, pType.columnCount, lAlignmentType);
+                const lElementType = this.convertType(pType.innerType, pDocument) as PgslParserResultNumericType;
+                return new PgslParserResultMatrixType(lElementType, pType.rowCount, pType.columnCount, lAlignmentType);
             }
 
             // Array types.
             case pType instanceof PgslArrayType: {
-                const elementType = this.convertType(pType.innerType, pDocument) as PgslParserResultNumericType;
-                return new PgslParserResultArrayType(elementType, pType.length, lAlignmentType);
+                const lElementType = this.convertType(pType.innerType, pDocument) as PgslParserResultNumericType;
+                return new PgslParserResultArrayType(lElementType, pType.length, lAlignmentType);
             }
 
             // Texture types.

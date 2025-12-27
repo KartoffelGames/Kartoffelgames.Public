@@ -5,10 +5,10 @@ import type { AbstractSyntaxTreeContext } from './abstract-syntax-tree-context.t
 /**
  * Base pgsl syntax tree object.
  */
-export abstract class AbstractSyntaxTree<TCst extends Cst<string> = Cst<string>, TData extends object = {}> {
-    private readonly mMeta: AbstractSyntaxTreeMeta;
-    private mData: TData | null;
+export abstract class AbstractSyntaxTree<TCst extends Cst<string> = Cst<string>, TData extends object = object> {
     private readonly mConcreteSyntaxTree: TCst;
+    private mData: TData | null;
+    private readonly mMeta: AbstractSyntaxTreeMeta;
 
     /**
      * Get concrete syntax tree node.

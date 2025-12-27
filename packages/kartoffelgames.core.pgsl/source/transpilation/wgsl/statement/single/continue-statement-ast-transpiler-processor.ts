@@ -1,5 +1,5 @@
 import { ContinueStatementAst } from '../../../../abstract_syntax_tree/statement/single/continue-statement-ast.ts';
-import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
+import type { ITranspilerProcessor } from '../../../i-transpiler-processor.interface.ts';
 
 export class ContinueStatementAstTranspilerProcessor implements ITranspilerProcessor<ContinueStatementAst> {
     /**

@@ -1,15 +1,15 @@
-import { EnumUtil, Exception } from '@kartoffelgames/core';
+import { EnumUtil } from '@kartoffelgames/core';
+import type { UnaryExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
+import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
+import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
 import { PgslNumericType } from '../../type/pgsl-numeric-type.ts';
 import type { PgslType } from '../../type/pgsl-type.ts';
 import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
-import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
-import type { UnaryExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
-import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
+import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 
 /**
  * PGSL structure holding a expression with a single value and a single unary operation.

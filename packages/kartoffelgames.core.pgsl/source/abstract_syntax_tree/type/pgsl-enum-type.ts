@@ -8,8 +8,8 @@ import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
  * Enum types are composite types that can be used to group related data.
  */
 export class PgslEnumType extends PgslType {
-    private readonly mEnumName: string;
     private mEnumDeclaration: EnumDeclarationAst | null;
+    private readonly mEnumName: string;
 
     /**
      * Gets the enum declaration AST node associated with this enum type.

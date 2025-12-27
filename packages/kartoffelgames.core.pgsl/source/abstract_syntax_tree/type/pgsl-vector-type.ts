@@ -11,6 +11,7 @@ export class PgslVectorType extends PgslType {
      * Type names for vector types.
      * Maps vector type names to their string representations.
      */
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     public static get typeName() {
         return {
             vector2: 'Vector2',
@@ -23,21 +24,21 @@ export class PgslVectorType extends PgslType {
     private readonly mVectorDimension: number;
 
     /**
-     * Gets the inner element type of the vector.
-     * 
-     * @returns The type of elements stored in the vector.
-     */
-    public get innerType(): PgslType {
-        return this.mInnerType;
-    }
-
-    /**
      * Gets the dimension (number of components) of the vector.
      * 
      * @returns The vector dimension (2, 3, or 4).
      */
     public get dimension(): number {
         return this.mVectorDimension;
+    }
+
+    /**
+     * Gets the inner element type of the vector.
+     * 
+     * @returns The type of elements stored in the vector.
+     */
+    public get innerType(): PgslType {
+        return this.mInnerType;
     }
 
     /**

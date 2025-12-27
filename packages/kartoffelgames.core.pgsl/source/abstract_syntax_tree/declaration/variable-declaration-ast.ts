@@ -24,6 +24,7 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
     /**
      * All possible declaration types.
      */
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     public static get declarationType() {
         return {
             const: PgslDeclarationType.Const,
@@ -120,13 +121,13 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
     private getAccessMode(pAttributes: AttributeListAst): PgslAccessMode {
         // Default access mode is read.
         if (!pAttributes.hasAttribute(AttributeListAst.attributeNames.accessMode)) {
-            return PgslAccessModeEnum.values.Read;
+            return PgslAccessModeEnum.VALUES.Read;
         }
 
         // Read attribute parameters access mode attribute must have one parameter.
         const lAttributeParameter: Array<IExpressionAst> = pAttributes.getAttributeParameter(AttributeListAst.attributeNames.accessMode)!;
         if (lAttributeParameter.length !== 1) {
-            return PgslAccessModeEnum.values.Read;
+            return PgslAccessModeEnum.VALUES.Read;
         }
 
         // Read first expression.
@@ -134,12 +135,12 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
 
         // Expression must have a constant value.
         if (typeof lAccessModeExpression.data.constantValue !== 'string') {
-            return PgslAccessModeEnum.values.Read;
+            return PgslAccessModeEnum.VALUES.Read;
         }
 
         // If value is not part of enum, return default.
         if (!PgslAccessModeEnum.containsValue(lAccessModeExpression.data.constantValue)) {
-            return PgslAccessModeEnum.values.Read;
+            return PgslAccessModeEnum.VALUES.Read;
         }
 
         // Transpile attribute parameters. We assume the transpiled value is valid here as it was validated before.

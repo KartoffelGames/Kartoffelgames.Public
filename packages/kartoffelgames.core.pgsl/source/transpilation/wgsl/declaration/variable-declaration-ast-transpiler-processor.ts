@@ -39,11 +39,11 @@ export class VariableDeclarationAstTranspilerProcessor implements ITranspilerPro
                     // Dependent on the access mode, set correct binding type.
                     // Cast back to string, as lAccessMode can be outside of enum values.
                     switch (pInstance.data.accessMode) {
-                        case PgslAccessModeEnum.values.Read:
+                        case PgslAccessModeEnum.VALUES.Read:
                             return `var<storage,read>`;
-                        case PgslAccessModeEnum.values.Write:
+                        case PgslAccessModeEnum.VALUES.Write:
                             return `var<storage,write>`;
-                        case PgslAccessModeEnum.values.ReadWrite:
+                        case PgslAccessModeEnum.VALUES.ReadWrite:
                             return `var<storage,read_write>`;
                     }
                 }

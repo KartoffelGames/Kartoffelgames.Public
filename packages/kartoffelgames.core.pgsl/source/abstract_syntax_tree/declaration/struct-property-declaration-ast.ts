@@ -64,155 +64,6 @@ export class StructPropertyDeclarationAst extends AbstractSyntaxTree<StructPrope
     }
 
     /**
-     * Get metadata for the struct property.
-     * 
-     * @param pAttributes - Attribute list.
-     * @param pContext - Build context.
-     * @param pType - Property type.
-     * 
-     * @returns Metadata for the struct property. 
-     */
-    private getMeta(pAttributes: AttributeListAst, pContext: AbstractSyntaxTreeContext, pType: PgslType): StructPropertyDeclarationAstData['meta'] {
-        // Set property meta based on attributes.
-        const lMeta: StructPropertyDeclarationAstData['meta'] = {};
-
-        // Check for location attribute.
-        const lLocationName = this.getLocationName(pAttributes, pContext, pType);
-        if (lLocationName !== null) {
-            lMeta.locationName = lLocationName;
-        }
-
-        // Check for size attribute.
-        const lSize = this.getSize(pAttributes, pContext);
-        if (lSize !== null) {
-            lMeta.size = lSize;
-        }
-
-        // Check for alignment attribute.
-        const lAlignment = this.getAlignment(pAttributes, pContext);
-        if (lAlignment !== null) {
-            lMeta.alignment = lAlignment;
-        }
-
-        // Check for blend source attribute.
-        const lBlendSrc = this.getBlendSource(pAttributes, pContext, lMeta);
-        if (lBlendSrc !== null) {
-            lMeta.blendSrc = lBlendSrc;
-        }
-
-        // Check for interpolation attribute.
-        const lInterpolation = this.getInterpolation(pAttributes, pContext, lMeta);
-        if (lInterpolation !== null) {
-            lMeta.interpolation = lInterpolation;
-        }
-
-        return lMeta;
-    }
-
-    /**
-     * Gets the location name from the location attribute.
-     *
-     * @param pAttributes - Attribute list.
-     * @param pContext - Abstract syntax tree context.
-     * @param pType - Property type.
-     *
-     * @returns The location name or null if attribute not present or invalid.
-     */
-    private getLocationName(pAttributes: AttributeListAst, pContext: AbstractSyntaxTreeContext, pType: PgslType): string | null {
-        if (!pAttributes.hasAttribute(AttributeListAst.attributeNames.location)) {
-            return null;
-        }
-
-        // Read attribute parameter, add another incident if not valid.
-        const lAttributeParameter: Array<IExpressionAst> = pAttributes.getAttributeParameter(AttributeListAst.attributeNames.location)!;
-        if (lAttributeParameter.length !== 1) {
-            pContext.pushIncident(`Location attribute must have exactly one parameter.`, this);
-            return null;
-        }
-
-        // Read expression trace.
-        const lLocationExpression: IExpressionAst = lAttributeParameter[0];
-
-        // Expression must have a constant value.
-        if (typeof lLocationExpression.data.constantValue !== 'string') {
-            pContext.pushIncident(`Location attribute parameter must be a constant string.`, this);
-            return null;
-        }
-
-        const lNumericTypeList: Array<PgslNumericType> = [
-            new PgslNumericType(PgslNumericType.typeName.float32).process(pContext),
-            new PgslNumericType(PgslNumericType.typeName.signedInteger).process(pContext)
-        ];
-
-        // Type must be a numeric scalar, or numeric vector.
-        const lValidType: boolean = (() => {
-            // Can be either float32 or int.
-            for (const lNumericType of lNumericTypeList) {
-                if (pType.isImplicitCastableInto(lNumericType)) {
-                    return true;
-                }
-            }
-
-            // Can be a vector2..4 of a numeric type.
-            for (let lDimension: number = 2; lDimension <= 4; lDimension++) {
-                for (const lNumericType of lNumericTypeList) {
-                    const lVectorType: PgslType = new PgslVectorType(lDimension, lNumericType).process(pContext);
-                    if (pType.isImplicitCastableInto(lVectorType)) {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
-        })();
-
-        if (!lValidType) {
-            pContext.pushIncident(`Location attribute can only be applied to numeric scalar or numeric vector types.`, this);
-            return null;
-        }
-
-        return lLocationExpression.data.constantValue;
-    }
-
-    /**
-     * Gets the size from the size attribute.
-     *
-     * @param pAttributes - Attribute list.
-     * @param pContext - Abstract syntax tree context.
-     *
-     * @returns The size or null if attribute not present or invalid.
-     */
-    private getSize(pAttributes: AttributeListAst, pContext: AbstractSyntaxTreeContext): number | null {
-        if (!pAttributes.hasAttribute(AttributeListAst.attributeNames.size)) {
-            return null;
-        }
-
-        // Read attribute parameters, add another incident if not valid.
-        const lAttributeParameter: Array<IExpressionAst> = pAttributes.getAttributeParameter(AttributeListAst.attributeNames.size)!;
-        if (lAttributeParameter.length !== 1) {
-            pContext.pushIncident(`Size attribute must have exactly one parameter.`, this);
-            return null;
-        }
-
-        // Read expression trace.
-        const lSizeExpression: IExpressionAst = lAttributeParameter[0];
-
-        // Expression must have a constant value.
-        if (typeof lSizeExpression.data.constantValue !== 'number') {
-            pContext.pushIncident(`Size attribute parameter must be a constant number.`, this);
-            return null;
-        }
-
-        // Value must be a positive integer.
-        if (!Number.isInteger(lSizeExpression.data.constantValue) || lSizeExpression.data.constantValue <= 0) {
-            pContext.pushIncident(`Size attribute parameter must be a positive integer.`, this);
-            return null;
-        }
-
-        return lSizeExpression.data.constantValue;
-    }
-
-    /**
      * Gets the alignment from the align attribute.
      *
      * @param pAttributes - Attribute list.
@@ -356,6 +207,155 @@ export class StructPropertyDeclarationAst extends AbstractSyntaxTree<StructPrope
             type: lInterpolationTypeExpression.data.constantValue,
             sampling: lSamplingExpression.data.constantValue,
         };
+    }
+
+    /**
+     * Gets the location name from the location attribute.
+     *
+     * @param pAttributes - Attribute list.
+     * @param pContext - Abstract syntax tree context.
+     * @param pType - Property type.
+     *
+     * @returns The location name or null if attribute not present or invalid.
+     */
+    private getLocationName(pAttributes: AttributeListAst, pContext: AbstractSyntaxTreeContext, pType: PgslType): string | null {
+        if (!pAttributes.hasAttribute(AttributeListAst.attributeNames.location)) {
+            return null;
+        }
+
+        // Read attribute parameter, add another incident if not valid.
+        const lAttributeParameter: Array<IExpressionAst> = pAttributes.getAttributeParameter(AttributeListAst.attributeNames.location)!;
+        if (lAttributeParameter.length !== 1) {
+            pContext.pushIncident(`Location attribute must have exactly one parameter.`, this);
+            return null;
+        }
+
+        // Read expression trace.
+        const lLocationExpression: IExpressionAst = lAttributeParameter[0];
+
+        // Expression must have a constant value.
+        if (typeof lLocationExpression.data.constantValue !== 'string') {
+            pContext.pushIncident(`Location attribute parameter must be a constant string.`, this);
+            return null;
+        }
+
+        const lNumericTypeList: Array<PgslNumericType> = [
+            new PgslNumericType(PgslNumericType.typeName.float32).process(pContext),
+            new PgslNumericType(PgslNumericType.typeName.signedInteger).process(pContext)
+        ];
+
+        // Type must be a numeric scalar, or numeric vector.
+        const lValidType: boolean = (() => {
+            // Can be either float32 or int.
+            for (const lNumericType of lNumericTypeList) {
+                if (pType.isImplicitCastableInto(lNumericType)) {
+                    return true;
+                }
+            }
+
+            // Can be a vector2..4 of a numeric type.
+            for (let lDimension: number = 2; lDimension <= 4; lDimension++) {
+                for (const lNumericType of lNumericTypeList) {
+                    const lVectorType: PgslType = new PgslVectorType(lDimension, lNumericType).process(pContext);
+                    if (pType.isImplicitCastableInto(lVectorType)) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        })();
+
+        if (!lValidType) {
+            pContext.pushIncident(`Location attribute can only be applied to numeric scalar or numeric vector types.`, this);
+            return null;
+        }
+
+        return lLocationExpression.data.constantValue;
+    }
+
+    /**
+     * Get metadata for the struct property.
+     * 
+     * @param pAttributes - Attribute list.
+     * @param pContext - Build context.
+     * @param pType - Property type.
+     * 
+     * @returns Metadata for the struct property. 
+     */
+    private getMeta(pAttributes: AttributeListAst, pContext: AbstractSyntaxTreeContext, pType: PgslType): StructPropertyDeclarationAstData['meta'] {
+        // Set property meta based on attributes.
+        const lMeta: StructPropertyDeclarationAstData['meta'] = {};
+
+        // Check for location attribute.
+        const lLocationName = this.getLocationName(pAttributes, pContext, pType);
+        if (lLocationName !== null) {
+            lMeta.locationName = lLocationName;
+        }
+
+        // Check for size attribute.
+        const lSize = this.getSize(pAttributes, pContext);
+        if (lSize !== null) {
+            lMeta.size = lSize;
+        }
+
+        // Check for alignment attribute.
+        const lAlignment = this.getAlignment(pAttributes, pContext);
+        if (lAlignment !== null) {
+            lMeta.alignment = lAlignment;
+        }
+
+        // Check for blend source attribute.
+        const lBlendSrc = this.getBlendSource(pAttributes, pContext, lMeta);
+        if (lBlendSrc !== null) {
+            lMeta.blendSrc = lBlendSrc;
+        }
+
+        // Check for interpolation attribute.
+        const lInterpolation = this.getInterpolation(pAttributes, pContext, lMeta);
+        if (lInterpolation !== null) {
+            lMeta.interpolation = lInterpolation;
+        }
+
+        return lMeta;
+    }
+
+    /**
+     * Gets the size from the size attribute.
+     *
+     * @param pAttributes - Attribute list.
+     * @param pContext - Abstract syntax tree context.
+     *
+     * @returns The size or null if attribute not present or invalid.
+     */
+    private getSize(pAttributes: AttributeListAst, pContext: AbstractSyntaxTreeContext): number | null {
+        if (!pAttributes.hasAttribute(AttributeListAst.attributeNames.size)) {
+            return null;
+        }
+
+        // Read attribute parameters, add another incident if not valid.
+        const lAttributeParameter: Array<IExpressionAst> = pAttributes.getAttributeParameter(AttributeListAst.attributeNames.size)!;
+        if (lAttributeParameter.length !== 1) {
+            pContext.pushIncident(`Size attribute must have exactly one parameter.`, this);
+            return null;
+        }
+
+        // Read expression trace.
+        const lSizeExpression: IExpressionAst = lAttributeParameter[0];
+
+        // Expression must have a constant value.
+        if (typeof lSizeExpression.data.constantValue !== 'number') {
+            pContext.pushIncident(`Size attribute parameter must be a constant number.`, this);
+            return null;
+        }
+
+        // Value must be a positive integer.
+        if (!Number.isInteger(lSizeExpression.data.constantValue) || lSizeExpression.data.constantValue <= 0) {
+            pContext.pushIncident(`Size attribute parameter must be a positive integer.`, this);
+            return null;
+        }
+
+        return lSizeExpression.data.constantValue;
     }
 }
 

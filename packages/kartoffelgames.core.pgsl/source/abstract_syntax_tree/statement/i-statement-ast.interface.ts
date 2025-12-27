@@ -7,4 +7,5 @@ export interface IStatementAst extends AbstractSyntaxTree {
     readonly data: StatementAstData;
 }
 
-export type StatementAstData = {};
+/* Nothing really needed here */
+export type StatementAstData = object; 

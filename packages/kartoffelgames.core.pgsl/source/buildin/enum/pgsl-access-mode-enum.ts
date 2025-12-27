@@ -2,36 +2,10 @@ import type { EnumDeclarationCst, EnumDeclarationValueCst } from '../../concrete
 import type { StringValueExpressionCst } from '../../concrete_syntax_tree/expression.type.ts';
 
 export class PgslAccessModeEnum {
-    private static mValidValues: Set<string> | null = null;
-
-    /**
-     * Valid values set.
-     */
-    private static get validValues(): Set<string> {
-        if (!PgslAccessModeEnum.mValidValues) {
-            const lSet = new Set<string>();
-            for (const lKey in PgslAccessModeEnum.values) {
-                lSet.add(PgslAccessModeEnum.values[lKey as keyof typeof PgslAccessModeEnum.values]);
-            }
-            PgslAccessModeEnum.mValidValues = lSet;
-        }
-
-        return PgslAccessModeEnum.mValidValues;
-    }
-
-    /**
-     * Enum values.
-     */
-    public static readonly values = {
-        Read: 'read',
-        Write: 'write',
-        ReadWrite: 'read_write'
-    } as const;
-
     /**
      * Concrete syntax tree representation.
      */
-    public static readonly cst: EnumDeclarationCst = (() => {
+    public static readonly CST: EnumDeclarationCst = (() => {
         return {
             type: 'EnumDeclaration',
             buildIn: true,
@@ -42,21 +16,47 @@ export class PgslAccessModeEnum {
                 range: [0, 0, 0, 0],
                 attributes: []
             },
-            values: Object.entries(PgslAccessModeEnum.values).map<EnumDeclarationValueCst>(([name, value]) => {
+            values: Object.entries(PgslAccessModeEnum.VALUES).map<EnumDeclarationValueCst>(([pName, pValue]) => {
                 return {
                     type: 'EnumDeclarationValue',
                     buildIn: true,
                     range: [0, 0, 0, 0],
-                    name: name,
+                    name: pName,
                     value: {
                         type: 'StringValueExpression',
                         range: [0, 0, 0, 0],
-                        textValue: value
+                        textValue: pValue
                     } satisfies StringValueExpressionCst
                 };
             })
         };
     })();
+    
+    /**
+     * Enum values.
+     */
+    public static readonly VALUES = {
+        Read: 'read',
+        Write: 'write',
+        ReadWrite: 'read_write'
+    } as const;
+
+    private static mValidValues: Set<string> | null = null;
+
+    /**
+     * Valid values set.
+     */
+    private static get validValues(): Set<string> {
+        if (!PgslAccessModeEnum.mValidValues) {
+            const lSet = new Set<string>();
+            for (const lKey in PgslAccessModeEnum.VALUES) {
+                lSet.add(PgslAccessModeEnum.VALUES[lKey as keyof typeof PgslAccessModeEnum.VALUES]);
+            }
+            PgslAccessModeEnum.mValidValues = lSet;
+        }
+
+        return PgslAccessModeEnum.mValidValues;
+    }
 
     /**
      * Check if the given value is a valid access mode.
@@ -70,4 +70,4 @@ export class PgslAccessModeEnum {
     }
 }
 
-export type PgslAccessMode = (typeof PgslAccessModeEnum.values)[keyof typeof PgslAccessModeEnum.values];
+export type PgslAccessMode = (typeof PgslAccessModeEnum.VALUES)[keyof typeof PgslAccessModeEnum.VALUES];

@@ -12,6 +12,25 @@ import { PgslVectorType } from './pgsl-vector-type.ts';
  */
 export class PgslMatrixType extends PgslType {
     /**
+     * Type names for all available matrix dimensions.
+     * Maps matrix type names to their string representations.
+     */
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
+    public static get typeName() {
+        return {
+            matrix22: 'Matrix22',
+            matrix23: 'Matrix23',
+            matrix24: 'Matrix24',
+            matrix32: 'Matrix32',
+            matrix33: 'Matrix33',
+            matrix34: 'Matrix34',
+            matrix42: 'Matrix42',
+            matrix43: 'Matrix43',
+            matrix44: 'Matrix44'
+        } as const;
+    }
+
+    /**
      * Gets the matrix dimensions for a given matrix type.
      * 
      * @param pMatrixType - The matrix type to get dimensions for.
@@ -34,28 +53,19 @@ export class PgslMatrixType extends PgslType {
         }
     }
 
-    /**
-     * Type names for all available matrix dimensions.
-     * Maps matrix type names to their string representations.
-     */
-    public static get typeName() {
-        return {
-            matrix22: 'Matrix22',
-            matrix23: 'Matrix23',
-            matrix24: 'Matrix24',
-            matrix32: 'Matrix32',
-            matrix33: 'Matrix33',
-            matrix34: 'Matrix34',
-            matrix42: 'Matrix42',
-            matrix43: 'Matrix43',
-            matrix44: 'Matrix44'
-        } as const;
-    }
-
-    private readonly mInnerType: PgslType;
-    private readonly mVectorTypeDefinition: PgslVectorType;
-    private readonly mRowCount: number;
     private readonly mColumnCount: number;
+    private readonly mInnerType: PgslType;
+    private readonly mRowCount: number;
+    private readonly mVectorTypeDefinition: PgslVectorType;
+
+    /**
+     * Gets the number of columns in the matrix.
+     * 
+     * @returns The column count.
+     */
+    public get columnCount(): number {
+        return this.mColumnCount;
+    }
 
     /**
      * Gets the inner element type of the matrix.
@@ -73,15 +83,6 @@ export class PgslMatrixType extends PgslType {
      */
     public get rowCount(): number {
         return this.mRowCount;
-    }
-
-    /**
-     * Gets the number of columns in the matrix.
-     * 
-     * @returns The column count.
-     */
-    public get columnCount(): number {
-        return this.mColumnCount;
     }
 
     /**

@@ -66,6 +66,7 @@ export class PgslTextureType extends PgslType {
      * Type names for different texture variants.
      * Maps texture type names to their string representations.
      */
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     public static get typeName() {
         return {
             // Regular textures.
@@ -112,12 +113,15 @@ export class PgslTextureType extends PgslType {
     private mTextureTypeParameter: PgslTextureTypeParameter | null;
 
     /**
-     * Gets the texture type variant.
+     * Gets the access mode for storage textures.
      * 
-     * @returns The texture type name.
+     * @returns The access mode.
      */
-    public get textureType(): PgslTextureTypeName {
-        return this.mTextureType;
+    public get access(): PgslAccessMode {
+        if (!this.mTextureTypeParameter) {
+            throw new Exception('Texture type parameter is not initialized.', this);
+        }
+        return this.mTextureTypeParameter.access;
     }
 
     /**
@@ -145,15 +149,12 @@ export class PgslTextureType extends PgslType {
     }
 
     /**
-     * Gets the access mode for storage textures.
+     * Gets the texture type variant.
      * 
-     * @returns The access mode.
+     * @returns The texture type name.
      */
-    public get access(): PgslAccessMode {
-        if (!this.mTextureTypeParameter) {
-            throw new Exception('Texture type parameter is not initialized.', this);
-        }
-        return this.mTextureTypeParameter.access;
+    public get textureType(): PgslTextureTypeName {
+        return this.mTextureType;
     }
 
     /**
@@ -280,8 +281,8 @@ export class PgslTextureType extends PgslType {
 
         // Prepare type parameter with sensible defaults.
         const lTypeParameter: PgslTextureTypeParameter = {
-            access: PgslAccessModeEnum.values.Read,
-            format: PgslTexelFormatEnum.values.Bgra8unorm,
+            access: PgslAccessModeEnum.VALUES.Read,
+            format: PgslTexelFormatEnum.VALUES.Bgra8unorm,
             sampledType: new PgslNumericType(PgslNumericType.typeName.float32).process(pContext)
         };
 

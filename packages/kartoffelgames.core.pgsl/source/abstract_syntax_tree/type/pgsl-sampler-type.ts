@@ -10,6 +10,7 @@ export class PgslSamplerType extends PgslType {
      * Type names for sampler types.
      * Maps sampler type names to their string representations.
      */
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     public static get typeName() {
         return {
             sampler: 'Sampler',

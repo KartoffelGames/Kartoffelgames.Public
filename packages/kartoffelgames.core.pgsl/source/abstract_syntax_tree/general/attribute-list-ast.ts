@@ -23,6 +23,7 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
     /**
      * All possible attribute names.
      */
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     public static get attributeNames() {
         return {
             groupBinding: 'GroupBinding',
@@ -71,17 +72,6 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
     }
 
     /**
-     * Check if an attribute is defined.
-     * 
-     * @param pName - Attribute name.
-     * 
-     * @returns True when attribute is defined. 
-     */
-    public hasAttribute(pName: PgslAttributeName): boolean {
-        return this.data.attributes.has(pName);
-    }
-
-    /**
      * Get all parameter of attributes by name.
      * 
      * @param pName - Attribute name.
@@ -96,6 +86,17 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
         }
 
         return lAttributeParameter;
+    }
+
+    /**
+     * Check if an attribute is defined.
+     * 
+     * @param pName - Attribute name.
+     * 
+     * @returns True when attribute is defined. 
+     */
+    public hasAttribute(pName: PgslAttributeName): boolean {
+        return this.data.attributes.has(pName);
     }
 
     /**

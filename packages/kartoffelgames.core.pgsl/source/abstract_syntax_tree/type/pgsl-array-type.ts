@@ -13,6 +13,7 @@ export class PgslArrayType extends PgslType {
     /**
      * Type names for array types.
      */
+    // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     public static get typeName() {
         return {
             array: 'Array'
@@ -20,9 +21,9 @@ export class PgslArrayType extends PgslType {
     }
 
     private readonly mInnerType: PgslType;
-    private readonly mLengthExpression: IExpressionAst | null;
     private readonly mLength: number | null;
-
+    private readonly mLengthExpression: IExpressionAst | null;
+    
     /**
      * Gets the inner element type of the array.
      * 
@@ -33,21 +34,21 @@ export class PgslArrayType extends PgslType {
     }
 
     /**
-     * Gets the length expression used to define the array size.
-     * 
-     * @returns The length expression, or null for runtime-sized arrays.
-     */
-    public get lengthExpression(): IExpressionAst | null {
-        return this.mLengthExpression;
-    }
-
-    /**
      * Gets the length of the array if it's fixed-size.
      * 
      * @returns The array length, or null for runtime-sized arrays.
      */
     public get length(): number | null {
         return this.mLength;
+    }
+
+    /**
+     * Gets the length expression used to define the array size.
+     * 
+     * @returns The length expression, or null for runtime-sized arrays.
+     */
+    public get lengthExpression(): IExpressionAst | null {
+        return this.mLengthExpression;
     }
 
     /**

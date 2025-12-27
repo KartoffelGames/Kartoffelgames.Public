@@ -4,9 +4,9 @@ import type { StructPropertyDeclarationAst } from '../abstract_syntax_tree/decla
 import type { VariableDeclarationAst } from '../abstract_syntax_tree/declaration/variable-declaration-ast.ts';
 
 export class TranspilationMeta {
-    private readonly mStructLocations: Map<StructDeclarationAst, Map<StructPropertyDeclarationAst, number>>;
-    private readonly mBindings: Map<VariableDeclarationAst, TranspilationMetaBinding>;
     private readonly mBindingNameResolutions: Map<string, TranspilationMetaBindingNameResolutions>;
+    private readonly mBindings: Map<VariableDeclarationAst, TranspilationMetaBinding>;
+    private readonly mStructLocations: Map<StructDeclarationAst, Map<StructPropertyDeclarationAst, number>>;
 
     /**
      * Creates a new transpilation meta instance.
@@ -15,21 +15,6 @@ export class TranspilationMeta {
         this.mStructLocations = new Map<StructDeclarationAst, Map<StructPropertyDeclarationAst, number>>();
         this.mBindings = new Map<VariableDeclarationAst, TranspilationMetaBinding>();
         this.mBindingNameResolutions = new Map<string, TranspilationMetaBindingNameResolutions>();
-    }
-
-    /**
-     * Reads the location mapping for a struct.
-     * 
-     * @param pStruct - Struct declaration.
-     * 
-     * @returns Mapping of struct properties to their locations. 
-     */
-    public locationsOf(pStruct: StructDeclarationAst): ReadonlyMap<StructPropertyDeclarationAst, number> {
-        const lLocations: Map<StructPropertyDeclarationAst, number> | undefined = this.mStructLocations.get(pStruct);
-        if (!lLocations) {
-            return new Map<StructPropertyDeclarationAst, number>();
-        }
-        return lLocations;
     }
 
     /**
@@ -46,6 +31,25 @@ export class TranspilationMeta {
         }
 
         return lBinding;
+    }
+
+    /**
+     * Registers a module-level variable declaration.
+     *
+     * @param pValue - The value of the variable.
+     */
+    public createBindingFor(pValue: VariableDeclarationAst): TranspilationMetaBinding {
+        if (!pValue.data.bindingInformation) {
+            throw new Exception(`Cannot create binding for variable declaration '${pValue.data.name}' without binding information.`, pValue);
+        }
+
+        // Create resolved bindings if value is a resource.
+        if (!this.mBindings.has(pValue)) {
+            const lBinding: TranspilationMetaBinding = this.resolveBinding(pValue.data.bindingInformation.bindGroupName, pValue.data.bindingInformation.bindLocationName);
+            this.mBindings.set(pValue, lBinding);
+        }
+
+        return this.mBindings.get(pValue)!;
     }
 
     /**
@@ -76,22 +80,18 @@ export class TranspilationMeta {
     }
 
     /**
-     * Registers a module-level variable declaration.
-     *
-     * @param pValue - The value of the variable.
+     * Reads the location mapping for a struct.
+     * 
+     * @param pStruct - Struct declaration.
+     * 
+     * @returns Mapping of struct properties to their locations. 
      */
-    public createBindingFor(pValue: VariableDeclarationAst): TranspilationMetaBinding {
-        if (!pValue.data.bindingInformation) {
-            throw new Exception(`Cannot create binding for variable declaration '${pValue.data.name}' without binding information.`, pValue);
+    public locationsOf(pStruct: StructDeclarationAst): ReadonlyMap<StructPropertyDeclarationAst, number> {
+        const lLocations: Map<StructPropertyDeclarationAst, number> | undefined = this.mStructLocations.get(pStruct);
+        if (!lLocations) {
+            return new Map<StructPropertyDeclarationAst, number>();
         }
-
-        // Create resolved bindings if value is a resource.
-        if (!this.mBindings.has(pValue)) {
-            const lBinding: TranspilationMetaBinding = this.resolveBinding(pValue.data.bindingInformation.bindGroupName, pValue.data.bindingInformation.bindLocationName);
-            this.mBindings.set(pValue, lBinding);
-        }
-
-        return this.mBindings.get(pValue)!;
+        return lLocations;
     }
 
     /**

@@ -1,9 +1,9 @@
 import { expect } from '@kartoffelgames/core-test';
-import { AnyConstructor } from "@std/expect/expect";
+import type { AnyConstructor } from '@std/expect/expect';
 import { AliasDeclarationAst } from '../../../source/abstract_syntax_tree/declaration/alias-declaration-ast.ts';
-import { DocumentAst } from "../../../source/abstract_syntax_tree/document-ast.ts";
-import { PgslNumericType } from "../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts";
-import { PgslType } from "../../../source/abstract_syntax_tree/type/pgsl-type.ts";
+import type { DocumentAst } from '../../../source/abstract_syntax_tree/document-ast.ts';
+import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts';
+import { PgslType } from '../../../source/abstract_syntax_tree/type/pgsl-type.ts';
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';

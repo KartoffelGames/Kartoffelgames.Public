@@ -1,5 +1,5 @@
-import type { DeclarationCst } from "./declaration.type.ts";
-import type { ExpressionCst } from "./expression.type.ts";
+import type { DeclarationCst } from './declaration.type.ts';
+import type { ExpressionCst } from './expression.type.ts';
 
 /**
  * Core

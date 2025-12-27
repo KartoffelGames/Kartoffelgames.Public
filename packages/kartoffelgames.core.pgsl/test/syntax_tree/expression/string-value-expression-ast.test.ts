@@ -1,11 +1,11 @@
 import { expect } from '@kartoffelgames/core-test';
-import { EnumDeclarationAst } from "../../../source/abstract_syntax_tree/declaration/enum-declaration-ast.ts";
-import { DocumentAst } from "../../../source/abstract_syntax_tree/document-ast.ts";
-import { StringValueExpressionAst } from "../../../source/abstract_syntax_tree/expression/single_value/string-value-expression-ast.ts";
+import type { EnumDeclarationAst } from '../../../source/abstract_syntax_tree/declaration/enum-declaration-ast.ts';
+import type { DocumentAst } from '../../../source/abstract_syntax_tree/document-ast.ts';
+import { StringValueExpressionAst } from '../../../source/abstract_syntax_tree/expression/single_value/string-value-expression-ast.ts';
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
-import { PgslParserResult } from "../../../source/parser_result/pgsl-parser-result.ts";
-import { WgslTranspiler } from "../../../source/transpilation/wgsl/wgsl-transpiler.ts";
-import { PgslStringType } from "../../../source/abstract_syntax_tree/type/pgsl-string-type.ts";
+import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
+import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
+import { PgslStringType } from '../../../source/abstract_syntax_tree/type/pgsl-string-type.ts';
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();
@@ -124,7 +124,7 @@ Deno.test('StringValueExpressionAst - Error', async (pContext) => {
         // Process.
         const lErrorFunction = () => {
             gPgslParser.transpile(lCodeText, new WgslTranspiler());
-        }
+        };
 
         // Evaluation. Should have errors.
         expect(lErrorFunction).toThrow(/^Unexpected token/);

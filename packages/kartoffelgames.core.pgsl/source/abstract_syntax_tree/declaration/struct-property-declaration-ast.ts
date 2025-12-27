@@ -1,16 +1,16 @@
-import { PgslInterpolateSampling, PgslInterpolateSamplingEnum } from "../../buildin/enum/pgsl-interpolate-sampling-enum.ts";
-import { PgslInterpolateType, PgslInterpolateTypeEnum } from "../../buildin/enum/pgsl-interpolate-type-enum.ts";
-import { StructPropertyDeclarationCst } from "../../concrete_syntax_tree/declaration.type.ts";
-import { PgslNumericType } from "../type/pgsl-numeric-type.ts";
+import { type PgslInterpolateSampling, PgslInterpolateSamplingEnum } from '../../buildin/enum/pgsl-interpolate-sampling-enum.ts';
+import { type PgslInterpolateType, PgslInterpolateTypeEnum } from '../../buildin/enum/pgsl-interpolate-type-enum.ts';
+import type { StructPropertyDeclarationCst } from '../../concrete_syntax_tree/declaration.type.ts';
+import { PgslNumericType } from '../type/pgsl-numeric-type.ts';
 import type { PgslType } from '../type/pgsl-type.ts';
-import { PgslVectorType } from "../type/pgsl-vector-type.ts";
-import { AbstractSyntaxTreeContext } from "../abstract-syntax-tree-context.ts";
+import { PgslVectorType } from '../type/pgsl-vector-type.ts';
+import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
-import { IExpressionAst } from "../expression/i-expression-ast.interface.ts";
+import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
 import { AttributeListAst } from '../general/attribute-list-ast.ts';
 import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
-import { DeclarationAstData, IDeclarationAst } from './i-declaration-ast.interface.ts';
-import { StructDeclarationAst } from "./struct-declaration-ast.ts";
+import type { DeclarationAstData, IDeclarationAst } from './i-declaration-ast.interface.ts';
+import type { StructDeclarationAst } from './struct-declaration-ast.ts';
 
 /**
  * PGSL syntax tree for a struct property declaration.

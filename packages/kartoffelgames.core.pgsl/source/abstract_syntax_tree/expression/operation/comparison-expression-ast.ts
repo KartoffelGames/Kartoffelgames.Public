@@ -5,10 +5,10 @@ import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.en
 import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
 import type { PgslType } from '../../type/pgsl-type.ts';
 import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
-import { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
+import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
-import { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
+import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 
 /**
  * PGSL structure for a comparison expression between two values.

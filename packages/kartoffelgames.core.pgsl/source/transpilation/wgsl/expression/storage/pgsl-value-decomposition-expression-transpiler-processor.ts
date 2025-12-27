@@ -1,9 +1,9 @@
 import { Exception } from '@kartoffelgames/core';
 import { ValueDecompositionExpressionAst } from '../../../../abstract_syntax_tree/expression/storage/value-decomposition-expression-ast.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
-import { IExpressionAst } from "../../../../abstract_syntax_tree/expression/i-expression-ast.interface.ts";
-import { EnumDeclarationAst } from "../../../../abstract_syntax_tree/declaration/enum-declaration-ast.ts";
-import { PgslEnumType } from "../../../../abstract_syntax_tree/type/pgsl-enum-type.ts";
+import type { IExpressionAst } from '../../../../abstract_syntax_tree/expression/i-expression-ast.interface.ts';
+import type { EnumDeclarationAst } from '../../../../abstract_syntax_tree/declaration/enum-declaration-ast.ts';
+import { PgslEnumType } from '../../../../abstract_syntax_tree/type/pgsl-enum-type.ts';
 
 export class PgslValueDecompositionExpressionTranspilerProcessor implements ITranspilerProcessor<ValueDecompositionExpressionAst> {
     /**

@@ -1,8 +1,8 @@
 import { Exception } from '@kartoffelgames/core';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
+import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 import type { ParenthesizedExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
-import { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
+import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
 
 /**

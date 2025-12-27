@@ -1,21 +1,21 @@
-import { AssignmentStatementCst, BlockStatementCst, BreakStatementCst, ContinueStatementCst, DiscardStatementCst, DoWhileStatementCst, ForStatementCst, FunctionCallStatementCst, IfStatementCst, IncrementDecrementStatementCst, ReturnStatementCst, StatementCst, SwitchStatementCst, VariableDeclarationStatementCst, WhileStatementCst } from "../../concrete_syntax_tree/statement.type.ts";
-import { AbstractSyntaxTreeContext } from "../abstract-syntax-tree-context.ts";
-import { BlockStatementAst } from "./execution/block-statement-ast.ts";
-import { AssignmentStatementAst } from "./execution/assignment-statement-ast.ts";
-import { FunctionCallStatementAst } from "./execution/function-call-statement-ast.ts";
-import { IncrementDecrementStatementAst } from "./execution/increment-decrement-statement-ast.ts";
-import { VariableDeclarationStatementAst } from "./execution/variable-declaration-statement-ast.ts";
-import { BreakStatementAst } from "./single/break-statement-ast.ts";
-import { ContinueStatementAst } from "./single/continue-statement-ast.ts";
-import { DiscardStatementAst } from "./single/discard-statement-ast.ts";
-import { DoWhileStatementAst } from "./branch/do-while-statement-ast.ts";
-import { ForStatementAst } from "./branch/for-statement-ast.ts";
-import { IfStatementAst } from "./branch/if-statement-ast.ts";
-import { SwitchStatementAst } from "./branch/switch-statement-ast.ts";
-import { WhileStatementAst } from "./branch/while-statement-ast.ts";
-import { IStatementAst } from "./i-statement-ast.interface.ts";
-import { Exception } from "@kartoffelgames/core";
-import { ReturnStatementAst } from "./single/return-statement-ast.ts";
+import type { AssignmentStatementCst, BlockStatementCst, BreakStatementCst, ContinueStatementCst, DiscardStatementCst, DoWhileStatementCst, ForStatementCst, FunctionCallStatementCst, IfStatementCst, IncrementDecrementStatementCst, ReturnStatementCst, StatementCst, SwitchStatementCst, VariableDeclarationStatementCst, WhileStatementCst } from '../../concrete_syntax_tree/statement.type.ts';
+import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
+import { BlockStatementAst } from './execution/block-statement-ast.ts';
+import { AssignmentStatementAst } from './execution/assignment-statement-ast.ts';
+import { FunctionCallStatementAst } from './execution/function-call-statement-ast.ts';
+import { IncrementDecrementStatementAst } from './execution/increment-decrement-statement-ast.ts';
+import { VariableDeclarationStatementAst } from './execution/variable-declaration-statement-ast.ts';
+import { BreakStatementAst } from './single/break-statement-ast.ts';
+import { ContinueStatementAst } from './single/continue-statement-ast.ts';
+import { DiscardStatementAst } from './single/discard-statement-ast.ts';
+import { DoWhileStatementAst } from './branch/do-while-statement-ast.ts';
+import { ForStatementAst } from './branch/for-statement-ast.ts';
+import { IfStatementAst } from './branch/if-statement-ast.ts';
+import { SwitchStatementAst } from './branch/switch-statement-ast.ts';
+import { WhileStatementAst } from './branch/while-statement-ast.ts';
+import type { IStatementAst } from './i-statement-ast.interface.ts';
+import { Exception } from '@kartoffelgames/core';
+import { ReturnStatementAst } from './single/return-statement-ast.ts';
 
 export class StatementAstBuilder {
     /**

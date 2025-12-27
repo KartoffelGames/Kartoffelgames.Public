@@ -1,5 +1,5 @@
-import { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { StructDeclarationAst } from "../declaration/struct-declaration-ast.ts";
+import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
+import type { StructDeclarationAst } from '../declaration/struct-declaration-ast.ts';
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 
 /**

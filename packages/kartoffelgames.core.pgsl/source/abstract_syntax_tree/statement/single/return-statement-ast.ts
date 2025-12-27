@@ -1,11 +1,11 @@
-import { ReturnStatementCst } from "../../../concrete_syntax_tree/statement.type.ts";
+import type { ReturnStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
 import type { PgslType } from '../../type/pgsl-type.ts';
 import { PgslVoidType } from '../../type/pgsl-void-type.ts';
-import { AbstractSyntaxTreeContext } from "../../abstract-syntax-tree-context.ts";
-import { AbstractSyntaxTree } from "../../abstract-syntax-tree.ts";
-import { ExpressionAstBuilder } from "../../expression/expression-ast-builder.ts";
-import { IExpressionAst } from "../../expression/i-expression-ast.interface.ts";
-import { IStatementAst } from "../i-statement-ast.interface.ts";
+import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
+import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
+import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
+import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
+import type { IStatementAst } from '../i-statement-ast.interface.ts';
 
 /**
  * PGSL structure holding a return statement with an optional expression.

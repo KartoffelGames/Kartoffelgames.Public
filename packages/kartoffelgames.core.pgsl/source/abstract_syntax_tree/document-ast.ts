@@ -1,8 +1,8 @@
-import { DocumentCst } from "../concrete_syntax_tree/general.type.ts";
-import { AbstractSyntaxTreeContext, AbstractSyntaxTreeIncident } from "./abstract-syntax-tree-context.ts";
+import type { DocumentCst } from '../concrete_syntax_tree/general.type.ts';
+import type { AbstractSyntaxTreeContext, AbstractSyntaxTreeIncident } from './abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from './abstract-syntax-tree.ts';
-import { DeclarationAstBuilder } from "./declaration/declaration-ast-builder.ts";
-import { IDeclarationAst } from "./declaration/i-declaration-ast.interface.ts";
+import { DeclarationAstBuilder } from './declaration/declaration-ast-builder.ts';
+import type { IDeclarationAst } from './declaration/i-declaration-ast.interface.ts';
 
 export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData> {
     /**

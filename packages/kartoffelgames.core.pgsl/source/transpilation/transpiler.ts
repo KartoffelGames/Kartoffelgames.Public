@@ -1,7 +1,7 @@
 import type { IAnyParameterConstructor } from '../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import type { AbstractSyntaxTree } from '../abstract_syntax_tree/abstract-syntax-tree.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from './i-transpiler-processor.interface.ts';
-import { TranspilationMeta } from "./transpilation-meta.ts";
+import { TranspilationMeta } from './transpilation-meta.ts';
 
 // TODO: How to generate a sourcemap. https://sourcemaps.info/spec.html
 

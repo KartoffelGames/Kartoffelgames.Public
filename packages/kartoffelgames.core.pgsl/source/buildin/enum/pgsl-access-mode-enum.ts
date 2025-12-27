@@ -1,5 +1,5 @@
-import type { EnumDeclarationCst, EnumDeclarationValueCst } from "../../concrete_syntax_tree/declaration.type.ts";
-import { StringValueExpressionCst } from "../../concrete_syntax_tree/expression.type.ts";
+import type { EnumDeclarationCst, EnumDeclarationValueCst } from '../../concrete_syntax_tree/declaration.type.ts';
+import type { StringValueExpressionCst } from '../../concrete_syntax_tree/expression.type.ts';
 
 export class PgslAccessModeEnum {
     private static mValidValues: Set<string> | null = null;

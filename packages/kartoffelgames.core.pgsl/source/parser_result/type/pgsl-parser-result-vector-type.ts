@@ -1,5 +1,5 @@
-import { PgslParserResultNumericType } from "./pgsl-parser-result-numeric-type.ts";
-import { PgslParserResultType, PgslParserResultTypeAlignmentType } from './pgsl-parser-result-type.ts';
+import type { PgslParserResultNumericType } from './pgsl-parser-result-numeric-type.ts';
+import { PgslParserResultType, type PgslParserResultTypeAlignmentType } from './pgsl-parser-result-type.ts';
 
 /**
  * Represents a vector type in PGSL parser results.

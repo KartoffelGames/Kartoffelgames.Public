@@ -1,5 +1,5 @@
-import { PgslValueAddressSpace } from "../../enum/pgsl-value-address-space.enum.ts";
-import { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
+import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
+import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 
 /**

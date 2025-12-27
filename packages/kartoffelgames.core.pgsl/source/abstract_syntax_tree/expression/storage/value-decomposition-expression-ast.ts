@@ -8,9 +8,9 @@ import type { PgslType } from '../../type/pgsl-type.ts';
 import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import type { StructPropertyDeclarationAst } from '../../declaration/struct-property-declaration-ast.ts';
-import { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
+import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 import type { ValueDecompositionExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
-import { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
+import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
 
 /**

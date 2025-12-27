@@ -1,11 +1,11 @@
-import { DoWhileStatementCst } from "../../../concrete_syntax_tree/statement.type.ts";
+import type { DoWhileStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
 import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
-import { AbstractSyntaxTreeContext } from "../../abstract-syntax-tree-context.ts";
+import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import { ExpressionAstBuilder } from "../../expression/expression-ast-builder.ts";
+import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
 import { BlockStatementAst } from '../execution/block-statement-ast.ts';
-import { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
+import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
 
 /**
  * PGSL structure for a do while statement.

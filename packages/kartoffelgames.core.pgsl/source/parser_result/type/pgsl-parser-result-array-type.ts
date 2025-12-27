@@ -1,4 +1,4 @@
-import { PgslParserResultType, PgslParserResultTypeAlignmentType } from './pgsl-parser-result-type.ts';
+import { PgslParserResultType, type PgslParserResultTypeAlignmentType } from './pgsl-parser-result-type.ts';
 
 /**
  * Represents an array-like type in PGSL parser results (arrays, vectors, matrices).

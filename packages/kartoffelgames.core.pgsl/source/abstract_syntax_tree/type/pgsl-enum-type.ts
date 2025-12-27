@@ -1,5 +1,5 @@
-import { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { EnumDeclarationAst } from "../declaration/enum-declaration-ast.ts";
+import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
+import type { EnumDeclarationAst } from '../declaration/enum-declaration-ast.ts';
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 
 /**

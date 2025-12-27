@@ -3,7 +3,7 @@
  */
 export abstract class PgslParserResultType {
     private readonly mType: PgslParserResultTypeType;
-    private mAlignmentType: PgslParserResultTypeAlignmentType;
+    private readonly mAlignmentType: PgslParserResultTypeAlignmentType;
 
     /**
      * Gets the type category of this PGSL type.

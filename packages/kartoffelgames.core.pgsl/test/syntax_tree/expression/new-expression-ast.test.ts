@@ -1,16 +1,16 @@
 import { expect } from '@kartoffelgames/core-test';
-import { FunctionDeclarationAst, FunctionDeclarationAstDataDeclaration } from "../../../source/abstract_syntax_tree/declaration/function-declaration-ast.ts";
-import { DocumentAst } from "../../../source/abstract_syntax_tree/document-ast.ts";
-import { NewExpressionAst } from "../../../source/abstract_syntax_tree/expression/single_value/new-expression-ast.ts";
-import { VariableDeclarationStatementAst } from "../../../source/abstract_syntax_tree/statement/execution/variable-declaration-statement-ast.ts";
+import type { FunctionDeclarationAst, FunctionDeclarationAstDataDeclaration } from '../../../source/abstract_syntax_tree/declaration/function-declaration-ast.ts';
+import type { DocumentAst } from '../../../source/abstract_syntax_tree/document-ast.ts';
+import { NewExpressionAst } from '../../../source/abstract_syntax_tree/expression/single_value/new-expression-ast.ts';
+import type { VariableDeclarationStatementAst } from '../../../source/abstract_syntax_tree/statement/execution/variable-declaration-statement-ast.ts';
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
-import { PgslParserResult } from "../../../source/parser_result/pgsl-parser-result.ts";
-import { WgslTranspiler } from "../../../source/transpilation/wgsl/wgsl-transpiler.ts";
-import { PgslArrayType } from "../../../source/abstract_syntax_tree/type/pgsl-array-type.ts";
-import { PgslBooleanType } from "../../../source/abstract_syntax_tree/type/pgsl-boolean-type.ts";
-import { PgslMatrixType } from "../../../source/abstract_syntax_tree/type/pgsl-matrix-type.ts";
-import { PgslNumericType } from "../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts";
-import { PgslVectorType } from "../../../source/abstract_syntax_tree/type/pgsl-vector-type.ts";
+import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
+import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
+import { PgslArrayType } from '../../../source/abstract_syntax_tree/type/pgsl-array-type.ts';
+import { PgslBooleanType } from '../../../source/abstract_syntax_tree/type/pgsl-boolean-type.ts';
+import { PgslMatrixType } from '../../../source/abstract_syntax_tree/type/pgsl-matrix-type.ts';
+import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts';
+import { PgslVectorType } from '../../../source/abstract_syntax_tree/type/pgsl-vector-type.ts';
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();

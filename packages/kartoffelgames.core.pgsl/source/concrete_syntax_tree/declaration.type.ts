@@ -1,6 +1,6 @@
-import type { ExpressionCst, ExpressionCstType } from "./expression.type.ts";
-import type { AttributeListCst, Cst, TypeDeclarationCst } from "./general.type.ts";
-import type { BlockStatementCst } from "./statement.type.ts";
+import type { ExpressionCst, ExpressionCstType } from './expression.type.ts';
+import type { AttributeListCst, Cst, TypeDeclarationCst } from './general.type.ts';
+import type { BlockStatementCst } from './statement.type.ts';
 
 /*
  * Core.

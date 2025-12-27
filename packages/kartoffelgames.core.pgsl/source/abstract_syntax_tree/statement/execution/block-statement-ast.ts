@@ -1,13 +1,13 @@
-import { BlockStatementCst } from "../../../concrete_syntax_tree/statement.type.ts";
+import type { BlockStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
 import type { PgslType } from '../../type/pgsl-type.ts';
 import { PgslVoidType } from '../../type/pgsl-void-type.ts';
-import { AbstractSyntaxTreeContext } from "../../abstract-syntax-tree-context.ts";
+import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
-import { BreakStatementAst } from "../single/break-statement-ast.ts";
-import { ContinueStatementAst } from "../single/continue-statement-ast.ts";
+import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
+import { BreakStatementAst } from '../single/break-statement-ast.ts';
+import { ContinueStatementAst } from '../single/continue-statement-ast.ts';
 import { ReturnStatementAst } from '../single/return-statement-ast.ts';
-import { StatementAstBuilder } from "../statement-ast-builder.ts";
+import { StatementAstBuilder } from '../statement-ast-builder.ts';
 
 /**
  * PGSL structure holding a list of statements. Handles scoped values.

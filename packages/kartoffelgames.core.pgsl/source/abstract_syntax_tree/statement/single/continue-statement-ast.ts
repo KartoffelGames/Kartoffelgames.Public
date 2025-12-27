@@ -1,7 +1,7 @@
 import type { ContinueStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
-import { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
+import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
+import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
 
 /**
  * PGSL structure holding a continue statement.

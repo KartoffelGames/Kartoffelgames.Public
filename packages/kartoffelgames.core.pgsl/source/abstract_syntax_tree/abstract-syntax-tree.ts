@@ -1,6 +1,6 @@
 import type { IAnyParameterConstructor } from '../../../kartoffelgames.core/source/interface/i-constructor.ts';
-import { Cst } from "../concrete_syntax_tree/general.type.ts";
-import { AbstractSyntaxTreeContext } from "./abstract-syntax-tree-context.ts";
+import type { Cst } from '../concrete_syntax_tree/general.type.ts';
+import type { AbstractSyntaxTreeContext } from './abstract-syntax-tree-context.ts';
 
 /**
  * Base pgsl syntax tree object.
@@ -22,7 +22,7 @@ export abstract class AbstractSyntaxTree<TCst extends Cst<string> = Cst<string>,
      */
     public get data(): Readonly<TData> {
         if (this.mData === null) {
-            throw new Error("Abstract syntax tree data is not yet processed.");
+            throw new Error('Abstract syntax tree data is not yet processed.');
         }
 
         return this.mData;

@@ -1,12 +1,12 @@
-import { Exception } from "@kartoffelgames/core";
-import { AliasDeclarationCst, DeclarationCst, EnumDeclarationCst, FunctionDeclarationCst, StructDeclarationCst, VariableDeclarationCst } from "../../concrete_syntax_tree/declaration.type.ts";
-import { AbstractSyntaxTreeContext } from "../abstract-syntax-tree-context.ts";
-import { AliasDeclarationAst } from "./alias-declaration-ast.ts";
-import { EnumDeclarationAst } from "./enum-declaration-ast.ts";
-import { FunctionDeclarationAst } from "./function-declaration-ast.ts";
-import { IDeclarationAst } from "./i-declaration-ast.interface.ts";
-import { StructDeclarationAst } from "./struct-declaration-ast.ts";
-import { VariableDeclarationAst } from "./variable-declaration-ast.ts";
+import { Exception } from '@kartoffelgames/core';
+import type { AliasDeclarationCst, DeclarationCst, EnumDeclarationCst, FunctionDeclarationCst, StructDeclarationCst, VariableDeclarationCst } from '../../concrete_syntax_tree/declaration.type.ts';
+import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
+import { AliasDeclarationAst } from './alias-declaration-ast.ts';
+import { EnumDeclarationAst } from './enum-declaration-ast.ts';
+import { FunctionDeclarationAst } from './function-declaration-ast.ts';
+import type { IDeclarationAst } from './i-declaration-ast.interface.ts';
+import { StructDeclarationAst } from './struct-declaration-ast.ts';
+import { VariableDeclarationAst } from './variable-declaration-ast.ts';
 
 /**
  * Abstract syntax tree builder for Declaration AST nodes.

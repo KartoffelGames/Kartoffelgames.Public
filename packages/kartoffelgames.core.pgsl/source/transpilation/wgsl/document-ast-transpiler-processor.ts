@@ -1,7 +1,7 @@
-import { AbstractSyntaxTree, AbstractSyntaxTreeConstructor } from "../../abstract_syntax_tree/abstract-syntax-tree.ts";
-import { FunctionDeclarationAst } from "../../abstract_syntax_tree/declaration/function-declaration-ast.ts";
-import { StructDeclarationAst } from "../../abstract_syntax_tree/declaration/struct-declaration-ast.ts";
-import { VariableDeclarationAst } from "../../abstract_syntax_tree/declaration/variable-declaration-ast.ts";
+import type { AbstractSyntaxTree, AbstractSyntaxTreeConstructor } from '../../abstract_syntax_tree/abstract-syntax-tree.ts';
+import { FunctionDeclarationAst } from '../../abstract_syntax_tree/declaration/function-declaration-ast.ts';
+import { StructDeclarationAst } from '../../abstract_syntax_tree/declaration/struct-declaration-ast.ts';
+import { VariableDeclarationAst } from '../../abstract_syntax_tree/declaration/variable-declaration-ast.ts';
 import { DocumentAst } from '../../abstract_syntax_tree/document-ast.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../i-transpiler-processor.interface.ts';
 

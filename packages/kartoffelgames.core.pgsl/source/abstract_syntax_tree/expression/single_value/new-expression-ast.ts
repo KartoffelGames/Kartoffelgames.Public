@@ -1,18 +1,18 @@
-import { LiteralValueExpressionCst, NewExpressionCst } from "../../../concrete_syntax_tree/expression.type.ts";
+import type { LiteralValueExpressionCst, NewExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
-import { PgslArrayType } from "../../type/pgsl-array-type.ts";
-import { PgslBooleanType } from "../../type/pgsl-boolean-type.ts";
-import { PgslInvalidType } from "../../type/pgsl-invalid-type.ts";
-import { PgslMatrixType } from "../../type/pgsl-matrix-type.ts";
-import { PgslNumericType } from "../../type/pgsl-numeric-type.ts";
-import { PgslType, PgslTypeConstructor } from '../../type/pgsl-type.ts';
-import { PgslVectorType } from "../../type/pgsl-vector-type.ts";
-import { AbstractSyntaxTreeContext } from "../../abstract-syntax-tree-context.ts";
+import { PgslArrayType } from '../../type/pgsl-array-type.ts';
+import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
+import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';
+import { PgslMatrixType } from '../../type/pgsl-matrix-type.ts';
+import { PgslNumericType } from '../../type/pgsl-numeric-type.ts';
+import type { PgslType, PgslTypeConstructor } from '../../type/pgsl-type.ts';
+import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
+import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import { ExpressionAstBuilder } from "../expression-ast-builder.ts";
-import { ExpressionAstData, IExpressionAst } from "../i-expression-ast.interface.ts";
-import { LiteralValueExpressionAst } from "./literal-value-expression-ast.ts";
+import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
+import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
+import { LiteralValueExpressionAst } from './literal-value-expression-ast.ts';
 
 // TODO: Support generics by using the function call expression under the hood.
 

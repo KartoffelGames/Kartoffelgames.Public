@@ -1,14 +1,14 @@
-import { EnumDeclarationCst } from "../../concrete_syntax_tree/declaration.type.ts";
+import type { EnumDeclarationCst } from '../../concrete_syntax_tree/declaration.type.ts';
 import { PgslInvalidType } from '../type/pgsl-invalid-type.ts';
 import { PgslNumericType } from '../type/pgsl-numeric-type.ts';
 import { PgslStringType } from '../type/pgsl-string-type.ts';
 import type { PgslType } from '../type/pgsl-type.ts';
-import { AbstractSyntaxTreeContext } from "../abstract-syntax-tree-context.ts";
-import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
-import { ExpressionAstBuilder } from "../expression/expression-ast-builder.ts";
-import { IExpressionAst } from "../expression/i-expression-ast.interface.ts";
+import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
+import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
+import { ExpressionAstBuilder } from '../expression/expression-ast-builder.ts';
+import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
 import { AttributeListAst } from '../general/attribute-list-ast.ts';
-import { DeclarationAstData } from "./i-declaration-ast.interface.ts";
+import type { DeclarationAstData } from './i-declaration-ast.interface.ts';
 
 /**
  * PGSL syntax tree of a enum declaration.

@@ -1,7 +1,7 @@
-import { Exception } from "@kartoffelgames/core";
-import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
-import { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { IExpressionAst } from "../expression/i-expression-ast.interface.ts";
+import { Exception } from '@kartoffelgames/core';
+import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
+import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
+import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
 import { PgslArrayType } from './pgsl-array-type.ts';
 import { PgslBooleanType } from './pgsl-boolean-type.ts';
 import { PgslInvalidType } from './pgsl-invalid-type.ts';
@@ -57,7 +57,7 @@ export class PgslBuildInType extends PgslType {
      */
     public get underlyingType(): PgslType {
         if (!this.mUnderlyingType) {
-            throw new Exception("Underlying type has not been initialized.", this);
+            throw new Exception('Underlying type has not been initialized.', this);
         }
 
         return this.mUnderlyingType;

@@ -2,14 +2,14 @@ import type { FunctionCallExpressionCst } from '../../../concrete_syntax_tree/ex
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';
-import { PgslPointerType } from "../../type/pgsl-pointer-type.ts";
-import { PgslType } from "../../type/pgsl-type.ts";
-import { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
+import { PgslPointerType } from '../../type/pgsl-pointer-type.ts';
+import type { PgslType } from '../../type/pgsl-type.ts';
+import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import { FunctionDeclarationAst, FunctionDeclarationAstDataDeclaration, FunctionDeclarationAstDataParameter } from "../../declaration/function-declaration-ast.ts";
-import { TypeDeclarationAst } from "../../general/type-declaration-ast.ts";
+import type { FunctionDeclarationAst, FunctionDeclarationAstDataDeclaration, FunctionDeclarationAstDataParameter } from '../../declaration/function-declaration-ast.ts';
+import { TypeDeclarationAst } from '../../general/type-declaration-ast.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
-import { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
+import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 
 /**
  * PGSL syntax tree of a function call expression with optional template list.

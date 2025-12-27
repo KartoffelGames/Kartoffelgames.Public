@@ -5,9 +5,9 @@ import { PgslNumericType } from '../../type/pgsl-numeric-type.ts';
 import type { PgslType } from '../../type/pgsl-type.ts';
 import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
+import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 import type { BinaryExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
-import { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
+import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
 
 export class BinaryExpressionAst extends AbstractSyntaxTree<BinaryExpressionCst, BinaryExpressionAstData> implements IExpressionAst {

@@ -1,7 +1,7 @@
-import { Exception } from "@kartoffelgames/core";
-import { StructDeclarationAst } from "../abstract_syntax_tree/declaration/struct-declaration-ast.ts";
-import { StructPropertyDeclarationAst } from "../abstract_syntax_tree/declaration/struct-property-declaration-ast.ts";
-import { VariableDeclarationAst } from "../abstract_syntax_tree/declaration/variable-declaration-ast.ts";
+import { Exception } from '@kartoffelgames/core';
+import type { StructDeclarationAst } from '../abstract_syntax_tree/declaration/struct-declaration-ast.ts';
+import type { StructPropertyDeclarationAst } from '../abstract_syntax_tree/declaration/struct-property-declaration-ast.ts';
+import type { VariableDeclarationAst } from '../abstract_syntax_tree/declaration/variable-declaration-ast.ts';
 
 export class TranspilationMeta {
     private readonly mStructLocations: Map<StructDeclarationAst, Map<StructPropertyDeclarationAst, number>>;
@@ -67,7 +67,7 @@ export class TranspilationMeta {
 
         // Check if property already has a location, else create a new one.
         let lLocation: number | undefined = lLocations.get(pProperty);
-        if (typeof lLocation !== "number") {
+        if (typeof lLocation !== 'number') {
             lLocation = lLocations.size;
             lLocations.set(pProperty, lLocation);
         }

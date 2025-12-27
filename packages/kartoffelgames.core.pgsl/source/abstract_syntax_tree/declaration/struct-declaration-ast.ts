@@ -1,8 +1,8 @@
-import { StructDeclarationCst } from "../../concrete_syntax_tree/declaration.type.ts";
-import { AbstractSyntaxTreeContext } from "../abstract-syntax-tree-context.ts";
-import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
+import type { StructDeclarationCst } from '../../concrete_syntax_tree/declaration.type.ts';
+import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
+import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 import { AttributeListAst } from '../general/attribute-list-ast.ts';
-import { DeclarationAstData, IDeclarationAst } from "./i-declaration-ast.interface.ts";
+import type { DeclarationAstData, IDeclarationAst } from './i-declaration-ast.interface.ts';
 import { StructPropertyDeclarationAst } from './struct-property-declaration-ast.ts';
 
 // TODO: Dynamically calculate size and alignment based on type.

@@ -1,11 +1,11 @@
-import { Exception } from "@kartoffelgames/core";
-import { PgslAccessMode, PgslAccessModeEnum } from "../../buildin/enum/pgsl-access-mode-enum.ts";
-import { PgslTexelFormat, PgslTexelFormatEnum } from "../../buildin/enum/pgsl-texel-format-enum.ts";
-import { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { IExpressionAst } from "../expression/i-expression-ast.interface.ts";
-import { TypeDeclarationAst } from "../general/type-declaration-ast.ts";
+import { Exception } from '@kartoffelgames/core';
+import { type PgslAccessMode, PgslAccessModeEnum } from '../../buildin/enum/pgsl-access-mode-enum.ts';
+import { type PgslTexelFormat, PgslTexelFormatEnum } from '../../buildin/enum/pgsl-texel-format-enum.ts';
+import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
+import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
+import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
-import { PgslStringType } from "./pgsl-string-type.ts";
+import { PgslStringType } from './pgsl-string-type.ts';
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 
 /**

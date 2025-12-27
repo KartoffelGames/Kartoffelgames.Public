@@ -1,6 +1,6 @@
-import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
-import { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { IExpressionAst } from "../expression/i-expression-ast.interface.ts";
+import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
+import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
+import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 

@@ -1,5 +1,4 @@
-import { Exception } from "@kartoffelgames/core";
-import { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
+import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 import { PgslVectorType } from './pgsl-vector-type.ts';
@@ -54,7 +53,7 @@ export class PgslMatrixType extends PgslType {
     }
 
     private readonly mInnerType: PgslType;
-    private mVectorTypeDefinition: PgslVectorType;
+    private readonly mVectorTypeDefinition: PgslVectorType;
     private readonly mRowCount: number;
     private readonly mColumnCount: number;
 

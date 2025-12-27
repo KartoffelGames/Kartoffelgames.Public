@@ -1,10 +1,10 @@
-import { VariableDeclarationAst } from "../abstract_syntax_tree/declaration/variable-declaration-ast.ts";
-import { DocumentAst } from "../abstract_syntax_tree/document-ast.ts";
-import { PgslDeclarationType } from "../enum/pgsl-declaration-type.enum.ts";
-import { TranspilationMeta } from "../transpilation/transpilation-meta.ts";
-import { PgslParserResultBinding } from "./pgsl-parser-result-binding.ts";
-import { PgslParserResultParameter } from "./pgsl-parser-result-parameter.ts";
-import { PgslParserResultIncident } from "./pgsl-parser-result.incident.ts";
+import { VariableDeclarationAst } from '../abstract_syntax_tree/declaration/variable-declaration-ast.ts';
+import type { DocumentAst } from '../abstract_syntax_tree/document-ast.ts';
+import { PgslDeclarationType } from '../enum/pgsl-declaration-type.enum.ts';
+import type { TranspilationMeta } from '../transpilation/transpilation-meta.ts';
+import { PgslParserResultBinding } from './pgsl-parser-result-binding.ts';
+import { PgslParserResultParameter } from './pgsl-parser-result-parameter.ts';
+import { PgslParserResultIncident } from './pgsl-parser-result.incident.ts';
 
 /**
  * Represents the result of parsing PGSL source code, including transpiled code,

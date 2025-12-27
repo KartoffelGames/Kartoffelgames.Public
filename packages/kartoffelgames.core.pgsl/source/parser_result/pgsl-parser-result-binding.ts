@@ -1,25 +1,25 @@
-import { Exception } from "@kartoffelgames/core";
-import { StructDeclarationAst } from "../abstract_syntax_tree/declaration/struct-declaration-ast.ts";
-import { VariableDeclarationAst } from "../abstract_syntax_tree/declaration/variable-declaration-ast.ts";
-import { DocumentAst } from "../abstract_syntax_tree/document-ast.ts";
-import { PgslArrayType } from "../abstract_syntax_tree/type/pgsl-array-type.ts";
-import { PgslMatrixType } from "../abstract_syntax_tree/type/pgsl-matrix-type.ts";
-import { PgslNumericType } from "../abstract_syntax_tree/type/pgsl-numeric-type.ts";
-import { PgslSamplerType } from "../abstract_syntax_tree/type/pgsl-sampler-type.ts";
-import { PgslStructType } from "../abstract_syntax_tree/type/pgsl-struct-type.ts";
-import { PgslTextureType } from "../abstract_syntax_tree/type/pgsl-texture-type.ts";
-import { PgslType } from "../abstract_syntax_tree/type/pgsl-type.ts";
-import { PgslVectorType } from "../abstract_syntax_tree/type/pgsl-vector-type.ts";
-import { PgslDeclarationType } from "../enum/pgsl-declaration-type.enum.ts";
-import { TranspilationMeta, TranspilationMetaBinding } from "../transpilation/transpilation-meta.ts";
-import { PgslParserResultArrayType } from "./type/pgsl-parser-result-array-type.ts";
-import { PgslParserResultMatrixType } from "./type/pgsl-parser-result-matrix-type.ts";
-import { PgslParserResultNumericType } from "./type/pgsl-parser-result-numeric-type.ts";
-import { PgslParserResultSamplerType } from "./type/pgsl-parser-result-sampler-type.ts";
-import { PgslParserResultStructProperty, PgslParserResultStructType } from "./type/pgsl-parser-result-struct-type.ts";
-import { PgslParserResultTextureDimensionType, PgslParserResultTextureType } from "./type/pgsl-parser-result-texture-type.ts";
-import { PgslParserResultType, PgslParserResultTypeAlignmentType } from "./type/pgsl-parser-result-type.ts";
-import { PgslParserResultVectorType } from "./type/pgsl-parser-result-vector-type.ts";
+import { Exception } from '@kartoffelgames/core';
+import { StructDeclarationAst } from '../abstract_syntax_tree/declaration/struct-declaration-ast.ts';
+import type { VariableDeclarationAst } from '../abstract_syntax_tree/declaration/variable-declaration-ast.ts';
+import type { DocumentAst } from '../abstract_syntax_tree/document-ast.ts';
+import { PgslArrayType } from '../abstract_syntax_tree/type/pgsl-array-type.ts';
+import { PgslMatrixType } from '../abstract_syntax_tree/type/pgsl-matrix-type.ts';
+import { PgslNumericType } from '../abstract_syntax_tree/type/pgsl-numeric-type.ts';
+import { PgslSamplerType } from '../abstract_syntax_tree/type/pgsl-sampler-type.ts';
+import { PgslStructType } from '../abstract_syntax_tree/type/pgsl-struct-type.ts';
+import { PgslTextureType } from '../abstract_syntax_tree/type/pgsl-texture-type.ts';
+import type { PgslType } from '../abstract_syntax_tree/type/pgsl-type.ts';
+import { PgslVectorType } from '../abstract_syntax_tree/type/pgsl-vector-type.ts';
+import { PgslDeclarationType } from '../enum/pgsl-declaration-type.enum.ts';
+import type { TranspilationMeta, TranspilationMetaBinding } from '../transpilation/transpilation-meta.ts';
+import { PgslParserResultArrayType } from './type/pgsl-parser-result-array-type.ts';
+import { PgslParserResultMatrixType } from './type/pgsl-parser-result-matrix-type.ts';
+import { PgslParserResultNumericType } from './type/pgsl-parser-result-numeric-type.ts';
+import { PgslParserResultSamplerType } from './type/pgsl-parser-result-sampler-type.ts';
+import { type PgslParserResultStructProperty, PgslParserResultStructType } from './type/pgsl-parser-result-struct-type.ts';
+import { type PgslParserResultTextureDimensionType, PgslParserResultTextureType } from './type/pgsl-parser-result-texture-type.ts';
+import type { PgslParserResultType, PgslParserResultTypeAlignmentType } from './type/pgsl-parser-result-type.ts';
+import { PgslParserResultVectorType } from './type/pgsl-parser-result-vector-type.ts';
 
 /**
  * Represents a binding result from PGSL parser with type and location information.

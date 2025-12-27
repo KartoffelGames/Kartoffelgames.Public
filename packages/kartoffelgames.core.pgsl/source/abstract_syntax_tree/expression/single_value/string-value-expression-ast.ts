@@ -2,9 +2,9 @@ import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.en
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import { PgslStringType } from '../../type/pgsl-string-type.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
+import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 import type { StringValueExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
-import { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
+import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 
 /**
  * PGSL syntax tree for a single string value of boolean, float, integer or uinteger.

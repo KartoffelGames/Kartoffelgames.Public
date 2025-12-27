@@ -1,4 +1,4 @@
-import type { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
+import type { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 
 /**
  * Statement AST interface.

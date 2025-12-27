@@ -1,4 +1,4 @@
-import type { Cst, TypeDeclarationCst } from "./general.type.ts";
+import type { Cst, TypeDeclarationCst } from './general.type.ts';
 
 /*
  * Core.

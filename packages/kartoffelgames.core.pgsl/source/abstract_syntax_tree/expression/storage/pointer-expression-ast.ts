@@ -3,9 +3,9 @@ import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import { PgslPointerType } from '../../type/pgsl-pointer-type.ts';
 import type { PgslType } from '../../type/pgsl-type.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
-import { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
+import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 import type { PointerExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
-import { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
+import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
 
 /**

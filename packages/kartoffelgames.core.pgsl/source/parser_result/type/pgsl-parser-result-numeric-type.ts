@@ -1,4 +1,4 @@
-import { PgslParserResultType, PgslParserResultTypeAlignmentType } from './pgsl-parser-result-type.ts';
+import { PgslParserResultType, type PgslParserResultTypeAlignmentType } from './pgsl-parser-result-type.ts';
 
 /**
  * Represents a numeric type in PGSL parser results with calculated size and alignment.

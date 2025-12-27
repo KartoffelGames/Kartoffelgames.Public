@@ -1,10 +1,10 @@
-import { VariableDeclarationAst } from "../../../abstract_syntax_tree/declaration/variable-declaration-ast.ts";
-import { PgslSamplerType } from "../../../abstract_syntax_tree/type/pgsl-sampler-type.ts";
-import { PgslTextureType } from "../../../abstract_syntax_tree/type/pgsl-texture-type.ts";
-import { PgslAccessModeEnum } from "../../../buildin/enum/pgsl-access-mode-enum.ts";
+import { VariableDeclarationAst } from '../../../abstract_syntax_tree/declaration/variable-declaration-ast.ts';
+import { PgslSamplerType } from '../../../abstract_syntax_tree/type/pgsl-sampler-type.ts';
+import { PgslTextureType } from '../../../abstract_syntax_tree/type/pgsl-texture-type.ts';
+import { PgslAccessModeEnum } from '../../../buildin/enum/pgsl-access-mode-enum.ts';
 import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-transpiler-processor.interface.ts';
-import { TranspilationMeta, TranspilationMetaBinding } from "../../transpilation-meta.ts";
+import type { TranspilationMeta, TranspilationMetaBinding } from '../../transpilation-meta.ts';
 
 export class VariableDeclarationAstTranspilerProcessor implements ITranspilerProcessor<VariableDeclarationAst> {
     /**

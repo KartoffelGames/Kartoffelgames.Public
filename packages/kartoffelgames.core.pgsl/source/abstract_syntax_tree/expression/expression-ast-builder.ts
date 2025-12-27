@@ -1,21 +1,21 @@
-import { AddressOfExpressionCst, ArithmeticExpressionCst, BinaryExpressionCst, ComparisonExpressionCst, ExpressionCst, FunctionCallExpressionCst, IndexedValueExpressionCst, LiteralValueExpressionCst, LogicalExpressionCst, NewExpressionCst, ParenthesizedExpressionCst, PointerExpressionCst, StringValueExpressionCst, UnaryExpressionCst, ValueDecompositionExpressionCst, VariableNameExpressionCst } from "../../concrete_syntax_tree/expression.type.ts";
-import { AbstractSyntaxTreeContext } from "../abstract-syntax-tree-context.ts";
-import { IExpressionAst } from "./i-expression-ast.interface.ts";
-import { ArithmeticExpressionAst } from "./operation/arithmetic-expression-ast.ts";
-import { BinaryExpressionAst } from "./operation/binary-expression-ast.ts";
-import { ComparisonExpressionAst } from "./operation/comparison-expression-ast.ts";
-import { LogicalExpressionAst } from "./operation/logical-expression-ast.ts";
-import { AddressOfExpressionAst } from "./single_value/address-of-expression-ast.ts";
-import { FunctionCallExpressionAst } from "./single_value/function-call-expression-ast.ts";
-import { LiteralValueExpressionAst } from "./single_value/literal-value-expression-ast.ts";
-import { NewExpressionAst } from "./single_value/new-expression-ast.ts";
-import { ParenthesizedExpressionAst } from "./single_value/parenthesized-expression-ast.ts";
-import { StringValueExpressionAst } from "./single_value/string-value-expression-ast.ts";
-import { IndexedValueExpressionAst } from "./storage/indexed-value-expression-ast.ts";
-import { PointerExpressionAst } from "./storage/pointer-expression-ast.ts";
-import { ValueDecompositionExpressionAst } from "./storage/value-decomposition-expression-ast.ts";
-import { VariableNameExpressionAst } from "./storage/variable-name-expression-ast.ts";
-import { UnaryExpressionAst } from "./unary/unary-expression-ast.ts";
+import type { AddressOfExpressionCst, ArithmeticExpressionCst, BinaryExpressionCst, ComparisonExpressionCst, ExpressionCst, FunctionCallExpressionCst, IndexedValueExpressionCst, LiteralValueExpressionCst, LogicalExpressionCst, NewExpressionCst, ParenthesizedExpressionCst, PointerExpressionCst, StringValueExpressionCst, UnaryExpressionCst, ValueDecompositionExpressionCst, VariableNameExpressionCst } from '../../concrete_syntax_tree/expression.type.ts';
+import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
+import type { IExpressionAst } from './i-expression-ast.interface.ts';
+import { ArithmeticExpressionAst } from './operation/arithmetic-expression-ast.ts';
+import { BinaryExpressionAst } from './operation/binary-expression-ast.ts';
+import { ComparisonExpressionAst } from './operation/comparison-expression-ast.ts';
+import { LogicalExpressionAst } from './operation/logical-expression-ast.ts';
+import { AddressOfExpressionAst } from './single_value/address-of-expression-ast.ts';
+import { FunctionCallExpressionAst } from './single_value/function-call-expression-ast.ts';
+import { LiteralValueExpressionAst } from './single_value/literal-value-expression-ast.ts';
+import { NewExpressionAst } from './single_value/new-expression-ast.ts';
+import { ParenthesizedExpressionAst } from './single_value/parenthesized-expression-ast.ts';
+import { StringValueExpressionAst } from './single_value/string-value-expression-ast.ts';
+import { IndexedValueExpressionAst } from './storage/indexed-value-expression-ast.ts';
+import { PointerExpressionAst } from './storage/pointer-expression-ast.ts';
+import { ValueDecompositionExpressionAst } from './storage/value-decomposition-expression-ast.ts';
+import { VariableNameExpressionAst } from './storage/variable-name-expression-ast.ts';
+import { UnaryExpressionAst } from './unary/unary-expression-ast.ts';
 
 export class ExpressionAstBuilder {
     /**

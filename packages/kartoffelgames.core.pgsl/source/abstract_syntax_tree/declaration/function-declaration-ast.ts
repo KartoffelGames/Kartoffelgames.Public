@@ -1,18 +1,18 @@
-import { FunctionDeclarationCst } from "../../concrete_syntax_tree/declaration.type.ts";
-import { PgslDeclarationType } from "../../enum/pgsl-declaration-type.enum.ts";
-import { PgslValueAddressSpace } from "../../enum/pgsl-value-address-space.enum.ts";
+import type { FunctionDeclarationCst } from '../../concrete_syntax_tree/declaration.type.ts';
+import { PgslDeclarationType } from '../../enum/pgsl-declaration-type.enum.ts';
+import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
 import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
-import { PgslInvalidType } from "../type/pgsl-invalid-type.ts";
-import { PgslType } from "../type/pgsl-type.ts";
-import { PgslVoidType } from "../type/pgsl-void-type.ts";
-import { AbstractSyntaxTreeContext } from "../abstract-syntax-tree-context.ts";
-import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
-import { IExpressionAst } from "../expression/i-expression-ast.interface.ts";
+import { PgslInvalidType } from '../type/pgsl-invalid-type.ts';
+import type { PgslType } from '../type/pgsl-type.ts';
+import { PgslVoidType } from '../type/pgsl-void-type.ts';
+import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
+import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
+import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
 import { AttributeListAst } from '../general/attribute-list-ast.ts';
 import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
-import { IValueStoreAst } from "../i-value-store-ast.interface.ts";
+import type { IValueStoreAst } from '../i-value-store-ast.interface.ts';
 import { BlockStatementAst } from '../statement/execution/block-statement-ast.ts';
-import { DeclarationAstData, IDeclarationAst } from "./i-declaration-ast.interface.ts";
+import type { DeclarationAstData, IDeclarationAst } from './i-declaration-ast.interface.ts';
 
 /**
  * PGSL syntax tree for a alias declaration.
@@ -61,7 +61,7 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
 
             pContext.pushScope('function', () => {
                 // Create parameter list.
-                let lParameterList: Array<FunctionDeclarationAstDataParameter> = new Array<FunctionDeclarationAstDataParameter>();
+                const lParameterList: Array<FunctionDeclarationAstDataParameter> = new Array<FunctionDeclarationAstDataParameter>();
                 for (const lParameter of lDeclaration.parameters) {
                     let lParameterData: FunctionDeclarationAstDataParameter;
 
@@ -104,7 +104,7 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                             type: lParameterType,
                             name: lParameter.name,
                             constantValue: null,
-                            accessMode: "read"
+                            accessMode: 'read'
                         }
                     } satisfies IValueStoreAst);
                 }
@@ -113,7 +113,7 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                 const lBlock: BlockStatementAst = new BlockStatementAst(lDeclaration.block).process(pContext);
 
                 // Build return type.
-                let lReturnTypeDeclaration: TypeDeclarationAst | number = (() => {
+                const lReturnTypeDeclaration: TypeDeclarationAst | number = (() => {
                     // Check for generic return type. Generic types arent validated for the block return type.
                     if (typeof lDeclaration.returnType === 'number') {
                         // Validate generic return type index.

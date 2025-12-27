@@ -20,7 +20,7 @@ import { PgslVariableNameExpressionTranspilerProcessor } from './expression/stor
 import { PgslUnaryExpressionTranspilerProcessor } from './expression/unary/pgsl-unary-expression-transpiler-processor.ts';
 import { DocumentAstTranspilerProcessor } from './document-ast-transpiler-processor.ts';
 import { TypeDeclarationAstTranspilerProcessor } from './type-declaration-ast-transpiler-processor.ts';
-import { TypeAstTranspilerProcessor } from "./type-ast-transpiler-processor.ts";
+import { TypeAstTranspilerProcessor } from './type-ast-transpiler-processor.ts';
 import { PgslDoWhileStatementTranspilerProcessor } from './statement/branch/pgsl-do-while-statement-transpiler-processor.ts';
 import { PgslForStatementTranspilerProcessor } from './statement/branch/pgsl-for-statement-transpiler-processor.ts';
 import { PgslIfStatementTranspilerProcessor } from './statement/branch/pgsl-if-statement-transpiler-processor.ts';

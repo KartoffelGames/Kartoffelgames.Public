@@ -14,12 +14,12 @@ import type { PgslType } from '../type/pgsl-type.ts';
 import { PgslVectorType } from '../type/pgsl-vector-type.ts';
 import { PgslVoidType } from '../type/pgsl-void-type.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
-import { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
-import { Cst, TypeDeclarationCst } from "../../concrete_syntax_tree/general.type.ts";
-import { AbstractSyntaxTreeContext } from "../abstract-syntax-tree-context.ts";
-import { AliasDeclarationAst } from "../declaration/alias-declaration-ast.ts";
-import { ExpressionCst } from "../../concrete_syntax_tree/expression.type.ts";
-import { ExpressionAstBuilder } from "../expression/expression-ast-builder.ts";
+import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
+import type { Cst, TypeDeclarationCst } from '../../concrete_syntax_tree/general.type.ts';
+import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
+import type { AliasDeclarationAst } from '../declaration/alias-declaration-ast.ts';
+import type { ExpressionCst } from '../../concrete_syntax_tree/expression.type.ts';
+import { ExpressionAstBuilder } from '../expression/expression-ast-builder.ts';
 
 /**
  * PGSL base type definition.
@@ -179,7 +179,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         })();
 
         // Second length parameter.
-        let lLengthParameter: IExpressionAst | null = (() => {
+        const lLengthParameter: IExpressionAst | null = (() => {
             if (pRawTemplate.length > 1) {
                 const lLengthTemplate: TypeDeclarationAstTemplate | undefined = pRawTemplate[1];
 

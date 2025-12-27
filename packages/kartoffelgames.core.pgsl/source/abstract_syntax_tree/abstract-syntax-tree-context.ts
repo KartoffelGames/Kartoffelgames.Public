@@ -1,15 +1,15 @@
-import { Exception } from "@kartoffelgames/core";
+import { Exception } from '@kartoffelgames/core';
 import type { AbstractSyntaxTree } from './abstract-syntax-tree.ts';
-import { AliasDeclarationAst } from "./declaration/alias-declaration-ast.ts";
-import { EnumDeclarationAst } from "./declaration/enum-declaration-ast.ts";
+import type { AliasDeclarationAst } from './declaration/alias-declaration-ast.ts';
+import type { EnumDeclarationAst } from './declaration/enum-declaration-ast.ts';
 import type { FunctionDeclarationAst } from './declaration/function-declaration-ast.ts';
-import { StructDeclarationAst } from "./declaration/struct-declaration-ast.ts";
+import type { StructDeclarationAst } from './declaration/struct-declaration-ast.ts';
 import type { DocumentAst } from './document-ast.ts';
-import { IValueStoreAst } from "./i-value-store-ast.interface.ts";
-import { DoWhileStatementAst } from "./statement/branch/do-while-statement-ast.ts";
-import { ForStatementAst } from "./statement/branch/for-statement-ast.ts";
-import { WhileStatementAst } from "./statement/branch/while-statement-ast.ts";
-import { SwitchStatementAst } from "./statement/branch/switch-statement-ast.ts";
+import type { IValueStoreAst } from './i-value-store-ast.interface.ts';
+import type { DoWhileStatementAst } from './statement/branch/do-while-statement-ast.ts';
+import type { ForStatementAst } from './statement/branch/for-statement-ast.ts';
+import type { WhileStatementAst } from './statement/branch/while-statement-ast.ts';
+import type { SwitchStatementAst } from './statement/branch/switch-statement-ast.ts';
 
 /**
  * Represents a syntax tree context for building abstract syntax trees.

@@ -1,4 +1,4 @@
-import type { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
+import type { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 import type { AttributeListAst } from '../general/attribute-list-ast.ts';
 
 /**

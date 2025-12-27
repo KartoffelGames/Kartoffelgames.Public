@@ -1,6 +1,6 @@
 import type { IAnyParameterConstructor } from '../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import type { AbstractSyntaxTree } from '../abstract_syntax_tree/abstract-syntax-tree.ts';
-import { TranspilationMeta } from "./transpilation-meta.ts";
+import type { TranspilationMeta } from './transpilation-meta.ts';
 
 export interface ITranspilerProcessor<TTarget extends AbstractSyntaxTree> {
     /**

@@ -3,8 +3,19 @@ import type { StringValueExpressionCst } from '../../concrete_syntax_tree/expres
 
 export class PgslInterpolateTypeEnum {
     /**
-     * Concrete syntax tree representation.
+     * Enum values.
      */
+    public static readonly VALUES = {
+        Perspective: 'perspective',
+        Linear: 'linear',
+        Flat: 'flat'
+    } as const;
+
+    /**
+     * Concrete syntax tree representation.
+     * MUST BE kept under VALUES declaration to avoid initialization order issues.
+     */
+    // eslint-disable-next-line @typescript-eslint/member-ordering
     public static readonly CST: EnumDeclarationCst = (() => {
         return {
             type: 'EnumDeclaration',
@@ -31,15 +42,6 @@ export class PgslInterpolateTypeEnum {
             })
         };
     })();
-    
-    /**
-     * Enum values.
-     */
-    public static readonly VALUES = {
-        Perspective: 'perspective',
-        Linear: 'linear',
-        Flat: 'flat'
-    } as const;
 
     private static mValidValues: Set<string> | null = null;
 

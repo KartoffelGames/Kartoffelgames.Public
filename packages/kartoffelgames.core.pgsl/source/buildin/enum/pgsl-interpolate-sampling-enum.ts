@@ -1,10 +1,23 @@
 import type { EnumDeclarationCst, EnumDeclarationValueCst } from '../../concrete_syntax_tree/declaration.type.ts';
 import type { StringValueExpressionCst } from '../../concrete_syntax_tree/expression.type.ts';
 
-export class PgslInterpolateSamplingEnum {
+export class PgslInterpolateSamplingEnum {    
+    /**
+     * Enum values.
+     */
+    public static readonly VALUES = {
+        Center: 'center',
+        Centroid: 'centroid',
+        Sample: 'sample',
+        First: 'first',
+        Either: 'either'
+    } as const;
+
     /**
      * Concrete syntax tree representation.
+     * MUST BE kept under VALUES declaration to avoid initialization order issues.
      */
+    // eslint-disable-next-line @typescript-eslint/member-ordering
     public static readonly CST: EnumDeclarationCst = (() => {
         return {
             type: 'EnumDeclaration',
@@ -31,17 +44,6 @@ export class PgslInterpolateSamplingEnum {
             })
         };
     })();
-    
-    /**
-     * Enum values.
-     */
-    public static readonly VALUES = {
-        Center: 'center',
-        Centroid: 'centroid',
-        Sample: 'sample',
-        First: 'first',
-        Either: 'either'
-    } as const;
 
     private static mValidValues: Set<string> | null = null;
 

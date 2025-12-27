@@ -1,10 +1,21 @@
 import type { EnumDeclarationCst, EnumDeclarationValueCst } from '../../concrete_syntax_tree/declaration.type.ts';
 import type { StringValueExpressionCst } from '../../concrete_syntax_tree/expression.type.ts';
 
-export class PgslAccessModeEnum {
+export class PgslAccessModeEnum {    
+    /**
+     * Enum values.
+     */
+    public static readonly VALUES = {
+        Read: 'read',
+        Write: 'write',
+        ReadWrite: 'read_write'
+    } as const;
+
     /**
      * Concrete syntax tree representation.
+     * MUST BE kept under VALUES declaration to avoid initialization order issues.
      */
+    // eslint-disable-next-line @typescript-eslint/member-ordering
     public static readonly CST: EnumDeclarationCst = (() => {
         return {
             type: 'EnumDeclaration',
@@ -31,15 +42,6 @@ export class PgslAccessModeEnum {
             })
         };
     })();
-    
-    /**
-     * Enum values.
-     */
-    public static readonly VALUES = {
-        Read: 'read',
-        Write: 'write',
-        ReadWrite: 'read_write'
-    } as const;
 
     private static mValidValues: Set<string> | null = null;
 

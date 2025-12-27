@@ -1,7 +1,7 @@
 import { FunctionCallStatementAst } from '../../../../abstract_syntax_tree/statement/execution/function-call-statement-ast.ts';
-import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
+import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslFunctionCallStatementTranspilerProcessor implements IPgslTranspilerProcessor<FunctionCallStatementAst> {
+export class PgslFunctionCallStatementTranspilerProcessor implements ITranspilerProcessor<FunctionCallStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

@@ -1,5 +1,5 @@
 import { AliasDeclarationCst } from "../../concrete_syntax_tree/declaration.type.ts";
-import type { PgslType } from '../../type/pgsl-type.ts';
+import type { PgslType } from '../type/pgsl-type.ts';
 import { AbstractSyntaxTreeContext } from "../abstract-syntax-tree-context.ts";
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 import { AttributeListAst } from '../general/attribute-list-ast.ts';

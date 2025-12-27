@@ -1,7 +1,7 @@
 import { DiscardStatementAst } from '../../../../abstract_syntax_tree/statement/single/discard-statement-ast.ts';
-import type { IPgslTranspilerProcessor } from '../../../i-pgsl-transpiler-processor.interface.ts';
+import type { ITranspilerProcessor } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslDiscardStatementTranspilerProcessor implements IPgslTranspilerProcessor<DiscardStatementAst> {
+export class PgslDiscardStatementTranspilerProcessor implements ITranspilerProcessor<DiscardStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

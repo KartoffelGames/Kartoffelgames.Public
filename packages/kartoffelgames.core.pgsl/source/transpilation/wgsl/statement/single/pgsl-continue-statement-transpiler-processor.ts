@@ -1,7 +1,7 @@
 import { ContinueStatementAst } from '../../../../abstract_syntax_tree/statement/single/continue-statement-ast.ts';
-import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
+import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslContinueStatementTranspilerProcessor implements IPgslTranspilerProcessor<ContinueStatementAst> {
+export class PgslContinueStatementTranspilerProcessor implements ITranspilerProcessor<ContinueStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

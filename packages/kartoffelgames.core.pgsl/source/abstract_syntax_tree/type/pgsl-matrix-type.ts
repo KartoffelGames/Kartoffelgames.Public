@@ -1,5 +1,5 @@
 import { Exception } from "@kartoffelgames/core";
-import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
+import { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 import { PgslVectorType } from './pgsl-vector-type.ts';

@@ -3,9 +3,9 @@ import { FunctionDeclarationAst } from "../../abstract_syntax_tree/declaration/f
 import { StructDeclarationAst } from "../../abstract_syntax_tree/declaration/struct-declaration-ast.ts";
 import { VariableDeclarationAst } from "../../abstract_syntax_tree/declaration/variable-declaration-ast.ts";
 import { DocumentAst } from '../../abstract_syntax_tree/document-ast.ts';
-import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../i-pgsl-transpiler-processor.interface.ts';
+import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../i-transpiler-processor.interface.ts';
 
-export class PgslDocumentTranspilerProcessor implements IPgslTranspilerProcessor<DocumentAst> {
+export class DocumentAstTranspilerProcessor implements ITranspilerProcessor<DocumentAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

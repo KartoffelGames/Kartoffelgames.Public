@@ -1,12 +1,12 @@
 import { VariableDeclarationAst } from "../../../abstract_syntax_tree/declaration/variable-declaration-ast.ts";
-import { PgslAccessModeEnum } from "../../../buildin/pgsl-access-mode-enum.ts";
+import { PgslSamplerType } from "../../../abstract_syntax_tree/type/pgsl-sampler-type.ts";
+import { PgslTextureType } from "../../../abstract_syntax_tree/type/pgsl-texture-type.ts";
+import { PgslAccessModeEnum } from "../../../buildin/enum/pgsl-access-mode-enum.ts";
 import { PgslDeclarationType } from '../../../enum/pgsl-declaration-type.enum.ts';
-import { PgslSamplerType } from '../../../type/pgsl-sampler-type.ts';
-import { PgslTextureType } from '../../../type/pgsl-texture-type.ts';
-import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-pgsl-transpiler-processor.interface.ts';
-import { PgslTranspilationMeta, PgslTranspilationMetaBinding } from "../../pgsl-transpilation-meta.ts";
+import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-transpiler-processor.interface.ts';
+import { TranspilationMeta, TranspilationMetaBinding } from "../../transpilation-meta.ts";
 
-export class PgslVariableDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<VariableDeclarationAst> {
+export class VariableDeclarationAstTranspilerProcessor implements ITranspilerProcessor<VariableDeclarationAst> {
     /**
      * Gets the target class this processor can handle.
      * 
@@ -24,7 +24,7 @@ export class PgslVariableDeclarationTranspilerProcessor implements IPgslTranspil
      * @param pSendResult - The function to send the transpiled result.
      * @param pTranspile - The function to transpile expressions.
      */
-    public process(pInstance: VariableDeclarationAst, pTranspile: PgslTranspilerProcessorTranspile, pTranspilationMeta: PgslTranspilationMeta): string {
+    public process(pInstance: VariableDeclarationAst, pTranspile: PgslTranspilerProcessorTranspile, pTranspilationMeta: TranspilationMeta): string {
         // Get type, resolving any aliases.
         const lDeclarationTypeString = ((): string => {
             // When the type is a texture or sampler, we ignore the declaration type and use var without address space.
@@ -63,12 +63,12 @@ export class PgslVariableDeclarationTranspilerProcessor implements IPgslTranspil
 
         // Transpile binding attribute.
         const lBindingAttribute: string = (() => {
-            if(!pInstance.data.bindingInformation) {
+            if (!pInstance.data.bindingInformation) {
                 return '';
             }
 
             // Create binding information for this variable declaration.
-            const lValueTrace: PgslTranspilationMetaBinding = pTranspilationMeta.createBindingFor(pInstance);
+            const lValueTrace: TranspilationMetaBinding = pTranspilationMeta.createBindingFor(pInstance);
 
             return `@group(${lValueTrace.bindGroupIndex})@binding(${lValueTrace.bindingIndex})`;
         })();

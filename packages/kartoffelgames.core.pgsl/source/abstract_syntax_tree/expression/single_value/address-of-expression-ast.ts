@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
-import { PgslPointerType } from '../../../type/pgsl-pointer-type.ts';
-import type { PgslType } from '../../../type/pgsl-type.ts';
+import { PgslPointerType } from '../../type/pgsl-pointer-type.ts';
+import type { PgslType } from '../../type/pgsl-type.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 import type { AddressOfExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';

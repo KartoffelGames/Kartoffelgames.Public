@@ -5,14 +5,12 @@ import { AddressOfExpressionAst } from "../../../source/abstract_syntax_tree/exp
 import { VariableDeclarationStatementAst } from "../../../source/abstract_syntax_tree/statement/execution/variable-declaration-statement-ast.ts";
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import { PgslParserResult } from "../../../source/parser_result/pgsl-parser-result.ts";
-import { PgslArrayType } from "../../../source/type/pgsl-array-type.ts";
-import { PgslNumericType } from '../../../source/type/pgsl-numeric-type.ts';
-import { PgslPointerType } from "../../../source/type/pgsl-pointer-type.ts";
 import { WgslTranspiler } from "../../../source/transpilation/wgsl/wgsl-transpiler.ts";
 import { AttributeListAst } from "../../../source/abstract_syntax_tree/general/attribute-list-ast.ts";
-import { PgslTextureType } from "../../../source/type/pgsl-texture-type.ts";
-import { PgslTexelFormatEnum } from "../../../source/buildin/pgsl-texel-format-enum.ts";
-import { PgslSamplerType } from "../../../source/type/pgsl-sampler-type.ts";
+import { PgslArrayType } from "../../../source/abstract_syntax_tree/type/pgsl-array-type.ts";
+import { PgslNumericType } from "../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts";
+import { PgslPointerType } from "../../../source/abstract_syntax_tree/type/pgsl-pointer-type.ts";
+import { PgslSamplerType } from "../../../source/abstract_syntax_tree/type/pgsl-sampler-type.ts";
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();

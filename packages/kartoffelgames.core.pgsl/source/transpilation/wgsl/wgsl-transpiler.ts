@@ -1,8 +1,8 @@
-import { PgslTranspilation } from '../pgsl-transpilation.ts';
-import { PgslFunctionDeclarationTranspilerProcessor } from './declaration/pgsl-function-declaration-transpiler-processor.ts';
-import { PgslStructDeclarationTranspilerProcessor } from './declaration/pgsl-struct-declaration-transpiler-processor.ts';
-import { PgslStructPropertyDeclarationTranspilerProcessor } from './declaration/pgsl-struct-property-declaration-transpiler-processor.ts';
-import { PgslVariableDeclarationTranspilerProcessor } from './declaration/pgsl-variable-declaration-transpiler-processor.ts';
+import { Transpiler } from '../transpiler.ts';
+import { FunctionDeclarationAstTranspilerProcessor } from './declaration/function-declaration-ast-transpiler-processor.ts';
+import { StructDeclarationAstTranspilerProcessor } from './declaration/struct-declaration-ast-transpiler-processor.ts';
+import { StructPropertyDeclarationAstTranspilerProcessor } from './declaration/struct-property-ast-declaration-transpiler-processor.ts';
+import { VariableDeclarationAstTranspilerProcessor } from './declaration/variable-declaration-ast-transpiler-processor.ts';
 import { PgslArithmeticExpressionTranspilerProcessor } from './expression/operation/pgsl-arithmetic-expression-transpiler-processor.ts';
 import { PgslBinaryExpressionTranspilerProcessor } from './expression/operation/pgsl-binary-expression-transpiler-processor.ts';
 import { PgslComparisonExpressionTranspilerProcessor } from './expression/operation/pgsl-comparison-expression-transpiler-processor.ts';
@@ -18,9 +18,9 @@ import { PgslPointerExpressionTranspilerProcessor } from './expression/storage/p
 import { PgslValueDecompositionExpressionTranspilerProcessor } from './expression/storage/pgsl-value-decomposition-expression-transpiler-processor.ts';
 import { PgslVariableNameExpressionTranspilerProcessor } from './expression/storage/pgsl-variable-name-expression-transpiler-processor.ts';
 import { PgslUnaryExpressionTranspilerProcessor } from './expression/unary/pgsl-unary-expression-transpiler-processor.ts';
-import { PgslDocumentTranspilerProcessor } from './pgsl-document-transpiler-processor.ts';
-import { PgslTypeDeclarationTranspilerProcessor } from './pgsl-type-declaration-transpiler-processor.ts';
-import { PgslTypeTranspilerProcessor } from "./pgsl-type-transpiler-processor.ts";
+import { DocumentAstTranspilerProcessor } from './document-ast-transpiler-processor.ts';
+import { TypeDeclarationAstTranspilerProcessor } from './type-declaration-ast-transpiler-processor.ts';
+import { TypeAstTranspilerProcessor } from "./type-ast-transpiler-processor.ts";
 import { PgslDoWhileStatementTranspilerProcessor } from './statement/branch/pgsl-do-while-statement-transpiler-processor.ts';
 import { PgslForStatementTranspilerProcessor } from './statement/branch/pgsl-for-statement-transpiler-processor.ts';
 import { PgslIfStatementTranspilerProcessor } from './statement/branch/pgsl-if-statement-transpiler-processor.ts';
@@ -41,7 +41,7 @@ import { PgslReturnStatementTranspilerProcessor } from './statement/single/pgsl-
  * Converts PGSL abstract syntax trees into WGSL shader code that can be
  * executed on WebGPU-compatible devices.
  */
-export class WgslTranspiler extends PgslTranspilation {
+export class WgslTranspiler extends Transpiler {
     /**
      * Creates a new WGSL transpiler instance.
      * Initializes all transpilation processors specific to WGSL code generation.
@@ -50,17 +50,17 @@ export class WgslTranspiler extends PgslTranspilation {
         super();
 
         // Define transpilation processors for all node types.
-        this.addProcessor(new PgslDocumentTranspilerProcessor());
+        this.addProcessor(new DocumentAstTranspilerProcessor());
 
         // Declarations. Alias has no transpilation processor, it is only used during trace.
-        this.addProcessor(new PgslVariableDeclarationTranspilerProcessor());
-        this.addProcessor(new PgslFunctionDeclarationTranspilerProcessor());
-        this.addProcessor(new PgslStructDeclarationTranspilerProcessor());
-        this.addProcessor(new PgslStructPropertyDeclarationTranspilerProcessor());
+        this.addProcessor(new VariableDeclarationAstTranspilerProcessor());
+        this.addProcessor(new FunctionDeclarationAstTranspilerProcessor());
+        this.addProcessor(new StructDeclarationAstTranspilerProcessor());
+        this.addProcessor(new StructPropertyDeclarationAstTranspilerProcessor());
 
         // General. Attributes have no transpilation processor, they are only used during trace.
-        this.addProcessor(new PgslTypeDeclarationTranspilerProcessor());
-        this.addProcessor(new PgslTypeTranspilerProcessor());
+        this.addProcessor(new TypeDeclarationAstTranspilerProcessor());
+        this.addProcessor(new TypeAstTranspilerProcessor());
 
         // Expressions - Operations
         this.addProcessor(new PgslArithmeticExpressionTranspilerProcessor());

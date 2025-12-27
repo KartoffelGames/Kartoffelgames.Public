@@ -1,8 +1,8 @@
 import type { IAnyParameterConstructor } from '../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import type { AbstractSyntaxTree } from '../abstract_syntax_tree/abstract-syntax-tree.ts';
-import { PgslTranspilationMeta } from "./pgsl-transpilation-meta.ts";
+import { TranspilationMeta } from "./transpilation-meta.ts";
 
-export interface IPgslTranspilerProcessor<TTarget extends AbstractSyntaxTree> {
+export interface ITranspilerProcessor<TTarget extends AbstractSyntaxTree> {
     /**
      * The target abstract syntax tree constructor that this processor handles.
      */
@@ -19,7 +19,7 @@ export interface IPgslTranspilerProcessor<TTarget extends AbstractSyntaxTree> {
      * 
      * @template T - The specific syntax tree node type being transpiled.
      */
-    process(pInstance: TTarget, pTranspile: PgslTranspilerProcessorTranspile, pMeta: PgslTranspilationMeta): string;
+    process(pInstance: TTarget, pTranspile: PgslTranspilerProcessorTranspile, pMeta: TranspilationMeta): string;
 }
 
 /**

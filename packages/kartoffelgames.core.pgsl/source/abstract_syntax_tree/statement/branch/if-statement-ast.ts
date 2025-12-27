@@ -1,5 +1,5 @@
 import type { IfStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
-import { PgslBooleanType } from '../../../type/pgsl-boolean-type.ts';
+import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
 import { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';

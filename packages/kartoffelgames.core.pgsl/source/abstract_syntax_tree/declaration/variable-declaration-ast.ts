@@ -1,12 +1,12 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
-import { PgslAccessMode, PgslAccessModeEnum } from "../../buildin/pgsl-access-mode-enum.ts";
+import { PgslAccessMode, PgslAccessModeEnum } from "../../buildin/enum/pgsl-access-mode-enum.ts";
 import { VariableDeclarationCst } from "../../concrete_syntax_tree/declaration.type.ts";
 import { PgslDeclarationType } from '../../enum/pgsl-declaration-type.enum.ts';
 import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
 import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
-import { PgslSamplerType } from '../../type/pgsl-sampler-type.ts';
-import { PgslTextureType } from '../../type/pgsl-texture-type.ts';
-import type { PgslType } from '../../type/pgsl-type.ts';
+import { PgslSamplerType } from '../type/pgsl-sampler-type.ts';
+import { PgslTextureType } from '../type/pgsl-texture-type.ts';
+import type { PgslType } from '../type/pgsl-type.ts';
 import { AbstractSyntaxTreeContext } from "../abstract-syntax-tree-context.ts";
 import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
 import { AttributeListAst } from '../general/attribute-list-ast.ts';
@@ -15,7 +15,7 @@ import { ValueStoreAstData, IValueStoreAst } from "../i-value-store-ast.interfac
 import { DeclarationAstData, IDeclarationAst } from './i-declaration-ast.interface.ts';
 import { ExpressionAstBuilder } from "../expression/expression-ast-builder.ts";
 import { IExpressionAst } from "../expression/i-expression-ast.interface.ts";
-import { PgslPointerType } from "../../type/pgsl-pointer-type.ts";
+import { PgslPointerType } from "../type/pgsl-pointer-type.ts";
 
 /**
  * PGSL syntax tree for a alias declaration.

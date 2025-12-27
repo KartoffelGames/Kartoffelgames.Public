@@ -1,11 +1,11 @@
 import { StructPropertyDeclarationAst } from '../../../abstract_syntax_tree/declaration/struct-property-declaration-ast.ts';
-import { PgslInterpolateSamplingEnum } from "../../../buildin/pgsl-interpolate-sampling-enum.ts";
-import { PgslInterpolateTypeEnum } from "../../../buildin/pgsl-interpolate-type-enum.ts";
-import { PgslBuildInType } from '../../../type/pgsl-build-in-type.ts';
-import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-pgsl-transpiler-processor.interface.ts';
-import { PgslTranspilationMeta } from "../../pgsl-transpilation-meta.ts";
+import { PgslBuildInType } from "../../../abstract_syntax_tree/type/pgsl-build-in-type.ts";
+import { PgslInterpolateSamplingEnum } from "../../../buildin/enum/pgsl-interpolate-sampling-enum.ts";
+import { PgslInterpolateTypeEnum } from "../../../buildin/enum/pgsl-interpolate-type-enum.ts";
+import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-transpiler-processor.interface.ts';
+import { TranspilationMeta } from "../../transpilation-meta.ts";
 
-export class PgslStructPropertyDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<StructPropertyDeclarationAst> {
+export class StructPropertyDeclarationAstTranspilerProcessor implements ITranspilerProcessor<StructPropertyDeclarationAst> {
     /**
      * Returns the target type for this processor.
      */
@@ -21,7 +21,7 @@ export class PgslStructPropertyDeclarationTranspilerProcessor implements IPgslTr
      * @param pSendResult - Function to send the result.
      * @param pTranspile - Function to transpile child nodes.
      */
-    public process(pInstance: StructPropertyDeclarationAst, pTranspile: PgslTranspilerProcessorTranspile, pTranspilationMeta: PgslTranspilationMeta): string {
+    public process(pInstance: StructPropertyDeclarationAst, pTranspile: PgslTranspilerProcessorTranspile, pTranspilationMeta: TranspilationMeta): string {
         // Transpile property type.
         const lTypeTranspilation: string = pTranspile(pInstance.data.typeDeclaration);
 

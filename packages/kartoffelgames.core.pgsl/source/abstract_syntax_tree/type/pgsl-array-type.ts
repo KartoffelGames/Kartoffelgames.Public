@@ -1,8 +1,8 @@
-import { PgslValueFixedState } from '../enum/pgsl-value-fixed-state.ts';
-import type { IExpressionAst } from '../abstract_syntax_tree/expression/i-expression-ast.interface.ts';
+import { PgslValueFixedState } from "../../enum/pgsl-value-fixed-state.ts";
+import { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
+import { IExpressionAst } from "../expression/i-expression-ast.interface.ts";
 import { PgslNumericType } from './pgsl-numeric-type.ts';
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
-import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
 
 /**
  * Array type definition.

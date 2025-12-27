@@ -1,7 +1,7 @@
 import { ComparisonExpressionAst } from '../../../../abstract_syntax_tree/expression/operation/comparison-expression-ast.ts';
-import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
+import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslComparisonExpressionTranspilerProcessor implements IPgslTranspilerProcessor<ComparisonExpressionAst> {
+export class PgslComparisonExpressionTranspilerProcessor implements ITranspilerProcessor<ComparisonExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

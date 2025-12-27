@@ -2,12 +2,11 @@ import { expect } from '@kartoffelgames/core-test';
 import { AnyConstructor } from "@std/expect/expect";
 import { AliasDeclarationAst } from '../../../source/abstract_syntax_tree/declaration/alias-declaration-ast.ts';
 import { DocumentAst } from "../../../source/abstract_syntax_tree/document-ast.ts";
+import { PgslNumericType } from "../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts";
+import { PgslType } from "../../../source/abstract_syntax_tree/type/pgsl-type.ts";
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
-import { PgslNumericType } from '../../../source/type/pgsl-numeric-type.ts';
-import { PgslType } from "../../../source/type/pgsl-type.ts";
-
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();
@@ -392,7 +391,7 @@ Deno.test('AliasDeclarationAst - Error', async (pContext) => {
         )).toBe(true);
         expect(lTranspilationResult.incidents.some(pIncident =>
             pIncident.message.includes('Variable "NotANumber" not defined.')
-        )).toBe(true); 
+        )).toBe(true);
     });
 
     await pContext.step('Duplicate alias names', () => {

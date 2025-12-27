@@ -3,18 +3,18 @@ import { StructDeclarationAst } from "../abstract_syntax_tree/declaration/struct
 import { StructPropertyDeclarationAst } from "../abstract_syntax_tree/declaration/struct-property-declaration-ast.ts";
 import { VariableDeclarationAst } from "../abstract_syntax_tree/declaration/variable-declaration-ast.ts";
 
-export class PgslTranspilationMeta {
+export class TranspilationMeta {
     private readonly mStructLocations: Map<StructDeclarationAst, Map<StructPropertyDeclarationAst, number>>;
-    private readonly mBindings: Map<VariableDeclarationAst, PgslTranspilationMetaBinding>;
-    private readonly mBindingNameResolutions: Map<string, PgslTranspilationMetaBindingNameResolutions>;
+    private readonly mBindings: Map<VariableDeclarationAst, TranspilationMetaBinding>;
+    private readonly mBindingNameResolutions: Map<string, TranspilationMetaBindingNameResolutions>;
 
     /**
      * Creates a new transpilation meta instance.
      */
     public constructor() {
         this.mStructLocations = new Map<StructDeclarationAst, Map<StructPropertyDeclarationAst, number>>();
-        this.mBindings = new Map<VariableDeclarationAst, PgslTranspilationMetaBinding>();
-        this.mBindingNameResolutions = new Map<string, PgslTranspilationMetaBindingNameResolutions>();
+        this.mBindings = new Map<VariableDeclarationAst, TranspilationMetaBinding>();
+        this.mBindingNameResolutions = new Map<string, TranspilationMetaBindingNameResolutions>();
     }
 
     /**
@@ -39,8 +39,8 @@ export class PgslTranspilationMeta {
      * 
      * @returns Binding information or null if not found. 
      */
-    public bindingOf(pVariable: VariableDeclarationAst): PgslTranspilationMetaBinding | null {
-        const lBinding: PgslTranspilationMetaBinding | undefined = this.mBindings.get(pVariable);
+    public bindingOf(pVariable: VariableDeclarationAst): TranspilationMetaBinding | null {
+        const lBinding: TranspilationMetaBinding | undefined = this.mBindings.get(pVariable);
         if (!lBinding) {
             return null;
         }
@@ -80,14 +80,14 @@ export class PgslTranspilationMeta {
      *
      * @param pValue - The value of the variable.
      */
-    public createBindingFor(pValue: VariableDeclarationAst): PgslTranspilationMetaBinding {
+    public createBindingFor(pValue: VariableDeclarationAst): TranspilationMetaBinding {
         if (!pValue.data.bindingInformation) {
             throw new Exception(`Cannot create binding for variable declaration '${pValue.data.name}' without binding information.`, pValue);
         }
 
         // Create resolved bindings if value is a resource.
         if (!this.mBindings.has(pValue)) {
-            const lBinding: PgslTranspilationMetaBinding = this.resolveBinding(pValue.data.bindingInformation.bindGroupName, pValue.data.bindingInformation.bindLocationName);
+            const lBinding: TranspilationMetaBinding = this.resolveBinding(pValue.data.bindingInformation.bindGroupName, pValue.data.bindingInformation.bindLocationName);
             this.mBindings.set(pValue, lBinding);
         }
 
@@ -102,7 +102,7 @@ export class PgslTranspilationMeta {
      *
      * @returns The resolved binding information.
      */
-    private resolveBinding(pBindGroupName: string, pBindingName: string): PgslTranspilationMetaBinding {
+    private resolveBinding(pBindGroupName: string, pBindingName: string): TranspilationMetaBinding {
         // Create a new bind group index or read existing one.
         let lBindGroupIndex: number | null = this.mBindingNameResolutions.get(pBindGroupName)?.index ?? null;
         if (lBindGroupIndex === null) {
@@ -136,12 +136,12 @@ export class PgslTranspilationMeta {
     }
 }
 
-export type PgslTranspilationMetaBinding = {
+export type TranspilationMetaBinding = {
     readonly bindGroupIndex: number;
     readonly bindingIndex: number;
 };
 
-export type PgslTranspilationMetaBindingNameResolutions = {
+export type TranspilationMetaBindingNameResolutions = {
     index: number;
     locations: Map<string, number>;
 };

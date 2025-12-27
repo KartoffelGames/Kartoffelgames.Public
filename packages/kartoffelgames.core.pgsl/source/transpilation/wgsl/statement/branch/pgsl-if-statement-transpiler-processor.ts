@@ -1,7 +1,7 @@
 import { IfStatementAst } from '../../../../abstract_syntax_tree/statement/branch/if-statement-ast.ts';
-import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
+import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslIfStatementTranspilerProcessor implements IPgslTranspilerProcessor<IfStatementAst> {
+export class PgslIfStatementTranspilerProcessor implements ITranspilerProcessor<IfStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

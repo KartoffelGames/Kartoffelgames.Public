@@ -1,7 +1,7 @@
 import { ReturnStatementAst } from '../../../../abstract_syntax_tree/statement/single/return-statement-ast.ts';
-import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
+import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslReturnStatementTranspilerProcessor implements IPgslTranspilerProcessor<ReturnStatementAst> {
+export class PgslReturnStatementTranspilerProcessor implements ITranspilerProcessor<ReturnStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

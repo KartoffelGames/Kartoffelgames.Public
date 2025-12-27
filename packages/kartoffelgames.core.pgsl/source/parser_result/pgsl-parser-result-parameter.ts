@@ -1,8 +1,8 @@
 import { Exception } from "@kartoffelgames/core";
 import { VariableDeclarationAst } from "../abstract_syntax_tree/declaration/variable-declaration-ast.ts";
-import { PgslBooleanType } from "../type/pgsl-boolean-type.ts";
-import { PgslNumericType } from "../type/pgsl-numeric-type.ts";
-import type { PgslType } from '../type/pgsl-type.ts';
+import { PgslBooleanType } from "../abstract_syntax_tree/type/pgsl-boolean-type.ts";
+import { PgslNumericType } from "../abstract_syntax_tree/type/pgsl-numeric-type.ts";
+import { PgslType } from "../abstract_syntax_tree/type/pgsl-type.ts";
 import { PgslParserResultBooleanType } from "./type/pgsl-parser-result-boolean-type.ts";
 import { PgslParserResultNumericType } from "./type/pgsl-parser-result-numeric-type.ts";
 import { PgslParserResultType } from './type/pgsl-parser-result-type.ts';

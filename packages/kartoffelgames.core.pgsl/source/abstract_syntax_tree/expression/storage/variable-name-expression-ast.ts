@@ -1,8 +1,8 @@
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
-import { PgslEnumType } from '../../../type/pgsl-enum-type.ts';
-import { PgslInvalidType } from '../../../type/pgsl-invalid-type.ts';
-import type { PgslType } from '../../../type/pgsl-type.ts';
+import { PgslEnumType } from '../../type/pgsl-enum-type.ts';
+import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';
+import type { PgslType } from '../../type/pgsl-type.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 import type { VariableNameExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';

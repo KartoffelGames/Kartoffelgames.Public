@@ -1,7 +1,7 @@
 import { BinaryExpressionAst } from '../../../../abstract_syntax_tree/expression/operation/binary-expression-ast.ts';
-import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
+import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslBinaryExpressionTranspilerProcessor implements IPgslTranspilerProcessor<BinaryExpressionAst> {
+export class PgslBinaryExpressionTranspilerProcessor implements ITranspilerProcessor<BinaryExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

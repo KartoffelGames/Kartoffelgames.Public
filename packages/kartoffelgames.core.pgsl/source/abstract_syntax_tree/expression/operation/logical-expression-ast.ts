@@ -1,7 +1,7 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
-import { PgslBooleanType } from '../../../type/pgsl-boolean-type.ts';
+import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 import type { LogicalExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';

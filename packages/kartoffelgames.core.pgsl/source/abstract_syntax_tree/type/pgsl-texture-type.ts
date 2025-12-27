@@ -1,9 +1,9 @@
 import { Exception } from "@kartoffelgames/core";
-import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
-import { IExpressionAst } from "../abstract_syntax_tree/expression/i-expression-ast.interface.ts";
-import { TypeDeclarationAst } from '../abstract_syntax_tree/general/type-declaration-ast.ts';
-import { PgslAccessMode, PgslAccessModeEnum } from "../buildin/pgsl-access-mode-enum.ts";
-import { PgslTexelFormat, PgslTexelFormatEnum } from "../buildin/pgsl-texel-format-enum.ts";
+import { PgslAccessMode, PgslAccessModeEnum } from "../../buildin/enum/pgsl-access-mode-enum.ts";
+import { PgslTexelFormat, PgslTexelFormatEnum } from "../../buildin/enum/pgsl-texel-format-enum.ts";
+import { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
+import { IExpressionAst } from "../expression/i-expression-ast.interface.ts";
+import { TypeDeclarationAst } from "../general/type-declaration-ast.ts";
 import { PgslNumericType } from './pgsl-numeric-type.ts';
 import { PgslStringType } from "./pgsl-string-type.ts";
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
@@ -109,7 +109,7 @@ export class PgslTextureType extends PgslType {
 
     private readonly mTemplateList: Array<IExpressionAst | TypeDeclarationAst>;
     private readonly mTextureType: PgslTextureTypeName;
-    private mTextureTypeParameter: PgslTextureTypeParameter | null
+    private mTextureTypeParameter: PgslTextureTypeParameter | null;
 
     /**
      * Gets the texture type variant.
@@ -126,7 +126,7 @@ export class PgslTextureType extends PgslType {
      * @returns The texel format.
      */
     public get format(): PgslTexelFormat {
-        if(!this.mTextureTypeParameter) {
+        if (!this.mTextureTypeParameter) {
             throw new Exception('Texture type parameter is not initialized.', this);
         }
         return this.mTextureTypeParameter.format;
@@ -138,7 +138,7 @@ export class PgslTextureType extends PgslType {
      * @returns The sampled type.
      */
     public get sampledType(): PgslType {
-        if(!this.mTextureTypeParameter) {
+        if (!this.mTextureTypeParameter) {
             throw new Exception('Texture type parameter is not initialized.', this);
         }
         return this.mTextureTypeParameter.sampledType;
@@ -150,7 +150,7 @@ export class PgslTextureType extends PgslType {
      * @returns The access mode.
      */
     public get access(): PgslAccessMode {
-        if(!this.mTextureTypeParameter) {
+        if (!this.mTextureTypeParameter) {
             throw new Exception('Texture type parameter is not initialized.', this);
         }
         return this.mTextureTypeParameter.access;
@@ -295,7 +295,7 @@ export class PgslTextureType extends PgslType {
                 case 'type': {
                     if (!(lActualParameterValue instanceof TypeDeclarationAst)) {
                         pContext.pushIncident(`Texture template parameter ${lTemplateIndex + 1} must be a type declaration.`);
-                        continue
+                        continue;
                     }
                     break;
                 }
@@ -304,10 +304,10 @@ export class PgslTextureType extends PgslType {
                         pContext.pushIncident(`Texture template parameter ${lTemplateIndex + 1} must be a string value expression.`);
                         continue;
                     }
-                
+
                     if (!(lActualParameterValue.data.resolveType instanceof PgslStringType)) {
                         pContext.pushIncident(`Texture template parameter ${lTemplateIndex + 1} must be a string value expression.`);
-                        continue
+                        continue;
                     }
                     break;
                 }

@@ -1,8 +1,8 @@
 import { StructDeclarationAst } from '../../../abstract_syntax_tree/declaration/struct-declaration-ast.ts';
 import type { StructPropertyDeclarationAst } from '../../../abstract_syntax_tree/declaration/struct-property-declaration-ast.ts';
-import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-pgsl-transpiler-processor.interface.ts';
+import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-transpiler-processor.interface.ts';
 
-export class PgslStructDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<StructDeclarationAst> {
+export class StructDeclarationAstTranspilerProcessor implements ITranspilerProcessor<StructDeclarationAst> {
     /**
      * Returns the target type for this processor.
      */

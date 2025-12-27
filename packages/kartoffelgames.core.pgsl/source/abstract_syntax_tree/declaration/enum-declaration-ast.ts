@@ -1,8 +1,8 @@
 import { EnumDeclarationCst } from "../../concrete_syntax_tree/declaration.type.ts";
-import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';
-import { PgslNumericType } from '../../type/pgsl-numeric-type.ts';
-import { PgslStringType } from '../../type/pgsl-string-type.ts';
-import type { PgslType } from '../../type/pgsl-type.ts';
+import { PgslInvalidType } from '../type/pgsl-invalid-type.ts';
+import { PgslNumericType } from '../type/pgsl-numeric-type.ts';
+import { PgslStringType } from '../type/pgsl-string-type.ts';
+import type { PgslType } from '../type/pgsl-type.ts';
 import { AbstractSyntaxTreeContext } from "../abstract-syntax-tree-context.ts";
 import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
 import { ExpressionAstBuilder } from "../expression/expression-ast-builder.ts";

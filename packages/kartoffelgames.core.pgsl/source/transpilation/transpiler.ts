@@ -1,7 +1,7 @@
 import type { IAnyParameterConstructor } from '../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import type { AbstractSyntaxTree } from '../abstract_syntax_tree/abstract-syntax-tree.ts';
-import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from './i-pgsl-transpiler-processor.interface.ts';
-import { PgslTranspilationMeta } from "./pgsl-transpilation-meta.ts";
+import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from './i-transpiler-processor.interface.ts';
+import { TranspilationMeta } from "./transpilation-meta.ts";
 
 // TODO: How to generate a sourcemap. https://sourcemaps.info/spec.html
 
@@ -10,15 +10,15 @@ import { PgslTranspilationMeta } from "./pgsl-transpilation-meta.ts";
  * This class provides transpilation services for all PGSL syntax tree nodes,
  * converting them into the appropriate target language representation.
  */
-export class PgslTranspilation {
-    private readonly mTranspilationProcessors: Map<PgslSyntaxTreeConstructor, IPgslTranspilerProcessor<AbstractSyntaxTree>>;
+export class Transpiler {
+    private readonly mTranspilationProcessors: Map<PgslSyntaxTreeConstructor, ITranspilerProcessor<AbstractSyntaxTree>>;
 
     /**
      * Creates a new PGSL syntax tree transpiler.
      * Initializes all transpilation processors for different syntax tree node types.
      */
     public constructor() {
-        this.mTranspilationProcessors = new Map<PgslSyntaxTreeConstructor, IPgslTranspilerProcessor<AbstractSyntaxTree>>();
+        this.mTranspilationProcessors = new Map<PgslSyntaxTreeConstructor, ITranspilerProcessor<AbstractSyntaxTree>>();
     }
 
     /**
@@ -33,12 +33,12 @@ export class PgslTranspilation {
      */
     public transpile(pInstance: AbstractSyntaxTree): PgslTranspilationResult {
         // Create transpilation meta object.
-        const lTranspilationMeta: PgslTranspilationMeta = new PgslTranspilationMeta();
+        const lTranspilationMeta: TranspilationMeta = new TranspilationMeta();
 
         // Create callbacks.
         const lTranspile: PgslTranspilerProcessorTranspile = (pInstance: AbstractSyntaxTree): string => {
             // Read processor for the instance.
-            const lProcessor: IPgslTranspilerProcessor<AbstractSyntaxTree> | undefined = this.mTranspilationProcessors.get(pInstance.constructor as PgslSyntaxTreeConstructor);
+            const lProcessor: ITranspilerProcessor<AbstractSyntaxTree> | undefined = this.mTranspilationProcessors.get(pInstance.constructor as PgslSyntaxTreeConstructor);
             if (!lProcessor) {
                 throw new Error(`No transpilation processor found for syntax tree of type '${pInstance.constructor.name}'.`);
             }
@@ -64,10 +64,10 @@ export class PgslTranspilation {
      *
      * @template T - The specific syntax tree type that extends BasePgslSyntaxTree.
      */
-    public addProcessor<T extends AbstractSyntaxTree>(pProcessor: IPgslTranspilerProcessor<T>): void {
+    public addProcessor<T extends AbstractSyntaxTree>(pProcessor: ITranspilerProcessor<T>): void {
         if (Array.isArray(pProcessor.target)) {
             for (const lTarget of pProcessor.target) {
-                this.mTranspilationProcessors.set(lTarget, pProcessor as IPgslTranspilerProcessor<AbstractSyntaxTree>);
+                this.mTranspilationProcessors.set(lTarget, pProcessor as ITranspilerProcessor<AbstractSyntaxTree>);
             }
         } else {
             this.mTranspilationProcessors.set(pProcessor.target, pProcessor);
@@ -86,5 +86,5 @@ type PgslSyntaxTreeConstructor = IAnyParameterConstructor<AbstractSyntaxTree>;
 export type PgslTranspilationResult = {
     code: string;
     sourceMap: null;
-    meta: PgslTranspilationMeta;
+    meta: TranspilationMeta;
 };

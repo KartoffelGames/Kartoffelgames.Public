@@ -8,11 +8,11 @@ import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
 import { TypeDeclarationAst } from '../../general/type-declaration-ast.ts';
-import { PgslPointerType } from '../../../type/pgsl-pointer-type.ts';
+import { PgslPointerType } from '../../type/pgsl-pointer-type.ts';
 import { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
-import { PgslAccessModeEnum } from "../../../buildin/pgsl-access-mode-enum.ts";
+import { PgslAccessModeEnum } from "../../../buildin/enum/pgsl-access-mode-enum.ts";
 import { IValueStoreAst, ValueStoreAstData } from "../../i-value-store-ast.interface.ts";
-import { PgslType } from "../../../type/pgsl-type.ts";
+import { PgslType } from "../../type/pgsl-type.ts";
 
 // TODO: Declaration types var should not exist. let should be transpiled to var in WGSL. And const to let or const based on usage.
 

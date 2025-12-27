@@ -2,9 +2,9 @@ import { FunctionDeclarationCst } from "../../concrete_syntax_tree/declaration.t
 import { PgslDeclarationType } from "../../enum/pgsl-declaration-type.enum.ts";
 import { PgslValueAddressSpace } from "../../enum/pgsl-value-address-space.enum.ts";
 import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
-import { PgslInvalidType } from "../../type/pgsl-invalid-type.ts";
-import { PgslType } from "../../type/pgsl-type.ts";
-import { PgslVoidType } from "../../type/pgsl-void-type.ts";
+import { PgslInvalidType } from "../type/pgsl-invalid-type.ts";
+import { PgslType } from "../type/pgsl-type.ts";
+import { PgslVoidType } from "../type/pgsl-void-type.ts";
 import { AbstractSyntaxTreeContext } from "../abstract-syntax-tree-context.ts";
 import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
 import { IExpressionAst } from "../expression/i-expression-ast.interface.ts";

@@ -1,10 +1,10 @@
 import { TypeDeclarationAst } from '../../abstract_syntax_tree/general/type-declaration-ast.ts';
-import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../i-pgsl-transpiler-processor.interface.ts';
+import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../i-transpiler-processor.interface.ts';
 
 /**
  * Function type for transpiling PGSL types to WGSL.
  */
-export class PgslTypeDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<TypeDeclarationAst> {
+export class TypeDeclarationAstTranspilerProcessor implements ITranspilerProcessor<TypeDeclarationAst> {
     /**
      * Gets the target type that this processor handles.
      */

@@ -1,16 +1,16 @@
 import { EnumUtil, Exception } from '@kartoffelgames/core';
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
-import { PgslNumericType } from '../../../type/pgsl-numeric-type.ts';
-import { PgslVectorType } from '../../../type/pgsl-vector-type.ts';
+import { PgslNumericType } from '../../type/pgsl-numeric-type.ts';
+import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 import { ArithmeticExpressionCst } from "../../../concrete_syntax_tree/expression.type.ts";
 import { AbstractSyntaxTreeContext } from "../../abstract-syntax-tree-context.ts";
 import { ExpressionAstBuilder } from "../expression-ast-builder.ts";
-import { PgslType } from "../../../type/pgsl-type.ts";
-import { PgslMatrixType } from "../../../type/pgsl-matrix-type.ts";
-import { PgslInvalidType } from "../../../type/pgsl-invalid-type.ts";
+import { PgslType } from "../../type/pgsl-type.ts";
+import { PgslMatrixType } from "../../type/pgsl-matrix-type.ts";
+import { PgslInvalidType } from "../../type/pgsl-invalid-type.ts";
 
 export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpressionCst, ArithmeticExpressionAstData> implements IExpressionAst {
     /**

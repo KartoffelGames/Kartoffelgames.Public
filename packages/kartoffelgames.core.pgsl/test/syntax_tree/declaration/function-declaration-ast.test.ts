@@ -1,16 +1,16 @@
 import { expect } from '@kartoffelgames/core-test';
-import { DocumentAst } from '../../../source/abstract_syntax_tree/document-ast.ts';
 import { FunctionDeclarationAst } from '../../../source/abstract_syntax_tree/declaration/function-declaration-ast.ts';
+import { DocumentAst } from '../../../source/abstract_syntax_tree/document-ast.ts';
 import { AttributeListAst } from '../../../source/abstract_syntax_tree/general/attribute-list-ast.ts';
 import { TypeDeclarationAst } from '../../../source/abstract_syntax_tree/general/type-declaration-ast.ts';
 import { BlockStatementAst } from '../../../source/abstract_syntax_tree/statement/execution/block-statement-ast.ts';
+import { PgslArrayType } from "../../../source/abstract_syntax_tree/type/pgsl-array-type.ts";
+import { PgslMatrixType } from "../../../source/abstract_syntax_tree/type/pgsl-matrix-type.ts";
+import { PgslNumericType } from "../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts";
+import { PgslVectorType } from "../../../source/abstract_syntax_tree/type/pgsl-vector-type.ts";
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
-import { PgslArrayType } from '../../../source/type/pgsl-array-type.ts';
-import { PgslMatrixType } from '../../../source/type/pgsl-matrix-type.ts';
-import { PgslNumericType } from '../../../source/type/pgsl-numeric-type.ts';
-import { PgslVectorType } from '../../../source/type/pgsl-vector-type.ts';
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();

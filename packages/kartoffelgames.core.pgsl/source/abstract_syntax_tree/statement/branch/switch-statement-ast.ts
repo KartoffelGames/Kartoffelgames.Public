@@ -1,7 +1,7 @@
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { SwitchStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
-import { PgslNumericType } from '../../../type/pgsl-numeric-type.ts';
-import type { PgslType } from '../../../type/pgsl-type.ts';
+import { PgslNumericType } from '../../type/pgsl-numeric-type.ts';
+import type { PgslType } from '../../type/pgsl-type.ts';
 import { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';

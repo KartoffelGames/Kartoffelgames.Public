@@ -1,31 +1,33 @@
-import type { EnumDeclarationCst, EnumDeclarationValueCst } from "../concrete_syntax_tree/declaration.type.ts";
-import { StringValueExpressionCst } from "../concrete_syntax_tree/expression.type.ts";
+import type { EnumDeclarationCst, EnumDeclarationValueCst } from "../../concrete_syntax_tree/declaration.type.ts";
+import { StringValueExpressionCst } from "../../concrete_syntax_tree/expression.type.ts";
 
-export class PgslAccessModeEnum {
+export class PgslInterpolateSamplingEnum {
     private static mValidValues: Set<string> | null = null;
 
     /**
      * Valid values set.
      */
     private static get validValues(): Set<string> {
-        if (!PgslAccessModeEnum.mValidValues) {
+        if (!PgslInterpolateSamplingEnum.mValidValues) {
             const lSet = new Set<string>();
-            for (const lKey in PgslAccessModeEnum.values) {
-                lSet.add(PgslAccessModeEnum.values[lKey as keyof typeof PgslAccessModeEnum.values]);
+            for (const lKey in PgslInterpolateSamplingEnum.values) {
+                lSet.add(PgslInterpolateSamplingEnum.values[lKey as keyof typeof PgslInterpolateSamplingEnum.values]);
             }
-            PgslAccessModeEnum.mValidValues = lSet;
+            PgslInterpolateSamplingEnum.mValidValues = lSet;
         }
 
-        return PgslAccessModeEnum.mValidValues;
+        return PgslInterpolateSamplingEnum.mValidValues;
     }
 
     /**
      * Enum values.
      */
     public static readonly values = {
-        Read: 'read',
-        Write: 'write',
-        ReadWrite: 'read_write'
+        Center: 'center',
+        Centroid: 'centroid',
+        Sample: 'sample',
+        First: 'first',
+        Either: 'either'
     } as const;
 
     /**
@@ -36,13 +38,13 @@ export class PgslAccessModeEnum {
             type: 'EnumDeclaration',
             buildIn: true,
             range: [0, 0, 0, 0],
-            name: 'AccessMode',
+            name: 'InterpolateSampling',
             attributeList: {
                 type: 'AttributeList',
                 range: [0, 0, 0, 0],
                 attributes: []
             },
-            values: Object.entries(PgslAccessModeEnum.values).map<EnumDeclarationValueCst>(([name, value]) => {
+            values: Object.entries(PgslInterpolateSamplingEnum.values).map<EnumDeclarationValueCst>(([name, value]) => {
                 return {
                     type: 'EnumDeclarationValue',
                     buildIn: true,
@@ -65,9 +67,9 @@ export class PgslAccessModeEnum {
      * 
      * @returns True if the value is valid, false otherwise.
      */
-    public static containsValue(pValue: string): pValue is PgslAccessMode {
-        return PgslAccessModeEnum.validValues.has(pValue);
+    public static containsValue(pValue: string): pValue is PgslInterpolateSampling {
+        return PgslInterpolateSamplingEnum.validValues.has(pValue);
     }
 }
 
-export type PgslAccessMode = (typeof PgslAccessModeEnum.values)[keyof typeof PgslAccessModeEnum.values];
+export type PgslInterpolateSampling = (typeof PgslInterpolateSamplingEnum.values)[keyof typeof PgslInterpolateSamplingEnum.values];

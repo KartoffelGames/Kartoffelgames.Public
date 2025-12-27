@@ -1,7 +1,7 @@
 import { AddressOfExpressionAst } from '../../../../abstract_syntax_tree/expression/single_value/address-of-expression-ast.ts';
-import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
+import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslAddressOfExpressionTranspilerProcessor implements IPgslTranspilerProcessor<AddressOfExpressionAst> {
+export class PgslAddressOfExpressionTranspilerProcessor implements ITranspilerProcessor<AddressOfExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

@@ -1,9 +1,9 @@
-import { PgslInterpolateSampling, PgslInterpolateSamplingEnum } from "../../buildin/pgsl-interpolate-sampling-enum.ts";
-import { PgslInterpolateType, PgslInterpolateTypeEnum } from "../../buildin/pgsl-interpolate-type-enum.ts";
+import { PgslInterpolateSampling, PgslInterpolateSamplingEnum } from "../../buildin/enum/pgsl-interpolate-sampling-enum.ts";
+import { PgslInterpolateType, PgslInterpolateTypeEnum } from "../../buildin/enum/pgsl-interpolate-type-enum.ts";
 import { StructPropertyDeclarationCst } from "../../concrete_syntax_tree/declaration.type.ts";
-import { PgslNumericType } from "../../type/pgsl-numeric-type.ts";
-import type { PgslType } from '../../type/pgsl-type.ts';
-import { PgslVectorType } from "../../type/pgsl-vector-type.ts";
+import { PgslNumericType } from "../type/pgsl-numeric-type.ts";
+import type { PgslType } from '../type/pgsl-type.ts';
+import { PgslVectorType } from "../type/pgsl-vector-type.ts";
 import { AbstractSyntaxTreeContext } from "../abstract-syntax-tree-context.ts";
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 import { IExpressionAst } from "../expression/i-expression-ast.interface.ts";

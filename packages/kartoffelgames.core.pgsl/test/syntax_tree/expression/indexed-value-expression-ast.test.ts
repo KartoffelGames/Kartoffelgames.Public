@@ -5,11 +5,11 @@ import { LiteralValueExpressionAst } from "../../../source/abstract_syntax_tree/
 import { IndexedValueExpressionAst } from "../../../source/abstract_syntax_tree/expression/storage/indexed-value-expression-ast.ts";
 import { VariableNameExpressionAst } from "../../../source/abstract_syntax_tree/expression/storage/variable-name-expression-ast.ts";
 import { VariableDeclarationStatementAst } from "../../../source/abstract_syntax_tree/statement/execution/variable-declaration-statement-ast.ts";
+import { PgslArrayType } from "../../../source/abstract_syntax_tree/type/pgsl-array-type.ts";
+import { PgslMatrixType } from "../../../source/abstract_syntax_tree/type/pgsl-matrix-type.ts";
+import { PgslNumericType } from "../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts";
+import { PgslVectorType } from "../../../source/abstract_syntax_tree/type/pgsl-vector-type.ts";
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
-import { PgslArrayType } from "../../../source/type/pgsl-array-type.ts";
-import { PgslNumericType } from '../../../source/type/pgsl-numeric-type.ts';
-import { PgslVectorType } from "../../../source/type/pgsl-vector-type.ts";
-import { PgslMatrixType } from "../../../source/type/pgsl-matrix-type.ts";
 import { PgslParserResult } from "../../../source/parser_result/pgsl-parser-result.ts";
 import { WgslTranspiler } from "../../../source/transpilation/wgsl/wgsl-transpiler.ts";
 

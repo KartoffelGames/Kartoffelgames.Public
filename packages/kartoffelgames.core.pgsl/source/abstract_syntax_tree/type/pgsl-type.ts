@@ -1,7 +1,6 @@
-import { IAnyParameterConstructor } from "../../../kartoffelgames.core/source/interface/i-constructor.ts";
-import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
-import { AbstractSyntaxTree } from "../abstract_syntax_tree/abstract-syntax-tree.ts";
-import { TypeCst } from "../concrete_syntax_tree/general.type.ts";
+import { IAnyParameterConstructor } from "../../../../kartoffelgames.core/source/interface/i-constructor.ts";
+import { TypeCst } from "../../concrete_syntax_tree/general.type.ts";
+import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
 
 /**
  * Abstract base class for all PGSL types.

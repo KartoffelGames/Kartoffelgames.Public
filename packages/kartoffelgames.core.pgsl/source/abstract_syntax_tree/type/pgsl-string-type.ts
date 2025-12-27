@@ -1,18 +1,18 @@
-import { AbstractSyntaxTreeContext } from "../abstract_syntax_tree/abstract-syntax-tree-context.ts";
+import { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
 
 /**
- * Void type definition.
- * Represents the absence of a value, typically used as function return type.
+ * String type definition.
+ * Represents a string value used for text data.
  */
-export class PgslVoidType extends PgslType {
+export class PgslStringType extends PgslType {
     /**
-     * Type names for void types.
-     * Maps void type names to their string representations.
+     * Type names for string types.
+     * Maps string type names to their string representations.
      */
     public static get typeName() {
         return {
-            void: 'void'
+            string: 'string'
         } as const;
     }
 
@@ -24,8 +24,8 @@ export class PgslVoidType extends PgslType {
      * @returns true when both types describes the same type.
      */
     public override equals(pTarget: PgslType): boolean {
-        // Void type is only equal to other void types.
-        return pTarget instanceof PgslVoidType;
+        // String type is only equal to other string types.
+        return pTarget instanceof PgslStringType;
     }
 
     /**
@@ -36,7 +36,7 @@ export class PgslVoidType extends PgslType {
      * @returns true when type is explicit castable into target type.
      */
     public override isExplicitCastableInto(_pTarget: PgslType): boolean {
-        // A void is never explicit nor implicit castable.
+        // A string is never explicit nor implicit castable.
         return false;
     }
 
@@ -48,18 +48,18 @@ export class PgslVoidType extends PgslType {
      * @returns true when type is implicit castable into target type.
      */
     public override isImplicitCastableInto(pTarget: PgslType): boolean {
-        // A void is never explicit nor implicit castable.
+        // A string is never explicit nor implicit castable.
         return this.equals(pTarget);
     }
 
     /**
-     * Collect type properties for void type.
+     * Collect type properties for string type.
      * 
-     * @param _pContext - Context.
+     * @param _Context - Context.
      * 
-     * @returns Type properties for void type.
+     * @returns Type properties for string type.
      */
-    protected override onProcess(_pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(_Context: AbstractSyntaxTreeContext): PgslTypeProperties {
         return {
             storable: false,
             hostShareable: false,
@@ -67,7 +67,7 @@ export class PgslVoidType extends PgslType {
             constructible: false,
             fixedFootprint: false,
             indexable: false,
-            concrete: false,
+            concrete: true,
             scalar: false,
             plain: false
         };

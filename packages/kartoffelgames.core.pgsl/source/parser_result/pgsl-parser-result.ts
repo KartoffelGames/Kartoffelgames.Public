@@ -1,7 +1,7 @@
 import { VariableDeclarationAst } from "../abstract_syntax_tree/declaration/variable-declaration-ast.ts";
 import { DocumentAst } from "../abstract_syntax_tree/document-ast.ts";
 import { PgslDeclarationType } from "../enum/pgsl-declaration-type.enum.ts";
-import { PgslTranspilationMeta } from "../transpilation/pgsl-transpilation-meta.ts";
+import { TranspilationMeta } from "../transpilation/transpilation-meta.ts";
 import { PgslParserResultBinding } from "./pgsl-parser-result-binding.ts";
 import { PgslParserResultParameter } from "./pgsl-parser-result-parameter.ts";
 import { PgslParserResultIncident } from "./pgsl-parser-result.incident.ts";
@@ -69,7 +69,7 @@ export class PgslParserResult {
      * @param pDocument - The PGSL document representation.
      * @param pTrace - The trace information for debugging.
      */
-    public constructor(pSource: string, pSourceMap: string | null, pDocument: DocumentAst, pMeta: PgslTranspilationMeta) {
+    public constructor(pSource: string, pSourceMap: string | null, pDocument: DocumentAst, pMeta: TranspilationMeta) {
         this.mSource = pSource;
         this.mSourceMap = pSourceMap;
         this.mIncidents = this.convertIncidents(pDocument);
@@ -112,7 +112,7 @@ export class PgslParserResult {
      * 
      * @returns Array of parser result bindings. 
      */
-    private convertBindings(pDocument: DocumentAst, pMeta: PgslTranspilationMeta): Array<PgslParserResultBinding> {
+    private convertBindings(pDocument: DocumentAst, pMeta: TranspilationMeta): Array<PgslParserResultBinding> {
         const lBindings: Array<PgslParserResultBinding> = [];
         for (const lValue of pDocument.data.content) {
             // Skip none variable declarations.

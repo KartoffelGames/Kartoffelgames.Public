@@ -1,7 +1,7 @@
 import { StringValueExpressionAst } from '../../../../abstract_syntax_tree/expression/single_value/string-value-expression-ast.ts';
-import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
+import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslStringValueExpressionTranspilerProcessor implements IPgslTranspilerProcessor<StringValueExpressionAst> {
+export class PgslStringValueExpressionTranspilerProcessor implements ITranspilerProcessor<StringValueExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

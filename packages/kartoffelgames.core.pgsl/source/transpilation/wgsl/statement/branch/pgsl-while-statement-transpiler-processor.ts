@@ -1,7 +1,7 @@
 import { WhileStatementAst } from '../../../../abstract_syntax_tree/statement/branch/while-statement-ast.ts';
-import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
+import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslWhileStatementTranspilerProcessor implements IPgslTranspilerProcessor<WhileStatementAst> {
+export class PgslWhileStatementTranspilerProcessor implements ITranspilerProcessor<WhileStatementAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

@@ -1,7 +1,7 @@
 import { NewExpressionAst } from '../../../../abstract_syntax_tree/expression/single_value/new-expression-ast.ts';
-import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-pgsl-transpiler-processor.interface.ts';
+import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
-export class PgslNewCallExpressionTranspilerProcessor implements IPgslTranspilerProcessor<NewExpressionAst> {
+export class PgslNewCallExpressionTranspilerProcessor implements ITranspilerProcessor<NewExpressionAst> {
     /**
      * The target syntax tree constructor that this processor handles.
      */

@@ -4,11 +4,11 @@ import { DocumentAst } from "../../../source/abstract_syntax_tree/document-ast.t
 import { BinaryExpressionAst } from "../../../source/abstract_syntax_tree/expression/operation/binary-expression-ast.ts";
 import { LiteralValueExpressionAst } from "../../../source/abstract_syntax_tree/expression/single_value/literal-value-expression-ast.ts";
 import { VariableDeclarationStatementAst } from "../../../source/abstract_syntax_tree/statement/execution/variable-declaration-statement-ast.ts";
+import { PgslNumericType } from "../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts";
+import { PgslVectorType } from "../../../source/abstract_syntax_tree/type/pgsl-vector-type.ts";
 import { PgslOperator } from "../../../source/enum/pgsl-operator.enum.ts";
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import { PgslParserResult } from "../../../source/parser_result/pgsl-parser-result.ts";
-import { PgslNumericType } from '../../../source/type/pgsl-numeric-type.ts';
-import { PgslVectorType } from "../../../source/type/pgsl-vector-type.ts";
 import { WgslTranspiler } from "../../../source/transpilation/wgsl/wgsl-transpiler.ts";
 
 // Create parser instance.

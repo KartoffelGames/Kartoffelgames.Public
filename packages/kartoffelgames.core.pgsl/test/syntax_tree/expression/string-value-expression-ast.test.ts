@@ -5,7 +5,7 @@ import { StringValueExpressionAst } from "../../../source/abstract_syntax_tree/e
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import { PgslParserResult } from "../../../source/parser_result/pgsl-parser-result.ts";
 import { WgslTranspiler } from "../../../source/transpilation/wgsl/wgsl-transpiler.ts";
-import { PgslStringType } from '../../../source/type/pgsl-string-type.ts';
+import { PgslStringType } from "../../../source/abstract_syntax_tree/type/pgsl-string-type.ts";
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();

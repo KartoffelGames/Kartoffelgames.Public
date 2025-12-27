@@ -1,11 +1,11 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
-import { PgslEnumType } from '../../../type/pgsl-enum-type.ts';
-import { PgslInvalidType } from '../../../type/pgsl-invalid-type.ts';
-import { PgslStructType } from '../../../type/pgsl-struct-type.ts';
-import type { PgslType } from '../../../type/pgsl-type.ts';
-import { PgslVectorType } from '../../../type/pgsl-vector-type.ts';
+import { PgslEnumType } from '../../type/pgsl-enum-type.ts';
+import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';
+import { PgslStructType } from '../../type/pgsl-struct-type.ts';
+import type { PgslType } from '../../type/pgsl-type.ts';
+import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import type { StructPropertyDeclarationAst } from '../../declaration/struct-property-declaration-ast.ts';
 import { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';

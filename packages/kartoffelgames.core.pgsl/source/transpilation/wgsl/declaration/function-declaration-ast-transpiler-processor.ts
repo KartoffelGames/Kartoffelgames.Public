@@ -1,10 +1,10 @@
 import { Exception } from "@kartoffelgames/core";
 import { FunctionDeclarationAst, FunctionDeclarationAstDataDeclaration } from '../../../abstract_syntax_tree/declaration/function-declaration-ast.ts';
-import type { IPgslTranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-pgsl-transpiler-processor.interface.ts';
-import { PgslType } from "../../../type/pgsl-type.ts";
-import { PgslVoidType } from "../../../type/pgsl-void-type.ts";
+import { PgslType } from "../../../abstract_syntax_tree/type/pgsl-type.ts";
+import { PgslVoidType } from "../../../abstract_syntax_tree/type/pgsl-void-type.ts";
+import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-transpiler-processor.interface.ts';
 
-export class PgslFunctionDeclarationTranspilerProcessor implements IPgslTranspilerProcessor<FunctionDeclarationAst> {
+export class FunctionDeclarationAstTranspilerProcessor implements ITranspilerProcessor<FunctionDeclarationAst> {
     /**
      * Gets the target class this processor can handle.
      *

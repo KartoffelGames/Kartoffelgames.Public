@@ -177,6 +177,8 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         // Append buildin declarations to the document.
         lDocumentCst.buildInDeclarations.push(...lBuildInEnumList);
         lDocumentCst.buildInDeclarations.push(...PgslBuildInFunction.bitReinterpretation());
+        lDocumentCst.buildInDeclarations.push(...PgslBuildInFunction.logical());
+        lDocumentCst.buildInDeclarations.push(...PgslBuildInFunction.array());
 
         const lContext: AbstractSyntaxTreeContext = new AbstractSyntaxTreeContext();
 

@@ -24,6 +24,8 @@ import type { PgslTranspilationResult, Transpiler } from '../transpilation/trans
 import { PgslLexer } from './pgsl-lexer.ts';
 import { PgslToken } from './pgsl-token.enum.ts';
 import { PgslBuildInFunction } from "../buildin/pgsl-build-in-function.ts";
+import { PgslModfResult } from "../buildin/structs/pgsl-modf-result.ts";
+import { PgslFrexpResult } from "../buildin/structs/pgsl-frexp-result.ts";
 
 export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
     private static readonly STATIC_TYPE_NAMES: Set<string> = new Set<string>([
@@ -175,7 +177,15 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         ];
 
         // Append buildin declarations to the document.
+
+        // Enum
         lDocumentCst.buildInDeclarations.push(...lBuildInEnumList);
+
+        // Struct
+        lDocumentCst.buildInDeclarations.push(...PgslModfResult.structs());
+        lDocumentCst.buildInDeclarations.push(...PgslFrexpResult.structs());
+
+        // Function
         lDocumentCst.buildInDeclarations.push(...PgslBuildInFunction.bitReinterpretation());
         lDocumentCst.buildInDeclarations.push(...PgslBuildInFunction.logical());
         lDocumentCst.buildInDeclarations.push(...PgslBuildInFunction.array());

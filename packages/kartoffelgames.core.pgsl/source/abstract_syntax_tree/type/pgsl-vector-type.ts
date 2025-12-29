@@ -22,6 +22,22 @@ export class PgslVectorType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
         } as const;
     }
 
+    /**
+     * Get the type name for a given vector dimension.
+     * 
+     * @param pDimension - Vector dimension.
+     * 
+     * @returns Type name for the given vector dimension. 
+     */
+    public static typeNameFromDimension(pDimension: number): string {
+        switch (pDimension) {
+            case 2: return PgslVectorType.typeName.vector2;
+            case 3: return PgslVectorType.typeName.vector3;
+            case 4: return PgslVectorType.typeName.vector4;
+            default: return 'Vector';
+        }
+    }
+
     private readonly mInnerType: IType;
     private readonly mVectorDimension: number;
 

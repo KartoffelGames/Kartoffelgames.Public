@@ -23,6 +23,7 @@ import { TranspilationMeta } from '../transpilation/transpilation-meta.ts';
 import type { PgslTranspilationResult, Transpiler } from '../transpilation/transpiler.ts';
 import { PgslLexer } from './pgsl-lexer.ts';
 import { PgslToken } from './pgsl-token.enum.ts';
+import { PgslBuildInFunction } from "../buildin/pgsl-build-in-function.ts";
 
 export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
     private static readonly STATIC_TYPE_NAMES: Set<string> = new Set<string>([
@@ -175,6 +176,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
 
         // Append buildin declarations to the document.
         lDocumentCst.buildInDeclarations.push(...lBuildInEnumList);
+        lDocumentCst.buildInDeclarations.push(...PgslBuildInFunction.bitReinterpretation());
 
         const lContext: AbstractSyntaxTreeContext = new AbstractSyntaxTreeContext();
 

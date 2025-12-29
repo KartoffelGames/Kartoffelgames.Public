@@ -18,6 +18,12 @@ export class FunctionCallExpressionAstTranspilerProcessor implements ITranspiler
      * @returns Transpiled WGSL code.
      */
     public process(pInstance: FunctionCallExpressionAst, pTranspile: PgslTranspilerProcessorTranspile): string {
-        return `${pInstance.data.name}(${pInstance.data.parameters.map(pParam => pTranspile(pParam)).join(',')})`;
+        // Transpile function call generics.
+        let lGenerics: string = '';
+        if(pInstance.data.generics.length > 0) {
+            lGenerics = `<${pInstance.data.generics.map(pGenericType => pTranspile(pGenericType)).join(',')}>`;
+        }
+
+        return `${pInstance.data.name}${lGenerics}(${pInstance.data.parameters.map(pParam => pTranspile(pParam)).join(',')})`;
     }
 }

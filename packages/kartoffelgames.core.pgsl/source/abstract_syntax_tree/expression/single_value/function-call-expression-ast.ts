@@ -29,6 +29,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
                 // Expression data.
                 name: this.cst.functionName,
                 parameters: new Array<IExpressionAst>(),
+                generics: new Array<IType>(),
 
                 // Expression meta data.
                 fixedState: PgslValueFixedState.Variable,
@@ -121,10 +122,25 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             }
         }
 
+        // Build ordered generic type list.
+        const lGenericList: Array<IType> = new Array<IType>();
+        if (lMatchedFunctionHeader) {
+            for(const lGeneric of lMatchedFunctionHeader.header.generics) {
+                // When generic type is not infered, assign invalid type.
+                if(!lMatchedFunctionHeader.genericTypes.has(lGeneric.name)) {
+                    lGenericList.push(new PgslInvalidType().process(pContext));
+                    continue;
+                }
+
+                lGenericList.push(lMatchedFunctionHeader.genericTypes.get(lGeneric.name)!);
+            }
+        }
+
         return {
             // Expression data.
             name: this.cst.functionName,
             parameters: lParameterList,
+            generics: lGenericList,
 
             // Expression meta data.
             fixedState: lFixedState,
@@ -258,4 +274,5 @@ type FunctionHeaderMatchResult = {
 export type FunctionCallExpressionAstData = {
     name: string;
     parameters: Array<IExpressionAst>;
+    generics: Array<IType>;
 } & ExpressionAstData;

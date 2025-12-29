@@ -55,6 +55,30 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
         }
     }
 
+    /**
+     * Gets the matrix type name for given dimensions.
+     * 
+     * @param pColumnCount - The number of columns in the matrix.
+     * @param pRowCount - The number of rows in the matrix.
+     * 
+     * @returns The corresponding matrix type name, or null if dimensions are invalid.
+     */
+    public static typenameFromDimensions(pColumnCount: number, pRowCount: number): PgslMatrixTypeName {
+        switch (`${pColumnCount}x${pRowCount}`) {
+            case '2x2': return PgslMatrixType.typeName.matrix22;
+            case '3x2': return PgslMatrixType.typeName.matrix32;
+            case '4x2': return PgslMatrixType.typeName.matrix42;
+            case '2x3': return PgslMatrixType.typeName.matrix23;
+            case '3x3': return PgslMatrixType.typeName.matrix33;
+            case '4x3': return PgslMatrixType.typeName.matrix43;
+            case '2x4': return PgslMatrixType.typeName.matrix24;
+            case '3x4': return PgslMatrixType.typeName.matrix34;
+            case '4x4': return PgslMatrixType.typeName.matrix44;
+            default:
+                throw new Error(`Invalid matrix dimensions: ${pColumnCount}x${pRowCount}`);
+        }
+    }
+
     private readonly mColumnCount: number;
     private readonly mInnerType: IType;
     private readonly mRowCount: number;
@@ -200,8 +224,11 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
         this.mVectorTypeDefinition.process(pContext);
 
         // Must be Float.
-        if (!this.mInnerType.isImplicitCastableInto(new PgslNumericType(PgslNumericType.typeName.float32).process(pContext))) {
-            pContext.pushIncident('Matrix type must be a Float32');
+        const lFloat32Type = new PgslNumericType(PgslNumericType.typeName.float32).process(pContext);
+        const lFloat16Type = new PgslNumericType(PgslNumericType.typeName.float16).process(pContext);
+        const lAbstractFloatType = new PgslNumericType(PgslNumericType.typeName.abstractFloat).process(pContext);
+        if (!this.mInnerType.isImplicitCastableInto(lFloat32Type) && !this.mInnerType.isImplicitCastableInto(lFloat16Type) && !this.mInnerType.isImplicitCastableInto(lAbstractFloatType)) {
+            pContext.pushIncident('Matrix type must be a Float');
         }
 
          // Build meta types.

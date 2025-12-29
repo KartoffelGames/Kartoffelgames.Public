@@ -102,15 +102,15 @@ export class PgslNumericType extends AbstractSyntaxTree<TypeCst, TypeProperties>
 
             // An abstract float is only castable into float types.
             case PgslNumericType.typeName.abstractFloat: {
-                // List of all integer types.
-                const lIntegerTypes: Array<PgslNumericTypeName> = [
+                // List of all float types.
+                const lFloatTypes: Array<PgslNumericTypeName> = [
                     PgslNumericType.typeName.abstractFloat,
                     PgslNumericType.typeName.float32,
                     PgslNumericType.typeName.float16
                 ];
 
-                // Check if target type is an integer type.
-                if (lIntegerTypes.includes(pTarget.numericTypeName)) {
+                // Check if target type is a float type.
+                if (lFloatTypes.includes(pTarget.numericTypeName)) {
                     return true;
                 }
             }

@@ -6,7 +6,9 @@ import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts
 import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
 import { PgslStringType } from './pgsl-string-type.ts';
-import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
+import { IType, type TypeProperties } from './i-type.interface.ts';
+import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
+import { TypeCst } from "../../concrete_syntax_tree/general.type.ts";
 
 /**
  * Texture type definition.
@@ -25,7 +27,7 @@ import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
  * const depth = new PgslTextureType(trace, 'TextureDepth2d', []);
  * ```
  */
-export class PgslTextureType extends PgslType {
+export class PgslTextureType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
     /**
      * Static mapping of texture types to their expected template parameter types.
      * Used for validation during texture type construction.
@@ -141,7 +143,7 @@ export class PgslTextureType extends PgslType {
      * 
      * @returns The sampled type.
      */
-    public get sampledType(): PgslType {
+    public get sampledType(): IType {
         if (!this.mTextureTypeParameter) {
             throw new Exception('Texture type parameter is not initialized.', this);
         }
@@ -164,7 +166,7 @@ export class PgslTextureType extends PgslType {
      * @param pTemplateList - Template parameters for the texture (varies by texture type).
      */
     public constructor(pTextureType: PgslTextureTypeName, pTemplateList: Array<IExpressionAst | TypeDeclarationAst>) {
-        super();
+        super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
         this.mTextureType = pTextureType;
@@ -183,7 +185,7 @@ export class PgslTextureType extends PgslType {
      * 
      * @returns True when both types describe the same texture type.
      */
-    public override equals(pTarget: PgslType): boolean {
+    public equals(pTarget: IType): boolean {
         // Must both be texture types.
         if (!(pTarget instanceof PgslTextureType)) {
             return false;
@@ -220,7 +222,7 @@ export class PgslTextureType extends PgslType {
      * 
      * @returns Always false - textures cannot be cast.
      */
-    public override isExplicitCastableInto(_pTarget: PgslType): boolean {
+    public isExplicitCastableInto(_pTarget: IType): boolean {
         // A texture is never explicit nor implicit castable.
         return false;
     }
@@ -233,7 +235,7 @@ export class PgslTextureType extends PgslType {
      * 
      * @returns Always false - textures cannot be cast.
      */
-    public override isImplicitCastableInto(pTarget: PgslType): boolean {
+    public isImplicitCastableInto(pTarget: IType): boolean {
         // A texture is never explicit nor implicit castable.
         return this.equals(pTarget);
     }
@@ -246,11 +248,43 @@ export class PgslTextureType extends PgslType {
      * 
      * @returns Type properties defining texture characteristics.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): TypeProperties {
         // Parse template parameters and validate them.
         this.mTextureTypeParameter = this.parseTextureParameter(pContext);
 
+        // access: PgslAccessMode;
+        // format: PgslTexelFormat;
+        // sampledType: IType;
+
+        // Build meta types.
+        const lMetaTypeList: Array<string> = new Array<string>();
+        for (const metaType of this.mTextureTypeParameter.sampledType.data.metaTypes) {
+             lMetaTypeList.push(`Texture<${metaType}>`);
+            lMetaTypeList.push(`Texture<${metaType},${this.mTextureTypeParameter.access}>`);
+            lMetaTypeList.push(`Texture<${metaType},${this.mTextureTypeParameter.format}>`);
+            lMetaTypeList.push(`Texture<${metaType},${this.mTextureTypeParameter.access},${this.mTextureTypeParameter.format}>`);
+
+            lMetaTypeList.push(`${this.mTextureType}<${metaType}>`);
+            lMetaTypeList.push(`${this.mTextureType}<${metaType},${this.mTextureTypeParameter.access}>`);
+            lMetaTypeList.push(`${this.mTextureType}<${metaType},${this.mTextureTypeParameter.format}>`);
+            lMetaTypeList.push(`${this.mTextureType}<${metaType},${this.mTextureTypeParameter.access},${this.mTextureTypeParameter.format}>`);
+        }
+
+        lMetaTypeList.push('Texture');
+        lMetaTypeList.push(`Texture<${this.mTextureTypeParameter.access}>`);
+        lMetaTypeList.push(`Texture<${this.mTextureTypeParameter.format}>`);
+        lMetaTypeList.push(`Texture<${this.mTextureTypeParameter.access},${this.mTextureTypeParameter.format}>`);
+
+        lMetaTypeList.push(`${this.mTextureType}`);
+        lMetaTypeList.push(`${this.mTextureType}<${this.mTextureTypeParameter.access}>`);
+        lMetaTypeList.push(`${this.mTextureType}<${this.mTextureTypeParameter.format}>`);
+        lMetaTypeList.push(`${this.mTextureType}<${this.mTextureTypeParameter.access},${this.mTextureTypeParameter.format}>`);
+
+
         return {
+            // Meta information.
+            metaTypes: lMetaTypeList,
+            
             composite: false,
             indexable: false,
             storable: true,
@@ -363,7 +397,7 @@ export class PgslTextureType extends PgslType {
 type PgslTextureTypeParameter = {
     access: PgslAccessMode;
     format: PgslTexelFormat;
-    sampledType: PgslType;
+    sampledType: IType;
 };
 
 /**

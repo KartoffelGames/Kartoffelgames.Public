@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { FunctionDeclarationAst, type FunctionDeclarationAstDataDeclaration } from '../../../abstract_syntax_tree/declaration/function-declaration-ast.ts';
-import type { PgslType } from '../../../abstract_syntax_tree/type/pgsl-type.ts';
+import type { IType } from '../../../abstract_syntax_tree/type/i-type.interface.ts';
 import { PgslVoidType } from '../../../abstract_syntax_tree/type/pgsl-void-type.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../i-transpiler-processor.interface.ts';
 
@@ -31,17 +31,17 @@ export class FunctionDeclarationAstTranspilerProcessor implements ITranspilerPro
 
         // Use first declaration only for transpilation.
         const lSoleHeader: FunctionDeclarationAstDataDeclaration = pInstance.data.declarations[0];
-        if (typeof lSoleHeader.returnType === 'number') {
+        if (typeof lSoleHeader.returnType === 'string') {
             throw new Exception(`Unable to transpile function "${pInstance.data.name}" with generic return type.`, this);
         }
 
         // Transpile return type. use empty string for void type.
-        const lReturnType: PgslType = lSoleHeader.returnType.data.type;
+        const lReturnType: IType = lSoleHeader.returnType.data.type;
         const lReturnTypeName: string | null = lReturnType instanceof PgslVoidType ? null : pTranspile(lSoleHeader.returnType);
 
         // Transpile function parameter list.
         const lParameterList: string = lSoleHeader.parameter.map((pParameter) => {
-            if (typeof pParameter.type === 'number') {
+            if (typeof pParameter.type === 'string') {
                 throw new Exception(`Unable to transpile function "${pInstance.data.name}" with generic parameter type.`, this);
             }
 

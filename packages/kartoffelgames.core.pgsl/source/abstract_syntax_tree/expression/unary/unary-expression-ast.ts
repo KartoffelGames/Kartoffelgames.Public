@@ -6,7 +6,7 @@ import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-conte
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
 import { PgslNumericType } from '../../type/pgsl-numeric-type.ts';
-import type { PgslType } from '../../type/pgsl-type.ts';
+import type { IType } from '../../type/i-type.interface.ts';
 import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
@@ -33,7 +33,7 @@ export class UnaryExpressionAst extends AbstractSyntaxTree<UnaryExpressionCst, U
         }
 
         // Type buffer for validating the processed types.
-        let lValueType: PgslType;
+        let lValueType: IType;
 
         // Validate vectors differently.
         if (lExpression.data.resolveType instanceof PgslVectorType) {
@@ -42,7 +42,7 @@ export class UnaryExpressionAst extends AbstractSyntaxTree<UnaryExpressionCst, U
             lValueType = lExpression.data.resolveType;
         }
 
-        const lCastableIntoNumeric = (pType: PgslType, pIncludeUnsigned: boolean, pIncludeFloat: boolean): boolean => {
+        const lCastableIntoNumeric = (pType: IType, pIncludeUnsigned: boolean, pIncludeFloat: boolean): boolean => {
             const lFloar16Type = new PgslNumericType(PgslNumericType.typeName.float16).process(pContext);
             if (pIncludeFloat && pType.isImplicitCastableInto(lFloar16Type)) {
                 return true;
@@ -66,7 +66,7 @@ export class UnaryExpressionAst extends AbstractSyntaxTree<UnaryExpressionCst, U
             return false;
         };
 
-        const lResolveType: PgslType = lExpression.data.resolveType;
+        const lResolveType: IType = lExpression.data.resolveType;
         let lConstantValue: string | number | null = lExpression.data.constantValue;
 
         // Validate type for each.

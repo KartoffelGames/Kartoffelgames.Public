@@ -1,22 +1,14 @@
 import type { IAnyParameterConstructor } from '../../../../kartoffelgames.core/source/interface/i-constructor.ts';
-import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
-import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
+import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
 
 /**
- * Abstract base class for all PGSL types.
  * Provides common functionality for type comparison, casting, and property management.
  */
-export abstract class PgslType extends AbstractSyntaxTree<TypeCst, PgslTypeProperties> {
+export interface IType extends AbstractSyntaxTree {
     /**
-     * Constructor.
-     * Initializes a new PGSL type instance with default properties.
+     * Declaration data.
      */
-    public constructor() {
-        super({
-            type: 'Type',
-            range: [0, 0, 0, 0]
-        });
-    }
+    readonly data: TypeProperties;
 
     /**
      * Checks if this type is equal to the target type.
@@ -25,7 +17,7 @@ export abstract class PgslType extends AbstractSyntaxTree<TypeCst, PgslTypePrope
      * 
      * @returns True when both types describe the same type, false otherwise.
      */
-    public abstract equals(pTarget: PgslType): boolean;
+    equals(pTarget: IType): boolean;
 
     /**
      * Checks if this type is explicitly castable into the target type.
@@ -35,7 +27,7 @@ export abstract class PgslType extends AbstractSyntaxTree<TypeCst, PgslTypePrope
      * 
      * @returns True when this type is explicitly castable into the target type, false otherwise.
      */
-    public abstract isExplicitCastableInto(pTarget: PgslType): boolean;
+    isExplicitCastableInto(pTarget: IType): boolean;
 
     /**
      * Checks if this type is implicitly castable into the target type.
@@ -45,14 +37,21 @@ export abstract class PgslType extends AbstractSyntaxTree<TypeCst, PgslTypePrope
      * 
      * @returns True when this type is implicitly castable into the target type, false otherwise.
      */
-    public abstract isImplicitCastableInto(pTarget: PgslType): boolean;
+    isImplicitCastableInto(pTarget: IType): boolean;
 }
 
 /**
  * Properties that define the characteristics and capabilities of a PGSL type.
  * These properties determine how the type can be used within the PGSL language.
  */
-export type PgslTypeProperties = {
+export type TypeProperties = {
+    /**
+     * List of type names associated with this type.
+     * On float32 that would be ['float32', 'float', 'number'].
+     * On vector3<float32> that would be ['vector3-float32', 'vector3-float', 'vector3-number', 'vector3', 'vector'].
+     */
+    metaTypes: Array<string>;
+
     /**
      * Value is storable in a variable.
      */
@@ -105,4 +104,4 @@ export type PgslTypeProperties = {
 /**
  * Constructor type for PGSL types.
  */
-export type PgslTypeConstructor = IAnyParameterConstructor<PgslType>;
+export type ITypeConstructor = IAnyParameterConstructor<IType>;

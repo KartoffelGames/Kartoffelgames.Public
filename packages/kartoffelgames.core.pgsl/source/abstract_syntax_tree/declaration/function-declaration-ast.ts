@@ -10,7 +10,7 @@ import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
 import type { IValueStoreAst } from '../i-value-store-ast.interface.ts';
 import { BlockStatementAst } from '../statement/execution/block-statement-ast.ts';
 import { PgslInvalidType } from '../type/pgsl-invalid-type.ts';
-import type { PgslType } from '../type/pgsl-type.ts';
+import type { IType } from '../type/i-type.interface.ts';
 import type { DeclarationAstData, IDeclarationAst } from './i-declaration-ast.interface.ts';
 
 /**
@@ -58,6 +58,17 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
             // Create attribute list for this declaration.
             const lAttributes: AttributeListAst = new AttributeListAst(lDeclaration.attributeList, this).process(pContext);
 
+            // Create generic mapping for this declaration.
+            const lGenericMapping: Map<string, Array<string> | null> = new Map<string, Array<string> | null>();
+            for (const lGeneric of lDeclaration.generics) {
+                // Check for duplicate generic names.
+                if (lGenericMapping.has(lGeneric.name)) {
+                    pContext.pushIncident(`Generic type name "${lGeneric.name}" is already defined for this function header.`, this);
+                }
+
+                lGenericMapping.set(lGeneric.name, lGeneric.restrictions);
+            }
+
             pContext.pushScope('function', () => {
                 // Create parameter list.
                 const lParameterList: Array<FunctionDeclarationAstDataParameter> = new Array<FunctionDeclarationAstDataParameter>();
@@ -65,16 +76,16 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                     let lParameterData: FunctionDeclarationAstDataParameter;
 
                     // Check for generic parameter.
-                    if (typeof lParameter.typeDeclaration === 'number') {
+                    if (typeof lParameter.typeDeclaration === 'string') {
                         // Validate generic parameter index.
-                        const lGenericIndex: number = lParameter.typeDeclaration;
-                        if (lGenericIndex < 0 || lGenericIndex >= lDeclaration.generics.length) {
-                            pContext.pushIncident(`Generic parameter index ${lGenericIndex} is out of bounds.`, this);
+                        const lGenericName: string = lParameter.typeDeclaration;
+                        if (!lGenericMapping.has(lGenericName)) {
+                            pContext.pushIncident(`Generic parameter name "${lGenericName}" is not defined for this function header.`, this);
                         }
 
                         lParameterData = {
                             name: lParameter.name,
-                            type: lGenericIndex
+                            type: lGenericName
                         };
                     } else {
                         lParameterData = {
@@ -85,8 +96,8 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
 
                     lParameterList.push(lParameterData);
 
-                    const lParameterType: PgslType = (() => {
-                        if (typeof lParameterData.type === 'number') {
+                    const lParameterType: IType = (() => {
+                        if (typeof lParameterData.type === 'string') {
                             // Generic type, cannot be resolved yet.
                             return new PgslInvalidType().process(pContext);
                         }
@@ -112,15 +123,15 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                 const lBlock: BlockStatementAst = new BlockStatementAst(lDeclaration.block).process(pContext);
 
                 // Build return type.
-                const lReturnTypeDeclaration: TypeDeclarationAst | number = (() => {
+                const lReturnTypeDeclaration: TypeDeclarationAst | string = (() => {
                     // Check for generic return type. Generic types arent validated for the block return type.
-                    if (typeof lDeclaration.returnType === 'number') {
+                    if (typeof lDeclaration.returnType === 'string') {
                         // Validate generic return type index.
-                        const lGenericIndex: number = lDeclaration.returnType;
-                        if (lGenericIndex < 0 || lGenericIndex >= lDeclaration.generics.length) {
-                            pContext.pushIncident(`Generic return type index ${lGenericIndex} is out of bounds.`, this);
+                        const lGenericName: string = lDeclaration.returnType;
+                        if (!lGenericMapping.has(lGenericName)) {
+                            pContext.pushIncident(`Generic return type name "${lGenericName}" is not defined for this function header.`, this);
                         }
-                        return lGenericIndex;
+                        return lGenericName;
                     }
 
                     const lReturnType: TypeDeclarationAst = new TypeDeclarationAst(lDeclaration.returnType).process(pContext);
@@ -128,7 +139,7 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                     // If function is not built-in check for correct return type in function block.
                     if (!lDeclaration.buildIn) {
                         // Read block return type.
-                        const lBlockReturnType: PgslType = lBlock.data.returnType;
+                        const lBlockReturnType: IType = lBlock.data.returnType;
 
                         // Check for correct return type in function block.
                         if (!lBlockReturnType.isImplicitCastableInto(lReturnType.data.type)) {
@@ -140,11 +151,11 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                 })();
 
                 // Convert all generics to types. O(n²) fuck it.
-                const lGenericList: Array<Array<PgslType>> = lDeclaration.generics.map((pGenericTypeList) => {
-                    return pGenericTypeList.map((pGenericTypeCst) => {
-                        const lGenericType: TypeDeclarationAst = new TypeDeclarationAst(pGenericTypeCst).process(pContext);
-                        return lGenericType.data.type;
-                    });
+                const lGenericList: Array<FunctionDeclarationAstDataDeclarationGeneric> = lDeclaration.generics.map((pGenericType) => {
+                    return {
+                        name: pGenericType.name,
+                        restrictions: pGenericType.restrictions
+                    };
                 });
 
                 const lDeclarationResult: FunctionDeclarationAstDataDeclaration = {
@@ -241,7 +252,7 @@ export type FunctionDeclarationAstDataParameter = {
      * Function parameter type.
      * Number indicates generic parameter type of the header.
      */
-    readonly type: TypeDeclarationAst | number;
+    readonly type: TypeDeclarationAst | string;
 
     /**
      * Function parameter name.
@@ -256,7 +267,7 @@ export type FunctionDeclarationAstDataDeclaration = {
     /**
      * Function generic types.
      */
-    generics: Array<Array<PgslType>>;
+    generics: Array<FunctionDeclarationAstDataDeclarationGeneric>;
 
     /**
      * Function parameter list.
@@ -267,7 +278,7 @@ export type FunctionDeclarationAstDataDeclaration = {
      * Function result type.
      * When a number, the function uses the defined generic type as result type.
      */
-    returnType: TypeDeclarationAst | number;
+    returnType: TypeDeclarationAst | string;
 
     /**
      * Function block.
@@ -278,6 +289,21 @@ export type FunctionDeclarationAstDataDeclaration = {
      * Function entry point information.
      */
     entryPoint?: FunctionDeclarationAstDataEntryPoint;
+};
+
+/**
+ * Function declaration generic type.
+ */
+export type FunctionDeclarationAstDataDeclarationGeneric = {
+    /**
+     * Generic name.
+     */
+    name: string;
+
+    /**
+     * Restrictions for the generic type.
+     */
+    restrictions: null | Array<string>;
 };
 
 /**

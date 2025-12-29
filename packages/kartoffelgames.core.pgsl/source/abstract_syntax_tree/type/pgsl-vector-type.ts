@@ -1,12 +1,14 @@
 
+import { TypeCst } from "../../concrete_syntax_tree/general.type.ts";
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
+import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
+import { IType, type TypeProperties } from './i-type.interface.ts';
 
 /**
  * Vector type definition.
  * Represents a vector type with a specific dimension and inner type.
  */
-export class PgslVectorType extends PgslType {
+export class PgslVectorType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
     /**
      * Type names for vector types.
      * Maps vector type names to their string representations.
@@ -20,7 +22,7 @@ export class PgslVectorType extends PgslType {
         } as const;
     }
 
-    private readonly mInnerType: PgslType;
+    private readonly mInnerType: IType;
     private readonly mVectorDimension: number;
 
     /**
@@ -37,7 +39,7 @@ export class PgslVectorType extends PgslType {
      * 
      * @returns The type of elements stored in the vector.
      */
-    public get innerType(): PgslType {
+    public get innerType(): IType {
         return this.mInnerType;
     }
 
@@ -48,8 +50,8 @@ export class PgslVectorType extends PgslType {
      * @param pVectorDimension - The vector dimension (2, 3, or 4).
      * @param pInnerType - The inner element type of the vector.
      */
-    public constructor(pVectorDimension: number, pInnerType: PgslType) {
-        super();
+    public constructor(pVectorDimension: number, pInnerType: IType) {
+        super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
         this.mInnerType = pInnerType;
@@ -64,7 +66,7 @@ export class PgslVectorType extends PgslType {
      * 
      * @returns True when both types have the same dimension and inner type.
      */
-    public override equals(pTarget: PgslType): boolean {
+    public equals(pTarget: IType): boolean {
         // Must both be a vector.
         if (!(pTarget instanceof PgslVectorType)) {
             return false;
@@ -87,7 +89,7 @@ export class PgslVectorType extends PgslType {
      * 
      * @returns True when explicit casting is allowed, false otherwise.
      */
-    public override isExplicitCastableInto(pTarget: PgslType): boolean {
+    public isExplicitCastableInto(pTarget: IType): boolean {
         // Must both be a vector.
         if (!(pTarget instanceof PgslVectorType)) {
             return false;
@@ -110,7 +112,7 @@ export class PgslVectorType extends PgslType {
      * 
      * @returns True when implicit casting is allowed, false otherwise.
      */
-    public override isImplicitCastableInto(pTarget: PgslType): boolean {
+    public isImplicitCastableInto(pTarget: IType): boolean {
         // Must both be a vector.
         if (!(pTarget instanceof PgslVectorType)) {
             return false;
@@ -133,7 +135,7 @@ export class PgslVectorType extends PgslType {
      * 
      * @returns Type properties for vector types.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): TypeProperties {
         // Validate vector dimension.
         if (this.mVectorDimension < 2 || this.mVectorDimension > 4) {
             pContext.pushIncident('Invalid vector dimension. Must be 2, 3, or 4.');
@@ -144,7 +146,21 @@ export class PgslVectorType extends PgslType {
             pContext.pushIncident('Vector type must have a scalar inner type');
         }
 
+        // Build meta types.
+        const lMetaTypeList: Array<string> = new Array<string>();
+        for (const metaType of this.mInnerType.data.metaTypes) {
+            lMetaTypeList.push(`Vector<${metaType}>`);
+            lMetaTypeList.push(`Vector${this.mVectorDimension}<${metaType}>`);
+        }
+
+        // Add meta type for all vectors.
+        lMetaTypeList.push(`Vector${this.mVectorDimension}`);
+        lMetaTypeList.push('Vector');
+
         return {
+            // Meta information.
+            metaTypes: lMetaTypeList,
+
             // Always accessible as composite (swizzle) or index.
             composite: true,
             indexable: true,
@@ -159,4 +175,4 @@ export class PgslVectorType extends PgslType {
             fixedFootprint: this.mInnerType.data.fixedFootprint
         };
     }
-}
+};

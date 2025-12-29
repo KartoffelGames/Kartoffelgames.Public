@@ -5,7 +5,7 @@ import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.en
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { PgslNumericType } from '../../type/pgsl-numeric-type.ts';
-import type { PgslType } from '../../type/pgsl-type.ts';
+import type { IType } from '../../type/i-type.interface.ts';
 import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
@@ -44,8 +44,8 @@ export class BinaryExpressionAst extends AbstractSyntaxTree<BinaryExpressionCst,
         const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.right, pContext);
 
         // Type buffer for validating the processed types.
-        let lLeftValueType: PgslType;
-        let lRightValueType: PgslType;
+        let lLeftValueType: IType;
+        let lRightValueType: IType;
 
         // Validate vectors differently.
         if (lLeftExpression.data.resolveType instanceof PgslVectorType) {

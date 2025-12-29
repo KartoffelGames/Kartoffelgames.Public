@@ -1,11 +1,13 @@
+import { TypeCst } from "../../concrete_syntax_tree/general.type.ts";
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
+import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
+import { IType, type TypeProperties } from './i-type.interface.ts';
 
 /**
  * String type definition.
  * Represents a string value used for text data.
  */
-export class PgslStringType extends PgslType {
+export class PgslStringType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
     /**
      * Type names for string types.
      * Maps string type names to their string representations.
@@ -18,13 +20,20 @@ export class PgslStringType extends PgslType {
     }
 
     /**
+     * Constructor for string type.
+     */
+    public constructor() {
+        super({ type: 'Type', range: [0, 0, 0, 0] });
+    }
+
+    /**
      * Check if type is equal to target type.
      * 
      * @param pTarget - Target type.
      * 
      * @returns true when both types describes the same type.
      */
-    public override equals(pTarget: PgslType): boolean {
+    public equals(pTarget: IType): boolean {
         // String type is only equal to other string types.
         return pTarget instanceof PgslStringType;
     }
@@ -36,7 +45,7 @@ export class PgslStringType extends PgslType {
      * 
      * @returns true when type is explicit castable into target type.
      */
-    public override isExplicitCastableInto(_pTarget: PgslType): boolean {
+    public isExplicitCastableInto(_pTarget: IType): boolean {
         // A string is never explicit nor implicit castable.
         return false;
     }
@@ -48,7 +57,7 @@ export class PgslStringType extends PgslType {
      * 
      * @returns true when type is implicit castable into target type.
      */
-    public override isImplicitCastableInto(pTarget: PgslType): boolean {
+    public isImplicitCastableInto(pTarget: IType): boolean {
         // A string is never explicit nor implicit castable.
         return this.equals(pTarget);
     }
@@ -60,8 +69,9 @@ export class PgslStringType extends PgslType {
      * 
      * @returns Type properties for string type.
      */
-    protected override onProcess(_pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(_pContext: AbstractSyntaxTreeContext): TypeProperties {
         return {
+            metaTypes: [PgslStringType.typeName.string],
             storable: false,
             hostShareable: false,
             composite: false,

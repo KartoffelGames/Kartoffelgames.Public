@@ -7,7 +7,7 @@ import type { StructPropertyDeclarationAst } from '../../declaration/struct-prop
 import { PgslEnumType } from '../../type/pgsl-enum-type.ts';
 import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';
 import { PgslStructType } from '../../type/pgsl-struct-type.ts';
-import type { PgslType } from '../../type/pgsl-type.ts';
+import type { IType } from '../../type/i-type.interface.ts';
 import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
@@ -28,7 +28,7 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
         const lPropertyName: string = this.cst.property;
 
         // Read attachment from resolve type.
-        const lExpressionType: PgslType = lValue.data.resolveType;
+        const lExpressionType: IType = lValue.data.resolveType;
 
         // Must be compositeable.
         if (!lExpressionType.data.composite) {
@@ -36,7 +36,7 @@ export class ValueDecompositionExpressionAst extends AbstractSyntaxTree<ValueDec
         }
 
         // Resolve property type.
-        const lPropertyInformation = ((): ({ type: PgslType, fixedState: PgslValueFixedState, constValue: null | string | number, addressSpace: PgslValueAddressSpace; isStorage: boolean; } | null) => {
+        const lPropertyInformation = ((): ({ type: IType, fixedState: PgslValueFixedState, constValue: null | string | number, addressSpace: PgslValueAddressSpace; isStorage: boolean; } | null) => {
             switch (true) {
                 case lExpressionType instanceof PgslStructType: {
                     // Read struct definition.

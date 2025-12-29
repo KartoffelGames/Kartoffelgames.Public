@@ -1,7 +1,7 @@
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import type { SwitchStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
 import { PgslNumericType } from '../../type/pgsl-numeric-type.ts';
-import type { PgslType } from '../../type/pgsl-type.ts';
+import type { IType } from '../../type/i-type.interface.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
@@ -27,7 +27,7 @@ export class SwitchStatementAst extends AbstractSyntaxTree<SwitchStatementCst, S
 
         // Trace block in switch scope
         return pContext.pushScope('switch', () => {
-            const lCastableIntoInteger = (pType: PgslType) => {
+            const lCastableIntoInteger = (pType: IType) => {
                 const lSignedIntegerType = new PgslNumericType(PgslNumericType.typeName.signedInteger).process(pContext);
                 const lUnsignedIntegerType = new PgslNumericType( PgslNumericType.typeName.unsignedInteger).process(pContext);
                 return pType.isImplicitCastableInto(lSignedIntegerType) || pType.isImplicitCastableInto(lUnsignedIntegerType);

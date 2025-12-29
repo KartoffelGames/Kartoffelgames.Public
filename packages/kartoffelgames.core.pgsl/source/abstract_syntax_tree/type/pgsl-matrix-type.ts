@@ -1,7 +1,9 @@
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
-import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
+import { IType, type TypeProperties } from './i-type.interface.ts';
 import { PgslVectorType } from './pgsl-vector-type.ts';
+import { TypeCst } from "../../concrete_syntax_tree/general.type.ts";
+import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
 
 /**
  * Matrix type definition.
@@ -10,7 +12,7 @@ import { PgslVectorType } from './pgsl-vector-type.ts';
  * 
  * MATRIXES ARE ALWAYS COLUMN MAJOR ORDERED.
  */
-export class PgslMatrixType extends PgslType {
+export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
     /**
      * Type names for all available matrix dimensions.
      * Maps matrix type names to their string representations.
@@ -54,7 +56,7 @@ export class PgslMatrixType extends PgslType {
     }
 
     private readonly mColumnCount: number;
-    private readonly mInnerType: PgslType;
+    private readonly mInnerType: IType;
     private readonly mRowCount: number;
     private readonly mVectorTypeDefinition: PgslVectorType;
 
@@ -72,7 +74,7 @@ export class PgslMatrixType extends PgslType {
      * 
      * @returns The type of elements stored in the matrix.
      */
-    public get innerType(): PgslType {
+    public get innerType(): IType {
         return this.mInnerType;
     }
 
@@ -101,8 +103,8 @@ export class PgslMatrixType extends PgslType {
      * @param pRowCount - The number of rows in the matrix.
      * @param pInnerType - The inner element type of the matrix.
      */
-    public constructor(pColumnCount: number, pRowCount: number, pInnerType: PgslType) {
-        super();
+    public constructor(pColumnCount: number, pRowCount: number, pInnerType: IType) {
+        super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
         this.mInnerType = pInnerType;
@@ -124,7 +126,7 @@ export class PgslMatrixType extends PgslType {
      * 
      * @returns True when both types have the same dimensions and inner type.
      */
-    public override equals(pTarget: PgslType): boolean {
+    public equals(pTarget: IType): boolean {
         // Must both be a matrix.
         if (!(pTarget instanceof PgslMatrixType)) {
             return false;
@@ -147,7 +149,7 @@ export class PgslMatrixType extends PgslType {
      * 
      * @returns True when explicit casting is allowed, false otherwise.
      */
-    public override isExplicitCastableInto(pTarget: PgslType): boolean {
+    public isExplicitCastableInto(pTarget: IType): boolean {
         // Must both be a matrix.
         if (!(pTarget instanceof PgslMatrixType)) {
             return false;
@@ -170,7 +172,7 @@ export class PgslMatrixType extends PgslType {
      * 
      * @returns True when implicit casting is allowed, false otherwise.
      */
-    public override isImplicitCastableInto(pTarget: PgslType): boolean {
+    public isImplicitCastableInto(pTarget: IType): boolean {
         // Must both be a matrix.
         if (!(pTarget instanceof PgslMatrixType)) {
             return false;
@@ -193,7 +195,7 @@ export class PgslMatrixType extends PgslType {
      * 
      * @returns Type properties for matrix types.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): TypeProperties {
         // Process vector type definition.
         this.mVectorTypeDefinition.process(pContext);
 
@@ -202,7 +204,21 @@ export class PgslMatrixType extends PgslType {
             pContext.pushIncident('Matrix type must be a Float32');
         }
 
+         // Build meta types.
+        const lMetaTypeList: Array<string> = new Array<string>();
+        for (const metaType of this.mInnerType.data.metaTypes) {
+            lMetaTypeList.push(`Matrix<${metaType}>`);
+            lMetaTypeList.push(`Matrix${this.mColumnCount}${this.mRowCount}<${metaType}>`);
+        }
+
+        // Add meta type for all vectors.
+        lMetaTypeList.push(`Matrix${this.mColumnCount}${this.mRowCount}`);
+        lMetaTypeList.push('Matrix');
+
         return {
+            // Meta information.
+            metaTypes: lMetaTypeList,
+
             // Always accessible as composite (swizzle) or index.
             composite: true,
             indexable: true,

@@ -1,5 +1,5 @@
 import type { ReturnStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
-import type { PgslType } from '../../type/pgsl-type.ts';
+import type { IType } from '../../type/i-type.interface.ts';
 import { PgslVoidType } from '../../type/pgsl-void-type.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
@@ -29,6 +29,6 @@ export class ReturnStatementAst extends AbstractSyntaxTree<ReturnStatementCst, R
 }
 
 export type ReturnStatementAstData = {
-    returnType: PgslType;
+    returnType: IType;
     expression: IExpressionAst | null;
 };

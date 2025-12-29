@@ -11,7 +11,7 @@ import type { IExpressionAst } from '../../expression/i-expression-ast.interface
 import { TypeDeclarationAst } from '../../general/type-declaration-ast.ts';
 import type { IValueStoreAst, ValueStoreAstData } from '../../i-value-store-ast.interface.ts';
 import { PgslPointerType } from '../../type/pgsl-pointer-type.ts';
-import type { PgslType } from '../../type/pgsl-type.ts';
+import type { IType } from '../../type/i-type.interface.ts';
 import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
 
 // TODO: Declaration types var should not exist. let should be transpiled to var in WGSL. And const to let or const based on usage.
@@ -36,7 +36,7 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
 
         // Create type declaration.
         const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(this.cst.typeDeclaration).process(pContext);
-        const lType: PgslType = lTypeDeclaration.data.type;
+        const lType: IType = lTypeDeclaration.data.type;
 
         // Expression value has a fixed byte size.
         let lFixedState: PgslValueFixedState = PgslValueFixedState.Variable;

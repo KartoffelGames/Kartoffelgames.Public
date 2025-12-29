@@ -6,7 +6,7 @@ import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
 import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';
 import { PgslNumericType, type PgslNumericTypeName } from '../../type/pgsl-numeric-type.ts';
-import type { PgslType } from '../../type/pgsl-type.ts';
+import type { IType } from '../../type/i-type.interface.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 
 /**
@@ -44,7 +44,7 @@ export class LiteralValueExpressionAst extends AbstractSyntaxTree<LiteralValueEx
      * @throws {@link Exception}
      * When a unsupported type should be set or the {@link pTextValue} value does not fit the {@link pType}.
      */
-    private convertData(pContext: AbstractSyntaxTreeContext, pTextValue: string): [PgslType, number] {
+    private convertData(pContext: AbstractSyntaxTreeContext, pTextValue: string): [IType, number] {
         // Might be a boolean
         if (pTextValue === 'true') {
             return [new PgslBooleanType().process(pContext), 1];

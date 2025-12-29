@@ -1,13 +1,15 @@
+import { TypeCst } from "../../concrete_syntax_tree/general.type.ts";
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
+import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
 import type { EnumDeclarationAst } from '../declaration/enum-declaration-ast.ts';
-import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
+import { IType, type TypeProperties } from './i-type.interface.ts';
 
 /**
  * Enum type.
  * Represents a user-defined enum type that contains multiple named values.
  * Enum types are composite types that can be used to group related data.
  */
-export class PgslEnumType extends PgslType {
+export class PgslEnumType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
     private mEnumDeclaration: EnumDeclarationAst | null;
     private readonly mEnumName: string;
 
@@ -36,7 +38,7 @@ export class PgslEnumType extends PgslType {
      * @param pEnumName - The name of the enum type.
      */
     public constructor(pEnumName: string) {
-        super();
+        super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
         this.mEnumName = pEnumName;
@@ -53,7 +55,7 @@ export class PgslEnumType extends PgslType {
      * 
      * @returns True when both types have the same struct name.
      */
-    public override equals(pTarget: PgslType): boolean {
+    public equals(pTarget: IType): boolean {
         // Must both be a enum.
         if (!(pTarget instanceof PgslEnumType)) {
             return false;
@@ -70,7 +72,7 @@ export class PgslEnumType extends PgslType {
      * 
      * @returns Always false - enums cannot be cast.
      */
-    public override isExplicitCastableInto(_pTarget: PgslType): boolean {
+    public isExplicitCastableInto(_pTarget: IType): boolean {
         // A enum is never explicit nor implicit castable.
         return false;
     }
@@ -83,7 +85,7 @@ export class PgslEnumType extends PgslType {
      * 
      * @returns Always false - enums cannot be cast.
      */
-    public override isImplicitCastableInto(pTarget: PgslType): boolean {
+    public isImplicitCastableInto(pTarget: IType): boolean {
         // A enum is only castable to itself.
         return this.equals(pTarget);
     }
@@ -96,7 +98,7 @@ export class PgslEnumType extends PgslType {
      * 
      * @returns Type properties aggregated from enum fields.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): TypeProperties {
         // Read enum declaration.
         this.mEnumDeclaration = pContext.getEnum(this.mEnumName) ?? null;
 
@@ -106,6 +108,9 @@ export class PgslEnumType extends PgslType {
         }
 
         return {
+            // Meta information.
+            metaTypes: [`Enum-${this.mEnumName}`],
+
             // Default enum information.
             composite: true,
             indexable: false,

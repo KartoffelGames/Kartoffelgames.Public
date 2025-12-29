@@ -1,5 +1,5 @@
 import type { AliasDeclarationCst } from '../../concrete_syntax_tree/declaration.type.ts';
-import type { PgslType } from '../type/pgsl-type.ts';
+import type { IType } from '../type/i-type.interface.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 import { AttributeListAst } from '../general/attribute-list-ast.ts';
@@ -40,5 +40,5 @@ export class AliasDeclarationAst extends AbstractSyntaxTree<AliasDeclarationCst,
 
 type AliasDeclarationAstData = {
     aliasName: string;
-    underlyingType: PgslType;
+    underlyingType: IType;
 } & DeclarationAstData;

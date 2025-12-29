@@ -5,7 +5,7 @@ import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { PgslArrayType } from '../../type/pgsl-array-type.ts';
 import { PgslMatrixType } from '../../type/pgsl-matrix-type.ts';
 import { PgslNumericType } from '../../type/pgsl-numeric-type.ts';
-import type { PgslType } from '../../type/pgsl-type.ts';
+import type { IType } from '../../type/i-type.interface.ts';
 import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
@@ -39,7 +39,7 @@ export class IndexedValueExpressionAst extends AbstractSyntaxTree<IndexedValueEx
             pContext.pushIncident('Index needs to be a unsigned numeric value.', this);
         }
 
-        const lResolveType: PgslType = (() => {
+        const lResolveType: IType = (() => {
             switch (true) {
                 case lValue.data.resolveType instanceof PgslArrayType: {
                     return lValue.data.resolveType.innerType;

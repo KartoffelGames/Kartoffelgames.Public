@@ -1,13 +1,15 @@
+import { TypeCst } from "../../concrete_syntax_tree/general.type.ts";
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
+import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
 import type { StructDeclarationAst } from '../declaration/struct-declaration-ast.ts';
-import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
+import { IType, type TypeProperties } from './i-type.interface.ts';
 
 /**
  * Struct type definition.
  * Represents a user-defined struct type that contains multiple named fields.
  * Struct types are composite types that can be used to group related data.
  */
-export class PgslStructType extends PgslType {
+export class PgslStructType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
     private readonly mStructName: string;
 
     /**
@@ -25,7 +27,7 @@ export class PgslStructType extends PgslType {
      * @param pStructName - The name of the struct type.
      */
     public constructor(pStructName: string) {
-        super();
+        super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
         this.mStructName = pStructName;
@@ -39,7 +41,7 @@ export class PgslStructType extends PgslType {
      * 
      * @returns True when both types have the same struct name.
      */
-    public override equals(pTarget: PgslType): boolean {
+    public equals(pTarget: IType): boolean {
         // Must both be a struct.
         if (!(pTarget instanceof PgslStructType)) {
             return false;
@@ -56,7 +58,7 @@ export class PgslStructType extends PgslType {
      * 
      * @returns Always false - structs cannot be cast.
      */
-    public override isExplicitCastableInto(_pTarget: PgslType): boolean {
+    public isExplicitCastableInto(_pTarget: IType): boolean {
         // A struct is never explicit nor implicit castable.
         return false;
     }
@@ -69,7 +71,7 @@ export class PgslStructType extends PgslType {
      * 
      * @returns Always false - structs cannot be cast.
      */
-    public override isImplicitCastableInto(pTarget: PgslType): boolean {
+    public isImplicitCastableInto(pTarget: IType): boolean {
         // A struct is never explicit nor implicit castable.
         return this.equals(pTarget);
     }
@@ -82,7 +84,7 @@ export class PgslStructType extends PgslType {
      * 
      * @returns Type properties aggregated from struct fields.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): TypeProperties {
         // Read struct trace information.
         const lStruct: StructDeclarationAst | undefined = pContext.getStruct(this.mStructName);
 
@@ -90,6 +92,9 @@ export class PgslStructType extends PgslType {
             pContext.pushIncident(`Name '${this.mStructName}' does not resolve to a struct declaration.`);
 
             return {
+                // Meta information.
+                metaTypes: [`Struct-${this.mStructName}`],
+
                 // Default struct information.
                 composite: true,
                 indexable: false,
@@ -127,6 +132,9 @@ export class PgslStructType extends PgslType {
         })();
 
         return {
+            // Meta information.
+            metaTypes: [`Struct-${this.mStructName}`],
+
             // Default struct information.
             composite: true,
             indexable: false,

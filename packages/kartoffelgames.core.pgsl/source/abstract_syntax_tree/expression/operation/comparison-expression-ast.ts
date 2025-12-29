@@ -3,7 +3,7 @@ import type { ComparisonExpressionCst } from '../../../concrete_syntax_tree/expr
 import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
-import type { PgslType } from '../../type/pgsl-type.ts';
+import type { IType } from '../../type/i-type.interface.ts';
 import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
@@ -53,7 +53,7 @@ export class ComparisonExpressionAst extends AbstractSyntaxTree<ComparisonExpres
         }
 
         // Type buffer for validating the processed types.
-        let lValueType: PgslType;
+        let lValueType: IType;
 
         // Validate vectors differently.
         if (lLeftExpression.data.resolveType instanceof PgslVectorType) {
@@ -73,7 +73,7 @@ export class ComparisonExpressionAst extends AbstractSyntaxTree<ComparisonExpres
         }
 
         // Any value is converted into a boolean type.
-        const lResolveType: PgslType = (() => {
+        const lResolveType: IType = (() => {
             const lBooleanDefinition: PgslBooleanType = new PgslBooleanType().process(pContext);
 
             // Wrap boolean into a vector when it is a vector expression.

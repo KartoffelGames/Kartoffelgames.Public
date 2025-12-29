@@ -1,11 +1,13 @@
+import { TypeCst } from "../../concrete_syntax_tree/general.type.ts";
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
+import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
+import { IType, type TypeProperties } from './i-type.interface.ts';
 
 /**
  * Boolean type definition.
  * Represents a boolean value that can be either true or false.
  */
-export class PgslBooleanType extends PgslType {
+export class PgslBooleanType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
     /**
      * Type names for boolean types.
      * Maps boolean type names to their string representations.
@@ -18,13 +20,20 @@ export class PgslBooleanType extends PgslType {
     }
 
     /**
+     * Constructor for boolean type.
+     */
+    public constructor() {
+        super({ type: 'Type', range: [0, 0, 0, 0] });
+    }
+
+    /**
      * Check if type is equal to target type.
      * 
      * @param pTarget - Target type.
      * 
      * @returns true when both types describes the same type.
      */
-    public override equals(pTarget: PgslType): boolean {
+    public equals(pTarget: IType): boolean {
         // Boolean type is only equal to other boolean types.
         return pTarget instanceof PgslBooleanType;
     }
@@ -36,7 +45,7 @@ export class PgslBooleanType extends PgslType {
      * 
      * @returns true when type is explicit castable into target type.
      */
-    public override isExplicitCastableInto(_pTarget: PgslType): boolean {
+    public isExplicitCastableInto(_pTarget: IType): boolean {
         // A boolean is never explicit nor implicit castable.
         return false;
     }
@@ -48,7 +57,7 @@ export class PgslBooleanType extends PgslType {
      * 
      * @returns true when type is implicit castable into target type.
      */
-    public override isImplicitCastableInto(pTarget: PgslType): boolean {
+    public isImplicitCastableInto(pTarget: IType): boolean {
         // A boolean is never explicit nor implicit castable.
         return this.equals(pTarget);
     }
@@ -60,8 +69,9 @@ export class PgslBooleanType extends PgslType {
      * 
      * @returns Type properties for boolean type.
      */
-    protected override onProcess(_pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(_pContext: AbstractSyntaxTreeContext): TypeProperties {
         return {
+            metaTypes: [PgslBooleanType.typeName.boolean],
             storable: true,
             hostShareable: false,
             composite: false,

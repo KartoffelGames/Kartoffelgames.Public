@@ -6,15 +6,17 @@ import { PgslArrayType } from './pgsl-array-type.ts';
 import { PgslBooleanType } from './pgsl-boolean-type.ts';
 import { PgslInvalidType } from './pgsl-invalid-type.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
-import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
+import { IType, type TypeProperties } from './i-type.interface.ts';
 import { PgslVectorType } from './pgsl-vector-type.ts';
+import { TypeCst } from "../../concrete_syntax_tree/general.type.ts";
+import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
 
 /**
  * Built-in type definition that represents PGSL built-in types.
  * These are predefined types that map to specific underlying types and are used
  * for shader built-in values like vertex indices, positions, workgroup IDs, etc.
  */
-export class PgslBuildInType extends PgslType {
+export class PgslBuildInType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
     /**
      * Type names for all available built-in types.
      * Maps built-in type names to their string representations.
@@ -40,7 +42,7 @@ export class PgslBuildInType extends PgslType {
 
     private readonly mBuildInType: PgslBuildInTypeName;
     private readonly mTemplate: IExpressionAst | null;
-    private mUnderlyingType: PgslType | null;
+    private mUnderlyingType: IType | null;
     
 
     /**
@@ -66,7 +68,7 @@ export class PgslBuildInType extends PgslType {
      * 
      * @returns The underlying PGSL type.
      */
-    public get underlyingType(): PgslType {
+    public get underlyingType(): IType {
         if (!this.mUnderlyingType) {
             throw new Exception('Underlying type has not been initialized.', this);
         }
@@ -82,7 +84,7 @@ export class PgslBuildInType extends PgslType {
      * @param pTemplate - Optional template expression for parameterized types.
      */
     public constructor(pType: PgslBuildInTypeName, pTemplate: IExpressionAst | null) {
-        super();
+        super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
         this.mBuildInType = pType;
@@ -100,7 +102,7 @@ export class PgslBuildInType extends PgslType {
      * 
      * @returns True when both types have the same underlying type.
      */
-    public override equals(pTarget: PgslType): boolean {
+    public equals(pTarget: IType): boolean {
         // Check if target is also a built-in type with the same variant.
         if (pTarget instanceof PgslBuildInType) {
             return this.mBuildInType === pTarget.mBuildInType && this.underlyingType.equals(pTarget.underlyingType);
@@ -118,7 +120,7 @@ export class PgslBuildInType extends PgslType {
      * 
      * @returns True when the underlying type is explicitly castable to the target.
      */
-    public override isExplicitCastableInto(pTarget: PgslType): boolean {
+    public isExplicitCastableInto(pTarget: IType): boolean {
         // Check if aliased type is explicit castable into target type.
         return this.underlyingType.isExplicitCastableInto(pTarget);
     }
@@ -131,7 +133,7 @@ export class PgslBuildInType extends PgslType {
      * 
      * @returns True when the underlying type is implicitly castable to the target.
      */
-    public override isImplicitCastableInto(pTarget: PgslType): boolean {
+    public isImplicitCastableInto(pTarget: IType): boolean {
         // Check if aliased type is implicit castable into target type.
         return this.underlyingType.isImplicitCastableInto(pTarget);
     }
@@ -144,7 +146,7 @@ export class PgslBuildInType extends PgslType {
      * 
      * @returns Type properties copied from the underlying type.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): TypeProperties {
         // Only clip distance needs validation.
         if (this.mBuildInType === PgslBuildInType.typeName.clipDistances) {
             this.validateClipDistancesTemplate(pContext);
@@ -155,6 +157,7 @@ export class PgslBuildInType extends PgslType {
 
         // Copy all properties from the underlying type.
         return {
+            metaTypes: this.mUnderlyingType.data.metaTypes,
             storable: this.mUnderlyingType.data.storable,
             hostShareable: this.mUnderlyingType.data.hostShareable,
             composite: this.mUnderlyingType.data.composite,
@@ -177,7 +180,7 @@ export class PgslBuildInType extends PgslType {
      * 
      * @returns The underlying PGSL type that represents this built-in type.
      */
-    private determinateAliasedType(pContext: AbstractSyntaxTreeContext, pBuildInType: PgslBuildInTypeName, pTemplate: IExpressionAst | null): PgslType {
+    private determinateAliasedType(pContext: AbstractSyntaxTreeContext, pBuildInType: PgslBuildInTypeName, pTemplate: IExpressionAst | null): IType {
         // Big ass switch case.
         switch (pBuildInType) {
             case PgslBuildInType.typeName.position: {

@@ -1,5 +1,5 @@
 import type { BlockStatementCst } from '../../../concrete_syntax_tree/statement.type.ts';
-import type { PgslType } from '../../type/pgsl-type.ts';
+import type { IType } from '../../type/i-type.interface.ts';
 import { PgslVoidType } from '../../type/pgsl-void-type.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
@@ -24,7 +24,7 @@ export class BlockStatementAst extends AbstractSyntaxTree<BlockStatementCst, Blo
             // Prepare data containers.
             const lStatementData = {
                 statementList: Array<IStatementAst>(),
-                returnType: null as PgslType | null,
+                returnType: null as IType | null,
                 isContinuing: null as boolean | null,
                 isBreaking: null as boolean | null
             };
@@ -67,7 +67,7 @@ export class BlockStatementAst extends AbstractSyntaxTree<BlockStatementCst, Blo
 
 export type BlockStatementAstData = {
     statementList: ReadonlyArray<IStatementAst>;
-    returnType: PgslType;
+    returnType: IType;
     isContinuing: boolean;
     isBreaking: boolean;
 } & StatementAstData;

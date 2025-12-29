@@ -5,7 +5,7 @@ import type { BlockStatementCst } from './statement.type.ts';
 /*
  * Core.
  */
-export type DeclarationCstType = 'AliasDeclaration' | 'EnumDeclaration' | 'EnumDeclarationValue' | 'FunctionDeclaration' | 'FunctionDeclarationHeader' | 'FunctionDeclarationParameter' | 'StructDeclaration' | 'StructPropertyDeclaration' | 'VariableDeclaration';
+export type DeclarationCstType = 'AliasDeclaration' | 'EnumDeclaration' | 'EnumDeclarationValue' | 'FunctionDeclaration' | 'FunctionDeclarationHeader' | 'FunctionDeclarationParameter' | 'FunctionDeclarationGeneric' | 'StructDeclaration' | 'StructPropertyDeclaration' | 'VariableDeclaration';
 export type DeclarationCst<TDeclarationType extends DeclarationCstType = DeclarationCstType> = Cst<TDeclarationType> & {
     buildIn: boolean;
 };
@@ -47,16 +47,21 @@ export type FunctionDeclarationCst = {
 
 export type FunctionDeclarationHeaderCst = {
     attributeList: AttributeListCst;
-    generics: Array<Array<TypeDeclarationCst>>;
+    generics: Array<FunctionDeclarationGenericCst>;
     parameters: Array<FunctionDeclarationParameterCst>;
-    returnType: TypeDeclarationCst | number; // Number indicates generic return type of the header.
+    returnType: TypeDeclarationCst | string; // String indicates generic return type of the header.
     block: BlockStatementCst;
 } & DeclarationCst<'FunctionDeclarationHeader'>;
 
 export type FunctionDeclarationParameterCst = {
     name: string;
-    typeDeclaration: TypeDeclarationCst | number; // Number indicates generic parameter type of the header.
+    typeDeclaration: TypeDeclarationCst | string; // String indicates generic parameter type of the header.
 } & DeclarationCst<'FunctionDeclarationParameter'>;
+
+export type FunctionDeclarationGenericCst = {
+    name: string;
+    restrictions: null | Array<string>; // List of Types MetaTypes names that are allowed.
+} & DeclarationCst<'FunctionDeclarationGeneric'>;
 
 /*
  * Struct.

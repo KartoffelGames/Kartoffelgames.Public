@@ -1,16 +1,18 @@
+import { TypeCst } from "../../concrete_syntax_tree/general.type.ts";
 import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
+import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
+import { IType, type TypeProperties } from './i-type.interface.ts';
 
 /**
  * Pointer type definition.
  * Represents a pointer type that references another type in memory.
  * Pointers allow indirect access to values and are used for referencing data.
  */
-export class PgslPointerType extends PgslType {
+export class PgslPointerType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
     private mAssignedAddressSpace: PgslValueAddressSpace | null;
-    private readonly mReferencedType: PgslType;
-    
+    private readonly mReferencedType: IType;
+
     /**
      * Gets the assigned address space for this pointer.
      * The address space defines where the pointer points to (e.g., function, module, etc.).
@@ -27,7 +29,7 @@ export class PgslPointerType extends PgslType {
      * 
      * @returns The referenced type.
      */
-    public get referencedType(): PgslType {
+    public get referencedType(): IType {
         return this.mReferencedType;
     }
 
@@ -37,8 +39,8 @@ export class PgslPointerType extends PgslType {
      * @param pContext - The context for validation and error reporting.
      * @param pReferenceType - The type that this pointer references.
      */
-    public constructor(pReferenceType: PgslType) {
-        super();
+    public constructor(pReferenceType: IType) {
+        super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
         this.mReferencedType = pReferenceType;
@@ -71,7 +73,7 @@ export class PgslPointerType extends PgslType {
      * 
      * @returns True when both pointers reference the same type.
      */
-    public override equals(pTarget: PgslType): boolean {
+    public equals(pTarget: IType): boolean {
         // Target type must be a pointer.
         if (!(pTarget instanceof PgslPointerType)) {
             return false;
@@ -88,7 +90,7 @@ export class PgslPointerType extends PgslType {
      * 
      * @returns Always false - pointers cannot be cast.
      */
-    public override isExplicitCastableInto(_pTarget: PgslType): boolean {
+    public isExplicitCastableInto(_pTarget: IType): boolean {
         // A pointer is never explicit nor implicit castable.
         return false;
     }
@@ -101,7 +103,7 @@ export class PgslPointerType extends PgslType {
      * 
      * @returns Always false - pointers cannot be cast.
      */
-    public override isImplicitCastableInto(pTarget: PgslType): boolean {
+    public isImplicitCastableInto(pTarget: IType): boolean {
         // A pointer is never explicit nor implicit castable.
         return this.equals(pTarget);
     }
@@ -114,13 +116,22 @@ export class PgslPointerType extends PgslType {
      * 
      * @returns Type properties for pointer types.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): TypeProperties {
         // Only storable types can be referenced by pointers.
         if (!this.mReferencedType.data.storable) {
             pContext.pushIncident('Referenced types of pointers need to be storable');
         }
 
+        // Build meta types.
+        const lMetaTypeList: Array<string> = new Array<string>();
+        for (const metaType of this.mReferencedType.data.metaTypes) {
+            lMetaTypeList.push(`Pointer<${metaType}>`);
+        }
+
         return {
+            // Meta information.
+            metaTypes: lMetaTypeList,
+
             composite: false,
             indexable: false,
             storable: true,

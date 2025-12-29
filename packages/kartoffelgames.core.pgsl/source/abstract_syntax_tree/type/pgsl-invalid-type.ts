@@ -1,12 +1,21 @@
+import { TypeCst } from "../../concrete_syntax_tree/general.type.ts";
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
+import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
+import { IType, type TypeProperties } from './i-type.interface.ts';
 
 /**
  * Invalid type definition.
  * Represents an invalid or erroneous type that cannot be used in normal operations.
  * This type is used as a fallback when type resolution fails or encounters errors.
  */
-export class PgslInvalidType extends PgslType {
+export class PgslInvalidType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
+    /**
+     * Constructor for invalid type.
+     */
+    public constructor() {
+        super({ type: 'Type', range: [0, 0, 0, 0] });
+    }
+
     /**
      * Check if this invalid type is equal to the target type.
      * Invalid types are never equal to any type, including other invalid types.
@@ -15,7 +24,7 @@ export class PgslInvalidType extends PgslType {
      * 
      * @returns Always false - invalid types are never equal.
      */
-    public override equals(_pTarget: PgslType): boolean {
+    public equals(_pTarget: IType): boolean {
         return false;
     }
 
@@ -27,7 +36,7 @@ export class PgslInvalidType extends PgslType {
      * 
      * @returns Always false - invalid types cannot be cast.
      */
-    public override isExplicitCastableInto(_pTarget: PgslType): boolean {
+    public isExplicitCastableInto(_pTarget: IType): boolean {
         return false;
     }
 
@@ -39,7 +48,7 @@ export class PgslInvalidType extends PgslType {
      * 
      * @returns Always false - invalid types cannot be cast.
      */
-    public override isImplicitCastableInto(_pTarget: PgslType): boolean {
+    public isImplicitCastableInto(_pTarget: IType): boolean {
         return false;
     }
 
@@ -51,8 +60,9 @@ export class PgslInvalidType extends PgslType {
      * 
      * @returns Type properties indicating the type is completely unusable.
      */
-    protected override onProcess(_pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(_pContext: AbstractSyntaxTreeContext): TypeProperties {
         return {
+            metaTypes: [], // Invalid types have no meta types.
             storable: false,
             hostShareable: false,
             composite: false,

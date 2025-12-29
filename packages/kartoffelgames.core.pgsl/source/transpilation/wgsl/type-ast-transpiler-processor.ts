@@ -11,7 +11,7 @@ import { PgslSamplerType } from '../../abstract_syntax_tree/type/pgsl-sampler-ty
 import { PgslStringType } from '../../abstract_syntax_tree/type/pgsl-string-type.ts';
 import { PgslStructType } from '../../abstract_syntax_tree/type/pgsl-struct-type.ts';
 import { PgslTextureType, type PgslTextureTypeName } from '../../abstract_syntax_tree/type/pgsl-texture-type.ts';
-import type { PgslType } from '../../abstract_syntax_tree/type/pgsl-type.ts';
+import type { IType } from '../../abstract_syntax_tree/type/i-type.interface.ts';
 import { PgslVectorType } from '../../abstract_syntax_tree/type/pgsl-vector-type.ts';
 import { PgslVoidType } from '../../abstract_syntax_tree/type/pgsl-void-type.ts';
 import { PgslAccessModeEnum } from '../../buildin/enum/pgsl-access-mode-enum.ts';
@@ -22,16 +22,16 @@ import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../
 /**
  * Function type for transpiling PGSL types to WGSL.
  */
-export class TypeAstTranspilerProcessor implements ITranspilerProcessor<PgslType> {
+export class TypeAstTranspilerProcessor implements ITranspilerProcessor<IType> {
     /**
      * Map of PGSL type constructors to their WGSL transpilation functions.
      */
-    private readonly mTypeTranspilers: Map<IAnyParameterConstructor<PgslType>, PgslTypeTranspilerFunction<any>>;
+    private readonly mTypeTranspilers: Map<IAnyParameterConstructor<IType>, ITypeTranspilerFunction<any>>;
 
     /**
      * Gets the target type that this processor handles.
      */
-    public get target(): Array<IAnyParameterConstructor<PgslType>> {
+    public get target(): Array<IAnyParameterConstructor<IType>> {
         return [
             PgslArrayType,
             PgslBooleanType,
@@ -53,7 +53,7 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<PgslType
      * Creates a new type definition transpiler processor.
      */
     public constructor() {
-        this.mTypeTranspilers = new Map<IAnyParameterConstructor<PgslType>, PgslTypeTranspilerFunction<PgslType>>();
+        this.mTypeTranspilers = new Map<IAnyParameterConstructor<IType>, ITypeTranspilerFunction<IType>>();
 
         // Register all type transpilers.
         this.mTypeTranspilers.set(PgslBooleanType, this.transpileBooleanType);
@@ -81,7 +81,7 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<PgslType
      * @param pSendResult - Function to send the transpiled result.
      * @param pTranspile - Function to transpile child nodes.
      */
-    public process(pInstance: PgslType, pTranspile: PgslTranspilerProcessorTranspile): string {
+    public process(pInstance: IType, pTranspile: PgslTranspilerProcessorTranspile): string {
         return this.processType(pInstance, pTranspile);
     }
 
@@ -93,9 +93,9 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<PgslType
      * @param pSendResult - Function to send the transpiled result.
      * @param pTranspile - Function to transpile child nodes.
      */
-    private processType(pType: PgslType, pTranspile: PgslTranspilerProcessorTranspile): string {
+    private processType(pType: IType, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Get the appropriate transpiler for the type.
-        const lTranspiler = this.mTypeTranspilers.get(pType.constructor as IAnyParameterConstructor<PgslType>);
+        const lTranspiler = this.mTypeTranspilers.get(pType.constructor as IAnyParameterConstructor<IType>);
         if (!lTranspiler) {
             throw new Error(`No transpilation processor found for type of type '${pType.constructor.name}'.`);
         }
@@ -162,7 +162,7 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<PgslType
      * 
      * @returns The fallback invalid type string.
      */
-    private transpileInvalidType(_pType: PgslType, _pTranspile: PgslTranspilerProcessorTranspile): string {
+    private transpileInvalidType(_pType: IType, _pTranspile: PgslTranspilerProcessorTranspile): string {
         throw new Exception('Invalid type encountered during transpilation', this);
     }
 
@@ -387,4 +387,4 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<PgslType
  * 
  * @returns The transpiled WGSL type string.
  */
-type PgslTypeTranspilerFunction<TType extends PgslType> = (pType: TType, pTranspile: PgslTranspilerProcessorTranspile) => string;
+type ITypeTranspilerFunction<TType extends IType> = (pType: TType, pTranspile: PgslTranspilerProcessorTranspile) => string;

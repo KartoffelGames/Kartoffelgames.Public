@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import type { VariableDeclarationAst } from '../abstract_syntax_tree/declaration/variable-declaration-ast.ts';
 import { PgslBooleanType } from '../abstract_syntax_tree/type/pgsl-boolean-type.ts';
 import { PgslNumericType } from '../abstract_syntax_tree/type/pgsl-numeric-type.ts';
-import type { PgslType } from '../abstract_syntax_tree/type/pgsl-type.ts';
+import type { IType } from '../abstract_syntax_tree/type/i-type.interface.ts';
 import { PgslParserResultBooleanType } from './type/pgsl-parser-result-boolean-type.ts';
 import { PgslParserResultNumericType } from './type/pgsl-parser-result-numeric-type.ts';
 import type { PgslParserResultType } from './type/pgsl-parser-result-type.ts';
@@ -43,13 +43,13 @@ export class PgslParserResultParameter {
     }
 
     /**
-     * Converts a PgslType to a PgslParserResultType.
+     * Converts a IType to a PgslParserResultType.
      *
-     * @param pType - The PgslType to convert.
+     * @param pType - The IType to convert.
      *
      * @returns The converted PgslParserResultType.
      */
-    private convertType(pType: PgslType): PgslParserResultType {
+    private convertType(pType: IType): PgslParserResultType {
         // Handle numeric types
         if (pType instanceof PgslNumericType) {
             switch (pType.numericTypeName) {

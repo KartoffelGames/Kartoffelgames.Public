@@ -1,12 +1,14 @@
+import { TypeCst } from "../../concrete_syntax_tree/general.type.ts";
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
+import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
+import { IType, type TypeProperties } from './i-type.interface.ts';
 
 /**
  * Numeric type definition.
  * Represents all numeric types in PGSL including integers, floats, and abstract numeric types.
  * Handles type casting rules between different numeric types.
  */
-export class PgslNumericType extends PgslType {
+export class PgslNumericType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
     /**
      * Type names for all available numeric types.
      * Maps numeric type names to their string representations.
@@ -40,7 +42,7 @@ export class PgslNumericType extends PgslType {
      * @param pNumericType - The specific numeric type variant.
      */
     public constructor(pNumericType: PgslNumericTypeName) {
-        super();
+        super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
         this.mNumericType = pNumericType;
@@ -54,7 +56,7 @@ export class PgslNumericType extends PgslType {
      * 
      * @returns True when both types have the same numeric type.
      */
-    public override equals(pTarget: PgslType): boolean {
+    public equals(pTarget: IType): boolean {
         // Must both be the same numeric type.
         if (!(pTarget instanceof PgslNumericType)) {
             return false;
@@ -72,7 +74,7 @@ export class PgslNumericType extends PgslType {
      * 
      * @returns True if target is a numeric type, false otherwise.
      */
-    public override isExplicitCastableInto(pTarget: PgslType): boolean {
+    public isExplicitCastableInto(pTarget: IType): boolean {
         // All numeric values are explicit castable into another numeric type.
         return pTarget instanceof PgslNumericType;
     }
@@ -86,7 +88,7 @@ export class PgslNumericType extends PgslType {
      * 
      * @returns True when implicit casting is allowed, false otherwise.
      */
-    public override isImplicitCastableInto(pTarget: PgslType): boolean {
+    public isImplicitCastableInto(pTarget: IType): boolean {
         // Target type must be a numeric type.
         if (!(pTarget instanceof PgslNumericType)) {
             return false;
@@ -97,7 +99,7 @@ export class PgslNumericType extends PgslType {
             case PgslNumericType.typeName.abstractInteger: {
                 return true;
             }
-            
+
             // An abstract float is only castable into float types.
             case PgslNumericType.typeName.abstractFloat: {
                 // List of all integer types.
@@ -127,11 +129,47 @@ export class PgslNumericType extends PgslType {
      * 
      * @returns Type properties for numeric types.
      */
-    protected override onProcess(_pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(_pContext: AbstractSyntaxTreeContext): TypeProperties {
         // A concrete numeric type is any type that is not abstract.
         const lIsConcrete: boolean = this.mNumericType !== PgslNumericType.typeName.abstractFloat && this.mNumericType !== PgslNumericType.typeName.abstractInteger;
 
+        // Build meta types.
+        const lMetaTypeList: Array<string> = new Array<string>();
+        switch (this.mNumericType) {
+            case PgslNumericType.typeName.signedInteger: {
+                lMetaTypeList.push(PgslNumericType.typeName.signedInteger);
+                lMetaTypeList.push('numeric-integer');
+                lMetaTypeList.push('numeric');
+            }
+            case PgslNumericType.typeName.unsignedInteger: {
+                lMetaTypeList.push(PgslNumericType.typeName.unsignedInteger);
+                lMetaTypeList.push('numeric-integer');
+                lMetaTypeList.push('numeric');
+            }
+            case PgslNumericType.typeName.abstractInteger: {
+                lMetaTypeList.push('numeric-integer');
+                lMetaTypeList.push('numeric');
+            }
+            case PgslNumericType.typeName.float32: {
+                lMetaTypeList.push(PgslNumericType.typeName.float32);
+                lMetaTypeList.push('numeric-float');
+                lMetaTypeList.push('numeric');
+            }
+            case PgslNumericType.typeName.float16: {
+                lMetaTypeList.push(PgslNumericType.typeName.float16);
+                lMetaTypeList.push('numeric-float');
+                lMetaTypeList.push('numeric');
+            }
+            case PgslNumericType.typeName.abstractFloat: {
+                lMetaTypeList.push('numeric-float');
+                lMetaTypeList.push('numeric');
+            }
+        }
+
         return {
+            // Meta information.
+            metaTypes: lMetaTypeList,
+
             // Dynamic properties.
             concrete: lIsConcrete,
 

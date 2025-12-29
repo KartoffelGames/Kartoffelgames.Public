@@ -8,7 +8,7 @@ import { PgslNumericType } from '../abstract_syntax_tree/type/pgsl-numeric-type.
 import { PgslSamplerType } from '../abstract_syntax_tree/type/pgsl-sampler-type.ts';
 import { PgslStructType } from '../abstract_syntax_tree/type/pgsl-struct-type.ts';
 import { PgslTextureType } from '../abstract_syntax_tree/type/pgsl-texture-type.ts';
-import type { PgslType } from '../abstract_syntax_tree/type/pgsl-type.ts';
+import type { IType } from '../abstract_syntax_tree/type/i-type.interface.ts';
 import { PgslVectorType } from '../abstract_syntax_tree/type/pgsl-vector-type.ts';
 import { PgslDeclarationType } from '../enum/pgsl-declaration-type.enum.ts';
 import type { TranspilationMeta, TranspilationMetaBinding } from '../transpilation/transpilation-meta.ts';
@@ -129,7 +129,7 @@ export class PgslParserResultBinding {
      *
      * @returns The parser result type.
      */
-    private convertType(pType: PgslType, pDocument: DocumentAst, pEnforceAlignmentType?: PgslParserResultTypeAlignmentType): PgslParserResultType {
+    private convertType(pType: IType, pDocument: DocumentAst, pEnforceAlignmentType?: PgslParserResultTypeAlignmentType): PgslParserResultType {
         // Convert binding type to alignment type.
         const lAlignmentType: PgslParserResultTypeAlignmentType = pEnforceAlignmentType ?? (() => {
             switch (this.mBindingType) {

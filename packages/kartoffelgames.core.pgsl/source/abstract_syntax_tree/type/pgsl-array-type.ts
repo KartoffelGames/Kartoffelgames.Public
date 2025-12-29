@@ -2,14 +2,16 @@ import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
-import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
+import { IType, type TypeProperties } from './i-type.interface.ts';
+import { TypeCst } from "../../concrete_syntax_tree/general.type.ts";
+import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
 
 /**
  * Array type definition.
  * Represents both fixed-size and runtime-sized arrays of a specific element type.
  * Arrays are indexable composite types that can contain multiple elements of the same type.
  */
-export class PgslArrayType extends PgslType {
+export class PgslArrayType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
     /**
      * Type names for array types.
      */
@@ -20,7 +22,7 @@ export class PgslArrayType extends PgslType {
         } as const;
     }
 
-    private readonly mInnerType: PgslType;
+    private readonly mInnerType: IType;
     private readonly mLength: number | null;
     private readonly mLengthExpression: IExpressionAst | null;
     
@@ -29,7 +31,7 @@ export class PgslArrayType extends PgslType {
      * 
      * @returns The type of elements stored in the array.
      */
-    public get innerType(): PgslType {
+    public get innerType(): IType {
         return this.mInnerType;
     }
 
@@ -57,8 +59,8 @@ export class PgslArrayType extends PgslType {
      * @param pType - The inner element type of the array.
      * @param pLengthExpression - Optional length expression for fixed-size arrays.
      */
-    public constructor(pType: PgslType, pLengthExpression: IExpressionAst | null) {
-        super();
+    public constructor(pType: IType, pLengthExpression: IExpressionAst | null) {
+        super({ type: 'Type', range: [0, 0, 0, 0] });
 
         this.mInnerType = pType;
         this.mLengthExpression = pLengthExpression;
@@ -79,7 +81,7 @@ export class PgslArrayType extends PgslType {
      * 
      * @returns True when both types have the same inner type and length.
      */
-    public override equals(pTarget: PgslType): boolean {
+    public equals(pTarget: IType): boolean {
         // Must both be arrays.
         if (!(pTarget instanceof PgslArrayType)) {
             return false;
@@ -107,7 +109,7 @@ export class PgslArrayType extends PgslType {
      * 
      * @returns Always false - arrays cannot be cast.
      */
-    public override isExplicitCastableInto(_pTarget: PgslType): boolean {
+    public isExplicitCastableInto(_pTarget: IType): boolean {
         // An array is never explicit castable.
         return false;
     }
@@ -120,7 +122,7 @@ export class PgslArrayType extends PgslType {
      * 
      * @returns Always false - arrays cannot be cast.
      */
-    public override isImplicitCastableInto(pTarget: PgslType): boolean {
+    public isImplicitCastableInto(pTarget: IType): boolean {
         // Must be an array.
         if (!(pTarget instanceof PgslArrayType)) {
             return false;
@@ -148,7 +150,7 @@ export class PgslArrayType extends PgslType {
      * 
      * @returns Type properties for array types.
      */
-    protected override onProcess(pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(pContext: AbstractSyntaxTreeContext): TypeProperties {
         // Inner type must be storable and have fixed footprint.
         if (!this.mInnerType.data.storable) {
             pContext.pushIncident(`Array inner type must be storable.`);
@@ -191,7 +193,21 @@ export class PgslArrayType extends PgslType {
         // Is constructible when inner type is constructible and array is fixed.
         const lIsConstructible: boolean = (!lIsFixed) ? false : this.mInnerType.data.constructible;
 
+        // Build meta types.
+        const lMetaTypeList: Array<string> = new Array<string>();
+        for (const metaType of this.mInnerType.data.metaTypes) {
+            lMetaTypeList.push(`Array<${metaType}>`);
+
+            // Include length for fixed-size arrays.
+            if(this.mLength !== null) {
+                lMetaTypeList.push(`Array<${metaType}, ${this.mLength}>`);
+            }
+        }
+
         return {
+            // Meta information.
+            metaTypes: lMetaTypeList,
+
             composite: false,
             indexable: true,
             plain: true,

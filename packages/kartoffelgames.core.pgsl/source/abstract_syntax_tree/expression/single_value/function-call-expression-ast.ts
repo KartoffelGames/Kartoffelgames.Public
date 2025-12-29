@@ -3,7 +3,7 @@ import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.en
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
 import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';
 import { PgslPointerType } from '../../type/pgsl-pointer-type.ts';
-import type { PgslType } from '../../type/pgsl-type.ts';
+import type { IType } from '../../type/i-type.interface.ts';
 import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import type { FunctionDeclarationAst, FunctionDeclarationAstDataDeclaration, FunctionDeclarationAstDataParameter } from '../../declaration/function-declaration-ast.ts';
@@ -65,7 +65,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
         })();
 
         // Convert function call generic parameters.
-        const lGenericParameterList: Array<PgslType> = this.cst.genericList.map((pGenericTypeDeclarationCst) => {
+        const lGenericParameterList: Array<IType> = this.cst.genericList.map((pGenericTypeDeclarationCst) => {
             return new TypeDeclarationAst(pGenericTypeDeclarationCst).process(pContext).data.type;
         });
 
@@ -76,20 +76,20 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
         }
 
         // Get the return type from the matched function header.
-        const lReturnType: PgslType = (() => {
+        const lReturnType: IType = (() => {
             if (!lMatchedFunctionHeader) {
                 return new PgslInvalidType().process(pContext);
             }
 
             // When return type is not generic, return its type.
-            if (typeof lMatchedFunctionHeader.header.returnType !== 'number') {
+            if (typeof lMatchedFunctionHeader.header.returnType !== 'string') {
                 return lMatchedFunctionHeader.header.returnType.data.type;
             }
 
-            const lGenericIndex: number = lMatchedFunctionHeader.header.returnType;
+            const lGenericIndex: string = lMatchedFunctionHeader.header.returnType;
 
             // When return type is generic, return the infered type.
-            const lInferedReturnType: PgslType | null = lMatchedFunctionHeader.genericTypes.get(lGenericIndex) ?? null;
+            const lInferedReturnType: IType | null = lMatchedFunctionHeader.genericTypes.get(lGenericIndex) ?? null;
             if (!lInferedReturnType) {
                 pContext.pushIncident(`Function return type ${lGenericIndex} of function '${this.cst.functionName}' can not be inferred.`, this);
                 return new PgslInvalidType().process(pContext);
@@ -101,16 +101,16 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
         // For any used pointer type, try to assign its expression address space is correct.
         if (lMatchedFunctionHeader) {
             for (let lParameterIndex = 0; lParameterIndex < lMatchedFunctionHeader.header.parameter.length; lParameterIndex++) {
-                const lParameterType: PgslType = (() => {
+                const lParameterType: IType = (() => {
                     // When parameter type is not generic return its type declaration.
-                    const lParameterTypeDeclaration: number | TypeDeclarationAst = lMatchedFunctionHeader.header.parameter[lParameterIndex].type;
-                    if (typeof lParameterTypeDeclaration !== 'number') {
+                    const lParameterTypeDeclaration: string | TypeDeclarationAst = lMatchedFunctionHeader.header.parameter[lParameterIndex].type;
+                    if (typeof lParameterTypeDeclaration !== 'string') {
                         return lParameterTypeDeclaration.data.type;
                     }
 
                     // When parameter type is generic, return the infered type declaration.
-                    const lGenericIndex: number = lParameterTypeDeclaration;
-                    return lMatchedFunctionHeader.genericTypes.get(lGenericIndex)!;
+                    const lGenericName: string = lParameterTypeDeclaration;
+                    return lMatchedFunctionHeader.genericTypes.get(lGenericName)!;
                 })();
 
                 // Assign address space to pointer types.
@@ -145,7 +145,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
      * 
      * @returns Matched function header and infered generics or null when no match is found. 
      */
-    private matchFunctionHeader(pContext: AbstractSyntaxTreeContext, pFunctionDeclaration: FunctionDeclarationAst, pGenericList: Array<PgslType>, pParameterList: Array<IExpressionAst>): FunctionHeaderMatchResult | null {
+    private matchFunctionHeader(pContext: AbstractSyntaxTreeContext, pFunctionDeclaration: FunctionDeclarationAst, pGenericList: Array<IType>, pParameterList: Array<IExpressionAst>): FunctionHeaderMatchResult | null {
         // Check each function header for a match.
         FUNCTION_HEADER_LOOP: for (const lFunctionHeader of pFunctionDeclaration.data.declarations) {
             // Parameter count needs to match.
@@ -158,10 +158,17 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
                 continue;
             }
 
+            // Create valid generic name set.
+            const lValidGenericNames: Map<string, Array<string> | null> = new Map<string, Array<string> | null>();
+            for (const lGeneric of lFunctionHeader.generics) {
+                lValidGenericNames.set(lGeneric.name, lGeneric.restrictions);
+            }
+
             // Map of infered generic types and map any known types to them.
-            const lInferedGenericTypes: Map<number, PgslType> = new Map<number, PgslType>();
+            const lInferedGenericTypes: Map<string, IType> = new Map<string, IType>();
             for (let lGenericIndex = 0; lGenericIndex < pGenericList.length; lGenericIndex++) {
-                lInferedGenericTypes.set(lGenericIndex, pGenericList[lGenericIndex]);
+                const lGenericName = lFunctionHeader.generics[lGenericIndex].name;
+                lInferedGenericTypes.set(lGenericName, pGenericList[lGenericIndex]);
             }
 
             // Validate function parameter.
@@ -176,41 +183,49 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
                 }
 
                 // Get valid types for the function parameter.
-                const lFunctionParameterDeclarationValidTypes: Array<PgslType> = (() => {
+                const lFunctionParameterDeclarationValidTypes: IType | Array<string> | null = (() => {
                     // When the parameter is not generic, return its type as the only valid type.
-                    if (typeof lFunctionParameterDeclaration.type !== 'number') {
-                        return [lFunctionParameterDeclaration.type.data.type];
+                    if (typeof lFunctionParameterDeclaration.type !== 'string') {
+                        return lFunctionParameterDeclaration.type.data.type;
                     }
 
-                    const lGenericIndex: number = lFunctionParameterDeclaration.type;
+                    const lGenericName: string = lFunctionParameterDeclaration.type;
 
                     // When a generic type is provided, use that as the valid type.
-                    if (lInferedGenericTypes.has(lGenericIndex)) {
-                        return [lInferedGenericTypes.get(lGenericIndex)!];
+                    if (lInferedGenericTypes.has(lGenericName)) {
+                        return lInferedGenericTypes.get(lGenericName)!;
                     }
 
                     // Validate generic index bounds.
-                    if (lGenericIndex < 0 || lGenericIndex >= lFunctionHeader.generics.length) {
-                        pContext.pushIncident(`Generic index ${lGenericIndex} of function '${this.cst.functionName}' is out of bounds.`, this);
+                    if (!lValidGenericNames.has(lGenericName)) {
+                        pContext.pushIncident(`Generic name ${lGenericName} of function '${this.cst.functionName}' is out of bounds.`, this);
                         return [];
                     }
 
                     // Read valid types from function header definition.
-                    return lFunctionHeader.generics[lGenericIndex];;
+                    return lValidGenericNames.get(lGenericName)!;
                 })();
 
                 // Get function parameter type. When it is null, it meant to be a generic type.
-                const lFunctionParameterType: PgslType = lParameterExpression.data.resolveType;
+                const lFunctionParameterType: IType = lParameterExpression.data.resolveType;
 
                 // Check if parameter type matches any of the valid types.
                 const lMatchesValidType: boolean = (() => {
-                    for (const lValidType of lFunctionParameterDeclarationValidTypes) {
-                        if (lFunctionParameterType.isImplicitCastableInto(lValidType)) {
-                            return true;
-                        }
+                    if (lFunctionParameterDeclarationValidTypes === null) {
+                        return true;
                     }
 
-                    return false;
+                    if (Array.isArray(lFunctionParameterDeclarationValidTypes)) {
+                        for(const lValidTypeName of lFunctionParameterDeclarationValidTypes) {
+                            if (lFunctionParameterType.data.metaTypes.includes(lValidTypeName)) {
+                                return true;
+                            }
+                        }
+
+                        return false;
+                    }
+
+                    return lFunctionParameterType.isImplicitCastableInto(lFunctionParameterDeclarationValidTypes);
                 })();
 
                 // Parameter type does not match any valid type. Continue to next function header.
@@ -219,9 +234,9 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
                 }
 
                 // Save infered generic type when parameter is generic.
-                if (typeof lFunctionParameterDeclaration.type === 'number') {
-                    const lGenericIndex: number = lFunctionParameterDeclaration.type;
-                    lInferedGenericTypes.set(lGenericIndex, lFunctionParameterType);
+                if (typeof lFunctionParameterDeclaration.type === 'string') {
+                    const lGenericName: string = lFunctionParameterDeclaration.type;
+                    lInferedGenericTypes.set(lGenericName, lFunctionParameterType);
                 }
             }
 
@@ -237,7 +252,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
 
 type FunctionHeaderMatchResult = {
     header: FunctionDeclarationAstDataDeclaration;
-    genericTypes: Map<number, PgslType>;
+    genericTypes: Map<string, IType>;
 };
 
 export type FunctionCallExpressionAstData = {

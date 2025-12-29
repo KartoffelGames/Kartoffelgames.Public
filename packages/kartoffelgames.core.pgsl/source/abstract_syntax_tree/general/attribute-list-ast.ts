@@ -4,7 +4,7 @@ import type { AttributeListCst } from '../../concrete_syntax_tree/general.type.t
 import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
 import { PgslNumericType, type PgslNumericTypeName } from '../type/pgsl-numeric-type.ts';
 import { PgslStringType } from '../type/pgsl-string-type.ts';
-import type { PgslType } from '../type/pgsl-type.ts';
+import type { IType } from '../type/i-type.interface.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree, type AbstractSyntaxTreeConstructor } from '../abstract-syntax-tree.ts';
 import { FunctionDeclarationAst } from '../declaration/function-declaration-ast.ts';
@@ -266,7 +266,7 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
             lValidatedParameters.push(lAttributeParameterAst);
 
             // Read and get the actual attribute parameter.
-            const lActualAttributeParameterType: PgslType = lAttributeParameterAst.data.resolveType;
+            const lActualAttributeParameterType: IType = lAttributeParameterAst.data.resolveType;
 
             // Validate based on expected template type.
             if ('values' in lExpectedTemplateType) { // String or enum.

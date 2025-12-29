@@ -1,11 +1,13 @@
+import { TypeCst } from "../../concrete_syntax_tree/general.type.ts";
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { PgslType, type PgslTypeProperties } from './pgsl-type.ts';
+import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
+import { IType, type TypeProperties } from './i-type.interface.ts';
 
 /**
  * Sampler type definition.
  * Represents a sampler resource used for texture sampling operations.
  */
-export class PgslSamplerType extends PgslType {
+export class PgslSamplerType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
     /**
      * Type names for sampler types.
      * Maps sampler type names to their string representations.
@@ -36,7 +38,7 @@ export class PgslSamplerType extends PgslType {
      * @param pComparison - Whether this is a comparison sampler.
      */
     public constructor(pComparison: boolean) {
-        super();
+        super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
         this.mComparision = pComparison;
@@ -50,7 +52,7 @@ export class PgslSamplerType extends PgslType {
      * 
      * @returns True when both samplers have the same comparison mode.
      */
-    public override equals(pTarget: PgslType): boolean {
+    public equals(pTarget: IType): boolean {
         // Must both be a sampler.
         if (!(pTarget instanceof PgslSamplerType)) {
             return false;
@@ -67,7 +69,7 @@ export class PgslSamplerType extends PgslType {
      * 
      * @returns Always false - samplers cannot be cast.
      */
-    public override isExplicitCastableInto(_pTarget: PgslType): boolean {
+    public isExplicitCastableInto(_pTarget: IType): boolean {
         // A sampler is never explicit nor implicit castable.
         return false;
     }
@@ -80,7 +82,7 @@ export class PgslSamplerType extends PgslType {
      * 
      * @returns Always false - samplers cannot be cast.
      */
-    public override isImplicitCastableInto(pTarget: PgslType): boolean {
+    public isImplicitCastableInto(pTarget: IType): boolean {
         // A sampler is never explicit nor implicit castable.
         return this.equals(pTarget);
     }
@@ -93,8 +95,18 @@ export class PgslSamplerType extends PgslType {
      * 
      * @returns Type properties for sampler types.
      */
-    protected override onProcess(_pContext: AbstractSyntaxTreeContext): PgslTypeProperties {
+    protected override onProcess(_pContext: AbstractSyntaxTreeContext): TypeProperties {
+        const lMetaTypeList: Array<string> = new Array<string>();
+        if (this.mComparision) {
+            lMetaTypeList.push(PgslSamplerType.typeName.samplerComparison);
+        } else {
+            lMetaTypeList.push(PgslSamplerType.typeName.sampler);
+        }
+
         return {
+            // Meta information.
+            metaTypes: lMetaTypeList,
+
             storable: false,
             hostShareable: false,
             constructible: false,

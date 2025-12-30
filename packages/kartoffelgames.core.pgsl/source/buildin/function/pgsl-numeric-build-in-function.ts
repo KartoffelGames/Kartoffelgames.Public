@@ -688,47 +688,47 @@ export class PgslNumericBuildInFunction {
 
         // dpdx
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdx, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['f32', 'Vector<f32>'], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // dpdxCoarse
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdxCoarse, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['f32', 'Vector<f32>'], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // dpdxFine
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdxFine, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['f32', 'Vector<f32>'], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // dpdy
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdy, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['f32', 'Vector<f32>'], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // dpdyCoarse
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdyCoarse, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['f32', 'Vector<f32>'], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // dpdyFine
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdyFine, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['f32', 'Vector<f32>'], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // fwidth
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.fwidth, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['f32', 'Vector<f32>'], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // fwidthCoarse
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.fwidthCoarse, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['f32', 'Vector<f32>'], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         // fwidthFine
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.fwidthFine, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['f32', 'Vector<f32>'], }, { 'e': 'TResult' }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         return lFunctions;

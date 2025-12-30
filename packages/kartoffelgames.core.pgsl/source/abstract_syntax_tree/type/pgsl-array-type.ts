@@ -204,6 +204,9 @@ export class PgslArrayType extends AbstractSyntaxTree<TypeCst, TypeProperties> i
             }
         }
 
+        // Push generic metas
+        lMetaTypeList.push(`Array`);
+
         return {
             // Meta information.
             metaTypes: lMetaTypeList,

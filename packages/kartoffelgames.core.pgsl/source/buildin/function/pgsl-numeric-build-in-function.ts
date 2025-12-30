@@ -128,26 +128,22 @@ export class PgslNumericBuildInFunction {
         // bitcast
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.bitcast, false, true, [
             // Numerics
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric'], }, { 'value': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float16) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric'], }, { 'value': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric'], }, { 'value': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': ['numeric'], }, { 'value': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, PgslNumericType.typeName.signedInteger, PgslNumericType.typeName.unsignedInteger] }, { 'value': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, PgslNumericType.typeName.signedInteger, PgslNumericType.typeName.unsignedInteger], }, { 'value': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, PgslNumericType.typeName.signedInteger, PgslNumericType.typeName.unsignedInteger], }, { 'value': PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger) }, 'TResult'),
 
             // Numeric Vectors.
-            PgslNumericBuildInFunction.header({ 'TResult': ['Vector<numeric>'], }, { 'value': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float16)) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': ['Vector<numeric>'], }, { 'value': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': ['Vector<numeric>'], }, { 'value': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': ['Vector<numeric>'], }, { 'value': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [`Vector2<${PgslNumericType.typeName.float32}>`, `Vector2<${PgslNumericType.typeName.signedInteger}>`, `Vector2<${PgslNumericType.typeName.unsignedInteger}>`], }, { 'value': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [`Vector2<${PgslNumericType.typeName.float32}>`, `Vector2<${PgslNumericType.typeName.signedInteger}>`, `Vector2<${PgslNumericType.typeName.unsignedInteger}>`], }, { 'value': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [`Vector2<${PgslNumericType.typeName.float32}>`, `Vector2<${PgslNumericType.typeName.signedInteger}>`, `Vector2<${PgslNumericType.typeName.unsignedInteger}>`], }, { 'value': PgslNumericBuildInFunction.vectorType(2, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger)) }, 'TResult'),
 
-            PgslNumericBuildInFunction.header({ 'TResult': ['Vector<numeric>'], }, { 'value': PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float16)) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': ['Vector<numeric>'], }, { 'value': PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': ['Vector<numeric>'], }, { 'value': PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': ['Vector<numeric>'], }, { 'value': PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [`Vector3<${PgslNumericType.typeName.float32}>`, `Vector2<${PgslNumericType.typeName.signedInteger}>`, `Vector2<${PgslNumericType.typeName.unsignedInteger}>`], }, { 'value': PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [`Vector3<${PgslNumericType.typeName.float32}>`, `Vector2<${PgslNumericType.typeName.signedInteger}>`, `Vector2<${PgslNumericType.typeName.unsignedInteger}>`], }, { 'value': PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [`Vector3<${PgslNumericType.typeName.float32}>`, `Vector2<${PgslNumericType.typeName.signedInteger}>`, `Vector2<${PgslNumericType.typeName.unsignedInteger}>`], }, { 'value': PgslNumericBuildInFunction.vectorType(3, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger)) }, 'TResult'),
 
-            PgslNumericBuildInFunction.header({ 'TResult': ['Vector<numeric>'], }, { 'value': PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float16)) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': ['Vector<numeric>'], }, { 'value': PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': ['Vector<numeric>'], }, { 'value': PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)) }, 'TResult'),
-            PgslNumericBuildInFunction.header({ 'TResult': ['Vector<numeric>'], }, { 'value': PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [`Vector4<${PgslNumericType.typeName.float32}>`, `Vector2<${PgslNumericType.typeName.signedInteger}>`, `Vector2<${PgslNumericType.typeName.unsignedInteger}>`], }, { 'value': PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [`Vector4<${PgslNumericType.typeName.float32}>`, `Vector2<${PgslNumericType.typeName.signedInteger}>`, `Vector2<${PgslNumericType.typeName.unsignedInteger}>`], }, { 'value': PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)) }, 'TResult'),
+            PgslNumericBuildInFunction.header({ 'TResult': [`Vector4<${PgslNumericType.typeName.float32}>`, `Vector2<${PgslNumericType.typeName.signedInteger}>`, `Vector2<${PgslNumericType.typeName.unsignedInteger}>`], }, { 'value': PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger)) }, 'TResult'),
         ]));
 
         return lFunctions;
@@ -682,6 +678,11 @@ export class PgslNumericBuildInFunction {
         return lFunctions;
     }
 
+    /**
+     * Create derivative functions.
+     * 
+     * @returns Array of cst function declarations for derivative functions. 
+     */
     public static derivative(): Array<FunctionDeclarationCst> {
         const lFunctions: Array<FunctionDeclarationCst> = new Array<FunctionDeclarationCst>();
 

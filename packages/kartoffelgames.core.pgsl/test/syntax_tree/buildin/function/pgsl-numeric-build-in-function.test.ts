@@ -3,6 +3,8 @@ import { PgslParser } from "../../../../source/parser/pgsl-parser.ts";
 import { PgslNumericType } from "../../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts";
 import { WgslTranspiler } from "../../../../source/transpilation/wgsl/wgsl-transpiler.ts";
 import { PgslParserResult } from "../../../../source/parser_result/pgsl-parser-result.ts";
+import { PgslFrexpResult } from "../../../../source/buildin/struct/pgsl-frexp-result.ts";
+import { PgslModfResult } from "../../../../source/buildin/struct/pgsl-modf-result.ts";
 
 
 // Create parser instance.
@@ -3770,8 +3772,8 @@ Deno.test('PgslNumericBuildInFunction-frexp', async (pContext) => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
-                let inputValue: f32 = 1.5;
-                let resultValue = frexp(inputValue);
+                let inputValue: ${PgslNumericType.typeName.float32} = 1.5;
+                let resultValue: ${PgslFrexpResult.names.__frexp_result_f32} = frexp(inputValue);
             }
         `;
 
@@ -3783,7 +3785,7 @@ Deno.test('PgslNumericBuildInFunction-frexp', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
             `let inputValue:f32=1.5;` +
-            `let resultValue=frexp(inputValue);` +
+            `let resultValue:__frexp_result_f32=frexp(inputValue);` +
             `}`
         );
     });
@@ -3793,7 +3795,7 @@ Deno.test('PgslNumericBuildInFunction-frexp', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let inputValue: Vector2<${PgslNumericType.typeName.float32}> = new Vector2(1.5, 2.0);
-                let resultValue = frexp(inputValue);
+                let resultValue: ${PgslFrexpResult.names.__frexp_result_vec2_f32} = frexp(inputValue);
             }
         `;
 
@@ -3805,7 +3807,7 @@ Deno.test('PgslNumericBuildInFunction-frexp', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
             `let inputValue:vec2<f32>=vec2(1.5,2.0);` +
-            `let resultValue=frexp(inputValue);` +
+            `let resultValue:__frexp_result_vec2_f32=frexp(inputValue);` +
             `}`
         );
     });
@@ -3816,8 +3818,8 @@ Deno.test('PgslNumericBuildInFunction-modf', async (pContext) => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
-                let inputValue: f32 = 1.5;
-                let resultValue = modf(inputValue);
+                let inputValue: ${PgslNumericType.typeName.float32} = 1.5;
+                let resultValue: ${PgslModfResult.names.__modf_result_f32} = modf(inputValue);
             }
         `;
 
@@ -3829,7 +3831,7 @@ Deno.test('PgslNumericBuildInFunction-modf', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
             `let inputValue:f32=1.5;` +
-            `let resultValue=modf(inputValue);` +
+            `let resultValue:__modf_result_f32=modf(inputValue);` +
             `}`
         );
     });
@@ -3839,7 +3841,7 @@ Deno.test('PgslNumericBuildInFunction-modf', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let inputValue: Vector2<${PgslNumericType.typeName.float32}> = new Vector2(1.5, 2.0);
-                let resultValue = modf(inputValue);
+                let resultValue: ${PgslModfResult.names.__modf_result_vec2_f32} = modf(inputValue);
             }
         `;
 
@@ -3851,7 +3853,7 @@ Deno.test('PgslNumericBuildInFunction-modf', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
             `let inputValue:vec2<f32>=vec2(1.5,2.0);` +
-            `let resultValue=modf(inputValue);` +
+            `let resultValue:__modf_result_vec2_f32=modf(inputValue);` +
             `}`
         );
     });

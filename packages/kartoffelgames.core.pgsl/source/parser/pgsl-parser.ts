@@ -697,6 +697,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 type: 'FunctionDeclaration',
                 isConstant: false,
                 buildIn: false,
+                implicitGenerics: false,
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 name: pData.name,
                 declarations: [lFunctionHeader]

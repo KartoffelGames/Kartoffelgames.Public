@@ -43,6 +43,7 @@ export type FunctionDeclarationCst = {
     name: string;
     declarations: Array<FunctionDeclarationHeaderCst>;
     isConstant: boolean;
+    implicitGenerics: boolean;
 } & DeclarationCst<'FunctionDeclaration'>;
 
 export type FunctionDeclarationHeaderCst = {

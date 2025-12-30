@@ -20,7 +20,7 @@ export class FunctionCallExpressionAstTranspilerProcessor implements ITranspiler
     public process(pInstance: FunctionCallExpressionAst, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Transpile function call generics.
         let lGenerics: string = '';
-        if(pInstance.data.generics.length > 0) {
+        if(pInstance.data.generics.length > 0 && !pInstance.data.functionDeclaration.data.implicitGenerics) {
             lGenerics = `<${pInstance.data.generics.map(pGenericType => pTranspile(pGenericType)).join(',')}>`;
         }
 

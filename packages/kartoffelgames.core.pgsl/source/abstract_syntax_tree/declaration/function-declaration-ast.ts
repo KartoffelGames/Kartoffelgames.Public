@@ -44,6 +44,7 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
             isConstant: this.cst.isConstant,
             name: this.cst.name,
             declarations: new Array<FunctionDeclarationAstDataDeclaration>(),
+            implicitGenerics: this.cst.implicitGenerics,
 
             // Create empty attributes list to satisfy type.
             attributes: new AttributeListAst({
@@ -358,6 +359,11 @@ export type FunctionDeclarationAstData = {
      * Function name.
      */
     name: string;
+
+    /**
+     * Whether generic types are implicitly defined.
+     */
+    implicitGenerics: boolean;
 
     /**
      * Function parameter list.

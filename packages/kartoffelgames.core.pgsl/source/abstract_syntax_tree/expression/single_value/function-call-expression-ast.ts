@@ -30,6 +30,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
                 name: this.cst.functionName,
                 parameters: new Array<IExpressionAst>(),
                 generics: new Array<IType>(),
+                functionDeclaration: null as unknown as FunctionDeclarationAst,
 
                 // Expression meta data.
                 fixedState: PgslValueFixedState.Variable,
@@ -141,6 +142,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
             name: this.cst.functionName,
             parameters: lParameterList,
             generics: lGenericList,
+            functionDeclaration: lFunctionDeclaration,
 
             // Expression meta data.
             fixedState: lFixedState,
@@ -275,4 +277,5 @@ export type FunctionCallExpressionAstData = {
     name: string;
     parameters: Array<IExpressionAst>;
     generics: Array<IType>;
+    functionDeclaration: FunctionDeclarationAst;
 } & ExpressionAstData;

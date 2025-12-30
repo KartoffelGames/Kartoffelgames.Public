@@ -14,6 +14,9 @@ import { PgslAccessModeEnum } from '../buildin/enum/pgsl-access-mode-enum.ts';
 import { PgslInterpolateSamplingEnum } from '../buildin/enum/pgsl-interpolate-sampling-enum.ts';
 import { PgslInterpolateTypeEnum } from '../buildin/enum/pgsl-interpolate-type-enum.ts';
 import { PgslTexelFormatEnum } from '../buildin/enum/pgsl-texel-format-enum.ts';
+import { PgslNumericBuildInFunction } from "../buildin/function/pgsl-numeric-build-in-function.ts";
+import { PgslFrexpResult } from "../buildin/struct/pgsl-frexp-result.ts";
+import { PgslModfResult } from "../buildin/struct/pgsl-modf-result.ts";
 import type { AliasDeclarationCst, DeclarationCst, DeclarationCstType, EnumDeclarationCst, EnumDeclarationValueCst, FunctionDeclarationCst, FunctionDeclarationHeaderCst, FunctionDeclarationParameterCst, StructDeclarationCst, StructPropertyDeclarationCst, VariableDeclarationCst } from '../concrete_syntax_tree/declaration.type.ts';
 import type { AddressOfExpressionCst, ArithmeticExpressionCst, BinaryExpressionCst, ComparisonExpressionCst, ExpressionCst, ExpressionCstType, FunctionCallExpressionCst, IndexedValueExpressionCst, LiteralValueExpressionCst, LogicalExpressionCst, NewExpressionCst, ParenthesizedExpressionCst, PointerExpressionCst, StringValueExpressionCst, UnaryExpressionCst, ValueDecompositionExpressionCst, VariableNameExpressionCst } from '../concrete_syntax_tree/expression.type.ts';
 import type { AttributeCst, AttributeListCst, CstRange, DocumentCst, TypeDeclarationCst } from '../concrete_syntax_tree/general.type.ts';
@@ -23,9 +26,6 @@ import { TranspilationMeta } from '../transpilation/transpilation-meta.ts';
 import type { PgslTranspilationResult, Transpiler } from '../transpilation/transpiler.ts';
 import { PgslLexer } from './pgsl-lexer.ts';
 import { PgslToken } from './pgsl-token.enum.ts';
-import { PgslBuildInFunction } from "../buildin/pgsl-build-in-function.ts";
-import { PgslModfResult } from "../buildin/structs/pgsl-modf-result.ts";
-import { PgslFrexpResult } from "../buildin/structs/pgsl-frexp-result.ts";
 
 export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
     private static readonly STATIC_TYPE_NAMES: Set<string> = new Set<string>([
@@ -186,11 +186,11 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         lDocumentCst.buildInDeclarations.push(...PgslFrexpResult.structs());
 
         // Function
-        lDocumentCst.buildInDeclarations.push(...PgslBuildInFunction.bitReinterpretation());
-        lDocumentCst.buildInDeclarations.push(...PgslBuildInFunction.logical());
-        lDocumentCst.buildInDeclarations.push(...PgslBuildInFunction.array());
-        lDocumentCst.buildInDeclarations.push(...PgslBuildInFunction.numeric());
-        lDocumentCst.buildInDeclarations.push(...PgslBuildInFunction.derivative());
+        lDocumentCst.buildInDeclarations.push(...PgslNumericBuildInFunction.bitReinterpretation());
+        lDocumentCst.buildInDeclarations.push(...PgslNumericBuildInFunction.logical());
+        lDocumentCst.buildInDeclarations.push(...PgslNumericBuildInFunction.array());
+        lDocumentCst.buildInDeclarations.push(...PgslNumericBuildInFunction.numeric());
+        lDocumentCst.buildInDeclarations.push(...PgslNumericBuildInFunction.derivative());
 
         const lContext: AbstractSyntaxTreeContext = new AbstractSyntaxTreeContext();
 

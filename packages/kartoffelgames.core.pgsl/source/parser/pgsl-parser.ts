@@ -190,6 +190,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         lDocumentCst.buildInDeclarations.push(...PgslBuildInFunction.logical());
         lDocumentCst.buildInDeclarations.push(...PgslBuildInFunction.array());
         lDocumentCst.buildInDeclarations.push(...PgslBuildInFunction.numeric());
+        lDocumentCst.buildInDeclarations.push(...PgslBuildInFunction.derivative());
 
         const lContext: AbstractSyntaxTreeContext = new AbstractSyntaxTreeContext();
 

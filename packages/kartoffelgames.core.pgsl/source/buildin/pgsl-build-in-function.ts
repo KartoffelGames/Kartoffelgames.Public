@@ -90,6 +90,17 @@ export class PgslBuildInFunction {
             tanh: 'tanh',
             transpose: 'transpose',
             trunc: 'trunc',
+
+            // Derivative
+            dpdx: 'dpdx',
+            dpdxCoarse: 'dpdxCoarse',
+            dpdxFine: 'dpdxFine',
+            dpdy: 'dpdy',
+            dpdyCoarse: 'dpdyCoarse',
+            dpdyFine: 'dpdyFine',
+            fwidth: 'fwidth',
+            fwidthCoarse: 'fwidthCoarse',
+            fwidthFine: 'fwidthFine',
         } as const;
     }
 
@@ -673,8 +684,53 @@ export class PgslBuildInFunction {
         return lFunctions;
     }
 
-    public static derivativeFunctions(): Array<FunctionDeclarationCst> {
+    public static derivative(): Array<FunctionDeclarationCst> {
         const lFunctions: Array<FunctionDeclarationCst> = new Array<FunctionDeclarationCst>();
+
+        // dpdx
+        lFunctions.push(PgslBuildInFunction.create(PgslBuildInFunction.names.dpdx, true, false, [
+            PgslBuildInFunction.header({ 'TResult': ['f32', 'Vector<f32>'], }, { 'e': 'TResult' }, 'TResult'),
+        ]));
+
+        // dpdxCoarse
+        lFunctions.push(PgslBuildInFunction.create(PgslBuildInFunction.names.dpdxCoarse, true, false, [
+            PgslBuildInFunction.header({ 'TResult': ['f32', 'Vector<f32>'], }, { 'e': 'TResult' }, 'TResult'),
+        ]));
+
+        // dpdxFine
+        lFunctions.push(PgslBuildInFunction.create(PgslBuildInFunction.names.dpdxFine, true, false, [
+            PgslBuildInFunction.header({ 'TResult': ['f32', 'Vector<f32>'], }, { 'e': 'TResult' }, 'TResult'),
+        ]));
+
+        // dpdy
+        lFunctions.push(PgslBuildInFunction.create(PgslBuildInFunction.names.dpdy, true, false, [
+            PgslBuildInFunction.header({ 'TResult': ['f32', 'Vector<f32>'], }, { 'e': 'TResult' }, 'TResult'),
+        ]));
+
+        // dpdyCoarse
+        lFunctions.push(PgslBuildInFunction.create(PgslBuildInFunction.names.dpdyCoarse, true, false, [
+            PgslBuildInFunction.header({ 'TResult': ['f32', 'Vector<f32>'], }, { 'e': 'TResult' }, 'TResult'),
+        ]));
+
+        // dpdyFine
+        lFunctions.push(PgslBuildInFunction.create(PgslBuildInFunction.names.dpdyFine, true, false, [
+            PgslBuildInFunction.header({ 'TResult': ['f32', 'Vector<f32>'], }, { 'e': 'TResult' }, 'TResult'),
+        ]));
+
+        // fwidth
+        lFunctions.push(PgslBuildInFunction.create(PgslBuildInFunction.names.fwidth, true, false, [
+            PgslBuildInFunction.header({ 'TResult': ['f32', 'Vector<f32>'], }, { 'e': 'TResult' }, 'TResult'),
+        ]));
+
+        // fwidthCoarse
+        lFunctions.push(PgslBuildInFunction.create(PgslBuildInFunction.names.fwidthCoarse, true, false, [
+            PgslBuildInFunction.header({ 'TResult': ['f32', 'Vector<f32>'], }, { 'e': 'TResult' }, 'TResult'),
+        ]));
+
+        // fwidthFine
+        lFunctions.push(PgslBuildInFunction.create(PgslBuildInFunction.names.fwidthFine, true, false, [
+            PgslBuildInFunction.header({ 'TResult': ['f32', 'Vector<f32>'], }, { 'e': 'TResult' }, 'TResult'),
+        ]));
 
         return lFunctions;
     }

@@ -3710,7 +3710,7 @@ Deno.test('PgslNumericBuildInFunction-all', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<bool>=vec2(true,false);` +
+            `let inputValue:vec2<bool>=vec2<bool>(true,false);` +
             `let resultValue:bool=all(inputValue);` +
             `}`
         );
@@ -3760,7 +3760,7 @@ Deno.test('PgslNumericBuildInFunction-any', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<bool>=vec2(false,true);` +
+            `let inputValue:vec2<bool>=vec2<bool>(false,true);` +
             `let resultValue:bool=any(inputValue);` +
             `}`
         );
@@ -3904,7 +3904,7 @@ Deno.test('PgslNumericBuildInFunction-select', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let condition:vec2<bool>=vec2(true,false);` +
+            `let condition:vec2<bool>=vec2<bool>(true,false);` +
             `let valueA:vec2<f32>=vec2(1.5,2.0);` +
             `let valueB:vec2<f32>=vec2(2.5,3.0);` +
             `let resultValue:vec2<f32>=select(valueB,valueA,condition);` +

@@ -49,7 +49,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
             case PgslVectorType.typeName.vector2: return {
                 generics: ['numeric', PgslBooleanType.typeName.boolean],
                 parameters: [
-                    [{ typeRestrictions: ['numeric', 'boolean'], count: { min: 2, max: 2 } }]
+                    [{ typeRestrictions: ['numeric', PgslBooleanType.typeName.boolean], count: { min: 2, max: 2 } }]
                 ],
                 returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IType>, pGeneric: IType | null) => {
                     // Find inner type by generic or first concrete type.

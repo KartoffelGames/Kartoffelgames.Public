@@ -356,7 +356,7 @@ Deno.test('ValueDecompositionExpressionAst - Transpilation', async (pContext) =>
             const lSwizzle: string = 'x';
             const lCodeText: string = `
                 function testFunction(): void {
-                    let testVector: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}> = new ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}>(1.0, 2.0, 3.0);
+                    let testVector: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}> = new ${PgslVectorType.typeName.vector3}(1.0, 2.0, 3.0);
                     let testVariable: ${PgslNumericType.typeName.float32} = testVector.${lSwizzle};
                 }
             `;
@@ -381,7 +381,7 @@ Deno.test('ValueDecompositionExpressionAst - Transpilation', async (pContext) =>
             const lSwizzle: string = 'xy';
             const lCodeText: string = `
                 function testFunction(): void {
-                    let testVector: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}> = new ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}>(1.0, 2.0, 3.0);
+                    let testVector: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}> = new ${PgslVectorType.typeName.vector3}(1.0, 2.0, 3.0);
                     let testVariable: ${PgslVectorType.typeName.vector2}<${PgslNumericType.typeName.float32}> = testVector.${lSwizzle};
                 }
             `;
@@ -406,7 +406,7 @@ Deno.test('ValueDecompositionExpressionAst - Transpilation', async (pContext) =>
             const lSwizzle: string = 'rgba';
             const lCodeText: string = `
                 function testFunction(): void {
-                    let testVector: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}> = new ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>(1.0, 2.0, 3.0, 4.0);
+                    let testVector: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}> = new ${PgslVectorType.typeName.vector4}(1.0, 2.0, 3.0, 4.0);
                     let testVariable: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}> = testVector.${lSwizzle};
                 }
             `;
@@ -431,7 +431,7 @@ Deno.test('ValueDecompositionExpressionAst - Transpilation', async (pContext) =>
             const lSwizzle: string = 'xyzw';
             const lCodeText: string = `
                 function testFunction(): void {
-                    let testVector: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}> = new ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>(1.0, 2.0, 3.0, 4.0);
+                    let testVector: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}> = new ${PgslVectorType.typeName.vector4}(1.0, 2.0, 3.0, 4.0);
                     let testVariable: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}> = testVector.${lSwizzle};
                 }
             `;

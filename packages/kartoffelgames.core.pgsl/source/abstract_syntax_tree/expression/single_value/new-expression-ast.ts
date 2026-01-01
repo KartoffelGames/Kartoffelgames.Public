@@ -13,598 +13,408 @@ import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 import { LiteralValueExpressionAst } from './literal-value-expression-ast.ts';
-
-// TODO: Support generics by using the function call expression under the hood.
+import { TypeDeclarationAst } from "../../general/type-declaration-ast.ts";
 
 /**
  * PGSL syntax tree of a new call expression with optional template list.
  */
 export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewExpressionAstData> implements IExpressionAst {
-    private static callDefinition(pTypeName: string): Array<PgslNewExpressionCallDefinition> | null {
+    private static callDefinition(pTypeName: string): PgslNewExpressionCallDefinition | null {
         switch (pTypeName) {
             // Array types.
-            case PgslArrayType.typeName.array: return [
-                {
-                    allowedTypes: [PgslNumericType],
-                    range: { min: 1, max: 100 },
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>): IType => {
-                        // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.data.concrete;
-                        }) ?? pParameterList[0];
+            case PgslArrayType.typeName.array: return {
+                parameters: [
+                    [{ typeRestrictions: [], count: { min: 1, max: 100 } }]
+                ],
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IType>): IType => {
+                    // Find the first concrete numeric type and check if all others match.
+                    const lConcreteType: IType = pParameterList.find((pParam) => {
+                        return pParam.data.concrete;
+                    }) ?? pParameterList[0];
 
-                        // Get element type from concrete type expression.
-                        const lElementType: IType = lConcreteTypeExpression.data.resolveType;
+                    // Create length expression and trace it.
+                    const lConstantLengthExpressionCst: LiteralValueExpressionCst = {
+                        type: 'LiteralValueExpression',
+                        textValue: pParameterList.length.toString(),
+                        range: [0, 0, 0, 0]
+                    };
+                    const lConstantLengthExpressionAst: LiteralValueExpressionAst = new LiteralValueExpressionAst(lConstantLengthExpressionCst).process(pContext);
 
-                        // Create length expression and trace it.
-                        const lConstantLengthExpressionCst: LiteralValueExpressionCst = {
-                            type: 'LiteralValueExpression',
-                            textValue: pParameterList.length.toString(),
-                            range: lConcreteTypeExpression.cst.range
-                        };
-                        const lConstantLengthExpressionAst: LiteralValueExpressionAst = new LiteralValueExpressionAst(lConstantLengthExpressionCst).process(pContext);
-
-                        // Construct fixed array type.
-                        return new PgslArrayType(lElementType, lConstantLengthExpressionAst).process(pContext);
-                    }
+                    // Construct fixed array type.
+                    return new PgslArrayType(lConcreteType, lConstantLengthExpressionAst).process(pContext);
                 }
-            ];
+            };
 
-            // Vector types.
-            case PgslVectorType.typeName.vector2: return [
-                {
-                    allowedTypes: [PgslNumericType],
-                    range: { min: 2, max: 2 },
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.data.concrete;
-                        }) ?? pParameterList[0];
+            // Vector types: Vector2.
+            case PgslVectorType.typeName.vector2: return {
+                generics: ['numeric', PgslBooleanType.typeName.boolean],
+                parameters: [
+                    [{ typeRestrictions: ['numeric', 'boolean'], count: { min: 2, max: 2 } }]
+                ],
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IType>, pGeneric: IType | null) => {
+                    // Find inner type by generic or first concrete type.
+                    const lElementType: IType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.data.concrete;
+                    }) ?? pParameterList[0];
 
-                        // Get element type from concrete type expression.
-                        const lElementType: IType = lConcreteTypeExpression.data.resolveType;
-
-                        return new PgslVectorType(2, lElementType).process(pContext);
-                    }
+                    return new PgslVectorType(2, lElementType).process(pContext);
                 }
-            ];
-            case PgslVectorType.typeName.vector3: return [
-                {
-                    allowedTypes: [PgslNumericType],
-                    range: { min: 3, max: 3 },
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.data.concrete;
-                        }) ?? pParameterList[0];
+            };
 
-                        // Get element type from concrete type expression.
-                        const lElementType: IType = lConcreteTypeExpression.data.resolveType;
+            // Vector types: Vector3.
+            case PgslVectorType.typeName.vector3: return {
+                generics: ['numeric', PgslBooleanType.typeName.boolean],
+                parameters: [
+                    [{ typeRestrictions: ['numeric', PgslBooleanType.typeName.boolean], count: { min: 3, max: 3 } }],
+                    [
+                        { typeRestrictions: [`${PgslVectorType.typeName.vector2}<${PgslBooleanType.typeName.boolean}>`] },
+                        { typeRestrictions: [PgslBooleanType.typeName.boolean] }
+                    ],
+                    [
+                        { typeRestrictions: [`${PgslVectorType.typeName.vector2}<numeric>`] },
+                        { typeRestrictions: ['numeric'] }
+                    ],
+                    [
+                        { typeRestrictions: [PgslBooleanType.typeName.boolean] },
+                        { typeRestrictions: [`${PgslVectorType.typeName.vector2}<${PgslBooleanType.typeName.boolean}>`] }
+                    ],
+                    [
+                        { typeRestrictions: ['numeric'] },
+                        { typeRestrictions: [`${PgslVectorType.typeName.vector2}<numeric>`] }
+                    ],
+                ],
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IType>, pGeneric: IType | null) => {
+                    // Find inner type by generic or first concrete type.
+                    let lElementType: IType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.data.concrete;
+                    }) ?? pParameterList[0];
 
-                        return new PgslVectorType(3, lElementType).process(pContext);
+                    // If element type is a vector, extract inner type.
+                    if (lElementType instanceof PgslVectorType) {
+                        lElementType = lElementType.innerType;
                     }
-                },
-                {
-                    parameterTypes: [PgslVectorType, PgslNumericType],
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Get element type vector parameter.
-                        const lElementType: PgslVectorType = pParameterList[0].data.resolveType as PgslVectorType;
 
-                        // Vector type must be of dimension 2.
-                        if (lElementType.dimension !== 2) {
-                            throw new Error(`Invalid vector type: ${lElementType.dimension}. Expected: 2.`);
-                        }
-
-                        return new PgslVectorType(3, lElementType.innerType).process(pContext);
-                    }
-                },
-                {
-                    parameterTypes: [PgslNumericType, PgslVectorType],
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Get element type vector parameter.
-                        const lElementType: PgslVectorType = pParameterList[1].data.resolveType as PgslVectorType;
-
-                        return new PgslVectorType(3, lElementType.innerType).process(pContext);
-                    }
+                    return new PgslVectorType(3, lElementType).process(pContext);
                 }
-            ];
-            case PgslVectorType.typeName.vector4: return [
-                {
-                    allowedTypes: [PgslNumericType],
-                    range: { min: 4, max: 4 },
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.data.concrete;
-                        }) ?? pParameterList[0];
+            };
 
-                        // Get element type from concrete type expression.
-                        const lElementType: IType = lConcreteTypeExpression.data.resolveType;
+            // Vector types: Vector4.
+            case PgslVectorType.typeName.vector4: return {
+                generics: ['numeric', PgslBooleanType.typeName.boolean],
+                parameters: [
+                    // Scalar
+                    [{ typeRestrictions: ['numeric', PgslBooleanType.typeName.boolean], count: { min: 4, max: 4 } }],
 
-                        return new PgslVectorType(4, lElementType).process(pContext);
+                    // Vector2 Scalar Scalar
+                    [
+                        { typeRestrictions: [`${PgslVectorType.typeName.vector2}<${PgslBooleanType.typeName.boolean}>`] },
+                        { typeRestrictions: [PgslBooleanType.typeName.boolean] },
+                        { typeRestrictions: [PgslBooleanType.typeName.boolean] }
+                    ],
+                    [
+                        { typeRestrictions: [`${PgslVectorType.typeName.vector2}<numeric>`] },
+                        { typeRestrictions: ['numeric'] },
+                        { typeRestrictions: ['numeric'] }
+                    ],
+
+                    // Scalar Vector2 Scalar
+                    [
+                        { typeRestrictions: [PgslBooleanType.typeName.boolean] },
+                        { typeRestrictions: [`${PgslVectorType.typeName.vector2}<${PgslBooleanType.typeName.boolean}>`] },
+                        { typeRestrictions: [PgslBooleanType.typeName.boolean] }
+                    ],
+                    [
+                        { typeRestrictions: ['numeric'] },
+                        { typeRestrictions: [`${PgslVectorType.typeName.vector2}<numeric>`] },
+                        { typeRestrictions: ['numeric'] }
+                    ],
+
+                    // Scalar Scalar Vector2
+                    [
+                        { typeRestrictions: [PgslBooleanType.typeName.boolean] },
+                        { typeRestrictions: [PgslBooleanType.typeName.boolean] },
+                        { typeRestrictions: [`${PgslVectorType.typeName.vector2}<${PgslBooleanType.typeName.boolean}>`] },
+                    ],
+                    [
+                        { typeRestrictions: ['numeric'] },
+                        { typeRestrictions: ['numeric'] },
+                        { typeRestrictions: [`${PgslVectorType.typeName.vector2}<numeric>`] },
+                    ],
+
+                    // Vector2 Vector2
+                    [
+                        { typeRestrictions: [`${PgslVectorType.typeName.vector2}<${PgslBooleanType.typeName.boolean}>`] },
+                        { typeRestrictions: [`${PgslVectorType.typeName.vector2}<${PgslBooleanType.typeName.boolean}>`] },
+                    ],
+                    [
+                        { typeRestrictions: [`${PgslVectorType.typeName.vector2}<numeric>`] },
+                        { typeRestrictions: [`${PgslVectorType.typeName.vector2}<numeric>`] },
+                    ],
+
+                    // Vector3 Scalar
+                    [
+                        { typeRestrictions: [`${PgslVectorType.typeName.vector3}<${PgslBooleanType.typeName.boolean}>`] },
+                        { typeRestrictions: [PgslBooleanType.typeName.boolean] }
+                    ],
+                    [
+                        { typeRestrictions: [`${PgslVectorType.typeName.vector3}<numeric>`] },
+                        { typeRestrictions: ['numeric'] }
+                    ],
+
+                    // Scalar Vector3
+                    [
+                        { typeRestrictions: [PgslBooleanType.typeName.boolean] },
+                        { typeRestrictions: [`${PgslVectorType.typeName.vector3}<${PgslBooleanType.typeName.boolean}>`] }
+                    ],
+                    [
+                        { typeRestrictions: ['numeric'] },
+                        { typeRestrictions: [`${PgslVectorType.typeName.vector3}<numeric>`] }
+                    ],
+                ],
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IType>, pGeneric: IType | null) => {
+                    // Find inner type by generic or first concrete type.
+                    let lElementType: IType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.data.concrete;
+                    }) ?? pParameterList[0];
+
+                    // If element type is a vector, extract inner type.
+                    if (lElementType instanceof PgslVectorType) {
+                        lElementType = lElementType.innerType;
                     }
-                },
 
-                // Parameters with vector2. 
-                {
-                    parameterTypes: [PgslVectorType, PgslNumericType, PgslNumericType],
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Get element type vector parameter.
-                        const lElementType: PgslVectorType = pParameterList[0].data.resolveType as PgslVectorType;
-
-                        // Vector type must be of dimension 2.
-                        if (lElementType.dimension !== 2) {
-                            throw new Error(`Invalid vector type: ${lElementType.dimension}. Expected: 2.`);
-                        }
-
-                        return new PgslVectorType(4, lElementType.innerType).process(pContext);
-                    }
-                },
-                {
-                    parameterTypes: [PgslNumericType, PgslVectorType, PgslNumericType],
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Get element type vector parameter.
-                        const lElementType: PgslVectorType = pParameterList[1].data.resolveType as PgslVectorType;
-
-                        // Vector type must be of dimension 2.
-                        if (lElementType.dimension !== 2) {
-                            throw new Error(`Invalid vector type: ${lElementType.dimension}. Expected: 2.`);
-                        }
-
-                        return new PgslVectorType(4, lElementType.innerType).process(pContext);
-                    }
-                },
-                {
-                    parameterTypes: [PgslNumericType, PgslNumericType, PgslVectorType],
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Get element type vector parameter.
-                        const lElementType: PgslVectorType = pParameterList[2].data.resolveType as PgslVectorType;
-
-                        // Vector type must be of dimension 2.
-                        if (lElementType.dimension !== 2) {
-                            throw new Error(`Invalid vector type: ${lElementType.dimension}. Expected: 2.`);
-                        }
-
-                        return new PgslVectorType(4, lElementType.innerType).process(pContext);
-                    }
-                },
-                {
-                    parameterTypes: [PgslVectorType, PgslVectorType],
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.data.concrete;
-                        }) ?? pParameterList[0];
-
-                        // Get element type vector parameter.
-                        const lElementType: PgslVectorType = lConcreteTypeExpression.data.resolveType as PgslVectorType;
-
-                        // Vector type must be of dimension 2.
-                        if (lElementType.dimension !== 2) {
-                            throw new Error(`Invalid vector type: ${lElementType.dimension}. Expected: 2.`);
-                        }
-
-                        return new PgslVectorType(4, lElementType.innerType).process(pContext);
-                    }
-                },
-
-                // Parameters with vector3.
-                {
-                    parameterTypes: [PgslVectorType, PgslNumericType],
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Get element type vector parameter.
-                        const lElementType: PgslVectorType = pParameterList[0].data.resolveType as PgslVectorType;
-
-                        // Vector type must be of dimension 3.
-                        if (lElementType.dimension !== 3) {
-                            throw new Error(`Invalid vector type: ${lElementType.dimension}. Expected: 3.`);
-                        }
-
-                        return new PgslVectorType(4, lElementType.innerType).process(pContext);
-                    }
-                },
-                {
-                    parameterTypes: [PgslNumericType, PgslVectorType],
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Get element type vector parameter.
-                        const lElementType: PgslVectorType = pParameterList[1].data.resolveType as PgslVectorType;
-
-                        // Vector type must be of dimension 3.
-                        if (lElementType.dimension !== 3) {
-                            throw new Error(`Invalid vector type: ${lElementType.dimension}. Expected: 3.`);
-                        }
-
-                        return new PgslVectorType(4, lElementType.innerType).process(pContext);
-                    }
-                },
-            ];
+                    return new PgslVectorType(4, lElementType).process(pContext);
+                }
+            };
 
             // Matrix types.
-            case PgslMatrixType.typeName.matrix22: return [
-                {
-                    allowedTypes: [PgslNumericType],
-                    range: { min: 4, max: 4 },
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.data.concrete;
-                        }) ?? pParameterList[0];
+            case PgslMatrixType.typeName.matrix22: return {
+                generics: ['numeric-float'],
+                parameters: [
+                    [{ typeRestrictions: ['numeric-float'], count: { min: 4, max: 4 } }],
+                    [{ typeRestrictions: [`${PgslVectorType.typeName.vector2}<numeric-float>`], count: { min: 2, max: 2 } }],
+                ],
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IType>, pGeneric: IType | null) => {
+                    // Find inner type by generic or first concrete type.
+                    let lElementType: IType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.data.concrete;
+                    }) ?? pParameterList[0];
 
-                        // Get element type from concrete type expression.
-                        const lElementType: IType = lConcreteTypeExpression.data.resolveType;
-
-                        return new PgslMatrixType(2, 2, lElementType).process(pContext);
+                    // If element type is a vector, extract inner type.
+                    if (lElementType instanceof PgslVectorType) {
+                        lElementType = lElementType.innerType;
                     }
-                },
-                {
-                    allowedTypes: [PgslVectorType],
-                    range: { min: 2, max: 2 },
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.data.concrete;
-                        }) ?? pParameterList[0];
 
-                        // Get element type from concrete type expression.
-                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.resolveType as PgslVectorType;
-
-                        // Vector type must be of dimension 2.
-                        if (lVectorType.dimension !== 2) {
-                            pContext.pushIncident(`Matrix22 construction from vectors requires vectors of dimension 2.`, lConcreteTypeExpression);
-                        }
-
-                        return new PgslMatrixType(2, 2, lVectorType.innerType).process(pContext);
-                    }
+                    return new PgslMatrixType(2, 2, lElementType).process(pContext);
                 }
-            ];
-            case PgslMatrixType.typeName.matrix23: return [
-                {
-                    allowedTypes: [PgslNumericType],
-                    range: { min: 6, max: 6 },
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.data.concrete;
-                        }) ?? pParameterList[0];
+            };
+            case PgslMatrixType.typeName.matrix23: return {
+                generics: ['numeric-float'],
+                parameters: [
+                    [{ typeRestrictions: ['numeric-float'], count: { min: 6, max: 6 } }],
+                    [{ typeRestrictions: [`${PgslVectorType.typeName.vector3}<numeric-float>`], count: { min: 2, max: 2 } }],
+                ],
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IType>, pGeneric: IType | null) => {
+                    // Find inner type by generic or first concrete type.
+                    let lElementType: IType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.data.concrete;
+                    }) ?? pParameterList[0];
 
-                        // Get element type from concrete type expression.
-                        const lElementType: IType = lConcreteTypeExpression.data.resolveType;
-
-                        return new PgslMatrixType(2, 3, lElementType).process(pContext);
+                    // If element type is a vector, extract inner type.
+                    if (lElementType instanceof PgslVectorType) {
+                        lElementType = lElementType.innerType;
                     }
-                },
-                {
-                    allowedTypes: [PgslVectorType],
-                    range: { min: 2, max: 2 },
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.data.concrete;
-                        }) ?? pParameterList[0];
 
-                        // Get element type from concrete type expression.
-                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.resolveType as PgslVectorType;
-
-                        // Vector type must be of dimension 3.
-                        if (lVectorType.dimension !== 3) {
-                            pContext.pushIncident(`Matrix23 construction from vectors requires vectors of dimension 3.`, lConcreteTypeExpression);
-                        }
-
-                        return new PgslMatrixType(2, 3, lVectorType.innerType).process(pContext);
-                    }
+                    return new PgslMatrixType(2, 3, lElementType).process(pContext);
                 }
-            ];
-            case PgslMatrixType.typeName.matrix24: return [
-                {
-                    allowedTypes: [PgslNumericType],
-                    range: { min: 8, max: 8 },
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.data.concrete;
-                        }) ?? pParameterList[0];
+            };
+            case PgslMatrixType.typeName.matrix24: return {
+                generics: ['numeric-float'],
+                parameters: [
+                    [{ typeRestrictions: ['numeric-float'], count: { min: 8, max: 8 } }],
+                    [{ typeRestrictions: [`${PgslVectorType.typeName.vector4}<numeric-float>`], count: { min: 2, max: 2 } }],
+                ],
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IType>, pGeneric: IType | null) => {
+                    // Find inner type by generic or first concrete type.
+                    let lElementType: IType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.data.concrete;
+                    }) ?? pParameterList[0];
 
-                        // Get element type from concrete type expression.
-                        const lElementType: IType = lConcreteTypeExpression.data.resolveType;
-
-                        return new PgslMatrixType(2, 4, lElementType).process(pContext);
+                    // If element type is a vector, extract inner type.
+                    if (lElementType instanceof PgslVectorType) {
+                        lElementType = lElementType.innerType;
                     }
-                },
-                {
-                    allowedTypes: [PgslVectorType],
-                    range: { min: 2, max: 2 },
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.data.concrete;
-                        }) ?? pParameterList[0];
 
-                        // Get element type from concrete type expression.
-                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.resolveType as PgslVectorType;
-
-                        // Vector type must be of dimension 4.
-                        if (lVectorType.dimension !== 4) {
-                            pContext.pushIncident(`Matrix24 construction from vectors requires vectors of dimension 4.`, lConcreteTypeExpression);
-                        }
-
-                        return new PgslMatrixType(2, 4, lVectorType.innerType).process(pContext);
-                    }
+                    return new PgslMatrixType(2, 4, lElementType).process(pContext);
                 }
-            ];
-            case PgslMatrixType.typeName.matrix32: return [
-                {
-                    allowedTypes: [PgslNumericType],
-                    range: { min: 6, max: 6 },
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.data.concrete;
-                        }) ?? pParameterList[0];
+            };
+            case PgslMatrixType.typeName.matrix32: return {
+                generics: ['numeric-float'],
+                parameters: [
+                    [{ typeRestrictions: ['numeric-float'], count: { min: 6, max: 6 } }],
+                    [{ typeRestrictions: [`${PgslVectorType.typeName.vector2}<numeric-float>`], count: { min: 3, max: 3 } }],
+                ],
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IType>, pGeneric: IType | null) => {
+                    // Find inner type by generic or first concrete type.
+                    let lElementType: IType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.data.concrete;
+                    }) ?? pParameterList[0];
 
-                        // Get element type from concrete type expression.
-                        const lElementType: IType = lConcreteTypeExpression.data.resolveType;
-
-                        return new PgslMatrixType(3, 2, lElementType).process(pContext);
+                    // If element type is a vector, extract inner type.
+                    if (lElementType instanceof PgslVectorType) {
+                        lElementType = lElementType.innerType;
                     }
-                },
-                {
-                    allowedTypes: [PgslVectorType],
-                    range: { min: 3, max: 3 },
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.data.concrete;
-                        }) ?? pParameterList[0];
 
-                        // Get element type from concrete type expression.
-                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.resolveType as PgslVectorType;
-
-                        // Vector type must be of dimension 2.
-                        if (lVectorType.dimension !== 2) {
-                            pContext.pushIncident(`Matrix32 construction from vectors requires vectors of dimension 2.`, lConcreteTypeExpression);
-                        }
-
-                        return new PgslMatrixType(3, 2, lVectorType.innerType).process(pContext);
-                    }
+                    return new PgslMatrixType(3, 2, lElementType).process(pContext);
                 }
-            ];
-            case PgslMatrixType.typeName.matrix33: return [
-                {
-                    allowedTypes: [PgslNumericType],
-                    range: { min: 9, max: 9 },
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.data.concrete;
-                        }) ?? pParameterList[0];
+            };
+            case PgslMatrixType.typeName.matrix33: return {
+                generics: ['numeric-float'],
+                parameters: [
+                    [{ typeRestrictions: ['numeric-float'], count: { min: 9, max: 9 } }],
+                    [{ typeRestrictions: [`${PgslVectorType.typeName.vector3}<numeric-float>`], count: { min: 3, max: 3 } }],
+                ],
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IType>, pGeneric: IType | null) => {
+                    // Find inner type by generic or first concrete type.
+                    let lElementType: IType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.data.concrete;
+                    }) ?? pParameterList[0];
 
-                        // Get element type from concrete type expression.
-                        const lElementType: IType = lConcreteTypeExpression.data.resolveType;
-
-                        return new PgslMatrixType(3, 3, lElementType).process(pContext);
+                    // If element type is a vector, extract inner type.
+                    if (lElementType instanceof PgslVectorType) {
+                        lElementType = lElementType.innerType;
                     }
-                },
-                {
-                    allowedTypes: [PgslVectorType],
-                    range: { min: 3, max: 3 },
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.data.concrete;
-                        }) ?? pParameterList[0];
 
-                        // Get element type from concrete type expression.
-                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.resolveType as PgslVectorType;
-
-                        // Vector type must be of dimension 3.
-                        if (lVectorType.dimension !== 3) {
-                            pContext.pushIncident(`Matrix33 construction from vectors requires vectors of dimension 3.`, lConcreteTypeExpression);
-                        }
-
-                        return new PgslMatrixType(3, 3, lVectorType.innerType).process(pContext);
-                    }
+                    return new PgslMatrixType(3, 3, lElementType).process(pContext);
                 }
-            ];
-            case PgslMatrixType.typeName.matrix34: return [
-                {
-                    allowedTypes: [PgslNumericType],
-                    range: { min: 12, max: 12 },
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.data.concrete;
-                        }) ?? pParameterList[0];
+            };
+            case PgslMatrixType.typeName.matrix34: return {
+                generics: ['numeric-float'],
+                parameters: [
+                    [{ typeRestrictions: ['numeric-float'], count: { min: 12, max: 12 } }],
+                    [{ typeRestrictions: [`${PgslVectorType.typeName.vector4}<numeric-float>`], count: { min: 3, max: 3 } }],
+                ],
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IType>, pGeneric: IType | null) => {
+                    // Find inner type by generic or first concrete type.
+                    let lElementType: IType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.data.concrete;
+                    }) ?? pParameterList[0];
 
-                        // Get element type from concrete type expression.
-                        const lElementType: IType = lConcreteTypeExpression.data.resolveType;
-
-                        return new PgslMatrixType(3, 4, lElementType).process(pContext);
+                    // If element type is a vector, extract inner type.
+                    if (lElementType instanceof PgslVectorType) {
+                        lElementType = lElementType.innerType;
                     }
-                },
-                {
-                    allowedTypes: [PgslVectorType],
-                    range: { min: 3, max: 3 },
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.data.concrete;
-                        }) ?? pParameterList[0];
 
-                        // Get element type from concrete type expression.
-                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.resolveType as PgslVectorType;
-
-                        // Vector type must be of dimension 4.
-                        if (lVectorType.dimension !== 4) {
-                            pContext.pushIncident(`Matrix34 construction from vectors requires vectors of dimension 4.`, lConcreteTypeExpression);
-                        }
-
-                        return new PgslMatrixType(3, 4, lVectorType.innerType).process(pContext);
-                    }
+                    return new PgslMatrixType(3, 4, lElementType).process(pContext);
                 }
-            ];
-            case PgslMatrixType.typeName.matrix42: return [
-                {
-                    allowedTypes: [PgslNumericType],
-                    range: { min: 8, max: 8 },
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.data.concrete;
-                        }) ?? pParameterList[0];
+            };
+            case PgslMatrixType.typeName.matrix42: return {
+                generics: ['numeric-float'],
+                parameters: [
+                    [{ typeRestrictions: ['numeric-float'], count: { min: 8, max: 8 } }],
+                    [{ typeRestrictions: [`${PgslVectorType.typeName.vector2}<numeric-float>`], count: { min: 4, max: 4 } }],
+                ],
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IType>, pGeneric: IType | null) => {
+                    // Find inner type by generic or first concrete type.
+                    let lElementType: IType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.data.concrete;
+                    }) ?? pParameterList[0];
 
-                        // Get element type from concrete type expression.
-                        const lElementType: IType = lConcreteTypeExpression.data.resolveType;
-
-                        return new PgslMatrixType(4, 2, lElementType).process(pContext);
+                    // If element type is a vector, extract inner type.
+                    if (lElementType instanceof PgslVectorType) {
+                        lElementType = lElementType.innerType;
                     }
-                },
-                {
-                    allowedTypes: [PgslVectorType],
-                    range: { min: 4, max: 4 },
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.data.concrete;
-                        }) ?? pParameterList[0];
 
-                        // Get element type from concrete type expression.
-                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.resolveType as PgslVectorType;
-
-                        // Vector type must be of dimension 2.
-                        if (lVectorType.dimension !== 2) {
-                            pContext.pushIncident(`Matrix42 construction from vectors requires vectors of dimension 2.`, lConcreteTypeExpression);
-                        }
-
-                        return new PgslMatrixType(4, 2, lVectorType.innerType).process(pContext);
-                    }
+                    return new PgslMatrixType(4, 2, lElementType).process(pContext);
                 }
-            ];
-            case PgslMatrixType.typeName.matrix43: return [
-                {
-                    allowedTypes: [PgslNumericType],
-                    range: { min: 12, max: 12 },
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.data.concrete;
-                        }) ?? pParameterList[0];
+            };
 
-                        // Get element type from concrete type expression.
-                        const lElementType: IType = lConcreteTypeExpression.data.resolveType;
+            case PgslMatrixType.typeName.matrix43: return {
+                generics: ['numeric-float'],
+                parameters: [
+                    [{ typeRestrictions: ['numeric-float'], count: { min: 12, max: 12 } }],
+                    [{ typeRestrictions: [`${PgslVectorType.typeName.vector3}<numeric-float>`], count: { min: 4, max: 4 } }],
+                ],
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IType>, pGeneric: IType | null) => {
+                    // Find inner type by generic or first concrete type.
+                    let lElementType: IType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.data.concrete;
+                    }) ?? pParameterList[0];
 
-                        return new PgslMatrixType(4, 3, lElementType).process(pContext);
+                    // If element type is a vector, extract inner type.
+                    if (lElementType instanceof PgslVectorType) {
+                        lElementType = lElementType.innerType;
                     }
-                },
-                {
-                    allowedTypes: [PgslVectorType],
-                    range: { min: 4, max: 4 },
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.data.concrete;
-                        }) ?? pParameterList[0];
 
-                        // Get element type from concrete type expression.
-                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.resolveType as PgslVectorType;
-
-                        // Vector type must be of dimension 3.
-                        if (lVectorType.dimension !== 3) {
-                            pContext.pushIncident(`Matrix43 construction from vectors requires vectors of dimension 3.`, lConcreteTypeExpression);
-                        }
-
-                        return new PgslMatrixType(4, 3, lVectorType.innerType).process(pContext);
-                    }
+                    return new PgslMatrixType(4, 3, lElementType).process(pContext);
                 }
-            ];
-            case PgslMatrixType.typeName.matrix44: return [
-                {
-                    allowedTypes: [PgslNumericType],
-                    range: { min: 16, max: 16 },
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.data.concrete;
-                        }) ?? pParameterList[0];
+            };
+            case PgslMatrixType.typeName.matrix44: return {
+                generics: ['numeric-float'],
+                parameters: [
+                    [{ typeRestrictions: ['numeric-float'], count: { min: 16, max: 16 } }],
+                    [{ typeRestrictions: [`${PgslVectorType.typeName.vector4}<numeric-float>`], count: { min: 4, max: 4 } }],
+                ],
+                returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IType>, pGeneric: IType | null) => {
+                    // Find inner type by generic or first concrete type.
+                    let lElementType: IType = pGeneric ?? pParameterList.find((pParam) => {
+                        return pParam.data.concrete;
+                    }) ?? pParameterList[0];
 
-                        // Get element type from concrete type expression.
-                        const lElementType: IType = lConcreteTypeExpression.data.resolveType;
-
-                        return new PgslMatrixType(4, 4, lElementType).process(pContext);
+                    // If element type is a vector, extract inner type.
+                    if (lElementType instanceof PgslVectorType) {
+                        lElementType = lElementType.innerType;
                     }
-                },
-                {
-                    allowedTypes: [PgslVectorType],
-                    range: { min: 4, max: 4 },
-                    returnType: (pContext: AbstractSyntaxTreeContext, pParameterList: Array<IExpressionAst>) => {
-                        // Find the first concrete numeric type and check if all others match.
-                        const lConcreteTypeExpression: IExpressionAst = pParameterList.find((pParam) => {
-                            return pParam.data.resolveType.data.concrete;
-                        }) ?? pParameterList[0];
 
-                        // Get element type from concrete type expression.
-                        const lVectorType: PgslVectorType = lConcreteTypeExpression.data.resolveType as PgslVectorType;
-
-                        // Vector type must be of dimension 4.
-                        if (lVectorType.dimension !== 4) {
-                            pContext.pushIncident(`Matrix44 construction from vectors requires vectors of dimension 4.`, lConcreteTypeExpression);
-                        }
-
-                        return new PgslMatrixType(4, 4, lVectorType.innerType).process(pContext);
-                    }
+                    return new PgslMatrixType(4, 4, lElementType).process(pContext);
                 }
-            ];
+            };
 
             // Scalar types.
-            case PgslBooleanType.typeName.boolean: return [
-                {
-                    parameterTypes: [PgslBooleanType],
-                    returnType: (pContext: AbstractSyntaxTreeContext, _pParameterList: Array<IExpressionAst>) => new PgslBooleanType().process(pContext)
-                },
-                {
-                    parameterTypes: [PgslNumericType],
-                    returnType: (pContext: AbstractSyntaxTreeContext, _pParameterList: Array<IExpressionAst>) => new PgslBooleanType().process(pContext)
+            case PgslBooleanType.typeName.boolean: return {
+                parameters: [
+                    [{ typeRestrictions: ['numeric'] }],
+                    [{ typeRestrictions: [PgslBooleanType.typeName.boolean] }]
+                ],
+                returnType: (pContext: AbstractSyntaxTreeContext) => {
+                    return new PgslBooleanType().process(pContext);
                 }
-            ];
-            case PgslNumericType.typeName.float16: return [
-                {
-                    parameterTypes: [PgslBooleanType],
-                    returnType: (pContext: AbstractSyntaxTreeContext, _pParameterList: Array<IExpressionAst>) => new PgslNumericType(PgslNumericType.typeName.float16).process(pContext)
-                },
-                {
-                    parameterTypes: [PgslNumericType],
-                    returnType: (pContext: AbstractSyntaxTreeContext, _pParameterList: Array<IExpressionAst>) => new PgslNumericType(PgslNumericType.typeName.float16).process(pContext)
+            };
+            case PgslNumericType.typeName.float16: return {
+                parameters: [
+                    [{ typeRestrictions: ['numeric'] }],
+                    [{ typeRestrictions: [PgslBooleanType.typeName.boolean] }]
+                ],
+                returnType: (pContext: AbstractSyntaxTreeContext) => {
+                    return new PgslNumericType(PgslNumericType.typeName.float16).process(pContext);
                 }
-            ];
-            case PgslNumericType.typeName.float32: return [
-                {
-                    parameterTypes: [PgslBooleanType],
-                    returnType: (pContext: AbstractSyntaxTreeContext, _pParameterList: Array<IExpressionAst>) => new PgslNumericType(PgslNumericType.typeName.float32).process(pContext)
-                },
-                {
-                    parameterTypes: [PgslNumericType],
-                    returnType: (pContext: AbstractSyntaxTreeContext, _pParameterList: Array<IExpressionAst>) => new PgslNumericType(PgslNumericType.typeName.float32).process(pContext)
+            };
+            case PgslNumericType.typeName.float32: return {
+                parameters: [
+                    [{ typeRestrictions: ['numeric'] }],
+                    [{ typeRestrictions: [PgslBooleanType.typeName.boolean] }]
+                ],
+                returnType: (pContext: AbstractSyntaxTreeContext) => {
+                    return new PgslNumericType(PgslNumericType.typeName.float32).process(pContext);
                 }
-            ];
-            case PgslNumericType.typeName.signedInteger: return [
-                {
-                    parameterTypes: [PgslBooleanType],
-                    returnType: (pContext: AbstractSyntaxTreeContext, _pParameterList: Array<IExpressionAst>) => new PgslNumericType(PgslNumericType.typeName.signedInteger).process(pContext)
-                },
-                {
-                    parameterTypes: [PgslNumericType],
-                    returnType: (pContext: AbstractSyntaxTreeContext, _pParameterList: Array<IExpressionAst>) => new PgslNumericType(PgslNumericType.typeName.signedInteger).process(pContext)
+            };
+            case PgslNumericType.typeName.signedInteger: return {
+                parameters: [
+                    [{ typeRestrictions: ['numeric'] }],
+                    [{ typeRestrictions: [PgslBooleanType.typeName.boolean] }]
+                ],
+                returnType: (pContext: AbstractSyntaxTreeContext) => {
+                    return new PgslNumericType(PgslNumericType.typeName.signedInteger).process(pContext);
                 }
-            ];
-            case PgslNumericType.typeName.unsignedInteger: return [
-                {
-                    parameterTypes: [PgslBooleanType],
-                    returnType: (pContext: AbstractSyntaxTreeContext, _pParameterList: Array<IExpressionAst>) => new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext)
-                },
-                {
-                    parameterTypes: [PgslNumericType],
-                    returnType: (pContext: AbstractSyntaxTreeContext, _pParameterList: Array<IExpressionAst>) => new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext)
+            };
+            case PgslNumericType.typeName.unsignedInteger: return {
+                parameters: [
+                    [{ typeRestrictions: ['numeric'] }],
+                    [{ typeRestrictions: [PgslBooleanType.typeName.boolean] }]
+                ],
+                returnType: (pContext: AbstractSyntaxTreeContext) => {
+                    return new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
                 }
-            ];
+            };
         }
 
         return null;
@@ -617,8 +427,8 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
      */
     protected override onProcess(pContext: AbstractSyntaxTreeContext): NewExpressionAstData {
         // Read call definitions.
-        const lCallDefinitions: Array<PgslNewExpressionCallDefinition> | null = NewExpressionAst.callDefinition(this.cst.typeName);
-        if (!lCallDefinitions) {
+        const lCallDefinition: PgslNewExpressionCallDefinition | null = NewExpressionAst.callDefinition(this.cst.typeName);
+        if (!lCallDefinition) {
             pContext.pushIncident(`Type '${this.cst.typeName}' cannot be constructed with 'new'.`, this);
             return {
                 // Expression data.
@@ -637,6 +447,25 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
         const lParameterExpressionList: Array<IExpressionAst> = this.cst.parameterList.map((pParameterCst) => {
             return ExpressionAstBuilder.build(pParameterCst, pContext);
         });
+
+        // Map only the parameter types for result type resolution.
+        const lParameterTypeList: Array<IType> = lParameterExpressionList.map((pParameterExpression) => {
+            return pParameterExpression.data.resolveType;
+        });
+
+        // Only once generic is supported.
+        if (this.cst.genericList.length > 1) {
+            pContext.pushIncident(`Only one generic type is supported in 'new' expressions.`, this);
+        }
+
+        // Build first generic type if available.
+        const lGenericType: IType | null = (() => {
+            if (this.cst.genericList.length > 0) {
+                return new TypeDeclarationAst(this.cst.genericList[0]).process(pContext).data.type;
+            }
+
+            return null;
+        })();
 
         // Find the lowest fixed state of all parameters while validating the expression types
         const lFixedState: PgslValueFixedState = (() => {
@@ -664,82 +493,92 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
             return lFixedState;
         })();
 
-        // Find matching call definition.
-        const lTypeCallDefinition: PgslNewExpressionCallDefinition | null = (() => {
-            DEFINTION_CHECK: for (const lDefinition of lCallDefinitions) {
-                // Check fixed parameter.
-                if ('parameterTypes' in lDefinition) {
-                    if (lDefinition.parameterTypes.length !== lParameterExpressionList.length) {
-                        continue;
-                    }
+        // Validate used generic against definition.
+        (() => {
+            if (!lGenericType || !lCallDefinition.generics || lCallDefinition.generics.length === 0) {
+                return;
+            }
 
-                    // Check parameter types. Any type must match exactly.
-                    for (let lParameterIndex = 0; lParameterIndex < lDefinition.parameterTypes.length; lParameterIndex++) {
-                        const lExpectedTypeConstructor: ITypeConstructor = lDefinition.parameterTypes[lParameterIndex];
-                        const lActualType: IType = lParameterExpressionList[lParameterIndex].data.resolveType;
-
-                        // Check type constructor and skip definition on mismatch.
-                        if (!(lActualType instanceof lExpectedTypeConstructor)) {
-                            continue DEFINTION_CHECK;
-                        }
-                    }
-
-                    return lDefinition;
-                }
-
-                // Check dynamic parameter.
-                if ('range' in lDefinition) {
-                    if (lParameterExpressionList.length < lDefinition.range.min || lParameterExpressionList.length > lDefinition.range.max) {
-                        continue;
-                    }
-
-                    // Iterate expected type constructors and expressions inside, because all types must be the same.
-                    const lExpectedTypeConstructors: Array<ITypeConstructor> = lDefinition.allowedTypes;
-                    const lTypeMatched: boolean = (() => {
-                        EXPECTED_TYPE_CHECK: for (const lExpectedTypeConstructor of lExpectedTypeConstructors) {
-                            // Check parameter types. Any type must be in allowed types.
-                            for (const lParameterExpression of lParameterExpressionList) {
-                                if (!(lParameterExpression.data.resolveType instanceof lExpectedTypeConstructor)) {
-                                    continue EXPECTED_TYPE_CHECK;
-                                }
-                            }
-
-                            return true;
-                        }
-
-                        return false;
-                    })();
-
-                    // Skip definition on mismatch.
-                    if (!lTypeMatched) {
-                        continue DEFINTION_CHECK;
-                    }
-
-                    return lDefinition;
+            // Check each defined generic agains the used one.
+            for (const lGenericName of lCallDefinition.generics) {
+                if (lGenericType.data.metaTypes.includes(lGenericName)) {
+                    return;
                 }
             }
 
-            return null;
+            pContext.pushIncident(`Generic type is not valid for constructed type '${this.cst.typeName}'.`, this);
         })();
 
-        const lResultType: IType | null = lTypeCallDefinition ? lTypeCallDefinition.returnType(pContext, lParameterExpressionList) : null;
+        // Validate parameter list against definitions and find matching one.
+        (() => {
+            DEFINTION_CHECK: for (const lParameterDefinitionList of lCallDefinition.parameters) {
+                // Save current index of parameter list.
+                let lParameterIndex: number = 0;
 
-        // No matching definition found.
-        if (!lResultType) {
+                // Statics
+                const lParameterExpressionCount: number = lParameterTypeList.length;
+
+                // Check parameters parts.
+                for (const lParameterDefinition of lParameterDefinitionList) {
+                    const lValidParameterTypeList: Array<string> = lParameterDefinition.typeRestrictions;
+                    const lParameterCountMin: number = lParameterDefinition.count?.min ?? 1;
+                    const lParameterCountMax: number = lParameterDefinition.count?.max ?? 1;
+
+                    // Calculate iteration stop index based on max and current index.
+                    const lParameterMinIndex: number = (lParameterIndex - 1) + lParameterCountMin;
+                    const lParameterMaxIndex: number = (lParameterIndex - 1) + lParameterCountMax;
+
+                    // Iterate expected parameters until max count or end of parameter list is reached.
+                    for (let lCountIndex = lParameterIndex; lCountIndex < lParameterExpressionCount; lCountIndex++) {
+                        // Break if max count reached.
+                        if (lCountIndex > lParameterMaxIndex) {
+                            break;
+                        }
+
+                        // Get actual parameter type.
+                        const lActualType: IType = lParameterTypeList[lParameterIndex];
+
+                        // Check type restrictions.
+                        const lTypeMatched: boolean = (() => {
+                            // No restrictions means always match.
+                            if (lValidParameterTypeList.length === 0) {
+                                return true;
+                            }
+
+                            // Check each defined generic agains the used one.
+                            for (const lValidParameterType of lValidParameterTypeList) {
+                                if (lActualType.data.metaTypes.includes(lValidParameterType)) {
+                                    return true;
+                                }
+                            }
+
+                            return false;
+                        })();
+
+                        // Skip this definition on mismatch.
+                        if (!lTypeMatched) {
+                            break;
+                        }
+
+                        lParameterIndex++;
+                    }
+
+                    // Check if min count was reached.
+                    if (lParameterIndex < lParameterMinIndex) {
+                        break DEFINTION_CHECK;
+                    }
+                }
+
+                // Definition matched.
+                return;
+            }
+
+            // No matching definition found.
             pContext.pushIncident(`No matching constructor found for type '${this.cst.typeName}' with ${this.cst.parameterList.length} parameter(s).`, this);
+        })();
 
-            return {
-                // Expression data.
-                parameterList: lParameterExpressionList,
-
-                // Expression meta.
-                fixedState: PgslValueFixedState.Variable,
-                isStorage: false,
-                resolveType: new PgslInvalidType().process(pContext),
-                constantValue: null,
-                storageAddressSpace: PgslValueAddressSpace.Inherit,
-            };
-        }
+        // Resolve result type.
+        const lResultType: IType = lCallDefinition.returnType(pContext, lParameterTypeList, lGenericType);
 
         return {
             // Expression data.
@@ -749,23 +588,21 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
             fixedState: lFixedState,
             isStorage: false,
             resolveType: lResultType,
-            constantValue: null, // TODO: Maybe on simple convertions for f32, i32, etc.
+            constantValue: null,
             storageAddressSpace: PgslValueAddressSpace.Inherit,
         };
     }
 }
 
-type PgslNewExpressionCallDefinition = PgslNewExpressionFixedCallDefinition | PgslNewExpressionDynamicCallDefinition;
-
-type PgslNewExpressionFixedCallDefinition = {
-    parameterTypes: Array<ITypeConstructor>;
-    returnType: (pContext: AbstractSyntaxTreeContext, pParameter: Array<IExpressionAst>) => IType | null;
+type PgslNewExpressionCallDefinition = {
+    generics?: Array<string>;
+    parameters: Array<Array<PgslNewExpressionCallDefinitionParameter>>;
+    returnType: (pContext: AbstractSyntaxTreeContext, pParameterTypes: Array<IType>, pGeneric: IType | null) => IType;
 };
 
-type PgslNewExpressionDynamicCallDefinition = {
-    allowedTypes: Array<ITypeConstructor>;
-    range: { min: number; max: number; };
-    returnType: (pContext: AbstractSyntaxTreeContext, pParameter: Array<IExpressionAst>) => IType | null;
+type PgslNewExpressionCallDefinitionParameter = {
+    typeRestrictions: Array<string>;
+    count?: { min: number; max: number; };
 };
 
 export type NewExpressionAstData = {

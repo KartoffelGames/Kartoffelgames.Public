@@ -515,9 +515,6 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                 // Save current index of parameter list.
                 let lParameterIndex: number = 0;
 
-                // Statics
-                const lParameterExpressionCount: number = lParameterTypeList.length;
-
                 // Check parameters parts.
                 for (const lParameterDefinition of lParameterDefinitionList) {
                     const lValidParameterTypeList: Array<string> = lParameterDefinition.typeRestrictions;
@@ -525,13 +522,13 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                     const lParameterCountMax: number = lParameterDefinition.count?.max ?? 1;
 
                     // Calculate iteration stop index based on max and current index.
-                    const lParameterMinIndex: number = (lParameterIndex - 1) + lParameterCountMin;
-                    const lParameterMaxIndex: number = (lParameterIndex - 1) + lParameterCountMax;
+                    const lParameterMinIndex: number = lParameterIndex + lParameterCountMin - 1;
+                    const lParameterMaxIndex: number = lParameterIndex + lParameterCountMax - 1;
 
                     // Iterate expected parameters until max count or end of parameter list is reached.
-                    for (let lCountIndex = lParameterIndex; lCountIndex < lParameterExpressionCount; lCountIndex++) {
+                    for (; lParameterIndex < lParameterTypeList.length; lParameterIndex++) {
                         // Break if max count reached.
-                        if (lCountIndex > lParameterMaxIndex) {
+                        if (lParameterIndex > lParameterMaxIndex) {
                             break;
                         }
 
@@ -559,13 +556,11 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
                         if (!lTypeMatched) {
                             break;
                         }
-
-                        lParameterIndex++;
                     }
 
-                    // Check if min count was reached.
-                    if (lParameterIndex < lParameterMinIndex) {
-                        break DEFINTION_CHECK;
+                    // Check if min count was reached and continue with next definition on failure.
+                    if (lParameterIndex <= lParameterMinIndex) {
+                        continue DEFINTION_CHECK;
                     }
                 }
 

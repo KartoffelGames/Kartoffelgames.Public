@@ -94,6 +94,34 @@ Deno.test('NewExpressionAst - Parsing', async (pContext) => {
         expect(lVectorType.dimension).toBe(2);
     });
 
+    await pContext.step('Vector2(Vector2)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslVectorType.typeName.vector2}<${PgslBooleanType.typeName.boolean}> = new ${PgslVectorType.typeName.vector2}<${PgslBooleanType.typeName.boolean}>(
+                    new ${PgslVectorType.typeName.vector2}(1.0, 2.0)
+                );
+            }
+        `;
+
+        // Process.
+        const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+        // Process. Assume correct parsing.
+        const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+        const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
+        const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[0] as VariableDeclarationStatementAst;
+
+        // Evaluation. Correct type of expression node.
+        const lExpressionNode: NewExpressionAst = lVariableDeclarationNode.data.expression as NewExpressionAst;
+        expect(lExpressionNode).toBeInstanceOf(NewExpressionAst);
+
+        // Evaluation. Correct result type.
+        const lVectorType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
+        expect(lVectorType).toBeInstanceOf(PgslVectorType);
+        expect(lVectorType.dimension).toBe(2);
+    });
+
     await pContext.step('Vector3(Numeric, Numeric, Numeric)', () => {
         // Setup.
         const lCodeText: string = `
@@ -243,6 +271,34 @@ Deno.test('NewExpressionAst - Parsing', async (pContext) => {
                     );
                 }
             `;
+
+        // Process.
+        const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+        // Process. Assume correct parsing.
+        const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+        const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
+        const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[0] as VariableDeclarationStatementAst;
+
+        // Evaluation. Correct type of expression node.
+        const lExpressionNode: NewExpressionAst = lVariableDeclarationNode.data.expression as NewExpressionAst;
+        expect(lExpressionNode).toBeInstanceOf(NewExpressionAst);
+
+        // Evaluation. Correct result type.
+        const lVectorType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
+        expect(lVectorType).toBeInstanceOf(PgslVectorType);
+        expect(lVectorType.dimension).toBe(3);
+    });
+
+    await pContext.step('Vector3(Vector3)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslVectorType.typeName.vector3}<${PgslBooleanType.typeName.boolean}> = new ${PgslVectorType.typeName.vector3}<${PgslBooleanType.typeName.boolean}>(
+                    new ${PgslVectorType.typeName.vector3}(1.0, 2.0, 3.0)
+                );
+            }
+        `;
 
         // Process.
         const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
@@ -664,6 +720,34 @@ Deno.test('NewExpressionAst - Parsing', async (pContext) => {
         expect(lVectorType.dimension).toBe(4);
     });
 
+    await pContext.step('Vector4(Vector4)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslVectorType.typeName.vector4}<${PgslBooleanType.typeName.boolean}> = new ${PgslVectorType.typeName.vector4}<${PgslBooleanType.typeName.boolean}>(
+                    new ${PgslVectorType.typeName.vector4}(1.0, 2.0, 3.0, 4.0)
+                );
+            }
+        `;
+
+        // Process.
+        const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+        // Process. Assume correct parsing.
+        const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+        const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
+        const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[0] as VariableDeclarationStatementAst;
+
+        // Evaluation. Correct type of expression node.
+        const lExpressionNode: NewExpressionAst = lVariableDeclarationNode.data.expression as NewExpressionAst;
+        expect(lExpressionNode).toBeInstanceOf(NewExpressionAst);
+
+        // Evaluation. Correct result type.
+        const lVectorType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
+        expect(lVectorType).toBeInstanceOf(PgslVectorType);
+        expect(lVectorType.dimension).toBe(4);
+    });
+
     await pContext.step('Matrix22(Numeric, Numeric, Numeric, Numeric)', () => {
         // Setup.
         const lCodeText: string = `
@@ -698,6 +782,32 @@ Deno.test('NewExpressionAst - Parsing', async (pContext) => {
                     );
                 }
             `;
+
+        // Process.
+        const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+        // Process. Assume correct parsing.
+        const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+        const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
+        const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[0] as VariableDeclarationStatementAst;
+
+        // Evaluation. Correct type of expression node.
+        const lExpressionNode: NewExpressionAst = lVariableDeclarationNode.data.expression as NewExpressionAst;
+        expect(lExpressionNode).toBeInstanceOf(NewExpressionAst);
+
+        // Evaluation. Correct result type.
+        expect(lExpressionNode.data.resolveType).toBeInstanceOf(PgslMatrixType);
+    });
+
+    await pContext.step('Matrix22(Matrix22)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslMatrixType.typeName.matrix22}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix22}<${PgslNumericType.typeName.float16}>(
+                    new ${PgslMatrixType.typeName.matrix22}(1.0, 2.0, 3.0, 4.0)
+                );
+            }
+        `;
 
         // Process.
         const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
@@ -766,6 +876,32 @@ Deno.test('NewExpressionAst - Parsing', async (pContext) => {
         expect(lExpressionNode.data.resolveType).toBeInstanceOf(PgslMatrixType);
     });
 
+    await pContext.step('Matrix23(Matrix23)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslMatrixType.typeName.matrix23}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix23}<${PgslNumericType.typeName.float16}>(
+                    new ${PgslMatrixType.typeName.matrix23}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
+                );
+            }
+        `;
+
+        // Process.
+        const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+        // Process. Assume correct parsing.
+        const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+        const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
+        const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[0] as VariableDeclarationStatementAst;
+
+        // Evaluation. Correct type of expression node.
+        const lExpressionNode: NewExpressionAst = lVariableDeclarationNode.data.expression as NewExpressionAst;
+        expect(lExpressionNode).toBeInstanceOf(NewExpressionAst);
+
+        // Evaluation. Correct result type.
+        expect(lExpressionNode.data.resolveType).toBeInstanceOf(PgslMatrixType);
+    });
+
     await pContext.step('Matrix24(Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric)', () => {
         // Setup.
         const lCodeText: string = `
@@ -800,6 +936,32 @@ Deno.test('NewExpressionAst - Parsing', async (pContext) => {
                     );
                 }
             `;
+
+        // Process.
+        const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+        // Process. Assume correct parsing.
+        const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+        const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
+        const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[0] as VariableDeclarationStatementAst;
+
+        // Evaluation. Correct type of expression node.
+        const lExpressionNode: NewExpressionAst = lVariableDeclarationNode.data.expression as NewExpressionAst;
+        expect(lExpressionNode).toBeInstanceOf(NewExpressionAst);
+
+        // Evaluation. Correct result type.
+        expect(lExpressionNode.data.resolveType).toBeInstanceOf(PgslMatrixType);
+    });
+
+    await pContext.step('Matrix24(Matrix24)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslMatrixType.typeName.matrix24}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix24}<${PgslNumericType.typeName.float16}>(
+                    new ${PgslMatrixType.typeName.matrix24}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+                );
+            }
+        `;
 
         // Process.
         const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
@@ -869,6 +1031,32 @@ Deno.test('NewExpressionAst - Parsing', async (pContext) => {
         expect(lExpressionNode.data.resolveType).toBeInstanceOf(PgslMatrixType);
     });
 
+    await pContext.step('Matrix32(Matrix32)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslMatrixType.typeName.matrix32}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix32}<${PgslNumericType.typeName.float16}>(
+                    new ${PgslMatrixType.typeName.matrix32}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
+                );
+            }
+        `;
+
+        // Process.
+        const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+        // Process. Assume correct parsing.
+        const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+        const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
+        const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[0] as VariableDeclarationStatementAst;
+
+        // Evaluation. Correct type of expression node.
+        const lExpressionNode: NewExpressionAst = lVariableDeclarationNode.data.expression as NewExpressionAst;
+        expect(lExpressionNode).toBeInstanceOf(NewExpressionAst);
+
+        // Evaluation. Correct result type.
+        expect(lExpressionNode.data.resolveType).toBeInstanceOf(PgslMatrixType);
+    });
+
     await pContext.step('Matrix33(Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric)', () => {
         // Setup.
         const lCodeText: string = `
@@ -921,6 +1109,32 @@ Deno.test('NewExpressionAst - Parsing', async (pContext) => {
         expect(lExpressionNode.data.resolveType).toBeInstanceOf(PgslMatrixType);
     });
 
+    await pContext.step('Matrix33(Matrix33)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float16}>(
+                    new ${PgslMatrixType.typeName.matrix33}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
+                );
+            }
+        `;
+
+        // Process.
+        const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+        // Process. Assume correct parsing.
+        const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+        const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
+        const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[0] as VariableDeclarationStatementAst;
+
+        // Evaluation. Correct type of expression node.
+        const lExpressionNode: NewExpressionAst = lVariableDeclarationNode.data.expression as NewExpressionAst;
+        expect(lExpressionNode).toBeInstanceOf(NewExpressionAst);
+
+        // Evaluation. Correct result type.
+        expect(lExpressionNode.data.resolveType).toBeInstanceOf(PgslMatrixType);
+    });
+
     await pContext.step('Matrix34(Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric)', () => {
         // Setup.
         const lCodeText: string = `
@@ -956,6 +1170,32 @@ Deno.test('NewExpressionAst - Parsing', async (pContext) => {
                     );
                 }
             `;
+
+        // Process.
+        const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+        // Process. Assume correct parsing.
+        const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+        const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
+        const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[0] as VariableDeclarationStatementAst;
+
+        // Evaluation. Correct type of expression node.
+        const lExpressionNode: NewExpressionAst = lVariableDeclarationNode.data.expression as NewExpressionAst;
+        expect(lExpressionNode).toBeInstanceOf(NewExpressionAst);
+
+        // Evaluation. Correct result type.
+        expect(lExpressionNode.data.resolveType).toBeInstanceOf(PgslMatrixType);
+    });
+
+    await pContext.step('Matrix34(Matrix34)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslMatrixType.typeName.matrix34}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix34}<${PgslNumericType.typeName.float16}>(
+                    new ${PgslMatrixType.typeName.matrix34}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0)
+                );
+            }
+        `;
 
         // Process.
         const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
@@ -1026,6 +1266,32 @@ Deno.test('NewExpressionAst - Parsing', async (pContext) => {
         expect(lExpressionNode.data.resolveType).toBeInstanceOf(PgslMatrixType);
     });
 
+    await pContext.step('Matrix42(Matrix42)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslMatrixType.typeName.matrix42}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix42}<${PgslNumericType.typeName.float16}>(
+                    new ${PgslMatrixType.typeName.matrix42}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+                );
+            }
+        `;
+
+        // Process.
+        const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+        // Process. Assume correct parsing.
+        const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+        const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
+        const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[0] as VariableDeclarationStatementAst;
+
+        // Evaluation. Correct type of expression node.
+        const lExpressionNode: NewExpressionAst = lVariableDeclarationNode.data.expression as NewExpressionAst;
+        expect(lExpressionNode).toBeInstanceOf(NewExpressionAst);
+
+        // Evaluation. Correct result type.
+        expect(lExpressionNode.data.resolveType).toBeInstanceOf(PgslMatrixType);
+    });
+
     await pContext.step('Matrix43(Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric)', () => {
         // Setup.
         const lCodeText: string = `
@@ -1079,6 +1345,32 @@ Deno.test('NewExpressionAst - Parsing', async (pContext) => {
         expect(lExpressionNode.data.resolveType).toBeInstanceOf(PgslMatrixType);
     });
 
+    await pContext.step('Matrix43(Matrix43)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslMatrixType.typeName.matrix43}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix43}<${PgslNumericType.typeName.float16}>(
+                    new ${PgslMatrixType.typeName.matrix43}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0)
+                );
+            }
+        `;
+
+        // Process.
+        const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+        // Process. Assume correct parsing.
+        const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+        const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
+        const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[0] as VariableDeclarationStatementAst;
+
+        // Evaluation. Correct type of expression node.
+        const lExpressionNode: NewExpressionAst = lVariableDeclarationNode.data.expression as NewExpressionAst;
+        expect(lExpressionNode).toBeInstanceOf(NewExpressionAst);
+
+        // Evaluation. Correct result type.
+        expect(lExpressionNode.data.resolveType).toBeInstanceOf(PgslMatrixType);
+    });
+
     await pContext.step('Matrix44(Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric)', () => {
         // Setup.
         const lCodeText: string = `
@@ -1115,6 +1407,32 @@ Deno.test('NewExpressionAst - Parsing', async (pContext) => {
                     );
                 }
             `;
+
+        // Process.
+        const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+        // Process. Assume correct parsing.
+        const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+        const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
+        const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[0] as VariableDeclarationStatementAst;
+
+        // Evaluation. Correct type of expression node.
+        const lExpressionNode: NewExpressionAst = lVariableDeclarationNode.data.expression as NewExpressionAst;
+        expect(lExpressionNode).toBeInstanceOf(NewExpressionAst);
+
+        // Evaluation. Correct result type.
+        expect(lExpressionNode.data.resolveType).toBeInstanceOf(PgslMatrixType);
+    });
+
+    await pContext.step('Matrix44(Matrix44)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslMatrixType.typeName.matrix44}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix44}<${PgslNumericType.typeName.float16}>(
+                    new ${PgslMatrixType.typeName.matrix44}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0)
+                );
+            }
+        `;
 
         // Process.
         const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
@@ -1442,6 +1760,30 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         );
     });
 
+    await pContext.step('Vector2(Vector2)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslVectorType.typeName.vector2}<${PgslBooleanType.typeName.boolean}> = new ${PgslVectorType.typeName.vector2}<${PgslBooleanType.typeName.boolean}>(
+                    new ${PgslVectorType.typeName.vector2}(1.0, 2.0)
+                );
+            }
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. No errors.
+        expect(lTranspilationResult.incidents).toHaveLength(0);
+
+        // Evaluation. Correct transpilation output.
+        expect(lTranspilationResult.source).toBe(
+            `fn testFunction(){` +
+            `let testVariable:vec2<bool>=vec2<bool>(vec2(1.0,2.0));` +
+            `}`
+        );
+    });
+
     await pContext.step('Vector3(Numeric, Numeric, Numeric)', () => {
         // Setup.
         const lCodeText: string = `
@@ -1586,6 +1928,30 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         );
     });
 
+    await pContext.step('Vector3(Vector3)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslVectorType.typeName.vector3}<${PgslBooleanType.typeName.boolean}> = new ${PgslVectorType.typeName.vector3}<${PgslBooleanType.typeName.boolean}>(
+                    new ${PgslVectorType.typeName.vector3}(1.0, 2.0, 3.0)
+                );
+            }
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. No errors.
+        expect(lTranspilationResult.incidents).toHaveLength(0);
+
+        // Evaluation. Correct transpilation output.
+        expect(lTranspilationResult.source).toBe(
+            `fn testFunction(){` +
+            `let testVariable:vec3<bool>=vec3<bool>(vec3(1.0,2.0,3.0));` +
+            `}`
+        );
+    });
+
     await pContext.step('Vector4(Numeric, Numeric, Numeric, Numeric)', () => {
         // Setup.
         const lCodeText: string = `
@@ -1612,7 +1978,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
-                let testVariable: ${PgslVectorType.typeName.vector4}<${PgslBooleanType.typeName.boolean}> = new ${PgslVectorType.typeName.vector4}(true, false, true, false);
+                let testVariable: ${PgslVectorType.typeName.vector4}<${PgslBooleanType.typeName.boolean}> = new ${PgslVectorType.typeName.vector4}<${PgslBooleanType.typeName.boolean}>(true, false, true, false);
             }
         `;
 
@@ -1932,6 +2298,30 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         );
     });
 
+    await pContext.step('Vector4(Vector4)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslVectorType.typeName.vector4}<${PgslBooleanType.typeName.boolean}> = new ${PgslVectorType.typeName.vector4}<${PgslBooleanType.typeName.boolean}>(
+                    new ${PgslVectorType.typeName.vector4}(1.0, 2.0, 3.0, 4.0)
+                );
+            }
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. No errors.
+        expect(lTranspilationResult.incidents).toHaveLength(0);
+
+        // Evaluation. Correct transpilation output.
+        expect(lTranspilationResult.source).toBe(
+            `fn testFunction(){` +
+            `let testVariable:vec4<bool>=vec4<bool>(vec4(1.0,2.0,3.0,4.0));` +
+            `}`
+        );
+    });
+
     await pContext.step('Matrix22(Numeric, Numeric, Numeric, Numeric)', () => {
         // Setup.
         const lCodeText: string = `
@@ -1975,6 +2365,30 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
             `let testVariable:mat2x2<f32>=mat2x2(vec2(1.0,2.0),vec2(3.0,4.0));` +
+            `}`
+        );
+    });
+
+    await pContext.step('Matrix22(Matrix22)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslMatrixType.typeName.matrix22}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix22}<${PgslNumericType.typeName.float16}>(
+                    new ${PgslMatrixType.typeName.matrix22}(1.0, 2.0, 3.0, 4.0)
+                );
+            }
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. No errors.
+        expect(lTranspilationResult.incidents).toHaveLength(0);
+
+        // Evaluation. Correct transpilation output.
+        expect(lTranspilationResult.source).toBe(
+            `fn testFunction(){` +
+            `let testVariable:mat2x2<f16>=mat2x2<f16>(mat2x2(1.0,2.0,3.0,4.0));` +
             `}`
         );
     });
@@ -2026,6 +2440,30 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         );
     });
 
+    await pContext.step('Matrix23(Matrix23)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslMatrixType.typeName.matrix23}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix23}<${PgslNumericType.typeName.float16}>(
+                    new ${PgslMatrixType.typeName.matrix23}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
+                );
+            }
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. No errors.
+        expect(lTranspilationResult.incidents).toHaveLength(0);
+
+        // Evaluation. Correct transpilation output.
+        expect(lTranspilationResult.source).toBe(
+            `fn testFunction(){` +
+            `let testVariable:mat2x3<f16>=mat2x3<f16>(mat2x3(1.0,2.0,3.0,4.0,5.0,6.0));` +
+            `}`
+        );
+    });
+
     await pContext.step('Matrix24(Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric)', () => {
         // Setup.
         const lCodeText: string = `
@@ -2069,6 +2507,30 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
             `let testVariable:mat2x4<f32>=mat2x4(vec4(1.0,2.0,3.0,4.0),vec4(5.0,6.0,7.0,8.0));` +
+            `}`
+        );
+    });
+
+    await pContext.step('Matrix24(Matrix24)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslMatrixType.typeName.matrix24}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix24}<${PgslNumericType.typeName.float16}>(
+                    new ${PgslMatrixType.typeName.matrix24}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+                );
+            }
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. No errors.
+        expect(lTranspilationResult.incidents).toHaveLength(0);
+
+        // Evaluation. Correct transpilation output.
+        expect(lTranspilationResult.source).toBe(
+            `fn testFunction(){` +
+            `let testVariable:mat2x4<f16>=mat2x4<f16>(mat2x4(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0));` +
             `}`
         );
     });
@@ -2121,6 +2583,30 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         );
     });
 
+    await pContext.step('Matrix32(Matrix32)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslMatrixType.typeName.matrix32}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix32}<${PgslNumericType.typeName.float16}>(
+                    new ${PgslMatrixType.typeName.matrix32}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
+                );
+            }
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. No errors.
+        expect(lTranspilationResult.incidents).toHaveLength(0);
+
+        // Evaluation. Correct transpilation output.
+        expect(lTranspilationResult.source).toBe(
+            `fn testFunction(){` +
+            `let testVariable:mat3x2<f16>=mat3x2<f16>(mat3x2(1.0,2.0,3.0,4.0,5.0,6.0));` +
+            `}`
+        );
+    });
+
     await pContext.step('Matrix33(Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric)', () => {
         // Setup.
         const lCodeText: string = `
@@ -2169,6 +2655,30 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         );
     });
 
+    await pContext.step('Matrix33(Matrix33)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float16}>(
+                    new ${PgslMatrixType.typeName.matrix33}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
+                );
+            }
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. No errors.
+        expect(lTranspilationResult.incidents).toHaveLength(0);
+
+        // Evaluation. Correct transpilation output.
+        expect(lTranspilationResult.source).toBe(
+            `fn testFunction(){` +
+            `let testVariable:mat3x3<f16>=mat3x3<f16>(mat3x3(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0));` +
+            `}`
+        );
+    });
+
     await pContext.step('Matrix34(Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric)', () => {
         // Setup.
         const lCodeText: string = `
@@ -2213,6 +2723,30 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
             `let testVariable:mat3x4<f32>=mat3x4(vec4(1.0,2.0,3.0,4.0),vec4(5.0,6.0,7.0,8.0),vec4(9.0,10.0,11.0,12.0));` +
+            `}`
+        );
+    });
+
+    await pContext.step('Matrix34(Matrix34)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslMatrixType.typeName.matrix34}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix34}<${PgslNumericType.typeName.float16}>(
+                    new ${PgslMatrixType.typeName.matrix34}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0)
+                );
+            }
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. No errors.
+        expect(lTranspilationResult.incidents).toHaveLength(0);
+
+        // Evaluation. Correct transpilation output.
+        expect(lTranspilationResult.source).toBe(
+            `fn testFunction(){` +
+            `let testVariable:mat3x4<f16>=mat3x4<f16>(mat3x4(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0,12.0));` +
             `}`
         );
     });
@@ -2266,6 +2800,30 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         );
     });
 
+    await pContext.step('Matrix42(Matrix42)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslMatrixType.typeName.matrix42}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix42}<${PgslNumericType.typeName.float16}>(
+                    new ${PgslMatrixType.typeName.matrix42}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0)
+                );
+            }
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. No errors.
+        expect(lTranspilationResult.incidents).toHaveLength(0);
+
+        // Evaluation. Correct transpilation output.
+        expect(lTranspilationResult.source).toBe(
+            `fn testFunction(){` +
+            `let testVariable:mat4x2<f16>=mat4x2<f16>(mat4x2(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0));` +
+            `}`
+        );
+    });
+
     await pContext.step('Matrix43(Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric)', () => {
         // Setup.
         const lCodeText: string = `
@@ -2315,6 +2873,30 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         );
     });
 
+    await pContext.step('Matrix43(Matrix43)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslMatrixType.typeName.matrix43}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix43}<${PgslNumericType.typeName.float16}>(
+                    new ${PgslMatrixType.typeName.matrix43}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0)
+                );
+            }
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. No errors.
+        expect(lTranspilationResult.incidents).toHaveLength(0);
+
+        // Evaluation. Correct transpilation output.
+        expect(lTranspilationResult.source).toBe(
+            `fn testFunction(){` +
+            `let testVariable:mat4x3<f16>=mat4x3<f16>(mat4x3(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0,12.0));` +
+            `}`
+        );
+    });
+
     await pContext.step('Matrix44(Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric, Numeric)', () => {
         // Setup.
         const lCodeText: string = `
@@ -2360,6 +2942,30 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
             `let testVariable:mat4x4<f32>=mat4x4(vec4(1.0,2.0,3.0,4.0),vec4(5.0,6.0,7.0,8.0),vec4(9.0,10.0,11.0,12.0),vec4(13.0,14.0,15.0,16.0));` +
+            `}`
+        );
+    });
+
+    await pContext.step('Matrix44(Matrix44)', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testVariable: ${PgslMatrixType.typeName.matrix44}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix44}<${PgslNumericType.typeName.float16}>(
+                    new ${PgslMatrixType.typeName.matrix44}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0)
+                );
+            }
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. No errors.
+        expect(lTranspilationResult.incidents).toHaveLength(0);
+
+        // Evaluation. Correct transpilation output.
+        expect(lTranspilationResult.source).toBe(
+            `fn testFunction(){` +
+            `let testVariable:mat4x4<f16>=mat4x4<f16>(mat4x4(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0,12.0,13.0,14.0,15.0,16.0));` +
             `}`
         );
     });

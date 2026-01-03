@@ -10,7 +10,7 @@ import { PgslModfResult } from "../struct/pgsl-modf-result.ts";
 
 export class PgslNumericBuildInFunction {
     /**
-     * All possible attribute names.
+     * All possible function names.
      */
     // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     public static get names() {

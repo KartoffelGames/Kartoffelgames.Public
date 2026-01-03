@@ -119,3 +119,9 @@ export class PgslSamplerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
         };
     }
 }
+
+/**
+ * Type representing all available sampler type names.
+ * Derived from the static typeName getter for type safety.
+ */
+export type PgslSamplerTypeName = (typeof PgslSamplerType.typeName)[keyof typeof PgslSamplerType.typeName];

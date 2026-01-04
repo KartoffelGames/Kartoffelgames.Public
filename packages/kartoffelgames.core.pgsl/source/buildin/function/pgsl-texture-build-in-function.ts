@@ -249,6 +249,56 @@ export class PgslTextureBuildInFunction {
             }, PgslTextureBuildInFunction.vectorType(4, PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.float32))),
         ]));
 
+        // textureGatherCompare
+        lFunctions.push(PgslTextureBuildInFunction.create(PgslTextureBuildInFunction.names.textureGather, true, false, [
+            // texture_depth_2d
+            PgslTextureBuildInFunction.header({ 'TTexture': [`${PgslTextureType.typeName.textureDepth2d}`] }, {
+                'texture': 'TTexture', 'sampler': PgslTextureBuildInFunction.sampler(PgslSamplerType.typeName.samplerComparison),
+                'coords': PgslTextureBuildInFunction.vectorType(2, PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.float32)),
+                'depthReference': PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.float32)
+            }, PgslTextureBuildInFunction.vectorType(4, PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.float32))),
+
+            // texture_depth_2d with offset
+            PgslTextureBuildInFunction.header({ 'TTexture': [`${PgslTextureType.typeName.textureDepth2d}`] }, {
+                'texture': 'TTexture', 'sampler': PgslTextureBuildInFunction.sampler(PgslSamplerType.typeName.samplerComparison),
+                'coords': PgslTextureBuildInFunction.vectorType(2, PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.float32)),
+                'depthReference': PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.float32),
+                'offset': PgslTextureBuildInFunction.vectorType(2, PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.signedInteger))
+            }, PgslTextureBuildInFunction.vectorType(4, PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.float32))),
+
+            // texture_depth_2d_array
+            PgslTextureBuildInFunction.header({ 'TIndex': ['numeric-integer'], 'TTexture': [`${PgslTextureType.typeName.textureDepth2dArray}`] }, {
+                'texture': 'TTexture', 'sampler': PgslTextureBuildInFunction.sampler(PgslSamplerType.typeName.samplerComparison),
+                'coords': PgslTextureBuildInFunction.vectorType(2, PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.float32)),
+                'arrayIndex': 'TIndex',
+                'depthReference': PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.float32)
+            }, PgslTextureBuildInFunction.vectorType(4, PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.float32))),
+
+            // texture_depth_2d_array with offset
+            PgslTextureBuildInFunction.header({ 'TIndex': ['numeric-integer'], 'TTexture': [`${PgslTextureType.typeName.textureDepth2dArray}`] }, {
+                'texture': 'TTexture', 'sampler': PgslTextureBuildInFunction.sampler(PgslSamplerType.typeName.samplerComparison),
+                'coords': PgslTextureBuildInFunction.vectorType(2, PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.float32)),
+                'arrayIndex': 'TIndex',
+                'depthReference': PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.float32),
+                'offset': PgslTextureBuildInFunction.vectorType(2, PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.signedInteger))
+            }, PgslTextureBuildInFunction.vectorType(4, PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.float32))),
+
+            // texture_depth_cube
+            PgslTextureBuildInFunction.header({ 'TTexture': [`${PgslTextureType.typeName.textureDepthCube}`] }, {
+                'texture': 'TTexture', 'sampler': PgslTextureBuildInFunction.sampler(PgslSamplerType.typeName.samplerComparison),
+                'coords': PgslTextureBuildInFunction.vectorType(3, PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.float32)),
+                'depthReference': PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.float32)
+            }, PgslTextureBuildInFunction.vectorType(4, PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.float32))),
+
+            // texture_depth_cube_array
+            PgslTextureBuildInFunction.header({ 'TIndex': ['numeric-integer'], 'TTexture': [`${PgslTextureType.typeName.textureDepthCubeArray}`] }, {
+                'texture': 'TTexture', 'sampler': PgslTextureBuildInFunction.sampler(PgslSamplerType.typeName.samplerComparison),
+                'coords': PgslTextureBuildInFunction.vectorType(3, PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.float32)),
+                'arrayIndex': 'TIndex',
+                'depthReference': PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.float32)
+            }, PgslTextureBuildInFunction.vectorType(4, PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.float32))),
+        ]));
+
         return lFunctions;
     }
 

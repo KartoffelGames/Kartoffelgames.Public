@@ -139,7 +139,7 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<IType> {
         return 'bool';
     }
 
-    
+
     /**
      * Transpiles built-in type to WGSL.
      * 
@@ -324,9 +324,20 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<IType> {
                     case PgslTexelFormatEnum.VALUES.Rgba8snorm: return 'rgba8snorm';
                     case PgslTexelFormatEnum.VALUES.Rgba8uint: return 'rgba8uint';
                     case PgslTexelFormatEnum.VALUES.Rgba8sint: return 'rgba8sint';
+                    case PgslTexelFormatEnum.VALUES.Rgba16unorm: return 'rgba16unorm';
+                    case PgslTexelFormatEnum.VALUES.Rgba16snorm: return 'rgba16snorm';
                     case PgslTexelFormatEnum.VALUES.Rgba16uint: return 'rgba16uint';
                     case PgslTexelFormatEnum.VALUES.Rgba16sint: return 'rgba16sint';
                     case PgslTexelFormatEnum.VALUES.Rgba16float: return 'rgba16float';
+                    case PgslTexelFormatEnum.VALUES.Rg8unorm: return 'rg8unorm';
+                    case PgslTexelFormatEnum.VALUES.Rg8snorm: return 'rg8snorm';
+                    case PgslTexelFormatEnum.VALUES.Rg8uint: return 'rg8uint';
+                    case PgslTexelFormatEnum.VALUES.Rg8sint: return 'rg8sint';
+                    case PgslTexelFormatEnum.VALUES.Rg16unorm: return 'rg16unorm';
+                    case PgslTexelFormatEnum.VALUES.Rg16snorm: return 'rg16snorm';
+                    case PgslTexelFormatEnum.VALUES.Rg16uint: return 'rg16uint';
+                    case PgslTexelFormatEnum.VALUES.Rg16sint: return 'rg16sint';
+                    case PgslTexelFormatEnum.VALUES.Rg16float: return 'rg16float';
                     case PgslTexelFormatEnum.VALUES.R32uint: return 'r32uint';
                     case PgslTexelFormatEnum.VALUES.R32sint: return 'r32sint';
                     case PgslTexelFormatEnum.VALUES.R32float: return 'r32float';
@@ -337,6 +348,18 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<IType> {
                     case PgslTexelFormatEnum.VALUES.Rgba32sint: return 'rgba32sint';
                     case PgslTexelFormatEnum.VALUES.Rgba32float: return 'rgba32float';
                     case PgslTexelFormatEnum.VALUES.Bgra8unorm: return 'bgra8unorm';
+                    case PgslTexelFormatEnum.VALUES.R8unorm: return 'r8unorm';
+                    case PgslTexelFormatEnum.VALUES.R8snorm: return 'r8snorm';
+                    case PgslTexelFormatEnum.VALUES.R8uint: return 'r8uint';
+                    case PgslTexelFormatEnum.VALUES.R8sint: return 'r8sint';
+                    case PgslTexelFormatEnum.VALUES.R16unorm: return 'r16unorm';
+                    case PgslTexelFormatEnum.VALUES.R16snorm: return 'r16snorm';
+                    case PgslTexelFormatEnum.VALUES.R16uint: return 'r16uint';
+                    case PgslTexelFormatEnum.VALUES.R16sint: return 'r16sint';
+                    case PgslTexelFormatEnum.VALUES.R16float: return 'r16float';
+                    case PgslTexelFormatEnum.VALUES.Rgb10a2unorm: return 'rgb10a2unorm';
+                    case PgslTexelFormatEnum.VALUES.Rgb10a2uint: return 'rgb10a2uint';
+                    case PgslTexelFormatEnum.VALUES.Rg11b10ufloat: return 'rg11b10ufloat';
                 }
             })();
 

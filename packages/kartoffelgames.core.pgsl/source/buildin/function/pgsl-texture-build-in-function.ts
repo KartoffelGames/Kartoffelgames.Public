@@ -74,7 +74,7 @@ export class PgslTextureBuildInFunction {
             // -- Levels
 
             // 1D Textures.
-            PgslTextureBuildInFunction.header({ 'TTexture': [PgslTextureType.typeName.texture1d], 'TLevel': ['numeric-integer'] }, { 'texture': 'TTexture' }, PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger)),
+            PgslTextureBuildInFunction.header({ 'TTexture': [PgslTextureType.typeName.texture1d], 'TLevel': ['numeric-integer'] }, { 'texture': 'TTexture', 'level': 'TLevel' }, PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger)),
 
             // 2D Textures.
             PgslTextureBuildInFunction.header({
@@ -88,10 +88,10 @@ export class PgslTextureBuildInFunction {
                     PgslTextureType.typeName.textureDepthCube,
                     PgslTextureType.typeName.textureDepthCubeArray
                 ], 'TLevel': ['numeric-integer']
-            }, { 'texture': 'TTexture' }, PgslTextureBuildInFunction.vectorType(2, PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger))),
+            }, { 'texture': 'TTexture', 'level': 'TLevel' }, PgslTextureBuildInFunction.vectorType(2, PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger))),
 
             // 3D Textures.
-            PgslTextureBuildInFunction.header({ 'TTexture': [PgslTextureType.typeName.texture3d], 'TLevel': ['numeric-integer'] }, { 'texture': 'TTexture' }, PgslTextureBuildInFunction.vectorType(3, PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger))),
+            PgslTextureBuildInFunction.header({ 'TTexture': [PgslTextureType.typeName.texture3d], 'TLevel': ['numeric-integer'] }, { 'texture': 'TTexture', 'level': 'TLevel' }, PgslTextureBuildInFunction.vectorType(3, PgslTextureBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger))),
         ]));
 
         // textureGather

@@ -1,5 +1,3 @@
-import { PgslBooleanType } from "../../abstract_syntax_tree/type/pgsl-boolean-type.ts";
-import { PgslMatrixType } from "../../abstract_syntax_tree/type/pgsl-matrix-type.ts";
 import { PgslNumericType, PgslNumericTypeName } from "../../abstract_syntax_tree/type/pgsl-numeric-type.ts";
 import { PgslSamplerType, PgslSamplerTypeName } from "../../abstract_syntax_tree/type/pgsl-sampler-type.ts";
 import { PgslTextureType } from "../../abstract_syntax_tree/type/pgsl-texture-type.ts";

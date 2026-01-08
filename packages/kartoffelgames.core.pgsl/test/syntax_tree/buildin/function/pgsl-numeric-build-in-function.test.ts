@@ -6,7 +6,6 @@ import { PgslParserResult } from "../../../../source/parser_result/pgsl-parser-r
 import { PgslFrexpResult } from "../../../../source/buildin/struct/pgsl-frexp-result.ts";
 import { PgslModfResult } from "../../../../source/buildin/struct/pgsl-modf-result.ts";
 
-
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();
 

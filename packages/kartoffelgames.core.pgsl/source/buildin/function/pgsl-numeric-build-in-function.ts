@@ -1,12 +1,12 @@
-import { PgslBooleanType } from "../../abstract_syntax_tree/type/pgsl-boolean-type.ts";
-import { PgslMatrixType } from "../../abstract_syntax_tree/type/pgsl-matrix-type.ts";
-import { PgslNumericType, PgslNumericTypeName } from "../../abstract_syntax_tree/type/pgsl-numeric-type.ts";
-import { PgslVectorType } from "../../abstract_syntax_tree/type/pgsl-vector-type.ts";
-import { FunctionDeclarationCst, FunctionDeclarationGenericCst, FunctionDeclarationHeaderCst, FunctionDeclarationParameterCst } from "../../concrete_syntax_tree/declaration.type.ts";
-import { AttributeListCst, TypeDeclarationCst } from "../../concrete_syntax_tree/general.type.ts";
-import { BlockStatementCst } from "../../concrete_syntax_tree/statement.type.ts";
-import { PgslFrexpResult } from "../struct/pgsl-frexp-result.ts";
-import { PgslModfResult } from "../struct/pgsl-modf-result.ts";
+import { PgslBooleanType } from '../../abstract_syntax_tree/type/pgsl-boolean-type.ts';
+import { PgslMatrixType } from '../../abstract_syntax_tree/type/pgsl-matrix-type.ts';
+import { PgslNumericType, type PgslNumericTypeName } from '../../abstract_syntax_tree/type/pgsl-numeric-type.ts';
+import { PgslVectorType } from '../../abstract_syntax_tree/type/pgsl-vector-type.ts';
+import type { FunctionDeclarationCst, FunctionDeclarationGenericCst, FunctionDeclarationHeaderCst, FunctionDeclarationParameterCst } from '../../concrete_syntax_tree/declaration.type.ts';
+import type { AttributeListCst, TypeDeclarationCst } from '../../concrete_syntax_tree/general.type.ts';
+import type { BlockStatementCst } from '../../concrete_syntax_tree/statement.type.ts';
+import { PgslFrexpResult } from '../struct/pgsl-frexp-result.ts';
+import { PgslModfResult } from '../struct/pgsl-modf-result.ts';
 
 export class PgslNumericBuildInFunction {
     /**
@@ -144,6 +144,62 @@ export class PgslNumericBuildInFunction {
             PgslNumericBuildInFunction.header({ 'TResult': [`Vector4<${PgslNumericType.typeName.float32}>`, `Vector2<${PgslNumericType.typeName.signedInteger}>`, `Vector2<${PgslNumericType.typeName.unsignedInteger}>`], }, { 'value': PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.float32)) }, 'TResult'),
             PgslNumericBuildInFunction.header({ 'TResult': [`Vector4<${PgslNumericType.typeName.float32}>`, `Vector2<${PgslNumericType.typeName.signedInteger}>`, `Vector2<${PgslNumericType.typeName.unsignedInteger}>`], }, { 'value': PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)) }, 'TResult'),
             PgslNumericBuildInFunction.header({ 'TResult': [`Vector4<${PgslNumericType.typeName.float32}>`, `Vector2<${PgslNumericType.typeName.signedInteger}>`, `Vector2<${PgslNumericType.typeName.unsignedInteger}>`], }, { 'value': PgslNumericBuildInFunction.vectorType(4, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger)) }, 'TResult'),
+        ]));
+
+        return lFunctions;
+    }
+
+    /**
+         * Create derivative functions.
+         * 
+         * @returns Array of cst function declarations for derivative functions. 
+         */
+    public static derivative(): Array<FunctionDeclarationCst> {
+        const lFunctions: Array<FunctionDeclarationCst> = new Array<FunctionDeclarationCst>();
+
+        // dpdx
+        lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdx, true, false, [
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
+        ]));
+
+        // dpdxCoarse
+        lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdxCoarse, true, false, [
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
+        ]));
+
+        // dpdxFine
+        lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdxFine, true, false, [
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
+        ]));
+
+        // dpdy
+        lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdy, true, false, [
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
+        ]));
+
+        // dpdyCoarse
+        lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdyCoarse, true, false, [
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
+        ]));
+
+        // dpdyFine
+        lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdyFine, true, false, [
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
+        ]));
+
+        // fwidth
+        lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.fwidth, true, false, [
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
+        ]));
+
+        // fwidthCoarse
+        lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.fwidthCoarse, true, false, [
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
+        ]));
+
+        // fwidthFine
+        lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.fwidthFine, true, false, [
+            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
         ]));
 
         return lFunctions;
@@ -679,144 +735,17 @@ export class PgslNumericBuildInFunction {
     }
 
     /**
-     * Create derivative functions.
-     * 
-     * @returns Array of cst function declarations for derivative functions. 
-     */
-    public static derivative(): Array<FunctionDeclarationCst> {
-        const lFunctions: Array<FunctionDeclarationCst> = new Array<FunctionDeclarationCst>();
-
-        // dpdx
-        lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdx, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
-        ]));
-
-        // dpdxCoarse
-        lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdxCoarse, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
-        ]));
-
-        // dpdxFine
-        lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdxFine, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
-        ]));
-
-        // dpdy
-        lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdy, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
-        ]));
-
-        // dpdyCoarse
-        lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdyCoarse, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
-        ]));
-
-        // dpdyFine
-        lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.dpdyFine, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
-        ]));
-
-        // fwidth
-        lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.fwidth, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
-        ]));
-
-        // fwidthCoarse
-        lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.fwidthCoarse, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
-        ]));
-
-        // fwidthFine
-        lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.fwidthFine, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': [PgslNumericType.typeName.float32, `Vector<${PgslNumericType.typeName.float32}>`], }, { 'e': 'TResult' }, 'TResult'),
-        ]));
-
-        return lFunctions;
-    }
-
-    /**
      * Create a cst type declaration of a boolean type.
      * 
      * @returns cst type declaration of a boolean type.
      */
     private static booleanType(): TypeDeclarationCst {
         return {
-            type: "TypeDeclaration",
+            type: 'TypeDeclaration',
             range: [0, 0, 0, 0],
             isPointer: false,
             typeName: PgslBooleanType.typeName.boolean,
             template: []
-        };
-    }
-
-    /**
-     * Create a cst type declaration of a numeric type.
-     * 
-     * @param pTypeName - Numeric type name.
-     * 
-     * @returns cst type declaration of the numeric type. 
-     */
-    private static numericType(pTypeName: PgslNumericTypeName): TypeDeclarationCst {
-        return {
-            type: "TypeDeclaration",
-            range: [0, 0, 0, 0],
-            isPointer: false,
-            typeName: pTypeName,
-            template: []
-        };
-    }
-
-    /**
-     * Create a cst type declaration of a struct type.
-     * 
-     * @param pName - Struct name.
-     * 
-     * @returns cst type declaration of struct type.
-     */
-    private static structType(pName: string): TypeDeclarationCst {
-        return {
-            type: "TypeDeclaration",
-            range: [0, 0, 0, 0],
-            isPointer: false,
-            typeName: pName,
-            template: []
-        };
-    }
-
-    /**
-     * Create a cst type declaration of a vector type.
-     * 
-     * @param pDimension - Vector dimension.
-     * @param pInnerType - Inner type of vector.
-     * 
-     * @returns cst type declaration of vector type.
-     */
-    private static vectorType(pDimension: number, pInnerType: TypeDeclarationCst): TypeDeclarationCst {
-        return {
-            type: "TypeDeclaration",
-            range: [0, 0, 0, 0],
-            isPointer: false,
-            typeName: PgslVectorType.typeNameFromDimension(pDimension),
-            template: [pInnerType]
-        };
-    }
-
-    /**
-     * Create a cst type declaration of a matrix type.
-     * 
-     * @param pRows - Number of rows.
-     * @param pColumns - Number of columns.
-     * @param pInnerType - Inner type of matrix.
-     * 
-     * @returns cst type declaration of matrix type.
-     */
-    private static matrixType(pRows: number, pColumns: number, pInnerType: TypeDeclarationCst): TypeDeclarationCst {
-        return {
-            type: "TypeDeclaration",
-            range: [0, 0, 0, 0],
-            isPointer: false,
-            typeName: PgslMatrixType.typenameFromDimensions(pRows, pColumns),
-            template: [pInnerType]
         };
     }
 
@@ -831,7 +760,7 @@ export class PgslNumericBuildInFunction {
      */
     private static create(pName: string, pImplicitGenerics: boolean, pConstant: boolean, pDeclarations: Array<FunctionDeclarationHeaderCst>): FunctionDeclarationCst {
         return {
-            type: "FunctionDeclaration",
+            type: 'FunctionDeclaration',
             isConstant: pConstant,
             buildIn: true,
             implicitGenerics: pImplicitGenerics,
@@ -852,13 +781,13 @@ export class PgslNumericBuildInFunction {
      */
     private static header(pGenerics: PgslNumericBuildInFunctionGenericList, pParameter: PgslNumericBuildInFunctionParameterList, pReturnType: TypeDeclarationCst | string): FunctionDeclarationHeaderCst {
         const lEmptyBlock: BlockStatementCst = {
-            type: "BlockStatement",
+            type: 'BlockStatement',
             statements: [],
             range: [0, 0, 0, 0],
         };
 
         const lEmptyAttribteList: AttributeListCst = {
-            type: "AttributeList",
+            type: 'AttributeList',
             attributes: [],
             range: [0, 0, 0, 0],
         };
@@ -867,7 +796,7 @@ export class PgslNumericBuildInFunction {
         const lParameters: Array<FunctionDeclarationParameterCst> = new Array<FunctionDeclarationParameterCst>();
         for (const lParameterName in pParameter) {
             lParameters.push({
-                type: "FunctionDeclarationParameter",
+                type: 'FunctionDeclarationParameter',
                 buildIn: true,
                 range: [0, 0, 0, 0],
                 name: lParameterName,
@@ -879,7 +808,7 @@ export class PgslNumericBuildInFunction {
         const lGenerics: Array<FunctionDeclarationGenericCst> = new Array<FunctionDeclarationGenericCst>();
         for (const lGenericName in pGenerics) {
             lGenerics.push({
-                type: "FunctionDeclarationGeneric",
+                type: 'FunctionDeclarationGeneric',
                 buildIn: true,
                 range: [0, 0, 0, 0],
                 name: lGenericName,
@@ -888,7 +817,7 @@ export class PgslNumericBuildInFunction {
         }
 
         return {
-            type: "FunctionDeclarationHeader",
+            type: 'FunctionDeclarationHeader',
             buildIn: true,
             range: [0, 0, 0, 0],
             block: lEmptyBlock,
@@ -896,6 +825,77 @@ export class PgslNumericBuildInFunction {
             parameters: lParameters,
             generics: lGenerics,
             returnType: pReturnType,
+        };
+    }
+
+    /**
+     * Create a cst type declaration of a matrix type.
+     * 
+     * @param pRows - Number of rows.
+     * @param pColumns - Number of columns.
+     * @param pInnerType - Inner type of matrix.
+     * 
+     * @returns cst type declaration of matrix type.
+     */
+    private static matrixType(pRows: number, pColumns: number, pInnerType: TypeDeclarationCst): TypeDeclarationCst {
+        return {
+            type: 'TypeDeclaration',
+            range: [0, 0, 0, 0],
+            isPointer: false,
+            typeName: PgslMatrixType.typenameFromDimensions(pRows, pColumns),
+            template: [pInnerType]
+        };
+    }
+
+    /**
+     * Create a cst type declaration of a numeric type.
+     * 
+     * @param pTypeName - Numeric type name.
+     * 
+     * @returns cst type declaration of the numeric type. 
+     */
+    private static numericType(pTypeName: PgslNumericTypeName): TypeDeclarationCst {
+        return {
+            type: 'TypeDeclaration',
+            range: [0, 0, 0, 0],
+            isPointer: false,
+            typeName: pTypeName,
+            template: []
+        };
+    }
+
+    /**
+     * Create a cst type declaration of a struct type.
+     * 
+     * @param pName - Struct name.
+     * 
+     * @returns cst type declaration of struct type.
+     */
+    private static structType(pName: string): TypeDeclarationCst {
+        return {
+            type: 'TypeDeclaration',
+            range: [0, 0, 0, 0],
+            isPointer: false,
+            typeName: pName,
+            template: []
+        };
+    }
+
+    /**
+     * Create a cst type declaration of a vector type.
+     * 
+     * @param pDimension - Vector dimension.
+     * @param pInnerType - Inner type of vector.
+     * 
+     * @returns cst type declaration of vector type.
+     */
+    private static vectorType(pDimension: number, pInnerType: TypeDeclarationCst): TypeDeclarationCst {
+        return {
+            type: 'TypeDeclaration',
+            range: [0, 0, 0, 0],
+            isPointer: false,
+            typeName: PgslVectorType.typeNameFromDimension(pDimension),
+            template: [pInnerType]
         };
     }
 }

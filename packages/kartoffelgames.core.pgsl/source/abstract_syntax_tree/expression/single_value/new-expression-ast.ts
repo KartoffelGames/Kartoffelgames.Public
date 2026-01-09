@@ -1,19 +1,19 @@
 import type { LiteralValueExpressionCst, NewExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
 import { PgslValueAddressSpace } from '../../../enum/pgsl-value-address-space.enum.ts';
 import { PgslValueFixedState } from '../../../enum/pgsl-value-fixed-state.ts';
+import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
+import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
+import { TypeDeclarationAst } from '../../general/type-declaration-ast.ts';
+import type { IType } from '../../type/i-type.interface.ts';
 import { PgslArrayType } from '../../type/pgsl-array-type.ts';
 import { PgslBooleanType } from '../../type/pgsl-boolean-type.ts';
 import { PgslInvalidType } from '../../type/pgsl-invalid-type.ts';
 import { PgslMatrixType } from '../../type/pgsl-matrix-type.ts';
 import { PgslNumericType } from '../../type/pgsl-numeric-type.ts';
-import type { IType, ITypeConstructor } from '../../type/i-type.interface.ts';
 import { PgslVectorType } from '../../type/pgsl-vector-type.ts';
-import type { AbstractSyntaxTreeContext } from '../../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../expression-ast-builder.ts';
 import type { ExpressionAstData, IExpressionAst } from '../i-expression-ast.interface.ts';
 import { LiteralValueExpressionAst } from './literal-value-expression-ast.ts';
-import { TypeDeclarationAst } from "../../general/type-declaration-ast.ts";
 
 /**
  * PGSL syntax tree of a new call expression with optional template list.

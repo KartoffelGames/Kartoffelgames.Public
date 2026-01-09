@@ -1,8 +1,8 @@
-import { TypeCst } from "../../concrete_syntax_tree/general.type.ts";
+import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
 import { PgslValueAddressSpace } from '../../enum/pgsl-value-address-space.enum.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
-import { IType, type TypeProperties } from './i-type.interface.ts';
+import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
+import type { IType, TypeProperties } from './i-type.interface.ts';
 
 /**
  * Pointer type definition.
@@ -124,8 +124,8 @@ export class PgslPointerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
 
         // Build meta types.
         const lMetaTypeList: Array<string> = new Array<string>();
-        for (const metaType of this.mReferencedType.data.metaTypes) {
-            lMetaTypeList.push(`Pointer<${metaType}>`);
+        for (const lMetaType of this.mReferencedType.data.metaTypes) {
+            lMetaTypeList.push(`Pointer<${lMetaType}>`);
         }
 
         // Add base pointer meta type.

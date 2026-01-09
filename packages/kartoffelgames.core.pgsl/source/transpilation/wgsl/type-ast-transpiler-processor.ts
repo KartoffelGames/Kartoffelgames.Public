@@ -1,5 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import type { IAnyParameterConstructor } from '../../../../kartoffelgames.core/source/interface/i-constructor.ts';
+import type { IType } from '../../abstract_syntax_tree/type/i-type.interface.ts';
 import { PgslArrayType } from '../../abstract_syntax_tree/type/pgsl-array-type.ts';
 import { PgslBooleanType } from '../../abstract_syntax_tree/type/pgsl-boolean-type.ts';
 import { PgslBuildInType } from '../../abstract_syntax_tree/type/pgsl-build-in-type.ts';
@@ -11,7 +12,6 @@ import { PgslSamplerType } from '../../abstract_syntax_tree/type/pgsl-sampler-ty
 import { PgslStringType } from '../../abstract_syntax_tree/type/pgsl-string-type.ts';
 import { PgslStructType } from '../../abstract_syntax_tree/type/pgsl-struct-type.ts';
 import { PgslTextureType, type PgslTextureTypeName } from '../../abstract_syntax_tree/type/pgsl-texture-type.ts';
-import type { IType } from '../../abstract_syntax_tree/type/i-type.interface.ts';
 import { PgslVectorType } from '../../abstract_syntax_tree/type/pgsl-vector-type.ts';
 import { PgslVoidType } from '../../abstract_syntax_tree/type/pgsl-void-type.ts';
 import { PgslAccessModeEnum } from '../../buildin/enum/pgsl-access-mode-enum.ts';
@@ -26,7 +26,7 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<IType> {
     /**
      * Map of PGSL type constructors to their WGSL transpilation functions.
      */
-    private readonly mTypeTranspilers: Map<IAnyParameterConstructor<IType>, ITypeTranspilerFunction<any>>;
+    private readonly mTypeTranspilers: Map<IAnyParameterConstructor<IType>, TypeAstTranspilerProcessorFunction<any>>;
 
     /**
      * Gets the target type that this processor handles.
@@ -53,7 +53,7 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<IType> {
      * Creates a new type definition transpiler processor.
      */
     public constructor() {
-        this.mTypeTranspilers = new Map<IAnyParameterConstructor<IType>, ITypeTranspilerFunction<IType>>();
+        this.mTypeTranspilers = new Map<IAnyParameterConstructor<IType>, TypeAstTranspilerProcessorFunction<IType>>();
 
         // Register all type transpilers.
         this.mTypeTranspilers.set(PgslBooleanType, this.transpileBooleanType);
@@ -410,4 +410,4 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<IType> {
  * 
  * @returns The transpiled WGSL type string.
  */
-type ITypeTranspilerFunction<TType extends IType> = (pType: TType, pTranspile: PgslTranspilerProcessorTranspile) => string;
+type TypeAstTranspilerProcessorFunction<TType extends IType> = (pType: TType, pTranspile: PgslTranspilerProcessorTranspile) => string;

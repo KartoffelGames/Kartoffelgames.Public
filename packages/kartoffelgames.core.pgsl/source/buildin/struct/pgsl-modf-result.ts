@@ -1,7 +1,7 @@
-import { PgslNumericType, PgslNumericTypeName } from "../../abstract_syntax_tree/type/pgsl-numeric-type.ts";
-import { PgslVectorType } from "../../abstract_syntax_tree/type/pgsl-vector-type.ts";
-import { StructDeclarationCst, StructPropertyDeclarationCst } from "../../concrete_syntax_tree/declaration.type.ts";
-import { AttributeListCst, TypeDeclarationCst } from "../../concrete_syntax_tree/general.type.ts";
+import { PgslNumericType, type PgslNumericTypeName } from '../../abstract_syntax_tree/type/pgsl-numeric-type.ts';
+import { PgslVectorType } from '../../abstract_syntax_tree/type/pgsl-vector-type.ts';
+import type { StructDeclarationCst, StructPropertyDeclarationCst } from '../../concrete_syntax_tree/declaration.type.ts';
+import type { AttributeListCst, TypeDeclarationCst } from '../../concrete_syntax_tree/general.type.ts';
 
 export class PgslModfResult {
     /**
@@ -63,6 +63,19 @@ export class PgslModfResult {
     }
 
     /**
+     * Create an empty attribute list.
+     * 
+     * @returns Empty attribute list cst. 
+     */
+    private static emptyAttributeList(): AttributeListCst {
+        return {
+            type: 'AttributeList',
+            attributes: [],
+            range: [0, 0, 0, 0],
+        };
+    }
+
+    /**
      * Create a modf result struct cst.
      * 
      * @param pType - Result types of modf struct properties.
@@ -99,15 +112,19 @@ export class PgslModfResult {
     }
 
     /**
-     * Create an empty attribute list.
+     * Create a cst type declaration of a numeric type.
      * 
-     * @returns Empty attribute list cst. 
+     * @param pTypeName - Numeric type name.
+     * 
+     * @returns cst type declaration of the numeric type. 
      */
-    private static emptyAttributeList(): AttributeListCst {
+    private static numericType(pTypeName: PgslNumericTypeName): TypeDeclarationCst {
         return {
-            type: "AttributeList",
-            attributes: [],
+            type: 'TypeDeclaration',
             range: [0, 0, 0, 0],
+            isPointer: false,
+            typeName: pTypeName,
+            template: []
         };
     }
 
@@ -121,28 +138,11 @@ export class PgslModfResult {
      */
     private static vectorType(pDimension: number, pInnerType: TypeDeclarationCst): TypeDeclarationCst {
         return {
-            type: "TypeDeclaration",
+            type: 'TypeDeclaration',
             range: [0, 0, 0, 0],
             isPointer: false,
             typeName: PgslVectorType.typeNameFromDimension(pDimension),
             template: [pInnerType]
-        };
-    }
-
-    /**
-     * Create a cst type declaration of a numeric type.
-     * 
-     * @param pTypeName - Numeric type name.
-     * 
-     * @returns cst type declaration of the numeric type. 
-     */
-    private static numericType(pTypeName: PgslNumericTypeName): TypeDeclarationCst {
-        return {
-            type: "TypeDeclaration",
-            range: [0, 0, 0, 0],
-            isPointer: false,
-            typeName: pTypeName,
-            template: []
         };
     }
 }

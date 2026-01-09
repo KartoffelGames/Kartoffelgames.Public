@@ -6,9 +6,9 @@ import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts
 import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
 import { PgslStringType } from './pgsl-string-type.ts';
-import { IType, type TypeProperties } from './i-type.interface.ts';
-import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
-import { TypeCst } from "../../concrete_syntax_tree/general.type.ts";
+import type { IType, TypeProperties } from './i-type.interface.ts';
+import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
+import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
 
 /**
  * Texture type definition.
@@ -258,16 +258,16 @@ export class PgslTextureType extends AbstractSyntaxTree<TypeCst, TypeProperties>
 
         // Build meta types.
         const lMetaTypeList: Array<string> = new Array<string>();
-        for (const metaType of this.mTextureTypeParameter.sampledType.data.metaTypes) {
-             lMetaTypeList.push(`Texture<${metaType}>`);
-            lMetaTypeList.push(`Texture<${metaType},${this.mTextureTypeParameter.access}>`);
-            lMetaTypeList.push(`Texture<${metaType},${this.mTextureTypeParameter.format}>`);
-            lMetaTypeList.push(`Texture<${metaType},${this.mTextureTypeParameter.access},${this.mTextureTypeParameter.format}>`);
+        for (const lMetaType of this.mTextureTypeParameter.sampledType.data.metaTypes) {
+             lMetaTypeList.push(`Texture<${lMetaType}>`);
+            lMetaTypeList.push(`Texture<${lMetaType},${this.mTextureTypeParameter.access}>`);
+            lMetaTypeList.push(`Texture<${lMetaType},${this.mTextureTypeParameter.format}>`);
+            lMetaTypeList.push(`Texture<${lMetaType},${this.mTextureTypeParameter.access},${this.mTextureTypeParameter.format}>`);
 
-            lMetaTypeList.push(`${this.mTextureType}<${metaType}>`);
-            lMetaTypeList.push(`${this.mTextureType}<${metaType},${this.mTextureTypeParameter.access}>`);
-            lMetaTypeList.push(`${this.mTextureType}<${metaType},${this.mTextureTypeParameter.format}>`);
-            lMetaTypeList.push(`${this.mTextureType}<${metaType},${this.mTextureTypeParameter.access},${this.mTextureTypeParameter.format}>`);
+            lMetaTypeList.push(`${this.mTextureType}<${lMetaType}>`);
+            lMetaTypeList.push(`${this.mTextureType}<${lMetaType},${this.mTextureTypeParameter.access}>`);
+            lMetaTypeList.push(`${this.mTextureType}<${lMetaType},${this.mTextureTypeParameter.format}>`);
+            lMetaTypeList.push(`${this.mTextureType}<${lMetaType},${this.mTextureTypeParameter.access},${this.mTextureTypeParameter.format}>`);
         }
 
         lMetaTypeList.push('Texture');

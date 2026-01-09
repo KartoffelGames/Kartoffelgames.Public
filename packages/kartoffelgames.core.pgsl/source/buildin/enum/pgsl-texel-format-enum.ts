@@ -1,5 +1,5 @@
-import { Exception } from "@kartoffelgames/core";
-import { PgslNumericType, PgslNumericTypeName } from "../../abstract_syntax_tree/type/pgsl-numeric-type.ts";
+import { Exception } from '@kartoffelgames/core';
+import type { PgslNumericTypeName } from '../../abstract_syntax_tree/type/pgsl-numeric-type.ts';
 import type { EnumDeclarationCst, EnumDeclarationValueCst } from '../../concrete_syntax_tree/declaration.type.ts';
 import type { StringValueExpressionCst } from '../../concrete_syntax_tree/expression.type.ts';
 

@@ -1,5 +1,5 @@
 import type { IAnyParameterConstructor } from '../../../../kartoffelgames.core/source/interface/i-constructor.ts';
-import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
+import type { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 
 /**
  * Provides common functionality for type comparison, casting, and property management.
@@ -104,4 +104,4 @@ export type TypeProperties = {
 /**
  * Constructor type for PGSL types.
  */
-export type ITypeConstructor = IAnyParameterConstructor<IType>;
+export type TypeConstructor = IAnyParameterConstructor<IType>;

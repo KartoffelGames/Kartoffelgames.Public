@@ -1,9 +1,9 @@
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
-import { IType, type TypeProperties } from './i-type.interface.ts';
+import type { IType, TypeProperties } from './i-type.interface.ts';
 import { PgslVectorType } from './pgsl-vector-type.ts';
-import { TypeCst } from "../../concrete_syntax_tree/general.type.ts";
-import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
+import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
+import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 
 /**
  * Matrix type definition.
@@ -233,9 +233,9 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
 
          // Build meta types.
         const lMetaTypeList: Array<string> = new Array<string>();
-        for (const metaType of this.mInnerType.data.metaTypes) {
-            lMetaTypeList.push(`Matrix<${metaType}>`);
-            lMetaTypeList.push(`Matrix${this.mColumnCount}${this.mRowCount}<${metaType}>`);
+        for (const lMetaType of this.mInnerType.data.metaTypes) {
+            lMetaTypeList.push(`Matrix<${lMetaType}>`);
+            lMetaTypeList.push(`Matrix${this.mColumnCount}${this.mRowCount}<${lMetaType}>`);
         }
 
         // Add meta type for all vectors.

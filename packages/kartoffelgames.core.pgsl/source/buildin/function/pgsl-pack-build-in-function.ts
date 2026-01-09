@@ -1,10 +1,8 @@
-import { PgslBooleanType } from "../../abstract_syntax_tree/type/pgsl-boolean-type.ts";
-import { PgslMatrixType } from "../../abstract_syntax_tree/type/pgsl-matrix-type.ts";
-import { PgslNumericType, PgslNumericTypeName } from "../../abstract_syntax_tree/type/pgsl-numeric-type.ts";
-import { PgslVectorType } from "../../abstract_syntax_tree/type/pgsl-vector-type.ts";
-import { FunctionDeclarationCst, FunctionDeclarationGenericCst, FunctionDeclarationHeaderCst, FunctionDeclarationParameterCst } from "../../concrete_syntax_tree/declaration.type.ts";
-import { AttributeListCst, TypeDeclarationCst } from "../../concrete_syntax_tree/general.type.ts";
-import { BlockStatementCst } from "../../concrete_syntax_tree/statement.type.ts";
+import { PgslNumericType, type PgslNumericTypeName } from '../../abstract_syntax_tree/type/pgsl-numeric-type.ts';
+import { PgslVectorType } from '../../abstract_syntax_tree/type/pgsl-vector-type.ts';
+import type { FunctionDeclarationCst, FunctionDeclarationGenericCst, FunctionDeclarationHeaderCst, FunctionDeclarationParameterCst } from '../../concrete_syntax_tree/declaration.type.ts';
+import type { AttributeListCst, TypeDeclarationCst } from '../../concrete_syntax_tree/general.type.ts';
+import type { BlockStatementCst } from '../../concrete_syntax_tree/statement.type.ts';
 
 export class PgslPackingBuildInFunction {
     /**
@@ -138,41 +136,6 @@ export class PgslPackingBuildInFunction {
     }
 
     /**
-     * Create a cst type declaration of a numeric type.
-     * 
-     * @param pTypeName - Numeric type name.
-     * 
-     * @returns cst type declaration of the numeric type. 
-     */
-    private static numericType(pTypeName: PgslNumericTypeName): TypeDeclarationCst {
-        return {
-            type: "TypeDeclaration",
-            range: [0, 0, 0, 0],
-            isPointer: false,
-            typeName: pTypeName,
-            template: []
-        };
-    }
-
-    /**
-     * Create a cst type declaration of a vector type.
-     * 
-     * @param pDimension - Vector dimension.
-     * @param pInnerType - Inner type of vector.
-     * 
-     * @returns cst type declaration of vector type.
-     */
-    private static vectorType(pDimension: number, pInnerType: TypeDeclarationCst): TypeDeclarationCst {
-        return {
-            type: "TypeDeclaration",
-            range: [0, 0, 0, 0],
-            isPointer: false,
-            typeName: PgslVectorType.typeNameFromDimension(pDimension),
-            template: [pInnerType]
-        };
-    }
-
-    /**
      * Create a new cst function declaration.
      * 
      * @param pName - Function name.
@@ -183,7 +146,7 @@ export class PgslPackingBuildInFunction {
      */
     private static create(pName: string, pImplicitGenerics: boolean, pConstant: boolean, pDeclarations: Array<FunctionDeclarationHeaderCst>): FunctionDeclarationCst {
         return {
-            type: "FunctionDeclaration",
+            type: 'FunctionDeclaration',
             isConstant: pConstant,
             buildIn: true,
             implicitGenerics: pImplicitGenerics,
@@ -204,13 +167,13 @@ export class PgslPackingBuildInFunction {
      */
     private static header(pGenerics: PgslPackingBuildInFunctionGenericList, pParameter: PgslPackingBuildInFunctionParameterList, pReturnType: TypeDeclarationCst | string): FunctionDeclarationHeaderCst {
         const lEmptyBlock: BlockStatementCst = {
-            type: "BlockStatement",
+            type: 'BlockStatement',
             statements: [],
             range: [0, 0, 0, 0],
         };
 
         const lEmptyAttribteList: AttributeListCst = {
-            type: "AttributeList",
+            type: 'AttributeList',
             attributes: [],
             range: [0, 0, 0, 0],
         };
@@ -219,7 +182,7 @@ export class PgslPackingBuildInFunction {
         const lParameters: Array<FunctionDeclarationParameterCst> = new Array<FunctionDeclarationParameterCst>();
         for (const lParameterName in pParameter) {
             lParameters.push({
-                type: "FunctionDeclarationParameter",
+                type: 'FunctionDeclarationParameter',
                 buildIn: true,
                 range: [0, 0, 0, 0],
                 name: lParameterName,
@@ -231,7 +194,7 @@ export class PgslPackingBuildInFunction {
         const lGenerics: Array<FunctionDeclarationGenericCst> = new Array<FunctionDeclarationGenericCst>();
         for (const lGenericName in pGenerics) {
             lGenerics.push({
-                type: "FunctionDeclarationGeneric",
+                type: 'FunctionDeclarationGeneric',
                 buildIn: true,
                 range: [0, 0, 0, 0],
                 name: lGenericName,
@@ -240,7 +203,7 @@ export class PgslPackingBuildInFunction {
         }
 
         return {
-            type: "FunctionDeclarationHeader",
+            type: 'FunctionDeclarationHeader',
             buildIn: true,
             range: [0, 0, 0, 0],
             block: lEmptyBlock,
@@ -248,6 +211,41 @@ export class PgslPackingBuildInFunction {
             parameters: lParameters,
             generics: lGenerics,
             returnType: pReturnType,
+        };
+    }
+
+    /**
+     * Create a cst type declaration of a numeric type.
+     * 
+     * @param pTypeName - Numeric type name.
+     * 
+     * @returns cst type declaration of the numeric type. 
+     */
+    private static numericType(pTypeName: PgslNumericTypeName): TypeDeclarationCst {
+        return {
+            type: 'TypeDeclaration',
+            range: [0, 0, 0, 0],
+            isPointer: false,
+            typeName: pTypeName,
+            template: []
+        };
+    }
+
+    /**
+     * Create a cst type declaration of a vector type.
+     * 
+     * @param pDimension - Vector dimension.
+     * @param pInnerType - Inner type of vector.
+     * 
+     * @returns cst type declaration of vector type.
+     */
+    private static vectorType(pDimension: number, pInnerType: TypeDeclarationCst): TypeDeclarationCst {
+        return {
+            type: 'TypeDeclaration',
+            range: [0, 0, 0, 0],
+            isPointer: false,
+            typeName: PgslVectorType.typeNameFromDimension(pDimension),
+            template: [pInnerType]
         };
     }
 }

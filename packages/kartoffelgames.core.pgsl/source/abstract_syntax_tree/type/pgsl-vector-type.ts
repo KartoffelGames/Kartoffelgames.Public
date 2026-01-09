@@ -1,8 +1,8 @@
 
-import { TypeCst } from "../../concrete_syntax_tree/general.type.ts";
+import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
-import { IType, type TypeProperties } from './i-type.interface.ts';
+import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
+import type { IType, TypeProperties } from './i-type.interface.ts';
 
 /**
  * Vector type definition.
@@ -164,9 +164,9 @@ export class PgslVectorType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
 
         // Build meta types.
         const lMetaTypeList: Array<string> = new Array<string>();
-        for (const metaType of this.mInnerType.data.metaTypes) {
-            lMetaTypeList.push(`Vector<${metaType}>`);
-            lMetaTypeList.push(`Vector${this.mVectorDimension}<${metaType}>`);
+        for (const lMetaType of this.mInnerType.data.metaTypes) {
+            lMetaTypeList.push(`Vector<${lMetaType}>`);
+            lMetaTypeList.push(`Vector${this.mVectorDimension}<${lMetaType}>`);
         }
 
         // Add meta type for all vectors.

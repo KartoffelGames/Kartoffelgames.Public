@@ -14,9 +14,9 @@ import { PgslAccessModeEnum } from '../buildin/enum/pgsl-access-mode-enum.ts';
 import { PgslInterpolateSamplingEnum } from '../buildin/enum/pgsl-interpolate-sampling-enum.ts';
 import { PgslInterpolateTypeEnum } from '../buildin/enum/pgsl-interpolate-type-enum.ts';
 import { PgslTexelFormatEnum } from '../buildin/enum/pgsl-texel-format-enum.ts';
-import { PgslNumericBuildInFunction } from "../buildin/function/pgsl-numeric-build-in-function.ts";
-import { PgslFrexpResult } from "../buildin/struct/pgsl-frexp-result.ts";
-import { PgslModfResult } from "../buildin/struct/pgsl-modf-result.ts";
+import { PgslNumericBuildInFunction } from '../buildin/function/pgsl-numeric-build-in-function.ts';
+import { PgslFrexpResult } from '../buildin/struct/pgsl-frexp-result.ts';
+import { PgslModfResult } from '../buildin/struct/pgsl-modf-result.ts';
 import type { AliasDeclarationCst, DeclarationCst, DeclarationCstType, EnumDeclarationCst, EnumDeclarationValueCst, FunctionDeclarationCst, FunctionDeclarationHeaderCst, FunctionDeclarationParameterCst, StructDeclarationCst, StructPropertyDeclarationCst, VariableDeclarationCst } from '../concrete_syntax_tree/declaration.type.ts';
 import type { AddressOfExpressionCst, ArithmeticExpressionCst, BinaryExpressionCst, ComparisonExpressionCst, ExpressionCst, ExpressionCstType, FunctionCallExpressionCst, IndexedValueExpressionCst, LiteralValueExpressionCst, LogicalExpressionCst, NewExpressionCst, ParenthesizedExpressionCst, PointerExpressionCst, StringValueExpressionCst, UnaryExpressionCst, ValueDecompositionExpressionCst, VariableNameExpressionCst } from '../concrete_syntax_tree/expression.type.ts';
 import type { AttributeCst, AttributeListCst, CstRange, DocumentCst, TypeDeclarationCst } from '../concrete_syntax_tree/general.type.ts';
@@ -26,9 +26,9 @@ import { TranspilationMeta } from '../transpilation/transpilation-meta.ts';
 import type { PgslTranspilationResult, Transpiler } from '../transpilation/transpiler.ts';
 import { PgslLexer } from './pgsl-lexer.ts';
 import { PgslToken } from './pgsl-token.enum.ts';
-import { PgslTextureBuildInFunction } from "../buildin/function/pgsl-texture-build-in-function.ts";
-import { PgslPackingBuildInFunction } from "../buildin/function/pgsl-pack-build-in-function.ts";
-import { PgslSynchronisationBuildInFunction } from "../buildin/function/pgsl-synchronisation-build-in-function.ts";
+import { PgslTextureBuildInFunction } from '../buildin/function/pgsl-texture-build-in-function.ts';
+import { PgslPackingBuildInFunction } from '../buildin/function/pgsl-pack-build-in-function.ts';
+import { PgslSynchronisationBuildInFunction } from '../buildin/function/pgsl-synchronisation-build-in-function.ts';
 
 export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
     private static readonly STATIC_TYPE_NAMES: Set<string> = new Set<string>([

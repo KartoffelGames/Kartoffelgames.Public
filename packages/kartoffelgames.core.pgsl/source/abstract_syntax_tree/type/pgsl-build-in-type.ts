@@ -6,10 +6,10 @@ import { PgslArrayType } from './pgsl-array-type.ts';
 import { PgslBooleanType } from './pgsl-boolean-type.ts';
 import { PgslInvalidType } from './pgsl-invalid-type.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
-import { IType, type TypeProperties } from './i-type.interface.ts';
+import type { IType, TypeProperties } from './i-type.interface.ts';
 import { PgslVectorType } from './pgsl-vector-type.ts';
-import { TypeCst } from "../../concrete_syntax_tree/general.type.ts";
-import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
+import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
+import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 
 /**
  * Built-in type definition that represents PGSL built-in types.

@@ -1,12 +1,12 @@
-import { PgslNumericType, PgslNumericTypeName } from "../../abstract_syntax_tree/type/pgsl-numeric-type.ts";
-import { PgslSamplerType, PgslSamplerTypeName } from "../../abstract_syntax_tree/type/pgsl-sampler-type.ts";
-import { PgslTextureType } from "../../abstract_syntax_tree/type/pgsl-texture-type.ts";
-import { PgslVectorType } from "../../abstract_syntax_tree/type/pgsl-vector-type.ts";
-import { PgslVoidType } from "../../abstract_syntax_tree/type/pgsl-void-type.ts";
-import { FunctionDeclarationCst, FunctionDeclarationGenericCst, FunctionDeclarationHeaderCst, FunctionDeclarationParameterCst } from "../../concrete_syntax_tree/declaration.type.ts";
-import { AttributeListCst, TypeDeclarationCst } from "../../concrete_syntax_tree/general.type.ts";
-import { BlockStatementCst } from "../../concrete_syntax_tree/statement.type.ts";
-import { PgslTexelFormat, PgslTexelFormatEnum } from "../enum/pgsl-texel-format-enum.ts";
+import { PgslNumericType, type PgslNumericTypeName } from '../../abstract_syntax_tree/type/pgsl-numeric-type.ts';
+import { PgslSamplerType, type PgslSamplerTypeName } from '../../abstract_syntax_tree/type/pgsl-sampler-type.ts';
+import { PgslTextureType } from '../../abstract_syntax_tree/type/pgsl-texture-type.ts';
+import { PgslVectorType } from '../../abstract_syntax_tree/type/pgsl-vector-type.ts';
+import { PgslVoidType } from '../../abstract_syntax_tree/type/pgsl-void-type.ts';
+import type { FunctionDeclarationCst, FunctionDeclarationGenericCst, FunctionDeclarationHeaderCst, FunctionDeclarationParameterCst } from '../../concrete_syntax_tree/declaration.type.ts';
+import type { AttributeListCst, TypeDeclarationCst } from '../../concrete_syntax_tree/general.type.ts';
+import type { BlockStatementCst } from '../../concrete_syntax_tree/statement.type.ts';
+import { type PgslTexelFormat, PgslTexelFormatEnum } from '../enum/pgsl-texel-format-enum.ts';
 
 export class PgslTextureBuildInFunction {
     /**
@@ -1101,73 +1101,6 @@ export class PgslTextureBuildInFunction {
     }
 
     /**
-     * Create a cst type declaration of a numeric type.
-     * 
-     * @param pTypeName - Numeric type name.
-     * 
-     * @returns cst type declaration of the numeric type. 
-     */
-    private static numericType(pTypeName: PgslNumericTypeName): TypeDeclarationCst {
-        return {
-            type: "TypeDeclaration",
-            range: [0, 0, 0, 0],
-            isPointer: false,
-            typeName: pTypeName,
-            template: []
-        };
-    }
-
-    /**
-     * Create a cst type declaration of a void type.
-     * 
-     * @returns cst type declaration of void type.
-     */
-    private static voidType(): TypeDeclarationCst {
-        return {
-            type: "TypeDeclaration",
-            range: [0, 0, 0, 0],
-            isPointer: false,
-            typeName: PgslVoidType.typeName.void,
-            template: []
-        };
-    }
-
-    /**
-     * Create a cst type declaration of a sampler type.
-     * 
-     * @param pName - Struct name.
-     * 
-     * @returns cst type declaration of struct type.
-     */
-    private static sampler(pSampler: PgslSamplerTypeName): TypeDeclarationCst {
-        return {
-            type: "TypeDeclaration",
-            range: [0, 0, 0, 0],
-            isPointer: false,
-            typeName: pSampler,
-            template: []
-        };
-    }
-
-    /**
-     * Create a cst type declaration of a vector type.
-     * 
-     * @param pDimension - Vector dimension.
-     * @param pInnerType - Inner type of vector.
-     * 
-     * @returns cst type declaration of vector type.
-     */
-    private static vectorType(pDimension: number, pInnerType: TypeDeclarationCst): TypeDeclarationCst {
-        return {
-            type: "TypeDeclaration",
-            range: [0, 0, 0, 0],
-            isPointer: false,
-            typeName: PgslVectorType.typeNameFromDimension(pDimension),
-            template: [pInnerType]
-        };
-    }
-
-    /**
      * Create a new cst function declaration.
      * 
      * @param pName - Function name.
@@ -1178,7 +1111,7 @@ export class PgslTextureBuildInFunction {
      */
     private static create(pName: string, pImplicitGenerics: boolean, pConstant: boolean, pDeclarations: Array<FunctionDeclarationHeaderCst>): FunctionDeclarationCst {
         return {
-            type: "FunctionDeclaration",
+            type: 'FunctionDeclaration',
             isConstant: pConstant,
             buildIn: true,
             implicitGenerics: pImplicitGenerics,
@@ -1199,13 +1132,13 @@ export class PgslTextureBuildInFunction {
      */
     private static header(pGenerics: PgslTextureBuildInFunctionGenericList, pParameter: PgslTextureBuildInFunctionParameterList, pReturnType: TypeDeclarationCst | string): FunctionDeclarationHeaderCst {
         const lEmptyBlock: BlockStatementCst = {
-            type: "BlockStatement",
+            type: 'BlockStatement',
             statements: [],
             range: [0, 0, 0, 0],
         };
 
         const lEmptyAttribteList: AttributeListCst = {
-            type: "AttributeList",
+            type: 'AttributeList',
             attributes: [],
             range: [0, 0, 0, 0],
         };
@@ -1214,7 +1147,7 @@ export class PgslTextureBuildInFunction {
         const lParameters: Array<FunctionDeclarationParameterCst> = new Array<FunctionDeclarationParameterCst>();
         for (const lParameterName in pParameter) {
             lParameters.push({
-                type: "FunctionDeclarationParameter",
+                type: 'FunctionDeclarationParameter',
                 buildIn: true,
                 range: [0, 0, 0, 0],
                 name: lParameterName,
@@ -1226,7 +1159,7 @@ export class PgslTextureBuildInFunction {
         const lGenerics: Array<FunctionDeclarationGenericCst> = new Array<FunctionDeclarationGenericCst>();
         for (const lGenericName in pGenerics) {
             lGenerics.push({
-                type: "FunctionDeclarationGeneric",
+                type: 'FunctionDeclarationGeneric',
                 buildIn: true,
                 range: [0, 0, 0, 0],
                 name: lGenericName,
@@ -1235,7 +1168,7 @@ export class PgslTextureBuildInFunction {
         }
 
         return {
-            type: "FunctionDeclarationHeader",
+            type: 'FunctionDeclarationHeader',
             buildIn: true,
             range: [0, 0, 0, 0],
             block: lEmptyBlock,
@@ -1243,6 +1176,73 @@ export class PgslTextureBuildInFunction {
             parameters: lParameters,
             generics: lGenerics,
             returnType: pReturnType,
+        };
+    }
+
+    /**
+     * Create a cst type declaration of a numeric type.
+     * 
+     * @param pTypeName - Numeric type name.
+     * 
+     * @returns cst type declaration of the numeric type. 
+     */
+    private static numericType(pTypeName: PgslNumericTypeName): TypeDeclarationCst {
+        return {
+            type: 'TypeDeclaration',
+            range: [0, 0, 0, 0],
+            isPointer: false,
+            typeName: pTypeName,
+            template: []
+        };
+    }
+
+    /**
+     * Create a cst type declaration of a sampler type.
+     * 
+     * @param pName - Struct name.
+     * 
+     * @returns cst type declaration of struct type.
+     */
+    private static sampler(pSampler: PgslSamplerTypeName): TypeDeclarationCst {
+        return {
+            type: 'TypeDeclaration',
+            range: [0, 0, 0, 0],
+            isPointer: false,
+            typeName: pSampler,
+            template: []
+        };
+    }
+
+    /**
+     * Create a cst type declaration of a vector type.
+     * 
+     * @param pDimension - Vector dimension.
+     * @param pInnerType - Inner type of vector.
+     * 
+     * @returns cst type declaration of vector type.
+     */
+    private static vectorType(pDimension: number, pInnerType: TypeDeclarationCst): TypeDeclarationCst {
+        return {
+            type: 'TypeDeclaration',
+            range: [0, 0, 0, 0],
+            isPointer: false,
+            typeName: PgslVectorType.typeNameFromDimension(pDimension),
+            template: [pInnerType]
+        };
+    }
+
+    /**
+     * Create a cst type declaration of a void type.
+     * 
+     * @returns cst type declaration of void type.
+     */
+    private static voidType(): TypeDeclarationCst {
+        return {
+            type: 'TypeDeclaration',
+            range: [0, 0, 0, 0],
+            isPointer: false,
+            typeName: PgslVoidType.typeName.void,
+            template: []
         };
     }
 }

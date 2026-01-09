@@ -1,8 +1,8 @@
-import { TypeCst } from "../../concrete_syntax_tree/general.type.ts";
+import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
-import { AbstractSyntaxTree } from "../abstract-syntax-tree.ts";
+import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 import type { StructDeclarationAst } from '../declaration/struct-declaration-ast.ts';
-import { IType, type TypeProperties } from './i-type.interface.ts';
+import type { IType, TypeProperties } from './i-type.interface.ts';
 
 /**
  * Struct type definition.

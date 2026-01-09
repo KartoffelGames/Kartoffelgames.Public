@@ -27,6 +27,8 @@ import type { PgslTranspilationResult, Transpiler } from '../transpilation/trans
 import { PgslLexer } from './pgsl-lexer.ts';
 import { PgslToken } from './pgsl-token.enum.ts';
 import { PgslTextureBuildInFunction } from "../buildin/function/pgsl-texture-build-in-function.ts";
+import { PgslPackingBuildInFunction } from "../buildin/function/pgsl-pack-build-in-function.ts";
+import { PgslSynchronisationBuildInFunction } from "../buildin/function/pgsl-synchronisation-build-in-function.ts";
 
 export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
     private static readonly STATIC_TYPE_NAMES: Set<string> = new Set<string>([
@@ -193,6 +195,9 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         lDocumentCst.buildInDeclarations.push(...PgslNumericBuildInFunction.numeric());
         lDocumentCst.buildInDeclarations.push(...PgslNumericBuildInFunction.derivative());
         lDocumentCst.buildInDeclarations.push(...PgslTextureBuildInFunction.texture());
+        lDocumentCst.buildInDeclarations.push(...PgslPackingBuildInFunction.pack());
+        lDocumentCst.buildInDeclarations.push(...PgslPackingBuildInFunction.unpack());
+        lDocumentCst.buildInDeclarations.push(...PgslSynchronisationBuildInFunction.synchronisation());
 
         const lContext: AbstractSyntaxTreeContext = new AbstractSyntaxTreeContext();
 

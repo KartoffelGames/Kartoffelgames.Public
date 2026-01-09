@@ -15,7 +15,6 @@ export class PgslTextureBuildInFunction {
     // eslint-disable-next-line @typescript-eslint/explicit-module-boundary-types
     public static get names() {
         return {
-            // Bit reinterpretation
             textureDimensions: 'textureDimensions',
             textureGather: 'textureGather',
             textureGatherCompare: 'textureGatherCompare',
@@ -35,9 +34,9 @@ export class PgslTextureBuildInFunction {
     }
 
     /**
-     * Create array functions.
+     * Create texture functions.
      * 
-     * @returns list of cst function declarations for array functions. 
+     * @returns list of cst function declarations for texture functions. 
      */
     public static texture(): Array<FunctionDeclarationCst> {
         const lFunctions: Array<FunctionDeclarationCst> = new Array<FunctionDeclarationCst>();

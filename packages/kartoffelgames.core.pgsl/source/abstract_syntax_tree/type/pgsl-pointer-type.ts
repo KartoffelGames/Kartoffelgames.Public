@@ -128,6 +128,9 @@ export class PgslPointerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
             lMetaTypeList.push(`Pointer<${metaType}>`);
         }
 
+        // Add base pointer meta type.
+        lMetaTypeList.push('Pointer');
+
         return {
             // Meta information.
             metaTypes: lMetaTypeList,

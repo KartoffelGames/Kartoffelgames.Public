@@ -18,6 +18,6 @@ export class WhileStatementAstTranspilerProcessor implements ITranspilerProcesso
      * @returns Transpiled WGSL code.
      */
     public process(pInstance: WhileStatementAst, pTranspile: PgslTranspilerProcessorTranspile): string {
-        return `loop { if !(${pTranspile(pInstance.data.expression)}) { break; } ${pTranspile(pInstance.data.block)} }`;
+        return `loop{if !(${pTranspile(pInstance.data.expression)}){break;}${pTranspile(pInstance.data.block)}}`;
     }
 }

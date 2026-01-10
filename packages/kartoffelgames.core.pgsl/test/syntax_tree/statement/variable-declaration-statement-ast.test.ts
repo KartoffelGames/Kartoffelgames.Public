@@ -113,7 +113,7 @@ Deno.test('VariableDeclarationStatementAst - Transpilation', async (pContext) =>
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let ${lVariableName}:f32=5.0;` +
+            `var ${lVariableName}:f32=5.0;` +
             `}`
         );
     });
@@ -136,7 +136,7 @@ Deno.test('VariableDeclarationStatementAst - Transpilation', async (pContext) =>
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let ${lVariableName}:i32;` +
+            `var ${lVariableName}:i32;` +
             `}`
         );
     });
@@ -160,8 +160,8 @@ Deno.test('VariableDeclarationStatementAst - Transpilation', async (pContext) =>
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let testValue:f32=10.5;` +
-            `const ${lVariableName}:f32=testValue;` +
+            `var testValue:f32=10.5;` +
+            `let ${lVariableName}:f32=testValue;` +
             `}`
         );
     });

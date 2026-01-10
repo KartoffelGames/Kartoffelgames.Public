@@ -6,6 +6,10 @@ import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
 import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts';
+import { WhileStatementAst } from "../../../source/abstract_syntax_tree/statement/branch/while-statement-ast.ts";
+import { ForStatementAst } from "../../../source/abstract_syntax_tree/statement/branch/for-statement-ast.ts";
+import { DoWhileStatementAst } from "../../../source/abstract_syntax_tree/statement/branch/do-while-statement-ast.ts";
+import { SwitchStatementAst, SwitchStatementAstSwitchCase } from "../../../source/abstract_syntax_tree/statement/branch/switch-statement-ast.ts";
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();
@@ -28,7 +32,8 @@ Deno.test('BreakStatementAst - Parsing', async (pContext) => {
             // Evaluation. Correct type of statement node.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
             const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-            const lBreakStatement: BreakStatementAst = lFunctionDeclaration.block.data.statementList[0] as BreakStatementAst;
+            const lWhileStatement: WhileStatementAst = lFunctionDeclaration.block.data.statementList[0] as WhileStatementAst;
+            const lBreakStatement: BreakStatementAst = lWhileStatement.data.block.data.statementList[0] as BreakStatementAst;
             expect(lBreakStatement).toBeInstanceOf(BreakStatementAst);
         });
 
@@ -48,7 +53,8 @@ Deno.test('BreakStatementAst - Parsing', async (pContext) => {
             // Evaluation. Correct type of statement node.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
             const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-            const lBreakStatement: BreakStatementAst = lFunctionDeclaration.block.data.statementList[0] as BreakStatementAst;
+            const lForStatement: ForStatementAst = lFunctionDeclaration.block.data.statementList[0] as ForStatementAst;
+            const lBreakStatement: BreakStatementAst = lForStatement.data.block.data.statementList[0] as BreakStatementAst;
             expect(lBreakStatement).toBeInstanceOf(BreakStatementAst);
         });
 
@@ -68,7 +74,8 @@ Deno.test('BreakStatementAst - Parsing', async (pContext) => {
             // Evaluation. Correct type of statement node.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
             const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-            const lBreakStatement: BreakStatementAst = lFunctionDeclaration.block.data.statementList[0] as BreakStatementAst;
+            const lDoWhileStatement: DoWhileStatementAst = lFunctionDeclaration.block.data.statementList[0] as DoWhileStatementAst;
+            const lBreakStatement: BreakStatementAst = lDoWhileStatement.data.block.data.statementList[0] as BreakStatementAst;
             expect(lBreakStatement).toBeInstanceOf(BreakStatementAst);
         });
     });
@@ -81,6 +88,7 @@ Deno.test('BreakStatementAst - Parsing', async (pContext) => {
                     case 1: {
                         break;
                     }
+                    default: {}
                 }
             }
         `;
@@ -91,7 +99,9 @@ Deno.test('BreakStatementAst - Parsing', async (pContext) => {
         // Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-        const lBreakStatement: BreakStatementAst = lFunctionDeclaration.block.data.statementList[0] as BreakStatementAst;
+        const lSwitchStatement: SwitchStatementAst = lFunctionDeclaration.block.data.statementList[0] as SwitchStatementAst;
+        const lCaseBlock: SwitchStatementAstSwitchCase = lSwitchStatement.data.cases[0];
+        const lBreakStatement: BreakStatementAst = lCaseBlock.block.data.statementList[0] as BreakStatementAst;
         expect(lBreakStatement).toBeInstanceOf(BreakStatementAst);
     });
 });
@@ -117,8 +127,9 @@ Deno.test('BreakStatementAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `while(true){` +
-                `break;` +
+                `loop{` +
+                `if !(true){break;}` +
+                `{break;}` +
                 `}` +
                 `}`
             );
@@ -143,8 +154,11 @@ Deno.test('BreakStatementAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `for(var i:i32=0;i<10;i++){` +
-                `break;` +
+                `var i:i32=0;` +
+                `loop{` +
+                `if !(i<10){break;}` +
+                `{break;}` +
+                `i++;` +
                 `}` +
                 `}`
             );
@@ -159,6 +173,7 @@ Deno.test('BreakStatementAst - Transpilation', async (pContext) => {
                     case 1: {
                         break;
                     }
+                    default: {}
                 }
             }
         `;
@@ -176,6 +191,7 @@ Deno.test('BreakStatementAst - Transpilation', async (pContext) => {
             `case 1:{` +
             `break;` +
             `}` +
+            `default:{}` +
             `}` +
             `}`
         );

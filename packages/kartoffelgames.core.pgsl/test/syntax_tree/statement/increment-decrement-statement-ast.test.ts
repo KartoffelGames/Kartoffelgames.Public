@@ -72,7 +72,7 @@ Deno.test('IncrementDecrementStatementAst - Transpilation', async (pContext) => 
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let ${lVariableName}:i32=0;` +
+            `var ${lVariableName}:i32=0;` +
             `${lVariableName}++;` +
             `}`
         );
@@ -97,7 +97,7 @@ Deno.test('IncrementDecrementStatementAst - Transpilation', async (pContext) => 
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let ${lVariableName}:i32=10;` +
+            `var ${lVariableName}:i32=10;` +
             `${lVariableName}--;` +
             `}`
         );

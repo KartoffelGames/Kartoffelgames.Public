@@ -48,6 +48,7 @@ Deno.test('BlockStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lBlockStatement: BlockStatementAst = lFunctionDeclaration.block.data.statementList[0] as BlockStatementAst;
         expect(lBlockStatement).toBeInstanceOf(BlockStatementAst);
+        expect(lBlockStatement.data.statementList).toHaveLength(1);
     });
 
     await pContext.step('Block with multiple statements', () => {
@@ -70,6 +71,7 @@ Deno.test('BlockStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lBlockStatement: BlockStatementAst = lFunctionDeclaration.block.data.statementList[0] as BlockStatementAst;
         expect(lBlockStatement).toBeInstanceOf(BlockStatementAst);
+        expect(lBlockStatement.data.statementList).toHaveLength(3);
     });
 
     await pContext.step('Nested blocks', () => {
@@ -92,6 +94,11 @@ Deno.test('BlockStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lBlockStatement: BlockStatementAst = lFunctionDeclaration.block.data.statementList[0] as BlockStatementAst;
         expect(lBlockStatement).toBeInstanceOf(BlockStatementAst);
+        expect(lBlockStatement.data.statementList).toHaveLength(1);
+
+        const lNestedBlockStatement: BlockStatementAst = lBlockStatement.data.statementList[0] as BlockStatementAst;
+        expect(lNestedBlockStatement).toBeInstanceOf(BlockStatementAst);
+        expect(lNestedBlockStatement.data.statementList).toHaveLength(1);
     });
 });
 
@@ -140,7 +147,7 @@ Deno.test('BlockStatementAst - Transpilation', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
             `{` +
-            `let x:f32=5.0;` +
+            `var x:f32=5.0;` +
             `}` +
             `}`
         );
@@ -168,8 +175,8 @@ Deno.test('BlockStatementAst - Transpilation', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
             `{` +
-            `let x:f32=5.0;` +
-            `let y:i32=10;` +
+            `var x:f32=5.0;` +
+            `var y:i32=10;` +
             `x=2.0;` +
             `}` +
             `}`
@@ -199,7 +206,7 @@ Deno.test('BlockStatementAst - Transpilation', async (pContext) => {
             `fn testFunction(){` +
             `{` +
             `{` +
-            `let x:f32=5.0;` +
+            `var x:f32=5.0;` +
             `}` +
             `}` +
             `}`
@@ -208,28 +215,6 @@ Deno.test('BlockStatementAst - Transpilation', async (pContext) => {
 });
 
 Deno.test('BlockStatementAst - Error', async (pContext) => {
-    await pContext.step('Block with valid statements has no errors', () => {
-        // Setup.
-        const lCodeText: string = `
-            function testFunction(): void {
-                {
-                    let x: ${PgslNumericType.typeName.float32} = 5.0;
-                }
-            }
-        `;
-
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-        // Evaluation. No errors expected for valid block.
-        expect(lTranspilationResult.incidents).toHaveLength(0);
-
-        // Evaluation. Error should mention variable not defined.
-        expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes(`TODO`)
-        )).toBe(true);
-    });
-
     await pContext.step('Variable defined in block not accessible outside', () => {
         // Setup.
         const lBlockVariableName: string = 'blockVariable';

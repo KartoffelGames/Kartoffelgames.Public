@@ -1,4 +1,5 @@
 import { VariableDeclarationStatementAst } from '../../../../abstract_syntax_tree/statement/execution/variable-declaration-statement-ast.ts';
+import { PgslValueFixedState } from "../../../../enum/pgsl-value-fixed-state.ts";
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
 export class VariableDeclarationStatementAstTranspilerProcessor implements ITranspilerProcessor<VariableDeclarationStatementAst> {
@@ -18,13 +19,21 @@ export class VariableDeclarationStatementAstTranspilerProcessor implements ITran
      * @returns Transpiled WGSL code.
      */
     public process(pInstance: VariableDeclarationStatementAst, pTranspile: PgslTranspilerProcessorTranspile): string {
-        // TODO: When const declaration and const initial value, this can be a wgsl-const instead of a let. But only when not used as a pointer.
+        // Depending on the declaration fixed type decide declaration keyword.
+        let lDeclarationName: string = 'var';
+        if(pInstance.data.fixedState === PgslValueFixedState.Constant) {
+            lDeclarationName = 'const';
+        } else if(pInstance.data.fixedState === PgslValueFixedState.ScopeFixed) {
+            lDeclarationName = 'let';
+        } else {
+            lDeclarationName = 'var';
+        }
 
         // Depending on the expression presence, create the declaration with or without an initialization value.
         if(pInstance.data.expression){
-            return `${pInstance.data.declarationType} ${pInstance.data.name}:${pTranspile(pInstance.data.typeDeclaration)}=${pTranspile(pInstance.data.expression)};`;
+            return `${lDeclarationName} ${pInstance.data.name}:${pTranspile(pInstance.data.typeDeclaration)}=${pTranspile(pInstance.data.expression)};`;
         } else {
-            return `${pInstance.data.declarationType} ${pInstance.data.name}:${pTranspile(pInstance.data.typeDeclaration)};`;
+            return `${lDeclarationName} ${pInstance.data.name}:${pTranspile(pInstance.data.typeDeclaration)};`;
         }
     }
 }

@@ -29,8 +29,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=1.0;` +
-            `let resultValue:f32=bitcast<f32>(inputValue);` +
+            `var inputValue:f32=1.0;` +
+            `var resultValue:f32=bitcast<f32>(inputValue);` +
             `}`
         );
     });
@@ -53,8 +53,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=1.0;` +
-            `let resultValue:i32=bitcast<i32>(inputValue);` +
+            `var inputValue:f32=1.0;` +
+            `var resultValue:i32=bitcast<i32>(inputValue);` +
             `}`
         );
     });
@@ -77,8 +77,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=1.0;` +
-            `let resultValue:u32=bitcast<u32>(inputValue);` +
+            `var inputValue:f32=1.0;` +
+            `var resultValue:u32=bitcast<u32>(inputValue);` +
             `}`
         );
     });
@@ -101,8 +101,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:i32=1;` +
-            `let resultValue:f32=bitcast<f32>(inputValue);` +
+            `var inputValue:i32=1;` +
+            `var resultValue:f32=bitcast<f32>(inputValue);` +
             `}`
         );
     });
@@ -125,8 +125,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:i32=1;` +
-            `let resultValue:i32=bitcast<i32>(inputValue);` +
+            `var inputValue:i32=1;` +
+            `var resultValue:i32=bitcast<i32>(inputValue);` +
             `}`
         );
     });
@@ -149,8 +149,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:i32=1;` +
-            `let resultValue:u32=bitcast<u32>(inputValue);` +
+            `var inputValue:i32=1;` +
+            `var resultValue:u32=bitcast<u32>(inputValue);` +
             `}`
         );
     });
@@ -174,8 +174,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(1.0,2.0);` +
-            `let resultValue:vec2<f32>=bitcast<vec2<f32>>(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(1.0,2.0);` +
+            `var resultValue:vec2<f32>=bitcast<vec2<f32>>(inputValue);` +
             `}`
         );
     });
@@ -198,8 +198,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(1.0,2.0);` +
-            `let resultValue:vec2<i32>=bitcast<vec2<i32>>(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(1.0,2.0);` +
+            `var resultValue:vec2<i32>=bitcast<vec2<i32>>(inputValue);` +
             `}`
         );
     });
@@ -222,8 +222,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(1.0,2.0);` +
-            `let resultValue:vec2<u32>=bitcast<vec2<u32>>(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(1.0,2.0);` +
+            `var resultValue:vec2<u32>=bitcast<vec2<u32>>(inputValue);` +
             `}`
         );
     });
@@ -246,8 +246,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<i32>=vec2(1,2);` +
-            `let resultValue:vec2<f32>=bitcast<vec2<f32>>(inputValue);` +
+            `var inputValue:vec2<i32>=vec2(1,2);` +
+            `var resultValue:vec2<f32>=bitcast<vec2<f32>>(inputValue);` +
             `}`
         );
     });
@@ -270,8 +270,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<i32>=vec2(1,2);` +
-            `let resultValue:vec2<i32>=bitcast<vec2<i32>>(inputValue);` +
+            `var inputValue:vec2<i32>=vec2(1,2);` +
+            `var resultValue:vec2<i32>=bitcast<vec2<i32>>(inputValue);` +
             `}`
         );
     });
@@ -294,8 +294,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<i32>=vec2(1,2);` +
-            `let resultValue:vec2<u32>=bitcast<vec2<u32>>(inputValue);` +
+            `var inputValue:vec2<i32>=vec2(1,2);` +
+            `var resultValue:vec2<u32>=bitcast<vec2<u32>>(inputValue);` +
             `}`
         );
     });
@@ -318,8 +318,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<u32>=vec2(1,2);` +
-            `let resultValue:vec2<f32>=bitcast<vec2<f32>>(inputValue);` +
+            `var inputValue:vec2<u32>=vec2(1,2);` +
+            `var resultValue:vec2<f32>=bitcast<vec2<f32>>(inputValue);` +
             `}`
         );
     });
@@ -342,8 +342,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<u32>=vec2(1,2);` +
-            `let resultValue:vec2<i32>=bitcast<vec2<i32>>(inputValue);` +
+            `var inputValue:vec2<u32>=vec2(1,2);` +
+            `var resultValue:vec2<i32>=bitcast<vec2<i32>>(inputValue);` +
             `}`
         );
     });
@@ -366,8 +366,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<u32>=vec2(1,2);` +
-            `let resultValue:vec2<u32>=bitcast<vec2<u32>>(inputValue);` +
+            `var inputValue:vec2<u32>=vec2(1,2);` +
+            `var resultValue:vec2<u32>=bitcast<vec2<u32>>(inputValue);` +
             `}`
         );
     });
@@ -390,8 +390,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec3<f32>=vec3(1.0,2.0,3.0);` +
-            `let resultValue:vec3<f32>=bitcast<vec3<f32>>(inputValue);` +
+            `var inputValue:vec3<f32>=vec3(1.0,2.0,3.0);` +
+            `var resultValue:vec3<f32>=bitcast<vec3<f32>>(inputValue);` +
             `}`
         );
     });
@@ -414,8 +414,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec3<f32>=vec3(1.0,2.0,3.0);` +
-            `let resultValue:vec3<i32>=bitcast<vec3<i32>>(inputValue);` +
+            `var inputValue:vec3<f32>=vec3(1.0,2.0,3.0);` +
+            `var resultValue:vec3<i32>=bitcast<vec3<i32>>(inputValue);` +
             `}`
         );
     });
@@ -438,8 +438,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec3<f32>=vec3(1.0,2.0,3.0);` +
-            `let resultValue:vec3<u32>=bitcast<vec3<u32>>(inputValue);` +
+            `var inputValue:vec3<f32>=vec3(1.0,2.0,3.0);` +
+            `var resultValue:vec3<u32>=bitcast<vec3<u32>>(inputValue);` +
             `}`
         );
     });
@@ -462,8 +462,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec3<i32>=vec3(1,2,3);` +
-            `let resultValue:vec3<f32>=bitcast<vec3<f32>>(inputValue);` +
+            `var inputValue:vec3<i32>=vec3(1,2,3);` +
+            `var resultValue:vec3<f32>=bitcast<vec3<f32>>(inputValue);` +
             `}`
         );
     });
@@ -486,8 +486,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec3<i32>=vec3(1,2,3);` +
-            `let resultValue:vec3<i32>=bitcast<vec3<i32>>(inputValue);` +
+            `var inputValue:vec3<i32>=vec3(1,2,3);` +
+            `var resultValue:vec3<i32>=bitcast<vec3<i32>>(inputValue);` +
             `}`
         );
     });
@@ -510,8 +510,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec3<i32>=vec3(1,2,3);` +
-            `let resultValue:vec3<u32>=bitcast<vec3<u32>>(inputValue);` +
+            `var inputValue:vec3<i32>=vec3(1,2,3);` +
+            `var resultValue:vec3<u32>=bitcast<vec3<u32>>(inputValue);` +
             `}`
         );
     });
@@ -534,8 +534,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec3<u32>=vec3(1,2,3);` +
-            `let resultValue:vec3<f32>=bitcast<vec3<f32>>(inputValue);` +
+            `var inputValue:vec3<u32>=vec3(1,2,3);` +
+            `var resultValue:vec3<f32>=bitcast<vec3<f32>>(inputValue);` +
             `}`
         );
     });
@@ -558,8 +558,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec3<u32>=vec3(1,2,3);` +
-            `let resultValue:vec3<i32>=bitcast<vec3<i32>>(inputValue);` +
+            `var inputValue:vec3<u32>=vec3(1,2,3);` +
+            `var resultValue:vec3<i32>=bitcast<vec3<i32>>(inputValue);` +
             `}`
         );
     });
@@ -582,8 +582,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec3<u32>=vec3(1,2,3);` +
-            `let resultValue:vec3<u32>=bitcast<vec3<u32>>(inputValue);` +
+            `var inputValue:vec3<u32>=vec3(1,2,3);` +
+            `var resultValue:vec3<u32>=bitcast<vec3<u32>>(inputValue);` +
             `}`
         );
     });
@@ -606,8 +606,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec4<f32>=vec4(1.0,2.0,3.0,4.0);` +
-            `let resultValue:vec4<f32>=bitcast<vec4<f32>>(inputValue);` +
+            `var inputValue:vec4<f32>=vec4(1.0,2.0,3.0,4.0);` +
+            `var resultValue:vec4<f32>=bitcast<vec4<f32>>(inputValue);` +
             `}`
         );
     });
@@ -630,8 +630,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec4<f32>=vec4(1.0,2.0,3.0,4.0);` +
-            `let resultValue:vec4<i32>=bitcast<vec4<i32>>(inputValue);` +
+            `var inputValue:vec4<f32>=vec4(1.0,2.0,3.0,4.0);` +
+            `var resultValue:vec4<i32>=bitcast<vec4<i32>>(inputValue);` +
             `}`
         );
     });
@@ -654,8 +654,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec4<f32>=vec4(1.0,2.0,3.0,4.0);` +
-            `let resultValue:vec4<u32>=bitcast<vec4<u32>>(inputValue);` +
+            `var inputValue:vec4<f32>=vec4(1.0,2.0,3.0,4.0);` +
+            `var resultValue:vec4<u32>=bitcast<vec4<u32>>(inputValue);` +
             `}`
         );
     });
@@ -678,8 +678,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec4<i32>=vec4(1,2,3,4);` +
-            `let resultValue:vec4<f32>=bitcast<vec4<f32>>(inputValue);` +
+            `var inputValue:vec4<i32>=vec4(1,2,3,4);` +
+            `var resultValue:vec4<f32>=bitcast<vec4<f32>>(inputValue);` +
             `}`
         );
     });
@@ -702,8 +702,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec4<i32>=vec4(1,2,3,4);` +
-            `let resultValue:vec4<i32>=bitcast<vec4<i32>>(inputValue);` +
+            `var inputValue:vec4<i32>=vec4(1,2,3,4);` +
+            `var resultValue:vec4<i32>=bitcast<vec4<i32>>(inputValue);` +
             `}`
         );
     });
@@ -726,8 +726,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec4<i32>=vec4(1,2,3,4);` +
-            `let resultValue:vec4<u32>=bitcast<vec4<u32>>(inputValue);` +
+            `var inputValue:vec4<i32>=vec4(1,2,3,4);` +
+            `var resultValue:vec4<u32>=bitcast<vec4<u32>>(inputValue);` +
             `}`
         );
     });
@@ -750,8 +750,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec4<u32>=vec4(1,2,3,4);` +
-            `let resultValue:vec4<f32>=bitcast<vec4<f32>>(inputValue);` +
+            `var inputValue:vec4<u32>=vec4(1,2,3,4);` +
+            `var resultValue:vec4<f32>=bitcast<vec4<f32>>(inputValue);` +
             `}`
         );
     });
@@ -774,8 +774,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec4<u32>=vec4(1,2,3,4);` +
-            `let resultValue:vec4<i32>=bitcast<vec4<i32>>(inputValue);` +
+            `var inputValue:vec4<u32>=vec4(1,2,3,4);` +
+            `var resultValue:vec4<i32>=bitcast<vec4<i32>>(inputValue);` +
             `}`
         );
     });
@@ -798,8 +798,8 @@ Deno.test('PgslNumericBuildInFunction-bitcast', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec4<u32>=vec4(1,2,3,4);` +
-            `let resultValue:vec4<u32>=bitcast<vec4<u32>>(inputValue);` +
+            `var inputValue:vec4<u32>=vec4(1,2,3,4);` +
+            `var resultValue:vec4<u32>=bitcast<vec4<u32>>(inputValue);` +
             `}`
         );
     });
@@ -824,8 +824,8 @@ Deno.test('PgslNumericBuildInFunction-abs', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=-1.5;` +
-            `let resultValue:f32=abs(inputValue);` +
+            `var inputValue:f32=-1.5;` +
+            `var resultValue:f32=abs(inputValue);` +
             `}`
         );
     });
@@ -848,8 +848,8 @@ Deno.test('PgslNumericBuildInFunction-abs', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(-1.0,-2.0);` +
-            `let resultValue:vec2<f32>=abs(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(-1.0,-2.0);` +
+            `var resultValue:vec2<f32>=abs(inputValue);` +
             `}`
         );
     });
@@ -874,8 +874,8 @@ Deno.test('PgslNumericBuildInFunction-acos', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=0.5;` +
-            `let resultValue:f32=acos(inputValue);` +
+            `var inputValue:f32=0.5;` +
+            `var resultValue:f32=acos(inputValue);` +
             `}`
         );
     });
@@ -898,8 +898,8 @@ Deno.test('PgslNumericBuildInFunction-acos', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(0.5,0.0);` +
-            `let resultValue:vec2<f32>=acos(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(0.5,0.0);` +
+            `var resultValue:vec2<f32>=acos(inputValue);` +
             `}`
         );
     });
@@ -924,8 +924,8 @@ Deno.test('PgslNumericBuildInFunction-acosh', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=1.5;` +
-            `let resultValue:f32=acosh(inputValue);` +
+            `var inputValue:f32=1.5;` +
+            `var resultValue:f32=acosh(inputValue);` +
             `}`
         );
     });
@@ -948,8 +948,8 @@ Deno.test('PgslNumericBuildInFunction-acosh', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(1.5,2.0);` +
-            `let resultValue:vec2<f32>=acosh(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(1.5,2.0);` +
+            `var resultValue:vec2<f32>=acosh(inputValue);` +
             `}`
         );
     });
@@ -974,8 +974,8 @@ Deno.test('PgslNumericBuildInFunction-asin', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=0.5;` +
-            `let resultValue:f32=asin(inputValue);` +
+            `var inputValue:f32=0.5;` +
+            `var resultValue:f32=asin(inputValue);` +
             `}`
         );
     });
@@ -998,8 +998,8 @@ Deno.test('PgslNumericBuildInFunction-asin', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(0.5,0.0);` +
-            `let resultValue:vec2<f32>=asin(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(0.5,0.0);` +
+            `var resultValue:vec2<f32>=asin(inputValue);` +
             `}`
         );
     });
@@ -1024,8 +1024,8 @@ Deno.test('PgslNumericBuildInFunction-asinh', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=0.5;` +
-            `let resultValue:f32=asinh(inputValue);` +
+            `var inputValue:f32=0.5;` +
+            `var resultValue:f32=asinh(inputValue);` +
             `}`
         );
     });
@@ -1048,8 +1048,8 @@ Deno.test('PgslNumericBuildInFunction-asinh', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(0.5,1.0);` +
-            `let resultValue:vec2<f32>=asinh(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(0.5,1.0);` +
+            `var resultValue:vec2<f32>=asinh(inputValue);` +
             `}`
         );
     });
@@ -1074,8 +1074,8 @@ Deno.test('PgslNumericBuildInFunction-atan', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=1.0;` +
-            `let resultValue:f32=atan(inputValue);` +
+            `var inputValue:f32=1.0;` +
+            `var resultValue:f32=atan(inputValue);` +
             `}`
         );
     });
@@ -1098,8 +1098,8 @@ Deno.test('PgslNumericBuildInFunction-atan', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(1.0,0.5);` +
-            `let resultValue:vec2<f32>=atan(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(1.0,0.5);` +
+            `var resultValue:vec2<f32>=atan(inputValue);` +
             `}`
         );
     });
@@ -1125,9 +1125,9 @@ Deno.test('PgslNumericBuildInFunction-atan2', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let yValue:f32=1.0;` +
-            `let xValue:f32=1.0;` +
-            `let resultValue:f32=atan2(yValue,xValue);` +
+            `var yValue:f32=1.0;` +
+            `var xValue:f32=1.0;` +
+            `var resultValue:f32=atan2(yValue,xValue);` +
             `}`
         );
     });
@@ -1151,9 +1151,9 @@ Deno.test('PgslNumericBuildInFunction-atan2', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let yValue:vec2<f32>=vec2(1.0,0.5);` +
-            `let xValue:vec2<f32>=vec2(1.0,0.5);` +
-            `let resultValue:vec2<f32>=atan2(yValue,xValue);` +
+            `var yValue:vec2<f32>=vec2(1.0,0.5);` +
+            `var xValue:vec2<f32>=vec2(1.0,0.5);` +
+            `var resultValue:vec2<f32>=atan2(yValue,xValue);` +
             `}`
         );
     });
@@ -1178,8 +1178,8 @@ Deno.test('PgslNumericBuildInFunction-atanh', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=0.5;` +
-            `let resultValue:f32=atanh(inputValue);` +
+            `var inputValue:f32=0.5;` +
+            `var resultValue:f32=atanh(inputValue);` +
             `}`
         );
     });
@@ -1202,8 +1202,8 @@ Deno.test('PgslNumericBuildInFunction-atanh', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(0.5,0.3);` +
-            `let resultValue:vec2<f32>=atanh(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(0.5,0.3);` +
+            `var resultValue:vec2<f32>=atanh(inputValue);` +
             `}`
         );
     });
@@ -1228,8 +1228,8 @@ Deno.test('PgslNumericBuildInFunction-ceil', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=1.5;` +
-            `let resultValue:f32=ceil(inputValue);` +
+            `var inputValue:f32=1.5;` +
+            `var resultValue:f32=ceil(inputValue);` +
             `}`
         );
     });
@@ -1252,8 +1252,8 @@ Deno.test('PgslNumericBuildInFunction-ceil', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(1.5,2.3);` +
-            `let resultValue:vec2<f32>=ceil(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(1.5,2.3);` +
+            `var resultValue:vec2<f32>=ceil(inputValue);` +
             `}`
         );
     });
@@ -1280,10 +1280,10 @@ Deno.test('PgslNumericBuildInFunction-clamp', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=2.5;` +
-            `let lowValue:f32=1.0;` +
-            `let highValue:f32=3.0;` +
-            `let resultValue:f32=clamp(inputValue,lowValue,highValue);` +
+            `var inputValue:f32=2.5;` +
+            `var lowValue:f32=1.0;` +
+            `var highValue:f32=3.0;` +
+            `var resultValue:f32=clamp(inputValue,lowValue,highValue);` +
             `}`
         );
     });
@@ -1308,10 +1308,10 @@ Deno.test('PgslNumericBuildInFunction-clamp', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(2.5,0.5);` +
-            `let lowValue:vec2<f32>=vec2(1.0,0.0);` +
-            `let highValue:vec2<f32>=vec2(3.0,1.0);` +
-            `let resultValue:vec2<f32>=clamp(inputValue,lowValue,highValue);` +
+            `var inputValue:vec2<f32>=vec2(2.5,0.5);` +
+            `var lowValue:vec2<f32>=vec2(1.0,0.0);` +
+            `var highValue:vec2<f32>=vec2(3.0,1.0);` +
+            `var resultValue:vec2<f32>=clamp(inputValue,lowValue,highValue);` +
             `}`
         );
     });
@@ -1336,8 +1336,8 @@ Deno.test('PgslNumericBuildInFunction-cos', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=0.0;` +
-            `let resultValue:f32=cos(inputValue);` +
+            `var inputValue:f32=0.0;` +
+            `var resultValue:f32=cos(inputValue);` +
             `}`
         );
     });
@@ -1360,8 +1360,8 @@ Deno.test('PgslNumericBuildInFunction-cos', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(0.0,1.57);` +
-            `let resultValue:vec2<f32>=cos(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(0.0,1.57);` +
+            `var resultValue:vec2<f32>=cos(inputValue);` +
             `}`
         );
     });
@@ -1386,8 +1386,8 @@ Deno.test('PgslNumericBuildInFunction-cosh', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=0.5;` +
-            `let resultValue:f32=cosh(inputValue);` +
+            `var inputValue:f32=0.5;` +
+            `var resultValue:f32=cosh(inputValue);` +
             `}`
         );
     });
@@ -1410,8 +1410,8 @@ Deno.test('PgslNumericBuildInFunction-cosh', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(0.5,1.0);` +
-            `let resultValue:vec2<f32>=cosh(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(0.5,1.0);` +
+            `var resultValue:vec2<f32>=cosh(inputValue);` +
             `}`
         );
     });
@@ -1436,8 +1436,8 @@ Deno.test('PgslNumericBuildInFunction-countLeadingZeros', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:i32=8;` +
-            `let resultValue:i32=countLeadingZeros(inputValue);` +
+            `var inputValue:i32=8;` +
+            `var resultValue:i32=countLeadingZeros(inputValue);` +
             `}`
         );
     });
@@ -1460,8 +1460,8 @@ Deno.test('PgslNumericBuildInFunction-countLeadingZeros', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<i32>=vec2(8,16);` +
-            `let resultValue:vec2<i32>=countLeadingZeros(inputValue);` +
+            `var inputValue:vec2<i32>=vec2(8,16);` +
+            `var resultValue:vec2<i32>=countLeadingZeros(inputValue);` +
             `}`
         );
     });
@@ -1486,8 +1486,8 @@ Deno.test('PgslNumericBuildInFunction-countOneBits', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:i32=15;` +
-            `let resultValue:i32=countOneBits(inputValue);` +
+            `var inputValue:i32=15;` +
+            `var resultValue:i32=countOneBits(inputValue);` +
             `}`
         );
     });
@@ -1510,8 +1510,8 @@ Deno.test('PgslNumericBuildInFunction-countOneBits', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<i32>=vec2(15,7);` +
-            `let resultValue:vec2<i32>=countOneBits(inputValue);` +
+            `var inputValue:vec2<i32>=vec2(15,7);` +
+            `var resultValue:vec2<i32>=countOneBits(inputValue);` +
             `}`
         );
     });
@@ -1536,8 +1536,8 @@ Deno.test('PgslNumericBuildInFunction-countTrailingZeros', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:i32=8;` +
-            `let resultValue:i32=countTrailingZeros(inputValue);` +
+            `var inputValue:i32=8;` +
+            `var resultValue:i32=countTrailingZeros(inputValue);` +
             `}`
         );
     });
@@ -1560,8 +1560,8 @@ Deno.test('PgslNumericBuildInFunction-countTrailingZeros', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<i32>=vec2(8,16);` +
-            `let resultValue:vec2<i32>=countTrailingZeros(inputValue);` +
+            `var inputValue:vec2<i32>=vec2(8,16);` +
+            `var resultValue:vec2<i32>=countTrailingZeros(inputValue);` +
             `}`
         );
     });
@@ -1587,9 +1587,9 @@ Deno.test('PgslNumericBuildInFunction-cross', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let aValue:vec3<f32>=vec3(1.0,0.0,0.0);` +
-            `let bValue:vec3<f32>=vec3(0.0,1.0,0.0);` +
-            `let resultValue:vec3<f32>=cross(aValue,bValue);` +
+            `var aValue:vec3<f32>=vec3(1.0,0.0,0.0);` +
+            `var bValue:vec3<f32>=vec3(0.0,1.0,0.0);` +
+            `var resultValue:vec3<f32>=cross(aValue,bValue);` +
             `}`
         );
     });
@@ -1614,8 +1614,8 @@ Deno.test('PgslNumericBuildInFunction-degrees', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=3.14159;` +
-            `let resultValue:f32=degrees(inputValue);` +
+            `var inputValue:f32=3.14159;` +
+            `var resultValue:f32=degrees(inputValue);` +
             `}`
         );
     });
@@ -1638,8 +1638,8 @@ Deno.test('PgslNumericBuildInFunction-degrees', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(3.14159,1.5708);` +
-            `let resultValue:vec2<f32>=degrees(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(3.14159,1.5708);` +
+            `var resultValue:vec2<f32>=degrees(inputValue);` +
             `}`
         );
     });
@@ -1664,8 +1664,8 @@ Deno.test('PgslNumericBuildInFunction-determinant', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:mat2x2<f32>=mat2x2(1.0,2.0,3.0,4.0);` +
-            `let resultValue:f32=determinant(inputValue);` +
+            `var inputValue:mat2x2<f32>=mat2x2(1.0,2.0,3.0,4.0);` +
+            `var resultValue:f32=determinant(inputValue);` +
             `}`
         );
     });
@@ -1691,9 +1691,9 @@ Deno.test('PgslNumericBuildInFunction-distance', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let value1:f32=1.0;` +
-            `let value2:f32=4.0;` +
-            `let resultValue:f32=distance(value1,value2);` +
+            `var value1:f32=1.0;` +
+            `var value2:f32=4.0;` +
+            `var resultValue:f32=distance(value1,value2);` +
             `}`
         );
     });
@@ -1717,9 +1717,9 @@ Deno.test('PgslNumericBuildInFunction-distance', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let value1:vec2<f32>=vec2(0.0,0.0);` +
-            `let value2:vec2<f32>=vec2(3.0,4.0);` +
-            `let resultValue:f32=distance(value1,value2);` +
+            `var value1:vec2<f32>=vec2(0.0,0.0);` +
+            `var value2:vec2<f32>=vec2(3.0,4.0);` +
+            `var resultValue:f32=distance(value1,value2);` +
             `}`
         );
     });
@@ -1745,9 +1745,9 @@ Deno.test('PgslNumericBuildInFunction-dot', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let value1:vec2<i32>=vec2(1,2);` +
-            `let value2:vec2<i32>=vec2(3,4);` +
-            `let resultValue:i32=dot(value1,value2);` +
+            `var value1:vec2<i32>=vec2(1,2);` +
+            `var value2:vec2<i32>=vec2(3,4);` +
+            `var resultValue:i32=dot(value1,value2);` +
             `}`
         );
     });
@@ -1771,9 +1771,9 @@ Deno.test('PgslNumericBuildInFunction-dot', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let value1:vec2<f32>=vec2(1.0,2.0);` +
-            `let value2:vec2<f32>=vec2(3.0,4.0);` +
-            `let resultValue:f32=dot(value1,value2);` +
+            `var value1:vec2<f32>=vec2(1.0,2.0);` +
+            `var value2:vec2<f32>=vec2(3.0,4.0);` +
+            `var resultValue:f32=dot(value1,value2);` +
             `}`
         );
     });
@@ -1799,9 +1799,9 @@ Deno.test('PgslNumericBuildInFunction-dot4U8Packed', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let value1:u32=0u;` +
-            `let value2:u32=0u;` +
-            `let resultValue:u32=dot4U8Packed(value1,value2);` +
+            `var value1:u32=0u;` +
+            `var value2:u32=0u;` +
+            `var resultValue:u32=dot4U8Packed(value1,value2);` +
             `}`
         );
     });
@@ -1827,9 +1827,9 @@ Deno.test('PgslNumericBuildInFunction-dot4I8Packed', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let value1:u32=0u;` +
-            `let value2:u32=0u;` +
-            `let resultValue:i32=dot4I8Packed(value1,value2);` +
+            `var value1:u32=0u;` +
+            `var value2:u32=0u;` +
+            `var resultValue:i32=dot4I8Packed(value1,value2);` +
             `}`
         );
     });
@@ -1854,8 +1854,8 @@ Deno.test('PgslNumericBuildInFunction-exp', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=1.0;` +
-            `let resultValue:f32=exp(inputValue);` +
+            `var inputValue:f32=1.0;` +
+            `var resultValue:f32=exp(inputValue);` +
             `}`
         );
     });
@@ -1878,8 +1878,8 @@ Deno.test('PgslNumericBuildInFunction-exp', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(1.0,2.0);` +
-            `let resultValue:vec2<f32>=exp(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(1.0,2.0);` +
+            `var resultValue:vec2<f32>=exp(inputValue);` +
             `}`
         );
     });
@@ -1904,8 +1904,8 @@ Deno.test('PgslNumericBuildInFunction-exp2', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=3.0;` +
-            `let resultValue:f32=exp2(inputValue);` +
+            `var inputValue:f32=3.0;` +
+            `var resultValue:f32=exp2(inputValue);` +
             `}`
         );
     });
@@ -1928,8 +1928,8 @@ Deno.test('PgslNumericBuildInFunction-exp2', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(3.0,4.0);` +
-            `let resultValue:vec2<f32>=exp2(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(3.0,4.0);` +
+            `var resultValue:vec2<f32>=exp2(inputValue);` +
             `}`
         );
     });
@@ -1956,10 +1956,10 @@ Deno.test('PgslNumericBuildInFunction-extractBits', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:i32=15;` +
-            `let offsetValue:u32=0u;` +
-            `let countValue:u32=4u;` +
-            `let resultValue:i32=extractBits(inputValue,offsetValue,countValue);` +
+            `var inputValue:i32=15;` +
+            `var offsetValue:u32=0u;` +
+            `var countValue:u32=4u;` +
+            `var resultValue:i32=extractBits(inputValue,offsetValue,countValue);` +
             `}`
         );
     });
@@ -1984,10 +1984,10 @@ Deno.test('PgslNumericBuildInFunction-extractBits', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<i32>=vec2(15,255);` +
-            `let offsetValue:u32=0u;` +
-            `let countValue:u32=4u;` +
-            `let resultValue:vec2<i32>=extractBits(inputValue,offsetValue,countValue);` +
+            `var inputValue:vec2<i32>=vec2(15,255);` +
+            `var offsetValue:u32=0u;` +
+            `var countValue:u32=4u;` +
+            `var resultValue:vec2<i32>=extractBits(inputValue,offsetValue,countValue);` +
             `}`
         );
     });
@@ -2012,8 +2012,8 @@ Deno.test('PgslNumericBuildInFunction-floor', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=1.9;` +
-            `let resultValue:f32=floor(inputValue);` +
+            `var inputValue:f32=1.9;` +
+            `var resultValue:f32=floor(inputValue);` +
             `}`
         );
     });
@@ -2036,8 +2036,8 @@ Deno.test('PgslNumericBuildInFunction-floor', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(1.9,2.3);` +
-            `let resultValue:vec2<f32>=floor(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(1.9,2.3);` +
+            `var resultValue:vec2<f32>=floor(inputValue);` +
             `}`
         );
     });
@@ -2064,10 +2064,10 @@ Deno.test('PgslNumericBuildInFunction-fma', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let value1:f32=2.0;` +
-            `let value2:f32=3.0;` +
-            `let value3:f32=4.0;` +
-            `let resultValue:f32=fma(value1,value2,value3);` +
+            `var value1:f32=2.0;` +
+            `var value2:f32=3.0;` +
+            `var value3:f32=4.0;` +
+            `var resultValue:f32=fma(value1,value2,value3);` +
             `}`
         );
     });
@@ -2092,10 +2092,10 @@ Deno.test('PgslNumericBuildInFunction-fma', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let value1:vec2<f32>=vec2(2.0,3.0);` +
-            `let value2:vec2<f32>=vec2(3.0,2.0);` +
-            `let value3:vec2<f32>=vec2(4.0,5.0);` +
-            `let resultValue:vec2<f32>=fma(value1,value2,value3);` +
+            `var value1:vec2<f32>=vec2(2.0,3.0);` +
+            `var value2:vec2<f32>=vec2(3.0,2.0);` +
+            `var value3:vec2<f32>=vec2(4.0,5.0);` +
+            `var resultValue:vec2<f32>=fma(value1,value2,value3);` +
             `}`
         );
     });
@@ -2120,8 +2120,8 @@ Deno.test('PgslNumericBuildInFunction-fract', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=3.7;` +
-            `let resultValue:f32=fract(inputValue);` +
+            `var inputValue:f32=3.7;` +
+            `var resultValue:f32=fract(inputValue);` +
             `}`
         );
     });
@@ -2144,8 +2144,8 @@ Deno.test('PgslNumericBuildInFunction-fract', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(3.7,2.3);` +
-            `let resultValue:vec2<f32>=fract(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(3.7,2.3);` +
+            `var resultValue:vec2<f32>=fract(inputValue);` +
             `}`
         );
     });
@@ -2170,8 +2170,8 @@ Deno.test('PgslNumericBuildInFunction-inverseSqrt', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=4.0;` +
-            `let resultValue:f32=inverseSqrt(inputValue);` +
+            `var inputValue:f32=4.0;` +
+            `var resultValue:f32=inverseSqrt(inputValue);` +
             `}`
         );
     });
@@ -2194,8 +2194,8 @@ Deno.test('PgslNumericBuildInFunction-inverseSqrt', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(4.0,9.0);` +
-            `let resultValue:vec2<f32>=inverseSqrt(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(4.0,9.0);` +
+            `var resultValue:vec2<f32>=inverseSqrt(inputValue);` +
             `}`
         );
     });
@@ -2220,8 +2220,8 @@ Deno.test('PgslNumericBuildInFunction-length', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=3.0;` +
-            `let resultValue:f32=length(inputValue);` +
+            `var inputValue:f32=3.0;` +
+            `var resultValue:f32=length(inputValue);` +
             `}`
         );
     });
@@ -2244,8 +2244,8 @@ Deno.test('PgslNumericBuildInFunction-length', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(3.0,4.0);` +
-            `let resultValue:f32=length(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(3.0,4.0);` +
+            `var resultValue:f32=length(inputValue);` +
             `}`
         );
     });
@@ -2270,8 +2270,8 @@ Deno.test('PgslNumericBuildInFunction-log', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=2.718;` +
-            `let resultValue:f32=log(inputValue);` +
+            `var inputValue:f32=2.718;` +
+            `var resultValue:f32=log(inputValue);` +
             `}`
         );
     });
@@ -2294,8 +2294,8 @@ Deno.test('PgslNumericBuildInFunction-log', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(2.718,10.0);` +
-            `let resultValue:vec2<f32>=log(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(2.718,10.0);` +
+            `var resultValue:vec2<f32>=log(inputValue);` +
             `}`
         );
     });
@@ -2320,8 +2320,8 @@ Deno.test('PgslNumericBuildInFunction-log2', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=8.0;` +
-            `let resultValue:f32=log2(inputValue);` +
+            `var inputValue:f32=8.0;` +
+            `var resultValue:f32=log2(inputValue);` +
             `}`
         );
     });
@@ -2344,8 +2344,8 @@ Deno.test('PgslNumericBuildInFunction-log2', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(8.0,16.0);` +
-            `let resultValue:vec2<f32>=log2(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(8.0,16.0);` +
+            `var resultValue:vec2<f32>=log2(inputValue);` +
             `}`
         );
     });
@@ -2371,9 +2371,9 @@ Deno.test('PgslNumericBuildInFunction-max', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let value1:f32=5.0;` +
-            `let value2:f32=3.0;` +
-            `let resultValue:f32=max(value1,value2);` +
+            `var value1:f32=5.0;` +
+            `var value2:f32=3.0;` +
+            `var resultValue:f32=max(value1,value2);` +
             `}`
         );
     });
@@ -2397,9 +2397,9 @@ Deno.test('PgslNumericBuildInFunction-max', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let value1:vec2<f32>=vec2(5.0,2.0);` +
-            `let value2:vec2<f32>=vec2(3.0,8.0);` +
-            `let resultValue:vec2<f32>=max(value1,value2);` +
+            `var value1:vec2<f32>=vec2(5.0,2.0);` +
+            `var value2:vec2<f32>=vec2(3.0,8.0);` +
+            `var resultValue:vec2<f32>=max(value1,value2);` +
             `}`
         );
     });
@@ -2425,9 +2425,9 @@ Deno.test('PgslNumericBuildInFunction-min', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let value1:f32=5.0;` +
-            `let value2:f32=3.0;` +
-            `let resultValue:f32=min(value1,value2);` +
+            `var value1:f32=5.0;` +
+            `var value2:f32=3.0;` +
+            `var resultValue:f32=min(value1,value2);` +
             `}`
         );
     });
@@ -2451,9 +2451,9 @@ Deno.test('PgslNumericBuildInFunction-min', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let value1:vec2<f32>=vec2(5.0,2.0);` +
-            `let value2:vec2<f32>=vec2(3.0,8.0);` +
-            `let resultValue:vec2<f32>=min(value1,value2);` +
+            `var value1:vec2<f32>=vec2(5.0,2.0);` +
+            `var value2:vec2<f32>=vec2(3.0,8.0);` +
+            `var resultValue:vec2<f32>=min(value1,value2);` +
             `}`
         );
     });
@@ -2479,9 +2479,9 @@ Deno.test('PgslNumericBuildInFunction-pow', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let baseValue:f32=2.0;` +
-            `let expValue:f32=3.0;` +
-            `let resultValue:f32=pow(baseValue,expValue);` +
+            `var baseValue:f32=2.0;` +
+            `var expValue:f32=3.0;` +
+            `var resultValue:f32=pow(baseValue,expValue);` +
             `}`
         );
     });
@@ -2505,9 +2505,9 @@ Deno.test('PgslNumericBuildInFunction-pow', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let baseValue:vec2<f32>=vec2(2.0,3.0);` +
-            `let expValue:vec2<f32>=vec2(3.0,2.0);` +
-            `let resultValue:vec2<f32>=pow(baseValue,expValue);` +
+            `var baseValue:vec2<f32>=vec2(2.0,3.0);` +
+            `var expValue:vec2<f32>=vec2(3.0,2.0);` +
+            `var resultValue:vec2<f32>=pow(baseValue,expValue);` +
             `}`
         );
     });
@@ -2532,8 +2532,8 @@ Deno.test('PgslNumericBuildInFunction-radians', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=180.0;` +
-            `let resultValue:f32=radians(inputValue);` +
+            `var inputValue:f32=180.0;` +
+            `var resultValue:f32=radians(inputValue);` +
             `}`
         );
     });
@@ -2556,8 +2556,8 @@ Deno.test('PgslNumericBuildInFunction-radians', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(180.0,90.0);` +
-            `let resultValue:vec2<f32>=radians(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(180.0,90.0);` +
+            `var resultValue:vec2<f32>=radians(inputValue);` +
             `}`
         );
     });
@@ -2582,8 +2582,8 @@ Deno.test('PgslNumericBuildInFunction-sign', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=-5.5;` +
-            `let resultValue:f32=sign(inputValue);` +
+            `var inputValue:f32=-5.5;` +
+            `var resultValue:f32=sign(inputValue);` +
             `}`
         );
     });
@@ -2606,8 +2606,8 @@ Deno.test('PgslNumericBuildInFunction-sign', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(-5.5,2.0);` +
-            `let resultValue:vec2<f32>=sign(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(-5.5,2.0);` +
+            `var resultValue:vec2<f32>=sign(inputValue);` +
             `}`
         );
     });
@@ -2632,8 +2632,8 @@ Deno.test('PgslNumericBuildInFunction-sin', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=0.0;` +
-            `let resultValue:f32=sin(inputValue);` +
+            `var inputValue:f32=0.0;` +
+            `var resultValue:f32=sin(inputValue);` +
             `}`
         );
     });
@@ -2656,8 +2656,8 @@ Deno.test('PgslNumericBuildInFunction-sin', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(0.0,1.57);` +
-            `let resultValue:vec2<f32>=sin(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(0.0,1.57);` +
+            `var resultValue:vec2<f32>=sin(inputValue);` +
             `}`
         );
     });
@@ -2682,8 +2682,8 @@ Deno.test('PgslNumericBuildInFunction-sinh', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=0.5;` +
-            `let resultValue:f32=sinh(inputValue);` +
+            `var inputValue:f32=0.5;` +
+            `var resultValue:f32=sinh(inputValue);` +
             `}`
         );
     });
@@ -2706,8 +2706,8 @@ Deno.test('PgslNumericBuildInFunction-sinh', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(0.5,1.0);` +
-            `let resultValue:vec2<f32>=sinh(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(0.5,1.0);` +
+            `var resultValue:vec2<f32>=sinh(inputValue);` +
             `}`
         );
     });
@@ -2732,8 +2732,8 @@ Deno.test('PgslNumericBuildInFunction-sqrt', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=9.0;` +
-            `let resultValue:f32=sqrt(inputValue);` +
+            `var inputValue:f32=9.0;` +
+            `var resultValue:f32=sqrt(inputValue);` +
             `}`
         );
     });
@@ -2756,8 +2756,8 @@ Deno.test('PgslNumericBuildInFunction-sqrt', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(9.0,16.0);` +
-            `let resultValue:vec2<f32>=sqrt(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(9.0,16.0);` +
+            `var resultValue:vec2<f32>=sqrt(inputValue);` +
             `}`
         );
     });
@@ -2783,9 +2783,9 @@ Deno.test('PgslNumericBuildInFunction-step', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let edgeValue:f32=0.5;` +
-            `let xValue:f32=0.7;` +
-            `let resultValue:f32=step(edgeValue,xValue);` +
+            `var edgeValue:f32=0.5;` +
+            `var xValue:f32=0.7;` +
+            `var resultValue:f32=step(edgeValue,xValue);` +
             `}`
         );
     });
@@ -2809,9 +2809,9 @@ Deno.test('PgslNumericBuildInFunction-step', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let edgeValue:vec2<f32>=vec2(0.5,0.3);` +
-            `let xValue:vec2<f32>=vec2(0.7,0.2);` +
-            `let resultValue:vec2<f32>=step(edgeValue,xValue);` +
+            `var edgeValue:vec2<f32>=vec2(0.5,0.3);` +
+            `var xValue:vec2<f32>=vec2(0.7,0.2);` +
+            `var resultValue:vec2<f32>=step(edgeValue,xValue);` +
             `}`
         );
     });
@@ -2836,8 +2836,8 @@ Deno.test('PgslNumericBuildInFunction-tan', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=0.785;` +
-            `let resultValue:f32=tan(inputValue);` +
+            `var inputValue:f32=0.785;` +
+            `var resultValue:f32=tan(inputValue);` +
             `}`
         );
     });
@@ -2860,8 +2860,8 @@ Deno.test('PgslNumericBuildInFunction-tan', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(0.785,1.57);` +
-            `let resultValue:vec2<f32>=tan(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(0.785,1.57);` +
+            `var resultValue:vec2<f32>=tan(inputValue);` +
             `}`
         );
     });
@@ -2886,8 +2886,8 @@ Deno.test('PgslNumericBuildInFunction-tanh', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=0.5;` +
-            `let resultValue:f32=tanh(inputValue);` +
+            `var inputValue:f32=0.5;` +
+            `var resultValue:f32=tanh(inputValue);` +
             `}`
         );
     });
@@ -2910,8 +2910,8 @@ Deno.test('PgslNumericBuildInFunction-tanh', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(0.5,1.0);` +
-            `let resultValue:vec2<f32>=tanh(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(0.5,1.0);` +
+            `var resultValue:vec2<f32>=tanh(inputValue);` +
             `}`
         );
     });
@@ -2936,8 +2936,8 @@ Deno.test('PgslNumericBuildInFunction-trunc', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=3.7;` +
-            `let resultValue:f32=trunc(inputValue);` +
+            `var inputValue:f32=3.7;` +
+            `var resultValue:f32=trunc(inputValue);` +
             `}`
         );
     });
@@ -2960,8 +2960,8 @@ Deno.test('PgslNumericBuildInFunction-trunc', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(3.7,2.3);` +
-            `let resultValue:vec2<f32>=trunc(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(3.7,2.3);` +
+            `var resultValue:vec2<f32>=trunc(inputValue);` +
             `}`
         );
     });
@@ -2988,10 +2988,10 @@ Deno.test('PgslNumericBuildInFunction-faceForward', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let value1:vec2<f32>=vec2(1.0,0.0);` +
-            `let value2:vec2<f32>=vec2(0.0,1.0);` +
-            `let value3:vec2<f32>=vec2(-1.0,0.0);` +
-            `let resultValue:vec2<f32>=faceForward(value1,value2,value3);` +
+            `var value1:vec2<f32>=vec2(1.0,0.0);` +
+            `var value2:vec2<f32>=vec2(0.0,1.0);` +
+            `var value3:vec2<f32>=vec2(-1.0,0.0);` +
+            `var resultValue:vec2<f32>=faceForward(value1,value2,value3);` +
             `}`
         );
     });
@@ -3016,8 +3016,8 @@ Deno.test('PgslNumericBuildInFunction-firstLeadingBit', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:i32=8;` +
-            `let resultValue:i32=firstLeadingBit(inputValue);` +
+            `var inputValue:i32=8;` +
+            `var resultValue:i32=firstLeadingBit(inputValue);` +
             `}`
         );
     });
@@ -3040,8 +3040,8 @@ Deno.test('PgslNumericBuildInFunction-firstLeadingBit', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<i32>=vec2(8,16);` +
-            `let resultValue:vec2<i32>=firstLeadingBit(inputValue);` +
+            `var inputValue:vec2<i32>=vec2(8,16);` +
+            `var resultValue:vec2<i32>=firstLeadingBit(inputValue);` +
             `}`
         );
     });
@@ -3066,8 +3066,8 @@ Deno.test('PgslNumericBuildInFunction-firstTrailingBit', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:i32=8;` +
-            `let resultValue:i32=firstTrailingBit(inputValue);` +
+            `var inputValue:i32=8;` +
+            `var resultValue:i32=firstTrailingBit(inputValue);` +
             `}`
         );
     });
@@ -3090,8 +3090,8 @@ Deno.test('PgslNumericBuildInFunction-firstTrailingBit', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<i32>=vec2(8,16);` +
-            `let resultValue:vec2<i32>=firstTrailingBit(inputValue);` +
+            `var inputValue:vec2<i32>=vec2(8,16);` +
+            `var resultValue:vec2<i32>=firstTrailingBit(inputValue);` +
             `}`
         );
     });
@@ -3119,11 +3119,11 @@ Deno.test('PgslNumericBuildInFunction-insertBits', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:i32=0;` +
-            `let newbitsValue:i32=15;` +
-            `let offsetValue:u32=0u;` +
-            `let countValue:u32=4u;` +
-            `let resultValue:i32=insertBits(inputValue,newbitsValue,offsetValue,countValue);` +
+            `var inputValue:i32=0;` +
+            `var newbitsValue:i32=15;` +
+            `var offsetValue:u32=0u;` +
+            `var countValue:u32=4u;` +
+            `var resultValue:i32=insertBits(inputValue,newbitsValue,offsetValue,countValue);` +
             `}`
         );
     });
@@ -3149,11 +3149,11 @@ Deno.test('PgslNumericBuildInFunction-insertBits', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<i32>=vec2(0,0);` +
-            `let newbitsValue:vec2<i32>=vec2(15,7);` +
-            `let offsetValue:u32=0u;` +
-            `let countValue:u32=4u;` +
-            `let resultValue:vec2<i32>=insertBits(inputValue,newbitsValue,offsetValue,countValue);` +
+            `var inputValue:vec2<i32>=vec2(0,0);` +
+            `var newbitsValue:vec2<i32>=vec2(15,7);` +
+            `var offsetValue:u32=0u;` +
+            `var countValue:u32=4u;` +
+            `var resultValue:vec2<i32>=insertBits(inputValue,newbitsValue,offsetValue,countValue);` +
             `}`
         );
     });
@@ -3180,10 +3180,10 @@ Deno.test('PgslNumericBuildInFunction-mix', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let value1:f32=1.0;` +
-            `let value2:f32=2.0;` +
-            `let value3:f32=0.5;` +
-            `let resultValue:f32=mix(value1,value2,value3);` +
+            `var value1:f32=1.0;` +
+            `var value2:f32=2.0;` +
+            `var value3:f32=0.5;` +
+            `var resultValue:f32=mix(value1,value2,value3);` +
             `}`
         );
     });
@@ -3208,10 +3208,10 @@ Deno.test('PgslNumericBuildInFunction-mix', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let value1:vec2<f32>=vec2(1.0,2.0);` +
-            `let value2:vec2<f32>=vec2(3.0,4.0);` +
-            `let value3:vec2<f32>=vec2(0.5,0.5);` +
-            `let resultValue:vec2<f32>=mix(value1,value2,value3);` +
+            `var value1:vec2<f32>=vec2(1.0,2.0);` +
+            `var value2:vec2<f32>=vec2(3.0,4.0);` +
+            `var value3:vec2<f32>=vec2(0.5,0.5);` +
+            `var resultValue:vec2<f32>=mix(value1,value2,value3);` +
             `}`
         );
     });
@@ -3236,8 +3236,8 @@ Deno.test('PgslNumericBuildInFunction-normalize', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(3.0,4.0);` +
-            `let resultValue:vec2<f32>=normalize(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(3.0,4.0);` +
+            `var resultValue:vec2<f32>=normalize(inputValue);` +
             `}`
         );
     });
@@ -3262,8 +3262,8 @@ Deno.test('PgslNumericBuildInFunction-quantizeToF16', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=1.5;` +
-            `let resultValue:f32=quantizeToF16(inputValue);` +
+            `var inputValue:f32=1.5;` +
+            `var resultValue:f32=quantizeToF16(inputValue);` +
             `}`
         );
     });
@@ -3286,8 +3286,8 @@ Deno.test('PgslNumericBuildInFunction-quantizeToF16', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(1.5,2.5);` +
-            `let resultValue:vec2<f32>=quantizeToF16(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(1.5,2.5);` +
+            `var resultValue:vec2<f32>=quantizeToF16(inputValue);` +
             `}`
         );
     });
@@ -3313,9 +3313,9 @@ Deno.test('PgslNumericBuildInFunction-reflect', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let value1:vec2<f32>=vec2(1.0,1.0);` +
-            `let value2:vec2<f32>=vec2(0.0,-1.0);` +
-            `let resultValue:vec2<f32>=reflect(value1,value2);` +
+            `var value1:vec2<f32>=vec2(1.0,1.0);` +
+            `var value2:vec2<f32>=vec2(0.0,-1.0);` +
+            `var resultValue:vec2<f32>=reflect(value1,value2);` +
             `}`
         );
     });
@@ -3340,8 +3340,8 @@ Deno.test('PgslNumericBuildInFunction-reverseBits', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:i32=5;` +
-            `let resultValue:i32=reverseBits(inputValue);` +
+            `var inputValue:i32=5;` +
+            `var resultValue:i32=reverseBits(inputValue);` +
             `}`
         );
     });
@@ -3364,8 +3364,8 @@ Deno.test('PgslNumericBuildInFunction-reverseBits', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<i32>=vec2(5,10);` +
-            `let resultValue:vec2<i32>=reverseBits(inputValue);` +
+            `var inputValue:vec2<i32>=vec2(5,10);` +
+            `var resultValue:vec2<i32>=reverseBits(inputValue);` +
             `}`
         );
     });
@@ -3390,8 +3390,8 @@ Deno.test('PgslNumericBuildInFunction-round', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=3.7;` +
-            `let resultValue:f32=round(inputValue);` +
+            `var inputValue:f32=3.7;` +
+            `var resultValue:f32=round(inputValue);` +
             `}`
         );
     });
@@ -3414,8 +3414,8 @@ Deno.test('PgslNumericBuildInFunction-round', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(3.7,2.3);` +
-            `let resultValue:vec2<f32>=round(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(3.7,2.3);` +
+            `var resultValue:vec2<f32>=round(inputValue);` +
             `}`
         );
     });
@@ -3440,8 +3440,8 @@ Deno.test('PgslNumericBuildInFunction-saturate', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=1.5;` +
-            `let resultValue:f32=saturate(inputValue);` +
+            `var inputValue:f32=1.5;` +
+            `var resultValue:f32=saturate(inputValue);` +
             `}`
         );
     });
@@ -3464,8 +3464,8 @@ Deno.test('PgslNumericBuildInFunction-saturate', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(1.5,-0.5);` +
-            `let resultValue:vec2<f32>=saturate(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(1.5,-0.5);` +
+            `var resultValue:vec2<f32>=saturate(inputValue);` +
             `}`
         );
     });
@@ -3492,10 +3492,10 @@ Deno.test('PgslNumericBuildInFunction-smoothstep', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let edge0Value:f32=0.0;` +
-            `let edge1Value:f32=1.0;` +
-            `let xValue:f32=0.5;` +
-            `let resultValue:f32=smoothstep(edge0Value,edge1Value,xValue);` +
+            `var edge0Value:f32=0.0;` +
+            `var edge1Value:f32=1.0;` +
+            `var xValue:f32=0.5;` +
+            `var resultValue:f32=smoothstep(edge0Value,edge1Value,xValue);` +
             `}`
         );
     });
@@ -3520,10 +3520,10 @@ Deno.test('PgslNumericBuildInFunction-smoothstep', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let edge0Value:vec2<f32>=vec2(0.0,0.0);` +
-            `let edge1Value:vec2<f32>=vec2(1.0,1.0);` +
-            `let xValue:vec2<f32>=vec2(0.5,0.3);` +
-            `let resultValue:vec2<f32>=smoothstep(edge0Value,edge1Value,xValue);` +
+            `var edge0Value:vec2<f32>=vec2(0.0,0.0);` +
+            `var edge1Value:vec2<f32>=vec2(1.0,1.0);` +
+            `var xValue:vec2<f32>=vec2(0.5,0.3);` +
+            `var resultValue:vec2<f32>=smoothstep(edge0Value,edge1Value,xValue);` +
             `}`
         );
     });
@@ -3548,8 +3548,8 @@ Deno.test('PgslNumericBuildInFunction-transpose', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:mat2x2<f32>=mat2x2(1.0,2.0,3.0,4.0);` +
-            `let resultValue:mat2x2<f32>=transpose(inputValue);` +
+            `var inputValue:mat2x2<f32>=mat2x2(1.0,2.0,3.0,4.0);` +
+            `var resultValue:mat2x2<f32>=transpose(inputValue);` +
             `}`
         );
     });
@@ -3575,9 +3575,9 @@ Deno.test('PgslNumericBuildInFunction-ldexp', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let value1:f32=1.0;` +
-            `let value2:i32=3;` +
-            `let resultValue:f32=ldexp(value1,value2);` +
+            `var value1:f32=1.0;` +
+            `var value2:i32=3;` +
+            `var resultValue:f32=ldexp(value1,value2);` +
             `}`
         );
     });
@@ -3601,9 +3601,9 @@ Deno.test('PgslNumericBuildInFunction-ldexp', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let value1:vec2<f32>=vec2(1.0,2.0);` +
-            `let value2:vec2<i32>=vec2(3,2);` +
-            `let resultValue:vec2<f32>=ldexp(value1,value2);` +
+            `var value1:vec2<f32>=vec2(1.0,2.0);` +
+            `var value2:vec2<i32>=vec2(3,2);` +
+            `var resultValue:vec2<f32>=ldexp(value1,value2);` +
             `}`
         );
     });
@@ -3630,10 +3630,10 @@ Deno.test('PgslNumericBuildInFunction-refract', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let value1:vec2<f32>=vec2(1.0,0.0);` +
-            `let value2:vec2<f32>=vec2(0.0,-1.0);` +
-            `let value3:f32=1.5;` +
-            `let resultValue:vec2<f32>=refract(value1,value2,value3);` +
+            `var value1:vec2<f32>=vec2(1.0,0.0);` +
+            `var value2:vec2<f32>=vec2(0.0,-1.0);` +
+            `var value3:f32=1.5;` +
+            `var resultValue:vec2<f32>=refract(value1,value2,value3);` +
             `}`
         );
     });
@@ -3658,10 +3658,10 @@ Deno.test('PgslNumericBuildInFunction-refract', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let value1:vec3<f32>=vec3(1.0,0.0,0.0);` +
-            `let value2:vec3<f32>=vec3(0.0,-1.0,0.0);` +
-            `let value3:f32=1.5;` +
-            `let resultValue:vec3<f32>=refract(value1,value2,value3);` +
+            `var value1:vec3<f32>=vec3(1.0,0.0,0.0);` +
+            `var value2:vec3<f32>=vec3(0.0,-1.0,0.0);` +
+            `var value3:f32=1.5;` +
+            `var resultValue:vec3<f32>=refract(value1,value2,value3);` +
             `}`
         );
     });
@@ -3686,8 +3686,8 @@ Deno.test('PgslNumericBuildInFunction-all', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:bool=true;` +
-            `let resultValue:bool=all(inputValue);` +
+            `var inputValue:bool=true;` +
+            `var resultValue:bool=all(inputValue);` +
             `}`
         );
     });
@@ -3710,8 +3710,8 @@ Deno.test('PgslNumericBuildInFunction-all', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<bool>=vec2<bool>(true,false);` +
-            `let resultValue:bool=all(inputValue);` +
+            `var inputValue:vec2<bool>=vec2<bool>(true,false);` +
+            `var resultValue:bool=all(inputValue);` +
             `}`
         );
     });
@@ -3736,8 +3736,8 @@ Deno.test('PgslNumericBuildInFunction-any', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:bool=false;` +
-            `let resultValue:bool=any(inputValue);` +
+            `var inputValue:bool=false;` +
+            `var resultValue:bool=any(inputValue);` +
             `}`
         );
     });
@@ -3760,8 +3760,8 @@ Deno.test('PgslNumericBuildInFunction-any', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<bool>=vec2<bool>(false,true);` +
-            `let resultValue:bool=any(inputValue);` +
+            `var inputValue:vec2<bool>=vec2<bool>(false,true);` +
+            `var resultValue:bool=any(inputValue);` +
             `}`
         );
     });
@@ -3784,8 +3784,8 @@ Deno.test('PgslNumericBuildInFunction-frexp', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=1.5;` +
-            `let resultValue:__frexp_result_f32=frexp(inputValue);` +
+            `var inputValue:f32=1.5;` +
+            `var resultValue:__frexp_result_f32=frexp(inputValue);` +
             `}`
         );
     });
@@ -3806,8 +3806,8 @@ Deno.test('PgslNumericBuildInFunction-frexp', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(1.5,2.0);` +
-            `let resultValue:__frexp_result_vec2_f32=frexp(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(1.5,2.0);` +
+            `var resultValue:__frexp_result_vec2_f32=frexp(inputValue);` +
             `}`
         );
     });
@@ -3830,8 +3830,8 @@ Deno.test('PgslNumericBuildInFunction-modf', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=1.5;` +
-            `let resultValue:__modf_result_f32=modf(inputValue);` +
+            `var inputValue:f32=1.5;` +
+            `var resultValue:__modf_result_f32=modf(inputValue);` +
             `}`
         );
     });
@@ -3852,8 +3852,8 @@ Deno.test('PgslNumericBuildInFunction-modf', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(1.5,2.0);` +
-            `let resultValue:__modf_result_vec2_f32=modf(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(1.5,2.0);` +
+            `var resultValue:__modf_result_vec2_f32=modf(inputValue);` +
             `}`
         );
     });
@@ -3878,10 +3878,10 @@ Deno.test('PgslNumericBuildInFunction-select', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let condition:bool=true;` +
-            `let valueA:f32=1.5;` +
-            `let valueB:f32=2.0;` +
-            `let resultValue:f32=select(valueB,valueA,condition);` +
+            `var condition:bool=true;` +
+            `var valueA:f32=1.5;` +
+            `var valueB:f32=2.0;` +
+            `var resultValue:f32=select(valueB,valueA,condition);` +
             `}`
         );
     });
@@ -3904,10 +3904,10 @@ Deno.test('PgslNumericBuildInFunction-select', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let condition:vec2<bool>=vec2<bool>(true,false);` +
-            `let valueA:vec2<f32>=vec2(1.5,2.0);` +
-            `let valueB:vec2<f32>=vec2(2.5,3.0);` +
-            `let resultValue:vec2<f32>=select(valueB,valueA,condition);` +
+            `var condition:vec2<bool>=vec2<bool>(true,false);` +
+            `var valueA:vec2<f32>=vec2(1.5,2.0);` +
+            `var valueB:vec2<f32>=vec2(2.5,3.0);` +
+            `var resultValue:vec2<f32>=select(valueB,valueA,condition);` +
             `}`
         );
     });
@@ -3930,8 +3930,8 @@ Deno.test('PgslNumericBuildInFunction-arrayLength', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let arrayValue:array<f32,2>=array(1.0,2.0);` +
-            `let arrayLength:i32=arrayLength(&arrayValue);` +
+            `var arrayValue:array<f32,2>=array(1.0,2.0);` +
+            `var arrayLength:i32=arrayLength(&arrayValue);` +
             `}`
         );
     });
@@ -3954,8 +3954,8 @@ Deno.test('PgslNumericBuildInFunction-dpdx', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=1.5;` +
-            `let resultValue:f32=dpdx(inputValue);` +
+            `var inputValue:f32=1.5;` +
+            `var resultValue:f32=dpdx(inputValue);` +
             `}`
         );
     });
@@ -3976,8 +3976,8 @@ Deno.test('PgslNumericBuildInFunction-dpdx', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(1.5,2.0);` +
-            `let resultValue:vec2<f32>=dpdx(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(1.5,2.0);` +
+            `var resultValue:vec2<f32>=dpdx(inputValue);` +
             `}`
         );
     });
@@ -4000,8 +4000,8 @@ Deno.test('PgslNumericBuildInFunction-dpdxCoarse', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=1.5;` +
-            `let resultValue:f32=dpdxCoarse(inputValue);` +
+            `var inputValue:f32=1.5;` +
+            `var resultValue:f32=dpdxCoarse(inputValue);` +
             `}`
         );
     });
@@ -4022,8 +4022,8 @@ Deno.test('PgslNumericBuildInFunction-dpdxCoarse', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(1.5,2.0);` +
-            `let resultValue:vec2<f32>=dpdxCoarse(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(1.5,2.0);` +
+            `var resultValue:vec2<f32>=dpdxCoarse(inputValue);` +
             `}`
         );
     });
@@ -4046,8 +4046,8 @@ Deno.test('PgslNumericBuildInFunction-dpdxFine', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=1.5;` +
-            `let resultValue:f32=dpdxFine(inputValue);` +
+            `var inputValue:f32=1.5;` +
+            `var resultValue:f32=dpdxFine(inputValue);` +
             `}`
         );
     });
@@ -4068,8 +4068,8 @@ Deno.test('PgslNumericBuildInFunction-dpdxFine', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(1.5,2.0);` +
-            `let resultValue:vec2<f32>=dpdxFine(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(1.5,2.0);` +
+            `var resultValue:vec2<f32>=dpdxFine(inputValue);` +
             `}`
         );
     });
@@ -4092,8 +4092,8 @@ Deno.test('PgslNumericBuildInFunction-dpdy', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=1.5;` +
-            `let resultValue:f32=dpdy(inputValue);` +
+            `var inputValue:f32=1.5;` +
+            `var resultValue:f32=dpdy(inputValue);` +
             `}`
         );
     });
@@ -4114,8 +4114,8 @@ Deno.test('PgslNumericBuildInFunction-dpdy', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(1.5,2.0);` +
-            `let resultValue:vec2<f32>=dpdy(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(1.5,2.0);` +
+            `var resultValue:vec2<f32>=dpdy(inputValue);` +
             `}`
         );
     });
@@ -4138,8 +4138,8 @@ Deno.test('PgslNumericBuildInFunction-dpdyCoarse', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=1.5;` +
-            `let resultValue:f32=dpdyCoarse(inputValue);` +
+            `var inputValue:f32=1.5;` +
+            `var resultValue:f32=dpdyCoarse(inputValue);` +
             `}`
         );
     });
@@ -4160,8 +4160,8 @@ Deno.test('PgslNumericBuildInFunction-dpdyCoarse', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(1.5,2.0);` +
-            `let resultValue:vec2<f32>=dpdyCoarse(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(1.5,2.0);` +
+            `var resultValue:vec2<f32>=dpdyCoarse(inputValue);` +
             `}`
         );
     });
@@ -4184,8 +4184,8 @@ Deno.test('PgslNumericBuildInFunction-dpdyFine', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=1.5;` +
-            `let resultValue:f32=dpdyFine(inputValue);` +
+            `var inputValue:f32=1.5;` +
+            `var resultValue:f32=dpdyFine(inputValue);` +
             `}`
         );
     });
@@ -4206,8 +4206,8 @@ Deno.test('PgslNumericBuildInFunction-dpdyFine', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(1.5,2.0);` +
-            `let resultValue:vec2<f32>=dpdyFine(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(1.5,2.0);` +
+            `var resultValue:vec2<f32>=dpdyFine(inputValue);` +
             `}`
         );
     });
@@ -4230,8 +4230,8 @@ Deno.test('PgslNumericBuildInFunction-fwidth', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=1.5;` +
-            `let resultValue:f32=fwidth(inputValue);` +
+            `var inputValue:f32=1.5;` +
+            `var resultValue:f32=fwidth(inputValue);` +
             `}`
         );
     });
@@ -4252,8 +4252,8 @@ Deno.test('PgslNumericBuildInFunction-fwidth', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(1.5,2.0);` +
-            `let resultValue:vec2<f32>=fwidth(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(1.5,2.0);` +
+            `var resultValue:vec2<f32>=fwidth(inputValue);` +
             `}`
         );
     });
@@ -4276,8 +4276,8 @@ Deno.test('PgslNumericBuildInFunction-fwidthCoarse', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=1.5;` +
-            `let resultValue:f32=fwidthCoarse(inputValue);` +
+            `var inputValue:f32=1.5;` +
+            `var resultValue:f32=fwidthCoarse(inputValue);` +
             `}`
         );
     });
@@ -4298,8 +4298,8 @@ Deno.test('PgslNumericBuildInFunction-fwidthCoarse', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(1.5,2.0);` +
-            `let resultValue:vec2<f32>=fwidthCoarse(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(1.5,2.0);` +
+            `var resultValue:vec2<f32>=fwidthCoarse(inputValue);` +
             `}`
         );
     });
@@ -4322,8 +4322,8 @@ Deno.test('PgslNumericBuildInFunction-fwidthFine', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:f32=1.5;` +
-            `let resultValue:f32=fwidthFine(inputValue);` +
+            `var inputValue:f32=1.5;` +
+            `var resultValue:f32=fwidthFine(inputValue);` +
             `}`
         );
     });
@@ -4344,8 +4344,8 @@ Deno.test('PgslNumericBuildInFunction-fwidthFine', async (pContext) => {
         expect(lTranspilationResult.incidents).toHaveLength(0);
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let inputValue:vec2<f32>=vec2(1.5,2.0);` +
-            `let resultValue:vec2<f32>=fwidthFine(inputValue);` +
+            `var inputValue:vec2<f32>=vec2(1.5,2.0);` +
+            `var resultValue:vec2<f32>=fwidthFine(inputValue);` +
             `}`
         );
     });

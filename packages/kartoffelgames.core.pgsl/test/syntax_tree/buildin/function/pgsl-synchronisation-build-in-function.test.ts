@@ -100,7 +100,7 @@ Deno.test('PgslSynchronisationBuildInFunction-workgroupUniformLoad', async (pCon
         expect(lTranspilationResult.source).toBe(
             `var<workgroup> sharedValue:i32=42i;` +
             `fn testFunction(){` +
-            `let loadedValue:i32=workgroupUniformLoad(&sharedValue);` +
+            `var loadedValue:i32=workgroupUniformLoad(&sharedValue);` +
             `}`
         );
     });
@@ -124,7 +124,7 @@ Deno.test('PgslSynchronisationBuildInFunction-workgroupUniformLoad', async (pCon
         expect(lTranspilationResult.source).toBe(
             `var<workgroup> sharedValue:f32=3.14f;` +
             `fn testFunction(){` +
-            `let loadedValue:f32=workgroupUniformLoad(&sharedValue);` +
+            `var loadedValue:f32=workgroupUniformLoad(&sharedValue);` +
             `}`
         );
     });
@@ -148,7 +148,7 @@ Deno.test('PgslSynchronisationBuildInFunction-workgroupUniformLoad', async (pCon
         expect(lTranspilationResult.source).toBe(
             `var<workgroup> sharedValue:vec4<f32>=vec4(1.0,2.0,3.0,4.0);` +
             `fn testFunction(){` +
-            `let loadedValue:vec4<f32>=workgroupUniformLoad(&sharedValue);` +
+            `var loadedValue:vec4<f32>=workgroupUniformLoad(&sharedValue);` +
             `}`
         );
     });

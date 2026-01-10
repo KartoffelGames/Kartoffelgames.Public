@@ -117,7 +117,7 @@ Deno.test('DoWhileStatementAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let ${lVariableName}:i32=0;` +
+            `var ${lVariableName}:i32=0;` +
             `loop{` +
             `if(!${lVariableName}<10){break;}` +
             `}` +

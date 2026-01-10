@@ -423,9 +423,9 @@ Deno.test('ComparisonExpressionAst - Transpilation', async (pContext) => {
                 // Evaluation. Correct transpilation output.
                 expect(lTranspilationResult.source).toBe(
                     `fn testFunction(){` +
-                    `let boolOne:bool=true;` +
-                    `let boolTwo:bool=false;` +
-                    `let testVariable:bool=boolOne==boolTwo;` +
+                    `var boolOne:bool=true;` +
+                    `var boolTwo:bool=false;` +
+                    `var testVariable:bool=boolOne==boolTwo;` +
                     `}`
                 );
             });
@@ -449,9 +449,9 @@ Deno.test('ComparisonExpressionAst - Transpilation', async (pContext) => {
                 // Evaluation. Correct transpilation output.
                 expect(lTranspilationResult.source).toBe(
                     `fn testFunction(){` +
-                    `let vectorOne:vec3<f32>=vec3(1.0,2.0,3.0);` +
-                    `let vectorTwo:vec3<f32>=vec3(1.0,2.0,3.0);` +
-                    `let testVariable:vec3<bool>=vectorOne==vectorTwo;` +
+                    `var vectorOne:vec3<f32>=vec3(1.0,2.0,3.0);` +
+                    `var vectorTwo:vec3<f32>=vec3(1.0,2.0,3.0);` +
+                    `var testVariable:vec3<bool>=vectorOne==vectorTwo;` +
                     `}`
                 );
             });
@@ -477,7 +477,7 @@ Deno.test('ComparisonExpressionAst - Transpilation', async (pContext) => {
                 // Evaluation. Correct transpilation output.
                 expect(lTranspilationResult.source).toBe(
                     `fn testFunction(){` +
-                    `let testVariable:bool=${lLeftValue}!=${lRightValue};` +
+                    `var testVariable:bool=${lLeftValue}!=${lRightValue};` +
                     `}`
                 );
             });
@@ -501,9 +501,9 @@ Deno.test('ComparisonExpressionAst - Transpilation', async (pContext) => {
                 // Evaluation. Correct transpilation output.
                 expect(lTranspilationResult.source).toBe(
                     `fn testFunction(){` +
-                    `let vectorOne:vec3<f32>=vec3(1.0,2.0,3.0);` +
-                    `let vectorTwo:vec3<f32>=vec3(4.0,5.0,6.0);` +
-                    `let testVariable:vec3<bool>=vectorOne!=vectorTwo;` +
+                    `var vectorOne:vec3<f32>=vec3(1.0,2.0,3.0);` +
+                    `var vectorTwo:vec3<f32>=vec3(4.0,5.0,6.0);` +
+                    `var testVariable:vec3<bool>=vectorOne!=vectorTwo;` +
                     `}`
                 );
             });
@@ -531,7 +531,7 @@ Deno.test('ComparisonExpressionAst - Transpilation', async (pContext) => {
                 // Evaluation. Correct transpilation output.
                 expect(lTranspilationResult.source).toBe(
                     `fn testFunction(){` +
-                    `let testVariable:bool=${lLeftValue}<${lRightValue};` +
+                    `var testVariable:bool=${lLeftValue}<${lRightValue};` +
                     `}`
                 );
             });
@@ -555,9 +555,9 @@ Deno.test('ComparisonExpressionAst - Transpilation', async (pContext) => {
                 // Evaluation. Correct transpilation output.
                 expect(lTranspilationResult.source).toBe(
                     `fn testFunction(){` +
-                    `let vectorOne:vec3<f32>=vec3(1.0,2.0,3.0);` +
-                    `let vectorTwo:vec3<f32>=vec3(4.0,5.0,6.0);` +
-                    `let testVariable:vec3<bool>=vectorOne<vectorTwo;` +
+                    `var vectorOne:vec3<f32>=vec3(1.0,2.0,3.0);` +
+                    `var vectorTwo:vec3<f32>=vec3(4.0,5.0,6.0);` +
+                    `var testVariable:vec3<bool>=vectorOne<vectorTwo;` +
                     `}`
                 );
             });
@@ -583,7 +583,7 @@ Deno.test('ComparisonExpressionAst - Transpilation', async (pContext) => {
                 // Evaluation. Correct transpilation output.
                 expect(lTranspilationResult.source).toBe(
                     `fn testFunction(){` +
-                    `let testVariable:bool=${lLeftValue}<=${lRightValue};` +
+                    `var testVariable:bool=${lLeftValue}<=${lRightValue};` +
                     `}`
                 );
             });
@@ -607,9 +607,9 @@ Deno.test('ComparisonExpressionAst - Transpilation', async (pContext) => {
                 // Evaluation. Correct transpilation output.
                 expect(lTranspilationResult.source).toBe(
                     `fn testFunction(){` +
-                    `let vectorOne:vec3<f32>=vec3(1.0,2.0,3.0);` +
-                    `let vectorTwo:vec3<f32>=vec3(4.0,5.0,6.0);` +
-                    `let testVariable:vec3<bool>=vectorOne<=vectorTwo;` +
+                    `var vectorOne:vec3<f32>=vec3(1.0,2.0,3.0);` +
+                    `var vectorTwo:vec3<f32>=vec3(4.0,5.0,6.0);` +
+                    `var testVariable:vec3<bool>=vectorOne<=vectorTwo;` +
                     `}`
                 );
             });
@@ -635,7 +635,7 @@ Deno.test('ComparisonExpressionAst - Transpilation', async (pContext) => {
                 // Evaluation. Correct transpilation output.
                 expect(lTranspilationResult.source).toBe(
                     `fn testFunction(){` +
-                    `let testVariable:bool=${lLeftValue}>${lRightValue};` +
+                    `var testVariable:bool=${lLeftValue}>${lRightValue};` +
                     `}`
                 );
             });
@@ -659,9 +659,9 @@ Deno.test('ComparisonExpressionAst - Transpilation', async (pContext) => {
                 // Evaluation. Correct transpilation output.
                 expect(lTranspilationResult.source).toBe(
                     `fn testFunction(){` +
-                    `let vectorOne:vec3<f32>=vec3(4.0,5.0,6.0);` +
-                    `let vectorTwo:vec3<f32>=vec3(1.0,2.0,3.0);` +
-                    `let testVariable:vec3<bool>=vectorOne>vectorTwo;` +
+                    `var vectorOne:vec3<f32>=vec3(4.0,5.0,6.0);` +
+                    `var vectorTwo:vec3<f32>=vec3(1.0,2.0,3.0);` +
+                    `var testVariable:vec3<bool>=vectorOne>vectorTwo;` +
                     `}`
                 );
             });
@@ -687,7 +687,7 @@ Deno.test('ComparisonExpressionAst - Transpilation', async (pContext) => {
                 // Evaluation. Correct transpilation output.
                 expect(lTranspilationResult.source).toBe(
                     `fn testFunction(){` +
-                    `let testVariable:bool=${lLeftValue}>=${lRightValue};` +
+                    `var testVariable:bool=${lLeftValue}>=${lRightValue};` +
                     `}`
                 );
             });
@@ -711,9 +711,9 @@ Deno.test('ComparisonExpressionAst - Transpilation', async (pContext) => {
                 // Evaluation. Correct transpilation output.
                 expect(lTranspilationResult.source).toBe(
                     `fn testFunction(){` +
-                    `let vectorOne:vec3<f32>=vec3(4.0,5.0,6.0);` +
-                    `let vectorTwo:vec3<f32>=vec3(1.0,2.0,3.0);` +
-                    `let testVariable:vec3<bool>=vectorOne>=vectorTwo;` +
+                    `var vectorOne:vec3<f32>=vec3(4.0,5.0,6.0);` +
+                    `var vectorTwo:vec3<f32>=vec3(1.0,2.0,3.0);` +
+                    `var testVariable:vec3<bool>=vectorOne>=vectorTwo;` +
                     `}`
                 );
             });

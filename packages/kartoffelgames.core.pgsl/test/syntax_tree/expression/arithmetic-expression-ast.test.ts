@@ -722,7 +722,7 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:f32=${lLeftValue}+${lRightValue};` +
+                `var testVariable:f32=${lLeftValue}+${lRightValue};` +
                 `}`
             );
         });
@@ -746,7 +746,7 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:i32=${lLeftValue}+${lRightValue};` +
+                `var testVariable:i32=${lLeftValue}+${lRightValue};` +
                 `}`
             );
         });
@@ -770,9 +770,9 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let vectorOne:vec3<f32>=vec3(1.0,2.0,3.0);` +
-                `let vectorTwo:vec3<f32>=vec3(4.0,5.0,6.0);` +
-                `let testVariable:vec3<f32>=vectorOne+vectorTwo;` +
+                `var vectorOne:vec3<f32>=vec3(1.0,2.0,3.0);` +
+                `var vectorTwo:vec3<f32>=vec3(4.0,5.0,6.0);` +
+                `var testVariable:vec3<f32>=vectorOne+vectorTwo;` +
                 `}`
             );
         });
@@ -796,9 +796,9 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let vectorOne:vec3<f32>=vec3(1.0,2.0,3.0);` +
-                `let scalarValue:f32=5.0;` +
-                `let testVariable:vec3<f32>=vectorOne+scalarValue;` +
+                `var vectorOne:vec3<f32>=vec3(1.0,2.0,3.0);` +
+                `var scalarValue:f32=5.0;` +
+                `var testVariable:vec3<f32>=vectorOne+scalarValue;` +
                 `}`
             );
         });
@@ -824,7 +824,7 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:f32=${lLeftValue}-${lRightValue};` +
+                `var testVariable:f32=${lLeftValue}-${lRightValue};` +
                 `}`
             );
         });
@@ -848,7 +848,7 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:i32=${lLeftValue}-${lRightValue};` +
+                `var testVariable:i32=${lLeftValue}-${lRightValue};` +
                 `}`
             );
         });
@@ -872,9 +872,9 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let vectorOne:vec3<f32>=vec3(4.0,5.0,6.0);` +
-                `let vectorTwo:vec3<f32>=vec3(1.0,2.0,3.0);` +
-                `let testVariable:vec3<f32>=vectorOne-vectorTwo;` +
+                `var vectorOne:vec3<f32>=vec3(4.0,5.0,6.0);` +
+                `var vectorTwo:vec3<f32>=vec3(1.0,2.0,3.0);` +
+                `var testVariable:vec3<f32>=vectorOne-vectorTwo;` +
                 `}`
             );
         });
@@ -898,9 +898,9 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let vectorOne:vec3<f32>=vec3(1.0,2.0,3.0);` +
-                `let scalarValue:f32=5.0;` +
-                `let testVariable:vec3<f32>=vectorOne-scalarValue;` +
+                `var vectorOne:vec3<f32>=vec3(1.0,2.0,3.0);` +
+                `var scalarValue:f32=5.0;` +
+                `var testVariable:vec3<f32>=vectorOne-scalarValue;` +
                 `}`
             );
         });
@@ -926,7 +926,7 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:f32=${lLeftValue}*${lRightValue};` +
+                `var testVariable:f32=${lLeftValue}*${lRightValue};` +
                 `}`
             );
         });
@@ -950,7 +950,7 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:i32=${lLeftValue}*${lRightValue};` +
+                `var testVariable:i32=${lLeftValue}*${lRightValue};` +
                 `}`
             );
         });
@@ -974,9 +974,9 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let vectorOne:vec3<f32>=vec3(1.0,2.0,3.0);` +
-                `let vectorTwo:vec3<f32>=vec3(4.0,5.0,6.0);` +
-                `let testVariable:vec3<f32>=vectorOne*vectorTwo;` +
+                `var vectorOne:vec3<f32>=vec3(1.0,2.0,3.0);` +
+                `var vectorTwo:vec3<f32>=vec3(4.0,5.0,6.0);` +
+                `var testVariable:vec3<f32>=vectorOne*vectorTwo;` +
                 `}`
             );
         });
@@ -1000,9 +1000,9 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let matrixOne:mat3x3<f32>=mat3x3(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0);` +
-                `let matrixTwo:mat3x3<f32>=mat3x3(2.0,0.0,0.0,0.0,2.0,0.0,0.0,0.0,2.0);` +
-                `let testVariable:mat3x3<f32>=matrixOne*matrixTwo;` +
+                `var matrixOne:mat3x3<f32>=mat3x3(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0);` +
+                `var matrixTwo:mat3x3<f32>=mat3x3(2.0,0.0,0.0,0.0,2.0,0.0,0.0,0.0,2.0);` +
+                `var testVariable:mat3x3<f32>=matrixOne*matrixTwo;` +
                 `}`
             );
         });
@@ -1026,9 +1026,9 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let vectorOne:vec3<f32>=vec3(1.0,2.0,3.0);` +
-                `let scalarValue:f32=5.0;` +
-                `let testVariable:vec3<f32>=vectorOne*scalarValue;` +
+                `var vectorOne:vec3<f32>=vec3(1.0,2.0,3.0);` +
+                `var scalarValue:f32=5.0;` +
+                `var testVariable:vec3<f32>=vectorOne*scalarValue;` +
                 `}`
             );
         });
@@ -1052,9 +1052,9 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let matrixOne:mat3x3<f32>=mat3x3(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0);` +
-                `let vectorOne:vec3<f32>=vec3(1.0,2.0,3.0);` +
-                `let testVariable:vec3<f32>=matrixOne*vectorOne;` +
+                `var matrixOne:mat3x3<f32>=mat3x3(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0);` +
+                `var vectorOne:vec3<f32>=vec3(1.0,2.0,3.0);` +
+                `var testVariable:vec3<f32>=matrixOne*vectorOne;` +
                 `}`
             );
         });
@@ -1080,7 +1080,7 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:f32=${lLeftValue}/${lRightValue};` +
+                `var testVariable:f32=${lLeftValue}/${lRightValue};` +
                 `}`
             );
         });
@@ -1104,7 +1104,7 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:i32=${lLeftValue}/${lRightValue};` +
+                `var testVariable:i32=${lLeftValue}/${lRightValue};` +
                 `}`
             );
         });
@@ -1128,9 +1128,9 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let vectorOne:vec3<f32>=vec3(6.0,9.0,12.0);` +
-                `let vectorTwo:vec3<f32>=vec3(2.0,3.0,4.0);` +
-                `let testVariable:vec3<f32>=vectorOne/vectorTwo;` +
+                `var vectorOne:vec3<f32>=vec3(6.0,9.0,12.0);` +
+                `var vectorTwo:vec3<f32>=vec3(2.0,3.0,4.0);` +
+                `var testVariable:vec3<f32>=vectorOne/vectorTwo;` +
                 `}`
             );
         });
@@ -1154,9 +1154,9 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let vectorOne:vec3<f32>=vec3(6.0,9.0,12.0);` +
-                `let scalarValue:f32=3.0;` +
-                `let testVariable:vec3<f32>=vectorOne/scalarValue;` +
+                `var vectorOne:vec3<f32>=vec3(6.0,9.0,12.0);` +
+                `var scalarValue:f32=3.0;` +
+                `var testVariable:vec3<f32>=vectorOne/scalarValue;` +
                 `}`
             );
         });
@@ -1182,7 +1182,7 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:f32=${lLeftValue}%${lRightValue};` +
+                `var testVariable:f32=${lLeftValue}%${lRightValue};` +
                 `}`
             );
         });
@@ -1206,7 +1206,7 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:i32=${lLeftValue}%${lRightValue};` +
+                `var testVariable:i32=${lLeftValue}%${lRightValue};` +
                 `}`
             );
         });
@@ -1230,9 +1230,9 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let vectorOne:vec3<f32>=vec3(7.0,8.0,9.0);` +
-                `let vectorTwo:vec3<f32>=vec3(3.0,3.0,3.0);` +
-                `let testVariable:vec3<f32>=vectorOne%vectorTwo;` +
+                `var vectorOne:vec3<f32>=vec3(7.0,8.0,9.0);` +
+                `var vectorTwo:vec3<f32>=vec3(3.0,3.0,3.0);` +
+                `var testVariable:vec3<f32>=vectorOne%vectorTwo;` +
                 `}`
             );
         });
@@ -1256,9 +1256,9 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let vectorOne:vec3<f32>=vec3(7.0,8.0,9.0);` +
-                `let scalarValue:f32=3.0;` +
-                `let testVariable:vec3<f32>=vectorOne%scalarValue;` +
+                `var vectorOne:vec3<f32>=vec3(7.0,8.0,9.0);` +
+                `var scalarValue:f32=3.0;` +
+                `var testVariable:vec3<f32>=vectorOne%scalarValue;` +
                 `}`
             );
         });

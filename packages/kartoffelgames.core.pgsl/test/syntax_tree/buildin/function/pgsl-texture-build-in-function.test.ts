@@ -28,7 +28,7 @@ Deno.test('PgslTextureBuildInFunction.textureDimensions', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `@group(0)@binding(0)var testTexture:texture_1d<f32>;` +
             `fn testFunction(){` +
-            `let dimensions:u32=textureDimensions(testTexture);` +
+            `var dimensions:u32=textureDimensions(testTexture);` +
             `}`
         );
     });
@@ -49,7 +49,7 @@ Deno.test('PgslTextureBuildInFunction.textureDimensions', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `@group(0)@binding(0)var testTexture:texture_2d<f32>;` +
             `fn testFunction(){` +
-            `let dimensions:vec2<u32>=textureDimensions(testTexture);` +
+            `var dimensions:vec2<u32>=textureDimensions(testTexture);` +
             `}`
         );
     });
@@ -70,7 +70,7 @@ Deno.test('PgslTextureBuildInFunction.textureDimensions', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `@group(0)@binding(0)var testTexture:texture_3d<f32>;` +
             `fn testFunction(){` +
-            `let dimensions:vec3<u32>=textureDimensions(testTexture);` +
+            `var dimensions:vec3<u32>=textureDimensions(testTexture);` +
             `}`
         );
     });
@@ -92,8 +92,8 @@ Deno.test('PgslTextureBuildInFunction.textureDimensions', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `@group(0)@binding(0)var testTexture:texture_1d<f32>;` +
             `fn testFunction(){` +
-            `let lLevel:i32=0;` +
-            `let dimensions:u32=textureDimensions(testTexture,lLevel);` +
+            `var lLevel:i32=0;` +
+            `var dimensions:u32=textureDimensions(testTexture,lLevel);` +
             `}`
         );
     });
@@ -115,8 +115,8 @@ Deno.test('PgslTextureBuildInFunction.textureDimensions', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `@group(0)@binding(0)var testTexture:texture_2d<f32>;` +
             `fn testFunction(){` +
-            `let lLevel:i32=0;` +
-            `let dimensions:vec2<u32>=textureDimensions(testTexture,lLevel);` +
+            `var lLevel:i32=0;` +
+            `var dimensions:vec2<u32>=textureDimensions(testTexture,lLevel);` +
             `}`
         );
     });
@@ -138,8 +138,8 @@ Deno.test('PgslTextureBuildInFunction.textureDimensions', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `@group(0)@binding(0)var testTexture:texture_3d<f32>;` +
             `fn testFunction(){` +
-            `let lLevel:i32=0;` +
-            `let dimensions:vec3<u32>=textureDimensions(testTexture,lLevel);` +
+            `var lLevel:i32=0;` +
+            `var dimensions:vec3<u32>=textureDimensions(testTexture,lLevel);` +
             `}`
         );
     });
@@ -167,8 +167,8 @@ Deno.test('PgslTextureBuildInFunction.textureGather', async (pContext) => {
             `@group(0)@binding(0)var testTexture:texture_2d<f32>;` +
             `@group(0)@binding(1)var testSampler:sampler;` +
             `fn testFunction(){` +
-            `let coords:vec2<f32>=vec2(0.5,0.5);` +
-            `let result:vec4<f32>=textureGather(0,testTexture,testSampler,coords);` +
+            `var coords:vec2<f32>=vec2(0.5,0.5);` +
+            `var result:vec4<f32>=textureGather(0,testTexture,testSampler,coords);` +
             `}`
         );
     });
@@ -195,9 +195,9 @@ Deno.test('PgslTextureBuildInFunction.textureGather', async (pContext) => {
             `@group(0)@binding(0)var testTexture:texture_2d_array<f32>;` +
             `@group(0)@binding(1)var testSampler:sampler;` +
             `fn testFunction(){` +
-            `let coords:vec2<f32>=vec2(0.5,0.5);` +
-            `let lArrayIndex:i32=1;` +
-            `let result:vec4<f32>=textureGather(0,testTexture,testSampler,coords,lArrayIndex);` +
+            `var coords:vec2<f32>=vec2(0.5,0.5);` +
+            `var lArrayIndex:i32=1;` +
+            `var result:vec4<f32>=textureGather(0,testTexture,testSampler,coords,lArrayIndex);` +
             `}`
         );
     });
@@ -223,8 +223,8 @@ Deno.test('PgslTextureBuildInFunction.textureGather', async (pContext) => {
             `@group(0)@binding(0)var testTexture:texture_cube<f32>;` +
             `@group(0)@binding(1)var testSampler:sampler;` +
             `fn testFunction(){` +
-            `let coords:vec3<f32>=vec3(0.5,0.5,0.5);` +
-            `let result:vec4<f32>=textureGather(0,testTexture,testSampler,coords);` +
+            `var coords:vec3<f32>=vec3(0.5,0.5,0.5);` +
+            `var result:vec4<f32>=textureGather(0,testTexture,testSampler,coords);` +
             `}`
         );
     });
@@ -250,8 +250,8 @@ Deno.test('PgslTextureBuildInFunction.textureGather', async (pContext) => {
             `@group(0)@binding(0)var testTexture:texture_depth_2d;` +
             `@group(0)@binding(1)var testSampler:sampler;` +
             `fn testFunction(){` +
-            `let coords:vec2<f32>=vec2(0.5,0.5);` +
-            `let result:vec4<f32>=textureGather(testTexture,testSampler,coords);` +
+            `var coords:vec2<f32>=vec2(0.5,0.5);` +
+            `var result:vec4<f32>=textureGather(testTexture,testSampler,coords);` +
             `}`
         );
     });
@@ -280,9 +280,9 @@ Deno.test('PgslTextureBuildInFunction.textureGatherCompare', async (pContext) =>
             `@group(0)@binding(0)var testTexture:texture_depth_2d;` +
             `@group(0)@binding(1)var testSampler:sampler_comparison;` +
             `fn testFunction(){` +
-            `let coords:vec2<f32>=vec2(0.5,0.5);` +
-            `let depthRef:f32=0.5;` +
-            `let result:vec4<f32>=textureGatherCompare(testTexture,testSampler,coords,depthRef);` +
+            `var coords:vec2<f32>=vec2(0.5,0.5);` +
+            `var depthRef:f32=0.5;` +
+            `var result:vec4<f32>=textureGatherCompare(testTexture,testSampler,coords,depthRef);` +
             `}`
         );
     });
@@ -310,10 +310,10 @@ Deno.test('PgslTextureBuildInFunction.textureGatherCompare', async (pContext) =>
             `@group(0)@binding(0)var testTexture:texture_depth_2d_array;` +
             `@group(0)@binding(1)var testSampler:sampler_comparison;` +
             `fn testFunction(){` +
-            `let coords:vec2<f32>=vec2(0.5,0.5);` +
-            `let lArrayIndex:i32=1;` +
-            `let depthRef:f32=0.5;` +
-            `let result:vec4<f32>=textureGatherCompare(testTexture,testSampler,coords,lArrayIndex,depthRef);` +
+            `var coords:vec2<f32>=vec2(0.5,0.5);` +
+            `var lArrayIndex:i32=1;` +
+            `var depthRef:f32=0.5;` +
+            `var result:vec4<f32>=textureGatherCompare(testTexture,testSampler,coords,lArrayIndex,depthRef);` +
             `}`
         );
     });
@@ -340,9 +340,9 @@ Deno.test('PgslTextureBuildInFunction.textureGatherCompare', async (pContext) =>
             `@group(0)@binding(0)var testTexture:texture_depth_cube;` +
             `@group(0)@binding(1)var testSampler:sampler_comparison;` +
             `fn testFunction(){` +
-            `let coords:vec3<f32>=vec3(0.5,0.5,0.5);` +
-            `let depthRef:f32=0.5;` +
-            `let result:vec4<f32>=textureGatherCompare(testTexture,testSampler,coords,depthRef);` +
+            `var coords:vec3<f32>=vec3(0.5,0.5,0.5);` +
+            `var depthRef:f32=0.5;` +
+            `var result:vec4<f32>=textureGatherCompare(testTexture,testSampler,coords,depthRef);` +
             `}`
         );
     });
@@ -370,10 +370,10 @@ Deno.test('PgslTextureBuildInFunction.textureGatherCompare', async (pContext) =>
             `@group(0)@binding(0)var testTexture:texture_depth_cube_array;` +
             `@group(0)@binding(1)var testSampler:sampler_comparison;` +
             `fn testFunction(){` +
-            `let coords:vec3<f32>=vec3(0.5,0.5,0.5);` +
-            `let lArrayIndex:i32=1;` +
-            `let depthRef:f32=0.5;` +
-            `let result:vec4<f32>=textureGatherCompare(testTexture,testSampler,coords,lArrayIndex,depthRef);` +
+            `var coords:vec3<f32>=vec3(0.5,0.5,0.5);` +
+            `var lArrayIndex:i32=1;` +
+            `var depthRef:f32=0.5;` +
+            `var result:vec4<f32>=textureGatherCompare(testTexture,testSampler,coords,lArrayIndex,depthRef);` +
             `}`
         );
     });
@@ -398,9 +398,9 @@ Deno.test('PgslTextureBuildInFunction.textureLoad', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `@group(0)@binding(0)var testTexture:texture_1d<f32>;` +
             `fn testFunction(){` +
-            `let coords:i32=0;` +
-            `let lLevel:i32=0;` +
-            `let result:vec4<f32>=textureLoad(testTexture,coords,lLevel);` +
+            `var coords:i32=0;` +
+            `var lLevel:i32=0;` +
+            `var result:vec4<f32>=textureLoad(testTexture,coords,lLevel);` +
             `}`
         );
     });
@@ -423,9 +423,9 @@ Deno.test('PgslTextureBuildInFunction.textureLoad', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `@group(0)@binding(0)var testTexture:texture_2d<f32>;` +
             `fn testFunction(){` +
-            `let coords:vec2<i32>=vec2(0,0);` +
-            `let lLevel:i32=0;` +
-            `let result:vec4<f32>=textureLoad(testTexture,coords,lLevel);` +
+            `var coords:vec2<i32>=vec2(0,0);` +
+            `var lLevel:i32=0;` +
+            `var result:vec4<f32>=textureLoad(testTexture,coords,lLevel);` +
             `}`
         );
     });
@@ -448,9 +448,9 @@ Deno.test('PgslTextureBuildInFunction.textureLoad', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `@group(0)@binding(0)var testTexture:texture_3d<f32>;` +
             `fn testFunction(){` +
-            `let coords:vec3<i32>=vec3(0,0,0);` +
-            `let lLevel:i32=0;` +
-            `let result:vec4<f32>=textureLoad(testTexture,coords,lLevel);` +
+            `var coords:vec3<i32>=vec3(0,0,0);` +
+            `var lLevel:i32=0;` +
+            `var result:vec4<f32>=textureLoad(testTexture,coords,lLevel);` +
             `}`
         );
     });
@@ -473,9 +473,9 @@ Deno.test('PgslTextureBuildInFunction.textureLoad', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `@group(0)@binding(0)var testTexture:texture_depth_2d;` +
             `fn testFunction(){` +
-            `let coords:vec2<i32>=vec2(0,0);` +
-            `let lLevel:i32=0;` +
-            `let result:f32=textureLoad(testTexture,coords,lLevel);` +
+            `var coords:vec2<i32>=vec2(0,0);` +
+            `var lLevel:i32=0;` +
+            `var result:f32=textureLoad(testTexture,coords,lLevel);` +
             `}`
         );
     });
@@ -498,7 +498,7 @@ Deno.test('PgslTextureBuildInFunction.textureNumLayers', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `@group(0)@binding(0)var testTexture:texture_2d_array<f32>;` +
             `fn testFunction(){` +
-            `let result:u32=textureNumLayers(testTexture);` +
+            `var result:u32=textureNumLayers(testTexture);` +
             `}`
         );
     });
@@ -521,7 +521,7 @@ Deno.test('PgslTextureBuildInFunction.textureNumLevels', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `@group(0)@binding(0)var testTexture:texture_2d<f32>;` +
             `fn testFunction(){` +
-            `let result:u32=textureNumLevels(testTexture);` +
+            `var result:u32=textureNumLevels(testTexture);` +
             `}`
         );
     });
@@ -544,7 +544,7 @@ Deno.test('PgslTextureBuildInFunction.textureNumSamples', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `@group(0)@binding(0)var testTexture:texture_multisampled_2d<f32>;` +
             `fn testFunction(){` +
-            `let result:u32=textureNumSamples(testTexture);` +
+            `var result:u32=textureNumSamples(testTexture);` +
             `}`
         );
     });
@@ -572,8 +572,8 @@ Deno.test('PgslTextureBuildInFunction.textureSample', async (pContext) => {
             `@group(0)@binding(0)var testTexture:texture_1d<f32>;` +
             `@group(0)@binding(1)var testSampler:sampler;` +
             `fn testFunction(){` +
-            `let coords:f32=0.5;` +
-            `let result:vec4<f32>=textureSample(testTexture,testSampler,coords);` +
+            `var coords:f32=0.5;` +
+            `var result:vec4<f32>=textureSample(testTexture,testSampler,coords);` +
             `}`
         );
     });
@@ -599,8 +599,8 @@ Deno.test('PgslTextureBuildInFunction.textureSample', async (pContext) => {
             `@group(0)@binding(0)var testTexture:texture_2d<f32>;` +
             `@group(0)@binding(1)var testSampler:sampler;` +
             `fn testFunction(){` +
-            `let coords:vec2<f32>=vec2(0.5,0.5);` +
-            `let result:vec4<f32>=textureSample(testTexture,testSampler,coords);` +
+            `var coords:vec2<f32>=vec2(0.5,0.5);` +
+            `var result:vec4<f32>=textureSample(testTexture,testSampler,coords);` +
             `}`
         );
     });
@@ -626,8 +626,8 @@ Deno.test('PgslTextureBuildInFunction.textureSample', async (pContext) => {
             `@group(0)@binding(0)var testTexture:texture_3d<f32>;` +
             `@group(0)@binding(1)var testSampler:sampler;` +
             `fn testFunction(){` +
-            `let coords:vec3<f32>=vec3(0.5,0.5,0.5);` +
-            `let result:vec4<f32>=textureSample(testTexture,testSampler,coords);` +
+            `var coords:vec3<f32>=vec3(0.5,0.5,0.5);` +
+            `var result:vec4<f32>=textureSample(testTexture,testSampler,coords);` +
             `}`
         );
     });
@@ -653,8 +653,8 @@ Deno.test('PgslTextureBuildInFunction.textureSample', async (pContext) => {
             `@group(0)@binding(0)var testTexture:texture_depth_2d;` +
             `@group(0)@binding(1)var testSampler:sampler;` +
             `fn testFunction(){` +
-            `let coords:vec2<f32>=vec2(0.5,0.5);` +
-            `let result:f32=textureSample(testTexture,testSampler,coords);` +
+            `var coords:vec2<f32>=vec2(0.5,0.5);` +
+            `var result:f32=textureSample(testTexture,testSampler,coords);` +
             `}`
         );
     });
@@ -683,9 +683,9 @@ Deno.test('PgslTextureBuildInFunction.textureSampleBias', async (pContext) => {
             `@group(0)@binding(0)var testTexture:texture_2d<f32>;` +
             `@group(0)@binding(1)var testSampler:sampler;` +
             `fn testFunction(){` +
-            `let coords:vec2<f32>=vec2(0.5,0.5);` +
-            `let lBias:f32=1.0;` +
-            `let result:vec4<f32>=textureSampleBias(testTexture,testSampler,coords,lBias);` +
+            `var coords:vec2<f32>=vec2(0.5,0.5);` +
+            `var lBias:f32=1.0;` +
+            `var result:vec4<f32>=textureSampleBias(testTexture,testSampler,coords,lBias);` +
             `}`
         );
     });
@@ -712,9 +712,9 @@ Deno.test('PgslTextureBuildInFunction.textureSampleBias', async (pContext) => {
             `@group(0)@binding(0)var testTexture:texture_3d<f32>;` +
             `@group(0)@binding(1)var testSampler:sampler;` +
             `fn testFunction(){` +
-            `let coords:vec3<f32>=vec3(0.5,0.5,0.5);` +
-            `let lBias:f32=1.0;` +
-            `let result:vec4<f32>=textureSampleBias(testTexture,testSampler,coords,lBias);` +
+            `var coords:vec3<f32>=vec3(0.5,0.5,0.5);` +
+            `var lBias:f32=1.0;` +
+            `var result:vec4<f32>=textureSampleBias(testTexture,testSampler,coords,lBias);` +
             `}`
         );
     });
@@ -741,9 +741,9 @@ Deno.test('PgslTextureBuildInFunction.textureSampleBias', async (pContext) => {
             `@group(0)@binding(0)var testTexture:texture_cube<f32>;` +
             `@group(0)@binding(1)var testSampler:sampler;` +
             `fn testFunction(){` +
-            `let coords:vec3<f32>=vec3(0.5,0.5,0.5);` +
-            `let lBias:f32=1.0;` +
-            `let result:vec4<f32>=textureSampleBias(testTexture,testSampler,coords,lBias);` +
+            `var coords:vec3<f32>=vec3(0.5,0.5,0.5);` +
+            `var lBias:f32=1.0;` +
+            `var result:vec4<f32>=textureSampleBias(testTexture,testSampler,coords,lBias);` +
             `}`
         );
     });
@@ -772,9 +772,9 @@ Deno.test('PgslTextureBuildInFunction.textureSampleCompare', async (pContext) =>
             `@group(0)@binding(0)var testTexture:texture_depth_2d;` +
             `@group(0)@binding(1)var testSampler:sampler_comparison;` +
             `fn testFunction(){` +
-            `let coords:vec2<f32>=vec2(0.5,0.5);` +
-            `let depthRef:f32=0.5;` +
-            `let result:f32=textureSampleCompare(testTexture,testSampler,coords,depthRef);` +
+            `var coords:vec2<f32>=vec2(0.5,0.5);` +
+            `var depthRef:f32=0.5;` +
+            `var result:f32=textureSampleCompare(testTexture,testSampler,coords,depthRef);` +
             `}`
         );
     });
@@ -802,10 +802,10 @@ Deno.test('PgslTextureBuildInFunction.textureSampleCompare', async (pContext) =>
             `@group(0)@binding(0)var testTexture:texture_depth_2d_array;` +
             `@group(0)@binding(1)var testSampler:sampler_comparison;` +
             `fn testFunction(){` +
-            `let coords:vec2<f32>=vec2(0.5,0.5);` +
-            `let lArrayIndex:i32=1;` +
-            `let depthRef:f32=0.5;` +
-            `let result:f32=textureSampleCompare(testTexture,testSampler,coords,lArrayIndex,depthRef);` +
+            `var coords:vec2<f32>=vec2(0.5,0.5);` +
+            `var lArrayIndex:i32=1;` +
+            `var depthRef:f32=0.5;` +
+            `var result:f32=textureSampleCompare(testTexture,testSampler,coords,lArrayIndex,depthRef);` +
             `}`
         );
     });
@@ -832,9 +832,9 @@ Deno.test('PgslTextureBuildInFunction.textureSampleCompare', async (pContext) =>
             `@group(0)@binding(0)var testTexture:texture_depth_cube;` +
             `@group(0)@binding(1)var testSampler:sampler_comparison;` +
             `fn testFunction(){` +
-            `let coords:vec3<f32>=vec3(0.5,0.5,0.5);` +
-            `let depthRef:f32=0.5;` +
-            `let result:f32=textureSampleCompare(testTexture,testSampler,coords,depthRef);` +
+            `var coords:vec3<f32>=vec3(0.5,0.5,0.5);` +
+            `var depthRef:f32=0.5;` +
+            `var result:f32=textureSampleCompare(testTexture,testSampler,coords,depthRef);` +
             `}`
         );
     });
@@ -863,9 +863,9 @@ Deno.test('PgslTextureBuildInFunction.textureSampleCompareLevel', async (pContex
             `@group(0)@binding(0)var testTexture:texture_depth_2d;` +
             `@group(0)@binding(1)var testSampler:sampler_comparison;` +
             `fn testFunction(){` +
-            `let coords:vec2<f32>=vec2(0.5,0.5);` +
-            `let depthRef:f32=0.5;` +
-            `let result:f32=textureSampleCompareLevel(testTexture,testSampler,coords,depthRef);` +
+            `var coords:vec2<f32>=vec2(0.5,0.5);` +
+            `var depthRef:f32=0.5;` +
+            `var result:f32=textureSampleCompareLevel(testTexture,testSampler,coords,depthRef);` +
             `}`
         );
     });
@@ -893,10 +893,10 @@ Deno.test('PgslTextureBuildInFunction.textureSampleCompareLevel', async (pContex
             `@group(0)@binding(0)var testTexture:texture_depth_2d_array;` +
             `@group(0)@binding(1)var testSampler:sampler_comparison;` +
             `fn testFunction(){` +
-            `let coords:vec2<f32>=vec2(0.5,0.5);` +
-            `let lArrayIndex:i32=1;` +
-            `let depthRef:f32=0.5;` +
-            `let result:f32=textureSampleCompareLevel(testTexture,testSampler,coords,lArrayIndex,depthRef);` +
+            `var coords:vec2<f32>=vec2(0.5,0.5);` +
+            `var lArrayIndex:i32=1;` +
+            `var depthRef:f32=0.5;` +
+            `var result:f32=textureSampleCompareLevel(testTexture,testSampler,coords,lArrayIndex,depthRef);` +
             `}`
         );
     });
@@ -923,9 +923,9 @@ Deno.test('PgslTextureBuildInFunction.textureSampleCompareLevel', async (pContex
             `@group(0)@binding(0)var testTexture:texture_depth_cube;` +
             `@group(0)@binding(1)var testSampler:sampler_comparison;` +
             `fn testFunction(){` +
-            `let coords:vec3<f32>=vec3(0.5,0.5,0.5);` +
-            `let depthRef:f32=0.5;` +
-            `let result:f32=textureSampleCompareLevel(testTexture,testSampler,coords,depthRef);` +
+            `var coords:vec3<f32>=vec3(0.5,0.5,0.5);` +
+            `var depthRef:f32=0.5;` +
+            `var result:f32=textureSampleCompareLevel(testTexture,testSampler,coords,depthRef);` +
             `}`
         );
     });
@@ -955,10 +955,10 @@ Deno.test('PgslTextureBuildInFunction.textureSampleGrad', async (pContext) => {
             `@group(0)@binding(0)var testTexture:texture_2d<f32>;` +
             `@group(0)@binding(1)var testSampler:sampler;` +
             `fn testFunction(){` +
-            `let coords:vec2<f32>=vec2(0.5,0.5);` +
-            `let ddx:vec2<f32>=vec2(0.1,0.1);` +
-            `let ddy:vec2<f32>=vec2(0.1,0.1);` +
-            `let result:vec4<f32>=textureSampleGrad(testTexture,testSampler,coords,ddx,ddy);` +
+            `var coords:vec2<f32>=vec2(0.5,0.5);` +
+            `var ddx:vec2<f32>=vec2(0.1,0.1);` +
+            `var ddy:vec2<f32>=vec2(0.1,0.1);` +
+            `var result:vec4<f32>=textureSampleGrad(testTexture,testSampler,coords,ddx,ddy);` +
             `}`
         );
     });
@@ -986,10 +986,10 @@ Deno.test('PgslTextureBuildInFunction.textureSampleGrad', async (pContext) => {
             `@group(0)@binding(0)var testTexture:texture_3d<f32>;` +
             `@group(0)@binding(1)var testSampler:sampler;` +
             `fn testFunction(){` +
-            `let coords:vec3<f32>=vec3(0.5,0.5,0.5);` +
-            `let ddx:vec3<f32>=vec3(0.1,0.1,0.1);` +
-            `let ddy:vec3<f32>=vec3(0.1,0.1,0.1);` +
-            `let result:vec4<f32>=textureSampleGrad(testTexture,testSampler,coords,ddx,ddy);` +
+            `var coords:vec3<f32>=vec3(0.5,0.5,0.5);` +
+            `var ddx:vec3<f32>=vec3(0.1,0.1,0.1);` +
+            `var ddy:vec3<f32>=vec3(0.1,0.1,0.1);` +
+            `var result:vec4<f32>=textureSampleGrad(testTexture,testSampler,coords,ddx,ddy);` +
             `}`
         );
     });
@@ -1017,10 +1017,10 @@ Deno.test('PgslTextureBuildInFunction.textureSampleGrad', async (pContext) => {
             `@group(0)@binding(0)var testTexture:texture_cube<f32>;` +
             `@group(0)@binding(1)var testSampler:sampler;` +
             `fn testFunction(){` +
-            `let coords:vec3<f32>=vec3(0.5,0.5,0.5);` +
-            `let ddx:vec3<f32>=vec3(0.1,0.1,0.1);` +
-            `let ddy:vec3<f32>=vec3(0.1,0.1,0.1);` +
-            `let result:vec4<f32>=textureSampleGrad(testTexture,testSampler,coords,ddx,ddy);` +
+            `var coords:vec3<f32>=vec3(0.5,0.5,0.5);` +
+            `var ddx:vec3<f32>=vec3(0.1,0.1,0.1);` +
+            `var ddy:vec3<f32>=vec3(0.1,0.1,0.1);` +
+            `var result:vec4<f32>=textureSampleGrad(testTexture,testSampler,coords,ddx,ddy);` +
             `}`
         );
     });
@@ -1049,9 +1049,9 @@ Deno.test('PgslTextureBuildInFunction.textureSampleLevel', async (pContext) => {
             `@group(0)@binding(0)var testTexture:texture_1d<f32>;` +
             `@group(0)@binding(1)var testSampler:sampler;` +
             `fn testFunction(){` +
-            `let coords:f32=0.5;` +
-            `let lLevel:f32=0.0;` +
-            `let result:vec4<f32>=textureSampleLevel(testTexture,testSampler,coords,lLevel);` +
+            `var coords:f32=0.5;` +
+            `var lLevel:f32=0.0;` +
+            `var result:vec4<f32>=textureSampleLevel(testTexture,testSampler,coords,lLevel);` +
             `}`
         );
     });
@@ -1078,9 +1078,9 @@ Deno.test('PgslTextureBuildInFunction.textureSampleLevel', async (pContext) => {
             `@group(0)@binding(0)var testTexture:texture_2d<f32>;` +
             `@group(0)@binding(1)var testSampler:sampler;` +
             `fn testFunction(){` +
-            `let coords:vec2<f32>=vec2(0.5,0.5);` +
-            `let lLevel:f32=0.0;` +
-            `let result:vec4<f32>=textureSampleLevel(testTexture,testSampler,coords,lLevel);` +
+            `var coords:vec2<f32>=vec2(0.5,0.5);` +
+            `var lLevel:f32=0.0;` +
+            `var result:vec4<f32>=textureSampleLevel(testTexture,testSampler,coords,lLevel);` +
             `}`
         );
     });
@@ -1107,9 +1107,9 @@ Deno.test('PgslTextureBuildInFunction.textureSampleLevel', async (pContext) => {
             `@group(0)@binding(0)var testTexture:texture_3d<f32>;` +
             `@group(0)@binding(1)var testSampler:sampler;` +
             `fn testFunction(){` +
-            `let coords:vec3<f32>=vec3(0.5,0.5,0.5);` +
-            `let lLevel:f32=0.0;` +
-            `let result:vec4<f32>=textureSampleLevel(testTexture,testSampler,coords,lLevel);` +
+            `var coords:vec3<f32>=vec3(0.5,0.5,0.5);` +
+            `var lLevel:f32=0.0;` +
+            `var result:vec4<f32>=textureSampleLevel(testTexture,testSampler,coords,lLevel);` +
             `}`
         );
     });
@@ -1136,9 +1136,9 @@ Deno.test('PgslTextureBuildInFunction.textureSampleLevel', async (pContext) => {
             `@group(0)@binding(0)var testTexture:texture_depth_2d;` +
             `@group(0)@binding(1)var testSampler:sampler;` +
             `fn testFunction(){` +
-            `let coords:vec2<f32>=vec2(0.5,0.5);` +
-            `let lLevel:i32=0;` +
-            `let result:f32=textureSampleLevel(testTexture,testSampler,coords,lLevel);` +
+            `var coords:vec2<f32>=vec2(0.5,0.5);` +
+            `var lLevel:i32=0;` +
+            `var result:f32=textureSampleLevel(testTexture,testSampler,coords,lLevel);` +
             `}`
         );
     });
@@ -1166,8 +1166,8 @@ Deno.test('PgslTextureBuildInFunction.textureSampleBaseClampToEdge', async (pCon
             `@group(0)@binding(0)var testTexture:texture_2d<f32>;` +
             `@group(0)@binding(1)var testSampler:sampler;` +
             `fn testFunction(){` +
-            `let coords:vec2<f32>=vec2(0.5,0.5);` +
-            `let result:vec4<f32>=textureSampleBaseClampToEdge(testTexture,testSampler,coords);` +
+            `var coords:vec2<f32>=vec2(0.5,0.5);` +
+            `var result:vec4<f32>=textureSampleBaseClampToEdge(testTexture,testSampler,coords);` +
             `}`
         );
     });

@@ -27,8 +27,8 @@ Deno.test('PgslPackingBuildInFunction-pack4x8snorm', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let eValue:vec4<f32>=vec4(0.5,0.5,0.5,0.5);` +
-            `let resultValue:u32=pack4x8snorm(eValue);` +
+            `var eValue:vec4<f32>=vec4(0.5,0.5,0.5,0.5);` +
+            `var resultValue:u32=pack4x8snorm(eValue);` +
             `}`
         );
     });
@@ -53,8 +53,8 @@ Deno.test('PgslPackingBuildInFunction-pack4x8unorm', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let eValue:vec4<f32>=vec4(0.5,0.5,0.5,0.5);` +
-            `let resultValue:u32=pack4x8unorm(eValue);` +
+            `var eValue:vec4<f32>=vec4(0.5,0.5,0.5,0.5);` +
+            `var resultValue:u32=pack4x8unorm(eValue);` +
             `}`
         );
     });
@@ -79,8 +79,8 @@ Deno.test('PgslPackingBuildInFunction-pack4xI8', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let eValue:vec4<i32>=vec4<i32>(10i,20i,30i,40i);` +
-            `let resultValue:u32=pack4xI8(eValue);` +
+            `var eValue:vec4<i32>=vec4<i32>(10i,20i,30i,40i);` +
+            `var resultValue:u32=pack4xI8(eValue);` +
             `}`
         );
     });
@@ -105,8 +105,8 @@ Deno.test('PgslPackingBuildInFunction-pack4xU8', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let eValue:vec4<u32>=vec4<u32>(10u,20u,30u,40u);` +
-            `let resultValue:u32=pack4xU8(eValue);` +
+            `var eValue:vec4<u32>=vec4<u32>(10u,20u,30u,40u);` +
+            `var resultValue:u32=pack4xU8(eValue);` +
             `}`
         );
     });
@@ -131,8 +131,8 @@ Deno.test('PgslPackingBuildInFunction-pack4xI8Clamp', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let eValue:vec4<i32>=vec4<i32>(10i,20i,30i,40i);` +
-            `let resultValue:u32=pack4xI8Clamp(eValue);` +
+            `var eValue:vec4<i32>=vec4<i32>(10i,20i,30i,40i);` +
+            `var resultValue:u32=pack4xI8Clamp(eValue);` +
             `}`
         );
     });
@@ -157,8 +157,8 @@ Deno.test('PgslPackingBuildInFunction-pack4xU8Clamp', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let eValue:vec4<u32>=vec4<u32>(10u,20u,30u,40u);` +
-            `let resultValue:u32=pack4xU8Clamp(eValue);` +
+            `var eValue:vec4<u32>=vec4<u32>(10u,20u,30u,40u);` +
+            `var resultValue:u32=pack4xU8Clamp(eValue);` +
             `}`
         );
     });
@@ -183,8 +183,8 @@ Deno.test('PgslPackingBuildInFunction-pack2x16snorm', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let eValue:vec2<f32>=vec2(0.5,0.5);` +
-            `let resultValue:u32=pack2x16snorm(eValue);` +
+            `var eValue:vec2<f32>=vec2(0.5,0.5);` +
+            `var resultValue:u32=pack2x16snorm(eValue);` +
             `}`
         );
     });
@@ -209,8 +209,8 @@ Deno.test('PgslPackingBuildInFunction-pack2x16unorm', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let eValue:vec2<f32>=vec2(0.5,0.5);` +
-            `let resultValue:u32=pack2x16unorm(eValue);` +
+            `var eValue:vec2<f32>=vec2(0.5,0.5);` +
+            `var resultValue:u32=pack2x16unorm(eValue);` +
             `}`
         );
     });
@@ -235,8 +235,8 @@ Deno.test('PgslPackingBuildInFunction-pack2x16float', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let eValue:vec2<f32>=vec2(1.0,2.0);` +
-            `let resultValue:u32=pack2x16float(eValue);` +
+            `var eValue:vec2<f32>=vec2(1.0,2.0);` +
+            `var resultValue:u32=pack2x16float(eValue);` +
             `}`
         );
     });
@@ -261,8 +261,8 @@ Deno.test('PgslPackingBuildInFunction-unpack4x8snorm', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let eValue:u32=123456u;` +
-            `let resultValue:vec4<f32>=unpack4x8snorm(eValue);` +
+            `var eValue:u32=123456u;` +
+            `var resultValue:vec4<f32>=unpack4x8snorm(eValue);` +
             `}`
         );
     });
@@ -287,8 +287,8 @@ Deno.test('PgslPackingBuildInFunction-unpack4x8unorm', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let eValue:u32=123456u;` +
-            `let resultValue:vec4<f32>=unpack4x8unorm(eValue);` +
+            `var eValue:u32=123456u;` +
+            `var resultValue:vec4<f32>=unpack4x8unorm(eValue);` +
             `}`
         );
     });
@@ -313,8 +313,8 @@ Deno.test('PgslPackingBuildInFunction-unpack4xI8', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let eValue:u32=123456u;` +
-            `let resultValue:vec4<i32>=unpack4xI8(eValue);` +
+            `var eValue:u32=123456u;` +
+            `var resultValue:vec4<i32>=unpack4xI8(eValue);` +
             `}`
         );
     });
@@ -339,8 +339,8 @@ Deno.test('PgslPackingBuildInFunction-unpack4xU8', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let eValue:u32=123456u;` +
-            `let resultValue:vec4<u32>=unpack4xU8(eValue);` +
+            `var eValue:u32=123456u;` +
+            `var resultValue:vec4<u32>=unpack4xU8(eValue);` +
             `}`
         );
     });
@@ -365,8 +365,8 @@ Deno.test('PgslPackingBuildInFunction-unpack2x16snorm', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let eValue:u32=123456u;` +
-            `let resultValue:vec2<f32>=unpack2x16snorm(eValue);` +
+            `var eValue:u32=123456u;` +
+            `var resultValue:vec2<f32>=unpack2x16snorm(eValue);` +
             `}`
         );
     });
@@ -391,8 +391,8 @@ Deno.test('PgslPackingBuildInFunction-unpack2x16unorm', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let eValue:u32=123456u;` +
-            `let resultValue:vec2<f32>=unpack2x16unorm(eValue);` +
+            `var eValue:u32=123456u;` +
+            `var resultValue:vec2<f32>=unpack2x16unorm(eValue);` +
             `}`
         );
     });
@@ -417,8 +417,8 @@ Deno.test('PgslPackingBuildInFunction-unpack2x16float', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let eValue:u32=123456u;` +
-            `let resultValue:vec2<f32>=unpack2x16float(eValue);` +
+            `var eValue:u32=123456u;` +
+            `var resultValue:vec2<f32>=unpack2x16float(eValue);` +
             `}`
         );
     });

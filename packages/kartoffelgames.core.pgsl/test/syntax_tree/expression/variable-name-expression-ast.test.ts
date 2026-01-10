@@ -186,8 +186,8 @@ Deno.test('VariableNameExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let ${lVariableName}:f32=5.0;` +
-                `let testResult:f32=${lVariableName};` +
+                `var ${lVariableName}:f32=5.0;` +
+                `var testResult:f32=${lVariableName};` +
                 `}`
             );
         });
@@ -212,7 +212,7 @@ Deno.test('VariableNameExpressionAst - Transpilation', async (pContext) => {
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
                 `const ${lVariableName}:f32=5.0;` +
-                `let testResult:f32=${lVariableName};` +
+                `var testResult:f32=${lVariableName};` +
                 `}`
             );
         });
@@ -237,7 +237,7 @@ Deno.test('VariableNameExpressionAst - Transpilation', async (pContext) => {
             expect(lTranspilationResult.source).toBe(
                 `const ${lVariableName}:f32=5.0;` +
                 `fn testFunction(){` +
-                `let testResult:f32=${lVariableName};` +
+                `var testResult:f32=${lVariableName};` +
                 `}`
             );
         });
@@ -260,7 +260,7 @@ Deno.test('VariableNameExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(${lParameterName}:f32){` +
-                `let testResult:f32=${lParameterName};` +
+                `var testResult:f32=${lParameterName};` +
                 `}`
             );
         });
@@ -287,7 +287,7 @@ Deno.test('VariableNameExpressionAst - Transpilation', async (pContext) => {
             expect(lTranspilationResult.source).toBe(
                 `@group(0)@binding(0)var<uniform> ${lVariableName}:f32;` +
                 `fn testFunction(){` +
-                `let testResult:f32=${lVariableName};` +
+                `var testResult:f32=${lVariableName};` +
                 `}`
             );
         });

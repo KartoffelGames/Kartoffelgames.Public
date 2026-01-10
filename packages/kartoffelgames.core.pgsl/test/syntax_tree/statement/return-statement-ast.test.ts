@@ -126,7 +126,7 @@ Deno.test('ReturnStatementAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction()->i32{` +
-                `let ${lVariableName}:i32=42;` +
+                `var ${lVariableName}:i32=42;` +
                 `return ${lVariableName};` +
                 `}`
             );

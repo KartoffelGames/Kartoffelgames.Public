@@ -1325,7 +1325,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.KeywordCase)
                 .required('cases<-list', pExpressionGraphs.expressionList)
-                .required(PgslToken.MemberDelimiter)
+                .required(PgslToken.Colon)
                 .required('block', lBlockStatementGraph);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): SwitchCaseCst => {
             return {
@@ -1364,6 +1364,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 .optional('cases<-list', lSwitchCaseStatementListGraph)
                 .required('defaultBlock<-block', GraphNode.new<PgslToken>()
                     .required(PgslToken.KeywordDefault)
+                    .required(PgslToken.Colon)
                     .required('block', lBlockStatementGraph)
                 )
                 .required(PgslToken.BlockEnd);
@@ -1413,7 +1414,8 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 .required(PgslToken.KeywordWhile)
                 .required(PgslToken.ParenthesesStart)
                 .required('expression', pExpressionGraphs.expression)
-                .required(PgslToken.ParenthesesEnd);
+                .required(PgslToken.ParenthesesEnd)
+                .required(PgslToken.Semicolon);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): DoWhileStatementCst => {
             return {
                 type: 'DoWhileStatement',

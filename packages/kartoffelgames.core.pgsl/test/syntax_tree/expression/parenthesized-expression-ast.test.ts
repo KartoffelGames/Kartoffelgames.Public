@@ -136,7 +136,7 @@ Deno.test('ParenthesizedExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:f32=(${lValueOne});` +
+                `var testVariable:f32=(${lValueOne});` +
                 `}`
             );
         });
@@ -160,7 +160,7 @@ Deno.test('ParenthesizedExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:f32=(${lValueOne}+${lValueTwo});` +
+                `var testVariable:f32=(${lValueOne}+${lValueTwo});` +
                 `}`
             );
         });
@@ -184,7 +184,7 @@ Deno.test('ParenthesizedExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:bool=(${lValueOne}>${lValueTwo});` +
+                `var testVariable:bool=(${lValueOne}>${lValueTwo});` +
                 `}`
             );
         });
@@ -210,7 +210,7 @@ Deno.test('ParenthesizedExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let testVariable:f32=((${lValueOne}+${lValueTwo})*${lValueThree});` +
+            `var testVariable:f32=((${lValueOne}+${lValueTwo})*${lValueThree});` +
             `}`
         );
     });

@@ -220,7 +220,7 @@ Deno.test('FunctionCallExpressionAst - Transpilation', async (pContext) => {
                 `return 42.0;` +
                 `}` +
                 `fn mainFunction(){` +
-                `let testVariable:f32=${lFunctionName}();` +
+                `var testVariable:f32=${lFunctionName}();` +
                 `}`
             );
         });
@@ -250,7 +250,7 @@ Deno.test('FunctionCallExpressionAst - Transpilation', async (pContext) => {
                 `return pValue;` +
                 `}` +
                 `fn mainFunction(){` +
-                `let testVariable:f32=${lFunctionName}(${lParameterValue});` +
+                `var testVariable:f32=${lFunctionName}(${lParameterValue});` +
                 `}`
             );
         });
@@ -279,7 +279,7 @@ Deno.test('FunctionCallExpressionAst - Transpilation', async (pContext) => {
                 `return pValueOne+pValueTwo;` +
                 `}` +
                 `fn mainFunction(){` +
-                `let testVariable:f32=${lFunctionName}(5.0,3.0);` +
+                `var testVariable:f32=${lFunctionName}(5.0,3.0);` +
                 `}`
             );
         });
@@ -310,8 +310,8 @@ Deno.test('FunctionCallExpressionAst - Transpilation', async (pContext) => {
                     `return 1.0;` +
                     `}` +
                     `fn mainFunction(){` +
-                    `let testValue:f32=5.0;` +
-                    `let resultValue:f32=${lFunctionName}(&testValue);` +
+                    `var testValue:f32=5.0;` +
+                    `var resultValue:f32=${lFunctionName}(&testValue);` +
                     `}`
                 );
             });
@@ -343,7 +343,7 @@ Deno.test('FunctionCallExpressionAst - Transpilation', async (pContext) => {
                     `return 1.0;` +
                     `}` +
                     `fn mainFunction(){` +
-                    `let resultValue:f32=${lFunctionName}(&${lVariableName});` +
+                    `var resultValue:f32=${lFunctionName}(&${lVariableName});` +
                     `}`
                 );
             });
@@ -375,7 +375,7 @@ Deno.test('FunctionCallExpressionAst - Transpilation', async (pContext) => {
                     `return 1.0;` +
                     `}` +
                     `fn mainFunction(){` +
-                    `let resultValue:f32=${lFunctionName}(&${lVariableName});` +
+                    `var resultValue:f32=${lFunctionName}(&${lVariableName});` +
                     `}`
                 );
             });
@@ -408,7 +408,7 @@ Deno.test('FunctionCallExpressionAst - Transpilation', async (pContext) => {
                     `return 1.0;` +
                     `}` +
                     `fn mainFunction(){` +
-                    `let resultValue:f32=${lFunctionName}(&${lVariableName});` +
+                    `var resultValue:f32=${lFunctionName}(&${lVariableName});` +
                     `}`
                 );
             });
@@ -441,7 +441,7 @@ Deno.test('FunctionCallExpressionAst - Transpilation', async (pContext) => {
                     `return 1.0;` +
                     `}` +
                     `fn mainFunction(){` +
-                    `let resultValue:f32=${lFunctionName}(&${lVariableName});` +
+                    `var resultValue:f32=${lFunctionName}(&${lVariableName});` +
                     `}`
                 );
             });
@@ -467,8 +467,8 @@ Deno.test('FunctionCallExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let intValue:i32=42;` +
-                `let testVariable:f32=bitcast<f32>(intValue);` +
+                `var intValue:i32=42;` +
+                `var testVariable:f32=bitcast<f32>(intValue);` +
                 `}`
             );
         });
@@ -490,7 +490,7 @@ Deno.test('FunctionCallExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:f32=floor(5.7);` +
+                `var testVariable:f32=floor(5.7);` +
                 `}`
             );
         });

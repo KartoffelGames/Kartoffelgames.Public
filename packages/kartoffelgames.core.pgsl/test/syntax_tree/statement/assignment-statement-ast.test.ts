@@ -264,7 +264,7 @@ Deno.test('AssignmentStatementAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let ${lVariableName}:f32;` +
+            `var ${lVariableName}:f32;` +
             `${lVariableName}=5.0;` +
             `}`
         );
@@ -289,7 +289,7 @@ Deno.test('AssignmentStatementAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let ${lVariableName}:i32=10;` +
+            `var ${lVariableName}:i32=10;` +
             `${lVariableName}+=5;` +
             `}`
         );
@@ -314,7 +314,7 @@ Deno.test('AssignmentStatementAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let ${lVariableName}:i32=10;` +
+            `var ${lVariableName}:i32=10;` +
             `${lVariableName}-=3;` +
             `}`
         );
@@ -339,7 +339,7 @@ Deno.test('AssignmentStatementAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let ${lVariableName}:f32=2.0;` +
+            `var ${lVariableName}:f32=2.0;` +
             `${lVariableName}*=3.0;` +
             `}`
         );
@@ -364,7 +364,7 @@ Deno.test('AssignmentStatementAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let ${lVariableName}:f32=10.0;` +
+            `var ${lVariableName}:f32=10.0;` +
             `${lVariableName}/=2.0;` +
             `}`
         );
@@ -389,7 +389,7 @@ Deno.test('AssignmentStatementAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let ${lVariableName}:i32=10;` +
+            `var ${lVariableName}:i32=10;` +
             `${lVariableName}%=3;` +
             `}`
         );
@@ -414,7 +414,7 @@ Deno.test('AssignmentStatementAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let ${lVariableName}:u32=12;` +
+            `var ${lVariableName}:u32=12;` +
             `${lVariableName}&=10;` +
             `}`
         );
@@ -439,7 +439,7 @@ Deno.test('AssignmentStatementAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let ${lVariableName}:u32=8;` +
+            `var ${lVariableName}:u32=8;` +
             `${lVariableName}|=4;` +
             `}`
         );
@@ -464,7 +464,7 @@ Deno.test('AssignmentStatementAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let ${lVariableName}:u32=12;` +
+            `var ${lVariableName}:u32=12;` +
             `${lVariableName}^=10;` +
             `}`
         );
@@ -489,7 +489,7 @@ Deno.test('AssignmentStatementAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let ${lVariableName}:u32=16;` +
+            `var ${lVariableName}:u32=16;` +
             `${lVariableName}>>=2;` +
             `}`
         );
@@ -514,7 +514,7 @@ Deno.test('AssignmentStatementAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let ${lVariableName}:u32=4;` +
+            `var ${lVariableName}:u32=4;` +
             `${lVariableName}<<=2;` +
             `}`
         );

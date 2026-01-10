@@ -26,11 +26,11 @@ export class ForStatementAstTranspilerProcessor implements ITranspilerProcessor<
         }
 
         // Create a loop.
-        lResult += 'loop {';
+        lResult += 'loop{';
 
         // When a expression is set define it as exit.
         if (pInstance.data.expression) {
-            lResult += `if !(${pTranspile(pInstance.data.expression)}) { break; }`;
+            lResult += `if !(${pTranspile(pInstance.data.expression)}){break;}`;
         }
 
         // Append the actual body.
@@ -38,7 +38,7 @@ export class ForStatementAstTranspilerProcessor implements ITranspilerProcessor<
 
         // Set the update expression when defined.
         if (pInstance.data.update) {
-            lResult += `${pTranspile(pInstance.data.update)};`;
+            lResult += `${pTranspile(pInstance.data.update)}`;
         }
 
         // And close the loop.

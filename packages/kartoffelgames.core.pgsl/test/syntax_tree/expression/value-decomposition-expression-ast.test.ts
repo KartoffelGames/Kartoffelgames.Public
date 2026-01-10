@@ -272,8 +272,8 @@ Deno.test('ValueDecompositionExpressionAst - Transpilation', async (pContext) =>
                 `${lPropertyName}:f32` +
                 `}` +
                 `fn testFunction(){` +
-                `let testStruct:${lStructName};` +
-                `let testVariable:f32=testStruct.${lPropertyName};` +
+                `var testStruct:${lStructName};` +
+                `var testVariable:f32=testStruct.${lPropertyName};` +
                 `}`
             );
         });
@@ -312,8 +312,8 @@ Deno.test('ValueDecompositionExpressionAst - Transpilation', async (pContext) =>
                 `${lPropertyName}:${lNestedStructName}` +
                 `}` +
                 `fn testFunction(){` +
-                `let testStruct:${lStructName};` +
-                `let testVariable:f32=testStruct.${lPropertyName}.${lNestedPropertyName};` +
+                `var testStruct:${lStructName};` +
+                `var testVariable:f32=testStruct.${lPropertyName}.${lNestedPropertyName};` +
                 `}`
             );
         });
@@ -344,7 +344,7 @@ Deno.test('ValueDecompositionExpressionAst - Transpilation', async (pContext) =>
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:i32=${lEnumValue};` +
+                `var testVariable:i32=${lEnumValue};` +
                 `}`
             );
         });
@@ -370,8 +370,8 @@ Deno.test('ValueDecompositionExpressionAst - Transpilation', async (pContext) =>
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVector:vec3<f32>=vec3(1.0,2.0,3.0);` +
-                `let testVariable:f32=testVector.${lSwizzle};` +
+                `var testVector:vec3<f32>=vec3(1.0,2.0,3.0);` +
+                `var testVariable:f32=testVector.${lSwizzle};` +
                 `}`
             );
         });
@@ -395,8 +395,8 @@ Deno.test('ValueDecompositionExpressionAst - Transpilation', async (pContext) =>
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVector:vec3<f32>=vec3(1.0,2.0,3.0);` +
-                `let testVariable:vec2<f32>=testVector.${lSwizzle};` +
+                `var testVector:vec3<f32>=vec3(1.0,2.0,3.0);` +
+                `var testVariable:vec2<f32>=testVector.${lSwizzle};` +
                 `}`
             );
         });
@@ -420,8 +420,8 @@ Deno.test('ValueDecompositionExpressionAst - Transpilation', async (pContext) =>
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVector:vec4<f32>=vec4(1.0,2.0,3.0,4.0);` +
-                `let testVariable:vec4<f32>=testVector.${lSwizzle};` +
+                `var testVector:vec4<f32>=vec4(1.0,2.0,3.0,4.0);` +
+                `var testVariable:vec4<f32>=testVector.${lSwizzle};` +
                 `}`
             );
         });
@@ -445,8 +445,8 @@ Deno.test('ValueDecompositionExpressionAst - Transpilation', async (pContext) =>
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVector:vec4<f32>=vec4(1.0,2.0,3.0,4.0);` +
-                `let testVariable:vec4<f32>=testVector.${lSwizzle};` +
+                `var testVector:vec4<f32>=vec4(1.0,2.0,3.0,4.0);` +
+                `var testVariable:vec4<f32>=testVector.${lSwizzle};` +
                 `}`
             );
         });

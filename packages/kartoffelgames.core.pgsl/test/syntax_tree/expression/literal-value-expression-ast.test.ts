@@ -516,7 +516,7 @@ Deno.test('LiteralValueExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:bool=${lLiteralValue};` +
+                `var testVariable:bool=${lLiteralValue};` +
                 `}`
             );
         });
@@ -539,7 +539,7 @@ Deno.test('LiteralValueExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:bool=${lLiteralValue};` +
+                `var testVariable:bool=${lLiteralValue};` +
                 `}`
             );
         });
@@ -564,7 +564,7 @@ Deno.test('LiteralValueExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:i32=${lLiteralValue};` +
+                `var testVariable:i32=${lLiteralValue};` +
                 `}`
             );
         });
@@ -587,7 +587,7 @@ Deno.test('LiteralValueExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:i32=${lLiteralValue};` +
+                `var testVariable:i32=${lLiteralValue};` +
                 `}`
             );
         });
@@ -610,7 +610,7 @@ Deno.test('LiteralValueExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:u32=${lLiteralValue};` +
+                `var testVariable:u32=${lLiteralValue};` +
                 `}`
             );
         });
@@ -633,7 +633,7 @@ Deno.test('LiteralValueExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:i32=${lLiteralValue};` +
+                `var testVariable:i32=${lLiteralValue};` +
                 `}`
             );
         });
@@ -656,7 +656,7 @@ Deno.test('LiteralValueExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:i32=${lLiteralValue};` +
+                `var testVariable:i32=${lLiteralValue};` +
                 `}`
             );
         });
@@ -679,7 +679,7 @@ Deno.test('LiteralValueExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:u32=${lLiteralValue};` +
+                `var testVariable:u32=${lLiteralValue};` +
                 `}`
             );
         });
@@ -704,7 +704,7 @@ Deno.test('LiteralValueExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:f32=${lLiteralValue};` +
+                `var testVariable:f32=${lLiteralValue};` +
                 `}`
             );
         });
@@ -727,7 +727,7 @@ Deno.test('LiteralValueExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:f32=${lLiteralValue};` +
+                `var testVariable:f32=${lLiteralValue};` +
                 `}`
             );
         });
@@ -750,7 +750,7 @@ Deno.test('LiteralValueExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:f16=${lLiteralValue};` +
+                `var testVariable:f16=${lLiteralValue};` +
                 `}`
             );
         });
@@ -773,7 +773,7 @@ Deno.test('LiteralValueExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:f32=${lLiteralValue};` +
+                `var testVariable:f32=${lLiteralValue};` +
                 `}`
             );
         });
@@ -796,7 +796,7 @@ Deno.test('LiteralValueExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:f32=${lLiteralValue};` +
+                `var testVariable:f32=${lLiteralValue};` +
                 `}`
             );
         });
@@ -819,7 +819,7 @@ Deno.test('LiteralValueExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:f16=${lLiteralValue};` +
+                `var testVariable:f16=${lLiteralValue};` +
                 `}`
             );
         });
@@ -842,7 +842,7 @@ Deno.test('LiteralValueExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:f32=${lLiteralValue};` +
+                `var testVariable:f32=${lLiteralValue};` +
                 `}`
             );
         });
@@ -865,7 +865,7 @@ Deno.test('LiteralValueExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:f32=${lLiteralValue};` +
+                `var testVariable:f32=${lLiteralValue};` +
                 `}`
             );
         });
@@ -888,7 +888,7 @@ Deno.test('LiteralValueExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:f16=${lLiteralValue};` +
+                `var testVariable:f16=${lLiteralValue};` +
                 `}`
             );
         });

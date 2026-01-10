@@ -174,7 +174,7 @@ Deno.test('PointerExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(pPointer:ptr<function,f32>){` +
-                `let ${lVariableName}:f32=*pPointer;` +
+                `var ${lVariableName}:f32=*pPointer;` +
                 `}`
             );
         });
@@ -200,8 +200,8 @@ Deno.test('PointerExpressionAst - Transpilation', async (pContext) => {
             expect(lTranspilationResult.source).toBe(
                 `var<private> ${lVariableName}:f32;` +
                 `fn testFunction(){` +
-                `let lPointer:ptr<private,f32>=&${lVariableName};` +
-                `let testValue:f32=*lPointer;` +
+                `var lPointer:ptr<private,f32>=&${lVariableName};` +
+                `var testValue:f32=*lPointer;` +
                 `}`
             );
         });
@@ -227,8 +227,8 @@ Deno.test('PointerExpressionAst - Transpilation', async (pContext) => {
             expect(lTranspilationResult.source).toBe(
                 `var<workgroup> ${lVariableName}:f32;` +
                 `fn testFunction(){` +
-                `let lPointer:ptr<workgroup,f32>=&${lVariableName};` +
-                `let testValue:f32=*lPointer;` +
+                `var lPointer:ptr<workgroup,f32>=&${lVariableName};` +
+                `var testValue:f32=*lPointer;` +
                 `}`
             );
         });
@@ -255,8 +255,8 @@ Deno.test('PointerExpressionAst - Transpilation', async (pContext) => {
             expect(lTranspilationResult.source).toBe(
                 `@group(0)@binding(0)var<uniform> ${lVariableName}:f32;` +
                 `fn testFunction(){` +
-                `let lPointer:ptr<uniform,f32>=&${lVariableName};` +
-                `let testValue:f32=*lPointer;` +
+                `var lPointer:ptr<uniform,f32>=&${lVariableName};` +
+                `var testValue:f32=*lPointer;` +
                 `}`
             );
         });
@@ -283,8 +283,8 @@ Deno.test('PointerExpressionAst - Transpilation', async (pContext) => {
             expect(lTranspilationResult.source).toBe(
                 `@group(0)@binding(0)var<storage,read> ${lVariableName}:f32;` +
                 `fn testFunction(){` +
-                `let lPointer:ptr<storage,f32>=&${lVariableName};` +
-                `let testValue:f32=*lPointer;` +
+                `var lPointer:ptr<storage,f32>=&${lVariableName};` +
+                `var testValue:f32=*lPointer;` +
                 `}`
             );
         });

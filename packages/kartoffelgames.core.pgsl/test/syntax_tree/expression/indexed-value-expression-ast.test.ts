@@ -195,8 +195,8 @@ Deno.test('IndexedValueExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Transpiled output uses the aliased type.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let ${lVariableName}:array<f32,5>=array(1,2,3,4,5);` +
-            `let arrayItem:f32=${lVariableName}[${lArrayIndex}];` +
+            `var ${lVariableName}:array<f32,5>=array(1,2,3,4,5);` +
+            `var arrayItem:f32=${lVariableName}[${lArrayIndex}];` +
             `}`
         );
     });
@@ -221,8 +221,8 @@ Deno.test('IndexedValueExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Transpiled output uses the aliased type.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let ${lVariableName}:vec3<f32>=vec3(1,2,3);` +
-            `let vectorItem:f32=${lVariableName}[${lVectorItemIndex}];` +
+            `var ${lVariableName}:vec3<f32>=vec3(1,2,3);` +
+            `var vectorItem:f32=${lVariableName}[${lVectorItemIndex}];` +
             `}`
         );
     });
@@ -247,8 +247,8 @@ Deno.test('IndexedValueExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Transpiled output uses the aliased type.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let ${lVariableName}:mat2x2<f32>=mat2x2(1,2,3,4);` +
-            `let numericVector:vec2<f32>=${lVariableName}[${lMatrixItemIndex}];` +
+            `var ${lVariableName}:mat2x2<f32>=mat2x2(1,2,3,4);` +
+            `var numericVector:vec2<f32>=${lVariableName}[${lMatrixItemIndex}];` +
             `}`
         );
     });

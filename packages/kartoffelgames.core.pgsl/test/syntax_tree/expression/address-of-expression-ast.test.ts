@@ -213,8 +213,8 @@ Deno.test('AddressOfExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let ${lVariableName}:f32=5.0;` +
-                `let pointerVariable:ptr<function,f32>=&${lVariableName};` +
+                `var ${lVariableName}:f32=5.0;` +
+                `var pointerVariable:ptr<function,f32>=&${lVariableName};` +
                 `}`
             );
         });
@@ -246,8 +246,8 @@ Deno.test('AddressOfExpressionAst - Transpilation', async (pContext) => {
                 `${lPropertyName}:f32` +
                 `}` +
                 `fn testFunction(){` +
-                `let ${lVariableName}:${lStructName};` +
-                `let pointerVariable:ptr<function,f32>=&${lVariableName}.${lPropertyName};` +
+                `var ${lVariableName}:${lStructName};` +
+                `var pointerVariable:ptr<function,f32>=&${lVariableName}.${lPropertyName};` +
                 `}`
             );
         });
@@ -272,8 +272,8 @@ Deno.test('AddressOfExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let ${lArrayName}:array<f32,5>=array(1.0,2.0,3.0,4.0,5.0);` +
-                `let pointerVariable:ptr<function,f32>=&${lArrayName}[${lArrayIndex}];` +
+                `var ${lArrayName}:array<f32,5>=array(1.0,2.0,3.0,4.0,5.0);` +
+                `var pointerVariable:ptr<function,f32>=&${lArrayName}[${lArrayIndex}];` +
                 `}`
             );
         });
@@ -299,8 +299,8 @@ Deno.test('AddressOfExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let ${lVariableName}:f32=5.0;` +
-                `let pointerVariable:ptr<function,f32>=&${lVariableName};` +
+                `var ${lVariableName}:f32=5.0;` +
+                `var pointerVariable:ptr<function,f32>=&${lVariableName};` +
                 `}`
             );
         });
@@ -325,7 +325,7 @@ Deno.test('AddressOfExpressionAst - Transpilation', async (pContext) => {
             expect(lTranspilationResult.source).toBe(
                 `var<private> ${lVariableName}:f32;` +
                 `fn testFunction(){` +
-                `let pointerVariable:ptr<private,f32>=&${lVariableName};` +
+                `var pointerVariable:ptr<private,f32>=&${lVariableName};` +
                 `}`
             );
         });
@@ -352,7 +352,7 @@ Deno.test('AddressOfExpressionAst - Transpilation', async (pContext) => {
                 `@group(0)@binding(0)`+
                 `var<storage,read> ${lVariableName}:f32;` +
                 `fn testFunction(){` +
-                `let pointerVariable:ptr<storage,f32>=&${lVariableName};` +
+                `var pointerVariable:ptr<storage,f32>=&${lVariableName};` +
                 `}`
             );
         });

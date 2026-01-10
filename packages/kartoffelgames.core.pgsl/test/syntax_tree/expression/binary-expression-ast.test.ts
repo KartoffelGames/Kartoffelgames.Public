@@ -269,7 +269,7 @@ Deno.test('BinaryExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:i32=${lLeftValue}|${lRightValue};` +
+                `var testVariable:i32=${lLeftValue}|${lRightValue};` +
                 `}`
             );
         });
@@ -293,7 +293,7 @@ Deno.test('BinaryExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:i32=${lLeftValue}&${lRightValue};` +
+                `var testVariable:i32=${lLeftValue}&${lRightValue};` +
                 `}`
             );
         });
@@ -317,7 +317,7 @@ Deno.test('BinaryExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:i32=${lLeftValue}^${lRightValue};` +
+                `var testVariable:i32=${lLeftValue}^${lRightValue};` +
                 `}`
             );
         });
@@ -344,8 +344,8 @@ Deno.test('BinaryExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let ${lVariableName}:i32=5;` +
-                `let result:i32=${lVariableName}<<${lShiftAmount};` +
+                `var ${lVariableName}:i32=5;` +
+                `var result:i32=${lVariableName}<<${lShiftAmount};` +
                 `}`
             );
         });
@@ -370,8 +370,8 @@ Deno.test('BinaryExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let ${lVariableName}:u32=20u;` +
-                `let result:u32=${lVariableName}>>${lShiftAmount}u;` +
+                `var ${lVariableName}:u32=20u;` +
+                `var result:u32=${lVariableName}>>${lShiftAmount}u;` +
                 `}`
             );
         });
@@ -397,9 +397,9 @@ Deno.test('BinaryExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let vectorOne:vec3<i32>=vec3(5,3,7);` +
-                `let vectorTwo:vec3<i32>=vec3(2,6,4);` +
-                `let testVariable:vec3<i32>=vectorOne|vectorTwo;` +
+                `var vectorOne:vec3<i32>=vec3(5,3,7);` +
+                `var vectorTwo:vec3<i32>=vec3(2,6,4);` +
+                `var testVariable:vec3<i32>=vectorOne|vectorTwo;` +
                 `}`
             );
         });
@@ -423,9 +423,9 @@ Deno.test('BinaryExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let vectorOne:vec3<i32>=vec3(5,3,7);` +
-                `let vectorTwo:vec3<i32>=vec3(2,6,4);` +
-                `let testVariable:vec3<i32>=vectorOne&vectorTwo;` +
+                `var vectorOne:vec3<i32>=vec3(5,3,7);` +
+                `var vectorTwo:vec3<i32>=vec3(2,6,4);` +
+                `var testVariable:vec3<i32>=vectorOne&vectorTwo;` +
                 `}`
             );
         });

@@ -182,7 +182,7 @@ Deno.test('UnaryExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:i32=~${lValue};` +
+                `var testVariable:i32=~${lValue};` +
                 `}`
             );
         });
@@ -207,7 +207,7 @@ Deno.test('UnaryExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:i32=-${lValue};` +
+                `var testVariable:i32=-${lValue};` +
                 `}`
             );
         });
@@ -230,7 +230,7 @@ Deno.test('UnaryExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:f32=-${lValue};` +
+                `var testVariable:f32=-${lValue};` +
                 `}`
             );
         });
@@ -253,8 +253,8 @@ Deno.test('UnaryExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVector:vec3<f32>=vec3(1.0,2.0,3.0);` +
-                `let testVariable:vec3<f32>=-testVector;` +
+                `var testVector:vec3<f32>=vec3(1.0,2.0,3.0);` +
+                `var testVariable:vec3<f32>=-testVector;` +
                 `}`
             );
         });
@@ -279,7 +279,7 @@ Deno.test('UnaryExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let testVariable:bool=!${lValue};` +
+                `var testVariable:bool=!${lValue};` +
                 `}`
             );
         });

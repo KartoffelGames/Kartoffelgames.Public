@@ -100,9 +100,9 @@ Deno.test('LogicalExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let boolOne:bool=true;` +
-                `let boolTwo:bool=false;` +
-                `let testVariable:bool=boolOne||boolTwo;` +
+                `var boolOne:bool=true;` +
+                `var boolTwo:bool=false;` +
+                `var testVariable:bool=boolOne||boolTwo;` +
                 `}`
             );
         });
@@ -128,9 +128,9 @@ Deno.test('LogicalExpressionAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `let boolOne:bool=true;` +
-                `let boolTwo:bool=false;` +
-                `let testVariable:bool=boolOne&&boolTwo;` +
+                `var boolOne:bool=true;` +
+                `var boolTwo:bool=false;` +
+                `var testVariable:bool=boolOne&&boolTwo;` +
                 `}`
             );
         });

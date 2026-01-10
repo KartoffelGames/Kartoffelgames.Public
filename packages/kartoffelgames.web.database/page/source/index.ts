@@ -5,19 +5,19 @@ import { WebDatabase } from '../../source/web_database/web-database.ts';
 
 @WebDatabase.table('TestTableOne')
 class TestTableOne {
-    @WebDatabase.identity(true)
+    @WebDatabase.field({ as: { identity: 'auto' } })
     public id!: number;
 
-    @WebDatabase.field('name', true)
+    @WebDatabase.field({ as: { index: { unique: true } } })
     public name?: string;
 
     @WebDatabase.field()
     public notIndexed?: string;
 
-    @WebDatabase.field('price')
+    @WebDatabase.field()
     public price?: number;
 
-    @WebDatabase.field('types', false, true)
+    @WebDatabase.field({ as: { index: { multiEntry: true } } })
     public types?: Array<number>;
 
     public whatMyId(): number {
@@ -27,12 +27,12 @@ class TestTableOne {
 
 @WebDatabase.table('TestTableTwo')
 class TestTableTwo {
-    @WebDatabase.field('nameThing', true)
+    @WebDatabase.field({ as: { index: { unique: true } } })
     public nameThing?: string;
 }
 
 (() => {
-    const lDatabase: WebDatabase = new WebDatabase('MainDB', [TestTableOne, TestTableTwo]);
+    const lDatabase = new WebDatabase('MainDB', [TestTableOne, TestTableTwo]);
     lDatabase.transaction([TestTableOne, TestTableTwo], 'readwrite', async (pTransaction) => {
         const lTestTableOne: WebDatabaseTable<typeof TestTableOne> = pTransaction.table(TestTableOne);
         const lTestTableTwo: WebDatabaseTable<typeof TestTableTwo> = pTransaction.table(TestTableTwo);
@@ -52,7 +52,7 @@ class TestTableTwo {
         }
 
         console.log(await lTestTableOne.count(), await lTestTableOne.getAll());
-        console.log(await lTestTableOne.where('types').is(2).and('price').between(0, 0.5).execute());
+        console.log(await lTestTableOne.where('types').is(2).and('price').between(0, 0.5).read());
 
         // Create random data.
         for (let lCounter = 0; lCounter < 100; lCounter++) {

@@ -29,20 +29,22 @@ export class AssignmentStatementAst extends AbstractSyntaxTree<AssignmentStateme
 
         // Must be a storage.
         if (!lVariable.data.isStorage) {
-            pContext.pushIncident('Assignment statement must be applied to a storage expression', lVariable);
+            pContext.pushIncident('Assignment statement must be applied to a storage expression.', lVariable);
         }
 
         // Validate that it is not a constant.
         if (lVariable.data.fixedState !== PgslValueFixedState.Variable) {
-            pContext.pushIncident('Assignment statement must be applied to a variable', lVariable);
+            pContext.pushIncident('Assignment statement must be applied to a variable.', lVariable);
         }
+
+        // TODO: Special assignments must validate that the variable type supports the operation.
 
         // Build expression expression.
         const lExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression, pContext);
 
         // Validate that it has the same value.
         if (!lExpression.data.resolveType.isImplicitCastableInto(lVariable.data.resolveType)) {
-            pContext.pushIncident(`Can't assign a different type to a variable`, lExpression);
+            pContext.pushIncident(`Can't assign a different type to a variable.`, lExpression);
         }
 
         return {

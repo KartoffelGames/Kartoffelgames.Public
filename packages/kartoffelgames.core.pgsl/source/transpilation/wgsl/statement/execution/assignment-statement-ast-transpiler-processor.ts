@@ -18,6 +18,6 @@ export class AssignmentStatementAstTranspilerProcessor implements ITranspilerPro
      * @returns Transpiled WGSL code.
      */
     public process(pInstance: AssignmentStatementAst, pTranspile: PgslTranspilerProcessorTranspile): string {
-        return `${pTranspile(pInstance.data.variable)} ${pInstance.data.assignment} ${pTranspile(pInstance.data.expression)};`;
+        return `${pTranspile(pInstance.data.variable)}${pInstance.data.assignment}${pTranspile(pInstance.data.expression)};`;
     }
 }

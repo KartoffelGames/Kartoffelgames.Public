@@ -6,6 +6,7 @@ import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/pgsl-
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
+import { PgslAssignment } from "../../../source/enum/pgsl-assignment.enum.ts";
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();
@@ -17,7 +18,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.float32};
-                ${lVariableName} = 5.0;
+                ${lVariableName} ${PgslAssignment.Assignment} 5.0;
             }
         `;
 
@@ -29,6 +30,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lAssignmentStatement: AssignmentStatementAst = lFunctionDeclaration.block.data.statementList[1] as AssignmentStatementAst;
         expect(lAssignmentStatement).toBeInstanceOf(AssignmentStatementAst);
+        expect(lAssignmentStatement.data.assignment).toBe(PgslAssignment.Assignment);
     });
 
     await pContext.step('Add assignment', () => {
@@ -37,7 +39,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.signedInteger} = 10;
-                ${lVariableName} += 5;
+                ${lVariableName} ${PgslAssignment.AssignmentPlus} 5;
             }
         `;
 
@@ -49,6 +51,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lAssignmentStatement: AssignmentStatementAst = lFunctionDeclaration.block.data.statementList[1] as AssignmentStatementAst;
         expect(lAssignmentStatement).toBeInstanceOf(AssignmentStatementAst);
+        expect(lAssignmentStatement.data.assignment).toBe(PgslAssignment.AssignmentPlus);
     });
 
     await pContext.step('Subtract assignment', () => {
@@ -57,7 +60,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.signedInteger} = 10;
-                ${lVariableName} -= 3;
+                ${lVariableName} ${PgslAssignment.AssignmentMinus} 3;
             }
         `;
 
@@ -69,6 +72,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lAssignmentStatement: AssignmentStatementAst = lFunctionDeclaration.block.data.statementList[1] as AssignmentStatementAst;
         expect(lAssignmentStatement).toBeInstanceOf(AssignmentStatementAst);
+        expect(lAssignmentStatement.data.assignment).toBe(PgslAssignment.AssignmentMinus);
     });
 
     await pContext.step('Multiply assignment', () => {
@@ -77,7 +81,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.float32} = 2.0;
-                ${lVariableName} *= 3.0;
+                ${lVariableName} ${PgslAssignment.AssignmentMultiply} 3.0;
             }
         `;
 
@@ -89,6 +93,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lAssignmentStatement: AssignmentStatementAst = lFunctionDeclaration.block.data.statementList[1] as AssignmentStatementAst;
         expect(lAssignmentStatement).toBeInstanceOf(AssignmentStatementAst);
+        expect(lAssignmentStatement.data.assignment).toBe(PgslAssignment.AssignmentMultiply);
     });
 
     await pContext.step('Divide assignment', () => {
@@ -97,18 +102,19 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.float32} = 10.0;
-                ${lVariableName} /= 2.0;
+                ${lVariableName} ${PgslAssignment.AssignmentDivide} 2.0;
             }
         `;
 
         // Process.
         const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
-        // Evaluation. Correct type of statement node.
+        /// Evaluation. Correct type of statement node.
         const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lAssignmentStatement: AssignmentStatementAst = lFunctionDeclaration.block.data.statementList[1] as AssignmentStatementAst;
         expect(lAssignmentStatement).toBeInstanceOf(AssignmentStatementAst);
+        expect(lAssignmentStatement.data.assignment).toBe(PgslAssignment.AssignmentDivide);
     });
 
     await pContext.step('Modulo assignment', () => {
@@ -117,7 +123,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.signedInteger} = 10;
-                ${lVariableName} %= 3;
+                ${lVariableName} ${PgslAssignment.AssignmentModulo} 3;
             }
         `;
 
@@ -129,6 +135,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lAssignmentStatement: AssignmentStatementAst = lFunctionDeclaration.block.data.statementList[1] as AssignmentStatementAst;
         expect(lAssignmentStatement).toBeInstanceOf(AssignmentStatementAst);
+        expect(lAssignmentStatement.data.assignment).toBe(PgslAssignment.AssignmentModulo);
     });
 
     await pContext.step('Binary AND assignment', () => {
@@ -137,7 +144,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.unsignedInteger} = 12;
-                ${lVariableName} &= 10;
+                ${lVariableName} ${PgslAssignment.AssignmentBinaryAnd} 10;
             }
         `;
 
@@ -149,6 +156,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lAssignmentStatement: AssignmentStatementAst = lFunctionDeclaration.block.data.statementList[1] as AssignmentStatementAst;
         expect(lAssignmentStatement).toBeInstanceOf(AssignmentStatementAst);
+        expect(lAssignmentStatement.data.assignment).toBe(PgslAssignment.AssignmentBinaryAnd);
     });
 
     await pContext.step('Binary OR assignment', () => {
@@ -157,7 +165,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.unsignedInteger} = 8;
-                ${lVariableName} |= 4;
+                ${lVariableName} ${PgslAssignment.AssignmentBinaryOr} 4;
             }
         `;
 
@@ -169,6 +177,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lAssignmentStatement: AssignmentStatementAst = lFunctionDeclaration.block.data.statementList[1] as AssignmentStatementAst;
         expect(lAssignmentStatement).toBeInstanceOf(AssignmentStatementAst);
+        expect(lAssignmentStatement.data.assignment).toBe(PgslAssignment.AssignmentBinaryOr);
     });
 
     await pContext.step('Binary XOR assignment', () => {
@@ -177,7 +186,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.unsignedInteger} = 12;
-                ${lVariableName} ^= 10;
+                ${lVariableName} ${PgslAssignment.AssignmentBinaryXor} 10;
             }
         `;
 
@@ -189,6 +198,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lAssignmentStatement: AssignmentStatementAst = lFunctionDeclaration.block.data.statementList[1] as AssignmentStatementAst;
         expect(lAssignmentStatement).toBeInstanceOf(AssignmentStatementAst);
+        expect(lAssignmentStatement.data.assignment).toBe(PgslAssignment.AssignmentBinaryXor);
     });
 
     await pContext.step('Shift right assignment', () => {
@@ -197,7 +207,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.unsignedInteger} = 16;
-                ${lVariableName} >>= 2;
+                ${lVariableName} ${PgslAssignment.AssignmentShiftRight} 2;
             }
         `;
 
@@ -209,6 +219,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lAssignmentStatement: AssignmentStatementAst = lFunctionDeclaration.block.data.statementList[1] as AssignmentStatementAst;
         expect(lAssignmentStatement).toBeInstanceOf(AssignmentStatementAst);
+        expect(lAssignmentStatement.data.assignment).toBe(PgslAssignment.AssignmentShiftRight);
     });
 
     await pContext.step('Shift left assignment', () => {
@@ -217,7 +228,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.unsignedInteger} = 4;
-                ${lVariableName} <<= 2;
+                ${lVariableName} ${PgslAssignment.AssignmentShiftLeft} 2;
             }
         `;
 
@@ -229,6 +240,7 @@ Deno.test('AssignmentStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lAssignmentStatement: AssignmentStatementAst = lFunctionDeclaration.block.data.statementList[1] as AssignmentStatementAst;
         expect(lAssignmentStatement).toBeInstanceOf(AssignmentStatementAst);
+        expect(lAssignmentStatement.data.assignment).toBe(PgslAssignment.AssignmentShiftLeft);
     });
 });
 
@@ -239,7 +251,7 @@ Deno.test('AssignmentStatementAst - Transpilation', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.float32};
-                ${lVariableName} = 5.0;
+                ${lVariableName} ${PgslAssignment.Assignment} 5.0;
             }
         `;
 
@@ -264,7 +276,7 @@ Deno.test('AssignmentStatementAst - Transpilation', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.signedInteger} = 10;
-                ${lVariableName} += 5;
+                ${lVariableName} ${PgslAssignment.AssignmentPlus} 5;
             }
         `;
 
@@ -289,7 +301,7 @@ Deno.test('AssignmentStatementAst - Transpilation', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.signedInteger} = 10;
-                ${lVariableName} -= 3;
+                ${lVariableName} ${PgslAssignment.AssignmentMinus} 3;
             }
         `;
 
@@ -314,7 +326,7 @@ Deno.test('AssignmentStatementAst - Transpilation', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.float32} = 2.0;
-                ${lVariableName} *= 3.0;
+                ${lVariableName} ${PgslAssignment.AssignmentMultiply} 3.0;
             }
         `;
 
@@ -339,7 +351,7 @@ Deno.test('AssignmentStatementAst - Transpilation', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.float32} = 10.0;
-                ${lVariableName} /= 2.0;
+                ${lVariableName} ${PgslAssignment.AssignmentDivide} 2.0;
             }
         `;
 
@@ -364,7 +376,7 @@ Deno.test('AssignmentStatementAst - Transpilation', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.signedInteger} = 10;
-                ${lVariableName} %= 3;
+                ${lVariableName} ${PgslAssignment.AssignmentModulo} 3;
             }
         `;
 
@@ -389,7 +401,7 @@ Deno.test('AssignmentStatementAst - Transpilation', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.unsignedInteger} = 12;
-                ${lVariableName} &= 10;
+                ${lVariableName} ${PgslAssignment.AssignmentBinaryAnd} 10;
             }
         `;
 
@@ -414,7 +426,7 @@ Deno.test('AssignmentStatementAst - Transpilation', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.unsignedInteger} = 8;
-                ${lVariableName} |= 4;
+                ${lVariableName} ${PgslAssignment.AssignmentBinaryOr} 4;
             }
         `;
 
@@ -439,7 +451,7 @@ Deno.test('AssignmentStatementAst - Transpilation', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.unsignedInteger} = 12;
-                ${lVariableName} ^= 10;
+                ${lVariableName} ${PgslAssignment.AssignmentBinaryXor} 10;
             }
         `;
 
@@ -464,7 +476,7 @@ Deno.test('AssignmentStatementAst - Transpilation', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.unsignedInteger} = 16;
-                ${lVariableName} >>= 2;
+                ${lVariableName} ${PgslAssignment.AssignmentShiftRight} 2;
             }
         `;
 
@@ -489,7 +501,7 @@ Deno.test('AssignmentStatementAst - Transpilation', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.unsignedInteger} = 4;
-                ${lVariableName} <<= 2;
+                ${lVariableName} ${PgslAssignment.AssignmentShiftLeft} 2;
             }
         `;
 
@@ -514,7 +526,7 @@ Deno.test('AssignmentStatementAst - Error', async (pContext) => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
-                5 = 10;
+                5 ${PgslAssignment.Assignment} 10;
             }
         `;
 
@@ -526,7 +538,7 @@ Deno.test('AssignmentStatementAst - Error', async (pContext) => {
 
         // Evaluation. Error should mention storage requirement.
         expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes('Assignment statement must be applied to a storage expression')
+            pIncident.message.includes('Assignment statement must be applied to a storage expression.')
         )).toBe(true);
     });
 
@@ -536,7 +548,7 @@ Deno.test('AssignmentStatementAst - Error', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 const ${lVariableName}: ${PgslNumericType.typeName.float32} = 5.0;
-                ${lVariableName} = 10.0;
+                ${lVariableName} ${PgslAssignment.Assignment} 10.0;
             }
         `;
 
@@ -548,7 +560,7 @@ Deno.test('AssignmentStatementAst - Error', async (pContext) => {
 
         // Evaluation. Error should mention variable requirement.
         expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes('Assignment statement must be applied to a variable')
+            pIncident.message.includes('Assignment statement must be applied to a variable.')
         )).toBe(true);
     });
 
@@ -558,7 +570,7 @@ Deno.test('AssignmentStatementAst - Error', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.signedInteger};
-                ${lVariableName} = 5.5;
+                ${lVariableName} ${PgslAssignment.Assignment} 5.5;
             }
         `;
 
@@ -570,7 +582,7 @@ Deno.test('AssignmentStatementAst - Error', async (pContext) => {
 
         // Evaluation. Error should mention type mismatch.
         expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes('Can\'t assign a different type to a variable')
+            pIncident.message.includes('Can\'t assign a different type to a variable.')
         )).toBe(true);
     });
 });

@@ -109,8 +109,8 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                     // Register parameter in current scope.
                     pContext.addValue(lParameter.name, {
                         data: {
-                            fixedState: PgslValueFixedState.Variable,
-                            declarationType: PgslDeclarationType.Var,
+                            fixedState: PgslValueFixedState.ScopeFixed,
+                            declarationType: PgslDeclarationType.Const,
                             addressSpace: PgslValueAddressSpace.Function,
                             type: lParameterType,
                             name: lParameter.name,

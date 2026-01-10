@@ -6,6 +6,7 @@ import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
 import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts';
+import { PgslValueFixedState } from "../../../source/enum/pgsl-value-fixed-state.ts";
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();
@@ -28,6 +29,7 @@ Deno.test('VariableDeclarationStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lVariableDeclaration: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[0] as VariableDeclarationStatementAst;
         expect(lVariableDeclaration).toBeInstanceOf(VariableDeclarationStatementAst);
+        expect(lVariableDeclaration.data.fixedState).toBe(PgslValueFixedState.Variable);
     });
 
     await pContext.step('Let without initialization', () => {
@@ -47,9 +49,31 @@ Deno.test('VariableDeclarationStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lVariableDeclaration: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[0] as VariableDeclarationStatementAst;
         expect(lVariableDeclaration).toBeInstanceOf(VariableDeclarationStatementAst);
+        expect(lVariableDeclaration.data.fixedState).toBe(PgslValueFixedState.Variable);
     });
 
-    await pContext.step('Const with initialization', () => {
+    await pContext.step('Const with variable initialization', () => {
+        // Setup.
+        const lVariableName: string = 'myConstant';
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testValue: ${PgslNumericType.typeName.float32} = 10.5;
+                const ${lVariableName}: ${PgslNumericType.typeName.float32} = testValue;
+            }
+        `;
+
+        // Process.
+        const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+        // Evaluation. Correct type of statement node.
+        const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+        const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
+        const lVariableDeclaration: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[1] as VariableDeclarationStatementAst;
+        expect(lVariableDeclaration).toBeInstanceOf(VariableDeclarationStatementAst);
+        expect(lVariableDeclaration.data.fixedState).toBe(PgslValueFixedState.ScopeFixed);
+    });
+
+    await pContext.step('Const with constant initialization', () => {
         // Setup.
         const lVariableName: string = 'myConstant';
         const lCodeText: string = `
@@ -66,6 +90,7 @@ Deno.test('VariableDeclarationStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lVariableDeclaration: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[0] as VariableDeclarationStatementAst;
         expect(lVariableDeclaration).toBeInstanceOf(VariableDeclarationStatementAst);
+        expect(lVariableDeclaration.data.fixedState).toBe(PgslValueFixedState.Constant);
     });
 });
 
@@ -116,7 +141,32 @@ Deno.test('VariableDeclarationStatementAst - Transpilation', async (pContext) =>
         );
     });
 
-    await pContext.step('Const with initialization', () => {
+    await pContext.step('Const with variable initialization', () => {
+        // Setup.
+        const lVariableName: string = 'myConstant';
+        const lCodeText: string = `
+            function testFunction(): void {
+                let testValue: ${PgslNumericType.typeName.float32} = 10.5;
+                const ${lVariableName}: ${PgslNumericType.typeName.float32} = testValue;
+            }
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. No errors.
+        expect(lTranspilationResult.incidents).toHaveLength(0);
+
+        // Evaluation. Correct transpilation output.
+        expect(lTranspilationResult.source).toBe(
+            `fn testFunction(){` +
+            `let testValue:f32=10.5;` +
+            `const ${lVariableName}:f32=testValue;` +
+            `}`
+        );
+    });
+
+    await pContext.step('Const with constant initialization', () => {
         // Setup.
         const lVariableName: string = 'myConstant';
         const lCodeText: string = `
@@ -134,7 +184,7 @@ Deno.test('VariableDeclarationStatementAst - Transpilation', async (pContext) =>
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `let ${lVariableName}:f32=10.5;` +
+            `const ${lVariableName}:f32=10.5;` +
             `}`
         );
     });

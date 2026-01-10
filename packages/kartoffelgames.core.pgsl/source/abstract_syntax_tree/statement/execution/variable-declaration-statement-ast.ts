@@ -31,7 +31,7 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
         if (!lDeclarationType) {
             pContext.pushIncident(`Declaration type "${this.cst.declarationType}" not defined.`, this);
 
-            lDeclarationType = PgslDeclarationType.Var;
+            lDeclarationType = PgslDeclarationType.Let;
         }
 
         // Create type declaration.
@@ -39,14 +39,13 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
         const lType: IType = lTypeDeclaration.data.type;
 
         // Expression value has a fixed byte size.
-        let lFixedState: PgslValueFixedState = PgslValueFixedState.Variable;
+
         let lConstantValue: number | string | null = null;
         let lExpression: IExpressionAst | null = null;
 
         // Read expression attachment when a expression is present.
         if (this.cst.expression) {
             lExpression = ExpressionAstBuilder.build(this.cst.expression, pContext);
-            lFixedState = lExpression.data.fixedState;
             lConstantValue = lExpression.data.constantValue;
 
             // Validate same type.
@@ -66,6 +65,26 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
             pContext.pushIncident(`Declaration type "${lDeclarationType}" can not be used for block variable declarations.`, this);
         }
 
+        // Determinate fixed state based on declaration type and expression.
+        let lFixedState: PgslValueFixedState = (() => {
+            // Let declarations are always variable.
+            if (lDeclarationType === PgslDeclarationType.Let) {
+                return PgslValueFixedState.Variable;
+            }
+
+            if (lDeclarationType === PgslDeclarationType.Const) {
+                // When defined as constant and the expression is also a constant, the fixed state is constant.
+                if (lExpression && lExpression.data.fixedState === PgslValueFixedState.Constant) {
+                    return PgslValueFixedState.Constant;
+                }
+
+                // Otherwise a function scoped fixed value that is not constant on creation time.
+                return PgslValueFixedState.ScopeFixed;
+            }
+
+            return PgslValueFixedState.Variable;
+        })();
+        
         // Value validation does not apply to pointers.
         if (!(lType instanceof PgslPointerType)) {
             // Type needs to be storable.
@@ -90,7 +109,7 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
         }
 
         // Push variable to current scope.
-        if(!pContext.addValue(this.cst.name, this)) {
+        if (!pContext.addValue(this.cst.name, this)) {
             pContext.pushIncident(`Variable with name "${this.cst.name}" already defined.`, this);
         }
 

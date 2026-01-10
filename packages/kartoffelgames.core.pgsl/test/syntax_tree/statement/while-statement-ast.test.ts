@@ -90,7 +90,9 @@ Deno.test('WhileStatementAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `while(true){` +
+            `loop{` +
+            `if !(true){break;}` +
+            `{}` +
             `}` +
             `}`
         );
@@ -117,7 +119,9 @@ Deno.test('WhileStatementAst - Transpilation', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
             `var ${lVariableName}:i32=0;` +
-            `while(${lVariableName}<10){` +
+            `loop{` +
+            `if !(${lVariableName}<10){break;}` +
+            `{}` +
             `}` +
             `}`
         );
@@ -141,7 +145,9 @@ Deno.test('WhileStatementAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `while(true&&false){` +
+            `loop{` +
+            `if !(true&&false){break;}` +
+            `{}` +
             `}` +
             `}`
         );

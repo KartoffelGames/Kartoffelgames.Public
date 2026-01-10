@@ -90,7 +90,7 @@ Deno.test('DiscardStatementAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `if (true){` +
+            `if(true){` +
             `discard;` +
             `}` +
             `}`

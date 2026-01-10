@@ -175,7 +175,7 @@ Deno.test('ReturnStatementAst - Error', async (pContext) => {
 
         // Evaluation. Error should mention variable not defined.
         expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes(`TODO`)
+            pIncident.message.includes('Function block return type does not match the declared return type.')
         )).toBe(true);
     });
 

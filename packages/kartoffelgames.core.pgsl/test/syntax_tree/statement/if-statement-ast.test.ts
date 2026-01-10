@@ -27,6 +27,7 @@ Deno.test('IfStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lIfStatement: IfStatementAst = lFunctionDeclaration.block.data.statementList[0] as IfStatementAst;
         expect(lIfStatement).toBeInstanceOf(IfStatementAst);
+        expect(lIfStatement.data.else).toBeNull();
     });
 
     await pContext.step('If-else statement', () => {
@@ -47,6 +48,7 @@ Deno.test('IfStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lIfStatement: IfStatementAst = lFunctionDeclaration.block.data.statementList[0] as IfStatementAst;
         expect(lIfStatement).toBeInstanceOf(IfStatementAst);
+        expect(lIfStatement.data.else).not.toBeNull();
     });
 
     await pContext.step('If-else-if statement', () => {
@@ -67,6 +69,7 @@ Deno.test('IfStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lIfStatement: IfStatementAst = lFunctionDeclaration.block.data.statementList[0] as IfStatementAst;
         expect(lIfStatement).toBeInstanceOf(IfStatementAst);
+        expect(lIfStatement.data.else).not.toBeNull();
     });
 
     await pContext.step('If-else-if-else statement', () => {
@@ -88,6 +91,9 @@ Deno.test('IfStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lIfStatement: IfStatementAst = lFunctionDeclaration.block.data.statementList[0] as IfStatementAst;
         expect(lIfStatement).toBeInstanceOf(IfStatementAst);
+        expect(lIfStatement.data.else).not.toBeNull();
+        expect(lIfStatement.data.else).toBeInstanceOf(IfStatementAst);
+        expect((<IfStatementAst>lIfStatement.data.else!).data.else).not.toBeNull();
     });
 
     await pContext.step('If with complex condition', () => {
@@ -107,6 +113,7 @@ Deno.test('IfStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lIfStatement: IfStatementAst = lFunctionDeclaration.block.data.statementList[0] as IfStatementAst;
         expect(lIfStatement).toBeInstanceOf(IfStatementAst);
+        expect(lIfStatement.data.else).toBeNull();
     });
 });
 
@@ -274,14 +281,11 @@ Deno.test('IfStatementAst - Error', async (pContext) => {
         `;
 
         // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+        const lErrorFunction = () => {
+            gPgslParser.transpile(lCodeText, new WgslTranspiler());
+        };
 
         // Evaluation. Should have errors.
-        expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
-
-        // Evaluation. Error should mention variable not defined.
-        expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes('TODO:')
-        )).toBe(true);
+        expect(lErrorFunction).toThrow('Unexpected token "else". "BlockEnd" expected');
     });
 });

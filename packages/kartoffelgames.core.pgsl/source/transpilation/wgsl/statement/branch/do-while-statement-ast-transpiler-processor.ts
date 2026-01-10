@@ -19,6 +19,6 @@ export class DoWhileStatementAstTranspilerProcessor implements ITranspilerProces
      * @returns Transpiled WGSL code.
      */
     public process(pInstance: DoWhileStatementAst, pTranspile: PgslTranspilerProcessorTranspile): string {
-        return `loop { ${pTranspile(pInstance.data.block)} if !(${pTranspile(pInstance.data.expression)}) { break; } }`;
+        return `loop{${pTranspile(pInstance.data.block)}if !(${pTranspile(pInstance.data.expression)}){break;}}`;
     }
 }

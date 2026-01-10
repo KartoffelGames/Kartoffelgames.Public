@@ -38,7 +38,7 @@ export class ForStatementAstTranspilerProcessor implements ITranspilerProcessor<
 
         // Set the update expression when defined.
         if (pInstance.data.update) {
-            lResult += `${pTranspile(pInstance.data.update)}`;
+            lResult += `continuing{${pTranspile(pInstance.data.update)}}`;
         }
 
         // And close the loop.

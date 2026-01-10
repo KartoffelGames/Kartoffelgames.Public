@@ -6,6 +6,7 @@ import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
 import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts';
+import { FunctionCallExpressionAst } from "../../../source/abstract_syntax_tree/expression/single_value/function-call-expression-ast.ts";
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();
@@ -16,8 +17,7 @@ Deno.test('FunctionCallStatementAst - Parsing', async (pContext) => {
         const lFunctionName: string = 'testFunction';
         const lCalleeName: string = 'myFunction';
         const lCodeText: string = `
-            function ${lCalleeName}(): void {
-            }
+            function ${lCalleeName}(): void {}
             function ${lFunctionName}(): void {
                 ${lCalleeName}();
             }
@@ -31,6 +31,7 @@ Deno.test('FunctionCallStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lFunctionCallStatement: FunctionCallStatementAst = lFunctionDeclaration.block.data.statementList[0] as FunctionCallStatementAst;
         expect(lFunctionCallStatement).toBeInstanceOf(FunctionCallStatementAst);
+        expect(lFunctionCallStatement.data.functionExpression).toBeInstanceOf(FunctionCallExpressionAst);
     });
 
     await pContext.step('Function call with parameters', () => {
@@ -53,6 +54,7 @@ Deno.test('FunctionCallStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lFunctionCallStatement: FunctionCallStatementAst = lFunctionDeclaration.block.data.statementList[0] as FunctionCallStatementAst;
         expect(lFunctionCallStatement).toBeInstanceOf(FunctionCallStatementAst);
+        expect(lFunctionCallStatement.data.functionExpression).toBeInstanceOf(FunctionCallExpressionAst);
     });
 });
 
@@ -128,7 +130,7 @@ Deno.test('FunctionCallStatementAst - Error', async (pContext) => {
 
         // Evaluation. Error should mention variable not defined.
         expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes('TODO:')
+            pIncident.message.includes(`Function 'undefinedFunction' is not defined.`)
         )).toBe(true);
     });
 
@@ -139,7 +141,7 @@ Deno.test('FunctionCallStatementAst - Error', async (pContext) => {
             function ${lCalleeName}(pValue: ${PgslNumericType.typeName.float32}): void {
             }
             function testFunction(): void {
-                ${lCalleeName}(10);
+                ${lCalleeName}(true);
             }
         `;
 
@@ -148,7 +150,7 @@ Deno.test('FunctionCallStatementAst - Error', async (pContext) => {
 
         // Evaluation. Error should mention variable not defined.
         expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes('TODO:')
+            pIncident.message.includes(`No matching function header found for function '${lCalleeName}'.`)
         )).toBe(true);
     });
 });

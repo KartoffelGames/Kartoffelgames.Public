@@ -158,7 +158,34 @@ Deno.test('BreakStatementAst - Transpilation', async (pContext) => {
                 `loop{` +
                 `if !(i<10){break;}` +
                 `{break;}` +
-                `i++;` +
+                `continuing{i++;}` +
+                `}` +
+                `}`
+            );
+        });
+
+        await pContext.step('Break in do-while loop', () => {
+            // Setup.
+            const lCodeText: string = `
+                function testFunction(): void {
+                    do {
+                        break;
+                    } while (true);
+                }
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Evaluation. No errors.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
+
+            // Evaluation. Correct transpilation output.
+            expect(lTranspilationResult.source).toBe(
+                `fn testFunction(){` +
+                `loop{` +
+                `{break;}` +
+                `if !(true){break;}` +
                 `}` +
                 `}`
             );

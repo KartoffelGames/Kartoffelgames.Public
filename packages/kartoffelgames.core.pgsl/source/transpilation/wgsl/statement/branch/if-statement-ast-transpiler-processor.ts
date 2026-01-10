@@ -19,9 +19,9 @@ export class IfStatementAstTranspilerProcessor implements ITranspilerProcessor<I
      */
     public process(pInstance: IfStatementAst, pTranspile: PgslTranspilerProcessorTranspile): string {
         if (!pInstance.data.else) {
-            return `if (${pTranspile(pInstance.data.expression)}) ${pTranspile(pInstance.data.block)}`;
+            return `if (${pTranspile(pInstance.data.expression)})${pTranspile(pInstance.data.block)}`;
         } else {
-            return `if (${pTranspile(pInstance.data.expression)}) ${pTranspile(pInstance.data.block)} else ${pTranspile(pInstance.data.else)}`;
+            return `if (${pTranspile(pInstance.data.expression)})${pTranspile(pInstance.data.block)}else ${pTranspile(pInstance.data.else)}`;
         }
     }
 }

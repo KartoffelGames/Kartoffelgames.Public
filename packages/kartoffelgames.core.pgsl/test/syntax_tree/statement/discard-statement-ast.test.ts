@@ -90,29 +90,10 @@ Deno.test('DiscardStatementAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `if(true){` +
+            `if (true){` +
             `discard;` +
             `}` +
             `}`
         );
-    });
-});
-
-Deno.test('DiscardStatementAst - Error', async (pContext) => {
-    await pContext.step('Discard parses without errors', () => {
-        // Setup.
-        const lCodeText: string = `
-            function testFunction(): void {
-                discard;
-            }
-        `;
-
-        // Process.
-        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-        // Evaluation. Error should mention variable not defined.
-        expect(lTranspilationResult.incidents.some(pIncident =>
-            pIncident.message.includes('TODO:')
-        )).toBe(true);
     });
 });

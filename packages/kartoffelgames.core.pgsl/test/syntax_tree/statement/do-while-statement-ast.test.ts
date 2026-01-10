@@ -11,7 +11,7 @@ import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/pgsl-
 const gPgslParser: PgslParser = new PgslParser();
 
 Deno.test('DoWhileStatementAst - Parsing', async (pContext) => {
-    await pContext.step('Simple do-while loop', () => {
+    await pContext.step('Empty do-while', () => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
@@ -30,7 +30,7 @@ Deno.test('DoWhileStatementAst - Parsing', async (pContext) => {
         expect(lDoWhileStatement).toBeInstanceOf(DoWhileStatementAst);
     });
 
-    await pContext.step('Do-while with variable condition', () => {
+    await pContext.step('Simple Do-while', () => {
         // Setup.
         const lVariableName: string = 'count';
         const lCodeText: string = `
@@ -51,7 +51,7 @@ Deno.test('DoWhileStatementAst - Parsing', async (pContext) => {
         expect(lDoWhileStatement).toBeInstanceOf(DoWhileStatementAst);
     });
 
-    await pContext.step('Do-while with complex condition', () => {
+    await pContext.step('Complex Do-while', () => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
@@ -72,7 +72,7 @@ Deno.test('DoWhileStatementAst - Parsing', async (pContext) => {
 });
 
 Deno.test('DoWhileStatementAst - Transpilation', async (pContext) => {
-    await pContext.step('Simple do-while loop', () => {
+    await pContext.step('Empty do-while', () => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
@@ -91,20 +91,21 @@ Deno.test('DoWhileStatementAst - Transpilation', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
             `loop{` +
-            `if(!true){break;}` +
+            `{}` +
+            `if !(true){break;}` +
             `}` +
             `}`
         );
     });
 
-    await pContext.step('Do-while with variable condition', () => {
+    await pContext.step('Simple Do-while', () => {
         // Setup.
         const lVariableName: string = 'count';
         const lCodeText: string = `
             function testFunction(): void {
-                let ${lVariableName}: ${PgslNumericType.typeName.signedInteger} = 0;
                 do {
-                } while (${lVariableName} < 10);
+                    let ${lVariableName}: ${PgslNumericType.typeName.signedInteger} = 0;
+                } while (9 < 10);
             }
         `;
 
@@ -117,15 +118,17 @@ Deno.test('DoWhileStatementAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var ${lVariableName}:i32=0;` +
             `loop{` +
-            `if(!${lVariableName}<10){break;}` +
+            `{` +
+            `var ${lVariableName}:i32=0;` +
+            `}` +
+            `if !(9<10){break;}` +
             `}` +
             `}`
         );
     });
 
-    await pContext.step('Do-while with complex condition', () => {
+    await pContext.step('Complex Do-while', () => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
@@ -144,7 +147,8 @@ Deno.test('DoWhileStatementAst - Transpilation', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
             `loop{` +
-            `if(!true||false){break;}` +
+            `{}` +
+            `if !(true||false){break;}` +
             `}` +
             `}`
         );

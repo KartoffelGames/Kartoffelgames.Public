@@ -28,6 +28,9 @@ Deno.test('ForStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lForStatement: ForStatementAst = lFunctionDeclaration.block.data.statementList[0] as ForStatementAst;
         expect(lForStatement).toBeInstanceOf(ForStatementAst);
+        expect(lForStatement.data.init).not.toBeNull();
+        expect(lForStatement.data.expression).not.toBeNull();
+        expect(lForStatement.data.update).not.toBeNull();
     });
 
     await pContext.step('For loop without init', () => {
@@ -47,6 +50,9 @@ Deno.test('ForStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lForStatement: ForStatementAst = lFunctionDeclaration.block.data.statementList[0] as ForStatementAst;
         expect(lForStatement).toBeInstanceOf(ForStatementAst);
+        expect(lForStatement.data.init).toBeNull();
+        expect(lForStatement.data.expression).not.toBeNull();
+        expect(lForStatement.data.update).toBeNull();
     });
 
     await pContext.step('For loop without expression', () => {
@@ -66,6 +72,9 @@ Deno.test('ForStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lForStatement: ForStatementAst = lFunctionDeclaration.block.data.statementList[0] as ForStatementAst;
         expect(lForStatement).toBeInstanceOf(ForStatementAst);
+        expect(lForStatement.data.init).not.toBeNull();
+        expect(lForStatement.data.expression).toBeNull();
+        expect(lForStatement.data.update).toBeNull();
     });
 
     await pContext.step('For loop without update', () => {
@@ -85,6 +94,9 @@ Deno.test('ForStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lForStatement: ForStatementAst = lFunctionDeclaration.block.data.statementList[0] as ForStatementAst;
         expect(lForStatement).toBeInstanceOf(ForStatementAst);
+        expect(lForStatement.data.init).not.toBeNull();
+        expect(lForStatement.data.expression).not.toBeNull();
+        expect(lForStatement.data.update).toBeNull();
     });
 });
 
@@ -107,7 +119,11 @@ Deno.test('ForStatementAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `for(var i:i32=0;i<10;i++){` +
+            `var i:i32=0;` +
+            `loop{` +
+            `if !(i<10){break;}` +
+            `{}` +
+            `continuing{i++;}` +
             `}` +
             `}`
         );
@@ -131,7 +147,9 @@ Deno.test('ForStatementAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `for(;true;){` +
+            `loop{` +
+            `if !(true){break;}` +
+            `{}` +
             `}` +
             `}`
         );
@@ -155,7 +173,9 @@ Deno.test('ForStatementAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `for(var i:i32=0;;){` +
+            `var i:i32=0;` +
+            `loop{` +
+            `{}` +
             `}` +
             `}`
         );
@@ -179,7 +199,10 @@ Deno.test('ForStatementAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `for(var i:i32=0;i<10;){` +
+            `var i:i32=0;` +
+            `loop{` +
+            `if !(i<10){break;}` +
+            `{}` +
             `}` +
             `}`
         );

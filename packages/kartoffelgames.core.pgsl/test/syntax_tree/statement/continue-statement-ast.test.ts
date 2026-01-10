@@ -6,6 +6,9 @@ import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
 import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts';
+import { DoWhileStatementAst } from "../../../source/abstract_syntax_tree/statement/branch/do-while-statement-ast.ts";
+import { ForStatementAst } from "../../../source/abstract_syntax_tree/statement/branch/for-statement-ast.ts";
+import { WhileStatementAst } from "../../../source/abstract_syntax_tree/statement/branch/while-statement-ast.ts";
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();
@@ -28,7 +31,8 @@ Deno.test('ContinueStatementAst - Parsing', async (pContext) => {
             // Evaluation. Correct type of statement node.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
             const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-            const lContinueStatement: ContinueStatementAst = lFunctionDeclaration.block.data.statementList[0] as ContinueStatementAst;
+            const lWhileStatement: WhileStatementAst = lFunctionDeclaration.block.data.statementList[0] as WhileStatementAst;
+            const lContinueStatement: ContinueStatementAst = lWhileStatement.data.block.data.statementList[0] as ContinueStatementAst;
             expect(lContinueStatement).toBeInstanceOf(ContinueStatementAst);
         });
 
@@ -48,7 +52,8 @@ Deno.test('ContinueStatementAst - Parsing', async (pContext) => {
             // Evaluation. Correct type of statement node.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
             const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-            const lContinueStatement: ContinueStatementAst = lFunctionDeclaration.block.data.statementList[0] as ContinueStatementAst;
+            const lForWhileStatement: ForStatementAst = lFunctionDeclaration.block.data.statementList[0] as ForStatementAst;
+            const lContinueStatement: ContinueStatementAst = lForWhileStatement.data.block.data.statementList[0] as ContinueStatementAst;
             expect(lContinueStatement).toBeInstanceOf(ContinueStatementAst);
         });
 
@@ -68,8 +73,10 @@ Deno.test('ContinueStatementAst - Parsing', async (pContext) => {
             // Evaluation. Correct type of statement node.
             const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
             const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
-            const lContinueStatement: ContinueStatementAst = lFunctionDeclaration.block.data.statementList[0] as ContinueStatementAst;
+            const lDoWhileStatement: DoWhileStatementAst = lFunctionDeclaration.block.data.statementList[0] as DoWhileStatementAst;
+            const lContinueStatement: ContinueStatementAst = lDoWhileStatement.data.block.data.statementList[0] as ContinueStatementAst;
             expect(lContinueStatement).toBeInstanceOf(ContinueStatementAst);
+
         });
     });
 });
@@ -95,8 +102,9 @@ Deno.test('ContinueStatementAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `while(true){` +
-                `continuing;` +
+                `loop{` +
+                `if !(true){break;}` +
+                `{continue;}` +
                 `}` +
                 `}`
             );
@@ -121,8 +129,11 @@ Deno.test('ContinueStatementAst - Transpilation', async (pContext) => {
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
-                `for(var i:i32=0;i<10;i++){` +
-                `continuing;` +
+                `var i:i32=0;` +
+                `loop{` +
+                `if !(i<10){break;}` +
+                `{continue;}` +
+                `continuing{i++;}` +
                 `}` +
                 `}`
             );
@@ -148,8 +159,8 @@ Deno.test('ContinueStatementAst - Transpilation', async (pContext) => {
             expect(lTranspilationResult.source).toBe(
                 `fn testFunction(){` +
                 `loop{` +
-                `continuing;` +
-                `if(!true){break;}` +
+                `{continue;}` +
+                `if !(true){break;}` +
                 `}` +
                 `}`
             );
@@ -186,6 +197,7 @@ Deno.test('ContinueStatementAst - Error', async (pContext) => {
                     case 1: {
                         continue;
                     }
+                    default: {}
                 }
             }
         `;

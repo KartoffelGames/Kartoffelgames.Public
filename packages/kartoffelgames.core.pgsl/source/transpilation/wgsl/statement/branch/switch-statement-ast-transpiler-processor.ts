@@ -23,7 +23,7 @@ export class SwitchStatementAstTranspilerProcessor implements ITranspilerProcess
 
         // Append each case.
         for(const lCase of pInstance.data.cases) {
-            lResult += `case ${lCase.cases.map((pTree)=> {return pTranspile(pTree);}).join(', ')}:${pTranspile(lCase.block)}`;
+            lResult += `case ${lCase.cases.map((pTree)=> {return pTranspile(pTree);}).join(',')}:${pTranspile(lCase.block)}`;
         }
 
         // Append default case.

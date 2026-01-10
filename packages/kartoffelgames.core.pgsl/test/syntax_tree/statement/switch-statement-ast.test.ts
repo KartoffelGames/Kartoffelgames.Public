@@ -16,8 +16,8 @@ Deno.test('SwitchStatementAst - Parsing', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 switch (5) {
-                    case 1: {
-                    }
+                    case 1: {}
+                    default: {}
                 }
             }
         `;
@@ -30,6 +30,8 @@ Deno.test('SwitchStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lSwitchStatement: SwitchStatementAst = lFunctionDeclaration.block.data.statementList[0] as SwitchStatementAst;
         expect(lSwitchStatement).toBeInstanceOf(SwitchStatementAst);
+        expect(lSwitchStatement.data.cases).toHaveLength(1);
+        expect(lSwitchStatement.data.cases[0].cases).toHaveLength(1);
     });
 
     await pContext.step('Multiple cases switch', () => {
@@ -37,12 +39,10 @@ Deno.test('SwitchStatementAst - Parsing', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 switch (5) {
-                    case 1: {
-                    }
-                    case 2: {
-                    }
-                    case 3: {
-                    }
+                    case 1: {}
+                    case 2: {}
+                    case 3: {}
+                    default: {}
                 }
             }
         `;
@@ -55,6 +55,10 @@ Deno.test('SwitchStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lSwitchStatement: SwitchStatementAst = lFunctionDeclaration.block.data.statementList[0] as SwitchStatementAst;
         expect(lSwitchStatement).toBeInstanceOf(SwitchStatementAst);
+        expect(lSwitchStatement.data.cases).toHaveLength(3);
+        expect(lSwitchStatement.data.cases[0].cases).toHaveLength(1);
+        expect(lSwitchStatement.data.cases[1].cases).toHaveLength(1);
+        expect(lSwitchStatement.data.cases[2].cases).toHaveLength(1);
     });
 
     await pContext.step('Switch with default case', () => {
@@ -62,10 +66,8 @@ Deno.test('SwitchStatementAst - Parsing', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 switch (5) {
-                    case 1: {
-                    }
-                    default: {
-                    }
+                    case 1: {}
+                    default: {}
                 }
             }
         `;
@@ -78,6 +80,8 @@ Deno.test('SwitchStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lSwitchStatement: SwitchStatementAst = lFunctionDeclaration.block.data.statementList[0] as SwitchStatementAst;
         expect(lSwitchStatement).toBeInstanceOf(SwitchStatementAst);
+        expect(lSwitchStatement.data.cases).toHaveLength(1);
+        expect(lSwitchStatement.data.cases[0].cases).toHaveLength(1);
     });
 
     await pContext.step('Switch with multiple values per case', () => {
@@ -85,8 +89,8 @@ Deno.test('SwitchStatementAst - Parsing', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 switch (5) {
-                    case 1, 2: {
-                    }
+                    case 1, 2: {}
+                    default: {}
                 }
             }
         `;
@@ -99,6 +103,8 @@ Deno.test('SwitchStatementAst - Parsing', async (pContext) => {
         const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
         const lSwitchStatement: SwitchStatementAst = lFunctionDeclaration.block.data.statementList[0] as SwitchStatementAst;
         expect(lSwitchStatement).toBeInstanceOf(SwitchStatementAst);
+        expect(lSwitchStatement.data.cases).toHaveLength(1);
+        expect(lSwitchStatement.data.cases[0].cases).toHaveLength(2);
     });
 });
 
@@ -108,8 +114,8 @@ Deno.test('SwitchStatementAst - Transpilation', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 switch (5) {
-                    case 1: {
-                    }
+                    case 1: {}
+                    default: {}
                 }
             }
         `;
@@ -124,8 +130,8 @@ Deno.test('SwitchStatementAst - Transpilation', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
             `switch(5){` +
-            `case 1:{` +
-            `}` +
+            `case 1:{}` +
+            `default:{}` +
             `}` +
             `}`
         );
@@ -136,10 +142,9 @@ Deno.test('SwitchStatementAst - Transpilation', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 switch (5) {
-                    case 1: {
-                    }
-                    case 2: {
-                    }
+                    case 1: {}
+                    case 2: {}
+                    default: {}
                 }
             }
         `;
@@ -154,10 +159,9 @@ Deno.test('SwitchStatementAst - Transpilation', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
             `switch(5){` +
-            `case 1:{` +
-            `}` +
-            `case 2:{` +
-            `}` +
+            `case 1:{}` +
+            `case 2:{}` +
+            `default:{}` +
             `}` +
             `}`
         );
@@ -168,10 +172,8 @@ Deno.test('SwitchStatementAst - Transpilation', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 switch (5) {
-                    case 1: {
-                    }
-                    default: {
-                    }
+                    case 1: {}
+                    default: {}
                 }
             }
         `;
@@ -186,10 +188,8 @@ Deno.test('SwitchStatementAst - Transpilation', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
             `switch(5){` +
-            `case 1:{` +
-            `}` +
-            `default:{` +
-            `}` +
+            `case 1:{}` +
+            `default:{}` +
             `}` +
             `}`
         );
@@ -200,8 +200,8 @@ Deno.test('SwitchStatementAst - Transpilation', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 switch (5) {
-                    case 1, 2: {
-                    }
+                    case 1, 2: {}
+                    default: {}
                 }
             }
         `;
@@ -216,9 +216,8 @@ Deno.test('SwitchStatementAst - Transpilation', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
             `switch(5){` +
-            `case 1:` +
-            `case 2:{` +
-            `}` +
+            `case 1,2:{}` +
+            `default:{}` +
             `}` +
             `}`
         );
@@ -231,8 +230,8 @@ Deno.test('SwitchStatementAst - Error', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 switch (5.0) {
-                    case 1: {
-                    }
+                    case 1: {}
+                    default: {}
                 }
             }
         `;
@@ -254,10 +253,9 @@ Deno.test('SwitchStatementAst - Error', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 switch (5) {
-                    case 1: {
-                    }
-                    case 1: {
-                    }
+                    case 1: {}
+                    case 1: {}
+                    default: {}
                 }
             }
         `;
@@ -281,8 +279,8 @@ Deno.test('SwitchStatementAst - Error', async (pContext) => {
             function testFunction(): void {
                 let ${lVariableName}: ${PgslNumericType.typeName.unsignedInteger} = 1;
                 switch (5) {
-                    case ${lVariableName}: {
-                    }
+                    case ${lVariableName}: {}
+                    default: {}
                 }
             }
         `;
@@ -297,5 +295,24 @@ Deno.test('SwitchStatementAst - Error', async (pContext) => {
         expect(lTranspilationResult.incidents.some(pIncident =>
             pIncident.message.includes('Case expression must be a constant.')
         )).toBe(true);
+    });
+
+    await pContext.step('Missing default case', () => {
+        // Setup.
+        const lCodeText: string = `
+            function testFunction(): void {
+                switch (5) {
+                    case 1: {}
+                }
+            }
+        `;
+
+        // Process.
+        const lErrorFunction = () => {
+            gPgslParser.transpile(lCodeText, new WgslTranspiler());
+        };
+
+        // Evaluation. Should have errors.
+        expect(lErrorFunction).toThrow('Unexpected token "}". "KeywordDefault" expected');
     });
 });

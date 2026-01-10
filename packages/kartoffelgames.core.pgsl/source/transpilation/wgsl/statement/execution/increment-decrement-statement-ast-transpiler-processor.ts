@@ -18,7 +18,6 @@ export class IncrementDecrementStatementAstTranspilerProcessor implements ITrans
      * @returns Transpiled WGSL code.
      */
     public process(pInstance: IncrementDecrementStatementAst, pTranspile: PgslTranspilerProcessorTranspile): string {
-        // TODO: Maybe the semicolon should be handled differently. Loops like the for loop dont need them.
         return `${pTranspile(pInstance.data.expression)}${pInstance.data.operator};`;
     }
 }

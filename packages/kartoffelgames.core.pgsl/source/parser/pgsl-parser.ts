@@ -144,17 +144,20 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
      */
     public override parse(pCodeText: string): DocumentCst {
         // TODO: On second layer only not the parser.
-        // Insert imports. #IMPORT
+        // Insert imports. @IMPORT "Import name"
         // Fill in buffers with imported declarations.
         // Setup #IFDEF. Fill Replaced '#IFDEFs, #ENDIFDEF with same amount of spaces and newlines.
         // Remove any other # statements as they do nothing. Replace with same amount of spaces and newlines.
 
-        // TODO: Replace comments with same amount of spaces and newlines.
+        // Replace comments with same amount of spaces and newlines. The lexer could handle comments, but it makes it faster/cleaner to remove them here.
+        const lAdjustedCodeText: string = pCodeText.replace(/\/\*.*?\*\/|\/\/.*?$/gsm, (pMatch: string) => {
+            return pMatch.replace(/[^\n]/g, ' ');
+        });
 
         // Clear user defined type names.
         this.mUserDefinedTypeNames = new Set<string>();
 
-        return super.parse(pCodeText);
+        return super.parse(lAdjustedCodeText);
     }
 
     /**
@@ -1168,15 +1171,15 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
             return GraphNode.new<PgslToken>()
                 .required('expression', [
                     // Combination expressions, combining two expressions.
-                    lValueDecompositionExpressionGraph,
                     lComparisonExpressionGraph,
                     lArithmeticExpressionGraph,
                     lLogicalExpressionGraph,
                     lBitOperationExpressionGraph,
 
                     // Extending expressions. Extending a expression another expression.
-                    lFunctionCallExpressionGraph,
+                    lValueDecompositionExpressionGraph,
                     lIndexedValueExpressionGraph,
+                    lFunctionCallExpressionGraph,
 
                     // Expression additives. Add something before after.
                     lAddressOfExpressionGraph,

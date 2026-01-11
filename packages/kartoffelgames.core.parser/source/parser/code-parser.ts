@@ -110,11 +110,10 @@ export class CodeParser<TTokenType extends string, TParseResult> {
         // Validate, that every token was parsed.
         if (lRemainingToken.length !== 0) {
             const lNextToken: LexerToken<TTokenType> = lRemainingToken[0];
-            const lLastToken: LexerToken<TTokenType> = lRemainingToken.at(-1)!;
 
             // Create a error message and add a incident.
             const lErrorMessage: string = `Tokens could not be parsed. Graph end meet without reaching last token. Current: "${lNextToken.value}" (${lNextToken.type})`;
-            lParseProcessState.incidentTrace.push(lErrorMessage, this.mRootPart as Graph<TTokenType>, lNextToken.lineNumber, lNextToken.columnNumber, lLastToken.lineNumber, lLastToken.columnNumber);
+            lParseProcessState.incidentTrace.push(lErrorMessage, this.mRootPart as Graph<TTokenType>, lNextToken.lineNumber, lNextToken.columnNumber, lNextToken.lineNumber, lNextToken.columnNumber);
 
             // Throw error with pushed incident.
             throw new CodeParserException(lParseProcessState.incidentTrace);

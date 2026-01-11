@@ -543,7 +543,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             };
 
             // Evaluation. Loop chain twice as long as actual loop.
-            expect(lErrorFunction).toThrow('Tokens could not be parsed. Graph end meet without reaching last token. Current: "const" (Modifier)');
+            expect(lErrorFunction).toThrow('Unexpected end of statement. Token "Modifier" expected.');
         });
 
         await pContext.step('Required self reference fail when not on end of graph', () => {

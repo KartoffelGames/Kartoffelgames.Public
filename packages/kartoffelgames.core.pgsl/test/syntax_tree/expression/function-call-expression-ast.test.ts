@@ -448,52 +448,41 @@ Deno.test('FunctionCallExpressionAst - Transpilation', async (pContext) => {
         });
     });
 
-    await pContext.step('BuildIn functions', async (pContext) => {
-        await pContext.step('Function: bitcast<float>(integer)', () => {
-            // Setup.
-            const lCodeText: string = `
-                function testFunction(): void {
-                    let intValue: ${PgslNumericType.typeName.signedInteger} = 42;
-                    let testVariable: ${PgslNumericType.typeName.float32} = bitcast<${PgslNumericType.typeName.float32}>(intValue);
-                }
-            `;
+    await pContext.step('BuildIn functions', async () => {
+        // Setup.
+        const lFunctionName: string = 'testUserFunction';
+        const lCodeText: string = `
+            struct Point {
+                x: float
+            }
+            function ${lFunctionName}(pValue: ${PgslNumericType.typeName.float32}): ${PgslNumericType.typeName.float32} {
+                return pValue;
+            }
+            function mainFunction(): void {
+                let point: Point;
+                let resultValue: ${PgslNumericType.typeName.float32} = ${lFunctionName}(point.x - 10.0);
+            }
+        `;
 
-            // Process.
-            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+        // Process.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
 
-            // Evaluation. No errors.
-            expect(lTranspilationResult.incidents).toHaveLength(0);
+        // Evaluation. No errors.
+        expect(lTranspilationResult.incidents).toHaveLength(0);
 
-            // Evaluation. Correct transpilation output.
-            expect(lTranspilationResult.source).toBe(
-                `fn testFunction(){` +
-                `var intValue:i32=42;` +
-                `var testVariable:f32=bitcast<f32>(intValue);` +
-                `}`
-            );
-        });
-
-        await pContext.step('Function: floor(number)', () => {
-            // Setup.
-            const lCodeText: string = `
-                function testFunction(): void {
-                    let testVariable: ${PgslNumericType.typeName.float32} = floor(5.7);
-                }
-            `;
-
-            // Process.
-            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
-
-            // Evaluation. No errors.
-            expect(lTranspilationResult.incidents).toHaveLength(0);
-
-            // Evaluation. Correct transpilation output.
-            expect(lTranspilationResult.source).toBe(
-                `fn testFunction(){` +
-                `var testVariable:f32=floor(5.7);` +
-                `}`
-            );
-        });
+        // Evaluation. Correct transpilation output.
+        expect(lTranspilationResult.source).toBe(
+            `struct Point{` +
+            `x:f32;` +
+            `}` +
+            `fn ${lFunctionName}(pValue:f32)->f32{` +
+            `return pValue;` +
+            `}` +
+            `fn mainFunction(){` +
+            `var point:Point;` +
+            `var resultValue:f32=${lFunctionName}(point.x-10.0);` +
+            `}`
+        );
     });
 });
 

@@ -17,13 +17,22 @@ export class Graph<TTokenType extends string, TOriginalData extends object = obj
      * 
      * @returns A new instance of the Graph class with the provided graph and data collector.
      */
-    public static define<TTokenType extends string, TResultData extends object>(pNodeCollector: GraphNodeCollector<TTokenType, TResultData>): Graph<TTokenType, TResultData> {
-        return new Graph(pNodeCollector);
+    public static define<TTokenType extends string, TResultData extends object>(pNodeCollector: GraphNodeCollector<TTokenType, TResultData>, pIsJunction: boolean = false): Graph<TTokenType, TResultData> {
+        return new Graph(pNodeCollector, pIsJunction);
+        // TODO: Check that the graph dont process any token at its own.
     }
 
     private readonly mDataConverterList: Array<GraphDataCollector<TTokenType>>;
     private readonly mGraphCollector: GraphNodeCollector<TTokenType, TOriginalData>;
     private mResolvedGraphNode: GraphNode<TTokenType> | null;
+    private mIsJunction: boolean;
+
+    /**
+     * Get whether the graph is a junction.
+     */
+    public get isJunction(): boolean {
+        return this.mIsJunction;
+    }
 
     /**
      * Get the resolved graph.
@@ -44,10 +53,11 @@ export class Graph<TTokenType extends string, TOriginalData extends object = obj
      * @param pGraph - Graph collector function.
      * @param pDataCollector - Data collector function.
      */
-    private constructor(pGraph: GraphNodeCollector<TTokenType, TOriginalData>) {
+    private constructor(pGraph: GraphNodeCollector<TTokenType, TOriginalData>, pIsJunction: boolean) {
         this.mGraphCollector = pGraph;
         this.mDataConverterList = new Array<GraphDataCollector<TTokenType>>();
         this.mResolvedGraphNode = null;
+        this.mIsJunction = pIsJunction;
     }
 
     /**
@@ -93,7 +103,7 @@ export class Graph<TTokenType extends string, TOriginalData extends object = obj
      * @param pConverter - Data converter
      */
     public converter<TConvertedData>(pConverter: GraphDataCollector<TTokenType, TResultData, TConvertedData>): Graph<TTokenType, TOriginalData, TConvertedData> {
-        const lNewGraph: Graph<TTokenType, TOriginalData, TConvertedData> = new Graph<TTokenType, TOriginalData, TConvertedData>(this.mGraphCollector);
+        const lNewGraph: Graph<TTokenType, TOriginalData, TConvertedData> = new Graph<TTokenType, TOriginalData, TConvertedData>(this.mGraphCollector, this.isJunction);
 
         // Add all previous data converters and the new converter to the new graph.
         lNewGraph.mDataConverterList.push(...this.mDataConverterList, pConverter);

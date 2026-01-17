@@ -895,6 +895,42 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             expect(lErrorFunction).toThrow(`Circular graph detected.`);
         });
 
+        await pContext.step('Detect endless circular dependency with junction graph.', () => {
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+
+            const lLoopGraph = Graph.define(() => {
+                const lSelfReference: Graph<TokenType, any> = lLoopGraph;
+                return GraphNode.new<TokenType>().required(lSelfReference);
+            }, true);
+            lParser.setRootGraph(lLoopGraph);
+
+            // Process.
+            const lErrorFunction = () => {
+                lParser.parse('identifier');
+            };
+
+            // Evaluation. Loop chain twice as long as actual loop.
+            expect(lErrorFunction).toThrow(`Circular graph detected.`);
+        });
+
+        await pContext.step('Detect junction graph having own nodes.', () => {
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+
+            const lLoopGraph = Graph.define(() => {
+                const lSelfReference: Graph<TokenType, any> = lLoopGraph;
+                return GraphNode.new<TokenType>().required(TokenType.Identifier);
+            }, true);
+            lParser.setRootGraph(lLoopGraph);
+
+            // Process.
+            const lErrorFunction = () => {
+                lParser.parse('identifier');
+            };
+
+            // Evaluation. Loop chain twice as long as actual loop.
+            expect(lErrorFunction).toThrow(`Junction graph must not have own nodes.`);
+        });
+
         await pContext.step('Add data from empty loop node.', () => {
             // Setup. Init lexer.
             const lLexer = new Lexer<string>();
@@ -943,7 +979,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
                     lLoopingAdditionGraph,
                     lLoopingVariableGraph
                 ]);
-            });
+            }, true);
             lParser.setRootGraph(lExpressionGraph);
 
             // Process
@@ -999,7 +1035,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
                     lLoopingAdditionGraph,
                     lLoopingVariableGraph
                 ]);
-            });
+            }, true);
             lParser.setRootGraph(lExpressionGraph);
 
             // Process
@@ -1063,25 +1099,29 @@ Deno.test('CodeParser.parse()', async (pContext) => {
                     lLoopingOptionalGraph,
                     lLoopingVariableGraph
                 ]);
-            });
+            }, true);
             lParser.setRootGraph(lExpressionGraph);
 
             // Process
             const lResult: any = lParser.parse('a + b - c');
 
             // Evaluation.
-            expect(lResult).toBeDeepEqual({
+            expect(lResult).toEqual({
                 expression: {
                     left: {
                         expression: {
-                            variable: 'a'
+                            expression: { // Hitting optional graph here
+                                variable: 'a'
+                            }
                         }
                     },
                     right: {
                         expression: {
                             left: {
                                 expression: {
-                                    variable: 'b'
+                                    expression: { // Hitting optional graph here
+                                        variable: 'b'
+                                    }
                                 }
                             },
                             right: {

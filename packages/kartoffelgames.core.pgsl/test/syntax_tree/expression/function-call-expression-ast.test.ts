@@ -473,7 +473,7 @@ Deno.test('FunctionCallExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `struct Point{` +
-            `x:f32;` +
+            `x:f32` +
             `}` +
             `fn ${lFunctionName}(pValue:f32)->f32{` +
             `return pValue;` +

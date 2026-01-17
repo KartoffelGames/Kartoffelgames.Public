@@ -115,7 +115,7 @@ Deno.test('WebGPU - Compatibility', async () => {
             normal: vec4
         }
 
-        [vertex]
+        [vertex()]
         function vertex_main(vertex: VertexIn): VertexOut {
             const instancePosition: vec4 = instancePositions[vertex.instanceId];
             const instancePositionMatrix: mat4x4 = mat4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, instancePosition.x * 5, instancePosition.y * 5, instancePosition.z * 5, 1);
@@ -149,7 +149,7 @@ Deno.test('WebGPU - Compatibility', async () => {
             color: vec4
         }
 
-        [fragment]
+        [fragment()]
         function fragment_main(fragment: FragmentIn): FragmentOut {
             const out: FragmentOut;
             out.color = applyLight(textureSample(cubeTexture, cubeTextureSampler, fragment.uv), fragment.fragmentPosition, fragment.normal);

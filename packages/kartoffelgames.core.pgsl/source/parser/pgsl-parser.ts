@@ -743,7 +743,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
          */
         const lLogicalExpressionGraph: Graph<PgslToken, object, LogicalExpressionCst> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
-                .required('leftExpression', lExpressionSyntaxTreeGraph)
+                .required('leftExpression', lNoneCompountExpressionGraph)
                 .required('operation', [
                     PgslToken.OperatorShortCircuitOr,
                     PgslToken.OperatorShortCircuitAnd
@@ -771,7 +771,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
          */
         const lArithmeticExpressionGraph: Graph<PgslToken, object, ArithmeticExpressionCst> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
-                .required('leftExpression', lExpressionSyntaxTreeGraph)
+                .required('leftExpression', lNoneCompountExpressionGraph)
                 .required('operation', [
                     PgslToken.OperatorPlus,
                     PgslToken.OperatorMinus,
@@ -803,7 +803,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
          */
         const lComparisonExpressionGraph: Graph<PgslToken, object, ComparisonExpressionCst> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
-                .required('leftExpression', lExpressionSyntaxTreeGraph)
+                .required('leftExpression', lNoneCompountExpressionGraph)
                 .required('comparison', [
                     PgslToken.OperatorEqual,
                     PgslToken.OperatorNotEqual,
@@ -835,7 +835,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
          */
         const lBitOperationExpressionGraph: Graph<PgslToken, object, BinaryExpressionCst> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
-                .required('leftExpression', lExpressionSyntaxTreeGraph)
+                .required('leftExpression', lNoneCompountExpressionGraph)
                 .required('operation', [
                     PgslToken.OperatorBinaryOr,
                     PgslToken.OperatorBinaryAnd,
@@ -869,7 +869,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                     PgslToken.OperatorMinus,
                     PgslToken.OperatorNot
                 ])
-                .required('expression', lExpressionSyntaxTreeGraph);
+                .required('expression', lNoneCompountExpressionGraph);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): UnaryExpressionCst => {
             return {
                 type: 'UnaryExpression',
@@ -916,11 +916,13 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
          * Indexed value expression. An expressions value accessed through another expression.
          * ```
          * - "<EXPRESSION>[<EXPRESSION>]"
+         * - "<EXPRESSION>[<EXPRESSION>][<EXPRESSION>]"
+         * - "<EXPRESSION>[<EXPRESSION>][<EXPRESSION>][<EXPRESSION>]"
          * ```
          */
         const lIndexedValueExpressionGraph: Graph<PgslToken, object, IndexedValueExpressionCst> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
-                .required('value', lExpressionSyntaxTreeGraph)
+                .required('value', lNoneCompountExpressionGraph)
                 .required('indices<-indices', lIndexedValueIndexListGraph);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): IndexedValueExpressionCst => {
             // Create a nested index value expression.
@@ -960,11 +962,13 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
          * Can be eighter a value decomposition or a enum decomposition.
          * ```
          * - "<EXPRESSION>.<IDENTIFIER>"
+         * - "<EXPRESSION>.<IDENTIFIER>.<IDENTIFIER>"
+         * - "<EXPRESSION>.<IDENTIFIER>.<IDENTIFIER>.<IDENTIFIER>"
          * ```
          */
         const lValueDecompositionExpressionGraph: Graph<PgslToken, object, ValueDecompositionExpressionCst> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
-                .required('leftExpression', lExpressionSyntaxTreeGraph)
+                .required('leftExpression', lNoneCompountExpressionGraph)
                 .required('names<-names', lValueDecompositionNameListGraph);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): ValueDecompositionExpressionCst => {
             // Create a nested Value decomposition Expression.
@@ -1051,7 +1055,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         const lAddressOfExpressionGraph: Graph<PgslToken, object, AddressOfExpressionCst> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.OperatorBinaryAnd)
-                .required('variable', lExpressionSyntaxTreeGraph);
+                .required('variable', lNoneCompountExpressionGraph);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): AddressOfExpressionCst => {
             return {
                 type: 'AddressOfExpression',
@@ -1069,7 +1073,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         const lPointerExpressionGraph: Graph<PgslToken, object, PointerExpressionCst> = Graph.define(() => {
             return GraphNode.new<PgslToken>()
                 .required(PgslToken.OperatorMultiply)
-                .required('variable', lExpressionSyntaxTreeGraph);
+                .required('variable', lNoneCompountExpressionGraph);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): PointerExpressionCst => {
             return {
                 type: 'PointerExpression',
@@ -1115,8 +1119,10 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         /**
          * Function call expression. Expression called as function.
          * ```
-         * - "<EXPRESSION>()"
-         * - "<EXPRESSION>(<EXPRESSION_LIST>)"
+         * - "<IDENTIFIER>()"
+         * - "<IDENTIFIER>(<EXPRESSION_LIST>)"
+         * - "<IDENTIFIER><<GENERIC_LIST>>()"
+         * - "<IDENTIFIER><<GENERIC_LIST>>(<EXPRESSION_LIST>)"
          * ```
          */
         const lFunctionCallExpressionGraph: Graph<PgslToken, object, FunctionCallExpressionCst> = Graph.define(() => {
@@ -1144,8 +1150,8 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         /**
          * New expression. Create instance of a type declaration with a list of Expression.
          * ```
-         * - "new <TYPE_DECLARATION>()"
-         * - "new <TYPE_DECLARATION>(<EXPRESSION_LIST>)"
+         * - "new <FUNCTION_CALL_EXPRESSION>()"
+         * - "new <FUNCTION_CALL_EXPRESSION>(<EXPRESSION_LIST>)"
          * ```
          */
         const lNewExpressionGraph: Graph<PgslToken, object, NewExpressionCst> = Graph.define(() => {
@@ -1176,24 +1182,49 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                     lLogicalExpressionGraph,
                     lBitOperationExpressionGraph,
 
-                    // Extending expressions. Extending a expression another expression.
-                    lValueDecompositionExpressionGraph,
-                    lIndexedValueExpressionGraph,
-                    lFunctionCallExpressionGraph,
-
                     // Expression additives. Add something before after.
                     lAddressOfExpressionGraph,
                     lPointerExpressionGraph,
                     lUnaryExpressionGraph,
                     lParenthesizedExpressionGraph,
+                    lNewExpressionGraph,
+
+                    // Extending expressions. Extending a expression another expression.
+                    lFunctionCallExpressionGraph,
+                    lValueDecompositionExpressionGraph,
+                    lIndexedValueExpressionGraph,
 
                     // Single value expressions.
-                    lNewExpressionGraph,
                     lLiteralValueExpressionGraph,
                     lStringValueExpressionGraph,
                     lVariableNameExpressionGraph,
                 ]);
-        }).converter((pData): ExpressionCst<ExpressionCstType> => {
+        }, true).converter((pData): ExpressionCst<ExpressionCstType> => {
+            return pData.expression;
+        });
+
+        // Separate expression graph without combination expressions to speed up parsing by limiting backtracking.
+        const lNoneCompountExpressionGraph: Graph<PgslToken, object, ExpressionCst<ExpressionCstType>> = Graph.define(() => {
+            return GraphNode.new<PgslToken>()
+                .required('expression', [
+                    // Expression additives. Add something before after.
+                    lAddressOfExpressionGraph,
+                    lPointerExpressionGraph,
+                    lUnaryExpressionGraph,
+                    lParenthesizedExpressionGraph,
+                    lNewExpressionGraph,
+
+                    // Extending expressions. Extending a expression another expression.
+                    lFunctionCallExpressionGraph,
+                    lValueDecompositionExpressionGraph,
+                    lIndexedValueExpressionGraph,
+
+                    // Single value expressions.
+                    lLiteralValueExpressionGraph,
+                    lStringValueExpressionGraph,
+                    lVariableNameExpressionGraph,
+                ]);
+        }, true).converter((pData): ExpressionCst<ExpressionCstType> => {
             return pData.expression;
         });
 

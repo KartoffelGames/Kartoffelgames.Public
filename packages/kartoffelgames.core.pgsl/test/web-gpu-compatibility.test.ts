@@ -9,63 +9,62 @@ const gPgslParser: PgslParser = new PgslParser();
 Deno.test('WebGPU - Compatibility', async () => {
     const lCodeText: string = `
         // ------------------------- Object Values ---------------------- //
-        [group_binding("object", "transformation_matrix")]
-        uniform transformationMatrix: mat4x4;
+        [GroupBinding("object", "transformation_matrix")]
+        uniform transformationMatrix: Matrix44<float>;
 
-        [group_binding("object", "instance_positions")]
-        [accessMode(AccessMode.Read)]
-        storage instancePositions: array<vec4>;
+        [GroupBinding("object", "instance_positions")]
+        [AccessMode(AccessMode.Read)]
+        storage instancePositions: Array<Vector4<float>>;
         // -------------------------------------------------------------- //
 
 
         // ------------------------- World Values ---------------------- //
-        [group_binding("world", "view_projection_matrix")]
-        uniform viewProjectionMatrix: mat4x4;
+        [GroupBinding("world", "view_projection_matrix")]
+        uniform viewProjectionMatrix: Matrix44<float>;
         // -------------------------------------------------------------- //
 
 
         // ------------------------- User Inputs ------------------------ //
-        [group_binding("user", "cube_texture_sampler")]
-        uniform cubeTextureSampler: sampler;
+        [GroupBinding("user", "cube_texture_sampler")]
+        uniform cubeTextureSampler: Sampler;
 
-        [group_binding("user", "cube_texture") ]
-        uniform cubeTexture: texture_2d<float>;
+        [GroupBinding("user", "cube_texture") ]
+        uniform cubeTexture: Texture2d<float>;
         // -------------------------------------------------------------- //
 
         const lightStrength: int = 23;
 
         // --------------------- Light calculations --------------------- //
         struct AmbientLight {
-            color: vec4
+            color: Vector4<float>
         }
 
-        [group_binding("world", "ambient_light")]
+        [GroupBinding("world", "ambient_light")]
         uniform ambientLight: AmbientLight;
 
         struct PointLight {
-            position: vec4,
-            color: vec4,
+            position: Vector4<float>,
+            color: Vector4<float>,
             range: float
         }
 
-        [group_binding("world", "point_lights")]
-        [accessMode(AccessMode.Read) ]
-        storage pointLights: array<PointLight>;
+        [GroupBinding("world", "point_lights")]
+        [AccessMode(AccessMode.Read) ]
+        storage pointLights: Array<PointLight>;
 
         /**
          * Calculate point light output.
          */
-        function calculatePointLights(fragmentPosition: vec4, normal: vec4): vec4 {
+        function calculatePointLights(fragmentPosition: Vector4<float>, normal: Vector4<float>): Vector4<float> {
             // Count of point lights.
-            const pointLightCount: u32 = arrayLength(&pointLights);
+            const pointLightCount: uint = arrayLength(&pointLights);
 
-            let lightResult: vec4 = vec4(0, 0, 0, 1);
-
-            for (let index: u32 = 0; index < pointLightCount; index++) {
+            let lightResult: Vector4<float> = new Vector4<float>(0, 0, 0, 1);
+            for (let index: uint = 0; index < pointLightCount; index++) {
                 const pointLight: PointLight = pointLights[index];
 
                 // Calculate light strength based on angle of incidence.
-                let lightDirection: vec4 = normalize(pointLight.position - fragmentPosition);
+                let lightDirection: Vector4<float> = normalize(pointLight.position - fragmentPosition);
                 let diffuse: float = max(dot(normal, lightDirection), 0.0);
 
                 lightResult += pointLight.color * diffuse;
@@ -77,8 +76,8 @@ Deno.test('WebGPU - Compatibility', async () => {
         /**
          * Apply lights to fragment color.
          */
-        function applyLight(colorIn: vec4, fragmentPosition: vec4, normal: vec4): vec4 {
-            let lightColor: vec4 = vec4(0, 0, 0, 1);
+        function applyLight(colorIn: Vector4<float>, fragmentPosition: Vector4<float>, normal: Vector4<float>): Vector4<float> {
+            let lightColor: Vector4<float> = new Vector4<float>(0, 0, 0, 1);
 
             lightColor += ambientLight.color;
             lightColor += calculatePointLights(fragmentPosition, normal);
@@ -88,43 +87,41 @@ Deno.test('WebGPU - Compatibility', async () => {
         // -------------------------------------------------------------- //
 
         struct VertexOut {
-            [builtin("position")]
-            position: vec4,
+            position: Position,
 
-            [location("uv")]
-            uv: vec2,
+            [Location("uv")]
+            uv: Vector2<float>,
 
-            [location("normal")]
-            normal: vec4,
+            [Location("normal")]
+            normal: Vector4<float>,
 
-            [location("fragment_position")]
-            fragmentPosition: vec4
+            [Location("fragment_position")]
+            fragmentPosition: Vector4<float>
         }
 
         struct VertexIn {
-            [builtin("instance_index")]
-            instanceId : uint,
+            instanceId : InstanceIndex,
 
-            [location("position")]
-            position: vec4,
+            [Location("position")]
+            position: Vector4<float>,
 
-            [location("uv")]
-            uv: vec2,
+            [Location("uv")]
+            uv: Vector2<float>,
 
-            [location("normal")]
-            normal: vec4
+            [Location("normal")]
+            normal: Vector4<float>
         }
 
-        [vertex()]
+        [Vertex()]
         function vertex_main(vertex: VertexIn): VertexOut {
-            const instancePosition: vec4 = instancePositions[vertex.instanceId];
-            const instancePositionMatrix: mat4x4 = mat4x4(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, instancePosition.x * 5, instancePosition.y * 5, instancePosition.z * 5, 1);
+            const instancePosition: Vector4<float> = instancePositions[vertex.instanceId];
+            const instancePositionMatrix: Matrix44<float> = new Matrix44(1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, instancePosition.x * 5, instancePosition.y * 5, instancePosition.z * 5, 1);
 
             // Overrideable variable.
             let rewriteable: int = 1;
             rewriteable = 2;
 
-            const out: VertexOut;
+            let out: VertexOut;
             out.position = viewProjectionMatrix * transformationMatrix * instancePositionMatrix * vertex.position;
             out.uv = vertex.uv;
             out.normal = vertex.normal;
@@ -134,24 +131,24 @@ Deno.test('WebGPU - Compatibility', async () => {
         }
 
         struct FragmentIn {
-            [location("uv")]
-            uv: vec2,
+            [Location("uv")]
+            uv: Vector2<float>,
 
-            [location("normal")]
-            normal: vec4,
+            [Location("normal")]
+            normal: Vector4<float>,
 
-            [location("fragment_position")]
-            fragmentPosition: vec4
+            [Location("fragment_position")]
+            fragmentPosition: Vector4<float>
         }
 
         struct FragmentOut {
-            [location("buffer")]
-            color: vec4
+            [Location("buffer")]
+            color: Vector4<float>
         }
 
-        [fragment()]
+        [Fragment()]
         function fragment_main(fragment: FragmentIn): FragmentOut {
-            const out: FragmentOut;
+            let out: FragmentOut;
             out.color = applyLight(textureSample(cubeTexture, cubeTextureSampler, fragment.uv), fragment.fragmentPosition, fragment.normal);
             
             return out;

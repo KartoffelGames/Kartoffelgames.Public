@@ -6,6 +6,12 @@ import type { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
  */
 export interface IType extends AbstractSyntaxTree {
     /**
+     * The type that is being shadowed.
+     * If it does not shadow another type, it is itself.
+     */
+    readonly shadowedType: IType;
+
+    /**
      * Declaration data.
      */
     readonly data: TypeProperties;

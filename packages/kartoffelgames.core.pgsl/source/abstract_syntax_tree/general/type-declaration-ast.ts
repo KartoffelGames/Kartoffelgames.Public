@@ -174,7 +174,6 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
             return null;
         })();
 
-
         // Build BuildInType definition without template.
         return new PgslBuildInType(pRawName as any, lTemplateExpression).process(pContext);
     }

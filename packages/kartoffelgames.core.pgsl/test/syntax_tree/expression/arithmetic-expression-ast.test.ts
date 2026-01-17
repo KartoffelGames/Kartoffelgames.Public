@@ -429,9 +429,65 @@ Deno.test('ArithmeticExpressionAst - Parsing', async (pContext) => {
             // Setup.
             const lCodeText: string = `
                 function testFunction(): void {
+                    let matrixOne: ${PgslMatrixType.typeName.matrix23}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix23}(1.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+                    let vectorOne: ${PgslVectorType.typeName.vector2}<${PgslNumericType.typeName.float32}> = new ${PgslVectorType.typeName.vector2}(1.0, 2.0);
+                    let testVariable: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}> = matrixOne * vectorOne;
+                }
+            `;
+
+            // Process.
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+            // Process. Assume correct parsing.
+            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+            const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
+            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[2] as VariableDeclarationStatementAst;
+
+            // Evaluation. Correct type of expression node.
+            const lExpressionNode: ArithmeticExpressionAst = lVariableDeclarationNode.data.expression as ArithmeticExpressionAst;
+            expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
+
+            // Evaluation. Correct result type with dimension.
+            const lResultType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
+            expect(lResultType).toBeInstanceOf(PgslVectorType);
+            expect(lResultType.dimension).toBe(3);
+        });
+
+        await pContext.step('Mixed vector with matrix', () => {
+            // Setup.
+            const lCodeText: string = `
+                function testFunction(): void {
+                    let matrixOne: ${PgslMatrixType.typeName.matrix23}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix23}(1.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+                    let vectorOne: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}> = new ${PgslVectorType.typeName.vector3}(1.0, 2.0, 3.0);
+                    let testVariable: ${PgslVectorType.typeName.vector2}<${PgslNumericType.typeName.float32}> = vectorOne * matrixOne;
+                }
+            `;
+
+            // Process.
+            const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
+
+            // Process. Assume correct parsing.
+            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+            const lFunctionDeclaration: FunctionDeclarationAstDataDeclaration = lFunctionNode.data.declarations[0] as FunctionDeclarationAstDataDeclaration;
+            const lVariableDeclarationNode: VariableDeclarationStatementAst = lFunctionDeclaration.block.data.statementList[2] as VariableDeclarationStatementAst;
+
+            // Evaluation. Correct type of expression node.
+            const lExpressionNode: ArithmeticExpressionAst = lVariableDeclarationNode.data.expression as ArithmeticExpressionAst;
+            expect(lExpressionNode).toBeInstanceOf(ArithmeticExpressionAst);
+
+            // Evaluation. Correct result type with dimension.
+            const lResultType: PgslVectorType = lExpressionNode.data.resolveType as PgslVectorType;
+            expect(lResultType).toBeInstanceOf(PgslVectorType);
+            expect(lResultType.dimension).toBe(2);
+        });
+
+        await pContext.step('Mixed multiple matrix with vector', () => {
+            // Setup.
+            const lCodeText: string = `
+                function testFunction(): void {
                     let matrixOne: ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix33}(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
                     let vectorOne: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}> = new ${PgslVectorType.typeName.vector3}(1.0, 2.0, 3.0);
-                    let testVariable: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}> = matrixOne * vectorOne;
+                    let testVariable: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}> = matrixOne * matrixOne * matrixOne * vectorOne;
                 }
             `;
 
@@ -1037,9 +1093,61 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
             // Setup.
             const lCodeText: string = `
                 function testFunction(): void {
+                    let matrixOne: ${PgslMatrixType.typeName.matrix23}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix23}(1.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+                    let vectorOne: ${PgslVectorType.typeName.vector2}<${PgslNumericType.typeName.float32}> = new ${PgslVectorType.typeName.vector2}(1.0, 2.0);
+                    let testVariable: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}> = matrixOne * vectorOne;
+                }
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Evaluation. No errors.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
+
+            // Evaluation. Correct transpilation output.
+            expect(lTranspilationResult.source).toBe(
+                `fn testFunction(){` +
+                `var matrixOne:mat2x3<f32>=mat2x3(1.0,0.0,0.0,0.0,1.0,0.0);` +
+                `var vectorOne:vec2<f32>=vec2(1.0,2.0);` +
+                `var testVariable:vec3<f32>=matrixOne*vectorOne;` +
+                `}`
+            );
+        });
+
+        await pContext.step('Mixed vector with matrix', () => {
+            // Setup.
+            const lCodeText: string = `
+                function testFunction(): void {
+                    let matrixOne: ${PgslMatrixType.typeName.matrix23}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix23}(1.0, 0.0, 0.0, 0.0, 1.0, 0.0);
+                    let vectorOne: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}> = new ${PgslVectorType.typeName.vector3}(1.0, 2.0, 3.0);
+                    let testVariable: ${PgslVectorType.typeName.vector2}<${PgslNumericType.typeName.float32}> = vectorOne * matrixOne;
+                }
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Evaluation. No errors.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
+
+            // Evaluation. Correct transpilation output.
+            expect(lTranspilationResult.source).toBe(
+                `fn testFunction(){` +
+                `var matrixOne:mat2x3<f32>=mat2x3(1.0,0.0,0.0,0.0,1.0,0.0);` +
+                `var vectorOne:vec3<f32>=vec3(1.0,2.0,3.0);` +
+                `var testVariable:vec2<f32>=vectorOne*matrixOne;` +
+                `}`
+            );
+        });
+
+        await pContext.step('Mixed multiple matrix with vector', () => {
+            // Setup.
+            const lCodeText: string = `
+                function testFunction(): void {
                     let matrixOne: ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix33}(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
                     let vectorOne: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}> = new ${PgslVectorType.typeName.vector3}(1.0, 2.0, 3.0);
-                    let testVariable: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}> = matrixOne * vectorOne;
+                    let testVariable: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}> = matrixOne * matrixOne * matrixOne * vectorOne;
                 }
             `;
 
@@ -1054,7 +1162,7 @@ Deno.test('ArithmeticExpressionAst - Transpilation', async (pContext) => {
                 `fn testFunction(){` +
                 `var matrixOne:mat3x3<f32>=mat3x3(1.0,0.0,0.0,0.0,1.0,0.0,0.0,0.0,1.0);` +
                 `var vectorOne:vec3<f32>=vec3(1.0,2.0,3.0);` +
-                `var testVariable:vec3<f32>=matrixOne*vectorOne;` +
+                `var testVariable:vec3<f32>=matrixOne*matrixOne*matrixOne*vectorOne;` +
                 `}`
             );
         });

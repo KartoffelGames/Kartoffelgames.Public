@@ -111,7 +111,7 @@ export class PgslNumericBuildInFunction {
         const lFunctions: Array<FunctionDeclarationCst> = new Array<FunctionDeclarationCst>();
 
         lFunctions.push(PgslNumericBuildInFunction.create(PgslNumericBuildInFunction.names.arrayLength, true, false, [
-            PgslNumericBuildInFunction.header({ 'TResult': ['Pointer<Array>'], }, { 'array': 'TResult' }, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.signedInteger)),
+            PgslNumericBuildInFunction.header({ 'TResult': ['Pointer<Array>'], }, { 'array': 'TResult' }, PgslNumericBuildInFunction.numericType(PgslNumericType.typeName.unsignedInteger)),
         ]));
 
         return lFunctions;

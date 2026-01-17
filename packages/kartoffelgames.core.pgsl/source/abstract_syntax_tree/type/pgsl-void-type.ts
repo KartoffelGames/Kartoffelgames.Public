@@ -19,11 +19,25 @@ export class PgslVoidType extends AbstractSyntaxTree<TypeCst, TypeProperties> im
         } as const;
     }
 
+    private readonly mShadowedType: IType;
+
+    /**
+     * The type that is being shadowed.
+     * If it does not shadow another type, it is itself.
+     */
+    public get shadowedType(): IType {
+        return this.mShadowedType;
+    } 
+
     /**
      * Constructor for void type.
+     * 
+     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor() {
+    public constructor(pShadowedType?: IType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
+
+        this.mShadowedType = pShadowedType ?? this;
     }
 
     /**

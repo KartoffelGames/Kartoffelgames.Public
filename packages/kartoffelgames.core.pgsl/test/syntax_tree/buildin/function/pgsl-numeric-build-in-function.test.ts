@@ -3919,7 +3919,7 @@ Deno.test('PgslNumericBuildInFunction-arrayLength', async (pContext) => {
         const lCodeText: string = `
             function testFunction(): void {
                 let arrayValue: Array<${PgslNumericType.typeName.float32}, 2> = new Array(1.0, 2.0);
-                let arrayLength: ${PgslNumericType.typeName.signedInteger} = arrayLength(&arrayValue);
+                let arrayLength: ${PgslNumericType.typeName.unsignedInteger} = arrayLength(&arrayValue);
             }
         `;
 
@@ -3931,7 +3931,7 @@ Deno.test('PgslNumericBuildInFunction-arrayLength', async (pContext) => {
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
             `var arrayValue:array<f32,2>=array(1.0,2.0);` +
-            `var arrayLength:i32=arrayLength(&arrayValue);` +
+            `var arrayLength:u32=arrayLength(&arrayValue);` +
             `}`
         );
     });

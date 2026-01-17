@@ -910,7 +910,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             };
 
             // Evaluation. Loop chain twice as long as actual loop.
-            expect(lErrorFunction).toThrow(`Circular graph detected.`);
+            expect(lErrorFunction).toThrow(`Junction graph called circular too often.`);
         });
 
         await pContext.step('Detect junction graph having own nodes.', () => {

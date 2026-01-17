@@ -285,10 +285,16 @@ export class CodeParserProcessState<TTokenType extends string> {
             return false;
         }
 
-        // Read graph call count.
-        const lGraphCallCount: number = lCurrentGraphStack.circularGraphs.get(pGraph)!;
+        // When the graph is a junction, we allow circular call, but prevent absurde call counts.
+        if (pGraph.isJunction) {
+            // Read graph call count from circular graph list.
+            const lGraphCallCount: number = lCurrentGraphStack.circularGraphs.get(pGraph)!;
 
-        if (pGraph.isJunction && lGraphCallCount < CodeParserProcessState.MAX_JUNCTION_CIRCULAR_REFERENCES) {
+            // When a junction graph is called too often, we consider it critical circular and throw an error.
+            if(lGraphCallCount > CodeParserProcessState.MAX_JUNCTION_CIRCULAR_REFERENCES) {
+                throw new Exception(`Junction graph called circular too often.`, this);
+            }
+
             return false;
         }
 

@@ -175,7 +175,10 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
         })();
 
         // Build BuildInType definition without template.
-        return new PgslBuildInType(pRawName as any, lTemplateExpression).process(pContext);
+        const lBuildInType: PgslBuildInType = new PgslBuildInType(pRawName as any, lTemplateExpression).process(pContext);
+
+        // Read the inner type and set the build in type as shadowed type.
+        return lBuildInType.underlyingType;
     }
 
     /**

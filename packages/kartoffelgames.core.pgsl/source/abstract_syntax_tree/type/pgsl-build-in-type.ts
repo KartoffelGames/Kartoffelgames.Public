@@ -41,9 +41,9 @@ export class PgslBuildInType extends AbstractSyntaxTree<TypeCst, TypeProperties>
     }
 
     private readonly mBuildInType: PgslBuildInTypeName;
+    private readonly mShadowedType: IType | null;
     private readonly mTemplate: IExpressionAst | null;
     private mUnderlyingType: IType | null;
-    
 
     /**
      * Gets the built-in type variant name.
@@ -52,6 +52,14 @@ export class PgslBuildInType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      */
     public get buildInType(): PgslBuildInTypeName {
         return this.mBuildInType;
+    }
+
+    /**
+     * The type that is being shadowed.
+     * If it does not shadow another type, it is itself.
+     */
+    public get shadowedType(): IType {
+        return this.mShadowedType ?? this;
     }
 
     /**
@@ -79,14 +87,15 @@ export class PgslBuildInType extends AbstractSyntaxTree<TypeCst, TypeProperties>
     /**
      * Constructor for built-in type.
      * 
-     * @param pContext - The trace context for validation and error reporting.
      * @param pType - The specific built-in type variant.
      * @param pTemplate - Optional template expression for parameterized types.
+     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pType: PgslBuildInTypeName, pTemplate: IExpressionAst | null) {
+    public constructor(pType: PgslBuildInTypeName, pTemplate: IExpressionAst | null, pShadowedType?: IType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
+        this.mShadowedType = pShadowedType ?? null;
         this.mBuildInType = pType;
         this.mTemplate = pTemplate;
 
@@ -185,43 +194,43 @@ export class PgslBuildInType extends AbstractSyntaxTree<TypeCst, TypeProperties>
         switch (pBuildInType) {
             case PgslBuildInType.typeName.position: {
                 const lFloatType = new PgslNumericType(PgslNumericType.typeName.float32).process(pContext);
-                return new PgslVectorType(4, lFloatType).process(pContext);
+                return new PgslVectorType(4, lFloatType, this).process(pContext);
             }
             case PgslBuildInType.typeName.localInvocationId: {
-                return new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
+                return new PgslNumericType(PgslNumericType.typeName.unsignedInteger, this).process(pContext);
             }
             case PgslBuildInType.typeName.globalInvocationId: {
                 const lUnsignedIntType = new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
-                return new PgslVectorType(3, lUnsignedIntType).process(pContext);
+                return new PgslVectorType(3, lUnsignedIntType, this).process(pContext);
             }
             case PgslBuildInType.typeName.workgroupId: {
                 const lUnsignedIntType = new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
-                return new PgslVectorType(3, lUnsignedIntType).process(pContext);
+                return new PgslVectorType(3, lUnsignedIntType, this).process(pContext);
             }
             case PgslBuildInType.typeName.numWorkgroups: {
                 const lUnsignedIntType = new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
-                return new PgslVectorType(3, lUnsignedIntType).process(pContext);
+                return new PgslVectorType(3, lUnsignedIntType, this).process(pContext);
             }
             case PgslBuildInType.typeName.vertexIndex: {
-                return new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
+                return new PgslNumericType(PgslNumericType.typeName.unsignedInteger, this).process(pContext);
             }
             case PgslBuildInType.typeName.instanceIndex: {
-                return new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
+                return new PgslNumericType(PgslNumericType.typeName.unsignedInteger, this).process(pContext);
             }
             case PgslBuildInType.typeName.fragDepth: {
-                return new PgslNumericType(PgslNumericType.typeName.float32).process(pContext);
+                return new PgslNumericType(PgslNumericType.typeName.float32, this).process(pContext);
             }
             case PgslBuildInType.typeName.sampleIndex: {
-                return new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
+                return new PgslNumericType(PgslNumericType.typeName.unsignedInteger, this).process(pContext);
             }
             case PgslBuildInType.typeName.sampleMask: {
-                return new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
+                return new PgslNumericType(PgslNumericType.typeName.unsignedInteger, this).process(pContext);
             }
             case PgslBuildInType.typeName.localInvocationIndex: {
-                return new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
+                return new PgslNumericType(PgslNumericType.typeName.unsignedInteger, this).process(pContext);
             }
             case PgslBuildInType.typeName.frontFacing: {
-                return new PgslBooleanType().process(pContext);
+                return new PgslBooleanType(this).process(pContext);
             }
             case PgslBuildInType.typeName.clipDistances: {
                 // ClipDistances is an array<f32, N> where N is determined by the template
@@ -229,12 +238,12 @@ export class PgslBuildInType extends AbstractSyntaxTree<TypeCst, TypeProperties>
                 // Create a new float number type.
                 const lFloatType = new PgslNumericType(PgslNumericType.typeName.float32).process(pContext);
 
-                return new PgslArrayType(lFloatType, pTemplate).process(pContext);
+                return new PgslArrayType(lFloatType, pTemplate, this).process(pContext);
             }
             default: {
                 // Unknown built-in type
                 pContext.pushIncident(`Unknown built-in type: ${pBuildInType}`);
-                return new PgslInvalidType().process(pContext);
+                return new PgslInvalidType(this).process(pContext);
             }
         }
     }

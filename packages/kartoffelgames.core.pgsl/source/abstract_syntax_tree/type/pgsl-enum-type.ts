@@ -12,6 +12,7 @@ import type { IType, TypeProperties } from './i-type.interface.ts';
 export class PgslEnumType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
     private mEnumDeclaration: EnumDeclarationAst | null;
     private readonly mEnumName: string;
+    private readonly mShadowedType: IType;
 
     /**
      * Gets the enum declaration AST node associated with this enum type.
@@ -32,15 +33,24 @@ export class PgslEnumType extends AbstractSyntaxTree<TypeCst, TypeProperties> im
     }
 
     /**
+     * The type that is being shadowed.
+     * If it does not shadow another type, it is itself.
+     */
+    public get shadowedType(): IType {
+        return this.mShadowedType;
+    }
+
+    /**
      * Constructor for enum type.
      * 
-     * @param pContext - The context for validation and error reporting.
      * @param pEnumName - The name of the enum type.
+     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pEnumName: string) {
+    public constructor(pEnumName: string, pShadowedType?: IType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
+        this.mShadowedType = pShadowedType ?? this;
         this.mEnumName = pEnumName;
 
         // Read enum declaration.

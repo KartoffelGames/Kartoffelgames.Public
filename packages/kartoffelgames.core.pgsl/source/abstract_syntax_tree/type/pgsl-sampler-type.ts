@@ -21,6 +21,7 @@ export class PgslSamplerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
     }
 
     private readonly mComparision: boolean;
+    private readonly mShadowedType: IType;
 
     /**
      * If sampler is a comparison sampler.
@@ -33,14 +34,24 @@ export class PgslSamplerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
     }
 
     /**
+     * The type that is being shadowed.
+     * If it does not shadow another type, it is itself.
+     */
+    public get shadowedType(): IType {
+        return this.mShadowedType;
+    }
+
+    /**
      * Constructor for sampler type.
      * 
      * @param pComparison - Whether this is a comparison sampler.
+     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pComparison: boolean) {
+    public constructor(pComparison: boolean, pShadowedType?: IType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
+        this.mShadowedType = pShadowedType ?? this;
         this.mComparision = pComparison;
     }
 

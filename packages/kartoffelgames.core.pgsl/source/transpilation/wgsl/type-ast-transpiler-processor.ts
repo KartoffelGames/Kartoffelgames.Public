@@ -77,9 +77,9 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<IType> {
      * Processes a PGSL type definition and transpiles it to WGSL.
      * 
      * @param pInstance - The type definition instance to transpile.
-     * @param pTrace - The trace context for error reporting.
-     * @param pSendResult - Function to send the transpiled result.
      * @param pTranspile - Function to transpile child nodes.
+     * 
+     * @returns The transpiled WGSL type string.
      */
     public process(pInstance: IType, pTranspile: PgslTranspilerProcessorTranspile): string {
         return this.processType(pInstance, pTranspile);
@@ -89,9 +89,9 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<IType> {
      * Processes a PGSL type and transpiles it to WGSL.
      * 
      * @param pType - The PGSL type to transpile.
-     * @param pTrace - The trace context for error reporting.
-     * @param pSendResult - Function to send the transpiled result.
      * @param pTranspile - Function to transpile child nodes.
+     * 
+     * @returns The transpiled WGSL type string.
      */
     private processType(pType: IType, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Get the appropriate transpiler for the type.
@@ -108,7 +108,6 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<IType> {
      * Transpiles array type to WGSL.
      * 
      * @param pType - The array type instance to transpile.
-     * @param pTrace - The trace context for error reporting.
      * @param pTranspile - The transpile function for processing inner types.
      * 
      * @returns The WGSL array type string.
@@ -143,24 +142,23 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<IType> {
     /**
      * Transpiles built-in type to WGSL.
      * 
-     * @param pType - The built-in type instance to transpile.
-     * @param pTrace - The trace context for error reporting.
-     * @param pTranspile - The transpile function for processing underlying types.
+     * @param _pType - The built-in type instance to transpile.
+     * @param _pTranspile - The transpile function for processing underlying types.
      * 
-     * @returns The WGSL representation of the underlying type.
+     * @throws {Exception} Built-in types cannot be transpiled directly.
      */
-    private transpileBuildInType(pType: PgslBuildInType, pTranspile: PgslTranspilerProcessorTranspile): string {
+    private transpileBuildInType(_pType: PgslBuildInType, _pTranspile: PgslTranspilerProcessorTranspile): string {
         // Just transpile to the underlying type.
-        return this.processType(pType.underlyingType, pTranspile);
+        throw new Exception('Build in type can not be transpiled directly', this);
     }
 
     /**
      * Transpiles invalid type to WGSL.
      * 
      * @param _pType - The invalid type instance (unused).
-     * @param pTrace - The trace context for error reporting.
+     * @param _pTranspile - The transpile function for processing underlying types (unused).
      * 
-     * @returns The fallback invalid type string.
+     * @throws {Exception} Invalid types cannot be transpiled.
      */
     private transpileInvalidType(_pType: IType, _pTranspile: PgslTranspilerProcessorTranspile): string {
         throw new Exception('Invalid type encountered during transpilation', this);
@@ -170,7 +168,6 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<IType> {
      * Transpiles matrix type to WGSL.
      * 
      * @param pType - The matrix type instance to transpile.
-     * @param pTrace - The trace context for error reporting.
      * @param pTranspile - The transpile function for processing inner types.
      * 
      * @returns The WGSL matrix type string.
@@ -191,9 +188,10 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<IType> {
      * Transpiles numeric type to WGSL.
      * 
      * @param pType - The numeric type instance to transpile.
-     * @param pTrace - The trace context for error reporting.
      * 
      * @returns The WGSL numeric type string.
+     * 
+     * @throws {Exception} Abstract numeric types should not appear in WGSL output.
      */
     private transpileNumericType(pType: PgslNumericType): string {
         switch (pType.numericTypeName) {
@@ -212,7 +210,6 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<IType> {
      * Transpiles pointer type to WGSL.
      * 
      * @param pType - The pointer type instance to transpile.
-     * @param pTrace - The trace context for error reporting.
      * @param pTranspile - The transpile function for processing referenced types.
      * 
      * @returns The WGSL pointer type string.
@@ -242,7 +239,7 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<IType> {
      * 
      * @param pType - The sampler type instance to transpile.
      * 
-     * @returns The WGSL sampler type string.
+     * @returns The WGSL sampler type string ("sampler" or "sampler_comparison").
      */
     private transpileSamplerType(pType: PgslSamplerType): string {
         if (pType.comparison) {
@@ -257,7 +254,7 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<IType> {
      * 
      * @param pType - The struct type instance to transpile.
      * 
-     * @returns The WGSL struct type string.
+     * @returns The struct name as the WGSL struct type string.
      */
     private transpileStructType(pType: PgslStructType): string {
         return pType.structName;
@@ -267,10 +264,11 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<IType> {
      * Transpiles texture type to WGSL.
      * 
      * @param pType - The texture type instance to transpile.
-     * @param pTrace - The trace context for error reporting.
      * @param pTranspile - The transpile function for processing sampled types.
      * 
      * @returns The WGSL texture type string.
+     * 
+     * @throws {Exception} If texture type is not supported for WGSL transpilation.
      */
     private transpileTextureType(pType: PgslTextureType, pTranspile: PgslTranspilerProcessorTranspile): string {
         // Texture mode where depth also counts as a external texture.
@@ -383,7 +381,6 @@ export class TypeAstTranspilerProcessor implements ITranspilerProcessor<IType> {
      * Transpiles vector type to WGSL.
      * 
      * @param pType - The vector type instance to transpile.
-     * @param pTrace - The trace context for error reporting.
      * @param pTranspile - The transpile function for processing inner types.
      * 
      * @returns The WGSL vector type string.

@@ -25,7 +25,8 @@ export class PgslArrayType extends AbstractSyntaxTree<TypeCst, TypeProperties> i
     private readonly mInnerType: IType;
     private readonly mLength: number | null;
     private readonly mLengthExpression: IExpressionAst | null;
-    
+    private readonly mShadowedType: IType;
+
     /**
      * Gets the inner element type of the array.
      * 
@@ -54,14 +55,24 @@ export class PgslArrayType extends AbstractSyntaxTree<TypeCst, TypeProperties> i
     }
 
     /**
+     * The type that is being shadowed.
+     * If it does not shadow another type, it is itself.
+     */
+    public get shadowedType(): IType {
+        return this.mShadowedType;
+    }
+
+    /**
      * Constructor for array type.
      * 
      * @param pType - The inner element type of the array.
      * @param pLengthExpression - Optional length expression for fixed-size arrays.
+     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pType: IType, pLengthExpression: IExpressionAst | null) {
+    public constructor(pType: IType, pLengthExpression: IExpressionAst | null, pShadowedType?: IType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
 
+        this.mShadowedType = pShadowedType ?? this;
         this.mInnerType = pType;
         this.mLengthExpression = pLengthExpression;
         this.mLength = null;

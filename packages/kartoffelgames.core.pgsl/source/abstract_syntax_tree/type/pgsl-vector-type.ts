@@ -39,6 +39,7 @@ export class PgslVectorType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
     }
 
     private readonly mInnerType: IType;
+    private readonly mShadowedType: IType;
     private readonly mVectorDimension: number;
 
     /**
@@ -60,16 +61,25 @@ export class PgslVectorType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
     }
 
     /**
+     * The type that is being shadowed.
+     * If it does not shadow another type, it is itself.
+     */
+    public get shadowedType(): IType {
+        return this.mShadowedType;
+    }
+
+    /**
      * Constructor for vector type.
      * 
-     * @param pContext - The context for validation and error reporting.
      * @param pVectorDimension - The vector dimension (2, 3, or 4).
      * @param pInnerType - The inner element type of the vector.
+     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pVectorDimension: number, pInnerType: IType) {
+    public constructor(pVectorDimension: number, pInnerType: IType, pShadowedType?: IType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
+        this.mShadowedType = pShadowedType ?? this;
         this.mInnerType = pInnerType;
         this.mVectorDimension = pVectorDimension;
     }

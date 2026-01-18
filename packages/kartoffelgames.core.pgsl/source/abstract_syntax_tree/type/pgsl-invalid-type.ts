@@ -9,11 +9,25 @@ import type { IType, TypeProperties } from './i-type.interface.ts';
  * This type is used as a fallback when type resolution fails or encounters errors.
  */
 export class PgslInvalidType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
+    private readonly mShadowedType: IType;
+
+    /**
+     * The type that is being shadowed.
+     * If it does not shadow another type, it is itself.
+     */
+    public get shadowedType(): IType {
+        return this.mShadowedType;
+    }
+
     /**
      * Constructor for invalid type.
+     * 
+     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor() {
+    public constructor(pShadowedType?: IType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
+
+        this.mShadowedType = pShadowedType ?? this;
     }
 
     /**

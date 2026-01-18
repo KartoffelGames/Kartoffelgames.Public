@@ -26,6 +26,7 @@ export class PgslNumericType extends AbstractSyntaxTree<TypeCst, TypeProperties>
     }
 
     private readonly mNumericType: PgslNumericTypeName;
+    private readonly mShadowedType: IType;
 
     /**
      * Gets the specific numeric type variant.
@@ -37,14 +38,24 @@ export class PgslNumericType extends AbstractSyntaxTree<TypeCst, TypeProperties>
     }
 
     /**
+     * The type that is being shadowed.
+     * If it does not shadow another type, it is itself.
+     */
+    public get shadowedType(): IType {
+        return this.mShadowedType;
+    }
+
+    /**
      * Constructor for numeric type.
      * 
      * @param pNumericType - The specific numeric type variant.
+     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pNumericType: PgslNumericTypeName) {
+    public constructor(pNumericType: PgslNumericTypeName, pShadowedType?: IType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
+        this.mShadowedType = pShadowedType ?? this;
         this.mNumericType = pNumericType;
     }
 

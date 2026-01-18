@@ -110,6 +110,7 @@ export class PgslTextureType extends AbstractSyntaxTree<TypeCst, TypeProperties>
             pTextureType === PgslTextureType.typeName.textureStorage3d;
     }
 
+    private readonly mShadowedType: IType;
     private readonly mTemplateList: Array<IExpressionAst | TypeDeclarationAst>;
     private readonly mTextureType: PgslTextureTypeName;
     private mTextureTypeParameter: PgslTextureTypeParameter | null;
@@ -151,6 +152,14 @@ export class PgslTextureType extends AbstractSyntaxTree<TypeCst, TypeProperties>
     }
 
     /**
+     * The type that is being shadowed.
+     * If it does not shadow another type, it is itself.
+     */
+    public get shadowedType(): IType {
+        return this.mShadowedType;
+    }
+
+    /**
      * Gets the texture type variant.
      * 
      * @returns The texture type name.
@@ -163,12 +172,14 @@ export class PgslTextureType extends AbstractSyntaxTree<TypeCst, TypeProperties>
      * Constructor for texture type.
      * 
      * @param pTextureType - The specific texture type variant.
-     * @param pTemplateList - Template parameters for the texture (varies by texture type).
+     * @param pTemplateList - List of template arguments (types or strings).
+     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pTextureType: PgslTextureTypeName, pTemplateList: Array<IExpressionAst | TypeDeclarationAst>) {
+    public constructor(pTextureType: PgslTextureTypeName, pTemplateList: Array<IExpressionAst | TypeDeclarationAst>, pShadowedType?: IType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
+        this.mShadowedType = pShadowedType ?? this;
         this.mTextureType = pTextureType;
         this.mTemplateList = pTemplateList;
 

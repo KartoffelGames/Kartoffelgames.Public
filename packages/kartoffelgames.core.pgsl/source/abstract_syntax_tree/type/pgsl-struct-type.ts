@@ -10,7 +10,16 @@ import type { IType, TypeProperties } from './i-type.interface.ts';
  * Struct types are composite types that can be used to group related data.
  */
 export class PgslStructType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
+    private readonly mShadowedType: IType;
     private readonly mStructName: string;
+
+    /**
+     * The type that is being shadowed.
+     * If it does not shadow another type, it is itself.
+     */
+    public get shadowedType(): IType {
+        return this.mShadowedType;
+    }
 
     /**
      * Gets the name of the struct type.
@@ -25,11 +34,13 @@ export class PgslStructType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * Constructor for struct type.
      * 
      * @param pStructName - The name of the struct type.
+     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pStructName: string) {
+    public constructor(pStructName: string, pShadowedType?: IType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
+        this.mShadowedType = pShadowedType ?? this;
         this.mStructName = pStructName;
     }
 

@@ -29,8 +29,8 @@ export class StructPropertyDeclarationAstTranspilerProcessor implements ITranspi
         const lResultParts: Array<string> = new Array<string>();
 
         // Builtin types handling. Adding required attribute metadata.
-        if (pInstance.data.typeDeclaration.data.type instanceof PgslBuildInType) {
-            switch (pInstance.data.typeDeclaration.data.type.buildInType) {
+        if (pInstance.data.typeDeclaration.data.type.shadowedType instanceof PgslBuildInType) {
+            switch (pInstance.data.typeDeclaration.data.type.shadowedType.buildInType) {
                 case PgslBuildInType.typeName.vertexIndex: lResultParts.push(`@builtin(vertex_index)`); break;
                 case PgslBuildInType.typeName.instanceIndex: lResultParts.push(`@builtin(instance_index)`); break;
                 case PgslBuildInType.typeName.position: lResultParts.push(`@builtin(position)`); break;

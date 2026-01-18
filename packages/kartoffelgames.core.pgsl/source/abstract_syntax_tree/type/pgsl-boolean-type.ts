@@ -19,11 +19,25 @@ export class PgslBooleanType extends AbstractSyntaxTree<TypeCst, TypeProperties>
         } as const;
     }
 
+    private readonly mShadowedType: IType;
+
+    /**
+     * The type that is being shadowed.
+     * If it does not shadow another type, it is itself.
+     */
+    public get shadowedType(): IType {
+        return this.mShadowedType;
+    }
+
     /**
      * Constructor for boolean type.
+     * 
+     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor() {
+    public constructor(pShadowedType?: IType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
+
+        this.mShadowedType = pShadowedType ?? this;
     }
 
     /**

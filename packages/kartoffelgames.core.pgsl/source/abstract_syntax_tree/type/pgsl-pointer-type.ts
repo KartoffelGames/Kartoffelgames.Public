@@ -12,6 +12,7 @@ import type { IType, TypeProperties } from './i-type.interface.ts';
 export class PgslPointerType extends AbstractSyntaxTree<TypeCst, TypeProperties> implements IType {
     private mAssignedAddressSpace: PgslValueAddressSpace | null;
     private readonly mReferencedType: IType;
+    private readonly mShadowedType: IType;
 
     /**
      * Gets the assigned address space for this pointer.
@@ -34,15 +35,24 @@ export class PgslPointerType extends AbstractSyntaxTree<TypeCst, TypeProperties>
     }
 
     /**
+     * The type that is being shadowed.
+     * If it does not shadow another type, it is itself.
+     */
+    public get shadowedType(): IType {
+        return this.mShadowedType;
+    }
+
+    /**
      * Constructor for pointer type.
      * 
-     * @param pContext - The context for validation and error reporting.
      * @param pReferenceType - The type that this pointer references.
+     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pReferenceType: IType) {
+    public constructor(pReferenceType: IType, pShadowedType?: IType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
+        this.mShadowedType = pShadowedType ?? this;
         this.mReferencedType = pReferenceType;
 
         // No address space assigned yet.

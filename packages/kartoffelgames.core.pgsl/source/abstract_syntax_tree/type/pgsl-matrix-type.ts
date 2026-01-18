@@ -82,6 +82,7 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
     private readonly mColumnCount: number;
     private readonly mInnerType: IType;
     private readonly mRowCount: number;
+    private readonly mShadowedType: IType;
     private readonly mVectorTypeDefinition: PgslVectorType;
 
     /**
@@ -112,6 +113,14 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
     }
 
     /**
+     * The type that is being shadowed.
+     * If it does not shadow another type, it is itself.
+     */
+    public get shadowedType(): IType {
+        return this.mShadowedType;
+    }
+
+    /**
      * Gets the underlying vector type used for matrix columns.
      * 
      * @returns The vector type representing matrix columns.
@@ -126,11 +135,13 @@ export class PgslMatrixType extends AbstractSyntaxTree<TypeCst, TypeProperties> 
      * @param pColumnCount - The number of columns in the matrix.
      * @param pRowCount - The number of rows in the matrix.
      * @param pInnerType - The inner element type of the matrix.
+     * @param pShadowedType - Type that is the actual type of this.
      */
-    public constructor(pColumnCount: number, pRowCount: number, pInnerType: IType) {
+    public constructor(pColumnCount: number, pRowCount: number, pInnerType: IType, pShadowedType?: IType) {
         super({ type: 'Type', range: [0, 0, 0, 0] });
 
         // Set data.
+        this.mShadowedType = pShadowedType ?? this;
         this.mInnerType = pInnerType;
         this.mColumnCount = pColumnCount;
         this.mRowCount = pRowCount;

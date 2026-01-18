@@ -3,6 +3,9 @@ import { FunctionDeclarationAst } from '../../abstract_syntax_tree/declaration/f
 import { StructDeclarationAst } from '../../abstract_syntax_tree/declaration/struct-declaration-ast.ts';
 import { VariableDeclarationAst } from '../../abstract_syntax_tree/declaration/variable-declaration-ast.ts';
 import { DocumentAst } from '../../abstract_syntax_tree/document-ast.ts';
+import { AttributeListAst } from "../../abstract_syntax_tree/general/attribute-list-ast.ts";
+import { PgslBuildInType } from "../../abstract_syntax_tree/type/pgsl-build-in-type.ts";
+import { PgslNumericType } from "../../abstract_syntax_tree/type/pgsl-numeric-type.ts";
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../i-transpiler-processor.interface.ts';
 
 export class DocumentAstTranspilerProcessor implements ITranspilerProcessor<DocumentAst> {
@@ -46,6 +49,47 @@ export class DocumentAstTranspilerProcessor implements ITranspilerProcessor<Docu
             lResult += pTranspile(lChild);
         }
 
+        // Prepend used extensions.
+        lResult = this.registerUsedExtensions(pInstance) + lResult;
+
         return lResult;
+    }
+
+    /**
+     * Registers the used WGSL extensions based on the symbols used in the document.
+     * 
+     * @param pInstance - The document AST instance.
+     * 
+     * @returns A string containing the WGSL extension enable statements.
+     */
+    private registerUsedExtensions(pInstance: DocumentAst): string {
+        const lUsedExtensions: Array<string> = new Array<string>();
+
+        // F16 extension.
+        if (pInstance.data.symbolUsages.has(PgslNumericType.typeName.float16)) {
+            lUsedExtensions.push('f16');
+        }
+
+        // Clip distances extension.
+        if (pInstance.data.symbolUsages.has(PgslBuildInType.typeName.clipDistances)) {
+            lUsedExtensions.push('clip_distances');
+        }
+
+        // Dual source blend extension.
+        if (pInstance.data.symbolUsages.has(AttributeListAst.attributeNames.blendSource)) {
+            lUsedExtensions.push('dual_source_blending');
+        }
+
+        // Subgroups are omitted for now.
+
+        // Primitive index.
+        if (pInstance.data.symbolUsages.has(PgslBuildInType.typeName.primitiveIndex)) {
+            lUsedExtensions.push('primitive_index');
+        }
+
+        // Merge and return extension enable statements.
+        return lUsedExtensions.map(pExtension => {
+            return `enable ${pExtension};`;
+        }).join('');
     }
 }

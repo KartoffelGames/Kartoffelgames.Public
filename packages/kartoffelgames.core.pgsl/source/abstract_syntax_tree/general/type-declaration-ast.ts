@@ -32,6 +32,9 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
      * @param pContext - Ast build context.
      */
     protected override onProcess(pContext: AbstractSyntaxTreeContext): TypeDeclarationAstData {
+        // Register type name useage.
+        pContext.registerSymbolUsage(this.cst.typeName);
+
         return {
             type: this.resolveType(pContext)
         };

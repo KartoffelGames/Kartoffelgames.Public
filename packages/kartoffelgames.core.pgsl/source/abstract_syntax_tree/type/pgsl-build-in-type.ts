@@ -36,7 +36,8 @@ export class PgslBuildInType extends AbstractSyntaxTree<TypeCst, TypeProperties>
             globalInvocationId: 'GlobalInvocationId',
             workgroupId: 'WorkgroupId',
             numWorkgroups: 'NumWorkgroups',
-            clipDistances: 'ClipDistances'
+            clipDistances: 'ClipDistances',
+            primitiveIndex: 'PrimitiveIndex',
         } as const;
     }
 
@@ -227,6 +228,9 @@ export class PgslBuildInType extends AbstractSyntaxTree<TypeCst, TypeProperties>
                 return new PgslNumericType(PgslNumericType.typeName.unsignedInteger, this).process(pContext);
             }
             case PgslBuildInType.typeName.localInvocationIndex: {
+                return new PgslNumericType(PgslNumericType.typeName.unsignedInteger, this).process(pContext);
+            }
+            case PgslBuildInType.typeName.primitiveIndex: {
                 return new PgslNumericType(PgslNumericType.typeName.unsignedInteger, this).process(pContext);
             }
             case PgslBuildInType.typeName.frontFacing: {

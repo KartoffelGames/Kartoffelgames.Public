@@ -17,7 +17,6 @@ import type { DeclarationAstData, IDeclarationAst } from './i-declaration-ast.in
  * PGSL syntax tree for a alias declaration.
  */
 export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarationCst, FunctionDeclarationAstData> implements IDeclarationAst {
-
     /**
      * Process and build data of current structure.
      * 

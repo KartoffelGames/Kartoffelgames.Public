@@ -803,7 +803,7 @@ Deno.test('NewExpressionAst - Parsing', async (pContext) => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
-                let testVariable: ${PgslMatrixType.typeName.matrix22}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix22}<${PgslNumericType.typeName.float16}>(
+                let testVariable: ${PgslMatrixType.typeName.matrix22}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix22}<${PgslNumericType.typeName.float32}>(
                     new ${PgslMatrixType.typeName.matrix22}(1.0, 2.0, 3.0, 4.0)
                 );
             }
@@ -880,7 +880,7 @@ Deno.test('NewExpressionAst - Parsing', async (pContext) => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
-                let testVariable: ${PgslMatrixType.typeName.matrix23}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix23}<${PgslNumericType.typeName.float16}>(
+                let testVariable: ${PgslMatrixType.typeName.matrix23}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix23}<${PgslNumericType.typeName.float32}>(
                     new ${PgslMatrixType.typeName.matrix23}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
                 );
             }
@@ -957,7 +957,7 @@ Deno.test('NewExpressionAst - Parsing', async (pContext) => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
-                let testVariable: ${PgslMatrixType.typeName.matrix24}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix24}<${PgslNumericType.typeName.float16}>(
+                let testVariable: ${PgslMatrixType.typeName.matrix24}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix24}<${PgslNumericType.typeName.float32}>(
                     new ${PgslMatrixType.typeName.matrix24}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0)
                 );
             }
@@ -1035,7 +1035,7 @@ Deno.test('NewExpressionAst - Parsing', async (pContext) => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
-                let testVariable: ${PgslMatrixType.typeName.matrix32}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix32}<${PgslNumericType.typeName.float16}>(
+                let testVariable: ${PgslMatrixType.typeName.matrix32}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix32}<${PgslNumericType.typeName.float32}>(
                     new ${PgslMatrixType.typeName.matrix32}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
                 );
             }
@@ -1113,7 +1113,7 @@ Deno.test('NewExpressionAst - Parsing', async (pContext) => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
-                let testVariable: ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float16}>(
+                let testVariable: ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float32}>(
                     new ${PgslMatrixType.typeName.matrix33}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
                 );
             }
@@ -1191,7 +1191,7 @@ Deno.test('NewExpressionAst - Parsing', async (pContext) => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
-                let testVariable: ${PgslMatrixType.typeName.matrix34}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix34}<${PgslNumericType.typeName.float16}>(
+                let testVariable: ${PgslMatrixType.typeName.matrix34}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix34}<${PgslNumericType.typeName.float32}>(
                     new ${PgslMatrixType.typeName.matrix34}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0)
                 );
             }
@@ -1270,7 +1270,7 @@ Deno.test('NewExpressionAst - Parsing', async (pContext) => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
-                let testVariable: ${PgslMatrixType.typeName.matrix42}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix42}<${PgslNumericType.typeName.float16}>(
+                let testVariable: ${PgslMatrixType.typeName.matrix42}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix42}<${PgslNumericType.typeName.float32}>(
                     new ${PgslMatrixType.typeName.matrix42}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0)
                 );
             }
@@ -1349,7 +1349,7 @@ Deno.test('NewExpressionAst - Parsing', async (pContext) => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
-                let testVariable: ${PgslMatrixType.typeName.matrix43}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix43}<${PgslNumericType.typeName.float16}>(
+                let testVariable: ${PgslMatrixType.typeName.matrix43}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix43}<${PgslNumericType.typeName.float32}>(
                     new ${PgslMatrixType.typeName.matrix43}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0)
                 );
             }
@@ -1428,7 +1428,7 @@ Deno.test('NewExpressionAst - Parsing', async (pContext) => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
-                let testVariable: ${PgslMatrixType.typeName.matrix44}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix44}<${PgslNumericType.typeName.float16}>(
+                let testVariable: ${PgslMatrixType.typeName.matrix44}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix44}<${PgslNumericType.typeName.float32}>(
                     new ${PgslMatrixType.typeName.matrix44}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0)
                 );
             }
@@ -2373,7 +2373,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
-                let testVariable: ${PgslMatrixType.typeName.matrix22}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix22}<${PgslNumericType.typeName.float16}>(
+                let testVariable: ${PgslMatrixType.typeName.matrix22}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix22}<${PgslNumericType.typeName.float32}>(
                     new ${PgslMatrixType.typeName.matrix22}(1.0, 2.0, 3.0, 4.0)
                 );
             }
@@ -2388,7 +2388,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var testVariable:mat2x2<f16>=mat2x2<f16>(mat2x2(1.0,2.0,3.0,4.0));` +
+            `var testVariable:mat2x2<f32>=mat2x2<f32>(mat2x2(1.0,2.0,3.0,4.0));` +
             `}`
         );
     });
@@ -2444,7 +2444,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
-                let testVariable: ${PgslMatrixType.typeName.matrix23}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix23}<${PgslNumericType.typeName.float16}>(
+                let testVariable: ${PgslMatrixType.typeName.matrix23}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix23}<${PgslNumericType.typeName.float32}>(
                     new ${PgslMatrixType.typeName.matrix23}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
                 );
             }
@@ -2459,7 +2459,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var testVariable:mat2x3<f16>=mat2x3<f16>(mat2x3(1.0,2.0,3.0,4.0,5.0,6.0));` +
+            `var testVariable:mat2x3<f32>=mat2x3<f32>(mat2x3(1.0,2.0,3.0,4.0,5.0,6.0));` +
             `}`
         );
     });
@@ -2515,7 +2515,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
-                let testVariable: ${PgslMatrixType.typeName.matrix24}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix24}<${PgslNumericType.typeName.float16}>(
+                let testVariable: ${PgslMatrixType.typeName.matrix24}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix24}<${PgslNumericType.typeName.float32}>(
                     new ${PgslMatrixType.typeName.matrix24}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0)
                 );
             }
@@ -2530,7 +2530,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var testVariable:mat2x4<f16>=mat2x4<f16>(mat2x4(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0));` +
+            `var testVariable:mat2x4<f32>=mat2x4<f32>(mat2x4(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0));` +
             `}`
         );
     });
@@ -2587,7 +2587,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
-                let testVariable: ${PgslMatrixType.typeName.matrix32}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix32}<${PgslNumericType.typeName.float16}>(
+                let testVariable: ${PgslMatrixType.typeName.matrix32}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix32}<${PgslNumericType.typeName.float32}>(
                     new ${PgslMatrixType.typeName.matrix32}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0)
                 );
             }
@@ -2602,7 +2602,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var testVariable:mat3x2<f16>=mat3x2<f16>(mat3x2(1.0,2.0,3.0,4.0,5.0,6.0));` +
+            `var testVariable:mat3x2<f32>=mat3x2<f32>(mat3x2(1.0,2.0,3.0,4.0,5.0,6.0));` +
             `}`
         );
     });
@@ -2659,7 +2659,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
-                let testVariable: ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float16}>(
+                let testVariable: ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix33}<${PgslNumericType.typeName.float32}>(
                     new ${PgslMatrixType.typeName.matrix33}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0)
                 );
             }
@@ -2674,7 +2674,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var testVariable:mat3x3<f16>=mat3x3<f16>(mat3x3(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0));` +
+            `var testVariable:mat3x3<f32>=mat3x3<f32>(mat3x3(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0));` +
             `}`
         );
     });
@@ -2731,7 +2731,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
-                let testVariable: ${PgslMatrixType.typeName.matrix34}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix34}<${PgslNumericType.typeName.float16}>(
+                let testVariable: ${PgslMatrixType.typeName.matrix34}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix34}<${PgslNumericType.typeName.float32}>(
                     new ${PgslMatrixType.typeName.matrix34}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0)
                 );
             }
@@ -2746,7 +2746,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var testVariable:mat3x4<f16>=mat3x4<f16>(mat3x4(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0,12.0));` +
+            `var testVariable:mat3x4<f32>=mat3x4<f32>(mat3x4(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0,12.0));` +
             `}`
         );
     });
@@ -2804,7 +2804,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
-                let testVariable: ${PgslMatrixType.typeName.matrix42}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix42}<${PgslNumericType.typeName.float16}>(
+                let testVariable: ${PgslMatrixType.typeName.matrix42}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix42}<${PgslNumericType.typeName.float32}>(
                     new ${PgslMatrixType.typeName.matrix42}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0)
                 );
             }
@@ -2819,7 +2819,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var testVariable:mat4x2<f16>=mat4x2<f16>(mat4x2(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0));` +
+            `var testVariable:mat4x2<f32>=mat4x2<f32>(mat4x2(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0));` +
             `}`
         );
     });
@@ -2877,7 +2877,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
-                let testVariable: ${PgslMatrixType.typeName.matrix43}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix43}<${PgslNumericType.typeName.float16}>(
+                let testVariable: ${PgslMatrixType.typeName.matrix43}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix43}<${PgslNumericType.typeName.float32}>(
                     new ${PgslMatrixType.typeName.matrix43}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0)
                 );
             }
@@ -2892,7 +2892,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var testVariable:mat4x3<f16>=mat4x3<f16>(mat4x3(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0,12.0));` +
+            `var testVariable:mat4x3<f32>=mat4x3<f32>(mat4x3(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0,12.0));` +
             `}`
         );
     });
@@ -2950,7 +2950,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Setup.
         const lCodeText: string = `
             function testFunction(): void {
-                let testVariable: ${PgslMatrixType.typeName.matrix44}<${PgslNumericType.typeName.float16}> = new ${PgslMatrixType.typeName.matrix44}<${PgslNumericType.typeName.float16}>(
+                let testVariable: ${PgslMatrixType.typeName.matrix44}<${PgslNumericType.typeName.float32}> = new ${PgslMatrixType.typeName.matrix44}<${PgslNumericType.typeName.float32}>(
                     new ${PgslMatrixType.typeName.matrix44}(1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, 10.0, 11.0, 12.0, 13.0, 14.0, 15.0, 16.0)
                 );
             }
@@ -2965,7 +2965,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
             `fn testFunction(){` +
-            `var testVariable:mat4x4<f16>=mat4x4<f16>(mat4x4(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0,12.0,13.0,14.0,15.0,16.0));` +
+            `var testVariable:mat4x4<f32>=mat4x4<f32>(mat4x4(1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0,9.0,10.0,11.0,12.0,13.0,14.0,15.0,16.0));` +
             `}`
         );
     });
@@ -3030,6 +3030,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
 
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
+            `enable f16;` +
             `fn testFunction(){` +
             `var testVariable:f16=f16(true);` +
             `}`
@@ -3052,6 +3053,7 @@ Deno.test('NewExpressionAst - Transpilation', async (pContext) => {
 
         // Evaluation. Correct transpilation output.
         expect(lTranspilationResult.source).toBe(
+            `enable f16;` +
             `fn testFunction(){` +
             `var testVariable:f16=f16(5.0);` +
             `}`

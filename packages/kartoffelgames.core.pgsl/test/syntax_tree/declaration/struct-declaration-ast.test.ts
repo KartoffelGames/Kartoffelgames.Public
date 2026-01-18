@@ -784,7 +784,37 @@ Deno.test('StructDeclarationAst - Transpilation', async (pContext) => {
                 expect(lTranspilationResult.incidents).toHaveLength(0);
 
                 // Evaluation. Transpiled output.
-                expect(lTranspilationResult.source).toBe(`struct ${lStructName}{@builtin(clip_distances)${lPropertyName}:array<f32,${lArraySize}>}`);
+                expect(lTranspilationResult.source).toBe(
+                    `enable clip_distances;` +
+                    `struct ${lStructName}{` +
+                    `@builtin(clip_distances)${lPropertyName}:array<f32,${lArraySize}>` +
+                    `}`
+                );
+            });
+
+            await pContext.step('PrimitiveIndex', () => {
+                // Setup.
+                const lStructName: string = 'TestPrimitiveIndexStruct';
+                const lPropertyName: string = 'primitiveIndexProperty';
+                const lCodeText: string = `
+                    struct ${lStructName} {
+                        ${lPropertyName}: ${PgslBuildInType.typeName.primitiveIndex}
+                    }
+                `;
+
+                // Process.
+                const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+                // Evaluation. No errors.
+                expect(lTranspilationResult.incidents).toHaveLength(0);
+
+                // Evaluation. Transpiled output.
+                expect(lTranspilationResult.source).toBe(
+                    `enable primitive_index;` +
+                    `struct ${lStructName}{` +
+                    `@builtin(primitive_index)${lPropertyName}:u32` +
+                    `}`
+                );
             });
         });
     });
@@ -1001,6 +1031,7 @@ Deno.test('StructDeclarationAst - Transpilation', async (pContext) => {
 
             // Evaluation. Transpiled output.
             expect(lTranspilationResult.source).toBe(
+                `enable dual_source_blending;` +
                 `struct ${lStructName}{` +
                 `@blend_src(0)@location(0)${lPropertyName}:vec4<f32>` +
                 `}`

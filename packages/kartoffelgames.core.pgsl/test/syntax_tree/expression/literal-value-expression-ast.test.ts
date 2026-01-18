@@ -749,6 +749,7 @@ Deno.test('LiteralValueExpressionAst - Transpilation', async (pContext) => {
 
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
+                `enable f16;` +
                 `fn testFunction(){` +
                 `var testVariable:f16=${lLiteralValue};` +
                 `}`
@@ -818,6 +819,7 @@ Deno.test('LiteralValueExpressionAst - Transpilation', async (pContext) => {
 
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
+                `enable f16;` +
                 `fn testFunction(){` +
                 `var testVariable:f16=${lLiteralValue};` +
                 `}`
@@ -887,6 +889,7 @@ Deno.test('LiteralValueExpressionAst - Transpilation', async (pContext) => {
 
             // Evaluation. Correct transpilation output.
             expect(lTranspilationResult.source).toBe(
+                `enable f16;` +
                 `fn testFunction(){` +
                 `var testVariable:f16=${lLiteralValue};` +
                 `}`

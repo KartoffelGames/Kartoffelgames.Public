@@ -21,6 +21,9 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
     protected override onProcess(pContext: AbstractSyntaxTreeContext): FunctionCallExpressionAstData {
         const lFunctionDeclaration: FunctionDeclarationAst | undefined = pContext.getFunction(this.cst.functionName);
 
+        // Register function name as used symbol.
+        pContext.registerSymbolUsage(this.cst.functionName);
+
         // Should be a function declaration otherwise it cant be validated further.
         if (!lFunctionDeclaration) {
             pContext.pushIncident(`Function '${this.cst.functionName}' is not defined.`, this);

@@ -19,18 +19,21 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
         // Prepare data containers.
         const lDocumentData = {
             incidents: new Array<AbstractSyntaxTreeIncident>(),
-            content: new Array<IDeclarationAst>()
+            content: new Array<IDeclarationAst>(),
+            symbolUsages: new Set<string>()
         };
 
-        // Push global scope for document processing.
-        return pContext.pushScope('global', () => {
-            // Build documents build-ins first.
+        // Build documents build-ins first outside any scope.
+        pContext.pushScope('build-in', () => {
             for (const lBuildInCst of this.cst.buildInDeclarations) {
                 // Try to build content node.
                 // Build in content can be ignored as it has no affect on the document structure and only on the validation process.
                 DeclarationAstBuilder.build(lBuildInCst, pContext);
             }
+        }, this);
 
+        // Push global scope for document processing.
+        return pContext.pushScope('global', () => {
             // Build all other child structures.
             for (const lChildCst of this.cst.declarations) {
                 // Try to build content node.
@@ -40,6 +43,11 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
             // Collect all incidents from context.
             lDocumentData.incidents.push(...pContext.incidents);
 
+            // Collect all used symbol usages from context.
+            for (const pUsage of pContext.usages) {
+                lDocumentData.symbolUsages.add(pUsage);
+            }
+
             return lDocumentData satisfies DocumentAstData;
         }, this);
     }
@@ -48,5 +56,6 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
 type DocumentAstData = {
     incidents: ReadonlyArray<AbstractSyntaxTreeIncident>;
     content: ReadonlyArray<IDeclarationAst>;
+    symbolUsages: Set<string>;
 };
 

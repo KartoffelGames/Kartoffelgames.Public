@@ -124,6 +124,9 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
                 continue;
             }
 
+            // Register attribute name usage.
+            pContext.registerSymbolUsage(lAttributeCst.name);
+
             // Read the attribute definition.
             const lAttributeDefinition: AttributeDefinitionInformation = AttributeListAst.validAttributes.get(lAttributeCst.name as PgslAttributeName)!;
 

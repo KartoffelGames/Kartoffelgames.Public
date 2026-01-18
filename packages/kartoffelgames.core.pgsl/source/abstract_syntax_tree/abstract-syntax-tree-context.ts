@@ -24,6 +24,7 @@ export class AbstractSyntaxTreeContext {
     private readonly mIncidents: Array<AbstractSyntaxTreeIncident>;
     private mScope: AbstractSyntaxTreeScope | null;
     private readonly mStructs: Map<string, StructDeclarationAst>;
+    private readonly mUsages: Set<AbstractSyntaxTreeSymbolUsageName> = new Set<AbstractSyntaxTreeSymbolUsageName>();
 
     /**
      * Gets the document associated with this context.
@@ -47,6 +48,15 @@ export class AbstractSyntaxTreeContext {
      */
     public get incidents(): ReadonlyArray<AbstractSyntaxTreeIncident> {
         return this.mIncidents;
+    }
+
+    /**
+     * Gets the set of usaged names for types, functions and attributes recorded in this context.
+     * 
+     * @returns A readonly set of usage names.
+     */
+    public get usages(): ReadonlySet<AbstractSyntaxTreeSymbolUsageName> {
+        return this.mUsages;
     }
 
     /**
@@ -294,6 +304,28 @@ export class AbstractSyntaxTreeContext {
     }
 
     /**
+     * Registers a symbol usage in the current context.
+     * 
+     * @param pName - Symbol name.
+     */
+    public registerSymbolUsage(pName: AbstractSyntaxTreeSymbolUsageName): void {
+        // Ignore all symbols used outside of a scope.
+        // This indicates that the symbols are used on build in level only.
+        if(this.hasScope('build-in')) {
+            return;
+        }
+
+        // Add usage if not already present.
+        if (!this.mUsages.has(pName)) {
+            if(pName === 'float16') {
+                const a = 1;
+            }
+
+            this.mUsages.add(pName);
+        }
+    }
+
+    /**
      * Sets the document for this context.
      * 
      * @param pDocument - The document AST node to set.
@@ -314,6 +346,8 @@ type AbstractSyntaxTreeScope = {
     owner: AbstractSyntaxTree;
 };
 
+export type AbstractSyntaxTreeSymbolUsageName = string;
+
 export type PgslSyntaxTreeTraceScopeScopeOwner<T extends AbstractSyntaxTreeContextScopeType> =
     T extends 'function' ? FunctionDeclarationAst :
     T extends 'global' ? DocumentAst :
@@ -324,12 +358,13 @@ export type PgslSyntaxTreeTraceScopeScopeOwner<T extends AbstractSyntaxTreeConte
 /**
  * Type representing different kinds of scopes in PGSL syntax tree tracing.
  * 
+ * - `build-in`: The built-in scope
  * - `global`: The global/document scope
  * - `function`: Function body scope
  * - `loop`: Loop body scope (for, while, etc.)
  * - `inherit`: Scope that inherits from parent without creating new variable binding level
  */
-export type AbstractSyntaxTreeContextScopeType = 'global' | 'function' | 'loop' | 'switch' | 'inherit';
+export type AbstractSyntaxTreeContextScopeType = 'build-in' | 'global' | 'function' | 'loop' | 'switch' | 'inherit';
 
 /**
  * Represents an incident that occurred during syntax tree building.

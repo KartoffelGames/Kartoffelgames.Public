@@ -44,6 +44,7 @@ export class StructPropertyDeclarationAstTranspilerProcessor implements ITranspi
                 case PgslBuildInType.typeName.workgroupId: lResultParts.push(`@builtin(workgroup_id)`); break;
                 case PgslBuildInType.typeName.numWorkgroups: lResultParts.push(`@builtin(num_workgroups)`); break;
                 case PgslBuildInType.typeName.clipDistances: lResultParts.push(`@builtin(clip_distances)`); break;
+                case PgslBuildInType.typeName.primitiveIndex: lResultParts.push(`@builtin(primitive_index)`); break;
             }
         }
 

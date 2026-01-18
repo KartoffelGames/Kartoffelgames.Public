@@ -15,6 +15,9 @@ import { PgslInterpolateSamplingEnum } from '../buildin/enum/pgsl-interpolate-sa
 import { PgslInterpolateTypeEnum } from '../buildin/enum/pgsl-interpolate-type-enum.ts';
 import { PgslTexelFormatEnum } from '../buildin/enum/pgsl-texel-format-enum.ts';
 import { PgslNumericBuildInFunction } from '../buildin/function/pgsl-numeric-build-in-function.ts';
+import { PgslPackingBuildInFunction } from '../buildin/function/pgsl-pack-build-in-function.ts';
+import { PgslSynchronisationBuildInFunction } from '../buildin/function/pgsl-synchronisation-build-in-function.ts';
+import { PgslTextureBuildInFunction } from '../buildin/function/pgsl-texture-build-in-function.ts';
 import { PgslFrexpResult } from '../buildin/struct/pgsl-frexp-result.ts';
 import { PgslModfResult } from '../buildin/struct/pgsl-modf-result.ts';
 import type { AliasDeclarationCst, DeclarationCst, DeclarationCstType, EnumDeclarationCst, EnumDeclarationValueCst, FunctionDeclarationCst, FunctionDeclarationHeaderCst, FunctionDeclarationParameterCst, StructDeclarationCst, StructPropertyDeclarationCst, VariableDeclarationCst } from '../concrete_syntax_tree/declaration.type.ts';
@@ -26,9 +29,6 @@ import { TranspilationMeta } from '../transpilation/transpilation-meta.ts';
 import type { PgslTranspilationResult, Transpiler } from '../transpilation/transpiler.ts';
 import { PgslLexer } from './pgsl-lexer.ts';
 import { PgslToken } from './pgsl-token.enum.ts';
-import { PgslTextureBuildInFunction } from '../buildin/function/pgsl-texture-build-in-function.ts';
-import { PgslPackingBuildInFunction } from '../buildin/function/pgsl-pack-build-in-function.ts';
-import { PgslSynchronisationBuildInFunction } from '../buildin/function/pgsl-synchronisation-build-in-function.ts';
 
 export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
     private static readonly STATIC_TYPE_NAMES: Set<string> = new Set<string>([
@@ -96,6 +96,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
     ]);
 
     private mUserDefinedTypeNames: Set<string>;
+    private mImports: Map<string, PgslParserImport> = new Map<string, PgslParserImport>();
 
     /**
      * Constructor.
@@ -105,6 +106,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
 
         // Initialize user defined type name set.
         this.mUserDefinedTypeNames = new Set<string>();
+        this.mImports = new Map<string, PgslParserImport>();
 
         // Create a mimic core graph object to pass to statement and declaration graph definitions.
         const lCoreGraphs: PgslParserCoreGraphs = {
@@ -133,6 +135,25 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
     }
 
     /**
+     * Add an import to the parser.
+     * 
+     * @param pImportName - Name of the import.
+     * @param pImportCode - Code text of the import.
+     */
+    public addImport(pImportName: string, pImportCode: string): void {
+        // Parse import code.
+        const lDocumentCst: DocumentCst = this.parse(pImportCode);
+
+        // Create new import definition and save the build user defined type names from this import.
+        const lImport: PgslParserImport = {
+            importDocument: lDocumentCst,
+            importedUserNames: this.mUserDefinedTypeNames
+        };
+
+        this.mImports.set(pImportName.toLowerCase(), lImport);
+    }
+
+    /**
      * Parse a text with the set syntax into a concrete sytnax tree.
      * 
      * @param pCodeText - Code as text.
@@ -144,20 +165,59 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
      */
     public override parse(pCodeText: string): DocumentCst {
         // TODO: On second layer only not the parser.
-        // Insert imports. @IMPORT "Import name"
-        // Fill in buffers with imported declarations.
         // Setup #IFDEF. Fill Replaced '#IFDEFs, #ENDIFDEF with same amount of spaces and newlines.
         // Remove any other # statements as they do nothing. Replace with same amount of spaces and newlines.
 
+        let lAdjustedCodeText: string = pCodeText;
+
         // Replace comments with same amount of spaces and newlines. The lexer could handle comments, but it makes it faster/cleaner to remove them here.
-        const lAdjustedCodeText: string = pCodeText.replace(/\/\*.*?\*\/|\/\/.*?$/gsm, (pMatch: string) => {
+        lAdjustedCodeText = lAdjustedCodeText.replace(/\/\*.*?\*\/|\/\/.*?$/gsm, (pMatch: string) => {
             return pMatch.replace(/[^\n]/g, ' ');
+        });
+
+        // Read import names while replaceing them at the same time.
+        const lImportList: Array<PgslParserImport> = new Array<PgslParserImport>();
+        lAdjustedCodeText = lAdjustedCodeText.replace(/#import\s+"(.*?)"\s*;/g, (_pMatch: string, pImportName: string) => {
+            // Try to find import.
+            const lImport: PgslParserImport | undefined = this.mImports.get(pImportName.toLowerCase());
+
+            // Throw exception when import not found.
+            if (!lImport) {
+                throw new Exception(`Import '${pImportName}' not found.`, this);
+            }
+
+            // Save import.
+            lImportList.push(lImport);
+
+            // Replace with newlines only to keep line numbers lined up.
+            return '\n';
         });
 
         // Clear user defined type names.
         this.mUserDefinedTypeNames = new Set<string>();
 
-        return super.parse(lAdjustedCodeText);
+        // Add user defined type names from imports while finding imports.
+        for (const lImport of lImportList) {
+            for (const lUserDefinedTypeName of lImport.importedUserNames) {
+                this.mUserDefinedTypeNames.add(lUserDefinedTypeName);
+            }
+        }
+
+        // Parse document CST.
+        const lDocumentCst: DocumentCst = super.parse(lAdjustedCodeText);
+
+        // TODO: Importing a import twice is not supported. So importing in a import can break anything.
+
+        // Add imports to document CST.
+        for (const lImport of lImportList) {
+            // Add the imports of the import.
+            lDocumentCst.imports.push(...lImport.importDocument.imports);
+
+            // Add the import itself.
+            lDocumentCst.imports.push(lImport.importDocument);
+        }
+
+        return lDocumentCst;
     }
 
     /**
@@ -1269,6 +1329,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 type: 'Document',
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 buildInDeclarations: [],
+                imports: [],
                 declarations: pData.list ?? []
             } satisfies DocumentCst;
         });
@@ -1709,6 +1770,11 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         };
     }
 }
+
+type PgslParserImport = {
+    importDocument: DocumentCst;
+    importedUserNames: Set<string>;
+};
 
 type PgslParserCoreGraphs = {
     attributeList: Graph<PgslToken, object, AttributeListCst>;

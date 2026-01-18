@@ -35,6 +35,13 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
 
         // Push global scope for document processing.
         return pContext.pushScope('global', () => {
+            // Import all imported documents first.
+            for (const lImport of this.cst.imports) {
+                for (const lImportDeclaration of lImport.declarations) {
+                    lDocumentData.content.push(DeclarationAstBuilder.build(lImportDeclaration).register(pContext).process(pContext));
+                }
+            }
+
             // Build all other child structures.
             for (const lChildCst of this.cst.declarations) {
                 // Try to build content node.

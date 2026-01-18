@@ -6,9 +6,9 @@ import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
 import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts';
-import { DoWhileStatementAst } from "../../../source/abstract_syntax_tree/statement/branch/do-while-statement-ast.ts";
-import { ForStatementAst } from "../../../source/abstract_syntax_tree/statement/branch/for-statement-ast.ts";
-import { WhileStatementAst } from "../../../source/abstract_syntax_tree/statement/branch/while-statement-ast.ts";
+import type { DoWhileStatementAst } from '../../../source/abstract_syntax_tree/statement/branch/do-while-statement-ast.ts';
+import type { ForStatementAst } from '../../../source/abstract_syntax_tree/statement/branch/for-statement-ast.ts';
+import type { WhileStatementAst } from '../../../source/abstract_syntax_tree/statement/branch/while-statement-ast.ts';
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();

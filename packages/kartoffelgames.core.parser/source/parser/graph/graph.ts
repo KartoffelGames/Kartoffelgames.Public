@@ -24,9 +24,9 @@ export class Graph<TTokenType extends string, TOriginalData extends object = obj
 
     private readonly mDataConverterList: Array<GraphDataCollector<TTokenType>>;
     private readonly mGraphCollector: GraphNodeCollector<TTokenType, TOriginalData>;
+    private readonly mIsJunction: boolean;
     private mResolvedGraphNode: GraphNode<TTokenType> | null;
-    private mIsJunction: boolean;
-
+    
     /**
      * Get whether the graph is a junction.
      */

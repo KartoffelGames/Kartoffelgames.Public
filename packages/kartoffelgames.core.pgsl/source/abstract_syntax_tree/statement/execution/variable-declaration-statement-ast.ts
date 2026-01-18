@@ -66,7 +66,7 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
         }
 
         // Determinate fixed state based on declaration type and expression.
-        let lFixedState: PgslValueFixedState = (() => {
+        const lFixedState: PgslValueFixedState = (() => {
             // Let declarations are always variable.
             if (lDeclarationType === PgslDeclarationType.Let) {
                 return PgslValueFixedState.Variable;

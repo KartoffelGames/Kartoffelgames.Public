@@ -1,5 +1,5 @@
 import { VariableDeclarationStatementAst } from '../../../../abstract_syntax_tree/statement/execution/variable-declaration-statement-ast.ts';
-import { PgslValueFixedState } from "../../../../enum/pgsl-value-fixed-state.ts";
+import { PgslValueFixedState } from '../../../../enum/pgsl-value-fixed-state.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../../../i-transpiler-processor.interface.ts';
 
 export class VariableDeclarationStatementAstTranspilerProcessor implements ITranspilerProcessor<VariableDeclarationStatementAst> {

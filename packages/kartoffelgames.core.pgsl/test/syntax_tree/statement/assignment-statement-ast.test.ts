@@ -6,7 +6,7 @@ import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/pgsl-
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
-import { PgslAssignment } from "../../../source/enum/pgsl-assignment.enum.ts";
+import { PgslAssignment } from '../../../source/enum/pgsl-assignment.enum.ts';
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();

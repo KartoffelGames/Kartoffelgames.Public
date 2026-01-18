@@ -1,7 +1,7 @@
 import { expect } from '@kartoffelgames/core-test';
-import { PgslParser } from "../source/parser/pgsl-parser.ts";
-import { PgslParserResult } from "../source/parser_result/pgsl-parser-result.ts";
-import { WgslTranspiler } from "../source/transpilation/wgsl/wgsl-transpiler.ts";
+import { PgslParser } from '../source/parser/pgsl-parser.ts';
+import type { PgslParserResult } from '../source/parser_result/pgsl-parser-result.ts';
+import { WgslTranspiler } from '../source/transpilation/wgsl/wgsl-transpiler.ts';
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();
@@ -161,20 +161,18 @@ Deno.test('WebGPU - Compatibility', async () => {
     expect(lTranspilationResult.incidents).toHaveLength(0);
 
     // Setup. Request WebGPU device.
-    const adapter = await navigator.gpu.requestAdapter();
-    const device = await adapter?.requestDevice();
-    if (!device) {
-        throw new Error("No suitable adapter found");
+    const lAdapter = await navigator.gpu.requestAdapter();
+    const lDevice = await lAdapter?.requestDevice();
+    if (!lDevice) {
+        throw new Error('No suitable adapter found');
     }
 
     // Process. Create shader module with new error scope.
-    device.pushErrorScope('validation');
-    const shaderModule = device.createShaderModule({
+    lDevice.pushErrorScope('validation');
+    lDevice.createShaderModule({
         code: lTranspilationResult.source
     });
 
     // Validate. Should produce no error.
-    expect(await device.popErrorScope()).toBeNull();
-
-    // TODO: Do something with the shader module.
+    expect(await lDevice.popErrorScope()).toBeNull();
 });

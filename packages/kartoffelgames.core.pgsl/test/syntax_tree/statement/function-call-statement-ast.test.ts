@@ -6,7 +6,7 @@ import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
 import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts';
-import { FunctionCallExpressionAst } from "../../../source/abstract_syntax_tree/expression/single_value/function-call-expression-ast.ts";
+import { FunctionCallExpressionAst } from '../../../source/abstract_syntax_tree/expression/single_value/function-call-expression-ast.ts';
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();

@@ -6,7 +6,7 @@ import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
 import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts';
-import { PgslValueFixedState } from "../../../source/enum/pgsl-value-fixed-state.ts";
+import { PgslValueFixedState } from '../../../source/enum/pgsl-value-fixed-state.ts';
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();

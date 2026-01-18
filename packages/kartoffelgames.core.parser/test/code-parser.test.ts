@@ -854,6 +854,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
         });
 
         await pContext.step('Detect endless circular dependency over multiple references.', () => {
+            // Setup.
             const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
 
             const lLevel1Graph = Graph.define(() => {
@@ -875,6 +876,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
         });
 
         await pContext.step('Detect endless circular dependency with branch.', () => {
+            // Setup.
             const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
 
             const lLoopGraph = Graph.define(() => {
@@ -896,6 +898,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
         });
 
         await pContext.step('Detect endless circular dependency with junction graph.', () => {
+            // Setup.
             const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
 
             const lLoopGraph = Graph.define(() => {
@@ -914,10 +917,10 @@ Deno.test('CodeParser.parse()', async (pContext) => {
         });
 
         await pContext.step('Detect junction graph having own nodes.', () => {
+            // Setup.
             const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
 
             const lLoopGraph = Graph.define(() => {
-                const lSelfReference: Graph<TokenType, any> = lLoopGraph;
                 return GraphNode.new<TokenType>().required(TokenType.Identifier);
             }, true);
             lParser.setRootGraph(lLoopGraph);

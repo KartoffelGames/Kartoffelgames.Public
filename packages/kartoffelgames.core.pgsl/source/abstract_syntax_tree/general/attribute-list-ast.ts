@@ -263,7 +263,7 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
             const lExpectedTemplateType: AttributeDefinitionNumberParameter | AttributeDefinitionStringParameter = pValidationParameterList[lIndex];
 
             // Create expression AST from parameter CST.
-            const lAttributeParameterAst: IExpressionAst = ExpressionAstBuilder.build(pParameterSourceList[lIndex], pContext);
+            const lAttributeParameterAst: IExpressionAst = ExpressionAstBuilder.build(pParameterSourceList[lIndex]).process(pContext);
 
             // Store validated parameter.
             lValidatedParameters.push(lAttributeParameterAst);

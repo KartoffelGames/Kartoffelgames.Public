@@ -11,6 +11,23 @@ import type { DeclarationAstData, IDeclarationAst } from './i-declaration-ast.in
  */
 export class AliasDeclarationAst extends AbstractSyntaxTree<AliasDeclarationCst, AliasDeclarationAstData> implements IDeclarationAst {
     /**
+     * Register alias without registering its content.
+     * 
+     * @param pContext - Processing context.
+     */
+    public register(pContext: AbstractSyntaxTreeContext): this {
+        // Check if alias with same name already exists.
+        if (pContext.getAlias(this.cst.name)) {
+            pContext.pushIncident(`Alias with name "${this.cst.name}" already defined.`, this);
+        }
+
+        // Set alias in context.
+        pContext.registerAlias(this.cst.name, this);
+
+        return this;
+    }
+
+    /**
      * Process the declaration.
      * 
      * @param pContext - Context.
@@ -21,14 +38,6 @@ export class AliasDeclarationAst extends AbstractSyntaxTree<AliasDeclarationCst,
 
         // Read type of type declaration.
         const lTypeDeclaration: TypeDeclarationAst = new TypeDeclarationAst(this.cst.typeDefinition).process(pContext);
-
-        // Check if alias with same name already exists.
-        if (pContext.getAlias(this.cst.name)) {
-            pContext.pushIncident(`Alias with name "${this.cst.name}" already defined.`, this);
-        }
-
-        // Set alias in context.
-        pContext.registerAlias(this.cst.name, this);
 
         return {
             aliasName: this.cst.name,

@@ -22,9 +22,11 @@ export class AbstractSyntaxTreeContext {
     private readonly mEnums: Map<string, EnumDeclarationAst>;
     private readonly mFunctions: Map<string, FunctionDeclarationAst>;
     private readonly mIncidents: Array<AbstractSyntaxTreeIncident>;
+    private readonly mProcessingStack: Set<string>;
     private mScope: AbstractSyntaxTreeScope | null;
     private readonly mStructs: Map<string, StructDeclarationAst>;
     private readonly mUsages: Set<AbstractSyntaxTreeSymbolUsageName> = new Set<AbstractSyntaxTreeSymbolUsageName>();
+    
 
     /**
      * Gets the document associated with this context.
@@ -75,30 +77,7 @@ export class AbstractSyntaxTreeContext {
 
         // Initialize validation maps.
         this.mBindingNames = new Map<string, Map<string, number>>();
-    }
-
-    /**
-     * Sets a value in this scope.
-     * 
-     * @param pName - The name of the value.
-     * @param pValue - The value to store.
-     * 
-     * @throws Error if the value already exists in this scope.
-     */
-    public addValue(pName: string, pValue: IValueStoreAst): boolean {
-        // Ensure there is an active scope.
-        if (!this.mScope) {
-            throw new Exception(`Cannot add value '${pName}' because there is no active scope.`, this);
-        }
-
-        // Throw if value already exists in this scope.
-        if (this.mScope.values.has(pName)) {
-            return false;
-        }
-
-        this.mScope.values.set(pName, pValue);
-
-        return true;
+        this.mProcessingStack = new Set<string>();
     }
 
     /**
@@ -109,7 +88,26 @@ export class AbstractSyntaxTreeContext {
      * @returns The alias if found, undefined otherwise.
      */
     public getAlias(pName: string): AliasDeclarationAst | undefined {
-        return this.mAliases.get(pName);
+        const lAlias: AliasDeclarationAst | undefined = this.mAliases.get(pName);
+        if (!lAlias) {
+            return undefined;
+        }
+
+        // Process alias if not yet processed as a build in step.
+        if (!lAlias.isProcessed) {
+            // Restrict recursive processing.
+            if(this.mProcessingStack.has(pName)) {
+                return undefined;
+            }
+
+            this.mProcessingStack.add(pName);
+            this.callInBuildInScope(() => {
+                lAlias.process(this);
+            }, lAlias);
+            this.mProcessingStack.delete(pName);
+        }
+
+        return lAlias;
     }
 
     /**
@@ -120,7 +118,26 @@ export class AbstractSyntaxTreeContext {
      * @returns The enum if found, undefined otherwise.
      */
     public getEnum(pName: string): EnumDeclarationAst | undefined {
-        return this.mEnums.get(pName);
+        const lEnum: EnumDeclarationAst | undefined = this.mEnums.get(pName);
+        if (!lEnum) {
+            return undefined;
+        }
+
+        // Process enum if not yet processed as a build in step.
+        if (!lEnum.isProcessed) {
+            // Restrict recursive processing.
+            if(this.mProcessingStack.has(pName)) {
+                return undefined;
+            }
+
+            this.mProcessingStack.add(pName);
+            this.callInBuildInScope(() => {
+                lEnum.process(this);
+            }, lEnum);
+            this.mProcessingStack.delete(pName);
+        }
+
+        return lEnum;
     }
 
     /**
@@ -131,7 +148,26 @@ export class AbstractSyntaxTreeContext {
      * @returns The function if found, undefined otherwise.
      */
     public getFunction(pName: string): FunctionDeclarationAst | undefined {
-        return this.mFunctions.get(pName);
+        const lFunction: FunctionDeclarationAst | undefined = this.mFunctions.get(pName);
+        if (!lFunction) {
+            return undefined;
+        }
+
+        // Process function if not yet processed as a build in step.
+        if (!lFunction.isProcessed) {
+            // Restrict recursive processing.
+            if(this.mProcessingStack.has(pName)) {
+                return undefined;
+            }
+
+            this.mProcessingStack.add(pName);
+            this.callInBuildInScope(() => {
+                lFunction.process(this);
+            }, lFunction);
+            this.mProcessingStack.delete(pName);
+        }
+
+        return lFunction;
     }
 
     /**
@@ -142,7 +178,26 @@ export class AbstractSyntaxTreeContext {
      * @returns The struct if found, undefined otherwise.
      */
     public getStruct(pName: string): StructDeclarationAst | undefined {
-        return this.mStructs.get(pName);
+        const lStruct: StructDeclarationAst | undefined = this.mStructs.get(pName);
+        if (!lStruct) {
+            return undefined;
+        }
+
+        // Process struct if not yet processed as a build in step.
+        if (!lStruct.isProcessed) {
+            // Restrict recursive processing.
+            if(this.mProcessingStack.has(pName)) {
+                return undefined;
+            }
+
+            this.mProcessingStack.add(pName);
+            this.callInBuildInScope(() => {
+                lStruct.process(this);
+            }, lStruct);
+            this.mProcessingStack.delete(pName);
+        }
+
+        return lStruct;
     }
 
     /**
@@ -311,18 +366,38 @@ export class AbstractSyntaxTreeContext {
     public registerSymbolUsage(pName: AbstractSyntaxTreeSymbolUsageName): void {
         // Ignore all symbols used outside of a scope.
         // This indicates that the symbols are used on build in level only.
-        if(this.hasScope('build-in')) {
+        if (this.hasScope('build-in')) {
             return;
         }
 
         // Add usage if not already present.
         if (!this.mUsages.has(pName)) {
-            if(pName === 'float16') {
-                const a = 1;
-            }
-
             this.mUsages.add(pName);
         }
+    }
+
+    /**
+     * Sets a value in this scope.
+     * 
+     * @param pName - The name of the value.
+     * @param pValue - The value to store.
+     * 
+     * @throws Error if the value already exists in this scope.
+     */
+    public registerValue(pName: string, pValue: IValueStoreAst): boolean {
+        // Ensure there is an active scope.
+        if (!this.mScope) {
+            throw new Exception(`Cannot add value '${pName}' because there is no active scope.`, this);
+        }
+
+        // Throw if value already exists in this scope.
+        if (this.mScope.values.has(pName)) {
+            return false;
+        }
+
+        this.mScope.values.set(pName, pValue);
+
+        return true;
     }
 
     /**
@@ -336,6 +411,32 @@ export class AbstractSyntaxTreeContext {
         }
 
         this.mDocument = pDocument;
+    }
+
+    /**
+     * Call action in build-in scope.
+     * 
+     * @param pScopeAction - Action to execute in build-in scope.
+     * @param pOwner - The owner of the scope.
+     */
+    private callInBuildInScope(pScopeAction: () => void, pOwner: AbstractSyntaxTree): void {
+        // Save the current scope.
+        const lLastScope: AbstractSyntaxTreeScope | null = this.mScope;
+
+        // Replace current level with new scope.
+        this.mScope = {
+            type: 'build-in',
+            parent: null,
+            values: new Map<string, IValueStoreAst>(),
+            owner: pOwner
+        };
+
+        // execute scope action and restore last scope afterwards.
+        try {
+            pScopeAction();
+        } finally {
+            this.mScope = lLastScope;
+        }
     }
 }
 

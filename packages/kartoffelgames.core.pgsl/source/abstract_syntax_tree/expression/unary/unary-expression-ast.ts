@@ -22,7 +22,7 @@ export class UnaryExpressionAst extends AbstractSyntaxTree<UnaryExpressionCst, U
      */
     protected override onProcess(pContext: AbstractSyntaxTreeContext): UnaryExpressionAstData {
         // Build expression.
-        const lExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression, pContext);
+        const lExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
 
         // Try to convert operator.
         let lOperator: PgslOperator | undefined = EnumUtil.cast(PgslOperator, this.cst.operator);

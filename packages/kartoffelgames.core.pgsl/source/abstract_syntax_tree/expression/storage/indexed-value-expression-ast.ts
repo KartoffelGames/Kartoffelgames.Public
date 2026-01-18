@@ -21,8 +21,8 @@ export class IndexedValueExpressionAst extends AbstractSyntaxTree<IndexedValueEx
      */
     protected override onProcess(pContext: AbstractSyntaxTreeContext): IndexedValueExpressionAstData {
         // Build value and index expressions.
-        const lValue: IExpressionAst = ExpressionAstBuilder.build(this.cst.value, pContext);
-        const lIndex: IExpressionAst = ExpressionAstBuilder.build(this.cst.index, pContext);
+        const lValue: IExpressionAst = ExpressionAstBuilder.build(this.cst.value).process(pContext);
+        const lIndex: IExpressionAst = ExpressionAstBuilder.build(this.cst.index).process(pContext);
 
         // Value needs to be indexable.
         if (!lValue.data.resolveType.data.indexable) {

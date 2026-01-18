@@ -25,7 +25,7 @@ export class AssignmentStatementAst extends AbstractSyntaxTree<AssignmentStateme
         }
 
         // Build variable expression.
-        const lVariable: IExpressionAst = ExpressionAstBuilder.build(this.cst.variable, pContext);
+        const lVariable: IExpressionAst = ExpressionAstBuilder.build(this.cst.variable).process(pContext);
 
         // Must be a storage.
         if (!lVariable.data.isStorage) {
@@ -40,7 +40,7 @@ export class AssignmentStatementAst extends AbstractSyntaxTree<AssignmentStateme
         // TODO: Special assignments must validate that the variable type supports the operation.
 
         // Build expression expression.
-        const lExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression, pContext);
+        const lExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
 
         // Validate that it has the same value.
         if (!lExpression.data.resolveType.isImplicitCastableInto(lVariable.data.resolveType)) {

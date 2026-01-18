@@ -31,7 +31,7 @@ export class IncrementDecrementStatementAst extends AbstractSyntaxTree<Increment
         }
 
         // Build expression.
-        const lExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression, pContext);
+        const lExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
 
         // Must be a storage.
         if (!lExpression.data.isStorage) {

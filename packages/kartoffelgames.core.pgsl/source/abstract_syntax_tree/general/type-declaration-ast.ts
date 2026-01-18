@@ -107,7 +107,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
                 }
 
                 // Set optional length expression.
-                return ExpressionAstBuilder.build(lLengthTemplate, pContext);
+                return ExpressionAstBuilder.build(lLengthTemplate).process(pContext);
             }
 
             return null;
@@ -171,7 +171,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
                 }
 
                 // Build template expression.
-                return ExpressionAstBuilder.build(lTemplateExpression, pContext);
+                return ExpressionAstBuilder.build(lTemplateExpression).process(pContext);
             }
 
             return null;
@@ -375,7 +375,7 @@ export class TypeDeclarationAst extends AbstractSyntaxTree<TypeDeclarationCst, T
                 // Build type declaration template.
                 lTemplateAstList.push(new TypeDeclarationAst(lTemplate).process(pContext));
             } else {
-                const lTemplateExpression: IExpressionAst = ExpressionAstBuilder.build(lTemplate, pContext);
+                const lTemplateExpression: IExpressionAst = ExpressionAstBuilder.build(lTemplate).process(pContext);
 
                 // Build expression template.
                 lTemplateAstList.push(lTemplateExpression);

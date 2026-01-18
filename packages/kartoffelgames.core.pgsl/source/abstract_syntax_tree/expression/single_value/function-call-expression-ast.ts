@@ -46,7 +46,7 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
 
         // Build parameter expressions.
         const lParameterList: Array<IExpressionAst> = this.cst.parameterList.map((pParameterCst) => {
-            return ExpressionAstBuilder.build(pParameterCst, pContext);
+            return ExpressionAstBuilder.build(pParameterCst).process(pContext);
         });
 
         // Check properties for constructable, host sharable, and fixed footprint characteristics

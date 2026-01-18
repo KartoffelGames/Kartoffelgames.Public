@@ -26,7 +26,7 @@ export class FunctionCallStatementAst extends AbstractSyntaxTree<FunctionCallSta
         };
 
         // Build function call expression.
-        const lFunctionExpression: IExpressionAst = ExpressionAstBuilder.build(lFunctionCallCst, pContext);
+        const lFunctionExpression: IExpressionAst = ExpressionAstBuilder.build(lFunctionCallCst).process(pContext);
 
         return {
             // Statement data.

@@ -18,7 +18,7 @@ export class ReturnStatementAst extends AbstractSyntaxTree<ReturnStatementCst, R
         // Build child expression.
         let lExpression: IExpressionAst | null = null;
         if (this.cst.expression) {
-            lExpression = ExpressionAstBuilder.build(this.cst.expression, pContext);
+            lExpression = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
         }
 
         return {

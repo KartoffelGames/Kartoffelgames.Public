@@ -44,8 +44,8 @@ export class ComparisonExpressionAst extends AbstractSyntaxTree<ComparisonExpres
         }
 
         // Read left and right expression attachments.
-        const lLeftExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.left, pContext);
-        const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.right, pContext);
+        const lLeftExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.left).process(pContext);
+        const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.right).process(pContext);
 
         // Comparison needs to be the same type or implicitly castable.
         if (!lRightExpression.data.resolveType.isImplicitCastableInto(lLeftExpression.data.resolveType)) {

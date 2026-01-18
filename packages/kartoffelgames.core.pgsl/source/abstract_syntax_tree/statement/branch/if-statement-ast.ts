@@ -18,7 +18,7 @@ export class IfStatementAst extends AbstractSyntaxTree<IfStatementCst, IfStateme
      */
     protected onProcess(pContext: AbstractSyntaxTreeContext): IfStatementAstData {
         // Validate expression.
-        const lExpression: IExpressionAst | null = ExpressionAstBuilder.build(this.cst.expression, pContext);
+        const lExpression: IExpressionAst | null = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
         if (!lExpression) {
             throw new Error('Expression could not be build.');
         }

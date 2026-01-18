@@ -37,6 +37,15 @@ export class StructPropertyDeclarationAst extends AbstractSyntaxTree<StructPrope
     }
 
     /**
+     * Register struct property without registering its content.
+     * 
+     * @param _pContext - Processing context.
+     */
+    public register(_pContext: AbstractSyntaxTreeContext): this {
+        return this;
+    }
+
+    /**
      * Validate data of current structure.
      */
     protected override onProcess(pContext: AbstractSyntaxTreeContext): StructPropertyDeclarationAstData {

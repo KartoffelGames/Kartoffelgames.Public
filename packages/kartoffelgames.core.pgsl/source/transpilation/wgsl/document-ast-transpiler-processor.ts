@@ -3,9 +3,9 @@ import { FunctionDeclarationAst } from '../../abstract_syntax_tree/declaration/f
 import { StructDeclarationAst } from '../../abstract_syntax_tree/declaration/struct-declaration-ast.ts';
 import { VariableDeclarationAst } from '../../abstract_syntax_tree/declaration/variable-declaration-ast.ts';
 import { DocumentAst } from '../../abstract_syntax_tree/document-ast.ts';
-import { AttributeListAst } from "../../abstract_syntax_tree/general/attribute-list-ast.ts";
-import { PgslBuildInType } from "../../abstract_syntax_tree/type/pgsl-build-in-type.ts";
-import { PgslNumericType } from "../../abstract_syntax_tree/type/pgsl-numeric-type.ts";
+import { AttributeListAst } from '../../abstract_syntax_tree/general/attribute-list-ast.ts';
+import { PgslBuildInType } from '../../abstract_syntax_tree/type/pgsl-build-in-type.ts';
+import { PgslNumericType } from '../../abstract_syntax_tree/type/pgsl-numeric-type.ts';
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from '../i-transpiler-processor.interface.ts';
 
 export class DocumentAstTranspilerProcessor implements ITranspilerProcessor<DocumentAst> {

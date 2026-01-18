@@ -37,6 +37,16 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
     }
 
     /**
+     * Register variable without registering its content.
+     * Does nothing as variables are registered only in their scope during processing.
+     * 
+     * @param _pContext - Processing context.
+     */
+    public register(_pContext: AbstractSyntaxTreeContext): this {
+        return this;
+    }
+
+    /**
      * Validate data of current structure.
      * https://www.w3.org/TR/WGSL/#var-and-value
      */
@@ -51,7 +61,7 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
         // Read optional expression attachment.
         let lExpression: IExpressionAst | null = null;
         if (this.cst.expression) {
-            lExpression = ExpressionAstBuilder.build(this.cst.expression, pContext);
+            lExpression = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
         }
 
         // Try to parse declaration type.
@@ -91,7 +101,7 @@ export class VariableDeclarationAst extends AbstractSyntaxTree<VariableDeclarati
         }
 
         // Register variable in current scope.
-        if(!pContext.addValue(this.cst.name, this)) {
+        if(!pContext.registerValue(this.cst.name, this)) {
             pContext.pushIncident(`Variable with name "${this.cst.name}" already defined.`, this);
         }
 

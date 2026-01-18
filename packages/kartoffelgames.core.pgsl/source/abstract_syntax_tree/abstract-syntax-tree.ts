@@ -29,6 +29,13 @@ export abstract class AbstractSyntaxTree<TCst extends Cst<string> = Cst<string>,
     }
 
     /**
+     * Check if syntax tree is processed.
+     */
+    public get isProcessed(): boolean {
+        return this.mData !== null;
+    }
+
+    /**
      * Get syntax tree meta.
      */
     public get meta(): Readonly<AbstractSyntaxTreeMeta> {

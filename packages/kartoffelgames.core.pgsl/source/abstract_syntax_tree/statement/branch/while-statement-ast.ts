@@ -18,7 +18,7 @@ export class WhileStatementAst extends AbstractSyntaxTree<WhileStatementCst, Whi
      */
     protected onProcess(pContext: AbstractSyntaxTreeContext): WhileStatementAstData {
         // Trace expression.
-        const lExpression: IExpressionAst | null = ExpressionAstBuilder.build(this.cst.expression, pContext);
+        const lExpression: IExpressionAst | null = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
         if (!lExpression) {
             throw new Error('Expression could not be build.');
         }

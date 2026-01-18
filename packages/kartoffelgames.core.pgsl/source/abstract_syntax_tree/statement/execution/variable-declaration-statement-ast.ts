@@ -43,7 +43,7 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
 
         // Read expression attachment when a expression is present.
         if (this.cst.expression) {
-            lExpression = ExpressionAstBuilder.build(this.cst.expression, pContext);
+            lExpression = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
             lConstantValue = lExpression.data.constantValue;
 
             // Validate same type.
@@ -107,7 +107,7 @@ export class VariableDeclarationStatementAst extends AbstractSyntaxTree<Variable
         }
 
         // Push variable to current scope.
-        if (!pContext.addValue(this.cst.name, this)) {
+        if (!pContext.registerValue(this.cst.name, this)) {
             pContext.pushIncident(`Variable with name "${this.cst.name}" already defined.`, this);
         }
 

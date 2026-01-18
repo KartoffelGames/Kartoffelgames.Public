@@ -40,8 +40,8 @@ export class BinaryExpressionAst extends AbstractSyntaxTree<BinaryExpressionCst,
         }
 
         // Read left and right expression attachments.
-        const lLeftExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.left, pContext);
-        const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.right, pContext);
+        const lLeftExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.left).process(pContext);
+        const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.right).process(pContext);
 
         // Type buffer for validating the processed types.
         let lLeftValueType: IType;

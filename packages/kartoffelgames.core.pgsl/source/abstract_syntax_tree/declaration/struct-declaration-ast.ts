@@ -12,16 +12,28 @@ import { StructPropertyDeclarationAst } from './struct-property-declaration-ast.
  */
 export class StructDeclarationAst extends AbstractSyntaxTree<StructDeclarationCst, StructDeclarationAstData> implements IDeclarationAst {
     /**
+     * Register struct without registering its content.
+     * 
+     * @param pContext - Processing context.
+     */
+    public register(pContext: AbstractSyntaxTreeContext): this {
+        // Check if struct is already defined.
+        if (pContext.getStruct(this.cst.name)) {
+            pContext.pushIncident(`Struct "${this.cst.name}" is already defined.`, this);
+        }
+
+        // Register struct to the current context.
+        pContext.registerStruct(this.cst.name, this);
+
+        return this;
+    }
+
+    /**
      * Trace data of current structure.
      */
     protected override onProcess(pContext: AbstractSyntaxTreeContext): StructDeclarationAstData {
         // Create attribute list.
         const lAttributes: AttributeListAst = new AttributeListAst(this.cst.attributeList, this).process(pContext);
-
-        // Check if struct is already defined.
-        if (pContext.getStruct(this.cst.name)) {
-            pContext.pushIncident(`Struct "${this.cst.name}" is already defined.`, this);
-        }
 
         // Save properties as map. Luck for us, properties are still kept in order like in a array.
         const lProperties: Map<string, StructPropertyDeclarationAst> = new Map<string, StructPropertyDeclarationAst>();
@@ -64,9 +76,6 @@ export class StructDeclarationAst extends AbstractSyntaxTree<StructDeclarationCs
         if (lProperties.size === 0) {
             pContext.pushIncident('Struct must have at least one property.', this);
         }
-
-        // Register struct to the current context.
-        pContext.registerStruct(this.cst.name, this);
 
         return {
             attributes: lAttributes,

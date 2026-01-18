@@ -1,5 +1,5 @@
 import type { DocumentCst } from '../concrete_syntax_tree/general.type.ts';
-import type { AbstractSyntaxTreeContext, AbstractSyntaxTreeIncident } from './abstract-syntax-tree-context.ts';
+import type { AbstractSyntaxTreeContext, AbstractSyntaxTreeIncident, AbstractSyntaxTreeSymbolUsageName } from './abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from './abstract-syntax-tree.ts';
 import { DeclarationAstBuilder } from './declaration/declaration-ast-builder.ts';
 import type { IDeclarationAst } from './declaration/i-declaration-ast.interface.ts';
@@ -20,7 +20,7 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
         const lDocumentData = {
             incidents: new Array<AbstractSyntaxTreeIncident>(),
             content: new Array<IDeclarationAst>(),
-            symbolUsages: new Set<string>()
+            symbolUsages: new Set<AbstractSyntaxTreeSymbolUsageName>()
         };
 
         // Build documents build-ins first outside any scope.
@@ -28,7 +28,8 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
             for (const lBuildInCst of this.cst.buildInDeclarations) {
                 // Try to build content node.
                 // Build in content can be ignored as it has no affect on the document structure and only on the validation process.
-                DeclarationAstBuilder.build(lBuildInCst, pContext);
+                // Processing is deferred to later stages, when the function is requested by name.
+                DeclarationAstBuilder.build(lBuildInCst).register(pContext);
             }
         }, this);
 
@@ -37,15 +38,15 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
             // Build all other child structures.
             for (const lChildCst of this.cst.declarations) {
                 // Try to build content node.
-                lDocumentData.content.push(DeclarationAstBuilder.build(lChildCst, pContext));
+                lDocumentData.content.push(DeclarationAstBuilder.build(lChildCst).register(pContext).process(pContext));
             }
 
             // Collect all incidents from context.
             lDocumentData.incidents.push(...pContext.incidents);
 
             // Collect all used symbol usages from context.
-            for (const pUsage of pContext.usages) {
-                lDocumentData.symbolUsages.add(pUsage);
+            for (const lUsage of pContext.usages) {
+                lDocumentData.symbolUsages.add(lUsage);
             }
 
             return lDocumentData satisfies DocumentAstData;
@@ -56,6 +57,6 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
 type DocumentAstData = {
     incidents: ReadonlyArray<AbstractSyntaxTreeIncident>;
     content: ReadonlyArray<IDeclarationAst>;
-    symbolUsages: Set<string>;
+    symbolUsages: Set<AbstractSyntaxTreeSymbolUsageName>;
 };
 

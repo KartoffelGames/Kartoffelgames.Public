@@ -31,7 +31,7 @@ export class BlockStatementAst extends AbstractSyntaxTree<BlockStatementCst, Blo
 
             for (const lStatement of this.cst.statements) {
                 // Build statement.
-                const lStatementAst: IStatementAst = StatementAstBuilder.build(lStatement, pContext);
+                const lStatementAst: IStatementAst = StatementAstBuilder.build(lStatement).process(pContext);
 
                 // Push statement to list.
                 lStatementData.statementList.push(lStatementAst);

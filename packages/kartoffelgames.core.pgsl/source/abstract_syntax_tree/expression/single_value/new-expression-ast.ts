@@ -515,7 +515,7 @@ export class NewExpressionAst extends AbstractSyntaxTree<NewExpressionCst, NewEx
 
         // Build parameter expression list.
         const lParameterExpressionList: Array<IExpressionAst> = this.cst.parameterList.map((pParameterCst) => {
-            return ExpressionAstBuilder.build(pParameterCst, pContext);
+            return ExpressionAstBuilder.build(pParameterCst).process(pContext);
         });
 
         // Map only the parameter types for result type resolution.

@@ -37,8 +37,8 @@ export class ArithmeticExpressionAst extends AbstractSyntaxTree<ArithmeticExpres
         }
 
         // Read left and right expression attachments.
-        const lLeftExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.left, pContext);
-        const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.right, pContext);
+        const lLeftExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.left).process(pContext);
+        const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.right).process(pContext);
 
         // Determine result type based on left and right expression types.
         const lResultType: IType = (() => {

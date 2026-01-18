@@ -37,7 +37,7 @@ export class ForStatementAst extends AbstractSyntaxTree<ForStatementCst, ForStat
             // Validate optional expression.
             let lExpression: IExpressionAst | null = null;
             if (this.cst.expression) {
-                lExpression = ExpressionAstBuilder.build(this.cst.expression, pContext);
+                lExpression = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
 
                 // Expression must be a boolean.
                 if (!lExpression.data.resolveType.isImplicitCastableInto(new PgslBooleanType().process(pContext))) {
@@ -48,7 +48,7 @@ export class ForStatementAst extends AbstractSyntaxTree<ForStatementCst, ForStat
             // Validate optional update statement.
             let lUpdate: IStatementAst | null = null;
             if (this.cst.update) {
-                lUpdate = StatementAstBuilder.build(this.cst.update, pContext);
+                lUpdate = StatementAstBuilder.build(this.cst.update).process(pContext);
 
                 // Parse update statement type
                 const lUpdateType = this.cst.update.type;

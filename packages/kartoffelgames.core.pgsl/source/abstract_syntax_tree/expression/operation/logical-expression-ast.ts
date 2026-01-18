@@ -38,8 +38,8 @@ export class LogicalExpressionAst extends AbstractSyntaxTree<LogicalExpressionCs
         }
 
         // Read left and right expression attachments.
-        const lLeftExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.left, pContext);
-        const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.right, pContext);
+        const lLeftExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.left).process(pContext);
+        const lRightExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.right).process(pContext);
 
         // Validate left side type.
         if (!lLeftExpression.data.resolveType.isImplicitCastableInto(new PgslBooleanType().process(pContext))) {

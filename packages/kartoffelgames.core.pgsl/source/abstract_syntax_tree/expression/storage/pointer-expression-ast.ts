@@ -18,7 +18,7 @@ export class PointerExpressionAst extends AbstractSyntaxTree<PointerExpressionCs
      */
     protected override onProcess(pContext: AbstractSyntaxTreeContext): PointerExpressionAstData {
         // Build expression.
-        const lExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression, pContext);
+        const lExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
 
         const lResolveType: IType = (() => {
             // Value needs to be a pointer.

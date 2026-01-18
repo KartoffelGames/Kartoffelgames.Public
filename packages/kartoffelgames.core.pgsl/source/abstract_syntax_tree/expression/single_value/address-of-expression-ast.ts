@@ -17,7 +17,7 @@ export class AddressOfExpressionAst extends AbstractSyntaxTree<AddressOfExpressi
      */
     protected override onProcess(pContext: AbstractSyntaxTreeContext): AddressOfExpressionAstData {
         // Read attachment of inner expression.
-        const lVariable: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression, pContext);
+        const lVariable: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
 
         // Type of expression needs to be storable.
         if (!lVariable.data.isStorage) {

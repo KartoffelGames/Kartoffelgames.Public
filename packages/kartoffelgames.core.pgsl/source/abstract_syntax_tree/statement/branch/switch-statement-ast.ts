@@ -20,7 +20,7 @@ export class SwitchStatementAst extends AbstractSyntaxTree<SwitchStatementCst, S
      */
     protected override onProcess(pContext: AbstractSyntaxTreeContext): SwitchStatementAstData {
         // Trace expression.
-        const lExpression: IExpressionAst | null = ExpressionAstBuilder.build(this.cst.expression, pContext);
+        const lExpression: IExpressionAst | null = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
         if (!lExpression) {
             throw new Error('Expression could not be build.');
         }
@@ -51,7 +51,7 @@ export class SwitchStatementAst extends AbstractSyntaxTree<SwitchStatementCst, S
                 // Validate any case value.
                 for (const lCaseValue of lCaseData.expressions) {
                     // Validate case value.
-                    const lCaseValueAst: IExpressionAst | null = ExpressionAstBuilder.build(lCaseValue, pContext);
+                    const lCaseValueAst: IExpressionAst | null = ExpressionAstBuilder.build(lCaseValue).process(pContext);
                     if (!lCaseValueAst) {
                         throw new Error('Case value expression could not be build.');
                     }

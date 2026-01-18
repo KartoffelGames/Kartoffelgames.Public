@@ -20,7 +20,7 @@ export class DoWhileStatementAst extends AbstractSyntaxTree<DoWhileStatementCst,
         // Trace block in own loop scope.
         return pContext.pushScope('loop', () => {
             // Read attachments of expression.
-            const lExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression, pContext);
+            const lExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
 
             // Expression must be a boolean.
             if (!lExpression.data.resolveType.isImplicitCastableInto(new PgslBooleanType().process(pContext))) {

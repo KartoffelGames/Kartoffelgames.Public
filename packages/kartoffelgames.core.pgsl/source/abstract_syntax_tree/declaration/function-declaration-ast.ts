@@ -18,6 +18,23 @@ import type { DeclarationAstData, IDeclarationAst } from './i-declaration-ast.in
  */
 export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarationCst, FunctionDeclarationAstData> implements IDeclarationAst {
     /**
+     * Register function without registering its content.
+     * 
+     * @param pContext - Processing context.
+     */
+    public register(pContext: AbstractSyntaxTreeContext): this {
+        // Check if function is already defined in current scope.
+        if (pContext.getFunction(this.cst.name)) {
+            pContext.pushIncident(`Function "${this.cst.name}" is already defined.`, this);
+        }
+
+        // Register function in current scope.
+        pContext.registerFunction(this.cst.name, this);
+
+        return this;
+    }
+
+    /**
      * Process and build data of current structure.
      * 
      * @param pContext - Build context.
@@ -31,11 +48,6 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                     break;
                 }
             }
-        }
-
-        // Check if function is already defined in current scope.
-        if (pContext.getFunction(this.cst.name)) {
-            pContext.pushIncident(`Function "${this.cst.name}" is already defined.`, this);
         }
 
         // Build return data.
@@ -106,7 +118,7 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                     })();
 
                     // Register parameter in current scope.
-                    pContext.addValue(lParameter.name, {
+                    pContext.registerValue(lParameter.name, {
                         data: {
                             fixedState: PgslValueFixedState.ScopeFixed,
                             declarationType: PgslDeclarationType.Const,
@@ -175,9 +187,6 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                 lResultData.declarations.push(lDeclarationResult);
             }, this);
         }
-
-        // Register function in current scope.
-        pContext.registerFunction(this.cst.name, this);
 
         return lResultData;
     }

@@ -2,13 +2,13 @@ import { Exception } from '@kartoffelgames/core';
 import { StructDeclarationAst } from '../abstract_syntax_tree/declaration/struct-declaration-ast.ts';
 import type { VariableDeclarationAst } from '../abstract_syntax_tree/declaration/variable-declaration-ast.ts';
 import type { DocumentAst } from '../abstract_syntax_tree/document-ast.ts';
+import type { IType } from '../abstract_syntax_tree/type/i-type.interface.ts';
 import { PgslArrayType } from '../abstract_syntax_tree/type/pgsl-array-type.ts';
 import { PgslMatrixType } from '../abstract_syntax_tree/type/pgsl-matrix-type.ts';
 import { PgslNumericType } from '../abstract_syntax_tree/type/pgsl-numeric-type.ts';
 import { PgslSamplerType } from '../abstract_syntax_tree/type/pgsl-sampler-type.ts';
 import { PgslStructType } from '../abstract_syntax_tree/type/pgsl-struct-type.ts';
 import { PgslTextureType } from '../abstract_syntax_tree/type/pgsl-texture-type.ts';
-import type { IType } from '../abstract_syntax_tree/type/i-type.interface.ts';
 import { PgslVectorType } from '../abstract_syntax_tree/type/pgsl-vector-type.ts';
 import { PgslDeclarationType } from '../enum/pgsl-declaration-type.enum.ts';
 import type { TranspilationMeta, TranspilationMetaBinding } from '../transpilation/transpilation-meta.ts';
@@ -173,50 +173,7 @@ export class PgslParserResultBinding {
             // Texture types.
             case pType instanceof PgslTextureType: {
                 // Parse texture dimension based on PGSL texture type.
-                const lDimensionType: PgslParserResultTextureDimensionType = (() => { // TODO: Maybe move this to PgslTextureType as a method?
-                    switch (pType.textureType) {
-                        // 1D textures
-                        case PgslTextureType.typeName.texture1d:
-                        case PgslTextureType.typeName.textureStorage1d: {
-                            return '1d';
-                        }
-
-                        // 2D textures
-                        case PgslTextureType.typeName.texture2d:
-                        case PgslTextureType.typeName.textureMultisampled2d:
-                        case PgslTextureType.typeName.textureExternal:
-                        case PgslTextureType.typeName.textureDepth2d:
-                        case PgslTextureType.typeName.textureDepthMultisampled2d:
-                        case PgslTextureType.typeName.textureStorage2d: {
-                            return '2d';
-                        }
-
-                        // 2D array textures
-                        case PgslTextureType.typeName.texture2dArray:
-                        case PgslTextureType.typeName.textureDepth2dArray:
-                        case PgslTextureType.typeName.textureStorage2dArray: {
-                            return '2d-array';
-                        }
-
-                        // 3D textures
-                        case PgslTextureType.typeName.texture3d:
-                        case PgslTextureType.typeName.textureStorage3d: {
-                            return '3d';
-                        }
-
-                        // Cube textures
-                        case PgslTextureType.typeName.textureCube:
-                        case PgslTextureType.typeName.textureDepthCube: {
-                            return 'cube';
-                        }
-
-                        // Cube array textures
-                        case PgslTextureType.typeName.textureCubeArray:
-                        case PgslTextureType.typeName.textureDepthCubeArray: {
-                            return 'cube-array';
-                        }
-                    }
-                })();
+                const lDimensionType: PgslParserResultTextureDimensionType = PgslTextureType.textureDimensionFromTypeName(pType.textureType);
 
                 // Convert sampled type.
                 const lSampledType: PgslParserResultNumericType = this.convertType(pType.sampledType, pDocument, 'packed') as PgslParserResultNumericType;

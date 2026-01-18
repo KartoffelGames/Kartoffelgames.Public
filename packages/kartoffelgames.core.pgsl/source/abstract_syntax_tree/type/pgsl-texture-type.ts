@@ -1,14 +1,14 @@
 import { Exception } from '@kartoffelgames/core';
 import { type PgslAccessMode, PgslAccessModeEnum } from '../../buildin/enum/pgsl-access-mode-enum.ts';
 import { type PgslTexelFormat, PgslTexelFormatEnum } from '../../buildin/enum/pgsl-texel-format-enum.ts';
+import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
+import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
 import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
 import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
+import type { IType, TypeProperties } from './i-type.interface.ts';
 import { PgslNumericType } from './pgsl-numeric-type.ts';
 import { PgslStringType } from './pgsl-string-type.ts';
-import type { IType, TypeProperties } from './i-type.interface.ts';
-import { AbstractSyntaxTree } from '../abstract-syntax-tree.ts';
-import type { TypeCst } from '../../concrete_syntax_tree/general.type.ts';
 
 /**
  * Texture type definition.
@@ -108,6 +108,58 @@ export class PgslTextureType extends AbstractSyntaxTree<TypeCst, TypeProperties>
             pTextureType === PgslTextureType.typeName.textureStorage2d ||
             pTextureType === PgslTextureType.typeName.textureStorage2dArray ||
             pTextureType === PgslTextureType.typeName.textureStorage3d;
+    }
+
+    /**
+     * Gets the texture dimension from the texture type name.
+     * 
+     * @param pTextureType - Texture type.
+     * 
+     * @returns The texture dimension as a string.
+     */
+    public static textureDimensionFromTypeName(pTextureType: PgslTextureTypeName): PgslTextureTypeNameDimension {
+        switch (pTextureType) {
+            // 1D textures
+            case PgslTextureType.typeName.texture1d:
+            case PgslTextureType.typeName.textureStorage1d: {
+                return '1d';
+            }
+
+            // 2D textures
+            case PgslTextureType.typeName.texture2d:
+            case PgslTextureType.typeName.textureMultisampled2d:
+            case PgslTextureType.typeName.textureExternal:
+            case PgslTextureType.typeName.textureDepth2d:
+            case PgslTextureType.typeName.textureDepthMultisampled2d:
+            case PgslTextureType.typeName.textureStorage2d: {
+                return '2d';
+            }
+
+            // 2D array textures
+            case PgslTextureType.typeName.texture2dArray:
+            case PgslTextureType.typeName.textureDepth2dArray:
+            case PgslTextureType.typeName.textureStorage2dArray: {
+                return '2d-array';
+            }
+
+            // 3D textures
+            case PgslTextureType.typeName.texture3d:
+            case PgslTextureType.typeName.textureStorage3d: {
+                return '3d';
+            }
+
+            // Cube textures
+            case PgslTextureType.typeName.textureCube:
+            case PgslTextureType.typeName.textureDepthCube: {
+                return 'cube';
+            }
+
+            // Cube array textures
+            case PgslTextureType.typeName.textureCubeArray:
+            case PgslTextureType.typeName.textureDepthCubeArray: {
+                return 'cube-array';
+            }
+        }
     }
 
     private readonly mShadowedType: IType;
@@ -270,7 +322,7 @@ export class PgslTextureType extends AbstractSyntaxTree<TypeCst, TypeProperties>
         // Build meta types.
         const lMetaTypeList: Array<string> = new Array<string>();
         for (const lMetaType of this.mTextureTypeParameter.sampledType.data.metaTypes) {
-             lMetaTypeList.push(`Texture<${lMetaType}>`);
+            lMetaTypeList.push(`Texture<${lMetaType}>`);
             lMetaTypeList.push(`Texture<${lMetaType},${this.mTextureTypeParameter.access}>`);
             lMetaTypeList.push(`Texture<${lMetaType},${this.mTextureTypeParameter.format}>`);
             lMetaTypeList.push(`Texture<${lMetaType},${this.mTextureTypeParameter.access},${this.mTextureTypeParameter.format}>`);
@@ -295,7 +347,7 @@ export class PgslTextureType extends AbstractSyntaxTree<TypeCst, TypeProperties>
         return {
             // Meta information.
             metaTypes: lMetaTypeList,
-            
+
             composite: false,
             indexable: false,
             storable: true,
@@ -410,6 +462,11 @@ type PgslTextureTypeParameter = {
     format: PgslTexelFormat;
     sampledType: IType;
 };
+
+/**
+ * Texture dimension types supported in WGSL.
+ */
+export type PgslTextureTypeNameDimension = '1d' | '2d' | '2d-array' | '3d' | 'cube' | 'cube-array';
 
 /**
  * Type representing all available texture type names.

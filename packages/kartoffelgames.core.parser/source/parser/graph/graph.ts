@@ -19,7 +19,6 @@ export class Graph<TTokenType extends string, TOriginalData extends object = obj
      */
     public static define<TTokenType extends string, TResultData extends object>(pNodeCollector: GraphNodeCollector<TTokenType, TResultData>, pIsJunction: boolean = false): Graph<TTokenType, TResultData> {
         return new Graph(pNodeCollector, pIsJunction);
-        // TODO: Check that the graph dont process any token at its own.
     }
 
     private readonly mDataConverterList: Array<GraphDataCollector<TTokenType>>;

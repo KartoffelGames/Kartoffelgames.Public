@@ -1,4 +1,4 @@
-import type { DocumentCst } from '../concrete_syntax_tree/general.type.ts';
+import type { DocumentCst, DocumentCstImport } from '../concrete_syntax_tree/general.type.ts';
 import type { AbstractSyntaxTreeContext, AbstractSyntaxTreeIncident, AbstractSyntaxTreeSymbolUsageName } from './abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from './abstract-syntax-tree.ts';
 import { DeclarationAstBuilder } from './declaration/declaration-ast-builder.ts';
@@ -33,13 +33,32 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
             }
         }, this);
 
+        // Keep track of all imported names.
+        const lImportedNames = new Set<string>();
+
         // Push global scope for document processing.
         return pContext.pushScope('global', () => {
-            // Import all imported documents first.
-            for (const lImport of this.cst.imports) {
-                for (const lImportDeclaration of lImport.declarations) {
+            // Function to import documents declaration.
+            // Call recursively to import all child documents.
+            // Skip already imported documents by name.
+            const lImportDocument = (pImport: DocumentCstImport) => {
+                // Check if already imported.
+                if (lImportedNames.has(pImport.name)) {
+                    return;
+                }
+
+                // Mark as imported.
+                lImportedNames.add(pImport.name);
+
+                // Process all declarations of the imported document.
+                for (const lImportDeclaration of pImport.document.declarations) {
                     lDocumentData.content.push(DeclarationAstBuilder.build(lImportDeclaration).register(pContext).process(pContext));
                 }
+            };
+
+            // Import all imported documents first.
+            for (const lImport of this.cst.imports) {
+                lImportDocument(lImport);
             }
 
             // Build all other child structures.

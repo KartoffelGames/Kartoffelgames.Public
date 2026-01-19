@@ -146,8 +146,9 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
 
         // Create new import definition and save the build user defined type names from this import.
         const lImport: PgslParserImport = {
-            importDocument: lDocumentCst,
-            importedUserNames: this.mUserDefinedTypeNames
+            name: pImportName,
+            document: lDocumentCst,
+            userNames: this.mUserDefinedTypeNames
         };
 
         this.mImports.set(pImportName.toLowerCase(), lImport);
@@ -183,7 +184,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
 
             // Throw exception when import not found.
             if (!lImport) {
-                throw new Exception(`Import '${pImportName}' not found.`, this);
+                throw new Exception(`Import "${pImportName}" not found.`, this);
             }
 
             // Save import.
@@ -198,7 +199,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
 
         // Add user defined type names from imports while finding imports.
         for (const lImport of lImportList) {
-            for (const lUserDefinedTypeName of lImport.importedUserNames) {
+            for (const lUserDefinedTypeName of lImport.userNames) {
                 this.mUserDefinedTypeNames.add(lUserDefinedTypeName);
             }
         }
@@ -206,15 +207,16 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         // Parse document CST.
         const lDocumentCst: DocumentCst = super.parse(lAdjustedCodeText);
 
-        // TODO: Importing a import twice is not supported. So importing in a import can break anything.
-
         // Add imports to document CST.
         for (const lImport of lImportList) {
             // Add the imports of the import.
-            lDocumentCst.imports.push(...lImport.importDocument.imports);
+            lDocumentCst.imports.push(...lImport.document.imports);
 
             // Add the import itself.
-            lDocumentCst.imports.push(lImport.importDocument);
+            lDocumentCst.imports.push({
+                name: lImport.name,
+                document: lImport.document
+            });
         }
 
         return lDocumentCst;
@@ -1772,8 +1774,9 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
 }
 
 type PgslParserImport = {
-    importDocument: DocumentCst;
-    importedUserNames: Set<string>;
+    name: string;
+    document: DocumentCst;
+    userNames: Set<string>;
 };
 
 type PgslParserCoreGraphs = {

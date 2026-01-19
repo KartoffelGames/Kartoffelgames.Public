@@ -16,10 +16,15 @@ export type CstRange = [lineStart: number, columnStart: number, lineEnd: number,
  */
 
 export type DocumentCst = {
-    imports: Array<DocumentCst>;
+    imports: Array<DocumentCstImport>;
     buildInDeclarations: Array<DeclarationCst>;
     declarations: Array<DeclarationCst>;
 } & Cst<'Document'>;
+
+export type DocumentCstImport = {
+    name: string;
+    document: DocumentCst;
+}
 
 /*
  * Attributes.

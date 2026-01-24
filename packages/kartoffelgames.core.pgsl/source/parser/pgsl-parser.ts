@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core';
+import { Exception, Stack } from '@kartoffelgames/core';
 import { CodeParser, Graph, GraphNode, type LexerToken } from '@kartoffelgames/core-parser';
 import { AbstractSyntaxTreeContext } from '../abstract_syntax_tree/abstract-syntax-tree-context.ts';
 import { DocumentAst } from '../abstract_syntax_tree/document-ast.ts';
@@ -1805,27 +1805,75 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
 
         // Move over first #IFDEF and last #IFEND.
         const lIfDefReplacement = (pSubCode: string): string => {
-            // Find and replace any data between the first #IFDEF and last #IFEND.
-            const lIfDefPattern: RegExp = /^[ ]*#IFDEF\s+([A-Za-z_][A-Za-z0-9_]*)\s*([\s\S]*)#ENDIF/m;
-            const lMatch: RegExpMatchArray | null = pSubCode.match(lIfDefPattern);
+            // Create a stack to handle nested #IFDEF.
+            // Stack contains booleans indicating if the current block is active or not.
+            const lIfStacks: Stack<boolean> = new Stack<boolean>();
 
-            // When nothing was matched, nothing needs to be replaced.
-            if (!lMatch) {
-                return pSubCode;
+            // Define IFDEF start line regex pattern.
+            const lIfDefStartPattern: RegExp = /^[ ]*#(IFDEF|IFNOTDEF)([ ]+(.*))?$/mg;
+            const lIfDefEndPattern: RegExp = /^[ ]*#ENDIF([ ]+(.*))?$/mg;
+
+            // Iterate over each line.
+            const lResultLines: Array<string> = new Array<string>();
+            for (const lLine of pSubCode.split('\n')) {
+                // Reset regex last index to start of line.
+                lIfDefStartPattern.lastIndex = 0;
+                lIfDefEndPattern.lastIndex = 0;
+
+                // Get current active state from top of the stack, default to true when stack is empty.
+                const lCurrentIfActive: boolean = lIfStacks.top ?? true;
+
+                // Check for start pattern.
+                const lStartMatch: RegExpMatchArray | null = lIfDefStartPattern.exec(lLine);
+                if (lStartMatch) {
+                    const lDirective: string = lStartMatch[1];
+                    const lName: string = (lStartMatch[3] || '').toLowerCase().trim();
+                
+                    // Throw when no name was provided.
+                    if (!lName) {
+                        throw new Exception(`#${lDirective} missing value name.`, this);
+                    }
+
+                    // Determine if the block is active based on the directive and environment data.
+                    let lIsActive: boolean = lCurrentIfActive;
+                    if(lIsActive) {
+                        if (lDirective === 'IFDEF') {
+                            lIsActive = pEnvironmentData.has(lName);
+                        } else if (lDirective === 'IFNOTDEF') {
+                            lIsActive = !pEnvironmentData.has(lName);
+                        }
+                    }
+
+                    // Push the new active state onto the stack.
+                    lIfStacks.push(lIsActive);
+
+                    // Continue with next line (replace with newline to keep line numbers).
+                    lResultLines.push('');
+                    continue;
+                }
+
+                // Check for end pattern.
+                const lEndMatch: RegExpMatchArray | null = lIfDefEndPattern.exec(lLine);
+                if (lEndMatch) {
+                    // Pop the stack to return to the previous active state.
+                    if (typeof lIfStacks.top === 'undefined') {
+                        throw new Exception('#ENDIF without matching #IFDEF or #IFNOTDEF.', this);
+                    }
+
+                    lIfStacks.pop();
+                    lResultLines.push('');
+                    continue;
+                }
+
+                // When the current block is active, keep the line as is, otherwise replace with spaces to keep line numbers.
+                if (lCurrentIfActive) {
+                    lResultLines.push(lLine);
+                } else {
+                    lResultLines.push('');
+                }
             }
 
-            // Named access of groups.
-            const lDefinedName: string = lMatch[1].toLowerCase();
-            const lInnerCode: string = lMatch[2];
-
-            // When the data is not defined in the environment, replace with an empty string with the same amount of newlines.
-            if (!pEnvironmentData.has(lDefinedName)) {
-                const lNewlineCount: number = (lInnerCode.match(/\n/g) || []).length;
-                return '\n'.repeat(lNewlineCount);
-            }
-
-            // Replace inner code recursively to support nested #IFDEF. Append a newline front and back to keep line number constistent.
-            return `\n${lIfDefReplacement(lInnerCode)}\n`;
+            return lResultLines.join('\n');
         };
 
         // Process all #IFDEF ... #IFEND blocks.

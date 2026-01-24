@@ -1,14 +1,9 @@
 import { expect } from '@kartoffelgames/core-test';
-import { AttributeListAst } from "../source/abstract_syntax_tree/general/attribute-list-ast.ts";
-import { PgslArrayType } from "../source/abstract_syntax_tree/type/pgsl-array-type.ts";
-import { PgslBuildInType } from "../source/abstract_syntax_tree/type/pgsl-build-in-type.ts";
-import { PgslNumericType } from "../source/abstract_syntax_tree/type/pgsl-numeric-type.ts";
-import { PgslParser } from '../source/parser/pgsl-parser.ts';
-import type { PgslParserResult } from '../source/parser_result/pgsl-parser-result.ts';
-import { WgslTranspiler } from '../source/transpilation/wgsl/wgsl-transpiler.ts';
-
-// Create parser instance.
-
+import { AttributeListAst } from "../../../source/abstract_syntax_tree/general/attribute-list-ast.ts";
+import { PgslNumericType } from "../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts";
+import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
+import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
+import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
 
 Deno.test('Import', async (pContext) => {
     await pContext.step('Basic import', () => {
@@ -22,7 +17,7 @@ Deno.test('Import', async (pContext) => {
 
         // Setup. Create code text that uses the import.
         const lCodeText: string = `
-            #import "FirstImport";
+            #IMPORT "FirstImport";
 
             function testFunction(): void {
                 const innerValue: ${PgslNumericType.typeName.float32} = PI;
@@ -54,13 +49,13 @@ Deno.test('Import', async (pContext) => {
         `);
 
         lPgslParser.addImport('FirstImport', `
-            #import "SecondImport";
+            #IMPORT "SecondImport";
             const PI: ${PgslNumericType.typeName.float32} = 3.14;
         `);
 
         // Setup. Create code text that uses the first import.
         const lCodeText: string = `
-            #import "FirstImport";
+            #IMPORT "FirstImport";
 
             function testFunction(): void {
                 const result: ${PgslNumericType.typeName.float32} = PI + EPSILON;
@@ -93,14 +88,14 @@ Deno.test('Import', async (pContext) => {
         `);
 
         lPgslParser.addImport('FirstImport', `
-            #import "SecondImport";
+            #IMPORT "SecondImport";
             const PI: ${PgslNumericType.typeName.float32} = 3.14;
         `);
 
         // Setup. Create code text that imports both first and second import.
         const lCodeText: string = `
-            #import "FirstImport";
-            #import "SecondImport";
+            #IMPORT "FirstImport";
+            #IMPORT "SecondImport";
 
             function testFunction(): void {
                 const result: ${PgslNumericType.typeName.float32} = PI + EPSILON;
@@ -130,7 +125,7 @@ Deno.test('Import', async (pContext) => {
 
         // Setup. Create code text with non-existent import.
         const lCodeText: string = `
-            #import "${lImportName}";
+            #IMPORT "${lImportName}";
 
             function testFunction(): void {
                 const value: ${PgslNumericType.typeName.float32} = 0.0;
@@ -160,7 +155,7 @@ Deno.test('Import', async (pContext) => {
 
         // Setup. Create code text that uses struct in array.
         const lCodeText: string = `
-            #import "StructImport";
+            #IMPORT "StructImport";
 
             [${AttributeListAst.attributeNames.groupBinding}("test_group", "test_binding")]
             storage testArray: Array<TestStruct>;
@@ -185,6 +180,41 @@ Deno.test('Import', async (pContext) => {
             `@group(0)@binding(0)var<storage,read> testArray:array<TestStruct>;` +
             `fn processArray(){` +
             `let firstElement:TestStruct=testArray[0];` +
+            `}`
+        );
+    });
+
+    await pContext.step('Case insensitive import', () => {
+        // Setup. Create parser.
+        const lPgslParser: PgslParser = new PgslParser();
+        const lImportName: string = 'FirstImport';
+
+
+        // Setup. Assign a import.
+        lPgslParser.addImport(lImportName.toUpperCase(), `
+            const PI: ${PgslNumericType.typeName.float32} = 3.14;    
+        `);
+
+        // Setup. Create code text that uses the import.
+        const lCodeText: string = `
+            #IMPORT "${lImportName.toLowerCase()}";
+
+            function testFunction(): void {
+                const innerValue: ${PgslNumericType.typeName.float32} = PI;
+            }
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = lPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. No errors.
+        expect(lTranspilationResult.incidents).toHaveLength(0);
+
+        // Evaluation. Correct transpilation output.
+        expect(lTranspilationResult.source).toBe(
+            `const PI:f32=3.14;` +
+            `fn testFunction(){` +
+            `const innerValue:f32=PI;` +
             `}`
         );
     });

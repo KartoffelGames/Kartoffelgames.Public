@@ -97,6 +97,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
 
     private mUserDefinedTypeNames: Set<string>;
     private mImports: Map<string, string> = new Map<string, string>();
+    private mEnvironmentValues: Map<string, string> = new Map<string, string>();
 
     /**
      * Constructor.
@@ -107,6 +108,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         // Initialize user defined type name set.
         this.mUserDefinedTypeNames = new Set<string>();
         this.mImports = new Map<string, string>();
+        this.mEnvironmentValues = new Map<string, string>();
 
         // Create a mimic core graph object to pass to statement and declaration graph definitions.
         const lCoreGraphs: PgslParserCoreGraphs = {
@@ -145,6 +147,16 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
     }
 
     /**
+     * Add an environment value to the parser.
+     * 
+     * @param pKey - Key of the environment value.
+     * @param pValue - Value of the environment value.
+     */
+    public addEnvironmentValue(pKey: string, pValue: string): void {
+        this.mEnvironmentValues.set(pKey.toLowerCase(), pValue);
+    }
+
+    /**
      * Parse a text with the set syntax into a concrete sytnax tree.
      * 
      * @param pCodeText - Code as text.
@@ -155,7 +167,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
      * When the graph could not be resolved with the set code text. Or Exception when no tokenizeable text should be parsed.
      */
     public override parse(pCodeText: string): DocumentCst {
-        return this.internalParse(pCodeText, new Set<string>());
+        return this.internalParse(pCodeText, this.mEnvironmentValues, new Set<string>());
     }
 
     /**
@@ -1718,8 +1730,8 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
      * @throws {@link ParserException} 
      * When the graph could not be resolved with the set code text. Or Exception when no tokenizeable text should be parsed.
      */
-    public internalParse(pCodeText: string, pUsedImports: Set<string>): DocumentCst {
-        let lProcessedCode: PgslParserPreprocessResult = this.preprocessText(pCodeText, new Map<string, string>());
+    public internalParse(pCodeText: string, pEnvironmentData: Map<string, string>, pUsedImports: Set<string>): DocumentCst {
+        let lProcessedCode: PgslParserPreprocessResult = this.preprocessText(pCodeText, pEnvironmentData);
 
         // Define bucket for all user defined type names used in this document and its imports.
         const lUserDefinedNames: Set<string> = new Set<string>();
@@ -1746,7 +1758,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
             pUsedImports.add(lImportName);
 
             // Parse import code.
-            const lImportDocumentCst: DocumentCst = this.internalParse(lImportCode, pUsedImports);
+            const lImportDocumentCst: DocumentCst = this.internalParse(lImportCode, pEnvironmentData, pUsedImports);
 
             // Push each inner imports from imported document to used imports.
             lParsedImportList.push(...lImportDocumentCst.imports);
@@ -1794,7 +1806,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         // Move over first #IFDEF and last #IFEND.
         const lIfDefReplacement = (pSubCode: string): string => {
             // Find and replace any data between the first #IFDEF and last #IFEND.
-            const lIfDefPattern: RegExp = /^[ ]*#IFDEF\s+([A-Za-z_][A-Za-z0-9_]*)\s*([\s\S]*)#IFEND/m;
+            const lIfDefPattern: RegExp = /^[ ]*#IFDEF\s+([A-Za-z_][A-Za-z0-9_]*)\s*([\s\S]*)#ENDIF/m;
             const lMatch: RegExpMatchArray | null = pSubCode.match(lIfDefPattern);
 
             // When nothing was matched, nothing needs to be replaced.
@@ -1803,7 +1815,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
             }
 
             // Named access of groups.
-            const lDefinedName: string = lMatch[1];
+            const lDefinedName: string = lMatch[1].toLowerCase();
             const lInnerCode: string = lMatch[2];
 
             // When the data is not defined in the environment, replace with an empty string with the same amount of newlines.
@@ -1821,7 +1833,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
 
         // Read import names while replaceing them at the same time.
         const lImportList: Array<string> = new Array<string>();
-        lResultCode = lResultCode.replace(/^\s*#import\s+"(.*?)"\s*;/gm, (_pMatch: string, pImportName: string) => {
+        lResultCode = lResultCode.replace(/^\s*#IMPORT\s+"(.*?)"\s*;/gm, (_pMatch: string, pImportName: string) => {
             // Save import.
             lImportList.push(pImportName.toLowerCase());
 

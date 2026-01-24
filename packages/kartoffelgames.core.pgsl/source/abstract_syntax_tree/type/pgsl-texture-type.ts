@@ -97,6 +97,21 @@ export class PgslTextureType extends AbstractSyntaxTree<TypeCst, TypeProperties>
     }
 
     /**
+     * Checks if a texture type is a depth texture.
+     * 
+     * @param pTextureType - Texture type.
+     * 
+     * @returns True if the texture type is a depth texture, false otherwise. 
+     */
+    public static isDepthTextureType(pTextureType: PgslTextureTypeName): boolean {
+        return pTextureType === PgslTextureType.typeName.textureDepth2d ||
+            pTextureType === PgslTextureType.typeName.textureDepth2dArray ||
+            pTextureType === PgslTextureType.typeName.textureDepthCube ||
+            pTextureType === PgslTextureType.typeName.textureDepthCubeArray ||
+            pTextureType === PgslTextureType.typeName.textureDepthMultisampled2d;
+    }
+
+    /**
      * Checks if a texture type is a storage texture.
      * 
      * @param pTextureType - Texture type.
@@ -416,9 +431,36 @@ export class PgslTextureType extends AbstractSyntaxTree<TypeCst, TypeProperties>
             if (lTextureTemplates.length === 1) {
                 // Single parameter: sampled type for regular textures.
                 const lTypeDefinition: TypeDeclarationAst = lActualParameterValue as TypeDeclarationAst;
-                lTypeParameter.sampledType = lTypeDefinition.data.type;
+                const lSampledType: IType = lTypeDefinition.data.type;
+                lTypeParameter.sampledType = lSampledType;
 
-                // TODO: Change format based on sampled type for regular textures.
+                // Validate sampled type is a concrete number.
+                if (!lSampledType.data.concrete) {
+                    pContext.pushIncident(`Texture sampled type must be a concrete type.`);
+                }
+
+                // Change format based on sampled type for regular and depth textures.
+                if (lSampledType instanceof PgslNumericType) {
+                    switch (lSampledType.numericTypeName) {
+                        case PgslNumericType.typeName.float32: {
+                            lTypeParameter.format = PgslTextureType.isDepthTextureType(this.mTextureType) ? PgslTexelFormatEnum.VALUES.R8unorm : PgslTexelFormatEnum.VALUES.Rgba8unorm;
+                            break;
+                        }
+                        case PgslNumericType.typeName.unsignedInteger: {
+                            lTypeParameter.format = PgslTextureType.isDepthTextureType(this.mTextureType) ? PgslTexelFormatEnum.VALUES.R8uint : PgslTexelFormatEnum.VALUES.Rgba8uint;
+                            break;
+                        }
+                        case PgslNumericType.typeName.signedInteger: {
+                            lTypeParameter.format = PgslTextureType.isDepthTextureType(this.mTextureType) ? PgslTexelFormatEnum.VALUES.R8sint : PgslTexelFormatEnum.VALUES.Rgba8sint;
+                            break;
+                        }
+                    }
+                } else {
+                    // Default format for non-numeric sampled types.
+                    lTypeParameter.format = PgslTextureType.isDepthTextureType(this.mTextureType) ? PgslTexelFormatEnum.VALUES.R8unorm : PgslTexelFormatEnum.VALUES.Rgba8unorm;
+
+                    pContext.pushIncident(`Texture sampled type must be a numeric type.`);
+                }
             } else {
                 // Two parameters: format and access mode strings for storage textures.
                 const lStringValueExpression: IExpressionAst = lActualParameterValue as IExpressionAst;
@@ -445,7 +487,26 @@ export class PgslTextureType extends AbstractSyntaxTree<TypeCst, TypeProperties>
                     }
                 }
 
-                // TODO: sampled Type based on format for storage textures.
+                // Sampled Type based on format for storage textures.
+                switch (PgslTexelFormatEnum.texelNumericType(lTypeParameter.format)) {
+                    case 'float': {
+                        lTypeParameter.sampledType = new PgslNumericType(PgslNumericType.typeName.float32).process(pContext);
+                        break;
+                    }
+                    case 'uint': {
+                        lTypeParameter.sampledType = new PgslNumericType(PgslNumericType.typeName.unsignedInteger).process(pContext);
+                        break;
+                    }
+                    case 'int': {
+                        lTypeParameter.sampledType = new PgslNumericType(PgslNumericType.typeName.signedInteger).process(pContext);
+                        break;
+                    }
+                    default: {
+                        // Default to float type.
+                        lTypeParameter.sampledType = new PgslNumericType(PgslNumericType.typeName.float32).process(pContext);
+                        break;
+                    }
+                }
             }
         }
 

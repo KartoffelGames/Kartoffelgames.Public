@@ -126,10 +126,11 @@ Deno.test('Import', async (pContext) => {
     await pContext.step('Error: Non-existent import', () => {
         // Setup. Create parser.
         const lPgslParser: PgslParser = new PgslParser();
+        const lImportName: string = 'NonExistentImport';
 
         // Setup. Create code text with non-existent import.
         const lCodeText: string = `
-            #import "NonExistentImport";
+            #import "${lImportName}";
 
             function testFunction(): void {
                 const value: ${PgslNumericType.typeName.float32} = 0.0;
@@ -142,7 +143,7 @@ Deno.test('Import', async (pContext) => {
         };
 
         // Evaluation. Contains error incident.
-        expect(lErrorFunction).toThrow(`Import "NonExistentImport" not found.`);
+        expect(lErrorFunction).toThrow(`Import "${lImportName.toLowerCase()}" not found.`);
     });
 
     await pContext.step('Struct import used in array', () => {

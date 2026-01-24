@@ -33,32 +33,14 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
             }
         }, this);
 
-        // Keep track of all imported names.
-        const lImportedNames = new Set<string>();
-
         // Push global scope for document processing.
         return pContext.pushScope('global', () => {
-            // Function to import documents declaration.
-            // Call recursively to import all child documents.
-            // Skip already imported documents by name.
-            const lImportDocument = (pImport: DocumentCstImport) => {
-                // Check if already imported.
-                if (lImportedNames.has(pImport.name)) {
-                    return;
-                }
-
-                // Mark as imported.
-                lImportedNames.add(pImport.name);
-
-                // Process all declarations of the imported document.
-                for (const lImportDeclaration of pImport.document.declarations) {
-                    lDocumentData.content.push(DeclarationAstBuilder.build(lImportDeclaration).register(pContext).process(pContext));
-                }
-            };
-
             // Import all imported documents first.
             for (const lImport of this.cst.imports) {
-                lImportDocument(lImport);
+                // Process all declarations of the imported document.
+                for (const lImportDeclaration of lImport.declarations) {
+                    lDocumentData.content.push(DeclarationAstBuilder.build(lImportDeclaration).register(pContext).process(pContext));
+                }
             }
 
             // Build all other child structures.

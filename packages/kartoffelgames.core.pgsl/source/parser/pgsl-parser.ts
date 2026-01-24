@@ -22,7 +22,7 @@ import { PgslFrexpResult } from '../buildin/struct/pgsl-frexp-result.ts';
 import { PgslModfResult } from '../buildin/struct/pgsl-modf-result.ts';
 import type { AliasDeclarationCst, DeclarationCst, DeclarationCstType, EnumDeclarationCst, EnumDeclarationValueCst, FunctionDeclarationCst, FunctionDeclarationHeaderCst, FunctionDeclarationParameterCst, StructDeclarationCst, StructPropertyDeclarationCst, VariableDeclarationCst } from '../concrete_syntax_tree/declaration.type.ts';
 import type { AddressOfExpressionCst, ArithmeticExpressionCst, BinaryExpressionCst, ComparisonExpressionCst, ExpressionCst, ExpressionCstType, FunctionCallExpressionCst, IndexedValueExpressionCst, LiteralValueExpressionCst, LogicalExpressionCst, NewExpressionCst, ParenthesizedExpressionCst, PointerExpressionCst, StringValueExpressionCst, UnaryExpressionCst, ValueDecompositionExpressionCst, VariableNameExpressionCst } from '../concrete_syntax_tree/expression.type.ts';
-import type { AttributeCst, AttributeListCst, CstRange, DocumentCst, TypeDeclarationCst } from '../concrete_syntax_tree/general.type.ts';
+import type { AttributeCst, AttributeListCst, CstRange, DocumentCst, DocumentCstImport, TypeDeclarationCst } from '../concrete_syntax_tree/general.type.ts';
 import type { AssignmentStatementCst, BlockStatementCst, BreakStatementCst, ContinueStatementCst, DiscardStatementCst, DoWhileStatementCst, ForStatementCst, FunctionCallStatementCst, IfStatementCst, IncrementDecrementStatementCst, ReturnStatementCst, StatementCst, StatementCstType, SwitchCaseCst, SwitchStatementCst, VariableDeclarationStatementCst, WhileStatementCst } from '../concrete_syntax_tree/statement.type.ts';
 import { PgslParserResult } from '../parser_result/pgsl-parser-result.ts';
 import { TranspilationMeta } from '../transpilation/transpilation-meta.ts';
@@ -96,7 +96,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
     ]);
 
     private mUserDefinedTypeNames: Set<string>;
-    private mImports: Map<string, PgslParserImport> = new Map<string, PgslParserImport>();
+    private mImports: Map<string, string> = new Map<string, string>();
 
     /**
      * Constructor.
@@ -106,7 +106,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
 
         // Initialize user defined type name set.
         this.mUserDefinedTypeNames = new Set<string>();
-        this.mImports = new Map<string, PgslParserImport>();
+        this.mImports = new Map<string, string>();
 
         // Create a mimic core graph object to pass to statement and declaration graph definitions.
         const lCoreGraphs: PgslParserCoreGraphs = {
@@ -141,17 +141,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
      * @param pImportCode - Code text of the import.
      */
     public addImport(pImportName: string, pImportCode: string): void {
-        // Parse import code.
-        const lDocumentCst: DocumentCst = this.parse(pImportCode);
-
-        // Create new import definition and save the build user defined type names from this import.
-        const lImport: PgslParserImport = {
-            name: pImportName,
-            document: lDocumentCst,
-            userNames: this.mUserDefinedTypeNames
-        };
-
-        this.mImports.set(pImportName.toLowerCase(), lImport);
+        this.mImports.set(pImportName.toLowerCase(), pImportCode);
     }
 
     /**
@@ -165,61 +155,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
      * When the graph could not be resolved with the set code text. Or Exception when no tokenizeable text should be parsed.
      */
     public override parse(pCodeText: string): DocumentCst {
-        // TODO: On second layer only not the parser.
-        // Setup #IFDEF. Fill Replaced '#IFDEFs, #ENDIFDEF with same amount of spaces and newlines.
-        // Remove any other # statements as they do nothing. Replace with same amount of spaces and newlines.
-
-        let lAdjustedCodeText: string = pCodeText;
-
-        // Replace comments with same amount of spaces and newlines. The lexer could handle comments, but it makes it faster/cleaner to remove them here.
-        lAdjustedCodeText = lAdjustedCodeText.replace(/\/\*.*?\*\/|\/\/.*?$/gsm, (pMatch: string) => {
-            return pMatch.replace(/[^\n]/g, ' ');
-        });
-
-        // Read import names while replaceing them at the same time.
-        const lImportList: Array<PgslParserImport> = new Array<PgslParserImport>();
-        lAdjustedCodeText = lAdjustedCodeText.replace(/#import\s+"(.*?)"\s*;/g, (_pMatch: string, pImportName: string) => {
-            // Try to find import.
-            const lImport: PgslParserImport | undefined = this.mImports.get(pImportName.toLowerCase());
-
-            // Throw exception when import not found.
-            if (!lImport) {
-                throw new Exception(`Import "${pImportName}" not found.`, this);
-            }
-
-            // Save import.
-            lImportList.push(lImport);
-
-            // Replace with newlines only to keep line numbers lined up.
-            return '\n';
-        });
-
-        // Clear user defined type names.
-        this.mUserDefinedTypeNames = new Set<string>();
-
-        // Add user defined type names from imports while finding imports.
-        for (const lImport of lImportList) {
-            for (const lUserDefinedTypeName of lImport.userNames) {
-                this.mUserDefinedTypeNames.add(lUserDefinedTypeName);
-            }
-        }
-
-        // Parse document CST.
-        const lDocumentCst: DocumentCst = super.parse(lAdjustedCodeText);
-
-        // Add imports to document CST.
-        for (const lImport of lImportList) {
-            // Add the imports of the import.
-            lDocumentCst.imports.push(...lImport.document.imports);
-
-            // Add the import itself.
-            lDocumentCst.imports.push({
-                name: lImport.name,
-                document: lImport.document
-            });
-        }
-
-        return lDocumentCst;
+        return this.internalParse(pCodeText, new Set<string>());
     }
 
     /**
@@ -1771,12 +1707,138 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
             blockStatement: lBlockStatementGraph
         };
     }
+
+    /**
+     * Parse a text with the set syntax into a concrete sytnax tree.
+     * 
+     * @param pCodeText - Code as text.
+     *
+     * @returns The code as concrete syntax tree.
+     *
+     * @throws {@link ParserException} 
+     * When the graph could not be resolved with the set code text. Or Exception when no tokenizeable text should be parsed.
+     */
+    public internalParse(pCodeText: string, pUsedImports: Set<string>): DocumentCst {
+        let lProcessedCode: PgslParserPreprocessResult = this.preprocessText(pCodeText, new Map<string, string>());
+
+        // Define bucket for all user defined type names used in this document and its imports.
+        const lUserDefinedNames: Set<string> = new Set<string>();
+
+        // Parse imports.
+        const lParsedImportList: Array<DocumentCstImport> = new Array<DocumentCstImport>();
+        for (const lImport of lProcessedCode.imports) {
+            const lImportName: string = lImport;
+
+            // Skip already used imports.
+            if (pUsedImports.has(lImportName)) {
+                continue;
+            }
+
+            // Find import.
+            const lImportCode: string | undefined = this.mImports.get(lImportName);
+
+            // Throw exception when import not found.
+            if (!lImportCode) {
+                throw new Exception(`Import "${lImportName}" not found.`, this);
+            }
+
+            // Add import as used before starting the actual parsing.
+            pUsedImports.add(lImportName);
+
+            // Parse import code.
+            const lImportDocumentCst: DocumentCst = this.internalParse(lImportCode, pUsedImports);
+
+            // Push each inner imports from imported document to used imports.
+            lParsedImportList.push(...lImportDocumentCst.imports);
+
+            // Add imported document to import list.
+            lParsedImportList.push({
+                name: lImportName,
+                declarations: lImportDocumentCst.declarations
+            } satisfies DocumentCstImport);
+
+            // Collect user defined type names from import.
+            for (const lUserDefinedTypeName of this.mUserDefinedTypeNames) {
+                lUserDefinedNames.add(lUserDefinedTypeName);
+            }
+        }
+
+        // Clear user defined type names.
+        this.mUserDefinedTypeNames = lUserDefinedNames;
+
+        // Parse document CST.
+        const lDocumentCst: DocumentCst = super.parse(lProcessedCode.code);
+
+        // Set imports property.
+        lDocumentCst.imports = lParsedImportList;
+
+        return lDocumentCst;
+    }
+
+    /**
+     * Preprocess code before parsing.
+     * 
+     * @param pCode - Code to preprocess.
+     * @param pEnvironmentData - Environment data for conditional compilation.
+     * 
+     * @returns Preprocessed code and list of imports.
+     */
+    private preprocessText(pCode: string, pEnvironmentData: Map<string, string>): PgslParserPreprocessResult {
+        let lResultCode: string = pCode;
+
+        // Replace comments with same amount of spaces and newlines. The lexer could handle comments, but it makes it faster/cleaner to remove them here.
+        lResultCode = lResultCode.replace(/\/\*.*?\*\/|\/\/.*?$/gsm, (pMatch: string) => {
+            return pMatch.replace(/[^\n]/g, ' ');
+        });
+
+        // Move over first #IFDEF and last #IFEND.
+        const lIfDefReplacement = (pSubCode: string): string => {
+            // Find and replace any data between the first #IFDEF and last #IFEND.
+            const lIfDefPattern: RegExp = /^[ ]*#IFDEF\s+([A-Za-z_][A-Za-z0-9_]*)\s*([\s\S]*)#IFEND/m;
+            const lMatch: RegExpMatchArray | null = pSubCode.match(lIfDefPattern);
+
+            // When nothing was matched, nothing needs to be replaced.
+            if (!lMatch) {
+                return pSubCode;
+            }
+
+            // Named access of groups.
+            const lDefinedName: string = lMatch[1];
+            const lInnerCode: string = lMatch[2];
+
+            // When the data is not defined in the environment, replace with an empty string with the same amount of newlines.
+            if (!pEnvironmentData.has(lDefinedName)) {
+                const lNewlineCount: number = (lInnerCode.match(/\n/g) || []).length;
+                return '\n'.repeat(lNewlineCount);
+            }
+
+            // Replace inner code recursively to support nested #IFDEF. Append a newline front and back to keep line number constistent.
+            return `\n${lIfDefReplacement(lInnerCode)}\n`;
+        };
+
+        // Process all #IFDEF ... #IFEND blocks.
+        lResultCode = lIfDefReplacement(lResultCode);
+
+        // Read import names while replaceing them at the same time.
+        const lImportList: Array<string> = new Array<string>();
+        lResultCode = lResultCode.replace(/^\s*#import\s+"(.*?)"\s*;/gm, (_pMatch: string, pImportName: string) => {
+            // Save import.
+            lImportList.push(pImportName.toLowerCase());
+
+            // Replace with newlines only to keep line numbers lined up.
+            return '\n';
+        });
+
+        return {
+            code: lResultCode,
+            imports: lImportList
+        };
+    }
 }
 
-type PgslParserImport = {
-    name: string;
-    document: DocumentCst;
-    userNames: Set<string>;
+type PgslParserPreprocessResult = {
+    code: string;
+    imports: Array<string>;
 };
 
 type PgslParserCoreGraphs = {

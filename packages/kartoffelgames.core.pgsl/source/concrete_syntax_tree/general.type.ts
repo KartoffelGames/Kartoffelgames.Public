@@ -23,7 +23,7 @@ export type DocumentCst = {
 
 export type DocumentCstImport = {
     name: string;
-    document: DocumentCst;
+    declarations: Array<DeclarationCst>;
 }
 
 /*

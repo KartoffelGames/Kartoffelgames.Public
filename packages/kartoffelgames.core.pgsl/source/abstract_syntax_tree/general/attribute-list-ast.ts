@@ -13,6 +13,9 @@ import { StructPropertyDeclarationAst } from '../declaration/struct-property-dec
 import { VariableDeclarationAst } from '../declaration/variable-declaration-ast.ts';
 import { ExpressionAstBuilder } from '../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
+import { PgslAccessModeEnum } from "../../buildin/enum/pgsl-access-mode-enum.ts";
+import { PgslInterpolateSamplingEnum } from "../../buildin/enum/pgsl-interpolate-sampling-enum.ts";
+import { PgslInterpolateTypeEnum } from "../../buildin/enum/pgsl-interpolate-type-enum.ts";
 
 /**
  * Generic attribute list.
@@ -175,7 +178,7 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
         lAttributes.set(AttributeListAst.attributeNames.accessMode, {
             enforcedParentType: VariableDeclarationAst,
             parameterTypes: [
-                [{ values: ['read', 'write', 'read_write'] }] // TODO: Read from enum.
+                [{ values: Object.values(PgslAccessModeEnum.VALUES) }]
             ]
         });
 
@@ -195,8 +198,8 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
         lAttributes.set(AttributeListAst.attributeNames.interpolate, {
             enforcedParentType: StructPropertyDeclarationAst,
             parameterTypes: [
-                [{ values: ['perspective', 'linear', 'flat'] }],
-                [{ values: ['perspective', 'linear', 'flat'] }, { values: ['center', 'centroid', 'sample', 'first', 'either'] }]
+                [{ values: Object.values(PgslInterpolateTypeEnum.VALUES) }],
+                [{ values: Object.values(PgslInterpolateTypeEnum.VALUES) }, { values: Object.values(PgslInterpolateSamplingEnum.VALUES) }]
             ]
         });
         lAttributes.set(AttributeListAst.attributeNames.invariant, {

@@ -3,8 +3,6 @@ import type { AbstractSyntaxTree } from '../abstract_syntax_tree/abstract-syntax
 import type { ITranspilerProcessor, PgslTranspilerProcessorTranspile } from './i-transpiler-processor.interface.ts';
 import { TranspilationMeta } from './transpilation-meta.ts';
 
-// TODO: How to generate a sourcemap. https://sourcemaps.info/spec.html
-
 /**
  * Transpiles PGSL syntax trees into target language code.
  * This class provides transpilation services for all PGSL syntax tree nodes,

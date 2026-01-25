@@ -5,8 +5,6 @@ import { AttributeListAst } from '../general/attribute-list-ast.ts';
 import type { DeclarationAstData, IDeclarationAst } from './i-declaration-ast.interface.ts';
 import { StructPropertyDeclarationAst } from './struct-property-declaration-ast.ts';
 
-// TODO: Dynamically calculate size and alignment based on type.
-
 /**
  * PGSL syntax tree for a struct declaration.
  */

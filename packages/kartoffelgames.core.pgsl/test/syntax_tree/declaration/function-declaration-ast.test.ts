@@ -756,6 +756,12 @@ Deno.test('FunctionDeclarationAst - Transpilation', async (pContext) => {
     });
 });
 
+Deno.test('FunctionDeclarationAst - Parser Result', async (pContext) => {
+    await pContext.step('Compute Entry Point', async () => {
+
+    });
+});
+
 Deno.test('FunctionDeclarationAst - Error', async (pContext) => {
     await pContext.step('Duplicate function names', async () => {
         // Setup.
@@ -859,6 +865,294 @@ Deno.test('FunctionDeclarationAst - Error', async (pContext) => {
             expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
             expect(lTranspilationResult.incidents.some(pIncident =>
                 pIncident.message.includes('All compute attribute parameters need to be constant integer expressions.')
+            )).toBe(true);
+        });
+
+        await pContext.step('Compute entry point has a result type', async () => {
+            // Setup.
+            const lFunctionName: string = 'testFunction';
+            const lWorkgroupX: number = 8;
+            const lWorkgroupY: number = 8;
+            const lWorkgroupZ: number = 1;
+            const lCodeText: string = `
+                [${AttributeListAst.attributeNames.compute}(${lWorkgroupX}, ${lWorkgroupY}, ${lWorkgroupZ})]
+                function ${lFunctionName}(): ${PgslNumericType.typeName.float32} {}
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Evaluation.
+            expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
+            expect(lTranspilationResult.incidents.some(pIncident =>
+                pIncident.message.includes('Compute entry points must not have a return type.')
+            )).toBe(true);
+        });
+
+        await pContext.step('Compute entry point has a parameter', async () => {
+            // Setup.
+            const lFunctionName: string = 'testFunction';
+            const lParameterName: string = 'paramOne';
+            const lParameterType: string = PgslNumericType.typeName.float32;
+            const lWorkgroupX: number = 8;
+            const lWorkgroupY: number = 8;
+            const lWorkgroupZ: number = 1;
+            const lCodeText: string = `
+                [${AttributeListAst.attributeNames.compute}(${lWorkgroupX}, ${lWorkgroupY}, ${lWorkgroupZ})]
+                function ${lFunctionName}(${lParameterName}: ${lParameterType}): void {}
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Evaluation.
+            expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
+            expect(lTranspilationResult.incidents.some(pIncident =>
+                pIncident.message.includes('Compute entry points must not have parameters.')
+            )).toBe(true);
+        });
+
+        await pContext.step('Fragment entry point has no result type', async () => {
+            // Setup.
+            const lFunctionName: string = 'testFunction';
+            const lCodeText: string = `
+                struct FragmentIn {
+                    [${AttributeListAst.attributeNames.location}("test_in")] position: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+
+                [${AttributeListAst.attributeNames.fragment}()]
+                function ${lFunctionName}(in: FragmentIn): void {}
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Evaluation.
+            expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
+            expect(lTranspilationResult.incidents.some(pIncident =>
+                pIncident.message.includes('The fragment entry point return type must be a struct type defining the fragment output structure.')
+            )).toBe(true);
+        });
+
+        await pContext.step('Fragment entry point has none struct result type', async () => {
+            // Setup.
+            const lFunctionName: string = 'testFunction';
+            const lCodeText: string = `
+                struct FragmentIn {
+                    [${AttributeListAst.attributeNames.location}("test_in")] position: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+
+                [${AttributeListAst.attributeNames.fragment}()]
+                function ${lFunctionName}(in: FragmentIn): ${PgslNumericType.typeName.float32} { return 1.0; }
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Evaluation.
+            expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
+            expect(lTranspilationResult.incidents.some(pIncident =>
+                pIncident.message.includes('The fragment entry point return type must be a struct type defining the fragment output structure.')
+            )).toBe(true);
+        });
+
+        await pContext.step('Fragment entry point has no parameter', async () => {
+            // Setup.
+            const lFunctionName: string = 'testFunction';
+            const lCodeText: string = `
+                struct FragmentOut {
+                    [${AttributeListAst.attributeNames.location}("test_out")] position: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+
+                [${AttributeListAst.attributeNames.fragment}()]
+                function ${lFunctionName}(): FragmentOut {
+                    let out: FragmentOut;
+                    return out;
+                }
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Evaluation.
+            expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
+            expect(lTranspilationResult.incidents.some(pIncident =>
+                pIncident.message.includes('The fragment entry points must have exactly one parameter defining the fragment input structure.')
+            )).toBe(true);
+        });
+
+        await pContext.step('Fragment entry point has more than one input parameter', async () => {
+            // Setup.
+            const lFunctionName: string = 'testFunction';
+            const lCodeText: string = `
+                struct FragmentIn {
+                    [${AttributeListAst.attributeNames.location}("test_in")] position: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+                struct FragmentOut {
+                    [${AttributeListAst.attributeNames.location}("test_out")] position: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+
+                [${AttributeListAst.attributeNames.fragment}()]
+                function ${lFunctionName}(in: FragmentIn, extraParam: ${PgslNumericType.typeName.float32}): FragmentOut {
+                    let out: FragmentOut;
+                    return out;
+                }
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Evaluation.
+            expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
+            expect(lTranspilationResult.incidents.some(pIncident =>
+                pIncident.message.includes('The fragment entry points must have exactly one parameter defining the fragment input structure.')
+            )).toBe(true);
+        });
+
+        await pContext.step('Fragment entry point has none struct type asparameter', async () => {
+            // Setup.
+            const lFunctionName: string = 'testFunction';
+            const lCodeText: string = `
+                struct FragmentOut {
+                    [${AttributeListAst.attributeNames.location}("test_out")] position: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+
+                [${AttributeListAst.attributeNames.fragment}()]
+                function ${lFunctionName}(in: ${PgslNumericType.typeName.float32}): FragmentOut {
+                    let out: FragmentOut;
+                    return out;
+                }
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Evaluation.
+            expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
+            expect(lTranspilationResult.incidents.some(pIncident =>
+                pIncident.message.includes('The fragment entry point parameter must be a struct type defining the fragment input structure.')
+            )).toBe(true);
+        });
+
+        await pContext.step('Vertex entry point has no result type', async () => {
+            // Setup.
+            const lFunctionName: string = 'testFunction';
+            const lCodeText: string = `
+                struct VertexIn {
+                    [${AttributeListAst.attributeNames.location}("test_in")] position: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+
+                [${AttributeListAst.attributeNames.vertex}()]
+                function ${lFunctionName}(in: VertexIn): void {}
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Evaluation.
+            expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
+            expect(lTranspilationResult.incidents.some(pIncident =>
+                pIncident.message.includes('The vertex entry point return type must be a struct type defining the vertex output structure.')
+            )).toBe(true);
+        });
+
+        await pContext.step('Vertex entry point has none struct result type', async () => {
+            // Setup.
+            const lFunctionName: string = 'testFunction';
+            const lCodeText: string = `
+                struct VertexIn {
+                    [${AttributeListAst.attributeNames.location}("test_in")] position: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+
+                [${AttributeListAst.attributeNames.vertex}()]
+                function ${lFunctionName}(in: VertexIn): ${PgslNumericType.typeName.float32} { return 1.0; }
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Evaluation.
+            expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
+            expect(lTranspilationResult.incidents.some(pIncident =>
+                pIncident.message.includes('The vertex entry point return type must be a struct type defining the vertex output structure.')
+            )).toBe(true);
+        });
+
+        await pContext.step('Vertex entry point has no parameter', async () => {
+            // Setup.
+            const lFunctionName: string = 'testFunction';
+            const lCodeText: string = `
+                struct VertexOut {
+                    [${AttributeListAst.attributeNames.location}("test_out")] position: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+
+                [${AttributeListAst.attributeNames.vertex}()]
+                function ${lFunctionName}(): VertexOut {
+                    let out: VertexOut;
+                    return out;
+                }
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Evaluation.
+            expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
+            expect(lTranspilationResult.incidents.some(pIncident =>
+                pIncident.message.includes('The vertex entry points must have exactly one parameter defining the vertex input structure.')
+            )).toBe(true);
+        });
+
+        await pContext.step('Vertex entry point has more than one input parameter', async () => {
+            // Setup.
+            const lFunctionName: string = 'testFunction';
+            const lCodeText: string = `
+                struct VertexIn {
+                    [${AttributeListAst.attributeNames.location}("test_in")] position: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+                struct VertexOut {
+                    [${AttributeListAst.attributeNames.location}("test_out")] position: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+
+                [${AttributeListAst.attributeNames.vertex}()]
+                function ${lFunctionName}(in: VertexIn, extraParam: ${PgslNumericType.typeName.float32}): VertexOut {
+                    let out: VertexOut;
+                    return out;
+                }
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Evaluation.
+            expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
+            expect(lTranspilationResult.incidents.some(pIncident =>
+                pIncident.message.includes('The vertex entry points must have exactly one parameter defining the vertex input structure.')
+            )).toBe(true);
+        });
+
+        await pContext.step('Vertex entry point has none struct type asparameter', async () => {
+            // Setup.
+            const lFunctionName: string = 'testFunction';
+            const lCodeText: string = `
+                struct VertexOut {
+                    [${AttributeListAst.attributeNames.location}("test_out")] position: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+
+                [${AttributeListAst.attributeNames.vertex}()]
+                function ${lFunctionName}(in: ${PgslNumericType.typeName.float32}): VertexOut {
+                    let out: VertexOut;
+                    return out;
+                }
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Evaluation.
+            expect(lTranspilationResult.incidents.length).toBeGreaterThan(0);
+            expect(lTranspilationResult.incidents.some(pIncident =>
+                pIncident.message.includes('The vertex entry point parameter must be a struct type defining the vertex input structure.')
             )).toBe(true);
         });
     });

@@ -205,7 +205,7 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
         const lValidateVertexFragmentParameterType = (pParameter: Array<FunctionDeclarationAstDataParameter>, pEntryPointName: string): PgslStructType | null => {
             // Vertex entry point must have a struct type parameter.
             if (pParameter.length !== 1) {
-                pContext.pushIncident(`${pEntryPointName} entry points must have exactly one parameter defining the ${pEntryPointName} input structure.`, this);
+                pContext.pushIncident(`The ${pEntryPointName} entry points must have exactly one parameter defining the ${pEntryPointName} input structure.`, this);
 
                 if (pParameter.length === 0) {
                     return null;
@@ -215,11 +215,11 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
             // Read first parameter type and check if it is a struct type.
             const lParameterType: string | TypeDeclarationAst = pParameter[0].type;
             if (typeof lParameterType === 'string') {
-                pContext.pushIncident(`${pEntryPointName} entry point parameter cannot be a generic type.`, this);
+                pContext.pushIncident(`The ${pEntryPointName} entry point parameter cannot be a generic type.`, this);
                 return null;
             }
             if (!(lParameterType.data.type instanceof PgslStructType)) {
-                pContext.pushIncident(`${pEntryPointName} entry point parameter must be a struct type defining the ${pEntryPointName} input structure.`, this);
+                pContext.pushIncident(`The ${pEntryPointName} entry point parameter must be a struct type defining the ${pEntryPointName} input structure.`, this);
                 return null;
             }
 
@@ -229,11 +229,11 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
         const lValidateVertexFragmentResultType = (pReturnType: string | TypeDeclarationAst, pEntryPointName: string): PgslStructType | null => {
             // Check return type.
             if (typeof pReturnType === 'string') {
-                pContext.pushIncident(`${pEntryPointName} entry point return type cannot be a generic type.`, this);
+                pContext.pushIncident(`The ${pEntryPointName} entry point return type cannot be a generic type.`, this);
                 return null;
             }
             if (!(pReturnType.data.type instanceof PgslStructType)) {
-                pContext.pushIncident(`${pEntryPointName} entry point return type must be a struct type defining the ${pEntryPointName} output structure.`, this);
+                pContext.pushIncident(`The ${pEntryPointName} entry point return type must be a struct type defining the ${pEntryPointName} output structure.`, this);
                 return null;
             }
 
@@ -243,7 +243,7 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
         const lValidateEntryPointHeader = (pEntryPointName: string): void => {
             // Entry points must not have generic parameters.
             if (pDeclaration.generics.length > 0) {
-                pContext.pushIncident(`${pEntryPointName} entry point must not have generic parameters.`, this);
+                pContext.pushIncident(`The ${pEntryPointName} entry point must not have generic parameters.`, this);
             }
         };
 
@@ -252,15 +252,10 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                 // Validate entry point header.
                 lValidateEntryPointHeader('vertex');
 
-                // Validate parameter type.
+                // Validate parameter and return type.
                 const lParameterType: PgslStructType | null = lValidateVertexFragmentParameterType(pDeclaration.parameter, 'vertex');
-                if (!lParameterType) {
-                    return null;
-                }
-
-                // Validate return type.
                 const lReturnType: PgslStructType | null = lValidateVertexFragmentResultType(pDeclaration.returnType, 'vertex');
-                if (!lReturnType) {
+                if (!lParameterType || !lReturnType) {
                     return null;
                 }
 
@@ -274,15 +269,10 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                 // Validate entry point header.
                 lValidateEntryPointHeader('fragment');
 
-                // Validate parameter type.
+                // Validate parameter type and return type.
                 const lParameterType: PgslStructType | null = lValidateVertexFragmentParameterType(pDeclaration.parameter, 'fragment');
-                if (!lParameterType) {
-                    return null;
-                }
-
-                // Validate return type.
                 const lReturnType: PgslStructType | null = lValidateVertexFragmentResultType(pDeclaration.returnType, 'fragment');
-                if (!lReturnType) {
+                if (!lParameterType || !lReturnType) {
                     return null;
                 }
 

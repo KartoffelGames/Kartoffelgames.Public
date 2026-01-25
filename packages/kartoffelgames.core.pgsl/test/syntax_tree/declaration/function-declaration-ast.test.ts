@@ -323,16 +323,26 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
             // Setup.
             const lFunctionName: string = 'testFunction';
             const lCodeText: string = `
+                struct VertexIn {
+                    [${AttributeListAst.attributeNames.location}("test_in")] position: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+                struct VertexOut {
+                    [${AttributeListAst.attributeNames.location}("test_out")] position: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+
                 [${AttributeListAst.attributeNames.vertex}()]
-                function ${lFunctionName}(): void {}
+                function ${lFunctionName}(in: VertexIn): VertexOut {
+                    let out: VertexOut;
+                    return out;
+                }
             `;
 
             // Process.
             const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Evaluation.
-            expect(lDocument.data.content).toHaveLength(1);
-            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+            expect(lDocument.data.content).toHaveLength(3);
+            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[2] as FunctionDeclarationAst;
             expect(lFunctionNode).toBeInstanceOf(FunctionDeclarationAst);
             expect(lFunctionNode.data.declarations).toHaveLength(1);
             expect(lFunctionNode.data.declarations[0].entryPoint).toBeDefined();
@@ -343,16 +353,26 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
             // Setup.
             const lFunctionName: string = 'testFunction';
             const lCodeText: string = `
+                struct FragmentIn {
+                    [${AttributeListAst.attributeNames.location}("test_in")] position: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+                struct FragmentOut {
+                    [${AttributeListAst.attributeNames.location}("test_out")] position: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+
                 [${AttributeListAst.attributeNames.fragment}()]
-                function ${lFunctionName}(): void {}
+                function ${lFunctionName}(in: FragmentIn): FragmentOut {
+                    let out: FragmentOut;
+                    return out;
+                }
             `;
 
             // Process.
             const lDocument: DocumentAst = gPgslParser.parseAst(lCodeText);
 
             // Evaluation.
-            expect(lDocument.data.content).toHaveLength(1);
-            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[0] as FunctionDeclarationAst;
+            expect(lDocument.data.content).toHaveLength(3);
+            const lFunctionNode: FunctionDeclarationAst = lDocument.data.content[2] as FunctionDeclarationAst;
             expect(lFunctionNode).toBeInstanceOf(FunctionDeclarationAst);
             expect(lFunctionNode.data.declarations).toHaveLength(1);
             expect(lFunctionNode.data.declarations[0].entryPoint).toBeDefined();
@@ -651,8 +671,18 @@ Deno.test('FunctionDeclarationAst - Transpilation', async (pContext) => {
             // Setup.
             const lFunctionName: string = 'testFunction';
             const lCodeText: string = `
+                struct VertexIn {
+                    [${AttributeListAst.attributeNames.location}("test_in")] position: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+                struct VertexOut {
+                    [${AttributeListAst.attributeNames.location}("test_out")] position: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+
                 [${AttributeListAst.attributeNames.vertex}()]
-                function ${lFunctionName}(): void {}
+                function ${lFunctionName}(in: VertexIn): VertexOut {
+                    let out: VertexOut;
+                    return out;
+                }
             `;
 
             // Process.
@@ -661,7 +691,12 @@ Deno.test('FunctionDeclarationAst - Transpilation', async (pContext) => {
             // Evaluation.
             expect(lTranspilationResult.incidents).toHaveLength(0);
             expect(lTranspilationResult.source).toBe(
-                `@vertex fn ${lFunctionName}(){}`
+                `struct VertexIn{@location(0)position:vec4<f32>}` +
+                `struct VertexOut{@location(0)position:vec4<f32>}` +
+                `@vertex fn ${lFunctionName}(in:VertexIn)->VertexOut{` +
+                `var out:VertexOut;` +
+                `return out;` +
+                `}`
             );
         });
 
@@ -669,8 +704,18 @@ Deno.test('FunctionDeclarationAst - Transpilation', async (pContext) => {
             // Setup.
             const lFunctionName: string = 'testFunction';
             const lCodeText: string = `
+                struct FragmentIn {
+                    [${AttributeListAst.attributeNames.location}("test_in")] position: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+                struct FragmentOut {
+                    [${AttributeListAst.attributeNames.location}("test_out")] position: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+
                 [${AttributeListAst.attributeNames.fragment}()]
-                function ${lFunctionName}(): void {}
+                function ${lFunctionName}(in: FragmentIn): FragmentOut {
+                    let out: FragmentOut;
+                    return out;
+                }
             `;
 
             // Process.
@@ -679,7 +724,12 @@ Deno.test('FunctionDeclarationAst - Transpilation', async (pContext) => {
             // Evaluation.
             expect(lTranspilationResult.incidents).toHaveLength(0);
             expect(lTranspilationResult.source).toBe(
-                `@fragment fn ${lFunctionName}(){}`
+                `struct FragmentIn{@location(0)position:vec4<f32>}` +
+                `struct FragmentOut{@location(0)position:vec4<f32>}` +
+                `@fragment fn ${lFunctionName}(in:FragmentIn)->FragmentOut{` +
+                `var out:FragmentOut;` +
+                `return out;` +
+                `}`
             );
         });
 

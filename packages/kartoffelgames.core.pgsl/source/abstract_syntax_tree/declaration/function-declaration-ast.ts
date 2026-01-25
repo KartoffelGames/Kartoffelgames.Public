@@ -12,6 +12,7 @@ import { BlockStatementAst } from '../statement/execution/block-statement-ast.ts
 import type { IType } from '../type/i-type.interface.ts';
 import { PgslInvalidType } from '../type/pgsl-invalid-type.ts';
 import { PgslStructType } from '../type/pgsl-struct-type.ts';
+import { PgslVoidType } from "../type/pgsl-void-type.ts";
 import type { DeclarationAstData, IDeclarationAst } from './i-declaration-ast.interface.ts';
 
 /**
@@ -201,11 +202,6 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
      * @returns Entry point data or null if function is not an entry point. 
      */
     private readEntryPoint(pAttributes: AttributeListAst, pDeclaration: FunctionDeclarationAstDataDeclaration, pContext: AbstractSyntaxTreeContext): FunctionDeclarationAstDataEntryPoint | null {
-        // Entry points must not have generic parameters.
-        if (pDeclaration.generics.length > 0) {
-            pContext.pushIncident(`Entry points must not have generic parameters.`, this);
-        }
-
         const lValidateVertexFragmentParameterType = (pParameter: Array<FunctionDeclarationAstDataParameter>, pEntryPointName: string): PgslStructType | null => {
             // Vertex entry point must have a struct type parameter.
             if (pParameter.length !== 1) {
@@ -244,8 +240,18 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
             return pReturnType.data.type;
         };
 
+        const lValidateEntryPointHeader = (pEntryPointName: string): void => {
+            // Entry points must not have generic parameters.
+            if (pDeclaration.generics.length > 0) {
+                pContext.pushIncident(`${pEntryPointName} entry point must not have generic parameters.`, this);
+            }
+        };
+
         switch (true) {
             case pAttributes.hasAttribute(AttributeListAst.attributeNames.vertex): {
+                // Validate entry point header.
+                lValidateEntryPointHeader('vertex');
+
                 // Validate parameter type.
                 const lParameterType: PgslStructType | null = lValidateVertexFragmentParameterType(pDeclaration.parameter, 'vertex');
                 if (!lParameterType) {
@@ -265,6 +271,9 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                 };
             }
             case pAttributes.hasAttribute(AttributeListAst.attributeNames.fragment): {
+                // Validate entry point header.
+                lValidateEntryPointHeader('fragment');
+
                 // Validate parameter type.
                 const lParameterType: PgslStructType | null = lValidateVertexFragmentParameterType(pDeclaration.parameter, 'fragment');
                 if (!lParameterType) {
@@ -284,6 +293,10 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                 };
             }
             case pAttributes.hasAttribute(AttributeListAst.attributeNames.compute): {
+                // Validate entry point header.
+                lValidateEntryPointHeader('compute');
+
+                // Read compute attribute parameters.
                 const lAttributeParameter: Array<IExpressionAst> = pAttributes.getAttributeParameter(AttributeListAst.attributeNames.compute);
 
                 // Check parameter count.
@@ -296,7 +309,7 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                 if (pDeclaration.parameter.length > 0) {
                     pContext.pushIncident(`Compute entry points must not have parameters.`, this);
                 }
-                if (typeof pDeclaration.returnType !== 'string' && !(pDeclaration.returnType.data.type instanceof PgslInvalidType)) {
+                if (typeof pDeclaration.returnType !== 'string' && !(pDeclaration.returnType.data.type instanceof PgslVoidType)) {
                     pContext.pushIncident(`Compute entry points must not have a return type.`, this);
                 }
 

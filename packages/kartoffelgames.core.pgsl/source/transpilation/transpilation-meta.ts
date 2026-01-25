@@ -80,21 +80,6 @@ export class TranspilationMeta {
     }
 
     /**
-     * Reads the location mapping for a struct.
-     * 
-     * @param pStruct - Struct declaration.
-     * 
-     * @returns Mapping of struct properties to their locations. 
-     */
-    public locationsOf(pStruct: StructDeclarationAst): ReadonlyMap<StructPropertyDeclarationAst, number> {
-        const lLocations: Map<StructPropertyDeclarationAst, number> | undefined = this.mStructLocations.get(pStruct);
-        if (!lLocations) {
-            return new Map<StructPropertyDeclarationAst, number>();
-        }
-        return lLocations;
-    }
-
-    /**
      * Resolves the binding for a given bind group and binding name.
      *
      * @param pBindGroupName - The name of the bind group.

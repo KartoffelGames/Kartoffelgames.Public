@@ -206,81 +206,81 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
             pContext.pushIncident(`Entry points must not have generic parameters.`, this);
         }
 
+        const lValidateVertexFragmentParameterType = (pParameter: Array<FunctionDeclarationAstDataParameter>, pEntryPointName: string): PgslStructType | null => {
+            // Vertex entry point must have a struct type parameter.
+            if (pParameter.length !== 1) {
+                pContext.pushIncident(`${pEntryPointName} entry points must have exactly one parameter defining the ${pEntryPointName} input structure.`, this);
+
+                if (pParameter.length === 0) {
+                    return null;
+                }
+            }
+
+            // Read first parameter type and check if it is a struct type.
+            const lParameterType: string | TypeDeclarationAst = pParameter[0].type;
+            if (typeof lParameterType === 'string') {
+                pContext.pushIncident(`${pEntryPointName} entry point parameter cannot be a generic type.`, this);
+                return null;
+            }
+            if (!(lParameterType.data.type instanceof PgslStructType)) {
+                pContext.pushIncident(`${pEntryPointName} entry point parameter must be a struct type defining the ${pEntryPointName} input structure.`, this);
+                return null;
+            }
+
+            return lParameterType.data.type;
+        };
+
+        const lValidateVertexFragmentResultType = (pReturnType: string | TypeDeclarationAst, pEntryPointName: string): PgslStructType | null => {
+            // Check return type.
+            if (typeof pReturnType === 'string') {
+                pContext.pushIncident(`${pEntryPointName} entry point return type cannot be a generic type.`, this);
+                return null;
+            }
+            if (!(pReturnType.data.type instanceof PgslStructType)) {
+                pContext.pushIncident(`${pEntryPointName} entry point return type must be a struct type defining the ${pEntryPointName} output structure.`, this);
+                return null;
+            }
+
+            return pReturnType.data.type;
+        };
+
         switch (true) {
             case pAttributes.hasAttribute(AttributeListAst.attributeNames.vertex): {
-                // Vertex entry point must have a struct type parameter.
-                if (pDeclaration.parameter.length !== 1) {
-                    pContext.pushIncident(`Vertex entry points must have exactly one parameter defining the vertex input structure.`, this);
-
-                    if (pDeclaration.parameter.length === 0) {
-                        return null;
-                    }
-                }
-
-                // Read first parameter type and check if it is a struct type.
-                const lParameterType: string | TypeDeclarationAst = pDeclaration.parameter[0].type;
-                if (typeof lParameterType === 'string') {
-                    pContext.pushIncident(`Vertex entry point parameter cannot be a generic type.`, this);
-                    return null;
-                }
-                if (!(lParameterType.data.type instanceof PgslStructType)) {
-                    pContext.pushIncident(`Vertex entry point parameter must be a struct type defining the vertex input structure.`, this);
+                // Validate parameter type.
+                const lParameterType: PgslStructType | null = lValidateVertexFragmentParameterType(pDeclaration.parameter, 'vertex');
+                if (!lParameterType) {
                     return null;
                 }
 
-                // Check return type.
-                const lReturnType: string | TypeDeclarationAst = pDeclaration.returnType;
-                if (typeof lReturnType === 'string') {
-                    pContext.pushIncident(`Vertex entry point return type cannot be a generic type.`, this);
-                    return null;
-                }
-                if (!(lReturnType.data.type instanceof PgslStructType)) {
-                    pContext.pushIncident(`Vertex entry point return type must be a struct type defining the vertex output structure.`, this);
+                // Validate return type.
+                const lReturnType: PgslStructType | null = lValidateVertexFragmentResultType(pDeclaration.returnType, 'vertex');
+                if (!lReturnType) {
                     return null;
                 }
 
                 return {
                     stage: 'vertex',
-                    parameter: lParameterType.data.type,
-                    returnType: lReturnType.data.type
+                    parameter: lParameterType,
+                    returnType: lReturnType
                 };
             }
             case pAttributes.hasAttribute(AttributeListAst.attributeNames.fragment): {
-                // Fragment entry point must have a struct type parameter.
-                if (pDeclaration.parameter.length !== 1) {
-                    pContext.pushIncident(`Fragment entry points must have exactly one parameter defining the fragment input structure.`, this);
-
-                    if (pDeclaration.parameter.length === 0) {
-                        return null;
-                    }
-                }
-
-                // Read first parameter type and check if it is a struct type.
-                const lParameterType: string | TypeDeclarationAst = pDeclaration.parameter[0].type;
-                if (typeof lParameterType === 'string') {
-                    pContext.pushIncident(`Fragment entry point parameter cannot be a generic type.`, this);
-                    return null;
-                }
-                if (!(lParameterType.data.type instanceof PgslStructType)) {
-                    pContext.pushIncident(`Fragment entry point parameter must be a struct type defining the fragment input structure.`, this);
+                // Validate parameter type.
+                const lParameterType: PgslStructType | null = lValidateVertexFragmentParameterType(pDeclaration.parameter, 'fragment');
+                if (!lParameterType) {
                     return null;
                 }
 
-                // Check return type.
-                const lReturnType: string | TypeDeclarationAst = pDeclaration.returnType;
-                if (typeof lReturnType === 'string') {
-                    pContext.pushIncident(`Fragment entry point return type cannot be a generic type.`, this);
-                    return null;
-                }
-                if (!(lReturnType.data.type instanceof PgslStructType)) {
-                    pContext.pushIncident(`Fragment entry point return type must be a struct type defining the fragment output structure.`, this);
+                // Validate return type.
+                const lReturnType: PgslStructType | null = lValidateVertexFragmentResultType(pDeclaration.returnType, 'fragment');
+                if (!lReturnType) {
                     return null;
                 }
 
                 return {
                     stage: 'fragment',
-                    parameter: lParameterType.data.type,
-                    returnType: lReturnType.data.type
+                    parameter: lParameterType,
+                    returnType: lReturnType
                 };
             }
             case pAttributes.hasAttribute(AttributeListAst.attributeNames.compute): {

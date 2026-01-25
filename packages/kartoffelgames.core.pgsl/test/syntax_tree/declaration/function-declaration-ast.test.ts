@@ -1,5 +1,5 @@
 import { expect } from '@kartoffelgames/core-test';
-import { FunctionDeclarationAst } from '../../../source/abstract_syntax_tree/declaration/function-declaration-ast.ts';
+import { FunctionDeclarationAst, type FunctionDeclarationAstDataEntryPointWorkgroupSize } from '../../../source/abstract_syntax_tree/declaration/function-declaration-ast.ts';
 import type { DocumentAst } from '../../../source/abstract_syntax_tree/document-ast.ts';
 import { AttributeListAst } from '../../../source/abstract_syntax_tree/general/attribute-list-ast.ts';
 import { TypeDeclarationAst } from '../../../source/abstract_syntax_tree/general/type-declaration-ast.ts';
@@ -380,10 +380,10 @@ Deno.test('FunctionDeclarationAst - Parsing', async (pContext) => {
             expect(lFunctionNode.data.declarations).toHaveLength(1);
             expect(lFunctionNode.data.declarations[0].entryPoint).toBeDefined();
             expect(lFunctionNode.data.declarations[0].entryPoint?.stage).toBe('compute');
-            expect(lFunctionNode.data.declarations[0].entryPoint?.workgroupSize).toBeDefined();
-            expect(lFunctionNode.data.declarations[0].entryPoint?.workgroupSize?.x).toBe(lWorkgroupX);
-            expect(lFunctionNode.data.declarations[0].entryPoint?.workgroupSize?.y).toBe(lWorkgroupY);
-            expect(lFunctionNode.data.declarations[0].entryPoint?.workgroupSize?.z).toBe(lWorkgroupZ);
+            expect((<{ workgroupSize: FunctionDeclarationAstDataEntryPointWorkgroupSize; }>lFunctionNode.data.declarations[0].entryPoint).workgroupSize).toBeDefined();
+            expect((<{ workgroupSize: FunctionDeclarationAstDataEntryPointWorkgroupSize; }>lFunctionNode.data.declarations[0].entryPoint).workgroupSize?.x).toBe(lWorkgroupX);
+            expect((<{ workgroupSize: FunctionDeclarationAstDataEntryPointWorkgroupSize; }>lFunctionNode.data.declarations[0].entryPoint).workgroupSize?.y).toBe(lWorkgroupY);
+            expect((<{ workgroupSize: FunctionDeclarationAstDataEntryPointWorkgroupSize; }>lFunctionNode.data.declarations[0].entryPoint).workgroupSize?.z).toBe(lWorkgroupZ);
         });
     });
 });

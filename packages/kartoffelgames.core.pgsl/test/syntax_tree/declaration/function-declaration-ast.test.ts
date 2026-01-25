@@ -11,6 +11,13 @@ import { PgslVectorType } from '../../../source/abstract_syntax_tree/type/pgsl-v
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
+import { execPath } from "node:process";
+import { PgslParserResultComputeEntryPoint } from "../../../source/parser_result/entry_point/pgsl-parser-result-compute-entry-point.ts";
+import { PgslParserResultFragmentEntryPoint } from "../../../source/parser_result/entry_point/pgsl-parser-result-fragment-entry-point.ts";
+import { PgslParserResultVertexEntryPoint } from "../../../source/parser_result/entry_point/pgsl-parser-result-vertex-entry-point.ts";
+import { PgslParserResultVectorType } from "../../../source/parser_result/type/pgsl-parser-result-vector-type.ts";
+import { PgslParserResultNumericType } from "../../../source/parser_result/type/pgsl-parser-result-numeric-type.ts";
+import { PgslBuildInType } from "../../../source/abstract_syntax_tree/type/pgsl-build-in-type.ts";
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();
@@ -758,7 +765,278 @@ Deno.test('FunctionDeclarationAst - Transpilation', async (pContext) => {
 
 Deno.test('FunctionDeclarationAst - Parser Result', async (pContext) => {
     await pContext.step('Compute Entry Point', async () => {
+        // Setup.
+        const lFunctionName: string = 'testFunction';
+        const lWorkgroupX: number = 8;
+        const lWorkgroupY: number = 4;
+        const lWorkgroupZ: number = 2;
+        const lCodeText: string = `
+            [${AttributeListAst.attributeNames.compute}(${lWorkgroupX}, ${lWorkgroupY}, ${lWorkgroupZ})]
+            function ${lFunctionName}(): void {}
+        `;
 
+        // Process.
+        const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. No incidents.
+        expect(lTranspilationResult.incidents).toHaveLength(0);
+
+        // Evaluation. Check entry points count.
+        expect(lTranspilationResult.entryPoints.compute.size).toBe(1);
+
+        // Evaluation. Check entry point type and name.
+        const lEntryPoint: PgslParserResultComputeEntryPoint = lTranspilationResult.entryPoints.compute.get(lFunctionName)!;
+        expect(lEntryPoint).toBeDefined();
+        expect(lEntryPoint.type).toBe('compute');
+        expect(lEntryPoint.name).toBe(lFunctionName);
+
+        // Evaluation. Check workgroup size.
+        expect(lEntryPoint.workgroupSize).toBeDefined();
+        expect(lEntryPoint.workgroupSize.x).toBe(lWorkgroupX);
+        expect(lEntryPoint.workgroupSize.y).toBe(lWorkgroupY);
+        expect(lEntryPoint.workgroupSize.z).toBe(lWorkgroupZ);
+    });
+
+    await pContext.step('Fragment Entry Point', async (pContext) => {
+        await pContext.step('Only location output values', async () => {
+            // Setup.
+            const lFunctionName: string = 'testFunction';
+            const lCodeText: string = `
+                struct FragmentIn {
+                    [${AttributeListAst.attributeNames.location}("test_location_one")] positionOne: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>,
+                    [${AttributeListAst.attributeNames.location}("test_location_two")] positionTwo: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+                struct FragmentOut {
+                    [${AttributeListAst.attributeNames.location}("test_render_one")] renderOne: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>,
+                    [${AttributeListAst.attributeNames.location}("test_render_two")] renderTwo: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+
+                [${AttributeListAst.attributeNames.fragment}()]
+                function ${lFunctionName}(in: FragmentIn): FragmentOut {
+                    let out: FragmentOut;
+                    return out;
+                }
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Evaluation. No incidents.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
+
+            // Evaluation. Check entry points count.
+            expect(lTranspilationResult.entryPoints.fragment.size).toBe(1);
+
+            // Evaluation. Check entry point type and name.
+            const lEntryPoint: PgslParserResultFragmentEntryPoint = lTranspilationResult.entryPoints.fragment.get(lFunctionName)!;
+            expect(lEntryPoint).toBeDefined();
+            expect(lEntryPoint.type).toBe('fragment');
+            expect(lEntryPoint.name).toBe(lFunctionName);
+
+            // Evaluation. Check render targets count.
+            expect(lEntryPoint.renderTargets).toHaveLength(2);
+
+            // Evaluation. Check first render target.
+            const lRenderTargetOne = lEntryPoint.renderTargets[0];
+            expect(lRenderTargetOne.name).toBe('renderOne');
+            expect(lRenderTargetOne.location).toBe(0);
+            expect(lRenderTargetOne.type.type).toBe('vector');
+
+            // Evaluation. Check first render target element type.
+            const lRenderTargetOneType = lRenderTargetOne.type as PgslParserResultVectorType;
+            expect(lRenderTargetOneType.dimension).toBe(4);
+            expect(lRenderTargetOneType.elementType.type).toBe('numeric');
+            const lRenderTargetOneElementType = lRenderTargetOneType.elementType as PgslParserResultNumericType;
+            expect(lRenderTargetOneElementType.numberType).toBe('float');
+            expect(lRenderTargetOneElementType.alignmentType).toBe('packed');
+
+            // Evaluation. Check second render target.
+            const lRenderTargetTwo = lEntryPoint.renderTargets[1];
+            expect(lRenderTargetTwo.name).toBe('renderTwo');
+            expect(lRenderTargetTwo.location).toBe(1);
+            expect(lRenderTargetTwo.type.type).toBe('vector');
+
+            // Evaluation. Check second render target element type.
+            const lRenderTargetTwoType = lRenderTargetTwo.type as PgslParserResultVectorType;
+            expect(lRenderTargetTwoType.dimension).toBe(4);
+            expect(lRenderTargetTwoType.elementType.type).toBe('numeric');
+            const lRenderTargetTwoElementType = lRenderTargetTwoType.elementType as PgslParserResultNumericType;
+            expect(lRenderTargetTwoElementType.numberType).toBe('float');
+            expect(lRenderTargetTwoElementType.alignmentType).toBe('packed');
+        });
+
+        await pContext.step('With buildin position value', async () => {
+            // Setup.
+            const lFunctionName: string = 'testFunction';
+            const lCodeText: string = `
+                struct FragmentIn {
+                    [${AttributeListAst.attributeNames.location}("test_location_one")] renderOne: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>,
+                    builtInPosition: ${PgslBuildInType.typeName.position}
+                }
+                struct FragmentOut {
+                    [${AttributeListAst.attributeNames.location}("test_render_one")] outputOne: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+
+                [${AttributeListAst.attributeNames.fragment}()]
+                function ${lFunctionName}(in: FragmentIn): FragmentOut {
+                    let out: FragmentOut;
+                    return out;
+                }
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Evaluation. No incidents.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
+
+            // Evaluation. Check entry points count.
+            expect(lTranspilationResult.entryPoints.fragment.size).toBe(1);
+
+            // Evaluation. Check entry point type and name.
+            const lEntryPoint: PgslParserResultFragmentEntryPoint = lTranspilationResult.entryPoints.fragment.get(lFunctionName)!;
+            expect(lEntryPoint).toBeDefined();
+            expect(lEntryPoint.type).toBe('fragment');
+            expect(lEntryPoint.name).toBe(lFunctionName);
+
+            // Evaluation. Check render targets count (should only include location properties, not built-in values).
+            expect(lEntryPoint.renderTargets).toHaveLength(1);
+
+            // Evaluation. Check the single render target.
+            const lRenderTargetOne = lEntryPoint.renderTargets[0];
+            expect(lRenderTargetOne.name).toBe('outputOne');
+            expect(lRenderTargetOne.location).toBe(0);
+            expect(lRenderTargetOne.type.type).toBe('vector');
+
+            // Evaluation. Check first render target element type.
+            const lRenderTargetOneType = lRenderTargetOne.type as PgslParserResultVectorType;
+            expect(lRenderTargetOneType.dimension).toBe(4);
+            expect(lRenderTargetOneType.elementType.type).toBe('numeric');
+            const lRenderTargetOneElementType = lRenderTargetOneType.elementType as PgslParserResultNumericType;
+            expect(lRenderTargetOneElementType.numberType).toBe('float');
+            expect(lRenderTargetOneElementType.alignmentType).toBe('packed');
+        });
+    });
+
+    await pContext.step('Vertex Entry Point', async (pContext) => {
+        await pContext.step('Only location input values', async () => {
+            // Setup.
+            const lFunctionName: string = 'testFunction';
+            const lCodeText: string = `
+                struct VertexIn {
+                    [${AttributeListAst.attributeNames.location}("test_position")] position: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}>,
+                    [${AttributeListAst.attributeNames.location}("test_normal")] normal: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}>
+                }
+                struct VertexOut {
+                    [${AttributeListAst.attributeNames.location}("test_output_pos")] outputPos: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>,
+                    [${AttributeListAst.attributeNames.location}("test_output_norm")] outputNorm: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}>
+                }
+
+                [${AttributeListAst.attributeNames.vertex}()]
+                function ${lFunctionName}(in: VertexIn): VertexOut {
+                    let out: VertexOut;
+                    return out;
+                }
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Evaluation. No incidents.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
+
+            // Evaluation. Check entry points count.
+            expect(lTranspilationResult.entryPoints.vertex.size).toBe(1);
+
+            // Evaluation. Check entry point type and name.
+            const lEntryPoint: PgslParserResultVertexEntryPoint = lTranspilationResult.entryPoints.vertex.get(lFunctionName)!;
+            expect(lEntryPoint).toBeDefined();
+            expect(lEntryPoint.type).toBe('vertex');
+            expect(lEntryPoint.name).toBe(lFunctionName);
+
+            // Evaluation. Check parameters count.
+            expect(lEntryPoint.parameters).toHaveLength(2);
+
+            // Evaluation. Check first parameter.
+            const lParameterOne = lEntryPoint.parameters[0];
+            expect(lParameterOne.name).toBe('position');
+            expect(lParameterOne.location).toBe(0);
+            expect(lParameterOne.type.type).toBe('vector');
+
+            // Evaluation. Check first parameter element type.
+            const lParameterOneType = lParameterOne.type as PgslParserResultVectorType;
+            expect(lParameterOneType.dimension).toBe(3);
+            expect(lParameterOneType.elementType.type).toBe('numeric');
+            const lParameterOneElementType = lParameterOneType.elementType as PgslParserResultNumericType;
+            expect(lParameterOneElementType.numberType).toBe('float');
+            expect(lParameterOneElementType.alignmentType).toBe('packed');
+
+            // Evaluation. Check second parameter.
+            const lParameterTwo = lEntryPoint.parameters[1];
+            expect(lParameterTwo.name).toBe('normal');
+            expect(lParameterTwo.location).toBe(1);
+            expect(lParameterTwo.type.type).toBe('vector');
+
+            // Evaluation. Check second parameter element type.
+            const lParameterTwoType = lParameterTwo.type as PgslParserResultVectorType;
+            expect(lParameterTwoType.dimension).toBe(3);
+            expect(lParameterTwoType.elementType.type).toBe('numeric');
+            const lParameterTwoElementType = lParameterTwoType.elementType as PgslParserResultNumericType;
+            expect(lParameterTwoElementType.numberType).toBe('float');
+            expect(lParameterTwoElementType.alignmentType).toBe('packed');
+        });
+
+        await pContext.step('With buildin vertexIndex value', async () => {
+            // Setup.
+            const lFunctionName: string = 'testFunction';
+            const lCodeText: string = `
+                struct VertexIn {
+                    [${AttributeListAst.attributeNames.location}("test_position")] position: ${PgslVectorType.typeName.vector3}<${PgslNumericType.typeName.float32}>,
+                    vertexIndexValue: ${PgslBuildInType.typeName.vertexIndex}
+                }
+                struct VertexOut {
+                    [${AttributeListAst.attributeNames.location}("test_output_pos")] outputPos: ${PgslVectorType.typeName.vector4}<${PgslNumericType.typeName.float32}>
+                }
+
+                [${AttributeListAst.attributeNames.vertex}()]
+                function ${lFunctionName}(in: VertexIn): VertexOut {
+                    let out: VertexOut;
+                    return out;
+                }
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+            // Evaluation. No incidents.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
+
+            // Evaluation. Check entry points count.
+            expect(lTranspilationResult.entryPoints.vertex.size).toBe(1);
+
+            // Evaluation. Check entry point type and name.
+            const lEntryPoint: PgslParserResultVertexEntryPoint = lTranspilationResult.entryPoints.vertex.get(lFunctionName)!;
+            expect(lEntryPoint).toBeDefined();
+            expect(lEntryPoint.type).toBe('vertex');
+            expect(lEntryPoint.name).toBe(lFunctionName);
+
+            // Evaluation. Check parameters count (should only include location properties, not built-in values).
+            expect(lEntryPoint.parameters).toHaveLength(1);
+
+            // Evaluation. Check the single parameter.
+            const lParameterOne = lEntryPoint.parameters[0];
+            expect(lParameterOne.name).toBe('position');
+            expect(lParameterOne.location).toBe(0);
+            expect(lParameterOne.type.type).toBe('vector');
+
+            // Evaluation. Check first parameter element type.
+            const lParameterOneType = lParameterOne.type as PgslParserResultVectorType;
+            expect(lParameterOneType.dimension).toBe(3);
+            expect(lParameterOneType.elementType.type).toBe('numeric');
+            const lParameterOneElementType = lParameterOneType.elementType as PgslParserResultNumericType;
+            expect(lParameterOneElementType.numberType).toBe('float');
+            expect(lParameterOneElementType.alignmentType).toBe('packed');
+        });
     });
 });
 

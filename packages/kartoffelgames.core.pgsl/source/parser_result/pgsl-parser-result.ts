@@ -30,6 +30,15 @@ export class PgslParserResult {
     }
 
     /**
+     * Gets the entry points extracted from the PGSL source.
+     * 
+     * @returns A readonly map of entry points by their type and name.
+     */
+    public get entryPoints(): ReadonlyPgslParserResultMetaEntryPoints {
+        return this.mMeta.entrypoints;
+    }
+
+    /**
      * Gets the list of trace incidents encountered during parsing.
      * 
      * @returns A readonly array of PgslTraceIncident instances.
@@ -146,8 +155,8 @@ export class PgslParserResult {
                 continue;
             }
 
-            // Skip non-entry point functions.
-            if (lValue.data.declarations.length > 0) {
+            // Skip all functions without declarations.
+            if (lValue.data.declarations.length < 1) {
                 continue;
             }
 
@@ -232,5 +241,11 @@ type PgslParserResultMeta = {
     bindings: Array<PgslParserResultBinding>;
     parameters: Array<PgslParserResultParameter>;
     entrypoints: PgslParserResultMetaEntryPoints;
+};
+
+export type ReadonlyPgslParserResultMetaEntryPoints = {
+    readonly vertex: ReadonlyMap<string, PgslParserResultVertexEntryPoint>;
+    readonly fragment: ReadonlyMap<string, PgslParserResultFragmentEntryPoint>;
+    readonly compute: ReadonlyMap<string, PgslParserResultComputeEntryPoint>;
 };
 

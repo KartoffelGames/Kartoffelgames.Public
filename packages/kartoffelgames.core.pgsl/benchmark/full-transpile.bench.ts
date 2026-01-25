@@ -1,7 +1,5 @@
 import { PgslParser } from "../source/parser/pgsl-parser.ts";
-import { PgslParserResult } from "../source/parser_result/pgsl-parser-result.ts";
 import { WgslTranspiler } from "../source/transpilation/wgsl/wgsl-transpiler.ts";
-
 
 Deno.bench('Create parser instance', () => {
     new PgslParser();

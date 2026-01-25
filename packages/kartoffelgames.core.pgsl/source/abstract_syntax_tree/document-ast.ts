@@ -1,4 +1,4 @@
-import type { DocumentCst, DocumentCstImport } from '../concrete_syntax_tree/general.type.ts';
+import type { DocumentCst } from '../concrete_syntax_tree/general.type.ts';
 import type { AbstractSyntaxTreeContext, AbstractSyntaxTreeIncident, AbstractSyntaxTreeSymbolUsageName } from './abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree } from './abstract-syntax-tree.ts';
 import { DeclarationAstBuilder } from './declaration/declaration-ast-builder.ts';

@@ -1,6 +1,6 @@
 import { expect } from '@kartoffelgames/core-test';
-import { AttributeListAst } from "../../../source/abstract_syntax_tree/general/attribute-list-ast.ts";
-import { PgslNumericType } from "../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts";
+import { AttributeListAst } from '../../../source/abstract_syntax_tree/general/attribute-list-ast.ts';
+import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts';
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';

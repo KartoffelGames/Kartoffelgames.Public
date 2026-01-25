@@ -9,8 +9,9 @@ import { AttributeListAst } from '../general/attribute-list-ast.ts';
 import { TypeDeclarationAst } from '../general/type-declaration-ast.ts';
 import type { IValueStoreAst } from '../i-value-store-ast.interface.ts';
 import { BlockStatementAst } from '../statement/execution/block-statement-ast.ts';
-import { PgslInvalidType } from '../type/pgsl-invalid-type.ts';
 import type { IType } from '../type/i-type.interface.ts';
+import { PgslInvalidType } from '../type/pgsl-invalid-type.ts';
+import { PgslStructType } from '../type/pgsl-struct-type.ts';
 import type { DeclarationAstData, IDeclarationAst } from './i-declaration-ast.interface.ts';
 
 /**
@@ -178,7 +179,7 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                 };
 
                 // Find entry point.
-                const lEntryPoint: FunctionDeclarationAstDataEntryPoint | null = this.readEntryPoint(lAttributes, pContext);
+                const lEntryPoint: FunctionDeclarationAstDataEntryPoint | null = this.readEntryPoint(lAttributes, lDeclarationResult, pContext);
                 if (lEntryPoint) {
                     lDeclarationResult.entryPoint = lEntryPoint;
                 }
@@ -199,13 +200,88 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
      * 
      * @returns Entry point data or null if function is not an entry point. 
      */
-    private readEntryPoint(pAttributes: AttributeListAst, pContext: AbstractSyntaxTreeContext): FunctionDeclarationAstDataEntryPoint | null {
+    private readEntryPoint(pAttributes: AttributeListAst, pDeclaration: FunctionDeclarationAstDataDeclaration, pContext: AbstractSyntaxTreeContext): FunctionDeclarationAstDataEntryPoint | null {
+        // Entry points must not have generic parameters.
+        if (pDeclaration.generics.length > 0) {
+            pContext.pushIncident(`Entry points must not have generic parameters.`, this);
+        }
+
         switch (true) {
             case pAttributes.hasAttribute(AttributeListAst.attributeNames.vertex): {
-                return { stage: 'vertex' };
+                // Vertex entry point must have a struct type parameter.
+                if (pDeclaration.parameter.length !== 1) {
+                    pContext.pushIncident(`Vertex entry points must have exactly one parameter defining the vertex input structure.`, this);
+
+                    if (pDeclaration.parameter.length === 0) {
+                        return null;
+                    }
+                }
+
+                // Read first parameter type and check if it is a struct type.
+                const lParameterType: string | TypeDeclarationAst = pDeclaration.parameter[0].type;
+                if (typeof lParameterType === 'string') {
+                    pContext.pushIncident(`Vertex entry point parameter cannot be a generic type.`, this);
+                    return null;
+                }
+                if (!(lParameterType.data.type instanceof PgslStructType)) {
+                    pContext.pushIncident(`Vertex entry point parameter must be a struct type defining the vertex input structure.`, this);
+                    return null;
+                }
+
+                // Check return type.
+                const lReturnType: string | TypeDeclarationAst = pDeclaration.returnType;
+                if (typeof lReturnType === 'string') {
+                    pContext.pushIncident(`Vertex entry point return type cannot be a generic type.`, this);
+                    return null;
+                }
+                if (!(lReturnType.data.type instanceof PgslStructType)) {
+                    pContext.pushIncident(`Vertex entry point return type must be a struct type defining the vertex output structure.`, this);
+                    return null;
+                }
+
+                return {
+                    stage: 'vertex',
+                    parameter: lParameterType.data.type,
+                    returnType: lReturnType.data.type
+                };
             }
             case pAttributes.hasAttribute(AttributeListAst.attributeNames.fragment): {
-                return { stage: 'fragment' };
+                // Fragment entry point must have a struct type parameter.
+                if (pDeclaration.parameter.length !== 1) {
+                    pContext.pushIncident(`Fragment entry points must have exactly one parameter defining the fragment input structure.`, this);
+
+                    if (pDeclaration.parameter.length === 0) {
+                        return null;
+                    }
+                }
+
+                // Read first parameter type and check if it is a struct type.
+                const lParameterType: string | TypeDeclarationAst = pDeclaration.parameter[0].type;
+                if (typeof lParameterType === 'string') {
+                    pContext.pushIncident(`Fragment entry point parameter cannot be a generic type.`, this);
+                    return null;
+                }
+                if (!(lParameterType.data.type instanceof PgslStructType)) {
+                    pContext.pushIncident(`Fragment entry point parameter must be a struct type defining the fragment input structure.`, this);
+                    return null;
+                }
+
+                // Check return type.
+                const lReturnType: string | TypeDeclarationAst = pDeclaration.returnType;
+                if (typeof lReturnType === 'string') {
+                    pContext.pushIncident(`Fragment entry point return type cannot be a generic type.`, this);
+                    return null;
+                }
+                if (!(lReturnType.data.type instanceof PgslStructType)) {
+                    pContext.pushIncident(`Fragment entry point return type must be a struct type defining the fragment output structure.`, this);
+                    return null;
+                }
+
+                return {
+                    stage: 'fragment',
+                    parameter: lParameterType.data.type,
+                    returnType: lReturnType.data.type
+                };
             }
             case pAttributes.hasAttribute(AttributeListAst.attributeNames.compute): {
                 const lAttributeParameter: Array<IExpressionAst> = pAttributes.getAttributeParameter(AttributeListAst.attributeNames.compute);
@@ -214,6 +290,14 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                 if (lAttributeParameter.length !== 3) {
                     pContext.pushIncident(`Compute attribute needs exactly three constant parameters for work group size declaration.`, pAttributes);
                     return null;
+                }
+
+                // Compute entry point must not have parameters or a return type.
+                if (pDeclaration.parameter.length > 0) {
+                    pContext.pushIncident(`Compute entry points must not have parameters.`, this);
+                }
+                if (typeof pDeclaration.returnType !== 'string' && !(pDeclaration.returnType.data.type instanceof PgslInvalidType)) {
+                    pContext.pushIncident(`Compute entry points must not have a return type.`, this);
                 }
 
                 // Get expression traces.
@@ -345,16 +429,12 @@ export type FunctionDeclarationAstEntryPointStage = 'vertex' | 'fragment' | 'com
  * Specifies the shader stage and related configuration.
  */
 export type FunctionDeclarationAstDataEntryPoint = {
-    /**
-     * The type of entry point
-     */
-    stage: FunctionDeclarationAstEntryPointStage;
-
-    /**
-     * Workgroup size for compute shaders (x, y, z dimensions)
-     * Only applicable for compute entry points
-     */
-    workgroupSize?: FunctionDeclarationAstDataEntryPointWorkgroupSize;
+    stage: 'compute';
+    workgroupSize: FunctionDeclarationAstDataEntryPointWorkgroupSize;
+} | {
+    stage: 'vertex' | 'fragment';
+    parameter: PgslStructType;
+    returnType: PgslStructType;
 };
 
 export type FunctionDeclarationAstData = {

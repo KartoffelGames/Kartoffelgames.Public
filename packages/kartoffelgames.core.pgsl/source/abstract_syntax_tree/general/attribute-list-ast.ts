@@ -13,9 +13,9 @@ import { StructPropertyDeclarationAst } from '../declaration/struct-property-dec
 import { VariableDeclarationAst } from '../declaration/variable-declaration-ast.ts';
 import { ExpressionAstBuilder } from '../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
-import { PgslAccessModeEnum } from "../../buildin/enum/pgsl-access-mode-enum.ts";
-import { PgslInterpolateSamplingEnum } from "../../buildin/enum/pgsl-interpolate-sampling-enum.ts";
-import { PgslInterpolateTypeEnum } from "../../buildin/enum/pgsl-interpolate-type-enum.ts";
+import { PgslAccessModeEnum } from '../../buildin/enum/pgsl-access-mode-enum.ts';
+import { PgslInterpolateSamplingEnum } from '../../buildin/enum/pgsl-interpolate-sampling-enum.ts';
+import { PgslInterpolateTypeEnum } from '../../buildin/enum/pgsl-interpolate-type-enum.ts';
 
 /**
  * Generic attribute list.

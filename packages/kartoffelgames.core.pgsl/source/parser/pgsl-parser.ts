@@ -95,9 +95,9 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         PgslTextureType.typeName.textureStorage3d,
     ]);
 
+    private readonly mEnvironmentValues: Map<string, string> = new Map<string, string>();
+    private readonly mImports: Map<string, string> = new Map<string, string>();
     private mUserDefinedTypeNames: Set<string>;
-    private mImports: Map<string, string> = new Map<string, string>();
-    private mEnvironmentValues: Map<string, string> = new Map<string, string>();
 
     /**
      * Constructor.
@@ -137,16 +137,6 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
     }
 
     /**
-     * Add an import to the parser.
-     * 
-     * @param pImportName - Name of the import.
-     * @param pImportCode - Code text of the import.
-     */
-    public addImport(pImportName: string, pImportCode: string): void {
-        this.mImports.set(pImportName.toLowerCase(), pImportCode);
-    }
-
-    /**
      * Add an environment value to the parser.
      * 
      * @param pKey - Key of the environment value.
@@ -154,6 +144,16 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
      */
     public addEnvironmentValue(pKey: string, pValue: string): void {
         this.mEnvironmentValues.set(pKey.toLowerCase(), pValue);
+    }
+
+    /**
+     * Add an import to the parser.
+     * 
+     * @param pImportName - Name of the import.
+     * @param pImportCode - Code text of the import.
+     */
+    public addImport(pImportName: string, pImportCode: string): void {
+        this.mImports.set(pImportName.toLowerCase(), pImportCode);
     }
 
     /**
@@ -1730,8 +1730,8 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
      * @throws {@link ParserException} 
      * When the graph could not be resolved with the set code text. Or Exception when no tokenizeable text should be parsed.
      */
-    public internalParse(pCodeText: string, pEnvironmentData: Map<string, string>, pUsedImports: Set<string>): DocumentCst {
-        let lProcessedCode: PgslParserPreprocessResult = this.preprocessText(pCodeText, pEnvironmentData);
+    private internalParse(pCodeText: string, pEnvironmentData: Map<string, string>, pUsedImports: Set<string>): DocumentCst {
+        const lProcessedCode: PgslParserPreprocessResult = this.preprocessText(pCodeText, pEnvironmentData);
 
         // Define bucket for all user defined type names used in this document and its imports.
         const lUserDefinedNames: Set<string> = new Set<string>();
@@ -1828,7 +1828,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 if (lStartMatch) {
                     const lDirective: string = lStartMatch[1];
                     const lName: string = (lStartMatch[3] || '').toLowerCase().trim();
-                
+
                     // Throw when no name was provided.
                     if (!lName) {
                         throw new Exception(`#${lDirective} missing value name.`, this);
@@ -1836,7 +1836,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
 
                     // Determine if the block is active based on the directive and environment data.
                     let lIsActive: boolean = lCurrentIfActive;
-                    if(lIsActive) {
+                    if (lIsActive) {
                         if (lDirective === 'IFDEF') {
                             lIsActive = pEnvironmentData.has(lName);
                         } else if (lDirective === 'IFNOTDEF') {

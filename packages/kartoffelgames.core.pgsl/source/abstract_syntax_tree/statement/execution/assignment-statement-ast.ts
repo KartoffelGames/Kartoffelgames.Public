@@ -7,6 +7,8 @@ import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
 import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
+import { PgslOperator } from "../../../enum/pgsl-operator.enum.ts";
+import { ExpressionCst } from "../../../concrete_syntax_tree/expression.type.ts";
 
 /**
  * PGSL structure holding a assignment statement.
@@ -37,10 +39,31 @@ export class AssignmentStatementAst extends AbstractSyntaxTree<AssignmentStateme
             pContext.pushIncident('Assignment statement must be applied to a variable.', lVariable);
         }
 
-        // TODO: Special assignments must validate that the variable type supports the operation.
+        // Special assignments must validate that the variable type supports the operation.
+        const [lCoreOperator, lOperatorType] = this.coreOperatorOfAssignment(lAssignment as PgslAssignment);
+        let lExpressionCst: ExpressionCst;
+        if (lOperatorType === 'arithmetic') {
+            lExpressionCst = {
+                type: 'ArithmeticExpression',
+                range: this.cst.range,
+                left: lVariable.cst,
+                operator: lCoreOperator,
+                right: this.cst.expression
+            } as ExpressionCst<'ArithmeticExpression'>;
+        } else if (lOperatorType === 'bitwise') {
+            lExpressionCst = {
+                type: 'BinaryExpression',
+                range: this.cst.range,
+                left: lVariable.cst,
+                operator: lCoreOperator,
+                right: this.cst.expression
+            } as ExpressionCst<'BinaryExpression'>;
+        } else {
+            lExpressionCst = this.cst.expression;
+        }
 
         // Build expression expression.
-        const lExpression: IExpressionAst = ExpressionAstBuilder.build(this.cst.expression).process(pContext);
+        const lExpression: IExpressionAst = ExpressionAstBuilder.build(lExpressionCst).process(pContext);
 
         // Validate that it has the same value.
         if (!lExpression.data.resolveType.isImplicitCastableInto(lVariable.data.resolveType)) {
@@ -51,10 +74,41 @@ export class AssignmentStatementAst extends AbstractSyntaxTree<AssignmentStateme
             // Statement data.
             assignment: lAssignment ?? PgslAssignment.Assignment,
             variable: lVariable,
-            expression: lExpression
+
+            // Build the real expression that should be assigned.
+            expression: ExpressionAstBuilder.build(this.cst.expression).process(pContext)
         };
     }
+
+    private coreOperatorOfAssignment(pAssignment: PgslAssignment): [PgslOperator | null, AssignmentStatementAstDataOperatorType] {
+        switch (pAssignment) {
+            case PgslAssignment.Assignment:
+                return [null, 'none'];
+            case PgslAssignment.AssignmentPlus:
+                return [PgslOperator.Plus, 'arithmetic'];
+            case PgslAssignment.AssignmentMinus:
+                return [PgslOperator.Minus, 'arithmetic'];
+            case PgslAssignment.AssignmentMultiply:
+                return [PgslOperator.Multiply, 'arithmetic'];
+            case PgslAssignment.AssignmentDivide:
+                return [PgslOperator.Divide, 'arithmetic'];
+            case PgslAssignment.AssignmentModulo:
+                return [PgslOperator.Modulo, 'arithmetic'];
+            case PgslAssignment.AssignmentBinaryAnd:
+                return [PgslOperator.BinaryAnd, 'bitwise'];
+            case PgslAssignment.AssignmentBinaryOr:
+                return [PgslOperator.BinaryOr, 'bitwise'];
+            case PgslAssignment.AssignmentBinaryXor:
+                return [PgslOperator.BinaryXor, 'bitwise'];
+            case PgslAssignment.AssignmentShiftRight:
+                return [PgslOperator.ShiftRight, 'bitwise'];
+            case PgslAssignment.AssignmentShiftLeft:
+                return [PgslOperator.ShiftLeft, 'bitwise'];
+        }
+    }
 }
+
+type AssignmentStatementAstDataOperatorType = 'bitwise' | 'arithmetic' | 'none';
 
 export type AssignmentStatementAstData = {
     assignment: PgslAssignment;

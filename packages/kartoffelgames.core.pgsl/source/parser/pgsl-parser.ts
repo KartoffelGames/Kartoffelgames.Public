@@ -1788,6 +1788,86 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
     }
 
     /**
+     * Preprocess IFDEF and IFNOTDEF replacements in code.
+     * 
+     * @param pCode - Code to preprocess.
+     * @param pEnvironmentData - Environment data for conditional compilation.
+     * 
+     * @returns Preprocessed code.
+     */
+    private preprocessIfDefReplacements(pCode: string, pEnvironmentData: Map<string, string>): string {
+        // Create a stack to handle nested #IFDEF.
+        // Stack contains booleans indicating if the current block is active or not.
+        const lIfStacks: Stack<boolean> = new Stack<boolean>();
+
+        // Define IFDEF start line regex pattern.
+        const lIfDefStartPattern: RegExp = /^[ ]*#(IFDEF|IFNOTDEF)([ ]+(.*))?$/mg;
+        const lIfDefEndPattern: RegExp = /^[ ]*#ENDIF([ ]+(.*))?$/mg;
+
+        // Iterate over each line.
+        const lResultLines: Array<string> = new Array<string>();
+        for (const lLine of pCode.split('\n')) {
+            // Reset regex last index to start of line.
+            lIfDefStartPattern.lastIndex = 0;
+            lIfDefEndPattern.lastIndex = 0;
+
+            // Get current active state from top of the stack, default to true when stack is empty.
+            const lCurrentIfActive: boolean = lIfStacks.top ?? true;
+
+            // Check for start pattern.
+            const lStartMatch: RegExpMatchArray | null = lIfDefStartPattern.exec(lLine);
+            if (lStartMatch) {
+                const lDirective: string = lStartMatch[1];
+                const lName: string = (lStartMatch[3] || '').toLowerCase().trim();
+
+                // Throw when no name was provided.
+                if (!lName) {
+                    throw new Exception(`#${lDirective} missing value name.`, this);
+                }
+
+                // Determine if the block is active based on the directive and environment data.
+                let lIsActive: boolean = lCurrentIfActive;
+                if (lIsActive) {
+                    if (lDirective === 'IFDEF') {
+                        lIsActive = pEnvironmentData.has(lName);
+                    } else if (lDirective === 'IFNOTDEF') {
+                        lIsActive = !pEnvironmentData.has(lName);
+                    }
+                }
+
+                // Push the new active state onto the stack.
+                lIfStacks.push(lIsActive);
+
+                // Continue with next line (replace with newline to keep line numbers).
+                lResultLines.push('');
+                continue;
+            }
+
+            // Check for end pattern.
+            const lEndMatch: RegExpMatchArray | null = lIfDefEndPattern.exec(lLine);
+            if (lEndMatch) {
+                // Pop the stack to return to the previous active state.
+                if (typeof lIfStacks.top === 'undefined') {
+                    throw new Exception('#ENDIF without matching #IFDEF or #IFNOTDEF.', this);
+                }
+
+                lIfStacks.pop();
+                lResultLines.push('');
+                continue;
+            }
+
+            // When the current block is active, keep the line as is, otherwise replace with spaces to keep line numbers.
+            if (lCurrentIfActive) {
+                lResultLines.push(lLine);
+            } else {
+                lResultLines.push('');
+            }
+        }
+
+        return lResultLines.join('\n');
+    }
+
+    /**
      * Preprocess code before parsing.
      * 
      * @param pCode - Code to preprocess.
@@ -1803,81 +1883,8 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
             return pMatch.replace(/[^\n]/g, ' ');
         });
 
-        // Move over first #IFDEF and last #IFEND.
-        const lIfDefReplacement = (pSubCode: string): string => {
-            // Create a stack to handle nested #IFDEF.
-            // Stack contains booleans indicating if the current block is active or not.
-            const lIfStacks: Stack<boolean> = new Stack<boolean>();
-
-            // Define IFDEF start line regex pattern.
-            const lIfDefStartPattern: RegExp = /^[ ]*#(IFDEF|IFNOTDEF)([ ]+(.*))?$/mg;
-            const lIfDefEndPattern: RegExp = /^[ ]*#ENDIF([ ]+(.*))?$/mg;
-
-            // Iterate over each line.
-            const lResultLines: Array<string> = new Array<string>();
-            for (const lLine of pSubCode.split('\n')) {
-                // Reset regex last index to start of line.
-                lIfDefStartPattern.lastIndex = 0;
-                lIfDefEndPattern.lastIndex = 0;
-
-                // Get current active state from top of the stack, default to true when stack is empty.
-                const lCurrentIfActive: boolean = lIfStacks.top ?? true;
-
-                // Check for start pattern.
-                const lStartMatch: RegExpMatchArray | null = lIfDefStartPattern.exec(lLine);
-                if (lStartMatch) {
-                    const lDirective: string = lStartMatch[1];
-                    const lName: string = (lStartMatch[3] || '').toLowerCase().trim();
-
-                    // Throw when no name was provided.
-                    if (!lName) {
-                        throw new Exception(`#${lDirective} missing value name.`, this);
-                    }
-
-                    // Determine if the block is active based on the directive and environment data.
-                    let lIsActive: boolean = lCurrentIfActive;
-                    if (lIsActive) {
-                        if (lDirective === 'IFDEF') {
-                            lIsActive = pEnvironmentData.has(lName);
-                        } else if (lDirective === 'IFNOTDEF') {
-                            lIsActive = !pEnvironmentData.has(lName);
-                        }
-                    }
-
-                    // Push the new active state onto the stack.
-                    lIfStacks.push(lIsActive);
-
-                    // Continue with next line (replace with newline to keep line numbers).
-                    lResultLines.push('');
-                    continue;
-                }
-
-                // Check for end pattern.
-                const lEndMatch: RegExpMatchArray | null = lIfDefEndPattern.exec(lLine);
-                if (lEndMatch) {
-                    // Pop the stack to return to the previous active state.
-                    if (typeof lIfStacks.top === 'undefined') {
-                        throw new Exception('#ENDIF without matching #IFDEF or #IFNOTDEF.', this);
-                    }
-
-                    lIfStacks.pop();
-                    lResultLines.push('');
-                    continue;
-                }
-
-                // When the current block is active, keep the line as is, otherwise replace with spaces to keep line numbers.
-                if (lCurrentIfActive) {
-                    lResultLines.push(lLine);
-                } else {
-                    lResultLines.push('');
-                }
-            }
-
-            return lResultLines.join('\n');
-        };
-
-        // Process all #IFDEF ... #IFEND blocks.
-        lResultCode = lIfDefReplacement(lResultCode);
+        // Process conditional compilation replacements.
+        lResultCode = this.preprocessIfDefReplacements(lResultCode, pEnvironmentData);
 
         // Read import names while replaceing them at the same time.
         const lImportList: Array<string> = new Array<string>();
@@ -1888,6 +1895,8 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
             // Replace with newlines only to keep line numbers lined up.
             return '\n';
         });
+
+        // TODO: Replace "#META name value" and save the values into document and and parser result. 
 
         return {
             code: lResultCode,

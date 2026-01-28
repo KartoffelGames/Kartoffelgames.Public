@@ -1766,8 +1766,8 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
             lParsedImportList.push(...lImportDocumentCst.imports);
 
             // Merge meta values from imported document.
-            for (const [pKey, pValue] of lImportDocumentCst.metaValues) {
-                lParsedMetaValues.set(pKey, pValue);
+            for (const [lKey, lValue] of lImportDocumentCst.metaValues) {
+                lParsedMetaValues.set(lKey, lValue);
             }
 
             // Add imported document to import list.
@@ -1790,8 +1790,8 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
 
         // Merge meta values from parsed document.
         // Core document values have priority over imported ones.
-        for (const [pKey, pValue] of lProcessedCode.metaValues) {
-            lParsedMetaValues.set(pKey, pValue);
+        for (const [lKey, lValue] of lProcessedCode.metaValues) {
+            lParsedMetaValues.set(lKey, lValue);
         }
 
         // Set imports property.

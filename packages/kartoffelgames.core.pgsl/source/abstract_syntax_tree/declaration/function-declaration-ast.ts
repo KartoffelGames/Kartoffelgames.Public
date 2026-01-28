@@ -12,7 +12,7 @@ import { BlockStatementAst } from '../statement/execution/block-statement-ast.ts
 import type { IType } from '../type/i-type.interface.ts';
 import { PgslInvalidType } from '../type/pgsl-invalid-type.ts';
 import { PgslStructType } from '../type/pgsl-struct-type.ts';
-import { PgslVoidType } from "../type/pgsl-void-type.ts";
+import { PgslVoidType } from '../type/pgsl-void-type.ts';
 import type { DeclarationAstData, IDeclarationAst } from './i-declaration-ast.interface.ts';
 
 /**

@@ -5,19 +5,18 @@ import { AttributeListAst } from '../../../source/abstract_syntax_tree/general/a
 import { TypeDeclarationAst } from '../../../source/abstract_syntax_tree/general/type-declaration-ast.ts';
 import { BlockStatementAst } from '../../../source/abstract_syntax_tree/statement/execution/block-statement-ast.ts';
 import { PgslArrayType } from '../../../source/abstract_syntax_tree/type/pgsl-array-type.ts';
+import { PgslBuildInType } from '../../../source/abstract_syntax_tree/type/pgsl-build-in-type.ts';
 import { PgslMatrixType } from '../../../source/abstract_syntax_tree/type/pgsl-matrix-type.ts';
 import { PgslNumericType } from '../../../source/abstract_syntax_tree/type/pgsl-numeric-type.ts';
 import { PgslVectorType } from '../../../source/abstract_syntax_tree/type/pgsl-vector-type.ts';
 import { PgslParser } from '../../../source/parser/pgsl-parser.ts';
+import type { PgslParserResultComputeEntryPoint } from '../../../source/parser_result/entry_point/pgsl-parser-result-compute-entry-point.ts';
+import type { PgslParserResultFragmentEntryPoint } from '../../../source/parser_result/entry_point/pgsl-parser-result-fragment-entry-point.ts';
+import type { PgslParserResultVertexEntryPoint } from '../../../source/parser_result/entry_point/pgsl-parser-result-vertex-entry-point.ts';
 import type { PgslParserResult } from '../../../source/parser_result/pgsl-parser-result.ts';
+import type { PgslParserResultNumericType } from '../../../source/parser_result/type/pgsl-parser-result-numeric-type.ts';
+import type { PgslParserResultVectorType } from '../../../source/parser_result/type/pgsl-parser-result-vector-type.ts';
 import { WgslTranspiler } from '../../../source/transpilation/wgsl/wgsl-transpiler.ts';
-import { execPath } from "node:process";
-import { PgslParserResultComputeEntryPoint } from "../../../source/parser_result/entry_point/pgsl-parser-result-compute-entry-point.ts";
-import { PgslParserResultFragmentEntryPoint } from "../../../source/parser_result/entry_point/pgsl-parser-result-fragment-entry-point.ts";
-import { PgslParserResultVertexEntryPoint } from "../../../source/parser_result/entry_point/pgsl-parser-result-vertex-entry-point.ts";
-import { PgslParserResultVectorType } from "../../../source/parser_result/type/pgsl-parser-result-vector-type.ts";
-import { PgslParserResultNumericType } from "../../../source/parser_result/type/pgsl-parser-result-numeric-type.ts";
-import { PgslBuildInType } from "../../../source/abstract_syntax_tree/type/pgsl-build-in-type.ts";
 
 // Create parser instance.
 const gPgslParser: PgslParser = new PgslParser();

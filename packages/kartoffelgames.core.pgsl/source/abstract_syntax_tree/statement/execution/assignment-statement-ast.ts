@@ -7,8 +7,8 @@ import { AbstractSyntaxTree } from '../../abstract-syntax-tree.ts';
 import { ExpressionAstBuilder } from '../../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../../expression/i-expression-ast.interface.ts';
 import type { IStatementAst, StatementAstData } from '../i-statement-ast.interface.ts';
-import { PgslOperator } from "../../../enum/pgsl-operator.enum.ts";
-import { ExpressionCst } from "../../../concrete_syntax_tree/expression.type.ts";
+import { PgslOperator } from '../../../enum/pgsl-operator.enum.ts';
+import type { ExpressionCst } from '../../../concrete_syntax_tree/expression.type.ts';
 
 /**
  * PGSL structure holding a assignment statement.

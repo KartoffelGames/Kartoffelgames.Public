@@ -20,7 +20,8 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
         const lDocumentData = {
             incidents: new Array<AbstractSyntaxTreeIncident>(),
             content: new Array<IDeclarationAst>(),
-            symbolUsages: new Set<AbstractSyntaxTreeSymbolUsageName>()
+            symbolUsages: new Set<AbstractSyntaxTreeSymbolUsageName>(),
+            metaValues: new Map<string, string>()
         };
 
         // Build documents build-ins first outside any scope.
@@ -66,5 +67,6 @@ type DocumentAstData = {
     incidents: ReadonlyArray<AbstractSyntaxTreeIncident>;
     content: ReadonlyArray<IDeclarationAst>;
     symbolUsages: Set<AbstractSyntaxTreeSymbolUsageName>;
+    metaValues: Map<string, string>;
 };
 

@@ -1280,7 +1280,8 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
                 buildInDeclarations: [],
                 imports: [],
-                declarations: pData.list ?? []
+                declarations: pData.list ?? [],
+                metaValues: new Map<string, string>()
             } satisfies DocumentCst;
         });
 
@@ -1738,6 +1739,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
 
         // Parse imports.
         const lParsedImportList: Array<DocumentCstImport> = new Array<DocumentCstImport>();
+        const lParsedMetaValues: Map<string, string> = new Map<string, string>();
         for (const lImport of lProcessedCode.imports) {
             const lImportName: string = lImport;
 
@@ -1763,6 +1765,11 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
             // Push each inner imports from imported document to used imports.
             lParsedImportList.push(...lImportDocumentCst.imports);
 
+            // Merge meta values from imported document.
+            for (const [pKey, pValue] of lImportDocumentCst.metaValues) {
+                lParsedMetaValues.set(pKey, pValue);
+            }
+
             // Add imported document to import list.
             lParsedImportList.push({
                 name: lImportName,
@@ -1781,8 +1788,15 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         // Parse document CST.
         const lDocumentCst: DocumentCst = super.parse(lProcessedCode.code);
 
+        // Merge meta values from parsed document.
+        // Core document values have priority over imported ones.
+        for (const [pKey, pValue] of lDocumentCst.metaValues) {
+            lParsedMetaValues.set(pKey, pValue);
+        }
+
         // Set imports property.
         lDocumentCst.imports = lParsedImportList;
+        lDocumentCst.metaValues = lParsedMetaValues;
 
         return lDocumentCst;
     }
@@ -1896,11 +1910,20 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
             return '\n';
         });
 
-        // TODO: Replace "#META name value" and save the values into document and and parser result. 
+        // Replace "#META name value" and save the values.
+        const lMetaValues: Map<string, string> = new Map<string, string>();
+        lResultCode = lResultCode.replace(/^\s*#META\s+"(.*?)"\s*(?:"(.*?)")?\s*$/gm, (_pMatch: string, pMetaName: string, pMetaValue: string) => {
+            // Save meta value.
+            lMetaValues.set(pMetaName, pMetaValue || '');
+
+            // Replace with newlines only to keep line numbers lined up.
+            return '\n';
+        });
 
         return {
             code: lResultCode,
-            imports: lImportList
+            imports: lImportList,
+            metaValues: lMetaValues
         };
     }
 }
@@ -1908,6 +1931,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
 type PgslParserPreprocessResult = {
     code: string;
     imports: Array<string>;
+    metaValues: Map<string, string>;
 };
 
 type PgslParserCoreGraphs = {

@@ -97,13 +97,15 @@ export class PgslParserResult {
                     vertex: new Map<string, PgslParserResultVertexEntryPoint>(),
                     fragment: new Map<string, PgslParserResultFragmentEntryPoint>(),
                     compute: new Map<string, PgslParserResultComputeEntryPoint>()
-                }
+                },
+                values: new Map<string, string>()
             };
         } else {
             this.mMeta = {
                 bindings: this.convertBindings(pDocument, pMeta),
                 parameters: this.convertShaderParameter(pDocument),
-                entrypoints: this.convertEntryPoints(pDocument, pMeta)
+                entrypoints: this.convertEntryPoints(pDocument, pMeta),
+                values: new Map<string, string>(pDocument.data.metaValues)
             };
         }
     }
@@ -238,6 +240,7 @@ type PgslParserResultMetaEntryPoints = {
 };
 
 type PgslParserResultMeta = {
+    values: Map<string, string>;
     bindings: Array<PgslParserResultBinding>;
     parameters: Array<PgslParserResultParameter>;
     entrypoints: PgslParserResultMetaEntryPoints;

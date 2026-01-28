@@ -19,6 +19,7 @@ export type DocumentCst = {
     imports: Array<DocumentCstImport>;
     buildInDeclarations: Array<DeclarationCst>;
     declarations: Array<DeclarationCst>;
+    metaValues: Map<string, string>;
 } & Cst<'Document'>;
 
 export type DocumentCstImport = {

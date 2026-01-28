@@ -21,7 +21,7 @@ export class DocumentAst extends AbstractSyntaxTree<DocumentCst, DocumentAstData
             incidents: new Array<AbstractSyntaxTreeIncident>(),
             content: new Array<IDeclarationAst>(),
             symbolUsages: new Set<AbstractSyntaxTreeSymbolUsageName>(),
-            metaValues: new Map<string, string>()
+            metaValues: new Map<string, string>(this.cst.metaValues)
         };
 
         // Build documents build-ins first outside any scope.

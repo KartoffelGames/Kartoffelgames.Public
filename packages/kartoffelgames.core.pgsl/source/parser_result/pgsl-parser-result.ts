@@ -47,6 +47,10 @@ export class PgslParserResult {
         return this.mIncidents;
     }
 
+    public get metaValues(): ReadonlyMap<string, string> {
+        return this.mMeta.values;
+    }
+
     /**
      * Gets the list of shader parameters extracted from the PGSL source.
      * 

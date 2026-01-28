@@ -1790,7 +1790,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
 
         // Merge meta values from parsed document.
         // Core document values have priority over imported ones.
-        for (const [pKey, pValue] of lDocumentCst.metaValues) {
+        for (const [pKey, pValue] of lProcessedCode.metaValues) {
             lParsedMetaValues.set(pKey, pValue);
         }
 
@@ -1912,7 +1912,7 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
 
         // Replace "#META name value" and save the values.
         const lMetaValues: Map<string, string> = new Map<string, string>();
-        lResultCode = lResultCode.replace(/^\s*#META\s+"(.*?)"\s*(?:"(.*?)")?\s*$/gm, (_pMatch: string, pMetaName: string, pMetaValue: string) => {
+        lResultCode = lResultCode.replace(/^\s*#META\s+"(.*?)"\s*(?:"(.*?)")?;\s*$/gm, (_pMatch: string, pMetaName: string, pMetaValue: string) => {
             // Save meta value.
             lMetaValues.set(pMetaName, pMetaValue || '');
 

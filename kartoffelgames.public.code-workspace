@@ -45,10 +45,6 @@
             "path": "packages\\kartoffelgames.web.gpu"
         },
         {
-            "name": "Kartoffelgames.Web.Potato_Render",
-            "path": "packages\\kartoffelgames.web.potato_render"
-        },
-        {
             "name": "_ROOT",
             "path": "."
         }

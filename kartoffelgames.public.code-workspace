@@ -45,6 +45,10 @@
             "path": "packages\\kartoffelgames.web.gpu"
         },
         {
+            "name": "Kartoffelgames.Web.Potato_Engine",
+            "path": "./packages\\kartoffelgames.web.potato_engine"
+        },
+        {
             "name": "_ROOT",
             "path": "."
         }

@@ -33,7 +33,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lIndexDb: IDBDatabase = await lWebDatabase.open();
         expect(lIndexDb.name).toEqual(lDatabaseName);
         expect(lIndexDb.objectStoreNames).toHaveLength(1);
-        expect(lIndexDb.objectStoreNames).toContain(lTableName);
+        expect(lIndexDb.objectStoreNames.contains(lTableName)).toBeTruthy();
 
         // Evaluation. Validate table layout.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -48,7 +48,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
             expect(lTestTableObjectStore.autoIncrement).toEqual(lTableIdentityAutoincrement);
 
             expect(lTestTableObjectStore.indexNames).toHaveLength(1);
-            expect(lTestTableObjectStore.indexNames).toContain(lTableIdentityPropertyName);
+            expect(lTestTableObjectStore.indexNames.contains(lTableIdentityPropertyName)).toBeTruthy();
         });
 
         // Cleanup. Close the database.
@@ -75,7 +75,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lIndexDb: IDBDatabase = await lWebDatabase.open();
         expect(lIndexDb.name).toEqual(lDatabaseName);
         expect(lIndexDb.objectStoreNames).toHaveLength(1);
-        expect(lIndexDb.objectStoreNames).toContain(lTableName);
+        expect(lIndexDb.objectStoreNames.contains(lTableName)).toBeTruthy();
 
         // Evaluation. Validate table layout.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -90,7 +90,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
             // Validate index list.
             expect(lTestTableObjectStore.indexNames).toHaveLength(1);
-            expect(lTestTableObjectStore.indexNames).toContain(lTableIndexPropertyName);
+            expect(lTestTableObjectStore.indexNames.contains(lTableIndexPropertyName)).toBeTruthy();
 
             // Validate index.
             const lIndex: IDBIndex = lTestTableObjectStore.index(lTableIndexPropertyName);
@@ -125,7 +125,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lIndexDb: IDBDatabase = await lWebDatabase.open();
         expect(lIndexDb.name).toEqual(lDatabaseName);
         expect(lIndexDb.objectStoreNames).toHaveLength(1);
-        expect(lIndexDb.objectStoreNames).toContain(lTableName);
+        expect(lIndexDb.objectStoreNames.contains(lTableName)).toBeTruthy();
 
         // Evaluation. Validate table layout.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -140,7 +140,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
             expect(lTestTableObjectStore.autoIncrement).toEqual(lTableIdentityAutoincrement);
 
             expect(lTestTableObjectStore.indexNames).toHaveLength(1);
-            expect(lTestTableObjectStore.indexNames).toContain(lTableIdentityPropertyName);
+            expect(lTestTableObjectStore.indexNames.contains(lTableIdentityPropertyName)).toBeTruthy();
         });
 
         // Cleanup. Close the database.
@@ -169,7 +169,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lIndexDb: IDBDatabase = await lWebDatabase.open();
         expect(lIndexDb.name).toEqual(lDatabaseName);
         expect(lIndexDb.objectStoreNames).toHaveLength(1);
-        expect(lIndexDb.objectStoreNames).toContain(lTableName);
+        expect(lIndexDb.objectStoreNames.contains(lTableName)).toBeTruthy();
 
         // Evaluation. Validate table layout.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -183,7 +183,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
             gEmptyIdentityValidate(lTestTableObjectStore);
             // Validate index list.
             expect(lTestTableObjectStore.indexNames).toHaveLength(1);
-            expect(lTestTableObjectStore.indexNames).toContain(lTableIndexPropertyName);
+            expect(lTestTableObjectStore.indexNames.contains(lTableIndexPropertyName)).toBeTruthy();
 
             // Validate index.
             const lIndex: IDBIndex = lTestTableObjectStore.index(lTableIndexPropertyName);
@@ -217,7 +217,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lIndexDb: IDBDatabase = await lWebDatabase.open();
         expect(lIndexDb.name).toEqual(lDatabaseName);
         expect(lIndexDb.objectStoreNames).toHaveLength(1);
-        expect(lIndexDb.objectStoreNames).toContain(lTableName);
+        expect(lIndexDb.objectStoreNames.contains(lTableName)).toBeTruthy();
 
         // Evaluation. Validate table layout.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -232,7 +232,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
             // Validate index list.
             expect(lTestTableObjectStore.indexNames).toHaveLength(1);
-            expect(lTestTableObjectStore.indexNames).toContain(lTableIndexPropertyName);
+            expect(lTestTableObjectStore.indexNames.contains(lTableIndexPropertyName)).toBeTruthy();
 
             // Validate index.
             const lIndex: IDBIndex = lTestTableObjectStore.index(lTableIndexPropertyName);
@@ -274,7 +274,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lIndexDb: IDBDatabase = await lWebDatabase.open();
         expect(lIndexDb.name).toEqual(lDatabaseName);
         expect(lIndexDb.objectStoreNames).toHaveLength(1);
-        expect(lIndexDb.objectStoreNames).toContain(lTableName);
+        expect(lIndexDb.objectStoreNames.contains(lTableName)).toBeTruthy();
 
         // Evaluation. Validate table layout.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -289,7 +289,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
             // Validate index list.
             expect(lTestTableObjectStore.indexNames).toHaveLength(1);
-            expect(lTestTableObjectStore.indexNames).toContain(`${lTableIndexProperty1Name}+${lTableIndexProperty2Name}`);
+            expect(lTestTableObjectStore.indexNames.contains(`${lTableIndexProperty1Name}+${lTableIndexProperty2Name}`)).toBeTruthy();
 
             // Validate compound index.
             const lIndex: IDBIndex = lTestTableObjectStore.index(`${lTableIndexProperty1Name}+${lTableIndexProperty2Name}`);
@@ -333,7 +333,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lIndexDb: IDBDatabase = await lWebDatabase.open();
         expect(lIndexDb.name).toEqual(lDatabaseName);
         expect(lIndexDb.objectStoreNames).toHaveLength(1);
-        expect(lIndexDb.objectStoreNames).toContain(lTableName);
+        expect(lIndexDb.objectStoreNames.contains(lTableName)).toBeTruthy();
 
         // Evaluation. Validate table layout.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -348,7 +348,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
             // Validate index list.
             expect(lTestTableObjectStore.indexNames).toHaveLength(1);
-            expect(lTestTableObjectStore.indexNames).toContain(`${lTableIndexProperty1Name}+${lTableIndexProperty2Name}`);
+            expect(lTestTableObjectStore.indexNames.contains(`${lTableIndexProperty1Name}+${lTableIndexProperty2Name}`)).toBeTruthy();
 
             // Validate compound unique index.
             const lIndex: IDBIndex = lTestTableObjectStore.index(`${lTableIndexProperty1Name}+${lTableIndexProperty2Name}`);
@@ -384,7 +384,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lIndexDb: IDBDatabase = await lWebDatabase.open();
         expect(lIndexDb.name).toEqual(lDatabaseName);
         expect(lIndexDb.objectStoreNames).toHaveLength(1);
-        expect(lIndexDb.objectStoreNames).toContain(lTableName);
+        expect(lIndexDb.objectStoreNames.contains(lTableName)).toBeTruthy();
 
         // Evaluation. Validate table layout.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -399,7 +399,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
             // Validate index list.
             expect(lTestTableObjectStore.indexNames).toHaveLength(1);
-            expect(lTestTableObjectStore.indexNames).toContain(lTableIndexPropertyName);
+            expect(lTestTableObjectStore.indexNames.contains(lTableIndexPropertyName)).toBeTruthy();
 
             // Validate multi-entry unique index.
             const lIndex: IDBIndex = lTestTableObjectStore.index(lTableIndexPropertyName);
@@ -430,7 +430,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         const lIndexDb: IDBDatabase = await lWebDatabase.open();
         expect(lIndexDb.name).toEqual(lDatabaseName);
         expect(lIndexDb.objectStoreNames).toHaveLength(1);
-        expect(lIndexDb.objectStoreNames).toContain(lTableName);
+        expect(lIndexDb.objectStoreNames.contains(lTableName)).toBeTruthy();
 
         // Evaluation. Validate table layout.
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -476,7 +476,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         expect(lSecondDb.version).toEqual(lInitialVersion);
         expect(lSecondDb.name).toEqual(lDatabaseName);
         expect(lSecondDb.objectStoreNames).toHaveLength(1);
-        expect(lSecondDb.objectStoreNames).toContain(lTableName);
+        expect(lSecondDb.objectStoreNames.contains(lTableName)).toBeTruthy();
 
         // Evaluation. Verify table schema is unchanged.
         await lWebDatabase2.transaction([TestTable], 'readonly', async (pTransaction) => {
@@ -486,8 +486,8 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
             expect(lTestTableObjectStore.keyPath).toEqual(lTableIdentityPropertyName);
             expect(lTestTableObjectStore.autoIncrement).toBeTruthy();
             expect(lTestTableObjectStore.indexNames).toHaveLength(2);
-            expect(lTestTableObjectStore.indexNames).toContain(lTableIdentityPropertyName);
-            expect(lTestTableObjectStore.indexNames).toContain(lTableIndexPropertyName);
+            expect(lTestTableObjectStore.indexNames.contains(lTableIdentityPropertyName)).toBeTruthy();
+            expect(lTestTableObjectStore.indexNames.contains(lTableIndexPropertyName)).toBeTruthy();
         });
 
         // Cleanup. Close the database.
@@ -536,15 +536,15 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Evaluation. Verify both tables exist.
         expect(lUpdatedDb.objectStoreNames).toHaveLength(2);
-        expect(lUpdatedDb.objectStoreNames).toContain(lInitialTableName);
-        expect(lUpdatedDb.objectStoreNames).toContain(lNewTableName);
+        expect(lUpdatedDb.objectStoreNames.contains(lInitialTableName)).toBeTruthy();
+        expect(lUpdatedDb.objectStoreNames.contains(lNewTableName)).toBeTruthy();
 
         // Evaluation. Verify existing table is unchanged.
         await lWebDatabase.transaction([InitialTable], 'readonly', async (pTransaction) => {
             const lInitialTableStore: IDBObjectStore = pTransaction.transaction.objectStore(lInitialTableName);
             gEmptyIdentityValidate(lInitialTableStore);
             expect(lInitialTableStore.indexNames).toHaveLength(1);
-            expect(lInitialTableStore.indexNames).toContain(lInitialTableIndexPropertyName);
+            expect(lInitialTableStore.indexNames.contains(lInitialTableIndexPropertyName)).toBeTruthy();
         });
 
         // Evaluation. Verify new table is created correctly.
@@ -554,8 +554,8 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
             expect(lNewTableStore.keyPath).toEqual(lNewTableIdentityPropertyName);
             expect(lNewTableStore.autoIncrement).toBeTruthy();
             expect(lNewTableStore.indexNames).toHaveLength(2);
-            expect(lNewTableStore.indexNames).toContain(lNewTableIndexPropertyName);
-            expect(lNewTableStore.indexNames).toContain(lNewTableIdentityPropertyName);
+            expect(lNewTableStore.indexNames.contains(lNewTableIndexPropertyName)).toBeTruthy();
+            expect(lNewTableStore.indexNames.contains(lNewTableIdentityPropertyName)).toBeTruthy();
         });
 
         // Cleanup. Close the database.
@@ -603,8 +603,8 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
 
         // Evaluation. Verify only the kept table exists.
         expect(lUpdatedDb.objectStoreNames).toHaveLength(1);
-        expect(lUpdatedDb.objectStoreNames).toContain(lTableToKeepName);
-        expect(lUpdatedDb.objectStoreNames).not.toContain(lTableToRemoveName);
+        expect(lUpdatedDb.objectStoreNames.contains(lTableToKeepName)).toBeTruthy();
+        expect(lUpdatedDb.objectStoreNames.contains(lTableToRemoveName)).toBeFalsy();
 
         // Evaluation. Verify kept table is unchanged.
         await lWebDatabase.transaction([TableToKeep], 'readonly', async (pTransaction) => {
@@ -613,8 +613,8 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
             expect(lKeptTableStore.keyPath).toEqual(lTableIdentityPropertyName);
             expect(lKeptTableStore.autoIncrement).toBeTruthy();
             expect(lKeptTableStore.indexNames).toHaveLength(2);
-            expect(lKeptTableStore.indexNames).toContain(lKeepIndexPropertyName);
-            expect(lKeptTableStore.indexNames).toContain(lTableIdentityPropertyName);
+            expect(lKeptTableStore.indexNames.contains(lKeepIndexPropertyName)).toBeTruthy();
+            expect(lKeptTableStore.indexNames.contains(lTableIdentityPropertyName)).toBeTruthy();
 
             const lKeepIndex: IDBIndex = lKeptTableStore.index(lKeepIndexPropertyName);
             expect(lKeepIndex.unique).toBeFalsy();
@@ -663,8 +663,8 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
             expect(lTableStore.keyPath).toEqual(lTableIdentityPropertyName);
             expect(lTableStore.autoIncrement).toBeTruthy();
             expect(lTableStore.indexNames).toHaveLength(2);
-            expect(lTableStore.indexNames).toContain(lTableIndexPropertyName);
-            expect(lTableStore.indexNames).toContain(lTableIdentityPropertyName);
+            expect(lTableStore.indexNames.contains(lTableIndexPropertyName)).toBeTruthy();
+            expect(lTableStore.indexNames.contains(lTableIdentityPropertyName)).toBeTruthy();
         });
 
         // Cleanup. Close the database.
@@ -705,7 +705,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
             const lTableStore: IDBObjectStore = pTransaction.transaction.objectStore(lTableName);
             gEmptyIdentityValidate(lTableStore);
             expect(lTableStore.indexNames).toHaveLength(1);
-            expect(lTableStore.indexNames).toContain(lTableIndexPropertyName);
+            expect(lTableStore.indexNames.contains(lTableIndexPropertyName)).toBeTruthy();
         });
 
         // Cleanup. Close the database.
@@ -750,8 +750,8 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
             expect(lTableStore.keyPath).toEqual(lTableIdentityPropertyName);
             expect(lTableStore.autoIncrement).toBeTruthy();
             expect(lTableStore.indexNames).toHaveLength(2);
-            expect(lTableStore.indexNames).toContain(lTableIndexPropertyName);
-            expect(lTableStore.indexNames).toContain(lTableIdentityPropertyName);
+            expect(lTableStore.indexNames.contains(lTableIndexPropertyName)).toBeTruthy();
+            expect(lTableStore.indexNames.contains(lTableIdentityPropertyName)).toBeTruthy();
         });
 
         // Cleanup. Close the database.
@@ -791,7 +791,7 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
             expect(lTableStore.keyPath).toEqual(lTableIdentityPropertyName);
             expect(lTableStore.autoIncrement).toBeFalsy();
             expect(lTableStore.indexNames).toHaveLength(1);
-            expect(lTableStore.indexNames).toContain(lTableIdentityPropertyName);
+            expect(lTableStore.indexNames.contains(lTableIdentityPropertyName)).toBeTruthy();
         });
 
         // Cleanup. Close the database.
@@ -838,9 +838,9 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTableStore: IDBObjectStore = pTransaction.transaction.objectStore(lTableName);
             expect(lTableStore.indexNames).toHaveLength(3);
-            expect(lTableStore.indexNames).toContain(lExistingIndexName);
-            expect(lTableStore.indexNames).toContain(lNewIndexPropertyName);
-            expect(lTableStore.indexNames).toContain(lTableIdentityPropertyName);
+            expect(lTableStore.indexNames.contains(lExistingIndexName)).toBeTruthy();
+            expect(lTableStore.indexNames.contains(lNewIndexPropertyName)).toBeTruthy();
+            expect(lTableStore.indexNames.contains(lTableIdentityPropertyName)).toBeTruthy();
 
             const lNewIndex: IDBIndex = lTableStore.index(lNewIndexPropertyName);
             expect(lNewIndex.keyPath).toEqual(lNewIndexPropertyName);
@@ -890,8 +890,8 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTableStore: IDBObjectStore = pTransaction.transaction.objectStore(lTableName);
             expect(lTableStore.indexNames).toHaveLength(2);
-            expect(lTableStore.indexNames).toContain(lIndexToKeep);
-            expect(lTableStore.indexNames).toContain(lTableIdentityPropertyName);
+            expect(lTableStore.indexNames.contains(lIndexToKeep)).toBeTruthy();
+            expect(lTableStore.indexNames.contains(lTableIdentityPropertyName)).toBeTruthy();
             expect(lTableStore.indexNames).not.toContain(lIndexToRemove);
         });
 
@@ -935,8 +935,8 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTableStore: IDBObjectStore = pTransaction.transaction.objectStore(lTableName);
             expect(lTableStore.indexNames).toHaveLength(2);
-            expect(lTableStore.indexNames).toContain(lIndexPropertyName);
-            expect(lTableStore.indexNames).toContain(lTableIdentityPropertyName);
+            expect(lTableStore.indexNames.contains(lIndexPropertyName)).toBeTruthy();
+            expect(lTableStore.indexNames.contains(lTableIdentityPropertyName)).toBeTruthy();
 
             const lIndex: IDBIndex = lTableStore.index(lIndexPropertyName);
             expect(lIndex.unique).toBeTruthy();
@@ -984,8 +984,8 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTableStore: IDBObjectStore = pTransaction.transaction.objectStore(lTableName);
             expect(lTableStore.indexNames).toHaveLength(2);
-            expect(lTableStore.indexNames).toContain(lIndexPropertyName);
-            expect(lTableStore.indexNames).toContain(lTableIdentityPropertyName);
+            expect(lTableStore.indexNames.contains(lIndexPropertyName)).toBeTruthy();
+            expect(lTableStore.indexNames.contains(lTableIdentityPropertyName)).toBeTruthy();
 
             const lIndex: IDBIndex = lTableStore.index(lIndexPropertyName);
             expect(lIndex.unique).toBeFalsy();
@@ -1033,8 +1033,8 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTableStore: IDBObjectStore = pTransaction.transaction.objectStore(lTableName);
             expect(lTableStore.indexNames).toHaveLength(2);
-            expect(lTableStore.indexNames).toContain(lIndexPropertyName);
-            expect(lTableStore.indexNames).toContain(lTableIdentityPropertyName);
+            expect(lTableStore.indexNames.contains(lIndexPropertyName)).toBeTruthy();
+            expect(lTableStore.indexNames.contains(lTableIdentityPropertyName)).toBeTruthy();
 
             const lIndex: IDBIndex = lTableStore.index(lIndexPropertyName);
             expect(lIndex.unique).toBeFalsy();
@@ -1082,8 +1082,8 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTableStore: IDBObjectStore = pTransaction.transaction.objectStore(lTableName);
             expect(lTableStore.indexNames).toHaveLength(2);
-            expect(lTableStore.indexNames).toContain(lIndexPropertyName);
-            expect(lTableStore.indexNames).toContain(lTableIdentityPropertyName);
+            expect(lTableStore.indexNames.contains(lIndexPropertyName)).toBeTruthy();
+            expect(lTableStore.indexNames.contains(lTableIdentityPropertyName)).toBeTruthy();
 
             const lIndex: IDBIndex = lTableStore.index(lIndexPropertyName);
             expect(lIndex.unique).toBeFalsy();
@@ -1185,8 +1185,8 @@ Deno.test('WebDatabase.open()', { sanitizeResources: false, sanitizeOps: false }
         await lWebDatabase.transaction([TestTable], 'readonly', async (pTransaction) => {
             const lTableStore: IDBObjectStore = pTransaction.transaction.objectStore(lTableName);
             expect(lTableStore.indexNames).toHaveLength(2);
-            expect(lTableStore.indexNames).toContain(lIndexPropertyName);
-            expect(lTableStore.indexNames).toContain(lTableIdentityPropertyName);
+            expect(lTableStore.indexNames.contains(lIndexPropertyName)).toBeTruthy();
+            expect(lTableStore.indexNames.contains(lTableIdentityPropertyName)).toBeTruthy();
 
             const lIndex: IDBIndex = lTableStore.index(lIndexPropertyName);
             expect(lIndex.unique).toBeFalsy();

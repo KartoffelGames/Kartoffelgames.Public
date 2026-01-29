@@ -11,7 +11,6 @@
         "./packages/kartoffelgames.web.potato_web_builder",
         "./packages/kartoffelgames.core.test",
         "./packages/kartoffelgames.web.gpu",
-        "./packages/kartoffelgames.web.potato_render",
         "././packages/kartoffelgames.core.pgsl"
     ],
     "tasks": {

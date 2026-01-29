@@ -233,7 +233,7 @@ export class GraphNode<TTokenType extends string, TResultData extends object = o
         })();
 
         // NodeData:undefined && ChainData:any => No merge
-        if (typeof lMergePickedNodeData === undefined) {
+        if (typeof lMergePickedNodeData === 'undefined') {
             return pChainData as TResultData;
         }
 

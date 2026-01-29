@@ -140,9 +140,9 @@ Deno.test('WebDatabaseTable.count()', { sanitizeResources: false, sanitizeOps: f
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
 
-            for (let i = 0; i < 5; i++) {
+            for (let lIndex = 0; lIndex < 5; lIndex++) {
                 const lTestData = new TestTable();
-                lTestData.name = `Test Item ${i}`;
+                lTestData.name = `Test Item ${lIndex}`;
                 await lTable.put(lTestData);
             }
         });
@@ -360,7 +360,7 @@ Deno.test('WebDatabaseTable.delete()', { sanitizeResources: false, sanitizeOps: 
 
         // Process. Try to delete using the same object - should throw error.
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
-            await pTransaction.table(TestTable).delete(lTestDataToDelete)
+            await pTransaction.table(TestTable).delete(lTestDataToDelete);
         });
 
         // Evaluation. Verify that all data is still present since delete failed.
@@ -496,10 +496,10 @@ Deno.test('WebDatabaseTable.getAll()', { sanitizeResources: false, sanitizeOps: 
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
 
-            for (let i = 0; i < 3; i++) {
+            for (let lIndex = 0; lIndex < 3; lIndex++) {
                 const lTestData = new TestTable();
-                lTestData.name = `Item ${i}`;
-                lTestData.value = i * 10;
+                lTestData.name = `Item ${lIndex}`;
+                lTestData.value = lIndex * 10;
                 await lTable.put(lTestData);
             }
         });
@@ -543,9 +543,9 @@ Deno.test('WebDatabaseTable.getAll()', { sanitizeResources: false, sanitizeOps: 
         await lWebDatabase.transaction([TestTable], 'readwrite', async (pTransaction) => {
             const lTable = pTransaction.table(TestTable);
 
-            for (let i = 0; i < 5; i++) {
+            for (let lIndex = 0; lIndex < 5; lIndex++) {
                 const lTestData = new TestTable();
-                lTestData.name = `Item ${i}`;
+                lTestData.name = `Item ${lIndex}`;
                 await lTable.put(lTestData);
             }
         });

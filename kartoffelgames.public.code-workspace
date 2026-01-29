@@ -29,12 +29,20 @@
             "path": "packages\\kartoffelgames.core.parser"
         },
         {
+            "name": "Kartoffelgames.Core.Pgsl",
+            "path": "./packages\\kartoffelgames.core.pgsl"
+        },
+        {
             "name": "Kartoffelgames.Core.Test",
             "path": "./packages\\kartoffelgames.core.test"
         },
         {
             "name": "Kartoffelgames.Web.Database",
             "path": "packages\\kartoffelgames.web.database"
+        },
+        {
+            "name": "Kartoffelgames.Web.Gpu",
+            "path": "packages\\kartoffelgames.web.gpu"
         },
         {
             "name": "_ROOT",

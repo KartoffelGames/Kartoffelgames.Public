@@ -1,11 +1,11 @@
-import { Dictionary, Stack } from '@kartoffelgames/core';
+import { Dictionary, Exception, Stack } from '@kartoffelgames/core';
 import type { LexerToken } from '../lexer/lexer-token.ts';
 import { CodeParserTrace } from './code-parser-trace.ts';
 import type { GraphNode } from './graph/graph-node.ts';
 import type { Graph } from './graph/graph.ts';
 
 export class CodeParserProcessState<TTokenType extends string> {
-    private static readonly MAX_CIRULAR_REFERENCES: number = 1;
+    private static readonly MAX_JUNCTION_CIRCULAR_REFERENCES: number = 1000;
 
     private readonly mGraphStack: Stack<CodeParserCursorGraph<TTokenType>>;
     private readonly mIncidentTrace: CodeParserTrace<TTokenType>;
@@ -285,8 +285,21 @@ export class CodeParserProcessState<TTokenType extends string> {
             return false;
         }
 
-        // Graph is circular if the graph is visited more than once.
-        return lCurrentGraphStack.circularGraphs.get(pGraph)! > CodeParserProcessState.MAX_CIRULAR_REFERENCES;
+        // When the graph is a junction, we allow circular call, but prevent absurde call counts.
+        if (pGraph.isJunction) {
+            // Read graph call count from circular graph list.
+            const lGraphCallCount: number = lCurrentGraphStack.circularGraphs.get(pGraph)!;
+
+            // When a junction graph is called too often, we consider it critical circular and throw an error.
+            if(lGraphCallCount > CodeParserProcessState.MAX_JUNCTION_CIRCULAR_REFERENCES) {
+                throw new Exception(`Junction graph called circular too often.`, this);
+            }
+
+            return false;
+        }
+
+        // Graph is circular. 
+        return true;
     }
 
     /**
@@ -299,6 +312,12 @@ export class CodeParserProcessState<TTokenType extends string> {
         // When the current graph has progressed, even deep circular graphs process a new token and eventually reach the end token.
         if (lCurrentGraphStack.circularGraphs.size > 0) {
             lCurrentGraphStack.circularGraphs = new Dictionary<Graph<TTokenType>, number>();
+        }
+
+        // Restrict junction graphs from processing own tokens.
+        // Otherwise these graphs are not junctions.
+        if (lCurrentGraphStack.graph && lCurrentGraphStack.graph.isJunction) {
+            throw new Exception('Junction graph must not have own nodes.', this);
         }
 
         lCurrentGraphStack.token.cursor++;
@@ -345,7 +364,7 @@ export class CodeParserProcessState<TTokenType extends string> {
 
         // When the token cache is not trimmed, we can just move the parent stack index to the last graphs stack index.
         // This code is more of a clean cut for the set configuration and could be merged with the next code block.
-        if(!this.mTrimTokenCache){
+        if (!this.mTrimTokenCache) {
             // Move parent stack index to the last graphs stack index.
             lParentGraphStack.token.cursor = lCurrentTokenStack.token.cursor;
             return;

@@ -6,11 +6,11 @@ import type { WebDatabaseQuery } from './web-database-query.ts';
  */
 export class WebDatabaseQueryAction<TTableType extends WebDatabaseTableType> {
     // Hardcoded constants for minimum and maximum values.
-    private static readonly MIN_STRING_VALUE: string = '\u0000';
+    private static readonly MAX_NUMBER_VALUE_LENGTH: number = Number.MAX_VALUE;
     private static readonly MAX_STRING_VALUE_LENGTH: string = '\uffff';
     private static readonly MIN_NUMBER_VALUE: number = Number.MIN_VALUE;
-    private static readonly MAX_NUMBER_VALUE_LENGTH: number = Number.MAX_VALUE;
-
+    private static readonly MIN_STRING_VALUE: string = '\u0000';
+    
     private readonly mActionCallback: WebDatabaseQueryActionCallback;
     private readonly mDatabaseQuery: WebDatabaseQuery<TTableType>;
 
@@ -127,19 +127,19 @@ export class WebDatabaseQueryAction<TTableType extends WebDatabaseTableType> {
      * @returns The adjusted value with slightly increased or decreased specificity.
      */
     private alterValueSpecificity<T extends WebDatabaseQueryActionValue>(pValue: T, pSpecificityDirection: 1 | -1): T {
-        let pSpecificityChange: number = pSpecificityDirection * 0.000000000000001;
+        let lSpecificityChange: number = pSpecificityDirection * 0.000000000000001;
 
         // If value is a number, apply specificity change directly.
         if (typeof pValue === 'number') {
-            return Math.max(Math.min(pValue + pSpecificityChange, Number.MAX_VALUE), Number.MIN_VALUE) as T;
+            return Math.max(Math.min(pValue + lSpecificityChange, Number.MAX_VALUE), Number.MIN_VALUE) as T;
         }
 
         // Ceil specificity change value ceil to nearest absolute value as unicode characters are integers.
-        pSpecificityChange = pSpecificityChange >= 0 ? Math.ceil(pSpecificityChange) : Math.floor(pSpecificityChange);
+        lSpecificityChange = lSpecificityChange >= 0 ? Math.ceil(lSpecificityChange) : Math.floor(lSpecificityChange);
 
         // Read last character of string and apply specificity change.
         let lLastCharCode: number = pValue.charCodeAt(pValue.length - 1);
-        lLastCharCode += pSpecificityChange;
+        lLastCharCode += lSpecificityChange;
 
         // Ensure we do not go below 0x0000 or above 0x0fff.
         lLastCharCode = Math.max(Math.min(lLastCharCode, 0xfff), 0);

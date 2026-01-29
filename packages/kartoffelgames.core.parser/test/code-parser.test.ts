@@ -1,4 +1,4 @@
-import { LexerToken } from "@kartoffelgames/core-parser";
+import type { LexerToken } from '@kartoffelgames/core-parser';
 import { expect } from '@kartoffelgames/core-test';
 import { Lexer } from '../source/lexer/lexer.ts';
 import { CodeParserException } from '../source/parser/code-parser-exception.ts';
@@ -362,7 +362,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
         await pContext.step('Loop Parsing with existing items', () => {
             // Setup.
             const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
-            const lCodeTextList: Array<string> = ['const','ident','ident','ident','ident','ident'];
+            const lCodeTextList: Array<string> = ['const', 'ident', 'ident', 'ident', 'ident', 'ident'];
 
             // Setup. Define graph part and set as root.
             const lLoopGraph = Graph.define(() => {
@@ -543,7 +543,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
             };
 
             // Evaluation. Loop chain twice as long as actual loop.
-            expect(lErrorFunction).toThrow('Tokens could not be parsed. Graph end meet without reaching last token. Current: "const" (Modifier)');
+            expect(lErrorFunction).toThrow('Unexpected end of statement. Token "Modifier" expected.');
         });
 
         await pContext.step('Required self reference fail when not on end of graph', () => {
@@ -854,6 +854,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
         });
 
         await pContext.step('Detect endless circular dependency over multiple references.', () => {
+            // Setup.
             const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
 
             const lLevel1Graph = Graph.define(() => {
@@ -875,6 +876,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
         });
 
         await pContext.step('Detect endless circular dependency with branch.', () => {
+            // Setup.
             const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
 
             const lLoopGraph = Graph.define(() => {
@@ -893,6 +895,43 @@ Deno.test('CodeParser.parse()', async (pContext) => {
 
             // Evaluation. Loop chain twice as long as actual loop.
             expect(lErrorFunction).toThrow(`Circular graph detected.`);
+        });
+
+        await pContext.step('Detect endless circular dependency with junction graph.', () => {
+            // Setup.
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+
+            const lLoopGraph = Graph.define(() => {
+                const lSelfReference: Graph<TokenType, any> = lLoopGraph;
+                return GraphNode.new<TokenType>().required(lSelfReference);
+            }, true);
+            lParser.setRootGraph(lLoopGraph);
+
+            // Process.
+            const lErrorFunction = () => {
+                lParser.parse('identifier');
+            };
+
+            // Evaluation. Loop chain twice as long as actual loop.
+            expect(lErrorFunction).toThrow(`Junction graph called circular too often.`);
+        });
+
+        await pContext.step('Detect junction graph having own nodes.', () => {
+            // Setup.
+            const lParser: CodeParser<TokenType, any> = new CodeParser(gCreateLexer());
+
+            const lLoopGraph = Graph.define(() => {
+                return GraphNode.new<TokenType>().required(TokenType.Identifier);
+            }, true);
+            lParser.setRootGraph(lLoopGraph);
+
+            // Process.
+            const lErrorFunction = () => {
+                lParser.parse('identifier');
+            };
+
+            // Evaluation. Loop chain twice as long as actual loop.
+            expect(lErrorFunction).toThrow(`Junction graph must not have own nodes.`);
         });
 
         await pContext.step('Add data from empty loop node.', () => {
@@ -943,7 +982,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
                     lLoopingAdditionGraph,
                     lLoopingVariableGraph
                 ]);
-            });
+            }, true);
             lParser.setRootGraph(lExpressionGraph);
 
             // Process
@@ -999,7 +1038,7 @@ Deno.test('CodeParser.parse()', async (pContext) => {
                     lLoopingAdditionGraph,
                     lLoopingVariableGraph
                 ]);
-            });
+            }, true);
             lParser.setRootGraph(lExpressionGraph);
 
             // Process
@@ -1063,25 +1102,29 @@ Deno.test('CodeParser.parse()', async (pContext) => {
                     lLoopingOptionalGraph,
                     lLoopingVariableGraph
                 ]);
-            });
+            }, true);
             lParser.setRootGraph(lExpressionGraph);
 
             // Process
             const lResult: any = lParser.parse('a + b - c');
 
             // Evaluation.
-            expect(lResult).toBeDeepEqual({
+            expect(lResult).toEqual({
                 expression: {
                     left: {
                         expression: {
-                            variable: 'a'
+                            expression: { // Hitting optional graph here
+                                variable: 'a'
+                            }
                         }
                     },
                     right: {
                         expression: {
                             left: {
                                 expression: {
-                                    variable: 'b'
+                                    expression: { // Hitting optional graph here
+                                        variable: 'b'
+                                    }
                                 }
                             },
                             right: {
@@ -1981,9 +2024,6 @@ Deno.test('CodeParser.constructor()', async (pContext) => {
 });
 
 Deno.test('CodeParser--Functionality: Type checking', async (pContext) => {
-    type TypedTokenType = 'item1' | 'item2' | 'item3';
-    type TypedBaseObject = { a: 'a'; };
-
     type ExtractGraphResultType<T> = T extends Graph<any, any, infer TGraphResult> ? TGraphResult : never;
 
     await pContext.step('Required single value', () => {

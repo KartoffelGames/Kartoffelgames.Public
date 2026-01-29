@@ -1,6 +1,6 @@
 import type { ClassDecorator } from '@kartoffelgames/core';
 import { Metadata } from '@kartoffelgames/core-dependency-injection';
-import { type WebDatabaseTableType, WebDatabaseTableLayout, WebDatabaseTableLayoutFieldName } from '../web-database-table-layout.ts';
+import { type WebDatabaseTableType, WebDatabaseTableLayout, type WebDatabaseTableLayoutFieldName } from '../web-database-table-layout.ts';
 
 /**
  * Decorator for defining a web database table.

@@ -1,0 +1,42 @@
+import type { PgslParserResultNumericType } from './pgsl-parser-result-numeric-type.ts';
+import { PgslParserResultType, type PgslParserResultTypeAlignmentType } from './pgsl-parser-result-type.ts';
+
+/**
+ * Represents a vector type in PGSL parser results.
+ * Handles mathematical vectors with a specified element type and dimension count.
+ */
+export class PgslParserResultVectorType extends PgslParserResultType {
+    private readonly mDimension: number;
+    private readonly mElementType: PgslParserResultType;
+    
+    /**
+     * Gets the number of dimensions in this vector.
+     *
+     * @returns The dimension count.
+     */
+    public get dimension(): number {
+        return this.mDimension;
+    }
+
+    /**
+     * Gets the type of elements contained in this vector type.
+     *
+     * @returns The element type.
+     */
+    public get elementType(): PgslParserResultType {
+        return this.mElementType;
+    }
+
+    /**
+     * Creates a new PGSL parser result vector type.
+     *
+     * @param pElementType - The type of elements in the vector.
+     * @param pDimension - The number of dimensions in the vector.
+     * @param pAlignmentType - The alignment type (uniform, storage, or packed).
+     */
+    public constructor(pElementType: PgslParserResultNumericType, pDimension: number, pAlignmentType: PgslParserResultTypeAlignmentType) {
+        super('vector', pAlignmentType);
+        this.mElementType = pElementType;
+        this.mDimension = pDimension;
+    }
+}

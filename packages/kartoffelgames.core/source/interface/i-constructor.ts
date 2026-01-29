@@ -13,5 +13,5 @@ export interface IVoidParameterConstructor<T> {
  * @experimental @alpha
  */
 export interface IAnyParameterConstructor<T> {
-    new(...pParameter: Array<any>): T;
+    new(...args: Array<any>): T;
 }

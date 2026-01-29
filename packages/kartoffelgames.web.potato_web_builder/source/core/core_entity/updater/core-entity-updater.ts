@@ -392,7 +392,7 @@ export class CoreEntityUpdater {
                     // This does remove the frame time guarantee but prevents endless loops.
                     CoreEntityUpdateCycle.updateCyleStartTime(pUpdateCycle);
 
-                    // Read cache. // TODO: Test for nested updates. Maybe clear cache after use.
+                    // Read cache.
                     return this.mUpdateRunCache.get(pUpdateCycle.runner)!;
                 }
 

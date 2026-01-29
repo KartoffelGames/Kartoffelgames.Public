@@ -1,0 +1,17 @@
+body {
+    background-color: rgb(32, 32, 32);
+    color: #fff;
+}
+
+p {
+    color: red;
+}
+
+.canvas-wrapper {
+    overflow: hidden;
+    resize: both;
+
+    /* Initial size */
+    height: 1200px;
+    width: 1800px;
+}

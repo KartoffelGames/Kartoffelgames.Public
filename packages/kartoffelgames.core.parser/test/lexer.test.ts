@@ -786,6 +786,37 @@ Deno.test('Lexer.tokenize()', async (pContext) => {
         expect(lTokenList).toHaveLength(1);
         expect(lTokenList[0].type).toBe(TestTokenType.Custom);
     });
+
+    await pContext.step('Unicode functions in regex', ()=>{
+        // Setup.
+        const lLexer: Lexer<TestTokenType> = new Lexer<TestTokenType>();
+        lLexer.validWhitespaces = ' ';
+        lLexer.trimWhitespace = true;
+
+        const lTestString: string = 'test test';
+
+        // Setup. Add starting token template.
+        lLexer.useRootTokenPattern(lLexer.createTokenPattern({
+            pattern: {
+                regex: /[\p{XID_Start}]+/u,
+                type: TestTokenType.Custom
+            }
+        }));
+        lLexer.useRootTokenPattern(lLexer.createTokenPattern({
+            pattern: {
+                regex: /[^\s]*/,
+                type: TestTokenType.Word
+            }
+        }));
+
+        // Process.
+        const lTokenList: Array<LexerToken<TestTokenType>> = [...lLexer.tokenize(lTestString)];
+
+        // Evaluation.
+        expect(lTokenList).toHaveLength(2);
+        expect(lTokenList[0].type).toBe(TestTokenType.Custom);
+        expect(lTokenList[1].type).toBe(TestTokenType.Custom);
+    });
 });
 
 Deno.test('Lexer.useTokenPattern()', async (pContext) => {

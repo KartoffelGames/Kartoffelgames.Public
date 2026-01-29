@@ -1,4 +1,4 @@
-// @ts-types="npm:@webgpu/types"
+// @ts-types="npm:@webgpu/types@^0.1.69"
 
 import { Dictionary, Exception, type IDeconstructable, List, type Writeable } from '@kartoffelgames/core';
 import type { GpuDevice } from '../device/gpu-device.ts';

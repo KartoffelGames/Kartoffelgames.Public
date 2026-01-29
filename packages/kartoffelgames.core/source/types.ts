@@ -25,4 +25,4 @@ export type ClassMethodDecorator<TThis extends Function, TFunction extends Funct
 export type ClassFieldDecorator<TThis extends Function, TValue> = (_pTarget: any, pContext: ClassFieldDecoratorContext<TThis, TValue>) => ((pValue: TValue) => TValue) | void;
 
 // Typed array type.
-export type TypedArray = | Int8Array | Uint8Array | Uint8ClampedArray | Int16Array | Uint16Array | Int32Array | Uint32Array | Float32Array | Float64Array | BigInt64Array | BigUint64Array;
+export type TypedArray<TArrayBuffer extends ArrayBufferLike = ArrayBufferLike> = Int8Array<TArrayBuffer> | Uint8Array<TArrayBuffer> | Uint8ClampedArray<TArrayBuffer> | Int16Array<TArrayBuffer> | Uint16Array<TArrayBuffer> | Int32Array<TArrayBuffer> | Uint32Array<TArrayBuffer> | Float32Array<TArrayBuffer> | Float64Array<TArrayBuffer> | BigInt64Array<TArrayBuffer> | BigUint64Array<TArrayBuffer>;

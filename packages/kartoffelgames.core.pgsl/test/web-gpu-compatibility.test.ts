@@ -1,3 +1,5 @@
+// @ts-types="npm:@webgpu/types@^0.1.69"
+
 import { expect } from '@kartoffelgames/core-test';
 import { PgslParser } from '../source/parser/pgsl-parser.ts';
 import type { PgslParserResult } from '../source/parser_result/pgsl-parser-result.ts';

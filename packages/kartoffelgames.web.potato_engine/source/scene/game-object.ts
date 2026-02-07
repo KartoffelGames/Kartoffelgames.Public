@@ -1,22 +1,38 @@
 import { IVoidParameterConstructor } from "@kartoffelgames/core";
 import { IAnyParameterConstructor } from "../../../kartoffelgames.core/source/interface/i-constructor.ts";
-import { GameComponent, GameComponentConstructor } from "./game-component.ts";
+import { Component, GameComponentConstructor } from "./component.ts";
+import { Environment } from "./environment.ts";
 
 // TODO: Make it work first, then optimize...
+// TODO: Make a "Environment" that can load scenes. On loading it registers all game objects and components in the scene, so that they can be found by type and a easy list is accessable.
+// TODO: On any game object, component change this should be bubbled up to the environment, so that it can update its lists. While its bubbling up it should also set a "dirty" flag on all parent game objects, so that they can update their own lists of components when needed.
+// TODO: How to share data between systems? Maybe a expose of a shared buffer?
+// TODO: Maybe a tag system for game objects so a custom component-script can easily find all game objects with a specific tag?
+// TODO: How does a system initialize a new component?
+// TODO: A component as well as a game object can be disabled and enabled again.
 
 export class GameObject {
     private readonly mChildren: Set<GameObject>;
     private readonly mLabel: string;
     private mParent: GameObject | null = null;
-
-    private readonly mComponents: Set<GameComponent>;
-    private readonly mComponentTypeMap: Map<GameComponentConstructor, Array<GameComponent>>;
+    private mTransmission: GameObjectEnvironmentTransmission | null;
+    private readonly mComponents: Set<Component>;
+    private readonly mComponentTypeMap: Map<GameComponentConstructor, Array<Component>>;
+    private mEnableState: GameObjectEnableState;
 
     /**
      * Label of this game object.
      */
     public get label(): string {
         return this.mLabel;
+    }
+
+    /**
+     * Whether this game object is enabled.
+     * A game object is enabled when it is enabled itself and all its parents are enabled.
+     */
+    public get enabled(): boolean {
+        return this.mEnableState.enabled;
     }
 
     /**
@@ -33,25 +49,27 @@ export class GameObject {
      */
     public constructor(pLabel: string) {
         this.mParent = null;
+        this.mTransmission = null;
         this.mLabel = pLabel;
         this.mChildren = new Set<GameObject>();
 
+        // A game object is enabled by default and inherits the enabled state from its parent.
+        this.mEnableState = {
+            enabled: true,
+            inheritedState: true,
+            selfState: true
+        };
+
         // Init component storage
-        this.mComponents = new Set<GameComponent>();
-        this.mComponentTypeMap = new Map<GameComponentConstructor, Array<GameComponent>>();
+        this.mComponents = new Set<Component>();
+        this.mComponentTypeMap = new Map<GameComponentConstructor, Array<Component>>();
     }
 
     /**
-     * Adds a child game object to this game object.
-     * 
-     * @param pChild - Child game object to add.
+     * Activate this game object.
      */
-    public addChild(pChild: GameObject): void {
-        // Set parent of child
-        pChild.mParent = this;
-
-        // Add child to set
-        this.mChildren.add(pChild);
+    public activate(): void {
+        this.changeEnableState(true, false);
     }
 
     /**
@@ -59,7 +77,7 @@ export class GameObject {
      * 
      * @param pComponent - Component to add.
      */
-    public addComponent<T extends GameComponent>(pComponentType: IVoidParameterConstructor<T>): T {
+    public addComponent<T extends Component>(pComponentType: IVoidParameterConstructor<T>): T {
         // Create component
         const lComponent: T = new pComponentType();
 
@@ -70,9 +88,9 @@ export class GameObject {
         const lComponentType: GameComponentConstructor = pComponentType as GameComponentConstructor;
 
         // Get existing components of this type.
-        let lComponentsOfType: Array<GameComponent> | undefined = this.mComponentTypeMap.get(lComponentType);
+        let lComponentsOfType: Array<Component> | undefined = this.mComponentTypeMap.get(lComponentType);
         if (!lComponentsOfType) {
-            lComponentsOfType = new Array<GameComponent>();
+            lComponentsOfType = new Array<Component>();
             this.mComponentTypeMap.set(lComponentType, lComponentsOfType);
         }
 
@@ -83,6 +101,26 @@ export class GameObject {
     }
 
     /**
+     * Adds a child game object to this game object.
+     * 
+     * @param pChild - Child game object to add.
+     */
+    public addGameObject(pChild: GameObject): void {
+        // Set parent of child
+        pChild.mParent = this;
+
+        // Add child to set
+        this.mChildren.add(pChild);
+    }
+
+    /**
+     * Deactivates this game object.
+     */
+    public deactivate(): void {
+        this.changeEnableState(false, false);
+    }
+
+    /**
      * Adds a component to this game object.
      * Returns the first found component of the requested type, or null if none found.
      * 
@@ -90,9 +128,9 @@ export class GameObject {
      * 
      * @returns The first component of the requested type, or null if none found. 
      */
-    public getComponent<T extends GameComponent>(pType: IAnyParameterConstructor<T>): T | null {
+    public getComponent<T extends Component>(pType: IAnyParameterConstructor<T>): T | null {
         // Get all components of the requested type
-        const lComponentsOfType: Array<GameComponent> | undefined = this.mComponentTypeMap.get(pType);
+        const lComponentsOfType: Array<Component> | undefined = this.mComponentTypeMap.get(pType);
         if (!lComponentsOfType || lComponentsOfType.length === 0) {
             return null;
         }
@@ -108,9 +146,9 @@ export class GameObject {
      * 
      * @returns All components of the requested type. 
      */
-    public getComponents<T extends GameComponent>(pType: IAnyParameterConstructor<T>): Array<T> {
+    public getComponents<T extends Component>(pType: IAnyParameterConstructor<T>): Array<T> {
         // Get all components of the requested type
-        const lComponentsOfType: Array<GameComponent> | undefined = this.mComponentTypeMap.get(pType);
+        const lComponentsOfType: Array<Component> | undefined = this.mComponentTypeMap.get(pType);
         if (!lComponentsOfType) {
             return new Array<T>();
         }
@@ -126,7 +164,7 @@ export class GameObject {
      * 
      * @returns An iterable of all found components of the requested type. 
      */
-    public getParentComponent<T extends GameComponent>(pType: IAnyParameterConstructor<T>): Array<T> {
+    public getParentComponent<T extends Component>(pType: IAnyParameterConstructor<T>): Array<T> {
         // Get component from current object
         const lCurrentObjectComponent: T | null = this.getComponent<T>(pType);
 
@@ -147,7 +185,7 @@ export class GameObject {
      *
      * @returns An array of game objects that have the requested component.
      */
-    public getGameObjectsWithComponent<T extends GameComponent>(pType: IAnyParameterConstructor<T>): Array<GameObject> {
+    public getGameObjectsWithComponent<T extends Component>(pType: IAnyParameterConstructor<T>): Array<GameObject> {
         // Check if this game object has the component
         const lHasThisComponent: boolean = this.getComponent<T>(pType) !== null;
 
@@ -166,5 +204,98 @@ export class GameObject {
         }
 
         return lResultList;
+    }
+
+    /**
+     * Loads the game object into the given environment.
+     * This call handles the signaling to the environment itself.
+     * This call gets bubbled down to all child game objects, so that they can also signal the environment.
+     * 
+     * @param pEnvironment 
+     */
+    public loadEnvironment(pEnvironment: Environment) {
+        // Create transmission for this game object and environment
+        this.mTransmission = new GameObjectEnvironmentTransmission(this, pEnvironment);
+
+        // Add this game object to environment
+        this.mTransmission.add();
+
+        // Bubble down to children
+        for (const lChild of this.mChildren) {
+            lChild.loadEnvironment(pEnvironment);
+        }
+    }
+
+    /**
+     * Changes the enable state of this game object.
+     * When the enable state changes, the change gets bubbled up to the environment and down to all children.
+     *
+     * @param enabled - Whether this game object should be enabled.
+     * @param inherited - Whether this change is from an inherited state (from parent) or from itself.
+     */
+    private changeEnableState(enabled: boolean, inherited: boolean): void {
+        // Last state of this game object
+        const lLastState: boolean = this.mEnableState.enabled;
+
+        // Update inherited state when this change is from parent, otherwise keep the inherited state.
+        // Update self state when this change is from itself, otherwise keep the self state.
+        if (inherited) {
+            this.mEnableState.inheritedState = enabled;
+        } else {
+            this.mEnableState.selfState = enabled;
+        }
+
+        // When the current inherited state is disabled, this game object is also disabled.
+        // When the current inherited state is enabled, this game object is enabled when it is enabled itself.
+        this.mEnableState.enabled = this.mEnableState.inheritedState ? this.mEnableState.selfState : false;
+
+        if (lLastState !== this.mEnableState.enabled) {
+            // When the gameobject has a attached environment transmission, signal the change to the environment.
+            if (this.mTransmission) {
+                this.mTransmission.activate();
+            }
+
+            // Signal enable state of all components.
+            for (const lComponent of this.mComponents) {
+                lComponent.changeEnableState(this.mEnableState.enabled, true);
+            }
+
+            // Bubble down to children.
+            for (const lChild of this.mChildren) {
+                lChild.changeEnableState(this.mEnableState.enabled, true);
+            }
+        }
+    }
+}
+
+type GameObjectEnableState = {
+    enabled: boolean;
+    inheritedState: boolean;
+    selfState: boolean;
+};
+
+class GameObjectEnvironmentTransmission {
+    private readonly mGameObject: GameObject;
+    private readonly mEnvironment: Environment;
+
+    public constructor(pGameObject: GameObject, pEnvironment: Environment) {
+        this.mGameObject = pGameObject;
+        this.mEnvironment = pEnvironment;
+    }
+
+    public add(): void {
+        // TODO:
+    }
+
+    public remove(): void {
+        // TODO:
+    }
+
+    public activate(): void {
+        // TODO:
+    }
+
+    public deactivate(): void {
+        // TODO:
     }
 }

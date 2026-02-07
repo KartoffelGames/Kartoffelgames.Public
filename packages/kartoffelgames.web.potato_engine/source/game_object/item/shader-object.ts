@@ -1,9 +1,8 @@
-import { PgslParser, PgslParserResult, PgslParserResultBinding, PgslParserResultMatrixType, PgslParserResultType, WgslTranspiler } from '@kartoffelgames/core-pgsl';
-import { BufferItemFormat, BufferItemMultiplier, ComputeStage, GpuDevice, Shader, StorageBindingType, TextureFormat, TextureViewDimension } from '@kartoffelgames/web-gpu';
-import { ShaderSetup } from "../../../../kartoffelgames.web.gpu/source/shader/setup/shader-setup.ts";
-import { PgslParserResultBindingType } from "../../../../kartoffelgames.core.pgsl/source/parser_result/pgsl-parser-result-binding.ts";
-import { PgslParserResultSamplerType } from "../../../../kartoffelgames.core.pgsl/source/parser_result/type/pgsl-parser-result-sampler-type.ts";
 import { Exception } from "@kartoffelgames/core";
+import { PgslParser, PgslParserResult, PgslParserResultBinding, PgslParserResultType, WgslTranspiler } from '@kartoffelgames/core-pgsl';
+import { BufferItemFormat, BufferItemMultiplier, ComputeStage, GpuDevice, Shader, StorageBindingType, TextureFormat, TextureViewDimension } from '@kartoffelgames/web-gpu';
+import { PgslParserResultSamplerType } from "../../../../kartoffelgames.core.pgsl/source/parser_result/type/pgsl-parser-result-sampler-type.ts";
+import { ShaderSetup } from "../../../../kartoffelgames.web.gpu/source/shader/setup/shader-setup.ts";
 
 // TODO: Allow to load from source-code and to save it as a serializeable object.
 // TODO: Allow to load it from the serializeable object.

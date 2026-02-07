@@ -1,9 +1,10 @@
 import { IAnyParameterConstructor } from "../../../kartoffelgames.core/source/interface/i-constructor.ts";
+import { GameObject } from "./game-object.ts";
 
 export class Component {
     private readonly mLabel: string;
     private readonly mEnableState: ComponentEnableState;
-    // TODO: Should contain a reference to the game object it is attached to
+    private readonly mGameObject: GameObject;
 
     /**     
      * Whether this component is enabled.
@@ -20,8 +21,9 @@ export class Component {
         return this.mLabel;
     }
 
-    public constructor(pLabel: string) {
+    public constructor(pLabel: string, pGameObject: GameObject) {
         this.mLabel = pLabel;
+        this.mGameObject = pGameObject;
 
         // By default, a component is enabled and inherits the enable state from its game object.
         this.mEnableState = {
@@ -31,9 +33,33 @@ export class Component {
         };
     }
 
-    public changeEnableState(enabled: boolean, inherited: boolean): void {
-        enabled;
-        inherited;
+    /**
+     * Changes the enable state of this component.
+     * When the enable state changes, it gets updated based on inherited and self state.
+     *
+     * @param pEnabled - Whether this component should be enabled.
+     * @param pInherited - Whether this change is from an inherited state (from parent) or from itself.
+     */
+    public changeEnableState(pEnabled: boolean, pInherited: boolean): void {
+        // Last state of this component
+        const lLastState: boolean = this.mEnableState.enabled;
+
+        // Update inherited state when this change is from parent, otherwise keep the inherited state.
+        // Update self state when this change is from itself, otherwise keep the self state.
+        if (pInherited) {
+            this.mEnableState.inheritedState = pEnabled;
+        } else {
+            this.mEnableState.selfState = pEnabled;
+        }
+
+        // When the current inherited state is disabled, this component is also disabled.
+        // When the current inherited state is enabled, this component is enabled when it is enabled itself.
+        this.mEnableState.enabled = this.mEnableState.inheritedState ? this.mEnableState.selfState : false;
+
+        // If the enable state has changed, push the change to the game object.
+        if (lLastState !== this.mEnableState.enabled) {
+            this.mGameObject.pushChangeState(this, this.mEnableState.enabled ? 'activate' : 'deactivate');
+        }
     }
 
 }

@@ -2,11 +2,11 @@ import { IVoidParameterConstructor } from "@kartoffelgames/core";
 import { IAnyParameterConstructor } from "../../../kartoffelgames.core/source/interface/i-constructor.ts";
 import { Component, GameComponentConstructor } from "./component.ts";
 import { Environment } from "./environment.ts";
+import { EnvironmentStateChangeType, EnvironmentTransmission } from "./environment-transmittion.ts";
 
 // TODO: Make it work first, then optimize...
 // TODO: Make a "Environment" that can load scenes. On loading it registers all game objects and components in the scene, so that they can be found by type and a easy list is accessable.
 // TODO: On any game object, component change this should be bubbled up to the environment, so that it can update its lists. While its bubbling up it should also set a "dirty" flag on all parent game objects, so that they can update their own lists of components when needed.
-// TODO: How to share data between systems? Maybe a expose of a shared buffer?
 // TODO: Maybe a tag system for game objects so a custom component-script can easily find all game objects with a specific tag?
 // TODO: How does a system initialize a new component?
 // TODO: A component as well as a game object can be disabled and enabled again.
@@ -15,7 +15,7 @@ export class GameObject {
     private readonly mChildren: Set<GameObject>;
     private readonly mLabel: string;
     private mParent: GameObject | null = null;
-    private mTransmission: GameObjectEnvironmentTransmission | null;
+    private mTransmission: EnvironmentTransmission | null;
     private readonly mComponents: Set<Component>;
     private readonly mComponentTypeMap: Map<GameComponentConstructor, Array<Component>>;
     private mEnableState: GameObjectEnableState;
@@ -198,6 +198,8 @@ export class GameObject {
         // Get child game objects with the component
         for (const lChild of this.mChildren) {
             const lChildList: Array<GameObject> = lChild.getGameObjectsWithComponent<T>(pType);
+
+            // Simple optimization to use a spread operator only when needed.
             if (lChildList.length > 0) {
                 lResultList.push(...lChildList);
             }
@@ -213,16 +215,48 @@ export class GameObject {
      * 
      * @param pEnvironment 
      */
-    public loadEnvironment(pEnvironment: Environment) {
-        // Create transmission for this game object and environment
-        this.mTransmission = new GameObjectEnvironmentTransmission(this, pEnvironment);
+    public establishEnvironmentConnection(pConnection: EnvironmentTransmission) {
+        // Save environment connection for later use.
+        this.mTransmission = pConnection;
 
-        // Add this game object to environment
-        this.mTransmission.add();
+        // Add all components to environment
+        for (const lComponent of this.mComponents) {
+            this.mTransmission.add(lComponent);
+        }
 
         // Bubble down to children
         for (const lChild of this.mChildren) {
-            lChild.loadEnvironment(pEnvironment);
+            lChild.establishEnvironmentConnection(pConnection);
+        }
+    }
+
+    /**
+     * Pushes a component state change to the environment connection of this game object, if it exists.
+     * 
+     * @param pComponent - Component 
+     * @param pType - Type of the state change that occurred. 
+     */
+    public pushChangeState(pComponent: Component, pType: EnvironmentStateChangeType): void {
+        if (!this.mTransmission) {
+            return;
+        }
+
+        switch (pType) {
+            case 'add':
+                this.mTransmission.add(pComponent);
+                break;
+            case 'remove':
+                this.mTransmission.remove(pComponent);
+                break;
+            case 'activate':
+                this.mTransmission.activate(pComponent);
+                break;
+            case 'deactivate':
+                this.mTransmission.deactivate(pComponent);
+                break;
+            case 'update':
+                this.mTransmission.update(pComponent);
+                break;
         }
     }
 
@@ -250,11 +284,6 @@ export class GameObject {
         this.mEnableState.enabled = this.mEnableState.inheritedState ? this.mEnableState.selfState : false;
 
         if (lLastState !== this.mEnableState.enabled) {
-            // When the gameobject has a attached environment transmission, signal the change to the environment.
-            if (this.mTransmission) {
-                this.mTransmission.activate();
-            }
-
             // Signal enable state of all components.
             for (const lComponent of this.mComponents) {
                 lComponent.changeEnableState(this.mEnableState.enabled, true);
@@ -273,29 +302,3 @@ type GameObjectEnableState = {
     inheritedState: boolean;
     selfState: boolean;
 };
-
-class GameObjectEnvironmentTransmission {
-    private readonly mGameObject: GameObject;
-    private readonly mEnvironment: Environment;
-
-    public constructor(pGameObject: GameObject, pEnvironment: Environment) {
-        this.mGameObject = pGameObject;
-        this.mEnvironment = pEnvironment;
-    }
-
-    public add(): void {
-        // TODO:
-    }
-
-    public remove(): void {
-        // TODO:
-    }
-
-    public activate(): void {
-        // TODO:
-    }
-
-    public deactivate(): void {
-        // TODO:
-    }
-}

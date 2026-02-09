@@ -1,6 +1,6 @@
 import { Exception } from "@kartoffelgames/core";
 import { IAnyParameterConstructor } from "../../../kartoffelgames.core/source/interface/i-constructor.ts";
-import { GameComponentConstructor } from "./component.ts";
+import { ComponentConstructor } from "./component.ts";
 import { EnvironmentStateChange } from "./environment-transmittion.ts";
 
 // TODO: Create a "System"-Class that can be registered in the environment. The system can have other system dependencies, so a call order can be created.
@@ -10,19 +10,25 @@ import { EnvironmentStateChange } from "./environment-transmittion.ts";
 // TODO: Add a action queue to add, remove, activate or deactive components and game objects. At a set time the system can process the queue, so that it can update its lists of components and game objects.
 
 export abstract class System {
-    private readonly mDependencySystems: Map<SystemConstructor<System>, System>;
+    private readonly mDependendSystems: Map<SystemConstructor<System>, System>;
 
     /**
      * Define which component types this system is interested in.
      * Override this method to return an array of component types this system handles.
      */
-    public abstract readonly handledComponentTypes: Array<GameComponentConstructor>;
+    public abstract readonly handledComponentTypes: Array<ComponentConstructor>;
+
+    /**
+     * Define which systems this system depends on.
+     * Override this method to return an array of system types this system depends on.
+     */
+    public abstract readonly dependentSystemTypes: Array<SystemConstructor<System>>;
 
     /**
      * Constructor of the system.
      */
     public constructor() {
-        this.mDependencySystems = new Map<SystemConstructor<System>, System>();
+        this.mDependendSystems = new Map<SystemConstructor<System>, System>();
     }
 
     /**
@@ -31,11 +37,24 @@ export abstract class System {
      *
      * @internal
      */
-    public initialize(pDependencySystems: Array<System>): void {
+    public initialize(pDependendSystems: Array<System>): void {
         // Store dependent systems in a map.
-        for (const lSystem of pDependencySystems) {
-            this.mDependencySystems.set(lSystem.constructor as SystemConstructor<System>, lSystem);
+        for (const lSystem of pDependendSystems) {
+            this.mDependendSystems.set(lSystem.constructor as SystemConstructor<System>, lSystem);
         }
+
+        // Call onCreate hook.
+        this.onCreate();
+    }
+
+    /**
+     * Call the frame hook.
+     * This is called by the environment.
+     *
+     * @internal
+     */
+    public executeFrame(): void {
+        this.onFrame();
     }
 
     /**
@@ -44,7 +63,7 @@ export abstract class System {
      *
      * @internal
      */
-    public executeUpdate(pStateChanges: Array<EnvironmentStateChange>): void {
+    public executeUpdate(pStateChanges: Map<ComponentConstructor, ReadonlyArray<EnvironmentStateChange>>): void {
         this.onUpdate(pStateChanges);
     }
 
@@ -67,7 +86,7 @@ export abstract class System {
      * Called once per update cycle.
      * Used for resource managements based on component state changes.
      */
-    protected abstract onUpdate(pStateChanges: Array<EnvironmentStateChange>): void;
+    protected abstract onUpdate(pStateChanges: Map<ComponentConstructor, ReadonlyArray<EnvironmentStateChange>>): void;
 
     /**
      * Called once per frame.
@@ -89,7 +108,7 @@ export abstract class System {
      */
     protected getDependency<T extends System>(pSystemType: SystemConstructor<T>): T {
         // Check if the requested system is registered as a dependency of this system.
-        const lSystem = this.mDependencySystems.get(pSystemType);
+        const lSystem = this.mDependendSystems.get(pSystemType);
         if (!lSystem) {
             throw new Exception(`System of type ${pSystemType.name} is not registered as a dependency.`, this);
         }

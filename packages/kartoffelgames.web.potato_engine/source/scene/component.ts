@@ -1,73 +1,58 @@
 import { IAnyParameterConstructor } from "../../../kartoffelgames.core/source/interface/i-constructor.ts";
 import { GameObject } from "./game-object.ts";
 
-export class Component {
-    private readonly mLabel: string;
-    private readonly mEnableState: ComponentEnableState;
-    private readonly mGameObject: GameObject;
 
-    /**     
-     * Whether this component is enabled.
-     * A component is enabled when it is enabled itself and all its parents game objects are enabled.
+export class Component extends GameObject {
+    /**
+     * Constructor.
+     * 
+     * @param pLabel - Component label.
      */
-    public get enabled(): boolean {
-        return this.mEnableState.enabled;
+    public constructor(pLabel: string) {
+        super(pLabel);
     }
 
     /**
-     * Label of this component.
+     * Connect this component to the environment and signal the addition.
+     * 
+     * @internal
      */
-    public get label(): string {
-        return this.mLabel;
-    }
-
-    public constructor(pLabel: string, pGameObject: GameObject) {
-        this.mLabel = pLabel;
-        this.mGameObject = pGameObject;
-
-        // By default, a component is enabled and inherits the enable state from its game object.
-        this.mEnableState = {
-            enabled: true,
-            inheritedState: true,
-            selfState: true
-        };
+    public override connect(): void {
+        super.connect();
+        this.environment?.add(this);
     }
 
     /**
-     * Changes the enable state of this component.
-     * When the enable state changes, it gets updated based on inherited and self state.
+     * Disconnect this component from the environment and signal the removal.
+     * 
+     * @internal
+     */
+    public override disconnect(): void {
+        super.disconnect();
+        this.environment?.remove(this);
+    }
+
+    /**
+     * Changes the enable state of this component and signals the environment on state changes.
      *
      * @param pEnabled - Whether this component should be enabled.
-     * @param pInherited - Whether this change is from an inherited state (from parent) or from itself.
+     * @param pInherited - Whether this change is from an inherited state.
+     * 
+     * @returns Whether the enable state of this component changed.
      */
-    public changeEnableState(pEnabled: boolean, pInherited: boolean): void {
-        // Last state of this component
-        const lLastState: boolean = this.mEnableState.enabled;
+    protected override changeEnableState(pEnabled: boolean, pInherited: boolean): boolean {
+        const lStateChanged: boolean = super.changeEnableState(pEnabled, pInherited);
 
-        // Update inherited state when this change is from parent, otherwise keep the inherited state.
-        // Update self state when this change is from itself, otherwise keep the self state.
-        if (pInherited) {
-            this.mEnableState.inheritedState = pEnabled;
-        } else {
-            this.mEnableState.selfState = pEnabled;
+        if (lStateChanged && this.environment) {
+            if (this.enabled) {
+                this.environment.activate(this);
+            } else {
+                this.environment.deactivate(this);
+            }
         }
 
-        // When the current inherited state is disabled, this component is also disabled.
-        // When the current inherited state is enabled, this component is enabled when it is enabled itself.
-        this.mEnableState.enabled = this.mEnableState.inheritedState ? this.mEnableState.selfState : false;
-
-        // If the enable state has changed, push the change to the game object.
-        if (lLastState !== this.mEnableState.enabled) {
-            this.mGameObject.pushChangeState(this, this.mEnableState.enabled ? 'activate' : 'deactivate');
-        }
+        return lStateChanged;
     }
-
 }
 
-type ComponentEnableState = {
-    enabled: boolean;
-    inheritedState: boolean;
-    selfState: boolean;
-};
-
-export type GameComponentConstructor = IAnyParameterConstructor<Component>;
+export type ComponentConstructor = IAnyParameterConstructor<Component>;

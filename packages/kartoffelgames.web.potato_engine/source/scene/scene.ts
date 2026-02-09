@@ -1,25 +1,42 @@
-import { GameObject } from "./game-object.ts";
+import { EnvironmentTransmission } from "./environment-transmittion.ts";
+import { GameNode } from "./game-node.ts";
 
-export class Scene {
-    private readonly mGameObjects: Array<GameObject>;
-    private readonly mLabel: string;
+export class Scene extends GameNode {
+    private mTransmission: EnvironmentTransmission | null;
 
     /**
-     * List of all game objects in this scene.
+     * The environment connection of this scene.
      */
-    public get gameObjects(): ReadonlyArray<GameObject> {
-        return this.mGameObjects;
+    public override get environment(): EnvironmentTransmission | null {
+        return this.mTransmission;
     }
 
     /**
-     * Label of this scene.
+     * Constructor of the scene.
+     * 
+     * @param pLabel - Label of scene.
      */
-    public get label(): string {
-        return this.mLabel;
-    }
-
     public constructor(pLabel: string) {
-        this.mLabel = pLabel;
-        this.mGameObjects = new Array<GameObject>();
+        super(pLabel);
+        this.mTransmission = null;
+    }
+
+    /**
+     * Loads the scene into the given environment.
+     * This call handles the signaling to the environment itself.
+     * This call gets bubbled down to all child game objects, so that they can also signal the environment.
+     * 
+     * @param pEnvironment 
+     */
+    public setEnvironmentConnection(pConnection: EnvironmentTransmission | null): void {
+        // Save environment connection for later use.
+        this.mTransmission = pConnection;
+
+        // Connect to environment connection.
+        if (this.mTransmission) {
+            this.connect();
+        } else {
+            this.disconnect();
+        }
     }
 }

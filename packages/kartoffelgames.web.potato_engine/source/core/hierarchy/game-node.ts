@@ -1,5 +1,9 @@
 import { GameObject } from './game-object.ts';
 
+/**
+ * A GameNode is a game object that can have child game nodes.
+ * It is used to create a hierarchy of game objects, which can be used to manage the environment connection and enable state of the game objects.
+ */
 export abstract class GameNode extends GameObject {
     private readonly mChildNodeList: Array<GameNode>;
 

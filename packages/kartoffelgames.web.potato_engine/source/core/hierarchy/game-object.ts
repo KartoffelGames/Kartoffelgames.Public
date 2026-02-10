@@ -1,4 +1,4 @@
-import type { EnvironmentTransmission } from './environment-transmittion.ts';
+import type { GameEnvironmentTransmission } from '../environment/game-environment-transmittion.ts';
 
 /**
  * A GameObject is an ecs object in the game world.
@@ -21,7 +21,7 @@ export abstract class GameObject {
      * Environment this game object is in.
      * A game object is in the same environment as its parent, so this gets bubbled up to the parent until it reaches the scene, which has the environment connection.
      */
-    public get environment(): EnvironmentTransmission | null {
+    public get environment(): GameEnvironmentTransmission | null {
         if (!this.mParent) {
             return null;
         }
@@ -132,7 +132,6 @@ export abstract class GameObject {
         this.mParent = pParent;
     }
 }
-
 
 type GameObjectEnableState = {
     enabled: boolean;

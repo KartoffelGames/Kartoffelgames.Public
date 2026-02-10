@@ -1,30 +1,35 @@
 import { Exception } from '@kartoffelgames/core';
 import type { IAnyParameterConstructor } from '../../../kartoffelgames.core/source/interface/i-constructor.ts';
-import type { ComponentConstructor } from './component.ts';
-import type { EnvironmentStateChange } from './environment-transmittion.ts';
+import type { GameComponentConstructor } from './component/game-component.ts';
+import type { EnvironmentStateChange } from './environment/game-environment-transmittion.ts';
 
-// TODO: InitComponent() - Initializes components data somehow. Maybe with a init method of the component itself?
-
-export abstract class System {
-    private readonly mDependendSystems: Map<SystemConstructor<System>, System>;
+/**
+ * Base class for all systems in the environment.
+ * Systems are responsible for processing game logic based on the state of components in the environment.
+ * They can define dependencies on other systems and specify which component types they are interested in.
+ * 
+ * On the update cycle, systems receive a list of component state changes that they can use to manage resources and optimize their processing.
+ */
+export abstract class GameSystem {
+    private readonly mDependendSystems: Map<GameSystemConstructor<GameSystem>, GameSystem>;
 
     /**
      * Define which systems this system depends on.
      * Override this method to return an array of system types this system depends on.
      */
-    public abstract readonly dependentSystemTypes: Array<SystemConstructor<System>>;
+    public abstract readonly dependentSystemTypes: Array<GameSystemConstructor<GameSystem>>;
 
     /**
      * Define which component types this system is interested in.
      * Override this method to return an array of component types this system handles.
      */
-    public abstract readonly handledComponentTypes: Array<ComponentConstructor>;
+    public abstract readonly handledComponentTypes: Array<GameComponentConstructor>;
 
     /**
      * Constructor of the system.
      */
     public constructor() {
-        this.mDependendSystems = new Map<SystemConstructor<System>, System>();
+        this.mDependendSystems = new Map<GameSystemConstructor<GameSystem>, GameSystem>();
     }
 
     /**
@@ -53,7 +58,7 @@ export abstract class System {
      *
      * @internal
      */
-    public executeUpdate(pStateChanges: Map<ComponentConstructor, ReadonlyArray<EnvironmentStateChange>>): void {
+    public executeUpdate(pStateChanges: Map<GameComponentConstructor, ReadonlyArray<EnvironmentStateChange>>): void {
         this.onUpdate(pStateChanges);
     }
 
@@ -63,10 +68,10 @@ export abstract class System {
      *
      * @internal
      */
-    public initialize(pDependendSystems: Array<System>): void {
+    public initialize(pDependendSystems: Array<GameSystem>): void {
         // Store dependent systems in a map.
         for (const lSystem of pDependendSystems) {
-            this.mDependendSystems.set(lSystem.constructor as SystemConstructor<System>, lSystem);
+            this.mDependendSystems.set(lSystem.constructor as GameSystemConstructor<GameSystem>, lSystem);
         }
 
         // Call onCreate hook.
@@ -81,7 +86,7 @@ export abstract class System {
      * 
      * @returns The instance of the requested system.
      */
-    protected getDependency<T extends System>(pSystemType: SystemConstructor<T>): T {
+    protected getDependency<T extends GameSystem>(pSystemType: GameSystemConstructor<T>): T {
         // Check if the requested system is registered as a dependency of this system.
         const lSystem = this.mDependendSystems.get(pSystemType);
         if (!lSystem) {
@@ -110,7 +115,7 @@ export abstract class System {
      * Called once per update cycle.
      * Used for resource managements based on component state changes.
      */
-    protected abstract onUpdate(pStateChanges: Map<ComponentConstructor, ReadonlyArray<EnvironmentStateChange>>): void;
+    protected abstract onUpdate(pStateChanges: Map<GameComponentConstructor, ReadonlyArray<EnvironmentStateChange>>): void;
 }
 
-type SystemConstructor<T extends System> = IAnyParameterConstructor<T>;
+type GameSystemConstructor<T extends GameSystem = GameSystem> = IAnyParameterConstructor<T>;

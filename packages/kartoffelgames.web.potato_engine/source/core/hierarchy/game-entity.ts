@@ -1,15 +1,18 @@
 import type { IVoidParameterConstructor } from '@kartoffelgames/core';
-import type { IAnyParameterConstructor } from '../../../kartoffelgames.core/source/interface/i-constructor.ts';
-import type { Component, ComponentConstructor } from './component.ts';
-import { GameNode } from './game-node.ts';
+import type { IAnyParameterConstructor } from '../../../../kartoffelgames.core/source/interface/i-constructor.ts';
+import type { GameComponent, GameComponentConstructor } from '../component/game-component.ts';
+import { GameNode } from '../hierarchy/game-node.ts';
 
 // TODO: On any game object, component change this should be bubbled up to the environment, so that it can update its lists. While its bubbling up it should also set a "dirty" flag on all parent game objects, so that they can update their own lists of components when needed.
 // TODO: Maybe a tag system for game objects so a custom component-script can easily find all game objects with a specific tag?
-// TODO: How does a system initialize a new component?
 
+/**
+ * A GameEntity is a game node that can have components.
+ * It is used to create game objects in the scene, which can have components that define their behavior and state.
+ */
 export class GameEntity extends GameNode{
-    private readonly mComponentTypeMap: Map<ComponentConstructor, Array<Component>>;
-    private readonly mComponents: Set<Component>;
+    private readonly mComponentTypeMap: Map<GameComponentConstructor, Array<GameComponent>>;
+    private readonly mComponents: Set<GameComponent>;
     
     /**
      * Create a new empty game object.
@@ -20,8 +23,8 @@ export class GameEntity extends GameNode{
         super(pLabel);
         
         // Init component storage
-        this.mComponents = new Set<Component>();
-        this.mComponentTypeMap = new Map<ComponentConstructor, Array<Component>>();
+        this.mComponents = new Set<GameComponent>();
+        this.mComponentTypeMap = new Map<GameComponentConstructor, Array<GameComponent>>();
     }
 
     /**
@@ -29,7 +32,7 @@ export class GameEntity extends GameNode{
      * 
      * @param pComponent - Component to add.
      */
-    public addComponent<T extends Component>(pComponentType: IVoidParameterConstructor<T>): T {
+    public addComponent<T extends GameComponent>(pComponentType: IVoidParameterConstructor<T>): T {
         // Create component
         const lComponent: T = new pComponentType();
 
@@ -37,12 +40,12 @@ export class GameEntity extends GameNode{
         this.mComponents.add(lComponent);
 
         // Get component type.
-        const lComponentType: ComponentConstructor = pComponentType as ComponentConstructor;
+        const lComponentType: GameComponentConstructor = pComponentType as GameComponentConstructor;
 
         // Get existing components of this type.
-        let lComponentsOfType: Array<Component> | undefined = this.mComponentTypeMap.get(lComponentType);
+        let lComponentsOfType: Array<GameComponent> | undefined = this.mComponentTypeMap.get(lComponentType);
         if (!lComponentsOfType) {
-            lComponentsOfType = new Array<Component>();
+            lComponentsOfType = new Array<GameComponent>();
             this.mComponentTypeMap.set(lComponentType, lComponentsOfType);
         }
 
@@ -94,9 +97,9 @@ export class GameEntity extends GameNode{
      * 
      * @returns The first component of the requested type, or null if none found. 
      */
-    public getComponent<T extends Component>(pType: IAnyParameterConstructor<T>): T | null {
+    public getComponent<T extends GameComponent>(pType: IAnyParameterConstructor<T>): T | null {
         // Get all components of the requested type
-        const lComponentsOfType: Array<Component> | undefined = this.mComponentTypeMap.get(pType);
+        const lComponentsOfType: Array<GameComponent> | undefined = this.mComponentTypeMap.get(pType);
         if (!lComponentsOfType || lComponentsOfType.length === 0) {
             return null;
         }
@@ -112,9 +115,9 @@ export class GameEntity extends GameNode{
      * 
      * @returns All components of the requested type. 
      */
-    public getComponents<T extends Component>(pType: IAnyParameterConstructor<T>): Array<T> {
+    public getComponents<T extends GameComponent>(pType: IAnyParameterConstructor<T>): Array<T> {
         // Get all components of the requested type
-        const lComponentsOfType: Array<Component> | undefined = this.mComponentTypeMap.get(pType);
+        const lComponentsOfType: Array<GameComponent> | undefined = this.mComponentTypeMap.get(pType);
         if (!lComponentsOfType) {
             return new Array<T>();
         }
@@ -129,7 +132,7 @@ export class GameEntity extends GameNode{
      *
      * @returns An array of game objects that have the requested component.
      */
-    public getGameObjectsWithComponent<T extends Component>(pType: IAnyParameterConstructor<T>): Array<GameEntity> {
+    public getGameObjectsWithComponent<T extends GameComponent>(pType: IAnyParameterConstructor<T>): Array<GameEntity> {
         // Check if this game object has the component
         const lHasThisComponent: boolean = this.getComponent<T>(pType) !== null;
 
@@ -164,7 +167,7 @@ export class GameEntity extends GameNode{
      * 
      * @returns An iterable of all found components of the requested type. 
      */
-    public getParentComponent<T extends Component>(pType: IAnyParameterConstructor<T>): Array<T> {
+    public getParentComponent<T extends GameComponent>(pType: IAnyParameterConstructor<T>): Array<T> {
         // Get component from current object
         const lCurrentObjectComponent: T | null = this.getComponent<T>(pType);
 

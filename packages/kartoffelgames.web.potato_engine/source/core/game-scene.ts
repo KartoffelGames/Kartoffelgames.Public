@@ -1,13 +1,17 @@
-import type { EnvironmentTransmission } from './environment-transmittion.ts';
-import { GameNode } from './game-node.ts';
+import type { GameEnvironmentTransmission } from './environment/game-environment-transmittion.ts';
+import { GameNode } from './hierarchy/game-node.ts';
 
-export class Scene extends GameNode {
-    private mTransmission: EnvironmentTransmission | null;
+/**
+ * A Scene is the root game node of a scene graph.
+ * Its used to load and deload all game objects in the scene.
+ */
+export class GameScene extends GameNode {
+    private mTransmission: GameEnvironmentTransmission | null;
 
     /**
      * The environment connection of this scene.
      */
-    public override get environment(): EnvironmentTransmission | null {
+    public override get environment(): GameEnvironmentTransmission | null {
         return this.mTransmission;
     }
 
@@ -28,7 +32,7 @@ export class Scene extends GameNode {
      * 
      * @param pEnvironment 
      */
-    public setEnvironmentConnection(pConnection: EnvironmentTransmission | null): void {
+    public setEnvironmentConnection(pConnection: GameEnvironmentTransmission | null): void {
         // Save environment connection for later use.
         this.mTransmission = pConnection;
 

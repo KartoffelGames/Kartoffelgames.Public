@@ -1,13 +1,16 @@
 import { Exception } from '@kartoffelgames/core';
-import type { ComponentConstructor } from './component.ts';
-import { type EnvironmentStateChange, EnvironmentTransmission } from './environment-transmittion.ts';
-import type { Scene } from './scene.ts';
-import type { System } from './system.ts';
+import type { GameComponentConstructor } from '../component/game-component.ts';
+import { type EnvironmentStateChange, GameEnvironmentTransmission } from './game-environment-transmittion.ts';
+import type { GameScene } from '../game-scene.ts';
+import type { GameSystem } from '../game-system.ts';
 
-export class Environment {
-    private readonly mLoadedScenes: Set<Scene> = new Set();
+/**
+ * Main hub for managing the game environment, including loaded scenes, registered systems, and processing component state changes.
+ */
+export class GameEnvironment {
+    private readonly mLoadedScenes: Set<GameScene> = new Set();
     private readonly mStateChangeQueue: Array<EnvironmentStateChange> = new Array<EnvironmentStateChange>();
-    private readonly mSystems: Array<System> = new Array<System>();
+    private readonly mSystems: Array<GameSystem> = new Array<GameSystem>();
 
     /**
      * Execute the tick cycle for all systems.
@@ -30,14 +33,14 @@ export class Environment {
      */
     public executeUpdate(): void {
         // Optimize and order the state change queue
-        const lConstructorChangeStateQueue: Map<ComponentConstructor, ReadonlyArray<EnvironmentStateChange>> = this.optimizeStateChangeQueue();
+        const lConstructorChangeStateQueue: Map<GameComponentConstructor, ReadonlyArray<EnvironmentStateChange>> = this.optimizeStateChangeQueue();
 
         // Clear the original queue. Splice is half as fast as setting length to 0.
         this.mStateChangeQueue.length = 0;
 
         // Call update on all systems
         for (const lSystem of this.mSystems) {
-            const lHandledChanges = new Map<ComponentConstructor, ReadonlyArray<EnvironmentStateChange>>();
+            const lHandledChanges = new Map<GameComponentConstructor, ReadonlyArray<EnvironmentStateChange>>();
 
             // If the system has defined handled component types, filter the state changes for those types and pass them to the system.
             if (lSystem.handledComponentTypes) {
@@ -57,12 +60,12 @@ export class Environment {
      *
      * @param pScene - The scene to load
      */
-    public loadScene(pScene: Scene): void {
+    public loadScene(pScene: GameScene): void {
         // Mark scene as loaded
         this.mLoadedScenes.add(pScene);
 
         // Create a transmission object that queues state changes
-        const lTransmission = new EnvironmentTransmission(pScene, (pStateChange: EnvironmentStateChange) => {
+        const lTransmission = new GameEnvironmentTransmission(pScene, (pStateChange: EnvironmentStateChange) => {
             this.mStateChangeQueue.push(pStateChange);
         });
 
@@ -76,8 +79,8 @@ export class Environment {
      *
      * @param pSystem - The system to register
      */
-    public registerSystem(pSystem: System): void {
-        const lDependentSystemList: Array<System> = new Array<System>();
+    public registerSystem(pSystem: GameSystem): void {
+        const lDependentSystemList: Array<GameSystem> = new Array<GameSystem>();
 
         // Read dependencies of system and find the instance of each dependent system type.
         for (const lSystemType of pSystem.dependentSystemTypes) {
@@ -107,7 +110,7 @@ export class Environment {
      *
      * @param pScene - The scene to unload
      */
-    public unloadScene(pScene: Scene): void {
+    public unloadScene(pScene: GameScene): void {
         // Disconnect environment connection for all root game objects in the scene
         pScene.setEnvironmentConnection(null);
 
@@ -129,14 +132,14 @@ export class Environment {
      *
      * @internal
      */
-    private optimizeStateChangeQueue(): Map<ComponentConstructor, ReadonlyArray<EnvironmentStateChange>> {
+    private optimizeStateChangeQueue(): Map<GameComponentConstructor, ReadonlyArray<EnvironmentStateChange>> {
         // Track final lifecycle state and update status for each component
-        const lComponentStates: Map<ComponentConstructor, Array<EnvironmentStateChange>> = new Map<ComponentConstructor, Array<EnvironmentStateChange>>();
+        const lComponentStates: Map<GameComponentConstructor, Array<EnvironmentStateChange>> = new Map<GameComponentConstructor, Array<EnvironmentStateChange>>();
 
         // Process each state change in order to determine final state
         for (const lStateChange of this.mStateChangeQueue) {
             const lComponent = lStateChange.component;
-            const lComponentType = lComponent.constructor as ComponentConstructor;
+            const lComponentType = lComponent.constructor as GameComponentConstructor;
 
             // Initialize tracking state if needed
             if (!lComponentStates.has(lComponentType)) {

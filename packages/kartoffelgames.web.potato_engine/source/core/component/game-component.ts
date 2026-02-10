@@ -1,8 +1,14 @@
-import type { IAnyParameterConstructor } from '../../../kartoffelgames.core/source/interface/i-constructor.ts';
-import { GameObject } from './game-object.ts';
+import type { IAnyParameterConstructor } from '../../../../kartoffelgames.core/source/interface/i-constructor.ts';
+import { GameObject } from '../hierarchy/game-object.ts';
 
+// TODO: Define some decorators to allow easy saving and loading of components in binary or json files.
 
-export class Component extends GameObject {
+/**
+ * Base class for all components in the environment.
+ * Components are used to store data and state for game objects in the environment.
+ * They can be enabled or disabled, which signals the environment to activate or deactivate them.
+ */
+export class GameComponent extends GameObject {
     /**
      * Constructor.
      * 
@@ -55,4 +61,4 @@ export class Component extends GameObject {
     }
 }
 
-export type ComponentConstructor = IAnyParameterConstructor<Component>;
+export type GameComponentConstructor<TComponent extends GameComponent = GameComponent> = IAnyParameterConstructor<TComponent>;

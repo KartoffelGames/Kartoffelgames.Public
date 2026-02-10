@@ -1,23 +1,24 @@
-import type { Component } from './component.ts';
-import { Scene } from "./scene.ts";
+import type { GameComponent } from '../component/game-component.ts';
+import type { GameScene } from '../game-scene.ts';
 
 /**
  * Transmits environment state changes from various sources to a registered event handler.
  * Acts as a relay for component lifecycle events including addition, removal, activation, deactivation and updates.
  */
-export class EnvironmentTransmission {
+export class GameEnvironmentTransmission {
     /**
      * Event handler function that processes environment state changes.
      */
     private readonly mEventHandler: (pEvent: EnvironmentStateChange) => void;
-    private readonly mScene: Scene;
+    private readonly mScene: GameScene;
 
     /**
      * Creates a new environment transmission relay with the specified event handler.
      *
+     * @param pScene - The scene associated with this transmission.
      * @param pEventHandler - Function invoked whenever an environment state change occurs.
      */
-    public constructor(pScene: Scene, pEventHandler: (pEvent: EnvironmentStateChange) => void) {
+    public constructor(pScene: GameScene, pEventHandler: (pEvent: EnvironmentStateChange) => void) {
         this.mEventHandler = pEventHandler;
         this.mScene = pScene;
     }
@@ -27,7 +28,7 @@ export class EnvironmentTransmission {
      *
      * @param pComponent - The component being activated.
      */
-    public activate(pComponent: Component): void {
+    public activate(pComponent: GameComponent): void {
         this.mEventHandler({
             type: 'activate',
             component: pComponent,
@@ -40,7 +41,7 @@ export class EnvironmentTransmission {
      *
      * @param pComponent - The component being added to the environment.
      */
-    public add(pComponent: Component): void {
+    public add(pComponent: GameComponent): void {
         this.mEventHandler({
             type: 'add',
             component: pComponent,
@@ -53,7 +54,7 @@ export class EnvironmentTransmission {
      *
      * @param pComponent - The component being deactivated.
      */
-    public deactivate(pComponent: Component): void {
+    public deactivate(pComponent: GameComponent): void {
         this.mEventHandler({
             type: 'deactivate',
             component: pComponent,
@@ -66,7 +67,7 @@ export class EnvironmentTransmission {
      *
      * @param pComponent - The component being removed from the environment.
      */
-    public remove(pComponent: Component): void {
+    public remove(pComponent: GameComponent): void {
         this.mEventHandler({
             type: 'remove',
             component: pComponent,
@@ -80,7 +81,7 @@ export class EnvironmentTransmission {
      *
      * @param pComponent - The component being updated.
      */
-    public update(pComponent: Component): void {
+    public update(pComponent: GameComponent): void {
         this.mEventHandler({
             type: 'update',
             component: pComponent,
@@ -107,12 +108,12 @@ type EnvironmentStateChangeBase = {
     /**
      * The component involved in the state change.
      */
-    component: Component;
+    component: GameComponent;
 
     /**
      * The scene in which the state change occurred.
      */
-    scene: Scene;
+    scene: GameScene;
 };
 
 /**

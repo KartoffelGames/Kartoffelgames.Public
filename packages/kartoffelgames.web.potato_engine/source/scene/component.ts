@@ -1,5 +1,5 @@
-import { IAnyParameterConstructor } from "../../../kartoffelgames.core/source/interface/i-constructor.ts";
-import { GameObject } from "./game-object.ts";
+import type { IAnyParameterConstructor } from '../../../kartoffelgames.core/source/interface/i-constructor.ts';
+import { GameObject } from './game-object.ts';
 
 
 export class Component extends GameObject {

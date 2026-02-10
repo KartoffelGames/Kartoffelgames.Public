@@ -1,4 +1,4 @@
-import { Component } from "./component.ts";
+import type { Component } from './component.ts';
 
 /**
  * Transmits environment state changes from various sources to a registered event handler.
@@ -20,30 +20,6 @@ export class EnvironmentTransmission {
     }
 
     /**
-     * Transmits a component addition event to the environment handler.
-     *
-     * @param pComponent - The component being added to the environment.
-     */
-    public add(pComponent: Component): void {
-        this.mEventHandler({
-            type: 'add',
-            component: pComponent
-        });
-    }
-
-    /**
-     * Transmits a component removal event to the environment handler.
-     *
-     * @param pComponent - The component being removed from the environment.
-     */
-    public remove(pComponent: Component): void {
-        this.mEventHandler({
-            type: 'remove',
-            component: pComponent
-        });
-    }
-
-    /**
      * Transmits a component activation event to the environment handler.
      *
      * @param pComponent - The component being activated.
@@ -56,6 +32,18 @@ export class EnvironmentTransmission {
     }
 
     /**
+     * Transmits a component addition event to the environment handler.
+     *
+     * @param pComponent - The component being added to the environment.
+     */
+    public add(pComponent: Component): void {
+        this.mEventHandler({
+            type: 'add',
+            component: pComponent
+        });
+    }
+
+    /**
      * Transmits a component deactivation event to the environment handler.
      *
      * @param pComponent - The component being deactivated.
@@ -63,6 +51,18 @@ export class EnvironmentTransmission {
     public deactivate(pComponent: Component): void {
         this.mEventHandler({
             type: 'deactivate',
+            component: pComponent
+        });
+    }
+
+    /**
+     * Transmits a component removal event to the environment handler.
+     *
+     * @param pComponent - The component being removed from the environment.
+     */
+    public remove(pComponent: Component): void {
+        this.mEventHandler({
+            type: 'remove',
             component: pComponent
         });
     }

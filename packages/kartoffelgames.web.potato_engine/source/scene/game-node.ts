@@ -1,4 +1,4 @@
-import { GameObject } from "./game-object.ts";
+import { GameObject } from './game-object.ts';
 
 export abstract class GameNode extends GameObject {
     private readonly mChildNodeList: Array<GameNode>;
@@ -70,19 +70,19 @@ export abstract class GameNode extends GameObject {
      * Changes the enable state of this game object.
      * When the enable state changes, the change gets bubbled up to the environment and down to all children.
      *
-     * @param enabled - Whether this game object should be enabled.
-     * @param inherited - Whether this change is from an inherited state (from parent) or from itself.
+     * @param pEnabled - Whether this game object should be enabled.
+     * @param pInherited - Whether this change is from an inherited state (from parent) or from itself.
      * 
      * @returns whether the enable state of this game object changed.
      */
-    protected override changeEnableState(enabled: boolean, inherited: boolean): boolean {
+    protected override changeEnableState(pEnabled: boolean, pInherited: boolean): boolean {
         // Call super to change enable state of this game object.
-        const lStateChanged: boolean = super.changeEnableState(enabled, inherited);
+        const lStateChanged: boolean = super.changeEnableState(pEnabled, pInherited);
 
         // When the state has changed bubbles down to children
         if (lStateChanged) {
             for (const lChild of this.mChildNodeList) {
-                lChild.changeEnableState(enabled, true);
+                lChild.changeEnableState(pEnabled, true);
             }
         }
 

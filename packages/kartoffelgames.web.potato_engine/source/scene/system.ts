@@ -1,7 +1,7 @@
-import { Exception } from "@kartoffelgames/core";
-import { IAnyParameterConstructor } from "../../../kartoffelgames.core/source/interface/i-constructor.ts";
-import { ComponentConstructor } from "./component.ts";
-import { EnvironmentStateChange } from "./environment-transmittion.ts";
+import { Exception } from '@kartoffelgames/core';
+import type { IAnyParameterConstructor } from '../../../kartoffelgames.core/source/interface/i-constructor.ts';
+import type { ComponentConstructor } from './component.ts';
+import type { EnvironmentStateChange } from './environment-transmittion.ts';
 
 // TODO: Create a "System"-Class that can be registered in the environment. The system can have other system dependencies, so a call order can be created.
 // TODO: InitComponent() - Initializes components data somehow. Maybe with a init method of the component itself?
@@ -13,22 +13,52 @@ export abstract class System {
     private readonly mDependendSystems: Map<SystemConstructor<System>, System>;
 
     /**
-     * Define which component types this system is interested in.
-     * Override this method to return an array of component types this system handles.
-     */
-    public abstract readonly handledComponentTypes: Array<ComponentConstructor>;
-
-    /**
      * Define which systems this system depends on.
      * Override this method to return an array of system types this system depends on.
      */
     public abstract readonly dependentSystemTypes: Array<SystemConstructor<System>>;
 
     /**
+     * Define which component types this system is interested in.
+     * Override this method to return an array of component types this system handles.
+     */
+    public abstract readonly handledComponentTypes: Array<ComponentConstructor>;
+
+    /**
      * Constructor of the system.
      */
     public constructor() {
         this.mDependendSystems = new Map<SystemConstructor<System>, System>();
+    }
+
+    /**
+     * Call the frame hook.
+     * This is called by the environment.
+     *
+     * @internal
+     */
+    public executeFrame(): void {
+        this.onFrame();
+    }
+
+    /**
+     * Call the tick hook.
+     * This is called by the environment.
+     *
+     * @internal
+     */
+    public executeTick(): void {
+        this.onTick();
+    }
+
+    /**
+     * Call the update hook.
+     * This is called by the environment.
+     *
+     * @internal
+     */
+    public executeUpdate(pStateChanges: Map<ComponentConstructor, ReadonlyArray<EnvironmentStateChange>>): void {
+        this.onUpdate(pStateChanges);
     }
 
     /**
@@ -48,57 +78,6 @@ export abstract class System {
     }
 
     /**
-     * Call the frame hook.
-     * This is called by the environment.
-     *
-     * @internal
-     */
-    public executeFrame(): void {
-        this.onFrame();
-    }
-
-    /**
-     * Call the update hook.
-     * This is called by the environment.
-     *
-     * @internal
-     */
-    public executeUpdate(pStateChanges: Map<ComponentConstructor, ReadonlyArray<EnvironmentStateChange>>): void {
-        this.onUpdate(pStateChanges);
-    }
-
-    /**
-     * Call the tick hook.
-     * This is called by the environment.
-     *
-     * @internal
-     */
-    public executeTick(): void {
-        this.onTick();
-    }
-
-    /**
-     * Called when the system is created and registered to the environment.
-     */
-    protected abstract onCreate(): void;
-
-    /**
-     * Called once per update cycle.
-     * Used for resource managements based on component state changes.
-     */
-    protected abstract onUpdate(pStateChanges: Map<ComponentConstructor, ReadonlyArray<EnvironmentStateChange>>): void;
-
-    /**
-     * Called once per frame.
-     */
-    protected abstract onFrame(): void;
-
-    /**
-     * Called once per tick (physics tick).
-     */
-    protected abstract onTick(): void;
-
-    /**
      * Get a dependency system by its type.
      * The requested system must be registered as a dependency of this system, otherwise an exception is thrown.
      * 
@@ -115,6 +94,27 @@ export abstract class System {
 
         return lSystem as T;
     }
+
+    /**
+     * Called when the system is created and registered to the environment.
+     */
+    protected abstract onCreate(): void;
+
+    /**
+     * Called once per frame.
+     */
+    protected abstract onFrame(): void;
+
+    /**
+     * Called once per tick (physics tick).
+     */
+    protected abstract onTick(): void;
+
+    /**
+     * Called once per update cycle.
+     * Used for resource managements based on component state changes.
+     */
+    protected abstract onUpdate(pStateChanges: Map<ComponentConstructor, ReadonlyArray<EnvironmentStateChange>>): void;
 }
 
 type SystemConstructor<T extends System> = IAnyParameterConstructor<T>;

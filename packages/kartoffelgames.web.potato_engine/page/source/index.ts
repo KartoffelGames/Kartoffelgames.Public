@@ -1,1 +1,0 @@
-const lKnownBindingGroups: Map<string, any> = new Map<string, any>();

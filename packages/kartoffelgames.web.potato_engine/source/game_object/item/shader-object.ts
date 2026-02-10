@@ -1,8 +1,8 @@
-import { Exception } from "@kartoffelgames/core";
-import { PgslParser, PgslParserResult, PgslParserResultBinding, PgslParserResultType, WgslTranspiler } from '@kartoffelgames/core-pgsl';
-import { BufferItemFormat, BufferItemMultiplier, ComputeStage, GpuDevice, Shader, StorageBindingType, TextureFormat, TextureViewDimension } from '@kartoffelgames/web-gpu';
-import { PgslParserResultSamplerType } from "../../../../kartoffelgames.core.pgsl/source/parser_result/type/pgsl-parser-result-sampler-type.ts";
-import { ShaderSetup } from "../../../../kartoffelgames.web.gpu/source/shader/setup/shader-setup.ts";
+import { Exception } from '@kartoffelgames/core';
+import { PgslParser, type PgslParserResult, type PgslParserResultBinding, type PgslParserResultType, WgslTranspiler } from '@kartoffelgames/core-pgsl';
+import { BufferItemFormat, BufferItemMultiplier, ComputeStage, type GpuDevice, Shader, StorageBindingType, type TextureFormat, type TextureViewDimension } from '@kartoffelgames/web-gpu';
+import type { PgslParserResultSamplerType } from '../../../../kartoffelgames.core.pgsl/source/parser_result/type/pgsl-parser-result-sampler-type.ts';
+import type { ShaderSetup } from '../../../../kartoffelgames.web.gpu/source/shader/setup/shader-setup.ts';
 
 // TODO: Allow to load from source-code and to save it as a serializeable object.
 // TODO: Allow to load it from the serializeable object.
@@ -104,19 +104,19 @@ export class ShaderObject {
                     comparison: lSamplerType.isComparison
                 };
             }
-            case "boolean": {
+            case 'boolean': {
                 return {
                     type: 'primitive',
                     stride: BufferItemMultiplier.Single,
                     itemFormat: BufferItemFormat.Uint8
                 };
             }
-            case "texture":
-            case "array":
-            case "struct":
-            case "numeric":
-            case "vector":
-            case "matrix":
+            case 'texture':
+            case 'array':
+            case 'struct':
+            case 'numeric':
+            case 'vector':
+            case 'matrix':
         }
 
         // TODO:

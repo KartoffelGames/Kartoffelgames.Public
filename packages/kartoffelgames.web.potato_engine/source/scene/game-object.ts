@@ -1,11 +1,11 @@
-import { EnvironmentTransmission } from "./environment-transmittion.ts";
+import type { EnvironmentTransmission } from './environment-transmittion.ts';
 
 /**
  * A GameObject is an ecs object in the game world.
  * It can be enabled or disabled.
  */
 export abstract class GameObject {
-    private mEnableState: GameObjectEnableState;
+    private readonly mEnableState: GameObjectEnableState;
     private readonly mLabel: string;
     private mParent: GameObject | null;
 
@@ -99,21 +99,21 @@ export abstract class GameObject {
      * Changes the enable state of this game object.
      * When the enable state changes, the change gets bubbled up to the environment and down to all children.
      *
-     * @param enabled - Whether this game object should be enabled.
-     * @param inherited - Whether this change is from an inherited state (from parent) or from itself.
+     * @param pEnabled - Whether this game object should be enabled.
+     * @param pInherited - Whether this change is from an inherited state (from parent) or from itself.
      * 
      * @returns whether the enable state of this game object changed.
      */
-    protected changeEnableState(enabled: boolean, inherited: boolean): boolean {
+    protected changeEnableState(pEnabled: boolean, pInherited: boolean): boolean {
         // Last state of this game object
         const lLastState: boolean = this.mEnableState.enabled;
 
         // Update inherited state when this change is from parent, otherwise keep the inherited state.
         // Update self state when this change is from itself, otherwise keep the self state.
-        if (inherited) {
-            this.mEnableState.inheritedState = enabled;
+        if (pInherited) {
+            this.mEnableState.inheritedState = pEnabled;
         } else {
-            this.mEnableState.selfState = enabled;
+            this.mEnableState.selfState = pEnabled;
         }
 
         // When the current inherited state is disabled, this game object is also disabled.

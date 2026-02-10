@@ -1,18 +1,15 @@
-import { IVoidParameterConstructor } from "@kartoffelgames/core";
-import { IAnyParameterConstructor } from "../../../kartoffelgames.core/source/interface/i-constructor.ts";
-import { Component, ComponentConstructor } from "./component.ts";
-import { GameNode } from "./game-node.ts";
+import type { IVoidParameterConstructor } from '@kartoffelgames/core';
+import type { IAnyParameterConstructor } from '../../../kartoffelgames.core/source/interface/i-constructor.ts';
+import type { Component, ComponentConstructor } from './component.ts';
+import { GameNode } from './game-node.ts';
 
-// TODO: Make it work first, then optimize...
-// TODO: Make a "Environment" that can load scenes. On loading it registers all game objects and components in the scene, so that they can be found by type and a easy list is accessable.
 // TODO: On any game object, component change this should be bubbled up to the environment, so that it can update its lists. While its bubbling up it should also set a "dirty" flag on all parent game objects, so that they can update their own lists of components when needed.
 // TODO: Maybe a tag system for game objects so a custom component-script can easily find all game objects with a specific tag?
 // TODO: How does a system initialize a new component?
-// TODO: A component as well as a game object can be disabled and enabled again.
 
 export class GameEntity extends GameNode{
-    private readonly mComponents: Set<Component>;
     private readonly mComponentTypeMap: Map<ComponentConstructor, Array<Component>>;
+    private readonly mComponents: Set<Component>;
     
     /**
      * Create a new empty game object.
@@ -56,6 +53,40 @@ export class GameEntity extends GameNode{
     }
 
     /**
+     * Connect this game object to the environment connection of this game object, if it exists.
+     * This gets bubbled up to every child game object, so that they can also signal the environment connection.
+     * When this game object is not in an environment, this does nothing.
+     * 
+     * @internal
+     */
+    public override connect(): void {
+        // Call connect to all components to bubble up to environment connection.
+        for (const lComponent of this.mComponents) {
+            lComponent.connect();
+        }
+
+        // Call child connect to bubble up to environment connection.
+        super.connect();
+    }
+
+    /**
+     * Disconnect this game object from the environment connection of this game object, if it exists.
+     * This gets bubbled up to every child game object, so that they can also signal the environment connection.
+     * When this game object is not in an environment, this does nothing.
+     * 
+     * @internal
+     */
+    public override disconnect(): void {
+        // Call disconnect to all components to bubble up to environment connection.
+        for (const lComponent of this.mComponents) {
+            lComponent.disconnect();
+        }
+
+        // Call child disconnect to bubble up to environment connection.
+        super.disconnect();
+    }
+
+    /**
      * Adds a component to this game object.
      * Returns the first found component of the requested type, or null if none found.
      * 
@@ -92,28 +123,6 @@ export class GameEntity extends GameNode{
     }
 
     /**
-     * Gets all components of the requested type moving up the parent chain.
-     * The first found components are from this game object, then from the parent, and so on.
-     * 
-     * @param pType - Component type.
-     * 
-     * @returns An iterable of all found components of the requested type. 
-     */
-    public getParentComponent<T extends Component>(pType: IAnyParameterConstructor<T>): Array<T> {
-        // Get component from current object
-        const lCurrentObjectComponent: T | null = this.getComponent<T>(pType);
-
-        // Get components from parent objects
-        const lParentObjectComponents: Array<T> = this.parent ? this.parent.getParentComponent<T>(pType) : [];
-        if (!lCurrentObjectComponent) {
-            return lParentObjectComponents;
-        }
-
-        // When both current and parent components exist, combine them
-        return [lCurrentObjectComponent, ...lParentObjectComponents];
-    }
-
-    /**
      * Returns all game objects in this object's hierarchy (including itself) that have the requested component.
      *
      * @param pType - Component type.
@@ -132,6 +141,10 @@ export class GameEntity extends GameNode{
 
         // Get child game objects with the component
         for (const lChild of this.childNodes) {
+            if (!(lChild instanceof GameEntity)) {
+                continue;
+            }
+
             const lChildList: Array<GameEntity> = lChild.getGameObjectsWithComponent<T>(pType);
 
             // Simple optimization to use a spread operator only when needed.
@@ -143,43 +156,46 @@ export class GameEntity extends GameNode{
         return lResultList;
     }
 
-    public override connect(): void {
-        // Call connect to all components to bubble up to environment connection.
-        for (const lComponent of this.mComponents) {
-            lComponent.connect();
+    /**
+     * Gets all components of the requested type moving up the parent chain.
+     * The first found components are from this game object, then from the parent, and so on.
+     * 
+     * @param pType - Component type.
+     * 
+     * @returns An iterable of all found components of the requested type. 
+     */
+    public getParentComponent<T extends Component>(pType: IAnyParameterConstructor<T>): Array<T> {
+        // Get component from current object
+        const lCurrentObjectComponent: T | null = this.getComponent<T>(pType);
+
+        // Get components from parent objects
+        const lParentObjectComponents: Array<T> = (this.parent instanceof GameEntity) ? this.parent.getParentComponent<T>(pType) : [];
+        if (!lCurrentObjectComponent) {
+            return lParentObjectComponents;
         }
 
-        // Call child connect to bubble up to environment connection.
-        super.connect();
-    }
-
-    public override disconnect(): void {
-        // Call disconnect to all components to bubble up to environment connection.
-        for (const lComponent of this.mComponents) {
-            lComponent.disconnect();
-        }
-
-        // Call child disconnect to bubble up to environment connection.
-        super.disconnect();
+        // When both current and parent components exist, combine them
+        return [lCurrentObjectComponent, ...lParentObjectComponents];
     }
 
     /**
      * Changes the enable state of this game object.
      * When the enable state changes, the change gets bubbled up to the environment and down to all children.
      *
-     * @param enabled - Whether this game object should be enabled.
-     * @param inherited - Whether this change is from an inherited state (from parent) or from itself.
+     * @param pEnabled - Whether this game object should be enabled.
+     * @param pInherited - Whether this change is from an inherited state (from parent) or from itself.
      * 
      * @returns whether the enable state of this game object changed.
      */
-    protected override changeEnableState(enabled: boolean, inherited: boolean): boolean {
+    protected override changeEnableState(pEnabled: boolean, pInherited: boolean): boolean {
         // Call super to change enable state of this game object.
-        const lStateChanged: boolean = super.changeEnableState(enabled, inherited);
+        const lStateChanged: boolean = super.changeEnableState(pEnabled, pInherited);
 
         // When the state has changed bubbles down to children
         if (lStateChanged) {
             for (const lComponent of this.mComponents) {
-                lComponent.changeEnableState(enabled, true);
+                // Treat it like a game entity to access the changeEnableState method, since components can also be enabled and disabled.
+                (<GameEntity><unknown>lComponent).changeEnableState(pEnabled, true); // TODO: There should be a better way.
             }
         }
 

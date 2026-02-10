@@ -1,77 +1,25 @@
-import { EnvironmentStateChange, EnvironmentTransmission } from "./environment-transmittion.ts";
-import { Component, ComponentConstructor } from "./component.ts";
-import { Scene } from "./scene.ts";
-import { System } from "./system.ts";
-import { Exception } from "@kartoffelgames/core";
+import { Exception } from '@kartoffelgames/core';
+import type { ComponentConstructor } from './component.ts';
+import { type EnvironmentStateChange, EnvironmentTransmission } from './environment-transmittion.ts';
+import type { Scene } from './scene.ts';
+import type { System } from './system.ts';
 
 export class Environment {
-    private readonly mSystems: Array<System> = new Array<System>();
-    private readonly mStateChangeQueue: Array<EnvironmentStateChange> = new Array<EnvironmentStateChange>();
     private readonly mLoadedScenes: Set<Scene> = new Set();
+    private readonly mStateChangeQueue: Array<EnvironmentStateChange> = new Array<EnvironmentStateChange>();
+    private readonly mSystems: Array<System> = new Array<System>();
 
     /**
-     * Register a system with the environment.
-     * The system will be initialized and notified of component state changes.
+     * Execute the tick cycle for all systems.
+     * This should be called at a fixed timestep for physics.
      *
-     * @param system - The system to register
+     * @internal
      */
-    public registerSystem(system: System): void {
-        const lDependentSystemList: Array<System> = new Array<System>();
-
-        // Read dependencies of system and find the instance of each dependent system type.
-        for (const lSystemType of system.dependentSystemTypes) {
-            // Find the instance of the dependent system type.
-            const lDependentSystem = this.mSystems.find((pSystemInstance) => {
-                return pSystemInstance.constructor === lSystemType;
-            });
-
-            // If the dependent system is not found, throw an exception.
-            if (!lDependentSystem) {
-                throw new Exception(`Dependent system of type ${lSystemType.name} not found for system ${system.constructor.name}`, this);
-            }
-
-            lDependentSystemList.push(lDependentSystem);
+    public executeTick(): void {
+        // Call tick on all systems
+        for (const lSystem of this.mSystems) {
+            lSystem.executeTick();
         }
-
-        // Add system to list
-        this.mSystems.push(system);
-
-        // Initialize system with dependent systems
-        system.initialize(lDependentSystemList);
-    }
-
-    /**
-     * Load a scene into the environment.
-     * This establishes the environment connection for all game objects in the scene,
-     * allowing them to transmit component state changes.
-     *
-     * @param pScene - The scene to load
-     */
-    public loadScene(pScene: Scene): void {
-        // Mark scene as loaded
-        this.mLoadedScenes.add(pScene);
-
-        // Create a transmission object that queues state changes
-        const lTransmission = new EnvironmentTransmission((pStateChange: EnvironmentStateChange) => {
-            this.mStateChangeQueue.push(pStateChange);
-        });
-
-        // Establish environment connection for all root game objects in the scene
-        pScene.setEnvironmentConnection(lTransmission);
-    }
-
-    /**
-     * Unload a scene from the environment.
-     * All components from the scene will be removed from tracking by systems.
-     *
-     * @param pScene - The scene to unload
-     */
-    public unloadScene(pScene: Scene): void {
-        // Disconnect environment connection for all root game objects in the scene
-        pScene.setEnvironmentConnection(null);
-
-        // Mark scene as unloaded
-        this.mLoadedScenes.delete(pScene);
     }
 
     /**
@@ -103,16 +51,68 @@ export class Environment {
     }
 
     /**
-     * Execute the tick cycle for all systems.
-     * This should be called at a fixed timestep for physics.
+     * Load a scene into the environment.
+     * This establishes the environment connection for all game objects in the scene,
+     * allowing them to transmit component state changes.
      *
-     * @internal
+     * @param pScene - The scene to load
      */
-    public executeTick(): void {
-        // Call tick on all systems
-        for (const lSystem of this.mSystems) {
-            lSystem.executeTick();
+    public loadScene(pScene: Scene): void {
+        // Mark scene as loaded
+        this.mLoadedScenes.add(pScene);
+
+        // Create a transmission object that queues state changes
+        const lTransmission = new EnvironmentTransmission((pStateChange: EnvironmentStateChange) => {
+            this.mStateChangeQueue.push(pStateChange);
+        });
+
+        // Establish environment connection for all root game objects in the scene
+        pScene.setEnvironmentConnection(lTransmission);
+    }
+
+    /**
+     * Register a system with the environment.
+     * The system will be initialized and notified of component state changes.
+     *
+     * @param pSystem - The system to register
+     */
+    public registerSystem(pSystem: System): void {
+        const lDependentSystemList: Array<System> = new Array<System>();
+
+        // Read dependencies of system and find the instance of each dependent system type.
+        for (const lSystemType of pSystem.dependentSystemTypes) {
+            // Find the instance of the dependent system type.
+            const lDependentSystem = this.mSystems.find((pSystemInstance) => {
+                return pSystemInstance.constructor === lSystemType;
+            });
+
+            // If the dependent system is not found, throw an exception.
+            if (!lDependentSystem) {
+                throw new Exception(`Dependent system of type ${lSystemType.name} not found for system ${pSystem.constructor.name}`, this);
+            }
+
+            lDependentSystemList.push(lDependentSystem);
         }
+
+        // Add system to list
+        this.mSystems.push(pSystem);
+
+        // Initialize system with dependent systems
+        pSystem.initialize(lDependentSystemList);
+    }
+
+    /**
+     * Unload a scene from the environment.
+     * All components from the scene will be removed from tracking by systems.
+     *
+     * @param pScene - The scene to unload
+     */
+    public unloadScene(pScene: Scene): void {
+        // Disconnect environment connection for all root game objects in the scene
+        pScene.setEnvironmentConnection(null);
+
+        // Mark scene as unloaded
+        this.mLoadedScenes.delete(pScene);
     }
 
     /**

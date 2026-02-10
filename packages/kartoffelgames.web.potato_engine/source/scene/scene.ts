@@ -1,5 +1,5 @@
-import { EnvironmentTransmission } from "./environment-transmittion.ts";
-import { GameNode } from "./game-node.ts";
+import type { EnvironmentTransmission } from './environment-transmittion.ts';
+import { GameNode } from './game-node.ts';
 
 export class Scene extends GameNode {
     private mTransmission: EnvironmentTransmission | null;

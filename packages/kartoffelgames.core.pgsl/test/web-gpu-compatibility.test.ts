@@ -166,6 +166,7 @@ Deno.test('WebGPU - Compatibility', async () => {
     const lAdapter = await navigator.gpu.requestAdapter();
     const lDevice = await lAdapter?.requestDevice();
     if (!lDevice) {
+        // eslint-disable-next-line no-console
         console.warn('WebGPU device not available, skipping test');
         return;
     }

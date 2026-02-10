@@ -2,6 +2,7 @@ import type { IAnyParameterConstructor } from '../../../../kartoffelgames.core/s
 import { GameObject } from '../hierarchy/game-object.ts';
 
 // TODO: Define some decorators to allow easy saving and loading of components in binary or json files.
+// TODO: Add a user defineable way to trigger update status change on components, but only send the status change a single time per update loop.
 
 /**
  * Base class for all components in the environment.

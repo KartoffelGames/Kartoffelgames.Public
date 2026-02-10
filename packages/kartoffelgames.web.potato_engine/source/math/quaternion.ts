@@ -74,12 +74,12 @@ export class Quaternion {
         const lSquareZ: number = 2 * Math.pow(this.mZ, 2);
         const lProductXy: number = 2 * this.mX * this.mY;
         const lProductZw: number = 2 * this.mZ * this.mW;
-        const lProductYz: number = 2 * this.mY * this.mZ;
-        const lProductXw: number = 2 * this.mX * this.mW;
+        const lProductXz: number = 2 * this.mX * this.mZ;
+        const lProductYw: number = 2 * this.mY * this.mW;
 
         const lX: number = 1 - lSquareY - lSquareZ;
         const lY: number = lProductXy + lProductZw;
-        const lZ: number = lProductYz + lProductXw;
+        const lZ: number = lProductXz - lProductYw;
 
         return new Vector([lX, lY, lZ]);
     }
@@ -252,7 +252,7 @@ export class Quaternion {
      */
     public normalize(): Quaternion {
         // Calculate length.
-        const lLength = Math.hypot(Math.pow(this.mW, 2), Math.pow(this.mX, 2), Math.pow(this.mY, 2), Math.pow(this.mZ, 2));
+        const lLength = Math.hypot(this.mW, this.mX, this.mY, this.mZ);
 
         // Create new quaternion by dividing each dimension by length.
         return new Quaternion(this.mW / lLength, this.mX / lLength, this.mY / lLength, this.mZ / lLength);

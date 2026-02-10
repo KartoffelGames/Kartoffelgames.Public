@@ -62,7 +62,7 @@ export class Environment {
         this.mLoadedScenes.add(pScene);
 
         // Create a transmission object that queues state changes
-        const lTransmission = new EnvironmentTransmission((pStateChange: EnvironmentStateChange) => {
+        const lTransmission = new EnvironmentTransmission(pScene, (pStateChange: EnvironmentStateChange) => {
             this.mStateChangeQueue.push(pStateChange);
         });
 

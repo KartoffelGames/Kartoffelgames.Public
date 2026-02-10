@@ -1,4 +1,5 @@
 import type { Component } from './component.ts';
+import { Scene } from "./scene.ts";
 
 /**
  * Transmits environment state changes from various sources to a registered event handler.
@@ -9,14 +10,16 @@ export class EnvironmentTransmission {
      * Event handler function that processes environment state changes.
      */
     private readonly mEventHandler: (pEvent: EnvironmentStateChange) => void;
+    private readonly mScene: Scene;
 
     /**
      * Creates a new environment transmission relay with the specified event handler.
      *
      * @param pEventHandler - Function invoked whenever an environment state change occurs.
      */
-    public constructor(pEventHandler: (pEvent: EnvironmentStateChange) => void) {
+    public constructor(pScene: Scene, pEventHandler: (pEvent: EnvironmentStateChange) => void) {
         this.mEventHandler = pEventHandler;
+        this.mScene = pScene;
     }
 
     /**
@@ -27,7 +30,8 @@ export class EnvironmentTransmission {
     public activate(pComponent: Component): void {
         this.mEventHandler({
             type: 'activate',
-            component: pComponent
+            component: pComponent,
+            scene: this.mScene
         });
     }
 
@@ -39,7 +43,8 @@ export class EnvironmentTransmission {
     public add(pComponent: Component): void {
         this.mEventHandler({
             type: 'add',
-            component: pComponent
+            component: pComponent,
+            scene: this.mScene
         });
     }
 
@@ -51,7 +56,8 @@ export class EnvironmentTransmission {
     public deactivate(pComponent: Component): void {
         this.mEventHandler({
             type: 'deactivate',
-            component: pComponent
+            component: pComponent,
+            scene: this.mScene
         });
     }
 
@@ -63,7 +69,8 @@ export class EnvironmentTransmission {
     public remove(pComponent: Component): void {
         this.mEventHandler({
             type: 'remove',
-            component: pComponent
+            component: pComponent,
+            scene: this.mScene
         });
     }
 
@@ -76,7 +83,8 @@ export class EnvironmentTransmission {
     public update(pComponent: Component): void {
         this.mEventHandler({
             type: 'update',
-            component: pComponent
+            component: pComponent,
+            scene: this.mScene
         });
     }
 }
@@ -100,6 +108,11 @@ type EnvironmentStateChangeBase = {
      * The component involved in the state change.
      */
     component: Component;
+
+    /**
+     * The scene in which the state change occurred.
+     */
+    scene: Scene;
 };
 
 /**

@@ -3,9 +3,6 @@ import type { IAnyParameterConstructor } from '../../../../kartoffelgames.core/s
 import type { GameComponent, GameComponentConstructor } from '../component/game-component.ts';
 import { GameNode } from '../hierarchy/game-node.ts';
 
-// TODO: On any game object, component change this should be bubbled up to the environment, so that it can update its lists. While its bubbling up it should also set a "dirty" flag on all parent game objects, so that they can update their own lists of components when needed.
-// TODO: Maybe a tag system for game objects so a custom component-script can easily find all game objects with a specific tag?
-
 /**
  * A GameEntity is a game node that can have components.
  * It is used to create game objects in the scene, which can have components that define their behavior and state.
@@ -51,6 +48,13 @@ export class GameEntity extends GameNode{
 
         // Add component to type array.
         lComponentsOfType.push(lComponent);
+
+        // Resolve dependencies - auto-add any missing dependency components.
+        for (const lDependency of lComponent.dependencies) {
+            if (!this.mComponentTypeMap.has(lDependency)) {
+                this.addComponent(lDependency as IVoidParameterConstructor<GameComponent>);
+            }
+        }
 
         return lComponent;
     }

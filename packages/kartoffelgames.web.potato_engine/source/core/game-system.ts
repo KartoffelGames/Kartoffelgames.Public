@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import type { IAnyParameterConstructor } from '../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import type { GameComponentConstructor } from './component/game-component.ts';
-import type { EnvironmentStateChange } from './environment/game-environment-transmittion.ts';
+import type { GameEnvironmentStateChange } from './environment/game-environment-transmittion.ts';
 
 /**
  * Base class for all systems in the environment.
@@ -58,7 +58,7 @@ export abstract class GameSystem {
      *
      * @internal
      */
-    public executeUpdate(pStateChanges: Map<GameComponentConstructor, ReadonlyArray<EnvironmentStateChange>>): void {
+    public executeUpdate(pStateChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>): void {
         this.onUpdate(pStateChanges);
     }
 
@@ -115,7 +115,7 @@ export abstract class GameSystem {
      * Called once per update cycle.
      * Used for resource managements based on component state changes.
      */
-    protected abstract onUpdate(pStateChanges: Map<GameComponentConstructor, ReadonlyArray<EnvironmentStateChange>>): void;
+    protected abstract onUpdate(pStateChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>): void;
 }
 
 type GameSystemConstructor<T extends GameSystem = GameSystem> = IAnyParameterConstructor<T>;

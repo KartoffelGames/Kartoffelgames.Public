@@ -2,7 +2,6 @@ import type { IAnyParameterConstructor } from '../../../../kartoffelgames.core/s
 import { GameObject } from '../hierarchy/game-object.ts';
 
 // TODO: Define some decorators to allow easy saving and loading of components in binary or json files.
-// TODO: Add a user defineable way to trigger update status change on components, but only send the status change a single time per update loop.
 
 /**
  * Base class for all components in the environment.
@@ -10,6 +9,17 @@ import { GameObject } from '../hierarchy/game-object.ts';
  * They can be enabled or disabled, which signals the environment to activate or deactivate them.
  */
 export class GameComponent extends GameObject {
+    /**
+     * Get the list of component types that this component depends on.
+     * Override this property in subclasses to specify dependencies for a component.
+     * When this component is added to a game entity, all dependencies will be automatically added if not already present.
+     * 
+     * @returns List of component constructor types this component depends on.
+     */
+    public get dependencies(): Array<GameComponentConstructor> {
+        return [];
+    }
+
     /**
      * Constructor.
      * 
@@ -59,6 +69,15 @@ export class GameComponent extends GameObject {
         }
 
         return lStateChanged;
+    }
+
+    /**
+     * Transmits a component activation event to the environment handler.
+     *
+     * @internal
+     */
+    protected submitUpdateRequest(): void {
+        this.environment?.update(this);
     }
 }
 

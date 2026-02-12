@@ -8,7 +8,7 @@ import type { GameSystem } from '../game-system.ts';
  * Main hub for managing the game environment, including loaded scenes, registered systems, and processing component state changes.
  */
 export class GameEnvironment {
-    private readonly mCurrentTick: number;
+    private mCurrentTick: number;
     private readonly mLoadedScenes: Set<GameScene>;
     private readonly mStateChangeQueue: Array<GameEnvironmentStateChange>;
     private readonly mSystems: Array<GameSystem>;
@@ -118,6 +118,32 @@ export class GameEnvironment {
 
         // Initialize system with dependent systems
         pSystem.initialize(lDependentSystemList);
+    }
+
+    /**
+     * Start the game environment, beginning the main loop and processing ticks and updates.
+     */
+    public async start(): Promise<void> {
+        const animationFrames = async function* () {
+            let lRequestId: number = 0;
+
+            try {
+                while (true) {
+                    yield await new Promise<number>(resolve => {
+                        lRequestId = globalThis.requestAnimationFrame(resolve);
+                    });
+                }
+            } finally {
+                globalThis.cancelAnimationFrame(lRequestId);
+            }
+        };
+
+        for await (const lTick of animationFrames()) {
+            // Update tick.
+            this.mCurrentTick = lTick;
+
+            // TODO: Calculate delta time and pass to systems that need it.
+        }
     }
 
     /**

@@ -108,7 +108,7 @@ export class GameEnvironment {
      *
      * @param pSystem - The system to register
      */
-    public registerSystem(pSystem: GameSystem): void {
+    public async registerSystem(pSystem: GameSystem): Promise<void> {
         const lDependentSystemList: Array<GameSystem> = new Array<GameSystem>();
 
         // Read dependencies of system and find the instance of each dependent system type.
@@ -130,7 +130,7 @@ export class GameEnvironment {
         this.mSystems.push(pSystem);
 
         // Initialize system with dependent systems
-        pSystem.initialize(lDependentSystemList);
+        await pSystem.initialize(lDependentSystemList);
     }
 
     /**

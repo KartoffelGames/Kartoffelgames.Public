@@ -17,13 +17,17 @@ export abstract class GameSystem {
      * Define which systems this system depends on.
      * Override this method to return an array of system types this system depends on.
      */
-    public abstract readonly dependentSystemTypes: Array<GameSystemConstructor<GameSystem>>;
+    public get dependentSystemTypes(): Array<GameSystemConstructor<GameSystem>> {
+        return [];
+    }
 
     /**
      * Define which component types this system is interested in.
      * Override this method to return an array of component types this system handles.
      */
-    public abstract readonly handledComponentTypes: Array<GameComponentConstructor>;
+    public get handledComponentTypes(): Array<GameComponentConstructor> {
+        return [];
+    }
 
     /**
      * Constructor of the system.
@@ -68,14 +72,14 @@ export abstract class GameSystem {
      *
      * @internal
      */
-    public initialize(pDependendSystems: Array<GameSystem>): void {
+    public async initialize(pDependendSystems: Array<GameSystem>): Promise<void> {
         // Store dependent systems in a map.
         for (const lSystem of pDependendSystems) {
             this.mDependendSystems.set(lSystem.constructor as GameSystemConstructor<GameSystem>, lSystem);
         }
 
         // Call onCreate hook.
-        this.onCreate();
+        await this.onCreate();
     }
 
     /**
@@ -99,23 +103,33 @@ export abstract class GameSystem {
     /**
      * Called when the system is created and registered to the environment.
      */
-    protected abstract onCreate(): void;
+    protected async onCreate(): Promise<void> {
+        // Default implementation does nothing.
+    }
 
     /**
      * Called once per frame.
      */
-    protected abstract onFrame(): Promise<void>;
+    protected async onFrame(): Promise<void> {
+        // Default implementation does nothing.
+    }
 
     /**
      * Called once per tick (physics tick).
      */
-    protected abstract onTick(): Promise<void>;
+    protected async onTick(): Promise<void> {
+        // Default implementation does nothing.
+    }
 
     /**
      * Called once per update cycle.
      * Used for resource managements based on component state changes.
+     * 
+     * @param _pStateChanges - Map of component types to arrays of state changes that occurred since the last update.
      */
-    protected abstract onUpdate(pStateChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>): Promise<void>;
+    protected async onUpdate(_pStateChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>): Promise<void> {
+        // Default implementation does nothing.
+    }
 }
 
 type GameSystemConstructor<T extends GameSystem = GameSystem> = IAnyParameterConstructor<T>;

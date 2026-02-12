@@ -24,15 +24,28 @@ export class GameEnvironment {
     }
 
     /**
+     * Execute the frame cycle for all systems.
+     * This should be called once per frame.
+     * 
+     * @internal
+     */
+    public async executeFrame(): Promise<void> {
+        // Call frame on all systems
+        for (const lSystem of this.mSystems) {
+            await lSystem.executeFrame();
+        }
+    }
+
+    /**
      * Execute the tick cycle for all systems.
      * This should be called at a fixed timestep for physics.
      *
      * @internal
      */
-    public executeTick(): void {
+    public async executeTick(): Promise<void> {
         // Call tick on all systems
         for (const lSystem of this.mSystems) {
-            lSystem.executeTick();
+            await lSystem.executeTick();
         }
     }
 
@@ -42,7 +55,7 @@ export class GameEnvironment {
      *
      * @internal
      */
-    public executeUpdate(): void {
+    public async executeUpdate(): Promise<void> {
         // Optimize and order the state change queue
         const lConstructorChangeStateQueue: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>> = this.optimizeStateChangeQueue();
 
@@ -60,7 +73,7 @@ export class GameEnvironment {
                 }
             }
 
-            lSystem.executeUpdate(lHandledChanges);
+            await lSystem.executeUpdate(lHandledChanges);
         }
     }
 
@@ -139,10 +152,20 @@ export class GameEnvironment {
         };
 
         for await (const lTick of animationFrames()) {
+            // Calculate delta time
+            const lDeltaTime = lTick - this.mCurrentTick;
+
             // Update tick.
             this.mCurrentTick = lTick;
 
-            // TODO: Calculate delta time and pass to systems that need it.
+            // Execute update with state changes from the last frame.
+            await this.executeUpdate();
+
+            // Execute frame after update to ensure systems have the latest component state changes.
+            await this.executeFrame();
+
+            // Execute fixed.
+            await this.executeTick();
         }
     }
 

@@ -38,8 +38,8 @@ export abstract class GameSystem {
      *
      * @internal
      */
-    public executeFrame(): void {
-        this.onFrame();
+    public async executeFrame(): Promise<void> {
+        await this.onFrame();
     }
 
     /**
@@ -48,8 +48,8 @@ export abstract class GameSystem {
      *
      * @internal
      */
-    public executeTick(): void {
-        this.onTick();
+    public async executeTick(): Promise<void> {
+        await this.onTick();
     }
 
     /**
@@ -58,8 +58,8 @@ export abstract class GameSystem {
      *
      * @internal
      */
-    public executeUpdate(pStateChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>): void {
-        this.onUpdate(pStateChanges);
+    public async executeUpdate(pStateChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>): Promise<void> {
+        await this.onUpdate(pStateChanges);
     }
 
     /**
@@ -104,18 +104,18 @@ export abstract class GameSystem {
     /**
      * Called once per frame.
      */
-    protected abstract onFrame(): void;
+    protected abstract onFrame(): Promise<void>;
 
     /**
      * Called once per tick (physics tick).
      */
-    protected abstract onTick(): void;
+    protected abstract onTick(): Promise<void>;
 
     /**
      * Called once per update cycle.
      * Used for resource managements based on component state changes.
      */
-    protected abstract onUpdate(pStateChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>): void;
+    protected abstract onUpdate(pStateChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>): Promise<void>;
 }
 
 type GameSystemConstructor<T extends GameSystem = GameSystem> = IAnyParameterConstructor<T>;

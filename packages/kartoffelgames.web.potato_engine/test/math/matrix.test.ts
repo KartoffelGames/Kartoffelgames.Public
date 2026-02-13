@@ -698,15 +698,15 @@ Deno.test('Matrix.inverse()', async (pContext) => {
         const lResult: Matrix = lMatrix.inverse();
 
         // Evaluation.
-        expect(lResult.data[0][0]).toBeCloseTo(24 / 22);
-        expect(lResult.data[0][1]).toBeCloseTo(-12 / 22);
-        expect(lResult.data[0][2]).toBeCloseTo(-2 / 22);
-        expect(lResult.data[1][0]).toBeCloseTo(5 / 22);
-        expect(lResult.data[1][1]).toBeCloseTo(3 / 22);
-        expect(lResult.data[1][2]).toBeCloseTo(-5 / 22);
-        expect(lResult.data[2][0]).toBeCloseTo(-4 / 22);
-        expect(lResult.data[2][1]).toBeCloseTo(2 / 22);
-        expect(lResult.data[2][2]).toBeCloseTo(4 / 22);
+        expect(lResult.data[0][0]).toBe(24 / 22);
+        expect(lResult.data[0][1]).toBe(-12 / 22);
+        expect(lResult.data[0][2]).toBe(-2 / 22);
+        expect(lResult.data[1][0]).toBe(5 / 22);
+        expect(lResult.data[1][1]).toBe(3 / 22);
+        expect(lResult.data[1][2]).toBe(-5 / 22);
+        expect(lResult.data[2][0]).toBe(-4 / 22);
+        expect(lResult.data[2][1]).toBe(2 / 22);
+        expect(lResult.data[2][2]).toBe(4 / 22);
     });
 
     await pContext.step('Matrix multiplied by its inverse equals identity', () => {
@@ -720,7 +720,7 @@ Deno.test('Matrix.inverse()', async (pContext) => {
         // Evaluation. Use toBeCloseTo for floating point.
         for (let lRowIndex = 0; lRowIndex < 2; lRowIndex++) {
             for (let lColIndex = 0; lColIndex < 2; lColIndex++) {
-                expect(lResult.data[lRowIndex][lColIndex]).toBeCloseTo(lIdentity.data[lRowIndex][lColIndex]);
+                expect(lResult.data[lRowIndex][lColIndex]).toBe(lIdentity.data[lRowIndex][lColIndex]);
             }
         }
     });
@@ -735,7 +735,8 @@ Deno.test('Matrix.inverse()', async (pContext) => {
         // Evaluation.
         for (let lRowIndex = 0; lRowIndex < 3; lRowIndex++) {
             for (let lColIndex = 0; lColIndex < 3; lColIndex++) {
-                expect(lResult.data[lRowIndex][lColIndex]).toBeCloseTo(lMatrix.data[lRowIndex][lColIndex]);
+                // Shit has to cover -0 for some reason.
+                expect(lResult.data[lRowIndex][lColIndex]).toBeCloseTo(lMatrix.data[lRowIndex][lColIndex], 0);
             }
         }
     });
@@ -748,6 +749,6 @@ Deno.test('Matrix.inverse()', async (pContext) => {
         const lResult: Matrix = lMatrix.inverse();
 
         // Evaluation.
-        expect(lResult.data[0][0]).toBeCloseTo(0.2);
+        expect(lResult.data[0][0]).toBe(0.2);
     });
 });

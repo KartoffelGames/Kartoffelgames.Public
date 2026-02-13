@@ -5,6 +5,8 @@ import { GameEnvironmentStateChange } from "../core/environment/game-environment
 import { GameSystem } from "../core/game-system.ts";
 import { Matrix } from "../math/matrix.ts";
 
+// TODO: GpuSystem should be nice, reading limits, creating the adapter and so on.
+
 export class TransformationSystem extends GameSystem {
     private readonly mAvailableIndices: Array<number>;
     private readonly mDataBuffer: SharedArrayBuffer;

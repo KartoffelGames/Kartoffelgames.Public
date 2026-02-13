@@ -170,6 +170,11 @@ export class Matrix {
             return this.data[0][0];
         }
 
+        // Handle 0x0 matrix (empty matrix determinant is 1 by convention).
+        if (this.height === 0 && this.width === 0) {
+            return 1;
+        }
+
         let lDeterminant: number = 0;
         for (let lIterationIndex = 0; lIterationIndex < this.width; lIterationIndex++) {
             // Get number of row iteration to detect if any calculation musst be done.
@@ -226,7 +231,7 @@ export class Matrix {
                     // Multiplicate target row with source column components.
                     // Iteration length is eighter target.height or source.width.
                     let lProduct: number = 0;
-                    for (let lComponentIndex = 0; lComponentIndex < this.height; lComponentIndex++) {
+                    for (let lComponentIndex = 0; lComponentIndex < this.width; lComponentIndex++) {
                         lProduct += this.mData[lRowIndex][lComponentIndex] * pMultData.data[lComponentIndex][lColumnIndex];
                     }
                     lRowData[lColumnIndex] = lProduct;

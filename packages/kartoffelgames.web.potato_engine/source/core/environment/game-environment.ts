@@ -127,9 +127,12 @@ export class GameEnvironment {
      *
      * @param pSystem - The system to register
      */
-    public async registerSystem(pSystem: GameSystem): Promise<void> {
+    public registerSystem<T extends GameSystem>(pSystem: GameSystemConstructor<T>): T {
+        // Create an instance of the system
+        const lSystem = new pSystem();
+
         // Read dependencies of system and find the instance of each dependent system type.
-        for (const lSystemType of pSystem.dependentSystemTypes) {
+        for (const lSystemType of lSystem.dependentSystemTypes) {
             // Find the instance of the dependent system type.
             const lHasDependentSystem: boolean = !!this.mSystems.find((pSystemInstance) => {
                 return pSystemInstance.constructor === lSystemType;
@@ -141,12 +144,14 @@ export class GameEnvironment {
             }
 
             // If the dependent system is not found, create an instance of the dependent system type and register it.
-            const lDependentSystemInstance = new lSystemType();
-            await this.registerSystem(lDependentSystemInstance);
+            this.registerSystem(lSystemType);
         }
 
         // Add system to list
-        this.mSystems.push(pSystem);
+        this.mSystems.push(lSystem);
+
+        // Return the instance of the system
+        return lSystem;
     }
 
     /**

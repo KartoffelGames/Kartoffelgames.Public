@@ -161,8 +161,8 @@ export class TransformationComponent extends GameComponent {
      *
      * @param pLabel - Component label.
      */
-    public constructor(pLabel: string) {
-        super(pLabel);
+    public constructor() {
+        super('Transformation');
 
         // Initialize scale to identity (1, 1, 1).
         this.mScaleWidth = 1;

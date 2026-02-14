@@ -1,4 +1,4 @@
-import type { IAnyParameterConstructor } from '../../../../kartoffelgames.core/source/interface/i-constructor.ts';
+import type { IVoidParameterConstructor } from '../../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import { GameObject } from '../hierarchy/game-object.ts';
 
 // TODO: Define some decorators to allow easy saving and loading of components in binary or json files.
@@ -81,4 +81,4 @@ export class GameComponent extends GameObject {
     }
 }
 
-export type GameComponentConstructor<TComponent extends GameComponent = GameComponent> = IAnyParameterConstructor<TComponent>;
+export type GameComponentConstructor<TComponent extends GameComponent = GameComponent> = IVoidParameterConstructor<TComponent>;

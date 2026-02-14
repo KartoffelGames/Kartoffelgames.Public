@@ -6,7 +6,7 @@ import type { GameEnvironmentTransmission } from '../environment/game-environmen
  */
 export abstract class GameObject {
     private readonly mEnableState: GameObjectEnableState;
-    private readonly mLabel: string;
+    private mLabel: string;
     private mParent: GameObject | null;
 
     /**
@@ -33,6 +33,8 @@ export abstract class GameObject {
      */
     public get label(): string {
         return this.mLabel;
+    } set label(pLabel: string) {
+        this.mLabel = pLabel;
     }
 
     /**

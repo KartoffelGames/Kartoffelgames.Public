@@ -1,4 +1,3 @@
-import type { IVoidParameterConstructor } from '@kartoffelgames/core';
 import type { IAnyParameterConstructor } from '../../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import type { GameComponent, GameComponentConstructor } from '../component/game-component.ts';
 import { GameNode } from '../hierarchy/game-node.ts';
@@ -7,10 +6,10 @@ import { GameNode } from '../hierarchy/game-node.ts';
  * A GameEntity is a game node that can have components.
  * It is used to create game objects in the scene, which can have components that define their behavior and state.
  */
-export class GameEntity extends GameNode{
+export class GameEntity extends GameNode {
     private readonly mComponentTypeMap: Map<GameComponentConstructor, Array<GameComponent>>;
     private readonly mComponents: Set<GameComponent>;
-    
+
     /**
      * Create a new empty game object.
      * 
@@ -18,7 +17,7 @@ export class GameEntity extends GameNode{
      */
     public constructor(pLabel: string) {
         super(pLabel);
-        
+
         // Init component storage
         this.mComponents = new Set<GameComponent>();
         this.mComponentTypeMap = new Map<GameComponentConstructor, Array<GameComponent>>();
@@ -29,7 +28,7 @@ export class GameEntity extends GameNode{
      * 
      * @param pComponent - Component to add.
      */
-    public addComponent<T extends GameComponent>(pComponentType: IVoidParameterConstructor<T>): T {
+    public addComponent<T extends GameComponent>(pComponentType: GameComponentConstructor<T>): T {
         // Create component
         const lComponent: T = new pComponentType();
 
@@ -52,7 +51,7 @@ export class GameEntity extends GameNode{
         // Resolve dependencies - auto-add any missing dependency components.
         for (const lDependency of lComponent.dependencies) {
             if (!this.mComponentTypeMap.has(lDependency)) {
-                this.addComponent(lDependency as IVoidParameterConstructor<GameComponent>);
+                this.addComponent(lDependency);
             }
         }
 

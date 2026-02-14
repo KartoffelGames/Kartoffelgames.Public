@@ -164,7 +164,7 @@ export class GameEnvironment {
             // Execute frame after update to ensure systems have the latest component state changes.
             await this.executeFrame();
 
-            // Execute fixed.
+            // Execute fixed. // TODO: Maybe use another shit to do this...
             await this.executeTick();
         }
     }

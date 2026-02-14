@@ -1,4 +1,4 @@
-import { GameComponent } from "../core/component/game-component.ts";
+import { GameComponent } from '../core/component/game-component.ts';
 import { Matrix } from '../math/matrix.ts';
 import { Quaternion } from '../math/quaternion.ts';
 

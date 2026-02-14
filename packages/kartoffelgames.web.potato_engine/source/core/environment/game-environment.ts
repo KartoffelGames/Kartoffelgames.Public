@@ -137,13 +137,13 @@ export class GameEnvironment {
      * Start the game environment, beginning the main loop and processing ticks and updates.
      */
     public async start(): Promise<void> {
-        const animationFrames = async function* () {
+        const lAnimationFrames = async function* () {
             let lRequestId: number = 0;
 
             try {
                 while (true) {
-                    yield await new Promise<number>(resolve => {
-                        lRequestId = globalThis.requestAnimationFrame(resolve);
+                    yield await new Promise<number>(pResolve => {
+                        lRequestId = globalThis.requestAnimationFrame(pResolve);
                     });
                 }
             } finally {
@@ -151,9 +151,10 @@ export class GameEnvironment {
             }
         };
 
-        for await (const lTick of animationFrames()) {
+        // eslint-disable-next-line @typescript-eslint/await-thenable
+        for await (const lTick of lAnimationFrames()) {
             // Calculate delta time
-            const lDeltaTime = lTick - this.mCurrentTick;
+            // const lDeltaTime = lTick - this.mCurrentTick;
 
             // Update tick.
             this.mCurrentTick = lTick;

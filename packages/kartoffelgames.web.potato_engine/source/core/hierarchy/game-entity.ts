@@ -171,28 +171,6 @@ export class GameEntity extends GameNode{
      * 
      * @returns An iterable of all found components of the requested type. 
      */
-    public getParentComponents<T extends GameComponent>(pType: IAnyParameterConstructor<T>): Array<T> {
-        // Get component from current object
-        const lCurrentObjectComponent: T | null = this.getComponent<T>(pType);
-
-        // Get components from parent objects
-        const lParentObjectComponents: Array<T> = (this.parent instanceof GameEntity) ? this.parent.getParentComponents<T>(pType) : [];
-        if (!lCurrentObjectComponent) {
-            return lParentObjectComponents;
-        }
-
-        // When both current and parent components exist, combine them
-        return [lCurrentObjectComponent, ...lParentObjectComponents];
-    }
-
-    /**
-     * Gets all components of the requested type moving up the parent chain.
-     * The first found components are from this game object, then from the parent, and so on.
-     * 
-     * @param pType - Component type.
-     * 
-     * @returns An iterable of all found components of the requested type. 
-     */
     public getParentComponent<T extends GameComponent>(pType: IAnyParameterConstructor<T>): T | null {
         // Get component from current object
         const lCurrentObjectComponent: T | null = this.getComponent<T>(pType);
@@ -207,6 +185,28 @@ export class GameEntity extends GameNode{
         }
 
         return null;
+    }
+
+    /**
+     * Gets all components of the requested type moving up the parent chain.
+     * The first found components are from this game object, then from the parent, and so on.
+     * 
+     * @param pType - Component type.
+     * 
+     * @returns An iterable of all found components of the requested type. 
+     */
+    public getParentComponents<T extends GameComponent>(pType: IAnyParameterConstructor<T>): Array<T> {
+        // Get component from current object
+        const lCurrentObjectComponent: T | null = this.getComponent<T>(pType);
+
+        // Get components from parent objects
+        const lParentObjectComponents: Array<T> = (this.parent instanceof GameEntity) ? this.parent.getParentComponents<T>(pType) : [];
+        if (!lCurrentObjectComponent) {
+            return lParentObjectComponents;
+        }
+
+        // When both current and parent components exist, combine them
+        return [lCurrentObjectComponent, ...lParentObjectComponents];
     }
 
     /**

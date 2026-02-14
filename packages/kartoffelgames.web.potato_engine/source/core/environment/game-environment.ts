@@ -8,6 +8,7 @@ import type { GameSystem, GameSystemConstructor } from '../game-system.ts';
  * Main hub for managing the game environment, including loaded scenes, registered systems, and processing component state changes.
  */
 export class GameEnvironment {
+    private readonly mConfigurationDebugLog: boolean;
     private mCurrentTick: number;
     private readonly mLoadedScenes: Set<GameScene>;
     private readonly mStateChangeQueue: Array<GameEnvironmentStateChange>;
@@ -16,11 +17,14 @@ export class GameEnvironment {
     /**
      * Constructor.
      */
-    public constructor() {
+    public constructor(pParameters?: GameEnvironmentParameter) {
         this.mLoadedScenes = new Set<GameScene>();
         this.mStateChangeQueue = new Array<GameEnvironmentStateChange>();
         this.mSystems = new Array<GameSystem>();
         this.mCurrentTick = 0;
+
+        // Save parameters
+        this.mConfigurationDebugLog = pParameters?.debugLog ?? false;
     }
 
     /**
@@ -110,7 +114,7 @@ export class GameEnvironment {
         // Create a transmission object that queues state changes
         const lTransmission = new GameEnvironmentTransmission(pScene, {
             eventSubmit: (pStateChange: GameEnvironmentStateChange) => {
-                this.mStateChangeQueue.push(pStateChange);
+                this.queueStateChange(pStateChange);
             },
             tickReceive: () => {
                 return this.mCurrentTick;
@@ -261,5 +265,22 @@ export class GameEnvironment {
 
         return lComponentStates;
     }
+
+    /**
+     * Queue a component state change to be processed in the next update cycle.
+     *
+     * @param pStateChange - New state change.
+     */
+    private queueStateChange(pStateChange: GameEnvironmentStateChange): void {
+        this.mStateChangeQueue.push(pStateChange);
+
+        if (this.mConfigurationDebugLog) {
+            // eslint-disable-next-line no-console
+            console.log(`Queued state change: "${pStateChange.type}" for component "${pStateChange.component.label}" of "${pStateChange.component.parent?.label}"`);
+        }
+    }
 }
 
+type GameEnvironmentParameter = {
+    debugLog?: boolean;
+};

@@ -1,3 +1,4 @@
+import { Exception } from '@kartoffelgames/core';
 import type { IAnyParameterConstructor } from '../../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import type { GameComponent, GameComponentConstructor } from '../component/game-component.ts';
 import { GameNode } from '../hierarchy/game-node.ts';
@@ -7,7 +8,7 @@ import { GameNode } from '../hierarchy/game-node.ts';
  * It is used to create game objects in the scene, which can have components that define their behavior and state.
  */
 export class GameEntity extends GameNode {
-    private readonly mComponentTypeMap: Map<GameComponentConstructor, Array<GameComponent>>;
+    private readonly mComponentTypeMap: Map<GameComponentConstructor, GameComponent>;
     private readonly mComponents: Set<GameComponent>;
 
     /**
@@ -20,7 +21,7 @@ export class GameEntity extends GameNode {
 
         // Init component storage
         this.mComponents = new Set<GameComponent>();
-        this.mComponentTypeMap = new Map<GameComponentConstructor, Array<GameComponent>>();
+        this.mComponentTypeMap = new Map<GameComponentConstructor, GameComponent>();
     }
 
     /**
@@ -29,24 +30,13 @@ export class GameEntity extends GameNode {
      * @param pComponent - Component to add.
      */
     public addComponent<T extends GameComponent>(pComponentType: GameComponentConstructor<T>): T {
-        // Create component
-        const lComponent: T = new pComponentType();
-
-        // Add component to set
-        this.mComponents.add(lComponent);
-
-        // Get component type.
-        const lComponentType: GameComponentConstructor = pComponentType as GameComponentConstructor;
-
-        // Get existing components of this type.
-        let lComponentsOfType: Array<GameComponent> | undefined = this.mComponentTypeMap.get(lComponentType);
-        if (!lComponentsOfType) {
-            lComponentsOfType = new Array<GameComponent>();
-            this.mComponentTypeMap.set(lComponentType, lComponentsOfType);
+        // Restrict multiple components of the same type on a single game object.
+        if (this.mComponentTypeMap.has(pComponentType)) {
+            throw new Exception(`Game entity "${this.label}" already has a component of type "${pComponentType.name}". Multiple components of the same type are not allowed on a single game object.`, this);
         }
 
-        // Add component to type array.
-        lComponentsOfType.push(lComponent);
+        // Create component
+        const lComponent: T = new pComponentType();
 
         // Resolve dependencies - auto-add any missing dependency components.
         for (const lDependency of lComponent.dependencies) {
@@ -54,6 +44,16 @@ export class GameEntity extends GameNode {
                 this.addComponent(lDependency);
             }
         }
+
+        // Add component to set and update parent.
+        this.mComponents.add(lComponent);
+
+        // Add component to type map for easy access.
+        this.mComponentTypeMap.set(pComponentType, lComponent);
+
+        // Set parent and trigger connections.
+        (<GameEntity><unknown>lComponent).setParent(this);
+        lComponent.connect();
 
         return lComponent;
     }
@@ -100,33 +100,17 @@ export class GameEntity extends GameNode {
      * 
      * @returns The first component of the requested type, or null if none found. 
      */
-    public getComponent<T extends GameComponent>(pType: IAnyParameterConstructor<T>): T | null {
+    public getComponent<T extends GameComponent>(pType: IAnyParameterConstructor<T>): T {
         // Get all components of the requested type
-        const lComponentsOfType: Array<GameComponent> | undefined = this.mComponentTypeMap.get(pType);
-        if (!lComponentsOfType || lComponentsOfType.length === 0) {
-            return null;
+        const lComponent: GameComponent | undefined = this.mComponentTypeMap.get(pType);
+        if (!lComponent) {
+            throw new Error(`Component of type "${pType.name}" not found on game object "${this.label}".`);
         }
 
         // Return the first component of the requested type
-        return lComponentsOfType[0] as T;
+        return lComponent as T;
     }
 
-    /**
-     * Returns all components of the requested type.
-     * 
-     * @param pType - Component type.
-     * 
-     * @returns All components of the requested type. 
-     */
-    public getComponents<T extends GameComponent>(pType: IAnyParameterConstructor<T>): Array<T> {
-        // Get all components of the requested type
-        const lComponentsOfType: Array<GameComponent> | undefined = this.mComponentTypeMap.get(pType);
-        if (!lComponentsOfType) {
-            return new Array<T>();
-        }
-
-        return [...lComponentsOfType] as Array<T>;
-    }
 
     /**
      * Returns all game objects in this object's hierarchy (including itself) that have the requested component.

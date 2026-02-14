@@ -47,7 +47,7 @@ export class TransformationSystem extends GameSystem {
         super();
 
         // Create the shared buffer for all transformations data.
-        this.mDataBuffer = new SharedArrayBuffer(0);
+        this.mDataBuffer = new SharedArrayBuffer(0, { maxByteLength: TransformationSystem.BLOCK_SIZE * 1000 }); // TODO: Initial size for 1000 components, should be set to a gpu limit.
 
         /*
          * Buffer layout in bytes so alignment matches:
@@ -122,24 +122,25 @@ export class TransformationSystem extends GameSystem {
      * @param pCountOfNewBlocks - Number of blocks to add to the buffer. Each block accommodates 4 components.
      */
     private extendBuffer(pCountOfNewBlocks: number = 1): void {
-        // Calculate size of a single transformation block in bytes (4 int32 for parents + 4 Matrix44<float32> = 4 * 4 bytes + 16 * 4 bytes = 80 bytes).
-        const lBlockSizeInBytes: number = TransformationSystem.BLOCK_SIZE * pCountOfNewBlocks;
+        // Calculate size of a single transformation block in bytes.
+        // BLOCK_SIZE is in number of 32bit elements, so multiply by 4 for bytes.
+        const lBlockSizeInBytes: number = TransformationSystem.BLOCK_SIZE * 4; 
 
         // Read current length of 32bit buffer.
-        const lCurrentLengthInBytes: number = this.mMatrixDataView.length;
-        const lCurrentBlocks: number = lCurrentLengthInBytes / lBlockSizeInBytes;
+        const lOldBufferByteLength: number = this.mDataBuffer.byteLength;
 
         // Grow the buffer by the specified number of blocks.
-        this.mDataBuffer.grow(lBlockSizeInBytes);
+        this.mDataBuffer.grow(lOldBufferByteLength + (lBlockSizeInBytes * pCountOfNewBlocks));
 
         // Create a new Float32Array view for the new buffer.
         this.mMatrixDataView = new Float32Array(this.mDataBuffer);
 
         // Calculate current last index.
-        const lNextIndex: number = lCurrentBlocks * 4;
+        const lOldBlockCount: number = lOldBufferByteLength / lBlockSizeInBytes;
+        const lFollowingIndex: number = lOldBlockCount * 4;
 
         // Add the new block index to the available indices list.
-        for (let lNewIndex = lNextIndex; lNewIndex < lNextIndex + (4 * pCountOfNewBlocks); lNewIndex++) {
+        for (let lNewIndex = lFollowingIndex; lNewIndex < lFollowingIndex + (4 * pCountOfNewBlocks); lNewIndex++) {
             this.mAvailableIndices.push(lNewIndex);
         }
     }

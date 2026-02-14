@@ -42,7 +42,9 @@ export class TransformationComponent extends GameComponent {
         return this.mPivotX;
     } set pivotX(pValue: number) {
         this.mPivotX = pValue;
-        this.mDirty = true;
+       
+        // Trigger matrix recalculation on next access.
+        this.triggerComponentChange();
     }
 
     /**
@@ -52,7 +54,9 @@ export class TransformationComponent extends GameComponent {
         return this.mPivotY;
     } set pivotY(pValue: number) {
         this.mPivotY = pValue;
-        this.mDirty = true;
+        
+        // Trigger matrix recalculation on next access.
+        this.triggerComponentChange();
     }
 
     /**
@@ -62,7 +66,9 @@ export class TransformationComponent extends GameComponent {
         return this.mPivotZ;
     } set pivotZ(pValue: number) {
         this.mPivotZ = pValue;
-        this.mDirty = true;
+        
+        // Trigger matrix recalculation on next access.
+        this.triggerComponentChange();
     }
 
     /**
@@ -103,7 +109,9 @@ export class TransformationComponent extends GameComponent {
         return this.mScaleDepth;
     } set scaleDepth(pValue: number) {
         this.mScaleDepth = pValue;
-        this.mDirty = true;
+        
+        // Trigger matrix recalculation on next access.
+        this.triggerComponentChange();
     }
 
     /**
@@ -113,7 +121,9 @@ export class TransformationComponent extends GameComponent {
         return this.mScaleHeight;
     } set scaleHeight(pValue: number) {
         this.mScaleHeight = pValue;
-        this.mDirty = true;
+        
+        // Trigger matrix recalculation on next access.
+        this.triggerComponentChange();
     }
 
     /**
@@ -123,7 +133,9 @@ export class TransformationComponent extends GameComponent {
         return this.mScaleWidth;
     } set scaleWidth(pValue: number) {
         this.mScaleWidth = pValue;
-        this.mDirty = true;
+        
+        // Trigger matrix recalculation on next access.
+        this.triggerComponentChange();
     }
 
     /**
@@ -133,7 +145,9 @@ export class TransformationComponent extends GameComponent {
         return this.mTranslationX;
     } set translationX(pValue: number) {
         this.mTranslationX = pValue;
-        this.mDirty = true;
+        
+        // Trigger matrix recalculation on next access.
+        this.triggerComponentChange();
     }
 
     /**
@@ -143,7 +157,9 @@ export class TransformationComponent extends GameComponent {
         return this.mTranslationY;
     } set translationY(pValue: number) {
         this.mTranslationY = pValue;
-        this.mDirty = true;
+        
+        // Trigger matrix recalculation on next access.
+        this.triggerComponentChange();
     }
 
     /**
@@ -153,7 +169,9 @@ export class TransformationComponent extends GameComponent {
         return this.mTranslationZ;
     } set translationZ(pValue: number) {
         this.mTranslationZ = pValue;
-        this.mDirty = true;
+        
+        // Trigger matrix recalculation on next access.
+        this.triggerComponentChange();
     }
 
     /**
@@ -184,6 +202,8 @@ export class TransformationComponent extends GameComponent {
 
         // Initialize matrix and mark as dirty for first calculation.
         this.mMatrix = Matrix.identity(4);
+        
+        // Trigger matrix recalculation on next access.
         this.mDirty = true;
     }
 
@@ -197,7 +217,9 @@ export class TransformationComponent extends GameComponent {
     public addEulerRotation(pPitch: number, pYaw: number, pRoll: number): void {
         // Apply rotation to current rotation.
         this.mRotation = this.mRotation.addEulerRotation(pPitch, pYaw, pRoll);
-        this.mDirty = true;
+        
+        // Trigger matrix recalculation on next access.
+        this.triggerComponentChange();
     }
 
     /**
@@ -210,7 +232,9 @@ export class TransformationComponent extends GameComponent {
     public addRotation(pPitch: number, pYaw: number, pRoll: number): void {
         // Apply rotation to current rotation.
         this.mRotation = Quaternion.fromRotation(pPitch, pYaw, pRoll).mult(this.mRotation);
-        this.mDirty = true;
+        
+        // Trigger matrix recalculation on next access.
+        this.triggerComponentChange();
     }
 
     /**
@@ -224,7 +248,9 @@ export class TransformationComponent extends GameComponent {
         this.mScaleWidth += pWidth;
         this.mScaleHeight += pHeight;
         this.mScaleDepth += pDepth;
-        this.mDirty = true;
+        
+        // Trigger matrix recalculation on next access.
+        this.triggerComponentChange();
     }
 
     /**
@@ -238,7 +264,9 @@ export class TransformationComponent extends GameComponent {
         this.mTranslationX += pX;
         this.mTranslationY += pY;
         this.mTranslationZ += pZ;
-        this.mDirty = true;
+        
+        // Trigger matrix recalculation on next access.
+        this.triggerComponentChange();
     }
 
     /**
@@ -255,7 +283,9 @@ export class TransformationComponent extends GameComponent {
 
         // Create new rotation.
         this.mRotation = Quaternion.fromRotation(lPitch, lYaw, lRoll);
-        this.mDirty = true;
+        
+        // Trigger matrix recalculation on next access.
+        this.triggerComponentChange();
     }
 
     /**
@@ -269,7 +299,9 @@ export class TransformationComponent extends GameComponent {
         this.mScaleWidth = pWidth ?? this.mScaleWidth;
         this.mScaleHeight = pHeight ?? this.mScaleHeight;
         this.mScaleDepth = pDepth ?? this.mScaleDepth;
-        this.mDirty = true;
+        
+        // Trigger matrix recalculation on next access.
+        this.triggerComponentChange();
     }
 
     /**
@@ -283,7 +315,9 @@ export class TransformationComponent extends GameComponent {
         this.mTranslationX = pX ?? this.mTranslationX;
         this.mTranslationY = pY ?? this.mTranslationY;
         this.mTranslationZ = pZ ?? this.mTranslationZ;
-        this.mDirty = true;
+
+        // Trigger matrix recalculation on next access.
+        this.triggerComponentChange();
     }
 
     /**
@@ -384,5 +418,15 @@ export class TransformationComponent extends GameComponent {
 
         // Update cached matrix.
         this.mMatrix = new Matrix(lData, 4, 4);
+    }
+
+    /**
+     * Marks this component as dirty to trigger a matrix recalculation on the next access and signals the environment of the change.
+     */
+    private triggerComponentChange(): void {
+        this.mDirty = true;
+
+        // Signal environment of change for systems to react to.
+        this.submitUpdateRequest();
     }
 }

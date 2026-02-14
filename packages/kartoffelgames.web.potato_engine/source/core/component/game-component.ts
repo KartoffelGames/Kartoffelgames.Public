@@ -36,6 +36,7 @@ export class GameComponent extends GameObject {
      */
     public override connect(): void {
         super.connect();
+
         this.environment?.add(this);
     }
 

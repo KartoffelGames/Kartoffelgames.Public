@@ -36,6 +36,9 @@ export abstract class GameNode extends GameObject {
 
         // Set parent of child
         pChild.setParent(this);
+
+        // Connect child to environment connection of this game object, if it exists.
+        pChild.connect();
     }
 
     /**
@@ -68,6 +71,36 @@ export abstract class GameNode extends GameObject {
         }
 
         super.disconnect();
+    }
+
+
+    /**
+     * Removes this game object from its parent node.
+     * Does nothing if this game object has no parent.
+     */
+    public remove(): void {
+        this.parent?.removeObject(this);
+    }
+
+    /**
+     * Removes a child game node from this game node.
+     * The child is disconnected from the environment before being removed.
+     * If the child is not in this node's children, this does nothing.
+     *
+     * @param pChild - Child game node to remove.
+     */
+    public removeObject(pChild: GameNode): void {
+        // Remove child from list.
+        const lIndex: number = this.mChildNodeList.indexOf(pChild);
+        if (lIndex !== -1) {
+            this.mChildNodeList.splice(lIndex, 1);
+        }
+
+        // Disconnect child from environment.
+        pChild.disconnect();
+
+        // Set parent of child to null.
+        pChild.setParent(null);
     }
 
     /**

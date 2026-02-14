@@ -1,6 +1,6 @@
 {
     "name": "@kartoffelgames/core-pgsl",
-    "version": "0.0.0",
+    "version": "1.0.1",
     "license": "LGPL-3.0-only",
     "tasks": {},
     "imports": {
@@ -21,7 +21,29 @@
     "kg": {
         "name": "Kartoffelgames.Core.Pgsl",
         "config": {
-            "package-blueprint": "kg-main"
+            "package-blueprint": "kg-main",
+            "bundle": {
+                "enabled": false,
+                "bundleSettingsFile": ""
+            },
+            "scratchpad": {
+                "bundleSettingsFile": "",
+                "mainBundleRequired": false,
+                "port": 8088
+            },
+            "page": {
+                "enabled": false,
+                "bundleSettingsFile": "",
+                "mainBundleRequired": false,
+                "port": 8088
+            },
+            "test": {
+                "directory": "./test"
+            },
+            "transform": {
+                "enableNode": false,
+                "nodeDirectory": "./node"
+            }
         },
         "source": "./source"
     }

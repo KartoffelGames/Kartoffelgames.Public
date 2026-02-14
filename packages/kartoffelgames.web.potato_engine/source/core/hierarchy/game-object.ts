@@ -1,4 +1,5 @@
 import type { GameEnvironmentTransmission } from '../environment/game-environment-transmittion.ts';
+import type { GameNode } from './game-node.ts';
 
 /**
  * A GameObject is an ecs object in the game world.
@@ -7,7 +8,7 @@ import type { GameEnvironmentTransmission } from '../environment/game-environmen
 export abstract class GameObject {
     private readonly mEnableState: GameObjectEnableState;
     private mLabel: string;
-    private mParent: GameObject | null;
+    private mParent: GameNode | null;
 
     /**
      * Whether this game object is enabled.
@@ -40,7 +41,7 @@ export abstract class GameObject {
     /**
      * Parent of this object.
      */
-    public get parent(): GameObject | null {
+    public get parent(): GameNode | null {
         return this.mParent;
     }
 
@@ -130,7 +131,7 @@ export abstract class GameObject {
      * 
      * @param pParent - Parent object.
      */
-    protected setParent(pParent: GameObject | null): void {
+    protected setParent(pParent: GameNode | null): void {
         this.mParent = pParent;
     }
 }

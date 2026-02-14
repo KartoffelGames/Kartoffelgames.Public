@@ -16,12 +16,12 @@ export { BindGroupLayout } from './pipeline/bind_group_layout/bind-group-layout.
 export { ComputePipeline } from './pipeline/compute-pipeline.ts';
 export { PipelineLayout } from './pipeline/pipeline-layout.ts';
 export { PipelineData } from './pipeline/pipeline_data/pipeline-data.ts';
-export { RenderTargets } from './pipeline/render_targets/render-targets.ts';
+export { RenderTargets, RenderTargetsInvalidationType } from './pipeline/render_targets/render-targets.ts';
 export { VertexFragmentPipeline } from './pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline.ts';
 export { VertexParameter } from './pipeline/vertex_parameter/vertex-parameter.ts';
 export { VertexParameterLayout } from './pipeline/vertex_parameter/vertex-parameter-layout.ts';
 
-// Executi.tson
+// Execution
 export { GpuExecution } from './execution/gpu-execution.ts';
 export { ComputePass } from './execution/pass/compute-pass.ts';
 export { ComputePassContext } from './execution/pass/compute-pass-context.ts';
@@ -32,14 +32,14 @@ export { RenderPassContext } from './execution/pass/render-pass-context.ts';
 export { GpuDevice } from './device/gpu-device.ts';
 export { GpuObject } from './gpu_object/gpu-object.ts';
 
-// Resource.tss.
+// Resources
 export { GpuBuffer } from './buffer/gpu-buffer.ts';
 export { GpuTexture } from './texture/gpu-texture.ts';
 export { GpuTextureView } from './texture/gpu-texture-view.ts';
 export { CanvasTexture } from './texture/canvas-texture.ts';
 export { TextureSampler } from './texture/texture-sampler.ts';
 
-// Constant.tss.
+// Constants
 export { BufferAlignmentType } from './constant/buffer-alignment-type.enum.ts';
 export { BufferBindingType } from './constant/buffer-binding-type.enum.ts';
 export { BufferItemFormat } from './constant/buffer-item-format.enum.ts';

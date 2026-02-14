@@ -3,7 +3,7 @@ import type { IProjection } from './i-projection.interface.ts';
 
 export class OrthographicProjection implements IProjection {
     private mAspectRatio: number;
-    private mCacheProjection: Matrix|null;
+    private mCacheProjection: Matrix | null;
     private mFar: number;
     private mNear: number;
     private mWidth: number;
@@ -133,14 +133,14 @@ export class OrthographicProjection implements IProjection {
         const lMatrix: Matrix = Matrix.identity(4);
 
         // Fill Scale.
-        lMatrix.data[0][0] = lScaleX;
-        lMatrix.data[1][1] = lScaleY;
-        lMatrix.data[2][2] = lScaleZ;
+        lMatrix.set(0, 0, lScaleX);
+        lMatrix.set(1, 1, lScaleY);
+        lMatrix.set(2, 2, lScaleZ);
 
         // Fill transform.
-        lMatrix.data[3][0] = lScaleTransformX;
-        lMatrix.data[3][1] = lScaleTransformY;
-        lMatrix.data[3][2] = lScaleTransformZ;
+        lMatrix.set(3, 0, lScaleTransformX);
+        lMatrix.set(3, 1, lScaleTransformY);
+        lMatrix.set(3, 2, lScaleTransformZ);
 
         return lMatrix;
     }

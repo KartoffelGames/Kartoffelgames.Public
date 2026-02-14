@@ -87,10 +87,10 @@ export class PerspectiveProjection implements IProjection {
         const lMatrix: Matrix = Matrix.identity(4);
 
         // Reset identity.
-        lMatrix.data[0][0] = 0;
-        lMatrix.data[1][1] = 0;
-        lMatrix.data[2][2] = 0;
-        lMatrix.data[3][3] = 0;
+        lMatrix.set(0, 0, 0);
+        lMatrix.set(1, 1, 0);
+        lMatrix.set(2, 2, 0);
+        lMatrix.set(3, 3, 0);
 
         // Calculate planes with centered camera on z-plane.
         const lFar: number = this.mFar;
@@ -142,19 +142,19 @@ export class PerspectiveProjection implements IProjection {
 
 
         // Set matrix data. Row 1:
-        lMatrix.data[0][0] = (2 * lNear) / (lRight - lLeft);
-        lMatrix.data[0][2] = -(lRight + lLeft) / (lRight - lLeft);
+        lMatrix.set(0, 0, (2 * lNear) / (lRight - lLeft));
+        lMatrix.set(0, 2, -(lRight + lLeft) / (lRight - lLeft));
 
         // Set matrix data. Row 2:
-        lMatrix.data[1][1] = (2 * lNear) / (lTop - lBottom);
-        lMatrix.data[1][2] = -(lTop + lBottom) / (lTop - lBottom);
+        lMatrix.set(1, 1, (2 * lNear) / (lTop - lBottom));
+        lMatrix.set(1, 2, -(lTop + lBottom) / (lTop - lBottom));
 
         // Set matrix data. Row 3:
-        lMatrix.data[2][2] = lFar / (lFar - lNear);
-        lMatrix.data[2][3] = -(lFar * lNear) / (lFar - lNear);
+        lMatrix.set(2, 2, lFar / (lFar - lNear));
+        lMatrix.set(2, 3, -(lFar * lNear) / (lFar - lNear));
 
         // Set matrix data. Row 4:
-        lMatrix.data[3][2] = 1;
+        lMatrix.set(3, 2, 1);
 
         return lMatrix;
     }

@@ -3,14 +3,16 @@ import { GameEnvironment } from '../../source/core/environment/game-environment.
 import { GameScene } from '../../source/core/game-scene.ts';
 import { GameEntity } from '../../source/core/hierarchy/game-entity.ts';
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
+import { ShitSystem } from './shit-system.ts';
 
 (() => {
     const lEnvironment = new GameEnvironment({
         debugLog: true
     });
 
-    // Add Transformation system.
+    // Add systems.
     lEnvironment.registerSystem(TransformationSystem);
+    lEnvironment.registerSystem(ShitSystem);
 
     // Start the environment.
     console.log('Starting environment...');
@@ -24,7 +26,7 @@ import { TransformationSystem } from '../../source/system/transformation-system.
 
         // GameEntity 1
         const lEntiy1: GameEntity = new GameEntity('Test Entity 1');
-        lEntiy1.addComponent(TransformationComponent);
+        lEntiy1.addComponent(TransformationComponent).translationY = 2;
         lScene.addObject(lEntiy1);
 
         // GameEntity 2
@@ -39,7 +41,10 @@ import { TransformationSystem } from '../../source/system/transformation-system.
         // Periodically change the transformation of the first entity.
         globalThis.setInterval(() => {
             const lTransformation: TransformationComponent = lEntiy1.getComponent(TransformationComponent);
-            lTransformation.translationX += Math.random();
+            lTransformation.translationX += Math.random() * 10 - 5; // Random translation between -5 and 5
+
+            // Limit translation to a certain range for better visualization.
+            lTransformation.translationX = Math.max(-4, Math.min(4, lTransformation.translationX));
         }, 1000);
 
         // Periodically add or delete nested game entities.
@@ -55,12 +60,18 @@ import { TransformationSystem } from '../../source/system/transformation-system.
 
                 // Create root entity for this structure.
                 const lRootEntity: GameEntity = new GameEntity(`Root`);
-                lRootEntity.addComponent(TransformationComponent);
+                const lRootComponent: TransformationComponent = lRootEntity.addComponent(TransformationComponent);
+                lRootComponent.translationX = Math.max(-5, Math.min(5, Math.random() * 10 - 5));
+                lRootComponent.translationY = Math.max(-5, Math.min(5, Math.random() * 10 - 5));
+                lRootComponent.translationZ = Math.max(-5, Math.min(5, Math.random() * 10 - 5));
 
                 let lCurrentEntity: GameEntity = lRootEntity;
                 for (let lDepthLevel = 1; lDepthLevel < lDepth; lDepthLevel++) {
                     const lNewEntity: GameEntity = new GameEntity(`Level ${lDepthLevel}`);
-                    lNewEntity.addComponent(TransformationComponent);
+                    const lNewComponent: TransformationComponent = lNewEntity.addComponent(TransformationComponent);
+                    lNewComponent.translationX = Math.max(-5, Math.min(5, Math.random() * 10 - 5));
+                    lNewComponent.translationY = Math.max(-5, Math.min(5, Math.random() * 10 - 5));
+                    lNewComponent.translationZ = Math.max(-5, Math.min(5, Math.random() * 10 - 5));
 
                     // Add new entity as child of current entity and update current entity reference.
                     lCurrentEntity.addObject(lNewEntity);

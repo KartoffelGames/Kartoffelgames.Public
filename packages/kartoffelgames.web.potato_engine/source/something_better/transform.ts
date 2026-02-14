@@ -12,27 +12,27 @@ export class Transform {
      * X pivot point.
      */
     public get pivotX(): number {
-        return this.mPivot.data[0][3];
+        return this.mPivot.get(0,3);
     } set pivotX(pValue: number) {
-        this.mPivot.data[0][3] = pValue;
+        this.mPivot.set(0,3, pValue);
     }
 
     /**
      * Y pivot point.
      */
     public get pivotY(): number {
-        return this.mPivot.data[1][3];
+        return this.mPivot.get(1,3);
     } set pivotY(pValue: number) {
-        this.mPivot.data[1][3] = pValue;
+        this.mPivot.set(1,3, pValue);
     }
 
     /**
      * Z pivot point.
      */
     public get pivotZ(): number {
-        return this.mPivot.data[2][3];
+        return this.mPivot.get(2,3);
     } set pivotZ(pValue: number) {
-        this.mPivot.data[2][3] = pValue;
+        this.mPivot.set(2,3, pValue);
     }
 
     /**
@@ -63,42 +63,42 @@ export class Transform {
      * Depth scale.
      */
     public get scaleDepth(): number {
-        return this.mScale.data[2][2];
+        return this.mScale.get(2,2);
     }
 
     /**
      * Height scale.
      */
     public get scaleHeight(): number {
-        return this.mScale.data[1][1];
+        return this.mScale.get(1,1);
     }
 
     /**
      * Width scale.
      */
     public get scaleWidth(): number {
-        return this.mScale.data[0][0];
+        return this.mScale.get(0,0);
     }
 
     /**
      * X translation.
      */
     public get translationX(): number {
-        return this.mTranslation.data[0][3];
+        return this.mTranslation.get(0,3);
     }
 
     /**
      * Y translation.
      */
     public get translationY(): number {
-        return this.mTranslation.data[1][3];
+        return this.mTranslation.get(1,3);
     }
 
     /**
      * Z translation.
      */
     public get translationZ(): number {
-        return this.mTranslation.data[2][3];
+        return this.mTranslation.get(2,3);
     }
 
     /**
@@ -140,9 +140,9 @@ export class Transform {
      * @param pDepth - Depth multiplier.
      */
     public addScale(pWidth: number, pHeight: number, pDepth: number): void {
-        this.mScale.data[0][0] += pWidth;
-        this.mScale.data[1][1] += pHeight;
-        this.mScale.data[2][2] += pDepth;
+        this.mScale.set(0,0, this.mScale.get(0,0) + pWidth);
+        this.mScale.set(1,1, this.mScale.get(1,1) + pHeight);
+        this.mScale.set(2,2, this.mScale.get(2,2) + pDepth);
     }
 
     /**
@@ -152,9 +152,9 @@ export class Transform {
      * @param pZ - Movement on worlds Z axis.
      */
     public addTranslation(pX: number, pY: number, pZ: number): void {
-        this.mTranslation.data[0][3] += pX;
-        this.mTranslation.data[1][3] += pY;
-        this.mTranslation.data[2][3] += pZ;
+        this.mTranslation.set(0,3, this.mTranslation.get(0,3) + pX);
+        this.mTranslation.set(1,3, this.mTranslation.get(1,3) + pY);
+        this.mTranslation.set(2,3, this.mTranslation.get(2,3) + pZ);
     }
 
     /**
@@ -218,9 +218,9 @@ export class Transform {
      * @param pDepth - Depth multiplier.
      */
     public setScale(pWidth: number | null, pHeight: number | null, pDepth: number | null): void {
-        this.mScale.data[0][0] = pWidth ?? this.scaleWidth;
-        this.mScale.data[1][1] = pHeight ?? this.scaleHeight;
-        this.mScale.data[2][2] = pDepth ?? this.scaleDepth;
+        this.mScale.set(0,0, pWidth ?? this.scaleWidth);
+        this.mScale.set(1,1, pHeight ?? this.scaleHeight);
+        this.mScale.set(2,2, pDepth ?? this.scaleDepth);
     }
 
     /**
@@ -230,9 +230,9 @@ export class Transform {
      * @param pZ - Movement on worlds Z axis.
      */
     public setTranslation(pX: number | null, pY: number | null, pZ: number | null): void {
-        this.mTranslation.data[0][3] = pX ?? this.translationX;
-        this.mTranslation.data[1][3] = pY ?? this.translationY;
-        this.mTranslation.data[2][3] = pZ ?? this.translationZ;
+        this.mTranslation.set(0,3, pX ?? this.translationX);
+        this.mTranslation.set(1,3, pY ?? this.translationY);
+        this.mTranslation.set(2,3, pZ ?? this.translationZ);
     }
 
     /**

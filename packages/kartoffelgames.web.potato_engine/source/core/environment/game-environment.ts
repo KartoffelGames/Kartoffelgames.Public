@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import type { GameComponentConstructor } from '../component/game-component.ts';
 import { type GameEnvironmentStateChange, GameEnvironmentTransmission } from './game-environment-transmittion.ts';
 import type { GameScene } from '../game-scene.ts';
-import type { GameSystem } from '../game-system.ts';
+import type { GameSystem, GameSystemConstructor } from '../game-system.ts';
 
 /**
  * Main hub for managing the game environment, including loaded scenes, registered systems, and processing component state changes.
@@ -78,6 +78,25 @@ export class GameEnvironment {
     }
 
     /**
+     * Get a registered system by its type.
+     *
+     * @param pSystemType - The constructor of the system type to retrieve.
+     * 
+     * @return The instance of the requested system type.
+     */
+    public getSystem<T extends GameSystem>(pSystemType: GameSystemConstructor<T>): T {
+        const lSystem = this.mSystems.find((pSystemInstance) => {
+            return pSystemInstance.constructor === pSystemType;
+        });
+
+        if (!lSystem) {
+            throw new Exception(`System ${pSystemType.name} is not registered.`, this);
+        }
+
+        return lSystem as T;
+    }
+
+    /**
      * Load a scene into the environment.
      * This establishes the environment connection for all game objects in the scene,
      * allowing them to transmit component state changes.
@@ -109,34 +128,57 @@ export class GameEnvironment {
      * @param pSystem - The system to register
      */
     public async registerSystem(pSystem: GameSystem): Promise<void> {
-        const lDependentSystemList: Array<GameSystem> = new Array<GameSystem>();
-
         // Read dependencies of system and find the instance of each dependent system type.
         for (const lSystemType of pSystem.dependentSystemTypes) {
             // Find the instance of the dependent system type.
-            const lDependentSystem = this.mSystems.find((pSystemInstance) => {
+            const lHasDependentSystem: boolean = !!this.mSystems.find((pSystemInstance) => {
                 return pSystemInstance.constructor === lSystemType;
             });
 
-            // If the dependent system is not found, throw an exception.
-            if (!lDependentSystem) {
-                throw new Exception(`Dependent system of type ${lSystemType.name} not found for system ${pSystem.constructor.name}`, this);
+            // If the dependent system is found, continue to the next dependency.
+            if (lHasDependentSystem) {
+                continue;
             }
 
-            lDependentSystemList.push(lDependentSystem);
+            // If the dependent system is not found, create an instance of the dependent system type and register it.
+            const lDependentSystemInstance = new lSystemType();
+            await this.registerSystem(lDependentSystemInstance);
         }
 
         // Add system to list
         this.mSystems.push(pSystem);
-
-        // Initialize system with dependent systems
-        await pSystem.initialize(lDependentSystemList);
     }
 
     /**
      * Start the game environment, beginning the main loop and processing ticks and updates.
      */
     public async start(): Promise<void> {
+        // Initialize all systems before starting the main loop.
+        for (const lSystem of this.mSystems) {
+            // Gather dependent systems for initialization
+            const lDependentSystemList: Array<GameSystem> = new Array<GameSystem>();
+
+            // Read dependencies of system and find the instance of each dependent system type.
+            for (const lSystemType of lSystem.dependentSystemTypes) {
+                // Find the instance of the dependent system type.
+                const lDependentSystem = this.mSystems.find((pSystemInstance) => {
+                    return pSystemInstance.constructor === lSystemType;
+                });
+
+                // If the dependent system is not found, throw an exception.
+                // That should never happen, because systems should be registered in order of their dependencies, but we check just to be sure.
+                if (!lDependentSystem) {
+                    throw new Exception(`Dependent system of type ${lSystemType.name} not found for system ${lSystem.constructor.name}`, this);
+                }
+
+                lDependentSystemList.push(lDependentSystem);
+            }
+
+            // Initialize system with dependent systems
+            await lSystem.initialize(lDependentSystemList);
+        }
+
+        // Create an async generator that yields on each animation frame.
         const lAnimationFrames = async function* () {
             let lRequestId: number = 0;
 

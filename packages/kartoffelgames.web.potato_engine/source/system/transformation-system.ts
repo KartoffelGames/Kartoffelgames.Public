@@ -30,6 +30,17 @@ export class TransformationSystem extends GameSystem {
     }
 
     /**
+     * Gets the shared buffer containing transformation data for all components managed by this system.
+     * The buffer is structured to allow efficient access to parent indices and transformation matrices for each component.
+     * 
+     * @return The shared array buffer containing transformation data.
+     */
+    public get transformationData(): SharedArrayBuffer {
+        this.lockGate();
+        return this.mDataBuffer;
+    }
+
+    /**
      * Creates a new transformation system that manages component transformations and hierarchical relationships.
      */
     public constructor() {

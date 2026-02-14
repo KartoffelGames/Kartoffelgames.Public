@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import type { IAnyParameterConstructor } from '../../../kartoffelgames.core/source/interface/i-constructor.ts';
+import type { IVoidParameterConstructor } from '../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import type { GameComponentConstructor } from './component/game-component.ts';
 import type { GameEnvironmentStateChange } from './environment/game-environment-transmittion.ts';
 
@@ -12,6 +12,7 @@ import type { GameEnvironmentStateChange } from './environment/game-environment-
  */
 export abstract class GameSystem {
     private readonly mDependendSystems: Map<GameSystemConstructor<GameSystem>, GameSystem>;
+    private mInitialized: boolean;
 
     /**
      * Define which systems this system depends on.
@@ -34,6 +35,7 @@ export abstract class GameSystem {
      */
     public constructor() {
         this.mDependendSystems = new Map<GameSystemConstructor<GameSystem>, GameSystem>();
+        this.mInitialized = false;
     }
 
     /**
@@ -43,6 +45,8 @@ export abstract class GameSystem {
      * @internal
      */
     public async executeFrame(): Promise<void> {
+        this.lockGate();
+
         await this.onFrame();
     }
 
@@ -53,6 +57,8 @@ export abstract class GameSystem {
      * @internal
      */
     public async executeTick(): Promise<void> {
+        this.lockGate();
+
         await this.onTick();
     }
 
@@ -63,6 +69,8 @@ export abstract class GameSystem {
      * @internal
      */
     public async executeUpdate(pStateChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>): Promise<void> {
+        this.lockGate();
+
         await this.onUpdate(pStateChanges);
     }
 
@@ -73,10 +81,17 @@ export abstract class GameSystem {
      * @internal
      */
     public async initialize(pDependendSystems: Array<GameSystem>): Promise<void> {
+        if (this.mInitialized) {
+            throw new Exception(`System ${this.constructor.name} is already initialized.`, this);
+        }
+
         // Store dependent systems in a map.
         for (const lSystem of pDependendSystems) {
             this.mDependendSystems.set(lSystem.constructor as GameSystemConstructor<GameSystem>, lSystem);
         }
+
+        // Set initialized flag to true.
+        this.mInitialized = true;
 
         // Call onCreate hook.
         await this.onCreate();
@@ -91,6 +106,8 @@ export abstract class GameSystem {
      * @returns The instance of the requested system.
      */
     protected getDependency<T extends GameSystem>(pSystemType: GameSystemConstructor<T>): T {
+        this.lockGate();
+
         // Check if the requested system is registered as a dependency of this system.
         const lSystem = this.mDependendSystems.get(pSystemType);
         if (!lSystem) {
@@ -98,6 +115,15 @@ export abstract class GameSystem {
         }
 
         return lSystem as T;
+    }
+
+    /**
+     * Lock the system to prevent access to dependency systems before initialization.
+     */
+    protected lockGate(): void {
+        if (!this.mInitialized) {
+            throw new Exception(`System ${this.constructor.name} is not initialized yet.`, this);
+        }
     }
 
     /**
@@ -132,4 +158,4 @@ export abstract class GameSystem {
     }
 }
 
-type GameSystemConstructor<T extends GameSystem = GameSystem> = IAnyParameterConstructor<T>;
+export type GameSystemConstructor<T extends GameSystem = GameSystem> = IVoidParameterConstructor<T>;

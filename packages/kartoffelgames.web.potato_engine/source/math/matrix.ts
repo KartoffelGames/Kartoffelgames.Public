@@ -3,189 +3,153 @@ import { Vector } from './vector.ts';
 
 export class Matrix {
     /**
-     * Create matrix from data array.
-     * Direction from reading columns than rows.
-     * @param pArray - Array data. 
-     * @param pHeight 
-     * @param pWidth 
-     * @returns 
-     */
-    public static fromArray(pArray: Array<number>, pHeight: number, pWidth: number): Matrix {
-        const lData: Array<Array<number>> = new Array<Array<number>>();
-
-        for (let lRowIndex = 0; lRowIndex < pHeight; lRowIndex++) {
-            const lRowData: Array<number> = new Array<number>(pWidth);
-
-            for (let lColumnIndex = 0; lColumnIndex < pWidth; lColumnIndex++) {
-                lRowData[lColumnIndex] = pArray[(lColumnIndex * pHeight) + lRowIndex];
-            }
-
-            // Add row to data array.
-            lData.push(lRowData);
-        }
-
-        return new Matrix(lData);
-    }
-
-    /**
      * Create identity matrix.
-     * @param pSize - Matix size: nxn
-     * @param pValue - Value of identity. 
+     *
+     * @param pSize - Matrix size: nxn.
+     *
+     * @returns Identity matrix of given size.
      */
     public static identity(pSize: number): Matrix {
-        const lData: Array<Array<number>> = new Array<Array<number>>();
-        for (let lRowIndex = 0; lRowIndex < pSize; lRowIndex++) {
-            // Create Array filled with zeros.
-            const lRowData: Array<number> = new Array<number>(pSize).fill(0);
+        // Create zero-filled array.
+        const lData: Array<number> = new Array<number>(pSize * pSize).fill(0);
 
-            // Set identity column to value.
-            lRowData[lRowIndex] = 1;
-
-            // Add row to data array.
-            lData.push(lRowData);
+        // Set diagonal elements to one.
+        for (let lIndex = 0; lIndex < pSize; lIndex++) {
+            lData[lIndex * pSize + lIndex] = 1;
         }
 
-        return new Matrix(lData);
+        return new Matrix(lData, pSize, pSize);
     }
 
-    private readonly mData: Array<Array<number>>;
+    private readonly mData: Array<number>;
+    private readonly mHeight: number;
+    private readonly mWidth: number;
 
     /**
-     * Get matix raw data.
-     */
-    public get data(): Array<Array<number>> {
-        return this.mData;
-    }
-
-    /**
-     * Data as number array.
+     * Data as column-major number array.
      */
     public get dataArray(): Array<number> {
-        const lData: Array<number> = new Array<number>();
-
-        // Read from columns to rows.
-        for (let lColumnIndex = 0; lColumnIndex < this.width; lColumnIndex++) {
-            for (let lRowIndex = 0; lRowIndex < this.height; lRowIndex++) {
-                lData.push(this.mData[lRowIndex][lColumnIndex]);
-            }
-        }
-
-        return lData;
+        return this.mData;
     }
 
     /**
      * Get matrix height.
      */
     public get height(): number {
-        return this.mData.length;
+        return this.mHeight;
     }
 
     /**
      * Get matrix width.
      */
     public get width(): number {
-        return this.mData[0]?.length ?? 0;
+        return this.mWidth;
     }
 
     /**
      * Constructor.
-     * @param pData - Matrix data.
+     *
+     * @param pData - Column-major matrix data.
+     * @param pHeight - Matrix row count.
+     * @param pWidth - Matrix column count.
      */
-    public constructor(pData: Array<Array<number>>) {
+    public constructor(pData: Array<number>, pHeight: number, pWidth: number) {
         this.mData = pData;
+        this.mHeight = pHeight;
+        this.mWidth = pWidth;
     }
 
     /**
      * Add value to matrix.
+     *
      * @param pAddData - Matrix or scalar value.
+     *
+     * @returns New matrix with added values.
      */
     public add(pAddData: Matrix | number): Matrix {
-        const lData: Array<Array<number>> = new Array<Array<number>>();
-
         if (pAddData instanceof Matrix) {
-            // Restrict on same length.
-            if (this.height !== pAddData.height && this.width !== pAddData.width) {
+            // Restrict on same size.
+            if (this.mHeight !== pAddData.mHeight || this.mWidth !== pAddData.mWidth) {
                 throw new Exception('Matrices need to be the same size for calculation.', this);
             }
 
-            // Iterate rows and extend data dynamicly by pushing new data rows.
-            for (let lRowIndex = 0; lRowIndex < this.height; lRowIndex++) {
-                // Add each column of row.
-                const lRowData: Array<number> = new Array<number>(this.width);
-                for (let lColumnIndex = 0; lColumnIndex < lRowData.length; lColumnIndex++) {
-                    lRowData[lColumnIndex] = this.mData[lRowIndex][lColumnIndex] + pAddData.data[lRowIndex][lColumnIndex];
-                }
-
-                lData.push(lRowData);
+            // Add each component element-wise.
+            const lData: Array<number> = new Array<number>(this.mData.length);
+            for (let lIndex = 0; lIndex < this.mData.length; lIndex++) {
+                lData[lIndex] = this.mData[lIndex] + pAddData.mData[lIndex];
             }
-        } else {
-            // Add scalar to each matrix component.
-            for (let lRowIndex = 0; lRowIndex < this.height; lRowIndex++) {
-                const lRowData: Array<number> = new Array<number>(this.width);
-                for (let lColumnIndex = 0; lColumnIndex < lRowData.length; lColumnIndex++) {
-                    lRowData[lColumnIndex] = this.mData[lRowIndex][lColumnIndex] + pAddData;
-                }
 
-                lData.push(lRowData);
-            }
+            return new Matrix(lData, this.mHeight, this.mWidth);
         }
 
-        return new Matrix(lData);
+        // Add scalar to each matrix component.
+        const lData: Array<number> = new Array<number>(this.mData.length);
+        for (let lIndex = 0; lIndex < this.mData.length; lIndex++) {
+            lData[lIndex] = this.mData[lIndex] + pAddData;
+        }
+
+        return new Matrix(lData, this.mHeight, this.mWidth);
     }
 
     /**
      * Adjoint matrix.
+     *
+     * @returns Adjoint of this matrix.
      */
     public adjoint(): Matrix {
-        const lMatrixData: Array<Array<number>> = new Array<Array<number>>();
+        const lCofactorData: Array<number> = new Array<number>(this.mHeight * this.mWidth);
 
-        // Allways use first row and iterate over columns.
-        for (let lRowIndex = 0; lRowIndex < this.height; lRowIndex++) {
-            const lMatrixRow: Array<number> = new Array<number>();
-            for (let lColumIndex = 0; lColumIndex < this.width; lColumIndex++) {
-                // Calculate determant of matrix with omitted column and row.
+        // Calculate cofactor for each element.
+        for (let lRowIndex = 0; lRowIndex < this.mHeight; lRowIndex++) {
+            for (let lColumnIndex = 0; lColumnIndex < this.mWidth; lColumnIndex++) {
+                // Calculate determinant of matrix with omitted column and row.
                 // Toggle sign on each new row or column.
-                let lDeterminant: number = this.omit(lRowIndex, lColumIndex).determinant();
-                lDeterminant *= Math.pow(-1, (lRowIndex + 1) + (lColumIndex + 1));
+                let lDeterminant: number = this.omit(lRowIndex, lColumnIndex).determinant();
+                lDeterminant *= Math.pow(-1, (lRowIndex + 1) + (lColumnIndex + 1));
 
-
-                lMatrixRow.push(lDeterminant);
+                // Store in cofactor matrix (column-major).
+                lCofactorData[lColumnIndex * this.mHeight + lRowIndex] = lDeterminant;
             }
-
-            // Add row to matrix data.
-            lMatrixData.push(lMatrixRow);
         }
 
-        // Calculate transpose from cofactor matrix to get adjoint. 
-        const lCofactorMatrix = new Matrix(lMatrixData);
+        // Calculate transpose from cofactor matrix to get adjoint.
+        const lCofactorMatrix: Matrix = new Matrix(lCofactorData, this.mHeight, this.mWidth);
         return lCofactorMatrix.transpose();
     }
 
     /**
-     * Calculate determant of matrix.
+     * Calculate determinant of matrix.
+     *
+     * @returns Determinant value.
      */
     public determinant(): number {
-        // Super fast determinant calculation of a 1x1 matrix.
-        if (this.height === 1 && this.width === 1) {
-            return this.data[0][0];
-        }
-
         // Handle 0x0 matrix (empty matrix determinant is 1 by convention).
-        if (this.height === 0 && this.width === 0) {
+        if (this.mHeight === 0 && this.mWidth === 0) {
             return 1;
         }
 
-        let lDeterminant: number = 0;
-        for (let lIterationIndex = 0; lIterationIndex < this.width; lIterationIndex++) {
-            // Get number of row iteration to detect if any calculation musst be done.
-            let lSignedNumber: number = this.data[0][lIterationIndex];
-            lSignedNumber *= (lIterationIndex % 2) ? -1 : 1; // Toggle sign between iteration. Begin with plus.
+        // Fast determinant calculation of a 1x1 matrix.
+        if (this.mHeight === 1 && this.mWidth === 1) {
+            return this.mData[0];
+        }
 
-            // Check if any calculation needs to be done. Zero multiplicated is allways zero.
+        // Fast determinant calculation of a 2x2 matrix: ad - bc.
+        if (this.mHeight === 2 && this.mWidth === 2) {
+            return this.mData[0] * this.mData[3] - this.mData[2] * this.mData[1];
+        }
+
+        // Expand along first row using Laplace expansion.
+        let lDeterminant: number = 0;
+        for (let lColumnIndex = 0; lColumnIndex < this.mWidth; lColumnIndex++) {
+            // Get element of first row at current column.
+            let lSignedNumber: number = this.mData[lColumnIndex * this.mHeight];
+            lSignedNumber *= (lColumnIndex % 2) ? -1 : 1; // Toggle sign between iterations.
+
+            // Check if any calculation needs to be done. Zero multiplied is always zero.
             if (lSignedNumber !== 0) {
-                // Calculate determinant of new matrix. Allways use first row.
-                const lDeterminantMatrix: Matrix = this.omit(0, lIterationIndex);
-                lDeterminant += lSignedNumber * lDeterminantMatrix.determinant();
+                // Calculate determinant of submatrix with omitted first row and current column.
+                const lSubMatrix: Matrix = this.omit(0, lColumnIndex);
+                lDeterminant += lSignedNumber * lSubMatrix.determinant();
             }
         }
 
@@ -193,177 +157,201 @@ export class Matrix {
     }
 
     /**
+     * Get element at specified row and column.
+     *
+     * @param pRow - Row index.
+     * @param pColumn - Column index.
+     *
+     * @returns Element value.
+     */
+    public get(pRow: number, pColumn: number): number {
+        return this.mData[pColumn * this.mHeight + pRow];
+    }
+
+    /**
      * Inverse matrix.
+     *
+     * @returns Inverse of this matrix.
      */
     public inverse(): Matrix {
         const lAdjoint: Matrix = this.adjoint();
         const lDeterminant: number = this.determinant();
 
-        // Devide each adjoint matrix component by determinant.
-        for (let lColumIndex = 0; lColumIndex < this.width; lColumIndex++) {
-            for (let lRowIndex = 0; lRowIndex < this.height; lRowIndex++) {
-                lAdjoint.data[lRowIndex][lColumIndex] /= lDeterminant;
-            }
+        // Divide each adjoint component by determinant.
+        const lData: Array<number> = new Array<number>(this.mData.length);
+        for (let lIndex = 0; lIndex < lData.length; lIndex++) {
+            lData[lIndex] = lAdjoint.mData[lIndex] / lDeterminant;
         }
 
-        return lAdjoint;
+        return new Matrix(lData, this.mHeight, this.mWidth);
     }
 
     /**
      * Multiplicate matrix.
+     *
      * @param pMultData - Matrix or scalar value.
+     *
+     * @returns New matrix with multiplied values.
      */
     public mult(pMultData: Matrix | number): Matrix {
-        const lData: Array<Array<number>> = new Array<Array<number>>();
-
         if (pMultData instanceof Matrix) {
-            // Restrict on same length.
-            if (this.width !== pMultData.height) {
+            // Restrict on matching dimensions.
+            if (this.mWidth !== pMultData.mHeight) {
                 throw new Exception('Matrices A width and B height must match for multiplication.', this);
             }
 
-            // Iterate rows and extend data dynamicly by pushing new data rows.
-            for (let lRowIndex = 0; lRowIndex < this.height; lRowIndex++) {
-                // Add each column of row.
-                const lRowData: Array<number> = new Array<number>(pMultData.width);
-                for (let lColumnIndex = 0; lColumnIndex < lRowData.length; lColumnIndex++) {
+            // Multiply matrices column by column.
+            const lResultHeight: number = this.mHeight;
+            const lResultWidth: number = pMultData.mWidth;
+            const lData: Array<number> = new Array<number>(lResultHeight * lResultWidth);
 
-                    // Multiplicate target row with source column components.
-                    // Iteration length is eighter target.height or source.width.
+            for (let lColumnIndex = 0; lColumnIndex < lResultWidth; lColumnIndex++) {
+                for (let lRowIndex = 0; lRowIndex < lResultHeight; lRowIndex++) {
+                    // Dot product of source row with target column.
                     let lProduct: number = 0;
-                    for (let lComponentIndex = 0; lComponentIndex < this.width; lComponentIndex++) {
-                        lProduct += this.mData[lRowIndex][lComponentIndex] * pMultData.data[lComponentIndex][lColumnIndex];
+                    for (let lComponentIndex = 0; lComponentIndex < this.mWidth; lComponentIndex++) {
+                        lProduct += this.mData[lComponentIndex * this.mHeight + lRowIndex] * pMultData.mData[lColumnIndex * pMultData.mHeight + lComponentIndex];
                     }
-                    lRowData[lColumnIndex] = lProduct;
-                }
 
-                lData.push(lRowData);
-            }
-        } else {
-            // Multiplicate scalar to each matrix component.
-            for (let lRowIndex = 0; lRowIndex < this.height; lRowIndex++) {
-                const lRowData: Array<number> = new Array<number>(this.width);
-                for (let lColumnIndex = 0; lColumnIndex < this.width; lColumnIndex++) {
-                    lRowData[lColumnIndex] = this.mData[lRowIndex][lColumnIndex] * pMultData;
+                    lData[lColumnIndex * lResultHeight + lRowIndex] = lProduct;
                 }
-
-                lData.push(lRowData);
             }
+
+            return new Matrix(lData, lResultHeight, lResultWidth);
         }
 
-        return new Matrix(lData);
+        // Multiply scalar to each matrix component.
+        const lData: Array<number> = new Array<number>(this.mData.length);
+        for (let lIndex = 0; lIndex < this.mData.length; lIndex++) {
+            lData[lIndex] = this.mData[lIndex] * pMultData;
+        }
+
+        return new Matrix(lData, this.mHeight, this.mWidth);
     }
 
     /**
      * Omit row and column from matrix.
+     *
      * @param pOmitRow - Omitting row.
-     * @param pOmitColumn - Omiting column
+     * @param pOmitColumn - Omitting column.
+     *
+     * @returns New matrix with omitted row and column.
      */
     public omit(pOmitRow: number, pOmitColumn: number): Matrix {
-        const lMatrixData: Array<Array<number>> = new Array<Array<number>>();
+        const lNewHeight: number = this.mHeight - 1;
+        const lNewWidth: number = this.mWidth - 1;
+        const lData: Array<number> = new Array<number>(lNewHeight * lNewWidth);
 
-        // Allways use first row and iterate over columns.
-        for (let lRowIndex = 0; lRowIndex < this.height; lRowIndex++) {
-            if (lRowIndex !== pOmitRow) {
-                const lMatrixRow: Array<number> = new Array<number>();
-                for (let lColumIndex = 0; lColumIndex < this.width; lColumIndex++) {
-                    // Skip column of
-                    if (lColumIndex !== pOmitColumn) {
-                        lMatrixRow.push(this.data[lRowIndex][lColumIndex]);
-                    }
+        // Copy elements skipping omitted row and column.
+        let lNewColumnIndex: number = 0;
+        for (let lColumnIndex = 0; lColumnIndex < this.mWidth; lColumnIndex++) {
+            if (lColumnIndex === pOmitColumn) {
+                continue;
+            }
+
+            let lNewRowIndex: number = 0;
+            for (let lRowIndex = 0; lRowIndex < this.mHeight; lRowIndex++) {
+                if (lRowIndex === pOmitRow) {
+                    continue;
                 }
 
-                // Add row to matrix data.
-                lMatrixData.push(lMatrixRow);
+                lData[lNewColumnIndex * lNewHeight + lNewRowIndex] = this.mData[lColumnIndex * this.mHeight + lRowIndex];
+                lNewRowIndex++;
             }
+
+            lNewColumnIndex++;
         }
 
-        return new Matrix(lMatrixData);
+        return new Matrix(lData, lNewHeight, lNewWidth);
     }
 
     /**
-     * Substract value to matrix.
-     * @param pAddData - Matrix or scalar value.
+     * Set element at specified row and column.
+     *
+     * @param pRow - Row index.
+     * @param pColumn - Column index.
+     * @param pValue - Value to set.
      */
-    public sub(pAddData: Matrix | number): Matrix {
-        const lData: Array<Array<number>> = new Array<Array<number>>();
+    public set(pRow: number, pColumn: number, pValue: number): void {
+        this.mData[pColumn * this.mHeight + pRow] = pValue;
+    }
 
-        if (pAddData instanceof Matrix) {
-            // Restrict on same length.
-            if (this.height !== pAddData.height && this.width !== pAddData.width) {
+    /**
+     * Subtract value from matrix.
+     *
+     * @param pSubData - Matrix or scalar value.
+     *
+     * @returns New matrix with subtracted values.
+     */
+    public sub(pSubData: Matrix | number): Matrix {
+        if (pSubData instanceof Matrix) {
+            // Restrict on same size.
+            if (this.mHeight !== pSubData.mHeight || this.mWidth !== pSubData.mWidth) {
                 throw new Exception('Matrices need to be the same size for calculation.', this);
             }
 
-            // Iterate rows and extend data dynamicly by pushing new data rows.
-            for (let lRowIndex = 0; lRowIndex < this.height; lRowIndex++) {
-                // Add each column of row.
-                const lRowData: Array<number> = new Array<number>(this.width);
-                for (let lColumnIndex = 0; lColumnIndex < lRowData.length; lColumnIndex++) {
-                    lRowData[lColumnIndex] = this.mData[lRowIndex][lColumnIndex] - pAddData.data[lRowIndex][lColumnIndex];
-                }
-
-                lData.push(lRowData);
+            // Subtract each component element-wise.
+            const lData: Array<number> = new Array<number>(this.mData.length);
+            for (let lIndex = 0; lIndex < this.mData.length; lIndex++) {
+                lData[lIndex] = this.mData[lIndex] - pSubData.mData[lIndex];
             }
-        } else {
-            // Add scalar to each matrix component.
-            for (let lRowIndex = 0; lRowIndex < this.height; lRowIndex++) {
-                const lRowData: Array<number> = new Array<number>(this.width);
-                for (let lColumnIndex = 0; lColumnIndex < lRowData.length; lColumnIndex++) {
-                    lRowData[lColumnIndex] = this.mData[lRowIndex][lColumnIndex] - pAddData;
-                }
 
-                lData.push(lRowData);
-            }
+            return new Matrix(lData, this.mHeight, this.mWidth);
         }
 
-        return new Matrix(lData);
+        // Subtract scalar from each matrix component.
+        const lData: Array<number> = new Array<number>(this.mData.length);
+        for (let lIndex = 0; lIndex < this.mData.length; lIndex++) {
+            lData[lIndex] = this.mData[lIndex] - pSubData;
+        }
+
+        return new Matrix(lData, this.mHeight, this.mWidth);
     }
 
     /**
      * Transpose matrix.
+     *
+     * @returns Transposed matrix.
      */
     public transpose(): Matrix {
-        const lMatrixData: Array<Array<number>> = new Array<Array<number>>();
+        const lData: Array<number> = new Array<number>(this.mHeight * this.mWidth);
 
-        // Transpose by copying column into row.
-        for (let lColumIndex = 0; lColumIndex < this.width; lColumIndex++) {
-            const lMatrixRow: Array<number> = new Array<number>();
-            for (let lRowIndex = 0; lRowIndex < this.height; lRowIndex++) {
-                lMatrixRow.push(this.data[lRowIndex][lColumIndex]);
+        // Copy each element to transposed position.
+        for (let lColumnIndex = 0; lColumnIndex < this.mWidth; lColumnIndex++) {
+            for (let lRowIndex = 0; lRowIndex < this.mHeight; lRowIndex++) {
+                // Source: column-major index (lColumnIndex * height + lRowIndex).
+                // Target: transposed column-major index (lRowIndex * width + lColumnIndex).
+                lData[lRowIndex * this.mWidth + lColumnIndex] = this.mData[lColumnIndex * this.mHeight + lRowIndex];
             }
-
-            // Add row to matrix data.
-            lMatrixData.push(lMatrixRow);
         }
 
-        return new Matrix(lMatrixData);
+        return new Matrix(lData, this.mWidth, this.mHeight);
     }
 
     /**
-     * Multiplicate matrix with vector.
+     * Multiply matrix with vector.
+     *
      * @param pMultData - Vector.
-     * @returns 
+     *
+     * @returns Resulting vector.
      */
     public vectorMult(pMultData: Vector): Vector {
-        // Restrict on same length.
-        if (this.width !== pMultData.data.length) {
+        // Restrict on matching dimensions.
+        if (this.mWidth !== pMultData.data.length) {
             throw new Exception('Matrices A width and B height must match for multiplication.', this);
         }
 
-        // Convert vector to matrix by creating a 
-        const lMatrixData: Array<Array<number>> = new Array<Array<number>>();
-        for (const lVectorComponent of pMultData.data) {
-            lMatrixData.push([lVectorComponent]);
+        // Multiply each row with vector components.
+        const lResultData: Array<number> = new Array<number>(this.mHeight);
+        for (let lRowIndex = 0; lRowIndex < this.mHeight; lRowIndex++) {
+            let lSum: number = 0;
+            for (let lColumnIndex = 0; lColumnIndex < this.mWidth; lColumnIndex++) {
+                lSum += this.mData[lColumnIndex * this.mHeight + lRowIndex] * pMultData.data[lColumnIndex];
+            }
+
+            lResultData[lRowIndex] = lSum;
         }
 
-        // Multiplicate
-        const lMutiplicatedMatrix = this.mult(new Matrix(lMatrixData));
-
-        const lVectorData: Array<number> = new Array<number>();
-        for (let lRowIndex = 0; lRowIndex < lMutiplicatedMatrix.height; lRowIndex++) {
-            lVectorData.push(lMutiplicatedMatrix.data[lRowIndex][0]);
-        }
-
-        return new Vector(lVectorData);
+        return new Vector(lResultData);
     }
 }

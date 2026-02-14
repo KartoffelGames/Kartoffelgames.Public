@@ -217,19 +217,19 @@ export class Quaternion {
         const lProductYz: number = 2 * this.mY * this.mZ;
         const lProductXw: number = 2 * this.mX * this.mW;
 
-        // Fill matrix
+        // Fill matrix.
         const lMatrix: Matrix = Matrix.identity(4);
-        lMatrix.data[0][0] = 1 - lSquareY - lSquareZ;
-        lMatrix.data[0][1] = lProductXy - lProductZw;
-        lMatrix.data[0][2] = lProductXz + lProductYw;
+        lMatrix.set(0, 0, 1 - lSquareY - lSquareZ);
+        lMatrix.set(0, 1, lProductXy - lProductZw);
+        lMatrix.set(0, 2, lProductXz + lProductYw);
 
-        lMatrix.data[1][0] = lProductXy + lProductZw;
-        lMatrix.data[1][1] = 1 - lSquareX - lSquareZ;
-        lMatrix.data[1][2] = lProductYz - lProductXw;
+        lMatrix.set(1, 0, lProductXy + lProductZw);
+        lMatrix.set(1, 1, 1 - lSquareX - lSquareZ);
+        lMatrix.set(1, 2, lProductYz - lProductXw);
 
-        lMatrix.data[2][0] = lProductXz - lProductYw;
-        lMatrix.data[2][1] = lProductYz + lProductXw;
-        lMatrix.data[2][2] = 1 - lSquareX - lSquareY;
+        lMatrix.set(2, 0, lProductXz - lProductYw);
+        lMatrix.set(2, 1, lProductYz + lProductXw);
+        lMatrix.set(2, 2, 1 - lSquareX - lSquareY);
 
         return lMatrix;
     }

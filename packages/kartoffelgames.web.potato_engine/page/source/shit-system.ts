@@ -5,6 +5,7 @@ import {
     BufferItemMultiplier,
     type CanvasTexture,
     ComputeStage,
+    GpuBuffer,
     type GpuExecution,
     type PipelineData,
     PrimitiveCullMode,
@@ -12,6 +13,7 @@ import {
     type RenderTargets,
     RenderTargetsInvalidationType,
     type ShaderRenderModule,
+    StorageBindingType,
     TextureFormat,
     type VertexFragmentPipeline,
     type VertexParameter,
@@ -97,7 +99,7 @@ export class ShitSystem extends GameSystem {
     private mExecutor: GpuExecution | null;
     private mMesh: VertexParameter | null;
     private mPipeline: VertexFragmentPipeline | null;
-    private readonly mRenderInstructions: Array<ShitSystemRenderInstruction>;
+    private mPipelineData: PipelineData | null;
     private mRenderPass: RenderPass | null;
     private mRenderTargets: RenderTargets | null;
     private mShaderRenderModule: ShaderRenderModule | null;
@@ -124,13 +126,13 @@ export class ShitSystem extends GameSystem {
         super();
 
         this.mActiveComponents = new Set<TransformationComponent>();
-        this.mRenderInstructions = new Array<ShitSystemRenderInstruction>();
         this.mDirty = false;
         this.mCamera = null;
         this.mCameraGroup = null;
         this.mExecutor = null;
         this.mMesh = null;
         this.mPipeline = null;
+        this.mPipelineData = null;
         this.mRenderPass = null;
         this.mRenderTargets = null;
         this.mShaderRenderModule = null;
@@ -207,10 +209,13 @@ export class ShitSystem extends GameSystem {
             pShaderSetup.fragmentEntryPoint('fragment_main')
                 .addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
 
-            // Object bind group with transformation matrix.
+            // Object bind group with transformation data and component indices storage buffers.
             pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
-                pBindGroupSetup.binding(0, 'transformationMatrix', ComputeStage.Vertex)
-                    .asBuffer(true).withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
+                pBindGroupSetup.binding(0, 'transformationData', ComputeStage.Vertex, StorageBindingType.Read)
+                    .asBuffer().withArray().withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
+
+                pBindGroupSetup.binding(1, 'componentIndices', ComputeStage.Vertex, StorageBindingType.Read)
+                    .asBuffer().withArray().withPrimitive(BufferItemFormat.Uint32, BufferItemMultiplier.Single);
             });
 
             // Camera bind group.
@@ -229,10 +234,10 @@ export class ShitSystem extends GameSystem {
         this.mPipeline = this.mShaderRenderModule.create(this.mRenderTargets);
         this.mPipeline.primitiveCullMode = PrimitiveCullMode.Front;
 
-        // Create render pass that draws all render instructions.
+        // Create render pass that draws all instances in a single call.
         this.mRenderPass = lGpu.renderPass(this.mRenderTargets, (pContext) => {
-            for (const lInstruction of this.mRenderInstructions) {
-                pContext.drawDirect(lInstruction.pipeline, lInstruction.parameter, lInstruction.data, 1);
+            if (this.mPipelineData && this.mActiveComponents.size > 0) {
+                pContext.drawDirect(this.mPipeline!, this.mMesh!, this.mPipelineData, this.mActiveComponents.size);
             }
         }, false);
 
@@ -252,23 +257,16 @@ export class ShitSystem extends GameSystem {
             return;
         }
 
-        // Rebuild render instructions when components changed.
+        // Rebuild instance data when components changed.
         if (this.mDirty) {
-            this.rebuildRenderInstructions();
+            this.rebuildInstanceData();
 
             // Update camera view projection matrix.
             const lViewProjectionMatrix = this.mCamera.getMatrix(CameraMatrix.ViewProjection);
             this.mCameraGroup.data('viewProjection').asBufferView(Float32Array).write(lViewProjectionMatrix.dataArray);
 
-            // Update transformation matrices for all active components.
-            for (const lInstruction of this.mRenderInstructions) {
-                lInstruction.objectGroup.data('transformationMatrix').asBufferView(Float32Array, lInstruction.bufferOffset).write(lInstruction.component.matrix.dataArray);
-            }
-
             this.mDirty = false;
         }
-
-
 
         // Start new GPU frame and execute render pass.
         this.getDependency(GpuSystem).gpu.startNewFrame();
@@ -312,55 +310,39 @@ export class ShitSystem extends GameSystem {
     }
 
     /**
-     * Rebuild the render instruction list from all active transformation components.
-     * Creates a shared GPU buffer for all transformation matrices and a render instruction per component.
+     * Rebuild instance data from all active transformation components.
+     * Binds the TransformationSystem gpu buffer and creates a component index array for instanced rendering.
      */
-    private rebuildRenderInstructions(): void {
-        // Clear existing instructions.
-        this.mRenderInstructions.length = 0;
-
+    private rebuildInstanceData(): void {
         // Skip when no components are active or pipeline is not ready.
         if (this.mActiveComponents.size === 0 || !this.mShaderRenderModule || !this.mPipeline || !this.mMesh || !this.mCameraGroup) {
+            this.mPipelineData = null;
             return;
         }
 
-        // Create a single bind group with a buffer large enough for all transformation matrices.
-        const lObjectGroup: BindGroup = this.mShaderRenderModule.layout.getGroupLayout('object').create();
-        lObjectGroup.data('transformationMatrix').createBuffer(this.mActiveComponents.size);
+        // Get transformation system for buffer and index lookups.
+        const lTransformationSystem: TransformationSystem = this.getDependency(TransformationSystem);
 
-        // Create a render instruction for each active component with its buffer offset.
+        // Build indices array mapping instance id to transformation buffer index.
+        const lIndices: Uint32Array = new Uint32Array(this.mActiveComponents.size);
         let lIndex: number = 0;
         for (const lComponent of this.mActiveComponents) {
-            // Create pipeline data with object group at the correct offset and the shared camera group.
-            const lData: PipelineData = this.mPipeline.layout.withData((pSetup) => {
-                pSetup.addGroup(lObjectGroup)
-                    .withOffset('transformationMatrix', lIndex);
-                pSetup.addGroup(this.mCameraGroup!);
-            });
-
-            // Add render instruction.
-            this.mRenderInstructions.push({
-                pipeline: this.mPipeline,
-                parameter: this.mMesh,
-                data: lData,
-                component: lComponent,
-                objectGroup: lObjectGroup,
-                bufferOffset: lIndex
-            });
-
+            lIndices[lIndex] = lTransformationSystem.indexOfTransformation(lComponent);
             lIndex++;
         }
+
+        // Create object bind group with transformation data and component indices.
+        const lObjectGroup: BindGroup = this.mShaderRenderModule.layout.getGroupLayout('object').create();
+        lObjectGroup.data('transformationData').set(lTransformationSystem.gpuBuffer);
+
+        // For some reason create the buffer again and again.
+        const lComponentIndicesBuffer: GpuBuffer = lObjectGroup.data('componentIndices').createBuffer(this.mActiveComponents.size);
+        lComponentIndicesBuffer.write(new Uint32Array(lIndices).buffer);
+
+        // Create pipeline data with object and camera groups.
+        this.mPipelineData = this.mPipeline.layout.withData((pSetup) => {
+            pSetup.addGroup(lObjectGroup);
+            pSetup.addGroup(this.mCameraGroup!);
+        });
     }
 }
-
-/**
- * Render instruction for a single transformation component.
- */
-type ShitSystemRenderInstruction = {
-    pipeline: VertexFragmentPipeline;
-    parameter: VertexParameter;
-    data: PipelineData;
-    component: TransformationComponent;
-    objectGroup: BindGroup;
-    bufferOffset: number;
-};

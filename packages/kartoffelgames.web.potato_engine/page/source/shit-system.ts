@@ -19,6 +19,7 @@ import {
     type VertexParameter,
     VertexParameterStepMode
 } from '@kartoffelgames/web-gpu';
+import { MeshComponent } from '../../source/component/mesh-component.ts';
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
 import type { GameComponentConstructor } from '../../source/core/component/game-component.ts';
 import type { GameEnvironmentStateChange } from '../../source/core/environment/game-environment-transmittion.ts';
@@ -30,69 +31,11 @@ import { TransformationSystem } from '../../source/system/transformation-system.
 import shitShaderSource from './shit-system-shader.wgsl';
 
 /**
- * Cube vertex position data. Each vertex is a vec4 f32.
- */
-const gCubeVertexPositionData: Array<number> = [
-    // Back
-    -1.0, 1.0, 1.0, 1.0,
-    1.0, 1.0, 1.0, 1.0,
-    1.0, -1.0, 1.0, 1.0,
-    -1.0, -1.0, 1.0, 1.0,
-    // Front
-    -1.0, 1.0, -1.0, 1.0,
-    1.0, 1.0, -1.0, 1.0,
-    1.0, -1.0, -1.0, 1.0,
-    -1.0, -1.0, -1.0, 1.0
-];
-
-/**
- * Cube vertex normal data per triangle vertex. Each normal is a vec4 f32.
- */
-const gCubeVertexNormalData: Array<number> = [
-    // Front
-    0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0,
-    0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0,
-    // Back
-    0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0,
-    0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0,
-    // Left
-    -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0,
-    -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0,
-    // Right
-    1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
-    1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
-    // Top
-    0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0,
-    0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0,
-    // Bottom
-    0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0,
-    0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0,
-];
-
-/**
- * Cube index data referencing vertex positions.
- */
-const gCubeVertexIndices: Array<number> = [
-    // Front
-    4, 5, 6, 4, 6, 7,
-    // Back
-    1, 0, 3, 1, 3, 2,
-    // Left
-    0, 4, 7, 0, 7, 3,
-    // Right
-    5, 1, 2, 5, 2, 6,
-    // Top
-    0, 1, 5, 0, 5, 4,
-    // Bottom
-    7, 6, 2, 7, 2, 3
-];
-
-/**
- * System that renders all transformation components as colored cubes with a hardcoded light source.
+ * System that renders all mesh components as colored geometry with a hardcoded light source.
  * Manages GPU resources for rendering and tracks component lifecycle through state changes.
  */
 export class ShitSystem extends GameSystem {
-    private readonly mActiveComponents: Set<TransformationComponent>;
+    private readonly mActiveComponents: Set<MeshComponent>;
     private mCamera: ViewProjection | null;
     private mCameraGroup: BindGroup | null;
     private mDirty: boolean;
@@ -116,7 +59,7 @@ export class ShitSystem extends GameSystem {
      * Component types this system handles.
      */
     public override get handledComponentTypes(): Array<GameComponentConstructor> {
-        return [TransformationComponent];
+        return [MeshComponent, TransformationComponent];
     }
 
     /**
@@ -125,7 +68,7 @@ export class ShitSystem extends GameSystem {
     public constructor() {
         super();
 
-        this.mActiveComponents = new Set<TransformationComponent>();
+        this.mActiveComponents = new Set<MeshComponent>();
         this.mDirty = false;
         this.mCamera = null;
         this.mCameraGroup = null;
@@ -225,19 +168,14 @@ export class ShitSystem extends GameSystem {
         // Create render module from shader.
         this.mShaderRenderModule = lShader.createRenderModule('vertex_main', 'fragment_main');
 
-        // Create cube mesh geometry.
-        this.mMesh = this.mShaderRenderModule.vertexParameter.create(gCubeVertexIndices);
-        this.mMesh.create('position', gCubeVertexPositionData);
-        this.mMesh.create('normal', gCubeVertexNormalData);
-
         // Create pipeline.
         this.mPipeline = this.mShaderRenderModule.create(this.mRenderTargets);
         this.mPipeline.primitiveCullMode = PrimitiveCullMode.Front;
 
         // Create render pass that draws all instances in a single call.
         this.mRenderPass = lGpu.renderPass(this.mRenderTargets, (pContext) => {
-            if (this.mPipelineData && this.mActiveComponents.size > 0) {
-                pContext.drawDirect(this.mPipeline!, this.mMesh!, this.mPipelineData, this.mActiveComponents.size);
+            if (this.mPipelineData && this.mMesh && this.mActiveComponents.size > 0) {
+                pContext.drawDirect(this.mPipeline!, this.mMesh, this.mPipelineData, this.mActiveComponents.size);
             }
         }, false);
 
@@ -274,51 +212,68 @@ export class ShitSystem extends GameSystem {
     }
 
     /**
-     * Process component state changes to track active transformation components.
+     * Process component state changes to track active mesh and transformation components.
      *
      * @param pStateChanges - Map of component types to state change events.
      */
     protected override async onUpdate(pStateChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>): Promise<void> {
-        // Process state changes for TransformationComponent.
-        const lChanges: ReadonlyArray<GameEnvironmentStateChange> | undefined = pStateChanges.get(TransformationComponent);
-        if (!lChanges) {
-            return;
+        // Process state changes for MeshComponent.
+        const lMeshChanges: ReadonlyArray<GameEnvironmentStateChange> | undefined = pStateChanges.get(MeshComponent);
+        if (lMeshChanges) {
+            for (const lStateChange of lMeshChanges) {
+                const lComponent: MeshComponent = lStateChange.component as MeshComponent;
+
+                switch (lStateChange.type) {
+                    case 'add':
+                    case 'activate': {
+                        this.mActiveComponents.add(lComponent);
+                        this.mDirty = true;
+                        break;
+                    }
+                    case 'remove':
+                    case 'deactivate': {
+                        this.mActiveComponents.delete(lComponent);
+                        this.mDirty = true;
+                        break;
+                    }
+                    case 'update': {
+                        this.mDirty = true;
+                        break;
+                    }
+                }
+            }
         }
 
-        for (const lStateChange of lChanges) {
-            const lComponent: TransformationComponent = lStateChange.component as TransformationComponent;
-
-            switch (lStateChange.type) {
-                case 'add':
-                case 'activate': {
-                    this.mActiveComponents.add(lComponent);
+        // Process state changes for TransformationComponent to track position updates.
+        const lTransformChanges: ReadonlyArray<GameEnvironmentStateChange> | undefined = pStateChanges.get(TransformationComponent);
+        if (lTransformChanges) {
+            for (const lStateChange of lTransformChanges) {
+                if (lStateChange.type === 'update') {
                     this.mDirty = true;
-                    break;
-                }
-                case 'remove':
-                case 'deactivate': {
-                    this.mActiveComponents.delete(lComponent);
-                    this.mDirty = true;
-                    break;
-                }
-                case 'update': {
-                    this.mDirty = true;
-                    break;
                 }
             }
         }
     }
 
     /**
-     * Rebuild instance data from all active transformation components.
-     * Binds the TransformationSystem gpu buffer and creates a component index array for instanced rendering.
+     * Rebuild instance data from all active mesh components.
+     * Creates GPU mesh from the first mesh component's data and builds transformation index array for instanced rendering.
      */
     private rebuildInstanceData(): void {
         // Skip when no components are active or pipeline is not ready.
-        if (this.mActiveComponents.size === 0 || !this.mShaderRenderModule || !this.mPipeline || !this.mMesh || !this.mCameraGroup) {
+        if (this.mActiveComponents.size === 0 || !this.mShaderRenderModule || !this.mPipeline || !this.mCameraGroup) {
             this.mPipelineData = null;
+            this.mMesh = null;
             return;
         }
+
+        // Get mesh data from first active mesh component.
+        const lFirstMesh: MeshComponent = this.mActiveComponents.values().next().value!;
+
+        // Create GPU mesh from component data.
+        this.mMesh = this.mShaderRenderModule.vertexParameter.create(lFirstMesh.subMeshes[0].indices);
+        this.mMesh.create('position', lFirstMesh.vertices);
+        this.mMesh.create('normal', lFirstMesh.normals);
 
         // Get transformation system for buffer and index lookups.
         const lTransformationSystem: TransformationSystem = this.getDependency(TransformationSystem);
@@ -327,7 +282,8 @@ export class ShitSystem extends GameSystem {
         const lIndices: Uint32Array = new Uint32Array(this.mActiveComponents.size);
         let lIndex: number = 0;
         for (const lComponent of this.mActiveComponents) {
-            lIndices[lIndex] = lTransformationSystem.indexOfTransformation(lComponent);
+            const lTransformation: TransformationComponent = lComponent.gameEntity.getComponent(TransformationComponent);
+            lIndices[lIndex] = lTransformationSystem.indexOfTransformation(lTransformation);
             lIndex++;
         }
 

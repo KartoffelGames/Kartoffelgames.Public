@@ -17,6 +17,7 @@
 
 // ------------------- Hardcoded Constants ----------------------- //
 const BLOCK_SIZE: u32 = 80u;
+const MAX_PARENT_DEPTH: u32 = 32u;
 const OBJECT_COLOR: vec4<f32> = vec4<f32>(0.8, 0.25, 0.15, 1.0);
 
 const LIGHT_POSITION: vec3<f32> = vec3<f32>(5.0, 10.0, -5.0);
@@ -26,9 +27,25 @@ const AMBIENT_COLOR: vec3<f32> = vec3<f32>(0.15, 0.15, 0.15);
 
 
 /**
- * Read a 4x4 transformation matrix from the flat transformation data buffer by component index.
+ * Read the parent index of a component from the transformation data buffer.
+ * Returns -1 when the component has no parent (root component).
  */
-fn readTransformationMatrix(pComponentIndex: u32) -> mat4x4<f32> {
+fn readParentIndex(pComponentIndex: u32) -> i32 {
+    // Calculate block and sub-index within the block.
+    let lBlock: u32 = pComponentIndex / 4u;
+    let lSub: u32 = pComponentIndex % 4u;
+
+    // Parent index is at the start of the block at sub offset.
+    let lOffset: u32 = lBlock * BLOCK_SIZE + lSub;
+
+    // Parent indices are stored as integers in the float buffer.
+    return i32(transformationData[lOffset]);
+}
+
+/**
+ * Read a local 4x4 transformation matrix from the flat transformation data buffer by component index.
+ */
+fn readLocalMatrix(pComponentIndex: u32) -> mat4x4<f32> {
     // Calculate block and sub-index within the block.
     let lBlock: u32 = pComponentIndex / 4u;
     let lSub: u32 = pComponentIndex % 4u;
@@ -43,6 +60,28 @@ fn readTransformationMatrix(pComponentIndex: u32) -> mat4x4<f32> {
         vec4<f32>(transformationData[lOffset + 8u], transformationData[lOffset + 9u], transformationData[lOffset + 10u], transformationData[lOffset + 11u]),
         vec4<f32>(transformationData[lOffset + 12u], transformationData[lOffset + 13u], transformationData[lOffset + 14u], transformationData[lOffset + 15u])
     );
+}
+
+/**
+ * Compute the world transformation matrix for a component by walking up the parent chain.
+ * Multiplies each ancestor's local matrix onto the result until a root component (parent index -1) is reached.
+ */
+fn readWorldMatrix(pComponentIndex: u32) -> mat4x4<f32> {
+    // Start with the component's own local matrix.
+    var lResult: mat4x4<f32> = readLocalMatrix(pComponentIndex);
+
+    // Walk up the parent chain.
+    var lParentIndex: i32 = readParentIndex(pComponentIndex);
+    while (lParentIndex >= 0) {
+        // Multiply parent matrix on the left: parent * child.
+        let lParentMatrix: mat4x4<f32> = readLocalMatrix(u32(lParentIndex));
+        lResult = lParentMatrix * lResult;
+
+        // Move to the parent's parent.
+        lParentIndex = readParentIndex(u32(lParentIndex));
+    }
+
+    return lResult;
 }
 
 
@@ -63,15 +102,15 @@ fn vertex_main(pVertex: VertexIn) -> VertexOut {
     // Look up the component index for this instance from the index array.
     let lComponentIndex: u32 = componentIndices[pVertex.instanceId];
 
-    // Read the transformation matrix from the shared buffer.
-    let lTransformationMatrix: mat4x4<f32> = readTransformationMatrix(lComponentIndex);
+    // Compute the world matrix by walking the parent chain.
+    let lWorldMatrix: mat4x4<f32> = readWorldMatrix(lComponentIndex);
 
     // Calculate world position.
-    let lWorldPosition: vec4<f32> = lTransformationMatrix * pVertex.position;
+    let lWorldPosition: vec4<f32> = lWorldMatrix * pVertex.position;
 
     var lOut: VertexOut;
     lOut.position = viewProjection * lWorldPosition;
-    lOut.normal = normalize(lTransformationMatrix * vec4<f32>(pVertex.normal.xyz, 0.0));
+    lOut.normal = normalize(lWorldMatrix * vec4<f32>(pVertex.normal.xyz, 0.0));
     lOut.fragmentPosition = lWorldPosition;
 
     return lOut;

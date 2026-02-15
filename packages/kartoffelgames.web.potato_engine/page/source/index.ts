@@ -7,7 +7,7 @@ import { ShitSystem } from './shit-system.ts';
 
 (() => {
     const lEnvironment = new GameEnvironment({
-        debugLog: true
+        //debugLog: true
     });
 
     // Add systems.
@@ -24,71 +24,50 @@ import { ShitSystem } from './shit-system.ts';
     {
         const lScene: GameScene = new GameScene('Test Scene');
 
-        // GameEntity 1
-        const lEntiy1: GameEntity = new GameEntity('Test Entity 1');
-        lEntiy1.addComponent(TransformationComponent).translationY = 2;
-        lScene.addObject(lEntiy1);
+        // Init arrays.
+        const lBlockArray: Array<GameEntity> = new Array<GameEntity>();
+        const lParentArray: Array<GameEntity> = new Array<GameEntity>();
 
-        // GameEntity 2
-        const lEntiy2: GameEntity = new GameEntity('Test Entity 2');
-        lEntiy2.addComponent(TransformationComponent);
-        lScene.addObject(lEntiy2);
+        const lCreateNext = () => {
+            // Read last parent.
+            const lParent: GameEntity | null = lParentArray.at(-1) || null;
 
-        // Load scene into environment.
-        console.log('Loading scene into environment...');
+            // Create new parent.
+            const lHierarchyEntity = new GameEntity(`Hierarchy Entity ${lParentArray.length + 1}`);
+            const lHierarchyTransformation: TransformationComponent = lHierarchyEntity.addComponent(TransformationComponent);
+            lHierarchyTransformation.translationX = 2;
+
+            // Create new block.
+            const lBlockEntiy: GameEntity = new GameEntity(`Block Entity ${lBlockArray.length + 1}`);
+            const lBlockTransformation: TransformationComponent = lBlockEntiy.addComponent(TransformationComponent);
+            lBlockTransformation.scaleHeight = 0.5;
+            lBlockTransformation.scaleDepth = 0.5;
+            lBlockTransformation.scaleWidth = 2;
+            lHierarchyEntity.addObject(lBlockEntiy);
+
+            // Add to arrays.
+            lBlockArray.push(lBlockEntiy);
+            lParentArray.push(lHierarchyEntity);
+
+            // Add new hierarchy entity to parent if it exists, otherwise add it to the scene.
+            if (lParent) {
+                lParent.addObject(lHierarchyEntity);
+            } else {
+                lScene.addObject(lHierarchyEntity);
+            }
+        };
+
+        for (let lCount = 1; lCount < 20; lCount++) {
+            lCreateNext();
+        }
+
+        globalThis.setInterval(() => {
+            for (const lEntity of lParentArray) {
+                const lTransformation: TransformationComponent = lEntity.getComponent(TransformationComponent);
+                lTransformation.addEulerRotation(0, 0, 0.3);
+            }
+        }, 16);
+
         lEnvironment.loadScene(lScene);
-
-        // Periodically change the transformation of the first entity.
-        globalThis.setInterval(() => {
-            const lTransformation: TransformationComponent = lEntiy1.getComponent(TransformationComponent);
-            lTransformation.translationX += Math.random() * 10 - 5; // Random translation between -5 and 5
-
-            // Limit translation to a certain range for better visualization.
-            lTransformation.translationX = Math.max(-4, Math.min(4, lTransformation.translationX));
-        }, 1000);
-
-        // Periodically add or delete nested game entities.
-        const lAddedRootEntities: Array<GameEntity> = [];
-        globalThis.setInterval(() => {
-            // Randomly decide to add or delete.
-            let lAddObject: boolean = Math.random() > 0.5;
-            lAddObject = lAddObject && lAddedRootEntities.length < 20 || lAddedRootEntities.length === 0;
-
-            if (lAddObject) {
-                // Create nested entity structure (2-5 levels deep).
-                const lDepth: number = Math.floor(Math.random() * 4) + 2; // 2-5
-
-                // Create root entity for this structure.
-                const lRootEntity: GameEntity = new GameEntity(`Root`);
-                const lRootComponent: TransformationComponent = lRootEntity.addComponent(TransformationComponent);
-                lRootComponent.translationX = Math.max(-5, Math.min(5, Math.random() * 10 - 5));
-                lRootComponent.translationY = Math.max(-5, Math.min(5, Math.random() * 10 - 5));
-                lRootComponent.translationZ = Math.max(-5, Math.min(5, Math.random() * 10 - 5));
-
-                let lCurrentEntity: GameEntity = lRootEntity;
-                for (let lDepthLevel = 1; lDepthLevel < lDepth; lDepthLevel++) {
-                    const lNewEntity: GameEntity = new GameEntity(`Level ${lDepthLevel}`);
-                    const lNewComponent: TransformationComponent = lNewEntity.addComponent(TransformationComponent);
-                    lNewComponent.translationX = Math.max(-5, Math.min(5, Math.random() * 10 - 5));
-                    lNewComponent.translationY = Math.max(-5, Math.min(5, Math.random() * 10 - 5));
-                    lNewComponent.translationZ = Math.max(-5, Math.min(5, Math.random() * 10 - 5));
-
-                    // Add new entity as child of current entity and update current entity reference.
-                    lCurrentEntity.addObject(lNewEntity);
-                    lCurrentEntity = lNewEntity;
-                }
-
-                // Add root entity to scene and track it.
-                lScene.addObject(lRootEntity);
-                lAddedRootEntities.push(lRootEntity);
-            }
-
-            if (!lAddObject) {
-                // Delete a random root entity.
-                const lRandomIndex: number = Math.floor(Math.random() * lAddedRootEntities.length);
-                const lEntityToDelete: GameEntity = lAddedRootEntities.splice(lRandomIndex, 1)[0];
-                lEntityToDelete.remove();
-            }
-        }, 5000);
     }
 })();

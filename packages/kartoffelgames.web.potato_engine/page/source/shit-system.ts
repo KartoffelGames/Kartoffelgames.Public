@@ -5,7 +5,7 @@ import {
     BufferItemMultiplier,
     type CanvasTexture,
     ComputeStage,
-    GpuBuffer,
+    type GpuBuffer,
     type GpuExecution,
     type PipelineData,
     PrimitiveCullMode,

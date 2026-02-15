@@ -248,7 +248,7 @@ export class TransformationSystem extends GameSystem {
      * 
      * @returns A set of child transformation components associated with the given parent component.
      */
-    private getChildComponents(pComponent: TransformationComponent): Set<TransformationComponent> {
+    private getChildTransformations(pComponent: TransformationComponent): Set<TransformationComponent> {
         // Read current children for this parent.
         let lChildren: Set<TransformationComponent> | undefined = this.mParentToChildrenMap.get(pComponent);
         if (!lChildren) {
@@ -266,10 +266,12 @@ export class TransformationSystem extends GameSystem {
      * 
      * @returns The parent transformation component if found, or null if no parent component exists.
      */
-    private getParentComponent(pComponent: TransformationComponent): TransformationComponent | null {
+    private getParentTransformation(pComponent: TransformationComponent): TransformationComponent | null {
+        const lGameObject: GameEntity = pComponent.gameEntity;
+        
         // Find parent component.
-        if (pComponent.parent && pComponent.parent instanceof GameEntity) {
-            return pComponent.parent.getComponent(TransformationComponent);
+        if (lGameObject.parent && lGameObject.parent instanceof GameEntity) {
+            return lGameObject.parent.getParentComponent(TransformationComponent);
         }
 
         return null;
@@ -289,19 +291,19 @@ export class TransformationSystem extends GameSystem {
         this.mAvailableIndices.push(lIndex);
 
         // Get current parent component.
-        const lParentComponent: TransformationComponent | null = this.getParentComponent(pComponent);
+        const lParentComponent: TransformationComponent | null = this.getParentTransformation(pComponent);
 
         // Remove this component from its parent's children set if it has a parent.
         if (lParentComponent) {
-            this.getChildComponents(lParentComponent).delete(pComponent);
+            this.getChildTransformations(lParentComponent).delete(pComponent);
         }
 
         // Get parent index if parent component exists or -1 if no parent.
         const lParentIndex: number = lParentComponent ? this.mComponentToIndexMap.get(lParentComponent)! : -1;
-        const lParentChildren: Set<TransformationComponent> | null = lParentComponent ? this.getChildComponents(lParentComponent) : null;
+        const lParentChildren: Set<TransformationComponent> | null = lParentComponent ? this.getChildTransformations(lParentComponent) : null;
 
         // Get children of this component.
-        const lChildren: Set<TransformationComponent> = this.getChildComponents(pComponent);
+        const lChildren: Set<TransformationComponent> = this.getChildTransformations(pComponent);
         if (lChildren.size === 0) {
             return null;
         }
@@ -339,7 +341,7 @@ export class TransformationSystem extends GameSystem {
      */
     private updateParentIndices(pComponent: TransformationComponent): TransformationSystemBufferUpdateRange {
         // Find parent component.
-        const lParentComponent: TransformationComponent | null = this.getParentComponent(pComponent);
+        const lParentComponent: TransformationComponent | null = this.getParentTransformation(pComponent);
 
         // Component has no parent, so write -1 to parent index buffer.
         if (!lParentComponent) {
@@ -350,7 +352,7 @@ export class TransformationSystem extends GameSystem {
         const lParentIndex: number = this.mComponentToIndexMap.get(lParentComponent)!;
 
         // Add this component to the children set of the parent.
-        this.getChildComponents(lParentComponent).add(pComponent);
+        this.getChildTransformations(lParentComponent).add(pComponent);
 
         // Write parent index to buffer.
         return this.writeParentIdToBuffer(pComponent, lParentIndex);

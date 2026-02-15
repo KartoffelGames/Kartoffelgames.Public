@@ -1,4 +1,5 @@
 import type { IVoidParameterConstructor } from '../../../../kartoffelgames.core/source/interface/i-constructor.ts';
+import type { GameEntity } from '../hierarchy/game-entity.ts';
 import { GameObject } from '../hierarchy/game-object.ts';
 
 // TODO: Define some decorators to allow easy saving and loading of components in binary or json files.
@@ -18,6 +19,17 @@ export class GameComponent extends GameObject {
      */
     public get dependencies(): Array<GameComponentConstructor> {
         return [];
+    }
+
+    /**
+     * Get the game entity that this component is attached to.
+     * Alias for parent property, as components should only be added to game entities.
+     * 
+     * @returns The game entity that this component is attached to.
+     */
+    public get gameEntity(): GameEntity { 
+        // We assume that the parent of a component is always a game entity, as components should only be added to game entities.
+        return this.parent as GameEntity;
     }
 
     /**

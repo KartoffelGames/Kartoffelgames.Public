@@ -1,5 +1,5 @@
 import {
-    BindGroup,
+    type BindGroup,
     BindGroupLayout,
     BufferItemFormat,
     BufferItemMultiplier,
@@ -9,7 +9,7 @@ import {
     type PipelineData,
     PrimitiveCullMode,
     type RenderPass,
-    RenderTargets,
+    type RenderTargets,
     RenderTargetsInvalidationType,
     type ShaderRenderModule,
     TextureFormat,
@@ -90,30 +90,31 @@ const gCubeVertexIndices: Array<number> = [
  * Manages GPU resources for rendering and tracks component lifecycle through state changes.
  */
 export class ShitSystem extends GameSystem {
-    private mActiveComponents: Set<TransformationComponent>;
+    private readonly mActiveComponents: Set<TransformationComponent>;
     private mCamera: ViewProjection | null;
     private mCameraGroup: BindGroup | null;
     private mDirty: boolean;
     private mExecutor: GpuExecution | null;
     private mMesh: VertexParameter | null;
     private mPipeline: VertexFragmentPipeline | null;
-    private mRenderInstructions: Array<ShitSystemRenderInstruction>;
+    private readonly mRenderInstructions: Array<ShitSystemRenderInstruction>;
     private mRenderPass: RenderPass | null;
     private mRenderTargets: RenderTargets | null;
     private mShaderRenderModule: ShaderRenderModule | null;
-
-    /**
-     * Component types this system handles.
-     */
-    public override get handledComponentTypes(): Array<GameComponentConstructor> {
-        return [TransformationComponent];
-    }
 
     /**
      * Systems this system depends on.
      */
     public override get dependentSystemTypes(): Array<GameSystemConstructor<GameSystem>> {
         return [TransformationSystem, GpuSystem];
+    }
+
+
+    /**
+     * Component types this system handles.
+     */
+    public override get handledComponentTypes(): Array<GameComponentConstructor> {
+        return [TransformationComponent];
     }
 
     /**
@@ -254,17 +255,20 @@ export class ShitSystem extends GameSystem {
         // Rebuild render instructions when components changed.
         if (this.mDirty) {
             this.rebuildRenderInstructions();
+
+            // Update camera view projection matrix.
+            const lViewProjectionMatrix = this.mCamera.getMatrix(CameraMatrix.ViewProjection);
+            this.mCameraGroup.data('viewProjection').asBufferView(Float32Array).write(lViewProjectionMatrix.dataArray);
+
+            // Update transformation matrices for all active components.
+            for (const lInstruction of this.mRenderInstructions) {
+                lInstruction.objectGroup.data('transformationMatrix').asBufferView(Float32Array, lInstruction.bufferOffset).write(lInstruction.component.matrix.dataArray);
+            }
+
             this.mDirty = false;
         }
 
-        // Update camera view projection matrix.
-        const lViewProjectionMatrix = this.mCamera.getMatrix(CameraMatrix.ViewProjection);
-        this.mCameraGroup.data('viewProjection').asBufferView(Float32Array).write(lViewProjectionMatrix.dataArray);
 
-        // Update transformation matrices for all active components.
-        for (const lInstruction of this.mRenderInstructions) {
-            lInstruction.objectGroup.data('transformationMatrix').asBufferView(Float32Array, lInstruction.bufferOffset).write(lInstruction.component.matrix.dataArray);
-        }
 
         // Start new GPU frame and execute render pass.
         this.getDependency(GpuSystem).gpu.startNewFrame();
@@ -300,7 +304,7 @@ export class ShitSystem extends GameSystem {
                     break;
                 }
                 case 'update': {
-                    // Matrix is updated per frame, no additional action needed.
+                    this.mDirty = true;
                     break;
                 }
             }

@@ -29,7 +29,8 @@ export class GpuResourceObject<TUsageType extends number = number, TNativeObject
 
     /**
      * Extend usage of resource.
-     * Might trigger a resource rebuild.
+     * Might trigger a resource rebuild if usage is not already set.
+     * Usage is a bitmask, so multiple usages can be combined.
      * 
      * @param pUsage - Usage. 
      */

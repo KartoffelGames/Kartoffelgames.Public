@@ -37,7 +37,7 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
 
     /**
      * Write buffer limitation.
-     * Limiting the amount of created staging buffer to perform reads.
+     * Limiting the amount of created staging buffer to perform writes.
      */
     public get writeBufferLimitation(): number {
         return this.mWriteBuffer.limitation;
@@ -148,9 +148,11 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
      * Write data raw without layout.
      * 
      * @param pData - Data.
-     * @param pOffset - Data offset.
+     * @param pBufferOffset - Data offset.
+     * @param pDataOffset - Data offset within the source data.
+     * @param pDataLength - Length of data to write.
      */
-    public async write(pData: ArrayBufferLike, pOffset?: number): Promise<void> {
+    public async write(pData: ArrayBufferLike, pBufferOffset?: number, pDataOffset?: number, pDataLength?: number): Promise<void> {
         // Set buffer as writeable.
         this.extendUsage(BufferUsage.CopyDestination);
 
@@ -185,29 +187,38 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
         }
 
         // Get byte length and offset of data to write.
-        const lDataByteLength: number = lDataArrayBuffer.byteLength;
-        const lOffset: number = pOffset ?? 0;
+        const lBufferByteOffset: number = pBufferOffset ?? 0;
+        const lDataByteOffset: number = pDataOffset ?? 0;
+        const lDataByteLength: number = pDataLength ?? lDataArrayBuffer.byteLength;
+
+        // Validate data length and offset.
+        if(lDataByteOffset % 8 !== 0) {
+            throw new Exception(`Data byte offset (${lDataByteOffset}) must be a multiple of 8.`, this);
+        }
+        if(lDataByteLength % 4 !== 0) {
+            throw new Exception(`Data byte length (${lDataByteLength}) must be a multiple of 4.`, this);
+        }
 
         // When no staging buffer is available, use the slow native.
         if (!lStagingBuffer) {
             // Write data into mapped range.
-            this.device.gpu.queue.writeBuffer(lNative, lOffset, lDataArrayBuffer, 0, lDataByteLength);
+            this.device.gpu.queue.writeBuffer(lNative, lBufferByteOffset, lDataArrayBuffer, lDataByteOffset, lDataByteLength);
 
             return;
         }
 
         // Execute write operations on waving buffer.
-        const lMappedBuffer: ArrayBuffer = lStagingBuffer.getMappedRange(lOffset, lDataByteLength);
+        const lMappedBuffer: ArrayBuffer = lStagingBuffer.getMappedRange(lBufferByteOffset, lDataByteLength);
 
         // Set data to mapped buffer. Use the smallest available byte view (1 byte).
-        new Int8Array(lMappedBuffer).set(new Int8Array(lDataArrayBuffer));
+        new Int8Array(lMappedBuffer).set(new Int8Array(lDataArrayBuffer, lDataByteOffset, lDataByteLength));
 
         // Unmap for copying data.
         lStagingBuffer.unmap();
 
         // Copy buffer data from staging into wavig buffer.
         const lCommandDecoder: GPUCommandEncoder = this.device.gpu.createCommandEncoder();
-        lCommandDecoder.copyBufferToBuffer(lStagingBuffer, lOffset, lNative, lOffset, lDataByteLength);
+        lCommandDecoder.copyBufferToBuffer(lStagingBuffer, lBufferByteOffset, lNative, lBufferByteOffset, lDataByteLength);
         this.device.gpu.queue.submit([lCommandDecoder.finish()]);
 
         // Shedule staging buffer remaping.

@@ -90,6 +90,17 @@ export class TransformationSystem extends GameSystem {
     }
 
     /**
+     * Gets the index in the buffer for a given transformation component.
+     * 
+     * @param pComponent - The transformation component to get the index for.
+     * 
+     * @returns The index of the transformation component in the buffer.
+     */
+    public indexOfTransformation(pComponent: TransformationComponent): number {
+        return this.mComponentToIndexMap.get(pComponent)!;
+    }
+
+    /**
      * Initializes the transformation system by creating a GPU buffer for storing transformation data and setting up necessary resources.
      */
     protected override async onCreate(): Promise<void> {

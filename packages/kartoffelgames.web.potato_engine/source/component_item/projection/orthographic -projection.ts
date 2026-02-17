@@ -1,9 +1,12 @@
-import { Matrix } from '../../../math/matrix.ts';
+import { Serializer } from "@kartoffelgames/core-serializer";
+import { GameComponentItem } from "../../core/component/game-component-item.ts";
+import { Matrix } from "../../math/matrix.ts";
 import type { IProjection } from './i-projection.interface.ts';
 
-export class OrthographicProjection implements IProjection {
+@Serializer.serializeableClass('a5f23afd-0cc9-40ce-a9be-34510f7b4066')
+export class OrthographicProjection extends GameComponentItem implements IProjection {
     private mAspectRatio: number;
-    private mCacheProjection: Matrix | null;
+    private mMatrix: Matrix | null;
     private mFar: number;
     private mNear: number;
     private mWidth: number;
@@ -11,74 +14,81 @@ export class OrthographicProjection implements IProjection {
     /**
      * Aspect ratio plane.
      */
+    @Serializer.property()
     public get aspectRatio(): number {
         return this.mAspectRatio;
     } set aspectRatio(pValue: number) {
         this.mAspectRatio = pValue;
 
-        // Reset cache.
-        this.mCacheProjection = null;
+        // Trigger update.
+        this.triggerItemChange();
     }
 
     /**
      * Far plane.
      */
+    @Serializer.property()
     public get far(): number {
         return this.mFar;
     } set far(pValue: number) {
         this.mFar = pValue;
 
-        // Reset cache.
-        this.mCacheProjection = null;
+        // Trigger update.
+        this.triggerItemChange();
     }
 
     /**
      * Near plane.
      */
+    @Serializer.property()
     public get near(): number {
         return this.mNear;
     } set near(pValue: number) {
         this.mNear = pValue;
 
-        // Reset cache.
-        this.mCacheProjection = null;
+        // Trigger update.
+        this.triggerItemChange();
     }
 
     /**
      * Get projection matrix.
      */
+    @Serializer.property()
     public get projectionMatrix(): Matrix {
         // Check cache or create new matrix.
-        if (this.mCacheProjection === null) {
-            this.mCacheProjection = this.createMatrix();
+        if (this.mMatrix === null) {
+            this.mMatrix = this.createMatrix();
         }
 
-        return this.mCacheProjection;
+        return this.mMatrix;
     }
 
     /**
      * Width of horizontal plane.
      */
+    @Serializer.property()
     public get width(): number {
         return this.mWidth;
     } set width(pValue: number) {
         this.mWidth = pValue;
 
-        // Reset cache.
-        this.mCacheProjection = null;
+        // Trigger update.
+        this.triggerItemChange();
     }
 
     /**
      * Constructor.
      */
     public constructor() {
+        super('Orthographic projection');
+
         this.mAspectRatio = 0;
         this.mFar = 0;
         this.mNear = 0;
         this.mWidth = 0;
 
         // Cache.
-        this.mCacheProjection = null;
+        this.mMatrix = null;
     }
 
     /**
@@ -143,5 +153,15 @@ export class OrthographicProjection implements IProjection {
         lMatrix.set(3, 2, lScaleTransformZ);
 
         return lMatrix;
+    }
+
+    /**
+     * Marks this component as dirty to trigger a matrix recalculation on the next access and signals the environment of the change.
+     */
+    private triggerItemChange(): void {
+        this.mMatrix = null;
+
+        // Signal environment of change for systems to react to.
+        this.update();
     }
 } 

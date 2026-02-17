@@ -7,6 +7,8 @@ import { GameEntity } from '../../source/core/hierarchy/game-entity.ts';
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
 import { ShitSystem } from './shit-system.ts';
 import type { Mesh } from '../../source/component_item/mesh/mesh.ts';
+import { CameraComponent } from "../../source/component/camera-component.ts";
+import { PerspectiveProjection } from '../../source/component_item/projection/perspective-projection.ts';
 
 // Load cube mesh from GLB file.
 const lGlbData: ArrayBuffer = await fetch('/mesh.glb').then((pResponse) => {
@@ -36,6 +38,51 @@ const lBlockMesh: Mesh = lMeshes[0];
     {
         const lScene: GameScene = new GameScene();
         lScene.label = 'Test Scene';
+
+        // Add a camera.
+        const lCameraEntity: GameEntity = new GameEntity();
+        lCameraEntity.label = 'Camera Entity';
+        const lCameraTransformation: TransformationComponent = lCameraEntity.addComponent(TransformationComponent);
+        lCameraTransformation.translationZ = -5;
+        const lCameraComponent: CameraComponent = lCameraEntity.addComponent(CameraComponent);
+
+        // Configure camera projection.
+        const lProjection: PerspectiveProjection = lCameraComponent.projection as PerspectiveProjection;
+        lProjection.angleOfView = 72;
+        lProjection.near = 0.1;
+        lProjection.far = Number.MAX_SAFE_INTEGER;
+
+        lScene.addObject(lCameraEntity);
+
+        // --- Camera controls --- //
+        const lKeyState: Set<string> = new Set<string>();
+        document.addEventListener('keydown', (pEvent: KeyboardEvent) => {
+            lKeyState.add(pEvent.key.toLowerCase());
+            // Prevent default for control keys used by the camera.
+            if (['shift', 'control'].includes(pEvent.key.toLowerCase())) {
+                pEvent.preventDefault();
+            }
+        });
+        document.addEventListener('keyup', (pEvent: KeyboardEvent) => {
+            lKeyState.delete(pEvent.key.toLowerCase());
+        });
+
+        // Mouse look: rotate camera on mouse drag.
+        const lCanvas: HTMLCanvasElement = document.getElementById('canvas') as HTMLCanvasElement;
+        let lMouseDown: boolean = false;
+
+        lCanvas.addEventListener('mousedown', () => {
+            lMouseDown = true;
+        });
+        document.addEventListener('mouseup', () => {
+            lMouseDown = false;
+        });
+        lCanvas.addEventListener('mousemove', (pEvent: MouseEvent) => {
+            if (lMouseDown) {
+                const lSensitivity: number = 0.3;
+                lCameraTransformation.addEulerRotation(pEvent.movementY * lSensitivity, pEvent.movementX * lSensitivity, 0);
+            }
+        });
 
         // Init arrays.
         const lBlockArray: Array<GameEntity> = new Array<GameEntity>();
@@ -83,6 +130,35 @@ const lBlockMesh: Mesh = lMeshes[0];
         }
 
         globalThis.setInterval(() => {
+            // Camera movement.
+            const lMoveSpeed: number = 0.1;
+            const lRotateSpeed: number = 1.0;
+
+            let lForward: number = 0;
+            let lRight: number = 0;
+            let lUp: number = 0;
+
+            if (lKeyState.has('w')) { lForward += lMoveSpeed; }
+            if (lKeyState.has('s')) { lForward -= lMoveSpeed; }
+            if (lKeyState.has('a')) { lRight -= lMoveSpeed; }
+            if (lKeyState.has('d')) { lRight += lMoveSpeed; }
+            if (lKeyState.has('shift')) { lUp += lMoveSpeed; }
+            if (lKeyState.has('control')) { lUp -= lMoveSpeed; }
+
+            if (lForward !== 0 || lRight !== 0 || lUp !== 0) {
+                lCameraTransformation.translateInDirection(lForward, lRight, lUp);
+            }
+
+            // Camera rotation (Q/E for yaw).
+            let lRoll: number = 0;
+            if (lKeyState.has('q')) { lRoll -= lRotateSpeed; }
+            if (lKeyState.has('e')) { lRoll += lRotateSpeed; }
+
+            if (lRoll !== 0) {
+                lCameraTransformation.addEulerRotation(0, 0, lRoll);
+            }
+
+            // Object rotation.
             for (const lEntity of lParentArray) {
                 const lTransformation: TransformationComponent = lEntity.getComponent(TransformationComponent);
                 lTransformation.addEulerRotation(0, 0, 0.3);

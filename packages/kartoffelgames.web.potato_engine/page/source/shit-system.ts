@@ -19,14 +19,13 @@ import {
     type VertexParameter,
     VertexParameterStepMode
 } from '@kartoffelgames/web-gpu';
+import { CameraComponent } from '../../source/component/camera-component.ts';
 import { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
 import type { Mesh } from '../../source/component_item/mesh/mesh.ts';
 import type { GameComponentConstructor } from '../../source/core/component/game-component.ts';
 import type { GameEnvironmentStateChange } from '../../source/core/environment/game-environment-transmittion.ts';
 import { GameSystem, type GameSystemConstructor } from '../../source/core/game-system.ts';
-import { PerspectiveProjection } from '../../source/something_better/view_projection/projection/perspective-projection.ts';
-import { CameraMatrix, ViewProjection } from '../../source/something_better/view_projection/view-projection.ts';
 import { GpuSystem } from '../../source/system/gpu-system.ts';
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
 import shitShaderSource from './shit-system-shader.wgsl';
@@ -37,8 +36,9 @@ import shitShaderSource from './shit-system-shader.wgsl';
  */
 export class ShitSystem extends GameSystem {
     private readonly mActiveComponents: Set<MeshRenderComponent>;
-    private mCamera: ViewProjection | null;
+    private mCamera: CameraComponent | null;
     private mCameraGroup: BindGroup | null;
+    private mCameraTransformation: TransformationComponent | null;
     private mDirty: boolean;
     private mExecutor: GpuExecution | null;
     private mMeshes: Array<VertexParameter>;
@@ -60,7 +60,7 @@ export class ShitSystem extends GameSystem {
      * Component types this system handles.
      */
     public override get handledComponentTypes(): Array<GameComponentConstructor> {
-        return [MeshRenderComponent, TransformationComponent];
+        return [MeshRenderComponent, TransformationComponent, CameraComponent];
     }
 
     /**
@@ -73,6 +73,7 @@ export class ShitSystem extends GameSystem {
         this.mDirty = false;
         this.mCamera = null;
         this.mCameraGroup = null;
+        this.mCameraTransformation = null;
         this.mExecutor = null;
         this.mMeshes = [];
         this.mPipeline = null;
@@ -114,21 +115,13 @@ export class ShitSystem extends GameSystem {
             }).observe(lCanvasWrapper);
         }
 
-        // Setup camera perspective projection.
-        const lPerspective: PerspectiveProjection = new PerspectiveProjection();
-        lPerspective.aspectRatio = this.mRenderTargets.width / this.mRenderTargets.height;
-        lPerspective.angleOfView = 72;
-        lPerspective.near = 0.1;
-        lPerspective.far = Number.MAX_SAFE_INTEGER;
-
-        // Update aspect ratio on resize.
+        // Update camera aspect ratio on resize.
         this.mRenderTargets.addInvalidationListener(() => {
-            lPerspective.aspectRatio = this.mRenderTargets!.width / this.mRenderTargets!.height;
+            if (this.mCamera) {
+                this.mCamera.projection.aspectRatio = this.mRenderTargets!.width / this.mRenderTargets!.height;
+                this.mDirty = true;
+            }
         }, RenderTargetsInvalidationType.Resize);
-
-        // Create camera with perspective projection.
-        this.mCamera = new ViewProjection(lPerspective);
-        this.mCamera.transformation.setTranslation(0, 0, -10);
 
         // Create camera bind group layout and group.
         const lCameraGroupLayout: BindGroupLayout = new BindGroupLayout(lGpu, 'camera').setup((pBindGroupSetup) => {
@@ -194,20 +187,21 @@ export class ShitSystem extends GameSystem {
      */
     protected override async onFrame(): Promise<void> {
         // Skip rendering when not initialized.
-        if (!this.mExecutor || !this.mCamera || !this.mCameraGroup) {
+        if (!this.mExecutor || !this.mCamera || !this.mCameraTransformation || !this.mCameraGroup) {
             return;
         }
 
         // Rebuild instance data when components changed.
         if (this.mDirty) {
             this.rebuildInstanceData();
-
-            // Update camera view projection matrix.
-            const lViewProjectionMatrix = this.mCamera.getMatrix(CameraMatrix.ViewProjection);
-            this.mCameraGroup.data('viewProjection').asBufferView(Float32Array).write(lViewProjectionMatrix.dataArray);
-
             this.mDirty = false;
         }
+
+        // Update camera view projection matrix every frame.
+        // Invert the camera's transformation to get the view matrix, then multiply with projection.
+        const lViewMatrix = this.mCameraTransformation.matrix.inverse();
+        const lViewProjectionMatrix = this.mCamera.matrix.mult(lViewMatrix);
+        this.mCameraGroup.data('viewProjection').asBufferView(Float32Array).write(lViewProjectionMatrix.dataArray);
 
         // Start new GPU frame and execute render pass.
         this.getDependency(GpuSystem).gpu.startNewFrame();
@@ -253,6 +247,38 @@ export class ShitSystem extends GameSystem {
             for (const lStateChange of lTransformChanges) {
                 if (lStateChange.type === 'update') {
                     this.mDirty = true;
+                }
+            }
+        }
+
+        // Process state changes for CameraComponent to track camera entity.
+        const lCameraChanges: ReadonlyArray<GameEnvironmentStateChange> | undefined = pStateChanges.get(CameraComponent);
+        if (lCameraChanges) {
+            for (const lStateChange of lCameraChanges) {
+                switch (lStateChange.type) {
+                    case 'add':
+                    case 'activate': {
+                        this.mCamera = lStateChange.component as CameraComponent;
+                        this.mCameraTransformation = this.mCamera.gameEntity.getComponent(TransformationComponent);
+
+                        // Set initial aspect ratio from render targets.
+                        if (this.mRenderTargets) {
+                            this.mCamera.projection.aspectRatio = this.mRenderTargets.width / this.mRenderTargets.height;
+                        }
+                        this.mDirty = true;
+                        break;
+                    }
+                    case 'remove':
+                    case 'deactivate': {
+                        this.mCamera = null;
+                        this.mCameraTransformation = null;
+                        this.mDirty = true;
+                        break;
+                    }
+                    case 'update': {
+                        this.mDirty = true;
+                        break;
+                    }
                 }
             }
         }

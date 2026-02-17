@@ -7,13 +7,10 @@ import { Quaternion } from '../math/quaternion.ts';
  * Component that manages transformation state including translation, rotation, scale and pivot.
  * Values are decoupled from the matrix representation. The transformation matrix is lazily
  * recalculated from the individual components only when accessed after a change.
- * 
- * // TODO: Proper serializer properties.
  */
 @Serializer.serializeableClass('7b8a6001-7a15-45cc-a7e5-a47274359545')
 export class TransformationComponent extends GameComponent {
-    private mDirty: boolean;
-    private mMatrix: Matrix;
+    private mMatrix: Matrix | null;
     private mPivotX: number;
     private mPivotY: number;
     private mPivotZ: number;
@@ -31,9 +28,8 @@ export class TransformationComponent extends GameComponent {
      */
     public get matrix(): Matrix {
         // Recalculate matrix when dirty.
-        if (this.mDirty) {
-            this.recalculateMatrix();
-            this.mDirty = false;
+        if (this.mMatrix === null) {
+            this.mMatrix = this.recalculateMatrix();
         }
 
         return this.mMatrix;
@@ -220,10 +216,7 @@ export class TransformationComponent extends GameComponent {
         this.mPivotZ = 0;
 
         // Initialize matrix and mark as dirty for first calculation.
-        this.mMatrix = Matrix.identity(4);
-
-        // Trigger matrix recalculation on next access.
-        this.mDirty = true;
+        this.mMatrix = null;
     }
 
     /**
@@ -378,7 +371,7 @@ export class TransformationComponent extends GameComponent {
      *
      * The resulting column-major matrix represents: Translation * InversePivot * Rotation * Pivot * Scale.
      */
-    private recalculateMatrix(): void {
+    private recalculateMatrix(): Matrix {
         // Read quaternion components.
         const lQx: number = this.mRotation.x;
         const lQy: number = this.mRotation.y;
@@ -436,14 +429,14 @@ export class TransformationComponent extends GameComponent {
         ];
 
         // Update cached matrix.
-        this.mMatrix = new Matrix(lData, 4, 4);
+        return new Matrix(lData, 4, 4);
     }
 
     /**
      * Marks this component as dirty to trigger a matrix recalculation on the next access and signals the environment of the change.
      */
     private triggerComponentChange(): void {
-        this.mDirty = true;
+        this.mMatrix = null;
 
         // Signal environment of change for systems to react to.
         this.update();

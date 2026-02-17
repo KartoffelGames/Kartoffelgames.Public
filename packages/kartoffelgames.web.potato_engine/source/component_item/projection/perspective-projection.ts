@@ -1,83 +1,92 @@
-import { Matrix } from '../../../math/matrix.ts';
+import { Serializer } from "@kartoffelgames/core-serializer";
+import { GameComponentItem } from "../../core/component/game-component-item.ts";
+import { Matrix } from "../../math/matrix.ts";
 import type { IProjection } from './i-projection.interface.ts';
 
-export class PerspectiveProjection implements IProjection {
+@Serializer.serializeableClass('5b59c0d1-3027-46d7-b47f-8e3d80ff0319')
+export class PerspectiveProjection extends GameComponentItem implements IProjection {
     private mAngleOfView: number;
     private mAspectRatio: number;
-    private mCacheProjectionMatrix: Matrix | null;
+    private mMatrix: Matrix | null;
     private mFar: number;
     private mNear: number;
 
     /**
      * Angle of view.
      */
+    @Serializer.property()
     public get angleOfView(): number {
         return this.mAngleOfView;
     } set angleOfView(pValue: number) {
         this.mAngleOfView = pValue;
 
-        // Reset cached matrix.
-        this.mCacheProjectionMatrix = null;
+        // Trigger update.
+        this.triggerItemChange();
     }
 
     /**
-     * Angle of view.
+     * Aspect ratio.
      */
+    @Serializer.property()
     public get aspectRatio(): number {
         return this.mAspectRatio;
     } set aspectRatio(pValue: number) {
         this.mAspectRatio = pValue;
 
-        // Reset cached matrix.
-        this.mCacheProjectionMatrix = null;
+        // Trigger update.
+        this.triggerItemChange();
     }
 
     /**
      * Far plane.
      */
+    @Serializer.property()
     public get far(): number {
         return this.mFar;
     } set far(pValue: number) {
         this.mFar = pValue;
 
-        // Reset cached matrix.
-        this.mCacheProjectionMatrix = null;
+        // Trigger update.
+        this.triggerItemChange();
     }
 
     /**
      * Near plane.
      */
+    @Serializer.property()
     public get near(): number {
         return this.mNear;
     } set near(pValue: number) {
         this.mNear = pValue;
 
-        // Reset cached matrix.
-        this.mCacheProjectionMatrix = null;
+        // Trigger update.
+        this.triggerItemChange();
     }
 
     /**
      * Projection matrix.
      */
     public get projectionMatrix(): Matrix {
-        if (this.mCacheProjectionMatrix === null) {
-            this.mCacheProjectionMatrix = this.createMatrix();
+        if (this.mMatrix === null) {
+            this.mMatrix = this.createMatrix();
         }
 
-        return this.mCacheProjectionMatrix;
+        return this.mMatrix;
     }
 
     /**
      * Constructor.
      */
     public constructor() {
+        super('Perspective projection');
+
         this.mAngleOfView = 0;
         this.mNear = 0;
         this.mFar = 0;
         this.mAspectRatio = 0;
 
         // Cache.
-        this.mCacheProjectionMatrix = null;
+        this.mMatrix = null;
     }
 
     /**
@@ -157,5 +166,15 @@ export class PerspectiveProjection implements IProjection {
         lMatrix.set(3, 2, 1);
 
         return lMatrix;
+    }
+
+    /**
+     * Marks this component as dirty to trigger a matrix recalculation on the next access and signals the environment of the change.
+     */
+    private triggerItemChange(): void {
+        this.mMatrix = null;
+
+        // Signal environment of change for systems to react to.
+        this.update();
     }
 }

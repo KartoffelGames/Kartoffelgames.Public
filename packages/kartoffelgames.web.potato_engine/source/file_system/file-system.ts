@@ -95,7 +95,7 @@ export class FileSystem {
         });
 
         // Read the blob from the file entry table.
-        const lBlobData: ArrayBuffer = await this.mDatabase.transaction([FileSystemEntry], 'readonly', async (pTransaction) => {
+        const lBlob: Blob = await this.mDatabase.transaction([FileSystemEntry], 'readonly', async (pTransaction) => {
             const lEntries: Array<FileSystemEntry> = await pTransaction.table(FileSystemEntry).where('filePath').is(lFileSystemPath.filePath).read();
             if (lEntries.length === 0) {
                 throw new Exception(`File data not found for: ${lFileSystemPath.filePath}`, this);
@@ -103,9 +103,6 @@ export class FileSystem {
 
             return lEntries[0].data;
         });
-
-        // Convert ArrayBuffer to Blob for BlobSerializer.
-        const lBlob: Blob = new Blob([lBlobData!]);
 
         // Deserialize the blob and read the sub-path.
         const lSerializer: BlobSerializer = new BlobSerializer();
@@ -129,14 +126,11 @@ export class FileSystem {
         lSerializer.store('', pObject);
         const lBlob: Blob = await lSerializer.save();
 
-        // Convert Blob to ArrayBuffer for IndexedDB storage.
-        const lArrayBuffer: ArrayBuffer = await lBlob.arrayBuffer();
-
         // Write blob and path index.
         await this.mDatabase.transaction([FileSystemEntry, FileSystemPath], 'readwrite', async (pTransaction) => {
             const lEntry: FileSystemEntry = new FileSystemEntry();
             lEntry.filePath = lNormalizedPath;
-            lEntry.data = lArrayBuffer;
+            lEntry.data = lBlob;
             await pTransaction.table(FileSystemEntry).put(lEntry);
 
             const lPathEntry: FileSystemPath = new FileSystemPath();
@@ -170,7 +164,7 @@ export class FileSystem {
                 return null;
             }
 
-            return new Blob([lEntries[0].data]);
+            return lEntries[0].data;
         });
 
         // Create a serializer and load existing blob if it exists to preserve existing entries.
@@ -187,15 +181,12 @@ export class FileSystem {
         // Save the serializer to a new blob.
         const lBlob: Blob = await lSerializer.save();
 
-        // Convert Blob to ArrayBuffer for IndexedDB storage.
-        const lArrayBuffer: ArrayBuffer = await lBlob.arrayBuffer();
-
         // Write the blob and path index in a single transaction.
         await this.mDatabase.transaction([FileSystemEntry, FileSystemPath], 'readwrite', async (pTransaction) => {
             // Update the file entry.
             const lEntry: FileSystemEntry = new FileSystemEntry();
             lEntry.filePath = lNormalizedFilePath;
-            lEntry.data = lArrayBuffer;
+            lEntry.data = lBlob;
             await pTransaction.table(FileSystemEntry).put(lEntry);
 
             // Update the path index.
@@ -234,7 +225,7 @@ export class FileSystem {
      */
     private async deleteSubPath(pPathEntry: FileSystemPath): Promise<void> {
         // Load the existing blob.
-        const lBlobData: ArrayBuffer | null = await this.mDatabase.transaction([FileSystemEntry], 'readonly', async (pTransaction) => {
+        const lBlob: Blob | null = await this.mDatabase.transaction([FileSystemEntry], 'readonly', async (pTransaction) => {
             const lTable = pTransaction.table(FileSystemEntry);
             const lEntries: Array<FileSystemEntry> = await lTable.where('filePath').is(pPathEntry.filePath).read();
 
@@ -245,7 +236,7 @@ export class FileSystem {
             return lEntries[0].data;
         });
 
-        if (lBlobData === null) {
+        if (lBlob === null) {
             // File entry doesn't exist, just clean up the path index.
             return this.mDatabase.transaction([FileSystemPath], 'readwrite', async (pTransaction) => {
                 const lEntry: FileSystemPath = new FileSystemPath();
@@ -255,7 +246,6 @@ export class FileSystem {
         }
 
         // Load blob and delete the sub-path.
-        const lBlob: Blob = new Blob([lBlobData]);
         const lSerializer: BlobSerializer = new BlobSerializer();
         await lSerializer.load(lBlob);
         lSerializer.delete(pPathEntry.subPath);
@@ -266,13 +256,12 @@ export class FileSystem {
         if (lHasRemainingEntries) {
             // Save the modified blob back and remove only the path index entry.
             const lUpdatedBlob: Blob = await lSerializer.save();
-            const lUpdatedArrayBuffer: ArrayBuffer = await lUpdatedBlob.arrayBuffer();
 
             await this.mDatabase.transaction([FileSystemEntry, FileSystemPath], 'readwrite', async (pTransaction) => {
                 // Update the file entry with the modified blob.
                 const lEntry: FileSystemEntry = new FileSystemEntry();
                 lEntry.filePath = pPathEntry.filePath;
-                lEntry.data = lUpdatedArrayBuffer;
+                lEntry.data = lUpdatedBlob;
                 await pTransaction.table(FileSystemEntry).put(lEntry);
 
                 // Delete the path index entry.

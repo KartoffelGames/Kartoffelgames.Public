@@ -1,5 +1,6 @@
 import { BlobSerializer, Serializer } from '@kartoffelgames/core-serializer';
 import { expect } from '@kartoffelgames/core-test';
+import '../mock/structured-clone-blob-support.ts';
 import 'npm:fake-indexeddb/auto';
 import { FileSystemLink } from '../../source/file_system/file-system-link.ts';
 import { FileSystem } from '../../source/file_system/file-system.ts';

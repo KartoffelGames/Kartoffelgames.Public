@@ -49,6 +49,10 @@
             "path": "./packages\\kartoffelgames.web.potato_engine"
         },
         {
+            "name": "Kartoffelgames.Web.Potato_Engine_Editor",
+            "path": "./packages\\kartoffelgames.web.potato_engine_editor"
+        },
+        {
             "name": "_ROOT",
             "path": "."
         }

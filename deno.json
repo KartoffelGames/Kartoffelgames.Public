@@ -12,7 +12,8 @@
         "./packages/kartoffelgames.core.test",
         "./packages/kartoffelgames.web.gpu",
         "././packages/kartoffelgames.core.pgsl",
-        "././packages/kartoffelgames.web.potato_engine"
+        "././packages/kartoffelgames.web.potato_engine",
+        "././packages/kartoffelgames.web.potato_engine_editor"
     ],
     "tasks": {
         "lint": "deno run -A npm:eslint --config eslint.config.js",

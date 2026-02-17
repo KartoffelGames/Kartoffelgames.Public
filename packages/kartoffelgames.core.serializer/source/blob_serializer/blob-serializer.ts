@@ -143,7 +143,7 @@ export class BlobSerializer {
     private mBlob: Blob | null;
     private mTableOfContent: Map<string, BlobSerializerTableOfContentEntry>;
     private readonly mUnsavedEntries: Map<string, Uint8Array>;
-    
+
     /**
      * Get the list of available contents in the loaded blob.
      * Each entry contains the path, byte length, and class type (constructor).
@@ -205,6 +205,20 @@ export class BlobSerializer {
 
         // Store loaded blob for later partial reads.
         this.mBlob = pBlob;
+    }
+
+    /**
+     * Delete an entry by path.
+     * Removes the entry from both unsaved entries and loaded table of content.
+     * The deletion takes effect when {@link save} is called.
+     *
+     * @param pPath - The path to delete. Case-insensitive.
+     */
+    public delete(pPath: string): void {
+        const lNormalizedPath: string = pPath.toLowerCase();
+
+        this.mUnsavedEntries.delete(lNormalizedPath);
+        this.mTableOfContent.delete(lNormalizedPath);
     }
 
     /**

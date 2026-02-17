@@ -1070,3 +1070,141 @@ Deno.test('BlobSerializer end-to-end', async (pContext) => {
         expect(lResult.items[1].label).toBe('Second');
     });
 });
+
+Deno.test('BlobSerializer.delete()', async (pContext) => {
+    await pContext.step('Delete unsaved entry', async () => {
+        // Setup.
+        const lUuid: string = 'blob-delete-unsaved';
+
+        @Serializer.class(lUuid)
+        class TestObj {
+            @Serializer.property()
+            public value: number = 0;
+        }
+
+        const lSerializer: BlobSerializer = new BlobSerializer();
+        const lObj: TestObj = new TestObj();
+        lObj.value = 42;
+        lSerializer.store('to-delete', lObj);
+
+        // Process.
+        lSerializer.delete('to-delete');
+        const lBlob: Blob = await lSerializer.save();
+
+        // Evaluation. Saving after delete should produce header-only blob.
+        expect(lBlob.size).toBe(16);
+    });
+
+    await pContext.step('Delete loaded entry', async () => {
+        // Setup.
+        const lUuid: string = 'blob-delete-loaded';
+
+        @Serializer.class(lUuid)
+        class TestObj {
+            @Serializer.property()
+            public value: number = 0;
+        }
+
+        // Create blob with one entry.
+        const lInitialSerializer: BlobSerializer = new BlobSerializer();
+        lInitialSerializer.store('entry', new TestObj());
+        const lBlob: Blob = await lInitialSerializer.save();
+
+        // Load and delete.
+        const lSerializer: BlobSerializer = new BlobSerializer();
+        await lSerializer.load(lBlob);
+
+        // Process.
+        lSerializer.delete('entry');
+
+        // Evaluation. Contents should be empty.
+        expect(lSerializer.contents.length).toBe(0);
+
+        // Saved blob should be header-only.
+        const lSavedBlob: Blob = await lSerializer.save();
+        expect(lSavedBlob.size).toBe(16);
+    });
+
+    await pContext.step('Delete one entry preserves others', async () => {
+        // Setup.
+        const lUuid: string = 'blob-delete-preserves';
+
+        @Serializer.class(lUuid)
+        class TestObj {
+            @Serializer.property()
+            public value: number = 0;
+        }
+
+        // Create blob with two entries.
+        const lInitialSerializer: BlobSerializer = new BlobSerializer();
+        const lObj1: TestObj = new TestObj();
+        lObj1.value = 1;
+        const lObj2: TestObj = new TestObj();
+        lObj2.value = 2;
+        lInitialSerializer.store('keep', lObj1);
+        lInitialSerializer.store('remove', lObj2);
+        const lBlob: Blob = await lInitialSerializer.save();
+
+        // Load and delete one.
+        const lSerializer: BlobSerializer = new BlobSerializer();
+        await lSerializer.load(lBlob);
+
+        // Process.
+        lSerializer.delete('remove');
+
+        // Evaluation.
+        expect(lSerializer.contents.length).toBe(1);
+        expect(lSerializer.contents[0].path).toBe('keep');
+
+        // Save, reload and verify remaining entry.
+        const lSavedBlob: Blob = await lSerializer.save();
+        const lVerifySerializer: BlobSerializer = new BlobSerializer();
+        await lVerifySerializer.load(lSavedBlob);
+        const lResult: TestObj = await lVerifySerializer.read<TestObj>('keep');
+        expect(lResult.value).toBe(1);
+    });
+
+    await pContext.step('Delete is case-insensitive', async () => {
+        // Setup.
+        const lUuid: string = 'blob-delete-case';
+
+        @Serializer.class(lUuid)
+        class TestObj {
+            @Serializer.property()
+            public value: number = 0;
+        }
+
+        const lSerializer: BlobSerializer = new BlobSerializer();
+        lSerializer.store('MyPath', new TestObj());
+
+        // Process. Delete with different casing.
+        lSerializer.delete('MYPATH');
+        const lBlob: Blob = await lSerializer.save();
+
+        // Evaluation.
+        expect(lBlob.size).toBe(16);
+    });
+
+    await pContext.step('Delete non-existent path is no-op', async () => {
+        // Setup.
+        const lUuid: string = 'blob-delete-noop';
+
+        @Serializer.class(lUuid)
+        class TestObj {
+            @Serializer.property()
+            public value: number = 0;
+        }
+
+        const lSerializer: BlobSerializer = new BlobSerializer();
+        lSerializer.store('existing', new TestObj());
+
+        // Process. Delete a path that doesn't exist.
+        lSerializer.delete('nonexistent');
+        const lBlob: Blob = await lSerializer.save();
+
+        // Evaluation. The existing entry should still be there.
+        const lVerifySerializer: BlobSerializer = new BlobSerializer();
+        await lVerifySerializer.load(lBlob);
+        expect(lVerifySerializer.contents.length).toBe(1);
+    });
+});

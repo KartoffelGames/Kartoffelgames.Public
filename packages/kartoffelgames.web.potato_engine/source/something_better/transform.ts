@@ -107,7 +107,7 @@ export class Transform {
     public constructor() {
         this.mScale = Matrix.identity(4);
         this.mTranslation = Matrix.identity(4);
-        this.mRotation = new Quaternion(1, 0, 0, 0);
+        this.mRotation = new Quaternion();
         this.mPivot = Matrix.identity(4);
     }
 

@@ -10,7 +10,7 @@ import { Quaternion } from '../math/quaternion.ts';
  * 
  * // TODO: Proper serializer properties.
  */
-@Serializer.class('7b8a6001-7a15-45cc-a7e5-a47274359545')
+@Serializer.serializeableClass('7b8a6001-7a15-45cc-a7e5-a47274359545')
 export class TransformationComponent extends GameComponent {
     private mDirty: boolean;
     private mMatrix: Matrix;

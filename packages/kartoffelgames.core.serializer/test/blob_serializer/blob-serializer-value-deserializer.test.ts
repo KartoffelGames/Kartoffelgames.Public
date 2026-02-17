@@ -331,7 +331,7 @@ Deno.test('ValueDecoder.decode() - Registered Object', async (pContext) => {
         // Setup.
         const lUuid: string = 'dec-test-obj-1';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property()
             public age: number = 0;
@@ -361,7 +361,7 @@ Deno.test('ValueDecoder.decode() - Registered Object', async (pContext) => {
         // Setup.
         const lUuid: string = 'dec-test-obj-alias';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property({ alias: 'n' })
             public name: string = '';
@@ -387,13 +387,13 @@ Deno.test('ValueDecoder.decode() - Registered Object', async (pContext) => {
         const lInnerUuid: string = 'dec-test-inner';
         const lOuterUuid: string = 'dec-test-outer';
 
-        @Serializer.class(lInnerUuid)
+        @Serializer.serializeableClass(lInnerUuid)
         class Inner {
             @Serializer.property()
             public value: number = 0;
         }
 
-        @Serializer.class(lOuterUuid)
+        @Serializer.serializeableClass(lOuterUuid)
         class Outer {
             @Serializer.property()
             public child: Inner | null = null;
@@ -429,7 +429,7 @@ Deno.test('ValueDecoder.decode() - Registered Object', async (pContext) => {
         // Setup.
         const lUuid: string = 'dec-test-getter-setter';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             private mValue: string = '';
 
@@ -463,13 +463,13 @@ Deno.test('ValueDecoder.decode() - Registered Object', async (pContext) => {
         const lItemUuid: string = 'dec-test-arr-item';
         const lContainerUuid: string = 'dec-test-arr-container';
 
-        @Serializer.class(lItemUuid)
+        @Serializer.serializeableClass(lItemUuid)
         class Item {
             @Serializer.property()
             public name: string = '';
         }
 
-        @Serializer.class(lContainerUuid)
+        @Serializer.serializeableClass(lContainerUuid)
         class Container {
             @Serializer.property()
             public items: Array<Item> = [];
@@ -506,7 +506,7 @@ Deno.test('ValueDecoder.decode() - Complex round-trip', async (pContext) => {
         // Setup.
         const lUuid: string = 'dec-test-complex';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class ComplexObj {
             @Serializer.property()
             public active: boolean = false;

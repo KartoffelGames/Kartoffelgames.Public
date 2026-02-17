@@ -6,7 +6,7 @@ import type { FileSystem } from './file-system.ts';
  * Can be created via static factory methods from a path or a direct instance.
  * When deserialized, the link stores only the path and must be resolved via {@link resolve}.
  */
-@Serializer.class('0c9cd88d-55f9-46ac-b4a4-a16769cb7aeb')
+@Serializer.serializeableClass('0c9cd88d-55f9-46ac-b4a4-a16769cb7aeb')
 export class FileSystemLink<T extends object> {
     /**
      * Create a link from a direct object instance.

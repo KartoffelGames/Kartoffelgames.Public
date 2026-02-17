@@ -7,7 +7,7 @@ Deno.test('Serializer.class()', async (pContext) => {
         const lUuid: string = 'test-class-uuid-1';
 
         // Process.
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestClass { }
 
         // Evaluation.
@@ -20,7 +20,7 @@ Deno.test('Serializer.class()', async (pContext) => {
         // Setup.
         const lUuid: string = 'test-class-uuid-resolve';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestClass { }
 
         // Process.
@@ -34,14 +34,14 @@ Deno.test('Serializer.class()', async (pContext) => {
         // Setup.
         const lUuid: string = 'test-class-uuid-duplicate';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestClassA { }
 
         void TestClassA;
 
         // Process.
         const lIllegalInstruction = () => {
-            @Serializer.class(lUuid)
+            @Serializer.serializeableClass(lUuid)
             class TestClassB { }
 
             void TestClassB;
@@ -79,7 +79,7 @@ Deno.test('Serializer.property()', async (pContext) => {
         const lUuid: string = 'test-prop-uuid-1';
 
         // Process.
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestClass {
             @Serializer.property()
             public name: string = '';
@@ -97,7 +97,7 @@ Deno.test('Serializer.property()', async (pContext) => {
         const lAlias: string = 'n';
 
         // Process.
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestClass {
             @Serializer.property({ alias: lAlias })
             public name: string = '';
@@ -115,7 +115,7 @@ Deno.test('Serializer.property()', async (pContext) => {
         const lUuid: string = 'test-prop-uuid-multi';
 
         // Process.
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestClass {
             @Serializer.property()
             public active: boolean = false;
@@ -142,7 +142,7 @@ Deno.test('Serializer.property()', async (pContext) => {
         const lUuid: string = 'test-prop-uuid-exclude';
 
         // Process.
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestClass {
             @Serializer.property()
             public name: string = '';
@@ -161,7 +161,7 @@ Deno.test('Serializer.property()', async (pContext) => {
         const lUuid: string = 'test-prop-uuid-getter';
 
         // Process.
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestClass {
             private mValue: string = '';
 

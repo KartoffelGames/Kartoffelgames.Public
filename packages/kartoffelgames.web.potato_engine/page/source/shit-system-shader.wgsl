@@ -93,8 +93,8 @@ struct VertexOut {
 
 struct VertexIn {
     @builtin(instance_index) instanceId: u32,
-    @location(0) position: vec4<f32>,
-    @location(1) normal: vec4<f32>,
+    @location(0) position: vec3<f32>,
+    @location(1) normal: vec3<f32>,
 }
 
 @vertex
@@ -106,11 +106,11 @@ fn vertex_main(pVertex: VertexIn) -> VertexOut {
     let lWorldMatrix: mat4x4<f32> = readWorldMatrix(lComponentIndex);
 
     // Calculate world position.
-    let lWorldPosition: vec4<f32> = lWorldMatrix * pVertex.position;
+    let lWorldPosition: vec4<f32> = lWorldMatrix * vec4<f32>(pVertex.position, 1.0);
 
     var lOut: VertexOut;
     lOut.position = viewProjection * lWorldPosition;
-    lOut.normal = normalize(lWorldMatrix * vec4<f32>(pVertex.normal.xyz, 0.0));
+    lOut.normal = normalize(lWorldMatrix * vec4<f32>(pVertex.normal, 0.0));
     lOut.fragmentPosition = lWorldPosition;
 
     return lOut;

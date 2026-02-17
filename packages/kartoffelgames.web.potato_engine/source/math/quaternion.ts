@@ -3,7 +3,7 @@ import { Euler } from './euler.ts';
 import { Matrix } from './matrix.ts';
 import { Vector } from './vector.ts';
 
-@Serializer.class('60f0a483-0bcb-4da9-bcb9-b587066b7d1a')
+@Serializer.serializeableClass('60f0a483-0bcb-4da9-bcb9-b587066b7d1a')
 export class Quaternion {
     /**
      * Create new quaternion from degree rotation.

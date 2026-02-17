@@ -8,7 +8,7 @@ import { GameNode } from '../hierarchy/game-node.ts';
  * A GameEntity is a game node that can have components.
  * It is used to create game objects in the scene, which can have components that define their behavior and state.
  */
-@Serializer.class('71db9e82-6a93-4cae-a530-50c05ceb33c4')
+@Serializer.serializeableClass('71db9e82-6a93-4cae-a530-50c05ceb33c4')
 export class GameEntity extends GameNode {
     private readonly mComponentTypeMap: Map<GameComponentConstructor, GameComponent>;
     private readonly mComponents: Set<GameComponent>;

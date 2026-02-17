@@ -5,7 +5,7 @@ import 'npm:fake-indexeddb/auto';
 import { FileSystem } from '../../source/file_system/file-system.ts';
 
 // Simple serializable test class.
-@Serializer.class('b5931480-24c6-44cc-8479-f8c6883ba20f')
+@Serializer.serializeableClass('b5931480-24c6-44cc-8479-f8c6883ba20f')
 class SimpleTestObject {
     @Serializer.property()
     public name: string = '';
@@ -15,7 +15,7 @@ class SimpleTestObject {
 }
 
 // Nested serializable test class.
-@Serializer.class('a8cf87b1-0877-4089-858a-ab297eb76d85')
+@Serializer.serializeableClass('a8cf87b1-0877-4089-858a-ab297eb76d85')
 class NestedTestObject {
     @Serializer.property()
     public child: SimpleTestObject | null = null;

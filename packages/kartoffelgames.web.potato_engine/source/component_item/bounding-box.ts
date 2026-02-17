@@ -5,7 +5,7 @@ import { GameComponentItem } from "../core/component/game-component-item.ts";
  * Axis-aligned bounding box defined by minimum and maximum corner points.
  * Used to represent the spatial extent of a mesh in local space.
  */
-@Serializer.class('cd4942b0-af79-4f34-8f1a-cb892599e01e')
+@Serializer.serializeableClass('cd4942b0-af79-4f34-8f1a-cb892599e01e')
 export class BoundingBox extends GameComponentItem{
     private mMaxX: number;
     private mMaxY: number;

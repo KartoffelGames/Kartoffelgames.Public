@@ -18,7 +18,7 @@ export class Serializer {
      *
      * @returns class decorator function.
      */
-    public static class<TThis extends object>(pUuid: string): (_pTarget: InjectionConstructor<TThis>, pContext: ClassDecoratorContext<InjectionConstructor<TThis>>) => void {
+    public static serializeableClass<TThis extends object>(pUuid: string): (_pTarget: InjectionConstructor<TThis>, pContext: ClassDecoratorContext<InjectionConstructor<TThis>>) => void {
         return (_pTarget: InjectionConstructor<TThis>, pContext: ClassDecoratorContext<InjectionConstructor<TThis>>): void => {
             // Get or create metadata for this class.
             const lConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);

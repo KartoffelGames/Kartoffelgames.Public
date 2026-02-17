@@ -6,7 +6,7 @@ import { FileSystemLink } from '../../source/file_system/file-system-link.ts';
 import { FileSystem } from '../../source/file_system/file-system.ts';
 
 // Simple serializable test class.
-@Serializer.class('b5931480-24c6-44cc-8479-f8c6883ba20f')
+@Serializer.serializeableClass('b5931480-24c6-44cc-8479-f8c6883ba20f')
 class SimpleTestObject {
     @Serializer.property()
     public name: string = '';

@@ -1,76 +1,19 @@
-import { PrimitiveTopology } from '@kartoffelgames/web-gpu';
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
+import { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
+import { GlbConverter } from '../../source/component_item/mesh/glb-converter.ts';
 import { GameEnvironment } from '../../source/core/environment/game-environment.ts';
 import { GameScene } from '../../source/core/game-scene.ts';
 import { GameEntity } from '../../source/core/hierarchy/game-entity.ts';
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
 import { ShitSystem } from './shit-system.ts';
-import { Mesh } from "../../source/component_item/mesh/mesh.ts";
-import { MeshRenderComponent } from "../../source/component/mesh-render-component.ts";
+import type { Mesh } from '../../source/component_item/mesh/mesh.ts';
 
-/**
- * Cube vertex position data. Each vertex is a vec4 f32.
- */
-const gCubeVertexPositionData: Array<number> = [
-    // Back
-    -0.5, 0.5, 0.5, 1.0,
-    0.5, 0.5, 0.5, 1.0,
-    0.5, -0.5, 0.5, 1.0,
-    -0.5, -0.5, 0.5, 1.0,
-    // Front
-    -0.5, 0.5, -0.5, 1.0,
-    0.5, 0.5, -0.5, 1.0,
-    0.5, -0.5, -0.5, 1.0,
-    -0.5, -0.5, -0.5, 1.0
-];
-
-/**
- * Cube vertex normal data per triangle vertex. Each normal is a vec4 f32.
- */
-const gCubeVertexNormalData: Array<number> = [
-    // Front
-    0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0,
-    0, 0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0,
-    // Back
-    0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0,
-    0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0,
-    // Left
-    -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0,
-    -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0, 0,
-    // Right
-    1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
-    1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
-    // Top
-    0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0,
-    0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0,
-    // Bottom
-    0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0,
-    0, -1, 0, 0, 0, -1, 0, 0, 0, -1, 0, 0,
-];
-
-/**
- * Cube index data referencing vertex positions.
- */
-const gCubeVertexIndices: Array<number> = [
-    // Front
-    4, 5, 6, 4, 6, 7,
-    // Back
-    1, 0, 3, 1, 3, 2,
-    // Left
-    0, 4, 7, 0, 7, 3,
-    // Right
-    5, 1, 2, 5, 2, 6,
-    // Top
-    0, 1, 5, 0, 5, 4,
-    // Bottom
-    7, 6, 2, 7, 2, 3
-];
-
-// Add cube mesh to block entity.
-const lBlockMesh: Mesh = new Mesh();
-lBlockMesh.vertices = gCubeVertexPositionData;
-lBlockMesh.normals = gCubeVertexNormalData;
-lBlockMesh.addSubMesh(gCubeVertexIndices, PrimitiveTopology.TriangleList);
+// Load cube mesh from GLB file.
+const lGlbData: ArrayBuffer = await fetch('/mesh.glb').then((pResponse) => {
+    return pResponse.arrayBuffer();
+});
+const lMeshes: Array<Mesh> = GlbConverter.convert(lGlbData);
+const lBlockMesh: Mesh = lMeshes[0];
 
 (() => {
     const lEnvironment = new GameEnvironment({
@@ -111,11 +54,11 @@ lBlockMesh.addSubMesh(gCubeVertexIndices, PrimitiveTopology.TriangleList);
             // Create new block.
             const lBlockEntiy: GameEntity = new GameEntity();
             lBlockEntiy.label = `Block Entity ${lBlockArray.length + 1}`;
-            
+
             const lBlockTransformation: TransformationComponent = lBlockEntiy.addComponent(TransformationComponent);
             lBlockTransformation.scaleHeight = 0.5;
             lBlockTransformation.scaleDepth = 0.5;
-            lBlockTransformation.scaleWidth = 2;
+            lBlockTransformation.scaleWidth = 1;
 
             // Add cube mesh to block entity.
             const lBlockMeshComponent = lBlockEntiy.addComponent(MeshRenderComponent);
@@ -143,6 +86,11 @@ lBlockMesh.addSubMesh(gCubeVertexIndices, PrimitiveTopology.TriangleList);
             for (const lEntity of lParentArray) {
                 const lTransformation: TransformationComponent = lEntity.getComponent(TransformationComponent);
                 lTransformation.addEulerRotation(0, 0, 0.3);
+            }
+
+            for (const lEntity of lBlockArray) {
+                const lTransformation: TransformationComponent = lEntity.getComponent(TransformationComponent);
+                lTransformation.addEulerRotation(0, 0.3, 0);
             }
         }, 16);
 

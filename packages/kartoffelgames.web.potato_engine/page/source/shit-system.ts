@@ -19,7 +19,9 @@ import {
     type VertexParameter,
     VertexParameterStepMode
 } from '@kartoffelgames/web-gpu';
+import { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
+import type { Mesh } from '../../source/component_item/mesh/mesh.ts';
 import type { GameComponentConstructor } from '../../source/core/component/game-component.ts';
 import type { GameEnvironmentStateChange } from '../../source/core/environment/game-environment-transmittion.ts';
 import { GameSystem, type GameSystemConstructor } from '../../source/core/game-system.ts';
@@ -34,12 +36,12 @@ import shitShaderSource from './shit-system-shader.wgsl';
  * Manages GPU resources for rendering and tracks component lifecycle through state changes.
  */
 export class ShitSystem extends GameSystem {
-    private readonly mActiveComponents: Set<MeshComponent>;
+    private readonly mActiveComponents: Set<MeshRenderComponent>;
     private mCamera: ViewProjection | null;
     private mCameraGroup: BindGroup | null;
     private mDirty: boolean;
     private mExecutor: GpuExecution | null;
-    private mMesh: VertexParameter | null;
+    private mMeshes: Array<VertexParameter>;
     private mPipeline: VertexFragmentPipeline | null;
     private mPipelineData: PipelineData | null;
     private mRenderPass: RenderPass | null;
@@ -58,7 +60,7 @@ export class ShitSystem extends GameSystem {
      * Component types this system handles.
      */
     public override get handledComponentTypes(): Array<GameComponentConstructor> {
-        return [MeshComponent, TransformationComponent];
+        return [MeshRenderComponent, TransformationComponent];
     }
 
     /**
@@ -67,12 +69,12 @@ export class ShitSystem extends GameSystem {
     public constructor() {
         super();
 
-        this.mActiveComponents = new Set<MeshComponent>();
+        this.mActiveComponents = new Set<MeshRenderComponent>();
         this.mDirty = false;
         this.mCamera = null;
         this.mCameraGroup = null;
         this.mExecutor = null;
-        this.mMesh = null;
+        this.mMeshes = [];
         this.mPipeline = null;
         this.mPipelineData = null;
         this.mRenderPass = null;
@@ -141,10 +143,10 @@ export class ShitSystem extends GameSystem {
             // Vertex entry point with position and normal buffers.
             pShaderSetup.vertexEntryPoint('vertex_main', (pVertexParameterSetup) => {
                 pVertexParameterSetup.buffer('position', VertexParameterStepMode.Index)
-                    .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+                    .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
 
-                pVertexParameterSetup.buffer('normal', VertexParameterStepMode.Vertex)
-                    .withParameter('normal', 1, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+                pVertexParameterSetup.buffer('normal', VertexParameterStepMode.Index)
+                    .withParameter('normal', 1, BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
             });
 
             // Fragment entry point with single color render target.
@@ -171,10 +173,12 @@ export class ShitSystem extends GameSystem {
         this.mPipeline = this.mShaderRenderModule.create(this.mRenderTargets);
         this.mPipeline.primitiveCullMode = PrimitiveCullMode.Front;
 
-        // Create render pass that draws all instances in a single call.
+        // Create render pass that draws all submeshes for all instances.
         this.mRenderPass = lGpu.renderPass(this.mRenderTargets, (pContext) => {
-            if (this.mPipelineData && this.mMesh && this.mActiveComponents.size > 0) {
-                pContext.drawDirect(this.mPipeline!, this.mMesh, this.mPipelineData, this.mActiveComponents.size);
+            if (this.mPipelineData && this.mMeshes.length > 0 && this.mActiveComponents.size > 0) {
+                for (const lMesh of this.mMeshes) {
+                    pContext.drawDirect(this.mPipeline!, lMesh, this.mPipelineData, this.mActiveComponents.size);
+                }
             }
         }, false);
 
@@ -216,11 +220,11 @@ export class ShitSystem extends GameSystem {
      * @param pStateChanges - Map of component types to state change events.
      */
     protected override async onUpdate(pStateChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>): Promise<void> {
-        // Process state changes for MeshComponent.
-        const lMeshChanges: ReadonlyArray<GameEnvironmentStateChange> | undefined = pStateChanges.get(MeshComponent);
+        // Process state changes for MeshRenderComponent.
+        const lMeshChanges: ReadonlyArray<GameEnvironmentStateChange> | undefined = pStateChanges.get(MeshRenderComponent);
         if (lMeshChanges) {
             for (const lStateChange of lMeshChanges) {
-                const lComponent: MeshComponent = lStateChange.component as MeshComponent;
+                const lComponent: MeshRenderComponent = lStateChange.component as MeshRenderComponent;
 
                 switch (lStateChange.type) {
                     case 'add':
@@ -255,24 +259,28 @@ export class ShitSystem extends GameSystem {
     }
 
     /**
-     * Rebuild instance data from all active mesh components.
-     * Creates GPU mesh from the first mesh component's data and builds transformation index array for instanced rendering.
+     * Rebuild instance data from all active mesh render components.
+     * Creates GPU vertex parameters for each submesh and builds transformation index array for instanced rendering.
      */
     private rebuildInstanceData(): void {
         // Skip when no components are active or pipeline is not ready.
         if (this.mActiveComponents.size === 0 || !this.mShaderRenderModule || !this.mPipeline || !this.mCameraGroup) {
             this.mPipelineData = null;
-            this.mMesh = null;
+            this.mMeshes = [];
             return;
         }
 
-        // Get mesh data from first active mesh component.
-        const lFirstMesh: MeshComponent = this.mActiveComponents.values().next().value!;
+        // Get mesh data from first active mesh render component.
+        const lFirstComponent: MeshRenderComponent = this.mActiveComponents.values().next().value!;
+        const lMesh: Mesh = lFirstComponent.mesh;
 
-        // Create GPU mesh from component data.
-        this.mMesh = this.mShaderRenderModule.vertexParameter.create(lFirstMesh.subMeshes[0].indices);
-        this.mMesh.create('position', lFirstMesh.vertices);
-        this.mMesh.create('normal', lFirstMesh.normals);
+        // Create GPU vertex parameters for each submesh.
+        this.mMeshes = lMesh.subMeshes.map((lSubMesh) => {
+            const lVertexParameter: VertexParameter = this.mShaderRenderModule!.vertexParameter.create(lSubMesh.indices);
+            lVertexParameter.create('position', lMesh.vertices);
+            lVertexParameter.create('normal', lMesh.normals);
+            return lVertexParameter;
+        });
 
         // Get transformation system for buffer and index lookups.
         const lTransformationSystem: TransformationSystem = this.getDependency(TransformationSystem);

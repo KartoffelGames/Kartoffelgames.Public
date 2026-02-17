@@ -313,7 +313,7 @@ Deno.test('ValueEncoder.encode() - Registered Object', async (pContext) => {
         // Setup.
         const lUuid: string = 'enc-test-obj-1';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property()
             public age: number = 30;
@@ -340,7 +340,7 @@ Deno.test('ValueEncoder.encode() - Registered Object', async (pContext) => {
         // Setup.
         const lUuid: string = 'enc-test-obj-alias';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property({ alias: 'n' })
             public name: string = 'Bob';
@@ -363,7 +363,7 @@ Deno.test('ValueEncoder.encode() - Registered Object', async (pContext) => {
         // Setup.
         const lUuid: string = 'enc-test-obj-partial';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property()
             public serialized: string = 'yes';
@@ -421,7 +421,7 @@ Deno.test('ValueEncoder.encode() - Circular Reference', async (pContext) => {
         // Setup.
         const lUuid: string = 'enc-test-circular-obj';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class CircularObj {
             @Serializer.property()
             public self: CircularObj | null = null;
@@ -445,13 +445,13 @@ Deno.test('ValueEncoder.encode() - Circular Reference', async (pContext) => {
         const lUuid1: string = 'enc-test-shared-inner';
         const lUuid2: string = 'enc-test-shared-outer';
 
-        @Serializer.class(lUuid1)
+        @Serializer.serializeableClass(lUuid1)
         class Inner {
             @Serializer.property()
             public value: number = 42;
         }
 
-        @Serializer.class(lUuid2)
+        @Serializer.serializeableClass(lUuid2)
         class Outer {
             @Serializer.property()
             public a: Inner = new Inner();

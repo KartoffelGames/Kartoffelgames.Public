@@ -7,7 +7,7 @@ Deno.test('BlobSerializer.save()', async (pContext) => {
         // Setup.
         const lUuid: string = 'blob-save-single';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property()
             public name: string = 'Test';
@@ -28,7 +28,7 @@ Deno.test('BlobSerializer.save()', async (pContext) => {
         // Setup.
         const lUuid: string = 'blob-save-multi';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property()
             public value: number = 0;
@@ -67,13 +67,13 @@ Deno.test('BlobSerializer.save()', async (pContext) => {
 
     await pContext.step('Save with loaded and modified entries', async () => {
         // Setup. Classes.
-        @Serializer.class('cf8c5bc9-1d2c-4157-84bb-b64bee8553d5')
+        @Serializer.serializeableClass('cf8c5bc9-1d2c-4157-84bb-b64bee8553d5')
         class TypeA {
             @Serializer.property()
             public value: number = 0;
         }
 
-        @Serializer.class('b7dff636-194a-438c-b001-be6fd4bfbfe1')
+        @Serializer.serializeableClass('b7dff636-194a-438c-b001-be6fd4bfbfe1')
         class TypeB {
             @Serializer.property()
             public label: string = '';
@@ -119,7 +119,7 @@ Deno.test('BlobSerializer.load()', async (pContext) => {
         // Setup.
         const lUuid: string = 'blob-load-valid';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property()
             public name: string = 'Test';
@@ -197,7 +197,7 @@ Deno.test('BlobSerializer.read()', async (pContext) => {
         // Setup.
         const lUuid: string = 'blob-read-single';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property()
             public name: string = '';
@@ -225,7 +225,7 @@ Deno.test('BlobSerializer.read()', async (pContext) => {
         // Setup.
         const lUuid: string = 'blob-read-many';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property()
             public value: number = 0;
@@ -255,7 +255,7 @@ Deno.test('BlobSerializer.read()', async (pContext) => {
         // Setup.
         const lUuid: string = 'blob-read-missing';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property()
             public value: number = 0;
@@ -281,7 +281,7 @@ Deno.test('BlobSerializer.read()', async (pContext) => {
         // Setup.
         const lUuid: string = 'blob-read-string-prop';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property()
             public text: string = '';
@@ -308,7 +308,7 @@ Deno.test('BlobSerializer.read()', async (pContext) => {
         // Setup.
         const lUuid: string = 'blob-read-array-prop';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property()
             public items: Array<number> = [];
@@ -336,13 +336,13 @@ Deno.test('BlobSerializer.read()', async (pContext) => {
         const lChildUuid: string = 'blob-read-nested-child';
         const lParentUuid: string = 'blob-read-nested-parent';
 
-        @Serializer.class(lChildUuid)
+        @Serializer.serializeableClass(lChildUuid)
         class Child {
             @Serializer.property()
             public score: number = 0;
         }
 
-        @Serializer.class(lParentUuid)
+        @Serializer.serializeableClass(lParentUuid)
         class Parent {
             @Serializer.property()
             public child: Child | null = null;
@@ -379,7 +379,7 @@ Deno.test('BlobSerializer.read()', async (pContext) => {
         // Setup.
         const lUuid: string = 'blob-read-arraybuffer';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property()
             public data: ArrayBuffer = new ArrayBuffer(0);
@@ -411,7 +411,7 @@ Deno.test('BlobSerializer.read()', async (pContext) => {
         // Setup.
         const lUuid: string = 'blob-read-typedarray';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property()
             public data: Float32Array = new Float32Array(0);
@@ -439,13 +439,13 @@ Deno.test('BlobSerializer.read()', async (pContext) => {
 
     await pContext.step('Read from loaded and modified blob', async () => {
         // Setup. Classes.
-        @Serializer.class('c8c663da-4bcb-44d2-93b7-378e72f78bb8')
+        @Serializer.serializeableClass('c8c663da-4bcb-44d2-93b7-378e72f78bb8')
         class TypeA {
             @Serializer.property()
             public value: number = 0;
         }
 
-        @Serializer.class('e133997d-19f3-45e4-b05c-5ee5d84351fe')
+        @Serializer.serializeableClass('e133997d-19f3-45e4-b05c-5ee5d84351fe')
         class TypeB {
             @Serializer.property()
             public label: string = '';
@@ -482,7 +482,7 @@ Deno.test('BlobSerializer.read()', async (pContext) => {
 
     await pContext.step('Read from unloaded serializer', async () => {
         // Setup. Classes.
-        @Serializer.class('c0b609db-52a4-4955-9d42-1526d09eaeb5')
+        @Serializer.serializeableClass('c0b609db-52a4-4955-9d42-1526d09eaeb5')
         class TypeA {
             @Serializer.property()
             public value: number = 0;
@@ -509,7 +509,7 @@ Deno.test('BlobSerializer.contents', async (pContext) => {
         // Setup.
         const lUuid: string = 'blob-contents-single';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property()
             public name: string = 'Test';
@@ -537,13 +537,13 @@ Deno.test('BlobSerializer.contents', async (pContext) => {
         const lUuidA: string = 'blob-contents-multi-a';
         const lUuidB: string = 'blob-contents-multi-b';
 
-        @Serializer.class(lUuidA)
+        @Serializer.serializeableClass(lUuidA)
         class TypeA {
             @Serializer.property()
             public value: number = 1;
         }
 
-        @Serializer.class(lUuidB)
+        @Serializer.serializeableClass(lUuidB)
         class TypeB {
             @Serializer.property()
             public label: string = 'hello';
@@ -592,7 +592,7 @@ Deno.test('BlobSerializer.store()', async (pContext) => {
         // Setup.
         const lUuid: string = 'blob-store-no-load';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property()
             public value: number = 0;
@@ -619,13 +619,13 @@ Deno.test('BlobSerializer.store()', async (pContext) => {
             const lUuidA: string = 'blob-store-preserve-a';
             const lUuidB: string = 'blob-store-preserve-b';
 
-            @Serializer.class(lUuidA)
+            @Serializer.serializeableClass(lUuidA)
             class TypeA {
                 @Serializer.property()
                 public value: number = 0;
             }
 
-            @Serializer.class(lUuidB)
+            @Serializer.serializeableClass(lUuidB)
             class TypeB {
                 @Serializer.property()
                 public label: string = '';
@@ -669,7 +669,7 @@ Deno.test('BlobSerializer.store()', async (pContext) => {
             // Setup.
             const lUuid: string = 'blob-store-override-loaded';
 
-            @Serializer.class(lUuid)
+            @Serializer.serializeableClass(lUuid)
             class TestObj {
                 @Serializer.property()
                 public value: number = 0;
@@ -710,7 +710,7 @@ Deno.test('BlobSerializer.store()', async (pContext) => {
             const lUuid: string = 'blob-case-insensitive';
             const lPath: string = 'MyFolder/MyClass';
 
-            @Serializer.class(lUuid)
+            @Serializer.serializeableClass(lUuid)
             class TestObj {
                 @Serializer.property()
                 public value: number = 0;
@@ -737,7 +737,7 @@ Deno.test('BlobSerializer.store()', async (pContext) => {
             const lUuid: string = 'blob-case-overwrite';
             const lPath: string = 'Same/Path';
 
-            @Serializer.class(lUuid)
+            @Serializer.serializeableClass(lUuid)
             class TestObj {
                 @Serializer.property()
                 public value: number = 0;
@@ -769,7 +769,7 @@ Deno.test('BlobSerializer.store()', async (pContext) => {
             const lUuid: string = 'blob-case-contents';
             const lPath: string = 'MyFolder/MyClass';
 
-            @Serializer.class(lUuid)
+            @Serializer.serializeableClass(lUuid)
             class TestObj {
                 @Serializer.property()
                 public value: number = 0;
@@ -795,7 +795,7 @@ Deno.test('BlobSerializer.store()', async (pContext) => {
         // Setup.
         const lUuid: string = 'blob-circular-throw';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class CircularObj {
             @Serializer.property()
             public self: CircularObj | null = null;
@@ -822,7 +822,7 @@ Deno.test('BlobSerializer end-to-end', async (pContext) => {
         const lPlayerUuid: string = 'blob-e2e-player';
         const lInventoryUuid: string = 'blob-e2e-inventory';
 
-        @Serializer.class(lPlayerUuid)
+        @Serializer.serializeableClass(lPlayerUuid)
         class Player {
             @Serializer.property()
             public active: boolean = false;
@@ -834,7 +834,7 @@ Deno.test('BlobSerializer end-to-end', async (pContext) => {
             public name: string = '';
         }
 
-        @Serializer.class(lInventoryUuid)
+        @Serializer.serializeableClass(lInventoryUuid)
         class Inventory {
             @Serializer.property()
             public items: Array<string> = [];
@@ -880,7 +880,7 @@ Deno.test('BlobSerializer end-to-end', async (pContext) => {
         // Setup.
         const lUuid: string = 'blob-e2e-many';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property()
             public index: number = 0;
@@ -913,7 +913,7 @@ Deno.test('BlobSerializer end-to-end', async (pContext) => {
         // Setup.
         const lUuid: string = 'blob-e2e-large';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class DataHolder {
             @Serializer.property()
             public buffer: ArrayBuffer = new ArrayBuffer(0);
@@ -949,7 +949,7 @@ Deno.test('BlobSerializer end-to-end', async (pContext) => {
         // Setup.
         const lUuid: string = 'blob-e2e-overwrite';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property()
             public value: number = 0;
@@ -978,7 +978,7 @@ Deno.test('BlobSerializer end-to-end', async (pContext) => {
         // Setup.
         const lUuid: string = 'blob-e2e-accessor';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             private mAge: number = 0;
             private mName: string = '';
@@ -1023,7 +1023,7 @@ Deno.test('BlobSerializer end-to-end', async (pContext) => {
         const lItemUuid: string = 'blob-e2e-arr-item';
         const lListUuid: string = 'blob-e2e-arr-list';
 
-        @Serializer.class(lItemUuid)
+        @Serializer.serializeableClass(lItemUuid)
         class Item {
             @Serializer.property()
             public id: number = 0;
@@ -1032,7 +1032,7 @@ Deno.test('BlobSerializer end-to-end', async (pContext) => {
             public label: string = '';
         }
 
-        @Serializer.class(lListUuid)
+        @Serializer.serializeableClass(lListUuid)
         class ItemList {
             @Serializer.property()
             public items: Array<Item> = [];
@@ -1076,7 +1076,7 @@ Deno.test('BlobSerializer.delete()', async (pContext) => {
         // Setup.
         const lUuid: string = 'blob-delete-unsaved';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property()
             public value: number = 0;
@@ -1099,7 +1099,7 @@ Deno.test('BlobSerializer.delete()', async (pContext) => {
         // Setup.
         const lUuid: string = 'blob-delete-loaded';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property()
             public value: number = 0;
@@ -1129,7 +1129,7 @@ Deno.test('BlobSerializer.delete()', async (pContext) => {
         // Setup.
         const lUuid: string = 'blob-delete-preserves';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property()
             public value: number = 0;
@@ -1168,7 +1168,7 @@ Deno.test('BlobSerializer.delete()', async (pContext) => {
         // Setup.
         const lUuid: string = 'blob-delete-case';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property()
             public value: number = 0;
@@ -1189,7 +1189,7 @@ Deno.test('BlobSerializer.delete()', async (pContext) => {
         // Setup.
         const lUuid: string = 'blob-delete-noop';
 
-        @Serializer.class(lUuid)
+        @Serializer.serializeableClass(lUuid)
         class TestObj {
             @Serializer.property()
             public value: number = 0;

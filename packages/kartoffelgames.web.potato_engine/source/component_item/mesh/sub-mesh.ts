@@ -6,7 +6,7 @@ import { GameComponentItem } from "../../core/component/game-component-item.ts";
  * Represents a sub-section of a mesh defined by a list of vertex indices and rendering configuration.
  * Each sub mesh defines which vertices of the parent mesh to draw with a specific primitive topology.
  */
-@Serializer.class('1ca90e2d-721c-480d-855b-82a599c47e18')
+@Serializer.serializeableClass('1ca90e2d-721c-480d-855b-82a599c47e18')
 export class SubMesh extends GameComponentItem {
     private mIndices: Array<number>;
     private mTopology: PrimitiveTopology;

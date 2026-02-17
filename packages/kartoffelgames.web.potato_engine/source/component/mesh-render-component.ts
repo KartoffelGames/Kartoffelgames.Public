@@ -5,7 +5,7 @@ import { GameComponent } from "../core/component/game-component.ts";
 /**
  * Component that holds information to render a mesh in any render pipeline.
  */
-@Serializer.class('3301c7a4-b477-4c4c-9fbd-143a19ad5683')
+@Serializer.serializeableClass('3301c7a4-b477-4c4c-9fbd-143a19ad5683')
 export class MeshRenderComponent extends GameComponent {
     private mMesh: Mesh | null;
 

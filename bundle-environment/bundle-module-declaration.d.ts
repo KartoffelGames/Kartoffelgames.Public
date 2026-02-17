@@ -43,7 +43,7 @@ declare module '*.gif' {
     export default Content;
 }
 
-declare module '*.wgsl' { 
+declare module '*.wgsl' {
     const Content: string;
     export default Content;
 }

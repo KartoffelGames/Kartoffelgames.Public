@@ -173,6 +173,20 @@ export class BlobSerializer {
     }
 
     /**
+     * Delete an entry by path.
+     * Removes the entry from both unsaved entries and loaded table of content.
+     * The deletion takes effect when {@link save} is called.
+     *
+     * @param pPath - The path to delete. Case-insensitive.
+     */
+    public delete(pPath: string): void {
+        const lNormalizedPath: string = pPath.toLowerCase();
+
+        this.mUnsavedEntries.delete(lNormalizedPath);
+        this.mTableOfContent.delete(lNormalizedPath);
+    }
+
+    /**
      * Load a blob for reading.
      * Reads the header, table of content, and entry UUIDs.
      * Entry data is not loaded until `read()` is called.
@@ -205,20 +219,6 @@ export class BlobSerializer {
 
         // Store loaded blob for later partial reads.
         this.mBlob = pBlob;
-    }
-
-    /**
-     * Delete an entry by path.
-     * Removes the entry from both unsaved entries and loaded table of content.
-     * The deletion takes effect when {@link save} is called.
-     *
-     * @param pPath - The path to delete. Case-insensitive.
-     */
-    public delete(pPath: string): void {
-        const lNormalizedPath: string = pPath.toLowerCase();
-
-        this.mUnsavedEntries.delete(lNormalizedPath);
-        this.mTableOfContent.delete(lNormalizedPath);
     }
 
     /**

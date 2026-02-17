@@ -1,29 +1,3 @@
-// TODO: Exports.
-
-// Material
-    // Shader
-        // Typ. Deferred, Forward, Raytrace??? Or is this
-        // Module => [Light, Normal ...]
-        // Source
-    // VBOs - definition. Dictated by shader.
-    // Uniforms
-    // Settings => Transparent.
-
-// GameObject.
-    // Transformation
-    // Meshes
-        // Mesh ?? Verticles, UV
-        // Transformation
-        // Material
-        
-// Scene
-    // GameObject-List
-    // Lights
-        // Ambient.
-        // Point
-        // Spot
-        // Directional
-    // Camera(s)?
-    // Skybox
-
-// Renderer
+// File System
+export { FileSystem } from './file_system/file-system.ts';
+export { FileSystemLink } from './file_system/file-system-link.ts';

@@ -1,5 +1,5 @@
 import { expect } from '@kartoffelgames/core-test';
-import { Serializer } from '../source/core/serializer.ts';
+import { Serializer } from '../../source/core/serializer.ts';
 
 Deno.test('Serializer.class()', async (pContext) => {
     await pContext.step('Register class with UUID', () => {

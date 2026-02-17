@@ -1,6 +1,6 @@
 import { expect } from '@kartoffelgames/core-test';
-import { type BlobContentEntry, BlobSerializer } from '../source/blob_serializer/blob-serializer.ts';
-import { Serializer } from '../source/core/serializer.ts';
+import { type BlobContentEntry, BlobSerializer } from '../../source/blob_serializer/blob-serializer.ts';
+import { Serializer } from '../../source/core/serializer.ts';
 
 Deno.test('BlobSerializer.save()', async (pContext) => {
     await pContext.step('Save single entry', async () => {
@@ -63,6 +63,54 @@ Deno.test('BlobSerializer.save()', async (pContext) => {
 
         // Evaluation.
         expect(lBlob.size).toBe(16); // Header only.
+    });
+
+    await pContext.step('Save with loaded and modified entries', async () => {
+        // Setup. Classes.
+        @Serializer.class('cf8c5bc9-1d2c-4157-84bb-b64bee8553d5')
+        class TypeA {
+            @Serializer.property()
+            public value: number = 0;
+        }
+
+        @Serializer.class('b7dff636-194a-438c-b001-be6fd4bfbfe1')
+        class TypeB {
+            @Serializer.property()
+            public label: string = '';
+        }
+
+        // Create initial blob with TypeA entry.
+        const lInitialBlob: Blob = await (async () => {
+            const lObjA: TypeA = new TypeA();
+            lObjA.value = 10;
+
+            const lInitialSerializer: BlobSerializer = new BlobSerializer();
+            lInitialSerializer.store('data/a', lObjA);
+
+            return lInitialSerializer.save();
+        })();
+
+        // Setup.
+        const lSerializer: BlobSerializer = new BlobSerializer();
+        await lSerializer.load(lInitialBlob);
+
+        // Modify existing entry and add new entry.
+        const lModifiedA: TypeB = new TypeB();
+        lModifiedA.label = 'Modified';
+        lSerializer.store('data/b', lModifiedA);
+
+        // Process. Save into blob.
+        const lBlob: Blob = await lSerializer.save();
+
+        // Evaluation. Load back and verify both entries.
+        const lVerifySerializer: BlobSerializer = new BlobSerializer();
+        await lVerifySerializer.load(lBlob);
+
+        // Evaluation.Verify modified entry.
+        expect(lVerifySerializer.contents[0].path).toBe('data/a');
+        expect(lVerifySerializer.contents[0].classType).toBe(TypeA);
+        expect(lVerifySerializer.contents[1].path).toBe('data/b');
+        expect(lVerifySerializer.contents[1].classType).toBe(TypeB);
     });
 });
 
@@ -229,19 +277,6 @@ Deno.test('BlobSerializer.read()', async (pContext) => {
         }
     });
 
-    await pContext.step('Throw when no blob loaded', async () => {
-        // Setup.
-        const lSerializer: BlobSerializer = new BlobSerializer();
-
-        // Process & Evaluation.
-        try {
-            await lSerializer.read('any/path');
-            expect(true).toBe(false);
-        } catch (pError) {
-            expect((pError as Error).message).toBe('No blob loaded. Call load() first.');
-        }
-    });
-
     await pContext.step('Read string value', async () => {
         // Setup.
         const lUuid: string = 'blob-read-string-prop';
@@ -401,7 +436,385 @@ Deno.test('BlobSerializer.read()', async (pContext) => {
         expect(lResult.data[1]).toBe(2.5);
         expect(lResult.data[2]).toBe(3.5);
     });
+
+    await pContext.step('Read from loaded and modified blob', async () => {
+        // Setup. Classes.
+        @Serializer.class('c8c663da-4bcb-44d2-93b7-378e72f78bb8')
+        class TypeA {
+            @Serializer.property()
+            public value: number = 0;
+        }
+
+        @Serializer.class('e133997d-19f3-45e4-b05c-5ee5d84351fe')
+        class TypeB {
+            @Serializer.property()
+            public label: string = '';
+        }
+
+        // Create initial blob with TypeA entry.
+        const lInitialBlob: Blob = await (async () => {
+            const lObjA: TypeA = new TypeA();
+            lObjA.value = 10;
+
+            const lInitialSerializer: BlobSerializer = new BlobSerializer();
+            lInitialSerializer.store('data/a', lObjA);
+
+            return lInitialSerializer.save();
+        })();
+
+        // Setup.
+        const lSerializer: BlobSerializer = new BlobSerializer();
+        await lSerializer.load(lInitialBlob);
+
+        // Modify existing entry and add new entry.
+        const lModifiedA: TypeB = new TypeB();
+        lModifiedA.label = 'Modified';
+        lSerializer.store('data/b', lModifiedA);
+
+        // Process. Read both entries.
+        const lResultA: TypeA = await lSerializer.read<TypeA>('data/a');
+        const lResultB: TypeB = await lSerializer.read<TypeB>('data/b');
+
+        // Evaluation.
+        expect(lResultA.value).toBe(10);
+        expect(lResultB.label).toBe('Modified');
+    });
+
+    await pContext.step('Read from unloaded serializer', async () => {
+        // Setup. Classes.
+        @Serializer.class('c0b609db-52a4-4955-9d42-1526d09eaeb5')
+        class TypeA {
+            @Serializer.property()
+            public value: number = 0;
+        }
+
+        // Setup.
+        const lSerializer: BlobSerializer = new BlobSerializer();
+
+        // Setup. Store entry without loading blob first.
+        const lObjA: TypeA = new TypeA();
+        lObjA.value = 10;
+        lSerializer.store('data/a', lObjA);
+
+        // Process. Read the entry back without saving/loading.
+        const lResultA: TypeA = await lSerializer.read<TypeA>('data/a');
+
+        // Evaluation. Should read the unsaved entry even without loading/saving, as it should be stored in memory.
+        expect(lResultA.value).toBe(10);
+    });
 });
+
+Deno.test('BlobSerializer.contents', async (pContext) => {
+    await pContext.step('Return contents of loaded blob with single entry', async () => {
+        // Setup.
+        const lUuid: string = 'blob-contents-single';
+
+        @Serializer.class(lUuid)
+        class TestObj {
+            @Serializer.property()
+            public name: string = 'Test';
+        }
+
+        const lSaveSerializer: BlobSerializer = new BlobSerializer();
+        lSaveSerializer.store('my/path', new TestObj());
+        const lBlob: Blob = await lSaveSerializer.save();
+
+        const lLoadSerializer: BlobSerializer = new BlobSerializer();
+        await lLoadSerializer.load(lBlob);
+
+        // Process.
+        const lContents: Array<BlobContentEntry> = lLoadSerializer.contents;
+
+        // Evaluation.
+        expect(lContents.length).toBe(1);
+        expect(lContents[0].path).toBe('my/path');
+        expect(lContents[0].byteLength).toBeGreaterThan(0);
+        expect(lContents[0].classType).toBe(TestObj);
+    });
+
+    await pContext.step('Return contents of loaded blob with multiple entries', async () => {
+        // Setup.
+        const lUuidA: string = 'blob-contents-multi-a';
+        const lUuidB: string = 'blob-contents-multi-b';
+
+        @Serializer.class(lUuidA)
+        class TypeA {
+            @Serializer.property()
+            public value: number = 1;
+        }
+
+        @Serializer.class(lUuidB)
+        class TypeB {
+            @Serializer.property()
+            public label: string = 'hello';
+        }
+
+        const lSaveSerializer: BlobSerializer = new BlobSerializer();
+        lSaveSerializer.store('entries/a', new TypeA());
+        lSaveSerializer.store('entries/b', new TypeB());
+        const lBlob: Blob = await lSaveSerializer.save();
+
+        const lLoadSerializer: BlobSerializer = new BlobSerializer();
+        await lLoadSerializer.load(lBlob);
+
+        // Process.
+        const lContents: Array<BlobContentEntry> = lLoadSerializer.contents;
+
+        // Evaluation.
+        expect(lContents.length).toBe(2);
+
+        const lEntryA: BlobContentEntry | undefined = lContents.find((pEntry: BlobContentEntry) => pEntry.path === 'entries/a');
+        const lEntryB: BlobContentEntry | undefined = lContents.find((pEntry: BlobContentEntry) => pEntry.path === 'entries/b');
+
+        expect(lEntryA).toBeDefined();
+        expect(lEntryA!.classType).toBe(TypeA);
+        expect(lEntryA!.byteLength).toBeGreaterThan(0);
+
+        expect(lEntryB).toBeDefined();
+        expect(lEntryB!.classType).toBe(TypeB);
+        expect(lEntryB!.byteLength).toBeGreaterThan(0);
+    });
+
+    await pContext.step('Return empty array when no blob loaded', () => {
+        // Setup.
+        const lSerializer: BlobSerializer = new BlobSerializer();
+
+        // Process.
+        const lContents: Array<BlobContentEntry> = lSerializer.contents;
+
+        // Evaluation.
+        expect(lContents.length).toBe(0);
+    });
+});
+
+Deno.test('BlobSerializer.store()', async (pContext) => {
+    await pContext.step('Store  without blob loaded', async () => {
+        // Setup.
+        const lUuid: string = 'blob-store-no-load';
+
+        @Serializer.class(lUuid)
+        class TestObj {
+            @Serializer.property()
+            public value: number = 0;
+        }
+
+        const lSerializer: BlobSerializer = new BlobSerializer();
+        const lObj: TestObj = new TestObj();
+        lObj.value = 42;
+
+        // Process.
+        lSerializer.store('test', lObj);
+        const lBlob: Blob = await lSerializer.save();
+
+        // Evaluation.
+        const lLoadSerializer: BlobSerializer = new BlobSerializer();
+        await lLoadSerializer.load(lBlob);
+        const lResult: TestObj = await lLoadSerializer.read<TestObj>('test');
+        expect(lResult.value).toBe(42);
+    });
+
+    await pContext.step('Mixed store', async (pContext) => {
+        await pContext.step('Save loaded entries and new entries', async () => {
+            // Setup.
+            const lUuidA: string = 'blob-store-preserve-a';
+            const lUuidB: string = 'blob-store-preserve-b';
+
+            @Serializer.class(lUuidA)
+            class TypeA {
+                @Serializer.property()
+                public value: number = 0;
+            }
+
+            @Serializer.class(lUuidB)
+            class TypeB {
+                @Serializer.property()
+                public label: string = '';
+            }
+
+            // Create initial blob with TypeA entry.
+            const lInitialBlob: Blob = await (async () => {
+                const lObjA: TypeA = new TypeA();
+                lObjA.value = 10;
+
+                const lInitialSerializer: BlobSerializer = new BlobSerializer();
+                lInitialSerializer.store('data/a', lObjA);
+
+                return lInitialSerializer.save();
+            })();
+
+            // Load and add TypeB entry.
+            const lMergeSerializer: BlobSerializer = new BlobSerializer();
+            await lMergeSerializer.load(lInitialBlob);
+
+            const lObjB: TypeB = new TypeB();
+            lObjB.label = 'Added';
+            lMergeSerializer.store('data/b', lObjB);
+
+            // Process.
+            const lMergedBlob: Blob = await lMergeSerializer.save();
+
+            // Evaluation.
+            const lVerifySerializer: BlobSerializer = new BlobSerializer();
+            await lVerifySerializer.load(lMergedBlob);
+
+            const lResultA: TypeA = await lVerifySerializer.read<TypeA>('data/a');
+            const lResultB: TypeB = await lVerifySerializer.read<TypeB>('data/b');
+
+            expect(lResultA.value).toBe(10);
+            expect(lResultB.label).toBe('Added');
+            expect(lVerifySerializer.contents.length).toBe(2);
+        });
+
+        await pContext.step('Override existing entry in loaded blob', async () => {
+            // Setup.
+            const lUuid: string = 'blob-store-override-loaded';
+
+            @Serializer.class(lUuid)
+            class TestObj {
+                @Serializer.property()
+                public value: number = 0;
+            }
+
+            // Create initial blob with one entry.
+            const lInitialSerializer: BlobSerializer = new BlobSerializer();
+            const lObj1: TestObj = new TestObj();
+            lObj1.value = 1;
+            lInitialSerializer.store('entry', lObj1);
+            const lInitialBlob: Blob = await lInitialSerializer.save();
+
+            // Load the blob and override the entry.
+            const lMergeSerializer: BlobSerializer = new BlobSerializer();
+            await lMergeSerializer.load(lInitialBlob);
+
+            const lObj2: TestObj = new TestObj();
+            lObj2.value = 99;
+            lMergeSerializer.store('entry', lObj2);
+
+            // Process.
+            const lMergedBlob: Blob = await lMergeSerializer.save();
+
+            // Evaluation.
+            const lVerifySerializer: BlobSerializer = new BlobSerializer();
+            await lVerifySerializer.load(lMergedBlob);
+
+            const lResult: TestObj = await lVerifySerializer.read<TestObj>('entry');
+            expect(lResult.value).toBe(99);
+
+            expect(lVerifySerializer.contents.length).toBe(1);
+        });
+    });
+
+    await pContext.step('Casing', async (pContext) => {
+        await pContext.step('Store and read with different casing', async () => {
+            // Setup.
+            const lUuid: string = 'blob-case-insensitive';
+            const lPath: string = 'MyFolder/MyClass';
+
+            @Serializer.class(lUuid)
+            class TestObj {
+                @Serializer.property()
+                public value: number = 0;
+            }
+
+            const lSerializer: BlobSerializer = new BlobSerializer();
+            const lObj: TestObj = new TestObj();
+            lObj.value = 42;
+            lSerializer.store(lPath.toLowerCase(), lObj);
+
+            const lBlob: Blob = await lSerializer.save();
+            const lLoadSerializer: BlobSerializer = new BlobSerializer();
+            await lLoadSerializer.load(lBlob);
+
+            // Process. Read with different casing.
+            const lResult: TestObj = await lLoadSerializer.read<TestObj>(lPath.toUpperCase());
+
+            // Evaluation.
+            expect(lResult.value).toBe(42);
+        });
+
+        await pContext.step('Store with different casing overwrites same path', async () => {
+            // Setup.
+            const lUuid: string = 'blob-case-overwrite';
+            const lPath: string = 'Same/Path';
+
+            @Serializer.class(lUuid)
+            class TestObj {
+                @Serializer.property()
+                public value: number = 0;
+            }
+
+            const lSerializer: BlobSerializer = new BlobSerializer();
+
+            const lObj1: TestObj = new TestObj();
+            lObj1.value = 1;
+            lSerializer.store(lPath.toLowerCase(), lObj1);
+
+            const lObj2: TestObj = new TestObj();
+            lObj2.value = 2;
+            lSerializer.store(lPath.toUpperCase(), lObj2);
+
+            // Process.
+            const lBlob: Blob = await lSerializer.save();
+            const lLoadSerializer: BlobSerializer = new BlobSerializer();
+            await lLoadSerializer.load(lBlob);
+
+            // Evaluation. Only one entry should exist with the overwritten value.
+            expect(lLoadSerializer.contents.length).toBe(1);
+            const lResult: TestObj = await lLoadSerializer.read<TestObj>('SAME/PATH');
+            expect(lResult.value).toBe(2);
+        });
+
+        await pContext.step('Contents paths are normalized to lowercase', async () => {
+            // Setup.
+            const lUuid: string = 'blob-case-contents';
+            const lPath: string = 'MyFolder/MyClass';
+
+            @Serializer.class(lUuid)
+            class TestObj {
+                @Serializer.property()
+                public value: number = 0;
+            }
+
+            const lSerializer: BlobSerializer = new BlobSerializer();
+
+            lSerializer.store(lPath.toLowerCase(), new TestObj());
+
+            const lBlob: Blob = await lSerializer.save();
+            const lLoadSerializer: BlobSerializer = new BlobSerializer();
+            await lLoadSerializer.load(lBlob);
+
+            // Process.
+            const lContents: Array<BlobContentEntry> = lLoadSerializer.contents;
+
+            // Evaluation.
+            expect(lContents[0].path).toBe(lPath.toLowerCase());
+        });
+    });
+
+    await pContext.step('Throw on circular reference during store', async () => {
+        // Setup.
+        const lUuid: string = 'blob-circular-throw';
+
+        @Serializer.class(lUuid)
+        class CircularObj {
+            @Serializer.property()
+            public self: CircularObj | null = null;
+        }
+
+        const lObj: CircularObj = new CircularObj();
+        lObj.self = lObj;
+
+        const lSerializer: BlobSerializer = new BlobSerializer();
+
+        // Process & Evaluation.
+        try {
+            lSerializer.store('circular', lObj);
+        } catch (pError) {
+            expect((pError as Error).message).toBe('Circular reference detected during serialization.');
+        }
+    });
+});
+
 
 Deno.test('BlobSerializer end-to-end', async (pContext) => {
     await pContext.step('Round-trip complex blob with multiple paths', async () => {
@@ -573,18 +986,14 @@ Deno.test('BlobSerializer end-to-end', async (pContext) => {
             @Serializer.property()
             public get age(): number {
                 return this.mAge;
+            } set age(pValue: number) {
+                this.mAge = pValue;
             }
 
             @Serializer.property()
             public get name(): string {
                 return this.mName;
-            }
-
-            public set age(pValue: number) {
-                this.mAge = pValue;
-            }
-
-            public set name(pValue: string) {
+            } set name(pValue: string) {
                 this.mName = pValue;
             }
         }
@@ -659,377 +1068,5 @@ Deno.test('BlobSerializer end-to-end', async (pContext) => {
         expect(lResult.items[1]).toBeInstanceOf(Item);
         expect(lResult.items[1].id).toBe(2);
         expect(lResult.items[1].label).toBe('Second');
-    });
-});
-
-Deno.test('BlobSerializer circular reference', async (pContext) => {
-    await pContext.step('Throw on circular reference during save', async () => {
-        // Setup.
-        const lUuid: string = 'blob-circular-throw';
-
-        @Serializer.class(lUuid)
-        class CircularObj {
-            @Serializer.property()
-            public self: CircularObj | null = null;
-        }
-
-        const lObj: CircularObj = new CircularObj();
-        lObj.self = lObj;
-
-        const lSerializer: BlobSerializer = new BlobSerializer();
-        lSerializer.store('circular', lObj);
-
-        // Process & Evaluation.
-        try {
-            await lSerializer.save();
-            expect(true).toBe(false); // Should not reach here.
-        } catch (pError) {
-            expect((pError as Error).message).toBe('Circular reference detected during serialization.');
-        }
-    });
-});
-
-Deno.test('BlobSerializer.contents', async (pContext) => {
-    await pContext.step('Return contents of loaded blob with single entry', async () => {
-        // Setup.
-        const lUuid: string = 'blob-contents-single';
-
-        @Serializer.class(lUuid)
-        class TestObj {
-            @Serializer.property()
-            public name: string = 'Test';
-        }
-
-        const lSaveSerializer: BlobSerializer = new BlobSerializer();
-        lSaveSerializer.store('my/path', new TestObj());
-        const lBlob: Blob = await lSaveSerializer.save();
-
-        const lLoadSerializer: BlobSerializer = new BlobSerializer();
-        await lLoadSerializer.load(lBlob);
-
-        // Process.
-        const lContents: Array<BlobContentEntry> = lLoadSerializer.contents;
-
-        // Evaluation.
-        expect(lContents.length).toBe(1);
-        expect(lContents[0].path).toBe('my/path');
-        expect(lContents[0].byteLength).toBeGreaterThan(0);
-        expect(lContents[0].classType).toBe(TestObj);
-    });
-
-    await pContext.step('Return contents of loaded blob with multiple entries', async () => {
-        // Setup.
-        const lUuidA: string = 'blob-contents-multi-a';
-        const lUuidB: string = 'blob-contents-multi-b';
-
-        @Serializer.class(lUuidA)
-        class TypeA {
-            @Serializer.property()
-            public value: number = 1;
-        }
-
-        @Serializer.class(lUuidB)
-        class TypeB {
-            @Serializer.property()
-            public label: string = 'hello';
-        }
-
-        const lSaveSerializer: BlobSerializer = new BlobSerializer();
-        lSaveSerializer.store('entries/a', new TypeA());
-        lSaveSerializer.store('entries/b', new TypeB());
-        const lBlob: Blob = await lSaveSerializer.save();
-
-        const lLoadSerializer: BlobSerializer = new BlobSerializer();
-        await lLoadSerializer.load(lBlob);
-
-        // Process.
-        const lContents: Array<BlobContentEntry> = lLoadSerializer.contents;
-
-        // Evaluation.
-        expect(lContents.length).toBe(2);
-
-        const lEntryA: BlobContentEntry | undefined = lContents.find((pEntry: BlobContentEntry) => pEntry.path === 'entries/a');
-        const lEntryB: BlobContentEntry | undefined = lContents.find((pEntry: BlobContentEntry) => pEntry.path === 'entries/b');
-
-        expect(lEntryA).toBeDefined();
-        expect(lEntryA!.classType).toBe(TypeA);
-        expect(lEntryA!.byteLength).toBeGreaterThan(0);
-
-        expect(lEntryB).toBeDefined();
-        expect(lEntryB!.classType).toBe(TypeB);
-        expect(lEntryB!.byteLength).toBeGreaterThan(0);
-    });
-
-    await pContext.step('Return empty array when no blob loaded', () => {
-        // Setup.
-        const lSerializer: BlobSerializer = new BlobSerializer();
-
-        // Process.
-        const lContents: Array<BlobContentEntry> = lSerializer.contents;
-
-        // Evaluation.
-        expect(lContents.length).toBe(0);
-    });
-});
-
-Deno.test('BlobSerializer.store() without blob loaded', async (pContext) => {
-    await pContext.step('Store and save without loading a blob first', async () => {
-        // Setup.
-        const lUuid: string = 'blob-store-no-load';
-
-        @Serializer.class(lUuid)
-        class TestObj {
-            @Serializer.property()
-            public value: number = 0;
-        }
-
-        const lSerializer: BlobSerializer = new BlobSerializer();
-        const lObj: TestObj = new TestObj();
-        lObj.value = 42;
-
-        // Process.
-        lSerializer.store('test', lObj);
-        const lBlob: Blob = await lSerializer.save();
-
-        // Evaluation.
-        const lLoadSerializer: BlobSerializer = new BlobSerializer();
-        await lLoadSerializer.load(lBlob);
-        const lResult: TestObj = await lLoadSerializer.read<TestObj>('test');
-        expect(lResult.value).toBe(42);
-    });
-});
-
-Deno.test('BlobSerializer.store() into loaded blob', async (pContext) => {
-    await pContext.step('Add new entry to loaded blob', async () => {
-        // Setup.
-        const lUuid: string = 'blob-store-into-loaded';
-
-        @Serializer.class(lUuid)
-        class TestObj {
-            @Serializer.property()
-            public value: number = 0;
-        }
-
-        // Create initial blob with one entry.
-        const lInitialSerializer: BlobSerializer = new BlobSerializer();
-        const lObj1: TestObj = new TestObj();
-        lObj1.value = 1;
-        lInitialSerializer.store('entry/one', lObj1);
-        const lInitialBlob: Blob = await lInitialSerializer.save();
-
-        // Load the blob and add a new entry.
-        const lMergeSerializer: BlobSerializer = new BlobSerializer();
-        await lMergeSerializer.load(lInitialBlob);
-
-        const lObj2: TestObj = new TestObj();
-        lObj2.value = 2;
-        lMergeSerializer.store('entry/two', lObj2);
-
-        // Process.
-        const lMergedBlob: Blob = await lMergeSerializer.save();
-
-        // Evaluation. Both entries should be present.
-        const lVerifySerializer: BlobSerializer = new BlobSerializer();
-        await lVerifySerializer.load(lMergedBlob);
-
-        const lResult1: TestObj = await lVerifySerializer.read<TestObj>('entry/one');
-        const lResult2: TestObj = await lVerifySerializer.read<TestObj>('entry/two');
-
-        expect(lResult1.value).toBe(1);
-        expect(lResult2.value).toBe(2);
-    });
-
-    await pContext.step('Override existing entry in loaded blob', async () => {
-        // Setup.
-        const lUuid: string = 'blob-store-override-loaded';
-
-        @Serializer.class(lUuid)
-        class TestObj {
-            @Serializer.property()
-            public value: number = 0;
-        }
-
-        // Create initial blob with one entry.
-        const lInitialSerializer: BlobSerializer = new BlobSerializer();
-        const lObj1: TestObj = new TestObj();
-        lObj1.value = 1;
-        lInitialSerializer.store('entry', lObj1);
-        const lInitialBlob: Blob = await lInitialSerializer.save();
-
-        // Load the blob and override the entry.
-        const lMergeSerializer: BlobSerializer = new BlobSerializer();
-        await lMergeSerializer.load(lInitialBlob);
-
-        const lObj2: TestObj = new TestObj();
-        lObj2.value = 99;
-        lMergeSerializer.store('entry', lObj2);
-
-        // Process.
-        const lMergedBlob: Blob = await lMergeSerializer.save();
-
-        // Evaluation.
-        const lVerifySerializer: BlobSerializer = new BlobSerializer();
-        await lVerifySerializer.load(lMergedBlob);
-
-        const lResult: TestObj = await lVerifySerializer.read<TestObj>('entry');
-        expect(lResult.value).toBe(99);
-
-        expect(lVerifySerializer.contents.length).toBe(1);
-    });
-
-    await pContext.step('Loaded entries preserved alongside new entries', async () => {
-        // Setup.
-        const lUuidA: string = 'blob-store-preserve-a';
-        const lUuidB: string = 'blob-store-preserve-b';
-
-        @Serializer.class(lUuidA)
-        class TypeA {
-            @Serializer.property()
-            public value: number = 0;
-        }
-
-        @Serializer.class(lUuidB)
-        class TypeB {
-            @Serializer.property()
-            public label: string = '';
-        }
-
-        // Create initial blob with TypeA entry.
-        const lInitialSerializer: BlobSerializer = new BlobSerializer();
-        const lObjA: TypeA = new TypeA();
-        lObjA.value = 10;
-        lInitialSerializer.store('data/a', lObjA);
-        const lInitialBlob: Blob = await lInitialSerializer.save();
-
-        // Load and add TypeB entry.
-        const lMergeSerializer: BlobSerializer = new BlobSerializer();
-        await lMergeSerializer.load(lInitialBlob);
-
-        const lObjB: TypeB = new TypeB();
-        lObjB.label = 'Added';
-        lMergeSerializer.store('data/b', lObjB);
-
-        // Process.
-        const lMergedBlob: Blob = await lMergeSerializer.save();
-
-        // Evaluation.
-        const lVerifySerializer: BlobSerializer = new BlobSerializer();
-        await lVerifySerializer.load(lMergedBlob);
-
-        const lResultA: TypeA = await lVerifySerializer.read<TypeA>('data/a');
-        const lResultB: TypeB = await lVerifySerializer.read<TypeB>('data/b');
-
-        expect(lResultA.value).toBe(10);
-        expect(lResultB.label).toBe('Added');
-        expect(lVerifySerializer.contents.length).toBe(2);
-    });
-});
-
-Deno.test('BlobSerializer case-insensitive paths', async (pContext) => {
-    await pContext.step('Store and read with different casing', async () => {
-        // Setup.
-        const lUuid: string = 'blob-case-insensitive';
-
-        @Serializer.class(lUuid)
-        class TestObj {
-            @Serializer.property()
-            public value: number = 0;
-        }
-
-        const lSerializer: BlobSerializer = new BlobSerializer();
-        const lObj: TestObj = new TestObj();
-        lObj.value = 42;
-        lSerializer.store('MyFolder/MyClass', lObj);
-
-        const lBlob: Blob = await lSerializer.save();
-        const lLoadSerializer: BlobSerializer = new BlobSerializer();
-        await lLoadSerializer.load(lBlob);
-
-        // Process. Read with different casing.
-        const lResult: TestObj = await lLoadSerializer.read<TestObj>('myfolder/myclass');
-
-        // Evaluation.
-        expect(lResult.value).toBe(42);
-    });
-
-    await pContext.step('Read with uppercase path matches lowercase stored path', async () => {
-        // Setup.
-        const lUuid: string = 'blob-case-upper';
-
-        @Serializer.class(lUuid)
-        class TestObj {
-            @Serializer.property()
-            public value: number = 0;
-        }
-
-        const lSerializer: BlobSerializer = new BlobSerializer();
-        const lObj: TestObj = new TestObj();
-        lObj.value = 7;
-        lSerializer.store('lower/path', lObj);
-
-        const lBlob: Blob = await lSerializer.save();
-        const lLoadSerializer: BlobSerializer = new BlobSerializer();
-        await lLoadSerializer.load(lBlob);
-
-        // Process. Read with uppercase.
-        const lResult: TestObj = await lLoadSerializer.read<TestObj>('LOWER/PATH');
-
-        // Evaluation.
-        expect(lResult.value).toBe(7);
-    });
-
-    await pContext.step('Store with different casing overwrites same path', async () => {
-        // Setup.
-        const lUuid: string = 'blob-case-overwrite';
-
-        @Serializer.class(lUuid)
-        class TestObj {
-            @Serializer.property()
-            public value: number = 0;
-        }
-
-        const lSerializer: BlobSerializer = new BlobSerializer();
-
-        const lObj1: TestObj = new TestObj();
-        lObj1.value = 1;
-        lSerializer.store('Same/Path', lObj1);
-
-        const lObj2: TestObj = new TestObj();
-        lObj2.value = 2;
-        lSerializer.store('same/path', lObj2);
-
-        // Process.
-        const lBlob: Blob = await lSerializer.save();
-        const lLoadSerializer: BlobSerializer = new BlobSerializer();
-        await lLoadSerializer.load(lBlob);
-
-        // Evaluation. Only one entry should exist with the overwritten value.
-        expect(lLoadSerializer.contents.length).toBe(1);
-        const lResult: TestObj = await lLoadSerializer.read<TestObj>('SAME/PATH');
-        expect(lResult.value).toBe(2);
-    });
-
-    await pContext.step('Contents paths are normalized to lowercase', async () => {
-        // Setup.
-        const lUuid: string = 'blob-case-contents';
-
-        @Serializer.class(lUuid)
-        class TestObj {
-            @Serializer.property()
-            public value: number = 0;
-        }
-
-        const lSerializer: BlobSerializer = new BlobSerializer();
-        lSerializer.store('MyFolder/MyClass', new TestObj());
-
-        const lBlob: Blob = await lSerializer.save();
-        const lLoadSerializer: BlobSerializer = new BlobSerializer();
-        await lLoadSerializer.load(lBlob);
-
-        // Process.
-        const lContents: Array<BlobContentEntry> = lLoadSerializer.contents;
-
-        // Evaluation.
-        expect(lContents[0].path).toBe('myfolder/myclass');
     });
 });

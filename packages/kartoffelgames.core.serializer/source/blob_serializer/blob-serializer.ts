@@ -1,7 +1,7 @@
 import { Exception, type IVoidParameterConstructor } from '@kartoffelgames/core';
 import { Serializer } from '../core/serializer.ts';
-import { BlobSerializerValueEncoder } from './blob-serializer-value-encoder.ts';
-import { BlobSerializerValueDecoder } from './blob-serializer-value-decoder.ts';
+import { BlobSerializerValueSerializer } from './blob-serializer-value-serializer.ts';
+import { BlobSerializerValueDeserializer } from './blob-serializer-value-deserializer.ts';
 
 /**
  * Instance-based serializer for reading/writing class objects from/to Blob.
@@ -89,13 +89,13 @@ export class BlobSerializer {
      *
      * @returns parsed table of content entries.
      */
-    private static async readTableOfContent(pBlob: Blob, pTableOfContentOffset: number, pEntryCount: number): Promise<BlobSerializerTableOfContent> {
+    private static async readTableOfContent(pBlob: Blob, pTableOfContentOffset: number, pEntryCount: number): Promise<Map<string, BlobSerializerTableOfContentEntry>> {
         const lTableOfContentSize: number = pBlob.size - pTableOfContentOffset;
         const lTableOfContentBytes: Uint8Array = await BlobSerializer.sliceToUint8Array(pBlob, pTableOfContentOffset, lTableOfContentSize);
         const lTableOfContentByteView: DataView = new DataView(lTableOfContentBytes.buffer);
         const lTextDecoder: TextDecoder = new TextDecoder();
 
-        const lEntries: BlobSerializerTableOfContent = new Array<BlobSerializerTableOfContentEntry>();
+        const lEntries: Map<string, BlobSerializerTableOfContentEntry> = new Map<string, BlobSerializerTableOfContentEntry>();
         let lOffset: number = 0;
 
         for (let lIndex: number = 0; lIndex < pEntryCount; lIndex++) {
@@ -116,7 +116,10 @@ export class BlobSerializer {
             const lDataSize: number = lTableOfContentByteView.getUint32(lOffset, true);
             lOffset += 4;
 
-            lEntries.push({ dataOffset: lDataOffset, dataSize: lDataSize, path: lPath, uuid: '' });
+            // Read entry UUID from the start of the entry data.
+            const lUuid: string = await BlobSerializer.readEntryUuid(pBlob, lDataOffset);
+
+            lEntries.set(lPath, { dataOffset: lDataOffset, dataSize: lDataSize, uuid: lUuid });
         }
 
         return lEntries;
@@ -132,15 +135,15 @@ export class BlobSerializer {
      * @returns Uint8Array of the sliced data.
      */
     private static async sliceToUint8Array(pBlob: Blob, pOffset: number, pLength: number): Promise<Uint8Array> {
-        const lSlice: Blob = pBlob.slice(pOffset, pOffset + pLength);
-        const lBuffer: ArrayBuffer = await lSlice.arrayBuffer();
-        return new Uint8Array(lBuffer);
+        const lSlice: ArrayBuffer = await pBlob.slice(pOffset, pOffset + pLength).arrayBuffer();
+
+        return new Uint8Array(lSlice);
     }
 
     private mBlob: Blob | null;
-    private readonly mEntries: Map<string, object>;
-    private mTableOfContent: BlobSerializerTableOfContent | null;
-
+    private mTableOfContent: Map<string, BlobSerializerTableOfContentEntry>;
+    private readonly mUnsavedEntries: Map<string, Uint8Array>;
+    
     /**
      * Get the list of available contents in the loaded blob.
      * Each entry contains the path, byte length, and class type (constructor).
@@ -148,15 +151,16 @@ export class BlobSerializer {
      * @returns array of content entries. Empty when no blob is loaded.
      */
     public get contents(): Array<BlobContentEntry> {
-        if (this.mTableOfContent === null) {
-            return [];
+        const lResultList: Array<BlobContentEntry> = new Array<BlobContentEntry>();
+        for (const [lEntryPath, lEntry] of this.mTableOfContent) {
+            lResultList.push({
+                byteLength: lEntry.dataSize,
+                classType: Serializer.classOfUuid(lEntry.uuid),
+                path: lEntryPath,
+            });
         }
 
-        return this.mTableOfContent.map((pEntry: BlobSerializerTableOfContentEntry) => ({
-            byteLength: pEntry.dataSize,
-            classType: Serializer.classOfUuid(pEntry.uuid),
-            path: pEntry.path,
-        }));
+        return lResultList;
     }
 
     /**
@@ -164,8 +168,8 @@ export class BlobSerializer {
      */
     public constructor() {
         this.mBlob = null;
-        this.mTableOfContent = null;
-        this.mEntries = new Map<string, object>();
+        this.mTableOfContent = new Map<string, BlobSerializerTableOfContentEntry>();
+        this.mUnsavedEntries = new Map<string, Uint8Array>();
     }
 
     /**
@@ -199,11 +203,7 @@ export class BlobSerializer {
         // Read table of content.
         this.mTableOfContent = await BlobSerializer.readTableOfContent(pBlob, lHeader.tableOfContentOffset, lHeader.entryCount);
 
-        // Read UUID for each entry.
-        for (const lEntry of this.mTableOfContent) {
-            lEntry.uuid = await BlobSerializer.readEntryUuid(pBlob, lEntry.dataOffset);
-        }
-
+        // Store loaded blob for later partial reads.
         this.mBlob = pBlob;
     }
 
@@ -219,22 +219,37 @@ export class BlobSerializer {
      * @throws Exception if no blob is loaded or the path is not found.
      */
     public async read<T>(pPath: string): Promise<T> {
-        if (this.mBlob === null || this.mTableOfContent === null) {
-            throw new Exception('No blob loaded. Call load() first.', this);
-        }
-
-        // Find the table of content entry for this path (case-insensitive).
+        // Normalize path to lowercase for case-insensitive matching.
         const lNormalizedPath: string = pPath.toLowerCase();
-        const lEntry: BlobSerializerTableOfContentEntry | undefined = this.mTableOfContent.find((pEntry: BlobSerializerTableOfContentEntry) => pEntry.path === lNormalizedPath);
-        if (lEntry === undefined) {
+
+        // Look up if path exists in unsaved entries first, then fallback to loaded blob entries.
+        const lEntryData: Uint8Array | undefined = await (async () => {
+            // Try to read unsaved entry data first.
+            if (this.mUnsavedEntries.has(lNormalizedPath)) {
+                return this.mUnsavedEntries.get(lNormalizedPath);
+            }
+
+            // When no blob is loaded, we cannot read any entries.
+            if (this.mBlob === null) {
+                return undefined;
+            }
+
+            // Find the table of content entry for this path (case-insensitive).
+            const lEntry: BlobSerializerTableOfContentEntry | undefined = this.mTableOfContent.get(lNormalizedPath);
+            if (lEntry) {
+                return BlobSerializer.sliceToUint8Array(this.mBlob, lEntry.dataOffset, lEntry.dataSize);
+            }
+
+            return undefined;
+        })();
+
+        // When no entry data found, the path does not exist.
+        if (!lEntryData) {
             throw new Exception(`Path "${pPath}" not found in blob.`, this);
         }
 
-        // Slice only the entry's data from the blob.
-        const lEntryData: Uint8Array = await BlobSerializer.sliceToUint8Array(this.mBlob, lEntry.dataOffset, lEntry.dataSize);
-
         // Decode.
-        const lDecoder: BlobSerializerValueDecoder = new BlobSerializerValueDecoder(lEntryData);
+        const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEntryData);
         return lDecoder.decode() as T;
     }
 
@@ -248,41 +263,41 @@ export class BlobSerializer {
         const lTextEncoder: TextEncoder = new TextEncoder();
 
         // Collect all encoded entries: loaded blob entries (not overridden) + stored entries.
-        const lEncodedEntries: Array<{ data: Uint8Array; path: string }> = new Array<{ data: Uint8Array; path: string }>();
+        const lEncodedEntries: Array<{ data: Uint8Array; path: string; }> = new Array<{ data: Uint8Array; path: string; }>();
 
         // Include loaded blob entries that are not overridden by stored entries.
         if (this.mBlob !== null && this.mTableOfContent !== null) {
-            for (const lTocEntry of this.mTableOfContent) {
-                if (this.mEntries.has(lTocEntry.path)) {
+            for (const [lTableOfContentEntryPath, lTableOfContentEntry] of this.mTableOfContent) {
+                // When an unsaved entry with the same path is stored, skip the overwritten blob entry.
+                if (this.mUnsavedEntries.has(lTableOfContentEntryPath)) {
                     continue;
                 }
 
-                const lData: Uint8Array = await BlobSerializer.sliceToUint8Array(this.mBlob, lTocEntry.dataOffset, lTocEntry.dataSize);
-                lEncodedEntries.push({ data: lData, path: lTocEntry.path });
+                // Read the entry data from the blob and add to encoded entries.
+                const lData: Uint8Array = await BlobSerializer.sliceToUint8Array(this.mBlob, lTableOfContentEntry.dataOffset, lTableOfContentEntry.dataSize);
+                lEncodedEntries.push({ data: lData, path: lTableOfContentEntryPath });
             }
         }
 
         // Encode and add stored entries.
-        for (const [lPath, lObject] of this.mEntries) {
-            const lEncoder: BlobSerializerValueEncoder = new BlobSerializerValueEncoder();
-            const lData: Uint8Array = lEncoder.encode(lObject);
-            lEncodedEntries.push({ data: lData, path: lPath });
+        for (const [lPath, lObjectBytes] of this.mUnsavedEntries) {
+            lEncodedEntries.push({ data: lObjectBytes, path: lPath });
         }
 
         // Calculate data section size and offsets.
         let lDataOffset: number = BlobSerializer.HEADER_BYTE_SIZE;
-        const lTableOfContentEntries: BlobSerializerTableOfContent = new Array<BlobSerializerTableOfContentEntry>();
+        const lTableOfContentEntries: Array<BlobSerializerTableOfContentBinaryInfo> = new Array<BlobSerializerTableOfContentBinaryInfo>();
 
         for (const lEntry of lEncodedEntries) {
             lTableOfContentEntries.push({
                 dataOffset: lDataOffset,
                 dataSize: lEntry.data.byteLength,
                 path: lEntry.path,
-                uuid: '',
             });
             lDataOffset += lEntry.data.byteLength;
         }
 
+        // The total offset of header + data entries is the starting offset of the table of content.
         const lTableOfContentOffset: number = lDataOffset;
 
         // Build table of content bytes.
@@ -311,7 +326,7 @@ export class BlobSerializer {
             lTableOfContentParts.push(new Uint8Array(lEntryBuffer));
         }
 
-        // Build header.
+        // Build header. Header is fixed size of 16 bytes, so we can write it directly into an ArrayBuffer.
         const lHeaderBuffer: ArrayBuffer = new ArrayBuffer(BlobSerializer.HEADER_BYTE_SIZE);
         const lHeaderView: DataView = new DataView(lHeaderBuffer);
         lHeaderView.setUint32(0, BlobSerializer.MAGIC_NUMBER, true);
@@ -332,10 +347,9 @@ export class BlobSerializer {
         }
 
         // Calculate total size.
-        let lTotalSize: number = 0;
-        for (const lPart of lParts) {
-            lTotalSize += lPart.byteLength;
-        }
+        const lTotalSize: number = lParts.reduce((pSum, pCurrentItem) => {
+            return pSum + pCurrentItem.byteLength;
+        }, 0);
 
         // Combine into single buffer.
         const lCombined: Uint8Array = new Uint8Array(lTotalSize);
@@ -356,7 +370,8 @@ export class BlobSerializer {
      * @param pObject - The serializable object to store.
      */
     public store(pPath: string, pObject: object): void {
-        this.mEntries.set(pPath.toLowerCase(), pObject);
+        const lSerializedObject: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
+        this.mUnsavedEntries.set(pPath.toLowerCase(), lSerializedObject.encode(pObject));
     }
 }
 
@@ -383,11 +398,14 @@ type BlobSerializerFileHeader = {
 /**
  * Parsed table of contents entry.
  */
-type BlobSerializerTableOfContent = Array<BlobSerializerTableOfContentEntry>;
-
 type BlobSerializerTableOfContentEntry = {
     dataOffset: number;
     dataSize: number;
-    path: string;
     uuid: string;
+};
+
+type BlobSerializerTableOfContentBinaryInfo = {
+    dataOffset: number;
+    dataSize: number;
+    path: string;
 };

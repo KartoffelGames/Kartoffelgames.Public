@@ -7,21 +7,23 @@ import { ValueTypeTag, TypedArraySubType } from './blob-serializer-types.ts';
  * Encodes JavaScript values into binary `Uint8Array` format.
  * Handles all supported value types and detects circular references.
  */
-export class BlobSerializerValueEncoder {
+export class BlobSerializerValueSerializer {
     private static readonly mTextEncoder: TextEncoder = new TextEncoder();
 
     /**
      * Concatenate multiple Uint8Array segments into one.
      */
     private static concat(...pArrays: Array<Uint8Array>): Uint8Array {
-        let lTotalLength: number = 0;
-        for (const lArray of pArrays) {
-            lTotalLength += lArray.byteLength;
-        }
+        // Calculate total length of concatenated array.
+        const lTotalLength: number = pArrays.reduce((pSum, pCurrentItem) => {
+            return pSum + pCurrentItem.byteLength;
+        }, 0);
 
+        // Create result array and copy segments into it.
         const lResult: Uint8Array = new Uint8Array(lTotalLength);
-        let lOffset: number = 0;
 
+        // Merge arrays by copying each into the result at the correct offset.
+        let lOffset: number = 0;
         for (const lArray of pArrays) {
             lResult.set(lArray, lOffset);
             lOffset += lArray.byteLength;
@@ -34,17 +36,19 @@ export class BlobSerializerValueEncoder {
      * Get the TypedArray sub-type ID for a given TypedArray instance.
      */
     private static getTypedArraySubType(pValue: TypedArray): TypedArraySubType {
-        if (pValue instanceof Int8Array) { return TypedArraySubType.Int8Array; }
-        if (pValue instanceof Uint8Array) { return TypedArraySubType.Uint8Array; }
-        if (pValue instanceof Uint8ClampedArray) { return TypedArraySubType.Uint8ClampedArray; }
-        if (pValue instanceof Int16Array) { return TypedArraySubType.Int16Array; }
-        if (pValue instanceof Uint16Array) { return TypedArraySubType.Uint16Array; }
-        if (pValue instanceof Int32Array) { return TypedArraySubType.Int32Array; }
-        if (pValue instanceof Uint32Array) { return TypedArraySubType.Uint32Array; }
-        if (pValue instanceof Float32Array) { return TypedArraySubType.Float32Array; }
-        if (pValue instanceof Float64Array) { return TypedArraySubType.Float64Array; }
-        if (pValue instanceof BigInt64Array) { return TypedArraySubType.BigInt64Array; }
-        if (pValue instanceof BigUint64Array) { return TypedArraySubType.BigUint64Array; }
+        switch (true) {
+            case pValue instanceof Int8Array: return TypedArraySubType.Int8Array;
+            case pValue instanceof Uint8Array: return TypedArraySubType.Uint8Array;
+            case pValue instanceof Uint8ClampedArray: return TypedArraySubType.Uint8ClampedArray;
+            case pValue instanceof Int16Array: return TypedArraySubType.Int16Array;
+            case pValue instanceof Uint16Array: return TypedArraySubType.Uint16Array;
+            case pValue instanceof Int32Array: return TypedArraySubType.Int32Array;
+            case pValue instanceof Uint32Array: return TypedArraySubType.Uint32Array;
+            case pValue instanceof Float32Array: return TypedArraySubType.Float32Array;
+            case pValue instanceof Float64Array: return TypedArraySubType.Float64Array;
+            case pValue instanceof BigInt64Array: return TypedArraySubType.BigInt64Array;
+            case pValue instanceof BigUint64Array: return TypedArraySubType.BigUint64Array;
+        }
 
         throw new Exception('Unsupported TypedArray type.', pValue);
     }
@@ -160,7 +164,7 @@ export class BlobSerializerValueEncoder {
             lParts.push(this.encode(lElement));
         }
 
-        return BlobSerializerValueEncoder.concat(...lParts);
+        return BlobSerializerValueSerializer.concat(...lParts);
     }
 
     /**
@@ -171,7 +175,7 @@ export class BlobSerializerValueEncoder {
         const lHeaderView: DataView = new DataView(lHeaderBuffer);
         lHeaderView.setUint8(0, ValueTypeTag.ArrayBuffer);
         lHeaderView.setUint32(1, pValue.byteLength, true);
-        return BlobSerializerValueEncoder.concat(new Uint8Array(lHeaderBuffer), new Uint8Array(pValue));
+        return BlobSerializerValueSerializer.concat(new Uint8Array(lHeaderBuffer), new Uint8Array(pValue));
     }
 
     /**
@@ -209,7 +213,7 @@ export class BlobSerializerValueEncoder {
             throw new Exception('Serializer UUID has not been set.', this);
         }
 
-        const lUuidBytes: Uint8Array = BlobSerializerValueEncoder.mTextEncoder.encode(lClassUuid);
+        const lUuidBytes: Uint8Array = BlobSerializerValueSerializer.mTextEncoder.encode(lClassUuid);
         const lPropertyNames: Array<string> = pMetadata.propertyNames;
 
         // Header: tag + uuid length + uuid bytes + property count.
@@ -234,7 +238,7 @@ export class BlobSerializerValueEncoder {
         for (const lPropertyName of lPropertyNames) {
             const lConfig = pMetadata.getPropertyConfig(lPropertyName);
             const lBinaryKey: string = lConfig.alias ?? lPropertyName;
-            const lKeyBytes: Uint8Array = BlobSerializerValueEncoder.mTextEncoder.encode(lBinaryKey);
+            const lKeyBytes: Uint8Array = BlobSerializerValueSerializer.mTextEncoder.encode(lBinaryKey);
 
             // Key: uint16 key-length + UTF-8 key bytes.
             const lKeyHeaderBuffer: ArrayBuffer = new ArrayBuffer(2);
@@ -249,26 +253,26 @@ export class BlobSerializerValueEncoder {
             lParts.push(this.encode(lPropertyValue));
         }
 
-        return BlobSerializerValueEncoder.concat(...lParts);
+        return BlobSerializerValueSerializer.concat(...lParts);
     }
 
     /**
      * Encode string as UTF-8. Tag 0x04 + uint32 byte-length + UTF-8 bytes.
      */
     private encodeString(pValue: string): Uint8Array {
-        const lStringBytes: Uint8Array = BlobSerializerValueEncoder.mTextEncoder.encode(pValue);
+        const lStringBytes: Uint8Array = BlobSerializerValueSerializer.mTextEncoder.encode(pValue);
         const lBuffer: ArrayBuffer = new ArrayBuffer(5);
         const lView: DataView = new DataView(lBuffer);
         lView.setUint8(0, ValueTypeTag.String);
         lView.setUint32(1, lStringBytes.byteLength, true);
-        return BlobSerializerValueEncoder.concat(new Uint8Array(lBuffer), lStringBytes);
+        return BlobSerializerValueSerializer.concat(new Uint8Array(lBuffer), lStringBytes);
     }
 
     /**
      * Encode TypedArray. Tag 0x08 + uint8 sub-type-id + uint32 byte-length + raw bytes.
      */
     private encodeTypedArray(pValue: TypedArray): Uint8Array {
-        const lSubType: TypedArraySubType = BlobSerializerValueEncoder.getTypedArraySubType(pValue);
+        const lSubType: TypedArraySubType = BlobSerializerValueSerializer.getTypedArraySubType(pValue);
         const lBytes: Uint8Array = new Uint8Array(pValue.buffer, pValue.byteOffset, pValue.byteLength);
 
         const lHeaderBuffer: ArrayBuffer = new ArrayBuffer(6);
@@ -277,6 +281,6 @@ export class BlobSerializerValueEncoder {
         lHeaderView.setUint8(1, lSubType);
         lHeaderView.setUint32(2, pValue.byteLength, true);
 
-        return BlobSerializerValueEncoder.concat(new Uint8Array(lHeaderBuffer), lBytes);
+        return BlobSerializerValueSerializer.concat(new Uint8Array(lHeaderBuffer), lBytes);
     }
 }

@@ -1,11 +1,12 @@
 import { PrimitiveTopology } from '@kartoffelgames/web-gpu';
-import { MeshComponent } from '../../source/component/mesh-component.ts';
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
 import { GameEnvironment } from '../../source/core/environment/game-environment.ts';
 import { GameScene } from '../../source/core/game-scene.ts';
 import { GameEntity } from '../../source/core/hierarchy/game-entity.ts';
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
 import { ShitSystem } from './shit-system.ts';
+import { Mesh } from "../../source/component_item/mesh/mesh.ts";
+import { MeshRenderComponent } from "../../source/component/mesh-render-component.ts";
 
 /**
  * Cube vertex position data. Each vertex is a vec4 f32.
@@ -65,6 +66,12 @@ const gCubeVertexIndices: Array<number> = [
     7, 6, 2, 7, 2, 3
 ];
 
+// Add cube mesh to block entity.
+const lBlockMesh: Mesh = new Mesh();
+lBlockMesh.vertices = gCubeVertexPositionData;
+lBlockMesh.normals = gCubeVertexNormalData;
+lBlockMesh.addSubMesh(gCubeVertexIndices, PrimitiveTopology.TriangleList);
+
 (() => {
     const lEnvironment = new GameEnvironment({
         //debugLog: true
@@ -84,7 +91,8 @@ const gCubeVertexIndices: Array<number> = [
 
     // Generate some object.
     {
-        const lScene: GameScene = new GameScene('Test Scene');
+        const lScene: GameScene = new GameScene();
+        lScene.label = 'Test Scene';
 
         // Init arrays.
         const lBlockArray: Array<GameEntity> = new Array<GameEntity>();
@@ -95,22 +103,23 @@ const gCubeVertexIndices: Array<number> = [
             const lParent: GameEntity | null = lParentArray.at(-1) || null;
 
             // Create new parent.
-            const lHierarchyEntity = new GameEntity(`Hierarchy Entity ${lParentArray.length + 1}`);
+            const lHierarchyEntity = new GameEntity();
+            lHierarchyEntity.label = `Hierarchy Entity ${lParentArray.length + 1}`;
             const lHierarchyTransformation: TransformationComponent = lHierarchyEntity.addComponent(TransformationComponent);
             lHierarchyTransformation.translationX = 2;
 
             // Create new block.
-            const lBlockEntiy: GameEntity = new GameEntity(`Block Entity ${lBlockArray.length + 1}`);
+            const lBlockEntiy: GameEntity = new GameEntity();
+            lBlockEntiy.label = `Block Entity ${lBlockArray.length + 1}`;
+            
             const lBlockTransformation: TransformationComponent = lBlockEntiy.addComponent(TransformationComponent);
             lBlockTransformation.scaleHeight = 0.5;
             lBlockTransformation.scaleDepth = 0.5;
             lBlockTransformation.scaleWidth = 2;
 
             // Add cube mesh to block entity.
-            const lBlockMesh: MeshComponent = lBlockEntiy.addComponent(MeshComponent);
-            lBlockMesh.vertices = gCubeVertexPositionData;
-            lBlockMesh.normals = gCubeVertexNormalData;
-            lBlockMesh.addSubMesh(gCubeVertexIndices, PrimitiveTopology.TriangleList);
+            const lBlockMeshComponent = lBlockEntiy.addComponent(MeshRenderComponent);
+            lBlockMeshComponent.mesh = lBlockMesh;
 
             lHierarchyEntity.addObject(lBlockEntiy);
 

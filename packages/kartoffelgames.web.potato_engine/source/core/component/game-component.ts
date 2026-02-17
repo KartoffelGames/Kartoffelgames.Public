@@ -63,6 +63,15 @@ export class GameComponent extends GameObject {
     }
 
     /**
+     * Transmits a component update event to the environment handler.
+     *
+     * @internal
+     */
+    public update(): void {
+        this.environment?.update(this);
+    }
+
+    /**
      * Changes the enable state of this component and signals the environment on state changes.
      *
      * @param pEnabled - Whether this component should be enabled.
@@ -82,15 +91,6 @@ export class GameComponent extends GameObject {
         }
 
         return lStateChanged;
-    }
-
-    /**
-     * Transmits a component activation event to the environment handler.
-     *
-     * @internal
-     */
-    protected submitUpdateRequest(): void {
-        this.environment?.update(this);
     }
 }
 

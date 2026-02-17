@@ -19,7 +19,6 @@ import {
     type VertexParameter,
     VertexParameterStepMode
 } from '@kartoffelgames/web-gpu';
-import { MeshComponent } from '../../source/component/mesh-component.ts';
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
 import type { GameComponentConstructor } from '../../source/core/component/game-component.ts';
 import type { GameEnvironmentStateChange } from '../../source/core/environment/game-environment-transmittion.ts';

@@ -446,6 +446,6 @@ export class TransformationComponent extends GameComponent {
         this.mDirty = true;
 
         // Signal environment of change for systems to react to.
-        this.submitUpdateRequest();
+        this.update();
     }
 }

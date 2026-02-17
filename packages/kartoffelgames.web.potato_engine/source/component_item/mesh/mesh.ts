@@ -1,7 +1,7 @@
-import { BufferItemFormat } from '../../../kartoffelgames.web.gpu/source/constant/buffer-item-format.enum.ts';
-import type { PrimitiveTopology } from '../../../kartoffelgames.web.gpu/source/constant/primitive-topology.enum.ts';
-import { GameComponent } from '../core/component/game-component.ts';
-import { BoundingBox } from './bounding-box.ts';
+import { BufferItemFormat } from '../../../../kartoffelgames.web.gpu/source/constant/buffer-item-format.enum.ts';
+import type { PrimitiveTopology } from '../../../../kartoffelgames.web.gpu/source/constant/primitive-topology.enum.ts';
+import { BoundingBox } from '../bounding-box.ts';
+import { GameComponentItem } from "../../core/component/game-component-item.ts";
 import { SubMesh } from './sub-mesh.ts';
 
 // TODO: Add bone indices and bone weights per vertex for skeletal animation support.
@@ -12,7 +12,7 @@ import { SubMesh } from './sub-mesh.ts';
  * Holds only raw data without performing any GPU operations or heavy computations.
  * The mesh always contains at least one sub mesh that covers all indices by default.
  */
-export class MeshComponent extends GameComponent {
+export class Mesh extends GameComponentItem {
     private mBounds: BoundingBox;
     private mColors: Array<number>;
     private mNormals: Array<number>;
@@ -31,8 +31,8 @@ export class MeshComponent extends GameComponent {
     } set bounds(pValue: BoundingBox) {
         this.mBounds = pValue;
 
-        // Signal environment of change.
-        this.triggerComponentChange();
+        // Signal parent component of the change.
+        this.update();
     }
 
     /**
@@ -44,8 +44,8 @@ export class MeshComponent extends GameComponent {
     } set colors(pValue: Array<number>) {
         this.mColors = pValue;
 
-        // Signal environment of change.
-        this.triggerComponentChange();
+        // Signal parent component of the change.
+        this.update();
     }
 
     /**
@@ -69,8 +69,8 @@ export class MeshComponent extends GameComponent {
     } set normals(pValue: Array<number>) {
         this.mNormals = pValue;
 
-        // Signal environment of change.
-        this.triggerComponentChange();
+        // Signal parent component of the change.
+        this.update();
     }
 
     /**
@@ -90,8 +90,8 @@ export class MeshComponent extends GameComponent {
     } set uv1(pValue: Array<number>) {
         this.mUv1 = pValue;
 
-        // Signal environment of change.
-        this.triggerComponentChange();
+        // Signal parent component of the change.
+        this.update();
     }
 
     /**
@@ -103,8 +103,8 @@ export class MeshComponent extends GameComponent {
     } set uv2(pValue: Array<number>) {
         this.mUv2 = pValue;
 
-        // Signal environment of change.
-        this.triggerComponentChange();
+        // Signal parent component of the change.
+        this.update();
     }
 
     /**
@@ -116,8 +116,8 @@ export class MeshComponent extends GameComponent {
     } set uv3(pValue: Array<number>) {
         this.mUv3 = pValue;
 
-        // Signal environment of change.
-        this.triggerComponentChange();
+        // Signal parent component of the change.
+        this.update();
     }
 
     /**
@@ -129,8 +129,8 @@ export class MeshComponent extends GameComponent {
     } set uv4(pValue: Array<number>) {
         this.mUv4 = pValue;
 
-        // Signal environment of change.
-        this.triggerComponentChange();
+        // Signal parent component of the change.
+        this.update();
     }
 
     /**
@@ -142,8 +142,8 @@ export class MeshComponent extends GameComponent {
     } set vertices(pValue: Array<number>) {
         this.mVertices = pValue;
 
-        // Signal environment of change.
-        this.triggerComponentChange();
+        // Signal parent component of the change.
+        this.update();
     }
 
     /**
@@ -188,11 +188,16 @@ export class MeshComponent extends GameComponent {
      * @returns The newly created sub mesh.
      */
     public addSubMesh(pIndices: Array<number>, pTopology: PrimitiveTopology): SubMesh {
-        const lSubMesh: SubMesh = new SubMesh(pIndices, pTopology);
+        // Create new sub mesh with specified indices and topology.
+        const lSubMesh: SubMesh = new SubMesh();
+        lSubMesh.indices = pIndices;
+        lSubMesh.topology = pTopology;
+
+        // Add new sub mesh to the list.
         this.mSubMeshes.push(lSubMesh);
 
-        // Signal environment of change.
-        this.triggerComponentChange();
+        // Signal parent component of the change.
+        this.update();
 
         return lSubMesh;
     }
@@ -214,14 +219,8 @@ export class MeshComponent extends GameComponent {
         // Remove sub mesh at specified index.
         this.mSubMeshes.splice(pIndex, 1);
 
-        // Signal environment of change.
-        this.triggerComponentChange();
+        // Signal parent component of the change.
+        this.update();
     }
 
-    /**
-     * Signals the environment of a component data change.
-     */
-    private triggerComponentChange(): void {
-        this.submitUpdateRequest();
-    }
 }

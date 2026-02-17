@@ -1,4 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
+import { Serializer } from '@kartoffelgames/core-serializer';
 import type { IAnyParameterConstructor } from '../../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import type { GameComponent, GameComponentConstructor } from '../component/game-component.ts';
 import { GameNode } from '../hierarchy/game-node.ts';
@@ -7,17 +8,16 @@ import { GameNode } from '../hierarchy/game-node.ts';
  * A GameEntity is a game node that can have components.
  * It is used to create game objects in the scene, which can have components that define their behavior and state.
  */
+@Serializer.class('71db9e82-6a93-4cae-a530-50c05ceb33c4')
 export class GameEntity extends GameNode {
     private readonly mComponentTypeMap: Map<GameComponentConstructor, GameComponent>;
     private readonly mComponents: Set<GameComponent>;
 
     /**
      * Create a new empty game object.
-     * 
-     * @param pLabel - Label of the game object.
      */
-    public constructor(pLabel: string) {
-        super(pLabel);
+    public constructor() {
+        super('Entity');
 
         // Init component storage
         this.mComponents = new Set<GameComponent>();

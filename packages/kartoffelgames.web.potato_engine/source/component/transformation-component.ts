@@ -1,3 +1,4 @@
+import { Serializer } from '@kartoffelgames/core-serializer';
 import { GameComponent } from '../core/component/game-component.ts';
 import { Matrix } from '../math/matrix.ts';
 import { Quaternion } from '../math/quaternion.ts';
@@ -6,7 +7,10 @@ import { Quaternion } from '../math/quaternion.ts';
  * Component that manages transformation state including translation, rotation, scale and pivot.
  * Values are decoupled from the matrix representation. The transformation matrix is lazily
  * recalculated from the individual components only when accessed after a change.
+ * 
+ * // TODO: Proper serializer properties.
  */
+@Serializer.class('7b8a6001-7a15-45cc-a7e5-a47274359545')
 export class TransformationComponent extends GameComponent {
     private mDirty: boolean;
     private mMatrix: Matrix;
@@ -38,11 +42,12 @@ export class TransformationComponent extends GameComponent {
     /**
      * X pivot point.
      */
+    @Serializer.property()
     public get pivotX(): number {
         return this.mPivotX;
     } set pivotX(pValue: number) {
         this.mPivotX = pValue;
-       
+
         // Trigger matrix recalculation on next access.
         this.triggerComponentChange();
     }
@@ -50,11 +55,12 @@ export class TransformationComponent extends GameComponent {
     /**
      * Y pivot point.
      */
+    @Serializer.property()
     public get pivotY(): number {
         return this.mPivotY;
     } set pivotY(pValue: number) {
         this.mPivotY = pValue;
-        
+
         // Trigger matrix recalculation on next access.
         this.triggerComponentChange();
     }
@@ -62,11 +68,12 @@ export class TransformationComponent extends GameComponent {
     /**
      * Z pivot point.
      */
+    @Serializer.property()
     public get pivotZ(): number {
         return this.mPivotZ;
     } set pivotZ(pValue: number) {
         this.mPivotZ = pValue;
-        
+
         // Trigger matrix recalculation on next access.
         this.triggerComponentChange();
     }
@@ -74,8 +81,14 @@ export class TransformationComponent extends GameComponent {
     /**
      * Rotation quaternion.
      */
+    @Serializer.property()
     public get rotation(): Quaternion {
         return this.mRotation;
+    } set rotation(pValue: Quaternion) {
+        this.mRotation = pValue;
+
+        // Trigger matrix recalculation on next access.
+        this.triggerComponentChange();
     }
 
     /**
@@ -105,11 +118,12 @@ export class TransformationComponent extends GameComponent {
     /**
      * Depth scale.
      */
+    @Serializer.property()
     public get scaleDepth(): number {
         return this.mScaleDepth;
     } set scaleDepth(pValue: number) {
         this.mScaleDepth = pValue;
-        
+
         // Trigger matrix recalculation on next access.
         this.triggerComponentChange();
     }
@@ -117,11 +131,12 @@ export class TransformationComponent extends GameComponent {
     /**
      * Height scale.
      */
+    @Serializer.property()
     public get scaleHeight(): number {
         return this.mScaleHeight;
     } set scaleHeight(pValue: number) {
         this.mScaleHeight = pValue;
-        
+
         // Trigger matrix recalculation on next access.
         this.triggerComponentChange();
     }
@@ -129,11 +144,12 @@ export class TransformationComponent extends GameComponent {
     /**
      * Width scale.
      */
+    @Serializer.property()
     public get scaleWidth(): number {
         return this.mScaleWidth;
     } set scaleWidth(pValue: number) {
         this.mScaleWidth = pValue;
-        
+
         // Trigger matrix recalculation on next access.
         this.triggerComponentChange();
     }
@@ -141,11 +157,12 @@ export class TransformationComponent extends GameComponent {
     /**
      * X translation.
      */
+    @Serializer.property()
     public get translationX(): number {
         return this.mTranslationX;
     } set translationX(pValue: number) {
         this.mTranslationX = pValue;
-        
+
         // Trigger matrix recalculation on next access.
         this.triggerComponentChange();
     }
@@ -153,11 +170,12 @@ export class TransformationComponent extends GameComponent {
     /**
      * Y translation.
      */
+    @Serializer.property()
     public get translationY(): number {
         return this.mTranslationY;
     } set translationY(pValue: number) {
         this.mTranslationY = pValue;
-        
+
         // Trigger matrix recalculation on next access.
         this.triggerComponentChange();
     }
@@ -165,11 +183,12 @@ export class TransformationComponent extends GameComponent {
     /**
      * Z translation.
      */
+    @Serializer.property()
     public get translationZ(): number {
         return this.mTranslationZ;
     } set translationZ(pValue: number) {
         this.mTranslationZ = pValue;
-        
+
         // Trigger matrix recalculation on next access.
         this.triggerComponentChange();
     }
@@ -193,7 +212,7 @@ export class TransformationComponent extends GameComponent {
         this.mTranslationZ = 0;
 
         // Initialize rotation to identity quaternion.
-        this.mRotation = new Quaternion(1, 0, 0, 0);
+        this.mRotation = new Quaternion();
 
         // Initialize pivot to origin.
         this.mPivotX = 0;
@@ -202,7 +221,7 @@ export class TransformationComponent extends GameComponent {
 
         // Initialize matrix and mark as dirty for first calculation.
         this.mMatrix = Matrix.identity(4);
-        
+
         // Trigger matrix recalculation on next access.
         this.mDirty = true;
     }
@@ -217,7 +236,7 @@ export class TransformationComponent extends GameComponent {
     public addEulerRotation(pPitch: number, pYaw: number, pRoll: number): void {
         // Apply rotation to current rotation.
         this.mRotation = this.mRotation.addEulerRotation(pPitch, pYaw, pRoll);
-        
+
         // Trigger matrix recalculation on next access.
         this.triggerComponentChange();
     }
@@ -232,7 +251,7 @@ export class TransformationComponent extends GameComponent {
     public addRotation(pPitch: number, pYaw: number, pRoll: number): void {
         // Apply rotation to current rotation.
         this.mRotation = Quaternion.fromRotation(pPitch, pYaw, pRoll).mult(this.mRotation);
-        
+
         // Trigger matrix recalculation on next access.
         this.triggerComponentChange();
     }
@@ -248,7 +267,7 @@ export class TransformationComponent extends GameComponent {
         this.mScaleWidth += pWidth;
         this.mScaleHeight += pHeight;
         this.mScaleDepth += pDepth;
-        
+
         // Trigger matrix recalculation on next access.
         this.triggerComponentChange();
     }
@@ -264,7 +283,7 @@ export class TransformationComponent extends GameComponent {
         this.mTranslationX += pX;
         this.mTranslationY += pY;
         this.mTranslationZ += pZ;
-        
+
         // Trigger matrix recalculation on next access.
         this.triggerComponentChange();
     }
@@ -283,7 +302,7 @@ export class TransformationComponent extends GameComponent {
 
         // Create new rotation.
         this.mRotation = Quaternion.fromRotation(lPitch, lYaw, lRoll);
-        
+
         // Trigger matrix recalculation on next access.
         this.triggerComponentChange();
     }
@@ -299,7 +318,7 @@ export class TransformationComponent extends GameComponent {
         this.mScaleWidth = pWidth ?? this.mScaleWidth;
         this.mScaleHeight = pHeight ?? this.mScaleHeight;
         this.mScaleDepth = pDepth ?? this.mScaleDepth;
-        
+
         // Trigger matrix recalculation on next access.
         this.triggerComponentChange();
     }

@@ -46,10 +46,10 @@ export class ShaderObject {
                     continue;
                 }
 
-                const lBindingGroup: ShaderObjectMetaBindingGroup = this.mMeta.bindings[lBindingGroupIndex];
+                // const lBindingGroup: ShaderObjectMetaBindingGroup = this.mMeta.bindings[lBindingGroupIndex];
 
                 // TODO: Create or read predefined binding group.
-                //pSetup.group(lBindingGroupIndex, lBindingGroup.name);
+                //pSetup.group(lBindingGroupIndex, this.mMeta.bindings[lBindingGroupIndex].name);
             }
         });
 

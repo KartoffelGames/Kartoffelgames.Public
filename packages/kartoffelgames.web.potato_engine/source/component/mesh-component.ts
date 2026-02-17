@@ -1,5 +1,5 @@
 import { BufferItemFormat } from '../../../kartoffelgames.web.gpu/source/constant/buffer-item-format.enum.ts';
-import { PrimitiveTopology } from '../../../kartoffelgames.web.gpu/source/constant/primitive-topology.enum.ts';
+import type { PrimitiveTopology } from '../../../kartoffelgames.web.gpu/source/constant/primitive-topology.enum.ts';
 import { GameComponent } from '../core/component/game-component.ts';
 import { BoundingBox } from './bounding-box.ts';
 import { SubMesh } from './sub-mesh.ts';
@@ -16,7 +16,7 @@ export class MeshComponent extends GameComponent {
     private mBounds: BoundingBox;
     private mColors: Array<number>;
     private mNormals: Array<number>;
-    private mSubMeshes: Array<SubMesh>;
+    private readonly mSubMeshes: Array<SubMesh>;
     private mUv1: Array<number>;
     private mUv2: Array<number>;
     private mUv3: Array<number>;
@@ -134,14 +134,6 @@ export class MeshComponent extends GameComponent {
     }
 
     /**
-     * Number of vertices in the mesh.
-     * Calculated from the vertex position data assuming three components per vertex (x, y, z).
-     */
-    public get verticlesCount(): number {
-        return this.mVertices.length;
-    }
-
-    /**
      * Vertex position data as a flat array of XYZ values.
      * Every three consecutive values represent one vertex position (x, y, z).
      */
@@ -152,6 +144,14 @@ export class MeshComponent extends GameComponent {
 
         // Signal environment of change.
         this.triggerComponentChange();
+    }
+
+    /**
+     * Number of vertices in the mesh.
+     * Calculated from the vertex position data assuming three components per vertex (x, y, z).
+     */
+    public get verticlesCount(): number {
+        return this.mVertices.length;
     }
 
     /**

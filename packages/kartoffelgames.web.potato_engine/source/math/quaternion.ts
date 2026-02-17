@@ -1,7 +1,9 @@
+import { Serializer } from '@kartoffelgames/core-serializer';
 import { Euler } from './euler.ts';
 import { Matrix } from './matrix.ts';
 import { Vector } from './vector.ts';
 
+@Serializer.class('60f0a483-0bcb-4da9-bcb9-b587066b7d1a')
 export class Quaternion {
     /**
      * Create new quaternion from degree rotation.
@@ -25,7 +27,7 @@ export class Quaternion {
         const lSinRoll = Math.sin(lRollRadian * 0.5);
 
         // Create quaternion.
-        const lQuaternion = Quaternion.identity();
+        const lQuaternion = new Quaternion();
         lQuaternion.w = lCosPitch * lCosYaw * lCosRoll + lSinPitch * lSinYaw * lSinRoll;
         lQuaternion.x = lSinPitch * lCosYaw * lCosRoll - lCosPitch * lSinYaw * lSinRoll;
         lQuaternion.y = lCosPitch * lSinYaw * lCosRoll + lSinPitch * lCosYaw * lSinRoll;
@@ -34,17 +36,10 @@ export class Quaternion {
         return lQuaternion;
     }
 
-    /**
-     * Create identity quaternion.
-     */
-    public static identity(): Quaternion {
-        return new Quaternion(1, 0, 0, 0);
-    }
-
-    public mW: number;
-    public mX: number;
-    public mY: number;
-    public mZ: number;
+    private mW: number;
+    private mX: number;
+    private mY: number;
+    private mZ: number;
 
     /**
      * Rotation forward vector.
@@ -107,6 +102,7 @@ export class Quaternion {
     /**
      * Get w value.
      */
+    @Serializer.property()
     public get w(): number {
         return this.mW;
     } set w(pValue: number) {
@@ -116,6 +112,7 @@ export class Quaternion {
     /**
      * Get x value.
      */
+    @Serializer.property()
     public get x(): number {
         return this.mX;
     } set x(pValue: number) {
@@ -125,6 +122,7 @@ export class Quaternion {
     /**
      * Get y value.
      */
+    @Serializer.property()
     public get y(): number {
         return this.mY;
     } set y(pValue: number) {
@@ -134,6 +132,7 @@ export class Quaternion {
     /**
      * Get z value.
      */
+    @Serializer.property()
     public get z(): number {
         return this.mZ;
     } set z(pValue: number) {
@@ -147,11 +146,11 @@ export class Quaternion {
      * @param pY - Y.
      * @param pZ - Z.
      */
-    public constructor(pW: number, pX: number, pY: number, pZ: number) {
-        this.mX = pX;
-        this.mY = pY;
-        this.mZ = pZ;
-        this.mW = pW;
+    public constructor() {
+        this.mW = 1;
+        this.mX = 0;
+        this.mY = 0;
+        this.mZ = 0;
     }
 
     /**
@@ -244,7 +243,13 @@ export class Quaternion {
         const lY: number = this.mW * pQuaternion.y - this.mX * pQuaternion.z + this.mY * pQuaternion.w + this.mZ * pQuaternion.x;
         const lZ: number = this.mW * pQuaternion.z + this.mX * pQuaternion.y - this.mY * pQuaternion.x + this.mZ * pQuaternion.w;
 
-        return new Quaternion(lW, lX, lY, lZ);
+        const lQuaternion = new Quaternion();
+        lQuaternion.x = lX;
+        lQuaternion.y = lY;
+        lQuaternion.z = lZ;
+        lQuaternion.w = lW;
+
+        return lQuaternion;
     }
 
     /**
@@ -255,6 +260,12 @@ export class Quaternion {
         const lLength = Math.hypot(this.mW, this.mX, this.mY, this.mZ);
 
         // Create new quaternion by dividing each dimension by length.
-        return new Quaternion(this.mW / lLength, this.mX / lLength, this.mY / lLength, this.mZ / lLength);
+        const lQuaternion = new Quaternion();
+        lQuaternion.x = this.mX / lLength;
+        lQuaternion.y = this.mY / lLength;
+        lQuaternion.z = this.mZ / lLength;
+        lQuaternion.w = this.mW / lLength;
+
+        return lQuaternion;
     }
 }

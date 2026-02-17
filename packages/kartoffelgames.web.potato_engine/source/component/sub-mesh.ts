@@ -1,4 +1,4 @@
-import { PrimitiveTopology } from '../../../kartoffelgames.web.gpu/source/constant/primitive-topology.enum.ts';
+import type { PrimitiveTopology } from '../../../kartoffelgames.web.gpu/source/constant/primitive-topology.enum.ts';
 
 /**
  * Represents a sub-section of a mesh defined by a list of vertex indices and rendering configuration.

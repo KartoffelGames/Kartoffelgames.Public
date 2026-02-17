@@ -75,8 +75,10 @@ const gCubeVertexIndices: Array<number> = [
     lEnvironment.registerSystem(ShitSystem);
 
     // Start the environment.
+    // eslint-disable-next-line no-console
     console.log('Starting environment...');
     lEnvironment.start().then(() => {
+        // eslint-disable-next-line no-console
         console.log('Environment closed.');
     });
 

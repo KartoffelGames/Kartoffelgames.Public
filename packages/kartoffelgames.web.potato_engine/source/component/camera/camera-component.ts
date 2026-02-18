@@ -1,11 +1,11 @@
-import { Exception } from "@kartoffelgames/core";
+import { Exception, Matrix } from "@kartoffelgames/core";
 import { Serializer } from "@kartoffelgames/core-serializer";
 import { GameComponent } from "../../core/component/game-component.ts";
-import { Matrix } from "../../math/matrix.ts";
-import { PropertyMeta } from "../../property_meta/property-meta.ts";
+import { EditorProperty } from "../../editor_property/editor-property.ts";
 import { IProjection } from "./projection/i-projection.interface.ts";
 import { OrthographicProjection } from "./projection/orthographic -projection.ts";
 import { PerspectiveProjection } from "./projection/perspective-projection.ts";
+
 /**
  * Component that holds information about a camera, such as projection.
  */
@@ -23,7 +23,7 @@ export class CameraComponent extends GameComponent {
     /**
      * Camera projection type. Setting this will create a new projection of the given type.
      */
-    @PropertyMeta.enum(CameraComponentProjection)
+    @EditorProperty.enum(CameraComponentProjection)
     public get projectionType(): CameraComponentProjection {
         switch (true) {
             case this.projection instanceof PerspectiveProjection: return CameraComponentProjection.Perspective;

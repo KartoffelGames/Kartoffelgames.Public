@@ -1,10 +1,13 @@
+import { Matrix } from "@kartoffelgames/core";
 import { Serializer } from "@kartoffelgames/core-serializer";
-import type { IProjection } from './i-projection.interface.ts';
 import { GameComponentItem } from "../../../core/component/game-component-item.ts";
-import { Matrix } from "../../../math/matrix.ts";
-import { PropertyMeta } from "../../../property_meta/property-meta.ts";
-import { NumberType } from "../../../property_meta/property-meta-type.ts";
+import { EditorPropertyNumberType } from "../../../editor_property/editor-property-register.ts";
+import { EditorProperty } from "../../../editor_property/editor-property.ts";
+import type { IProjection } from './i-projection.interface.ts';
 
+/**
+ * Perspective projection implementation of IProjection.
+ */
 @Serializer.serializeableClass('5b59c0d1-3027-46d7-b47f-8e3d80ff0319')
 export class PerspectiveProjection extends GameComponentItem implements IProjection {
     /**
@@ -12,7 +15,7 @@ export class PerspectiveProjection extends GameComponentItem implements IProject
      * This instance is immutable and cannot be modified, as it is shared across all components that use it.
      * Modifying this instance will throw an exception to prevent unintended side effects on other components using the same instance.
      */
-    public static systemInstance: PerspectiveProjection = (()=>{
+    public static systemInstance: PerspectiveProjection = (() => {
         // Create system instance with default values.
         const lInstance: PerspectiveProjection = new PerspectiveProjection();
         lInstance.mAngleOfView = 45;
@@ -34,7 +37,7 @@ export class PerspectiveProjection extends GameComponentItem implements IProject
      * Angle of view.
      */
     @Serializer.property()
-    @PropertyMeta.range(1, 200, NumberType.Float)
+    @EditorProperty.range(1, 200, EditorPropertyNumberType.Float)
     public get angleOfView(): number {
         return this.mAngleOfView;
     } set angleOfView(pValue: number) {
@@ -66,7 +69,7 @@ export class PerspectiveProjection extends GameComponentItem implements IProject
     /**
      * Far plane.
      */
-    @PropertyMeta.range(0.01, 1000, NumberType.Float)
+    @EditorProperty.range(0.01, 1000, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get far(): number {
         return this.mFar;
@@ -83,7 +86,7 @@ export class PerspectiveProjection extends GameComponentItem implements IProject
     /**
      * Near plane.
      */
-    @PropertyMeta.range(0.01, 1000, NumberType.Float)
+    @EditorProperty.range(0.01, 1000, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get near(): number {
         return this.mNear;

@@ -1,10 +1,13 @@
+import { Matrix } from "@kartoffelgames/core";
 import { Serializer } from "@kartoffelgames/core-serializer";
-import type { IProjection } from './i-projection.interface.ts';
 import { GameComponentItem } from "../../../core/component/game-component-item.ts";
-import { Matrix } from "../../../math/matrix.ts";
-import { PropertyMeta } from "../../../property_meta/property-meta.ts";
-import { NumberType } from "../../../property_meta/property-meta-type.ts";
+import { EditorPropertyNumberType } from "../../../editor_property/editor-property-register.ts";
+import { EditorProperty } from "../../../editor_property/editor-property.ts";
+import type { IProjection } from './i-projection.interface.ts';
 
+/**
+ * Orthographic projection implementation of IProjection.
+ */
 @Serializer.serializeableClass('a5f23afd-0cc9-40ce-a9be-34510f7b4066')
 export class OrthographicProjection extends GameComponentItem implements IProjection {
     /**
@@ -49,7 +52,7 @@ export class OrthographicProjection extends GameComponentItem implements IProjec
     /**
      * Far plane.
      */
-    @PropertyMeta.range(0.01, 1000, NumberType.Float)
+    @EditorProperty.range(0.01, 1000, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get far(): number {
         return this.mFar;
@@ -66,7 +69,7 @@ export class OrthographicProjection extends GameComponentItem implements IProjec
     /**
      * Near plane.
      */
-    @PropertyMeta.range(0.01, 1000, NumberType.Float)
+    @EditorProperty.range(0.01, 1000, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get near(): number {
         return this.mNear;

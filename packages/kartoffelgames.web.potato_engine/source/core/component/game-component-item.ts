@@ -1,5 +1,7 @@
 import { Exception } from "@kartoffelgames/core";
+import { Serializer } from "@kartoffelgames/core-serializer";
 import { GameComponent } from "./game-component.ts";
+
 
 /**
  * Represents an item that can be stored in a game component, such as a material slot or a mesh slot.
@@ -23,6 +25,7 @@ export abstract class GameComponentItem {
      *
      * @returns The item's label.
      */
+    @Serializer.property()
     public get label(): string {
         return this.mLabel;
     } set label(pValue: string) {
@@ -104,5 +107,5 @@ export interface GameComponentItemConstructor<T extends GameComponentItem> {
     /**
      * Constructor signature for game component items.
      */
-    new (...args: any[]) : T
+    new(...args: any[]): T;
 }

@@ -1,5 +1,7 @@
 import { Serializer } from "@kartoffelgames/core-serializer";
 import { GameComponentItem } from "../core/component/game-component-item.ts";
+import { EditorProperty } from "../editor_property/editor-property.ts";
+import { EditorPropertyNumberType } from "../editor_property/editor-property-register.ts";
 
 /**
  * Axis-aligned bounding box defined by minimum and maximum corner points.
@@ -7,6 +9,26 @@ import { GameComponentItem } from "../core/component/game-component-item.ts";
  */
 @Serializer.serializeableClass('cd4942b0-af79-4f34-8f1a-cb892599e01e')
 export class BoundingBox extends GameComponentItem{
+    /**
+     * System instance with default values that can be used by components to avoid creating multiple identical instances.
+     * This instance is immutable and cannot be modified, as it is shared across all components that use it.
+     * Modifying this instance will throw an exception to prevent unintended side effects on other components using the same instance.
+     */
+    public static systemInstance: BoundingBox = (() => {
+        // Create system instance with default values.
+        const lInstance: BoundingBox = new BoundingBox();
+        lInstance.mMinX = 0;
+        lInstance.mMinY = 0;
+        lInstance.mMinZ = 0;
+        lInstance.mMaxX = 1;
+        lInstance.mMaxY = 1;
+        lInstance.mMaxZ = 1;
+        lInstance.markAsSystem();
+
+        return lInstance;
+    })();
+
+
     private mMaxX: number;
     private mMaxY: number;
     private mMaxZ: number;
@@ -17,78 +39,96 @@ export class BoundingBox extends GameComponentItem{
     /**
      * Maximum X coordinate of the bounding box.
      */
+    @EditorProperty.range(-10, 10, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get maxX(): number {
         return this.mMaxX;
     } set maxX(pValue: number) {
-        this.mMaxX = pValue;
+        // Gate access on system items.
+        this.systemgate();
 
-        // Send update event to parent.
+        // Set new value and update.
+        this.mMaxX = pValue;
         this.update();
     }
 
     /**
      * Maximum Y coordinate of the bounding box.
      */
+    @EditorProperty.range(-10, 10, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get maxY(): number {
         return this.mMaxY;
     } set maxY(pValue: number) {
-        this.mMaxY = pValue;
+        // Gate access on system items.
+        this.systemgate();
 
-        // Send update event to parent.
+        // Set new value and update.
+        this.mMaxY = pValue;
         this.update();
     }
 
     /**
      * Maximum Z coordinate of the bounding box.
      */
+    @EditorProperty.range(-10, 10, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get maxZ(): number {
         return this.mMaxZ;
     } set maxZ(pValue: number) {
-        this.mMaxZ = pValue;
+        // Gate access on system items.
+        this.systemgate();
 
-        // Send update event to parent.
+        // Set new value and update.
+        this.mMaxZ = pValue;
         this.update();
     }
 
     /**
      * Minimum X coordinate of the bounding box.
      */
+    @EditorProperty.range(-10, 10, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get minX(): number {
         return this.mMinX;
     } set minX(pValue: number) {
-        this.mMinX = pValue;
+        // Gate access on system items.
+        this.systemgate();
 
-        // Send update event to parent.
+        // Set new value and update.
+        this.mMinX = pValue;
         this.update();
     }
 
     /**
      * Minimum Y coordinate of the bounding box.
      */
+    @EditorProperty.range(-10, 10, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get minY(): number {
         return this.mMinY;
     } set minY(pValue: number) {
-        this.mMinY = pValue;
+        // Gate access on system items.
+        this.systemgate();
 
-        // Send update event to parent.
+        // Set new value and update.
+        this.mMinY = pValue;
         this.update();
     }
 
     /**
      * Minimum Z coordinate of the bounding box.
      */
+    @EditorProperty.range(-10, 10, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get minZ(): number {
         return this.mMinZ;
     } set minZ(pValue: number) {
-        this.mMinZ = pValue;
+        // Gate access on system items.
+        this.systemgate();
 
-        // Send update event to parent.
+        // Set new value and update.
+        this.mMinZ = pValue;
         this.update();
     }
 

@@ -1,6 +1,8 @@
 import { Serializer } from '@kartoffelgames/core-serializer';
-import { GameComponentItem } from '../../core/component/game-component-item.ts';
-import { Color } from '../color.ts';
+import { Color } from "../../../component_item/color.ts";
+import { GameComponentItem } from "../../../core/component/game-component-item.ts";
+import { EditorPropertyNumberType } from "../../../editor_property/editor-property-register.ts";
+import { EditorProperty } from "../../../editor_property/editor-property.ts";
 import type { ILightComponentItem } from './i-light-component-item.interface.ts';
 
 /**
@@ -20,6 +22,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
     /**
      * Light color.
      */
+    @EditorProperty.object()
     @Serializer.property()
     public get color(): Color {
         return this.mColor;
@@ -34,6 +37,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
      * Drop-off factor controlling the intensity falloff curve over distance.
      * 0 = full intensity across entire range, 1 = linear falloff.
      */
+    @EditorProperty.range(0, 1, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get dropOff(): number {
         return this.mDropOff;
@@ -45,6 +49,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
     /**
      * Inner cone angle in degrees where full intensity is emitted.
      */
+    @EditorProperty.range(0, 1, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get innerAngle(): number {
         return this.mInnerAngle;
@@ -56,6 +61,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
     /**
      * Light intensity multiplier.
      */
+    @EditorProperty.range(0, 1, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get intensity(): number {
         return this.mIntensity;
@@ -67,6 +73,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
     /**
      * Outer cone angle in degrees where light fades to zero.
      */
+    @EditorProperty.range(0, 1, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get outerAngle(): number {
         return this.mOuterAngle;
@@ -78,6 +85,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
     /**
      * Maximum distance the light reaches.
      */
+    @EditorProperty.range(0, 100, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get range(): number {
         return this.mRange;
@@ -92,8 +100,11 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
     public constructor() {
         super('Spot light');
 
-        this.mColor = new Color();
+        // Link system color instance to avoid creating multiple identical instances.
+        this.mColor = Color.systemInstance;
         this.mColor.linkParent(this);
+
+        // Setup default values.
         this.mIntensity = 1;
         this.mRange = 10;
         this.mDropOff = 1;

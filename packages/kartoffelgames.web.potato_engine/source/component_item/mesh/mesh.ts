@@ -222,5 +222,4 @@ export class Mesh extends GameComponentItem {
         // Signal parent component of the change.
         this.update();
     }
-
 }

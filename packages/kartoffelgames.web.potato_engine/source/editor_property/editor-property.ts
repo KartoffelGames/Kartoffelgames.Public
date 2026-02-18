@@ -49,8 +49,8 @@ export class EditorProperty {
      *
      * @returns property decorator function.
      */
-    public static object<TThis extends object>(pTargetClass: object): (_pTarget: any, pContext: EditorPropertyDecoratorContext<TThis>) => void {
-        return EditorProperty.createDecorator<TThis>({ type: 'object', targetClass: pTargetClass });
+    public static object<TThis extends object>(): (_pTarget: any, pContext: EditorPropertyDecoratorContext<TThis>) => void {
+        return EditorProperty.createDecorator<TThis>({ type: 'object' });
     }
 
     /**

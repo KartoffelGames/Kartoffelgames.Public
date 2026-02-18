@@ -49,6 +49,7 @@ export class CameraComponent extends GameComponent {
     /**
      * Camera projection.
      */
+    @EditorProperty.object()
     @Serializer.property()
     public get projection(): IProjection {
         return this.mProjection;

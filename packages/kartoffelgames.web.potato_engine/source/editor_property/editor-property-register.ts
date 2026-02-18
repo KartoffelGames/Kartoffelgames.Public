@@ -62,10 +62,10 @@ export type EditorPropertyDescriptor =
     | EditorPropertyTextDescriptor
     | EditorPropertyEnumDescriptor;
 
-type EditorPropertyRangeDescriptor = { type: 'range'; min: number; max: number; numberType: EditorPropertyNumberType };
-type EditorPropertyNumberDescriptor = { type: 'number'; min: number; max: number; numberType: EditorPropertyNumberType };
-type EditorPropertyObjectLinkDescriptor = { type: 'objectLink'; linkedClass: object };
-type EditorPropertyBooleanDescriptor = { type: 'boolean' };
-type EditorPropertyTextDescriptor = { type: 'text' };
-type EditorPropertyEnumDescriptor = { type: 'enum'; enumType: object };
-type EditorPropertyObjectDescriptor = { type: 'object', targetClass: object };
+type EditorPropertyRangeDescriptor = { type: 'range'; min: number; max: number; numberType: EditorPropertyNumberType; };
+type EditorPropertyNumberDescriptor = { type: 'number'; min: number; max: number; numberType: EditorPropertyNumberType; };
+type EditorPropertyObjectLinkDescriptor = { type: 'objectLink'; linkedClass: object; };
+type EditorPropertyBooleanDescriptor = { type: 'boolean'; };
+type EditorPropertyTextDescriptor = { type: 'text'; };
+type EditorPropertyEnumDescriptor = { type: 'enum'; enumType: object; };
+type EditorPropertyObjectDescriptor = { type: 'object'; };

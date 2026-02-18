@@ -1,3 +1,6 @@
+/**
+ * Euler representation of rotation.
+ */
 export class Euler {
     private mX: number;
     private mY: number;

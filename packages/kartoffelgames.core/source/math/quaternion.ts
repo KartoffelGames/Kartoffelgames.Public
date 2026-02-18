@@ -1,9 +1,7 @@
-import { Serializer } from '@kartoffelgames/core-serializer';
 import { Euler } from './euler.ts';
 import { Matrix } from './matrix.ts';
 import { Vector } from './vector.ts';
 
-@Serializer.serializeableClass('60f0a483-0bcb-4da9-bcb9-b587066b7d1a')
 export class Quaternion {
     /**
      * Create new quaternion from degree rotation.
@@ -102,7 +100,6 @@ export class Quaternion {
     /**
      * Get w value.
      */
-    @Serializer.property()
     public get w(): number {
         return this.mW;
     } set w(pValue: number) {
@@ -112,7 +109,6 @@ export class Quaternion {
     /**
      * Get x value.
      */
-    @Serializer.property()
     public get x(): number {
         return this.mX;
     } set x(pValue: number) {
@@ -122,7 +118,6 @@ export class Quaternion {
     /**
      * Get y value.
      */
-    @Serializer.property()
     public get y(): number {
         return this.mY;
     } set y(pValue: number) {
@@ -132,7 +127,6 @@ export class Quaternion {
     /**
      * Get z value.
      */
-    @Serializer.property()
     public get z(): number {
         return this.mZ;
     } set z(pValue: number) {

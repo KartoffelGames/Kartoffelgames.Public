@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core';
+import { Exception } from "../exception/exception.ts";
 
 export class Vector {
     private readonly mData: Array<number>;

@@ -1,4 +1,4 @@
-import { expect } from '@std/expect';
+import { expect } from '@kartoffelgames/core-test';
 import { Exception } from '../../source/exception/exception.ts';
 
 Deno.test('Exception.target', async (pContext) => {

@@ -19,8 +19,8 @@ import {
     type VertexParameter,
     VertexParameterStepMode
 } from '@kartoffelgames/web-gpu';
-import { CameraComponent } from '../../source/component/camera-component.ts';
-import { LightComponent } from '../../source/component/light-component.ts';
+import { CameraComponent } from '../../source/component/camera/camera-component.ts';
+import { LightComponent } from '../../source/component/light/light-component.ts';
 import { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
 import type { Mesh } from '../../source/component_item/mesh/mesh.ts';
@@ -215,7 +215,6 @@ export class ShitSystem extends GameSystem {
         this.mCameraGroup.data('viewProjection').asBufferView(Float32Array).write(lViewProjectionMatrix.dataArray);
 
         // Start new GPU frame and execute render pass.
-        this.getDependency(GpuSystem).gpu.startNewFrame();
         this.mExecutor.execute();
     }
 

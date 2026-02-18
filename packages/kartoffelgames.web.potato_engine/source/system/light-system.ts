@@ -1,10 +1,10 @@
 import { BufferUsage, GpuBuffer } from '@kartoffelgames/web-gpu';
-import { LightComponent } from '../component/light-component.ts';
+import { LightComponent } from '../component/light/light-component.ts';
+import { DirectionalLight } from '../component/light/type/directional-light.ts';
+import type { ILightComponentItem } from '../component/light/type/i-light-component-item.interface.ts';
+import { PointLight } from '../component/light/type/point-light.ts';
+import { SpotLight } from '../component/light/type/spot-light.ts';
 import { TransformationComponent } from '../component/transformation-component.ts';
-import type { ILightComponentItem } from '../component_item/light/i-light-component-item.interface.ts';
-import { DirectionalLight } from '../component_item/light/directional-light.ts';
-import { PointLight } from '../component_item/light/point-light.ts';
-import { SpotLight } from '../component_item/light/spot-light.ts';
 import type { GameComponentConstructor } from '../core/component/game-component.ts';
 import type { GameEnvironmentStateChange } from '../core/environment/game-environment-transmittion.ts';
 import { GameSystem, type GameSystemConstructor } from '../core/game-system.ts';

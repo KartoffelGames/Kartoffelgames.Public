@@ -40,7 +40,7 @@
 // ------------------- Constants --------------------------------- //
 const BLOCK_SIZE: u32 = 80u;
 const MAX_PARENT_DEPTH: u32 = 32u;
-const OBJECT_COLOR: vec4<f32> = vec4<f32>(0.8, 0.25, 0.15, 1.0);
+const OBJECT_COLOR: vec4<f32> = vec4<f32>(0.8, 0.8, 0.8, 1.0);
 const AMBIENT_COLOR: vec3<f32> = vec3<f32>(0.15, 0.15, 0.15);
 const LIGHT_STRIDE: u32 = 12u;
 // -------------------------------------------------------------- //

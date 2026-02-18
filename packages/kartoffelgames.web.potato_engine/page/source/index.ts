@@ -1,16 +1,18 @@
-import { TransformationComponent } from '../../source/component/transformation-component.ts';
+import { CameraComponent } from "../../source/component/camera/camera-component.ts";
+import { CameraComponentProjection } from "../../source/component/camera/projection/camera-projection.enum.ts";
+import { PerspectiveProjection } from "../../source/component/camera/projection/perspective-projection.ts";
+import { LightComponent } from '../../source/component/light/light-component.ts';
+import { LightComponentLightType } from "../../source/component/light/type/light-type.enum.ts";
 import { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
-import { LightComponent } from '../../source/component/light-component.ts';
+import { TransformationComponent } from '../../source/component/transformation-component.ts';
 import { GlbConverter } from '../../source/component_item/mesh/glb-converter.ts';
+import type { Mesh } from '../../source/component_item/mesh/mesh.ts';
 import { GameEnvironment } from '../../source/core/environment/game-environment.ts';
 import { GameScene } from '../../source/core/game-scene.ts';
 import { GameEntity } from '../../source/core/hierarchy/game-entity.ts';
-import { TransformationSystem } from '../../source/system/transformation-system.ts';
 import { LightSystem } from '../../source/system/light-system.ts';
+import { TransformationSystem } from '../../source/system/transformation-system.ts';
 import { ShitSystem } from './shit-system.ts';
-import type { Mesh } from '../../source/component_item/mesh/mesh.ts';
-import { CameraComponent } from "../../source/component/camera-component.ts";
-import { PerspectiveProjection } from '../../source/component_item/projection/perspective-projection.ts';
 
 // Load cube mesh from GLB file.
 const lGlbData: ArrayBuffer = await fetch('/mesh.glb').then((pResponse) => {
@@ -23,7 +25,7 @@ console.log(lBlockMesh.verticlesCount);
 
 (() => {
     const lEnvironment = new GameEnvironment({
-        //debugLog: true
+        debugLog: true
     });
 
     // Add systems.
@@ -50,6 +52,7 @@ console.log(lBlockMesh.verticlesCount);
         const lCameraTransformation: TransformationComponent = lCameraEntity.addComponent(TransformationComponent);
         lCameraTransformation.translationZ = -5;
         const lCameraComponent: CameraComponent = lCameraEntity.addComponent(CameraComponent);
+        lCameraComponent.projectionType = CameraComponentProjection.Perspective;
 
         // Configure camera projection.
         const lProjection: PerspectiveProjection = lCameraComponent.projection as PerspectiveProjection;
@@ -69,6 +72,7 @@ console.log(lBlockMesh.verticlesCount);
         lWhiteLightTransform.translationY = 10;
         lWhiteLightTransform.translationZ = -5;
         const lWhiteLight: LightComponent = lWhiteLightEntity.addComponent(LightComponent);
+        lWhiteLight.lightType = LightComponentLightType.Point;
         lWhiteLight.light.color.r = 1;
         lWhiteLight.light.color.g = 1;
         lWhiteLight.light.color.b = 1;
@@ -83,6 +87,7 @@ console.log(lBlockMesh.verticlesCount);
         lRedLightTransform.translationY = 3;
         lRedLightTransform.translationZ = 0;
         const lRedLight: LightComponent = lRedLightEntity.addComponent(LightComponent);
+        lRedLight.lightType = LightComponentLightType.Point;
         lRedLight.light.color.r = 1;
         lRedLight.light.color.g = 0.2;
         lRedLight.light.color.b = 0.2;
@@ -97,6 +102,7 @@ console.log(lBlockMesh.verticlesCount);
         lBlueLightTransform.translationY = 3;
         lBlueLightTransform.translationZ = 5;
         const lBlueLight: LightComponent = lBlueLightEntity.addComponent(LightComponent);
+        lBlueLight.lightType = LightComponentLightType.Point;
         lBlueLight.light.color.r = 0.2;
         lBlueLight.light.color.g = 0.2;
         lBlueLight.light.color.b = 1;

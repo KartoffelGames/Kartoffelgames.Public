@@ -1,7 +1,9 @@
 import { Serializer } from '@kartoffelgames/core-serializer';
 import { GameComponent } from '../core/component/game-component.ts';
-import { Matrix } from '../math/matrix.ts';
 import { Quaternion } from '../math/quaternion.ts';
+import { Matrix } from "@kartoffelgames/core";
+
+// TODO: Use Math.Vector3 for pivot, scale and translation and add a PropertyMeta.object(Vector) or something.
 
 /**
  * Component that manages transformation state including translation, rotation, scale and pivot.

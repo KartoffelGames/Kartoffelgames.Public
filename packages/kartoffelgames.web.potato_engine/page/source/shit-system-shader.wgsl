@@ -15,14 +15,30 @@
 // -------------------------------------------------------------- //
 
 
-// ------------------- Hardcoded Constants ----------------------- //
+// ------------------------- Lights ------------------------------ //
+// Tightly packed light data from LightSystem.
+// Layout per light (8 floats = 32 bytes):
+//   [0] transformationIndex  - Index into transformation buffer (as float, cast to u32)
+//   [1] intensity            - Light intensity multiplier
+//   [2] colorR               - Red color channel
+//   [3] colorG               - Green color channel
+//   [4] colorB               - Blue color channel
+//   [5] lightType            - Light type (0 = point, 1 = directional)
+//   [6] reserved
+//   [7] reserved
+@group(2) @binding(0) var<storage, read> lightData: array<f32>;
+
+// Number of active lights in the lightData buffer.
+@group(2) @binding(1) var<uniform> lightCount: u32;
+// -------------------------------------------------------------- //
+
+
+// ------------------- Constants --------------------------------- //
 const BLOCK_SIZE: u32 = 80u;
 const MAX_PARENT_DEPTH: u32 = 32u;
 const OBJECT_COLOR: vec4<f32> = vec4<f32>(0.8, 0.25, 0.15, 1.0);
-
-const LIGHT_POSITION: vec3<f32> = vec3<f32>(5.0, 10.0, -5.0);
-const LIGHT_COLOR: vec3<f32> = vec3<f32>(1.0, 1.0, 1.0);
 const AMBIENT_COLOR: vec3<f32> = vec3<f32>(0.15, 0.15, 0.15);
+const LIGHT_STRIDE: u32 = 8u;
 // -------------------------------------------------------------- //
 
 
@@ -85,6 +101,38 @@ fn readWorldMatrix(pComponentIndex: u32) -> mat4x4<f32> {
 }
 
 
+// ------------------- Light Helpers ----------------------------- //
+
+/**
+ * Read the world position of a light by looking up its transformation index and computing the world matrix.
+ */
+fn readLightPosition(pLightIndex: u32) -> vec3<f32> {
+    let lOffset: u32 = pLightIndex * LIGHT_STRIDE;
+    let lTransformIndex: u32 = u32(lightData[lOffset]);
+    let lWorldMatrix: mat4x4<f32> = readWorldMatrix(lTransformIndex);
+
+    // Extract translation from column 3 of the world matrix.
+    return vec3<f32>(lWorldMatrix[3][0], lWorldMatrix[3][1], lWorldMatrix[3][2]);
+}
+
+/**
+ * Read the intensity of a light.
+ */
+fn readLightIntensity(pLightIndex: u32) -> f32 {
+    return lightData[pLightIndex * LIGHT_STRIDE + 1u];
+}
+
+/**
+ * Read the color of a light as RGB.
+ */
+fn readLightColor(pLightIndex: u32) -> vec3<f32> {
+    let lOffset: u32 = pLightIndex * LIGHT_STRIDE;
+    return vec3<f32>(lightData[lOffset + 2u], lightData[lOffset + 3u], lightData[lOffset + 4u]);
+}
+
+// -------------------------------------------------------------- //
+
+
 struct VertexOut {
     @builtin(position) position: vec4<f32>,
     @location(0) normal: vec4<f32>,
@@ -123,15 +171,24 @@ struct FragmentIn {
 
 @fragment
 fn fragment_main(pFragment: FragmentIn) -> @location(0) vec4<f32> {
-    // Calculate diffuse lighting from hardcoded point light.
-    let lLightDirection: vec3<f32> = normalize(LIGHT_POSITION - pFragment.fragmentPosition.xyz);
-    let lDiffuse: f32 = max(dot(pFragment.normal.xyz, lLightDirection), 0.0);
+    // Start with ambient light.
+    var lAccumulatedLight: vec3<f32> = AMBIENT_COLOR;
 
-    // Combine ambient and diffuse.
-    let lLightColor: vec3<f32> = AMBIENT_COLOR + LIGHT_COLOR * lDiffuse;
+    // Accumulate contribution from each active light.
+    for (var i: u32 = 0u; i < lightCount; i = i + 1u) {
+        let lLightPosition: vec3<f32> = readLightPosition(i);
+        let lLightIntensity: f32 = readLightIntensity(i);
+        let lLightColor: vec3<f32> = readLightColor(i);
 
-    // Apply light to object color.
-    let lFinalColor: vec3<f32> = lLightColor * OBJECT_COLOR.xyz;
+        // Point light diffuse calculation.
+        let lLightDirection: vec3<f32> = normalize(lLightPosition - pFragment.fragmentPosition.xyz);
+        let lDiffuse: f32 = max(dot(pFragment.normal.xyz, lLightDirection), 0.0);
+
+        lAccumulatedLight = lAccumulatedLight + lLightColor * lDiffuse * lLightIntensity;
+    }
+
+    // Apply accumulated light to object color.
+    let lFinalColor: vec3<f32> = lAccumulatedLight * OBJECT_COLOR.xyz;
 
     return vec4<f32>(lFinalColor, OBJECT_COLOR.w);
 }

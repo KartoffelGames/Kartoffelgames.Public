@@ -20,6 +20,7 @@ import {
     VertexParameterStepMode
 } from '@kartoffelgames/web-gpu';
 import { CameraComponent } from '../../source/component/camera-component.ts';
+import { LightComponent } from '../../source/component/light-component.ts';
 import { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
 import type { Mesh } from '../../source/component_item/mesh/mesh.ts';
@@ -27,11 +28,12 @@ import type { GameComponentConstructor } from '../../source/core/component/game-
 import type { GameEnvironmentStateChange } from '../../source/core/environment/game-environment-transmittion.ts';
 import { GameSystem, type GameSystemConstructor } from '../../source/core/game-system.ts';
 import { GpuSystem } from '../../source/system/gpu-system.ts';
+import { LightSystem } from '../../source/system/light-system.ts';
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
 import shitShaderSource from './shit-system-shader.wgsl';
 
 /**
- * System that renders all mesh components as colored geometry with a hardcoded light source.
+ * System that renders all mesh components as colored geometry with dynamic lighting from LightSystem.
  * Manages GPU resources for rendering and tracks component lifecycle through state changes.
  */
 export class ShitSystem extends GameSystem {
@@ -52,7 +54,7 @@ export class ShitSystem extends GameSystem {
      * Systems this system depends on.
      */
     public override get dependentSystemTypes(): Array<GameSystemConstructor<GameSystem>> {
-        return [TransformationSystem, GpuSystem];
+        return [TransformationSystem, GpuSystem, LightSystem];
     }
 
 
@@ -60,7 +62,7 @@ export class ShitSystem extends GameSystem {
      * Component types this system handles.
      */
     public override get handledComponentTypes(): Array<GameComponentConstructor> {
-        return [MeshRenderComponent, TransformationComponent, CameraComponent];
+        return [MeshRenderComponent, TransformationComponent, CameraComponent, LightComponent];
     }
 
     /**
@@ -148,7 +150,7 @@ export class ShitSystem extends GameSystem {
 
             // Object bind group with transformation data and component indices storage buffers.
             pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
-                pBindGroupSetup.binding(0, 'transformationData', ComputeStage.Vertex, StorageBindingType.Read)
+                pBindGroupSetup.binding(0, 'transformationData', ComputeStage.Vertex | ComputeStage.Fragment, StorageBindingType.Read)
                     .asBuffer().withArray().withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
 
                 pBindGroupSetup.binding(1, 'componentIndices', ComputeStage.Vertex, StorageBindingType.Read)
@@ -157,6 +159,15 @@ export class ShitSystem extends GameSystem {
 
             // Camera bind group.
             pShaderSetup.group(1, this.mCameraGroup!.layout);
+
+            // Lights bind group with light data storage buffer and light count uniform.
+            pShaderSetup.group(2, 'lights', (pBindGroupSetup) => {
+                pBindGroupSetup.binding(0, 'lightData', ComputeStage.Fragment, StorageBindingType.Read)
+                    .asBuffer().withArray().withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
+
+                pBindGroupSetup.binding(1, 'lightCount', ComputeStage.Fragment)
+                    .asBuffer().withPrimitive(BufferItemFormat.Uint32, BufferItemMultiplier.Single);
+            });
         });
 
         // Create render module from shader.
@@ -282,6 +293,12 @@ export class ShitSystem extends GameSystem {
                 }
             }
         }
+
+        // Process state changes for LightComponent to rebuild pipeline data when lights are added or removed.
+        const lLightChanges: ReadonlyArray<GameEnvironmentStateChange> | undefined = pStateChanges.get(LightComponent);
+        if (lLightChanges && lLightChanges.length > 0) {
+            this.mDirty = true;
+        }
     }
 
     /**
@@ -328,10 +345,18 @@ export class ShitSystem extends GameSystem {
         const lComponentIndicesBuffer: GpuBuffer = lObjectGroup.data('componentIndices').createBuffer(this.mActiveComponents.size);
         lComponentIndicesBuffer.write(new Uint32Array(lIndices).buffer);
 
-        // Create pipeline data with object and camera groups.
+        // Create lights bind group with light data buffer and light count uniform.
+        const lLightSystem: LightSystem = this.getDependency(LightSystem);
+        const lLightGroup: BindGroup = this.mShaderRenderModule.layout.getGroupLayout('lights').create();
+        lLightGroup.data('lightData').set(lLightSystem.gpuBuffer);
+        const lLightCountBuffer: GpuBuffer = lLightGroup.data('lightCount').createBuffer(1);
+        lLightCountBuffer.write(new Uint32Array([lLightSystem.activeLightCount]).buffer);
+
+        // Create pipeline data with object, camera, and lights groups.
         this.mPipelineData = this.mPipeline.layout.withData((pSetup) => {
             pSetup.addGroup(lObjectGroup);
             pSetup.addGroup(this.mCameraGroup!);
+            pSetup.addGroup(lLightGroup);
         });
     }
 }

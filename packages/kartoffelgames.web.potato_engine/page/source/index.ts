@@ -1,10 +1,12 @@
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
 import { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
+import { LightComponent } from '../../source/component/light-component.ts';
 import { GlbConverter } from '../../source/component_item/mesh/glb-converter.ts';
 import { GameEnvironment } from '../../source/core/environment/game-environment.ts';
 import { GameScene } from '../../source/core/game-scene.ts';
 import { GameEntity } from '../../source/core/hierarchy/game-entity.ts';
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
+import { LightSystem } from '../../source/system/light-system.ts';
 import { ShitSystem } from './shit-system.ts';
 import type { Mesh } from '../../source/component_item/mesh/mesh.ts';
 import { CameraComponent } from "../../source/component/camera-component.ts";
@@ -17,6 +19,8 @@ const lGlbData: ArrayBuffer = await fetch('/mesh.glb').then((pResponse) => {
 const lMeshes: Array<Mesh> = GlbConverter.convert(lGlbData);
 const lBlockMesh: Mesh = lMeshes[0];
 
+console.log(lBlockMesh.verticlesCount);
+
 (() => {
     const lEnvironment = new GameEnvironment({
         //debugLog: true
@@ -24,6 +28,7 @@ const lBlockMesh: Mesh = lMeshes[0];
 
     // Add systems.
     lEnvironment.registerSystem(TransformationSystem);
+    lEnvironment.registerSystem(LightSystem);
     lEnvironment.registerSystem(ShitSystem);
 
     // Start the environment.
@@ -53,6 +58,50 @@ const lBlockMesh: Mesh = lMeshes[0];
         lProjection.far = Number.MAX_SAFE_INTEGER;
 
         lScene.addObject(lCameraEntity);
+
+        // --- Lights --- //
+
+        // White point light above the scene (replaces old hardcoded light position).
+        const lWhiteLightEntity: GameEntity = new GameEntity();
+        lWhiteLightEntity.label = 'White Light';
+        const lWhiteLightTransform: TransformationComponent = lWhiteLightEntity.addComponent(TransformationComponent);
+        lWhiteLightTransform.translationX = 5;
+        lWhiteLightTransform.translationY = 10;
+        lWhiteLightTransform.translationZ = -5;
+        const lWhiteLight: LightComponent = lWhiteLightEntity.addComponent(LightComponent);
+        lWhiteLight.color.r = 1;
+        lWhiteLight.color.g = 1;
+        lWhiteLight.color.b = 1;
+        lWhiteLight.intensity = 1;
+        lScene.addObject(lWhiteLightEntity);
+
+        // Red point light to the left.
+        const lRedLightEntity: GameEntity = new GameEntity();
+        lRedLightEntity.label = 'Red Light';
+        const lRedLightTransform: TransformationComponent = lRedLightEntity.addComponent(TransformationComponent);
+        lRedLightTransform.translationX = -5;
+        lRedLightTransform.translationY = 3;
+        lRedLightTransform.translationZ = 0;
+        const lRedLight: LightComponent = lRedLightEntity.addComponent(LightComponent);
+        lRedLight.color.r = 1;
+        lRedLight.color.g = 0.2;
+        lRedLight.color.b = 0.2;
+        lRedLight.intensity = 0.8;
+        lScene.addObject(lRedLightEntity);
+
+        // Blue point light to the right.
+        const lBlueLightEntity: GameEntity = new GameEntity();
+        lBlueLightEntity.label = 'Blue Light';
+        const lBlueLightTransform: TransformationComponent = lBlueLightEntity.addComponent(TransformationComponent);
+        lBlueLightTransform.translationX = 10;
+        lBlueLightTransform.translationY = 3;
+        lBlueLightTransform.translationZ = 5;
+        const lBlueLight: LightComponent = lBlueLightEntity.addComponent(LightComponent);
+        lBlueLight.color.r = 0.2;
+        lBlueLight.color.g = 0.2;
+        lBlueLight.color.b = 1;
+        lBlueLight.intensity = 0.8;
+        lScene.addObject(lBlueLightEntity);
 
         // --- Camera controls --- //
         const lKeyState: Set<string> = new Set<string>();

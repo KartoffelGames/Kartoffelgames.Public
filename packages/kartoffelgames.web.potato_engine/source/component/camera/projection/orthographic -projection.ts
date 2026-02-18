@@ -1,10 +1,29 @@
 import { Serializer } from "@kartoffelgames/core-serializer";
-import { GameComponentItem } from "../../core/component/game-component-item.ts";
-import { Matrix } from "../../math/matrix.ts";
 import type { IProjection } from './i-projection.interface.ts';
+import { GameComponentItem } from "../../../core/component/game-component-item.ts";
+import { Matrix } from "../../../math/matrix.ts";
+import { PropertyMeta } from "../../../property_meta/property-meta.ts";
+import { NumberType } from "../../../property_meta/property-meta-type.ts";
 
 @Serializer.serializeableClass('a5f23afd-0cc9-40ce-a9be-34510f7b4066')
 export class OrthographicProjection extends GameComponentItem implements IProjection {
+    /**
+     * System instance with default values that can be used by components to avoid creating multiple identical instances.
+     * This instance is immutable and cannot be modified, as it is shared across all components that use it.
+     * Modifying this instance will throw an exception to prevent unintended side effects on other components using the same instance.
+     */
+    public static readonly systemInstance: OrthographicProjection = (() => {
+        // Create system instance with default values.
+        const lInstance: OrthographicProjection = new OrthographicProjection();
+        lInstance.mAspectRatio = 1;
+        lInstance.mFar = 100;
+        lInstance.mNear = 0.1;
+        lInstance.mWidth = 1;
+        lInstance.markAsSystem();
+
+        return lInstance;
+    })();
+
     private mAspectRatio: number;
     private mMatrix: Matrix | null;
     private mFar: number;
@@ -18,6 +37,9 @@ export class OrthographicProjection extends GameComponentItem implements IProjec
     public get aspectRatio(): number {
         return this.mAspectRatio;
     } set aspectRatio(pValue: number) {
+        // Gate access on system items.
+        this.systemgate();
+
         this.mAspectRatio = pValue;
 
         // Trigger update.
@@ -27,10 +49,14 @@ export class OrthographicProjection extends GameComponentItem implements IProjec
     /**
      * Far plane.
      */
+    @PropertyMeta.range(0.01, 1000, NumberType.Float)
     @Serializer.property()
     public get far(): number {
         return this.mFar;
     } set far(pValue: number) {
+        // Gate access on system items.
+        this.systemgate();
+
         this.mFar = pValue;
 
         // Trigger update.
@@ -40,10 +66,14 @@ export class OrthographicProjection extends GameComponentItem implements IProjec
     /**
      * Near plane.
      */
+    @PropertyMeta.range(0.01, 1000, NumberType.Float)
     @Serializer.property()
     public get near(): number {
         return this.mNear;
     } set near(pValue: number) {
+        // Gate access on system items.
+        this.systemgate();
+
         this.mNear = pValue;
 
         // Trigger update.
@@ -70,6 +100,9 @@ export class OrthographicProjection extends GameComponentItem implements IProjec
     public get width(): number {
         return this.mWidth;
     } set width(pValue: number) {
+        // Gate access on system items.
+        this.systemgate();
+
         this.mWidth = pValue;
 
         // Trigger update.
@@ -82,10 +115,10 @@ export class OrthographicProjection extends GameComponentItem implements IProjec
     public constructor() {
         super('Orthographic projection');
 
-        this.mAspectRatio = 0;
-        this.mFar = 0;
-        this.mNear = 0;
-        this.mWidth = 0;
+        this.mAspectRatio = 1;
+        this.mFar = 100;
+        this.mNear = 0.1;
+        this.mWidth = 1;
 
         // Cache.
         this.mMatrix = null;

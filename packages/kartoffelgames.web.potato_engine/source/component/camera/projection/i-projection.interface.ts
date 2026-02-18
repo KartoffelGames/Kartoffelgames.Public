@@ -1,6 +1,6 @@
 
-import type { GameComponentItem } from "../../core/component/game-component-item.ts";
-import type { Matrix } from "../../math/matrix.ts";
+import type { GameComponentItem } from "../../../core/component/game-component-item.ts";
+import type { Matrix } from "../../../math/matrix.ts";
 
 export interface IProjection extends GameComponentItem {
     aspectRatio: number;

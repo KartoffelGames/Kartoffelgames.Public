@@ -1,6 +1,10 @@
 import { BufferUsage, GpuBuffer } from '@kartoffelgames/web-gpu';
 import { LightComponent } from '../component/light-component.ts';
 import { TransformationComponent } from '../component/transformation-component.ts';
+import type { ILightComponentItem } from '../component_item/light/i-light-component-item.interface.ts';
+import { DirectionalLight } from '../component_item/light/directional-light.ts';
+import { PointLight } from '../component_item/light/point-light.ts';
+import { SpotLight } from '../component_item/light/spot-light.ts';
 import type { GameComponentConstructor } from '../core/component/game-component.ts';
 import type { GameEnvironmentStateChange } from '../core/environment/game-environment-transmittion.ts';
 import { GameSystem, type GameSystemConstructor } from '../core/game-system.ts';
@@ -11,15 +15,19 @@ import { TransformationSystem } from './transformation-system.ts';
  * System that manages light components and their data storage in a tightly packed auto-scaling buffer.
  * Light data is stored contiguously so the GPU can iterate over all active lights efficiently.
  *
- * Buffer layout per light (8 float32 values = 32 bytes):
- *   [0] transformationIndex  - Index into transformation buffer (stored as float, cast in shader)
- *   [1] intensity            - Light intensity multiplier
- *   [2] colorR               - Red color channel
- *   [3] colorG               - Green color channel
- *   [4] colorB               - Blue color channel
- *   [5] lightType            - Light type (0 = point, 1 = directional)
- *   [6] reserved
- *   [7] reserved
+ * Buffer layout per light (12 float32 values = 48 bytes):
+ *   [0]  transformationIndex  - Index into transformation buffer (stored as float, cast in shader)
+ *   [1]  intensity            - Light intensity multiplier
+ *   [2]  colorR               - Red color channel
+ *   [3]  colorG               - Green color channel
+ *   [4]  colorB               - Blue color channel
+ *   [5]  lightType            - Light type (0 = point, 1 = directional, 2 = spot)
+ *   [6]  range                - Maximum light distance (point/spot only)
+ *   [7]  dropOff              - Falloff curve factor (point/spot only)
+ *   [8]  innerAngle           - Inner cone angle in degrees (spot only)
+ *   [9]  outerAngle           - Outer cone angle in degrees (spot only)
+ *   [10] reserved
+ *   [11] reserved
  *
  * Lights are tightly packed: active lights occupy indices 0..activeLightCount-1 with no gaps.
  * On removal, the last active light is swapped into the freed slot to maintain compactness.
@@ -28,7 +36,7 @@ export class LightSystem extends GameSystem {
     /**
      * Number of float32 elements per light in the buffer.
      */
-    private static readonly LIGHT_STRIDE: number = 8;
+    private static readonly LIGHT_STRIDE: number = 12;
 
     /**
      * Number of lights allocated per block when the buffer grows.
@@ -84,7 +92,7 @@ export class LightSystem extends GameSystem {
         super();
 
         // Initialize buffer with 1 block (4 lights) so the GPU always has a valid buffer to bind.
-        const lInitialBytes: number = LightSystem.BLOCK_SIZE * 4; // 32 floats * 4 bytes = 128 bytes.
+        const lInitialBytes: number = LightSystem.BLOCK_SIZE * 4; // 48 floats * 4 bytes = 192 bytes.
         this.mDataBuffer = new SharedArrayBuffer(lInitialBytes, { maxByteLength: LightSystem.BLOCK_SIZE * 4 * 250 });
         this.mDataView = new Float32Array(this.mDataBuffer);
         this.mGpuBuffer = null;
@@ -208,6 +216,26 @@ export class LightSystem extends GameSystem {
     }
 
     /**
+     * Determines the numeric light type identifier for a given light component item.
+     * 0 = point, 1 = directional, 2 = spot.
+     *
+     * @param pLight - The light component item.
+     *
+     * @returns numeric type identifier.
+     */
+    private resolveLightType(pLight: ILightComponentItem): number {
+        if (pLight instanceof PointLight) {
+            return 0;
+        } else if (pLight instanceof DirectionalLight) {
+            return 1;
+        } else if (pLight instanceof SpotLight) {
+            return 2;
+        }
+
+        return 0;
+    }
+
+    /**
      * Removes a light from the buffer by swapping it with the last active light to maintain tight packing.
      *
      * @param pComponent - The light component to remove.
@@ -249,6 +277,7 @@ export class LightSystem extends GameSystem {
     /**
      * Writes a light component's data to the buffer at the specified index.
      * Reads the transformation index from TransformationSystem for GPU-side world position lookup.
+     * Type-specific properties (range, dropOff, angles) are written based on the light implementation.
      *
      * @param pComponent - The light component to write.
      * @param pIndex - The slot index in the tightly packed buffer.
@@ -260,16 +289,37 @@ export class LightSystem extends GameSystem {
         const lTransformation: TransformationComponent = pComponent.gameEntity.getComponent(TransformationComponent);
         const lTransformIndex: number = lTransformationSystem.indexOfTransformation(lTransformation);
 
+        const lLight: ILightComponentItem = pComponent.light;
         const lOffset: number = pIndex * LightSystem.LIGHT_STRIDE;
 
+        // Common properties.
         this.mDataView[lOffset + 0] = lTransformIndex; // Stored as float, cast to u32 in shader.
-        this.mDataView[lOffset + 1] = pComponent.intensity;
-        this.mDataView[lOffset + 2] = pComponent.color.r;
-        this.mDataView[lOffset + 3] = pComponent.color.g;
-        this.mDataView[lOffset + 4] = pComponent.color.b;
-        this.mDataView[lOffset + 5] = pComponent.lightType;
-        this.mDataView[lOffset + 6] = 0; // Reserved.
-        this.mDataView[lOffset + 7] = 0; // Reserved.
+        this.mDataView[lOffset + 1] = lLight.intensity;
+        this.mDataView[lOffset + 2] = lLight.color.r;
+        this.mDataView[lOffset + 3] = lLight.color.g;
+        this.mDataView[lOffset + 4] = lLight.color.b;
+        this.mDataView[lOffset + 5] = this.resolveLightType(lLight);
+
+        // Type-specific properties.
+        if (lLight instanceof PointLight) {
+            this.mDataView[lOffset + 6] = lLight.range;
+            this.mDataView[lOffset + 7] = lLight.dropOff;
+            this.mDataView[lOffset + 8] = 0;
+            this.mDataView[lOffset + 9] = 0;
+        } else if (lLight instanceof SpotLight) {
+            this.mDataView[lOffset + 6] = lLight.range;
+            this.mDataView[lOffset + 7] = lLight.dropOff;
+            this.mDataView[lOffset + 8] = lLight.innerAngle;
+            this.mDataView[lOffset + 9] = lLight.outerAngle;
+        } else {
+            this.mDataView[lOffset + 6] = 0;
+            this.mDataView[lOffset + 7] = 0;
+            this.mDataView[lOffset + 8] = 0;
+            this.mDataView[lOffset + 9] = 0;
+        }
+
+        this.mDataView[lOffset + 10] = 0; // Reserved.
+        this.mDataView[lOffset + 11] = 0; // Reserved.
 
         return {
             lowerBound: lOffset * 4,

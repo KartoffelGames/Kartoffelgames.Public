@@ -69,10 +69,10 @@ console.log(lBlockMesh.verticlesCount);
         lWhiteLightTransform.translationY = 10;
         lWhiteLightTransform.translationZ = -5;
         const lWhiteLight: LightComponent = lWhiteLightEntity.addComponent(LightComponent);
-        lWhiteLight.color.r = 1;
-        lWhiteLight.color.g = 1;
-        lWhiteLight.color.b = 1;
-        lWhiteLight.intensity = 1;
+        lWhiteLight.light.color.r = 1;
+        lWhiteLight.light.color.g = 1;
+        lWhiteLight.light.color.b = 1;
+        lWhiteLight.light.intensity = 1;
         lScene.addObject(lWhiteLightEntity);
 
         // Red point light to the left.
@@ -83,10 +83,10 @@ console.log(lBlockMesh.verticlesCount);
         lRedLightTransform.translationY = 3;
         lRedLightTransform.translationZ = 0;
         const lRedLight: LightComponent = lRedLightEntity.addComponent(LightComponent);
-        lRedLight.color.r = 1;
-        lRedLight.color.g = 0.2;
-        lRedLight.color.b = 0.2;
-        lRedLight.intensity = 0.8;
+        lRedLight.light.color.r = 1;
+        lRedLight.light.color.g = 0.2;
+        lRedLight.light.color.b = 0.2;
+        lRedLight.light.intensity = 0.8;
         lScene.addObject(lRedLightEntity);
 
         // Blue point light to the right.
@@ -97,10 +97,10 @@ console.log(lBlockMesh.verticlesCount);
         lBlueLightTransform.translationY = 3;
         lBlueLightTransform.translationZ = 5;
         const lBlueLight: LightComponent = lBlueLightEntity.addComponent(LightComponent);
-        lBlueLight.color.r = 0.2;
-        lBlueLight.color.g = 0.2;
-        lBlueLight.color.b = 1;
-        lBlueLight.intensity = 0.8;
+        lBlueLight.light.color.r = 0.2;
+        lBlueLight.light.color.g = 0.2;
+        lBlueLight.light.color.b = 1;
+        lBlueLight.light.intensity = 0.8;
         lScene.addObject(lBlueLightEntity);
 
         // --- Camera controls --- //

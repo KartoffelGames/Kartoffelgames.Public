@@ -41,7 +41,7 @@ export class GameComponentItem {
      *
      * @param pParent - The parent component to link.
      */
-    public linkParent(pParent: GameComponent): void {
+    public linkParent(pParent: GameComponent | GameComponentItem): void {
         this.mLinkedParents.add(pParent);
     }
 
@@ -50,7 +50,7 @@ export class GameComponentItem {
      *
      * @param pParent - The parent component to unlink.
      */
-    public unlinkParent(pParent: GameComponent): void {
+    public unlinkParent(pParent: GameComponent | GameComponentItem): void {
         this.mLinkedParents.delete(pParent);
     }
 

@@ -6,6 +6,7 @@ import { EditorProperty } from "../../editor_property/editor-property.ts";
 import { TransformationComponent } from '../transformation-component.ts';
 import { DirectionalLight } from "./type/directional-light.ts";
 import type { ILightComponentItem } from './type/i-light-component-item.interface.ts';
+import { LightComponentLightType } from "./type/light-type.enum.ts";
 import { PointLight } from './type/point-light.ts';
 import { SpotLight } from "./type/spot-light.ts";
 
@@ -69,9 +70,10 @@ export class LightComponent extends GameComponent {
                 this.light = new SpotLight();
                 break;
             }
+            default: {
+                throw new Exception('Unknown light type.', this);
+            }
         }
-
-        throw new Exception('Unknown light type.', this);
     }
 
     /**
@@ -84,12 +86,3 @@ export class LightComponent extends GameComponent {
     }
 }
 
-/**
- * Light component light type enum.
- */
-const LightComponentLightType = {
-    Directional: 'Directional',
-    Point: 'Point',
-    Spot: 'Spot'
-} as const;
-export type LightComponentLightType = typeof LightComponentLightType[keyof typeof LightComponentLightType];

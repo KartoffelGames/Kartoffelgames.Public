@@ -2,8 +2,9 @@ import { Exception, Matrix } from "@kartoffelgames/core";
 import { Serializer } from "@kartoffelgames/core-serializer";
 import { GameComponent } from "../../core/component/game-component.ts";
 import { EditorProperty } from "../../editor_property/editor-property.ts";
+import { CameraComponentProjection } from "./projection/camera-projection.enum.ts";
 import { IProjection } from "./projection/i-projection.interface.ts";
-import { OrthographicProjection } from "./projection/orthographic -projection.ts";
+import { OrthographicProjection } from "./projection/orthographic-projection.ts";
 import { PerspectiveProjection } from "./projection/perspective-projection.ts";
 
 /**
@@ -35,15 +36,16 @@ export class CameraComponent extends GameComponent {
         switch (pValue) {
             case CameraComponentProjection.Perspective: {
                 this.projection = new PerspectiveProjection();
-                break;
+                return;
             }
             case CameraComponentProjection.Orthographic: {
                 this.projection = new OrthographicProjection();
-                break;
+                return;
+            }
+            default: {
+                throw new Exception('Unknown projection type.', this);
             }
         }
-
-        throw new Exception('Unknown projection type.', this);
     }
 
     /**
@@ -77,11 +79,3 @@ export class CameraComponent extends GameComponent {
     }
 }
 
-/**
- * Camera component projection enum.
- */
-const CameraComponentProjection = {
-    Perspective: 'Perspective',
-    Orthographic: 'Orthographic'
-} as const;
-export type CameraComponentProjection = typeof CameraComponentProjection[keyof typeof CameraComponentProjection];

@@ -38,6 +38,18 @@ export class PointLight extends GameComponentItem implements ILightComponentItem
     @EditorProperty.objectControl()
     @Serializer.property()
     public get color(): Color {
+        if (this.mColor.isSystem) {
+            // Copy color to allow modifications without affecting other components using the same system instance.
+            const lNewColor = new Color();
+            lNewColor.a = this.mColor.a;
+            lNewColor.b = this.mColor.b;
+            lNewColor.g = this.mColor.g;
+            lNewColor.r = this.mColor.r;
+
+            // Set color with accessor to link it to this component and trigger updates.
+            this.color = lNewColor;
+        }
+
         return this.mColor;
     } set color(pValue: Color) {
         // Gate access on system items.

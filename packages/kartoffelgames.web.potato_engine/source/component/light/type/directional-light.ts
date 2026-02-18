@@ -4,6 +4,7 @@ import { GameComponentItem } from '../../../core/component/game-component-item.t
 import { EditorPropertyNumberType } from "../../../editor_property/editor-property-register.ts";
 import { EditorProperty } from "../../../editor_property/editor-property.ts";
 import { ILightComponentItem } from "./i-light-component-item.interface.ts";
+import { off } from "node:process";
 
 /**
  * Directional light that emits parallel rays in a single direction.
@@ -34,6 +35,18 @@ export class DirectionalLight extends GameComponentItem implements ILightCompone
     @EditorProperty.objectControl()
     @Serializer.property()
     public get color(): Color {
+        if(this.mColor.isSystem) {
+            // Copy color to allow modifications without affecting other components using the same system instance.
+            const lNewColor = new Color();
+            lNewColor.a = this.mColor.a;
+            lNewColor.b = this.mColor.b;
+            lNewColor.g = this.mColor.g;
+            lNewColor.r = this.mColor.r;
+
+            // Set color with accessor to link it to this component and trigger updates.
+            this.color = lNewColor;
+        }
+
         return this.mColor;
     } set color(pValue: Color) {
         this.mColor.unlinkParent(this);

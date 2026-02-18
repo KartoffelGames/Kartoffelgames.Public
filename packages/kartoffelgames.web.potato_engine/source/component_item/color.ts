@@ -34,7 +34,7 @@ export class Color extends GameComponentItem {
     /**
      * Alpha channel (0-1).
      */
-    @EditorProperty.range(0, 1, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get a(): number {
         return this.mA;
@@ -50,7 +50,7 @@ export class Color extends GameComponentItem {
     /**
      * Blue channel (0-1).
      */
-    @EditorProperty.range(0, 1, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get b(): number {
         return this.mB;
@@ -66,7 +66,7 @@ export class Color extends GameComponentItem {
     /**
      * Green channel (0-1).
      */
-    @EditorProperty.range(0, 1, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get g(): number {
         return this.mG;
@@ -82,7 +82,7 @@ export class Color extends GameComponentItem {
     /**
      * Red channel (0-1).
      */
-    @EditorProperty.range(0, 1, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get r(): number {
         return this.mR;

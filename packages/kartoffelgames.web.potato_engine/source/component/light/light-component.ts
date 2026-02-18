@@ -28,7 +28,7 @@ export class LightComponent extends GameComponent {
     /**
      * Light implementation defining the type and properties of this light source.
      */
-    @EditorProperty.object()
+    @EditorProperty.objectControl()
     @Serializer.property()
     public get light(): ILightComponentItem {
         return this.mLight;
@@ -46,7 +46,7 @@ export class LightComponent extends GameComponent {
     /**
      * Camera projection type. Setting this will create a new projection of the given type.
      */
-    @EditorProperty.enum(LightComponentLightType)
+    @EditorProperty.enumControl(LightComponentLightType)
     public get lightType(): LightComponentLightType {
         switch (true) {
             case this.light instanceof DirectionalLight: return LightComponentLightType.Directional;

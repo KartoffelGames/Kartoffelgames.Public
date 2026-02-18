@@ -14,7 +14,7 @@ export class EditorProperty {
      *
      * @returns property decorator function.
      */
-    public static boolean<TThis extends object>(): (_pTarget: any, pContext: EditorPropertyDecoratorContext<TThis>) => void {
+    public static booleanControl<TThis extends object>(): (_pTarget: any, pContext: EditorPropertyDecoratorContext<TThis>) => void {
         return EditorProperty.createDecorator<TThis>({ type: 'boolean' });
     }
 
@@ -25,7 +25,7 @@ export class EditorProperty {
      *
      * @returns property decorator function.
      */
-    public static enum<TThis extends object>(pEnumType: object): (_pTarget: any, pContext: EditorPropertyDecoratorContext<TThis>) => void {
+    public static enumControl<TThis extends object>(pEnumType: object): (_pTarget: any, pContext: EditorPropertyDecoratorContext<TThis>) => void {
         return EditorProperty.createDecorator<TThis>({ type: 'enum', enumType: pEnumType });
     }
 
@@ -38,7 +38,7 @@ export class EditorProperty {
      *
      * @returns property decorator function.
      */
-    public static number<TThis extends object>(pMin: number, pMax: number, pNumberType: EditorPropertyNumberType): (_pTarget: any, pContext: EditorPropertyDecoratorContext<TThis>) => void {
+    public static numberControl<TThis extends object>(pMin: number, pMax: number, pNumberType: EditorPropertyNumberType): (_pTarget: any, pContext: EditorPropertyDecoratorContext<TThis>) => void {
         return EditorProperty.createDecorator<TThis>({ type: 'number', min: pMin, max: pMax, numberType: pNumberType });
     }
 
@@ -49,7 +49,7 @@ export class EditorProperty {
      *
      * @returns property decorator function.
      */
-    public static object<TThis extends object>(): (_pTarget: any, pContext: EditorPropertyDecoratorContext<TThis>) => void {
+    public static objectControl<TThis extends object>(): (_pTarget: any, pContext: EditorPropertyDecoratorContext<TThis>) => void {
         return EditorProperty.createDecorator<TThis>({ type: 'object' });
     }
 
@@ -60,7 +60,7 @@ export class EditorProperty {
      *
      * @returns property decorator function.
      */
-    public static objectLink<TThis extends object>(pTargetClass: object): (_pTarget: any, pContext: EditorPropertyDecoratorContext<TThis>) => void {
+    public static objectLinkControl<TThis extends object>(pTargetClass: object): (_pTarget: any, pContext: EditorPropertyDecoratorContext<TThis>) => void {
         return EditorProperty.createDecorator<TThis>({ type: 'objectLink', linkedClass: pTargetClass });
     }
 
@@ -84,7 +84,7 @@ export class EditorProperty {
      *
      * @returns property decorator function.
      */
-    public static range<TThis extends object>(pMin: number, pMax: number, pNumberType: EditorPropertyNumberType): (_pTarget: any, pContext: EditorPropertyDecoratorContext<TThis>) => void {
+    public static rangeControl<TThis extends object>(pMin: number, pMax: number, pNumberType: EditorPropertyNumberType): (_pTarget: any, pContext: EditorPropertyDecoratorContext<TThis>) => void {
         return EditorProperty.createDecorator<TThis>({ type: 'range', min: pMin, max: pMax, numberType: pNumberType });
     }
 
@@ -93,7 +93,7 @@ export class EditorProperty {
      *
      * @returns property decorator function.
      */
-    public static text<TThis extends object>(): (_pTarget: any, pContext: EditorPropertyDecoratorContext<TThis>) => void {
+    public static textControl<TThis extends object>(): (_pTarget: any, pContext: EditorPropertyDecoratorContext<TThis>) => void {
         return EditorProperty.createDecorator<TThis>({ type: 'text' });
     }
 

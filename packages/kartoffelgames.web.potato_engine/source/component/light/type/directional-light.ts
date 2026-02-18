@@ -31,7 +31,7 @@ export class DirectionalLight extends GameComponentItem implements ILightCompone
     /**
      * Light color.
      */
-    @EditorProperty.object()
+    @EditorProperty.objectControl()
     @Serializer.property()
     public get color(): Color {
         return this.mColor;
@@ -45,7 +45,7 @@ export class DirectionalLight extends GameComponentItem implements ILightCompone
     /**
      * Light intensity multiplier.
      */
-    @EditorProperty.range(0, 1, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get intensity(): number {
         return this.mIntensity;

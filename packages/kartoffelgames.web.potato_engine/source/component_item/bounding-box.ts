@@ -39,7 +39,7 @@ export class BoundingBox extends GameComponentItem{
     /**
      * Maximum X coordinate of the bounding box.
      */
-    @EditorProperty.range(-10, 10, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(-10, 10, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get maxX(): number {
         return this.mMaxX;
@@ -55,7 +55,7 @@ export class BoundingBox extends GameComponentItem{
     /**
      * Maximum Y coordinate of the bounding box.
      */
-    @EditorProperty.range(-10, 10, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(-10, 10, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get maxY(): number {
         return this.mMaxY;
@@ -71,7 +71,7 @@ export class BoundingBox extends GameComponentItem{
     /**
      * Maximum Z coordinate of the bounding box.
      */
-    @EditorProperty.range(-10, 10, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(-10, 10, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get maxZ(): number {
         return this.mMaxZ;
@@ -87,7 +87,7 @@ export class BoundingBox extends GameComponentItem{
     /**
      * Minimum X coordinate of the bounding box.
      */
-    @EditorProperty.range(-10, 10, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(-10, 10, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get minX(): number {
         return this.mMinX;
@@ -103,7 +103,7 @@ export class BoundingBox extends GameComponentItem{
     /**
      * Minimum Y coordinate of the bounding box.
      */
-    @EditorProperty.range(-10, 10, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(-10, 10, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get minY(): number {
         return this.mMinY;
@@ -119,7 +119,7 @@ export class BoundingBox extends GameComponentItem{
     /**
      * Minimum Z coordinate of the bounding box.
      */
-    @EditorProperty.range(-10, 10, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(-10, 10, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get minZ(): number {
         return this.mMinZ;

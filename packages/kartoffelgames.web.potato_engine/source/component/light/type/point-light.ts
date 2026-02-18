@@ -35,7 +35,7 @@ export class PointLight extends GameComponentItem implements ILightComponentItem
     /**
      * Light color.
      */
-    @EditorProperty.object()
+    @EditorProperty.objectControl()
     @Serializer.property()
     public get color(): Color {
         return this.mColor;
@@ -57,7 +57,7 @@ export class PointLight extends GameComponentItem implements ILightComponentItem
      * Drop-off factor controlling the intensity falloff curve.
      * 0 = full intensity across entire range, 1 = linear falloff.
      */
-    @EditorProperty.range(0, 1, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get dropOff(): number {
         return this.mDropOff;
@@ -73,7 +73,7 @@ export class PointLight extends GameComponentItem implements ILightComponentItem
     /**
      * Light intensity multiplier.
      */
-    @EditorProperty.range(0, 1, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get intensity(): number {
         return this.mIntensity;
@@ -89,7 +89,7 @@ export class PointLight extends GameComponentItem implements ILightComponentItem
     /**
      * Maximum distance the light reaches.
      */
-    @EditorProperty.range(0, 100, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(0, 100, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get range(): number {
         return this.mRange;

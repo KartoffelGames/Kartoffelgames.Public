@@ -22,7 +22,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
     /**
      * Light color.
      */
-    @EditorProperty.object()
+    @EditorProperty.objectControl()
     @Serializer.property()
     public get color(): Color {
         return this.mColor;
@@ -37,7 +37,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
      * Drop-off factor controlling the intensity falloff curve over distance.
      * 0 = full intensity across entire range, 1 = linear falloff.
      */
-    @EditorProperty.range(0, 1, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get dropOff(): number {
         return this.mDropOff;
@@ -49,7 +49,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
     /**
      * Inner cone angle in degrees where full intensity is emitted.
      */
-    @EditorProperty.range(0, 1, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get innerAngle(): number {
         return this.mInnerAngle;
@@ -61,7 +61,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
     /**
      * Light intensity multiplier.
      */
-    @EditorProperty.range(0, 1, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get intensity(): number {
         return this.mIntensity;
@@ -73,7 +73,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
     /**
      * Outer cone angle in degrees where light fades to zero.
      */
-    @EditorProperty.range(0, 1, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get outerAngle(): number {
         return this.mOuterAngle;
@@ -85,7 +85,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
     /**
      * Maximum distance the light reaches.
      */
-    @EditorProperty.range(0, 100, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(0, 100, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get range(): number {
         return this.mRange;

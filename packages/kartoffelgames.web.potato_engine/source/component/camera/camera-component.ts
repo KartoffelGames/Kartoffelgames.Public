@@ -23,7 +23,7 @@ export class CameraComponent extends GameComponent {
     /**
      * Camera projection type. Setting this will create a new projection of the given type.
      */
-    @EditorProperty.enum(CameraComponentProjection)
+    @EditorProperty.enumControl(CameraComponentProjection)
     public get projectionType(): CameraComponentProjection {
         switch (true) {
             case this.projection instanceof PerspectiveProjection: return CameraComponentProjection.Perspective;
@@ -49,7 +49,7 @@ export class CameraComponent extends GameComponent {
     /**
      * Camera projection.
      */
-    @EditorProperty.object()
+    @EditorProperty.objectControl()
     @Serializer.property()
     public get projection(): IProjection {
         return this.mProjection;

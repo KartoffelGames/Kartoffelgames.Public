@@ -52,7 +52,7 @@ export class OrthographicProjection extends GameComponentItem implements IProjec
     /**
      * Far plane.
      */
-    @EditorProperty.range(0.01, 1000, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(0.01, 1000, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get far(): number {
         return this.mFar;
@@ -69,7 +69,7 @@ export class OrthographicProjection extends GameComponentItem implements IProjec
     /**
      * Near plane.
      */
-    @EditorProperty.range(0.01, 1000, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(0.01, 1000, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get near(): number {
         return this.mNear;

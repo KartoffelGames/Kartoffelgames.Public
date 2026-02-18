@@ -37,7 +37,7 @@ export class PerspectiveProjection extends GameComponentItem implements IProject
      * Angle of view.
      */
     @Serializer.property()
-    @EditorProperty.range(1, 200, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(1, 200, EditorPropertyNumberType.Float)
     public get angleOfView(): number {
         return this.mAngleOfView;
     } set angleOfView(pValue: number) {
@@ -69,7 +69,7 @@ export class PerspectiveProjection extends GameComponentItem implements IProject
     /**
      * Far plane.
      */
-    @EditorProperty.range(0.01, 1000, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(0.01, 1000, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get far(): number {
         return this.mFar;
@@ -86,7 +86,7 @@ export class PerspectiveProjection extends GameComponentItem implements IProject
     /**
      * Near plane.
      */
-    @EditorProperty.range(0.01, 1000, EditorPropertyNumberType.Float)
+    @EditorProperty.rangeControl(0.01, 1000, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get near(): number {
         return this.mNear;

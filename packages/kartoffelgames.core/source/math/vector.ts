@@ -37,22 +37,23 @@ export class Vector {
     public get z(): number {
         return this.mData[2];
     }
-    
 
     /**
      * Constructor.
      * @param pData - Vector data.
      */
     public constructor(pData: Array<number>) {
-        this.mData = [...pData];
+        this.mData = pData;
     }
 
     /**
      * Add two vectors.
      * @param pAddData - Vector or scalar.
+     * @param pApplyToSelf - Apply calculation to this vector instead of creating a new one.
      */
-    public add(pAddData: Vector | number): Vector {
-        const lData: Array<number> = new Array<number>();
+    public add(pAddData: Vector | number, pApplyToSelf: boolean = false): Vector {
+        // Set target vector depending on apply to self or not.
+        const lTargetVector: Vector = pApplyToSelf ? this : new Vector(new Array<number>(this.mData.length));
 
         if (pAddData instanceof Vector) {
             // Restrict on same length.
@@ -62,16 +63,18 @@ export class Vector {
 
             // Add values.
             for (let lIndex: number = 0; lIndex < this.mData.length; lIndex++) {
-                lData.push(this.mData[lIndex] + pAddData.data[lIndex]);
+                lTargetVector.mData[lIndex] = this.mData[lIndex] + pAddData.data[lIndex];
             }
-        } else {
-            // Add scalar to each vector component.
-            for (const lItem of this.mData) {
-                lData.push(lItem + pAddData);
-            }
+
+            return lTargetVector;
         }
 
-        return new Vector(lData);
+        // Add scalar to each vector component in-place.
+        for (let lIndex: number = 0; lIndex < this.mData.length; lIndex++) {
+            lTargetVector.mData[lIndex] = this.mData[lIndex] + pAddData;
+        }
+
+        return lTargetVector;
     }
 
     /**
@@ -85,8 +88,9 @@ export class Vector {
     /**
      * Calulate cross product of two vector3.
      * @param pVector - Vector3.
+     * @param pApplyToSelf - Apply calculation to this vector instead of creating a new one.
      */
-    public multCross(pVector: Vector): Vector {
+    public multCross(pVector: Vector, pApplyToSelf: boolean = false): Vector {
         // Restrict on same length.
         if (this.mData.length !== pVector.data.length && this.mData.length !== 3) {
             throw new Exception('Vectors need to be the length of 3 for cross product calculation.', this);
@@ -97,11 +101,17 @@ export class Vector {
          * cy = az*bx − ax*bz
          * cz = ax*by − ay*bx
          */
-        return new Vector([
-            this.mData[1] * pVector.data[2] - this.mData[2] * pVector.data[1],
-            this.mData[2] * pVector.data[0] - this.mData[0] * pVector.data[2],
-            this.mData[0] * pVector.data[1] - this.mData[1] * pVector.data[0]
-        ]);
+        const lX: number = this.mData[1] * pVector.data[2] - this.mData[2] * pVector.data[1];
+        const lY: number = this.mData[2] * pVector.data[0] - this.mData[0] * pVector.data[2];
+        const lZ: number = this.mData[0] * pVector.data[1] - this.mData[1] * pVector.data[0];
+
+        // Set target vector depending on apply to self or not.
+        const lTargetVector: Vector = pApplyToSelf ? this : new Vector([0, 0, 0]);
+        lTargetVector.mData[0] = lX;
+        lTargetVector.mData[1] = lY;
+        lTargetVector.mData[2] = lZ;
+
+        return lTargetVector;
     }
 
     /**
@@ -125,25 +135,30 @@ export class Vector {
 
     /**
      * Normalize vector.
+     * @param pApplyToSelf - Apply calculation to this vector instead of creating a new one.
      */
-    public normalize(): Vector {
+    public normalize(pApplyToSelf: boolean = false): Vector {
         const lLength: number = this.length();
 
-        // Devide each vector component with it vector length.
-        const lData: Array<number> = new Array<number>();
-        for (const lItem of this.mData) {
-            lData.push(lItem / lLength);
+        // Set target vector depending on apply to self or not.
+        const lTargetVector: Vector = pApplyToSelf ? this : new Vector([0, 0, 0]);
+
+        // Divide each vector component by length in-place.
+        for (let lIndex: number = 0; lIndex < this.mData.length; lIndex++) {
+            lTargetVector.mData[lIndex] = this.mData[lIndex] / lLength;
         }
 
-        return new Vector(lData);
+        return lTargetVector;
     }
 
     /**
      * Substract two vectors.
      * @param pSubData - Vector or scalar
+     * @param pApplyToSelf - Apply calculation to this vector instead of creating a new one.
      */
-    public sub(pSubData: Vector | number): Vector {
-        const lData: Array<number> = new Array<number>();
+    public sub(pSubData: Vector | number, pApplyToSelf: boolean = false): Vector {
+        // Set target vector depending on apply to self or not.
+        const lTargetVector: Vector = pApplyToSelf ? this : new Vector(new Array<number>(this.mData.length));
 
         if (pSubData instanceof Vector) {
             // Restrict on same length.
@@ -151,17 +166,19 @@ export class Vector {
                 throw new Exception('Vectors need to be the same length for calculation.', this);
             }
 
-            // Add values.
+            // Subtract values.
             for (let lIndex: number = 0; lIndex < this.mData.length; lIndex++) {
-                lData.push(this.mData[lIndex] - pSubData.data[lIndex]);
+                lTargetVector.mData[lIndex] = this.mData[lIndex] - pSubData.data[lIndex];
             }
-        } else {
-            // Substract scalar to each vector component.
-            for (const lItem of this.mData) {
-                lData.push(lItem - pSubData);
-            }
+
+            return lTargetVector;
         }
 
-        return new Vector(lData);
+        // Substract scalar to each vector component.
+        for (let lIndex: number = 0; lIndex < this.mData.length; lIndex++) {
+            lTargetVector.mData[lIndex] = this.mData[lIndex] - pSubData;
+        }
+
+        return lTargetVector;
     }
 }

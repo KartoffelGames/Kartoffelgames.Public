@@ -21,9 +21,9 @@ export class Matrix {
         return new Matrix(lData, pSize, pSize);
     }
 
-    private readonly mData: Array<number>;
-    private readonly mHeight: number;
-    private readonly mWidth: number;
+    private mData: Array<number>;
+    private mHeight: number;
+    private mWidth: number;
 
     /**
      * Data as column-major number array.
@@ -63,10 +63,14 @@ export class Matrix {
      * Add value to matrix.
      *
      * @param pAddData - Matrix or scalar value.
+     * @param pApplyToSelf - Apply calculation to this matrix instead of creating a new one.
      *
-     * @returns New matrix with added values.
+     * @returns New matrix with added values or this matrix if pApplyToSelf is true.
      */
-    public add(pAddData: Matrix | number): Matrix {
+    public add(pAddData: Matrix | number, pApplyToSelf: boolean = false): Matrix {
+        // Set target matrix depending on apply to self or not.
+        const lTargetMatrix: Matrix = pApplyToSelf ? this : new Matrix(new Array<number>(this.mData.length), this.mHeight, this.mWidth);
+
         if (pAddData instanceof Matrix) {
             // Restrict on same size.
             if (this.mHeight !== pAddData.mHeight || this.mWidth !== pAddData.mWidth) {
@@ -74,21 +78,19 @@ export class Matrix {
             }
 
             // Add each component element-wise.
-            const lData: Array<number> = new Array<number>(this.mData.length);
             for (let lIndex = 0; lIndex < this.mData.length; lIndex++) {
-                lData[lIndex] = this.mData[lIndex] + pAddData.mData[lIndex];
+                lTargetMatrix.mData[lIndex] = this.mData[lIndex] + pAddData.mData[lIndex];
             }
 
-            return new Matrix(lData, this.mHeight, this.mWidth);
+            return lTargetMatrix;
         }
 
         // Add scalar to each matrix component.
-        const lData: Array<number> = new Array<number>(this.mData.length);
         for (let lIndex = 0; lIndex < this.mData.length; lIndex++) {
-            lData[lIndex] = this.mData[lIndex] + pAddData;
+            lTargetMatrix.mData[lIndex] = this.mData[lIndex] + pAddData;
         }
 
-        return new Matrix(lData, this.mHeight, this.mWidth);
+        return lTargetMatrix;
     }
 
     /**
@@ -190,11 +192,16 @@ export class Matrix {
      * Multiplicate matrix.
      *
      * @param pMultData - Matrix or scalar value.
+     * @param pApplyToSelf - Apply calculation to this matrix instead of creating a new one.
      *
-     * @returns New matrix with multiplied values.
+     * @returns New matrix with multiplied values or this matrix if pApplyToSelf is true.
      */
-    public mult(pMultData: Matrix | number): Matrix {
+    public mult(pMultData: Matrix | number, pApplyToSelf: boolean = false): Matrix {
         if (pMultData instanceof Matrix) {
+            // Set target matrix depending on apply to self or not.
+            // New matrix is initialized with empty data and correct dimensions, data will be set directly after calculation.
+            const lTargetMatrix: Matrix = pApplyToSelf ? this : new Matrix(new Array<number>(0), 0, 0);
+
             // Restrict on matching dimensions.
             if (this.mWidth !== pMultData.mHeight) {
                 throw new Exception('Matrices A width and B height must match for multiplication.', this);
@@ -217,16 +224,23 @@ export class Matrix {
                 }
             }
 
-            return new Matrix(lData, lResultHeight, lResultWidth);
+            // Set data directly on target.
+            lTargetMatrix.mData = lData;
+            lTargetMatrix.mHeight = lResultHeight;
+            lTargetMatrix.mWidth = lResultWidth;
+
+            return lTargetMatrix;
         }
+
+        // Set target matrix depending on apply to self or not.
+        const lScalarTargetMatrix: Matrix = pApplyToSelf ? this : new Matrix(new Array<number>(this.mData.length), this.mHeight, this.mWidth);
 
         // Multiply scalar to each matrix component.
-        const lData: Array<number> = new Array<number>(this.mData.length);
         for (let lIndex = 0; lIndex < this.mData.length; lIndex++) {
-            lData[lIndex] = this.mData[lIndex] * pMultData;
+            lScalarTargetMatrix.mData[lIndex] = this.mData[lIndex] * pMultData;
         }
 
-        return new Matrix(lData, this.mHeight, this.mWidth);
+        return lScalarTargetMatrix;
     }
 
     /**
@@ -280,10 +294,14 @@ export class Matrix {
      * Subtract value from matrix.
      *
      * @param pSubData - Matrix or scalar value.
+     * @param pApplyToSelf - Apply calculation to this matrix instead of creating a new one.
      *
-     * @returns New matrix with subtracted values.
+     * @returns New matrix with subtracted values or this matrix if pApplyToSelf is true.
      */
-    public sub(pSubData: Matrix | number): Matrix {
+    public sub(pSubData: Matrix | number, pApplyToSelf: boolean = false): Matrix {
+        // Set target matrix depending on apply to self or not.
+        const lTargetMatrix: Matrix = pApplyToSelf ? this : new Matrix(new Array<number>(this.mData.length), this.mHeight, this.mWidth);
+
         if (pSubData instanceof Matrix) {
             // Restrict on same size.
             if (this.mHeight !== pSubData.mHeight || this.mWidth !== pSubData.mWidth) {
@@ -291,21 +309,19 @@ export class Matrix {
             }
 
             // Subtract each component element-wise.
-            const lData: Array<number> = new Array<number>(this.mData.length);
             for (let lIndex = 0; lIndex < this.mData.length; lIndex++) {
-                lData[lIndex] = this.mData[lIndex] - pSubData.mData[lIndex];
+                lTargetMatrix.mData[lIndex] = this.mData[lIndex] - pSubData.mData[lIndex];
             }
 
-            return new Matrix(lData, this.mHeight, this.mWidth);
+            return lTargetMatrix;
         }
 
         // Subtract scalar from each matrix component.
-        const lData: Array<number> = new Array<number>(this.mData.length);
         for (let lIndex = 0; lIndex < this.mData.length; lIndex++) {
-            lData[lIndex] = this.mData[lIndex] - pSubData;
+            lTargetMatrix.mData[lIndex] = this.mData[lIndex] - pSubData;
         }
 
-        return new Matrix(lData, this.mHeight, this.mWidth);
+        return lTargetMatrix;
     }
 
     /**

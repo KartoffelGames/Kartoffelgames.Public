@@ -153,10 +153,11 @@ export class Quaternion {
      * @param pPitch - Pitch degree.
      * @param pYaw - Yaw degree.
      * @param pRoll - Roll degree.
+     * @param pApplyToSelf - Apply calculation to this object instead of creating a new one.
      */
-    public addEulerRotation(pPitch: number, pYaw: number, pRoll: number): Quaternion {
+    public addEulerRotation(pPitch: number, pYaw: number, pRoll: number, pApplyToSelf: boolean = false): Quaternion {
         // Apply current rotation after setting new rotation to apply rotation as absolute euler rotation and not as relative quaternion.
-        return this.mult(Quaternion.fromRotation(pPitch, pYaw, pRoll));
+        return this.mult(Quaternion.fromRotation(pPitch, pYaw, pRoll), pApplyToSelf);
     }
 
     /**
@@ -230,37 +231,45 @@ export class Quaternion {
 
     /**
      * Multiplicate with quaternion.
+     * 
      * @param pQuaternion - Quaterion source.
+     * @param pApplyToSelf - Apply calculation to this object instead of creating a new one.
      */
-    public mult(pQuaternion: Quaternion): Quaternion {
+    public mult(pQuaternion: Quaternion, pApplyToSelf: boolean = false): Quaternion {
+        // Set target quaternion depending on apply to self or not.
+        const lTargetQuaternion: Quaternion = pApplyToSelf ? this : new Quaternion();
+
         const lW: number = this.mData[0] * pQuaternion.w - this.mData[1] * pQuaternion.x - this.mData[2] * pQuaternion.y - this.mData[3] * pQuaternion.z;
         const lX: number = this.mData[0] * pQuaternion.x + this.mData[1] * pQuaternion.w + this.mData[2] * pQuaternion.z - this.mData[3] * pQuaternion.y;
         const lY: number = this.mData[0] * pQuaternion.y - this.mData[1] * pQuaternion.z + this.mData[2] * pQuaternion.w + this.mData[3] * pQuaternion.x;
         const lZ: number = this.mData[0] * pQuaternion.z + this.mData[1] * pQuaternion.y - this.mData[2] * pQuaternion.x + this.mData[3] * pQuaternion.w;
+        
+        lTargetQuaternion.mData[0] = lW;
+        lTargetQuaternion.mData[1] = lX;
+        lTargetQuaternion.mData[2] = lY;
+        lTargetQuaternion.mData[3] = lZ;
 
-        const lQuaternion = new Quaternion();
-        lQuaternion.x = lX;
-        lQuaternion.y = lY;
-        lQuaternion.z = lZ;
-        lQuaternion.w = lW;
-
-        return lQuaternion;
+        return lTargetQuaternion;
     }
 
     /**
      * Normalize quaternion.
+     * 
+     * @param pApplyToSelf - Apply calculation to this object instead of creating a new one.
      */
-    public normalize(): Quaternion {
+    public normalize(pApplyToSelf: boolean = false): Quaternion {
+        // Set target quaternion depending on apply to self or not.
+        const lTargetQuaternion: Quaternion = pApplyToSelf ? this : new Quaternion();
+
         // Calculate length.
         const lLength = Math.hypot(this.mData[0], this.mData[1], this.mData[2], this.mData[3]);
 
         // Create new quaternion by dividing each dimension by length.
-        const lQuaternion = new Quaternion();
-        lQuaternion.x = this.mData[1] / lLength;
-        lQuaternion.y = this.mData[2] / lLength;
-        lQuaternion.z = this.mData[3] / lLength;
-        lQuaternion.w = this.mData[0] / lLength;
+        lTargetQuaternion.mData[0] = this.mData[0] / lLength;
+        lTargetQuaternion.mData[1] = this.mData[1] / lLength;
+        lTargetQuaternion.mData[2] = this.mData[2] / lLength;
+        lTargetQuaternion.mData[3] = this.mData[3] / lLength;
 
-        return lQuaternion;
+        return lTargetQuaternion;
     }
 }

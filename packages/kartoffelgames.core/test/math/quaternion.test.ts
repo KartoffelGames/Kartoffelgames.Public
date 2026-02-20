@@ -235,6 +235,51 @@ Deno.test('Quaternion.mult()', async (pContext) => {
         expect(lQuaternionA.x).toBe(lOriginalX);
     });
 
+    await pContext.step('Multiply identity quaternion by another with applyToSelf', () => {
+        // Setup.
+        const lIdentity: Quaternion = new Quaternion();
+        const lOther: Quaternion = Quaternion.fromRotation(45, 0, 0);
+
+        // Process.
+        const lResult: Quaternion = lIdentity.mult(lOther, true);
+
+        // Evaluation.
+        expect(lResult).toBe(lIdentity);
+        expect(lResult.w).toBeCloseTo(lOther.w, 10);
+        expect(lResult.x).toBeCloseTo(lOther.x, 10);
+        expect(lResult.y).toBeCloseTo(lOther.y, 10);
+        expect(lResult.z).toBeCloseTo(lOther.z, 10);
+    });
+
+    await pContext.step('Multiply two 90 degree pitch rotations with applyToSelf equals 180 degree pitch', () => {
+        // Setup.
+        const lQuaternion90: Quaternion = Quaternion.fromRotation(90, 0, 0);
+        const lQuaternion90B: Quaternion = Quaternion.fromRotation(90, 0, 0);
+        const lQuaternion180: Quaternion = Quaternion.fromRotation(180, 0, 0);
+
+        // Process.
+        const lResult: Quaternion = lQuaternion90.mult(lQuaternion90B, true);
+
+        // Evaluation.
+        expect(lResult).toBe(lQuaternion90);
+        expect(lResult.w).toBeCloseTo(lQuaternion180.w, 10);
+        expect(lResult.x).toBeCloseTo(lQuaternion180.x, 10);
+        expect(lResult.y).toBeCloseTo(lQuaternion180.y, 10);
+        expect(lResult.z).toBeCloseTo(lQuaternion180.z, 10);
+    });
+
+    await pContext.step('Multiply with applyToSelf mutates original quaternion', () => {
+        // Setup.
+        const lQuaternionA: Quaternion = Quaternion.fromRotation(45, 0, 0);
+        const lOriginalW: number = lQuaternionA.w;
+
+        // Process.
+        lQuaternionA.mult(Quaternion.fromRotation(0, 90, 0), true);
+
+        // Evaluation.
+        expect(lQuaternionA.w).not.toBe(lOriginalW);
+    });
+
     await pContext.step('Multiply two 90 degree pitch rotations equals 180 degree pitch', () => {
         // Setup.
         const lQuaternion90: Quaternion = Quaternion.fromRotation(90, 0, 0);
@@ -300,6 +345,57 @@ Deno.test('Quaternion.normalize()', async (pContext) => {
         expect(lResult.z).toBeCloseTo(0.5, 10);
     });
 
+    await pContext.step('Normalize non-unit quaternion with applyToSelf produces unit length', () => {
+        // Setup.
+        const lQuaternion: Quaternion = new Quaternion();
+        lQuaternion.w = 2;
+        lQuaternion.x = 0;
+        lQuaternion.y = 0;
+        lQuaternion.z = 0;
+
+        // Process.
+        const lResult: Quaternion = lQuaternion.normalize(true);
+
+        // Evaluation.
+        expect(lResult).toBe(lQuaternion);
+        const lLength: number = Math.hypot(lResult.w, lResult.x, lResult.y, lResult.z);
+        expect(lLength).toBeCloseTo(1, 10);
+    });
+
+    await pContext.step('Normalize arbitrary quaternion with applyToSelf', () => {
+        // Setup.
+        const lQuaternion: Quaternion = new Quaternion();
+        lQuaternion.w = 1;
+        lQuaternion.x = 1;
+        lQuaternion.y = 1;
+        lQuaternion.z = 1;
+
+        // Process.
+        const lResult: Quaternion = lQuaternion.normalize(true);
+
+        // Evaluation. Length of [1,1,1,1] = 2, so each component = 0.5
+        expect(lResult).toBe(lQuaternion);
+        expect(lResult.w).toBeCloseTo(0.5, 10);
+        expect(lResult.x).toBeCloseTo(0.5, 10);
+        expect(lResult.y).toBeCloseTo(0.5, 10);
+        expect(lResult.z).toBeCloseTo(0.5, 10);
+    });
+
+    await pContext.step('Normalize with applyToSelf mutates original quaternion', () => {
+        // Setup.
+        const lQuaternion: Quaternion = new Quaternion();
+        lQuaternion.w = 2;
+        lQuaternion.x = 0;
+        lQuaternion.y = 0;
+        lQuaternion.z = 0;
+
+        // Process.
+        lQuaternion.normalize(true);
+
+        // Evaluation.
+        expect(lQuaternion.w).toBe(1);
+    });
+
     await pContext.step('Normalize does not mutate original quaternion', () => {
         // Setup.
         const lQuaternion: Quaternion = new Quaternion();
@@ -344,6 +440,46 @@ Deno.test('Quaternion.addEulerRotation()', async (pContext) => {
         expect(lResult.x).toBeCloseTo(lExpected.x, 10);
         expect(lResult.y).toBeCloseTo(lExpected.y, 10);
         expect(lResult.z).toBeCloseTo(lExpected.z, 10);
+    });
+
+    await pContext.step('Add rotation to identity quaternion with applyToSelf equals fromRotation', () => {
+        // Setup.
+        const lQuaternion: Quaternion = new Quaternion();
+        const lExpected: Quaternion = Quaternion.fromRotation(45, 30, 60);
+
+        // Process.
+        const lResult: Quaternion = lQuaternion.addEulerRotation(45, 30, 60, true);
+
+        // Evaluation.
+        expect(lResult).toBe(lQuaternion);
+        expect(lResult.w).toBeCloseTo(lExpected.w, 10);
+        expect(lResult.x).toBeCloseTo(lExpected.x, 10);
+        expect(lResult.y).toBeCloseTo(lExpected.y, 10);
+        expect(lResult.z).toBeCloseTo(lExpected.z, 10);
+    });
+
+    await pContext.step('Add euler rotation with applyToSelf produces unit quaternion', () => {
+        // Setup.
+        const lQuaternion: Quaternion = Quaternion.fromRotation(10, 20, 30);
+
+        // Process.
+        lQuaternion.addEulerRotation(40, 50, 60, true);
+
+        // Evaluation.
+        const lLength: number = Math.hypot(lQuaternion.w, lQuaternion.x, lQuaternion.y, lQuaternion.z);
+        expect(lLength).toBeCloseTo(1, 10);
+    });
+
+    await pContext.step('Add euler rotation with applyToSelf mutates original quaternion', () => {
+        // Setup.
+        const lQuaternion: Quaternion = new Quaternion();
+        const lOriginalW: number = lQuaternion.w;
+
+        // Process.
+        lQuaternion.addEulerRotation(45, 30, 60, true);
+
+        // Evaluation.
+        expect(lQuaternion.w).not.toBe(lOriginalW);
     });
 
     await pContext.step('Add euler rotation produces unit quaternion', () => {

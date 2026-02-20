@@ -27,7 +27,7 @@ Deno.test('Vector constructor', async (pContext) => {
         expect(lVector.data).toEqual([1, 2, 3, 4]);
     });
 
-    await pContext.step('Constructor copies input data', () => {
+    await pContext.step('Constructor links input data', () => {
         // Setup.
         const lData: Array<number> = [1, 2, 3];
 
@@ -36,7 +36,7 @@ Deno.test('Vector constructor', async (pContext) => {
         lData[0] = 99;
 
         // Evaluation.
-        expect(lVector.data[0]).toBe(1);
+        expect(lVector.data[0]).toBe(99);
         expect(lVector.data[1]).toBe(2);
         expect(lVector.data[2]).toBe(3);
     });
@@ -166,6 +166,43 @@ Deno.test('Vector.add()', async (pContext) => {
         expect(lResult.data).toEqual([4, 5]);
     });
 
+    await pContext.step('Add two 3D vectors with applyToSelf', () => {
+        // Setup.
+        const lVectorA: Vector = new Vector([1, 2, 3]);
+        const lVectorB: Vector = new Vector([4, 5, 6]);
+
+        // Process.
+        const lResult: Vector = lVectorA.add(lVectorB, true);
+
+        // Evaluation.
+        expect(lResult).toBe(lVectorA);
+        expect(lResult.data).toEqual([5, 7, 9]);
+    });
+
+    await pContext.step('Add scalar to vector with applyToSelf', () => {
+        // Setup.
+        const lVector: Vector = new Vector([1, 2, 3]);
+        const lScalar: number = 10;
+
+        // Process.
+        const lResult: Vector = lVector.add(lScalar, true);
+
+        // Evaluation.
+        expect(lResult).toBe(lVector);
+        expect(lResult.data).toEqual([11, 12, 13]);
+    });
+
+    await pContext.step('Add with applyToSelf mutates original vector', () => {
+        // Setup.
+        const lVector: Vector = new Vector([1, 2, 3]);
+
+        // Process.
+        lVector.add(10, true);
+
+        // Evaluation.
+        expect(lVector.data).toEqual([11, 12, 13]);
+    });
+
     await pContext.step('Error: Add vectors of different lengths', () => {
         // Setup.
         const lVectorA: Vector = new Vector([1, 2]);
@@ -215,6 +252,43 @@ Deno.test('Vector.sub()', async (pContext) => {
 
         // Evaluation.
         expect(lVector.data).toEqual([10, 20, 30]);
+    });
+
+    await pContext.step('Subtract two 3D vectors with applyToSelf', () => {
+        // Setup.
+        const lVectorA: Vector = new Vector([5, 7, 9]);
+        const lVectorB: Vector = new Vector([1, 2, 3]);
+
+        // Process.
+        const lResult: Vector = lVectorA.sub(lVectorB, true);
+
+        // Evaluation.
+        expect(lResult).toBe(lVectorA);
+        expect(lResult.data).toEqual([4, 5, 6]);
+    });
+
+    await pContext.step('Subtract scalar with applyToSelf', () => {
+        // Setup.
+        const lVector: Vector = new Vector([10, 20, 30]);
+        const lScalar: number = 5;
+
+        // Process.
+        const lResult: Vector = lVector.sub(lScalar, true);
+
+        // Evaluation.
+        expect(lResult).toBe(lVector);
+        expect(lResult.data).toEqual([5, 15, 25]);
+    });
+
+    await pContext.step('Subtract with applyToSelf mutates original vector', () => {
+        // Setup.
+        const lVector: Vector = new Vector([10, 20, 30]);
+
+        // Process.
+        lVector.sub(5, true);
+
+        // Evaluation.
+        expect(lVector.data).toEqual([5, 15, 25]);
     });
 
     await pContext.step('Error: Subtract vectors of different lengths', () => {
@@ -311,6 +385,42 @@ Deno.test('Vector.normalize()', async (pContext) => {
 
         // Evaluation.
         expect(lVector.data).toEqual([3, 4]);
+    });
+
+    await pContext.step('Normalize 2D vector with applyToSelf', () => {
+        // Setup. normalize([3, 4]) = [3/5, 4/5]
+        const lVector: Vector = new Vector([3, 4]);
+
+        // Process.
+        const lResult: Vector = lVector.normalize(true);
+
+        // Evaluation.
+        expect(lResult).toBe(lVector);
+        expect(lResult.data[0]).toBeCloseTo(0.6, 10);
+        expect(lResult.data[1]).toBeCloseTo(0.8, 10);
+    });
+
+    await pContext.step('Normalize with applyToSelf produces length 1', () => {
+        // Setup.
+        const lVector: Vector = new Vector([3, 4, 5]);
+
+        // Process.
+        lVector.normalize(true);
+
+        // Evaluation.
+        expect(lVector.length()).toBeCloseTo(1, 10);
+    });
+
+    await pContext.step('Normalize with applyToSelf mutates original vector', () => {
+        // Setup.
+        const lVector: Vector = new Vector([3, 4]);
+
+        // Process.
+        lVector.normalize(true);
+
+        // Evaluation.
+        expect(lVector.data[0]).toBeCloseTo(0.6, 10);
+        expect(lVector.data[1]).toBeCloseTo(0.8, 10);
     });
 
     await pContext.step('Normalize unit axis vector returns same values', () => {
@@ -452,6 +562,44 @@ Deno.test('Vector.multCross()', async (pContext) => {
         // Evaluation.
         expect(lVectorA.data).toEqual([1, 0, 0]);
         expect(lVectorB.data).toEqual([0, 1, 0]);
+    });
+
+    await pContext.step('Cross product with applyToSelf', () => {
+        // Setup. cross([1,0,0], [0,1,0]) = [0,0,1]
+        const lVectorA: Vector = new Vector([1, 0, 0]);
+        const lVectorB: Vector = new Vector([0, 1, 0]);
+
+        // Process.
+        const lResult: Vector = lVectorA.multCross(lVectorB, true);
+
+        // Evaluation.
+        expect(lResult).toBe(lVectorA);
+        expect(lResult.data).toEqual([0, 0, 1]);
+    });
+
+    await pContext.step('Cross product of arbitrary vectors with applyToSelf', () => {
+        // Setup. cross([2,3,4], [5,6,7]) = [-3, 6, -3]
+        const lVectorA: Vector = new Vector([2, 3, 4]);
+        const lVectorB: Vector = new Vector([5, 6, 7]);
+
+        // Process.
+        const lResult: Vector = lVectorA.multCross(lVectorB, true);
+
+        // Evaluation.
+        expect(lResult).toBe(lVectorA);
+        expect(lResult.data).toEqual([-3, 6, -3]);
+    });
+
+    await pContext.step('Cross product with applyToSelf mutates original vector', () => {
+        // Setup.
+        const lVectorA: Vector = new Vector([1, 0, 0]);
+        const lVectorB: Vector = new Vector([0, 1, 0]);
+
+        // Process.
+        lVectorA.multCross(lVectorB, true);
+
+        // Evaluation.
+        expect(lVectorA.data).toEqual([0, 0, 1]);
     });
 
     await pContext.step('Error: Cross product of non-3D vectors with different lengths', () => {

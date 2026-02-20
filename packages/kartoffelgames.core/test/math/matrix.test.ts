@@ -282,6 +282,43 @@ Deno.test('Matrix.add()', async (pContext) => {
         expect(lMatrix.dataArray).toEqual([1, 3, 2, 4]);
     });
 
+    await pContext.step('Add scalar to matrix with applyToSelf', () => {
+        // Setup. Column-major for [[1,2],[3,4]]: [1, 3, 2, 4]
+        const lMatrix: Matrix = new Matrix([1, 3, 2, 4], 2, 2);
+        const lScalar: number = 10;
+
+        // Process.
+        const lResult: Matrix = lMatrix.add(lScalar, true);
+
+        // Evaluation.
+        expect(lResult).toBe(lMatrix);
+        expect(lResult.dataArray).toEqual([11, 13, 12, 14]);
+    });
+
+    await pContext.step('Add two matrices with applyToSelf', () => {
+        // Setup.
+        const lMatrixA: Matrix = new Matrix([1, 3, 2, 4], 2, 2);
+        const lMatrixB: Matrix = new Matrix([5, 7, 6, 8], 2, 2);
+
+        // Process.
+        const lResult: Matrix = lMatrixA.add(lMatrixB, true);
+
+        // Evaluation.
+        expect(lResult).toBe(lMatrixA);
+        expect(lResult.dataArray).toEqual([6, 10, 8, 12]);
+    });
+
+    await pContext.step('Add with applyToSelf mutates original matrix', () => {
+        // Setup.
+        const lMatrix: Matrix = new Matrix([1, 3, 2, 4], 2, 2);
+
+        // Process.
+        lMatrix.add(10, true);
+
+        // Evaluation.
+        expect(lMatrix.dataArray).toEqual([11, 13, 12, 14]);
+    });
+
     await pContext.step('Error: Add matrices of different sizes', () => {
         // Setup.
         const lMatrixA: Matrix = new Matrix([1, 3, 2, 4], 2, 2);
@@ -331,6 +368,43 @@ Deno.test('Matrix.sub()', async (pContext) => {
 
         // Evaluation.
         expect(lMatrix.dataArray).toEqual([10, 30, 20, 40]);
+    });
+
+    await pContext.step('Subtract scalar with applyToSelf', () => {
+        // Setup. Column-major for [[10,20],[30,40]]: [10, 30, 20, 40]
+        const lMatrix: Matrix = new Matrix([10, 30, 20, 40], 2, 2);
+        const lScalar: number = 5;
+
+        // Process.
+        const lResult: Matrix = lMatrix.sub(lScalar, true);
+
+        // Evaluation.
+        expect(lResult).toBe(lMatrix);
+        expect(lResult.dataArray).toEqual([5, 25, 15, 35]);
+    });
+
+    await pContext.step('Subtract two matrices with applyToSelf', () => {
+        // Setup.
+        const lMatrixA: Matrix = new Matrix([5, 7, 6, 8], 2, 2);
+        const lMatrixB: Matrix = new Matrix([1, 3, 2, 4], 2, 2);
+
+        // Process.
+        const lResult: Matrix = lMatrixA.sub(lMatrixB, true);
+
+        // Evaluation.
+        expect(lResult).toBe(lMatrixA);
+        expect(lResult.dataArray).toEqual([4, 4, 4, 4]);
+    });
+
+    await pContext.step('Subtract with applyToSelf mutates original matrix', () => {
+        // Setup.
+        const lMatrix: Matrix = new Matrix([10, 30, 20, 40], 2, 2);
+
+        // Process.
+        lMatrix.sub(5, true);
+
+        // Evaluation.
+        expect(lMatrix.dataArray).toEqual([5, 25, 15, 35]);
     });
 
     await pContext.step('Error: Subtract matrices of different sizes', () => {
@@ -410,6 +484,57 @@ Deno.test('Matrix.mult()', async (pContext) => {
 
         // Evaluation.
         expect(lMatrix.dataArray).toEqual([1, 3, 2, 4]);
+    });
+
+    await pContext.step('Multiply matrix by scalar with applyToSelf', () => {
+        // Setup. Column-major for [[1,2],[3,4]]: [1, 3, 2, 4]
+        const lMatrix: Matrix = new Matrix([1, 3, 2, 4], 2, 2);
+        const lScalar: number = 3;
+
+        // Process.
+        const lResult: Matrix = lMatrix.mult(lScalar, true);
+
+        // Evaluation.
+        expect(lResult).toBe(lMatrix);
+        expect(lResult.dataArray).toEqual([3, 9, 6, 12]);
+    });
+
+    await pContext.step('Multiply two 2x2 matrices with applyToSelf', () => {
+        // Setup. A=[[1,2],[3,4]], B=[[5,6],[7,8]]
+        // Result: [[1*5+2*7, 1*6+2*8],[3*5+4*7, 3*6+4*8]] = [[19,22],[43,50]]
+        const lMatrixA: Matrix = new Matrix([1, 3, 2, 4], 2, 2);
+        const lMatrixB: Matrix = new Matrix([5, 7, 6, 8], 2, 2);
+
+        // Process.
+        const lResult: Matrix = lMatrixA.mult(lMatrixB, true);
+
+        // Evaluation.
+        expect(lResult).toBe(lMatrixA);
+        expect(lResult.dataArray).toEqual([19, 43, 22, 50]);
+    });
+
+    await pContext.step('Multiply with applyToSelf mutates original matrix', () => {
+        // Setup.
+        const lMatrix: Matrix = new Matrix([1, 3, 2, 4], 2, 2);
+
+        // Process.
+        lMatrix.mult(3, true);
+
+        // Evaluation.
+        expect(lMatrix.dataArray).toEqual([3, 9, 6, 12]);
+    });
+
+    await pContext.step('Chain multiply with applyToSelf', () => {
+        // Setup. A=[[1,2],[3,4]], B=[[5,6],[7,8]], C=[[1,0],[0,1]] (identity)
+        const lMatrixA: Matrix = new Matrix([1, 3, 2, 4], 2, 2);
+        const lMatrixB: Matrix = new Matrix([5, 7, 6, 8], 2, 2);
+        const lMatrixC: Matrix = Matrix.identity(2);
+
+        // Process. Chain: A.mult(B).mult(C) applied to self.
+        lMatrixA.mult(lMatrixB, true).mult(lMatrixC, true);
+
+        // Evaluation. A * B * I = A * B = [[19,22],[43,50]]
+        expect(lMatrixA.dataArray).toEqual([19, 43, 22, 50]);
     });
 
     await pContext.step('Error: Multiply matrices with incompatible dimensions', () => {

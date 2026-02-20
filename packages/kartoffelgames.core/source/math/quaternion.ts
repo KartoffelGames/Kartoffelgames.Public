@@ -34,22 +34,26 @@ export class Quaternion {
         return lQuaternion;
     }
 
-    private mW: number;
-    private mX: number;
-    private mY: number;
-    private mZ: number;
+    private mData: [number, number, number, number];
+
+    /**
+     * Get quaternion data.
+     */
+    public get data(): ReadonlyArray<number> {
+        return this.mData;
+    }
 
     /**
      * Rotation forward vector.
      */
     public get vectorForward(): Vector {
         // Products.
-        const lSquareX: number = 2 * Math.pow(this.mX, 2);
-        const lSquareY: number = 2 * Math.pow(this.mY, 2);
-        const lProductXz: number = 2 * this.mX * this.mZ;
-        const lProductYw: number = 2 * this.mY * this.mW;
-        const lProductYz: number = 2 * this.mY * this.mZ;
-        const lProductXw: number = 2 * this.mX * this.mW;
+        const lSquareX: number = 2 * Math.pow(this.mData[1], 2);
+        const lSquareY: number = 2 * Math.pow(this.mData[2], 2);
+        const lProductXz: number = 2 * this.mData[1] * this.mData[3];
+        const lProductYw: number = 2 * this.mData[2] * this.mData[0];
+        const lProductYz: number = 2 * this.mData[2] * this.mData[3];
+        const lProductXw: number = 2 * this.mData[1] * this.mData[0];
 
         const lX: number = lProductXz + lProductYw;
         const lY: number = lProductYz - lProductXw;
@@ -63,12 +67,12 @@ export class Quaternion {
      */
     public get vectorRight(): Vector {
         // Products.
-        const lSquareY: number = 2 * Math.pow(this.mY, 2);
-        const lSquareZ: number = 2 * Math.pow(this.mZ, 2);
-        const lProductXy: number = 2 * this.mX * this.mY;
-        const lProductZw: number = 2 * this.mZ * this.mW;
-        const lProductXz: number = 2 * this.mX * this.mZ;
-        const lProductYw: number = 2 * this.mY * this.mW;
+        const lSquareY: number = 2 * Math.pow(this.mData[2], 2);
+        const lSquareZ: number = 2 * Math.pow(this.mData[3], 2);
+        const lProductXy: number = 2 * this.mData[1] * this.mData[2];
+        const lProductZw: number = 2 * this.mData[3] * this.mData[0];
+        const lProductXz: number = 2 * this.mData[1] * this.mData[3];
+        const lProductYw: number = 2 * this.mData[2] * this.mData[0];
 
         const lX: number = 1 - lSquareY - lSquareZ;
         const lY: number = lProductXy + lProductZw;
@@ -82,13 +86,13 @@ export class Quaternion {
      */
     public get vectorUp(): Vector {
         // Products.
-        const lSquareX: number = 2 * Math.pow(this.mX, 2);
-        const lSquareZ: number = 2 * Math.pow(this.mZ, 2);
-        const lProductXy: number = 2 * this.mX * this.mY;
-        const lProductZw: number = 2 * this.mZ * this.mW;
+        const lSquareX: number = 2 * Math.pow(this.mData[1], 2);
+        const lSquareZ: number = 2 * Math.pow(this.mData[3], 2);
+        const lProductXy: number = 2 * this.mData[1] * this.mData[2];
+        const lProductZw: number = 2 * this.mData[3] * this.mData[0];
 
-        const lProductYz: number = 2 * this.mY * this.mZ;
-        const lProductXw: number = 2 * this.mX * this.mW;
+        const lProductYz: number = 2 * this.mData[2] * this.mData[3];
+        const lProductXw: number = 2 * this.mData[1] * this.mData[0];
 
         const lX: number = lProductXy - lProductZw;
         const lY: number = 1 - lSquareX - lSquareZ;
@@ -101,36 +105,36 @@ export class Quaternion {
      * Get w value.
      */
     public get w(): number {
-        return this.mW;
+        return this.mData[0];
     } set w(pValue: number) {
-        this.mW = pValue;
+        this.mData[0] = pValue;
     }
 
     /**
      * Get x value.
      */
     public get x(): number {
-        return this.mX;
+        return this.mData[1];
     } set x(pValue: number) {
-        this.mX = pValue;
+        this.mData[1] = pValue;
     }
 
     /**
      * Get y value.
      */
     public get y(): number {
-        return this.mY;
+        return this.mData[2];
     } set y(pValue: number) {
-        this.mY = pValue;
+        this.mData[2] = pValue;
     }
 
     /**
      * Get z value.
      */
     public get z(): number {
-        return this.mZ;
+        return this.mData[3];
     } set z(pValue: number) {
-        this.mZ = pValue;
+        this.mData[3] = pValue;
     }
 
     /**
@@ -141,10 +145,7 @@ export class Quaternion {
      * @param pZ - Z.
      */
     public constructor() {
-        this.mW = 1;
-        this.mX = 0;
-        this.mY = 0;
-        this.mZ = 0;
+        this.mData = [1, 0, 0, 0];
     }
 
     /**
@@ -165,22 +166,22 @@ export class Quaternion {
         const lEuler: Euler = new Euler();
 
         // Pitch (x-axis rotation)
-        const lSinPitchCosYaw = 2 * (this.mW * this.mX + this.mY * this.mZ);
-        const lCosPitchCosYaw = 1 - 2 * (this.mX * this.mX + this.mY * this.mY);
+        const lSinPitchCosYaw = 2 * (this.mData[0] * this.mData[1] + this.mData[2] * this.mData[3]);
+        const lCosPitchCosYaw = 1 - 2 * (this.mData[1] * this.mData[1] + this.mData[2] * this.mData[2]);
         const lPitchRadian = Math.atan2(lSinPitchCosYaw, lCosPitchCosYaw);
         const lPitchDegree = (lPitchRadian * 180 / Math.PI) % 360;
         lEuler.x = (lPitchDegree < 0) ? lPitchDegree + 360 : lPitchDegree;
 
         // Yaw (y-axis rotation)
-        const lSinYaw = Math.sqrt(1 + 2 * (this.mW * this.mY - this.mX * this.mZ));
-        const lCosYaw = Math.sqrt(1 - 2 * (this.mW * this.mY - this.mX * this.mZ));
+        const lSinYaw = Math.sqrt(1 + 2 * (this.mData[0] * this.mData[2] - this.mData[1] * this.mData[3]));
+        const lCosYaw = Math.sqrt(1 - 2 * (this.mData[0] * this.mData[2] - this.mData[1] * this.mData[3]));
         const lYawRadian = 2 * Math.atan2(lSinYaw, lCosYaw) - Math.PI / 2;
         const lYawDegree = (lYawRadian * 180 / Math.PI) % 360;
         lEuler.y = (lYawDegree < 0) ? lYawDegree + 360 : lYawDegree;
 
         // Roll (z-axis rotation)
-        const lSinRollCosYaw = 2 * (this.mW * this.mZ + this.mX * this.mY);
-        const lCosRollCosYaw = 1 - 2 * (this.mY * this.mY + this.mZ * this.mZ);
+        const lSinRollCosYaw = 2 * (this.mData[0] * this.mData[3] + this.mData[1] * this.mData[2]);
+        const lCosRollCosYaw = 1 - 2 * (this.mData[2] * this.mData[2] + this.mData[3] * this.mData[3]);
         const lRollRadian = Math.atan2(lSinRollCosYaw, lCosRollCosYaw);
         const lRollDegree = (lRollRadian * 180 / Math.PI) % 360;
         lEuler.z = (lRollDegree < 0) ? lRollDegree + 360 : lRollDegree;
@@ -198,17 +199,17 @@ export class Quaternion {
             2*qx*qz - 2*qy*qw	2*qy*qz + 2*qx*qw	1 - 2*qx² - 2*qy²
         */
         // Sqares
-        const lSquareX: number = 2 * Math.pow(this.mX, 2);
-        const lSquareY: number = 2 * Math.pow(this.mY, 2);
-        const lSquareZ: number = 2 * Math.pow(this.mZ, 2);
+        const lSquareX: number = 2 * Math.pow(this.mData[1], 2);
+        const lSquareY: number = 2 * Math.pow(this.mData[2], 2);
+        const lSquareZ: number = 2 * Math.pow(this.mData[3], 2);
 
         // Products.
-        const lProductXy: number = 2 * this.mX * this.mY;
-        const lProductZw: number = 2 * this.mZ * this.mW;
-        const lProductXz: number = 2 * this.mX * this.mZ;
-        const lProductYw: number = 2 * this.mY * this.mW;
-        const lProductYz: number = 2 * this.mY * this.mZ;
-        const lProductXw: number = 2 * this.mX * this.mW;
+        const lProductXy: number = 2 * this.mData[1] * this.mData[2];
+        const lProductZw: number = 2 * this.mData[3] * this.mData[0];
+        const lProductXz: number = 2 * this.mData[1] * this.mData[3];
+        const lProductYw: number = 2 * this.mData[2] * this.mData[0];
+        const lProductYz: number = 2 * this.mData[2] * this.mData[3];
+        const lProductXw: number = 2 * this.mData[1] * this.mData[0];
 
         // Fill matrix.
         const lMatrix: Matrix = Matrix.identity(4);
@@ -232,10 +233,10 @@ export class Quaternion {
      * @param pQuaternion - Quaterion source.
      */
     public mult(pQuaternion: Quaternion): Quaternion {
-        const lW: number = this.mW * pQuaternion.w - this.mX * pQuaternion.x - this.mY * pQuaternion.y - this.mZ * pQuaternion.z;
-        const lX: number = this.mW * pQuaternion.x + this.mX * pQuaternion.w + this.mY * pQuaternion.z - this.mZ * pQuaternion.y;
-        const lY: number = this.mW * pQuaternion.y - this.mX * pQuaternion.z + this.mY * pQuaternion.w + this.mZ * pQuaternion.x;
-        const lZ: number = this.mW * pQuaternion.z + this.mX * pQuaternion.y - this.mY * pQuaternion.x + this.mZ * pQuaternion.w;
+        const lW: number = this.mData[0] * pQuaternion.w - this.mData[1] * pQuaternion.x - this.mData[2] * pQuaternion.y - this.mData[3] * pQuaternion.z;
+        const lX: number = this.mData[0] * pQuaternion.x + this.mData[1] * pQuaternion.w + this.mData[2] * pQuaternion.z - this.mData[3] * pQuaternion.y;
+        const lY: number = this.mData[0] * pQuaternion.y - this.mData[1] * pQuaternion.z + this.mData[2] * pQuaternion.w + this.mData[3] * pQuaternion.x;
+        const lZ: number = this.mData[0] * pQuaternion.z + this.mData[1] * pQuaternion.y - this.mData[2] * pQuaternion.x + this.mData[3] * pQuaternion.w;
 
         const lQuaternion = new Quaternion();
         lQuaternion.x = lX;
@@ -251,14 +252,14 @@ export class Quaternion {
      */
     public normalize(): Quaternion {
         // Calculate length.
-        const lLength = Math.hypot(this.mW, this.mX, this.mY, this.mZ);
+        const lLength = Math.hypot(this.mData[0], this.mData[1], this.mData[2], this.mData[3]);
 
         // Create new quaternion by dividing each dimension by length.
         const lQuaternion = new Quaternion();
-        lQuaternion.x = this.mX / lLength;
-        lQuaternion.y = this.mY / lLength;
-        lQuaternion.z = this.mZ / lLength;
-        lQuaternion.w = this.mW / lLength;
+        lQuaternion.x = this.mData[1] / lLength;
+        lQuaternion.y = this.mData[2] / lLength;
+        lQuaternion.z = this.mData[3] / lLength;
+        lQuaternion.w = this.mData[0] / lLength;
 
         return lQuaternion;
     }

@@ -89,7 +89,7 @@ export class Vector {
     public multCross(pVector: Vector): Vector {
         // Restrict on same length.
         if (this.mData.length !== pVector.data.length && this.mData.length !== 3) {
-            throw new Exception('Vectors need to be the length of 3 for corss product calculation.', this);
+            throw new Exception('Vectors need to be the length of 3 for cross product calculation.', this);
         }
 
         /*

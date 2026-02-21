@@ -27,6 +27,13 @@ import { RenderTargetSystem, type RenderTargetData } from '../../source/system/r
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
 import shitShaderSource from './shit-system-shader.wgsl';
 
+type MeshGroupData = {
+    objectBindGroup: BindGroup;
+    componentIndicesBuffer: GpuBuffer;
+    pipelineData: PipelineData;
+    instanceCount: number;
+};
+
 /**
  * System that renders all mesh components as colored geometry with dynamic lighting from LightSystem.
  * Uses RenderTargetSystem for render targets, camera assignment, and frustum-culled visible mesh list.
@@ -34,12 +41,13 @@ import shitShaderSource from './shit-system-shader.wgsl';
 export class ShitSystem extends GameSystem {
     private mCameraGroup: BindGroup | null;
     private mExecutor: GpuExecution | null;
-    private mMeshes: Array<VertexParameter>;
+    private mLightCountBuffer: GpuBuffer | null;
+    private mLightsGroup: BindGroup | null;
+    private mMeshGroups: Map<Mesh, MeshGroupData>;
     private mPipeline: VertexFragmentPipeline | null;
-    private mPipelineData: PipelineData | null;
     private mRenderPass: RenderPass | null;
     private mShaderRenderModule: ShaderRenderModule | null;
-    private mVisibleCount: number;
+    private mVertexParamCache: Map<Mesh, Array<VertexParameter>>;
 
     /**
      * Systems this system depends on.
@@ -63,12 +71,13 @@ export class ShitSystem extends GameSystem {
 
         this.mCameraGroup = null;
         this.mExecutor = null;
-        this.mMeshes = [];
+        this.mLightCountBuffer = null;
+        this.mLightsGroup = null;
+        this.mMeshGroups = new Map();
         this.mPipeline = null;
-        this.mPipelineData = null;
         this.mRenderPass = null;
         this.mShaderRenderModule = null;
-        this.mVisibleCount = 0;
+        this.mVertexParamCache = new Map();
     }
 
     /**
@@ -138,9 +147,12 @@ export class ShitSystem extends GameSystem {
 
         // Create render pass that draws all submeshes for all visible instances.
         this.mRenderPass = lGpu.renderPass(lCoreData.renderTargets, (pContext) => {
-            if (this.mPipelineData && this.mMeshes.length > 0 && this.mVisibleCount > 0) {
-                for (const lMesh of this.mMeshes) {
-                    pContext.drawDirect(this.mPipeline!, lMesh, this.mPipelineData, this.mVisibleCount);
+            for (const [lMesh, lGroupData] of this.mMeshGroups) {
+                if (lGroupData.instanceCount > 0) {
+                    const lVertexParams = this.mVertexParamCache.get(lMesh)!;
+                    for (const lVertexParam of lVertexParams) {
+                        pContext.drawDirect(this.mPipeline!, lVertexParam, lGroupData.pipelineData, lGroupData.instanceCount);
+                    }
                 }
             }
         }, false);
@@ -195,63 +207,104 @@ export class ShitSystem extends GameSystem {
 
     /**
      * Rebuild instance data from the visible mesh render components.
-     * Creates GPU vertex parameters for each submesh and builds transformation index array for instanced rendering.
+     * Groups renderers by mesh, caches GPU resources per mesh group, and reuses buffers.
      *
      * @param pVisibleRenderers - Frustum-culled list of visible mesh render components.
      */
     private rebuildInstanceData(pVisibleRenderers: Array<MeshRenderComponent>): void {
-        this.mVisibleCount = pVisibleRenderers.length;
-
-        // Skip when no renderers are visible or pipeline is not ready.
-        if (pVisibleRenderers.length === 0 || !this.mShaderRenderModule || !this.mPipeline || !this.mCameraGroup) {
-            this.mPipelineData = null;
-            this.mMeshes = [];
-            this.mVisibleCount = 0;
+        // Skip when pipeline is not ready.
+        if (!this.mShaderRenderModule || !this.mPipeline || !this.mCameraGroup) {
             return;
         }
 
-        // Get mesh data from first visible mesh render component.
-        const lFirstComponent: MeshRenderComponent = pVisibleRenderers[0];
-        const lMesh: Mesh = lFirstComponent.mesh;
-
-        // Create GPU vertex parameters for each submesh.
-        this.mMeshes = lMesh.subMeshes.map((lSubMesh) => {
-            const lVertexParameter: VertexParameter = this.mShaderRenderModule!.vertexParameter.create(lSubMesh.indices);
-            lVertexParameter.create('position', lMesh.verticesData);
-            lVertexParameter.create('normal', lMesh.normals);
-            return lVertexParameter;
-        });
-
-        // Get transformation system for buffer and index lookups.
-        const lTransformationSystem: TransformationSystem = this.getDependency(TransformationSystem);
-
-        // Build indices array mapping instance id to transformation buffer index.
-        const lIndices: Uint32Array = new Uint32Array(pVisibleRenderers.length);
-        for (let lIndex: number = 0; lIndex < pVisibleRenderers.length; lIndex++) {
-            const lTransformation: TransformationComponent = pVisibleRenderers[lIndex].gameEntity.getComponent(TransformationComponent);
-            lIndices[lIndex] = lTransformationSystem.indexOfTransformation(lTransformation);
+        // Reset all instance counts.
+        for (const lGroupData of this.mMeshGroups.values()) {
+            lGroupData.instanceCount = 0;
         }
 
-        // Create object bind group with transformation data and component indices.
-        const lObjectGroup: BindGroup = this.mShaderRenderModule.layout.getGroupLayout('object').create();
-        lObjectGroup.data('transformationData').set(lTransformationSystem.gpuBuffer);
+        // Skip when no renderers are visible.
+        if (pVisibleRenderers.length === 0) {
+            return;
+        }
 
-        // For some reason create the buffer again and again.
-        const lComponentIndicesBuffer: GpuBuffer = lObjectGroup.data('componentIndices').createBuffer(pVisibleRenderers.length);
-        lComponentIndicesBuffer.write(new Uint32Array(lIndices).buffer);
+        // Group visible renderers by mesh.
+        const lMeshGroupMap: Map<Mesh, Array<MeshRenderComponent>> = new Map();
+        for (const lRenderer of pVisibleRenderers) {
+            const lMesh: Mesh = lRenderer.mesh;
+            let lGroup = lMeshGroupMap.get(lMesh);
+            if (!lGroup) {
+                lGroup = [];
+                lMeshGroupMap.set(lMesh, lGroup);
+            }
+            lGroup.push(lRenderer);
+        }
 
-        // Create lights bind group with light data buffer and light count uniform.
+        // Get dependencies.
+        const lTransformationSystem: TransformationSystem = this.getDependency(TransformationSystem);
         const lLightSystem: LightSystem = this.getDependency(LightSystem);
-        const lLightGroup: BindGroup = this.mShaderRenderModule.layout.getGroupLayout('lights').create();
-        lLightGroup.data('lightData').set(lLightSystem.gpuBuffer);
-        const lLightCountBuffer: GpuBuffer = lLightGroup.data('lightCount').createBuffer(1);
-        lLightCountBuffer.write(new Uint32Array([lLightSystem.activeLightCount]).buffer);
 
-        // Create pipeline data with object, camera, and lights groups.
-        this.mPipelineData = this.mPipeline.layout.withData((pSetup) => {
-            pSetup.addGroup(lObjectGroup);
-            pSetup.addGroup(this.mCameraGroup!);
-            pSetup.addGroup(lLightGroup);
-        });
+        // Lazily create lights bind group and buffer.
+        if (!this.mLightsGroup) {
+            this.mLightsGroup = this.mShaderRenderModule.layout.getGroupLayout('lights').create();
+            this.mLightsGroup.data('lightData').set(lLightSystem.gpuBuffer);
+            this.mLightCountBuffer = this.mLightsGroup.data('lightCount').createBuffer(1);
+        }
+
+        // Update lights data each frame.
+        this.mLightsGroup.data('lightData').set(lLightSystem.gpuBuffer);
+        this.mLightCountBuffer!.write(new Uint32Array([lLightSystem.activeLightCount]).buffer);
+
+        // Process each mesh group.
+        for (const [lMesh, lRenderers] of lMeshGroupMap) {
+            // Get or create cached vertex parameters for this mesh.
+            if (!this.mVertexParamCache.has(lMesh)) {
+                const lVertexParams = lMesh.subMeshes.map((lSubMesh) => {
+                    const lVertexParameter: VertexParameter = this.mShaderRenderModule!.vertexParameter.create(lSubMesh.indices);
+                    lVertexParameter.create('position', lMesh.verticesData);
+                    lVertexParameter.create('normal', lMesh.normals);
+                    return lVertexParameter;
+                });
+                this.mVertexParamCache.set(lMesh, lVertexParams);
+            }
+
+            // Get or create cached mesh group rendering data.
+            let lGroupData = this.mMeshGroups.get(lMesh);
+            if (!lGroupData) {
+                const lObjectBindGroup: BindGroup = this.mShaderRenderModule.layout.getGroupLayout('object').create();
+                lObjectBindGroup.data('transformationData').set(lTransformationSystem.gpuBuffer);
+                const lComponentIndicesBuffer: GpuBuffer = lObjectBindGroup.data('componentIndices').createBuffer(lRenderers.length);
+
+                const lPipelineData: PipelineData = this.mPipeline.layout.withData((pSetup) => {
+                    pSetup.addGroup(lObjectBindGroup);
+                    pSetup.addGroup(this.mCameraGroup!);
+                    pSetup.addGroup(this.mLightsGroup!);
+                });
+
+                lGroupData = {
+                    objectBindGroup: lObjectBindGroup,
+                    componentIndicesBuffer: lComponentIndicesBuffer,
+                    pipelineData: lPipelineData,
+                    instanceCount: 0
+                };
+                this.mMeshGroups.set(lMesh, lGroupData);
+            }
+
+            // Update transformation data reference each frame.
+            lGroupData.objectBindGroup.data('transformationData').set(lTransformationSystem.gpuBuffer);
+
+            // Build indices array mapping instance id to transformation buffer index.
+            const lIndices: Uint32Array = new Uint32Array(lRenderers.length);
+            for (let lIndex: number = 0; lIndex < lRenderers.length; lIndex++) {
+                const lTransformation: TransformationComponent = lRenderers[lIndex].gameEntity.getComponent(TransformationComponent);
+                lIndices[lIndex] = lTransformationSystem.indexOfTransformation(lTransformation);
+            }
+
+            // Resize buffer if needed and write indices.
+            lGroupData.componentIndicesBuffer.size = lRenderers.length * Uint32Array.BYTES_PER_ELEMENT;
+            lGroupData.componentIndicesBuffer.write(lIndices.buffer);
+
+            // Update instance count.
+            lGroupData.instanceCount = lRenderers.length;
+        }
     }
 }

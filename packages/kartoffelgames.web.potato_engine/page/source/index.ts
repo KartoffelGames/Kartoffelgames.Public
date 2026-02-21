@@ -1,8 +1,7 @@
 import { CameraComponent } from '../../source/component/camera/camera-component.ts';
 import { CameraComponentProjection } from '../../source/component/camera/projection/camera-projection.enum.ts';
 import type { PerspectiveProjection } from '../../source/component/camera/projection/perspective-projection.ts';
-import { LightComponent } from '../../source/component/light/light-component.ts';
-import { LightComponentLightType } from '../../source/component/light/light-component-light-type.enum.ts';
+import { LightComponent, LightComponentLightType } from '../../source/component/light/light-component.ts';
 import { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
 import { GlbConverter } from '../../source/component_item/mesh/glb-converter.ts';

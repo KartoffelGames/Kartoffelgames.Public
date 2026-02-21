@@ -82,7 +82,12 @@ export class Vector {
      */
     public length(): number {
         // Square root sum.
-        return Math.hypot(...this.mData);
+        let lSum: number = 0;
+        for(let lIndex: number = 0; lIndex < this.mData.length; lIndex++) {
+            lSum += this.mData[lIndex] ** 2;
+        }
+        
+        return Math.sqrt(lSum);
     }
 
     /**

@@ -261,8 +261,8 @@ export class Quaternion {
         // Set target quaternion depending on apply to self or not.
         const lTargetQuaternion: Quaternion = pApplyToSelf ? this : new Quaternion();
 
-        // Calculate length.
-        const lLength = Math.hypot(this.mData[0], this.mData[1], this.mData[2], this.mData[3]);
+        // Calculate length. Ugly but 30x faster than anythin else.
+        const lLength = Math.sqrt(this.mData[0]*this.mData[0] + this.mData[1]*this.mData[1] + this.mData[2]*this.mData[2] + this.mData[3]*this.mData[3]);
 
         // Create new quaternion by dividing each dimension by length.
         lTargetQuaternion.mData[0] = this.mData[0] / lLength;

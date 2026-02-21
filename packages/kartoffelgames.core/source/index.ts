@@ -42,6 +42,7 @@ export { ChangeState, MyersDiff, type HistoryItem } from './algorithm/myers-diff
 
 // Math
 export { Euler } from './math/euler.ts';
+export { Frustum } from './math/frustum.ts';
 export { Matrix } from './math/matrix.ts';
 export { Quaternion } from './math/quaternion.ts';
 export { Vector } from './math/vector.ts';

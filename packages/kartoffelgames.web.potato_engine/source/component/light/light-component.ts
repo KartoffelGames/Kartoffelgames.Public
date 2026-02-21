@@ -1,12 +1,12 @@
-import { Serializer } from '@kartoffelgames/core-serializer';
+import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-system';
 import { Exception } from '../../../../kartoffelgames.core/source/exception/exception.ts';
 import type { GameComponentConstructor } from '../../core/component/game-component.ts';
 import { GameComponent } from '../../core/component/game-component.ts';
 import { EditorProperty } from '../../editor_property/editor-property.ts';
 import { TransformationComponent } from '../transformation-component.ts';
+import { LightComponentLightType } from './light-component-light-type.enum.ts';
 import { DirectionalLight } from './type/directional-light.ts';
 import type { ILightComponentItem } from './type/i-light-component-item.interface.ts';
-import { LightComponentLightType } from './light-component-light-type.enum.ts';
 import { PointLight } from './type/point-light.ts';
 import { SpotLight } from './type/spot-light.ts';
 
@@ -15,7 +15,7 @@ import { SpotLight } from './type/spot-light.ts';
  * The light type and properties are determined by the assigned {@link ILightComponentItem} implementation.
  * Requires a TransformationComponent for positioning in the scene.
  */
-@Serializer.serializeableClass('f47ac10b-58cc-4372-a567-0e02b2c3d479')
+@FileSystem.fileClass('f47ac10b-58cc-4372-a567-0e02b2c3d479', FileSystemReferenceType.Instanced)
 export class LightComponent extends GameComponent {
     private mLight: ILightComponentItem;
 
@@ -30,7 +30,7 @@ export class LightComponent extends GameComponent {
      * Light implementation defining the type and properties of this light source.
      */
     @EditorProperty.objectControl()
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get light(): ILightComponentItem {
         return this.mLight;
     } set light(pValue: ILightComponentItem) {

@@ -1,13 +1,13 @@
-import { Serializer } from '@kartoffelgames/core-serializer';
+import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-system';
 import { GameComponentItem } from '../core/component/game-component-item.ts';
-import { EditorProperty } from '../editor_property/editor-property.ts';
 import { EditorPropertyNumberType } from '../editor_property/editor-property-register.ts';
+import { EditorProperty } from '../editor_property/editor-property.ts';
 
 /**
  * Axis-aligned bounding box defined by minimum and maximum corner points.
  * Used to represent the spatial extent of a mesh in local space.
  */
-@Serializer.serializeableClass('cd4942b0-af79-4f34-8f1a-cb892599e01e')
+@FileSystem.fileClass('cd4942b0-af79-4f34-8f1a-cb892599e01e', FileSystemReferenceType.Instanced)
 export class BoundingBox extends GameComponentItem{
     /**
      * System instance with default values that can be used by components to avoid creating multiple identical instances.
@@ -40,7 +40,7 @@ export class BoundingBox extends GameComponentItem{
      * Maximum X coordinate of the bounding box.
      */
     @EditorProperty.rangeControl(-10, 10, EditorPropertyNumberType.Float)
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get maxX(): number {
         return this.mMaxX;
     } set maxX(pValue: number) {
@@ -56,7 +56,7 @@ export class BoundingBox extends GameComponentItem{
      * Maximum Y coordinate of the bounding box.
      */
     @EditorProperty.rangeControl(-10, 10, EditorPropertyNumberType.Float)
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get maxY(): number {
         return this.mMaxY;
     } set maxY(pValue: number) {
@@ -72,7 +72,7 @@ export class BoundingBox extends GameComponentItem{
      * Maximum Z coordinate of the bounding box.
      */
     @EditorProperty.rangeControl(-10, 10, EditorPropertyNumberType.Float)
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get maxZ(): number {
         return this.mMaxZ;
     } set maxZ(pValue: number) {
@@ -88,7 +88,7 @@ export class BoundingBox extends GameComponentItem{
      * Minimum X coordinate of the bounding box.
      */
     @EditorProperty.rangeControl(-10, 10, EditorPropertyNumberType.Float)
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get minX(): number {
         return this.mMinX;
     } set minX(pValue: number) {
@@ -104,7 +104,7 @@ export class BoundingBox extends GameComponentItem{
      * Minimum Y coordinate of the bounding box.
      */
     @EditorProperty.rangeControl(-10, 10, EditorPropertyNumberType.Float)
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get minY(): number {
         return this.mMinY;
     } set minY(pValue: number) {
@@ -120,7 +120,7 @@ export class BoundingBox extends GameComponentItem{
      * Minimum Z coordinate of the bounding box.
      */
     @EditorProperty.rangeControl(-10, 10, EditorPropertyNumberType.Float)
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get minZ(): number {
         return this.mMinZ;
     } set minZ(pValue: number) {

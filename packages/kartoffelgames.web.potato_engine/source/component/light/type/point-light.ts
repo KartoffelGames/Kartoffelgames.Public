@@ -1,4 +1,4 @@
-import { Serializer } from '@kartoffelgames/core-serializer';
+import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-system';
 import { Color } from '../../../component_item/color.ts';
 import { GameComponentItem } from '../../../core/component/game-component-item.ts';
 import { EditorPropertyNumberType } from '../../../editor_property/editor-property-register.ts';
@@ -9,7 +9,7 @@ import type { ILightComponentItem } from './i-light-component-item.interface.ts'
  * Point light that emits light in all directions from a single point.
  * Intensity falls off based on distance and the dropOff curve.
  */
-@Serializer.serializeableClass('d1a2b3c4-e5f6-7890-abcd-ef1234567890')
+@FileSystem.fileClass('d1a2b3c4-e5f6-7890-abcd-ef1234567890', FileSystemReferenceType.Instanced)
 export class PointLight extends GameComponentItem implements ILightComponentItem {
     /**
      * System instance with default values that can be used by components to avoid creating multiple identical instances.
@@ -36,7 +36,7 @@ export class PointLight extends GameComponentItem implements ILightComponentItem
      * Light color.
      */
     @EditorProperty.objectControl()
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get color(): Color {
         if (this.mColor.isSystem) {
             // Copy color to allow modifications without affecting other components using the same system instance.
@@ -70,7 +70,7 @@ export class PointLight extends GameComponentItem implements ILightComponentItem
      * 0 = full intensity across entire range, 1 = linear falloff.
      */
     @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get dropOff(): number {
         return this.mDropOff;
     } set dropOff(pValue: number) {
@@ -86,7 +86,7 @@ export class PointLight extends GameComponentItem implements ILightComponentItem
      * Light intensity multiplier.
      */
     @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get intensity(): number {
         return this.mIntensity;
     } set intensity(pValue: number) {
@@ -102,7 +102,7 @@ export class PointLight extends GameComponentItem implements ILightComponentItem
      * Maximum distance the light reaches.
      */
     @EditorProperty.rangeControl(0, 100, EditorPropertyNumberType.Float)
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get range(): number {
         return this.mRange;
     } set range(pValue: number) {

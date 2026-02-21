@@ -1,4 +1,4 @@
-import { Serializer } from '@kartoffelgames/core-serializer';
+import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-system';
 import { PrimitiveTopology } from '../../../../kartoffelgames.web.gpu/source/constant/primitive-topology.enum.ts';
 import { GameComponentItem } from '../../core/component/game-component-item.ts';
 
@@ -6,7 +6,7 @@ import { GameComponentItem } from '../../core/component/game-component-item.ts';
  * Represents a sub-section of a mesh defined by a list of vertex indices and rendering configuration.
  * Each sub mesh defines which vertices of the parent mesh to draw with a specific primitive topology.
  */
-@Serializer.serializeableClass('1ca90e2d-721c-480d-855b-82a599c47e18')
+@FileSystem.fileClass('1ca90e2d-721c-480d-855b-82a599c47e18', FileSystemReferenceType.Instanced)
 export class SubMesh extends GameComponentItem {
     private mIndices: Array<number>;
     private mTopology: PrimitiveTopology;
@@ -15,7 +15,7 @@ export class SubMesh extends GameComponentItem {
      * Vertex index data for this sub mesh.
      * Each value references a vertex in the parent mesh's vertex buffer.
      */
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get indices(): Array<number> {
         return this.mIndices;
     } set indices(pValue: Array<number>) {
@@ -28,7 +28,7 @@ export class SubMesh extends GameComponentItem {
     /**
      * Primitive topology used for rendering this sub mesh.
      */
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get topology(): PrimitiveTopology {
         return this.mTopology;
     } set topology(pValue: PrimitiveTopology) {

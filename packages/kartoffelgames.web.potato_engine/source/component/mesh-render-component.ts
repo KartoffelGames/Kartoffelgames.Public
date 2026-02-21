@@ -1,11 +1,11 @@
-import { Serializer } from '@kartoffelgames/core-serializer';
+import { FileSystem, FileSystemReferenceType} from '@kartoffelgames/web-file-system';
 import type { Mesh } from '../component_item/mesh/mesh.ts';
 import { GameComponent } from '../core/component/game-component.ts';
 
 /**
  * Component that holds information to render a mesh in any render pipeline.
  */
-@Serializer.serializeableClass('3301c7a4-b477-4c4c-9fbd-143a19ad5683')
+@FileSystem.fileClass('3301c7a4-b477-4c4c-9fbd-143a19ad5683', FileSystemReferenceType.Instanced)
 export class MeshRenderComponent extends GameComponent {
     private mMesh: Mesh | null;
 
@@ -14,7 +14,7 @@ export class MeshRenderComponent extends GameComponent {
     /**
      * Gets or sets the mesh to render.
      */
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get mesh(): Mesh {
         if (!this.mMesh) {
             throw new Error('Mesh is not set.');

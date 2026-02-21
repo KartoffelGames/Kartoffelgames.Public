@@ -1,5 +1,5 @@
 import { Exception, type Matrix } from '@kartoffelgames/core';
-import { Serializer } from '@kartoffelgames/core-serializer';
+import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-system';
 import { GameComponent } from '../../core/component/game-component.ts';
 import { EditorProperty } from '../../editor_property/editor-property.ts';
 import { CameraComponentProjection } from './projection/camera-projection.enum.ts';
@@ -10,7 +10,7 @@ import { PerspectiveProjection } from './projection/perspective-projection.ts';
 /**
  * Component that holds information about a camera, such as projection.
  */
-@Serializer.serializeableClass('ae32b6c9-803b-4250-8510-f2f1dfdd74ec')
+@FileSystem.fileClass('ae32b6c9-803b-4250-8510-f2f1dfdd74ec', FileSystemReferenceType.Instanced)
 export class CameraComponent extends GameComponent {
     private mProjection: IProjection;
 
@@ -25,7 +25,7 @@ export class CameraComponent extends GameComponent {
      * Camera projection.
      */
     @EditorProperty.objectControl()
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get projection(): IProjection {
         return this.mProjection;
     } set projection(pValue: IProjection) {

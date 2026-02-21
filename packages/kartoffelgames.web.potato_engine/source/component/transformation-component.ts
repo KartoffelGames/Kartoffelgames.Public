@@ -1,6 +1,6 @@
-import { Serializer } from '@kartoffelgames/core-serializer';
-import { GameComponent } from '../core/component/game-component.ts';
 import { Matrix, Quaternion } from '@kartoffelgames/core';
+import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-system';
+import { GameComponent } from '../core/component/game-component.ts';
 
 // TODO: Use Math.Vector3 for pivot, scale and translation and add a PropertyMeta.object(Vector) or something.
 
@@ -9,7 +9,7 @@ import { Matrix, Quaternion } from '@kartoffelgames/core';
  * Values are decoupled from the matrix representation. The transformation matrix is lazily
  * recalculated from the individual components only when accessed after a change.
  */
-@Serializer.serializeableClass('7b8a6001-7a15-45cc-a7e5-a47274359545')
+@FileSystem.fileClass('7b8a6001-7a15-45cc-a7e5-a47274359545', FileSystemReferenceType.Instanced)
 export class TransformationComponent extends GameComponent {
     private mMatrix: Matrix | null;
     private mPivotX: number;
@@ -39,7 +39,7 @@ export class TransformationComponent extends GameComponent {
     /**
      * X pivot point.
      */
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get pivotX(): number {
         return this.mPivotX;
     } set pivotX(pValue: number) {
@@ -52,7 +52,7 @@ export class TransformationComponent extends GameComponent {
     /**
      * Y pivot point.
      */
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get pivotY(): number {
         return this.mPivotY;
     } set pivotY(pValue: number) {
@@ -65,7 +65,7 @@ export class TransformationComponent extends GameComponent {
     /**
      * Z pivot point.
      */
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get pivotZ(): number {
         return this.mPivotZ;
     } set pivotZ(pValue: number) {
@@ -78,7 +78,7 @@ export class TransformationComponent extends GameComponent {
     /**
      * Rotation quaternion.
      */
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get rotation(): Quaternion {
         return this.mRotation;
     } set rotation(pValue: Quaternion) {
@@ -115,7 +115,7 @@ export class TransformationComponent extends GameComponent {
     /**
      * Depth scale.
      */
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get scaleDepth(): number {
         return this.mScaleDepth;
     } set scaleDepth(pValue: number) {
@@ -128,7 +128,7 @@ export class TransformationComponent extends GameComponent {
     /**
      * Height scale.
      */
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get scaleHeight(): number {
         return this.mScaleHeight;
     } set scaleHeight(pValue: number) {
@@ -141,7 +141,7 @@ export class TransformationComponent extends GameComponent {
     /**
      * Width scale.
      */
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get scaleWidth(): number {
         return this.mScaleWidth;
     } set scaleWidth(pValue: number) {
@@ -154,7 +154,7 @@ export class TransformationComponent extends GameComponent {
     /**
      * X translation.
      */
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get translationX(): number {
         return this.mTranslationX;
     } set translationX(pValue: number) {
@@ -167,7 +167,7 @@ export class TransformationComponent extends GameComponent {
     /**
      * Y translation.
      */
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get translationY(): number {
         return this.mTranslationY;
     } set translationY(pValue: number) {
@@ -180,7 +180,7 @@ export class TransformationComponent extends GameComponent {
     /**
      * Z translation.
      */
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get translationZ(): number {
         return this.mTranslationZ;
     } set translationZ(pValue: number) {

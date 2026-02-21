@@ -1,4 +1,4 @@
-import { Serializer } from '@kartoffelgames/core-serializer';
+import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-system';
 import { Color } from '../../../component_item/color.ts';
 import { GameComponentItem } from '../../../core/component/game-component-item.ts';
 import { EditorPropertyNumberType } from '../../../editor_property/editor-property-register.ts';
@@ -9,7 +9,7 @@ import type { ILightComponentItem } from './i-light-component-item.interface.ts'
  * Directional light that emits parallel rays in a single direction.
  * Direction is derived from the entity's TransformationComponent.
  */
-@Serializer.serializeableClass('e2b3c4d5-f6a7-8901-bcde-f12345678901')
+@FileSystem.fileClass('e2b3c4d5-f6a7-8901-bcde-f12345678901', FileSystemReferenceType.Instanced)
 export class DirectionalLight extends GameComponentItem implements ILightComponentItem {
     /**
      * System instance with default values that can be used by components to avoid creating multiple identical instances.
@@ -32,7 +32,7 @@ export class DirectionalLight extends GameComponentItem implements ILightCompone
      * Light color.
      */
     @EditorProperty.objectControl()
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get color(): Color {
         if(this.mColor.isSystem) {
             // Copy color to allow modifications without affecting other components using the same system instance.
@@ -58,7 +58,7 @@ export class DirectionalLight extends GameComponentItem implements ILightCompone
      * Light intensity multiplier.
      */
     @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get intensity(): number {
         return this.mIntensity;
     } set intensity(pValue: number) {

@@ -1,7 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
-import { Serializer } from '@kartoffelgames/core-serializer';
+import { FileSystem } from '@kartoffelgames/web-file-system';
 import type { GameComponent } from './game-component.ts';
-
 
 /**
  * Represents an item that can be stored in a game component, such as a material slot or a mesh slot.
@@ -9,7 +8,6 @@ import type { GameComponent } from './game-component.ts';
  */
 export abstract class GameComponentItem {
     private mIsSystem: boolean;
-
     private mLabel: string;
     private readonly mLinkedParents: Set<GameComponent | GameComponentItem>;
 
@@ -20,13 +18,12 @@ export abstract class GameComponentItem {
         return this.mIsSystem;
     }
 
-
     /**
      * Gets the label identifying this component item.
      *
      * @returns The item's label.
      */
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get label(): string {
         return this.mLabel;
     } set label(pValue: string) {

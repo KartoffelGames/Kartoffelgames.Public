@@ -1,5 +1,5 @@
 import { Matrix } from '@kartoffelgames/core';
-import { Serializer } from '@kartoffelgames/core-serializer';
+import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-system';
 import { GameComponentItem } from '../../../core/component/game-component-item.ts';
 import { EditorPropertyNumberType } from '../../../editor_property/editor-property-register.ts';
 import { EditorProperty } from '../../../editor_property/editor-property.ts';
@@ -8,7 +8,7 @@ import type { IProjection } from './i-projection.interface.ts';
 /**
  * Orthographic projection implementation of IProjection.
  */
-@Serializer.serializeableClass('a5f23afd-0cc9-40ce-a9be-34510f7b4066')
+@FileSystem.fileClass('a5f23afd-0cc9-40ce-a9be-34510f7b4066', FileSystemReferenceType.Instanced)
 export class OrthographicProjection extends GameComponentItem implements IProjection {
     /**
      * System instance with default values that can be used by components to avoid creating multiple identical instances.
@@ -36,7 +36,7 @@ export class OrthographicProjection extends GameComponentItem implements IProjec
     /**
      * Aspect ratio plane.
      */
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get aspectRatio(): number {
         return this.mAspectRatio;
     } set aspectRatio(pValue: number) {
@@ -53,7 +53,7 @@ export class OrthographicProjection extends GameComponentItem implements IProjec
      * Far plane.
      */
     @EditorProperty.rangeControl(0.01, 1000, EditorPropertyNumberType.Float)
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get far(): number {
         return this.mFar;
     } set far(pValue: number) {
@@ -70,7 +70,7 @@ export class OrthographicProjection extends GameComponentItem implements IProjec
      * Near plane.
      */
     @EditorProperty.rangeControl(0.01, 1000, EditorPropertyNumberType.Float)
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get near(): number {
         return this.mNear;
     } set near(pValue: number) {
@@ -86,7 +86,7 @@ export class OrthographicProjection extends GameComponentItem implements IProjec
     /**
      * Get projection matrix.
      */
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get projectionMatrix(): Matrix {
         // Check cache or create new matrix.
         if (this.mMatrix === null) {
@@ -99,7 +99,7 @@ export class OrthographicProjection extends GameComponentItem implements IProjec
     /**
      * Width of horizontal plane.
      */
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get width(): number {
         return this.mWidth;
     } set width(pValue: number) {

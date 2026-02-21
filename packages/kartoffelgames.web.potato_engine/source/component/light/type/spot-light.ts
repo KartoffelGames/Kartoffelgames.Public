@@ -1,4 +1,4 @@
-import { Serializer } from '@kartoffelgames/core-serializer';
+import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-system';
 import { Color } from '../../../component_item/color.ts';
 import { GameComponentItem } from '../../../core/component/game-component-item.ts';
 import { EditorPropertyNumberType } from '../../../editor_property/editor-property-register.ts';
@@ -10,7 +10,7 @@ import type { ILightComponentItem } from './i-light-component-item.interface.ts'
  * Direction is derived from the entity's TransformationComponent.
  * The cone is defined by an inner angle (full intensity) and an outer angle (fading edge).
  */
-@Serializer.serializeableClass('f3c4d5e6-a7b8-9012-cdef-123456789012')
+@FileSystem.fileClass('f3c4d5e6-a7b8-9012-cdef-123456789012', FileSystemReferenceType.Instanced)
 export class SpotLight extends GameComponentItem implements ILightComponentItem {
     private mColor: Color;
     private mDropOff: number;
@@ -23,7 +23,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
      * Light color.
      */
     @EditorProperty.objectControl()
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get color(): Color {
         if (this.mColor.isSystem) {
             // Copy color to allow modifications without affecting other components using the same system instance.
@@ -50,7 +50,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
      * 0 = full intensity across entire range, 1 = linear falloff.
      */
     @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get dropOff(): number {
         return this.mDropOff;
     } set dropOff(pValue: number) {
@@ -62,7 +62,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
      * Inner cone angle in degrees where full intensity is emitted.
      */
     @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get innerAngle(): number {
         return this.mInnerAngle;
     } set innerAngle(pValue: number) {
@@ -74,7 +74,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
      * Light intensity multiplier.
      */
     @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get intensity(): number {
         return this.mIntensity;
     } set intensity(pValue: number) {
@@ -86,7 +86,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
      * Outer cone angle in degrees where light fades to zero.
      */
     @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get outerAngle(): number {
         return this.mOuterAngle;
     } set outerAngle(pValue: number) {
@@ -98,7 +98,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
      * Maximum distance the light reaches.
      */
     @EditorProperty.rangeControl(0, 100, EditorPropertyNumberType.Float)
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get range(): number {
         return this.mRange;
     } set range(pValue: number) {

@@ -1,5 +1,5 @@
 import { Matrix } from '@kartoffelgames/core';
-import { Serializer } from '@kartoffelgames/core-serializer';
+import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-system';
 import { GameComponentItem } from '../../../core/component/game-component-item.ts';
 import { EditorPropertyNumberType } from '../../../editor_property/editor-property-register.ts';
 import { EditorProperty } from '../../../editor_property/editor-property.ts';
@@ -8,7 +8,7 @@ import type { IProjection } from './i-projection.interface.ts';
 /**
  * Perspective projection implementation of IProjection.
  */
-@Serializer.serializeableClass('5b59c0d1-3027-46d7-b47f-8e3d80ff0319')
+@FileSystem.fileClass('5b59c0d1-3027-46d7-b47f-8e3d80ff0319', FileSystemReferenceType.Instanced)
 export class PerspectiveProjection extends GameComponentItem implements IProjection {
     /**
      * System instance with default values that can be used by components to avoid creating multiple identical instances.
@@ -36,7 +36,7 @@ export class PerspectiveProjection extends GameComponentItem implements IProject
     /**
      * Angle of view.
      */
-    @Serializer.property()
+    @FileSystem.fileProperty()
     @EditorProperty.rangeControl(1, 200, EditorPropertyNumberType.Float)
     public get angleOfView(): number {
         return this.mAngleOfView;
@@ -53,7 +53,7 @@ export class PerspectiveProjection extends GameComponentItem implements IProject
     /**
      * Aspect ratio.
      */
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get aspectRatio(): number {
         return this.mAspectRatio;
     } set aspectRatio(pValue: number) {
@@ -70,7 +70,7 @@ export class PerspectiveProjection extends GameComponentItem implements IProject
      * Far plane.
      */
     @EditorProperty.rangeControl(0.01, 1000, EditorPropertyNumberType.Float)
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get far(): number {
         return this.mFar;
     } set far(pValue: number) {
@@ -87,7 +87,7 @@ export class PerspectiveProjection extends GameComponentItem implements IProject
      * Near plane.
      */
     @EditorProperty.rangeControl(0.01, 1000, EditorPropertyNumberType.Float)
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get near(): number {
         return this.mNear;
     } set near(pValue: number) {

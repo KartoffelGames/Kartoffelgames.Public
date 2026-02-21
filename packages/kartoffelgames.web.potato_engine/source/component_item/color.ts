@@ -1,4 +1,4 @@
-import { Serializer } from '@kartoffelgames/core-serializer';
+import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-system';
 import { GameComponentItem } from '../core/component/game-component-item.ts';
 import { EditorPropertyNumberType } from '../editor_property/editor-property-register.ts';
 import { EditorProperty } from '../editor_property/editor-property.ts';
@@ -7,7 +7,7 @@ import { EditorProperty } from '../editor_property/editor-property.ts';
  * Component item that holds an RGBA color value.
  * Changes to any channel propagate to linked parent components.
  */
-@Serializer.serializeableClass('c83e4f12-9a6b-4d10-b2f7-6e8a1c3d5f90')
+@FileSystem.fileClass('c83e4f12-9a6b-4d10-b2f7-6e8a1c3d5f90', FileSystemReferenceType.Instanced)
 export class Color extends GameComponentItem {
     /**
      * System instance with default values that can be used by components to avoid creating multiple identical instances.
@@ -29,7 +29,7 @@ export class Color extends GameComponentItem {
      * Alpha channel (0-1).
      */
     @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get a(): number {
         return this.mData[3];
     } set a(pValue: number) {
@@ -45,7 +45,7 @@ export class Color extends GameComponentItem {
      * Blue channel (0-1).
      */
     @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get b(): number {
         return this.mData[2];
     } set b(pValue: number) {
@@ -61,7 +61,7 @@ export class Color extends GameComponentItem {
      * Green channel (0-1).
      */
     @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get g(): number {
         return this.mData[1];
     } set g(pValue: number) {
@@ -77,7 +77,7 @@ export class Color extends GameComponentItem {
      * Red channel (0-1).
      */
     @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public get r(): number {
         return this.mData[0];
     } set r(pValue: number) {

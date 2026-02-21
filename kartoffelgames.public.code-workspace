@@ -41,6 +41,10 @@
             "path": "packages\\kartoffelgames.web.database"
         },
         {
+            "name": "Kartoffelgames.Web.File_System",
+            "path": "./packages\\kartoffelgames.web.file_system"
+        },
+        {
             "name": "Kartoffelgames.Web.Gpu",
             "path": "packages\\kartoffelgames.web.gpu"
         },

@@ -1,27 +1,36 @@
-import { Serializer } from '@kartoffelgames/core-serializer';
 import { expect } from '@kartoffelgames/core-test';
 import '../mock/structured-clone-blob-support.ts';
 import 'npm:fake-indexeddb/auto';
-import { FileSystem } from '../../source/file_system/file-system.ts';
+import { FileSystem, FileSystemReferenceType } from '../../source/file_system/file-system.ts';
 
-// Simple serializable test class.
-@Serializer.serializeableClass('b5931480-24c6-44cc-8479-f8c6883ba20f')
+// Simple serializable test class (Instanced).
+@FileSystem.fileClass('b5931480-24c6-44cc-8479-f8c6883ba20f', FileSystemReferenceType.Instanced)
 class SimpleTestObject {
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public name: string = '';
 
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public value: number = 0;
 }
 
-// Nested serializable test class.
-@Serializer.serializeableClass('a8cf87b1-0877-4089-858a-ab297eb76d85')
+// Nested serializable test class (Instanced).
+@FileSystem.fileClass('a8cf87b1-0877-4089-858a-ab297eb76d85', FileSystemReferenceType.Instanced)
 class NestedTestObject {
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public child: SimpleTestObject | null = null;
 
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public label: string = '';
+}
+
+// Singleton serializable test class.
+@FileSystem.fileClass('c3d4e5f6-7890-1234-abcd-ef0123456789', FileSystemReferenceType.Singleton)
+class SingletonTestObject {
+    @FileSystem.fileProperty()
+    public name: string = '';
+
+    @FileSystem.fileProperty()
+    public value: number = 0;
 }
 
 // Sanitize disabled because timers are started outside of the test in fake-indexeddb.
@@ -328,6 +337,154 @@ Deno.test('FileSystem.read()', { sanitizeResources: false, sanitizeOps: false },
         // Cleanup.
         lFileSystem.close();
     });
+
+
+    Deno.test('FileSystem singleton caching', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
+        await pContext.step('Singleton: reading same path twice returns same instance', async () => {
+            // Setup.
+            const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+            const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+
+            const lObject: SingletonTestObject = new SingletonTestObject();
+            lObject.name = 'Singleton';
+            lObject.value = 1;
+
+            await lFileSystem.store('singleton/path', lObject);
+
+            // Process.
+            const lFirst: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('singleton/path');
+            const lSecond: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('singleton/path');
+
+            // Evaluation. Both reads should return the exact same object reference.
+            expect(lFirst).toBe(lSecond);
+
+            // Cleanup.
+            lFileSystem.close();
+        });
+
+        await pContext.step('Singleton: different paths return different instances', async () => {
+            // Setup.
+            const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+            const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+
+            const lObjectA: SingletonTestObject = new SingletonTestObject();
+            lObjectA.name = 'A';
+            lObjectA.value = 1;
+
+            const lObjectB: SingletonTestObject = new SingletonTestObject();
+            lObjectB.name = 'B';
+            lObjectB.value = 2;
+
+            await lFileSystem.store('singleton/a', lObjectA);
+            await lFileSystem.store('singleton/b', lObjectB);
+
+            // Process.
+            const lResultA: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('singleton/a');
+            const lResultB: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('singleton/b');
+
+            // Evaluation. Different paths should yield different instances.
+            expect(lResultA).not.toBe(lResultB);
+            expect(lResultA.name).toBe('A');
+            expect(lResultB.name).toBe('B');
+
+            // Cleanup.
+            lFileSystem.close();
+        });
+
+        await pContext.step('Singleton: cache is case-insensitive', async () => {
+            // Setup.
+            const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+            const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+
+            const lObject: SingletonTestObject = new SingletonTestObject();
+            lObject.name = 'CaseSingleton';
+            lObject.value = 7;
+
+            await lFileSystem.store('Singleton/Case', lObject);
+
+            // Process. Read with different casings.
+            const lFirst: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('singleton/case');
+            const lSecond: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('SINGLETON/CASE');
+
+            // Evaluation. Both should be the same cached instance.
+            expect(lFirst).toBe(lSecond);
+
+            // Cleanup.
+            lFileSystem.close();
+        });
+
+        await pContext.step('Singleton: cache is per FileSystem instance', async () => {
+            // Setup.
+            const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+            const lFileSystemA: FileSystem = new FileSystem(lDatabaseName);
+            const lFileSystemB: FileSystem = new FileSystem(lDatabaseName);
+
+            const lObject: SingletonTestObject = new SingletonTestObject();
+            lObject.name = 'PerInstance';
+            lObject.value = 3;
+
+            await lFileSystemA.store('singleton/instance', lObject);
+
+            // Process.
+            const lResultA: SingletonTestObject = await lFileSystemA.read<SingletonTestObject>('singleton/instance');
+            const lResultB: SingletonTestObject = await lFileSystemB.read<SingletonTestObject>('singleton/instance');
+
+            // Evaluation. Different FileSystem instances should have independent caches.
+            expect(lResultA).not.toBe(lResultB);
+            expect(lResultA.name).toBe('PerInstance');
+            expect(lResultB.name).toBe('PerInstance');
+
+            // Cleanup.
+            lFileSystemA.close();
+            lFileSystemB.close();
+        });
+
+        await pContext.step('Instanced: reading same path twice returns different instances', async () => {
+            // Setup.
+            const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+            const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+
+            const lObject: SimpleTestObject = new SimpleTestObject();
+            lObject.name = 'Instanced';
+            lObject.value = 5;
+
+            await lFileSystem.store('instanced/path', lObject);
+
+            // Process.
+            const lFirst: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('instanced/path');
+            const lSecond: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('instanced/path');
+
+            // Evaluation. Instanced classes should return different object references.
+            expect(lFirst).not.toBe(lSecond);
+            expect(lFirst.name).toBe('Instanced');
+            expect(lSecond.name).toBe('Instanced');
+
+            // Cleanup.
+            lFileSystem.close();
+        });
+
+        await pContext.step('Singleton: storeMulti with singleton class caches on read', async () => {
+            // Setup.
+            const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+            const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+
+            const lObject: SingletonTestObject = new SingletonTestObject();
+            lObject.name = 'MultiSingleton';
+            lObject.value = 10;
+
+            await lFileSystem.storeMulti('multi', 'singleton', lObject);
+
+            // Process.
+            const lFirst: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('multi/singleton');
+            const lSecond: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('multi/singleton');
+
+            // Evaluation. Both reads should return the same cached instance.
+            expect(lFirst).toBe(lSecond);
+
+            // Cleanup.
+            lFileSystem.close();
+        });
+    });
 });
 
 Deno.test('FileSystem.delete()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
@@ -478,6 +635,30 @@ Deno.test('FileSystem.delete()', { sanitizeResources: false, sanitizeOps: false 
         }
 
         expect(lError).not.toBeNull();
+
+        // Cleanup.
+        lFileSystem.close();
+    });
+});
+
+Deno.test('FileSystem.fileClass()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
+    await pContext.step('Classes decorated with fileClass are serializable', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'DecoratorTest';
+        lObject.value = 42;
+
+        // Process. Store and read back.
+        await lFileSystem.store('decorator/test', lObject);
+        const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('decorator/test');
+
+        // Evaluation.
+        expect(lResult).toBeInstanceOf(SimpleTestObject);
+        expect(lResult.name).toBe('DecoratorTest');
+        expect(lResult.value).toBe(42);
 
         // Cleanup.
         lFileSystem.close();

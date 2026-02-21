@@ -11,6 +11,7 @@ import { GameEnvironment } from '../../source/core/environment/game-environment.
 import { GameScene } from '../../source/core/game-scene.ts';
 import { GameEntity } from '../../source/core/hierarchy/game-entity.ts';
 import { LightSystem } from '../../source/system/light-system.ts';
+import { RenderTargetSystem } from '../../source/system/render-target-system.ts';
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
 import { ShitSystem } from './shit-system.ts';
 
@@ -31,7 +32,22 @@ console.log(lBlockMesh.verticlesCount);
     // Add systems.
     lEnvironment.registerSystem(TransformationSystem);
     lEnvironment.registerSystem(LightSystem);
+
+    // Register render target system and set the canvas before start.
+    const lRenderTargetSystem: RenderTargetSystem = lEnvironment.registerSystem(RenderTargetSystem);
+    const lCanvas: HTMLCanvasElement = document.getElementById('canvas') as HTMLCanvasElement;
+    lRenderTargetSystem.canvas = lCanvas;
+
     lEnvironment.registerSystem(ShitSystem);
+
+    // Handle canvas resize. THAT SHIT ONLY RESIZES BECAUSE CSS VALUES ARE SET. NEVER!!!! USE THAT IN REAL CODE!!!.
+    const lCanvasWrapper: HTMLElement | null = document.querySelector('.canvas-wrapper');
+    if (lCanvasWrapper) {
+        new ResizeObserver(() => {
+            lCanvas.width = Math.max(lCanvasWrapper.clientWidth - 20, 0);
+            lCanvas.height = Math.max(0, lCanvasWrapper.clientHeight - 20);
+        }).observe(lCanvasWrapper);
+    }
 
     // Start the environment.
     // eslint-disable-next-line no-console
@@ -123,7 +139,6 @@ console.log(lBlockMesh.verticlesCount);
         });
 
         // Mouse look: rotate camera on mouse drag.
-        const lCanvas: HTMLCanvasElement = document.getElementById('canvas') as HTMLCanvasElement;
         let lMouseDown: boolean = false;
 
         lCanvas.addEventListener('mousedown', () => {

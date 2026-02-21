@@ -3,24 +3,18 @@ import {
     BindGroupLayout,
     BufferItemFormat,
     BufferItemMultiplier,
-    type CanvasTexture,
     ComputeStage,
     type GpuBuffer,
     type GpuExecution,
     type PipelineData,
     PrimitiveCullMode,
     type RenderPass,
-    type RenderTargets,
-    RenderTargetsInvalidationType,
     type ShaderRenderModule,
     StorageBindingType,
-    TextureFormat,
     type VertexFragmentPipeline,
     type VertexParameter,
     VertexParameterStepMode
 } from '@kartoffelgames/web-gpu';
-import { CameraComponent } from '../../source/component/camera/camera-component.ts';
-import { LightComponent } from '../../source/component/light/light-component.ts';
 import { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
 import type { Mesh } from '../../source/component_item/mesh/mesh.ts';
@@ -29,40 +23,36 @@ import type { GameEnvironmentStateChange } from '../../source/core/environment/g
 import { GameSystem, type GameSystemConstructor } from '../../source/core/game-system.ts';
 import { GpuSystem } from '../../source/system/gpu-system.ts';
 import { LightSystem } from '../../source/system/light-system.ts';
+import { RenderTargetSystem, type RenderTargetData } from '../../source/system/render-target-system.ts';
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
 import shitShaderSource from './shit-system-shader.wgsl';
 
 /**
  * System that renders all mesh components as colored geometry with dynamic lighting from LightSystem.
- * Manages GPU resources for rendering and tracks component lifecycle through state changes.
+ * Uses RenderTargetSystem for render targets, camera assignment, and frustum-culled visible mesh list.
  */
 export class ShitSystem extends GameSystem {
-    private readonly mActiveComponents: Set<MeshRenderComponent>;
-    private mCamera: CameraComponent | null;
     private mCameraGroup: BindGroup | null;
-    private mCameraTransformation: TransformationComponent | null;
-    private mDirty: boolean;
     private mExecutor: GpuExecution | null;
     private mMeshes: Array<VertexParameter>;
     private mPipeline: VertexFragmentPipeline | null;
     private mPipelineData: PipelineData | null;
     private mRenderPass: RenderPass | null;
-    private mRenderTargets: RenderTargets | null;
     private mShaderRenderModule: ShaderRenderModule | null;
+    private mVisibleCount: number;
 
     /**
      * Systems this system depends on.
      */
     public override get dependentSystemTypes(): Array<GameSystemConstructor<GameSystem>> {
-        return [TransformationSystem, GpuSystem, LightSystem];
+        return [TransformationSystem, GpuSystem, LightSystem, RenderTargetSystem];
     }
-
 
     /**
      * Component types this system handles.
      */
     public override get handledComponentTypes(): Array<GameComponentConstructor> {
-        return [MeshRenderComponent, TransformationComponent, CameraComponent, LightComponent];
+        return [];
     }
 
     /**
@@ -71,59 +61,28 @@ export class ShitSystem extends GameSystem {
     public constructor() {
         super();
 
-        this.mActiveComponents = new Set<MeshRenderComponent>();
-        this.mDirty = false;
-        this.mCamera = null;
         this.mCameraGroup = null;
-        this.mCameraTransformation = null;
         this.mExecutor = null;
         this.mMeshes = [];
         this.mPipeline = null;
         this.mPipelineData = null;
         this.mRenderPass = null;
-        this.mRenderTargets = null;
         this.mShaderRenderModule = null;
+        this.mVisibleCount = 0;
     }
 
     /**
-     * Initialize GPU resources, shader, pipeline, camera, render pass, and executor.
+     * Initialize GPU resources, shader, pipeline, render pass, and executor.
+     * Uses the core render targets from RenderTargetSystem.
      */
     protected override async onCreate(): Promise<void> {
         // Get GPU device from dependency.
         const lGpuSystem: GpuSystem = this.getDependency(GpuSystem);
         const lGpu = lGpuSystem.gpu;
 
-        // Create canvas texture from the html canvas element.
-        const lCanvasTexture: CanvasTexture = lGpu.canvas(document.getElementById('canvas') as HTMLCanvasElement);
-
-        // Create and configure render targets.
-        this.mRenderTargets = lGpu.renderTargets(true).setup((pSetup) => {
-            // Add color render target.
-            pSetup.addColor('color', 0, true, { r: 0.1, g: 0.1, b: 0.1, a: 1.0 })
-                .new(TextureFormat.Bgra8unorm, lCanvasTexture);
-
-            // Add depth texture.
-            pSetup.addDepthStencil(true, 1)
-                .new(TextureFormat.Depth24plus);
-        });
-
-        // Handle canvas resize. THAT SHIT ONLY RESIZES BECAUSE CSS VALUES ARE SET. NEVER!!!! USE THAT IN REAL CODE!!!.
-        const lCanvasWrapper: HTMLElement | null = document.querySelector('.canvas-wrapper');
-        if (lCanvasWrapper) {
-            new ResizeObserver(() => {
-                const lNewHeight: number = Math.max(0, lCanvasWrapper.clientHeight - 20);
-                const lNewWidth: number = Math.max(lCanvasWrapper.clientWidth - 20, 0);
-                this.mRenderTargets!.resize(lNewHeight, lNewWidth);
-            }).observe(lCanvasWrapper);
-        }
-
-        // Update camera aspect ratio on resize.
-        this.mRenderTargets.addInvalidationListener(() => {
-            if (this.mCamera) {
-                this.mCamera.projection.aspectRatio = this.mRenderTargets!.width / this.mRenderTargets!.height;
-                this.mDirty = true;
-            }
-        }, RenderTargetsInvalidationType.Resize);
+        // Get core render targets from the render target system.
+        const lRenderTargetSystem: RenderTargetSystem = this.getDependency(RenderTargetSystem);
+        const lCoreData: RenderTargetData = lRenderTargetSystem.coreRenderTargetData;
 
         // Create camera bind group layout and group.
         const lCameraGroupLayout: BindGroupLayout = new BindGroupLayout(lGpu, 'camera').setup((pBindGroupSetup) => {
@@ -173,15 +132,15 @@ export class ShitSystem extends GameSystem {
         // Create render module from shader.
         this.mShaderRenderModule = lShader.createRenderModule('vertex_main', 'fragment_main');
 
-        // Create pipeline.
-        this.mPipeline = this.mShaderRenderModule.create(this.mRenderTargets);
+        // Create pipeline using the core render targets for compatibility.
+        this.mPipeline = this.mShaderRenderModule.create(lCoreData.renderTargets);
         this.mPipeline.primitiveCullMode = PrimitiveCullMode.Front;
 
-        // Create render pass that draws all submeshes for all instances.
-        this.mRenderPass = lGpu.renderPass(this.mRenderTargets, (pContext) => {
-            if (this.mPipelineData && this.mMeshes.length > 0 && this.mActiveComponents.size > 0) {
+        // Create render pass that draws all submeshes for all visible instances.
+        this.mRenderPass = lGpu.renderPass(lCoreData.renderTargets, (pContext) => {
+            if (this.mPipelineData && this.mMeshes.length > 0 && this.mVisibleCount > 0) {
                 for (const lMesh of this.mMeshes) {
-                    pContext.drawDirect(this.mPipeline!, lMesh, this.mPipelineData, this.mActiveComponents.size);
+                    pContext.drawDirect(this.mPipeline!, lMesh, this.mPipelineData, this.mVisibleCount);
                 }
             }
         }, false);
@@ -194,24 +153,30 @@ export class ShitSystem extends GameSystem {
 
     /**
      * Execute rendering every frame.
-     * Updates camera view projection matrix and renders all active transformation components.
+     * Uses the frustum-culled visible mesh list from RenderTargetSystem.
      */
     protected override async onFrame(): Promise<void> {
         // Skip rendering when not initialized.
-        if (!this.mExecutor || !this.mCamera || !this.mCameraTransformation || !this.mCameraGroup) {
+        if (!this.mExecutor || !this.mCameraGroup || !this.mShaderRenderModule || !this.mPipeline) {
             return;
         }
 
-        // Rebuild instance data when components changed.
-        if (this.mDirty) {
-            this.rebuildInstanceData();
-            this.mDirty = false;
+        // Get camera and visible mesh list from the core render target.
+        const lRenderTargetSystem: RenderTargetSystem = this.getDependency(RenderTargetSystem);
+        const lCoreData: RenderTargetData = lRenderTargetSystem.coreRenderTargetData;
+
+        // Skip rendering when no camera is assigned.
+        if (!lCoreData.camera || !lCoreData.cameraTransformation) {
+            return;
         }
+
+        // Rebuild instance data from the frustum-culled visible list.
+        this.rebuildInstanceData(lCoreData.visibleMeshRenderers);
 
         // Update camera view projection matrix every frame.
         // Invert the camera's transformation to get the view matrix, then multiply with projection.
-        const lViewMatrix = this.mCameraTransformation.matrix.inverse();
-        const lViewProjectionMatrix = this.mCamera.matrix.mult(lViewMatrix);
+        const lViewMatrix = lCoreData.cameraTransformation.matrix.inverse();
+        const lViewProjectionMatrix = lCoreData.camera.matrix.mult(lViewMatrix);
         this.mCameraGroup.data('viewProjection').asBufferView(Float32Array).write(lViewProjectionMatrix.dataArray);
 
         // Start new GPU frame and execute render pass.
@@ -219,101 +184,34 @@ export class ShitSystem extends GameSystem {
     }
 
     /**
-     * Process component state changes to track active mesh and transformation components.
-     *
-     * @param pStateChanges - Map of component types to state change events.
+     * Process component state changes.
+     * All component tracking is handled by RenderTargetSystem; this system rebuilds per frame from the visible list.
      */
-    protected override async onUpdate(pStateChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>): Promise<void> {
-        // Process state changes for MeshRenderComponent.
-        const lMeshChanges: ReadonlyArray<GameEnvironmentStateChange> | undefined = pStateChanges.get(MeshRenderComponent);
-        if (lMeshChanges) {
-            for (const lStateChange of lMeshChanges) {
-                const lComponent: MeshRenderComponent = lStateChange.component as MeshRenderComponent;
-
-                switch (lStateChange.type) {
-                    case 'add':
-                    case 'activate': {
-                        this.mActiveComponents.add(lComponent);
-                        this.mDirty = true;
-                        break;
-                    }
-                    case 'remove':
-                    case 'deactivate': {
-                        this.mActiveComponents.delete(lComponent);
-                        this.mDirty = true;
-                        break;
-                    }
-                    case 'update': {
-                        this.mDirty = true;
-                        break;
-                    }
-                }
-            }
-        }
-
-        // Process state changes for TransformationComponent to track position updates.
-        const lTransformChanges: ReadonlyArray<GameEnvironmentStateChange> | undefined = pStateChanges.get(TransformationComponent);
-        if (lTransformChanges) {
-            for (const lStateChange of lTransformChanges) {
-                if (lStateChange.type === 'update') {
-                    this.mDirty = true;
-                }
-            }
-        }
-
-        // Process state changes for CameraComponent to track camera entity.
-        const lCameraChanges: ReadonlyArray<GameEnvironmentStateChange> | undefined = pStateChanges.get(CameraComponent);
-        if (lCameraChanges) {
-            for (const lStateChange of lCameraChanges) {
-                switch (lStateChange.type) {
-                    case 'add':
-                    case 'activate': {
-                        this.mCamera = lStateChange.component as CameraComponent;
-                        this.mCameraTransformation = this.mCamera.gameEntity.getComponent(TransformationComponent);
-
-                        // Set initial aspect ratio from render targets.
-                        if (this.mRenderTargets) {
-                            this.mCamera.projection.aspectRatio = this.mRenderTargets.width / this.mRenderTargets.height;
-                        }
-                        this.mDirty = true;
-                        break;
-                    }
-                    case 'remove':
-                    case 'deactivate': {
-                        this.mCamera = null;
-                        this.mCameraTransformation = null;
-                        this.mDirty = true;
-                        break;
-                    }
-                    case 'update': {
-                        this.mDirty = true;
-                        break;
-                    }
-                }
-            }
-        }
-
-        // Process state changes for LightComponent to rebuild pipeline data when lights are added or removed.
-        const lLightChanges: ReadonlyArray<GameEnvironmentStateChange> | undefined = pStateChanges.get(LightComponent);
-        if (lLightChanges && lLightChanges.length > 0) {
-            this.mDirty = true;
-        }
+    protected override async onUpdate(_pStateChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>): Promise<void> {
+        // No component event processing needed.
+        // Camera and mesh renderer tracking is handled by RenderTargetSystem.
+        // Instance data is rebuilt every frame from the frustum-culled visible list.
     }
 
     /**
-     * Rebuild instance data from all active mesh render components.
+     * Rebuild instance data from the visible mesh render components.
      * Creates GPU vertex parameters for each submesh and builds transformation index array for instanced rendering.
+     *
+     * @param pVisibleRenderers - Frustum-culled list of visible mesh render components.
      */
-    private rebuildInstanceData(): void {
-        // Skip when no components are active or pipeline is not ready.
-        if (this.mActiveComponents.size === 0 || !this.mShaderRenderModule || !this.mPipeline || !this.mCameraGroup) {
+    private rebuildInstanceData(pVisibleRenderers: Array<MeshRenderComponent>): void {
+        this.mVisibleCount = pVisibleRenderers.length;
+
+        // Skip when no renderers are visible or pipeline is not ready.
+        if (pVisibleRenderers.length === 0 || !this.mShaderRenderModule || !this.mPipeline || !this.mCameraGroup) {
             this.mPipelineData = null;
             this.mMeshes = [];
+            this.mVisibleCount = 0;
             return;
         }
 
-        // Get mesh data from first active mesh render component.
-        const lFirstComponent: MeshRenderComponent = this.mActiveComponents.values().next().value!;
+        // Get mesh data from first visible mesh render component.
+        const lFirstComponent: MeshRenderComponent = pVisibleRenderers[0];
         const lMesh: Mesh = lFirstComponent.mesh;
 
         // Create GPU vertex parameters for each submesh.
@@ -328,12 +226,10 @@ export class ShitSystem extends GameSystem {
         const lTransformationSystem: TransformationSystem = this.getDependency(TransformationSystem);
 
         // Build indices array mapping instance id to transformation buffer index.
-        const lIndices: Uint32Array = new Uint32Array(this.mActiveComponents.size);
-        let lIndex: number = 0;
-        for (const lComponent of this.mActiveComponents) {
-            const lTransformation: TransformationComponent = lComponent.gameEntity.getComponent(TransformationComponent);
+        const lIndices: Uint32Array = new Uint32Array(pVisibleRenderers.length);
+        for (let lIndex: number = 0; lIndex < pVisibleRenderers.length; lIndex++) {
+            const lTransformation: TransformationComponent = pVisibleRenderers[lIndex].gameEntity.getComponent(TransformationComponent);
             lIndices[lIndex] = lTransformationSystem.indexOfTransformation(lTransformation);
-            lIndex++;
         }
 
         // Create object bind group with transformation data and component indices.
@@ -341,7 +237,7 @@ export class ShitSystem extends GameSystem {
         lObjectGroup.data('transformationData').set(lTransformationSystem.gpuBuffer);
 
         // For some reason create the buffer again and again.
-        const lComponentIndicesBuffer: GpuBuffer = lObjectGroup.data('componentIndices').createBuffer(this.mActiveComponents.size);
+        const lComponentIndicesBuffer: GpuBuffer = lObjectGroup.data('componentIndices').createBuffer(pVisibleRenderers.length);
         lComponentIndicesBuffer.write(new Uint32Array(lIndices).buffer);
 
         // Create lights bind group with light data buffer and light count uniform.

@@ -89,8 +89,8 @@ export class CanvasTexture extends GpuObject<GPUTexture, CanvasTextureInvalidati
         this.mContext = null;
 
         // Set defaults.
-        this.height = 1;
-        this.width = 1;
+        this.height = Math.max(pCanvas.height, 1);
+        this.width = Math.max(pCanvas.width, 1);
 
         // Rebuild view on every frame.
         this.mFrameListener = () => {

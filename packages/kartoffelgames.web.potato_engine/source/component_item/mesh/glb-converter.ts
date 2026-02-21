@@ -166,6 +166,34 @@ export class GlbConverter {
             if (lAllUv3.length > 0) { lMesh.uv3 = lAllUv3; }
             if (lAllUv4.length > 0) { lMesh.uv4 = lAllUv4; }
 
+            // Calculate AABB from vertex positions.
+            let lMinX: number = 0;
+            let lMinY: number = 0;
+            let lMinZ: number = 0;
+            let lMaxX: number = 0;
+            let lMaxY: number = 0;
+            let lMaxZ: number = 0;
+
+            for (let lIndex: number = 0; lIndex < lAllPositions.length; lIndex += 3) {
+                const lX: number = lAllPositions[lIndex];
+                const lY: number = lAllPositions[lIndex + 1];
+                const lZ: number = lAllPositions[lIndex + 2];
+
+                lMinX = Math.min(lMinX, lX);
+                lMinY = Math.min(lMinY, lY);
+                lMinZ = Math.min(lMinZ, lZ);
+                lMaxX = Math.max(lMaxX, lX);
+                lMaxY = Math.max(lMaxY, lY);
+                lMaxZ = Math.max(lMaxZ, lZ);
+            }
+
+            lMesh.bounds.minX = lMinX;
+            lMesh.bounds.minY = lMinY;
+            lMesh.bounds.minZ = lMinZ;
+            lMesh.bounds.maxX = lMaxX;
+            lMesh.bounds.maxY = lMaxY;
+            lMesh.bounds.maxZ = lMaxZ;
+
             lMeshes.push(lMesh);
         }
 

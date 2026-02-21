@@ -8,7 +8,7 @@ import type { GameNode } from './game-node.ts';
 export abstract class GameObject {
     private readonly mEnableState: GameObjectEnableState;
     private mLabel: string;
-    private mParent: GameNode | null;
+    
 
     /**
      * Whether this game object is enabled.
@@ -16,17 +16,6 @@ export abstract class GameObject {
      */
     public get enabled(): boolean {
         return this.mEnableState.enabled;
-    }
-
-    /**
-     * Environment this game object is in.
-     * A game object is in the same environment as its parent, so this gets bubbled up to the parent until it reaches the scene, which has the environment connection.
-     */
-    public get environment(): GameEnvironmentTransmission | null {
-        if (!this.mParent) {
-            return null;
-        }
-        return this.mParent.environment;
     }
 
     /**
@@ -38,12 +27,6 @@ export abstract class GameObject {
         this.mLabel = pLabel;
     }
 
-    /**
-     * Parent of this object.
-     */
-    public get parent(): GameNode | null {
-        return this.mParent;
-    }
 
     /**
      * Constructor.
@@ -52,7 +35,6 @@ export abstract class GameObject {
      */
     public constructor(pLabel: string) {
         this.mLabel = pLabel;
-        this.mParent = null;
 
         // A game object is enabled by default and inherits the enabled state from its parent.
         this.mEnableState = {
@@ -124,15 +106,6 @@ export abstract class GameObject {
         this.mEnableState.enabled = this.mEnableState.inheritedState ? this.mEnableState.selfState : false;
 
         return this.mEnableState.enabled !== lLastState;
-    }
-
-    /**
-     * Set the parent of this game object.
-     * 
-     * @param pParent - Parent object.
-     */
-    protected setParent(pParent: GameNode | null): void {
-        this.mParent = pParent;
     }
 }
 

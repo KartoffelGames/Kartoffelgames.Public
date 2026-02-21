@@ -39,99 +39,18 @@ export class GameEnvironmentTransmission {
     }
 
     /**
-     * Transmits a component activation event to the environment handler.
+     * Transmits a component change event to the environment handler.
      *
-     * @param pComponent - The component being activated.
+     * @param pComponent - The component being changed.
      */
-    public activate(pComponent: GameComponent): void {
+    public sendChangeEvent(pEventType: GameEnvironmentStateChangeType, pComponent: GameComponent): void {
         // Build state change event.
         const lStateChange: GameEnvironmentStateChange = {
-            type: 'activate',
+            type: pEventType,
             component: pComponent,
             scene: this.mScene,
             tick: this.tick
-        };
-
-        // Submit only when the state change has priority.
-        if (this.priorizeStateChange(lStateChange)) {
-            this.mEventSubmitHandler(lStateChange);
         }
-    }
-
-    /**
-     * Transmits a component addition event to the environment handler.
-     *
-     * @param pComponent - The component being added to the environment.
-     */
-    public add(pComponent: GameComponent): void {
-        // Build state change event.
-        const lStateChange: GameEnvironmentStateChange = {
-            type: 'add',
-            component: pComponent,
-            scene: this.mScene,
-            tick: this.tick
-        };
-
-        // Submit only when the state change has priority.
-        if (this.priorizeStateChange(lStateChange)) {
-            this.mEventSubmitHandler(lStateChange);
-        }
-    }
-
-    /**
-     * Transmits a component deactivation event to the environment handler.
-     *
-     * @param pComponent - The component being deactivated.
-     */
-    public deactivate(pComponent: GameComponent): void {
-        // Build state change event.
-        const lStateChange: GameEnvironmentStateChange = {
-            type: 'deactivate',
-            component: pComponent,
-            scene: this.mScene,
-            tick: this.tick
-        };
-
-        // Submit only when the state change has priority.
-        if (this.priorizeStateChange(lStateChange)) {
-            this.mEventSubmitHandler(lStateChange);
-        }
-    }
-
-    /**
-     * Transmits a component removal event to the environment handler.
-     *
-     * @param pComponent - The component being removed from the environment.
-     */
-    public remove(pComponent: GameComponent): void {
-        // Build state change event.
-        const lStateChange: GameEnvironmentStateChange = {
-            type: 'remove',
-            component: pComponent,
-            scene: this.mScene,
-            tick: this.tick
-        };
-
-        // Submit only when the state change has priority.
-        if (this.priorizeStateChange(lStateChange)) {
-            this.mEventSubmitHandler(lStateChange);
-        }
-    }
-
-    /**
-     * Transmits a component update event to the environment handler.
-     * Used to indicate a change in a component that was done outside of a system loop.
-     *
-     * @param pComponent - The component being updated.
-     */
-    public update(pComponent: GameComponent): void {
-        // Build state change event.
-        const lStateChange: GameEnvironmentStateChange = {
-            type: 'update',
-            component: pComponent,
-            scene: this.mScene,
-            tick: this.tick
-        };
 
         // Submit only when the state change has priority.
         if (this.priorizeStateChange(lStateChange)) {

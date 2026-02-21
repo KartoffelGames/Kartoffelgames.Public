@@ -1,8 +1,8 @@
 import { Exception } from '@kartoffelgames/core';
 import type { GameComponentConstructor } from '../component/game-component.ts';
-import { type GameEnvironmentStateChange, GameEnvironmentTransmission } from './game-environment-transmittion.ts';
 import type { GameScene } from '../game-scene.ts';
 import type { GameSystem, GameSystemConstructor } from '../game-system.ts';
+import { type GameEnvironmentStateChange, GameEnvironmentTransmission } from './game-environment-transmittion.ts';
 
 /**
  * Main hub for managing the game environment, including loaded scenes, registered systems, and processing component state changes.
@@ -276,7 +276,7 @@ export class GameEnvironment {
 
         if (this.mConfigurationDebugLog) {
             // eslint-disable-next-line no-console
-            console.log(`Queued state change: "${pStateChange.type}" for component "${pStateChange.component.label}" of "${pStateChange.component.parent?.label}"`);
+            console.log(`Queued state change: "${pStateChange.type}" for component "${pStateChange.component.label}" of "${pStateChange.component.gameEntity.label}"`);
         }
     }
 }

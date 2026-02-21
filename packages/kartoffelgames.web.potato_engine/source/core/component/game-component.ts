@@ -10,6 +10,8 @@ import { GameObject } from '../hierarchy/game-object.ts';
  * They can be enabled or disabled, which signals the environment to activate or deactivate them.
  */
 export class GameComponent extends GameObject {
+    private mGameEntity: GameEntity | null;
+
     /**
      * Get the list of component types that this component depends on.
      * Override this property in subclasses to specify dependencies for a component.
@@ -29,16 +31,20 @@ export class GameComponent extends GameObject {
      */
     public get gameEntity(): GameEntity { 
         // We assume that the parent of a component is always a game entity, as components should only be added to game entities.
-        return this.parent as GameEntity;
+        return this.mGameEntity!; // lets assume this is always set, as components should only be added to game entities and the parent should be set in the addComponent method of GameEntity.
     }
 
     /**
      * Constructor.
      * 
      * @param pLabel - Component label.
+     * @param pGameEntity - The game entity this component is attached to.
      */
     public constructor(pLabel: string) {
         super(pLabel);
+
+        // Initialy not set.
+        this.mGameEntity = null;
     }
 
     /**
@@ -49,7 +55,7 @@ export class GameComponent extends GameObject {
     public override connect(): void {
         super.connect();
 
-        this.environment?.add(this);
+        this.gameEntity.sendComponentChangeEvent('add', this);
     }
 
     /**
@@ -59,7 +65,16 @@ export class GameComponent extends GameObject {
      */
     public override disconnect(): void {
         super.disconnect();
-        this.environment?.remove(this);
+        this.gameEntity.sendComponentChangeEvent('remove', this);
+    }
+
+    /**
+     * Set the parent of this component to the given game entity.
+     * 
+     * @param pParent - Parent game entity.
+     */
+    public setParent(pParent: GameEntity): void {
+        this.mGameEntity = pParent;
     }
 
     /**
@@ -68,7 +83,7 @@ export class GameComponent extends GameObject {
      * @internal
      */
     public update(): void {
-        this.environment?.update(this);
+        this.gameEntity.sendComponentChangeEvent('update', this);
     }
 
     /**
@@ -82,11 +97,11 @@ export class GameComponent extends GameObject {
     protected override changeEnableState(pEnabled: boolean, pInherited: boolean): boolean {
         const lStateChanged: boolean = super.changeEnableState(pEnabled, pInherited);
 
-        if (lStateChanged && this.environment) {
+        if (lStateChanged) {
             if (this.enabled) {
-                this.environment.activate(this);
+                this.gameEntity.sendComponentChangeEvent('activate', this);
             } else {
-                this.environment.deactivate(this);
+                this.gameEntity.sendComponentChangeEvent('deactivate', this);
             }
         }
 

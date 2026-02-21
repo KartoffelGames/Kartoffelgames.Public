@@ -3,6 +3,7 @@ import { Serializer } from '@kartoffelgames/core-serializer';
 import type { IAnyParameterConstructor } from '../../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import type { GameComponent, GameComponentConstructor } from '../component/game-component.ts';
 import { GameNode } from '../hierarchy/game-node.ts';
+import { GameEnvironmentStateChangeType } from "../environment/game-environment-transmittion.ts";
 
 /**
  * A GameEntity is a game node that can have components.
@@ -12,6 +13,7 @@ import { GameNode } from '../hierarchy/game-node.ts';
 export class GameEntity extends GameNode {
     private readonly mComponentTypeMap: Map<GameComponentConstructor, GameComponent>;
     private readonly mComponents: Set<GameComponent>;
+    private readonly mComponentUpdateDependencies: Map<GameComponent, Array<GameComponent>>;
 
     /**
      * Create a new empty game object.
@@ -22,12 +24,18 @@ export class GameEntity extends GameNode {
         // Init component storage
         this.mComponents = new Set<GameComponent>();
         this.mComponentTypeMap = new Map<GameComponentConstructor, GameComponent>();
+        this.mComponentUpdateDependencies = new Map<GameComponent, Array<GameComponent>>();
     }
 
     /**
      * Adds a component to this game object.
+     * Creates a new component of the requested type and adds it to this game object.
+     * When a component of the same type already exists on this game object, an exception is thrown, as multiple components of the same type on a single game object are not allowed.
+     * When the component has dependencies, all dependencies will be automatically added if not already present.
      * 
-     * @param pComponent - Component to add.
+     * @param pComponentType - Component type to add.
+     * 
+     * @return The added component instance.
      */
     public addComponent<T extends GameComponent>(pComponentType: GameComponentConstructor<T>): T {
         // Restrict multiple components of the same type on a single game object.
@@ -40,9 +48,21 @@ export class GameEntity extends GameNode {
 
         // Resolve dependencies - auto-add any missing dependency components.
         for (const lDependency of lComponent.dependencies) {
-            if (!this.mComponentTypeMap.has(lDependency)) {
-                this.addComponent(lDependency);
+            // Try to read dependency component from this game object or create it if it does not exist.
+            let lDependencyComponent: GameComponent | undefined = this.mComponentTypeMap.get(lDependency);
+            if (!lDependencyComponent) {
+                lDependencyComponent = this.addComponent(lDependency);
             }
+
+            // Read the update dependency list of the dependency component.
+            let lDependencyUpdateList: Array<GameComponent> | undefined = this.mComponentUpdateDependencies.get(lDependencyComponent);
+            if (!lDependencyUpdateList) {
+                lDependencyUpdateList = new Array<GameComponent>();
+                this.mComponentUpdateDependencies.set(lDependencyComponent, lDependencyUpdateList);
+            }
+
+            // Create a new update dependency list for this component.
+            lDependencyUpdateList.push(lComponent);
         }
 
         // Add component to set and update parent.
@@ -52,7 +72,7 @@ export class GameEntity extends GameNode {
         this.mComponentTypeMap.set(pComponentType, lComponent);
 
         // Set parent and trigger connections.
-        (<GameEntity><unknown>lComponent).setParent(this);
+        lComponent.setParent(this);
         lComponent.connect();
 
         return lComponent;
@@ -190,6 +210,35 @@ export class GameEntity extends GameNode {
 
         // When both current and parent components exist, combine them
         return [lCurrentObjectComponent, ...lParentObjectComponents];
+    }
+
+    /**
+     * Signals the environment connection of this game object, if it exists, that this game object is active and should be included in the environment.
+     * This event gets signaled for any dependent components as well.
+     * 
+     * @param pType - The type of state change that occurred for the component.
+     * @param pComponent - The component that triggered the state change event.
+     * 
+     * @returns Whether the state change event was successfully sent to the environment.
+     * 
+     * @internal 
+     */
+    public sendComponentChangeEvent(pType: GameEnvironmentStateChangeType, pComponent: GameComponent): void {
+        // Skip when no environment is connected, as there is no need to send change events.
+        if(!this.environment){
+            return;
+        }
+
+        // Send exact change event to any dependend components, so they can react to the change before the environment gets notified.
+        if(this.mComponentUpdateDependencies.has(pComponent)) {
+            // Read dependent components and send change event to them.
+            const lDependentComponents: Array<GameComponent> = this.mComponentUpdateDependencies.get(pComponent)!;
+            for(const lDependentComponent of lDependentComponents) {
+                this.environment.sendChangeEvent(pType, lDependentComponent);
+            }
+        }
+
+        this.environment.sendChangeEvent(pType, pComponent);
     }
 
     /**

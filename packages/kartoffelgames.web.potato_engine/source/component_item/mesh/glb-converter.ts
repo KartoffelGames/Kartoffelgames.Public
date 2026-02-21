@@ -158,7 +158,7 @@ export class GlbConverter {
             }
 
             // Set merged vertex data on the mesh.
-            lMesh.vertices = lAllPositions;
+            lMesh.verticesData = lAllPositions;
             if (lAllNormals.length > 0) { lMesh.normals = lAllNormals; }
             if (lAllColors.length > 0) { lMesh.colors = lAllColors; }
             if (lAllUv1.length > 0) { lMesh.uv1 = lAllUv1; }

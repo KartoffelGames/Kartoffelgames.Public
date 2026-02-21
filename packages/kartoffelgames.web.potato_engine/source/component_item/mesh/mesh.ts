@@ -137,9 +137,9 @@ export class Mesh extends GameComponentItem {
      * Vertex position data as a flat array of XYZ values.
      * Every three consecutive values represent one vertex position (x, y, z).
      */
-    public get vertices(): Array<number> {
+    public get verticesData(): Array<number> {
         return this.mVertices;
-    } set vertices(pValue: Array<number>) {
+    } set verticesData(pValue: Array<number>) {
         this.mVertices = pValue;
 
         // Signal parent component of the change.
@@ -151,7 +151,7 @@ export class Mesh extends GameComponentItem {
      * Calculated from the vertex position data assuming three components per vertex (x, y, z).
      */
     public get verticlesCount(): number {
-        return this.mVertices.length;
+        return this.mVertices.length / 3;
     }
 
     /**

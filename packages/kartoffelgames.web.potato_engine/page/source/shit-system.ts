@@ -217,7 +217,7 @@ export class ShitSystem extends GameSystem {
         // Create GPU vertex parameters for each submesh.
         this.mMeshes = lMesh.subMeshes.map((lSubMesh) => {
             const lVertexParameter: VertexParameter = this.mShaderRenderModule!.vertexParameter.create(lSubMesh.indices);
-            lVertexParameter.create('position', lMesh.vertices);
+            lVertexParameter.create('position', lMesh.verticesData);
             lVertexParameter.create('normal', lMesh.normals);
             return lVertexParameter;
         });

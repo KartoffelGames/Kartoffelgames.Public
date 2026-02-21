@@ -12,18 +12,6 @@ import type { GameEntity } from '../core/hierarchy/game-entity.ts';
 import { GpuSystem } from './gpu-system.ts';
 
 /**
- * Bundled information for a render target.
- * Stores the camera, frustum, GPU render targets, and visible mesh renderers for a single render target.
- */
-export type RenderTargetData = {
-    camera: CameraComponent | null;
-    cameraTransformation: TransformationComponent | null;
-    frustum: Frustum;
-    renderTargets: RenderTargets;
-    visibleMeshRenderers: Array<MeshRenderComponent>;
-};
-
-/**
  * System that manages render targets, camera assignments, and per-frame frustum culling.
  *
  * Tracks RenderTargetComponent, CameraComponent, and MeshRenderComponent lifecycle events.
@@ -78,7 +66,6 @@ export class RenderTargetSystem extends GameSystem {
      * The canvas can be resized externally; the core render target will react to size changes each frame.
      */
     public get canvas(): HTMLCanvasElement {
-
         return this.mCanvas!;
     }
 
@@ -165,15 +152,16 @@ export class RenderTargetSystem extends GameSystem {
             this.mCanvas = document.createElement('canvas');
         }
 
-        // Create canvas texture from the canvas element.
-        this.mCanvasTexture = lGpu.canvas(this.mCanvas);
-
         // Store initial canvas dimensions for resize detection.
         this.mLastCanvasWidth = this.mCanvas.width;
         this.mLastCanvasHeight = this.mCanvas.height;
 
+        // Create canvas texture from the canvas element.
+        this.mCanvasTexture = lGpu.canvas(this.mCanvas);
+
         // Create the core render target backed by the canvas.
         this.mCoreRenderTargetData = this.setupRenderTarget(this.mCanvas.width, this.mCanvas.height, this.mCanvasTexture);
+        this.mCoreRenderTargetData.renderTargets.resize(this.mLastCanvasWidth, this.mLastCanvasHeight);
     }
 
     /**
@@ -465,6 +453,18 @@ export class RenderTargetSystem extends GameSystem {
         return { minX: lMinX, minY: lMinY, minZ: lMinZ, maxX: lMaxX, maxY: lMaxY, maxZ: lMaxZ };
     }
 }
+
+/**
+ * Bundled information for a render target.
+ * Stores the camera, frustum, GPU render targets, and visible mesh renderers for a single render target.
+ */
+export type RenderTargetData = {
+    camera: CameraComponent | null;
+    cameraTransformation: TransformationComponent | null;
+    frustum: Frustum;
+    renderTargets: RenderTargets;
+    visibleMeshRenderers: Array<MeshRenderComponent>;
+};
 
 /**
  * Axis-aligned bounding box in world space defined by min/max coordinates.

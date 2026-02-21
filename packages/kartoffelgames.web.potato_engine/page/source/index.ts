@@ -23,6 +23,7 @@ const lMeshes: Array<Mesh> = GlbConverter.convert(lGlbData);
 const lBlockMesh: Mesh = lMeshes[0];
 
 console.log(lBlockMesh.verticlesCount);
+console.log(lBlockMesh.bounds);
 
 (() => {
     const lEnvironment = new GameEnvironment({

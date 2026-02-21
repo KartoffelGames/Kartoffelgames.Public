@@ -1,6 +1,6 @@
 import { Exception, type IVoidParameterConstructor } from '@kartoffelgames/core';
 import { Metadata } from '@kartoffelgames/core-dependency-injection';
-import { EditorPropertyDescriptor, EditorPropertyNumberType, EditorPropertyRegister } from './editor-property-register.ts';
+import { type EditorPropertyDescriptor, type EditorPropertyNumberType, EditorPropertyRegister } from './editor-property-register.ts';
 
 /**
  * Static class providing decorators for annotating class properties with UI meta information.

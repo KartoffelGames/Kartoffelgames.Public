@@ -1,8 +1,8 @@
-import { CameraComponent } from "../../source/component/camera/camera-component.ts";
-import { CameraComponentProjection } from "../../source/component/camera/projection/camera-projection.enum.ts";
-import { PerspectiveProjection } from "../../source/component/camera/projection/perspective-projection.ts";
+import { CameraComponent } from '../../source/component/camera/camera-component.ts';
+import { CameraComponentProjection } from '../../source/component/camera/projection/camera-projection.enum.ts';
+import type { PerspectiveProjection } from '../../source/component/camera/projection/perspective-projection.ts';
 import { LightComponent } from '../../source/component/light/light-component.ts';
-import { LightComponentLightType } from "../../source/component/light/type/light-type.enum.ts";
+import { LightComponentLightType } from '../../source/component/light/type/light-type.enum.ts';
 import { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
 import { GlbConverter } from '../../source/component_item/mesh/glb-converter.ts';
@@ -15,7 +15,7 @@ import { TransformationSystem } from '../../source/system/transformation-system.
 import { ShitSystem } from './shit-system.ts';
 
 // Load cube mesh from GLB file.
-const lGlbData: ArrayBuffer = await fetch('/mesh.glb').then((pResponse) => {
+const lGlbData: ArrayBuffer = await fetch('/mesh.glb').then(async (pResponse) => {
     return pResponse.arrayBuffer();
 });
 const lMeshes: Array<Mesh> = GlbConverter.convert(lGlbData);
@@ -25,7 +25,7 @@ console.log(lBlockMesh.verticlesCount);
 
 (() => {
     const lEnvironment = new GameEnvironment({
-        debugLog: true
+        // debugLog: true
     });
 
     // Add systems.

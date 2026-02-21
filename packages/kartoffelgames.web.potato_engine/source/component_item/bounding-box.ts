@@ -1,7 +1,7 @@
-import { Serializer } from "@kartoffelgames/core-serializer";
-import { GameComponentItem } from "../core/component/game-component-item.ts";
-import { EditorProperty } from "../editor_property/editor-property.ts";
-import { EditorPropertyNumberType } from "../editor_property/editor-property-register.ts";
+import { Serializer } from '@kartoffelgames/core-serializer';
+import { GameComponentItem } from '../core/component/game-component-item.ts';
+import { EditorProperty } from '../editor_property/editor-property.ts';
+import { EditorPropertyNumberType } from '../editor_property/editor-property-register.ts';
 
 /**
  * Axis-aligned bounding box defined by minimum and maximum corner points.
@@ -14,7 +14,7 @@ export class BoundingBox extends GameComponentItem{
      * This instance is immutable and cannot be modified, as it is shared across all components that use it.
      * Modifying this instance will throw an exception to prevent unintended side effects on other components using the same instance.
      */
-    public static systemInstance: BoundingBox = (() => {
+    public static readonly SYSTEM_INSTANCE: BoundingBox = (() => {
         // Create system instance with default values.
         const lInstance: BoundingBox = new BoundingBox();
         lInstance.mMinX = 0;

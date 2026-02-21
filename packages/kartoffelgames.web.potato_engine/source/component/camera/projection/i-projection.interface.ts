@@ -1,6 +1,6 @@
 
-import type { Matrix } from "@kartoffelgames/core";
-import type { GameComponentItem } from "../../../core/component/game-component-item.ts";
+import type { Matrix } from '@kartoffelgames/core';
+import type { GameComponentItem } from '../../../core/component/game-component-item.ts';
 
 /**
  * Interface for camera projection implementations.

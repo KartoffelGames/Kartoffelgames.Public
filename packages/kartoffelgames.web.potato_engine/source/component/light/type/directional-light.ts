@@ -1,10 +1,9 @@
 import { Serializer } from '@kartoffelgames/core-serializer';
 import { Color } from '../../../component_item/color.ts';
 import { GameComponentItem } from '../../../core/component/game-component-item.ts';
-import { EditorPropertyNumberType } from "../../../editor_property/editor-property-register.ts";
-import { EditorProperty } from "../../../editor_property/editor-property.ts";
-import { ILightComponentItem } from "./i-light-component-item.interface.ts";
-import { off } from "node:process";
+import { EditorPropertyNumberType } from '../../../editor_property/editor-property-register.ts';
+import { EditorProperty } from '../../../editor_property/editor-property.ts';
+import type { ILightComponentItem } from './i-light-component-item.interface.ts';
 
 /**
  * Directional light that emits parallel rays in a single direction.
@@ -17,7 +16,7 @@ export class DirectionalLight extends GameComponentItem implements ILightCompone
      * This instance is immutable and cannot be modified, as it is shared across all components that use it.
      * Modifying this instance will throw an exception to prevent unintended side effects on other components using the same instance.
      */
-    public static systemInstance: DirectionalLight = (() => {
+    public static readonly SYSTEM_INSTANCE: DirectionalLight = (() => {
         // Create system instance with default values.
         const lInstance: DirectionalLight = new DirectionalLight();
         lInstance.mIntensity = 1;
@@ -74,7 +73,7 @@ export class DirectionalLight extends GameComponentItem implements ILightCompone
         super('Directional light');
 
         // Link system color instance to avoid creating multiple identical instances.
-        this.mColor = Color.systemInstance;
+        this.mColor = Color.SYSTEM_INSTANCE;
         this.mColor.linkParent(this);
 
         // Setup default values.

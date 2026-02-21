@@ -1,4 +1,4 @@
-import { Matrix } from "@kartoffelgames/core";
+import type { Matrix } from '@kartoffelgames/core';
 import { BufferUsage, GpuBuffer } from '@kartoffelgames/web-gpu';
 import { TransformationComponent } from '../component/transformation-component.ts';
 import type { GameComponentConstructor } from '../core/component/game-component.ts';
@@ -20,8 +20,8 @@ export class TransformationSystem extends GameSystem {
     private readonly mAvailableIndices: Array<number>;
     private readonly mComponentChildrenMap: WeakMap<TransformationComponent, Set<TransformationComponent>>;
     private readonly mComponentIndexMap: WeakMap<TransformationComponent, number>;
-    private readonly mComponentWorldMatrixMap: WeakMap<TransformationComponent, Matrix>;
     private readonly mComponentParentMap: WeakMap<TransformationComponent, TransformationComponent>;
+    private readonly mComponentWorldMatrixMap: WeakMap<TransformationComponent, Matrix>;
     private readonly mDataBuffer: SharedArrayBuffer;
     private mGpuBuffer: GpuBuffer | null;
     private mMatrixDataView: Float32Array;
@@ -182,8 +182,9 @@ export class TransformationSystem extends GameSystem {
 
         // Cache: node -> is it covered by a changed ancestor?
         const lCoverageCache: Map<TransformationComponent, boolean> = new Map<TransformationComponent, boolean>();
-        const lIsCoveredByAncestor = (node: TransformationComponent): boolean => {
-            const lParent: TransformationComponent | undefined = this.mComponentParentMap.get(node);
+        const lIsCoveredByAncestor = (pTransformation: TransformationComponent): boolean => {
+            // Try to get next transformation parent of current transformation.
+            const lParent: TransformationComponent | undefined = this.mComponentParentMap.get(pTransformation);
             if (!lParent) {
                 return false;
             }
@@ -204,15 +205,48 @@ export class TransformationSystem extends GameSystem {
         };
 
         const lUpdateBounds: TransformationSystemBufferUpdateRange = {
-            lowerBoundIndex: 0,
+            lowerBoundIndex: Number.MAX_SAFE_INTEGER,
             upperBoundIndex: 0
         };
 
-        const lRecalculateWorldMatrix = (node: TransformationComponent): Matrix => { };
+        const lRecalculateWorldMatrix = (pNode: TransformationComponent, pParentWorldMatrix: Matrix | null): void => {
+            // Calculate the world matrix: parentWorldMatrix * localMatrix, or just localMatrix if no parent.
+            const lWorldMatrix: Matrix = pParentWorldMatrix ? pParentWorldMatrix.mult(pNode.matrix) : pNode.matrix;
 
-        for (const node of lChangedTransformations) {
-            if (!lIsCoveredByAncestor(node)) {
+            // Store the world matrix for this node.
+            this.mComponentWorldMatrixMap.set(pNode, lWorldMatrix);
 
+            // Write the world matrix to the shared buffer and track the updated range.
+            const lBufferIndex: number = this.writeTransformationMatrixToBuffer(pNode, lWorldMatrix);
+            if (lBufferIndex < lUpdateBounds.lowerBoundIndex) {
+                lUpdateBounds.lowerBoundIndex = lBufferIndex;
+            }
+            if (lBufferIndex > lUpdateBounds.upperBoundIndex) {
+                lUpdateBounds.upperBoundIndex = lBufferIndex;
+            }
+
+            // Recursively update all children since their world matrices depend on this node.
+            const lChildren: Set<TransformationComponent> | undefined = this.mComponentChildrenMap.get(pNode);
+            if (lChildren && lChildren.size > 0) {
+                for (const lChild of lChildren) {
+                    lRecalculateWorldMatrix(lChild, lWorldMatrix);
+                }
+            }
+        };
+
+        // Recalculate world matrices for all changed transformations that are not covered by an ancestor to avoid redundant calculations.
+        for (const lTransformation of lChangedTransformations) {
+            if (!lIsCoveredByAncestor(lTransformation)) {
+                // Read parent world matrix.
+                const lParent: TransformationComponent | undefined = this.mComponentParentMap.get(lTransformation);
+
+                // Read parent world matrix if parent exists, otherwise null.
+                let lParentWorldMatrix: Matrix | null = null;
+                if (lParent) {
+                    lParentWorldMatrix = this.mComponentWorldMatrixMap.get(lParent) ?? null;
+                }
+
+                lRecalculateWorldMatrix(lTransformation, lParentWorldMatrix);
             }
         }
 
@@ -243,7 +277,7 @@ export class TransformationSystem extends GameSystem {
      * 
      * @param pComponent - The transformation component to be added to the system.
      */
-    public addTransformation(pComponent: TransformationComponent): void {
+    private addTransformation(pComponent: TransformationComponent): void {
         // Assign an index for this component in the buffer.
         if (this.mAvailableIndices.length === 0) {
             // Extend buffer by one block (4 components) if no indices are available.
@@ -262,9 +296,10 @@ export class TransformationSystem extends GameSystem {
             lParentComponent = lGameObject.parent.getParentComponent(TransformationComponent);
         }
 
-        // Set parent component reference for this component.
+        // Set parent component reference for this component and register as child of parent.
         if (lParentComponent) {
             this.mComponentParentMap.set(pComponent, lParentComponent);
+            this.getChildTransformations(lParentComponent).add(pComponent);
         }
     }
 

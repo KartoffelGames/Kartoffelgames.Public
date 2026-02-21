@@ -1,7 +1,7 @@
 import { BufferItemFormat } from '../../../../kartoffelgames.web.gpu/source/constant/buffer-item-format.enum.ts';
 import type { PrimitiveTopology } from '../../../../kartoffelgames.web.gpu/source/constant/primitive-topology.enum.ts';
 import { BoundingBox } from '../bounding-box.ts';
-import { GameComponentItem } from "../../core/component/game-component-item.ts";
+import { GameComponentItem } from '../../core/component/game-component-item.ts';
 import { SubMesh } from './sub-mesh.ts';
 
 // TODO: Add bone indices and bone weights per vertex for skeletal animation support.

@@ -1,14 +1,14 @@
 import { Serializer } from '@kartoffelgames/core-serializer';
-import { Exception } from "../../../../kartoffelgames.core/source/exception/exception.ts";
+import { Exception } from '../../../../kartoffelgames.core/source/exception/exception.ts';
 import type { GameComponentConstructor } from '../../core/component/game-component.ts';
 import { GameComponent } from '../../core/component/game-component.ts';
-import { EditorProperty } from "../../editor_property/editor-property.ts";
+import { EditorProperty } from '../../editor_property/editor-property.ts';
 import { TransformationComponent } from '../transformation-component.ts';
-import { DirectionalLight } from "./type/directional-light.ts";
+import { DirectionalLight } from './type/directional-light.ts';
 import type { ILightComponentItem } from './type/i-light-component-item.interface.ts';
-import { LightComponentLightType } from "./type/light-type.enum.ts";
+import { LightComponentLightType } from './type/light-type.enum.ts';
 import { PointLight } from './type/point-light.ts';
-import { SpotLight } from "./type/spot-light.ts";
+import { SpotLight } from './type/spot-light.ts';
 
 /**
  * Component that holds a light source.
@@ -82,7 +82,7 @@ export class LightComponent extends GameComponent {
     public constructor() {
         super('Light');
 
-        this.mLight = PointLight.systemInstance;
+        this.mLight = PointLight.SYSTEM_INSTANCE;
     }
 }
 

@@ -1,6 +1,6 @@
-import { Exception } from "@kartoffelgames/core";
-import { Serializer } from "@kartoffelgames/core-serializer";
-import { GameComponent } from "./game-component.ts";
+import { Exception } from '@kartoffelgames/core';
+import { Serializer } from '@kartoffelgames/core-serializer';
+import type { GameComponent } from './game-component.ts';
 
 
 /**
@@ -10,15 +10,16 @@ import { GameComponent } from "./game-component.ts";
 export abstract class GameComponentItem {
     private mIsSystem: boolean;
 
-    /**
-     * Set of parent game components that reference this item.
-     */
-    private mLinkedParents: Set<GameComponent | GameComponentItem>;
+    private mLabel: string;
+    private readonly mLinkedParents: Set<GameComponent | GameComponentItem>;
 
     /**
-     * The identifying label for this component item.
+     * Indicates whether this item is a system item, which is an item that is used internally by the engine and should not be modified by user code.
      */
-    private mLabel: string;
+    public get isSystem(): boolean {
+        return this.mIsSystem;
+    }
+
 
     /**
      * Gets the label identifying this component item.
@@ -33,13 +34,6 @@ export abstract class GameComponentItem {
         this.systemgate();
 
         this.mLabel = pValue;
-    }
-
-    /**
-     * Indicates whether this item is a system item, which is an item that is used internally by the engine and should not be modified by user code.
-     */
-    public get isSystem(): boolean {
-        return this.mIsSystem;
     }
 
     /**
@@ -102,10 +96,11 @@ export abstract class GameComponentItem {
 }
 
 export interface GameComponentItemConstructor<T extends GameComponentItem> {
-    readonly systemInstance: T;
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    readonly SYSTEM_INSTANCE: T;
 
     /**
      * Constructor signature for game component items.
      */
-    new(...args: any[]): T;
+    new(...args: Array<any>): T;
 }

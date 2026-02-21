@@ -542,13 +542,13 @@ Deno.test('Vector.multCross()', async (pContext) => {
         const lVectorB: Vector = new Vector([4, 5, 6]);
 
         // Process.
-        const lResultAB: Vector = lVectorA.multCross(lVectorB);
-        const lResultBA: Vector = lVectorB.multCross(lVectorA);
+        const lResultAb: Vector = lVectorA.multCross(lVectorB);
+        const lResultBa: Vector = lVectorB.multCross(lVectorA);
 
         // Evaluation.
-        expect(lResultAB.data[0]).toBe(-lResultBA.data[0]);
-        expect(lResultAB.data[1]).toBe(-lResultBA.data[1]);
-        expect(lResultAB.data[2]).toBe(-lResultBA.data[2]);
+        expect(lResultAb.data[0]).toBe(-lResultBa.data[0]);
+        expect(lResultAb.data[1]).toBe(-lResultBa.data[1]);
+        expect(lResultAb.data[2]).toBe(-lResultBa.data[2]);
     });
 
     await pContext.step('Cross product does not mutate original vectors', () => {

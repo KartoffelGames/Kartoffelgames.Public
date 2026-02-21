@@ -1,7 +1,7 @@
 /**
  * Recursively clone a value, preserving Blob instances by reference.
  */
-function clonePreservingBlobs(pValue: unknown): unknown {
+function gClonePreservingBlobs(pValue: unknown): unknown {
     if (pValue instanceof Blob) {
         return pValue;
     }
@@ -11,18 +11,18 @@ function clonePreservingBlobs(pValue: unknown): unknown {
     }
 
     if (Array.isArray(pValue)) {
-        return pValue.map(clonePreservingBlobs);
+        return pValue.map(gClonePreservingBlobs);
     }
 
     // Clone plain objects property by property.
     const lClone: Record<string, unknown> = {};
     for (const lKey of Object.keys(pValue as Record<string, unknown>)) {
-        lClone[lKey] = clonePreservingBlobs((pValue as Record<string, unknown>)[lKey]);
+        lClone[lKey] = gClonePreservingBlobs((pValue as Record<string, unknown>)[lKey]);
     }
 
     return lClone;
 }
 
 globalThis.structuredClone = <T>(pValue: T, _pOptions?: StructuredSerializeOptions): T => {
-    return clonePreservingBlobs(pValue) as T;
+    return gClonePreservingBlobs(pValue) as T;
 };

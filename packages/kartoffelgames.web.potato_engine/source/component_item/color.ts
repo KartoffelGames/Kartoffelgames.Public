@@ -1,7 +1,7 @@
 import { Serializer } from '@kartoffelgames/core-serializer';
 import { GameComponentItem } from '../core/component/game-component-item.ts';
-import { EditorPropertyNumberType } from "../editor_property/editor-property-register.ts";
-import { EditorProperty } from "../editor_property/editor-property.ts";
+import { EditorPropertyNumberType } from '../editor_property/editor-property-register.ts';
+import { EditorProperty } from '../editor_property/editor-property.ts';
 
 /**
  * Component item that holds an RGBA color value.
@@ -14,7 +14,7 @@ export class Color extends GameComponentItem {
      * This instance is immutable and cannot be modified, as it is shared across all components that use it.
      * Modifying this instance will throw an exception to prevent unintended side effects on other components using the same instance.
      */
-    public static systemInstance: Color = (() => {
+    public static readonly SYSTEM_INSTANCE: Color = (() => {
         // Create system instance with default values.
         const lInstance: Color = new Color();
         lInstance.mR = 1;

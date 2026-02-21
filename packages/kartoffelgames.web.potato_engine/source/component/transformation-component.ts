@@ -1,6 +1,6 @@
 import { Serializer } from '@kartoffelgames/core-serializer';
 import { GameComponent } from '../core/component/game-component.ts';
-import { Matrix, Quaternion } from "@kartoffelgames/core";
+import { Matrix, Quaternion } from '@kartoffelgames/core';
 
 // TODO: Use Math.Vector3 for pivot, scale and translation and add a PropertyMeta.object(Vector) or something.
 

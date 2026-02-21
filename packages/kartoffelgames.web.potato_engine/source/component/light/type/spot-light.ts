@@ -1,8 +1,8 @@
 import { Serializer } from '@kartoffelgames/core-serializer';
-import { Color } from "../../../component_item/color.ts";
-import { GameComponentItem } from "../../../core/component/game-component-item.ts";
-import { EditorPropertyNumberType } from "../../../editor_property/editor-property-register.ts";
-import { EditorProperty } from "../../../editor_property/editor-property.ts";
+import { Color } from '../../../component_item/color.ts';
+import { GameComponentItem } from '../../../core/component/game-component-item.ts';
+import { EditorPropertyNumberType } from '../../../editor_property/editor-property-register.ts';
+import { EditorProperty } from '../../../editor_property/editor-property.ts';
 import type { ILightComponentItem } from './i-light-component-item.interface.ts';
 
 /**
@@ -113,7 +113,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
         super('Spot light');
 
         // Link system color instance to avoid creating multiple identical instances.
-        this.mColor = Color.systemInstance;
+        this.mColor = Color.SYSTEM_INSTANCE;
         this.mColor.linkParent(this);
 
         // Setup default values.

@@ -1,6 +1,6 @@
-import { Serializer } from "@kartoffelgames/core-serializer";
-import { Mesh } from "../component_item/mesh/mesh.ts";
-import { GameComponent } from "../core/component/game-component.ts";
+import { Serializer } from '@kartoffelgames/core-serializer';
+import type { Mesh } from '../component_item/mesh/mesh.ts';
+import { GameComponent } from '../core/component/game-component.ts';
 
 /**
  * Component that holds information to render a mesh in any render pipeline.

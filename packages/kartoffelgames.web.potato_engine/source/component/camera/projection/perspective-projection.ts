@@ -1,8 +1,8 @@
-import { Matrix } from "@kartoffelgames/core";
-import { Serializer } from "@kartoffelgames/core-serializer";
-import { GameComponentItem } from "../../../core/component/game-component-item.ts";
-import { EditorPropertyNumberType } from "../../../editor_property/editor-property-register.ts";
-import { EditorProperty } from "../../../editor_property/editor-property.ts";
+import { Matrix } from '@kartoffelgames/core';
+import { Serializer } from '@kartoffelgames/core-serializer';
+import { GameComponentItem } from '../../../core/component/game-component-item.ts';
+import { EditorPropertyNumberType } from '../../../editor_property/editor-property-register.ts';
+import { EditorProperty } from '../../../editor_property/editor-property.ts';
 import type { IProjection } from './i-projection.interface.ts';
 
 /**
@@ -15,7 +15,7 @@ export class PerspectiveProjection extends GameComponentItem implements IProject
      * This instance is immutable and cannot be modified, as it is shared across all components that use it.
      * Modifying this instance will throw an exception to prevent unintended side effects on other components using the same instance.
      */
-    public static systemInstance: PerspectiveProjection = (() => {
+    public static readonly SYSTEM_INSTANCE: PerspectiveProjection = (() => {
         // Create system instance with default values.
         const lInstance: PerspectiveProjection = new PerspectiveProjection();
         lInstance.mAngleOfView = 45;
@@ -29,8 +29,8 @@ export class PerspectiveProjection extends GameComponentItem implements IProject
 
     private mAngleOfView: number;
     private mAspectRatio: number;
-    private mMatrix: Matrix | null;
     private mFar: number;
+    private mMatrix: Matrix | null;
     private mNear: number;
 
     /**

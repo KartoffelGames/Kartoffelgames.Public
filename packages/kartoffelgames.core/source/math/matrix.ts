@@ -1,4 +1,4 @@
-import { Exception } from "../exception/exception.ts";
+import { Exception } from '../exception/exception.ts';
 import { Vector } from './vector.ts';
 
 export class Matrix {

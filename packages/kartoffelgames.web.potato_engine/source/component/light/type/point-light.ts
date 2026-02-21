@@ -1,8 +1,8 @@
 import { Serializer } from '@kartoffelgames/core-serializer';
-import { Color } from "../../../component_item/color.ts";
-import { GameComponentItem } from "../../../core/component/game-component-item.ts";
-import { EditorPropertyNumberType } from "../../../editor_property/editor-property-register.ts";
-import { EditorProperty } from "../../../editor_property/editor-property.ts";
+import { Color } from '../../../component_item/color.ts';
+import { GameComponentItem } from '../../../core/component/game-component-item.ts';
+import { EditorPropertyNumberType } from '../../../editor_property/editor-property-register.ts';
+import { EditorProperty } from '../../../editor_property/editor-property.ts';
 import type { ILightComponentItem } from './i-light-component-item.interface.ts';
 
 /**
@@ -16,7 +16,7 @@ export class PointLight extends GameComponentItem implements ILightComponentItem
      * This instance is immutable and cannot be modified, as it is shared across all components that use it.
      * Modifying this instance will throw an exception to prevent unintended side effects on other components using the same instance.
      */
-    public static systemInstance: PointLight = (() => {
+    public static readonly SYSTEM_INSTANCE: PointLight = (() => {
         // Create system instance with default values.
         const lInstance: PointLight = new PointLight();
         lInstance.mIntensity = 1;
@@ -121,7 +121,7 @@ export class PointLight extends GameComponentItem implements ILightComponentItem
         super('Point light');
 
         // Link system color instance to avoid creating multiple identical instances.
-        this.mColor = Color.systemInstance;
+        this.mColor = Color.SYSTEM_INSTANCE;
         this.mColor.linkParent(this);
 
         // Setup default values.

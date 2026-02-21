@@ -1,6 +1,6 @@
-import { Exception, List } from '@kartoffelgames/core';
+import { EnumUtil, Exception, List } from '@kartoffelgames/core';
 import type { GpuFeature } from '../constant/gpu-feature.enum.ts';
-import type { GpuLimit } from '../constant/gpu-limit.enum.ts';
+import { GpuLimit } from '../constant/gpu-limit.enum.ts';
 import { GpuExecution, type GpuExecutionFunction } from '../execution/gpu-execution.ts';
 import { ComputePass, type ComputePassExecutionFunction } from '../execution/pass/compute-pass.ts';
 import { RenderPass, type RenderPassExecutionFunction } from '../execution/pass/render-pass.ts';
@@ -11,6 +11,29 @@ import { GpuDeviceCapabilities } from './capabilities/gpu-device-capabilities.ts
 import { GpuTextureFormatCapabilities } from './capabilities/gpu-texture-format-capabilities.ts';
 
 export class GpuDevice {
+    /**
+     * Read gpu max limits for the specified performance level.
+     * 
+     * @param pPerformance - Performance level.
+     * 
+     * @returns gpu limits for the specified performance level.
+     */
+    public static async readDeviceLimits(pPerformance: GPUPowerPreference): Promise<Record<GpuLimit, number>> {
+        // Try to load cached adapter. When not cached, request new one.
+        const lAdapter: GPUAdapter | null = await window.navigator.gpu.requestAdapter({ powerPreference: pPerformance });
+        if (!lAdapter) {
+            throw new Exception('Error requesting GPU adapter', GpuDevice);
+        }
+
+        // Convert gpu limits.
+        const lLimits: Record<string, number> = {};
+        for (const lLimitName of EnumUtil.valuesOf<GpuLimit>(GpuLimit)) {
+            lLimits[lLimitName] = lAdapter.limits[lLimitName] ?? null;
+        }
+
+        return lLimits;
+    }
+
     /**
      * Request new gpu device.
      * 

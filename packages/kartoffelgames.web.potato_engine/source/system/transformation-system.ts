@@ -1,5 +1,5 @@
 import type { Matrix } from '@kartoffelgames/core';
-import { BufferUsage, GpuBuffer } from '@kartoffelgames/web-gpu';
+import { BufferUsage, GpuBuffer, GpuLimit } from '@kartoffelgames/web-gpu';
 import { TransformationComponent } from '../component/transformation-component.ts';
 import type { GameComponentConstructor } from '../core/component/game-component.ts';
 import type { GameEnvironmentStateChange } from '../core/environment/game-environment-transmittion.ts';
@@ -22,9 +22,9 @@ export class TransformationSystem extends GameSystem {
     private readonly mComponentIndexMap: WeakMap<TransformationComponent, number>;
     private readonly mComponentParentMap: WeakMap<TransformationComponent, TransformationComponent>;
     private readonly mComponentWorldMatrixMap: WeakMap<TransformationComponent, Matrix>;
-    private readonly mDataBuffer: SharedArrayBuffer;
+    private mDataBuffer: SharedArrayBuffer | null;
     private mGpuBuffer: GpuBuffer | null;
-    private mMatrixDataView: Float32Array;
+    private mMatrixDataView: Float32Array | null;
 
 
     /**
@@ -61,7 +61,7 @@ export class TransformationSystem extends GameSystem {
      */
     public get transformationData(): SharedArrayBuffer {
         this.lockGate();
-        return this.mDataBuffer;
+        return this.mDataBuffer!;
     }
 
     /**
@@ -70,11 +70,8 @@ export class TransformationSystem extends GameSystem {
     public constructor() {
         super();
 
-        // Create the shared buffer for all transformations data.
-        this.mDataBuffer = new SharedArrayBuffer(0, { maxByteLength: TransformationSystem.MATRIX_SIZE * 1000 * 4 }); // TODO: Initial size for 1000 components, should be set to a gpu limit.
-
-        // Create views into the buffer for count and data.
-        this.mMatrixDataView = new Float32Array(this.mDataBuffer);
+        this.mDataBuffer = null;
+        this.mMatrixDataView = null;
         this.mGpuBuffer = null;
 
         // Initialize the available indices list.
@@ -95,6 +92,8 @@ export class TransformationSystem extends GameSystem {
      * @returns The index of the transformation component in the buffer.
      */
     public indexOfTransformation(pComponent: TransformationComponent): number {
+        this.lockGate();
+
         return this.mComponentIndexMap.get(pComponent)!;
     }
 
@@ -106,6 +105,8 @@ export class TransformationSystem extends GameSystem {
      * @returns The world matrix of the transformation component.
      */
     public worldMatrixOfTransformation(pComponent: TransformationComponent): Matrix {
+        this.lockGate();
+
         return this.mComponentWorldMatrixMap.get(pComponent)!;
     }
 
@@ -115,6 +116,15 @@ export class TransformationSystem extends GameSystem {
     protected override async onCreate(): Promise<void> {
         // Get gpu system from dependency.
         const lGpuSystem: GpuSystem = this.getDependency(GpuSystem);
+
+        // Read gpu system max storage buffer limit.
+        const lMaxStorageBufferBindingSize: number = lGpuSystem.gpuLimit(GpuLimit.MaxStorageBufferBindingSize);
+
+        // Create the shared buffer for all transformations data.
+        this.mDataBuffer = new SharedArrayBuffer(0, { maxByteLength: lMaxStorageBufferBindingSize });
+
+        // Create views into the buffer for count and data.
+        this.mMatrixDataView = new Float32Array(this.mDataBuffer);
 
         // Create GPU buffer for transformation data.
         const lGpuBuffer: GpuBuffer = new GpuBuffer(lGpuSystem.gpu, this.mDataBuffer.byteLength);
@@ -146,13 +156,17 @@ export class TransformationSystem extends GameSystem {
                     this.addTransformation(lTransformationComponent);
 
                     // Map transformation for potential buffer update.
-                    lChangedTransformations.add(lTransformationComponent);
+                    if (lTransformationComponent.enabled) {
+                        lChangedTransformations.add(lTransformationComponent);
+                    }
                     break;
                 }
                 case 'activate':
                 case 'update': {
                     // Map transformation for potential buffer update.
-                    lChangedTransformations.add(lTransformationComponent);
+                    if (lTransformationComponent.enabled) {
+                        lChangedTransformations.add(lTransformationComponent);
+                    }
                     break;
                 }
                 case 'remove': {
@@ -163,7 +177,9 @@ export class TransformationSystem extends GameSystem {
 
                     // Map all affected children transformations for potential buffer update as their parent index will change after the removal of their parent component.
                     for (const lChildComponent of lAffectedChildren) {
-                        lChangedTransformations.add(lChildComponent);
+                        if (lChildComponent.enabled) {
+                            lChangedTransformations.add(lChildComponent);
+                        }
                     }
 
                     break;
@@ -251,8 +267,8 @@ export class TransformationSystem extends GameSystem {
         }
 
         // Resize buffer if size does not match current data buffer size.
-        if (this.mGpuBuffer!.size < this.mDataBuffer.byteLength) {
-            this.mGpuBuffer!.size = this.mDataBuffer.byteLength;
+        if (this.mGpuBuffer!.size < this.mDataBuffer!.byteLength) {
+            this.mGpuBuffer!.size = this.mDataBuffer!.byteLength;
         }
 
         // Calculate byte offsets for the updated buffer range based on the lower and upper bound matrix indices.
@@ -268,7 +284,7 @@ export class TransformationSystem extends GameSystem {
         lDataLength = (lDataLength + 3) & ~3;
 
         // Update GPU buffer with new data from shared buffer. +1 to upper bound because it is inclusive.
-        this.mGpuBuffer!.write(this.mDataBuffer, lLowerBoundByteIndex, lLowerBoundByteIndex, lDataLength);
+        this.mGpuBuffer!.write(this.mDataBuffer!, lLowerBoundByteIndex, lLowerBoundByteIndex, lDataLength);
     }
 
     /**
@@ -315,13 +331,13 @@ export class TransformationSystem extends GameSystem {
         const lMatrixSizeInBytes: number = TransformationSystem.MATRIX_SIZE * 4;
 
         // Read current length of 32bit buffer.
-        const lOldBufferByteLength: number = this.mDataBuffer.byteLength;
+        const lOldBufferByteLength: number = this.mDataBuffer!.byteLength;
 
         // Grow the buffer by the specified number of matrices.
-        this.mDataBuffer.grow(lOldBufferByteLength + (lMatrixSizeInBytes * pCountOfNewMatrices));
+        this.mDataBuffer!.grow(lOldBufferByteLength + (lMatrixSizeInBytes * pCountOfNewMatrices));
 
         // Create a new Float32Array view for the new buffer.
-        this.mMatrixDataView = new Float32Array(this.mDataBuffer);
+        this.mMatrixDataView = new Float32Array(this.mDataBuffer!);
 
         // Calculate current last index.
         const lOldMatrixCount: number = lOldBufferByteLength / lMatrixSizeInBytes;
@@ -351,17 +367,6 @@ export class TransformationSystem extends GameSystem {
     }
 
     /**
-     * Finds the parent transformation component for a given transformation component by checking its parent entity.
-     * 
-     * @param pComponent - The transformation component whose parent component should be found.
-     * 
-     * @returns The parent transformation component if found, or null if no parent component exists.
-     */
-    private getParentTransformation(pComponent: TransformationComponent): TransformationComponent | null {
-        return this.mComponentParentMap.get(pComponent) ?? null;
-    }
-
-    /**
      * Removes a transformation component's reference from the system when it is removed from the game environment.
      * 
      * @param pComponent - The transformation component that is being removed and whose reference should be cleaned up.
@@ -375,7 +380,7 @@ export class TransformationSystem extends GameSystem {
         this.mAvailableIndices.push(lIndex);
 
         // Get current parent component and children of this component.
-        const lParentComponent: TransformationComponent | null = this.getParentTransformation(pComponent);
+        const lParentComponent: TransformationComponent | undefined = this.mComponentParentMap.get(pComponent);
         const lChildren: Set<TransformationComponent> = this.getChildTransformations(pComponent);
 
         // Remove this component from its parent's children set if it has a parent.
@@ -420,7 +425,7 @@ export class TransformationSystem extends GameSystem {
         const lBufferMatrixOffset: number = lIndex * TransformationSystem.MATRIX_SIZE;
 
         // Update components transformation matrix in buffer.
-        this.mMatrixDataView.set(pMatrix.dataArray, lBufferMatrixOffset);
+        this.mMatrixDataView!.set(pMatrix.dataArray, lBufferMatrixOffset);
 
         return lIndex;
     }

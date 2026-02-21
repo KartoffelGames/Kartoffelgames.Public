@@ -1208,3 +1208,225 @@ Deno.test('BlobSerializer.delete()', async (pContext) => {
         expect(lVerifySerializer.contents.length).toBe(1);
     });
 });
+
+Deno.test('BlobSerializer inheritance', async (pContext) => {
+    await pContext.step('Round-trip child with inherited parent properties', async () => {
+        // Setup.
+        @Serializer.serializeableClass('blob-inherit-parent-1')
+        class Parent {
+            @Serializer.property()
+            public name: string = '';
+        }
+
+        @Serializer.serializeableClass('blob-inherit-child-1')
+        class Child extends Parent {
+            @Serializer.property()
+            public age: number = 0;
+        }
+
+        const lChild: Child = new Child();
+        lChild.name = 'InheritedName';
+        lChild.age = 30;
+
+        const lSaveSerializer: BlobSerializer = new BlobSerializer();
+        lSaveSerializer.store('child', lChild);
+        const lBlob: Blob = await lSaveSerializer.save();
+
+        const lLoadSerializer: BlobSerializer = new BlobSerializer();
+        await lLoadSerializer.load(lBlob);
+
+        // Process.
+        const lResult: Child = await lLoadSerializer.read<Child>('child');
+
+        // Evaluation.
+        expect(lResult).toBeInstanceOf(Child);
+        expect(lResult.name).toBe('InheritedName');
+        expect(lResult.age).toBe(30);
+    });
+
+    await pContext.step('Round-trip multi-level inheritance', async () => {
+        // Setup.
+        @Serializer.serializeableClass('blob-inherit-base-2')
+        class Base {
+            @Serializer.property()
+            public id: number = 0;
+        }
+
+        @Serializer.serializeableClass('blob-inherit-middle-2')
+        class Middle extends Base {
+            @Serializer.property()
+            public name: string = '';
+        }
+
+        @Serializer.serializeableClass('blob-inherit-leaf-2')
+        class Leaf extends Middle {
+            @Serializer.property()
+            public active: boolean = false;
+        }
+
+        const lLeaf: Leaf = new Leaf();
+        lLeaf.id = 42;
+        lLeaf.name = 'LeafNode';
+        lLeaf.active = true;
+
+        const lSaveSerializer: BlobSerializer = new BlobSerializer();
+        lSaveSerializer.store('leaf', lLeaf);
+        const lBlob: Blob = await lSaveSerializer.save();
+
+        const lLoadSerializer: BlobSerializer = new BlobSerializer();
+        await lLoadSerializer.load(lBlob);
+
+        // Process.
+        const lResult: Leaf = await lLoadSerializer.read<Leaf>('leaf');
+
+        // Evaluation.
+        expect(lResult).toBeInstanceOf(Leaf);
+        expect(lResult.id).toBe(42);
+        expect(lResult.name).toBe('LeafNode');
+        expect(lResult.active).toBe(true);
+    });
+
+    await pContext.step('Round-trip child without own properties serializes parent properties', async () => {
+        // Setup.
+        @Serializer.serializeableClass('blob-inherit-parent-3')
+        class Parent {
+            @Serializer.property()
+            public name: string = '';
+
+            @Serializer.property()
+            public value: number = 0;
+        }
+
+        @Serializer.serializeableClass('blob-inherit-child-3')
+        class Child extends Parent { }
+
+        const lChild: Child = new Child();
+        lChild.name = 'NoOwnProps';
+        lChild.value = 99;
+
+        const lSaveSerializer: BlobSerializer = new BlobSerializer();
+        lSaveSerializer.store('child', lChild);
+        const lBlob: Blob = await lSaveSerializer.save();
+
+        const lLoadSerializer: BlobSerializer = new BlobSerializer();
+        await lLoadSerializer.load(lBlob);
+
+        // Process.
+        const lResult: Child = await lLoadSerializer.read<Child>('child');
+
+        // Evaluation.
+        expect(lResult).toBeInstanceOf(Child);
+        expect(lResult.name).toBe('NoOwnProps');
+        expect(lResult.value).toBe(99);
+    });
+
+    await pContext.step('Round-trip with inherited alias config', async () => {
+        // Setup.
+        @Serializer.serializeableClass('blob-inherit-parent-4')
+        class Parent {
+            @Serializer.property({ alias: 'n' })
+            public name: string = '';
+        }
+
+        @Serializer.serializeableClass('blob-inherit-child-4')
+        class Child extends Parent {
+            @Serializer.property({ alias: 'a' })
+            public age: number = 0;
+        }
+
+        const lChild: Child = new Child();
+        lChild.name = 'AliasTest';
+        lChild.age = 25;
+
+        const lSaveSerializer: BlobSerializer = new BlobSerializer();
+        lSaveSerializer.store('child', lChild);
+        const lBlob: Blob = await lSaveSerializer.save();
+
+        const lLoadSerializer: BlobSerializer = new BlobSerializer();
+        await lLoadSerializer.load(lBlob);
+
+        // Process.
+        const lResult: Child = await lLoadSerializer.read<Child>('child');
+
+        // Evaluation.
+        expect(lResult).toBeInstanceOf(Child);
+        expect(lResult.name).toBe('AliasTest');
+        expect(lResult.age).toBe(25);
+    });
+
+    await pContext.step('Parent and child can be serialized independently', async () => {
+        // Setup.
+        @Serializer.serializeableClass('blob-inherit-parent-5')
+        class Parent {
+            @Serializer.property()
+            public name: string = '';
+        }
+
+        @Serializer.serializeableClass('blob-inherit-child-5')
+        class Child extends Parent {
+            @Serializer.property()
+            public age: number = 0;
+        }
+
+        const lParent: Parent = new Parent();
+        lParent.name = 'ParentOnly';
+
+        const lChild: Child = new Child();
+        lChild.name = 'ChildName';
+        lChild.age = 10;
+
+        const lSaveSerializer: BlobSerializer = new BlobSerializer();
+        lSaveSerializer.store('parent', lParent);
+        lSaveSerializer.store('child', lChild);
+        const lBlob: Blob = await lSaveSerializer.save();
+
+        const lLoadSerializer: BlobSerializer = new BlobSerializer();
+        await lLoadSerializer.load(lBlob);
+
+        // Process.
+        const lResultParent: Parent = await lLoadSerializer.read<Parent>('parent');
+        const lResultChild: Child = await lLoadSerializer.read<Child>('child');
+
+        // Evaluation. Parent should only have its own property.
+        expect(lResultParent).toBeInstanceOf(Parent);
+        expect(lResultParent.name).toBe('ParentOnly');
+
+        // Child should have both parent and own properties.
+        expect(lResultChild).toBeInstanceOf(Child);
+        expect(lResultChild.name).toBe('ChildName');
+        expect(lResultChild.age).toBe(10);
+    });
+
+    await pContext.step('Round-trip with unregistered parent propagating properties', async () => {
+        // Setup. Parent has @Serializer.property() but no @Serializer.serializeableClass().
+        class Parent {
+            @Serializer.property()
+            public name: string = '';
+        }
+
+        @Serializer.serializeableClass('blob-inherit-child-6')
+        class Child extends Parent {
+            @Serializer.property()
+            public age: number = 0;
+        }
+
+        const lChild: Child = new Child();
+        lChild.name = 'UnregisteredParent';
+        lChild.age = 20;
+
+        const lSaveSerializer: BlobSerializer = new BlobSerializer();
+        lSaveSerializer.store('child', lChild);
+        const lBlob: Blob = await lSaveSerializer.save();
+
+        const lLoadSerializer: BlobSerializer = new BlobSerializer();
+        await lLoadSerializer.load(lBlob);
+
+        // Process.
+        const lResult: Child = await lLoadSerializer.read<Child>('child');
+
+        // Evaluation.
+        expect(lResult).toBeInstanceOf(Child);
+        expect(lResult.name).toBe('UnregisteredParent');
+        expect(lResult.age).toBe(20);
+    });
+});

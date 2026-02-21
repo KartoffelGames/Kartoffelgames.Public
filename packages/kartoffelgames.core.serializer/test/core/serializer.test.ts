@@ -132,9 +132,9 @@ Deno.test('Serializer.property()', async (pContext) => {
         const lMetadata = Serializer.metadataOf(TestClass)!;
         const lPropertyNames = lMetadata.propertyNames;
         expect(lPropertyNames.length).toBe(3);
-        expect(lPropertyNames.includes('name')).toBeTruthy();
-        expect(lPropertyNames.includes('age')).toBeTruthy();
-        expect(lPropertyNames.includes('active')).toBeTruthy();
+        expect(lPropertyNames).toContain('name');
+        expect(lPropertyNames).toContain('age');
+        expect(lPropertyNames).toContain('active');
     });
 
     await pContext.step('Undecorated properties are excluded', () => {
@@ -194,5 +194,160 @@ Deno.test('Serializer.property()', async (pContext) => {
 
         // Evaluation.
         expect(lIllegalInstruction).toThrow('@Serializer.property() is not supported for static members.');
+    });
+});
+
+Deno.test('Serializer inheritance', async (pContext) => {
+    await pContext.step('Child inherits parent serializable properties', () => {
+        // Setup.
+        @Serializer.serializeableClass('test-inherit-parent-1')
+        class Parent {
+            @Serializer.property()
+            public name: string = '';
+        }
+
+        @Serializer.serializeableClass('test-inherit-child-1')
+        class Child extends Parent {
+            @Serializer.property()
+            public age: number = 0;
+        }
+
+        // Process.
+        const lMetadata = Serializer.metadataOf(Child)!;
+
+        // Evaluation.
+        expect(lMetadata).not.toBeNull();
+        expect(lMetadata.propertyNames.length).toBe(2);
+        expect(lMetadata.propertyNames).toContain('name');
+        expect(lMetadata.propertyNames).toContain('age');
+        expect(lMetadata.uuid).toBe('test-inherit-child-1');
+    });
+
+    await pContext.step('Parent metadata is not affected by child', () => {
+        // Setup.
+        @Serializer.serializeableClass('test-inherit-parent-2')
+        class Parent {
+            @Serializer.property()
+            public name: string = '';
+        }
+
+        @Serializer.serializeableClass('test-inherit-child-2')
+        class Child extends Parent {
+            @Serializer.property()
+            public age: number = 0;
+        }
+
+        void Child;
+
+        // Process.
+        const lMetadata = Serializer.metadataOf(Parent)!;
+
+        // Evaluation.
+        expect(lMetadata.propertyNames.length).toBe(1);
+        expect(lMetadata.propertyNames).toBeDeepEqual(['name']);
+        expect(lMetadata.uuid).toBe('test-inherit-parent-2');
+    });
+
+    await pContext.step('Multi-level inheritance collects all properties', () => {
+        // Setup.
+        @Serializer.serializeableClass('test-inherit-base-3')
+        class Base {
+            @Serializer.property()
+            public id: number = 0;
+        }
+
+        @Serializer.serializeableClass('test-inherit-middle-3')
+        class Middle extends Base {
+            @Serializer.property()
+            public name: string = '';
+        }
+
+        @Serializer.serializeableClass('test-inherit-leaf-3')
+        class Leaf extends Middle {
+            @Serializer.property()
+            public active: boolean = false;
+        }
+
+        // Process.
+        const lMetadata = Serializer.metadataOf(Leaf)!;
+
+        // Evaluation.
+        expect(lMetadata).not.toBeNull();
+        expect(lMetadata.propertyNames.length).toBe(3);
+        expect(lMetadata.propertyNames).toContain('id');
+        expect(lMetadata.propertyNames).toContain('name');
+        expect(lMetadata.propertyNames).toContain('active');
+        expect(lMetadata.uuid).toBe('test-inherit-leaf-3');
+    });
+
+    await pContext.step('Child overrides parent property config', () => {
+        // Setup.
+        @Serializer.serializeableClass('test-inherit-parent-4')
+        class Parent {
+            @Serializer.property({ alias: 'parent_alias' })
+            public name: string = '';
+        }
+
+        @Serializer.serializeableClass('test-inherit-child-4')
+        class Child extends Parent {
+            @Serializer.property({ alias: 'child_alias' })
+            public override name: string = '';
+        }
+
+        // Process.
+        const lMetadata = Serializer.metadataOf(Child)!;
+
+        // Evaluation.
+        expect(lMetadata.propertyNames.length).toBe(1);
+        expect(lMetadata.getPropertyConfig('name').alias).toBe('child_alias');
+    });
+
+    await pContext.step('Child without own properties inherits parent properties', () => {
+        // Setup.
+        @Serializer.serializeableClass('test-inherit-parent-5')
+        class Parent {
+            @Serializer.property()
+            public name: string = '';
+
+            @Serializer.property()
+            public value: number = 0;
+        }
+
+        @Serializer.serializeableClass('test-inherit-child-5')
+        class Child extends Parent { }
+
+        // Process.
+        const lMetadata = Serializer.metadataOf(Child)!;
+
+        // Evaluation.
+        expect(lMetadata).not.toBeNull();
+        expect(lMetadata.propertyNames.length).toBe(2);
+        expect(lMetadata.propertyNames).toContain('name');
+        expect(lMetadata.propertyNames).toContain('value');
+        expect(lMetadata.uuid).toBe('test-inherit-child-5');
+    });
+
+    await pContext.step('Parent without class decorator propagates properties to child', () => {
+        // Setup. Parent has @Serializer.property() but no @Serializer.serializeableClass().
+        class Parent {
+            @Serializer.property()
+            public name: string = '';
+        }
+
+        @Serializer.serializeableClass('test-inherit-child-6')
+        class Child extends Parent {
+            @Serializer.property()
+            public age: number = 0;
+        }
+
+        // Process.
+        const lMetadata = Serializer.metadataOf(Child)!;
+
+        // Evaluation.
+        expect(lMetadata).not.toBeNull();
+        expect(lMetadata.propertyNames.length).toBe(2);
+        expect(lMetadata.propertyNames).toContain('name');
+        expect(lMetadata.propertyNames).toContain('age');
+        expect(lMetadata.uuid).toBe('test-inherit-child-6');
     });
 });

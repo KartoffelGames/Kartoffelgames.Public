@@ -30,13 +30,34 @@ export class Serializer {
 
     /**
      * Get serializer metadata for a constructor.
+     * Collects properties from the entire inheritance chain (parent to child),
+     * merging them into a single metadata object. Child properties override parent properties.
      *
      * @param pConstructor - The constructor to look up.
      *
      * @returns the serializer metadata, or null if the class is not registered.
      */
     public static metadataOf(pConstructor: IVoidParameterConstructor<object>): SerializerMetadata | null {
-        return  Metadata.get(pConstructor).getMetadata<SerializerMetadata>(Serializer.mMetadataKey);
+        // Collect metadata from all ancestors (parent to child order).
+        const lInheritedMetadataList: Array<SerializerMetadata> = Metadata.get(pConstructor).getInheritedMetadata<SerializerMetadata>(Serializer.mMetadataKey);
+
+        if (lInheritedMetadataList.length === 0) {
+            return null;
+        }
+
+        // Merge properties from parent to child. Child properties override parent properties.
+        const lMergedMetadata: SerializerMetadata = new SerializerMetadata();
+        for (const lMetadata of lInheritedMetadataList) {
+            for (const lPropertyName of lMetadata.propertyNames) {
+                lMergedMetadata.addProperty(lPropertyName, lMetadata.getPropertyConfig(lPropertyName));
+            }
+
+            if (lMetadata.uuid !== null) {
+                lMergedMetadata.uuid = lMetadata.uuid;
+            }
+        }
+
+        return lMergedMetadata;
     }
 
     /**

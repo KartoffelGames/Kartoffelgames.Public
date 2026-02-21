@@ -17,19 +17,13 @@ export class Color extends GameComponentItem {
     public static readonly SYSTEM_INSTANCE: Color = (() => {
         // Create system instance with default values.
         const lInstance: Color = new Color();
-        lInstance.mR = 1;
-        lInstance.mG = 1;
-        lInstance.mB = 1;
-        lInstance.mA = 1;
+        lInstance.mData = [1, 1, 1, 1];
         lInstance.markAsSystem();
 
         return lInstance;
     })();
 
-    private mA: number;
-    private mB: number;
-    private mG: number;
-    private mR: number;
+    private mData: [number, number, number, number];
 
     /**
      * Alpha channel (0-1).
@@ -37,13 +31,13 @@ export class Color extends GameComponentItem {
     @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get a(): number {
-        return this.mA;
+        return this.mData[3];
     } set a(pValue: number) {
         // Gate access on system items.
         this.systemgate();
 
         // Set new value and update.
-        this.mA = pValue;
+        this.mData[3] = pValue;
         this.update();
     }
 
@@ -53,13 +47,13 @@ export class Color extends GameComponentItem {
     @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get b(): number {
-        return this.mB;
+        return this.mData[2];
     } set b(pValue: number) {
         // Gate access on system items.
         this.systemgate();
 
         // Set new value and update.
-        this.mB = pValue;
+        this.mData[2] = pValue;
         this.update();
     }
 
@@ -69,13 +63,13 @@ export class Color extends GameComponentItem {
     @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get g(): number {
-        return this.mG;
+        return this.mData[1];
     } set g(pValue: number) {
         // Gate access on system items.
         this.systemgate();
 
         // Set new value and update.
-        this.mG = pValue;
+        this.mData[1] = pValue;
         this.update();
     }
 
@@ -85,13 +79,13 @@ export class Color extends GameComponentItem {
     @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
     @Serializer.property()
     public get r(): number {
-        return this.mR;
+        return this.mData[0];
     } set r(pValue: number) {
         // Gate access on system items.
         this.systemgate();
 
         // Set new value and update.
-        this.mR = pValue;
+        this.mData[0] = pValue;
         this.update();
     }
 
@@ -101,9 +95,6 @@ export class Color extends GameComponentItem {
     public constructor() {
         super('Color');
 
-        this.mR = 1;
-        this.mG = 1;
-        this.mB = 1;
-        this.mA = 1;
+        this.mData = [1, 1, 1, 1];
     }
 }

@@ -6,7 +6,7 @@ import { EditorProperty } from '../../editor_property/editor-property.ts';
 import { TransformationComponent } from '../transformation-component.ts';
 import { DirectionalLight } from './type/directional-light.ts';
 import type { ILightComponentItem } from './type/i-light-component-item.interface.ts';
-import { LightComponentLightType } from './type/light-type.enum.ts';
+import { LightComponentLightType } from './light-component-light-type.enum.ts';
 import { PointLight } from './type/point-light.ts';
 import { SpotLight } from './type/spot-light.ts';
 

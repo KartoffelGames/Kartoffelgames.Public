@@ -52,6 +52,17 @@ export class SerializerMetadata {
     public getPropertyConfig(pPropertyName: string): PropertySerializationConfig {
         return this.mProperties.get(pPropertyName)!;
     }
+
+    /**
+     * Check if a property is registered for serialization.
+     * 
+     * @param pPropertyName - The property key.
+     * 
+     * @returns true if the property is registered, false otherwise.
+     */
+    public hasProperty(pPropertyName: string): boolean {
+        return this.mProperties.has(pPropertyName);
+    }
 }
 
 /**

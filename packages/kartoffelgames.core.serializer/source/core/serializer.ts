@@ -1,6 +1,6 @@
 import { Exception, type IVoidParameterConstructor } from '@kartoffelgames/core';
 import { Metadata } from '@kartoffelgames/core-dependency-injection';
-import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
+import type { ConstructorMetadata, InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
 import { type PropertySerializationConfig, SerializerMetadata } from './serializer-metadata.ts';
 
 /**
@@ -30,34 +30,13 @@ export class Serializer {
 
     /**
      * Get serializer metadata for a constructor.
-     * Collects properties from the entire inheritance chain (parent to child),
-     * merging them into a single metadata object. Child properties override parent properties.
      *
      * @param pConstructor - The constructor to look up.
      *
      * @returns the serializer metadata, or null if the class is not registered.
      */
     public static metadataOf(pConstructor: IVoidParameterConstructor<object>): SerializerMetadata | null {
-        // Collect metadata from all ancestors (parent to child order).
-        const lInheritedMetadataList: Array<SerializerMetadata> = Metadata.get(pConstructor).getInheritedMetadata<SerializerMetadata>(Serializer.mMetadataKey);
-
-        if (lInheritedMetadataList.length === 0) {
-            return null;
-        }
-
-        // Merge properties from parent to child. Child properties override parent properties.
-        const lMergedMetadata: SerializerMetadata = new SerializerMetadata();
-        for (const lMetadata of lInheritedMetadataList) {
-            for (const lPropertyName of lMetadata.propertyNames) {
-                lMergedMetadata.addProperty(lPropertyName, lMetadata.getPropertyConfig(lPropertyName));
-            }
-
-            if (lMetadata.uuid !== null) {
-                lMergedMetadata.uuid = lMetadata.uuid;
-            }
-        }
-
-        return lMergedMetadata;
+        return Metadata.get(pConstructor).getMetadata<SerializerMetadata>(Serializer.mMetadataKey);
     }
 
     /**
@@ -81,7 +60,7 @@ export class Serializer {
             }
 
             // Get or create metadata for this class.
-            const lConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
+            const lConstructorMetadata: ConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
 
             // Get or create metadata for this class.
             let lSerializerMetadata: SerializerMetadata | null = lConstructorMetadata.getMetadata<SerializerMetadata>(Serializer.mMetadataKey);
@@ -105,14 +84,13 @@ export class Serializer {
     public static serializeableClass<TThis extends object>(pUuid: string): (_pTarget: InjectionConstructor<TThis>, pContext: ClassDecoratorContext<InjectionConstructor<TThis>>) => void {
         return (_pTarget: InjectionConstructor<TThis>, pContext: ClassDecoratorContext<InjectionConstructor<TThis>>): void => {
             // Get or create metadata for this class.
-            const lConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
+            const lConstructorMetadata: ConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
 
-            // Check for existing metadata to detect multiple class decorators on the same class, which is not supported.
-            let lSerializerMetadata: SerializerMetadata | null = lConstructorMetadata.getMetadata<SerializerMetadata>(Serializer.mMetadataKey);
-            if (lSerializerMetadata === null) {
-                // Create and set UUID on metadata.
-                lSerializerMetadata = new SerializerMetadata();
-                lConstructorMetadata.setMetadata(Serializer.mMetadataKey, lSerializerMetadata);
+            // Read existing metadata, primarily to check for duplicates, but later to merge properties from the entire inheritance chain.
+            let lExistingMetadata: SerializerMetadata | null = lConstructorMetadata.getMetadata<SerializerMetadata>(Serializer.mMetadataKey);
+            if(!lExistingMetadata) {
+                lExistingMetadata = new SerializerMetadata();
+                lConstructorMetadata.setMetadata(Serializer.mMetadataKey, lExistingMetadata);
             }
 
             // Check for duplicates.
@@ -121,14 +99,28 @@ export class Serializer {
             }
 
             // Check if uuid is already set on metadata, which would indicate multiple class decorators on the same class, which is not supported.
-            if (lSerializerMetadata.uuid !== null) {
+            if (lExistingMetadata.uuid !== null) {
                 throw new Exception(`Multiple @Serializer.class() decorators on the same class are not supported.`, _pTarget);
             }
 
-            // Set UUID on metadata and register constructor by UUID.
-            lSerializerMetadata.uuid = pUuid;
+            // Set UUID on merged metadata and register constructor by UUID.
+            lExistingMetadata.uuid = pUuid;
 
-            Serializer.mRegistry.set(pUuid, _pTarget as unknown as IVoidParameterConstructor<object>);
+            // Merge properties from the entire inheritance chain (parent to child order).
+            // Parent classes are always defined before children, so their metadata is already finalized.
+            for (const lMetadata of lConstructorMetadata.getInheritedMetadata<SerializerMetadata>(Serializer.mMetadataKey)) {
+                // Merge all parent properties into existing metadata.
+                for (const lPropertyName of lMetadata.propertyNames) {
+                     // Child class property overrides parent class property, so skip if already defined on child.
+                    if(lExistingMetadata.hasProperty(lPropertyName)) { 
+                        continue;
+                    }
+                    
+                    lExistingMetadata.addProperty(lPropertyName, lMetadata.getPropertyConfig(lPropertyName));
+                }
+            }
+
+            Serializer.mRegistry.set(pUuid, _pTarget as IVoidParameterConstructor<object>);
         };
     }
 }

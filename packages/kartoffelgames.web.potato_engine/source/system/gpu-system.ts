@@ -1,4 +1,5 @@
 import { GpuDevice, GpuFeature, GpuLimit } from '@kartoffelgames/web-gpu';
+import { GameEnvironment } from "../core/environment/game-environment.ts";
 import { GameSystem } from '../core/game-system.ts';
 
 /**
@@ -17,9 +18,11 @@ export class GpuSystem extends GameSystem {
 
     /**
      * Constructor of the gpu system.
+     * 
+     * @param pEnvironment - The game environment this system belongs to.
      */
-    public constructor() {
-        super();
+    public constructor(pEnvironment: GameEnvironment) {
+        super(pEnvironment);
         this.mGpu = null;
     }
 

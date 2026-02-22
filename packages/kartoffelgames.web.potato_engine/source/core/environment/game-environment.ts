@@ -1,8 +1,8 @@
 import { Exception } from '@kartoffelgames/core';
-import type { GameComponentConstructor } from '../component/game-component.ts';
+import type { GameComponent, GameComponentConstructor } from '../component/game-component.ts';
 import type { GameScene } from '../game-scene.ts';
 import type { GameSystem, GameSystemConstructor } from '../game-system.ts';
-import { type GameEnvironmentStateChange, GameEnvironmentTransmission } from './game-environment-transmittion.ts';
+import { type GameEnvironmentStateType, GameEnvironmentTransmission } from './game-environment-transmittion.ts';
 
 /**
  * Main hub for managing the game environment, including loaded scenes, registered systems, and processing component state changes.
@@ -13,6 +13,13 @@ export class GameEnvironment {
     private readonly mLoadedScenes: Set<GameScene>;
     private mStateChangeQueue: Array<GameEnvironmentStateChange>;
     private readonly mSystems: Array<GameSystem>;
+
+    /**
+     * Current tick of the environment, updated on each frame and provided to the transmission tick handler.
+     */
+    public get tick(): number {
+        return this.mCurrentTick;
+    }
 
     /**
      * Constructor.
@@ -112,13 +119,8 @@ export class GameEnvironment {
         this.mLoadedScenes.add(pScene);
 
         // Create a transmission object that queues state changes
-        const lTransmission = new GameEnvironmentTransmission(pScene, {
-            eventSubmit: (pStateChange: GameEnvironmentStateChange) => {
-                this.queueStateChange(pStateChange);
-            },
-            tickReceive: () => {
-                return this.mCurrentTick;
-            }
+        const lTransmission = new GameEnvironmentTransmission(this, (pType: GameEnvironmentStateType, pComponent: GameComponent) => {
+            this.queueStateChange(pType, pComponent);
         });
 
         // Establish environment connection for all root game objects in the scene
@@ -133,7 +135,7 @@ export class GameEnvironment {
      */
     public registerSystem<T extends GameSystem>(pSystem: GameSystemConstructor<T>): T {
         // Create an instance of the system
-        const lSystem = new pSystem();
+        const lSystem = new pSystem(this);
 
         // Read dependencies of system and find the instance of each dependent system type.
         for (const lSystemType of lSystem.dependentSystemTypes) {
@@ -164,27 +166,8 @@ export class GameEnvironment {
     public async start(): Promise<void> {
         // Initialize all systems before starting the main loop.
         for (const lSystem of this.mSystems) {
-            // Gather dependent systems for initialization
-            const lDependentSystemList: Array<GameSystem> = new Array<GameSystem>();
-
-            // Read dependencies of system and find the instance of each dependent system type.
-            for (const lSystemType of lSystem.dependentSystemTypes) {
-                // Find the instance of the dependent system type.
-                const lDependentSystem = this.mSystems.find((pSystemInstance) => {
-                    return pSystemInstance.constructor === lSystemType;
-                });
-
-                // If the dependent system is not found, throw an exception.
-                // That should never happen, because systems should be registered in order of their dependencies, but we check just to be sure.
-                if (!lDependentSystem) {
-                    throw new Exception(`Dependent system of type ${lSystemType.name} not found for system ${lSystem.constructor.name}`, this);
-                }
-
-                lDependentSystemList.push(lDependentSystem);
-            }
-
-            // Initialize system with dependent systems
-            await lSystem.initialize(lDependentSystemList);
+            // Initialize system.
+            await lSystem.initialize();
         }
 
         // Create an async generator that yields on each animation frame.
@@ -269,17 +252,46 @@ export class GameEnvironment {
     /**
      * Queue a component state change to be processed in the next update cycle.
      *
-     * @param pStateChange - New state change.
+     * @param pType - The type of state change.
+     * @param pComponent - The component involved in the state change.
      */
-    private queueStateChange(pStateChange: GameEnvironmentStateChange): void {
-        this.mStateChangeQueue.push(pStateChange);
+    public queueStateChange(pType: GameEnvironmentStateType, pComponent: GameComponent): void {
+        const lStateChange: GameEnvironmentStateChange = {
+            type: pType,
+            component: pComponent,
+            tick: this.mCurrentTick
+        };
+
+        this.mStateChangeQueue.push(lStateChange);
 
         if (this.mConfigurationDebugLog) {
+            const lEntityLabel: string = pComponent.gameEntity?.label ?? 'standalone';
+
             // eslint-disable-next-line no-console
-            console.log(`Queued state change: "${pStateChange.type}" for component "${pStateChange.component.label}" of "${pStateChange.component.gameEntity.label}"`);
+            console.log(`Queued state change: "${pType}" for component "${pComponent.label}" of "${lEntityLabel}"`);
         }
     }
 }
+
+/**
+ * Base structure for all environment state change events.
+ */
+export type GameEnvironmentStateChange = {
+    /**
+     * The type of state change that occurred.
+     */
+    type: GameEnvironmentStateType;
+
+    /**
+     * The component involved in the state change.
+     */
+    component: GameComponent;
+
+    /**
+     * The tick at which the state change occurred, provided by the tick handler.
+     */
+    tick: number;
+};
 
 type GameEnvironmentParameter = {
     debugLog?: boolean;

@@ -1,5 +1,10 @@
 import { GameComponent } from "../core/component/game-component.ts";
 
+/**
+ * Component representing a render target in the environment.
+ * Render targets can be attached to game entities or used as standalone components for core render targets.
+ * They define properties such as size, passthrough behavior, and render type that influence how rendering is performed for the associated game entities.
+ */
 export class RenderTargetComponent extends GameComponent {
     private mWidth: number;
     private mHeight: number;
@@ -34,6 +39,9 @@ export class RenderTargetComponent extends GameComponent {
         return this.mPassthrough;
     } set passthrough(pValue: boolean) {
         this.mPassthrough = pValue;
+
+        // Signal parent component of the change.
+        this.update();
     }
 
     /**
@@ -43,6 +51,9 @@ export class RenderTargetComponent extends GameComponent {
         return this.mRenderType;
     } set renderType(pValue: RenderTargetRenderType) {
         this.mRenderType = pValue;
+
+        // Signal parent component of the change.
+        this.update();
     }
 
     public constructor() {

@@ -1,17 +1,16 @@
 import { Exception } from '@kartoffelgames/core';
-import type { IVoidParameterConstructor } from '../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import type { GameComponentConstructor } from './component/game-component.ts';
-import type { GameEnvironmentStateChange } from './environment/game-environment-transmittion.ts';
+import type { GameEnvironment, GameEnvironmentStateChange } from './environment/game-environment.ts';
 
 /**
  * Base class for all systems in the environment.
  * Systems are responsible for processing game logic based on the state of components in the environment.
  * They can define dependencies on other systems and specify which component types they are interested in.
- * 
+ *
  * On the update cycle, systems receive a list of component state changes that they can use to manage resources and optimize their processing.
  */
 export abstract class GameSystem {
-    private readonly mDependendSystems: Map<GameSystemConstructor<GameSystem>, GameSystem>;
+    private readonly mEnvironment: GameEnvironment;
     private mInitialized: boolean;
 
     /**
@@ -20,6 +19,13 @@ export abstract class GameSystem {
      */
     public get dependentSystemTypes(): Array<GameSystemConstructor<GameSystem>> {
         return [];
+    }
+
+    /**
+     * Get the parent environment of this system.
+     */
+    public get environment(): GameEnvironment {
+        return this.mEnvironment;
     }
 
     /**
@@ -32,9 +38,11 @@ export abstract class GameSystem {
 
     /**
      * Constructor of the system.
+     * 
+     * @param pEnvironment - The game environment this system belongs to.
      */
-    public constructor() {
-        this.mDependendSystems = new Map<GameSystemConstructor<GameSystem>, GameSystem>();
+    public constructor(pEnvironment: GameEnvironment) {
+        this.mEnvironment = pEnvironment;
         this.mInitialized = false;
     }
 
@@ -75,19 +83,14 @@ export abstract class GameSystem {
     }
 
     /**
-     * Initialize the system with the interested component types.
-     * This is called by the environment during registration.
+     * Initialize the system.
+     * This is called by the environment during startup.
      *
      * @internal
      */
-    public async initialize(pDependendSystems: Array<GameSystem>): Promise<void> {
+    public async initialize(): Promise<void> {
         if (this.mInitialized) {
             throw new Exception(`System ${this.constructor.name} is already initialized.`, this);
-        }
-
-        // Store dependent systems in a map.
-        for (const lSystem of pDependendSystems) {
-            this.mDependendSystems.set(lSystem.constructor as GameSystemConstructor<GameSystem>, lSystem);
         }
 
         // Set initialized flag to true.
@@ -95,26 +98,6 @@ export abstract class GameSystem {
 
         // Call onCreate hook.
         await this.onCreate();
-    }
-
-    /**
-     * Get a dependency system by its type.
-     * The requested system must be registered as a dependency of this system, otherwise an exception is thrown.
-     * 
-     * @param pSystemType - Type of the system marked as dependency.
-     * 
-     * @returns The instance of the requested system.
-     */
-    protected getDependency<T extends GameSystem>(pSystemType: GameSystemConstructor<T>): T {
-        this.lockGate();
-
-        // Check if the requested system is registered as a dependency of this system.
-        const lSystem = this.mDependendSystems.get(pSystemType);
-        if (!lSystem) {
-            throw new Exception(`System of type ${pSystemType.name} is not registered as a dependency.`, this);
-        }
-
-        return lSystem as T;
     }
 
     /**
@@ -158,4 +141,4 @@ export abstract class GameSystem {
     }
 }
 
-export type GameSystemConstructor<T extends GameSystem = GameSystem> = IVoidParameterConstructor<T>;
+export type GameSystemConstructor<T extends GameSystem = GameSystem> = new (pEnvironment: GameEnvironment) => T;

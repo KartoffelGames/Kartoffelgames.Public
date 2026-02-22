@@ -2,7 +2,7 @@ import type { Matrix } from '@kartoffelgames/core';
 import { BufferUsage, GpuBuffer, GpuLimit } from '@kartoffelgames/web-gpu';
 import { TransformationComponent } from '../component/transformation-component.ts';
 import type { GameComponentConstructor } from '../core/component/game-component.ts';
-import type { GameEnvironmentStateChange } from '../core/environment/game-environment-transmittion.ts';
+import { GameEnvironment, GameEnvironmentStateChange } from "../core/environment/game-environment.ts";
 import { GameSystem, type GameSystemConstructor } from '../core/game-system.ts';
 import { GameEntity } from '../core/hierarchy/game-entity.ts';
 import { GpuSystem } from './gpu-system.ts';
@@ -66,9 +66,11 @@ export class TransformationSystem extends GameSystem {
 
     /**
      * Creates a new transformation system that manages component transformations and hierarchical relationships.
+     * 
+     * @param pEnvironment - The game environment this system belongs to.
      */
-    public constructor() {
-        super();
+    public constructor(pEnvironment: GameEnvironment) {
+        super(pEnvironment);
 
         this.mDataBuffer = null;
         this.mMatrixDataView = null;
@@ -115,7 +117,7 @@ export class TransformationSystem extends GameSystem {
      */
     protected override async onCreate(): Promise<void> {
         // Get gpu system from dependency.
-        const lGpuSystem: GpuSystem = this.getDependency(GpuSystem);
+        const lGpuSystem: GpuSystem = this.environment.getSystem(GpuSystem);
 
         // Read gpu system max storage buffer limit.
         const lMaxStorageBufferBindingSize: number = lGpuSystem.gpuLimit(GpuLimit.MaxStorageBufferBindingSize);

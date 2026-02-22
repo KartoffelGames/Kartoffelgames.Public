@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-system';
 import type { IAnyParameterConstructor } from '../../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import type { GameComponent, GameComponentConstructor } from '../component/game-component.ts';
-import { GameEnvironmentStateChangeType } from "../environment/game-environment-transmittion.ts";
+import { GameEnvironmentStateType } from "../environment/game-environment-transmittion.ts";
 import { GameNode } from '../hierarchy/game-node.ts';
 
 /**
@@ -230,7 +230,7 @@ export class GameEntity extends GameNode {
      * 
      * @internal 
      */
-    public sendComponentChangeEvent(pType: GameEnvironmentStateChangeType, pComponent: GameComponent): void {
+    public sendComponentChangeEvent(pType: GameEnvironmentStateType, pComponent: GameComponent): void {
         // Skip when no environment is connected, as there is no need to send change events.
         if(!this.environment){
             return;

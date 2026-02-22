@@ -9,8 +9,10 @@ import {
     type PipelineData,
     PrimitiveCullMode,
     type RenderPass,
+    type RenderTargets,
     type ShaderRenderModule,
     StorageBindingType,
+    TextureFormat,
     type VertexFragmentPipeline,
     type VertexParameter,
     VertexParameterStepMode
@@ -19,11 +21,11 @@ import { MeshRenderComponent } from '../../source/component/mesh-render-componen
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
 import type { Mesh } from '../../source/component_item/mesh/mesh.ts';
 import type { GameComponentConstructor } from '../../source/core/component/game-component.ts';
-import type { GameEnvironmentStateChange } from '../../source/core/environment/game-environment-transmittion.ts';
+import { GameEnvironment, GameEnvironmentStateChange } from "../../source/core/environment/game-environment.ts";
 import { GameSystem, type GameSystemConstructor } from '../../source/core/game-system.ts';
+import { CullSystem, type CullSystemRenderTargetCulling } from '../../source/system/cull-system.ts';
 import { GpuSystem } from '../../source/system/gpu-system.ts';
 import { LightSystem } from '../../source/system/light-system.ts';
-import { RenderTargetSystem, type RenderTargetSystemRenderTargetContextData } from '../../source/system/render-target-system.ts';
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
 import shitShaderSource from './shit-system-shader.wgsl';
 
@@ -36,9 +38,16 @@ type MeshGroupData = {
 
 /**
  * System that renders all mesh components as colored geometry with dynamic lighting from LightSystem.
- * Uses RenderTargetSystem for render targets, camera assignment, and frustum-culled visible mesh list.
+ * Uses CullSystem for camera assignment and frustum-culled visible mesh list.
+ * Owns the canvas element and GPU render targets for the core render target.
  */
 export class ShitSystem extends GameSystem {
+    // Canvas state.
+    private mCanvas: HTMLCanvasElement | null;
+    private mResizeObserver: ResizeObserver | null;
+    private mRenderTargets: RenderTargets | null;
+
+    // GPU rendering resources.
     private mCameraGroup: BindGroup | null;
     private mExecutor: GpuExecution | null;
     private mLightCountBuffer: GpuBuffer | null;
@@ -47,17 +56,19 @@ export class ShitSystem extends GameSystem {
     private mPipeline: VertexFragmentPipeline | null;
     private mRenderPass: RenderPass | null;
     private mShaderRenderModule: ShaderRenderModule | null;
-    private mVertexParamCache: Map<Mesh, Array<VertexParameter>>;
+    private mVertexParameterCache: Map<Mesh, Array<VertexParameter>>;
+
+    // Dependencies.
     private mDependencyTransformationSystem: TransformationSystem | null;
     private mDependencyGpuSystem: GpuSystem | null;
     private mDependencyLightSystem: LightSystem | null;
-    private mDependencyRenderTargetSystem: RenderTargetSystem | null;
+    private mDependencyCullSystem: CullSystem | null;
 
     /**
      * Systems this system depends on.
      */
     public override get dependentSystemTypes(): Array<GameSystemConstructor<GameSystem>> {
-        return [TransformationSystem, GpuSystem, LightSystem, RenderTargetSystem];
+        return [TransformationSystem, GpuSystem, LightSystem, CullSystem];
     }
 
     /**
@@ -68,11 +79,35 @@ export class ShitSystem extends GameSystem {
     }
 
     /**
-     * Constructor of the shit system.
+     * Canvas element used for rendering.
+     * Can be read after onCreate to access the canvas.
      */
-    public constructor() {
-        super();
+    public get canvas(): HTMLCanvasElement {
+        return this.mCanvas!;
+    }
 
+    /**
+     * Set the canvas element before the system is created.
+     * Must be called before onCreate. If not set, a new canvas is created automatically.
+     */
+    public set canvas(pCanvas: HTMLCanvasElement) {
+        this.mCanvas = pCanvas;
+    }
+
+    /**
+     * Constructor.
+     * 
+     * @param pEnvironment - The game environment this system belongs to.
+     */
+    public constructor(pEnvironment: GameEnvironment) {
+        super(pEnvironment);
+
+        // Canvas state.
+        this.mCanvas = null;
+        this.mResizeObserver = null;
+        this.mRenderTargets = null;
+
+        // GPU rendering resources.
         this.mCameraGroup = null;
         this.mExecutor = null;
         this.mLightCountBuffer = null;
@@ -81,31 +116,60 @@ export class ShitSystem extends GameSystem {
         this.mPipeline = null;
         this.mRenderPass = null;
         this.mShaderRenderModule = null;
-        this.mVertexParamCache = new Map();
+        this.mVertexParameterCache = new Map();
 
-        // Null any dependecy.
+        // Dependencies.
         this.mDependencyTransformationSystem = null;
         this.mDependencyGpuSystem = null;
         this.mDependencyLightSystem = null;
-        this.mDependencyRenderTargetSystem = null;
+        this.mDependencyCullSystem = null;
     }
 
     /**
-     * Initialize GPU resources, shader, pipeline, render pass, and executor.
-     * Uses the core render targets from RenderTargetSystem.
+     * Initialize canvas, GPU render targets, shader, pipeline, render pass, and executor.
+     * Creates GPU render targets backed by the canvas and sets up a ResizeObserver.
      */
     protected override async onCreate(): Promise<void> {
         // Read dependencies.
-        this.mDependencyTransformationSystem = this.getDependency(TransformationSystem);
-        this.mDependencyGpuSystem = this.getDependency(GpuSystem);
-        this.mDependencyLightSystem = this.getDependency(LightSystem);
-        this.mDependencyRenderTargetSystem = this.getDependency(RenderTargetSystem);
+        this.mDependencyTransformationSystem = this.environment.getSystem(TransformationSystem);
+        this.mDependencyGpuSystem = this.environment.getSystem(GpuSystem);
+        this.mDependencyLightSystem = this.environment.getSystem(LightSystem);
+        this.mDependencyCullSystem = this.environment.getSystem(CullSystem);
+
+        // Create canvas if not set before system creation.
+        if (!this.mCanvas) {
+            this.mCanvas = document.createElement('canvas');
+        }
 
         // Get GPU device from dependency.
-        const lGpu = this.mDependencyGpuSystem!.gpu;
+        const lGpu = this.mDependencyGpuSystem.gpu;
 
-        // Get core render targets from the render target system.
-        const lCoreData: RenderTargetSystemRenderTargetContextData = this.mDependencyRenderTargetSystem!.coreRenderTargetData;
+        // Create GPU render targets backed by the canvas.
+        const lCanvasWidth: number = Math.round(this.mCanvas.clientWidth * devicePixelRatio);
+        const lCanvasHeight: number = Math.round(this.mCanvas.clientHeight * devicePixelRatio);
+        this.mRenderTargets = this.createRenderTargets(this.mCanvas);
+        this.mRenderTargets.resize(lCanvasHeight, lCanvasWidth);
+
+        // Update core render target component dimensions to match canvas.
+        const lCoreRenderTarget = this.mDependencyCullSystem.coreRenderTarget;
+        lCoreRenderTarget.width = lCanvasWidth;
+        lCoreRenderTarget.height = lCanvasHeight;
+
+        // Observe canvas size changes via ResizeObserver.
+        this.mResizeObserver = new ResizeObserver((pEntries: Array<ResizeObserverEntry>) => {
+            const lEntry: ResizeObserverEntry = pEntries[0];
+            const lNewWidth: number = Math.round(lEntry.contentBoxSize[0].inlineSize * devicePixelRatio);
+            const lNewHeight: number = Math.round(lEntry.contentBoxSize[0].blockSize * devicePixelRatio);
+
+            if (this.mRenderTargets) {
+                this.mRenderTargets.resize(lNewHeight, lNewWidth);
+            }
+
+            // Update core render target component dimensions so CullSystem updates camera aspect ratio.
+            lCoreRenderTarget.width = lNewWidth;
+            lCoreRenderTarget.height = lNewHeight;
+        });
+        this.mResizeObserver.observe(this.mCanvas);
 
         // Create camera bind group layout and group.
         const lCameraGroupLayout: BindGroupLayout = new BindGroupLayout(lGpu, 'camera').setup((pBindGroupSetup) => {
@@ -155,17 +219,17 @@ export class ShitSystem extends GameSystem {
         // Create render module from shader.
         this.mShaderRenderModule = lShader.createRenderModule('vertex_main', 'fragment_main');
 
-        // Create pipeline using the core render targets for compatibility.
-        this.mPipeline = this.mShaderRenderModule.create(lCoreData.renderTargets);
+        // Create pipeline using the render targets for compatibility.
+        this.mPipeline = this.mShaderRenderModule.create(this.mRenderTargets);
         this.mPipeline.primitiveCullMode = PrimitiveCullMode.Front;
 
         // Create render pass that draws all submeshes for all visible instances.
-        this.mRenderPass = lGpu.renderPass(lCoreData.renderTargets, (pContext) => {
+        this.mRenderPass = lGpu.renderPass(this.mRenderTargets, (pContext) => {
             for (const [lMesh, lGroupData] of this.mMeshGroups) {
                 if (lGroupData.instanceCount > 0) {
-                    const lVertexParams = this.mVertexParamCache.get(lMesh)!;
-                    for (const lVertexParam of lVertexParams) {
-                        pContext.drawDirect(this.mPipeline!, lVertexParam, lGroupData.pipelineData, lGroupData.instanceCount);
+                    const lVertexParameters = this.mVertexParameterCache.get(lMesh)!;
+                    for (const lVertexParameter of lVertexParameters) {
+                        pContext.drawDirect(this.mPipeline!, lVertexParameter, lGroupData.pipelineData, lGroupData.instanceCount);
                     }
                 }
             }
@@ -179,7 +243,7 @@ export class ShitSystem extends GameSystem {
 
     /**
      * Execute rendering every frame.
-     * Uses the frustum-culled visible mesh list from RenderTargetSystem.
+     * Uses the frustum-culled visible mesh list from CullSystem.
      */
     protected override async onFrame(): Promise<void> {
         // Skip rendering when not initialized.
@@ -187,35 +251,55 @@ export class ShitSystem extends GameSystem {
             return;
         }
 
-        // Get camera and visible mesh list from the core render target.
-        const lCoreData: RenderTargetSystemRenderTargetContextData = this.mDependencyRenderTargetSystem!.coreRenderTargetData;
+        // Get culling data for the core render target from CullSystem.
+        const lCullingData: CullSystemRenderTargetCulling | undefined = this.mDependencyCullSystem!.getRenderTargetCulling(this.mDependencyCullSystem!.coreRenderTarget);
 
-        // Skip rendering when no camera is assigned.
-        if (!lCoreData.camera || !lCoreData.cameraTransformation) {
+        // Skip rendering when no culling data or no camera is assigned.
+        if (!lCullingData || !lCullingData.camera || !lCullingData.cameraTransformation) {
             return;
         }
 
         // Rebuild instance data from the frustum-culled visible list.
-        this.rebuildInstanceData(lCoreData.visibleMeshRenderers);
+        this.rebuildInstanceData(lCullingData.visibleMeshRenderers);
 
         // Update camera view projection matrix every frame.
         // Use the world matrix from TransformationSystem and invert it to get the view matrix.
-        const lWorldMatrix = this.mDependencyTransformationSystem!.worldMatrixOfTransformation(lCoreData.cameraTransformation);
-        const lViewProjectionMatrix = lCoreData.camera.matrix.mult(lWorldMatrix.inverse());
+        const lWorldMatrix = this.mDependencyTransformationSystem!.worldMatrixOfTransformation(lCullingData.cameraTransformation);
+        const lViewProjectionMatrix = lCullingData.camera.matrix.mult(lWorldMatrix.inverse());
         this.mCameraGroup.data('viewProjection').asBufferView(Float32Array).write(lViewProjectionMatrix.dataArray);
 
-        // Start new GPU frame and execute render pass.
+        // Execute render pass.
         this.mExecutor.execute();
     }
 
     /**
      * Process component state changes.
-     * All component tracking is handled by RenderTargetSystem; this system rebuilds per frame from the visible list.
+     * All component tracking is handled by CullSystem; this system rebuilds per frame from the visible list.
      */
     protected override async onUpdate(_pStateChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>): Promise<void> {
         // No component event processing needed.
-        // Camera and mesh renderer tracking is handled by RenderTargetSystem.
+        // Camera and mesh renderer tracking is handled by CullSystem.
         // Instance data is rebuilt every frame from the frustum-culled visible list.
+    }
+
+    /**
+     * Create GPU render targets backed by a canvas element.
+     * Configures a multisampled color render target resolving to the canvas texture,
+     * plus a depth-stencil attachment.
+     *
+     * @param pCanvas - The canvas element to render to.
+     *
+     * @returns A new RenderTargets object.
+     */
+    private createRenderTargets(pCanvas: HTMLCanvasElement): RenderTargets {
+        return this.mDependencyGpuSystem!.gpu.renderTargets().setup((pSetup) => {
+            // Add color render target with canvas texture as resolve target.
+            pSetup.addColor('color', 0, true, { r: 0, g: 0, b: 0, a: 1 })
+                .new(TextureFormat.Bgra8unorm, this.mDependencyGpuSystem!.gpu.canvas(pCanvas));
+
+            // Add depth texture.
+            pSetup.addDepthStencil(true, 1).new(TextureFormat.Depth24plus);
+        });
     }
 
     /**
@@ -224,7 +308,7 @@ export class ShitSystem extends GameSystem {
      *
      * @param pVisibleRenderers - Frustum-culled list of visible mesh render components.
      */
-    private rebuildInstanceData(pVisibleRenderers: Array<MeshRenderComponent>): void {
+    private rebuildInstanceData(pVisibleRenderers: ReadonlyArray<MeshRenderComponent>): void {
         // Skip when pipeline is not ready.
         if (!this.mShaderRenderModule || !this.mPipeline || !this.mCameraGroup) {
             return;
@@ -270,14 +354,14 @@ export class ShitSystem extends GameSystem {
         // Process each mesh group.
         for (const [lMesh, lRenderers] of lMeshGroupMap) {
             // Get or create cached vertex parameters for this mesh.
-            if (!this.mVertexParamCache.has(lMesh)) {
-                const lVertexParams = lMesh.subMeshes.map((lSubMesh) => {
+            if (!this.mVertexParameterCache.has(lMesh)) {
+                const lVertexParameters = lMesh.subMeshes.map((lSubMesh) => {
                     const lVertexParameter: VertexParameter = this.mShaderRenderModule!.vertexParameter.create(lSubMesh.indices);
                     lVertexParameter.create('position', lMesh.verticesData);
                     lVertexParameter.create('normal', lMesh.normals);
                     return lVertexParameter;
                 });
-                this.mVertexParamCache.set(lMesh, lVertexParams);
+                this.mVertexParameterCache.set(lMesh, lVertexParameters);
             }
 
             // Get or create cached mesh group rendering data.

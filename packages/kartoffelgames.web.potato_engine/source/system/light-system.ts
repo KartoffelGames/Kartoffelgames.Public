@@ -6,10 +6,12 @@ import { PointLight } from '../component/light/type/point-light.ts';
 import { SpotLight } from '../component/light/type/spot-light.ts';
 import { TransformationComponent } from '../component/transformation-component.ts';
 import type { GameComponentConstructor } from '../core/component/game-component.ts';
-import type { GameEnvironmentStateChange } from '../core/environment/game-environment-transmittion.ts';
+import { GameEnvironment, GameEnvironmentStateChange } from "../core/environment/game-environment.ts";
 import { GameSystem, type GameSystemConstructor } from '../core/game-system.ts';
 import { GpuSystem } from './gpu-system.ts';
 import { TransformationSystem } from './transformation-system.ts';
+
+// TODO: Needs goooood rework. Light must be culled by CullSystem as well.
 
 /**
  * System that manages light components and their data storage in a tightly packed auto-scaling buffer.
@@ -87,9 +89,11 @@ export class LightSystem extends GameSystem {
 
     /**
      * Constructor.
+     * 
+     * @param pEnvironment - The game environment this system belongs to.
      */
-    public constructor() {
-        super();
+    public constructor(pEnvironment: GameEnvironment) {
+        super(pEnvironment);
 
         // Initialize buffer with 1 block (4 lights) so the GPU always has a valid buffer to bind.
         const lInitialBytes: number = LightSystem.BLOCK_SIZE * 4; // 48 floats * 4 bytes = 192 bytes.
@@ -105,7 +109,7 @@ export class LightSystem extends GameSystem {
      * Initializes the light system by creating a GPU buffer for light data storage.
      */
     protected override async onCreate(): Promise<void> {
-        const lGpuSystem: GpuSystem = this.getDependency(GpuSystem);
+        const lGpuSystem: GpuSystem = this.environment.getSystem(GpuSystem);
 
         const lGpuBuffer: GpuBuffer = new GpuBuffer(lGpuSystem.gpu, this.mDataBuffer.byteLength);
         lGpuBuffer.extendUsage(BufferUsage.Storage | BufferUsage.CopySource | BufferUsage.CopyDestination);
@@ -285,7 +289,7 @@ export class LightSystem extends GameSystem {
      * @returns The byte range that was written.
      */
     private writeLightToBuffer(pComponent: LightComponent, pIndex: number): LightSystemBufferUpdateRange {
-        const lTransformationSystem: TransformationSystem = this.getDependency(TransformationSystem);
+        const lTransformationSystem: TransformationSystem = this.environment.getSystem(TransformationSystem);
         const lTransformation: TransformationComponent = pComponent.gameEntity.getComponent(TransformationComponent);
         const lTransformIndex: number = lTransformationSystem.indexOfTransformation(lTransformation);
 

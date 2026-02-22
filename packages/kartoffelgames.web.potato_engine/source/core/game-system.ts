@@ -12,6 +12,7 @@ import type { GameEnvironment, GameEnvironmentStateChange } from './environment/
 export abstract class GameSystem {
     private readonly mEnvironment: GameEnvironment;
     private mInitialized: boolean;
+    private readonly mLabel: string;
 
     /**
      * Define which systems this system depends on.
@@ -37,12 +38,23 @@ export abstract class GameSystem {
     }
 
     /**
+     * Human-readable label for this system.
+     */
+    public get label(): string {
+        return this.mLabel;
+    }
+
+    /**
      * Constructor of the system.
      * 
+     * @param pLabel - The human-readable label for this system.
      * @param pEnvironment - The game environment this system belongs to.
      */
-    public constructor(pEnvironment: GameEnvironment) {
+    public constructor(pLabel: string, pEnvironment: GameEnvironment) {
+        this.mLabel = pLabel;
         this.mEnvironment = pEnvironment;
+
+        // Default to not initialized.
         this.mInitialized = false;
     }
 

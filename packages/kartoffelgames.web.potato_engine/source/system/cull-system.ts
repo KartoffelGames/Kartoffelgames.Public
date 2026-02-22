@@ -5,10 +5,10 @@ import { RenderTargetComponent } from '../component/render-target-component.ts';
 import { TransformationComponent } from '../component/transformation-component.ts';
 import type { BoundingBox } from '../component_item/bounding-box.ts';
 import type { GameComponentConstructor } from '../core/component/game-component.ts';
+import type { GameEnvironment, GameEnvironmentStateChange } from '../core/environment/game-environment.ts';
 import { GameSystem, type GameSystemConstructor } from '../core/game-system.ts';
 import type { GameEntity } from '../core/hierarchy/game-entity.ts';
 import { TransformationSystem } from './transformation-system.ts';
-import type { GameEnvironment, GameEnvironmentStateChange } from '../core/environment/game-environment.ts';
 
 /**
  * System that manages camera assignments and per-frame frustum culling for render targets.
@@ -79,7 +79,7 @@ export class CullSystem extends GameSystem {
      * @param pEnvironment - The game environment this system belongs to.
      */
     public constructor(pEnvironment: GameEnvironment) {
-        super(pEnvironment);
+        super("Cull", pEnvironment);
 
         this.mRenderTargetDataMap = new Map<RenderTargetComponent, CullSystemRenderTargetData>();
         this.mMeshRendererToRenderTargets = new WeakMap<MeshRenderComponent, Array<RenderTargetComponent>>();
@@ -123,7 +123,7 @@ export class CullSystem extends GameSystem {
     protected override async onFrame(): Promise<void> {
         // Rebuild visible mesh list for each component render target.
         for (const lData of this.mRenderTargetDataMap.values()) {
-            this.rebuildVisibleMeshList(lData);
+            lData.visibleMeshRenderers = this.executeCulling(lData);
         }
     }
 
@@ -563,17 +563,22 @@ export class CullSystem extends GameSystem {
      *
      * @param pData - The culling data to update.
      */
-    private rebuildVisibleMeshList(pData: CullSystemRenderTargetData): void {
+    private executeCulling(pData: CullSystemRenderTargetData): Array<MeshRenderComponent> {
         // Clear previous visible list.
-        pData.visibleMeshRenderers = new Array<MeshRenderComponent>();
-        
+        const lVisibleMeshRenderers: Array<MeshRenderComponent> = new Array<MeshRenderComponent>();
+
         // Skip render targets without an assigned camera.
         if (!pData.camera) {
-            return;
+            return lVisibleMeshRenderers;
         }
 
         // Iterate active mesh renderers and test their cached world bounds against the frustum.
         for (const lMeshRenderer of pData.activeMeshRenderers) {
+            // Skip disabled mesh renderers. They won't be visible regardless of bounds.
+            if (!lMeshRenderer.enabled) {
+                continue;
+            }
+
             // Try to read cached world bounds. If not found, calculate and cache them for future frames.
             let lWorldBounds: CullSystemWorldBounds | undefined = this.mWorldBoundsCache.get(lMeshRenderer);
             if (!lWorldBounds) {
@@ -586,9 +591,11 @@ export class CullSystem extends GameSystem {
 
             // Test the cached world-space bounding box against the cached frustum.
             if (pData.frustum.intersectsBoundingBox(lWorldBounds.minX, lWorldBounds.minY, lWorldBounds.minZ, lWorldBounds.maxX, lWorldBounds.maxY, lWorldBounds.maxZ)) {
-                pData.visibleMeshRenderers.push(lMeshRenderer);
+                lVisibleMeshRenderers.push(lMeshRenderer);
             }
         }
+
+        return lVisibleMeshRenderers;
     }
 }
 

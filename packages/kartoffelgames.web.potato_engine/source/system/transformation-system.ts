@@ -70,7 +70,7 @@ export class TransformationSystem extends GameSystem {
      * @param pEnvironment - The game environment this system belongs to.
      */
     public constructor(pEnvironment: GameEnvironment) {
-        super(pEnvironment);
+        super('Transformation', pEnvironment);
 
         this.mDataBuffer = null;
         this.mMatrixDataView = null;

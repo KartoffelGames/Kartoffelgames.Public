@@ -82,7 +82,7 @@ export class LightSystem extends GameSystem {
      * @param pEnvironment - The game environment this system belongs to.
      */
     public constructor(pEnvironment: GameEnvironment) {
-        super(pEnvironment);
+        super('Light', pEnvironment);
 
         // Initialize buffer with 1 block (4 lights) so the GPU always has a valid buffer to bind.
         const lInitialBytes: number = LightSystem.BLOCK_SIZE * 4; // 48 floats * 4 bytes = 192 bytes.

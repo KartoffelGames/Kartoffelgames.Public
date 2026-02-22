@@ -16,6 +16,13 @@ export class GameEntity extends GameNode {
     private readonly mComponents: Set<GameComponent>;
 
     /**
+     * All components attached to this game entity.
+     */
+    public get components(): ReadonlySet<GameComponent> {
+        return this.mComponents;
+    }
+
+    /**
      * Create a new empty game object.
      */
     public constructor() {

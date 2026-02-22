@@ -23,7 +23,7 @@ import type { GameEnvironmentStateChange } from '../../source/core/environment/g
 import { GameSystem, type GameSystemConstructor } from '../../source/core/game-system.ts';
 import { GpuSystem } from '../../source/system/gpu-system.ts';
 import { LightSystem } from '../../source/system/light-system.ts';
-import { RenderTargetSystem, type RenderTargetData } from '../../source/system/render-target-system.ts';
+import { RenderTargetSystem, type RenderTargetSystemRenderTargetContextData } from '../../source/system/render-target-system.ts';
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
 import shitShaderSource from './shit-system-shader.wgsl';
 
@@ -105,7 +105,7 @@ export class ShitSystem extends GameSystem {
         const lGpu = this.mDependencyGpuSystem!.gpu;
 
         // Get core render targets from the render target system.
-        const lCoreData: RenderTargetData = this.mDependencyRenderTargetSystem!.coreRenderTargetData;
+        const lCoreData: RenderTargetSystemRenderTargetContextData = this.mDependencyRenderTargetSystem!.coreRenderTargetData;
 
         // Create camera bind group layout and group.
         const lCameraGroupLayout: BindGroupLayout = new BindGroupLayout(lGpu, 'camera').setup((pBindGroupSetup) => {
@@ -188,7 +188,7 @@ export class ShitSystem extends GameSystem {
         }
 
         // Get camera and visible mesh list from the core render target.
-        const lCoreData: RenderTargetData = this.mDependencyRenderTargetSystem!.coreRenderTargetData;
+        const lCoreData: RenderTargetSystemRenderTargetContextData = this.mDependencyRenderTargetSystem!.coreRenderTargetData;
 
         // Skip rendering when no camera is assigned.
         if (!lCoreData.camera || !lCoreData.cameraTransformation) {

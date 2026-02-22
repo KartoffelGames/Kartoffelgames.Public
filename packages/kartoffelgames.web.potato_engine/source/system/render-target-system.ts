@@ -33,15 +33,14 @@ import { TransformationSystem } from './transformation-system.ts';
  */
 export class RenderTargetSystem extends GameSystem {
     // Dummy key used for the core render target in WeakMaps.
-    private static readonly CORE_RT_KEY: RenderTargetComponent = {} as unknown as RenderTargetComponent;
+    private static readonly CORE_RENDER_TARGET_KEY: RenderTargetComponent = {} as unknown as RenderTargetComponent;
 
     // Render target data storage.
-    private mCoreRenderTargetData: RenderTargetData | null;
-    private readonly mRenderTargetDataMap: Map<RenderTargetComponent, RenderTargetData>;
+    private mCoreRenderTargetData: RenderTargetSystemRenderTargetContextData | null;
+    private readonly mRenderTargetDataMap: Map<RenderTargetComponent, RenderTargetSystemRenderTargetContextData>;
 
     // Canvas state.
     private mCanvas: HTMLCanvasElement | null;
-    private mCanvasTexture: CanvasTexture | null;
     private mResizeObserver: ResizeObserver | null;
 
     // Per-render-target active mesh renderer tracking with swap-remove lists.
@@ -51,13 +50,16 @@ export class RenderTargetSystem extends GameSystem {
     private readonly mMeshToRenderTargets: WeakMap<MeshRenderComponent, Array<RenderTargetComponent>>;
 
     // Cached world-space AABBs for mesh renderers. Updated in onUpdate, read in onFrame.
-    private readonly mWorldAABBCache: WeakMap<MeshRenderComponent, WorldAABB>;
+    private readonly mWorldAABBCache: WeakMap<MeshRenderComponent, RenderTargetSystemWorldAABB>;
 
     // Active camera tracking for reevaluation.
     private readonly mActiveCameras: Set<CameraComponent>;
 
     // Tracks which render target each camera is assigned to.
     private readonly mCameraToRenderTarget: WeakMap<CameraComponent, RenderTargetComponent>;
+
+    private mDependencyTransformationSystem: TransformationSystem | null;
+    private mDependencyGpuSystem: GpuSystem | null;
 
     /**
      * Systems this system depends on.
@@ -94,7 +96,7 @@ export class RenderTargetSystem extends GameSystem {
      * Core render target data created during system initialization.
      * This is the primary render target backed by the canvas.
      */
-    public get coreRenderTargetData(): RenderTargetData {
+    public get coreRenderTargetData(): RenderTargetSystemRenderTargetContextData {
         this.lockGate();
         return this.mCoreRenderTargetData!;
     }
@@ -103,7 +105,7 @@ export class RenderTargetSystem extends GameSystem {
      * All render target data entries for component render targets.
      * Keyed by their RenderTargetComponent for easy lookup by other systems.
      */
-    public get renderTargetDataMap(): ReadonlyMap<RenderTargetComponent, RenderTargetData> {
+    public get renderTargetDataMap(): ReadonlyMap<RenderTargetComponent, RenderTargetSystemRenderTargetContextData> {
         return this.mRenderTargetDataMap;
     }
 
@@ -113,16 +115,19 @@ export class RenderTargetSystem extends GameSystem {
     public constructor() {
         super();
 
-        this.mRenderTargetDataMap = new Map<RenderTargetComponent, RenderTargetData>();
+        this.mRenderTargetDataMap = new Map<RenderTargetComponent, RenderTargetSystemRenderTargetContextData>();
         this.mCoreRenderTargetData = null;
         this.mCanvas = null;
-        this.mCanvasTexture = null;
         this.mResizeObserver = null;
         this.mActiveMeshRenderers = new WeakMap<RenderTargetComponent, RenderTargetSystemActiveMeshes>();
         this.mMeshToRenderTargets = new WeakMap<MeshRenderComponent, Array<RenderTargetComponent>>();
-        this.mWorldAABBCache = new WeakMap<MeshRenderComponent, WorldAABB>();
+        this.mWorldAABBCache = new WeakMap<MeshRenderComponent, RenderTargetSystemWorldAABB>();
         this.mActiveCameras = new Set<CameraComponent>();
         this.mCameraToRenderTarget = new WeakMap<CameraComponent, RenderTargetComponent>();
+
+        // Set dependencies to null.
+        this.mDependencyTransformationSystem = null;
+        this.mDependencyGpuSystem = null;
     }
 
     /**
@@ -132,7 +137,7 @@ export class RenderTargetSystem extends GameSystem {
      *
      * @returns The render target data, or undefined if the component is not tracked.
      */
-    public getRenderTargetData(pComponent: RenderTargetComponent): RenderTargetData | undefined {
+    public getRenderTargetData(pComponent: RenderTargetComponent): RenderTargetSystemRenderTargetContextData | undefined {
         return this.mRenderTargetDataMap.get(pComponent);
     }
 
@@ -142,23 +147,22 @@ export class RenderTargetSystem extends GameSystem {
      * Sets up a ResizeObserver to react to canvas size changes.
      */
     protected override async onCreate(): Promise<void> {
-        const lGpu: GpuDevice = this.getDependency(GpuSystem).gpu;
+        // Get dependencies.
+        this.mDependencyTransformationSystem = this.getDependency(TransformationSystem);
+        this.mDependencyGpuSystem = this.getDependency(GpuSystem);
 
         // Create canvas if not set before system creation.
         if (!this.mCanvas) {
             this.mCanvas = document.createElement('canvas');
         }
 
-        // Create canvas texture from the canvas element.
-        this.mCanvasTexture = lGpu.canvas(this.mCanvas);
-
         // Create the core render target backed by the canvas.
         const lWidth: number = Math.round(this.mCanvas.clientWidth * devicePixelRatio);
         const lHeight: number = Math.round(this.mCanvas.clientHeight * devicePixelRatio);
-        this.mCoreRenderTargetData = this.setupRenderTarget(lWidth, lHeight, this.mCanvasTexture);
+        this.mCoreRenderTargetData = this.setupRenderTarget(lWidth, lHeight, this.mCanvas);
 
         // Initialize the core render target's active mesh list.
-        this.mActiveMeshRenderers.set(RenderTargetSystem.CORE_RT_KEY, { activeList: [], indexMap: new Map() });
+        this.mActiveMeshRenderers.set(RenderTargetSystem.CORE_RENDER_TARGET_KEY, { activeList: [], indexMap: new Map() });
 
         // Observe canvas size changes via ResizeObserver.
         this.mResizeObserver = new ResizeObserver((pEntries: Array<ResizeObserverEntry>) => {
@@ -190,7 +194,7 @@ export class RenderTargetSystem extends GameSystem {
 
         // Rebuild visible mesh list for the core render target.
         if (this.mCoreRenderTargetData) {
-            this.rebuildVisibleMeshList(RenderTargetSystem.CORE_RT_KEY, this.mCoreRenderTargetData);
+            this.rebuildVisibleMeshList(RenderTargetSystem.CORE_RENDER_TARGET_KEY, this.mCoreRenderTargetData);
         }
     }
 
@@ -201,15 +205,15 @@ export class RenderTargetSystem extends GameSystem {
      */
     protected override async onUpdate(pStateChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>): Promise<void> {
         // Process RenderTargetComponent changes.
-        const lRenderTargetChanges: ReadonlyArray<GameEnvironmentStateChange> | undefined = pStateChanges.get(RenderTargetComponent);
-        if (lRenderTargetChanges) {
+        const lRenderTargetChanges: ReadonlyArray<GameEnvironmentStateChange> = pStateChanges.get(RenderTargetComponent)!;
+        if (lRenderTargetChanges.length > 0) {
             for (const lChange of lRenderTargetChanges) {
                 const lComponent: RenderTargetComponent = lChange.component as RenderTargetComponent;
 
                 switch (lChange.type) {
                     case 'add':
                     case 'activate': {
-                        const lData: RenderTargetData = this.setupRenderTarget(lComponent.width, lComponent.height);
+                        const lData: RenderTargetSystemRenderTargetContextData = this.setupRenderTarget(lComponent.width, lComponent.height);
                         this.mRenderTargetDataMap.set(lComponent, lData);
 
                         // Initialize the active mesh list for this render target.
@@ -229,7 +233,7 @@ export class RenderTargetSystem extends GameSystem {
                         this.reassignMeshRenderersFromRenderTarget(lComponent);
 
                         // Remove camera assignment tracking for this render target's camera.
-                        const lData: RenderTargetData | undefined = this.mRenderTargetDataMap.get(lComponent);
+                        const lData: RenderTargetSystemRenderTargetContextData | undefined = this.mRenderTargetDataMap.get(lComponent);
                         if (lData?.camera) {
                             this.mCameraToRenderTarget.delete(lData.camera);
                         }
@@ -242,7 +246,7 @@ export class RenderTargetSystem extends GameSystem {
                     }
                     case 'update': {
                         // Resize the render target when the component dimensions change.
-                        const lData: RenderTargetData | undefined = this.mRenderTargetDataMap.get(lComponent);
+                        const lData: RenderTargetSystemRenderTargetContextData | undefined = this.mRenderTargetDataMap.get(lComponent);
                         if (lData) {
                             lData.renderTargets.resize(lComponent.height, lComponent.width);
 
@@ -258,8 +262,8 @@ export class RenderTargetSystem extends GameSystem {
         }
 
         // Process CameraComponent changes.
-        const lCameraChanges: ReadonlyArray<GameEnvironmentStateChange> | undefined = pStateChanges.get(CameraComponent);
-        if (lCameraChanges) {
+        const lCameraChanges: ReadonlyArray<GameEnvironmentStateChange> = pStateChanges.get(CameraComponent)!;
+        if (lCameraChanges.length > 0) {
             for (const lChange of lCameraChanges) {
                 const lCamera: CameraComponent = lChange.component as CameraComponent;
 
@@ -273,9 +277,9 @@ export class RenderTargetSystem extends GameSystem {
                         this.mActiveCameras.add(lCamera);
 
                         // Find the render target this camera belongs to and reevaluate its camera assignment.
-                        const lParentRT: RenderTargetComponent | null = lCamera.gameEntity.getParentComponent(RenderTargetComponent);
-                        if (lParentRT && this.mRenderTargetDataMap.has(lParentRT)) {
-                            this.reevaluateRenderTargetCamera(lParentRT, this.mRenderTargetDataMap.get(lParentRT)!);
+                        const lParentRenderTarget: RenderTargetComponent | null = lCamera.gameEntity.getParentComponent(RenderTargetComponent);
+                        if (lParentRenderTarget && this.mRenderTargetDataMap.has(lParentRenderTarget)) {
+                            this.reevaluateRenderTargetCamera(lParentRenderTarget, this.mRenderTargetDataMap.get(lParentRenderTarget)!);
                         }
 
                         // Always reevaluate core camera as unclaimed cameras may have changed.
@@ -287,14 +291,14 @@ export class RenderTargetSystem extends GameSystem {
                         this.mActiveCameras.delete(lCamera);
 
                         // Find which render target this camera was assigned to.
-                        const lAssignedRT: RenderTargetComponent | undefined = this.mCameraToRenderTarget.get(lCamera);
+                        const lAssignedRenderTarget: RenderTargetComponent | undefined = this.mCameraToRenderTarget.get(lCamera);
                         this.mCameraToRenderTarget.delete(lCamera);
 
-                        if (lAssignedRT && lAssignedRT !== RenderTargetSystem.CORE_RT_KEY) {
+                        if (lAssignedRenderTarget && lAssignedRenderTarget !== RenderTargetSystem.CORE_RENDER_TARGET_KEY) {
                             // Reevaluate the component render target to find a replacement camera.
-                            const lData: RenderTargetData | undefined = this.mRenderTargetDataMap.get(lAssignedRT);
+                            const lData: RenderTargetSystemRenderTargetContextData | undefined = this.mRenderTargetDataMap.get(lAssignedRenderTarget);
                             if (lData) {
-                                this.reevaluateRenderTargetCamera(lAssignedRT, lData);
+                                this.reevaluateRenderTargetCamera(lAssignedRenderTarget, lData);
                             }
                         }
 
@@ -308,11 +312,11 @@ export class RenderTargetSystem extends GameSystem {
                         }
 
                         // Recompute frustum for the render target this camera is assigned to.
-                        const lAssignedRT: RenderTargetComponent | undefined = this.mCameraToRenderTarget.get(lCamera);
-                        if (lAssignedRT) {
-                            const lData: RenderTargetData | undefined = (lAssignedRT === RenderTargetSystem.CORE_RT_KEY)
+                        const lAssignedRenderTarget: RenderTargetComponent | undefined = this.mCameraToRenderTarget.get(lCamera);
+                        if (lAssignedRenderTarget) {
+                            const lData: RenderTargetSystemRenderTargetContextData | undefined = (lAssignedRenderTarget === RenderTargetSystem.CORE_RENDER_TARGET_KEY)
                                 ? this.mCoreRenderTargetData ?? undefined
-                                : this.mRenderTargetDataMap.get(lAssignedRT);
+                                : this.mRenderTargetDataMap.get(lAssignedRenderTarget);
 
                             if (lData) {
                                 this.updateFrustum(lData);
@@ -325,8 +329,8 @@ export class RenderTargetSystem extends GameSystem {
         }
 
         // Process MeshRenderComponent changes.
-        const lMeshChanges: ReadonlyArray<GameEnvironmentStateChange> | undefined = pStateChanges.get(MeshRenderComponent);
-        if (lMeshChanges) {
+        const lMeshChanges: ReadonlyArray<GameEnvironmentStateChange> = pStateChanges.get(MeshRenderComponent)!;
+        if (lMeshChanges.length > 0) {
             for (const lChange of lMeshChanges) {
                 const lComponent: MeshRenderComponent = lChange.component as MeshRenderComponent;
 
@@ -373,16 +377,13 @@ export class RenderTargetSystem extends GameSystem {
      *
      * @returns A new RenderTargetData bundle with no camera assigned.
      */
-    private setupRenderTarget(pWidth: number, pHeight: number, pCanvasTexture?: CanvasTexture): RenderTargetData {
-        const lGpu: GpuDevice = this.getDependency(GpuSystem).gpu;
-        const lMultisampled: boolean = pCanvasTexture !== undefined;
-
+    private setupRenderTarget(pWidth: number, pHeight: number, pCanvas?: HTMLCanvasElement): RenderTargetSystemRenderTargetContextData {
         // Create render targets with color and depth attachments.
-        const lRenderTargets: RenderTargets = lGpu.renderTargets(lMultisampled).setup((pSetup) => {
+        const lRenderTargets: RenderTargets = this.mDependencyGpuSystem!.gpu.renderTargets().setup((pSetup) => {
             // Add color render target. When canvas-backed, use the canvas texture as resolve target.
             const lColorSetup = pSetup.addColor('color', 0, true, { r: 0, g: 0, b: 0, a: 1 });
-            if (pCanvasTexture) {
-                lColorSetup.new(TextureFormat.Bgra8unorm, pCanvasTexture);
+            if (pCanvas) {
+                lColorSetup.new(TextureFormat.Bgra8unorm, this.mDependencyGpuSystem!.gpu.canvas(pCanvas));
             } else {
                 lColorSetup.new(TextureFormat.Bgra8unorm);
             }
@@ -407,38 +408,38 @@ export class RenderTargetSystem extends GameSystem {
      * Reevaluate camera assignment for a specific component render target.
      * Searches the render target's entity hierarchy for the first enabled camera.
      *
-     * @param pRTComponent - The render target component to reevaluate.
-     * @param pRTData - The render target data to update.
+     * @param pRenderTargetComponent - The render target component to reevaluate.
+     * @param pRenderTargetData - The render target data to update.
      */
-    private reevaluateRenderTargetCamera(pRTComponent: RenderTargetComponent, pRTData: RenderTargetData): void {
+    private reevaluateRenderTargetCamera(pRenderTargetComponent: RenderTargetComponent, pRenderTargetData: RenderTargetSystemRenderTargetContextData): void {
         // Clear previous camera assignment tracking.
-        if (pRTData.camera) {
-            this.mCameraToRenderTarget.delete(pRTData.camera);
+        if (pRenderTargetData.camera) {
+            this.mCameraToRenderTarget.delete(pRenderTargetData.camera);
         }
 
         // Search entity hierarchy for cameras.
-        const lCameraEntities: Array<GameEntity> = pRTComponent.gameEntity.getGameObjectsWithComponent(CameraComponent);
+        const lCameraEntities: Array<GameEntity> = pRenderTargetComponent.gameEntity.getGameObjectsWithComponent(CameraComponent);
 
         for (const lEntity of lCameraEntities) {
             const lCamera: CameraComponent = lEntity.getComponent(CameraComponent)!;
 
             if (lCamera.enabled) {
-                pRTData.camera = lCamera;
-                pRTData.cameraTransformation = lCamera.gameEntity.getComponent(TransformationComponent)!;
-                this.mCameraToRenderTarget.set(lCamera, pRTComponent);
+                pRenderTargetData.camera = lCamera;
+                pRenderTargetData.cameraTransformation = lCamera.gameEntity.getComponent(TransformationComponent)!;
+                this.mCameraToRenderTarget.set(lCamera, pRenderTargetComponent);
 
                 // Set camera aspect ratio to match the render target dimensions.
-                lCamera.projection.aspectRatio = pRTData.renderTargets.width / pRTData.renderTargets.height;
+                lCamera.projection.aspectRatio = pRenderTargetData.renderTargets.width / pRenderTargetData.renderTargets.height;
 
                 // Compute frustum for the newly assigned camera.
-                this.updateFrustum(pRTData);
+                this.updateFrustum(pRenderTargetData);
                 return;
             }
         }
 
         // No enabled camera found.
-        pRTData.camera = null;
-        pRTData.cameraTransformation = null;
+        pRenderTargetData.camera = null;
+        pRenderTargetData.cameraTransformation = null;
     }
 
     /**
@@ -471,7 +472,7 @@ export class RenderTargetSystem extends GameSystem {
             if (!lClaimedCameras.has(lCamera) && lCamera.enabled) {
                 this.mCoreRenderTargetData.camera = lCamera;
                 this.mCoreRenderTargetData.cameraTransformation = lCamera.gameEntity.getComponent(TransformationComponent)!;
-                this.mCameraToRenderTarget.set(lCamera, RenderTargetSystem.CORE_RT_KEY);
+                this.mCameraToRenderTarget.set(lCamera, RenderTargetSystem.CORE_RENDER_TARGET_KEY);
 
                 // Set camera aspect ratio to match the core render target dimensions.
                 lCamera.projection.aspectRatio = this.mCoreRenderTargetData.renderTargets.width / this.mCoreRenderTargetData.renderTargets.height;
@@ -486,18 +487,19 @@ export class RenderTargetSystem extends GameSystem {
     /**
      * Update the frustum for a render target using its assigned camera's world transformation.
      *
-     * @param pRTData - The render target data whose frustum to update.
+     * @param pRenderTargetData - The render target data whose frustum to update.
      */
-    private updateFrustum(pRTData: RenderTargetData): void {
-        if (!pRTData.camera || !pRTData.cameraTransformation) {
+    private updateFrustum(pRenderTargetData: RenderTargetSystemRenderTargetContextData): void {
+        if (!pRenderTargetData.camera || !pRenderTargetData.cameraTransformation) {
             return;
         }
 
-        const lTransformSystem: TransformationSystem = this.getDependency(TransformationSystem);
-        const lWorldMatrix: Matrix = lTransformSystem.worldMatrixOfTransformation(pRTData.cameraTransformation);
-        const lViewMatrix: Matrix = lWorldMatrix.inverse();
-        const lViewProjectionMatrix: Matrix = pRTData.camera.matrix.mult(lViewMatrix);
-        pRTData.frustum.update(lViewProjectionMatrix);
+        // Read world matrix of camera and compute view-projection matrix to update the frustum.
+        const lWorldMatrix: Matrix = this.mDependencyTransformationSystem!.worldMatrixOfTransformation(pRenderTargetData.cameraTransformation);
+        const lViewProjectionMatrix: Matrix = pRenderTargetData.camera.matrix.mult(lWorldMatrix.inverse());
+
+        // Update the frustum with the new view-projection matrix.
+        pRenderTargetData.frustum.update(lViewProjectionMatrix);
     }
 
     /**
@@ -511,33 +513,34 @@ export class RenderTargetSystem extends GameSystem {
         const lTargets: Array<RenderTargetComponent> = [];
 
         // Find the nearest ancestor RenderTargetComponent.
-        const lParentRT: RenderTargetComponent | null = pMesh.gameEntity.getParentComponent(RenderTargetComponent);
-        let lCurrentRT: RenderTargetComponent = lParentRT && this.mRenderTargetDataMap.has(lParentRT)
-            ? lParentRT
-            : RenderTargetSystem.CORE_RT_KEY;
+        const lParentRenderTarget: RenderTargetComponent | null = pMesh.gameEntity.getParentComponent(RenderTargetComponent);
+        let lCurrentRenderTarget: RenderTargetComponent = RenderTargetSystem.CORE_RENDER_TARGET_KEY;
+        if (lParentRenderTarget && this.mRenderTargetDataMap.has(lParentRenderTarget)) {
+            lCurrentRenderTarget = lParentRenderTarget;
+        }
 
         // Walk up the render target chain, following passthrough.
         while (true) {
-            this.addMeshToSingleRenderTarget(pMesh, lCurrentRT);
-            lTargets.push(lCurrentRT);
+            this.addMeshToSingleRenderTarget(pMesh, lCurrentRenderTarget);
+            lTargets.push(lCurrentRenderTarget);
 
             // Stop at the core render target.
-            if (lCurrentRT === RenderTargetSystem.CORE_RT_KEY) {
+            if (lCurrentRenderTarget === RenderTargetSystem.CORE_RENDER_TARGET_KEY) {
                 break;
             }
 
             // Stop if passthrough is not enabled.
-            if (!lCurrentRT.passthrough) {
+            if (!lCurrentRenderTarget.passthrough) {
                 break;
             }
 
             // Find the next ancestor render target.
-            const lParentEntity: GameEntity | null = lCurrentRT.gameEntity.parent as GameEntity | null;
+            const lParentEntity: GameEntity | null = lCurrentRenderTarget.gameEntity.parent as GameEntity | null;
             if (lParentEntity) {
-                const lNextRT: RenderTargetComponent | null = lParentEntity.getParentComponent(RenderTargetComponent);
-                lCurrentRT = lNextRT && this.mRenderTargetDataMap.has(lNextRT) ? lNextRT : RenderTargetSystem.CORE_RT_KEY;
+                const lNextRenderTarget: RenderTargetComponent | null = lParentEntity.getParentComponent(RenderTargetComponent);
+                lCurrentRenderTarget = lNextRenderTarget && this.mRenderTargetDataMap.has(lNextRenderTarget) ? lNextRenderTarget : RenderTargetSystem.CORE_RENDER_TARGET_KEY;
             } else {
-                lCurrentRT = RenderTargetSystem.CORE_RT_KEY;
+                lCurrentRenderTarget = RenderTargetSystem.CORE_RENDER_TARGET_KEY;
             }
         }
 
@@ -548,10 +551,10 @@ export class RenderTargetSystem extends GameSystem {
      * Add a mesh renderer to a single render target's active list using swap-add.
      *
      * @param pMesh - The mesh render component to add.
-     * @param pRTKey - The render target component key (or CORE_RT_KEY).
+     * @param pRenderTargetKey - The render target component key (or CORE_RENDER_TARGET_KEY).
      */
-    private addMeshToSingleRenderTarget(pMesh: MeshRenderComponent, pRTKey: RenderTargetComponent): void {
-        const lMeshData: RenderTargetSystemActiveMeshes | undefined = this.mActiveMeshRenderers.get(pRTKey);
+    private addMeshToSingleRenderTarget(pMesh: MeshRenderComponent, pRenderTargetKey: RenderTargetComponent): void {
+        const lMeshData: RenderTargetSystemActiveMeshes | undefined = this.mActiveMeshRenderers.get(pRenderTargetKey);
         if (!lMeshData) {
             return;
         }
@@ -577,42 +580,32 @@ export class RenderTargetSystem extends GameSystem {
             return;
         }
 
-        for (const lRTKey of lTargets) {
-            this.removeMeshFromSingleRenderTarget(pMesh, lRTKey);
+        for (const lRenderTargetKey of lTargets) {
+            const lMeshData: RenderTargetSystemActiveMeshes | undefined = this.mActiveMeshRenderers.get(lRenderTargetKey);
+            if (!lMeshData) {
+                return;
+            }
+
+            const lIndex: number | undefined = lMeshData.indexMap.get(pMesh);
+            if (lIndex === undefined) {
+                return;
+            }
+
+            const lLastIndex: number = lMeshData.activeList.length - 1;
+
+            // Swap the removed element with the last element to avoid shifting.
+            if (lIndex !== lLastIndex) {
+                const lLastComponent: MeshRenderComponent = lMeshData.activeList[lLastIndex];
+                lMeshData.activeList[lIndex] = lLastComponent;
+                lMeshData.indexMap.set(lLastComponent, lIndex);
+            }
+
+            // Remove the last element.
+            lMeshData.activeList.pop();
+            lMeshData.indexMap.delete(pMesh);
         }
 
         this.mMeshToRenderTargets.delete(pMesh);
-    }
-
-    /**
-     * Remove a mesh renderer from a single render target's active list using swap-remove.
-     *
-     * @param pMesh - The mesh render component to remove.
-     * @param pRTKey - The render target component key (or CORE_RT_KEY).
-     */
-    private removeMeshFromSingleRenderTarget(pMesh: MeshRenderComponent, pRTKey: RenderTargetComponent): void {
-        const lMeshData: RenderTargetSystemActiveMeshes | undefined = this.mActiveMeshRenderers.get(pRTKey);
-        if (!lMeshData) {
-            return;
-        }
-
-        const lIndex: number | undefined = lMeshData.indexMap.get(pMesh);
-        if (lIndex === undefined) {
-            return;
-        }
-
-        const lLastIndex: number = lMeshData.activeList.length - 1;
-
-        // Swap the removed element with the last element to avoid shifting.
-        if (lIndex !== lLastIndex) {
-            const lLastComponent: MeshRenderComponent = lMeshData.activeList[lLastIndex];
-            lMeshData.activeList[lIndex] = lLastComponent;
-            lMeshData.indexMap.set(lLastComponent, lIndex);
-        }
-
-        // Remove the last element.
-        lMeshData.activeList.pop();
-        lMeshData.indexMap.delete(pMesh);
     }
 
     /**
@@ -620,10 +613,10 @@ export class RenderTargetSystem extends GameSystem {
      * Called when a new render target is added. Walks the hierarchy and reassigns
      * mesh renderers from their current render target (or core) to this one.
      *
-     * @param pRTComponent - The newly added render target component.
+     * @param pRenderTargetComponent - The newly added render target component.
      */
-    private assignMeshRenderersToRenderTarget(pRTComponent: RenderTargetComponent): void {
-        const lMeshEntities: Array<GameEntity> = pRTComponent.gameEntity.getGameObjectsWithComponent(MeshRenderComponent);
+    private assignMeshRenderersToRenderTarget(pRenderTargetComponent: RenderTargetComponent): void {
+        const lMeshEntities: Array<GameEntity> = pRenderTargetComponent.gameEntity.getGameObjectsWithComponent(MeshRenderComponent);
 
         for (const lEntity of lMeshEntities) {
             const lMesh: MeshRenderComponent = lEntity.getComponent(MeshRenderComponent)!;
@@ -641,10 +634,10 @@ export class RenderTargetSystem extends GameSystem {
     /**
      * Reassign mesh renderers from a removed render target to their next ancestor render target.
      *
-     * @param pRTComponent - The render target component being removed.
+     * @param pRenderTargetComponent - The render target component being removed.
      */
-    private reassignMeshRenderersFromRenderTarget(pRTComponent: RenderTargetComponent): void {
-        const lMeshData: RenderTargetSystemActiveMeshes | undefined = this.mActiveMeshRenderers.get(pRTComponent);
+    private reassignMeshRenderersFromRenderTarget(pRenderTargetComponent: RenderTargetComponent): void {
+        const lMeshData: RenderTargetSystemActiveMeshes | undefined = this.mActiveMeshRenderers.get(pRenderTargetComponent);
         if (!lMeshData) {
             return;
         }
@@ -665,60 +658,20 @@ export class RenderTargetSystem extends GameSystem {
 
     /**
      * Update the cached world AABB for a mesh render component.
+     * 
+     * Transform a local-space AABB by a transformation matrix to compute a world-space AABB.
+     * Transforms all 8 corners of the bounding box and computes new axis-aligned min/max coordinates.
      *
      * @param pMesh - The mesh render component to update.
      */
     private updateWorldAABB(pMesh: MeshRenderComponent): void {
-        const lTransformSystem: TransformationSystem = this.getDependency(TransformationSystem);
+        // Read transformation of mesh.
         const lTransformation: TransformationComponent = pMesh.gameEntity.getComponent(TransformationComponent)!;
-        const lWorldMatrix: Matrix = lTransformSystem.worldMatrixOfTransformation(lTransformation);
+
+        // Read the world matrix and bounds of mesh.
+        const lWorldMatrix: Matrix = this.mDependencyTransformationSystem!.worldMatrixOfTransformation(lTransformation);
         const lBounds: BoundingBox = pMesh.mesh.bounds;
-        const lWorldAABB: WorldAABB = this.computeWorldAABB(lBounds, lWorldMatrix);
-        this.mWorldAABBCache.set(pMesh, lWorldAABB);
-    }
 
-    /**
-     * Rebuild the visible mesh renderer list for a render target using cached frustum and world AABBs.
-     *
-     * @param pRTKey - The render target component key (or CORE_RT_KEY).
-     * @param pRTData - The render target data to update.
-     */
-    private rebuildVisibleMeshList(pRTKey: RenderTargetComponent, pRTData: RenderTargetData): void {
-        pRTData.visibleMeshRenderers.length = 0;
-
-        // Skip render targets without an assigned camera.
-        if (!pRTData.camera || !pRTData.cameraTransformation) {
-            return;
-        }
-
-        const lMeshData: RenderTargetSystemActiveMeshes | undefined = this.mActiveMeshRenderers.get(pRTKey);
-        if (!lMeshData) {
-            return;
-        }
-
-        for (const lMeshRenderer of lMeshData.activeList) {
-            const lWorldAABB: WorldAABB | undefined = this.mWorldAABBCache.get(lMeshRenderer);
-            if (!lWorldAABB) {
-                continue;
-            }
-
-            // Test the cached world-space AABB against the cached frustum.
-            if (pRTData.frustum.intersectsAABB(lWorldAABB.minX, lWorldAABB.minY, lWorldAABB.minZ, lWorldAABB.maxX, lWorldAABB.maxY, lWorldAABB.maxZ)) {
-                pRTData.visibleMeshRenderers.push(lMeshRenderer);
-            }
-        }
-    }
-
-    /**
-     * Transform a local-space AABB by a transformation matrix to compute a world-space AABB.
-     * Transforms all 8 corners of the bounding box and computes new axis-aligned min/max coordinates.
-     *
-     * @param pBounds - The local-space bounding box.
-     * @param pTransformMatrix - The transformation matrix (model to world).
-     *
-     * @returns The world-space axis-aligned bounding box.
-     */
-    private computeWorldAABB(pBounds: BoundingBox, pTransformMatrix: Matrix): WorldAABB {
         let lMinX: number = Infinity;
         let lMinY: number = Infinity;
         let lMinZ: number = Infinity;
@@ -728,12 +681,12 @@ export class RenderTargetSystem extends GameSystem {
 
         // Iterate all 8 corners of the AABB using bit flags for min/max selection.
         for (let lCornerIndex = 0; lCornerIndex < 8; lCornerIndex++) {
-            const lX: number = (lCornerIndex & 1) ? pBounds.maxX : pBounds.minX;
-            const lY: number = (lCornerIndex & 2) ? pBounds.maxY : pBounds.minY;
-            const lZ: number = (lCornerIndex & 4) ? pBounds.maxZ : pBounds.minZ;
+            const lX: number = (lCornerIndex & 1) ? lBounds.maxX : lBounds.minX;
+            const lY: number = (lCornerIndex & 2) ? lBounds.maxY : lBounds.minY;
+            const lZ: number = (lCornerIndex & 4) ? lBounds.maxZ : lBounds.minZ;
 
             // Transform corner to world space (homogeneous coordinate w=1).
-            const lTransformed: Vector = pTransformMatrix.vectorMult(new Vector([lX, lY, lZ, 1]));
+            const lTransformed: Vector = lWorldMatrix.vectorMult(new Vector([lX, lY, lZ, 1]));
 
             // Update world-space min/max.
             lMinX = Math.min(lMinX, lTransformed.x);
@@ -744,7 +697,41 @@ export class RenderTargetSystem extends GameSystem {
             lMaxZ = Math.max(lMaxZ, lTransformed.z);
         }
 
-        return { minX: lMinX, minY: lMinY, minZ: lMinZ, maxX: lMaxX, maxY: lMaxY, maxZ: lMaxZ };
+        // Calculate and cache the world-space AABB for this mesh renderer.
+        const lWorldAABB: RenderTargetSystemWorldAABB = { minX: lMinX, minY: lMinY, minZ: lMinZ, maxX: lMaxX, maxY: lMaxY, maxZ: lMaxZ };
+        this.mWorldAABBCache.set(pMesh, lWorldAABB);
+    }
+
+    /**
+     * Rebuild the visible mesh renderer list for a render target using cached frustum and world AABBs.
+     *
+     * @param pRenderTargetKey - The render target component key (or CORE_RENDER_TARGET_KEY).
+     * @param pRenderTargetData - The render target data to update.
+     */
+    private rebuildVisibleMeshList(pRenderTargetKey: RenderTargetComponent, pRenderTargetData: RenderTargetSystemRenderTargetContextData): void {
+        pRenderTargetData.visibleMeshRenderers = new Array<MeshRenderComponent>();
+
+        // Skip render targets without an assigned camera.
+        if (!pRenderTargetData.camera || !pRenderTargetData.cameraTransformation) {
+            return;
+        }
+
+        const lMeshData: RenderTargetSystemActiveMeshes | undefined = this.mActiveMeshRenderers.get(pRenderTargetKey);
+        if (!lMeshData) {
+            return;
+        }
+
+        for (const lMeshRenderer of lMeshData.activeList) {
+            const lWorldAABB: RenderTargetSystemWorldAABB | undefined = this.mWorldAABBCache.get(lMeshRenderer);
+            if (!lWorldAABB) {
+                continue;
+            }
+
+            // Test the cached world-space AABB against the cached frustum.
+            if (pRenderTargetData.frustum.intersectsAABB(lWorldAABB.minX, lWorldAABB.minY, lWorldAABB.minZ, lWorldAABB.maxX, lWorldAABB.maxY, lWorldAABB.maxZ)) {
+                pRenderTargetData.visibleMeshRenderers.push(lMeshRenderer);
+            }
+        }
     }
 }
 
@@ -752,7 +739,7 @@ export class RenderTargetSystem extends GameSystem {
  * Bundled information for a render target.
  * Stores the camera, frustum, GPU render targets, and visible mesh renderers for a single render target.
  */
-export type RenderTargetData = {
+export type RenderTargetSystemRenderTargetContextData = {
     camera: CameraComponent | null;
     cameraTransformation: TransformationComponent | null;
     frustum: Frustum;
@@ -772,7 +759,7 @@ type RenderTargetSystemActiveMeshes = {
 /**
  * Axis-aligned bounding box in world space defined by min/max coordinates.
  */
-type WorldAABB = {
+type RenderTargetSystemWorldAABB = {
     minX: number;
     minY: number;
     minZ: number;

@@ -11,7 +11,7 @@ export class GameEnvironment {
     private readonly mConfigurationDebugLog: boolean;
     private mCurrentTick: number;
     private readonly mLoadedScenes: Set<GameScene>;
-    private readonly mStateChangeQueue: Array<GameEnvironmentStateChange>;
+    private mStateChangeQueue: Array<GameEnvironmentStateChange>;
     private readonly mSystems: Array<GameSystem>;
 
     /**
@@ -64,7 +64,7 @@ export class GameEnvironment {
         const lConstructorChangeStateQueue: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>> = this.optimizeStateChangeQueue();
 
         // Clear the original queue. Splice is half as fast as setting length to 0.
-        this.mStateChangeQueue.length = 0;
+        this.mStateChangeQueue = new Array<GameEnvironmentStateChange>();
 
         // Call update on all systems
         for (const lSystem of this.mSystems) {

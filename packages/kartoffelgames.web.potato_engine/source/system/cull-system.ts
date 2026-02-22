@@ -79,7 +79,7 @@ export class CullSystem extends GameSystem {
      * @param pEnvironment - The game environment this system belongs to.
      */
     public constructor(pEnvironment: GameEnvironment) {
-        super("Cull", pEnvironment);
+        super('Cull', pEnvironment);
 
         this.mRenderTargetDataMap = new Map<RenderTargetComponent, CullSystemRenderTargetData>();
         this.mMeshRendererToRenderTargets = new WeakMap<MeshRenderComponent, Array<RenderTargetComponent>>();

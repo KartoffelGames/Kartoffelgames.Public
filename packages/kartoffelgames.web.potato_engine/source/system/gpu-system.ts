@@ -22,7 +22,7 @@ export class GpuSystem extends GameSystem {
      * @param pEnvironment - The game environment this system belongs to.
      */
     public constructor(pEnvironment: GameEnvironment) {
-        super("Gpu", pEnvironment);
+        super('Gpu', pEnvironment);
         this.mGpu = null;
     }
 

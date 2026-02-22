@@ -100,7 +100,7 @@ export class ShitSystem extends GameSystem {
      * @param pEnvironment - The game environment this system belongs to.
      */
     public constructor(pEnvironment: GameEnvironment) {
-        super(pEnvironment);
+        super('ShitSystem', pEnvironment);
 
         // Canvas state.
         this.mCanvas = null;

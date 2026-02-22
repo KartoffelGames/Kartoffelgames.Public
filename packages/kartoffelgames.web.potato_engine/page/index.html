@@ -1,14 +1,38 @@
 <html>
 
 <head>
-    <title>Scratchpad</title>
+    <title>Potato Engine - Scratchpad</title>
     <link rel="stylesheet" href="./index.css">
     <script src="build/page.js" defer></script>
 </head>
 
-<body>   
-    <div class="canvas-wrapper">
-        <canvas width="640" height="640" id="canvas"></canvas>
+<body>
+    <div class="editor-layout">
+        <!-- Left panel: Scene hierarchy -->
+        <div class="panel panel-left" id="panel-left">
+            <div class="panel-header">Hierarchy</div>
+            <div class="panel-content" id="hierarchy-content"></div>
+        </div>
+
+        <!-- Left resize handle -->
+        <div class="resize-handle resize-handle-left" id="resize-left"></div>
+
+        <!-- Center: Canvas + top frame graph -->
+        <div class="panel-center">
+            <div class="frame-graph-bar" id="frame-graph-bar"></div>
+            <div class="canvas-wrapper">
+                <canvas width="640" height="640" id="canvas"></canvas>
+            </div>
+        </div>
+
+        <!-- Right resize handle -->
+        <div class="resize-handle resize-handle-right" id="resize-right"></div>
+
+        <!-- Right panel: Debug / Systems -->
+        <div class="panel panel-right" id="panel-right">
+            <div class="panel-header">Debug</div>
+            <div class="panel-content" id="debug-content"></div>
+        </div>
     </div>
 </body>
 

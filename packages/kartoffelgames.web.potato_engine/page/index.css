@@ -1,22 +1,323 @@
-body {
-    background-color: rgb(32, 32, 32);
-    color: #fff;
+/* ── Reset & Base ──────────────────────────────────────────── */
+*, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
 }
 
-p {
-    color: red;
+:root {
+    --bg-primary: #1e1e2e;
+    --bg-secondary: #181825;
+    --bg-surface: #242438;
+    --bg-hover: #2a2a40;
+    --border-color: #313145;
+    --text-primary: #cdd6f4;
+    --text-secondary: #a6adc8;
+    --text-muted: #6c7086;
+    --accent: #89b4fa;
+    --accent-dim: rgba(137, 180, 250, 0.15);
+    --graph-green: #a6e3a1;
+    --graph-yellow: #f9e2af;
+    --graph-red: #f38ba8;
+    --graph-blue: #89b4fa;
+    --graph-mauve: #cba6f7;
+    --graph-peach: #fab387;
+    --panel-min-width: 200px;
+    --panel-default-width: 280px;
+    --handle-width: 4px;
+    --header-height: 32px;
+    --frame-graph-height: 80px;
+
+    font-family: 'Segoe UI', 'Cascadia Code', Consolas, monospace;
+    font-size: 13px;
+    color: var(--text-primary);
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden;
+    background-color: var(--bg-primary);
+}
+
+/* ── Editor Layout (3-column grid) ────────────────────────── */
+.editor-layout {
+    display: flex;
+    width: 100%;
+    height: 100%;
+}
+
+/* ── Side Panels ──────────────────────────────────────────── */
+.panel {
+    display: flex;
+    flex-direction: column;
+    background: var(--bg-secondary);
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.panel-left {
+    width: var(--panel-default-width);
+    min-width: var(--panel-min-width);
+    border-right: 1px solid var(--border-color);
+}
+
+.panel-right {
+    width: var(--panel-default-width);
+    min-width: var(--panel-min-width);
+    border-left: 1px solid var(--border-color);
+}
+
+.panel-header {
+    height: var(--header-height);
+    line-height: var(--header-height);
+    padding: 0 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    border-bottom: 1px solid var(--border-color);
+    user-select: none;
+    flex-shrink: 0;
+}
+
+.panel-content {
+    flex: 1;
+    overflow-y: auto;
+    padding: 8px 0;
+}
+
+/* ── Scrollbar ────────────────────────────────────────────── */
+.panel-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.panel-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.panel-content::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 3px;
+}
+
+.panel-content::-webkit-scrollbar-thumb:hover {
+    background: var(--text-muted);
+}
+
+/* ── Resize Handles ───────────────────────────────────────── */
+.resize-handle {
+    width: var(--handle-width);
+    cursor: col-resize;
+    background: transparent;
+    flex-shrink: 0;
+    z-index: 10;
+    transition: background 0.15s;
+}
+
+.resize-handle:hover,
+.resize-handle.active {
+    background: var(--accent);
+}
+
+/* ── Center Panel ─────────────────────────────────────────── */
+.panel-center {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    min-width: 200px;
+    overflow: hidden;
+}
+
+.frame-graph-bar {
+    height: var(--frame-graph-height);
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+    flex-shrink: 0;
+    position: relative;
+    overflow: hidden;
 }
 
 .canvas-wrapper {
+    flex: 1;
     overflow: hidden;
-    resize: both;
-
-    /* Initial size */
-    height: 1200px;
-    width: 1800px;
+    position: relative;
 }
 
 .canvas-wrapper canvas {
     width: 100%;
     height: 100%;
+    display: block;
+}
+
+/* ── Hierarchy Tree ───────────────────────────────────────── */
+.tree-node {
+    user-select: none;
+}
+
+.tree-node-row {
+    display: flex;
+    align-items: center;
+    height: 24px;
+    padding: 0 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.1s;
+}
+
+.tree-node-row:hover {
+    background: var(--bg-hover);
+}
+
+.tree-toggle {
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    transition: transform 0.15s;
+}
+
+.tree-toggle.expanded {
+    transform: rotate(90deg);
+}
+
+.tree-toggle.leaf {
+    visibility: hidden;
+}
+
+.tree-icon {
+    width: 16px;
+    height: 16px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 6px;
+    font-size: 11px;
+    flex-shrink: 0;
+}
+
+.tree-icon.scene { color: var(--graph-mauve); }
+.tree-icon.entity { color: var(--graph-blue); }
+.tree-icon.component { color: var(--graph-green); }
+
+.tree-label {
+    font-size: 12px;
+    color: var(--text-primary);
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.tree-label.disabled {
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.tree-children {
+    overflow: hidden;
+    margin-left: 8px;
+    padding-left: 12px;
+    border-left: 1px solid var(--border-color);
+}
+
+.tree-children.collapsed {
+    display: none;
+}
+
+/* ── Debug Panel ──────────────────────────────────────────── */
+.debug-section {
+    margin-bottom: 12px;
+}
+
+.debug-section-header {
+    padding: 4px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-muted);
+    user-select: none;
+}
+
+.debug-system-entry {
+    padding: 6px 12px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.debug-system-name {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-primary);
+    margin-bottom: 4px;
+}
+
+.debug-system-timings {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 8px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+
+.debug-timing-label {
+    color: var(--text-muted);
+}
+
+.debug-timing-value {
+    font-variant-numeric: tabular-nums;
+    min-width: 56px;
+    text-align: right;
+}
+
+.debug-system-graph {
+    height: 30px;
+    background: var(--bg-surface);
+    border-radius: 3px;
+    overflow: hidden;
+    position: relative;
+}
+
+/* ── Frame Graph (top bar) ────────────────────────────────── */
+.frame-graph-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.frame-graph-stats {
+    display: flex;
+    gap: 16px;
+    padding: 4px 12px;
+    font-size: 11px;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    flex-shrink: 0;
+}
+
+.frame-graph-stats .stat-value {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+}
+
+.frame-graph-canvas-wrap {
+    flex: 1;
+    position: relative;
+}
+
+.frame-graph-canvas-wrap canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* ── Utility ──────────────────────────────────────────────── */
+.no-select {
+    user-select: none;
 }

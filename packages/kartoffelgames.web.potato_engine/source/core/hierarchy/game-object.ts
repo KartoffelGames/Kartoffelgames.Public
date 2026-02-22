@@ -24,7 +24,6 @@ export abstract class GameObject {
         this.mLabel = pLabel;
     }
 
-
     /**
      * Constructor.
      * 
@@ -45,6 +44,10 @@ export abstract class GameObject {
      * Activate this game object.
      */
     public activate(): void {
+        if(this.mEnableState.selfState) {
+            return;
+        }
+
         this.changeEnableState(true, false);
     }
 
@@ -63,6 +66,10 @@ export abstract class GameObject {
      * Deactivates this game object.
      */
     public deactivate(): void {
+        if(!this.mEnableState.selfState) {
+            return;
+        }
+
         this.changeEnableState(false, false);
     }
 

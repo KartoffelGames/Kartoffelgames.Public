@@ -28,11 +28,10 @@ import type { GameEnvironment, GameEnvironmentStateChange } from '../core/enviro
  * When a render target has passthrough enabled, its mesh renderers are also added to the next ancestor render target.
  */
 export class CullSystem extends GameSystem {
-    // Core render target component (standalone, not attached to any entity).
-    private mCoreRenderTarget: RenderTargetComponent | null;
+    // Root render target component (standalone, not attached to any entity).
+    private readonly mRootRenderTarget: RenderTargetComponent;
 
     // Culling data for core and component render targets.
-    private mCoreRenderTargetData: CullSystemRenderTargetData | null;
     private readonly mRenderTargetDataMap: Map<RenderTargetComponent, CullSystemRenderTargetData>;
 
     // Tracks which render targets each mesh renderer belongs to (for passthrough cleanup).
@@ -69,9 +68,9 @@ export class CullSystem extends GameSystem {
      * This standalone component represents the primary render target (typically canvas-backed).
      * External systems can update its width and height to trigger camera aspect ratio changes.
      */
-    public get coreRenderTarget(): RenderTargetComponent {
+    public get rootRenderTarget(): RenderTargetComponent {
         this.lockGate();
-        return this.mCoreRenderTarget!;
+        return this.mRootRenderTarget!;
     }
 
     /**
@@ -82,16 +81,18 @@ export class CullSystem extends GameSystem {
     public constructor(pEnvironment: GameEnvironment) {
         super(pEnvironment);
 
-        this.mCoreRenderTarget = null;
-        this.mCoreRenderTargetData = null;
         this.mRenderTargetDataMap = new Map<RenderTargetComponent, CullSystemRenderTargetData>();
         this.mMeshRendererToRenderTargets = new WeakMap<MeshRenderComponent, Array<RenderTargetComponent>>();
         this.mWorldBoundsCache = new WeakMap<MeshRenderComponent, CullSystemWorldBounds>();
-        this.mActiveCameras = new Set<CameraComponent>();
         this.mCameraToRenderTarget = new WeakMap<CameraComponent, RenderTargetComponent>();
+        this.mActiveCameras = new Set<CameraComponent>();
 
         // Set dependencies to null.
         this.mDependencyTransformationSystem = null;
+
+        // Init root render target as early as possible.
+        this.mRootRenderTarget = new CoreRenderTargetComponent(this.environment);
+        this.mRenderTargetDataMap.set(this.mRootRenderTarget, this.createRenderTargetData());
     }
 
     /**
@@ -102,9 +103,9 @@ export class CullSystem extends GameSystem {
      *
      * @returns Readonly culling data, or undefined if the component is not tracked.
      */
-    public getRenderTargetCulling(pRenderTarget: RenderTargetComponent): CullSystemRenderTargetCulling | undefined {
+    public getRenderTargetCulling(pRenderTarget: RenderTargetComponent): ReadonlyCullSystemRenderTargetData | undefined {
         this.lockGate();
-        return this.getDataForRenderTarget(pRenderTarget);
+        return this.mRenderTargetDataMap.get(pRenderTarget)!;
     }
 
     /**
@@ -113,13 +114,6 @@ export class CullSystem extends GameSystem {
     protected override async onCreate(): Promise<void> {
         // Get dependencies.
         this.mDependencyTransformationSystem = this.environment.getSystem(TransformationSystem);
-
-        // Create the standalone core render target component.
-        // Assign to member variable and create culling data for the core render target.
-        this.mCoreRenderTarget = new CoreRenderTargetComponent(this.environment);
-
-        // Initialize culling data for the core render target.
-        this.mCoreRenderTargetData = this.createRenderTargetData();
     }
 
     /**
@@ -129,11 +123,6 @@ export class CullSystem extends GameSystem {
         // Rebuild visible mesh list for each component render target.
         for (const lData of this.mRenderTargetDataMap.values()) {
             this.rebuildVisibleMeshList(lData);
-        }
-
-        // Rebuild visible mesh list for the core render target.
-        if (this.mCoreRenderTargetData) {
-            this.rebuildVisibleMeshList(this.mCoreRenderTargetData);
         }
     }
 
@@ -158,9 +147,6 @@ export class CullSystem extends GameSystem {
                         // Assign enabled mesh renderers under this render target.
                         this.assignMeshRenderersToRenderTarget(lRenderTarget);
 
-                        // Reevaluate camera for this render target and the core render target.
-                        this.reevaluateRenderTargetCamera(lRenderTarget, lData);
-                        this.reevaluateCoreCamera();
                         break;
                     }
                     case 'remove':
@@ -169,22 +155,20 @@ export class CullSystem extends GameSystem {
                         this.reassignMeshRenderersFromRenderTarget(lRenderTarget);
 
                         // Remove camera assignment tracking for this render target's camera.
-                        const lData: CullSystemRenderTargetData | undefined = this.mRenderTargetDataMap.get(lRenderTarget);
-                        if (lData?.camera) {
-                            this.mCameraToRenderTarget.delete(lData.camera);
+                        const lData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(lRenderTarget)!;
+                        if (lData.camera) {
+                            this.mCameraToRenderTarget.delete(lData.camera.component);
                         }
 
                         this.mRenderTargetDataMap.delete(lRenderTarget);
 
-                        // Reevaluate core camera in case a camera was freed.
-                        this.reevaluateCoreCamera();
                         break;
                     }
                     case 'update': {
                         // Update camera aspect ratio when the render target dimensions change.
-                        const lData: CullSystemRenderTargetData | undefined = this.getDataForRenderTarget(lRenderTarget);
-                        if (lData && lData.camera) {
-                            lData.camera.projection.aspectRatio = lRenderTarget.width / lRenderTarget.height;
+                        const lData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(lRenderTarget)!;
+                        if (lData.camera) {
+                            lData.camera.component.projection.aspectRatio = lRenderTarget.width / lRenderTarget.height;
 
                             // Update frustum to match the new projection.
                             this.updateFrustum(lData);
@@ -208,36 +192,12 @@ export class CullSystem extends GameSystem {
                             break;
                         }
 
-                        this.mActiveCameras.add(lCamera);
-
-                        // Find the render target this camera belongs to and reevaluate its camera assignment.
-                        const lParentRenderTarget: RenderTargetComponent | null = lCamera.gameEntity.getParentComponent(RenderTargetComponent);
-                        if (lParentRenderTarget && this.mRenderTargetDataMap.has(lParentRenderTarget)) {
-                            this.reevaluateRenderTargetCamera(lParentRenderTarget, this.mRenderTargetDataMap.get(lParentRenderTarget)!);
-                        }
-
-                        // Always reevaluate core camera as unclaimed cameras may have changed.
-                        this.reevaluateCoreCamera();
+                        this.activateCamera(lCamera);
                         break;
                     }
                     case 'remove':
                     case 'deactivate': {
-                        this.mActiveCameras.delete(lCamera);
-
-                        // Find which render target this camera was assigned to.
-                        const lAssignedRenderTarget: RenderTargetComponent | undefined = this.mCameraToRenderTarget.get(lCamera);
-                        this.mCameraToRenderTarget.delete(lCamera);
-
-                        if (lAssignedRenderTarget && lAssignedRenderTarget !== this.mCoreRenderTarget) {
-                            // Reevaluate the component render target to find a replacement camera.
-                            const lData: CullSystemRenderTargetData | undefined = this.mRenderTargetDataMap.get(lAssignedRenderTarget);
-                            if (lData) {
-                                this.reevaluateRenderTargetCamera(lAssignedRenderTarget, lData);
-                            }
-                        }
-
-                        // Reevaluate core camera.
-                        this.reevaluateCoreCamera();
+                        this.deactivateCamera(lCamera);
                         break;
                     }
                     case 'update': {
@@ -248,10 +208,8 @@ export class CullSystem extends GameSystem {
                         // Recompute frustum for the render target this camera is assigned to.
                         const lAssignedRenderTarget: RenderTargetComponent | undefined = this.mCameraToRenderTarget.get(lCamera);
                         if (lAssignedRenderTarget) {
-                            const lData: CullSystemRenderTargetData | undefined = this.getDataForRenderTarget(lAssignedRenderTarget);
-                            if (lData) {
-                                this.updateFrustum(lData);
-                            }
+                            const lData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(lAssignedRenderTarget)!;
+                            this.updateFrustum(lData);
                         }
                         break;
                     }
@@ -306,7 +264,6 @@ export class CullSystem extends GameSystem {
     private createRenderTargetData(): CullSystemRenderTargetData {
         return {
             camera: null,
-            cameraTransformation: null,
             frustum: new Frustum(),
             activeMeshRenderers: [],
             meshRendererIndexMap: new Map(),
@@ -315,96 +272,77 @@ export class CullSystem extends GameSystem {
     }
 
     /**
-     * Get culling data for a render target component.
-     * Handles both core and entity-attached render targets.
-     *
-     * @param pRenderTarget - The render target component to look up.
-     *
-     * @returns The culling data, or undefined if the component is not tracked.
+     * Activate a camera component by assigning it to the appropriate render target and updating frustums.
+     * If the camera is already active on another render target, it will be ignored.
      */
-    private getDataForRenderTarget(pRenderTarget: RenderTargetComponent): CullSystemRenderTargetData | undefined {
-        if (pRenderTarget === this.mCoreRenderTarget) {
-            return this.mCoreRenderTargetData ?? undefined;
+    public activateCamera(pCamera: CameraComponent): void {
+        // Add to active cameras set.
+        this.mActiveCameras.add(pCamera);
+
+        // Find the render target this camera belongs to and reevaluate its camera assignment.
+        let lParentRenderTarget: RenderTargetComponent | null = pCamera.gameEntity.getParentComponent(RenderTargetComponent);
+        if (!lParentRenderTarget) {
+            lParentRenderTarget = this.mRootRenderTarget;
         }
-        return this.mRenderTargetDataMap.get(pRenderTarget);
+
+        // Set camera as active when render target has no active camera set.
+        const lRenderTargetData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(lParentRenderTarget)!;
+
+        if (!lRenderTargetData.camera) {
+            // Set camera assignment and track it.
+            lRenderTargetData.camera = {
+                component: pCamera,
+                transformation: pCamera.gameEntity.getComponent(TransformationComponent)!
+            };
+            this.mCameraToRenderTarget.set(pCamera, lParentRenderTarget);
+
+            // Set camera aspect ratio to match the render target dimensions.
+            lRenderTargetData.camera.component.projection.aspectRatio = lParentRenderTarget.width / lParentRenderTarget.height;
+
+            // Compute frustum for the newly assigned camera.
+            this.updateFrustum(lRenderTargetData);
+        }
     }
 
     /**
-     * Reevaluate camera assignment for a specific component render target.
-     * Searches the render target's entity hierarchy for the first enabled camera.
-     *
-     * @param pRenderTarget - The render target component to reevaluate.
-     * @param pData - The culling data to update.
+     * Deactivate a camera component by clearing its render target assignment and updating frustums.
+     * Searches for a replacement camera for the affected render target, and if found, assigns it and updates the frustum.
+     * 
+     * @param pCamera - The camera component to deactivate. 
      */
-    private reevaluateRenderTargetCamera(pRenderTarget: RenderTargetComponent, pData: CullSystemRenderTargetData): void {
-        // Clear previous camera assignment tracking.
-        if (pData.camera) {
-            this.mCameraToRenderTarget.delete(pData.camera);
-        }
+    public deactivateCamera(pCamera: CameraComponent): void {
+        // Remove from active cameras set.
+        this.mActiveCameras.delete(pCamera);
 
-        // Search entity hierarchy for cameras.
-        const lCameraEntities: Array<GameEntity> = pRenderTarget.gameEntity.getGameObjectsWithComponent(CameraComponent);
-
-        for (const lEntity of lCameraEntities) {
-            const lCamera: CameraComponent = lEntity.getComponent(CameraComponent)!;
-
-            if (lCamera.enabled) {
-                pData.camera = lCamera;
-                pData.cameraTransformation = lCamera.gameEntity.getComponent(TransformationComponent)!;
-                this.mCameraToRenderTarget.set(lCamera, pRenderTarget);
-
-                // Set camera aspect ratio to match the render target dimensions.
-                lCamera.projection.aspectRatio = pRenderTarget.width / pRenderTarget.height;
-
-                // Compute frustum for the newly assigned camera.
-                this.updateFrustum(pData);
-                return;
-            }
-        }
-
-        // No enabled camera found.
-        pData.camera = null;
-        pData.cameraTransformation = null;
-    }
-
-    /**
-     * Reevaluate camera assignment for the core render target.
-     * Assigns the first active enabled camera not claimed by any component render target.
-     */
-    private reevaluateCoreCamera(): void {
-        if (!this.mCoreRenderTargetData || !this.mCoreRenderTarget) {
+        // When the camera is not active on any target. Skip.
+        if (!this.mCameraToRenderTarget.has(pCamera)) {
             return;
         }
 
-        // Clear previous core camera assignment tracking.
-        if (this.mCoreRenderTargetData.camera) {
-            this.mCameraToRenderTarget.delete(this.mCoreRenderTargetData.camera);
-        }
+        const lRenderTarget: RenderTargetComponent = this.mCameraToRenderTarget.get(pCamera)!;
+        const lRenderTargetData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(lRenderTarget)!;
 
-        this.mCoreRenderTargetData.camera = null;
-        this.mCoreRenderTargetData.cameraTransformation = null;
+        // Clear camera assignment.
+        lRenderTargetData.camera = null;
+        this.mCameraToRenderTarget.delete(pCamera);
 
-        // Collect all cameras claimed by component render targets.
-        const lClaimedCameras: Set<CameraComponent> = new Set<CameraComponent>();
-        for (const lData of this.mRenderTargetDataMap.values()) {
-            if (lData.camera) {
-                lClaimedCameras.add(lData.camera);
-            }
-        }
-
-        // Find the first unclaimed enabled active camera.
+        // Iterate all active cameras to find a new camera for the render target.
         for (const lCamera of this.mActiveCameras) {
-            if (!lClaimedCameras.has(lCamera) && lCamera.enabled) {
-                this.mCoreRenderTargetData.camera = lCamera;
-                this.mCoreRenderTargetData.cameraTransformation = lCamera.gameEntity.getComponent(TransformationComponent)!;
-                this.mCameraToRenderTarget.set(lCamera, this.mCoreRenderTarget);
+            // When camera is already assigned to another render target. Skip.
+            if (this.mCameraToRenderTarget.has(lCamera)) {
+                continue;
+            }
 
-                // Set camera aspect ratio to match the core render target dimensions.
-                lCamera.projection.aspectRatio = this.mCoreRenderTarget.width / this.mCoreRenderTarget.height;
+            // Find the render target this camera belongs to and reevaluate its camera assignment.
+            let lParentRenderTarget: RenderTargetComponent | null = lCamera.gameEntity.getParentComponent(RenderTargetComponent);
+            if (!lParentRenderTarget) {
+                lParentRenderTarget = this.mRootRenderTarget;
+            }
 
-                // Compute frustum for the newly assigned camera.
-                this.updateFrustum(this.mCoreRenderTargetData);
-                break;
+            // When the camera belongs to this render target, set it as the new active camera.
+            if (lParentRenderTarget === lRenderTarget) {
+                this.activateCamera(lCamera);
+                return;
             }
         }
     }
@@ -415,13 +353,13 @@ export class CullSystem extends GameSystem {
      * @param pData - The culling data whose frustum to update.
      */
     private updateFrustum(pData: CullSystemRenderTargetData): void {
-        if (!pData.camera || !pData.cameraTransformation) {
+        if (!pData.camera) {
             return;
         }
 
         // Read world matrix of camera and compute view-projection matrix to update the frustum.
-        const lWorldMatrix: Matrix = this.mDependencyTransformationSystem!.worldMatrixOfTransformation(pData.cameraTransformation);
-        const lViewProjectionMatrix: Matrix = pData.camera.matrix.mult(lWorldMatrix.inverse());
+        const lWorldMatrix: Matrix = this.mDependencyTransformationSystem!.worldMatrixOfTransformation(pData.camera.transformation);
+        const lViewProjectionMatrix: Matrix = pData.camera.component.matrix.mult(lWorldMatrix.inverse());
 
         // Update the frustum with the new view-projection matrix.
         pData.frustum.update(lViewProjectionMatrix);
@@ -439,7 +377,7 @@ export class CullSystem extends GameSystem {
 
         // Find the nearest ancestor RenderTargetComponent.
         const lParentRenderTarget: RenderTargetComponent | null = pMeshRenderer.gameEntity.getParentComponent(RenderTargetComponent);
-        let lCurrentRenderTarget: RenderTargetComponent = this.mCoreRenderTarget!;
+        let lCurrentRenderTarget: RenderTargetComponent = this.mRootRenderTarget!;
         if (lParentRenderTarget && this.mRenderTargetDataMap.has(lParentRenderTarget)) {
             lCurrentRenderTarget = lParentRenderTarget;
         }
@@ -450,7 +388,7 @@ export class CullSystem extends GameSystem {
             lTargets.push(lCurrentRenderTarget);
 
             // Stop at the core render target.
-            if (lCurrentRenderTarget === this.mCoreRenderTarget) {
+            if (lCurrentRenderTarget === this.mRootRenderTarget) {
                 break;
             }
 
@@ -463,9 +401,9 @@ export class CullSystem extends GameSystem {
             const lParentEntity: GameEntity | null = lCurrentRenderTarget.gameEntity.parent as GameEntity | null;
             if (lParentEntity) {
                 const lNextRenderTarget: RenderTargetComponent | null = lParentEntity.getParentComponent(RenderTargetComponent);
-                lCurrentRenderTarget = lNextRenderTarget && this.mRenderTargetDataMap.has(lNextRenderTarget) ? lNextRenderTarget : this.mCoreRenderTarget!;
+                lCurrentRenderTarget = lNextRenderTarget && this.mRenderTargetDataMap.has(lNextRenderTarget) ? lNextRenderTarget : this.mRootRenderTarget!;
             } else {
-                lCurrentRenderTarget = this.mCoreRenderTarget!;
+                lCurrentRenderTarget = this.mRootRenderTarget!;
             }
         }
 
@@ -479,11 +417,8 @@ export class CullSystem extends GameSystem {
      * @param pRenderTarget - The render target component.
      */
     private addMeshRendererToSingleRenderTarget(pMeshRenderer: MeshRenderComponent, pRenderTarget: RenderTargetComponent): void {
-        const lData: CullSystemRenderTargetData | undefined = this.getDataForRenderTarget(pRenderTarget);
-        if (!lData) {
-            return;
-        }
-
+        const lData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(pRenderTarget)!;
+        
         // Avoid duplicate entries.
         if (lData.meshRendererIndexMap.has(pMeshRenderer)) {
             return;
@@ -506,10 +441,7 @@ export class CullSystem extends GameSystem {
         }
 
         for (const lRenderTarget of lTargets) {
-            const lData: CullSystemRenderTargetData | undefined = this.getDataForRenderTarget(lRenderTarget);
-            if (!lData) {
-                continue;
-            }
+            const lData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(lRenderTarget)!;
 
             const lIndex: number | undefined = lData.meshRendererIndexMap.get(pMeshRenderer);
             if (lIndex === undefined) {
@@ -562,10 +494,7 @@ export class CullSystem extends GameSystem {
      * @param pRenderTarget - The render target component being removed.
      */
     private reassignMeshRenderersFromRenderTarget(pRenderTarget: RenderTargetComponent): void {
-        const lData: CullSystemRenderTargetData | undefined = this.getDataForRenderTarget(pRenderTarget);
-        if (!lData) {
-            return;
-        }
+        const lData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(pRenderTarget)!;
 
         // Copy the list since we'll modify it during iteration.
         const lMeshRenderers: Array<MeshRenderComponent> = [...lData.activeMeshRenderers];
@@ -632,13 +561,16 @@ export class CullSystem extends GameSystem {
      * @param pData - The culling data to update.
      */
     private rebuildVisibleMeshList(pData: CullSystemRenderTargetData): void {
-        pData.visibleMeshRenderers = new Array<MeshRenderComponent>();
-
         // Skip render targets without an assigned camera.
-        if (!pData.camera || !pData.cameraTransformation) {
+        if (!pData.camera) {
             return;
         }
 
+        // Clear previous visible list.
+        pData.visibleMeshRenderers = new Array<MeshRenderComponent>();
+
+
+        // Iterate active mesh renderers and test their cached world bounds against the frustum.
         for (const lMeshRenderer of pData.activeMeshRenderers) {
             const lWorldBounds: CullSystemWorldBounds | undefined = this.mWorldBoundsCache.get(lMeshRenderer);
             if (!lWorldBounds) {
@@ -654,29 +586,33 @@ export class CullSystem extends GameSystem {
 }
 
 /**
- * Readonly culling data for a render target.
- * Exposed to external systems via getRenderTargetCulling.
- */
-export type CullSystemRenderTargetCulling = {
-    readonly camera: CameraComponent | null;
-    readonly cameraTransformation: TransformationComponent | null;
-    readonly frustum: Frustum;
-    readonly activeMeshRenderers: ReadonlyArray<MeshRenderComponent>;
-    readonly visibleMeshRenderers: ReadonlyArray<MeshRenderComponent>;
-};
-
-/**
  * Internal mutable culling data for a render target.
  * Stores camera, frustum, and both active (all) and visible (after culling) mesh renderer lists.
  * Includes the swap-remove index map for O(1) mesh renderer add/remove.
  */
 type CullSystemRenderTargetData = {
-    camera: CameraComponent | null;
-    cameraTransformation: TransformationComponent | null;
+    camera: {
+        component: CameraComponent;
+        transformation: TransformationComponent;
+    } | null;
     frustum: Frustum;
     activeMeshRenderers: Array<MeshRenderComponent>;
     meshRendererIndexMap: Map<MeshRenderComponent, number>;
     visibleMeshRenderers: Array<MeshRenderComponent>;
+};
+
+/**
+ * Readonly culling data for a render target.
+ * Exposed to external systems via getRenderTargetCulling.
+ */
+export type ReadonlyCullSystemRenderTargetData = {
+    readonly camera: {
+        readonly component: CameraComponent;
+        readonly transformation: TransformationComponent;
+    } | null;
+    readonly frustum: Frustum;
+    readonly activeMeshRenderers: ReadonlyArray<MeshRenderComponent>;
+    readonly visibleMeshRenderers: ReadonlyArray<MeshRenderComponent>;
 };
 
 /**
@@ -690,7 +626,6 @@ type CullSystemWorldBounds = {
     maxY: number;
     maxZ: number;
 };
-
 
 /**
  * Extended render target component for the core (canvas-backed) render target.

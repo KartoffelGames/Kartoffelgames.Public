@@ -23,7 +23,7 @@ import type { Mesh } from '../../source/component_item/mesh/mesh.ts';
 import type { GameComponentConstructor } from '../../source/core/component/game-component.ts';
 import type { GameEnvironment, GameEnvironmentStateChange } from '../../source/core/environment/game-environment.ts';
 import { GameSystem, type GameSystemConstructor } from '../../source/core/game-system.ts';
-import { CullSystem, type CullSystemRenderTargetCulling } from '../../source/system/cull-system.ts';
+import { CullSystem, type ReadonlyCullSystemRenderTargetData } from '../../source/system/cull-system.ts';
 import { GpuSystem } from '../../source/system/gpu-system.ts';
 import { LightSystem } from '../../source/system/light-system.ts';
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
@@ -151,7 +151,7 @@ export class ShitSystem extends GameSystem {
         this.mRenderTargets.resize(lCanvasHeight, lCanvasWidth);
 
         // Update core render target component dimensions to match canvas.
-        const lCoreRenderTarget = this.mDependencyCullSystem.coreRenderTarget;
+        const lCoreRenderTarget = this.mDependencyCullSystem.rootRenderTarget;
         lCoreRenderTarget.width = lCanvasWidth;
         lCoreRenderTarget.height = lCanvasHeight;
 
@@ -252,10 +252,10 @@ export class ShitSystem extends GameSystem {
         }
 
         // Get culling data for the core render target from CullSystem.
-        const lCullingData: CullSystemRenderTargetCulling | undefined = this.mDependencyCullSystem!.getRenderTargetCulling(this.mDependencyCullSystem!.coreRenderTarget);
+        const lCullingData: ReadonlyCullSystemRenderTargetData | undefined = this.mDependencyCullSystem!.getRenderTargetCulling(this.mDependencyCullSystem!.rootRenderTarget);
 
         // Skip rendering when no culling data or no camera is assigned.
-        if (!lCullingData || !lCullingData.camera || !lCullingData.cameraTransformation) {
+        if (!lCullingData || !lCullingData.camera || !lCullingData.camera.transformation) {
             return;
         }
 
@@ -264,8 +264,8 @@ export class ShitSystem extends GameSystem {
 
         // Update camera view projection matrix every frame.
         // Use the world matrix from TransformationSystem and invert it to get the view matrix.
-        const lWorldMatrix = this.mDependencyTransformationSystem!.worldMatrixOfTransformation(lCullingData.cameraTransformation);
-        const lViewProjectionMatrix = lCullingData.camera.matrix.mult(lWorldMatrix.inverse());
+        const lWorldMatrix = this.mDependencyTransformationSystem!.worldMatrixOfTransformation(lCullingData.camera.transformation);
+        const lViewProjectionMatrix = lCullingData.camera.component.matrix.mult(lWorldMatrix.inverse());
         this.mCameraGroup.data('viewProjection').asBufferView(Float32Array).write(lViewProjectionMatrix.dataArray);
 
         // Execute render pass.

@@ -1,5 +1,6 @@
 import { CameraComponent } from '../../source/component/camera/camera-component.ts';
 import { CameraComponentProjection } from '../../source/component/camera/projection/camera-projection.enum.ts';
+import { OrthographicProjection } from "../../source/component/camera/projection/orthographic-projection.ts";
 import type { PerspectiveProjection } from '../../source/component/camera/projection/perspective-projection.ts';
 import { LightComponent, LightComponentLightType } from '../../source/component/light/light-component.ts';
 import { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
@@ -62,7 +63,7 @@ console.log(lBlockMesh.bounds);
         const lScene: GameScene = new GameScene();
         lScene.label = 'Test Scene';
 
-        // Add a camera.
+        // Add a camera perspective.
         const lCameraEntity: GameEntity = new GameEntity();
         lCameraEntity.label = 'Camera Entity';
         const lCameraTransformation: TransformationComponent = lCameraEntity.addComponent(TransformationComponent);
@@ -71,12 +72,27 @@ console.log(lBlockMesh.bounds);
         lCameraComponent.projectionType = CameraComponentProjection.Perspective;
 
         // Configure camera projection.
-        const lProjection: PerspectiveProjection = lCameraComponent.projection as PerspectiveProjection;
-        lProjection.angleOfView = 72;
-        lProjection.near = 0.1;
-        lProjection.far = Number.MAX_SAFE_INTEGER;
+        const lPerspectiveProjection: PerspectiveProjection = lCameraComponent.projection as PerspectiveProjection;
+        lPerspectiveProjection.angleOfView = 72;
+        lPerspectiveProjection.near = 0.1;
+        lPerspectiveProjection.far = Number.MAX_SAFE_INTEGER;
 
         lScene.addObject(lCameraEntity);
+
+        // Add a camera orthographic.
+        const lCameraEntity2: GameEntity = new GameEntity();
+        lCameraEntity2.label = 'Camera Entity 2';
+        const lCameraTransformation2: TransformationComponent = lCameraEntity2.addComponent(TransformationComponent);
+        lCameraTransformation2.translationZ = -5;
+        const lCameraComponent2: CameraComponent = lCameraEntity2.addComponent(CameraComponent);
+        lCameraComponent2.projectionType = CameraComponentProjection.Orthographic;
+
+        const lOrthographicProjection: OrthographicProjection = lCameraComponent2.projection as OrthographicProjection;
+        lOrthographicProjection.near = 0.1;
+        lOrthographicProjection.far = Number.MAX_SAFE_INTEGER;
+        lOrthographicProjection.width = 10;
+
+        lScene.addObject(lCameraEntity2);
 
         // --- Lights --- //
 
@@ -140,6 +156,7 @@ console.log(lBlockMesh.bounds);
 
         // Mouse look: rotate camera on mouse drag.
         let lMouseDown: boolean = false;
+        let lMouseMovement = { x: 0, y: 0 };
 
         lCanvas.addEventListener('mousedown', () => {
             lMouseDown = true;
@@ -150,7 +167,8 @@ console.log(lBlockMesh.bounds);
         lCanvas.addEventListener('mousemove', (pEvent: MouseEvent) => {
             if (lMouseDown) {
                 const lSensitivity: number = 0.3;
-                lCameraTransformation.addEulerRotation(pEvent.movementY * lSensitivity, pEvent.movementX * lSensitivity, 0);
+                lMouseMovement.x += pEvent.movementX * lSensitivity;
+                lMouseMovement.y += pEvent.movementY * lSensitivity;
             }
         });
 
@@ -208,6 +226,19 @@ console.log(lBlockMesh.bounds);
             let lRight: number = 0;
             let lUp: number = 0;
 
+            // Change between cameras when 1 or 2 is pressed.
+            if (lKeyState.has('1')) {
+                lCameraEntity.activate();
+                lCameraEntity2.deactivate();
+            } else if (lKeyState.has('2')) {
+                lCameraEntity2.activate();
+                lCameraEntity.deactivate();
+            }
+
+            // Get active camera transformation.
+            const lActiveCameraEntity: GameEntity = lCameraEntity.enabled ? lCameraEntity : lCameraEntity2;
+            const lCameraTransformation: TransformationComponent = lActiveCameraEntity.getComponent(TransformationComponent);
+
             if (lKeyState.has('w')) { lForward += lMoveSpeed; }
             if (lKeyState.has('s')) { lForward -= lMoveSpeed; }
             if (lKeyState.has('a')) { lRight -= lMoveSpeed; }
@@ -217,6 +248,13 @@ console.log(lBlockMesh.bounds);
 
             if (lForward !== 0 || lRight !== 0 || lUp !== 0) {
                 lCameraTransformation.translateInDirection(lForward, lRight, lUp);
+            }
+
+            // Camera rotation (mouse look).
+            if (lMouseMovement.x !== 0 || lMouseMovement.y !== 0) {        
+                lCameraTransformation.addEulerRotation(lMouseMovement.y, lMouseMovement.x, 0);
+                lMouseMovement.x = 0;
+                lMouseMovement.y = 0;
             }
 
             // Camera rotation (Q/E for yaw).

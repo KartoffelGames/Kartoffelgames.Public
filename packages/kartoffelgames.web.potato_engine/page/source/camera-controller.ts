@@ -47,19 +47,11 @@ export class CameraController {
             return;
         }
 
-        this.mIntervalId = globalThis.setInterval(() => {
+        const lAnimationFrame = () => {
             this.pollInput();
-        }, 16);
-    }
-
-    /**
-     * Stop the input polling loop.
-     */
-    public stop(): void {
-        if (this.mIntervalId !== null) {
-            globalThis.clearInterval(this.mIntervalId);
-            this.mIntervalId = null;
+            this.mIntervalId = globalThis.requestAnimationFrame(lAnimationFrame);
         }
+        this.mIntervalId = globalThis.requestAnimationFrame(lAnimationFrame);
     }
 
     /**

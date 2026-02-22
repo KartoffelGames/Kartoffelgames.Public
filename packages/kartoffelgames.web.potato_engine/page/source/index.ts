@@ -53,9 +53,11 @@ const lCameraController = new CameraController(lCanvas, [...lSceneSetup.cameras]
 lCameraController.start();
 
 // Animate objects on the same interval as camera input.
-globalThis.setInterval(() => {
+const lAnimationFrame = () => {
     lSceneSetup.animateObjects();
-}, 16);
+    globalThis.requestAnimationFrame(lAnimationFrame);
+};
+globalThis.requestAnimationFrame(lAnimationFrame);
 
 // ── UI setup ─────────────────────────────────────────────────
 ResizableLayout.initialize();

@@ -1,8 +1,9 @@
 import { GpuDevice, GpuFeature, GpuLimit } from '@kartoffelgames/web-gpu';
 import { GameSystem } from '../core/game-system.ts';
 
-// TODO: Reading limits.
-
+/**
+ * Gpu system that manages the GPU device, its features, and limits.
+ */
 export class GpuSystem extends GameSystem {
     private mGpu: GpuDevice | null;
 

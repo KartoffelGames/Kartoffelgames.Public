@@ -1,6 +1,9 @@
-import { FileSystem, FileSystemReferenceType} from '@kartoffelgames/web-file-system';
+import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-system';
 import type { Mesh } from '../component_item/mesh/mesh.ts';
-import { GameComponent } from '../core/component/game-component.ts';
+import { GameComponent, GameComponentConstructor } from '../core/component/game-component.ts';
+import { TransformationComponent } from "./transformation-component.ts";
+
+// TODO: Once materials are implemented, add a material slot for each sub mesh.
 
 /**
  * Component that holds information to render a mesh in any render pipeline.
@@ -9,7 +12,13 @@ import { GameComponent } from '../core/component/game-component.ts';
 export class MeshRenderComponent extends GameComponent {
     private mMesh: Mesh | null;
 
-    // TODO: Once materials are implemented, add a material slot for each sub mesh.
+    /**
+     * Get the list of component types that this component depends on. Override this property in subclasses to specify dependencies for a component.
+     * When this component is added to a game entity, all dependencies will be automatically added if not already present.
+     */
+    public override get dependencies(): GameComponentConstructor<GameComponent>[] {
+        return [TransformationComponent];
+    }
 
     /**
      * Gets or sets the mesh to render.

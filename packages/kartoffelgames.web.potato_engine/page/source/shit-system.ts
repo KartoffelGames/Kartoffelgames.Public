@@ -48,6 +48,10 @@ export class ShitSystem extends GameSystem {
     private mRenderPass: RenderPass | null;
     private mShaderRenderModule: ShaderRenderModule | null;
     private mVertexParamCache: Map<Mesh, Array<VertexParameter>>;
+    private mDependencyTransformationSystem: TransformationSystem | null;
+    private mDependencyGpuSystem: GpuSystem | null;
+    private mDependencyLightSystem: LightSystem | null;
+    private mDependencyRenderTargetSystem: RenderTargetSystem | null;
 
     /**
      * Systems this system depends on.
@@ -78,6 +82,12 @@ export class ShitSystem extends GameSystem {
         this.mRenderPass = null;
         this.mShaderRenderModule = null;
         this.mVertexParamCache = new Map();
+
+        // Null any dependecy.
+        this.mDependencyTransformationSystem = null;
+        this.mDependencyGpuSystem = null;
+        this.mDependencyLightSystem = null;
+        this.mDependencyRenderTargetSystem = null;
     }
 
     /**
@@ -85,13 +95,17 @@ export class ShitSystem extends GameSystem {
      * Uses the core render targets from RenderTargetSystem.
      */
     protected override async onCreate(): Promise<void> {
+        // Read dependencies.
+        this.mDependencyTransformationSystem = this.getDependency(TransformationSystem);
+        this.mDependencyGpuSystem = this.getDependency(GpuSystem);
+        this.mDependencyLightSystem = this.getDependency(LightSystem);
+        this.mDependencyRenderTargetSystem = this.getDependency(RenderTargetSystem);
+
         // Get GPU device from dependency.
-        const lGpuSystem: GpuSystem = this.getDependency(GpuSystem);
-        const lGpu = lGpuSystem.gpu;
+        const lGpu = this.mDependencyGpuSystem!.gpu;
 
         // Get core render targets from the render target system.
-        const lRenderTargetSystem: RenderTargetSystem = this.getDependency(RenderTargetSystem);
-        const lCoreData: RenderTargetData = lRenderTargetSystem.coreRenderTargetData;
+        const lCoreData: RenderTargetData = this.mDependencyRenderTargetSystem!.coreRenderTargetData;
 
         // Create camera bind group layout and group.
         const lCameraGroupLayout: BindGroupLayout = new BindGroupLayout(lGpu, 'camera').setup((pBindGroupSetup) => {
@@ -174,8 +188,7 @@ export class ShitSystem extends GameSystem {
         }
 
         // Get camera and visible mesh list from the core render target.
-        const lRenderTargetSystem: RenderTargetSystem = this.getDependency(RenderTargetSystem);
-        const lCoreData: RenderTargetData = lRenderTargetSystem.coreRenderTargetData;
+        const lCoreData: RenderTargetData = this.mDependencyRenderTargetSystem!.coreRenderTargetData;
 
         // Skip rendering when no camera is assigned.
         if (!lCoreData.camera || !lCoreData.cameraTransformation) {
@@ -186,9 +199,9 @@ export class ShitSystem extends GameSystem {
         this.rebuildInstanceData(lCoreData.visibleMeshRenderers);
 
         // Update camera view projection matrix every frame.
-        // Invert the camera's transformation to get the view matrix, then multiply with projection.
-        const lViewMatrix = lCoreData.cameraTransformation.matrix.inverse();
-        const lViewProjectionMatrix = lCoreData.camera.matrix.mult(lViewMatrix);
+        // Use the world matrix from TransformationSystem and invert it to get the view matrix.
+        const lWorldMatrix = this.mDependencyTransformationSystem!.worldMatrixOfTransformation(lCoreData.cameraTransformation);
+        const lViewProjectionMatrix = lCoreData.camera.matrix.mult(lWorldMatrix.inverse());
         this.mCameraGroup.data('viewProjection').asBufferView(Float32Array).write(lViewProjectionMatrix.dataArray);
 
         // Start new GPU frame and execute render pass.
@@ -240,8 +253,8 @@ export class ShitSystem extends GameSystem {
         }
 
         // Get dependencies.
-        const lTransformationSystem: TransformationSystem = this.getDependency(TransformationSystem);
-        const lLightSystem: LightSystem = this.getDependency(LightSystem);
+        const lTransformationSystem: TransformationSystem = this.mDependencyTransformationSystem!;
+        const lLightSystem: LightSystem = this.mDependencyLightSystem!;
 
         // Lazily create lights bind group and buffer.
         if (!this.mLightsGroup) {

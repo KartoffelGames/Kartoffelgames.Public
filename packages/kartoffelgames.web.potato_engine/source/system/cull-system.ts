@@ -92,7 +92,7 @@ export class CullSystem extends GameSystem {
 
         // Init root render target as early as possible.
         this.mRootRenderTarget = new CoreRenderTargetComponent(this.environment);
-        this.mRenderTargetDataMap.set(this.mRootRenderTarget, this.createRenderTargetData());
+        this.mRenderTargetDataMap.set(this.mRootRenderTarget, this.createEmptyRenderTargetData());
     }
 
     /**
@@ -103,8 +103,9 @@ export class CullSystem extends GameSystem {
      *
      * @returns Readonly culling data, or undefined if the component is not tracked.
      */
-    public getRenderTargetCulling(pRenderTarget: RenderTargetComponent): ReadonlyCullSystemRenderTargetData | undefined {
+    public getRenderTargetCulling(pRenderTarget: RenderTargetComponent): ReadonlyCullSystemRenderTargetData {
         this.lockGate();
+
         return this.mRenderTargetDataMap.get(pRenderTarget)!;
     }
 
@@ -141,7 +142,7 @@ export class CullSystem extends GameSystem {
                 switch (lChange.type) {
                     case 'add':
                     case 'activate': {
-                        const lData: CullSystemRenderTargetData = this.createRenderTargetData();
+                        const lData: CullSystemRenderTargetData = this.createEmptyRenderTargetData();
                         this.mRenderTargetDataMap.set(lRenderTarget, lData);
 
                         // Assign enabled mesh renderers under this render target.
@@ -201,15 +202,10 @@ export class CullSystem extends GameSystem {
                         break;
                     }
                     case 'update': {
-                        if (!lCamera.enabled) {
-                            break;
-                        }
-
                         // Recompute frustum for the render target this camera is assigned to.
                         const lAssignedRenderTarget: RenderTargetComponent | undefined = this.mCameraToRenderTarget.get(lCamera);
                         if (lAssignedRenderTarget) {
-                            const lData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(lAssignedRenderTarget)!;
-                            this.updateFrustum(lData);
+                            this.updateFrustum(this.mRenderTargetDataMap.get(lAssignedRenderTarget)!);
                         }
                         break;
                     }
@@ -232,14 +228,13 @@ export class CullSystem extends GameSystem {
 
                         // Add mesh renderer to the render target chain and compute its world bounding box.
                         this.addMeshRendererToRenderTargetChain(lMeshRenderer);
-                        this.updateWorldBounds(lMeshRenderer);
+
                         break;
                     }
                     case 'remove':
                     case 'deactivate': {
                         // Remove mesh renderer from all assigned render targets.
                         this.removeMeshRendererFromAllRenderTargets(lMeshRenderer);
-                        this.mWorldBoundsCache.delete(lMeshRenderer);
                         break;
                     }
                     case 'update': {
@@ -247,8 +242,8 @@ export class CullSystem extends GameSystem {
                             break;
                         }
 
-                        // Recompute the cached world bounding box.
-                        this.updateWorldBounds(lMeshRenderer);
+                        // Invalidate world bounds cache for this mesh renderer since its local bounds may have changed.
+                        this.mWorldBoundsCache.delete(lMeshRenderer);
                         break;
                     }
                 }
@@ -261,7 +256,7 @@ export class CullSystem extends GameSystem {
      *
      * @returns A new culling data object with no camera assigned and empty mesh lists.
      */
-    private createRenderTargetData(): CullSystemRenderTargetData {
+    private createEmptyRenderTargetData(): CullSystemRenderTargetData {
         return {
             camera: null,
             frustum: new Frustum(),
@@ -418,7 +413,7 @@ export class CullSystem extends GameSystem {
      */
     private addMeshRendererToSingleRenderTarget(pMeshRenderer: MeshRenderComponent, pRenderTarget: RenderTargetComponent): void {
         const lData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(pRenderTarget)!;
-        
+
         // Avoid duplicate entries.
         if (lData.meshRendererIndexMap.has(pMeshRenderer)) {
             return;
@@ -518,7 +513,7 @@ export class CullSystem extends GameSystem {
      *
      * @param pMeshRenderer - The mesh render component to update.
      */
-    private updateWorldBounds(pMeshRenderer: MeshRenderComponent): void {
+    private calculateWorldBounds(pMeshRenderer: MeshRenderComponent): CullSystemWorldBounds {
         // Read transformation of mesh.
         const lTransformation: TransformationComponent = pMeshRenderer.gameEntity.getComponent(TransformationComponent)!;
 
@@ -551,8 +546,16 @@ export class CullSystem extends GameSystem {
             lMaxZ = Math.max(lMaxZ, lTransformed.z);
         }
 
-        // Cache the world-space bounding box.
-        this.mWorldBoundsCache.set(pMeshRenderer, { minX: lMinX, minY: lMinY, minZ: lMinZ, maxX: lMaxX, maxY: lMaxY, maxZ: lMaxZ });
+        // Return the world-space bounding box.
+        return {
+            minX: lMinX,
+            minY: lMinY,
+            minZ: lMinZ,
+
+            maxX: lMaxX,
+            maxY: lMaxY,
+            maxZ: lMaxZ
+        };
     }
 
     /**
@@ -561,20 +564,24 @@ export class CullSystem extends GameSystem {
      * @param pData - The culling data to update.
      */
     private rebuildVisibleMeshList(pData: CullSystemRenderTargetData): void {
+        // Clear previous visible list.
+        pData.visibleMeshRenderers = new Array<MeshRenderComponent>();
+        
         // Skip render targets without an assigned camera.
         if (!pData.camera) {
             return;
         }
 
-        // Clear previous visible list.
-        pData.visibleMeshRenderers = new Array<MeshRenderComponent>();
-
-
         // Iterate active mesh renderers and test their cached world bounds against the frustum.
         for (const lMeshRenderer of pData.activeMeshRenderers) {
-            const lWorldBounds: CullSystemWorldBounds | undefined = this.mWorldBoundsCache.get(lMeshRenderer);
+            // Try to read cached world bounds. If not found, calculate and cache them for future frames.
+            let lWorldBounds: CullSystemWorldBounds | undefined = this.mWorldBoundsCache.get(lMeshRenderer);
             if (!lWorldBounds) {
-                continue;
+                // Recalculate world bounds if not cached.
+                lWorldBounds = this.calculateWorldBounds(lMeshRenderer);
+
+                // Cache the world bounds for future frames.
+                this.mWorldBoundsCache.set(lMeshRenderer, lWorldBounds);
             }
 
             // Test the cached world-space bounding box against the cached frustum.

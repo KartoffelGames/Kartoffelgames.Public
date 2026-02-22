@@ -6,7 +6,7 @@ import { PointLight } from '../component/light/type/point-light.ts';
 import { SpotLight } from '../component/light/type/spot-light.ts';
 import { TransformationComponent } from '../component/transformation-component.ts';
 import type { GameComponentConstructor } from '../core/component/game-component.ts';
-import { GameEnvironment, GameEnvironmentStateChange } from "../core/environment/game-environment.ts";
+import type { GameEnvironment, GameEnvironmentStateChange } from '../core/environment/game-environment.ts';
 import { GameSystem, type GameSystemConstructor } from '../core/game-system.ts';
 import { GpuSystem } from './gpu-system.ts';
 import { TransformationSystem } from './transformation-system.ts';
@@ -35,19 +35,8 @@ import { TransformationSystem } from './transformation-system.ts';
  * On removal, the last active light is swapped into the freed slot to maintain compactness.
  */
 export class LightSystem extends GameSystem {
-    /**
-     * Number of float32 elements per light in the buffer.
-     */
     private static readonly LIGHT_STRIDE: number = 12;
-
-    /**
-     * Number of lights allocated per block when the buffer grows.
-     */
     private static readonly LIGHTS_PER_BLOCK: number = 4;
-
-    /**
-     * Number of float32 elements per block (LIGHT_STRIDE * LIGHTS_PER_BLOCK).
-     */
     private static readonly BLOCK_SIZE: number = LightSystem.LIGHT_STRIDE * LightSystem.LIGHTS_PER_BLOCK;
 
     private readonly mActiveComponents: Array<LightComponent>;

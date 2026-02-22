@@ -1,12 +1,12 @@
 import { Exception, type Matrix } from '@kartoffelgames/core';
 import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-system';
-import { GameComponent, GameComponentConstructor } from '../../core/component/game-component.ts';
+import { GameComponent, type GameComponentConstructor } from '../../core/component/game-component.ts';
 import { EditorProperty } from '../../editor_property/editor-property.ts';
 import { CameraComponentProjection } from './projection/camera-projection.enum.ts';
 import type { IProjection } from './projection/i-projection.interface.ts';
 import { OrthographicProjection } from './projection/orthographic-projection.ts';
 import { PerspectiveProjection } from './projection/perspective-projection.ts';
-import { TransformationComponent } from "../transformation-component.ts";
+import { TransformationComponent } from '../transformation-component.ts';
 
 /**
  * Component that holds information about a camera, such as projection.
@@ -20,7 +20,7 @@ export class CameraComponent extends GameComponent {
      *
      * @returns - List of component constructor types this component depends on.
      */
-    public override get dependencies(): GameComponentConstructor<GameComponent>[] {
+    public override get dependencies(): Array<GameComponentConstructor<GameComponent>> {
         return [TransformationComponent];
     }
 

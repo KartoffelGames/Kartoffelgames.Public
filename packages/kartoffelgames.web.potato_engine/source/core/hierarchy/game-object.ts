@@ -1,6 +1,3 @@
-import type { GameEnvironmentTransmission } from '../environment/game-environment-transmittion.ts';
-import type { GameNode } from './game-node.ts';
-
 /**
  * A GameObject is an ecs object in the game world.
  * It can be enabled or disabled.

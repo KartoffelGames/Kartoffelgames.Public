@@ -1,4 +1,4 @@
-import { GameEnvironmentTransmission } from "../environment/game-environment-transmittion.ts";
+import type { GameEnvironmentTransmission } from '../environment/game-environment-transmittion.ts';
 import { GameObject } from './game-object.ts';
 
 /**

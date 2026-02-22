@@ -8,7 +8,7 @@ import type { GameComponentConstructor } from '../core/component/game-component.
 import { GameSystem, type GameSystemConstructor } from '../core/game-system.ts';
 import type { GameEntity } from '../core/hierarchy/game-entity.ts';
 import { TransformationSystem } from './transformation-system.ts';
-import { GameEnvironment, GameEnvironmentStateChange } from "../core/environment/game-environment.ts";
+import type { GameEnvironment, GameEnvironmentStateChange } from '../core/environment/game-environment.ts';
 
 /**
  * System that manages camera assignments and per-frame frustum culling for render targets.
@@ -646,7 +646,7 @@ export class CullSystem extends GameSystem {
             }
 
             // Test the cached world-space bounding box against the cached frustum.
-            if (pData.frustum.intersectsAABB(lWorldBounds.minX, lWorldBounds.minY, lWorldBounds.minZ, lWorldBounds.maxX, lWorldBounds.maxY, lWorldBounds.maxZ)) {
+            if (pData.frustum.intersectsBoundingBox(lWorldBounds.minX, lWorldBounds.minY, lWorldBounds.minZ, lWorldBounds.maxX, lWorldBounds.maxY, lWorldBounds.maxZ)) {
                 pData.visibleMeshRenderers.push(lMeshRenderer);
             }
         }
@@ -698,7 +698,7 @@ type CullSystemWorldBounds = {
  * update events directly to the GameEnvironment without requiring a parent GameEntity.
  */
 export class CoreRenderTargetComponent extends RenderTargetComponent {
-    private mEnvironment: GameEnvironment;
+    private readonly mEnvironment: GameEnvironment;
 
     /**
      * Constructor.

@@ -1,5 +1,5 @@
-import { GpuDevice, GpuFeature, GpuLimit } from '@kartoffelgames/web-gpu';
-import { GameEnvironment } from "../core/environment/game-environment.ts";
+import { GpuDevice, GpuFeature, type GpuLimit } from '@kartoffelgames/web-gpu';
+import type { GameEnvironment } from '../core/environment/game-environment.ts';
 import { GameSystem } from '../core/game-system.ts';
 
 /**
@@ -50,10 +50,10 @@ export class GpuSystem extends GameSystem {
         };
 
         // Always request full limits.
-        const lLimits: Array<GpuLimitDefinition> = Object.entries(await GpuDevice.readDeviceLimits('high-performance')).map(([name, value]) => {
+        const lLimits: Array<GpuLimitDefinition> = Object.entries(await GpuDevice.readDeviceLimits('high-performance')).map(([pLimitName, pLimitValue]) => {
             return {
-                name: name as GpuLimit,
-                value: value,
+                name: pLimitName as GpuLimit,
+                value: pLimitValue,
                 required: false
             };
         });

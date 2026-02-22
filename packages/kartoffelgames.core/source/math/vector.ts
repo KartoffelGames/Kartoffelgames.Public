@@ -83,6 +83,8 @@ export class Vector {
     public length(): number {
         // Square root sum.
         let lSum: number = 0;
+
+        // eslint-disable-next-line @typescript-eslint/prefer-for-of
         for(let lIndex: number = 0; lIndex < this.mData.length; lIndex++) {
             lSum += this.mData[lIndex] ** 2;
         }

@@ -128,6 +128,29 @@ export class GameEnvironment {
     }
 
     /**
+     * Queue a component state change to be processed in the next update cycle.
+     *
+     * @param pType - The type of state change.
+     * @param pComponent - The component involved in the state change.
+     */
+    public queueStateChange(pType: GameEnvironmentStateType, pComponent: GameComponent): void {
+        const lStateChange: GameEnvironmentStateChange = {
+            type: pType,
+            component: pComponent,
+            tick: this.mCurrentTick
+        };
+
+        this.mStateChangeQueue.push(lStateChange);
+
+        if (this.mConfigurationDebugLog) {
+            const lEntityLabel: string = pComponent.gameEntity?.label ?? 'standalone';
+
+            // eslint-disable-next-line no-console
+            console.log(`Queued state change: "${pType}" for component "${pComponent.label}" of "${lEntityLabel}"`);
+        }
+    }
+
+    /**
      * Register a system with the environment.
      * The system will be initialized and notified of component state changes.
      *
@@ -247,29 +270,6 @@ export class GameEnvironment {
         }
 
         return lComponentStates;
-    }
-
-    /**
-     * Queue a component state change to be processed in the next update cycle.
-     *
-     * @param pType - The type of state change.
-     * @param pComponent - The component involved in the state change.
-     */
-    public queueStateChange(pType: GameEnvironmentStateType, pComponent: GameComponent): void {
-        const lStateChange: GameEnvironmentStateChange = {
-            type: pType,
-            component: pComponent,
-            tick: this.mCurrentTick
-        };
-
-        this.mStateChangeQueue.push(lStateChange);
-
-        if (this.mConfigurationDebugLog) {
-            const lEntityLabel: string = pComponent.gameEntity?.label ?? 'standalone';
-
-            // eslint-disable-next-line no-console
-            console.log(`Queued state change: "${pType}" for component "${pComponent.label}" of "${lEntityLabel}"`);
-        }
     }
 }
 

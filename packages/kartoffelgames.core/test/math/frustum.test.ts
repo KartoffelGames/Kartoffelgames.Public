@@ -13,7 +13,7 @@ Deno.test('Frustum.intersectsAABB()', async (pContext) => {
         lFrustum.update(lIdentity);
 
         // Process & Evaluate.
-        expect(lFrustum.intersectsAABB(-0.5, -0.5, 0.1, 0.5, 0.5, 0.9)).toBe(true);
+        expect(lFrustum.intersectsBoundingBox(-0.5, -0.5, 0.1, 0.5, 0.5, 0.9)).toBe(true);
     });
 
     await pContext.step('AABB fully outside left plane returns false', () => {
@@ -22,7 +22,7 @@ Deno.test('Frustum.intersectsAABB()', async (pContext) => {
         lFrustum.update(lIdentity);
 
         // Process & Evaluate. Entire box is at x < -1.
-        expect(lFrustum.intersectsAABB(-3, -0.5, 0.1, -1.5, 0.5, 0.9)).toBe(false);
+        expect(lFrustum.intersectsBoundingBox(-3, -0.5, 0.1, -1.5, 0.5, 0.9)).toBe(false);
     });
 
     await pContext.step('AABB fully outside right plane returns false', () => {
@@ -31,7 +31,7 @@ Deno.test('Frustum.intersectsAABB()', async (pContext) => {
         lFrustum.update(lIdentity);
 
         // Process & Evaluate. Entire box is at x > 1.
-        expect(lFrustum.intersectsAABB(1.5, -0.5, 0.1, 3, 0.5, 0.9)).toBe(false);
+        expect(lFrustum.intersectsBoundingBox(1.5, -0.5, 0.1, 3, 0.5, 0.9)).toBe(false);
     });
 
     await pContext.step('AABB fully outside bottom plane returns false', () => {
@@ -40,7 +40,7 @@ Deno.test('Frustum.intersectsAABB()', async (pContext) => {
         lFrustum.update(lIdentity);
 
         // Process & Evaluate. Entire box is at y < -1.
-        expect(lFrustum.intersectsAABB(-0.5, -3, 0.1, 0.5, -1.5, 0.9)).toBe(false);
+        expect(lFrustum.intersectsBoundingBox(-0.5, -3, 0.1, 0.5, -1.5, 0.9)).toBe(false);
     });
 
     await pContext.step('AABB fully outside top plane returns false', () => {
@@ -49,7 +49,7 @@ Deno.test('Frustum.intersectsAABB()', async (pContext) => {
         lFrustum.update(lIdentity);
 
         // Process & Evaluate. Entire box is at y > 1.
-        expect(lFrustum.intersectsAABB(-0.5, 1.5, 0.1, 0.5, 3, 0.9)).toBe(false);
+        expect(lFrustum.intersectsBoundingBox(-0.5, 1.5, 0.1, 0.5, 3, 0.9)).toBe(false);
     });
 
     await pContext.step('AABB fully outside near plane returns false', () => {
@@ -58,7 +58,7 @@ Deno.test('Frustum.intersectsAABB()', async (pContext) => {
         lFrustum.update(lIdentity);
 
         // Process & Evaluate. Entire box is at z < 0.
-        expect(lFrustum.intersectsAABB(-0.5, -0.5, -1, 0.5, 0.5, -0.1)).toBe(false);
+        expect(lFrustum.intersectsBoundingBox(-0.5, -0.5, -1, 0.5, 0.5, -0.1)).toBe(false);
     });
 
     await pContext.step('AABB fully outside far plane returns false', () => {
@@ -67,7 +67,7 @@ Deno.test('Frustum.intersectsAABB()', async (pContext) => {
         lFrustum.update(lIdentity);
 
         // Process & Evaluate. Entire box is at z > 1.
-        expect(lFrustum.intersectsAABB(-0.5, -0.5, 1.1, 0.5, 0.5, 2)).toBe(false);
+        expect(lFrustum.intersectsBoundingBox(-0.5, -0.5, 1.1, 0.5, 0.5, 2)).toBe(false);
     });
 
     await pContext.step('AABB partially intersecting the near plane returns true', () => {
@@ -76,7 +76,7 @@ Deno.test('Frustum.intersectsAABB()', async (pContext) => {
         lFrustum.update(lIdentity);
 
         // Process & Evaluate. Box straddles z=0 boundary.
-        expect(lFrustum.intersectsAABB(-0.5, -0.5, -0.5, 0.5, 0.5, 0.5)).toBe(true);
+        expect(lFrustum.intersectsBoundingBox(-0.5, -0.5, -0.5, 0.5, 0.5, 0.5)).toBe(true);
     });
 
     await pContext.step('AABB partially intersecting the left plane returns true', () => {
@@ -85,7 +85,7 @@ Deno.test('Frustum.intersectsAABB()', async (pContext) => {
         lFrustum.update(lIdentity);
 
         // Process & Evaluate. Box straddles x=-1 boundary.
-        expect(lFrustum.intersectsAABB(-1.5, -0.5, 0.1, -0.5, 0.5, 0.9)).toBe(true);
+        expect(lFrustum.intersectsBoundingBox(-1.5, -0.5, 0.1, -0.5, 0.5, 0.9)).toBe(true);
     });
 
     await pContext.step('AABB touching the boundary plane is considered inside', () => {
@@ -94,7 +94,7 @@ Deno.test('Frustum.intersectsAABB()', async (pContext) => {
         lFrustum.update(lIdentity);
 
         // Process & Evaluate. Box extends exactly to the frustum boundaries.
-        expect(lFrustum.intersectsAABB(-1, -1, 0, 1, 1, 1)).toBe(true);
+        expect(lFrustum.intersectsBoundingBox(-1, -1, 0, 1, 1, 1)).toBe(true);
     });
 
     await pContext.step('AABB at the origin is inside the frustum', () => {
@@ -103,7 +103,7 @@ Deno.test('Frustum.intersectsAABB()', async (pContext) => {
         lFrustum.update(lIdentity);
 
         // Process & Evaluate. Very small box at the origin.
-        expect(lFrustum.intersectsAABB(-0.01, -0.01, 0.01, 0.01, 0.01, 0.01)).toBe(true);
+        expect(lFrustum.intersectsBoundingBox(-0.01, -0.01, 0.01, 0.01, 0.01, 0.01)).toBe(true);
     });
 
     await pContext.step('Large AABB enclosing the entire frustum returns true', () => {
@@ -112,7 +112,7 @@ Deno.test('Frustum.intersectsAABB()', async (pContext) => {
         lFrustum.update(lIdentity);
 
         // Process & Evaluate. Box is much larger than the frustum.
-        expect(lFrustum.intersectsAABB(-10, -10, -10, 10, 10, 10)).toBe(true);
+        expect(lFrustum.intersectsBoundingBox(-10, -10, -10, 10, 10, 10)).toBe(true);
     });
 });
 
@@ -128,13 +128,13 @@ Deno.test('Frustum.update()', async (pContext) => {
         lFrustum.update(lScaleMatrix);
 
         // Process & Evaluate. Box inside the scaled frustum.
-        expect(lFrustum.intersectsAABB(-0.4, -0.4, 0.05, 0.4, 0.4, 0.45)).toBe(true);
+        expect(lFrustum.intersectsBoundingBox(-0.4, -0.4, 0.05, 0.4, 0.4, 0.45)).toBe(true);
 
         // Box outside the scaled frustum on the right (x > 0.5).
-        expect(lFrustum.intersectsAABB(0.6, -0.4, 0.05, 0.8, 0.4, 0.45)).toBe(false);
+        expect(lFrustum.intersectsBoundingBox(0.6, -0.4, 0.05, 0.8, 0.4, 0.45)).toBe(false);
 
         // Box outside the scaled frustum beyond far (z > 0.5).
-        expect(lFrustum.intersectsAABB(-0.4, -0.4, 0.6, 0.4, 0.4, 0.8)).toBe(false);
+        expect(lFrustum.intersectsBoundingBox(-0.4, -0.4, 0.6, 0.4, 0.4, 0.8)).toBe(false);
     });
 
     await pContext.step('Frustum with translated view-projection matrix shifts the frustum', () => {
@@ -149,10 +149,10 @@ Deno.test('Frustum.update()', async (pContext) => {
         lFrustum.update(lTranslationMatrix);
 
         // Process & Evaluate. Box inside the translated frustum (x in [-3, -1]).
-        expect(lFrustum.intersectsAABB(-2.5, -0.5, 0.1, -1.5, 0.5, 0.9)).toBe(true);
+        expect(lFrustum.intersectsBoundingBox(-2.5, -0.5, 0.1, -1.5, 0.5, 0.9)).toBe(true);
 
         // Box at the origin is outside the translated frustum (x=0 is outside [-3, -1]).
-        expect(lFrustum.intersectsAABB(-0.5, -0.5, 0.1, 0.5, 0.5, 0.9)).toBe(false);
+        expect(lFrustum.intersectsBoundingBox(-0.5, -0.5, 0.1, 0.5, 0.5, 0.9)).toBe(false);
     });
 
     await pContext.step('Updating the frustum with a new matrix replaces the old planes', () => {
@@ -161,7 +161,7 @@ Deno.test('Frustum.update()', async (pContext) => {
         lFrustum.update(Matrix.identity(4));
 
         // Verify AABB at origin is inside.
-        expect(lFrustum.intersectsAABB(-0.5, -0.5, 0.1, 0.5, 0.5, 0.9)).toBe(true);
+        expect(lFrustum.intersectsBoundingBox(-0.5, -0.5, 0.1, 0.5, 0.5, 0.9)).toBe(true);
 
         // Process. Update with a translation that moves the frustum far away.
         // Translation by (100, 0, 0): frustum x in [-101, -99].
@@ -169,10 +169,10 @@ Deno.test('Frustum.update()', async (pContext) => {
         lFrustum.update(lFarMatrix);
 
         // Evaluate. AABB at origin should now be outside.
-        expect(lFrustum.intersectsAABB(-0.5, -0.5, 0.1, 0.5, 0.5, 0.9)).toBe(false);
+        expect(lFrustum.intersectsBoundingBox(-0.5, -0.5, 0.1, 0.5, 0.5, 0.9)).toBe(false);
 
         // AABB at the new frustum location should be inside.
-        expect(lFrustum.intersectsAABB(-100.5, -0.5, 0.1, -99.5, 0.5, 0.9)).toBe(true);
+        expect(lFrustum.intersectsBoundingBox(-100.5, -0.5, 0.1, -99.5, 0.5, 0.9)).toBe(true);
     });
 });
 
@@ -182,7 +182,7 @@ Deno.test('Frustum constructor', async (pContext) => {
         const lFrustum: Frustum = new Frustum();
 
         // Process & Evaluate.
-        expect(lFrustum.intersectsAABB(-100, -100, -100, 100, 100, 100)).toBe(true);
-        expect(lFrustum.intersectsAABB(50, 50, 50, 60, 60, 60)).toBe(true);
+        expect(lFrustum.intersectsBoundingBox(-100, -100, -100, 100, 100, 100)).toBe(true);
+        expect(lFrustum.intersectsBoundingBox(50, 50, 50, 60, 60, 60)).toBe(true);
     });
 });

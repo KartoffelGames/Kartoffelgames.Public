@@ -2,7 +2,7 @@ import type { Matrix } from '@kartoffelgames/core';
 import { BufferUsage, GpuBuffer, GpuLimit } from '@kartoffelgames/web-gpu';
 import { TransformationComponent } from '../component/transformation-component.ts';
 import type { GameComponentConstructor } from '../core/component/game-component.ts';
-import { GameEnvironment, GameEnvironmentStateChange } from "../core/environment/game-environment.ts";
+import type { GameEnvironment, GameEnvironmentStateChange } from '../core/environment/game-environment.ts';
 import { GameSystem, type GameSystemConstructor } from '../core/game-system.ts';
 import { GameEntity } from '../core/hierarchy/game-entity.ts';
 import { GpuSystem } from './gpu-system.ts';

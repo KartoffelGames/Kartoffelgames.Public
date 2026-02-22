@@ -9,9 +9,9 @@ import type { Mesh } from '../../source/component_item/mesh/mesh.ts';
 import { GameEnvironment } from '../../source/core/environment/game-environment.ts';
 import { GameScene } from '../../source/core/game-scene.ts';
 import { GameEntity } from '../../source/core/hierarchy/game-entity.ts';
-import { CullSystem } from "../../source/system/cull-system.ts";
-import { LightSystem } from "../../source/system/light-system.ts";
-import { TransformationSystem } from "../../source/system/transformation-system.ts";
+import { CullSystem } from '../../source/system/cull-system.ts';
+import { LightSystem } from '../../source/system/light-system.ts';
+import { TransformationSystem } from '../../source/system/transformation-system.ts';
 import { ShitSystem } from './shit-system.ts';
 
 // Load cube mesh from GLB file.

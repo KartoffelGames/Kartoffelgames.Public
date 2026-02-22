@@ -17,11 +17,11 @@ import {
     type VertexParameter,
     VertexParameterStepMode
 } from '@kartoffelgames/web-gpu';
-import { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
+import type { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
 import type { Mesh } from '../../source/component_item/mesh/mesh.ts';
 import type { GameComponentConstructor } from '../../source/core/component/game-component.ts';
-import { GameEnvironment, GameEnvironmentStateChange } from "../../source/core/environment/game-environment.ts";
+import type { GameEnvironment, GameEnvironmentStateChange } from '../../source/core/environment/game-environment.ts';
 import { GameSystem, type GameSystemConstructor } from '../../source/core/game-system.ts';
 import { CullSystem, type CullSystemRenderTargetCulling } from '../../source/system/cull-system.ts';
 import { GpuSystem } from '../../source/system/gpu-system.ts';
@@ -52,11 +52,11 @@ export class ShitSystem extends GameSystem {
     private mExecutor: GpuExecution | null;
     private mLightCountBuffer: GpuBuffer | null;
     private mLightsGroup: BindGroup | null;
-    private mMeshGroups: Map<Mesh, MeshGroupData>;
+    private readonly mMeshGroups: Map<Mesh, MeshGroupData>;
     private mPipeline: VertexFragmentPipeline | null;
     private mRenderPass: RenderPass | null;
     private mShaderRenderModule: ShaderRenderModule | null;
-    private mVertexParameterCache: Map<Mesh, Array<VertexParameter>>;
+    private readonly mVertexParameterCache: Map<Mesh, Array<VertexParameter>>;
 
     // Dependencies.
     private mDependencyTransformationSystem: TransformationSystem | null;

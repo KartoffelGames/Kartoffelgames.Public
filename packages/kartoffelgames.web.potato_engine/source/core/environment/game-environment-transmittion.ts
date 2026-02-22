@@ -1,5 +1,5 @@
 import type { GameComponent } from '../component/game-component.ts';
-import type { GameEnvironment } from "./game-environment.ts";
+import type { GameEnvironment } from './game-environment.ts';
 
 /**
  * Transmits environment state changes from various sources to a registered event handler.

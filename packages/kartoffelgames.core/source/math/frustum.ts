@@ -1,4 +1,4 @@
-import { Matrix } from './matrix.ts';
+import type { Matrix } from './matrix.ts';
 
 /**
  * Represents a view frustum defined by 6 clipping planes.
@@ -20,6 +20,39 @@ export class Frustum {
      */
     public constructor() {
         this.mPlanes = Array.from({ length: 6 }, () => ({ normalX: 0, normalY: 0, normalZ: 0, distance: 0 }));
+    }
+
+    /**
+     * Test if an axis-aligned bounding box intersects or is inside the frustum.
+     * Uses the positive vertex (p-vertex) approach for each plane: if the corner of the AABB
+     * closest to the plane's positive half-space is outside the plane, the entire AABB is outside.
+     *
+     * The AABB coordinates must be in the same coordinate space as the view-projection matrix
+     * used to update the frustum (typically world space).
+     *
+     * @param pMinX - Minimum X coordinate of the AABB.
+     * @param pMinY - Minimum Y coordinate of the AABB.
+     * @param pMinZ - Minimum Z coordinate of the AABB.
+     * @param pMaxX - Maximum X coordinate of the AABB.
+     * @param pMaxY - Maximum Y coordinate of the AABB.
+     * @param pMaxZ - Maximum Z coordinate of the AABB.
+     *
+     * @returns True if the AABB intersects or is inside the frustum.
+     */
+    public intersectsBoundingBox(pMinX: number, pMinY: number, pMinZ: number, pMaxX: number, pMaxY: number, pMaxZ: number): boolean {
+        for (const lPlane of this.mPlanes) {
+            // Select the positive vertex: the corner of the AABB most aligned with the plane normal.
+            const lPositiveVertexX: number = lPlane.normalX >= 0 ? pMaxX : pMinX;
+            const lPositiveVertexY: number = lPlane.normalY >= 0 ? pMaxY : pMinY;
+            const lPositiveVertexZ: number = lPlane.normalZ >= 0 ? pMaxZ : pMinZ;
+
+            // If the positive vertex is on the negative side of this plane, the entire AABB is outside.
+            if (lPlane.normalX * lPositiveVertexX + lPlane.normalY * lPositiveVertexY + lPlane.normalZ * lPositiveVertexZ + lPlane.distance < 0) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**
@@ -81,39 +114,6 @@ export class Frustum {
             pViewProjectionMatrix.get(3, 2) - pViewProjectionMatrix.get(2, 2),
             pViewProjectionMatrix.get(3, 3) - pViewProjectionMatrix.get(2, 3)
         );
-    }
-
-    /**
-     * Test if an axis-aligned bounding box intersects or is inside the frustum.
-     * Uses the positive vertex (p-vertex) approach for each plane: if the corner of the AABB
-     * closest to the plane's positive half-space is outside the plane, the entire AABB is outside.
-     *
-     * The AABB coordinates must be in the same coordinate space as the view-projection matrix
-     * used to update the frustum (typically world space).
-     *
-     * @param pMinX - Minimum X coordinate of the AABB.
-     * @param pMinY - Minimum Y coordinate of the AABB.
-     * @param pMinZ - Minimum Z coordinate of the AABB.
-     * @param pMaxX - Maximum X coordinate of the AABB.
-     * @param pMaxY - Maximum Y coordinate of the AABB.
-     * @param pMaxZ - Maximum Z coordinate of the AABB.
-     *
-     * @returns True if the AABB intersects or is inside the frustum.
-     */
-    public intersectsAABB(pMinX: number, pMinY: number, pMinZ: number, pMaxX: number, pMaxY: number, pMaxZ: number): boolean {
-        for (const lPlane of this.mPlanes) {
-            // Select the positive vertex: the corner of the AABB most aligned with the plane normal.
-            const lPositiveVertexX: number = lPlane.normalX >= 0 ? pMaxX : pMinX;
-            const lPositiveVertexY: number = lPlane.normalY >= 0 ? pMaxY : pMinY;
-            const lPositiveVertexZ: number = lPlane.normalZ >= 0 ? pMaxZ : pMinZ;
-
-            // If the positive vertex is on the negative side of this plane, the entire AABB is outside.
-            if (lPlane.normalX * lPositiveVertexX + lPlane.normalY * lPositiveVertexY + lPlane.normalZ * lPositiveVertexZ + lPlane.distance < 0) {
-                return false;
-            }
-        }
-
-        return true;
     }
 
     /**

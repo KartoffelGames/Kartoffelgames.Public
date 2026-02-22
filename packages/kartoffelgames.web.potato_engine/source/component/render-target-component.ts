@@ -1,4 +1,4 @@
-import { GameComponent } from "../core/component/game-component.ts";
+import { GameComponent } from '../core/component/game-component.ts';
 
 /**
  * Component representing a render target in the environment.
@@ -6,19 +6,10 @@ import { GameComponent } from "../core/component/game-component.ts";
  * They define properties such as size, passthrough behavior, and render type that influence how rendering is performed for the associated game entities.
  */
 export class RenderTargetComponent extends GameComponent {
-    private mWidth: number;
     private mHeight: number;
     private mPassthrough: boolean;
     private mRenderType: RenderTargetRenderType;
-
-    /**
-     * Width of the render target in pixels.
-     */
-    public get width(): number {
-        return this.mWidth;
-    } set width(pValue: number) {
-        this.mWidth = pValue;
-    }
+    private mWidth: number;
 
     /**
      * Height of the render target in pixels.
@@ -54,6 +45,15 @@ export class RenderTargetComponent extends GameComponent {
 
         // Signal parent component of the change.
         this.update();
+    }
+
+    /**
+     * Width of the render target in pixels.
+     */
+    public get width(): number {
+        return this.mWidth;
+    } set width(pValue: number) {
+        this.mWidth = pValue;
     }
 
     public constructor() {

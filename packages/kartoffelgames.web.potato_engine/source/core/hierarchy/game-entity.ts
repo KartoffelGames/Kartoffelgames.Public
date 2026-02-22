@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-system';
 import type { IAnyParameterConstructor } from '../../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import type { GameComponent, GameComponentConstructor } from '../component/game-component.ts';
-import { GameEnvironmentStateType } from "../environment/game-environment-transmittion.ts";
+import type { GameEnvironmentStateType } from '../environment/game-environment-transmittion.ts';
 import { GameNode } from '../hierarchy/game-node.ts';
 
 /**
@@ -12,8 +12,8 @@ import { GameNode } from '../hierarchy/game-node.ts';
 @FileSystem.fileClass('71db9e82-6a93-4cae-a530-50c05ceb33c4', FileSystemReferenceType.Instanced)
 export class GameEntity extends GameNode {
     private readonly mComponentTypeMap: Map<GameComponentConstructor, GameComponent>;
-    private readonly mComponents: Set<GameComponent>;
     private readonly mComponentUpdateDependencies: Map<GameComponent, Array<GameComponent>>;
+    private readonly mComponents: Set<GameComponent>;
 
     /**
      * Create a new empty game object.
@@ -113,17 +113,6 @@ export class GameEntity extends GameNode {
     }
 
     /**
-     * Checks if this game object has a component of the requested type.
-     * 
-     * @param pType - Component type.
-     * 
-     * @returns Whether this game object has a component of the requested type. 
-     */
-    public hasComponent<T extends GameComponent>(pType: IAnyParameterConstructor<T>): boolean {
-        return this.mComponentTypeMap.has(pType);
-    }
-
-    /**
      * Adds a component to this game object.
      * Returns the first found component of the requested type, or null if none found.
      * 
@@ -141,7 +130,6 @@ export class GameEntity extends GameNode {
         // Return the first component of the requested type
         return lComponent as T;
     }
-
 
     /**
      * Returns all game objects in this object's hierarchy (including itself) that have the requested component.
@@ -217,6 +205,17 @@ export class GameEntity extends GameNode {
 
         // When both current and parent components exist, combine them
         return [this.getComponent<T>(pType), ...lParentObjectComponents];
+    }
+
+    /**
+     * Checks if this game object has a component of the requested type.
+     * 
+     * @param pType - Component type.
+     * 
+     * @returns Whether this game object has a component of the requested type. 
+     */
+    public hasComponent<T extends GameComponent>(pType: IAnyParameterConstructor<T>): boolean {
+        return this.mComponentTypeMap.has(pType);
     }
 
     /**

@@ -260,7 +260,7 @@ export class ShitSystem extends GameSystem {
         }
 
         // Rebuild instance data from the frustum-culled visible list.
-        this.rebuildInstanceData(lCullingData.visibleMeshRenderers);
+        this.rebuildInstanceData(lCullingData.meshes.visible);
 
         // Update camera view projection matrix every frame.
         // Use the world matrix from TransformationSystem and invert it to get the view matrix.

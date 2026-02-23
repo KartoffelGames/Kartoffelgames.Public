@@ -19,7 +19,10 @@ export class Frustum {
      * Creates a frustum with all plane coefficients initialized to zero.
      */
     public constructor() {
-        this.mPlanes = Array.from({ length: 6 }, () => ({ normalX: 0, normalY: 0, normalZ: 0, distance: 0 }));
+        // Its a mirracle that this works by creating a Arraylike with only a length property.
+        this.mPlanes = Array.from({ length: 6 }, () => {
+            return { normalX: 0, normalY: 0, normalZ: 0, distance: 0 };
+        });
     }
 
     /**

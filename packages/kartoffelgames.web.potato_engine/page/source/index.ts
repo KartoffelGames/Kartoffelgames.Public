@@ -21,7 +21,8 @@ const lBlockMesh: Mesh = lMeshes[0];
 
 // ── Environment setup ────────────────────────────────────────
 const lEnvironment = new GameEnvironment({
-    debugSystemTime: true
+    debugSystemTime: true,
+    debugStateChanges: true
 });
 
 // Register systems.

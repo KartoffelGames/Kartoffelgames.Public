@@ -50,7 +50,7 @@ export class CameraController {
         const lAnimationFrame = () => {
             this.pollInput();
             this.mIntervalId = globalThis.requestAnimationFrame(lAnimationFrame);
-        }
+        };
         this.mIntervalId = globalThis.requestAnimationFrame(lAnimationFrame);
     }
 

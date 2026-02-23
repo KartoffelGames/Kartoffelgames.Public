@@ -1,5 +1,5 @@
 import type { GameComponent } from '../../../source/core/component/game-component.ts';
-import type { GameEnvironment } from '../../../source/core/environment/game-environment.ts';
+import type { GameEnvironment, GameEnvironmentStateChange } from '../../../source/core/environment/game-environment.ts';
 import type { GameEnvironmentStateType } from '../../../source/core/environment/game-environment-transmittion.ts';
 import { GameScene } from '../../../source/core/game-scene.ts';
 import { GameEntity } from '../../../source/core/hierarchy/game-entity.ts';
@@ -24,7 +24,7 @@ export class HierarchyPanel {
     private readonly mComponentElements: Map<GameComponent, HTMLElement>;
 
     // Event buffering.
-    private mPendingChanges: Array<PendingStateChange>;
+    private mPendingChanges: Array<GameEnvironmentStateChange>;
     private mUpdateScheduled: boolean;
 
     /**
@@ -39,16 +39,16 @@ export class HierarchyPanel {
         this.mCollapsedPaths = new Set<string>();
         this.mNodeElements = new Map<GameNode, HierarchyNodeElements>();
         this.mComponentElements = new Map<GameComponent, HTMLElement>();
-        this.mPendingChanges = new Array<PendingStateChange>();
+        this.mPendingChanges = new Array<GameEnvironmentStateChange>();
         this.mUpdateScheduled = false;
 
         // Build the full initial tree from currently loaded scenes.
         this.buildInitialTree();
 
         // Register sniffer callback for buffered incremental updates.
-        this.mEnvironment.debugData.onStateChange = (pType: GameEnvironmentStateType, pComponent: GameComponent): void => {
-            this.bufferStateChange(pType, pComponent);
-        };
+        this.mEnvironment.debugData.addStateChangeListener((pEvent: GameEnvironmentStateChange): void => {
+            this.bufferStateChange(pEvent);
+        });
     }
 
     /**
@@ -124,12 +124,12 @@ export class HierarchyPanel {
      * Buffer a state change event and schedule processing on the next animation frame.
      * Ignores update events since they don't affect the hierarchy.
      */
-    private bufferStateChange(pType: GameEnvironmentStateType, pComponent: GameComponent): void {
-        if (pType === 'update') {
+    private bufferStateChange(pEvent: GameEnvironmentStateChange): void {
+        if (pEvent.type === 'update') {
             return;
         }
 
-        this.mPendingChanges.push({ type: pType, component: pComponent });
+        this.mPendingChanges.push(pEvent);
 
         if (!this.mUpdateScheduled) {
             this.mUpdateScheduled = true;
@@ -147,8 +147,8 @@ export class HierarchyPanel {
     private processPendingChanges(): void {
         this.mUpdateScheduled = false;
 
-        const lChanges: Array<PendingStateChange> = this.mPendingChanges;
-        this.mPendingChanges = new Array<PendingStateChange>();
+        const lChanges: Array<GameEnvironmentStateChange> = this.mPendingChanges;
+        this.mPendingChanges = new Array<GameEnvironmentStateChange>();
 
         // Track entities that need an enabled-state refresh after all changes are processed.
         const lAffectedEntities: Set<GameEntity> = new Set<GameEntity>();
@@ -436,14 +436,6 @@ export class HierarchyPanel {
         };
     }
 }
-
-/**
- * A buffered state change event waiting to be processed.
- */
-type PendingStateChange = {
-    type: GameEnvironmentStateType;
-    component: GameComponent;
-};
 
 /**
  * Tracked DOM elements for a single tree node (scene or entity).

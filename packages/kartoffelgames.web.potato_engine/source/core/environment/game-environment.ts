@@ -16,7 +16,7 @@ export class GameEnvironment {
     private readonly mLoadedScenes: Set<GameScene>;
     private mStateChangeQueue: Array<GameEnvironmentStateChange>;
     private readonly mSystems: Array<GameSystem>;
-    
+
     /**
      * Debug data for the environment, including timing snapshots. Only filled when debugSystemTime is enabled.
      */
@@ -56,15 +56,12 @@ export class GameEnvironment {
 
         // Save debug options with defaults.
         this.mDebugOptions = {
-            debugLog: pParameters?.debugLog ?? false,
-            debugSystemTime: pParameters?.debugSystemTime ?? false
+            debugSystemTime: pParameters?.debugSystemTime ?? false,
+            debugStateChanges: pParameters?.debugStateChanges ?? false
         };
 
         // Setup debug data. Even when debug options are disabled.
-        this.mDebugData = {
-            timingHistory: new Array<GameEnvironmentTimingSnapshot>(),
-            onStateChange: null
-        };
+        this.mDebugData = new GameEnvironmentDebugData();
     }
 
     /**
@@ -76,18 +73,23 @@ export class GameEnvironment {
      * @internal
      */
     public async executeFrame(pSnapshot: GameEnvironmentTimingSnapshot | null): Promise<void> {
+        // Timed loop. Kept separate from the untimed loop below
+        // for performance reasons: avoids a debug check per system iteration.
         if (pSnapshot) {
-            // Timed loop. Kept separate from the untimed loop below
-            // for performance reasons: avoids a debug check per system iteration.
             for (const lSystem of this.mSystems) {
-                const lSystemName: string = lSystem.label;
+                // Start timer, execute frame, and record duration.
                 const lStart: number = performance.now();
-
                 await lSystem.executeFrame();
-
                 const lDuration: number = performance.now() - lStart;
+
+                // Read system name from label.
+                const lSystemName: string = lSystem.label;
+
+                // Get existing entry for this system or create a new one if it doesn't exist.
                 const lEntry: GameEnvironmentTimingEntry = pSnapshot.systems.get(lSystemName) ?? { update: 0, frame: 0, tick: 0 };
                 lEntry.frame = lDuration;
+
+                // Save entry back to snapshot.
                 pSnapshot.systems.set(lSystemName, lEntry);
             }
         } else {
@@ -106,18 +108,23 @@ export class GameEnvironment {
      * @internal
      */
     public async executeTick(pSnapshot: GameEnvironmentTimingSnapshot | null): Promise<void> {
+        // Timed loop. Kept separate from the untimed loop below
+        // for performance reasons: avoids a debug check per system iteration.
         if (pSnapshot) {
-            // Timed loop. Kept separate from the untimed loop below
-            // for performance reasons: avoids a debug check per system iteration.
             for (const lSystem of this.mSystems) {
-                const lSystemName: string = lSystem.label;
+                // Start timer, execute tick, and record duration.
                 const lStart: number = performance.now();
-
                 await lSystem.executeTick();
-
                 const lDuration: number = performance.now() - lStart;
+
+                // Read system name from label.
+                const lSystemName: string = lSystem.label;
+
+                // Get existing entry for this system or create a new one if it doesn't exist.
                 const lEntry: GameEnvironmentTimingEntry = pSnapshot.systems.get(lSystemName) ?? { update: 0, frame: 0, tick: 0 };
                 lEntry.tick = lDuration;
+
+                // Save entry back to snapshot.
                 pSnapshot.systems.set(lSystemName, lEntry);
             }
         } else {
@@ -137,65 +144,74 @@ export class GameEnvironment {
      */
     public async executeUpdate(pSnapshot: GameEnvironmentTimingSnapshot | null): Promise<void> {
         // Optimize and order the state change queue
-        const lConstructorChangeStateQueue: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>> = this.optimizeStateChangeQueue();
+        const lChangeStateQueues: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>> = this.optimizeStateChangeQueue();
 
         // Clear the original queue. Splice is half as fast as setting length to 0.
         this.mStateChangeQueue = new Array<GameEnvironmentStateChange>();
 
+        // Timed loop. Kept separate from the untimed loop below
+        // for performance reasons: avoids a debug check per system iteration.
         if (pSnapshot) {
-            // Timed loop. Kept separate from the untimed loop below
-            // for performance reasons: avoids a debug check per system iteration.
             for (const lSystem of this.mSystems) {
-                const lHandledChanges = new Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>();
-
+                // Checking for handled component types is an optional optimization for systems that don't care about state changes.
                 if (lSystem.handledComponentTypes) {
+                    // Extend state change queue with empty arrays for all handled component types to avoid undefined checks in systems.
                     for (const lComponentType of lSystem.handledComponentTypes) {
-                        lHandledChanges.set(lComponentType, lConstructorChangeStateQueue.get(lComponentType) ?? []);
+                        if (!lChangeStateQueues.has(lComponentType)) {
+                            lChangeStateQueues.set(lComponentType, []);
+                        }
                     }
                 }
 
-                const lSystemName: string = lSystem.label;
+                // Start timer, execute update, and record duration.
                 const lStart: number = performance.now();
-
-                await lSystem.executeUpdate(lHandledChanges);
-
+                await lSystem.executeUpdate(lChangeStateQueues);
                 const lDuration: number = performance.now() - lStart;
+
+                // Read system name from label.
+                const lSystemName: string = lSystem.label;
+
+                // Get existing entry for this system or create a new one if it doesn't exist.
                 const lEntry: GameEnvironmentTimingEntry = pSnapshot.systems.get(lSystemName) ?? { update: 0, frame: 0, tick: 0 };
                 lEntry.update = lDuration;
+
+                // Save entry back to snapshot.
                 pSnapshot.systems.set(lSystemName, lEntry);
             }
         } else {
             for (const lSystem of this.mSystems) {
-                const lHandledChanges = new Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>();
-
+                // Checking for handled component types is an optional optimization for systems that don't care about state changes.
                 if (lSystem.handledComponentTypes) {
+                    // Extend state change queue with empty arrays for all handled component types to avoid undefined checks in systems.
                     for (const lComponentType of lSystem.handledComponentTypes) {
-                        lHandledChanges.set(lComponentType, lConstructorChangeStateQueue.get(lComponentType) ?? []);
+                        if (!lChangeStateQueues.has(lComponentType)) {
+                            lChangeStateQueues.set(lComponentType, []);
+                        }
                     }
                 }
 
-                await lSystem.executeUpdate(lHandledChanges);
+                await lSystem.executeUpdate(lChangeStateQueues);
             }
         }
     }
 
     /**
      * Get a registered system by its type.
+     * This should not be called on lifecycle-critical paths since it performs a search through the registered systems.
      *
      * @param pSystemType - The constructor of the system type to retrieve.
      * 
      * @return The instance of the requested system type.
      */
     public getSystem<T extends GameSystem>(pSystemType: GameSystemConstructor<T>): T {
-        const lSystem = this.mSystems.find((pSystemInstance) => {
-            return pSystemInstance.constructor === pSystemType;
-        });
-
-        if (!lSystem) {
-            throw new Exception(`System ${pSystemType.name} is not registered.`, this);
+        // Find the instance of the system type.
+        for (const lSystem of this.mSystems) {
+            if (lSystem.constructor === pSystemType) {
+                return lSystem as T;
+            }
         }
 
-        return lSystem as T;
+        throw new Exception(`System ${pSystemType.name} is not registered.`, this);
     }
 
     /**
@@ -233,16 +249,9 @@ export class GameEnvironment {
 
         this.mStateChangeQueue.push(lStateChange);
 
-        // Call debug sniffer callback if set.
-        if (this.mDebugData.onStateChange) {
-            this.mDebugData.onStateChange(pType, pComponent);
-        }
-
-        if (this.mDebugOptions.debugLog) {
-            const lEntityLabel: string = pComponent.gameEntity?.label ?? 'standalone';
-
-            // eslint-disable-next-line no-console
-            console.log(`Queued state change: "${pType}" for component "${pComponent.label}" of "${lEntityLabel}"`);
+        // Call debug sniffer if set.
+        if (this.mDebugOptions.debugStateChanges) {
+            this.mDebugData.executeStateChangeListeners(lStateChange);
         }
     }
 
@@ -326,7 +335,6 @@ export class GameEnvironment {
                 }
             }
 
-            // TODO: Needs some testing.
             // Wait for the next frame to complete.
             await new Promise(pResolve => requestAnimationFrame(pResolve));
         }
@@ -379,6 +387,53 @@ export class GameEnvironment {
 }
 
 /**
+ * Debug data and listeners for the game environment.
+ */
+class GameEnvironmentDebugData {
+    private readonly mStateChangeListener: Array<GameEnvironmentDebugOptionsStateChangeListener>;
+    private readonly mTimingHistory: Array<GameEnvironmentTimingSnapshot>;
+
+    /**
+     * History of timing snapshots for all systems in the environment. Only populated when debugSystemTime is enabled.
+     */
+    public get timingHistory(): Array<GameEnvironmentTimingSnapshot> {
+        return this.mTimingHistory;
+    }
+
+    /**
+     * Constructor.
+     */
+    public constructor() {
+        this.mTimingHistory = new Array<GameEnvironmentTimingSnapshot>();
+        this.mStateChangeListener = new Array<GameEnvironmentDebugOptionsStateChangeListener>();
+    }
+
+    /**
+     * Registers a listener function to be called whenever a component state change occurs in the environment.
+     * 
+     * @param pListener - The function to call when a state change occurs. Receives the state change event as an argument. 
+     */
+    public addStateChangeListener(pListener: GameEnvironmentDebugOptionsStateChangeListener): void {
+        this.mStateChangeListener.push(pListener);
+    }
+
+    /**
+     * Executes all registered state change listeners with the provided event.
+     *
+     * @param pEvent - The state change event to pass to listeners.
+     * 
+     * @internal
+     */
+    public executeStateChangeListeners(pEvent: GameEnvironmentStateChange): void {
+        for (const lListener of this.mStateChangeListener) {
+            lListener(pEvent);
+        }
+    }
+}
+
+export type GameEnvironmentDebugOptionsStateChangeListener = (pEvent: GameEnvironmentStateChange) => void;
+
+/**
  * Base structure for all environment state change events.
  */
 export type GameEnvironmentStateChange = {
@@ -420,11 +475,6 @@ export type GameEnvironmentTimingSnapshot = {
 };
 
 export type GameEnvironmentDebugOptions = {
-    debugLog?: boolean;
     debugSystemTime?: boolean;
-};
-
-export type GameEnvironmentDebugData = {
-    readonly timingHistory: Array<GameEnvironmentTimingSnapshot>;
-    onStateChange: ((pType: GameEnvironmentStateType, pComponent: GameComponent) => void) | null;
+    debugStateChanges?: boolean;
 };

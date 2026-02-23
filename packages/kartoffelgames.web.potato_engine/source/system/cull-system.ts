@@ -28,26 +28,13 @@ import { TransformationSystem } from './transformation-system.ts';
  * When a render target has passthrough enabled, its mesh renderers are also added to the next ancestor render target.
  */
 export class CullSystem extends GameSystem {
-    // Root render target component (standalone, not attached to any entity).
-    private readonly mRootRenderTarget: RenderTargetComponent;
-
-    // Culling data for core and component render targets.
-    private readonly mRenderTargetDataMap: Map<RenderTargetComponent, CullSystemRenderTargetData>;
-
-    // Tracks which render targets each mesh renderer belongs to (for passthrough cleanup).
-    private readonly mMeshRendererToRenderTargets: WeakMap<MeshRenderComponent, Array<RenderTargetComponent>>;
-
-    // Cached world-space bounding boxes for mesh renderers. Updated in onUpdate, read in onFrame.
-    private readonly mMeshRendererWorldBounds: WeakMap<MeshRenderComponent, CullSystemWorldBounds>;
-
-    // Active camera tracking for reevaluation.
     private readonly mActiveCameras: Set<CameraComponent>;
-
-    // Tracks which render target each camera is assigned to.
     private readonly mCameraToRenderTarget: WeakMap<CameraComponent, RenderTargetComponent>;
-
-    // Dependencies.
     private mDependencyTransformationSystem: TransformationSystem | null;
+    private readonly mMeshRendererToRenderTargets: WeakMap<MeshRenderComponent, Array<RenderTargetComponent>>;
+    private readonly mMeshRendererWorldBounds: WeakMap<MeshRenderComponent, CullSystemWorldBounds>;
+    private readonly mRenderTargetDataMap: Map<RenderTargetComponent, CullSystemRenderTargetData>;
+    private readonly mRootRenderTarget: RenderTargetComponent;
 
     /**
      * Systems this system depends on.
@@ -257,6 +244,40 @@ export class CullSystem extends GameSystem {
     }
 
     /**
+     * Activate a camera component by assigning it to the appropriate render target and updating frustums.
+     * If the camera is already active on another render target, it will be ignored.
+     */
+    private activateCamera(pCamera: CameraComponent): void {
+        // Add to active cameras set.
+        this.mActiveCameras.add(pCamera);
+
+        // Find the render target this camera belongs to and reevaluate its camera assignment.
+        let lParentRenderTarget: RenderTargetComponent | null = pCamera.gameEntity.getParentComponent(RenderTargetComponent);
+        if (!lParentRenderTarget) {
+            lParentRenderTarget = this.mRootRenderTarget;
+        }
+
+        // Set camera as active when render target has no active camera set.
+        const lRenderTargetData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(lParentRenderTarget)!;
+
+        if (!lRenderTargetData.camera) {
+            // Set camera assignment and track it.
+            lRenderTargetData.camera = {
+                component: pCamera,
+                transformation: pCamera.gameEntity.getComponent(TransformationComponent)!,
+                frustum: new Frustum()
+            };
+            this.mCameraToRenderTarget.set(pCamera, lParentRenderTarget);
+
+            // Set camera aspect ratio to match the render target dimensions.
+            lRenderTargetData.camera.component.projection.aspectRatio = lParentRenderTarget.width / lParentRenderTarget.height;
+
+            // Compute frustum for the newly assigned camera.
+            this.updateFrustum(lRenderTargetData);
+        }
+    }
+
+    /**
      * Add a mesh renderer to the render target chain based on its entity hierarchy.
      * 
      * @param pMeshRenderer - The mesh render component to add.
@@ -317,146 +338,6 @@ export class CullSystem extends GameSystem {
     }
 
     /**
-     * Remove a mesh renderer from all assigned render targets based on its entity hierarchy.
-     * 
-     * @param pMeshRenderer - The mesh render component to remove.
-     */
-    private removeMeshRendererFromRenderTargetHierarchy(pMeshRenderer: MeshRenderComponent): void {
-        // Get all render targets this mesh renderer belongs to.
-        const lRenderTargets: Array<RenderTargetComponent> = this.mMeshRendererToRenderTargets.get(pMeshRenderer)!;
-
-        // Remove render target list, as it could clash when the mesh renderer is added again.
-        this.mMeshRendererToRenderTargets.delete(pMeshRenderer);
-
-        for (const lRenderTarget of lRenderTargets) {
-            const lRenderTargetData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(lRenderTarget)!;
-
-            // Get current index of the mesh renderer to remove.
-            const lIndex: number = lRenderTargetData.meshes.indexMap.get(pMeshRenderer)!;
-
-            // Swap the removed element with the last element. So we can pop the last element to remove without leaving holes in the list.
-            const lLastMeshRenderer: MeshRenderComponent = lRenderTargetData.meshes.available[lRenderTargetData.meshes.available.length - 1];
-            lRenderTargetData.meshes.available[lIndex] = lLastMeshRenderer;
-            lRenderTargetData.meshes.indexMap.set(lLastMeshRenderer, lIndex);
-
-            // Remove the last element which is now the removed mesh renderer.
-            lRenderTargetData.meshes.available.pop();
-            lRenderTargetData.meshes.indexMap.delete(pMeshRenderer);
-        }
-    }
-
-    /**
-     * Create an empty render target data object for culling.
-     *
-     * @returns A new culling data object with no camera assigned and empty mesh lists.
-     */
-    private createEmptyRenderTargetData(): CullSystemRenderTargetData {
-        return {
-            camera: null,
-            meshes: {
-                available: new Array<MeshRenderComponent>(),
-                visible: new Array<MeshRenderComponent>(),
-                indexMap: new Map<MeshRenderComponent, number>()
-            }
-        };
-    }
-
-    /**
-     * Activate a camera component by assigning it to the appropriate render target and updating frustums.
-     * If the camera is already active on another render target, it will be ignored.
-     */
-    public activateCamera(pCamera: CameraComponent): void {
-        // Add to active cameras set.
-        this.mActiveCameras.add(pCamera);
-
-        // Find the render target this camera belongs to and reevaluate its camera assignment.
-        let lParentRenderTarget: RenderTargetComponent | null = pCamera.gameEntity.getParentComponent(RenderTargetComponent);
-        if (!lParentRenderTarget) {
-            lParentRenderTarget = this.mRootRenderTarget;
-        }
-
-        // Set camera as active when render target has no active camera set.
-        const lRenderTargetData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(lParentRenderTarget)!;
-
-        if (!lRenderTargetData.camera) {
-            // Set camera assignment and track it.
-            lRenderTargetData.camera = {
-                component: pCamera,
-                transformation: pCamera.gameEntity.getComponent(TransformationComponent)!,
-                frustum: new Frustum()
-            };
-            this.mCameraToRenderTarget.set(pCamera, lParentRenderTarget);
-
-            // Set camera aspect ratio to match the render target dimensions.
-            lRenderTargetData.camera.component.projection.aspectRatio = lParentRenderTarget.width / lParentRenderTarget.height;
-
-            // Compute frustum for the newly assigned camera.
-            this.updateFrustum(lRenderTargetData);
-        }
-    }
-
-    /**
-     * Deactivate a camera component by clearing its render target assignment and updating frustums.
-     * Searches for a replacement camera for the affected render target, and if found, assigns it and updates the frustum.
-     * 
-     * @param pCamera - The camera component to deactivate. 
-     */
-    public deactivateCamera(pCamera: CameraComponent): void {
-        // Remove from active cameras set.
-        this.mActiveCameras.delete(pCamera);
-
-        // When the camera is not active on any target. Skip.
-        if (!this.mCameraToRenderTarget.has(pCamera)) {
-            return;
-        }
-
-        const lRenderTarget: RenderTargetComponent = this.mCameraToRenderTarget.get(pCamera)!;
-        const lRenderTargetData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(lRenderTarget)!;
-
-        // Clear camera assignment.
-        lRenderTargetData.camera = null;
-        this.mCameraToRenderTarget.delete(pCamera);
-
-        // Iterate all active cameras to find a new camera for the render target.
-        for (const lCamera of this.mActiveCameras) {
-            // When camera is already assigned to another render target. Skip.
-            if (this.mCameraToRenderTarget.has(lCamera)) {
-                continue;
-            }
-
-            // Find the render target this camera belongs to and reevaluate its camera assignment.
-            let lParentRenderTarget: RenderTargetComponent | null = lCamera.gameEntity.getParentComponent(RenderTargetComponent);
-            if (!lParentRenderTarget) {
-                lParentRenderTarget = this.mRootRenderTarget;
-            }
-
-            // When the camera belongs to this render target, set it as the new active camera.
-            if (lParentRenderTarget === lRenderTarget) {
-                this.activateCamera(lCamera);
-                return;
-            }
-        }
-    }
-
-    /**
-     * Update the frustum for a render target using its assigned camera's world transformation.
-     *
-     * @param pData - The culling data whose frustum to update.
-     */
-    private updateFrustum(pData: CullSystemRenderTargetData): void {
-        if (!pData.camera) {
-            return;
-        }
-
-        // Read world matrix of camera and compute view-projection matrix to update the frustum.
-        const lWorldMatrix: Matrix = this.mDependencyTransformationSystem!.worldMatrixOfTransformation(pData.camera.transformation);
-        const lViewProjectionMatrix: Matrix = pData.camera.component.matrix.mult(lWorldMatrix.inverse());
-
-        // Update the frustum with the new view-projection matrix.
-        pData.camera.frustum.update(lViewProjectionMatrix);
-    }
-
-    /**
      * Assign all enabled mesh renderers under a render target's entity hierarchy.
      * Called when a new render target is added. Walks the hierarchy and reassigns
      * mesh renderers from their current render target (or core) to this one.
@@ -474,28 +355,6 @@ export class CullSystem extends GameSystem {
             }
 
             // Remove from current assignments and reassign.
-            this.removeMeshRendererFromRenderTargetHierarchy(lMeshRenderer);
-            this.addMeshRendererToRenderTargetHierarchy(lMeshRenderer);
-        }
-    }
-
-    /**
-     * Reassign mesh renderers from a removed render target to their next ancestor render target.
-     *
-     * @param pRenderTarget - The render target component being removed.
-     */
-    private reassignMeshRenderersFromRenderTarget(pRenderTarget: RenderTargetComponent): void {
-        const lData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(pRenderTarget)!;
-
-        // Copy the list since we'll modify it during iteration.
-        const lMeshRenderers: Array<MeshRenderComponent> = [...lData.meshes.available];
-
-        for (const lMeshRenderer of lMeshRenderers) {
-            if (!lMeshRenderer.enabled) {
-                continue;
-            }
-
-            // Remove from all current assignments and reassign.
             this.removeMeshRendererFromRenderTargetHierarchy(lMeshRenderer);
             this.addMeshRendererToRenderTargetHierarchy(lMeshRenderer);
         }
@@ -555,6 +414,65 @@ export class CullSystem extends GameSystem {
     }
 
     /**
+     * Create an empty render target data object for culling.
+     *
+     * @returns A new culling data object with no camera assigned and empty mesh lists.
+     */
+    private createEmptyRenderTargetData(): CullSystemRenderTargetData {
+        return {
+            camera: null,
+            meshes: {
+                available: new Array<MeshRenderComponent>(),
+                visible: new Array<MeshRenderComponent>(),
+                indexMap: new Map<MeshRenderComponent, number>()
+            }
+        };
+    }
+
+    /**
+     * Deactivate a camera component by clearing its render target assignment and updating frustums.
+     * Searches for a replacement camera for the affected render target, and if found, assigns it and updates the frustum.
+     * 
+     * @param pCamera - The camera component to deactivate. 
+     */
+    private deactivateCamera(pCamera: CameraComponent): void {
+        // Remove from active cameras set.
+        this.mActiveCameras.delete(pCamera);
+
+        // When the camera is not active on any target. Skip.
+        if (!this.mCameraToRenderTarget.has(pCamera)) {
+            return;
+        }
+
+        const lRenderTarget: RenderTargetComponent = this.mCameraToRenderTarget.get(pCamera)!;
+        const lRenderTargetData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(lRenderTarget)!;
+
+        // Clear camera assignment.
+        lRenderTargetData.camera = null;
+        this.mCameraToRenderTarget.delete(pCamera);
+
+        // Iterate all active cameras to find a new camera for the render target.
+        for (const lCamera of this.mActiveCameras) {
+            // When camera is already assigned to another render target. Skip.
+            if (this.mCameraToRenderTarget.has(lCamera)) {
+                continue;
+            }
+
+            // Find the render target this camera belongs to and reevaluate its camera assignment.
+            let lParentRenderTarget: RenderTargetComponent | null = lCamera.gameEntity.getParentComponent(RenderTargetComponent);
+            if (!lParentRenderTarget) {
+                lParentRenderTarget = this.mRootRenderTarget;
+            }
+
+            // When the camera belongs to this render target, set it as the new active camera.
+            if (lParentRenderTarget === lRenderTarget) {
+                this.activateCamera(lCamera);
+                return;
+            }
+        }
+    }
+
+    /**
      * Rebuild the visible mesh renderer list for a render target using its cached frustum and world bounding boxes.
      *
      * @param pData - The culling data to update.
@@ -592,6 +510,76 @@ export class CullSystem extends GameSystem {
         }
 
         return lVisibleMeshRenderers;
+    }
+
+
+    /**
+     * Reassign mesh renderers from a removed render target to their next ancestor render target.
+     *
+     * @param pRenderTarget - The render target component being removed.
+     */
+    private reassignMeshRenderersFromRenderTarget(pRenderTarget: RenderTargetComponent): void {
+        const lData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(pRenderTarget)!;
+
+        // Copy the list since we'll modify it during iteration.
+        const lMeshRenderers: Array<MeshRenderComponent> = [...lData.meshes.available];
+
+        for (const lMeshRenderer of lMeshRenderers) {
+            if (!lMeshRenderer.enabled) {
+                continue;
+            }
+
+            // Remove from all current assignments and reassign.
+            this.removeMeshRendererFromRenderTargetHierarchy(lMeshRenderer);
+            this.addMeshRendererToRenderTargetHierarchy(lMeshRenderer);
+        }
+    }
+
+    /**
+     * Remove a mesh renderer from all assigned render targets based on its entity hierarchy.
+     * 
+     * @param pMeshRenderer - The mesh render component to remove.
+     */
+    private removeMeshRendererFromRenderTargetHierarchy(pMeshRenderer: MeshRenderComponent): void {
+        // Get all render targets this mesh renderer belongs to.
+        const lRenderTargets: Array<RenderTargetComponent> = this.mMeshRendererToRenderTargets.get(pMeshRenderer)!;
+
+        // Remove render target list, as it could clash when the mesh renderer is added again.
+        this.mMeshRendererToRenderTargets.delete(pMeshRenderer);
+
+        for (const lRenderTarget of lRenderTargets) {
+            const lRenderTargetData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(lRenderTarget)!;
+
+            // Get current index of the mesh renderer to remove.
+            const lIndex: number = lRenderTargetData.meshes.indexMap.get(pMeshRenderer)!;
+
+            // Swap the removed element with the last element. So we can pop the last element to remove without leaving holes in the list.
+            const lLastMeshRenderer: MeshRenderComponent = lRenderTargetData.meshes.available[lRenderTargetData.meshes.available.length - 1];
+            lRenderTargetData.meshes.available[lIndex] = lLastMeshRenderer;
+            lRenderTargetData.meshes.indexMap.set(lLastMeshRenderer, lIndex);
+
+            // Remove the last element which is now the removed mesh renderer.
+            lRenderTargetData.meshes.available.pop();
+            lRenderTargetData.meshes.indexMap.delete(pMeshRenderer);
+        }
+    }
+
+    /**
+     * Update the frustum for a render target using its assigned camera's world transformation.
+     *
+     * @param pData - The culling data whose frustum to update.
+     */
+    private updateFrustum(pData: CullSystemRenderTargetData): void {
+        if (!pData.camera) {
+            return;
+        }
+
+        // Read world matrix of camera and compute view-projection matrix to update the frustum.
+        const lWorldMatrix: Matrix = this.mDependencyTransformationSystem!.worldMatrixOfTransformation(pData.camera.transformation);
+        const lViewProjectionMatrix: Matrix = pData.camera.component.matrix.mult(lWorldMatrix.inverse());
+
+        // Update the frustum with the new view-projection matrix.
+        pData.camera.frustum.update(lViewProjectionMatrix);
     }
 }
 

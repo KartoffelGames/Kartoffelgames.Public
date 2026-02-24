@@ -7,7 +7,7 @@ Deno.test('BlobSerializerValueDeserializer.decode() - Primitives', async (pConte
     await pContext.step('Round-trip null', () => {
         // Setup.
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(null);
+        const lEncoded: Uint8Array = lEncoder.serialize(null);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -20,7 +20,7 @@ Deno.test('BlobSerializerValueDeserializer.decode() - Primitives', async (pConte
     await pContext.step('Round-trip boolean true', () => {
         // Setup.
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(true);
+        const lEncoded: Uint8Array = lEncoder.serialize(true);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -33,7 +33,7 @@ Deno.test('BlobSerializerValueDeserializer.decode() - Primitives', async (pConte
     await pContext.step('Round-trip boolean false', () => {
         // Setup.
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(false);
+        const lEncoded: Uint8Array = lEncoder.serialize(false);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -47,7 +47,7 @@ Deno.test('BlobSerializerValueDeserializer.decode() - Primitives', async (pConte
         // Setup.
         const lValue: number = 42.5;
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(lValue);
+        const lEncoded: Uint8Array = lEncoder.serialize(lValue);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -61,7 +61,7 @@ Deno.test('BlobSerializerValueDeserializer.decode() - Primitives', async (pConte
         // Setup.
         const lValue: number = -123.456;
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(lValue);
+        const lEncoded: Uint8Array = lEncoder.serialize(lValue);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -74,7 +74,7 @@ Deno.test('BlobSerializerValueDeserializer.decode() - Primitives', async (pConte
     await pContext.step('Round-trip NaN', () => {
         // Setup.
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(NaN);
+        const lEncoded: Uint8Array = lEncoder.serialize(NaN);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -87,7 +87,7 @@ Deno.test('BlobSerializerValueDeserializer.decode() - Primitives', async (pConte
     await pContext.step('Round-trip Infinity', () => {
         // Setup.
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(Infinity);
+        const lEncoded: Uint8Array = lEncoder.serialize(Infinity);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -100,7 +100,7 @@ Deno.test('BlobSerializerValueDeserializer.decode() - Primitives', async (pConte
     await pContext.step('Round-trip negative Infinity', () => {
         // Setup.
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(-Infinity);
+        const lEncoded: Uint8Array = lEncoder.serialize(-Infinity);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -115,7 +115,7 @@ Deno.test('ValueDecoder.decode() - String', async (pContext) => {
     await pContext.step('Round-trip empty string', () => {
         // Setup.
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode('');
+        const lEncoded: Uint8Array = lEncoder.serialize('');
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -129,7 +129,7 @@ Deno.test('ValueDecoder.decode() - String', async (pContext) => {
         // Setup.
         const lValue: string = 'Hello World';
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(lValue);
+        const lEncoded: Uint8Array = lEncoder.serialize(lValue);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -143,7 +143,7 @@ Deno.test('ValueDecoder.decode() - String', async (pContext) => {
         // Setup.
         const lValue: string = 'Kartoffel\u00E4\u00F6\u00FC\u00DF';
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(lValue);
+        const lEncoded: Uint8Array = lEncoder.serialize(lValue);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -158,7 +158,7 @@ Deno.test('ValueDecoder.decode() - Array', async (pContext) => {
     await pContext.step('Round-trip empty array', () => {
         // Setup.
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode([]);
+        const lEncoded: Uint8Array = lEncoder.serialize([]);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -172,7 +172,7 @@ Deno.test('ValueDecoder.decode() - Array', async (pContext) => {
         // Setup.
         const lValue: Array<unknown> = [42, 'hello', true, null, -1.5];
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(lValue);
+        const lEncoded: Uint8Array = lEncoder.serialize(lValue);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -186,7 +186,7 @@ Deno.test('ValueDecoder.decode() - Array', async (pContext) => {
         // Setup.
         const lValue: Array<unknown> = [[1, 2], [3, [4, 5]]];
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(lValue);
+        const lEncoded: Uint8Array = lEncoder.serialize(lValue);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -203,7 +203,7 @@ Deno.test('ValueDecoder.decode() - ArrayBuffer', async (pContext) => {
         const lOriginal: ArrayBuffer = new ArrayBuffer(4);
         new Uint8Array(lOriginal).set([0xDE, 0xAD, 0xBE, 0xEF]);
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(lOriginal);
+        const lEncoded: Uint8Array = lEncoder.serialize(lOriginal);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -222,7 +222,7 @@ Deno.test('ValueDecoder.decode() - ArrayBuffer', async (pContext) => {
         // Setup.
         const lOriginal: ArrayBuffer = new ArrayBuffer(0);
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(lOriginal);
+        const lEncoded: Uint8Array = lEncoder.serialize(lOriginal);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -239,7 +239,7 @@ Deno.test('ValueDecoder.decode() - TypedArray', async (pContext) => {
         // Setup.
         const lOriginal: Uint8Array = new Uint8Array([10, 20, 30, 40]);
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(lOriginal);
+        const lEncoded: Uint8Array = lEncoder.serialize(lOriginal);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -257,7 +257,7 @@ Deno.test('ValueDecoder.decode() - TypedArray', async (pContext) => {
         // Setup.
         const lOriginal: Float32Array = new Float32Array([1.5, 2.5, 3.5]);
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(lOriginal);
+        const lEncoded: Uint8Array = lEncoder.serialize(lOriginal);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -276,7 +276,7 @@ Deno.test('ValueDecoder.decode() - TypedArray', async (pContext) => {
         // Setup.
         const lOriginal: Int16Array = new Int16Array([-100, 200, -300]);
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(lOriginal);
+        const lEncoded: Uint8Array = lEncoder.serialize(lOriginal);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -294,7 +294,7 @@ Deno.test('ValueDecoder.decode() - TypedArray', async (pContext) => {
         // Setup.
         const lOriginal: BigInt64Array = new BigInt64Array([1n, -2n, 3n]);
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(lOriginal);
+        const lEncoded: Uint8Array = lEncoder.serialize(lOriginal);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -312,7 +312,7 @@ Deno.test('ValueDecoder.decode() - TypedArray', async (pContext) => {
         // Setup.
         const lOriginal: Float64Array = new Float64Array([Math.PI, Math.E]);
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(lOriginal);
+        const lEncoded: Uint8Array = lEncoder.serialize(lOriginal);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -345,7 +345,7 @@ Deno.test('ValueDecoder.decode() - Registered Object', async (pContext) => {
         lOriginal.name = 'Alice';
 
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(lOriginal);
+        const lEncoded: Uint8Array = lEncoder.serialize(lOriginal);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -371,7 +371,7 @@ Deno.test('ValueDecoder.decode() - Registered Object', async (pContext) => {
         lOriginal.name = 'Bob';
 
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(lOriginal);
+        const lEncoded: Uint8Array = lEncoder.serialize(lOriginal);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -411,7 +411,7 @@ Deno.test('ValueDecoder.decode() - Registered Object', async (pContext) => {
         lOuter.label = 'parent';
 
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(lOuter);
+        const lEncoded: Uint8Array = lEncoder.serialize(lOuter);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -447,7 +447,7 @@ Deno.test('ValueDecoder.decode() - Registered Object', async (pContext) => {
         lOriginal.value = 'test-value';
 
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(lOriginal);
+        const lEncoded: Uint8Array = lEncoder.serialize(lOriginal);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -484,7 +484,7 @@ Deno.test('ValueDecoder.decode() - Registered Object', async (pContext) => {
         lContainer.items = [lItem1, lItem2];
 
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(lContainer);
+        const lEncoded: Uint8Array = lEncoder.serialize(lContainer);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);
@@ -537,7 +537,7 @@ Deno.test('ValueDecoder.decode() - Complex round-trip', async (pContext) => {
         lOriginal.optional = null;
 
         const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        const lEncoded: Uint8Array = lEncoder.encode(lOriginal);
+        const lEncoded: Uint8Array = lEncoder.serialize(lOriginal);
 
         // Process.
         const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer(lEncoded);

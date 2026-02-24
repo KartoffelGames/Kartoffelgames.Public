@@ -143,6 +143,7 @@ export class BlobSerializer {
     private mBlob: Blob | null;
     private mTableOfContent: Map<string, BlobSerializerTableOfContentEntry>;
     private readonly mUnsavedEntries: Map<string, Uint8Array>;
+    private readonly mValueSerializer: BlobSerializerValueSerializer;
 
     /**
      * Get the list of available contents in the loaded blob.
@@ -170,6 +171,9 @@ export class BlobSerializer {
         this.mBlob = null;
         this.mTableOfContent = new Map<string, BlobSerializerTableOfContentEntry>();
         this.mUnsavedEntries = new Map<string, Uint8Array>();
+
+        // Create serializer/deserializer instance for encoding/decoding stored objects.
+        this.mValueSerializer = new BlobSerializerValueSerializer();
     }
 
     /**
@@ -384,8 +388,7 @@ export class BlobSerializer {
      * @param pObject - The serializable object to store.
      */
     public store(pPath: string, pObject: object): void {
-        const lSerializedObject: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
-        this.mUnsavedEntries.set(pPath.toLowerCase(), lSerializedObject.encode(pObject));
+        this.mUnsavedEntries.set(pPath.toLowerCase(), this.mValueSerializer.serialize(pObject));
     }
 }
 

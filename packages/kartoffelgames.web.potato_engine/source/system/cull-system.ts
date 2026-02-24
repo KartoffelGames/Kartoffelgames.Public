@@ -128,29 +128,13 @@ export class CullSystem extends GameSystem {
 
                 switch (lChange.type) {
                     case 'add': {
-                        const lData: CullSystemRenderTargetData = this.createEmptyRenderTargetData();
-                        this.mRenderTargetDataMap.set(lRenderTarget, lData);
-
-                        // Assign enabled mesh renderers under this render target.
-                        this.assignMeshRenderersToRenderTarget(lRenderTarget);
-
+                        this.addRenderTarget(lRenderTarget);
                         break;
                     }
-                    case 'remove':
-                        {
-                            // Reassign mesh renderers that were under this render target.
-                            this.reassignMeshRenderersFromRenderTarget(lRenderTarget);
-
-                            // Remove camera assignment tracking for this render target's camera.
-                            const lData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(lRenderTarget)!;
-                            if (lData.camera) {
-                                this.mCameraToRenderTarget.delete(lData.camera.component);
-                            }
-
-                            this.mRenderTargetDataMap.delete(lRenderTarget);
-
-                            break;
-                        }
+                    case 'remove':{
+                        this.removeRenderTarget(lRenderTarget);
+                        break;
+                    }
                     case 'deactivate': {
                         // Does nothing, as render target activation does not affect culling. Only camera activation/deactivation triggers culling changes.
                     }
@@ -188,7 +172,7 @@ export class CullSystem extends GameSystem {
                             break;
                         }
 
-                        this.activateCamera(lCamera);
+                        this.assignCamera(lCamera);
                         break;
                     }
                     case 'remove':
@@ -217,12 +201,12 @@ export class CullSystem extends GameSystem {
                 switch (lChange.type) {
                     case 'add': {
                         // Add mesh renderer to the render target chain and compute its world bounding box.
-                        this.addMeshRendererToRenderTargetHierarchy(lMeshRenderer);
+                        this.assignMeshRenderer(lMeshRenderer);
                         break;
                     }
                     case 'remove': {
                         // Remove mesh renderer from all assigned render targets.
-                        this.removeMeshRendererFromRenderTargetHierarchy(lMeshRenderer);
+                        this.removeMeshRenderer(lMeshRenderer);
                         break;
                     }
                     case 'deactivate': {
@@ -244,10 +228,36 @@ export class CullSystem extends GameSystem {
     }
 
     /**
-     * Activate a camera component by assigning it to the appropriate render target and updating frustums.
+     * Add a new render target to the system and assign all enabled mesh renderers under its hierarchy to it.
+     * 
+     * @param pRenderTarget - The render target component being added. 
+     */
+    private addRenderTarget(pRenderTarget: RenderTargetComponent): void {
+        // Create new empty culling data for this render target and add it to the map.
+        const lData: CullSystemRenderTargetData = this.createEmptyRenderTargetData();
+        this.mRenderTargetDataMap.set(pRenderTarget, lData);
+
+        // Read all mesh renderer entities under this render target and assign them to this render target.
+        const lMeshEntities: Array<GameEntity> = pRenderTarget.gameEntity.getGameObjectsWithComponent(MeshRenderComponent);
+        for (const lEntity of lMeshEntities) {
+            const lMeshRenderer: MeshRenderComponent = lEntity.getComponent(MeshRenderComponent)!;
+
+            // Remove and reassign mesh renderer to update its render target assignment based on the new render target in the hierarchy.
+            this.removeMeshRenderer(lMeshRenderer);
+            this.assignMeshRenderer(lMeshRenderer);
+        }
+    }
+
+    /**
+     * Assign a camera component to the next render target if it doesn't already have an active camera and update frustums.
      * If the camera is already active on another render target, it will be ignored.
      */
-    private activateCamera(pCamera: CameraComponent): void {
+    private assignCamera(pCamera: CameraComponent): void {
+        // If the camera is already assigned to a render target, skip assignment.
+        if (this.mCameraToRenderTarget.has(pCamera)) {
+            return;
+        }
+
         // Add to active cameras set.
         this.mActiveCameras.add(pCamera);
 
@@ -282,20 +292,20 @@ export class CullSystem extends GameSystem {
      * 
      * @param pMeshRenderer - The mesh render component to add.
      */
-    private addMeshRendererToRenderTargetHierarchy(pMeshRenderer: MeshRenderComponent): void {
+    private assignMeshRenderer(pMeshRenderer: MeshRenderComponent): void {
         // List of all found mesh render targets.
         const lAssignedRenderTargets: Array<RenderTargetComponent> = new Array<RenderTargetComponent>();
 
-        // Find next parent render target as long as it exists.
-        let lParentRenderTarget: RenderTargetComponent | null;
-        let lCurrentNode: GameEntity | null = pMeshRenderer.gameEntity;
-        do {
-            if (!lCurrentNode) {
-                break;
-            }
+        // Read last assigned render targets and create a set for quick lookup.
+        // This is needed to avoid duplicate assignments when traversing the hierarchy and passthrough render targets.
+        const lLastAssignedRenderTargets: Array<RenderTargetComponent> = this.mMeshRendererToRenderTargets.get(pMeshRenderer) ?? new Array<RenderTargetComponent>();
+        const lLastAssignedRenderTargetSet: Set<RenderTargetComponent> = new Set<RenderTargetComponent>(lLastAssignedRenderTargets);
 
+        // Find next parent render target as long as it exists.
+        let lCurrentNode: GameEntity | null = pMeshRenderer.gameEntity;
+        while (lCurrentNode) {
             // Find the nearest ancestor RenderTargetComponent.
-            lParentRenderTarget = lCurrentNode.getParentComponent(RenderTargetComponent);
+            let lParentRenderTarget: RenderTargetComponent | null = lCurrentNode!.getParentComponent(RenderTargetComponent);
             if (!lParentRenderTarget) {
                 lParentRenderTarget = this.mRootRenderTarget;
             }
@@ -305,6 +315,13 @@ export class CullSystem extends GameSystem {
                 lCurrentNode = null;
             } else {
                 lCurrentNode = lParentRenderTarget.gameEntity.parent as GameEntity | null;
+            }
+
+            // Remove from last assigned set. When it was previously assigned,
+            // it means we have already processed this render target and can skip to the next one in the hierarchy.
+            if (lLastAssignedRenderTargetSet.delete(lParentRenderTarget)) {
+                lAssignedRenderTargets.push(lParentRenderTarget);
+                continue;
             }
 
             // Skip render target if it is not initialized.
@@ -328,36 +345,14 @@ export class CullSystem extends GameSystem {
             }
 
             // Stop if passthrough is not enabled.
+            // Root target is never passthrough, so this loop will always end at the latest when reaching the root render target.
             if (!lParentRenderTarget.passthrough) {
                 break;
             }
-        } while (lParentRenderTarget && lParentRenderTarget !== this.mRootRenderTarget);
+        }
 
         // Assign found render targets to mesh renderer.
         this.mMeshRendererToRenderTargets.set(pMeshRenderer, lAssignedRenderTargets);
-    }
-
-    /**
-     * Assign all enabled mesh renderers under a render target's entity hierarchy.
-     * Called when a new render target is added. Walks the hierarchy and reassigns
-     * mesh renderers from their current render target (or core) to this one.
-     *
-     * @param pRenderTarget - The newly added render target component.
-     */
-    private assignMeshRenderersToRenderTarget(pRenderTarget: RenderTargetComponent): void {
-        const lMeshEntities: Array<GameEntity> = pRenderTarget.gameEntity.getGameObjectsWithComponent(MeshRenderComponent);
-
-        for (const lEntity of lMeshEntities) {
-            const lMeshRenderer: MeshRenderComponent = lEntity.getComponent(MeshRenderComponent)!;
-
-            if (!lMeshRenderer.enabled) {
-                continue;
-            }
-
-            // Remove from current assignments and reassign.
-            this.removeMeshRendererFromRenderTargetHierarchy(lMeshRenderer);
-            this.addMeshRendererToRenderTargetHierarchy(lMeshRenderer);
-        }
     }
 
     /**
@@ -466,7 +461,7 @@ export class CullSystem extends GameSystem {
 
             // When the camera belongs to this render target, set it as the new active camera.
             if (lParentRenderTarget === lRenderTarget) {
-                this.activateCamera(lCamera);
+                this.assignCamera(lCamera);
                 return;
             }
         }
@@ -512,35 +507,12 @@ export class CullSystem extends GameSystem {
         return lVisibleMeshRenderers;
     }
 
-
-    /**
-     * Reassign mesh renderers from a removed render target to their next ancestor render target.
-     *
-     * @param pRenderTarget - The render target component being removed.
-     */
-    private reassignMeshRenderersFromRenderTarget(pRenderTarget: RenderTargetComponent): void {
-        const lData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(pRenderTarget)!;
-
-        // Copy the list since we'll modify it during iteration.
-        const lMeshRenderers: Array<MeshRenderComponent> = [...lData.meshes.available];
-
-        for (const lMeshRenderer of lMeshRenderers) {
-            if (!lMeshRenderer.enabled) {
-                continue;
-            }
-
-            // Remove from all current assignments and reassign.
-            this.removeMeshRendererFromRenderTargetHierarchy(lMeshRenderer);
-            this.addMeshRendererToRenderTargetHierarchy(lMeshRenderer);
-        }
-    }
-
     /**
      * Remove a mesh renderer from all assigned render targets based on its entity hierarchy.
      * 
      * @param pMeshRenderer - The mesh render component to remove.
      */
-    private removeMeshRendererFromRenderTargetHierarchy(pMeshRenderer: MeshRenderComponent): void {
+    private removeMeshRenderer(pMeshRenderer: MeshRenderComponent): void {
         // Get all render targets this mesh renderer belongs to.
         const lRenderTargets: Array<RenderTargetComponent> = this.mMeshRendererToRenderTargets.get(pMeshRenderer)!;
 
@@ -561,6 +533,33 @@ export class CullSystem extends GameSystem {
             // Remove the last element which is now the removed mesh renderer.
             lRenderTargetData.meshes.available.pop();
             lRenderTargetData.meshes.indexMap.delete(pMeshRenderer);
+        }
+    }
+
+    /**
+     * Remove a render target and reassign its camera and mesh renderers to the next ancestor render target if possible.
+     * 
+     * @param pRenderTarget - The render target component being removed.
+     */
+    private removeRenderTarget(pRenderTarget: RenderTargetComponent): void {
+        // Get current render target data and remove it from the map.
+        const lData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(pRenderTarget)!;
+        this.mRenderTargetDataMap.delete(pRenderTarget);
+
+        // Read assigned camera and remove its assignment if it exists.
+        if (lData.camera) {
+            const lCammeraComponent: CameraComponent = lData.camera.component;
+
+            // Remove camera assignment and reassign another render target if possible.
+            this.mCameraToRenderTarget.delete(lCammeraComponent);
+            this.assignCamera(lCammeraComponent);
+        }
+
+        // Reassign all mesh renderers that were under this render target to their next ancestor render target.
+        for (const lMeshRenderer of lData.meshes.available) {
+            // Here a mesh renderer can not be removed from a render taget, only assigned to another render target.
+            // So we can directly call assign without removing first.
+            this.assignMeshRenderer(lMeshRenderer);
         }
     }
 

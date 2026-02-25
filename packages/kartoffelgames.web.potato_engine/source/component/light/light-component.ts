@@ -8,6 +8,7 @@ import { DirectionalLight } from './type/directional-light.ts';
 import type { ILightComponentItem } from './type/i-light-component-item.interface.ts';
 import { PointLight } from './type/point-light.ts';
 import { SpotLight } from './type/spot-light.ts';
+import { AreaLight } from "./type/area-light.ts";
 
 /**
  * Component that holds a light source.
@@ -52,6 +53,7 @@ export class LightComponent extends GameComponent {
             case this.light instanceof DirectionalLight: return LightComponentLightType.Directional;
             case this.light instanceof PointLight: return LightComponentLightType.Point;
             case this.light instanceof SpotLight: return LightComponentLightType.Spot;
+            case this.light instanceof AreaLight: return LightComponentLightType.Area;
         }
 
         throw new Exception('Unknown light type.', this);
@@ -67,6 +69,10 @@ export class LightComponent extends GameComponent {
             }
             case LightComponentLightType.Spot: {
                 this.light = new SpotLight();
+                break;
+            }
+            case LightComponentLightType.Area: {
+                this.light = new AreaLight();
                 break;
             }
             default: {
@@ -91,6 +97,7 @@ export class LightComponent extends GameComponent {
 export const LightComponentLightType = {
     Directional: 'Directional',
     Point: 'Point',
-    Spot: 'Spot'
+    Spot: 'Spot',
+    Area: 'Area',
 } as const;
 export type LightComponentLightType = typeof LightComponentLightType[keyof typeof LightComponentLightType];

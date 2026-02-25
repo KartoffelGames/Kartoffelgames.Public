@@ -6,19 +6,19 @@ import { EditorProperty } from '../../../editor_property/editor-property.ts';
 import type { ILightComponentItem } from './i-light-component-item.interface.ts';
 
 /**
- * Point light that emits light in all directions from a single point.
+ * Area light that emits light in a specific direction from a rectangular area.
  * Intensity falls off based on distance and the dropOff curve.
  */
-@FileSystem.fileClass('d1a2b3c4-e5f6-7890-abcd-ef1234567890', FileSystemReferenceType.Instanced)
-export class PointLight extends GameComponentItem implements ILightComponentItem {
+@FileSystem.fileClass('0cac6a2b-4dfc-4fc9-84b7-9affab2336e3', FileSystemReferenceType.Instanced)
+export class AreaLight extends GameComponentItem implements ILightComponentItem {
     /**
      * System instance with default values that can be used by components to avoid creating multiple identical instances.
      * This instance is immutable and cannot be modified, as it is shared across all components that use it.
      * Modifying this instance will throw an exception to prevent unintended side effects on other components using the same instance.
      */
-    public static readonly SYSTEM_INSTANCE: PointLight = (() => {
+    public static readonly SYSTEM_INSTANCE: AreaLight = (() => {
         // Create system instance with default values.
-        const lInstance: PointLight = new PointLight();
+        const lInstance: AreaLight = new AreaLight();
         lInstance.mIntensity = 1;
         lInstance.mRange = 10;
         lInstance.mDropOff = 1;
@@ -67,7 +67,7 @@ export class PointLight extends GameComponentItem implements ILightComponentItem
 
     /**
      * Drop-off factor controlling the intensity falloff curve.
-     * 0 = full intensity across entire range.
+     * 0 = full intensity across entire range, 1 = linear falloff.
      */
     @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)
     @FileSystem.fileProperty()
@@ -118,7 +118,7 @@ export class PointLight extends GameComponentItem implements ILightComponentItem
      * Constructor. Defaults to white light, intensity 1, range 10, linear dropOff.
      */
     public constructor() {
-        super('Point light');
+        super('Area light');
 
         // Link system color instance to avoid creating multiple identical instances.
         this.mColor = Color.SYSTEM_INSTANCE;

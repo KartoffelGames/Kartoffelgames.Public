@@ -64,7 +64,7 @@ export class LightSystem extends GameSystem {
     /**
      * Gets the GPU buffer containing tightly packed light data.
      */
-    public get gpuBuffer(): GpuBuffer {
+    public get lightBuffer(): GpuBuffer {
         this.lockGate();
         return this.mGpuBuffer!;
     }

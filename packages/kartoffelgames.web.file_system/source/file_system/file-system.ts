@@ -1,6 +1,6 @@
 import { Exception, type IVoidParameterConstructor } from '@kartoffelgames/core';
-import { Metadata } from '@kartoffelgames/core-dependency-injection';
 import type { ConstructorMetadata, InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
+import { Metadata } from '@kartoffelgames/core-dependency-injection';
 import { BlobSerializer, Serializer } from '@kartoffelgames/core-serializer';
 import { WebDatabase } from '@kartoffelgames/web-database';
 import { FileSystemEntry } from './file-system-entry.ts';
@@ -158,9 +158,9 @@ export class FileSystem {
         const lNormalizedPath: string = pPath.toLowerCase();
 
         // Check singleton cache before deserializing.
-        const lCachedRef: WeakRef<object> | undefined = this.mSingletonCache.get(lNormalizedPath);
-        if (lCachedRef !== undefined) {
-            const lCachedInstance: object | undefined = lCachedRef.deref();
+        const lCachedReference: WeakRef<object> | undefined = this.mSingletonCache.get(lNormalizedPath);
+        if (lCachedReference !== undefined) {
+            const lCachedInstance: object | undefined = lCachedReference.deref();
             if (lCachedInstance !== undefined) {
                 return lCachedInstance as T;
             }
@@ -344,9 +344,7 @@ export class FileSystem {
         lSerializer.delete(pPathEntry.subPath);
 
         // Check if the blob still has entries.
-        const lHasRemainingEntries: boolean = lSerializer.contents.length > 0;
-
-        if (lHasRemainingEntries) {
+        if (lSerializer.contents.length > 0) {
             // Save the modified blob back and remove only the path index entry.
             const lUpdatedBlob: Blob = await lSerializer.save();
 

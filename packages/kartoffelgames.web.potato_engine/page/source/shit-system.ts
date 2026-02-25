@@ -343,12 +343,12 @@ export class ShitSystem extends GameSystem {
         // Lazily create lights bind group and buffer.
         if (!this.mLightsGroup) {
             this.mLightsGroup = this.mShaderRenderModule.layout.getGroupLayout('lights').create();
-            this.mLightsGroup.data('lightData').set(lLightSystem.gpuBuffer);
+            this.mLightsGroup.data('lightData').set(lLightSystem.lightBuffer);
             this.mLightCountBuffer = this.mLightsGroup.data('lightCount').createBuffer(1);
         }
 
         // Update lights data each frame.
-        this.mLightsGroup.data('lightData').set(lLightSystem.gpuBuffer);
+        this.mLightsGroup.data('lightData').set(lLightSystem.lightBuffer);
         this.mLightCountBuffer!.write(new Uint32Array([lLightSystem.activeLightCount]).buffer);
 
         // Process each mesh group.

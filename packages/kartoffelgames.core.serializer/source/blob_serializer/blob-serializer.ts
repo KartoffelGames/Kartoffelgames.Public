@@ -72,11 +72,11 @@ export class BlobSerializer {
         const lView: DataView = new DataView(lBytes.buffer);
 
         return {
-            entryCount: lView.getUint32(12, true),
-            flags: lView.getUint16(6, true),
             magicNumber: lView.getUint32(0, true),
-            tableOfContentOffset: lView.getUint32(8, true),
             version: lView.getUint16(4, true),
+            flags: lView.getUint16(6, true),
+            tableOfContentOffset: lView.getUint32(8, true),
+            entryCount: lView.getUint32(12, true),
         };
     }
 
@@ -96,16 +96,17 @@ export class BlobSerializer {
         const lTextDecoder: TextDecoder = new TextDecoder();
 
         const lEntries: Map<string, BlobSerializerTableOfContentEntry> = new Map<string, BlobSerializerTableOfContentEntry>();
-        let lOffset: number = 0;
 
+        // Iterate through table of content while continuing offset.
+        let lOffset: number = 0;
         for (let lIndex: number = 0; lIndex < pEntryCount; lIndex++) {
             // Path length.
             const lPathByteLength: number = lTableOfContentByteView.getUint16(lOffset, true);
             lOffset += 2;
 
             // Path string (normalized to lowercase for case-insensitive matching).
-            const lPathBytes: Uint8Array = lTableOfContentBytes.subarray(lOffset, lOffset + lPathByteLength);
-            const lPath: string = lTextDecoder.decode(lPathBytes).toLowerCase();
+            const lPathStringBytes: Uint8Array = lTableOfContentBytes.subarray(lOffset, lOffset + lPathByteLength);
+            const lPathString: string = lTextDecoder.decode(lPathStringBytes).toLowerCase();
             lOffset += lPathByteLength;
 
             // Data offset.
@@ -119,7 +120,7 @@ export class BlobSerializer {
             // Read entry UUID from the start of the entry data.
             const lUuid: string = await BlobSerializer.readEntryUuid(pBlob, lDataOffset);
 
-            lEntries.set(lPath, { dataOffset: lDataOffset, dataSize: lDataSize, uuid: lUuid });
+            lEntries.set(lPathString, { dataOffset: lDataOffset, dataSize: lDataSize, uuid: lUuid });
         }
 
         return lEntries;
@@ -135,9 +136,7 @@ export class BlobSerializer {
      * @returns Uint8Array of the sliced data.
      */
     private static async sliceToUint8Array(pBlob: Blob, pOffset: number, pLength: number): Promise<Uint8Array> {
-        const lSlice: ArrayBuffer = await pBlob.slice(pOffset, pOffset + pLength).arrayBuffer();
-
-        return new Uint8Array(lSlice);
+        return new Uint8Array(await pBlob.slice(pOffset, pOffset + pLength).arrayBuffer());
     }
 
     private mBlob: Blob | null;
@@ -223,6 +222,9 @@ export class BlobSerializer {
         // Read table of content.
         this.mTableOfContent = await BlobSerializer.readTableOfContent(pBlob, lHeader.tableOfContentOffset, lHeader.entryCount);
 
+        // Clear unsaved entries as they are not relevant when a new blob is loaded.
+        this.mUnsavedEntries.clear();
+
         // Store loaded blob for later partial reads.
         this.mBlob = pBlob;
     }
@@ -243,15 +245,15 @@ export class BlobSerializer {
         const lNormalizedPath: string = pPath.toLowerCase();
 
         // Look up if path exists in unsaved entries first, then fallback to loaded blob entries.
-        const lEntryData: Uint8Array | undefined = await (async () => {
+        const lEntryData: Uint8Array | null = await (async () => {
             // Try to read unsaved entry data first.
             if (this.mUnsavedEntries.has(lNormalizedPath)) {
-                return this.mUnsavedEntries.get(lNormalizedPath);
+                return this.mUnsavedEntries.get(lNormalizedPath)!;
             }
 
             // When no blob is loaded, we cannot read any entries.
             if (this.mBlob === null) {
-                return undefined;
+                return null;
             }
 
             // Find the table of content entry for this path (case-insensitive).
@@ -260,7 +262,7 @@ export class BlobSerializer {
                 return BlobSerializer.sliceToUint8Array(this.mBlob, lEntry.dataOffset, lEntry.dataSize);
             }
 
-            return undefined;
+            return null;
         })();
 
         // When no entry data found, the path does not exist.

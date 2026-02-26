@@ -172,6 +172,7 @@ export class TransformationSystem extends GameSystem {
                     break;
                 }
                 case 'remove': {
+                    console.log('REMOVE TRANSFORMATION')
                     const lAffectedChildren: Iterable<TransformationComponent> | null = this.removeTransformation(lTransformationComponent);
                     if (!lAffectedChildren) {
                         break;
@@ -188,6 +189,7 @@ export class TransformationSystem extends GameSystem {
                 }
 
                 case 'deactivate': {
+                    console.log('DEACTIVATE TRANSFORMATION')
                     // NOP
                 }
             }

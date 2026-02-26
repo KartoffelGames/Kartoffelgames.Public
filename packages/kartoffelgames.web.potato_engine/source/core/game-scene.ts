@@ -33,14 +33,17 @@ export class GameScene extends GameNode {
      * @param pEnvironment 
      */
     public setEnvironmentConnection(pConnection: GameEnvironmentTransmission | null): void {
-        // Save environment connection for later use.
-        this.mTransmission = pConnection;
+        // Order of disconnect and connect is important.
+        if (pConnection) {
+            // Save environment connection for later use.
+            this.mTransmission = pConnection;
 
-        // Connect to environment connection.
-        if (this.mTransmission) {
             this.connect();
         } else {
             this.disconnect();
+
+            // Set environment connection to null, AFTER disconnect event has been send with the transmission object.
+            this.mTransmission = null;
         }
     }
 }

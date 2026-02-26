@@ -64,8 +64,8 @@ export class GameComponent extends GameObject {
      * @internal
      */
     public override disconnect(): void {
-        super.disconnect();
         this.gameEntity.sendComponentChangeEvent('remove', this);
+        super.disconnect();
     }
 
     /**

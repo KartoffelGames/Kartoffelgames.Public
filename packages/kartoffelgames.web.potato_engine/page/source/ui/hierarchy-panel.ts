@@ -184,6 +184,16 @@ export class HierarchyPanel {
                 lEntityElements.label.className = lEntity.enabled ? 'tree-label' : 'tree-label disabled';
             }
         }
+
+        // Clean up scene nodes that are no longer loaded.
+        // Component 'remove' events clean up entities via cascade, but the scene node itself
+        // is never removed by cleanupEmptyNode (which skips scenes). This sweep catches
+        // unloaded scenes and any remaining descendant tracking entries.
+        for (const [lNode] of this.mNodeElements) {
+            if (lNode instanceof GameScene && !this.mEnvironment.loadedScenes.has(lNode)) {
+                this.removeNodeSubtree(lNode);
+            }
+        }
     }
 
     /**
@@ -314,6 +324,32 @@ export class HierarchyPanel {
         const lParent: GameNode | null = pNode.parent;
         if (lParent) {
             this.cleanupEmptyNode(lParent);
+        }
+    }
+
+    /**
+     * Remove a node and its entire subtree from the DOM and tracking maps.
+     * Walks the game object hierarchy (preserved after disconnect) and cleans up
+     * all component entries, node entries, and DOM elements.
+     */
+    private removeNodeSubtree(pNode: GameNode): void {
+        // Clean up component entries if this is an entity.
+        if (pNode instanceof GameEntity) {
+            for (const lComponent of pNode.components) {
+                this.mComponentElements.delete(lComponent);
+            }
+        }
+
+        // Recurse to children.
+        for (const lChild of pNode.childNodes) {
+            this.removeNodeSubtree(lChild);
+        }
+
+        // Remove DOM node and tracking entry.
+        const lElements: HierarchyNodeElements | undefined = this.mNodeElements.get(pNode);
+        if (lElements) {
+            lElements.root.remove();
+            this.mNodeElements.delete(pNode);
         }
     }
 

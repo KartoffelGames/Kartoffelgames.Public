@@ -2,13 +2,13 @@
 // Matches the CPU-side buffer layout from LightSystem (96 bytes per light, 16-byte aligned).
 struct Light {
     position:        vec4<f32>,  // 0   - World position (x, y, z, w unused)
-    color:           vec4<f32>,  // 16  - (r, g, b, a) where a = color.alpha * intensity
+    color:           vec4<f32>,  // 16  - (r, g, b, a) where a = intensity
     lightType:       i32,        // 32  - 0 = point, 1 = directional, 2 = spot, 3 = area
-    intensity:       f32,        // 36  - Raw intensity multiplier
+    _reserved3:      f32,        // 36  - Reserved
     range:           f32,        // 40  - Max distance (not for directional)
     dropOff:         f32,        // 44  - Falloff curve exponent
     rotation:        vec4<f32>,  // 48  - Forward direction vector (directional, spot, area only)
-    calculatedRange: f32,        // 64  - Effective range from inverse square law (not for directional)
+    calculatedRange: f32,        // 64  - Equals range value (not for directional)
     innerAngle:      f32,        // 68  - Inner cone angle in degrees (spot only)
     outerAngle:      f32,        // 72  - Outer cone angle in degrees (spot only)
     width:           f32,        // 76  - Area light width from transform scale (area only)

@@ -20,13 +20,13 @@ import { TransformationSystem } from './transformation-system.ts';
  * Buffer layout per light (24 float32 values = 96 bytes):
  *   Offset  Index   Type         Field
  *   0       0-3     vec4<f32>    position        - World position (x, y, z, w unused)
- *   16      4-7     vec4<f32>    color           - (r, g, b, a) where a = color.alpha * intensity
+ *   16      4-7     vec4<f32>    color           - (r, g, b, a) where a = intensity
  *   32      8       i32          lightType       - 0 = point, 1 = directional, 2 = spot, 3 = area
- *   36      9       f32          intensity       - Raw light intensity multiplier
+ *   36      9       f32          reserved        - Reserved (previously intensity)
  *   40      10      f32          range           - Maximum light distance (not for directional)
  *   44      11      f32          dropOff         - Falloff curve factor
  *   48      12-15   vec4<f32>    rotation        - Forward direction vector (directional, spot, area only)
- *   64      16      f32          calculatedRange - Effective range via inverse square law (not for directional)
+ *   64      16      f32          calculatedRange - Equals range value (not for directional)
  *   68      17      f32          innerAngle      - Inner cone angle in degrees (spot only)
  *   72      18      f32          outerAngle      - Outer cone angle in degrees (spot only)
  *   76      19      f32          width           - Area light width from transformation scale (area only)
@@ -193,36 +193,6 @@ export class LightSystem extends GameSystem {
     }
 
     /**
-     * Calculates the effective range where light intensity drops to the 5% threshold using the inverse square law with drop-off.
-     * Attenuation model: intensity / (1 + d^(2 * dropOff)).
-     * At 5% threshold: d = ((20 * intensity) - 1) ^ (1 / (2 * dropOff)).
-     *
-     * @param pRange - Maximum user-defined range.
-     * @param pIntensity - Light intensity multiplier.
-     * @param pDropOff - Drop-off exponent factor. 0 = no falloff, 1 = inverse square law.
-     *
-     * @returns The calculated effective range, clamped by the user-defined range.
-     */
-    private calculateRange(pRange: number, pIntensity: number, pDropOff: number): number {
-        // No falloff means full intensity across entire range.
-        if (pDropOff <= 0) {
-            return pRange;
-        }
-
-        // Solve: intensity / (1 + d^(2*dropOff)) = 0.05
-        // => d^(2*dropOff) = (intensity / 0.05) - 1 = 20*intensity - 1
-        const lNumerator: number = 20 * pIntensity - 1;
-        if (lNumerator <= 0) {
-            // Intensity too low for attenuation to reach 5% even at distance 0.
-            return 0;
-        }
-
-        const lCalculatedRange: number = Math.pow(lNumerator, 1 / (2 * pDropOff));
-
-        return Math.min(pRange, lCalculatedRange);
-    }
-
-    /**
      * Extends the buffer to accommodate more lights.
      *
      * @param pBlockCount - Number of blocks to add. Each block holds LIGHTS_PER_BLOCK lights.
@@ -332,17 +302,17 @@ export class LightSystem extends GameSystem {
         this.mDataView[lOffset + 2] = lWorldData[14]; // z
         this.mDataView[lOffset + 3] = 0;              // w unused
 
-        // Color (vec4<f32>, indices 4-7). Alpha = color.a * intensity.
+        // Color (vec4<f32>, indices 4-7). Alpha = intensity.
         this.mDataView[lOffset + 4] = lLight.color.r;
         this.mDataView[lOffset + 5] = lLight.color.g;
         this.mDataView[lOffset + 6] = lLight.color.b;
-        this.mDataView[lOffset + 7] = lLight.color.a * lLight.intensity;
+        this.mDataView[lOffset + 7] = lLight.intensity;
 
         // Light type (i32, index 8).
         this.mIntView[lOffset + 8] = lLightType;
 
-        // Intensity (f32, index 9).
-        this.mDataView[lOffset + 9] = lLight.intensity;
+        // Reserved (f32, index 9). Previously intensity.
+        this.mDataView[lOffset + 9] = 0;
 
         // Range and dropOff (f32, indices 10-11).
         let lRange: number = 0;
@@ -368,9 +338,9 @@ export class LightSystem extends GameSystem {
             this.mDataView[lOffset + 15] = 0;
         }
 
-        // Calculated range (f32, index 16). Not needed for directional lights.
+        // Calculated range (f32, index 16). Equals range. Not needed for directional lights.
         if (lLightType !== 1) {
-            this.mDataView[lOffset + 16] = this.calculateRange(lRange, lLight.intensity, lDropOff);
+            this.mDataView[lOffset + 16] = lRange;
         } else {
             this.mDataView[lOffset + 16] = 0;
         }

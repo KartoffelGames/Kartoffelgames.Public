@@ -1,6 +1,7 @@
 import { GlbConverter } from '../../source/component_item/mesh/glb-converter.ts';
 import type { Mesh } from '../../source/component_item/mesh/mesh.ts';
 import { GameEnvironment } from '../../source/core/environment/game-environment.ts';
+import type { GameScene } from '../../source/core/game-scene.ts';
 import { CullSystem } from '../../source/system/cull-system.ts';
 import { LightSystem } from '../../source/system/light-system.ts';
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
@@ -47,10 +48,44 @@ if (lCanvasWrapper) {
 
 // ── Scene setup ──────────────────────────────────────────────
 const lSceneSetup = new SceneSetup(lBlockMesh);
-lEnvironment.loadScene(lSceneSetup.scene);
+
+// Always load the camera scene.
+lEnvironment.loadScene(lSceneSetup.cameraScene);
+
+// Track which numbered scenes are currently loaded.
+const lLoadedScenes: Set<number> = new Set<number>();
+
+/**
+ * Toggle a numbered scene on or off.
+ */
+function toggleScene(pSceneNumber: number): void {
+    const lScene: GameScene | undefined = lSceneSetup.scenes.get(pSceneNumber);
+    if (!lScene) {
+        return;
+    }
+
+    if (lLoadedScenes.has(pSceneNumber)) {
+        lEnvironment.unloadScene(lScene);
+        lLoadedScenes.delete(pSceneNumber);
+    } else {
+        lEnvironment.loadScene(lScene);
+        lLoadedScenes.add(pSceneNumber);
+    }
+}
+
+// Load scene 1 by default.
+toggleScene(1);
+
+// Listen for number keys 0-9 to toggle scenes.
+document.addEventListener('keydown', (pEvent: KeyboardEvent) => {
+    const lKey: string = pEvent.key;
+    if (lKey >= '0' && lKey <= '9') {
+        toggleScene(parseInt(lKey, 10));
+    }
+});
 
 // ── Camera controller ────────────────────────────────────────
-const lCameraController = new CameraController(lCanvas, [...lSceneSetup.cameras]);
+const lCameraController = new CameraController(lCanvas, lSceneSetup.cameraEntity);
 lCameraController.start();
 
 // Animate objects on the same interval as camera input.

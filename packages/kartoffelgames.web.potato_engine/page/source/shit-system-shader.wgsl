@@ -1,80 +1,167 @@
-// ------------------------- Object Values ---------------------- //
+// ------------------- Light Struct -------------------------------- //
+// Matches the CPU-side buffer layout from LightSystem (96 bytes per light, 16-byte aligned).
+struct Light {
+    position:        vec4<f32>,  // 0   - World position (x, y, z, w unused)
+    color:           vec4<f32>,  // 16  - (r, g, b, a) where a = color.alpha * intensity
+    lightType:       i32,        // 32  - 0 = point, 1 = directional, 2 = spot, 3 = area
+    intensity:       f32,        // 36  - Raw intensity multiplier
+    range:           f32,        // 40  - Max distance (not for directional)
+    dropOff:         f32,        // 44  - Falloff curve exponent
+    rotation:        vec4<f32>,  // 48  - Forward direction vector (directional, spot, area only)
+    calculatedRange: f32,        // 64  - Effective range from inverse square law (not for directional)
+    innerAngle:      f32,        // 68  - Inner cone angle in degrees (spot only)
+    outerAngle:      f32,        // 72  - Outer cone angle in degrees (spot only)
+    width:           f32,        // 76  - Area light width from transform scale (area only)
+    height:          f32,        // 80  - Area light height from transform scale (area only)
+    _reserved0:      f32,        // 84  - Reserved
+    _reserved1:      f32,        // 88  - Reserved
+    _reserved2:      f32,        // 92  - Reserved
+};
+// ----------------------------------------------------------------- //
+
+
+// ------------------------- Object Values ------------------------- //
 // Transformation data buffer from TransformationSystem.
 @group(0) @binding(0) var<storage, read> transformationData: array<mat4x4<f32>>;
 
 // Array of component indices into the transformation data buffer. One per instance.
 @group(0) @binding(1) var<storage, read> componentIndices: array<u32>;
-// -------------------------------------------------------------- //
+// ----------------------------------------------------------------- //
 
 
-// ------------------------- Camera ------------------------------ //
+// ------------------------- Camera -------------------------------- //
 @group(1) @binding(0) var<uniform> viewProjection: mat4x4<f32>;
-// -------------------------------------------------------------- //
+// ----------------------------------------------------------------- //
 
 
-// ------------------------- Lights ------------------------------ //
-// Tightly packed light data from LightSystem.
-// Layout per light (12 floats = 48 bytes):
-//   [0]  transformationIndex  - Index into transformation buffer (as float, cast to u32)
-//   [1]  intensity            - Light intensity multiplier
-//   [2]  colorR               - Red color channel
-//   [3]  colorG               - Green color channel
-//   [4]  colorB               - Blue color channel
-//   [5]  lightType            - Light type (0 = point, 1 = directional, 2 = spot)
-//   [6]  range                - Max distance (point/spot)
-//   [7]  dropOff              - Falloff curve factor (point/spot)
-//   [8]  innerAngle           - Inner cone angle in degrees (spot)
-//   [9]  outerAngle           - Outer cone angle in degrees (spot)
-//   [10] reserved
-//   [11] reserved
-@group(2) @binding(0) var<storage, read> lightData: array<f32>;
+// ------------------------- Lights -------------------------------- //
+// Light data stored as a struct array from LightSystem.
+@group(2) @binding(0) var<storage, read> lightData: array<Light>;
 
 // Number of active lights in the lightData buffer.
 @group(2) @binding(1) var<uniform> lightCount: u32;
-// -------------------------------------------------------------- //
+// ----------------------------------------------------------------- //
 
 
-// ------------------- Constants --------------------------------- //
-const BLOCK_SIZE: u32 = 80u;
-const MAX_PARENT_DEPTH: u32 = 32u;
+// ------------------- Constants ----------------------------------- //
 const OBJECT_COLOR: vec4<f32> = vec4<f32>(0.8, 0.8, 0.8, 1.0);
 const AMBIENT_COLOR: vec3<f32> = vec3<f32>(0.15, 0.15, 0.15);
-const LIGHT_STRIDE: u32 = 12u;
-// -------------------------------------------------------------- //
+const PI: f32 = 3.14159265359;
+// ----------------------------------------------------------------- //
 
 
-// ------------------- Light Helpers ----------------------------- //
+// ------------------- Attenuation Helpers ------------------------- //
 
 /**
- * Read the world position of a light by looking up its transformation index and computing the world matrix.
+ * Inverse square law attenuation with configurable drop-off exponent.
+ * Model: 1.0 / (1.0 + d^(2 * dropOff))
+ *
+ * dropOff = 0  -> no falloff (returns 1.0)
+ * dropOff = 0.5 -> inverse linear falloff
+ * dropOff = 1  -> inverse square law
  */
-fn readLightPosition(pLightIndex: u32) -> vec3<f32> {
-    let lOffset: u32 = pLightIndex * LIGHT_STRIDE;
-    let lTransformIndex: u32 = u32(lightData[lOffset]);
-    let lWorldMatrix: mat4x4<f32> = transformationData[lTransformIndex];
+fn normalizedAttenuation(pDistance: f32, pDropOff: f32) -> f32 {
+    if (pDropOff <= 0.0) {
+        return 1.0;
+    }
 
-    // Extract translation from column 3 of the world matrix.
-    return vec3<f32>(lWorldMatrix[3][0], lWorldMatrix[3][1], lWorldMatrix[3][2]);
+    return 1.0 / (1.0 + pow(pDistance, 2.0 * pDropOff));
+}
+// ----------------------------------------------------------------- //
+
+
+// ------------------- Per-Type Light Calculations ----------------- //
+
+/**
+ * Point light: omnidirectional emission with distance attenuation.
+ */
+fn calculatePointLight(pLight: Light, pFragPos: vec3<f32>, pNormal: vec3<f32>) -> vec3<f32> {
+    let lToLight: vec3<f32> = pLight.position.xyz - pFragPos;
+    let lDistance: f32 = length(lToLight);
+
+    // Early cull by calculated range.
+    if (lDistance > pLight.calculatedRange) {
+        return vec3<f32>(0.0);
+    }
+
+    let lDirection: vec3<f32> = lToLight / max(lDistance, 0.001);
+    let lNdotL: f32 = max(dot(pNormal, lDirection), 0.0);
+    let lAttenuation: f32 = normalizedAttenuation(lDistance, pLight.dropOff);
+
+    return pLight.color.rgb * pLight.color.a * lNdotL * lAttenuation;
 }
 
 /**
- * Read the intensity of a light.
+ * Directional light: parallel rays from a direction. No distance attenuation.
  */
-fn readLightIntensity(pLightIndex: u32) -> f32 {
-    return lightData[pLightIndex * LIGHT_STRIDE + 1u];
+fn calculateDirectionalLight(pLight: Light, pNormal: vec3<f32>) -> vec3<f32> {
+    // Light travels in the forward direction; surface-to-light is the negation.
+    let lDirection: vec3<f32> = normalize(-pLight.rotation.xyz);
+    let lNdotL: f32 = max(dot(pNormal, lDirection), 0.0);
+
+    return pLight.color.rgb * pLight.color.a * lNdotL;
 }
 
 /**
- * Read the color of a light as RGB.
+ * Spot light: cone of light with inner (full intensity) and outer (fade) angles.
  */
-fn readLightColor(pLightIndex: u32) -> vec3<f32> {
-    let lOffset: u32 = pLightIndex * LIGHT_STRIDE;
-    return vec3<f32>(lightData[lOffset + 2u], lightData[lOffset + 3u], lightData[lOffset + 4u]);
+fn calculateSpotLight(pLight: Light, pFragPos: vec3<f32>, pNormal: vec3<f32>) -> vec3<f32> {
+    let lToLight: vec3<f32> = pLight.position.xyz - pFragPos;
+    let lDistance: f32 = length(lToLight);
+
+    // Early cull by calculated range.
+    if (lDistance > pLight.calculatedRange) {
+        return vec3<f32>(0.0);
+    }
+
+    let lDirection: vec3<f32> = lToLight / max(lDistance, 0.001);
+    let lNdotL: f32 = max(dot(pNormal, lDirection), 0.0);
+
+    // Spot cone: compare angle between fragment-to-light and spot forward direction.
+    let lSpotForward: vec3<f32> = normalize(pLight.rotation.xyz);
+    let lSpotCosine: f32 = dot(-lDirection, lSpotForward);
+    let lInnerCos: f32 = cos(radians(pLight.innerAngle * 0.5));
+    let lOuterCos: f32 = cos(radians(pLight.outerAngle * 0.5));
+    let lSpotEffect: f32 = smoothstep(lOuterCos, lInnerCos, lSpotCosine);
+
+    let lAttenuation: f32 = normalizedAttenuation(lDistance, pLight.dropOff);
+
+    return pLight.color.rgb * pLight.color.a * lNdotL * lAttenuation * lSpotEffect;
 }
 
-// -------------------------------------------------------------- //
+/**
+ * Area light: rectangular emitter that only emits in the forward direction.
+ * Base size 1x1 at pivot center; transformation scale defines actual width/height.
+ */
+fn calculateAreaLight(pLight: Light, pFragPos: vec3<f32>, pNormal: vec3<f32>) -> vec3<f32> {
+    let lToLight: vec3<f32> = pLight.position.xyz - pFragPos;
+    let lDistance: f32 = length(lToLight);
+
+    // Early cull by calculated range.
+    if (lDistance > pLight.calculatedRange) {
+        return vec3<f32>(0.0);
+    }
+
+    let lDirection: vec3<f32> = lToLight / max(lDistance, 0.001);
+    let lNdotL: f32 = max(dot(pNormal, lDirection), 0.0);
+
+    // Area light only emits in the forward direction.
+    let lLightForward: vec3<f32> = normalize(pLight.rotation.xyz);
+    let lForwardDot: f32 = dot(-lDirection, lLightForward);
+    if (lForwardDot <= 0.0) {
+        return vec3<f32>(0.0);
+    }
+
+    // Larger area spreads light more; scale contribution by the emitter surface area.
+    let lAreaScale: f32 = pLight.width * pLight.height;
+    let lAttenuation: f32 = normalizedAttenuation(lDistance, pLight.dropOff);
+
+    return pLight.color.rgb * pLight.color.a * lNdotL * lAttenuation * lForwardDot * lAreaScale;
+}
+// ----------------------------------------------------------------- //
 
 
+// ------------------- Vertex Shader ------------------------------- //
 struct VertexOut {
     @builtin(position) position: vec4<f32>,
     @location(0) normal: vec4<f32>,
@@ -92,7 +179,7 @@ fn vertex_main(pVertex: VertexIn) -> VertexOut {
     // Look up the component index for this instance from the index array.
     let lComponentIndex: u32 = componentIndices[pVertex.instanceId];
 
-    // Compute the world matrix by walking the parent chain.
+    // Retrieve the world matrix from the transformation buffer.
     let lWorldMatrix: mat4x4<f32> = transformationData[lComponentIndex];
 
     // Calculate world position.
@@ -105,7 +192,10 @@ fn vertex_main(pVertex: VertexIn) -> VertexOut {
 
     return lOut;
 }
+// ----------------------------------------------------------------- //
 
+
+// ------------------- Fragment Shader ----------------------------- //
 struct FragmentIn {
     @location(0) normal: vec4<f32>,
     @location(1) fragmentPosition: vec4<f32>,
@@ -115,18 +205,27 @@ struct FragmentIn {
 fn fragment_main(pFragment: FragmentIn) -> @location(0) vec4<f32> {
     // Start with ambient light.
     var lAccumulatedLight: vec3<f32> = AMBIENT_COLOR;
+    let lNormal: vec3<f32> = normalize(pFragment.normal.xyz);
 
     // Accumulate contribution from each active light.
     for (var i: u32 = 0u; i < lightCount; i = i + 1u) {
-        let lLightPosition: vec3<f32> = readLightPosition(i);
-        let lLightIntensity: f32 = readLightIntensity(i);
-        let lLightColor: vec3<f32> = readLightColor(i);
+        let lLight: Light = lightData[i];
 
-        // Point light diffuse calculation.
-        let lLightDirection: vec3<f32> = normalize(lLightPosition - pFragment.fragmentPosition.xyz);
-        let lDiffuse: f32 = max(dot(pFragment.normal.xyz, lLightDirection), 0.0);
-
-        lAccumulatedLight = lAccumulatedLight + lLightColor * lDiffuse * lLightIntensity;
+        switch (lLight.lightType) {
+            case 0: { // Point
+                lAccumulatedLight += calculatePointLight(lLight, pFragment.fragmentPosition.xyz, lNormal);
+            }
+            case 1: { // Directional
+                lAccumulatedLight += calculateDirectionalLight(lLight, lNormal);
+            }
+            case 2: { // Spot
+                lAccumulatedLight += calculateSpotLight(lLight, pFragment.fragmentPosition.xyz, lNormal);
+            }
+            case 3: { // Area
+                lAccumulatedLight += calculateAreaLight(lLight, pFragment.fragmentPosition.xyz, lNormal);
+            }
+            default: {}
+        }
     }
 
     // Apply accumulated light to object color.
@@ -134,3 +233,4 @@ fn fragment_main(pFragment: FragmentIn) -> @location(0) vec4<f32> {
 
     return vec4<f32>(lFinalColor, OBJECT_COLOR.w);
 }
+// ----------------------------------------------------------------- //

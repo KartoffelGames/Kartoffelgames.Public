@@ -17,21 +17,15 @@ import { TransformationSystem } from './transformation-system.ts';
  * Light data is stored contiguously as a WGSL-aligned struct array so the GPU can iterate over all active lights efficiently.
  * The struct alignment is 16 bytes (max member alignment from vec4<f32>).
  *
- * Buffer layout per light (24 float32 values = 96 bytes):
- *   Offset  Index   Type         Field
- *   0       0-3     vec4<f32>    position        - World position (x, y, z, w unused)
- *   16      4-7     vec4<f32>    color           - (r, g, b, a) where a = intensity
- *   32      8       i32          lightType       - 0 = point, 1 = directional, 2 = spot, 3 = area
- *   36      9       f32          reserved        - Reserved (previously intensity)
- *   40      10      f32          range           - Maximum light distance (not for directional)
- *   44      11      f32          dropOff         - Falloff curve factor
- *   48      12-15   vec4<f32>    rotation        - Forward direction vector (directional, spot, area only)
- *   64      16      f32          calculatedRange - Equals range value (not for directional)
- *   68      17      f32          innerAngle      - Inner cone angle in degrees (spot only)
- *   72      18      f32          outerAngle      - Outer cone angle in degrees (spot only)
- *   76      19      f32          width           - Area light width from transformation scale (area only)
- *   80      20      f32          height          - Area light height from transformation scale (area only)
- *   84      21-23   f32 x3       reserved        - Padding to 96 bytes for 16-byte struct alignment
+ * Buffer layout per light (16 x 32bit values = 64 bytes):
+ *   Offset  Index   Type              Field
+ *   0       0-3     vec4<f32>         position, calculatedRange   - World position (x, y, z, calculatedRange)
+ *   16      4-7     vec4<f32>         color, intensity            - (r, g, b, intensity)
+ *   32      8-11    vec4<f32>         rotation, dropOff           - (x,y,z, dropOff) Forward direction vector (directional, spot, area only), Falloff curve factor
+ *   48      12      i32               lightType                   - 0 = point, 1 = directional, 2 = spot, 3 = area
+ *   52      13      2xPacked<f16>     innerAngle, outerAngle      - Inner and outer cone angles in degrees (spot only)
+ *   56      14      2xPacked<f16>     width, height               - Area light width and height from transformation scale (area only)
+ *   60      15      x32               reserved                    - Reserved for future use and padding
  *
  * Lights are tightly packed: active lights occupy indices 0..activeLightCount-1 with no gaps.
  * On removal, the last active light is swapped into the freed slot to maintain compactness.

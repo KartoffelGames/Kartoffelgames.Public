@@ -172,7 +172,12 @@ export class TransformationSystem extends GameSystem {
                     break;
                 }
                 case 'remove': {
-                    console.log('REMOVE TRANSFORMATION')
+                    // Remove transformation from affected transformation. Checking before removal improves performance.
+                    if (lChangedTransformations.has(lTransformationComponent)) {
+                        lChangedTransformations.delete(lTransformationComponent);
+                    }
+
+                    // Remove transformation anf get possible affected children transformations.
                     const lAffectedChildren: Iterable<TransformationComponent> | null = this.removeTransformation(lTransformationComponent);
                     if (!lAffectedChildren) {
                         break;
@@ -189,7 +194,6 @@ export class TransformationSystem extends GameSystem {
                 }
 
                 case 'deactivate': {
-                    console.log('DEACTIVATE TRANSFORMATION')
                     // NOP
                 }
             }

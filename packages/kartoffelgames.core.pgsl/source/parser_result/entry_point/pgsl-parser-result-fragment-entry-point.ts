@@ -10,6 +10,7 @@ import { PgslParserResultNumericType } from '../type/pgsl-parser-result-numeric-
 import type { PgslParserResultType, PgslParserResultTypeAlignmentType } from '../type/pgsl-parser-result-type.ts';
 import { PgslParserResultVectorType } from '../type/pgsl-parser-result-vector-type.ts';
 import { PgslParserResultEntryPoint } from './pgsl-parser-result-entry-point.ts';
+import { FunctionDeclarationAst } from "../../abstract_syntax_tree/declaration/function-declaration-ast.ts";
 
 export class PgslParserResultFragmentEntryPoint extends PgslParserResultEntryPoint {
     private readonly mRenderTargets: Array<PgslParserResultFragmentEntryPointTargets>;
@@ -24,13 +25,13 @@ export class PgslParserResultFragmentEntryPoint extends PgslParserResultEntryPoi
     /**
      * Creates a new fragment entry point parser result instance.
      *
-     * @param pName - Entry point name.
+     * @param pFunctionDeclaration - The function declaration AST containing entry point information.
      * @param pReturnType - Fragment return struct.
      * @param pDocument - Document AST.
      * @param pMeta - Transpilation meta data.
      */
-    public constructor(pName: string, pReturnType: PgslStructType, pDocument: DocumentAst, pMeta: TranspilationMeta) {
-        super('fragment', pName);
+    public constructor(pFunctionDeclaration: FunctionDeclarationAst, pReturnType: PgslStructType, pDocument: DocumentAst, pMeta: TranspilationMeta) {
+        super('fragment', pFunctionDeclaration);
 
         this.mRenderTargets = this.convertRenderTargets(pReturnType, pDocument, pMeta);
     }

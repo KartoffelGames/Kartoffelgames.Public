@@ -7,6 +7,7 @@ import { PgslParserResultComputeEntryPoint } from './entry_point/pgsl-parser-res
 import { PgslParserResultFragmentEntryPoint } from './entry_point/pgsl-parser-result-fragment-entry-point.ts';
 import { PgslParserResultVertexEntryPoint } from './entry_point/pgsl-parser-result-vertex-entry-point.ts';
 import { PgslParserResultBinding } from './pgsl-parser-result-binding.ts';
+import { PgslParserResultObject } from "./pgsl-parser-result-object.ts";
 import { PgslParserResultParameter } from './pgsl-parser-result-parameter.ts';
 import { PgslParserResultIncident } from './pgsl-parser-result.incident.ts';
 
@@ -14,7 +15,7 @@ import { PgslParserResultIncident } from './pgsl-parser-result.incident.ts';
  * Represents the result of parsing PGSL source code, including transpiled code,
  * source maps, metadata, and any incidents encountered during parsing.
  */
-export class PgslParserResult {
+export class PgslParserResult extends PgslParserResultObject {
     private readonly mIncidents: Array<PgslParserResultIncident>;
     private readonly mMeta: PgslParserResultMeta;
     private readonly mSource: string;
@@ -45,10 +46,6 @@ export class PgslParserResult {
      */
     public get incidents(): ReadonlyArray<PgslParserResultIncident> {
         return this.mIncidents;
-    }
-
-    public get metaValues(): ReadonlyMap<string, string> {
-        return this.mMeta.values;
     }
 
     /**
@@ -87,29 +84,32 @@ export class PgslParserResult {
      * @param pMeta - The transpilation metadata.
      */
     public constructor(pSource: string, pSourceMap: string | null, pDocument: DocumentAst, pMeta: TranspilationMeta) {
+        // Init metadata based on document meta values.
+        super(pDocument.data.metaValues);
+
+        // Convert incidents from document to parser result format.
+        this.mIncidents = this.convertIncidents(pDocument);
+
         this.mSource = pSource;
         this.mSourceMap = pSourceMap;
-        this.mIncidents = this.convertIncidents(pDocument);
 
         // Skip metadata extraction if there are incidents.
         if (this.mIncidents.length > 0) {
             // Set empty metadata on incidents.
             this.mMeta = {
-                bindings: [],
-                parameters: [],
+                bindings: new Array<PgslParserResultBinding>(),
+                parameters: new Array<PgslParserResultParameter>(),
                 entrypoints: {
                     vertex: new Map<string, PgslParserResultVertexEntryPoint>(),
                     fragment: new Map<string, PgslParserResultFragmentEntryPoint>(),
                     compute: new Map<string, PgslParserResultComputeEntryPoint>()
-                },
-                values: new Map<string, string>()
+                }
             };
         } else {
             this.mMeta = {
                 bindings: this.convertBindings(pDocument, pMeta),
                 parameters: this.convertShaderParameter(pDocument),
-                entrypoints: this.convertEntryPoints(pDocument, pMeta),
-                values: new Map<string, string>(pDocument.data.metaValues)
+                entrypoints: this.convertEntryPoints(pDocument, pMeta)
             };
         }
     }
@@ -174,18 +174,18 @@ export class PgslParserResult {
 
             switch (lEntryPointTypeDeclaration.entryPoint.stage) {
                 case 'vertex': {
-                    const lVertexEntryPoint: PgslParserResultVertexEntryPoint = new PgslParserResultVertexEntryPoint(lValue.data.name, lEntryPointTypeDeclaration.entryPoint.parameter, pDocument, pMeta);
+                    const lVertexEntryPoint: PgslParserResultVertexEntryPoint = new PgslParserResultVertexEntryPoint(lValue, lEntryPointTypeDeclaration.entryPoint.parameter, pDocument, pMeta);
                     lEntryPoints.vertex.set(lValue.data.name, lVertexEntryPoint);
                     break;
                 }
                 case 'fragment': {
-                    const lFragmentEntryPoint: PgslParserResultFragmentEntryPoint = new PgslParserResultFragmentEntryPoint(lValue.data.name, lEntryPointTypeDeclaration.entryPoint.returnType, pDocument, pMeta);
+                    const lFragmentEntryPoint: PgslParserResultFragmentEntryPoint = new PgslParserResultFragmentEntryPoint(lValue, lEntryPointTypeDeclaration.entryPoint.returnType, pDocument, pMeta);
                     lEntryPoints.fragment.set(lValue.data.name, lFragmentEntryPoint);
                     break;
                 }
                 case 'compute': {
                     const lWorkgroupSize: FunctionDeclarationAstDataEntryPointWorkgroupSize = lEntryPointTypeDeclaration.entryPoint.workgroupSize!;
-                    const lComputeEntryPoint: PgslParserResultComputeEntryPoint = new PgslParserResultComputeEntryPoint(lValue.data.name, lWorkgroupSize.x ?? 0, lWorkgroupSize.y ?? 0, lWorkgroupSize.z ?? 0);
+                    const lComputeEntryPoint: PgslParserResultComputeEntryPoint = new PgslParserResultComputeEntryPoint(lValue, lWorkgroupSize.x ?? 0, lWorkgroupSize.y ?? 0, lWorkgroupSize.z ?? 0);
                     lEntryPoints.compute.set(lValue.data.name, lComputeEntryPoint);
                     break;
                 }
@@ -244,7 +244,6 @@ type PgslParserResultMetaEntryPoints = {
 };
 
 type PgslParserResultMeta = {
-    values: Map<string, string>;
     bindings: Array<PgslParserResultBinding>;
     parameters: Array<PgslParserResultParameter>;
     entrypoints: PgslParserResultMetaEntryPoints;

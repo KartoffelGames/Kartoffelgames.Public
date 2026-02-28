@@ -6,11 +6,12 @@ import type { IType } from '../abstract_syntax_tree/type/i-type.interface.ts';
 import { PgslParserResultBooleanType } from './type/pgsl-parser-result-boolean-type.ts';
 import { PgslParserResultNumericType } from './type/pgsl-parser-result-numeric-type.ts';
 import type { PgslParserResultType } from './type/pgsl-parser-result-type.ts';
+import { PgslParserResultObject } from "./pgsl-parser-result-object.ts";
 
 /**
  * Represents a parameter result from PGSL parser with name and type information.
  */
-export class PgslParserResultParameter {
+export class PgslParserResultParameter extends PgslParserResultObject {
     private readonly mName: string;
     private readonly mType: PgslParserResultType;
 
@@ -38,6 +39,8 @@ export class PgslParserResultParameter {
      * @param pValue - The variable declaration AST containing parameter information.
      */
     public constructor(pValue: VariableDeclarationAst) {
+        super(pValue.data.attributes.data.metaValues);
+
         this.mName = pValue.data.name;
         this.mType = this.convertType(pValue.data.type);
     }

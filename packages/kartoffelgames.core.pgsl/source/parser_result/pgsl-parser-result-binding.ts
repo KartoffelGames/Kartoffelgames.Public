@@ -20,11 +20,12 @@ import { type PgslParserResultStructProperty, PgslParserResultStructType } from 
 import { type PgslParserResultTextureDimensionType, PgslParserResultTextureType } from './type/pgsl-parser-result-texture-type.ts';
 import type { PgslParserResultType, PgslParserResultTypeAlignmentType } from './type/pgsl-parser-result-type.ts';
 import { PgslParserResultVectorType } from './type/pgsl-parser-result-vector-type.ts';
+import { PgslParserResultObject } from "./pgsl-parser-result-object.ts";
 
 /**
  * Represents a binding result from PGSL parser with type and location information.
  */
-export class PgslParserResultBinding {
+export class PgslParserResultBinding extends PgslParserResultObject {
     private readonly mBindGroupIndex: number;
     private readonly mBindGroupName: string;
     private readonly mBindLocationIndex: number;
@@ -92,6 +93,8 @@ export class PgslParserResultBinding {
      * @param pParameters - The constructor parameters containing all binding information.
      */
     public constructor(pValue: VariableDeclarationAst, pDocument: DocumentAst, pMeta: TranspilationMeta) {
+        super(pValue.data.attributes.data.metaValues);
+
         // Convert binding type from trace.
         this.mBindingType = (() => {
             switch (pValue.data.declarationType) {

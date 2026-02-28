@@ -16,6 +16,7 @@ import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts
 import { PgslAccessModeEnum } from '../../buildin/enum/pgsl-access-mode-enum.ts';
 import { PgslInterpolateSamplingEnum } from '../../buildin/enum/pgsl-interpolate-sampling-enum.ts';
 import { PgslInterpolateTypeEnum } from '../../buildin/enum/pgsl-interpolate-type-enum.ts';
+import { StringValueExpressionAst, StringValueExpressionAstData } from "../expression/single_value/string-value-expression-ast.ts";
 
 /**
  * Generic attribute list.
@@ -39,7 +40,8 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
             size: 'Size',
             vertex: 'Vertex',
             fragment: 'Fragment',
-            compute: 'Compute'
+            compute: 'Compute',
+            meta: 'Meta'
         } as const;
     }
 
@@ -108,7 +110,8 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
     protected override onProcess(pContext: AbstractSyntaxTreeContext): AttributeListAstData {
         // Create attribute list data.
         const lAttributeListData: AttributeListAstData = {
-            attributes: new Map<PgslAttributeName, Array<IExpressionAst>>()
+            attributes: new Map<PgslAttributeName, Array<IExpressionAst>>(),
+            metaValues: new Map<string, string>()
         };
 
         // Must be attached to a declaration.
@@ -153,8 +156,26 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
             }
 
             // Create parameter ASTs and append with the attribute name.
-            const lValidatedParameters = this.validateParameter(pContext, lAttributeCst.name, lAttributeCst.parameters, lParameterDefinition);
-            lAttributeListData.attributes.set(lAttributeCst.name as PgslAttributeName, lValidatedParameters);
+            const lValidatedParameters :Array<IExpressionAst> = this.validateParameter(pContext, lAttributeCst.name, lAttributeCst.parameters, lParameterDefinition);
+
+            if (lAttributeCst.name === AttributeListAst.attributeNames.meta) {
+                // Skip any metadata when parameter count is not 2 (two strings) or parameters are invalid.
+                if (lValidatedParameters.length !== 2 ) { 
+                    continue;
+                }
+                if(!(lValidatedParameters[0] instanceof StringValueExpressionAst) || !(lValidatedParameters[1] instanceof StringValueExpressionAst)) {
+                    continue;
+                }
+
+                // Interpret both parameters as two String values (meta key and meta value).
+                const lMetaKeyParameter: string = lValidatedParameters[0].data.constantValue as string;
+                const lMetaValueParameter: string = lValidatedParameters[1].data.constantValue as string;
+
+                // Register meta data.
+                lAttributeListData.metaValues.set(lMetaKeyParameter, lMetaValueParameter);
+            } else {
+                lAttributeListData.attributes.set(lAttributeCst.name as PgslAttributeName, lValidatedParameters);
+            }
         }
 
         return lAttributeListData;
@@ -243,6 +264,13 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
                     { type: PgslNumericType.typeName.signedInteger, state: PgslValueFixedState.Constant },
                     { type: PgslNumericType.typeName.signedInteger, state: PgslValueFixedState.Constant }
                 ]
+            ]
+        });
+
+        // Meta attribute for custom annotations and compiler directives.
+        lAttributes.set(AttributeListAst.attributeNames.meta, {
+            parameterTypes: [
+                [{ values: [] }, { values: [] }]
             ]
         });
 
@@ -354,4 +382,5 @@ type AttributeDefinitionInformation = {
 
 type AttributeListAstData = {
     attributes: Map<PgslAttributeName, Array<IExpressionAst>>;
+    metaValues: Map<string, string>;
 };

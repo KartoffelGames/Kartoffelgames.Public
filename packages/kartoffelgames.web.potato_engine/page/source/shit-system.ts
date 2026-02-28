@@ -51,6 +51,7 @@ export class ShitSystem extends GameSystem {
     private mCameraGroup: BindGroup | null;
     private mExecutor: GpuExecution | null;
     private mLightCountBuffer: GpuBuffer | null;
+    private mLightIndexListBuffer: GpuBuffer | null;
     private mLightsGroup: BindGroup | null;
     private readonly mMeshGroups: Map<Mesh, MeshGroupData>;
     private mPipeline: VertexFragmentPipeline | null;
@@ -111,6 +112,7 @@ export class ShitSystem extends GameSystem {
         this.mCameraGroup = null;
         this.mExecutor = null;
         this.mLightCountBuffer = null;
+        this.mLightIndexListBuffer = null;
         this.mLightsGroup = null;
         this.mMeshGroups = new Map();
         this.mPipeline = null;
@@ -206,13 +208,16 @@ export class ShitSystem extends GameSystem {
             // Camera bind group.
             pShaderSetup.group(1, this.mCameraGroup!.layout);
 
-            // Lights bind group with light data storage buffer and light count uniform.
+            // Lights bind group with light data storage buffer, light count uniform, and light index list.
             pShaderSetup.group(2, 'lights', (pBindGroupSetup) => {
                 pBindGroupSetup.binding(0, 'lightData', ComputeStage.Fragment, StorageBindingType.Read)
                     .asBuffer().withArray().withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
 
                 pBindGroupSetup.binding(1, 'lightCount', ComputeStage.Fragment)
                     .asBuffer().withPrimitive(BufferItemFormat.Uint32, BufferItemMultiplier.Single);
+
+                pBindGroupSetup.binding(2, 'lightIndexList', ComputeStage.Fragment, StorageBindingType.Read)
+                    .asBuffer().withArray().withPrimitive(BufferItemFormat.Uint32, BufferItemMultiplier.Single);
             });
         });
 
@@ -340,16 +345,28 @@ export class ShitSystem extends GameSystem {
         const lTransformationSystem: TransformationSystem = this.mDependencyTransformationSystem!;
         const lLightSystem: LightSystem = this.mDependencyLightSystem!;
 
-        // Lazily create lights bind group and buffer.
+        // Lazily create lights bind group and buffers.
         if (!this.mLightsGroup) {
             this.mLightsGroup = this.mShaderRenderModule.layout.getGroupLayout('lights').create();
             this.mLightsGroup.data('lightData').set(lLightSystem.lightBuffer);
             this.mLightCountBuffer = this.mLightsGroup.data('lightCount').createBuffer(1);
+            this.mLightIndexListBuffer = this.mLightsGroup.data('lightIndexList').createBuffer(lLightSystem.lights.length);
+        }
+
+        // Build light index list from active lights.
+        const lActiveLights = lLightSystem.lights;
+        const lLightIndexList: Uint32Array = new Uint32Array(lActiveLights.length);
+        for (let lIndex: number = 0; lIndex < lActiveLights.length; lIndex++) {
+            lLightIndexList[lIndex] = lLightSystem.indexOfLight(lActiveLights[lIndex]);
         }
 
         // Update lights data each frame.
         this.mLightsGroup.data('lightData').set(lLightSystem.lightBuffer);
-        this.mLightCountBuffer!.write(new Uint32Array([lLightSystem.lightCount]).buffer);
+        this.mLightCountBuffer!.write(new Uint32Array([lActiveLights.length]).buffer);
+        if (this.mLightIndexListBuffer!.size !== lActiveLights.length * Uint32Array.BYTES_PER_ELEMENT) {
+            this.mLightIndexListBuffer!.size = lActiveLights.length * Uint32Array.BYTES_PER_ELEMENT;
+        }
+        this.mLightIndexListBuffer!.write(lLightIndexList.buffer);
 
         // Process each mesh group.
         for (const [lMesh, lRenderers] of lMeshGroupMap) {
@@ -397,7 +414,9 @@ export class ShitSystem extends GameSystem {
             }
 
             // Resize buffer if needed and write indices.
-            lGroupData.componentIndicesBuffer.size = lRenderers.length * Uint32Array.BYTES_PER_ELEMENT;
+            if (lGroupData.componentIndicesBuffer.size !== lRenderers.length * Uint32Array.BYTES_PER_ELEMENT) {
+                lGroupData.componentIndicesBuffer.size = lRenderers.length * Uint32Array.BYTES_PER_ELEMENT;
+            }
             lGroupData.componentIndicesBuffer.write(lIndices.buffer);
 
             // Update instance count.

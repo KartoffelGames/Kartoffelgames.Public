@@ -30,8 +30,11 @@ struct Light {
 // Light data stored as a struct array from LightSystem.
 @group(2) @binding(0) var<storage, read> lightData: array<Light>;
 
-// Number of active lights in the lightData buffer.
+// Number of active lights in the lightIndexList buffer.
 @group(2) @binding(1) var<uniform> lightCount: u32;
+
+// Index list mapping into the fragmented lightData buffer.
+@group(2) @binding(2) var<storage, read> lightIndexList: array<u32>;
 // ----------------------------------------------------------------- //
 
 
@@ -207,9 +210,9 @@ fn fragment_main(pFragment: FragmentIn) -> @location(0) vec4<f32> {
     var lAccumulatedLight: vec3<f32> = AMBIENT_COLOR;
     let lNormal: vec3<f32> = normalize(pFragment.normal.xyz);
 
-    // Accumulate contribution from each active light.
+    // Accumulate contribution from each active light via index list.
     for (var i: u32 = 0u; i < lightCount; i = i + 1u) {
-        let lLight: Light = lightData[i];
+        let lLight: Light = lightData[lightIndexList[i]];
 
         switch (lLight.lightType) {
             case 0: { // Directional

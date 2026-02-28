@@ -253,13 +253,6 @@ export class AttributeListAst extends AbstractSyntaxTree<AttributeListCst, Attri
             enforcedParentType: FunctionDeclarationAst,
             parameterTypes: [ // Parameters for workgroup size.
                 [
-                    { type: PgslNumericType.typeName.signedInteger, state: PgslValueFixedState.Constant }
-                ],
-                [
-                    { type: PgslNumericType.typeName.signedInteger, state: PgslValueFixedState.Constant },
-                    { type: PgslNumericType.typeName.signedInteger, state: PgslValueFixedState.Constant }
-                ],
-                [
                     { type: PgslNumericType.typeName.signedInteger, state: PgslValueFixedState.Constant },
                     { type: PgslNumericType.typeName.signedInteger, state: PgslValueFixedState.Constant },
                     { type: PgslNumericType.typeName.signedInteger, state: PgslValueFixedState.Constant }

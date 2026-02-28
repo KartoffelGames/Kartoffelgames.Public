@@ -60,6 +60,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * @throws {@link ParserException}
      * When the graph could not be resolved with the set code text.
      * Or {@link Exception} when no tokenizeable text should be parsed.
+     * 
+     * @internal
      */
     public parse(pCodeText: string, pProgressTracker?: CodeParserProgressTracker): TParseResult {
         // Validate lazy parameters.
@@ -133,6 +135,8 @@ export class CodeParser<TTokenType extends string, TParseResult> {
      * 
      * @throws {@link Exception}
      * If the graph part is not defined or lacks a defined data collector.
+     * 
+     * @internal
      */
     public setRootGraph(pGraph: Graph<TTokenType, any, TParseResult>): void {
         this.mRootPart = pGraph;

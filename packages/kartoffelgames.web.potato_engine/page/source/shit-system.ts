@@ -349,7 +349,7 @@ export class ShitSystem extends GameSystem {
 
         // Update lights data each frame.
         this.mLightsGroup.data('lightData').set(lLightSystem.lightBuffer);
-        this.mLightCountBuffer!.write(new Uint32Array([lLightSystem.activeLightCount]).buffer);
+        this.mLightCountBuffer!.write(new Uint32Array([lLightSystem.lightCount]).buffer);
 
         // Process each mesh group.
         for (const [lMesh, lRenderers] of lMeshGroupMap) {

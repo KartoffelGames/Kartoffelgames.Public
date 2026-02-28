@@ -3,7 +3,7 @@ import { CameraComponent } from '../../source/component/camera/camera-component.
 import { CameraComponentProjection } from '../../source/component/camera/projection/camera-projection.enum.ts';
 import type { PerspectiveProjection } from '../../source/component/camera/projection/perspective-projection.ts';
 import { LightComponent } from '../../source/component/light/light-component.ts';
-import { LightComponentItemType } from "../../source/component/light/type/light-component-item-type.enum.ts";
+import { LightComponentItemType } from '../../source/component/light/type/light-component-item-type.enum.ts';
 import type { PointLight } from '../../source/component/light/type/point-light.ts';
 import type { SpotLight } from '../../source/component/light/type/spot-light.ts';
 import { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';

@@ -4,7 +4,7 @@ import { GameComponentItem } from '../../../core/component/game-component-item.t
 import { EditorPropertyNumberType } from '../../../editor_property/editor-property-register.ts';
 import { EditorProperty } from '../../../editor_property/editor-property.ts';
 import type { ILightComponentItem } from './i-light-component-item.interface.ts';
-import { LightComponentItemType } from "./light-component-item-type.enum.ts";
+import { LightComponentItemType } from './light-component-item-type.enum.ts';
 
 /**
  * Directional light that emits parallel rays in a single direction.

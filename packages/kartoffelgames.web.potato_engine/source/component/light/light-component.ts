@@ -8,8 +8,8 @@ import { DirectionalLight } from './type/directional-light.ts';
 import type { ILightComponentItem } from './type/i-light-component-item.interface.ts';
 import { PointLight } from './type/point-light.ts';
 import { SpotLight } from './type/spot-light.ts';
-import { AreaLight } from "./type/area-light.ts";
-import { LightComponentItemType } from "./type/light-component-item-type.enum.ts";
+import { AreaLight } from './type/area-light.ts';
+import { LightComponentItemType } from './type/light-component-item-type.enum.ts';
 
 /**
  * Component that holds a light source.

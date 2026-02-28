@@ -1,17 +1,16 @@
 import { BufferUsage, GpuBuffer, GpuLimit } from '@kartoffelgames/web-gpu';
 import { LightComponent } from '../component/light/light-component.ts';
-import { AreaLight } from '../component/light/type/area-light.ts';
-import { DirectionalLight } from '../component/light/type/directional-light.ts';
+import type { AreaLight } from '../component/light/type/area-light.ts';
 import type { ILightComponentItem } from '../component/light/type/i-light-component-item.interface.ts';
-import { PointLight } from '../component/light/type/point-light.ts';
-import { SpotLight } from '../component/light/type/spot-light.ts';
+import { LightComponentItemType } from '../component/light/type/light-component-item-type.enum.ts';
+import type { PointLight } from '../component/light/type/point-light.ts';
+import type { SpotLight } from '../component/light/type/spot-light.ts';
 import { TransformationComponent } from '../component/transformation-component.ts';
 import type { GameComponentConstructor } from '../core/component/game-component.ts';
 import type { GameEnvironment, GameEnvironmentStateChange } from '../core/environment/game-environment.ts';
 import { GameSystem, type GameSystemConstructor } from '../core/game-system.ts';
 import { GpuSystem } from './gpu-system.ts';
 import { TransformationSystem } from './transformation-system.ts';
-import { LightComponentItemType } from "../component/light/type/light-component-item-type.enum.ts";
 
 /**
  * System that manages light components and their data storage in a tightly packed auto-scaling buffer.
@@ -35,35 +34,15 @@ import { LightComponentItemType } from "../component/light/type/light-component-
 export class LightSystem extends GameSystem {
     private static readonly LIGHT_STRUCT_STRIDE: number = 16;
 
-    private readonly mActiveComponents: Array<LightComponent>;
-    private mCapacity: number;
-    private readonly mComponentToIndex: WeakMap<LightComponent, number>;
-    private mDataBuffer: SharedArrayBuffer | null;
-    private mDataBufferFloatView: Float32Array | null;
-    private mDataBufferView: DataView | null;
-    private mGpuBuffer: GpuBuffer | null;
-
-    /**
-     * Gets the number of currently active lights.
-     */
-    public get activeLightCount(): number {
-        this.lockGate();
-        return this.mActiveComponents.length;
-    }
+    private readonly mActiveLights: Array<LightComponent>;
+    private readonly mActiveLightsIndexMap: WeakMap<LightComponent, number>;
+    private readonly mBuffers: LightSystemBuffer;
 
     /**
      * Gets the system types this system depends on.
      */
     public override get dependentSystemTypes(): Array<GameSystemConstructor<GameSystem>> {
         return [GpuSystem, TransformationSystem];
-    }
-
-    /**
-     * Gets the GPU buffer containing tightly packed light data.
-     */
-    public get lightBuffer(): GpuBuffer {
-        this.lockGate();
-        return this.mGpuBuffer!;
     }
 
     /**
@@ -74,6 +53,22 @@ export class LightSystem extends GameSystem {
     }
 
     /**
+     * Gets the GPU buffer containing tightly packed light data.
+     */
+    public get lightBuffer(): GpuBuffer {
+        this.lockGate();
+        return this.mBuffers.gpuBuffer!;
+    }
+
+    /**
+     * Gets the number of currently lights.
+     */
+    public get lights(): ReadonlyArray<LightComponent> {
+        this.lockGate();
+        return this.mActiveLights;
+    }
+
+    /**
      * Constructor.
      *
      * @param pEnvironment - The game environment this system belongs to.
@@ -81,15 +76,32 @@ export class LightSystem extends GameSystem {
     public constructor(pEnvironment: GameEnvironment) {
         super('Light', pEnvironment);
 
-        // Initialize buffer with 1 block (4 lights) so the GPU always has a valid buffer to bind.
-        this.mDataBuffer = null;
-        this.mDataBufferView = null;
-        this.mDataBufferFloatView = null;
+        // Null any buffer and views and setup maps for component to buffer index tracking.
+        this.mBuffers = {
+            availableIndices: new Array<number>(),
+            componentIndexMap: new WeakMap<LightComponent, number>(),
+            dataBuffer: null,
+            dataBufferView: null,
+            dataBufferFloatView: null,
+            gpuBuffer: null
+        };
 
-        this.mGpuBuffer = null;
-        this.mActiveComponents = [];
-        this.mComponentToIndex = new WeakMap<LightComponent, number>();
-        this.mCapacity = 0;
+        // Init active lists.
+        this.mActiveLights = new Array<LightComponent>();
+        this.mActiveLightsIndexMap = new WeakMap<LightComponent, number>();
+    }
+
+    /**
+     * Gets the index in the buffer for a given light component.
+     * 
+     * @param pComponent - The light component to get the index for.
+     * 
+     * @returns The index of the light component in the buffer.
+     */
+    public indexOfLight(pComponent: LightComponent): number {
+        this.lockGate();
+
+        return this.mBuffers.componentIndexMap.get(pComponent)!;
     }
 
     /**
@@ -102,15 +114,15 @@ export class LightSystem extends GameSystem {
         const lMaxStorageBufferBindingSize: number = lGpuSystem.gpuLimit(GpuLimit.MaxStorageBufferBindingSize);
 
         // Create the shared buffer for all light struct data.
-        this.mDataBuffer = new SharedArrayBuffer(0, { maxByteLength: lMaxStorageBufferBindingSize });
-        this.mDataBufferView = new DataView(this.mDataBuffer);
-        this.mDataBufferFloatView = new Float32Array(this.mDataBuffer);
+        this.mBuffers.dataBuffer = new SharedArrayBuffer(0, { maxByteLength: lMaxStorageBufferBindingSize });
+        this.mBuffers.dataBufferView = new DataView(this.mBuffers.dataBuffer);
+        this.mBuffers.dataBufferFloatView = new Float32Array(this.mBuffers.dataBuffer);
 
         // Create GPU buffer for light data.
-        const lGpuBuffer: GpuBuffer = new GpuBuffer(lGpuSystem.gpu, this.mDataBuffer.byteLength);
+        const lGpuBuffer: GpuBuffer = new GpuBuffer(lGpuSystem.gpu, this.mBuffers.dataBuffer.byteLength);
         lGpuBuffer.extendUsage(BufferUsage.Storage | BufferUsage.CopySource | BufferUsage.CopyDestination);
 
-        this.mGpuBuffer = lGpuBuffer;
+        this.mBuffers.gpuBuffer = lGpuBuffer;
     }
 
     /**
@@ -129,47 +141,54 @@ export class LightSystem extends GameSystem {
             const lLightComponent: LightComponent = lStateChange.component as LightComponent;
 
             switch (lStateChange.type) {
-                case 'add':
-                case 'activate': {
-                    // Ensure capacity by extending buffer if needed.
-                    if (this.mActiveComponents.length >= this.mCapacity) {
-                        const lExtendRange: LightSystemBufferUpdateRange = this.extendBuffer(4);
-                        lUpdateBounds.lowerBound = Math.min(lUpdateBounds.lowerBound, lExtendRange.lowerBound);
-                        lUpdateBounds.upperBound = Math.max(lUpdateBounds.upperBound, lExtendRange.upperBound);
+                case 'add': {
+                    // Assign light to buffer if not already assigned.
+                    this.assignLight(lLightComponent);
+
+                    // When light is enabled, add to active list and update buffer.
+                    if (lLightComponent.enabled) {
+                        this.activateLight(lLightComponent);
+
+                        // Update light to buffer.
+                        const lWriteRange: LightSystemBufferUpdateRange = this.updateLightBuffer(lLightComponent);
+                        lUpdateBounds.lowerBound = Math.min(lUpdateBounds.lowerBound, lWriteRange.lowerBound);
+                        lUpdateBounds.upperBound = Math.max(lUpdateBounds.upperBound, lWriteRange.upperBound);
                     }
-
-                    // Assign slot at the end of the active range for tight packing.
-                    const lIndex: number = this.mActiveComponents.length;
-                    this.mActiveComponents.push(lLightComponent);
-                    this.mComponentToIndex.set(lLightComponent, lIndex);
-
-                    // Write light data to buffer.
-                    const lWriteRange: LightSystemBufferUpdateRange = this.writeLightToBuffer(lLightComponent, lIndex);
-                    lUpdateBounds.lowerBound = Math.min(lUpdateBounds.lowerBound, lWriteRange.lowerBound);
-                    lUpdateBounds.upperBound = Math.max(lUpdateBounds.upperBound, lWriteRange.upperBound);
 
                     break;
                 }
                 case 'update': {
                     // Only update if the component is currently active in the buffer.
-                    if (!this.mComponentToIndex.has(lLightComponent)) {
+                    if (!lLightComponent.enabled) {
                         break;
                     }
 
-                    const lIndex: number = this.mComponentToIndex.get(lLightComponent)!;
-                    const lWriteRange: LightSystemBufferUpdateRange = this.writeLightToBuffer(lLightComponent, lIndex);
+                    const lWriteRange: LightSystemBufferUpdateRange = this.updateLightBuffer(lLightComponent);
                     lUpdateBounds.lowerBound = Math.min(lUpdateBounds.lowerBound, lWriteRange.lowerBound);
                     lUpdateBounds.upperBound = Math.max(lUpdateBounds.upperBound, lWriteRange.upperBound);
 
                     break;
                 }
-                case 'remove':
+                case 'activate': {
+                    this.activateLight(lLightComponent);
+
+                    // Update light buffer on activation.
+                    const lWriteRange: LightSystemBufferUpdateRange = this.updateLightBuffer(lLightComponent);
+                    lUpdateBounds.lowerBound = Math.min(lUpdateBounds.lowerBound, lWriteRange.lowerBound);
+                    lUpdateBounds.upperBound = Math.max(lUpdateBounds.upperBound, lWriteRange.upperBound);
+
+                    break;
+                }
                 case 'deactivate': {
-                    const lRemoveRange: LightSystemBufferUpdateRange | null = this.removeLightFromBuffer(lLightComponent);
-                    if (lRemoveRange) {
-                        lUpdateBounds.lowerBound = Math.min(lUpdateBounds.lowerBound, lRemoveRange.lowerBound);
-                        lUpdateBounds.upperBound = Math.max(lUpdateBounds.upperBound, lRemoveRange.upperBound);
-                    }
+                    this.deactivateLight(lLightComponent);
+                    break;
+                }
+                case 'remove': {
+                    // Deactivate light if it's active.
+                    this.deactivateLight(lLightComponent);
+
+                    // Just remove the light from buffer. Buffer does not have to be updated.
+                    this.removeLightFromBuffer(lLightComponent);
 
                     break;
                 }
@@ -179,8 +198,8 @@ export class LightSystem extends GameSystem {
         // Sync changed region to GPU buffer.
         if (lUpdateBounds.lowerBound !== 0 || lUpdateBounds.upperBound !== 0) {
             // Resize GPU buffer if the shared buffer has grown.
-            if (this.mGpuBuffer!.size < this.mDataBuffer!.byteLength) {
-                this.mGpuBuffer!.size = this.mDataBuffer!.byteLength;
+            if (this.mBuffers.gpuBuffer!.size < this.mBuffers.dataBuffer!.byteLength) {
+                this.mBuffers.gpuBuffer!.size = this.mBuffers.dataBuffer!.byteLength;
             }
 
             // Align lower bound to 8 bytes.
@@ -190,69 +209,39 @@ export class LightSystem extends GameSystem {
             lUpdateBounds.upperBound = (lUpdateBounds.upperBound + 1 + 3) & ~3;
 
             // Write changed byte range to GPU buffer.
-            this.mGpuBuffer!.write(this.mDataBuffer!, lUpdateBounds.lowerBound, lUpdateBounds.lowerBound, lUpdateBounds.upperBound - lUpdateBounds.lowerBound);
+            this.mBuffers.gpuBuffer!.write(this.mBuffers.dataBuffer!, lUpdateBounds.lowerBound, lUpdateBounds.lowerBound, lUpdateBounds.upperBound - lUpdateBounds.lowerBound);
         }
     }
 
     /**
-     * Extends the buffer to accommodate more lights.
+     * Activates a light component by adding it to the active lights list and index map.
      *
-     * @param pLightCount - Number of lights to add.
-     *
-     * @returns The byte range of the newly allocated region.
+     * @param pComponent - The light component to activate.
      */
-    private extendBuffer(pLightCount: number): LightSystemBufferUpdateRange {
-        const lBlockSizeInBytes: number = LightSystem.LIGHT_STRUCT_STRIDE * 4 * pLightCount;
-        const lOldByteLength: number = this.mDataBuffer!.byteLength;
-
-        this.mDataBuffer!.grow(lOldByteLength + lBlockSizeInBytes);
-        this.mDataBufferFloatView = new Float32Array(this.mDataBuffer!);
-        this.mDataBufferView = new DataView(this.mDataBuffer!);
-        this.mCapacity += pLightCount;
-
-        return {
-            lowerBound: lOldByteLength,
-            upperBound: this.mDataBuffer!.byteLength - 1
-        };
+    private activateLight(pComponent: LightComponent): void {
+        this.mActiveLights.push(pComponent);
+        this.mActiveLightsIndexMap.set(pComponent, this.mActiveLights.length - 1);
     }
 
     /**
-     * Removes a light from the buffer by swapping it with the last active light to maintain tight packing.
-     *
-     * @param pComponent - The light component to remove.
-     *
-     * @returns The byte range that was modified, or null if no buffer data changed.
+     * Assign a light component to the next available index in the buffer.
+     * 
+     * @param pComponent - The light component to add.
+     * 
+     * @returns The byte range of the updated region in the buffer.
      */
-    private removeLightFromBuffer(pComponent: LightComponent): LightSystemBufferUpdateRange | null {
-        const lIndex: number = this.mComponentToIndex.get(pComponent)!;
-        const lLastIndex: number = this.mActiveComponents.length - 1;
-
-        let lUpdateRange: LightSystemBufferUpdateRange | null = null;
-
-        if (lIndex !== lLastIndex) {
-            // Swap last light into the removed slot to maintain contiguous packing.
-            const lLastComponent: LightComponent = this.mActiveComponents[lLastIndex];
-            this.mActiveComponents[lIndex] = lLastComponent;
-            this.mComponentToIndex.set(lLastComponent, lIndex);
-
-            // Copy buffer data from last slot to removed slot (raw float32 copy preserves i32 bits).
-            const lSrcOffset: number = lLastIndex * LightSystem.LIGHT_STRUCT_STRIDE;
-            const lDstOffset: number = lIndex * LightSystem.LIGHT_STRUCT_STRIDE;
-            for (let lElement = 0; lElement < LightSystem.LIGHT_STRUCT_STRIDE; lElement++) {
-                this.mDataBufferFloatView![lDstOffset + lElement] = this.mDataBufferFloatView![lSrcOffset + lElement];
-            }
-
-            lUpdateRange = {
-                lowerBound: lDstOffset * 4,
-                upperBound: (lDstOffset + LightSystem.LIGHT_STRUCT_STRIDE) * 4
-            };
+    private assignLight(pComponent: LightComponent): void {
+        // Assign an index for this component in the buffer.
+        if (this.mBuffers.availableIndices.length === 0) {
+            // Extend buffer by one block (4 components) if no indices are available.
+            this.extendBuffer(4);
         }
 
-        // Pop the last element (either the removed component or the swapped one).
-        this.mActiveComponents.pop();
-        this.mComponentToIndex.delete(pComponent);
+        // Get next available index.
+        const lIndex: number = this.mBuffers.availableIndices.pop()!;
 
-        return lUpdateRange;
+        // Map the component to the next available index in the buffer.
+        this.mBuffers.componentIndexMap.set(pComponent, lIndex);
     }
 
     /**
@@ -286,20 +275,85 @@ export class LightSystem extends GameSystem {
     }
 
     /**
+     * Deactivates a light component by removing it from the active lights list and index map.
+     *
+     * @param pComponent - The light component to deactivate.
+     */
+    private deactivateLight(pComponent: LightComponent): void {
+        if (!this.mActiveLightsIndexMap.has(pComponent)) {
+            return;
+        }
+
+        // Get indices to swap and remove.
+        const lIndex: number = this.mActiveLightsIndexMap.get(pComponent)!;
+        const lLastIndex: number = this.mActiveLights.length - 1;
+
+        // Swap the last active light into the removed light's slot to maintain tight packing.
+        const lLastLight: LightComponent = this.mActiveLights[lLastIndex];
+        this.mActiveLights[lIndex] = lLastLight;
+        this.mActiveLights.pop();
+    }
+
+    /**
+     * Extends the buffer to accommodate more lights.
+     *
+     * @param pCountOfNewLights - Number of lights to add.
+     *
+     * @returns The byte range of the newly allocated region.
+     */
+    private extendBuffer(pCountOfNewLights: number): void {
+        const lLightSizeInBytes: number = LightSystem.LIGHT_STRUCT_STRIDE * 4;
+        const lOldBufferByteLength: number = this.mBuffers.dataBuffer!.byteLength;
+
+        // Grow buffer and update views.
+        this.mBuffers.dataBuffer!.grow(lOldBufferByteLength + (lLightSizeInBytes * pCountOfNewLights));
+        this.mBuffers.dataBufferFloatView = new Float32Array(this.mBuffers.dataBuffer!);
+        this.mBuffers.dataBufferView = new DataView(this.mBuffers.dataBuffer!);
+
+        // Calculate current last index.
+        const lOldLightCount: number = lOldBufferByteLength / lLightSizeInBytes;
+
+        // Add the new light index to the available indices list.
+        for (let lNewIndex = lOldLightCount; lNewIndex < lOldLightCount + pCountOfNewLights; lNewIndex++) {
+            this.mBuffers.availableIndices.push(lNewIndex);
+        }
+    }
+
+    /**
+     * Removes a light from the buffer by swapping it with the last active light to maintain tight packing.
+     *
+     * @param pComponent - The light component to remove.
+     *
+     * @returns The byte range that was modified, or null if no buffer data changed.
+     */
+    private removeLightFromBuffer(pComponent: LightComponent): void {
+        // Read current index of the component to remove.
+        const lIndex: number = this.mBuffers.componentIndexMap.get(pComponent)!;
+
+        // Remove component index mapping.
+        this.mBuffers.componentIndexMap.delete(pComponent);
+
+        // Add index back to available indices.
+        this.mBuffers.availableIndices.push(lIndex);
+    }
+
+    /**
      * Writes a light component's data to the buffer at the specified index.
      * Reads world position from TransformationSystem and forward direction from the rotation quaternion.
      * Type-specific properties (dropOff, angles, area size) are packed and written based on the light implementation.
      *
      * @param pComponent - The light component to write.
-     * @param pIndex - The slot index in the tightly packed buffer.
      *
      * @returns The byte range that was written.
      */
-    private writeLightToBuffer(pComponent: LightComponent, pIndex: number): LightSystemBufferUpdateRange {
+    private updateLightBuffer(pComponent: LightComponent): LightSystemBufferUpdateRange {
+        // Get light index.
+        const lIndex: number = this.mBuffers.componentIndexMap.get(pComponent)!;
+
         const lTransformationSystem: TransformationSystem = this.environment.getSystem(TransformationSystem);
         const lTransformation: TransformationComponent = pComponent.gameEntity.getComponent(TransformationComponent);
         const lLight: ILightComponentItem = pComponent.light;
-        const lOffset: number = pIndex * LightSystem.LIGHT_STRUCT_STRIDE;
+        const lOffset: number = lIndex * LightSystem.LIGHT_STRUCT_STRIDE;
 
         // Read world position from TransformationSystem world matrix (column 3 = translation).
         const lWorldMatrix = lTransformationSystem.worldMatrixOfTransformation(lTransformation);
@@ -315,47 +369,51 @@ export class LightSystem extends GameSystem {
             lDropOff = lNonDirectionalLight.dropOff;
         }
 
+        const lDataBufferFloatView: Float32Array = this.mBuffers.dataBufferFloatView!;
+
         // Position + calculatedRange (vec4<f32>, indices 0-3).
-        this.mDataBufferFloatView![lOffset + 0] = lWorldData[12]; // x
-        this.mDataBufferFloatView![lOffset + 1] = lWorldData[13]; // y
-        this.mDataBufferFloatView![lOffset + 2] = lWorldData[14]; // z
+        lDataBufferFloatView[lOffset + 0] = lWorldData[12]; // x
+        lDataBufferFloatView[lOffset + 1] = lWorldData[13]; // y
+        lDataBufferFloatView[lOffset + 2] = lWorldData[14]; // z
 
         // Calculated range on w component of vec4.
         if (lLight.type !== LightComponentItemType.Directional) {
-            this.mDataBufferFloatView![lOffset + 3] = this.calculateRange(lRange, lLight.intensity, lDropOff);
+            lDataBufferFloatView[lOffset + 3] = this.calculateRange(lRange, lLight.intensity, lDropOff);
         }
 
         // Color + intensity (vec4<f32>, indices 4-7).
-        this.mDataBufferFloatView![lOffset + 4] = lLight.color.r;
-        this.mDataBufferFloatView![lOffset + 5] = lLight.color.g;
-        this.mDataBufferFloatView![lOffset + 6] = lLight.color.b;
-        this.mDataBufferFloatView![lOffset + 7] = lLight.intensity;
+        lDataBufferFloatView[lOffset + 4] = lLight.color.r;
+        lDataBufferFloatView[lOffset + 5] = lLight.color.g;
+        lDataBufferFloatView[lOffset + 6] = lLight.color.b;
+        lDataBufferFloatView[lOffset + 7] = lLight.intensity;
 
         // Rotation + dropOff (vec4<f32>, indices 8-11).
         const lForward = lTransformation.rotation.vectorForward;
-        this.mDataBufferFloatView![lOffset + 8] = lForward.x;
-        this.mDataBufferFloatView![lOffset + 9] = lForward.y;
-        this.mDataBufferFloatView![lOffset + 10] = lForward.z;
+        lDataBufferFloatView[lOffset + 8] = lForward.x;
+        lDataBufferFloatView[lOffset + 9] = lForward.y;
+        lDataBufferFloatView[lOffset + 10] = lForward.z;
 
         // Drop-off factor for attenuation (point, spot, area) or shadow softness (directional).
-        this.mDataBufferFloatView![lOffset + 11] = lDropOff;
+        lDataBufferFloatView[lOffset + 11] = lDropOff;
+
+        const lDataBufferView: DataView = this.mBuffers.dataBufferView!;
 
         // Light type (i32, index 12).
-        this.mDataBufferView!.setInt32((lOffset + 12) * 4, lLight.type, true);
+        lDataBufferView.setInt32((lOffset + 12) * 4, lLight.type, true);
 
         // Packed innerAngle/outerAngle (2xf16, index 13).
         if (lLight.type === LightComponentItemType.Spot) {
             // "Convert" light into a spot light.
             const lSpotLight: SpotLight = lLight as SpotLight;
 
-            this.mDataBufferView!.setFloat16((lOffset + 13) * 4, lSpotLight.innerAngle, true);
-            this.mDataBufferView!.setFloat16((lOffset + 13) * 4 + 2, lSpotLight.outerAngle, true);
+            lDataBufferView.setFloat16((lOffset + 13) * 4, lSpotLight.innerAngle, true);
+            lDataBufferView.setFloat16((lOffset + 13) * 4 + 2, lSpotLight.outerAngle, true);
         }
 
         // Packed width/height (2xf16, index 14).
         if (lLight.type === LightComponentItemType.Area) {
-            this.mDataBufferView!.setFloat16((lOffset + 14) * 4, lTransformation.scaleWidth, true);
-            this.mDataBufferView!.setFloat16((lOffset + 14) * 4 + 2, lTransformation.scaleHeight, true);
+            lDataBufferView.setFloat16((lOffset + 14) * 4, lTransformation.scaleWidth, true);
+            lDataBufferView.setFloat16((lOffset + 14) * 4 + 2, lTransformation.scaleHeight, true);
         }
 
         return {
@@ -364,6 +422,16 @@ export class LightSystem extends GameSystem {
         };
     }
 }
+
+type LightSystemBuffer = {
+    readonly availableIndices: Array<number>;
+    readonly componentIndexMap: WeakMap<LightComponent, number>;
+    dataBuffer: SharedArrayBuffer | null;
+    dataBufferFloatView: Float32Array | null;
+    dataBufferView: DataView | null;
+    gpuBuffer: GpuBuffer | null;
+
+};
 
 type LightSystemBufferUpdateRange = {
     /**

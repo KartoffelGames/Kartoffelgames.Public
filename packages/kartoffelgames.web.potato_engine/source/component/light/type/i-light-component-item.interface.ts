@@ -1,6 +1,6 @@
 import type { Color } from '../../../component_item/color.ts';
 import type { GameComponentItem } from '../../../core/component/game-component-item.ts';
-import { LightComponentItemType } from "./light-component-item-type.enum.ts";
+import type { LightComponentItemType } from './light-component-item-type.enum.ts';
 
 /**
  * Interface for light component items defining common properties for all light types.

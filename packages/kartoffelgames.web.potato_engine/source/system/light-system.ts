@@ -87,6 +87,14 @@ export class LightSystem extends GameSystem {
     }
 
     /**
+     * Gets the GPU buffer containing ambient light data (vec4<f32>: r, g, b, intensity).
+     */
+    public get ambientLightBuffer(): GpuBuffer {
+        this.lockGate();
+        return this.mBuffers.ambientLightGpuBuffer!;
+    }
+
+    /**
      * Gets the GPU buffer containing tightly packed light data.
      */
     public get lightBuffer(): GpuBuffer {

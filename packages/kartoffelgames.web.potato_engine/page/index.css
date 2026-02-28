@@ -248,11 +248,36 @@ html, body {
     border-bottom: 1px solid var(--border-color);
 }
 
+.debug-system-name-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 4px;
+}
+
+.debug-system-checkbox {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--accent);
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
 .debug-system-name {
     font-size: 12px;
     font-weight: 500;
     color: var(--text-primary);
-    margin-bottom: 4px;
+}
+
+.debug-system-entry.debug-system-disabled .debug-system-timings,
+.debug-system-entry.debug-system-disabled .debug-system-graph,
+.debug-system-entry.debug-system-disabled .debug-system-properties {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+.debug-system-entry.debug-system-disabled .debug-system-name {
+    color: var(--text-muted);
 }
 
 .debug-system-timings {
@@ -280,6 +305,122 @@ html, body {
     border-radius: 3px;
     overflow: hidden;
     position: relative;
+}
+
+/* ── Editor Property Controls ────────────────────────────── */
+.debug-system-properties {
+    margin-top: 6px;
+    padding-top: 6px;
+    border-top: 1px solid var(--border-color);
+}
+
+.debug-prop-row {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: 6px;
+}
+
+.debug-prop-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: capitalize;
+}
+
+.debug-prop-control {
+    width: 100%;
+}
+
+.debug-prop-number,
+.debug-prop-text,
+.debug-prop-select {
+    width: 100%;
+    padding: 3px 6px;
+    font-size: 11px;
+    font-family: inherit;
+    color: var(--text-primary);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    outline: none;
+}
+
+.debug-prop-number:focus,
+.debug-prop-text:focus,
+.debug-prop-select:focus {
+    border-color: var(--accent);
+}
+
+.debug-prop-checkbox {
+    width: 14px;
+    height: 14px;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+.debug-prop-range {
+    flex: 1;
+    height: 4px;
+    accent-color: var(--accent);
+    cursor: pointer;
+}
+
+.debug-prop-range-value {
+    font-size: 10px;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+    min-width: 36px;
+    text-align: right;
+}
+
+/* ── Color Controls ──────────────────────────────────────── */
+.debug-prop-color-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.debug-prop-color-preview-row {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.debug-prop-color-swatch {
+    width: 24px;
+    height: 24px;
+    border-radius: 3px;
+    border: 1px solid var(--border-color);
+    flex-shrink: 0;
+}
+
+.debug-prop-color-picker {
+    width: 40px;
+    height: 24px;
+    padding: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 3px;
+    background: var(--bg-surface);
+    cursor: pointer;
+}
+
+.debug-prop-color-channel {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.debug-prop-color-channel-label {
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--text-muted);
+    width: 12px;
+    flex-shrink: 0;
+}
+
+.debug-prop-object-group {
+    padding-left: 8px;
+    border-left: 1px solid var(--border-color);
 }
 
 /* ── Frame Graph (top bar) ────────────────────────────────── */

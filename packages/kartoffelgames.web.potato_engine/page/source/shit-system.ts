@@ -21,8 +21,8 @@ import type { MeshRenderComponent } from '../../source/component/mesh-render-com
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
 import type { Mesh } from '../../source/component_item/mesh/mesh.ts';
 import type { GameComponentConstructor } from '../../source/core/component/game-component.ts';
-import type { GameEnvironment, GameEnvironmentStateChange } from '../../source/core/environment/game-environment.ts';
-import { GameSystem, type GameSystemConstructor } from '../../source/core/game-system.ts';
+import type { GameEnvironment } from '../../source/core/environment/game-environment.ts';
+import { GameSystem, type GameSystemConstructor, type GameSystemUpdateStateChanges } from '../../source/core/game-system.ts';
 import { CullSystem, type ReadonlyCullSystemRenderTargetData } from '../../source/system/cull-system.ts';
 import { GpuSystem } from '../../source/system/gpu-system.ts';
 import { LightSystem } from '../../source/system/light-system.ts';
@@ -208,7 +208,7 @@ export class ShitSystem extends GameSystem {
             // Camera bind group.
             pShaderSetup.group(1, this.mCameraGroup!.layout);
 
-            // Lights bind group with light data storage buffer, light count uniform, and light index list.
+            // Lights bind group with light data storage buffer, light count uniform, light index list, and ambient light.
             pShaderSetup.group(2, 'lights', (pBindGroupSetup) => {
                 pBindGroupSetup.binding(0, 'lightData', ComputeStage.Fragment, StorageBindingType.Read)
                     .asBuffer().withArray().withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
@@ -218,6 +218,9 @@ export class ShitSystem extends GameSystem {
 
                 pBindGroupSetup.binding(2, 'lightIndexList', ComputeStage.Fragment, StorageBindingType.Read)
                     .asBuffer().withArray().withPrimitive(BufferItemFormat.Uint32, BufferItemMultiplier.Single);
+
+                pBindGroupSetup.binding(3, 'ambientLight', ComputeStage.Fragment)
+                    .asBuffer().withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             });
         });
 
@@ -281,7 +284,7 @@ export class ShitSystem extends GameSystem {
      * Process component state changes.
      * All component tracking is handled by CullSystem; this system rebuilds per frame from the visible list.
      */
-    protected override async onUpdate(_pStateChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>): Promise<void> {
+    protected override async onUpdate(_pStateChanges: GameSystemUpdateStateChanges): Promise<void> {
         // No component event processing needed.
         // Camera and mesh renderer tracking is handled by CullSystem.
         // Instance data is rebuilt every frame from the frustum-culled visible list.
@@ -351,6 +354,7 @@ export class ShitSystem extends GameSystem {
             this.mLightsGroup.data('lightData').set(lLightSystem.lightBuffer);
             this.mLightCountBuffer = this.mLightsGroup.data('lightCount').createBuffer(1);
             this.mLightIndexListBuffer = this.mLightsGroup.data('lightIndexList').createBuffer(lLightSystem.lights.length);
+            this.mLightsGroup.data('ambientLight').set(lLightSystem.ambientLightBuffer);
         }
 
         // Build light index list from active lights.
@@ -362,6 +366,7 @@ export class ShitSystem extends GameSystem {
 
         // Update lights data each frame.
         this.mLightsGroup.data('lightData').set(lLightSystem.lightBuffer);
+        this.mLightsGroup.data('ambientLight').set(lLightSystem.ambientLightBuffer);
         this.mLightCountBuffer!.write(new Uint32Array([lActiveLights.length]).buffer);
         if (this.mLightIndexListBuffer!.size !== lActiveLights.length * Uint32Array.BYTES_PER_ELEMENT) {
             this.mLightIndexListBuffer!.size = lActiveLights.length * Uint32Array.BYTES_PER_ELEMENT;

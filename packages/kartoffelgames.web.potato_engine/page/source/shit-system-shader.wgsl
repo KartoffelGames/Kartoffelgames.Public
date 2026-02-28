@@ -35,12 +35,14 @@ struct Light {
 
 // Index list mapping into the fragmented lightData buffer.
 @group(2) @binding(2) var<storage, read> lightIndexList: array<u32>;
+
+// Ambient light color and intensity from LightSystem (vec4<f32>: r, g, b, intensity).
+@group(2) @binding(3) var<uniform> ambientLight: vec4<f32>;
 // ----------------------------------------------------------------- //
 
 
 // ------------------- Constants ----------------------------------- //
 const OBJECT_COLOR: vec4<f32> = vec4<f32>(0.8, 0.8, 0.8, 1.0);
-const AMBIENT_COLOR: vec3<f32> = vec3<f32>(0.15, 0.15, 0.15);
 const PI: f32 = 3.14159265359;
 // ----------------------------------------------------------------- //
 
@@ -206,8 +208,8 @@ struct FragmentIn {
 
 @fragment
 fn fragment_main(pFragment: FragmentIn) -> @location(0) vec4<f32> {
-    // Start with ambient light.
-    var lAccumulatedLight: vec3<f32> = AMBIENT_COLOR;
+    // Start with ambient light (color * intensity).
+    var lAccumulatedLight: vec3<f32> = ambientLight.rgb * ambientLight.a;
     let lNormal: vec3<f32> = normalize(pFragment.normal.xyz);
 
     // Accumulate contribution from each active light via index list.

@@ -10,16 +10,26 @@ import type { GameEnvironment, GameEnvironmentStateChange } from './environment/
  * On the update cycle, systems receive a list of component state changes that they can use to manage resources and optimize their processing.
  */
 export abstract class GameSystem {
+    private mEnabled: boolean;
     private readonly mEnvironment: GameEnvironment;
     private mInitialized: boolean;
     private readonly mLabel: string;
-
+    
     /**
      * Define which systems this system depends on.
      * Override this method to return an array of system types this system depends on.
      */
     public get dependentSystemTypes(): Array<GameSystemConstructor<GameSystem>> {
         return [];
+    }
+
+    /**
+     * Whether this system is enabled and should be executed during the frame, tick, and update cycles.
+     */
+    public get enabled(): boolean {
+        return this.mEnabled;
+    } set enabled(value: boolean) {
+        this.mEnabled = value;
     }
 
     /**
@@ -56,6 +66,9 @@ export abstract class GameSystem {
 
         // Default to not initialized.
         this.mInitialized = false;
+
+        // Default to enabled.
+        this.mEnabled = true;
     }
 
     /**

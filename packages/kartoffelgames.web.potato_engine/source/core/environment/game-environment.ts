@@ -79,7 +79,13 @@ export class GameEnvironment {
             for (const lSystem of this.mSystems) {
                 // Start timer, execute frame, and record duration.
                 const lStart: number = performance.now();
-                await lSystem.executeFrame();
+
+                // Skipping disabled systems.
+                if (lSystem.enabled) {
+                    await lSystem.executeFrame();
+                }
+
+                // Record duration even for disabled systems to provide insight into how long they would take if enabled.
                 const lDuration: number = performance.now() - lStart;
 
                 // Read system name from label.
@@ -94,6 +100,11 @@ export class GameEnvironment {
             }
         } else {
             for (const lSystem of this.mSystems) {
+                // Skipping disabled systems.
+                if (!lSystem.enabled) {
+                    continue;
+                }
+
                 await lSystem.executeFrame();
             }
         }
@@ -114,7 +125,13 @@ export class GameEnvironment {
             for (const lSystem of this.mSystems) {
                 // Start timer, execute tick, and record duration.
                 const lStart: number = performance.now();
-                await lSystem.executeTick();
+
+                // Skipping disabled systems.
+                if (lSystem.enabled) {
+                    await lSystem.executeTick();
+                }
+
+                // Record duration even for disabled systems to provide insight into how long they would take if enabled.
                 const lDuration: number = performance.now() - lStart;
 
                 // Read system name from label.
@@ -129,6 +146,11 @@ export class GameEnvironment {
             }
         } else {
             for (const lSystem of this.mSystems) {
+                // Skipping disabled systems.
+                if (!lSystem.enabled) {
+                    continue;
+                }
+
                 await lSystem.executeTick();
             }
         }
@@ -153,19 +175,25 @@ export class GameEnvironment {
         // for performance reasons: avoids a debug check per system iteration.
         if (pSnapshot) {
             for (const lSystem of this.mSystems) {
-                // Checking for handled component types is an optional optimization for systems that don't care about state changes.
-                if (lSystem.handledComponentTypes) {
-                    // Extend state change queue with empty arrays for all handled component types to avoid undefined checks in systems.
-                    for (const lComponentType of lSystem.handledComponentTypes) {
-                        if (!lChangeStateQueues.has(lComponentType)) {
-                            lChangeStateQueues.set(lComponentType, []);
-                        }
-                    }
-                }
-
                 // Start timer, execute update, and record duration.
                 const lStart: number = performance.now();
-                await lSystem.executeUpdate(lChangeStateQueues);
+
+                // Skipping disabled systems.
+                if (lSystem.enabled) {
+                    // Checking for handled component types is an optional optimization for systems that don't care about state changes.
+                    if (lSystem.handledComponentTypes) {
+                        // Extend state change queue with empty arrays for all handled component types to avoid undefined checks in systems.
+                        for (const lComponentType of lSystem.handledComponentTypes) {
+                            if (!lChangeStateQueues.has(lComponentType)) {
+                                lChangeStateQueues.set(lComponentType, []);
+                            }
+                        }
+                    }
+
+                    await lSystem.executeUpdate(lChangeStateQueues);
+                }
+
+                // Record duration even for disabled systems to provide insight into how long they would take if enabled.
                 const lDuration: number = performance.now() - lStart;
 
                 // Read system name from label.
@@ -180,6 +208,11 @@ export class GameEnvironment {
             }
         } else {
             for (const lSystem of this.mSystems) {
+                // Skipping disabled systems.
+                if (!lSystem.enabled) {
+                    continue;
+                }
+
                 // Checking for handled component types is an optional optimization for systems that don't care about state changes.
                 if (lSystem.handledComponentTypes) {
                     // Extend state change queue with empty arrays for all handled component types to avoid undefined checks in systems.

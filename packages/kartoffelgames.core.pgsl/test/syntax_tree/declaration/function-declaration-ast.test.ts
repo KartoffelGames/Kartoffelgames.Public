@@ -760,6 +760,77 @@ Deno.test('FunctionDeclarationAst - Transpilation', async (pContext) => {
             );
         });
     });
+
+    await pContext.step('Metadata', async (pContext) => {
+        await pContext.step('Single metadata', async () => {
+            // Setup.
+            const lFunctionName: string = 'testFunction';
+            const lMetaKey: string = 'TestMeta';
+            const lMetaValue: string = 'TestValue';
+            const lCodeText: string = `
+                [${AttributeListAst.attributeNames.meta}("${lMetaKey}", "${lMetaValue}")]
+                [${AttributeListAst.attributeNames.compute}(1, 2, 3)]
+                function ${lFunctionName}(): void {}
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+            const lComputeEntryPoint: PgslParserResultComputeEntryPoint | undefined = lTranspilationResult.entryPoints.compute.get(lFunctionName)!;
+
+            // Evaluation.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
+            expect(lComputeEntryPoint.metaValues.size).toBe(1);
+            expect(lComputeEntryPoint.metaValues.get(lMetaKey)).toBe(lMetaValue);
+        });
+
+        await pContext.step('Multiple metadata', async () => {
+            // Setup.
+            const lFunctionName: string = 'testFunction';
+            const lMetaKeyOne: string = 'MetaOne';
+            const lMetaValueOne: string = 'ValueOne';
+            const lMetaKeyTwo: string = 'MetaTwo';
+            const lMetaValueTwo: string = 'ValueTwo';
+            const lCodeText: string = `
+                [${AttributeListAst.attributeNames.meta}("${lMetaKeyOne}", "${lMetaValueOne}")]
+                [${AttributeListAst.attributeNames.meta}("${lMetaKeyTwo}", "${lMetaValueTwo}")]
+                [${AttributeListAst.attributeNames.compute}(1, 2, 3)]
+                function ${lFunctionName}(): void {}
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+            const lComputeEntryPoint: PgslParserResultComputeEntryPoint | undefined = lTranspilationResult.entryPoints.compute.get(lFunctionName)!;
+
+            // Evaluation.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
+            expect(lComputeEntryPoint.metaValues.size).toBe(2);
+            expect(lComputeEntryPoint.metaValues.get(lMetaKeyOne)).toBe(lMetaValueOne);
+            expect(lComputeEntryPoint.metaValues.get(lMetaKeyTwo)).toBe(lMetaValueTwo);
+        });
+
+        await pContext.step('Override metadata', async () => {
+            // Setup.
+            const lFunctionName: string = 'testFunction';
+            const lMetaKey: string = 'TestMeta';
+            const lMetaValueOriginal: string = 'OriginalValue';
+            const lMetaValueOverride: string = 'OverrideValue';
+            const lCodeText: string = `
+                [${AttributeListAst.attributeNames.meta}("${lMetaKey}", "${lMetaValueOriginal}")]
+                [${AttributeListAst.attributeNames.meta}("${lMetaKey}", "${lMetaValueOverride}")]
+                [${AttributeListAst.attributeNames.compute}(1, 2, 3)]
+                function ${lFunctionName}(): void {}
+            `;
+
+            // Process.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+            const lComputeEntryPoint: PgslParserResultComputeEntryPoint | undefined = lTranspilationResult.entryPoints.compute.get(lFunctionName)!;
+
+            // Evaluation.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
+            expect(lComputeEntryPoint.metaValues.size).toBe(1);
+            expect(lComputeEntryPoint.metaValues.get(lMetaKey)).toBe(lMetaValueOverride);
+        });
+    });
 });
 
 Deno.test('FunctionDeclarationAst - Parser Result', async (pContext) => {

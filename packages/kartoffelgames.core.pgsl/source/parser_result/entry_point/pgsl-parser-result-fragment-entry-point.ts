@@ -1,4 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
+import type { FunctionDeclarationAstDataDeclaration } from '../../abstract_syntax_tree/declaration/function-declaration-ast.ts';
 import { StructDeclarationAst } from '../../abstract_syntax_tree/declaration/struct-declaration-ast.ts';
 import type { DocumentAst } from '../../abstract_syntax_tree/document-ast.ts';
 import type { IType } from '../../abstract_syntax_tree/type/i-type.interface.ts';
@@ -10,7 +11,6 @@ import { PgslParserResultNumericType } from '../type/pgsl-parser-result-numeric-
 import type { PgslParserResultType, PgslParserResultTypeAlignmentType } from '../type/pgsl-parser-result-type.ts';
 import { PgslParserResultVectorType } from '../type/pgsl-parser-result-vector-type.ts';
 import { PgslParserResultEntryPoint } from './pgsl-parser-result-entry-point.ts';
-import { FunctionDeclarationAst } from "../../abstract_syntax_tree/declaration/function-declaration-ast.ts";
 
 export class PgslParserResultFragmentEntryPoint extends PgslParserResultEntryPoint {
     private readonly mRenderTargets: Array<PgslParserResultFragmentEntryPointTargets>;
@@ -30,7 +30,7 @@ export class PgslParserResultFragmentEntryPoint extends PgslParserResultEntryPoi
      * @param pDocument - Document AST.
      * @param pMeta - Transpilation meta data.
      */
-    public constructor(pFunctionDeclaration: FunctionDeclarationAst, pReturnType: PgslStructType, pDocument: DocumentAst, pMeta: TranspilationMeta) {
+    public constructor(pFunctionDeclaration: FunctionDeclarationAstDataDeclaration, pReturnType: PgslStructType, pDocument: DocumentAst, pMeta: TranspilationMeta) {
         super('fragment', pFunctionDeclaration);
 
         this.mRenderTargets = this.convertRenderTargets(pReturnType, pDocument, pMeta);

@@ -20,7 +20,7 @@ import { type PgslParserResultStructProperty, PgslParserResultStructType } from 
 import { type PgslParserResultTextureDimensionType, PgslParserResultTextureType } from './type/pgsl-parser-result-texture-type.ts';
 import type { PgslParserResultType, PgslParserResultTypeAlignmentType } from './type/pgsl-parser-result-type.ts';
 import { PgslParserResultVectorType } from './type/pgsl-parser-result-vector-type.ts';
-import { PgslParserResultObject } from "./pgsl-parser-result-object.ts";
+import { PgslParserResultObject } from './pgsl-parser-result-object.ts';
 
 /**
  * Represents a binding result from PGSL parser with type and location information.

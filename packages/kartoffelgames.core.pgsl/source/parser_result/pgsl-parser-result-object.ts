@@ -2,7 +2,7 @@
  * Basic result object for PGSL parser, containing meta values and incidents.
  */
 export class PgslParserResultObject {
-    private mMetaValues: Map<string, string>;
+    private readonly mMetaValues: Map<string, string>;
 
     /**
      * Get meta values of result object, such as custom annotations or compiler directives.

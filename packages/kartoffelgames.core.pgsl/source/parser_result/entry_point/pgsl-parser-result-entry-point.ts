@@ -1,5 +1,5 @@
-import { FunctionDeclarationAst } from "../../abstract_syntax_tree/declaration/function-declaration-ast.ts";
-import { PgslParserResultObject } from "../pgsl-parser-result-object.ts";
+import type { FunctionDeclarationAstDataDeclaration } from '../../abstract_syntax_tree/declaration/function-declaration-ast.ts';
+import { PgslParserResultObject } from '../pgsl-parser-result-object.ts';
 
 /**
  * Represents a entry point result from PGSL parser with parameter and return information.
@@ -28,11 +28,11 @@ export class PgslParserResultEntryPoint extends PgslParserResultObject{
      * @param pType - Type of the entry point.
      * @param pFunctionDeclaration - The function declaration AST containing entry point information.
      */
-    public constructor(pType: PgslParserResultEntryPointType, pFunctionDeclaration: FunctionDeclarationAst) {
-        super(pFunctionDeclaration.data.attributes.data.metaValues);
+    public constructor(pType: PgslParserResultEntryPointType, pFunctionDeclaration: FunctionDeclarationAstDataDeclaration) {
+        super(pFunctionDeclaration.attributes.data.metaValues);
 
         this.mType = pType;
-        this.mName = pFunctionDeclaration.data.name;
+        this.mName = pFunctionDeclaration.name;
     }
 }
 

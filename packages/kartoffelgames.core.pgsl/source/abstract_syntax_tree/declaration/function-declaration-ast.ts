@@ -173,6 +173,8 @@ export class FunctionDeclarationAst extends AbstractSyntaxTree<FunctionDeclarati
                 });
 
                 const lDeclarationResult: FunctionDeclarationAstDataDeclaration = {
+                    attributes: lAttributes,
+                    name: this.cst.name,
                     parameter: lParameterList,
                     returnType: lReturnTypeDeclaration,
                     block: lBlock,
@@ -361,6 +363,11 @@ export type FunctionDeclarationAstDataParameter = {
  */
 export type FunctionDeclarationAstDataDeclaration = {
     /**
+     * Function name.
+     */
+    name: string;
+
+    /**
      * Function generic types.
      */
     generics: Array<FunctionDeclarationAstDataDeclarationGeneric>;
@@ -385,7 +392,7 @@ export type FunctionDeclarationAstDataDeclaration = {
      * Function entry point information.
      */
     entryPoint?: FunctionDeclarationAstDataEntryPoint;
-};
+} & DeclarationAstData;
 
 /**
  * Function declaration generic type.

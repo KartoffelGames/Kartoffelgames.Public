@@ -1185,6 +1185,143 @@ Deno.test('VariableDeclarationAst - Transpilation', async (pContext) => {
             expect(lTranspilationResult.incidents).toHaveLength(0);
         });
     });
+
+    await pContext.step('Metadata', async (pContext) => {
+        await pContext.step('Parameter single metadata', async () => {
+            // Setup.
+            const lVariableName: string = 'testVariable';
+            const lMetaKey: string = 'TestMeta';
+            const lMetaValue: string = 'TestValue';
+            const lCodeText: string = `
+                [${AttributeListAst.attributeNames.meta}("${lMetaKey}", "${lMetaValue}")]
+                param ${lVariableName}: ${PgslNumericType.typeName.float32} = 5.0;
+            `;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+            const lParameter: PgslParserResultParameter | undefined = lTranspilationResult.parameters.find(p => p.name === lVariableName);
+
+            // Validation.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
+            expect(lParameter!.metaValues.size).toBe(1);
+            expect(lParameter!.metaValues.get(lMetaKey)).toBe(lMetaValue);
+        });
+
+        await pContext.step('Parameter multiple metadata', async () => {
+            // Setup.
+            const lVariableName: string = 'testVariable';
+            const lMetaKeyOne: string = 'MetaOne';
+            const lMetaValueOne: string = 'ValueOne';
+            const lMetaKeyTwo: string = 'MetaTwo';
+            const lMetaValueTwo: string = 'ValueTwo';
+            const lCodeText: string = `
+                [${AttributeListAst.attributeNames.meta}("${lMetaKeyOne}", "${lMetaValueOne}")]
+                [${AttributeListAst.attributeNames.meta}("${lMetaKeyTwo}", "${lMetaValueTwo}")]
+                param ${lVariableName}: ${PgslNumericType.typeName.float32} = 5.0;
+            `;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+            const lParameter: PgslParserResultParameter | undefined = lTranspilationResult.parameters.find(p => p.name === lVariableName);
+
+            // Validation.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
+            expect(lParameter!.metaValues.size).toBe(2);
+            expect(lParameter!.metaValues.get(lMetaKeyOne)).toBe(lMetaValueOne);
+            expect(lParameter!.metaValues.get(lMetaKeyTwo)).toBe(lMetaValueTwo);
+        });
+
+        await pContext.step('Parameter override metadata', async () => {
+            // Setup.
+            const lVariableName: string = 'testVariable';
+            const lMetaKey: string = 'TestMeta';
+            const lMetaValueOriginal: string = 'OriginalValue';
+            const lMetaValueOverride: string = 'OverrideValue';
+            const lCodeText: string = `
+                [${AttributeListAst.attributeNames.meta}("${lMetaKey}", "${lMetaValueOriginal}")]
+                [${AttributeListAst.attributeNames.meta}("${lMetaKey}", "${lMetaValueOverride}")]
+                param ${lVariableName}: ${PgslNumericType.typeName.float32} = 5.0;
+            `;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+            const lParameter: PgslParserResultParameter | undefined = lTranspilationResult.parameters.find(p => p.name === lVariableName);
+
+            // Validation.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
+            expect(lParameter!.metaValues.size).toBe(1);
+            expect(lParameter!.metaValues.get(lMetaKey)).toBe(lMetaValueOverride);
+        });
+
+        await pContext.step('Binding single metadata', async () => {
+            // Setup.
+            const lVariableName: string = 'testVariable';
+            const lMetaKey: string = 'TestMeta';
+            const lMetaValue: string = 'TestValue';
+            const lCodeText: string = `
+                [${AttributeListAst.attributeNames.meta}("${lMetaKey}", "${lMetaValue}")]
+                [${AttributeListAst.attributeNames.groupBinding}("Group", "Binding")]
+                uniform ${lVariableName}: ${PgslNumericType.typeName.float32};
+            `;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+            const lUniform: PgslParserResultBinding  | undefined = lTranspilationResult.bindings.find(p => p.bindLocationName === 'Binding');
+
+            // Validation.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
+            expect(lUniform!.metaValues.size).toBe(1);
+            expect(lUniform!.metaValues.get(lMetaKey)).toBe(lMetaValue);
+        });
+
+        await pContext.step('Binding multiple metadata', async () => {
+            // Setup.
+            const lVariableName: string = 'testVariable';
+            const lMetaKeyOne: string = 'MetaOne';
+            const lMetaValueOne: string = 'ValueOne';
+            const lMetaKeyTwo: string = 'MetaTwo';
+            const lMetaValueTwo: string = 'ValueTwo';
+            const lCodeText: string = `
+                [${AttributeListAst.attributeNames.meta}("${lMetaKeyOne}", "${lMetaValueOne}")]
+                [${AttributeListAst.attributeNames.meta}("${lMetaKeyTwo}", "${lMetaValueTwo}")]
+                [${AttributeListAst.attributeNames.groupBinding}("Group", "Binding")]
+                uniform ${lVariableName}: ${PgslNumericType.typeName.float32};
+            `;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+            const lUniform: PgslParserResultBinding  | undefined = lTranspilationResult.bindings.find(p => p.bindLocationName === 'Binding');
+
+            // Validation.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
+            expect(lUniform!.metaValues.size).toBe(2);
+            expect(lUniform!.metaValues.get(lMetaKeyOne)).toBe(lMetaValueOne);
+            expect(lUniform!.metaValues.get(lMetaKeyTwo)).toBe(lMetaValueTwo);
+        });
+
+        await pContext.step('Binding override metadata', async () => {
+            // Setup.
+            const lVariableName: string = 'testVariable';
+            const lMetaKey: string = 'TestMeta';
+            const lMetaValueOriginal: string = 'OriginalValue';
+            const lMetaValueOverride: string = 'OverrideValue';
+            const lCodeText: string = `
+                [${AttributeListAst.attributeNames.meta}("${lMetaKey}", "${lMetaValueOriginal}")]
+                [${AttributeListAst.attributeNames.meta}("${lMetaKey}", "${lMetaValueOverride}")]
+                [${AttributeListAst.attributeNames.groupBinding}("Group", "Binding")]
+                uniform ${lVariableName}: ${PgslNumericType.typeName.float32};
+            `;
+
+            // Execute.
+            const lTranspilationResult: PgslParserResult = gPgslParser.transpile(lCodeText, new WgslTranspiler());
+            const lUniform: PgslParserResultBinding  | undefined = lTranspilationResult.bindings.find(p => p.bindLocationName === 'Binding');
+
+            // Validation.
+            expect(lTranspilationResult.incidents).toHaveLength(0);
+            expect(lUniform!.metaValues.size).toBe(1);
+            expect(lUniform!.metaValues.get(lMetaKey)).toBe(lMetaValueOverride);
+        });
+    });
 });
 
 Deno.test('VariableDeclarationAst - Parser Result', async (pContext) => {

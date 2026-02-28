@@ -6,7 +6,7 @@ import type { IType } from '../abstract_syntax_tree/type/i-type.interface.ts';
 import { PgslParserResultBooleanType } from './type/pgsl-parser-result-boolean-type.ts';
 import { PgslParserResultNumericType } from './type/pgsl-parser-result-numeric-type.ts';
 import type { PgslParserResultType } from './type/pgsl-parser-result-type.ts';
-import { PgslParserResultObject } from "./pgsl-parser-result-object.ts";
+import { PgslParserResultObject } from './pgsl-parser-result-object.ts';
 
 /**
  * Represents a parameter result from PGSL parser with name and type information.

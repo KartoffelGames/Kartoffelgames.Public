@@ -1,5 +1,5 @@
 import { Exception } from '../../../../kartoffelgames.core/source/exception/exception.ts';
-import { FunctionDeclarationAst } from "../../abstract_syntax_tree/declaration/function-declaration-ast.ts";
+import type { FunctionDeclarationAstDataDeclaration } from '../../abstract_syntax_tree/declaration/function-declaration-ast.ts';
 import { StructDeclarationAst } from '../../abstract_syntax_tree/declaration/struct-declaration-ast.ts';
 import type { DocumentAst } from '../../abstract_syntax_tree/document-ast.ts';
 import type { IType } from '../../abstract_syntax_tree/type/i-type.interface.ts';
@@ -28,7 +28,7 @@ export class PgslParserResultVertexEntryPoint extends PgslParserResultEntryPoint
      * @param pFunctionDeclaration - The function declaration AST containing entry point information.
      * @param pParameters - Vertex parameter struct.
      */
-    public constructor(pFunctionDeclaration: FunctionDeclarationAst, pParameters: PgslStructType, pDocument: DocumentAst, pMeta: TranspilationMeta) {
+    public constructor(pFunctionDeclaration: FunctionDeclarationAstDataDeclaration, pParameters: PgslStructType, pDocument: DocumentAst, pMeta: TranspilationMeta) {
         super('vertex', pFunctionDeclaration);
 
         this.mParameters = this.convertParameters(pParameters, pDocument, pMeta);

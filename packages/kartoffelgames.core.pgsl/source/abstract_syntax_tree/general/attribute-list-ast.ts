@@ -1,10 +1,10 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
+import { PgslAccessModeEnum } from '../../buildin/enum/pgsl-access-mode-enum.ts';
+import { PgslInterpolateSamplingEnum } from '../../buildin/enum/pgsl-interpolate-sampling-enum.ts';
+import { PgslInterpolateTypeEnum } from '../../buildin/enum/pgsl-interpolate-type-enum.ts';
 import type { ExpressionCst } from '../../concrete_syntax_tree/expression.type.ts';
 import type { AttributeListCst } from '../../concrete_syntax_tree/general.type.ts';
 import { PgslValueFixedState } from '../../enum/pgsl-value-fixed-state.ts';
-import { PgslNumericType, type PgslNumericTypeName } from '../type/pgsl-numeric-type.ts';
-import { PgslStringType } from '../type/pgsl-string-type.ts';
-import type { IType } from '../type/i-type.interface.ts';
 import type { AbstractSyntaxTreeContext } from '../abstract-syntax-tree-context.ts';
 import { AbstractSyntaxTree, type AbstractSyntaxTreeConstructor } from '../abstract-syntax-tree.ts';
 import { FunctionDeclarationAst } from '../declaration/function-declaration-ast.ts';
@@ -13,10 +13,10 @@ import { StructPropertyDeclarationAst } from '../declaration/struct-property-dec
 import { VariableDeclarationAst } from '../declaration/variable-declaration-ast.ts';
 import { ExpressionAstBuilder } from '../expression/expression-ast-builder.ts';
 import type { IExpressionAst } from '../expression/i-expression-ast.interface.ts';
-import { PgslAccessModeEnum } from '../../buildin/enum/pgsl-access-mode-enum.ts';
-import { PgslInterpolateSamplingEnum } from '../../buildin/enum/pgsl-interpolate-sampling-enum.ts';
-import { PgslInterpolateTypeEnum } from '../../buildin/enum/pgsl-interpolate-type-enum.ts';
-import { StringValueExpressionAst, StringValueExpressionAstData } from "../expression/single_value/string-value-expression-ast.ts";
+import { StringValueExpressionAst } from '../expression/single_value/string-value-expression-ast.ts';
+import type { IType } from '../type/i-type.interface.ts';
+import { PgslNumericType, type PgslNumericTypeName } from '../type/pgsl-numeric-type.ts';
+import { PgslStringType } from '../type/pgsl-string-type.ts';
 
 /**
  * Generic attribute list.

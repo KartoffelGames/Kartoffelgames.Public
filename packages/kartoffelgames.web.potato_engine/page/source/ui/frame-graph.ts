@@ -9,7 +9,9 @@ export class FrameGraph {
     private readonly mCanvasWrap: HTMLDivElement;
     private readonly mCtx: CanvasRenderingContext2D;
     private readonly mFpsLabel: HTMLSpanElement;
+    private readonly mFpsAvgLabel: HTMLSpanElement;
     private readonly mFrameTimeLabel: HTMLSpanElement;
+    private readonly mFrameTimeAvgLabel: HTMLSpanElement;
     private readonly mEnvironment: GameEnvironment;
 
     /**
@@ -32,11 +34,19 @@ export class FrameGraph {
         this.mFpsLabel = document.createElement('span');
         this.mFpsLabel.innerHTML = 'FPS: <span class="stat-value">--</span>';
 
+        this.mFpsAvgLabel = document.createElement('span');
+        this.mFpsAvgLabel.innerHTML = 'FPS-avg: <span class="stat-value">--</span>';
+
         this.mFrameTimeLabel = document.createElement('span');
         this.mFrameTimeLabel.innerHTML = 'Frame: <span class="stat-value">-- ms</span>';
 
+        this.mFrameTimeAvgLabel = document.createElement('span');
+        this.mFrameTimeAvgLabel.innerHTML = 'Frame-avg: <span class="stat-value">-- ms</span>';
+
         lStatsRow.appendChild(this.mFpsLabel);
+        lStatsRow.appendChild(this.mFpsAvgLabel);
         lStatsRow.appendChild(this.mFrameTimeLabel);
+        lStatsRow.appendChild(this.mFrameTimeAvgLabel);
         lWrapper.appendChild(lStatsRow);
 
         // Canvas for the graph.
@@ -62,11 +72,8 @@ export class FrameGraph {
         }
 
         // Calculate FPS from timestamps of the last few snapshots.
-        const lRecentCount: number = Math.min(lHistory.length, 30);
         const lNewest: GameEnvironmentTimingSnapshot = lHistory[lHistory.length - 1];
-        const lOldest: GameEnvironmentTimingSnapshot = lHistory[lHistory.length - lRecentCount];
-        const lElapsed: number = lNewest.timestamp - lOldest.timestamp;
-        const lFps: number = lElapsed > 0 ? ((lRecentCount - 1) / lElapsed) * 1000 : 0;
+        const lFps: number = (1 / (lHistory.at(-1)!.timestamp - lHistory.at(-2)!.timestamp)) * 1000;
 
         // Current frame time.
         const lFrameTime: number = lNewest.totalFrameTime;
@@ -74,6 +81,17 @@ export class FrameGraph {
         // Update labels.
         this.mFpsLabel.innerHTML = `FPS: <span class="stat-value">${lFps.toFixed(1)}</span>`;
         this.mFrameTimeLabel.innerHTML = `Frame: <span class="stat-value">${lFrameTime.toFixed(3)} ms</span>`;
+
+        // Compute averages from all history entries.
+        let lFrameTimeSum: number = 0;
+        for (const lSnapshot of lHistory) {
+            lFrameTimeSum += lSnapshot.totalFrameTime;
+        }
+        const lAvgFps: number = (lHistory.length - 1) / (lHistory.at(-1)!.timestamp - lHistory[0].timestamp) * 1000;
+        const lAvgFrameTime: number = lFrameTimeSum / lHistory.length;
+
+        this.mFpsAvgLabel.innerHTML = `FPS-avg: <span class="stat-value">${lAvgFps.toFixed(1)}</span>`;
+        this.mFrameTimeAvgLabel.innerHTML = `Frame-avg: <span class="stat-value">${lAvgFrameTime.toFixed(3)} ms</span>`;
 
         // Draw combined graph.
         this.drawGraph(lHistory);

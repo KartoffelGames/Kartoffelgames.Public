@@ -64,6 +64,19 @@ export class DebugPanel {
             lElements.tickValue.textContent = lEntry.tick.toFixed(3) + ' ms';
             lElements.totalValue.textContent = lTotal.toFixed(3) + ' ms';
 
+            // Compute average total time from all history entries.
+            let lTotalSum: number = 0;
+            let lCount: number = 0;
+            for (const lSnapshot of lHistory) {
+                const lHistEntry: GameEnvironmentTimingEntry | undefined = lSnapshot.systems.get(lName);
+                if (lHistEntry) {
+                    lTotalSum += lHistEntry.update + lHistEntry.frame + lHistEntry.tick;
+                    lCount++;
+                }
+            }
+            const lAvgTotal: number = lCount > 0 ? lTotalSum / lCount : 0;
+            lElements.avgValue.textContent = lAvgTotal.toFixed(3) + ' ms';
+
             // Draw sparkline.
             this.drawSparkline(lElements.canvas, lName, lHistory);
         }
@@ -116,6 +129,7 @@ export class DebugPanel {
         const lFrameValue: HTMLSpanElement = this.createTimingPair(lTimings, 'Frame');
         const lTickValue: HTMLSpanElement = this.createTimingPair(lTimings, 'Tick');
         const lTotalValue: HTMLSpanElement = this.createTimingPair(lTimings, 'Total');
+        const lAvgValue: HTMLSpanElement = this.createTimingPair(lTimings, 'avg');
 
         lEntry.appendChild(lTimings);
 
@@ -144,6 +158,7 @@ export class DebugPanel {
             frameValue: lFrameValue,
             tickValue: lTickValue,
             totalValue: lTotalValue,
+            avgValue: lAvgValue,
             canvas: lCanvas
         });
     }
@@ -251,5 +266,6 @@ type SystemDebugElements = {
     frameValue: HTMLSpanElement;
     tickValue: HTMLSpanElement;
     totalValue: HTMLSpanElement;
+    avgValue: HTMLSpanElement;
     canvas: HTMLCanvasElement;
 };

@@ -133,8 +133,8 @@ export class LightSystem extends GameSystem {
      */
     protected override async onUpdate(pStateChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>): Promise<void> {
         const lUpdateBounds: LightSystemBufferUpdateRange = {
-            lowerBound: 0,
-            upperBound: 0
+            lowerBoundIndex: Number.MAX_SAFE_INTEGER,
+            upperBoundIndex: 0
         };
 
         for (const lStateChange of pStateChanges.get(LightComponent)!) {
@@ -150,9 +150,13 @@ export class LightSystem extends GameSystem {
                         this.activateLight(lLightComponent);
 
                         // Update light to buffer.
-                        const lWriteRange: LightSystemBufferUpdateRange = this.updateLightBuffer(lLightComponent);
-                        lUpdateBounds.lowerBound = Math.min(lUpdateBounds.lowerBound, lWriteRange.lowerBound);
-                        lUpdateBounds.upperBound = Math.max(lUpdateBounds.upperBound, lWriteRange.upperBound);
+                        const lChangedBufferIndex: number = this.updateLightBuffer(lLightComponent);
+                        if (lChangedBufferIndex < lUpdateBounds.lowerBoundIndex) {
+                            lUpdateBounds.lowerBoundIndex = lChangedBufferIndex;
+                        }
+                        if (lChangedBufferIndex > lUpdateBounds.upperBoundIndex) {
+                            lUpdateBounds.upperBoundIndex = lChangedBufferIndex;
+                        }
                     }
 
                     break;
@@ -163,9 +167,13 @@ export class LightSystem extends GameSystem {
                         break;
                     }
 
-                    const lWriteRange: LightSystemBufferUpdateRange = this.updateLightBuffer(lLightComponent);
-                    lUpdateBounds.lowerBound = Math.min(lUpdateBounds.lowerBound, lWriteRange.lowerBound);
-                    lUpdateBounds.upperBound = Math.max(lUpdateBounds.upperBound, lWriteRange.upperBound);
+                    const lChangedBufferIndex: number = this.updateLightBuffer(lLightComponent);
+                    if (lChangedBufferIndex < lUpdateBounds.lowerBoundIndex) {
+                        lUpdateBounds.lowerBoundIndex = lChangedBufferIndex;
+                    }
+                    if (lChangedBufferIndex > lUpdateBounds.upperBoundIndex) {
+                        lUpdateBounds.upperBoundIndex = lChangedBufferIndex;
+                    }
 
                     break;
                 }
@@ -173,9 +181,13 @@ export class LightSystem extends GameSystem {
                     this.activateLight(lLightComponent);
 
                     // Update light buffer on activation.
-                    const lWriteRange: LightSystemBufferUpdateRange = this.updateLightBuffer(lLightComponent);
-                    lUpdateBounds.lowerBound = Math.min(lUpdateBounds.lowerBound, lWriteRange.lowerBound);
-                    lUpdateBounds.upperBound = Math.max(lUpdateBounds.upperBound, lWriteRange.upperBound);
+                    const lChangedBufferIndex: number = this.updateLightBuffer(lLightComponent);
+                    if (lChangedBufferIndex < lUpdateBounds.lowerBoundIndex) {
+                        lUpdateBounds.lowerBoundIndex = lChangedBufferIndex;
+                    }
+                    if (lChangedBufferIndex > lUpdateBounds.upperBoundIndex) {
+                        lUpdateBounds.upperBoundIndex = lChangedBufferIndex;
+                    }
 
                     break;
                 }
@@ -195,21 +207,27 @@ export class LightSystem extends GameSystem {
             }
         }
 
-        // Sync changed region to GPU buffer.
-        if (lUpdateBounds.lowerBound !== 0 || lUpdateBounds.upperBound !== 0) {
+        // Sync changed region to GPU buffer when the lower bound index is updated.
+        if (lUpdateBounds.lowerBoundIndex !== Number.MAX_SAFE_INTEGER) {
             // Resize GPU buffer if the shared buffer has grown.
             if (this.mBuffers.gpuBuffer!.size < this.mBuffers.dataBuffer!.byteLength) {
                 this.mBuffers.gpuBuffer!.size = this.mBuffers.dataBuffer!.byteLength;
             }
 
-            // Align lower bound to 8 bytes.
-            lUpdateBounds.lowerBound = lUpdateBounds.lowerBound & ~7;
+            // Calculate byte offsets for the updated buffer range based on the lower and upper bound light indices.
+            let lLowerBoundByteIndex: number = lUpdateBounds.lowerBoundIndex * LightSystem.LIGHT_STRUCT_STRIDE * 4;
 
-            // Align upper bound to 4 bytes (add 1 for inclusive, then round up to next multiple of 4).
-            lUpdateBounds.upperBound = (lUpdateBounds.upperBound + 1 + 3) & ~3;
+            // Align lower bound to 8 bytes.
+            lLowerBoundByteIndex &= ~7;
+
+            // Calculate the length of the data to be updated in bytes based on the upper and lower bound indices.
+            let lDataLength: number = (lUpdateBounds.upperBoundIndex - lUpdateBounds.lowerBoundIndex + 1) * LightSystem.LIGHT_STRUCT_STRIDE * 4;
+
+            // Align data length to 4 bytes.
+            lDataLength = (lDataLength + 3) & ~3;
 
             // Write changed byte range to GPU buffer.
-            this.mBuffers.gpuBuffer!.write(this.mBuffers.dataBuffer!, lUpdateBounds.lowerBound, lUpdateBounds.lowerBound, lUpdateBounds.upperBound - lUpdateBounds.lowerBound);
+            this.mBuffers.gpuBuffer!.write(this.mBuffers.dataBuffer!, lLowerBoundByteIndex, lLowerBoundByteIndex, lDataLength);
         }
     }
 
@@ -292,6 +310,10 @@ export class LightSystem extends GameSystem {
         const lLastLight: LightComponent = this.mActiveLights[lLastIndex];
         this.mActiveLights[lIndex] = lLastLight;
         this.mActiveLights.pop();
+
+        // Update index map for the swapped light.
+        this.mActiveLightsIndexMap.set(lLastLight, lIndex);
+        this.mActiveLightsIndexMap.delete(pComponent);
     }
 
     /**
@@ -344,9 +366,9 @@ export class LightSystem extends GameSystem {
      *
      * @param pComponent - The light component to write.
      *
-     * @returns The byte range that was written.
+     * @returns Index in the buffer that got updated.
      */
-    private updateLightBuffer(pComponent: LightComponent): LightSystemBufferUpdateRange {
+    private updateLightBuffer(pComponent: LightComponent): number {
         // Get light index.
         const lIndex: number = this.mBuffers.componentIndexMap.get(pComponent)!;
 
@@ -416,10 +438,7 @@ export class LightSystem extends GameSystem {
             lDataBufferView.setFloat16((lOffset + 14) * 4 + 2, lTransformation.scaleHeight, true);
         }
 
-        return {
-            lowerBound: lOffset * 4,
-            upperBound: (lOffset + LightSystem.LIGHT_STRUCT_STRIDE) * 4
-        };
+        return lIndex;
     }
 }
 
@@ -437,10 +456,10 @@ type LightSystemBufferUpdateRange = {
     /**
      * Lower bound of the buffer range that has been updated (inclusive, in bytes).
      */
-    lowerBound: number;
+    lowerBoundIndex: number;
 
     /**
      * Upper bound of the buffer range that has been updated (inclusive, in bytes).
      */
-    upperBound: number;
+    upperBoundIndex: number;
 };

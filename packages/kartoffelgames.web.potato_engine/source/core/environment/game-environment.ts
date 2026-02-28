@@ -1,7 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import type { GameComponent, GameComponentConstructor } from '../component/game-component.ts';
 import type { GameScene } from '../game-scene.ts';
-import type { GameSystem, GameSystemConstructor } from '../game-system.ts';
+import type { GameSystem, GameSystemConstructor, GameSystemUpdateStateChanges } from '../game-system.ts';
 import { type GameEnvironmentStateType, GameEnvironmentTransmission } from './game-environment-transmittion.ts';
 
 /**
@@ -9,12 +9,13 @@ import { type GameEnvironmentStateType, GameEnvironmentTransmission } from './ga
  */
 export class GameEnvironment {
     private static readonly TIMING_HISTORY_SIZE: number = 200;
+    private static readonly EMPTY_SYSTEM_CHANGES: ReadonlySet<GameSystem> = new Set<GameSystem>();
 
     private mCurrentTick: number;
     private readonly mDebugData: GameEnvironmentDebugData;
     private readonly mDebugOptions: Required<GameEnvironmentDebugOptions>;
     private readonly mLoadedScenes: Set<GameScene>;
-    private mStateChangeQueue: Array<GameEnvironmentStateChange>;
+    private mStateChangeQueue: GameEnvironmentStateChangeQueue;
     private readonly mSystems: Array<GameSystem>;
 
     /**
@@ -50,9 +51,12 @@ export class GameEnvironment {
      */
     public constructor(pParameters?: GameEnvironmentDebugOptions) {
         this.mLoadedScenes = new Set<GameScene>();
-        this.mStateChangeQueue = new Array<GameEnvironmentStateChange>();
         this.mSystems = new Array<GameSystem>();
         this.mCurrentTick = 0;
+        this.mStateChangeQueue = {
+            component: new Array<GameEnvironmentStateChange>(),
+            system: new Array<GameSystem>()
+        };
 
         // Save debug options with defaults.
         this.mDebugOptions = {
@@ -166,10 +170,24 @@ export class GameEnvironment {
      */
     public async executeUpdate(pSnapshot: GameEnvironmentTimingSnapshot | null): Promise<void> {
         // Optimize and order the state change queue
-        const lChangeStateQueues: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>> = this.optimizeStateChangeQueue();
+        const lChangeState: GameSystemUpdateStateChanges = {
+            componentChanges: this.optimizeStateChangeQueue(),
+            systemChanges: GameEnvironment.EMPTY_SYSTEM_CHANGES
+        };
 
-        // Clear the original queue. Splice is half as fast as setting length to 0.
-        this.mStateChangeQueue = new Array<GameEnvironmentStateChange>();
+        // Clear the original queue. Creating a new array is the fastest way to clear an array in JavaScript.
+        this.mStateChangeQueue.component = new Array<GameEnvironmentStateChange>();
+
+        // System changes does not happen regularly so check if there are any before clearing to avoid unnecessary allocations.
+        if (this.mStateChangeQueue.system.length > 0) {
+            // Copy changes to the update state and clear the original queue.
+            lChangeState.systemChanges = new Set(this.mStateChangeQueue.system);
+
+            this.mStateChangeQueue.system = new Array<GameSystem>();
+        }
+
+        // "Convert" component changes into a writable map.
+        const lComponentChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>> = lChangeState.componentChanges as Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>;
 
         // Timed loop. Kept separate from the untimed loop below
         // for performance reasons: avoids a debug check per system iteration.
@@ -184,13 +202,13 @@ export class GameEnvironment {
                     if (lSystem.handledComponentTypes) {
                         // Extend state change queue with empty arrays for all handled component types to avoid undefined checks in systems.
                         for (const lComponentType of lSystem.handledComponentTypes) {
-                            if (!lChangeStateQueues.has(lComponentType)) {
-                                lChangeStateQueues.set(lComponentType, []);
+                            if (!lComponentChanges.has(lComponentType)) {
+                                lComponentChanges.set(lComponentType, []);
                             }
                         }
                     }
 
-                    await lSystem.executeUpdate(lChangeStateQueues);
+                    await lSystem.executeUpdate(lChangeState);
                 }
 
                 // Record duration even for disabled systems to provide insight into how long they would take if enabled.
@@ -217,13 +235,13 @@ export class GameEnvironment {
                 if (lSystem.handledComponentTypes) {
                     // Extend state change queue with empty arrays for all handled component types to avoid undefined checks in systems.
                     for (const lComponentType of lSystem.handledComponentTypes) {
-                        if (!lChangeStateQueues.has(lComponentType)) {
-                            lChangeStateQueues.set(lComponentType, []);
+                        if (!lComponentChanges.has(lComponentType)) {
+                            lComponentChanges.set(lComponentType, []);
                         }
                     }
                 }
 
-                await lSystem.executeUpdate(lChangeStateQueues);
+                await lSystem.executeUpdate(lChangeState);
             }
         }
     }
@@ -260,7 +278,7 @@ export class GameEnvironment {
 
         // Create a transmission object that queues state changes
         const lTransmission = new GameEnvironmentTransmission(this, (pType: GameEnvironmentStateType, pComponent: GameComponent) => {
-            this.queueStateChange(pType, pComponent);
+            this.queueComponentStateChange(pType, pComponent);
         });
 
         // Establish environment connection for all root game objects in the scene
@@ -273,19 +291,29 @@ export class GameEnvironment {
      * @param pType - The type of state change.
      * @param pComponent - The component involved in the state change.
      */
-    public queueStateChange(pType: GameEnvironmentStateType, pComponent: GameComponent): void {
+    public queueComponentStateChange(pType: GameEnvironmentStateType, pComponent: GameComponent): void {
         const lStateChange: GameEnvironmentStateChange = {
             type: pType,
             component: pComponent,
             tick: this.mCurrentTick
         };
 
-        this.mStateChangeQueue.push(lStateChange);
+        this.mStateChangeQueue.component.push(lStateChange);
 
         // Call debug sniffer if set.
         if (this.mDebugOptions.debugStateChanges) {
             this.mDebugData.executeStateChangeListeners(lStateChange);
         }
+    }
+
+    /**
+     * Queue a system change to be processed in the next update cycle.
+     * System changes are used to notify systems of changes in other systems.
+     *
+     * @param pSystem - The system that changed.
+     */
+    public queueSystemChange(pSystem: GameSystem): void {
+        this.mStateChangeQueue.system.push(pSystem);
     }
 
     /**
@@ -400,7 +428,7 @@ export class GameEnvironment {
         const lComponentStates: Map<GameComponentConstructor, Array<GameEnvironmentStateChange>> = new Map<GameComponentConstructor, Array<GameEnvironmentStateChange>>();
 
         // Process each state change in order to determine final state
-        for (const lStateChange of this.mStateChangeQueue) {
+        for (const lStateChange of this.mStateChangeQueue.component) {
             const lComponent = lStateChange.component;
             const lComponentType = lComponent.constructor as GameComponentConstructor;
 
@@ -484,6 +512,11 @@ export type GameEnvironmentStateChange = {
      * The tick at which the state change occurred, provided by the tick handler.
      */
     tick: number;
+};
+
+type GameEnvironmentStateChangeQueue = {
+    component: Array<GameEnvironmentStateChange>;
+    system: Array<GameSystem>;
 };
 
 /**

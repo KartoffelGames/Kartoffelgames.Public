@@ -3,7 +3,7 @@ import { BufferUsage, GpuBuffer, GpuLimit } from '@kartoffelgames/web-gpu';
 import { TransformationComponent } from '../component/transformation-component.ts';
 import type { GameComponentConstructor } from '../core/component/game-component.ts';
 import type { GameEnvironment, GameEnvironmentStateChange } from '../core/environment/game-environment.ts';
-import { GameSystem, type GameSystemConstructor } from '../core/game-system.ts';
+import { GameSystem, GameSystemUpdateStateChanges, type GameSystemConstructor } from '../core/game-system.ts';
 import { GameEntity } from '../core/hierarchy/game-entity.ts';
 import { GpuSystem } from './gpu-system.ts';
 
@@ -144,11 +144,11 @@ export class TransformationSystem extends GameSystem {
      *
      * @returns Promise that resolves when all state changes have been processed.
      */
-    protected override async onUpdate(pStateChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>): Promise<void> {
+    protected override async onUpdate(pStateChanges: GameSystemUpdateStateChanges): Promise<void> {
         const lChangedTransformations: Set<TransformationComponent> = new Set<TransformationComponent>();
 
         // Process state changes for TransformationComponent
-        for (const lStateChange of pStateChanges.get(TransformationComponent)!) {
+        for (const lStateChange of pStateChanges.componentChanges.get(TransformationComponent)!) {
             // Get component reference from state change.
             const lTransformationComponent = lStateChange.component as TransformationComponent;
 

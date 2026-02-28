@@ -6,7 +6,7 @@ import { TransformationComponent } from '../component/transformation-component.t
 import type { BoundingBox } from '../component_item/bounding-box.ts';
 import type { GameComponentConstructor } from '../core/component/game-component.ts';
 import type { GameEnvironment, GameEnvironmentStateChange } from '../core/environment/game-environment.ts';
-import { GameSystem, type GameSystemConstructor } from '../core/game-system.ts';
+import { GameSystem, GameSystemUpdateStateChanges, type GameSystemConstructor } from '../core/game-system.ts';
 import type { GameEntity } from '../core/hierarchy/game-entity.ts';
 import { TransformationSystem } from './transformation-system.ts';
 
@@ -119,9 +119,9 @@ export class CullSystem extends GameSystem {
      *
      * @param pStateChanges - Map of component types to their state change events.
      */
-    protected override async onUpdate(pStateChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>): Promise<void> {
+    protected override async onUpdate(pStateChanges: GameSystemUpdateStateChanges): Promise<void> {
         // Process RenderTargetComponent changes.
-        const lRenderTargetChanges: ReadonlyArray<GameEnvironmentStateChange> = pStateChanges.get(RenderTargetComponent)!;
+        const lRenderTargetChanges: ReadonlyArray<GameEnvironmentStateChange> = pStateChanges.componentChanges.get(RenderTargetComponent)!;
         if (lRenderTargetChanges.length > 0) {
             for (const lChange of lRenderTargetChanges) {
                 const lRenderTarget: RenderTargetComponent = lChange.component as RenderTargetComponent;
@@ -160,7 +160,7 @@ export class CullSystem extends GameSystem {
         }
 
         // Process CameraComponent changes.
-        const lCameraChanges: ReadonlyArray<GameEnvironmentStateChange> = pStateChanges.get(CameraComponent)!;
+        const lCameraChanges: ReadonlyArray<GameEnvironmentStateChange> = pStateChanges.componentChanges.get(CameraComponent)!;
         if (lCameraChanges.length > 0) {
             for (const lChange of lCameraChanges) {
                 const lCamera: CameraComponent = lChange.component as CameraComponent;
@@ -193,7 +193,7 @@ export class CullSystem extends GameSystem {
         }
 
         // Process MeshRenderComponent changes.
-        const lMeshChanges: ReadonlyArray<GameEnvironmentStateChange> = pStateChanges.get(MeshRenderComponent)!;
+        const lMeshChanges: ReadonlyArray<GameEnvironmentStateChange> = pStateChanges.componentChanges.get(MeshRenderComponent)!;
         if (lMeshChanges.length > 0) {
             for (const lChange of lMeshChanges) {
                 const lMeshRenderer: MeshRenderComponent = lChange.component as MeshRenderComponent;
@@ -650,7 +650,7 @@ export class CoreRenderTargetComponent extends RenderTargetComponent {
      */
     public override update(): void {
         if (this.mEnvironment) {
-            this.mEnvironment.queueStateChange('update', this);
+            this.mEnvironment.queueComponentStateChange('update', this);
         }
     }
 }

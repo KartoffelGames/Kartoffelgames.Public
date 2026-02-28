@@ -8,7 +8,7 @@ import type { SpotLight } from '../component/light/type/spot-light.ts';
 import { TransformationComponent } from '../component/transformation-component.ts';
 import type { GameComponentConstructor } from '../core/component/game-component.ts';
 import type { GameEnvironment, GameEnvironmentStateChange } from '../core/environment/game-environment.ts';
-import { GameSystem, type GameSystemConstructor } from '../core/game-system.ts';
+import { GameSystem, GameSystemUpdateStateChanges, type GameSystemConstructor } from '../core/game-system.ts';
 import { GpuSystem } from './gpu-system.ts';
 import { TransformationSystem } from './transformation-system.ts';
 
@@ -131,13 +131,13 @@ export class LightSystem extends GameSystem {
      *
      * @param pStateChanges - Map of component types to state change events.
      */
-    protected override async onUpdate(pStateChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>): Promise<void> {
+    protected override async onUpdate(pStateChanges: GameSystemUpdateStateChanges): Promise<void> {
         const lUpdateBounds: LightSystemBufferUpdateRange = {
             lowerBoundIndex: Number.MAX_SAFE_INTEGER,
             upperBoundIndex: 0
         };
 
-        for (const lStateChange of pStateChanges.get(LightComponent)!) {
+        for (const lStateChange of pStateChanges.componentChanges.get(LightComponent)!) {
             const lLightComponent: LightComponent = lStateChange.component as LightComponent;
 
             switch (lStateChange.type) {

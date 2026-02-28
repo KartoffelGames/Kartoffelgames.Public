@@ -14,7 +14,7 @@ export abstract class GameSystem {
     private readonly mEnvironment: GameEnvironment;
     private mInitialized: boolean;
     private readonly mLabel: string;
-    
+
     /**
      * Define which systems this system depends on.
      * Override this method to return an array of system types this system depends on.
@@ -101,7 +101,7 @@ export abstract class GameSystem {
      *
      * @internal
      */
-    public async executeUpdate(pStateChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>): Promise<void> {
+    public async executeUpdate(pStateChanges: GameSystemUpdateStateChanges): Promise<void> {
         this.lockGate();
 
         await this.onUpdate(pStateChanges);
@@ -161,9 +161,26 @@ export abstract class GameSystem {
      * 
      * @param _pStateChanges - Map of component types to arrays of state changes that occurred since the last update.
      */
-    protected async onUpdate(_pStateChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>): Promise<void> {
+    protected async onUpdate(_pStateChanges: GameSystemUpdateStateChanges): Promise<void> {
         // Default implementation does nothing.
     }
 }
 
+/**
+ * Type definition for the state changes passed to systems during the update cycle.
+ */
+export type GameSystemUpdateStateChanges = {
+    /**
+     * Map of component types to arrays of state changes that occurred since the last update.
+     */
+    componentChanges: ReadonlyMap<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>;
+
+    /**
+     * Set of systems that changed since the last update.
+     */
+    systemChanges: ReadonlySet<GameSystem>;
+};
+
 export type GameSystemConstructor<T extends GameSystem = GameSystem> = new (pEnvironment: GameEnvironment) => T;
+
+

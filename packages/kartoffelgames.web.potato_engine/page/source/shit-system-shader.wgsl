@@ -1,21 +1,13 @@
 // ------------------- Light Struct -------------------------------- //
-// Matches the CPU-side buffer layout from LightSystem (96 bytes per light, 16-byte aligned).
+// Matches the CPU-side buffer layout from LightSystem (64 bytes per light, 16-byte aligned).
 struct Light {
-    position:        vec4<f32>,  // 0   - World position (x, y, z, w unused)
-    color:           vec4<f32>,  // 16  - (r, g, b, a) where a = intensity
-    lightType:       i32,        // 32  - 0 = point, 1 = directional, 2 = spot, 3 = area
-    _reserved3:      f32,        // 36  - Reserved
-    range:           f32,        // 40  - Max distance (not for directional)
-    dropOff:         f32,        // 44  - Falloff curve exponent
-    rotation:        vec4<f32>,  // 48  - Forward direction vector (directional, spot, area only)
-    calculatedRange: f32,        // 64  - Equals range value (not for directional)
-    innerAngle:      f32,        // 68  - Inner cone angle in degrees (spot only)
-    outerAngle:      f32,        // 72  - Outer cone angle in degrees (spot only)
-    width:           f32,        // 76  - Area light width from transform scale (area only)
-    height:          f32,        // 80  - Area light height from transform scale (area only)
-    _reserved0:      f32,        // 84  - Reserved
-    _reserved1:      f32,        // 88  - Reserved
-    _reserved2:      f32,        // 92  - Reserved
+    positionRange:     vec4<f32>,  // 0  - World position (x, y, z, calculatedRange)
+    colorIntensity:    vec4<f32>,  // 16 - (r, g, b, intensity)
+    rotationDropOff:   vec4<f32>,  // 32 - Forward direction (x, y, z, dropOff)
+    lightType:         i32,        // 48 - 0 = point, 1 = directional, 2 = spot, 3 = area
+    packedAngles:      u32,        // 52 - Packed f16: innerAngle, outerAngle (spot only)
+    packedSize:        u32,        // 56 - Packed f16: width, height (area only)
+    _reserved:         u32,        // 60 - Reserved
 };
 // ----------------------------------------------------------------- //
 
@@ -76,19 +68,19 @@ fn normalizedAttenuation(pDistance: f32, pDropOff: f32) -> f32 {
  * Point light: omnidirectional emission with distance attenuation.
  */
 fn calculatePointLight(pLight: Light, pFragPos: vec3<f32>, pNormal: vec3<f32>) -> vec3<f32> {
-    let lToLight: vec3<f32> = pLight.position.xyz - pFragPos;
+    let lToLight: vec3<f32> = pLight.positionRange.xyz - pFragPos;
     let lDistance: f32 = length(lToLight);
 
     // Early cull by calculated range.
-    if (lDistance > pLight.calculatedRange) {
+    if (lDistance > pLight.positionRange.w) {
         return vec3<f32>(0.0);
     }
 
     let lDirection: vec3<f32> = lToLight / max(lDistance, 0.001);
     let lNdotL: f32 = max(dot(pNormal, lDirection), 0.0);
-    let lAttenuation: f32 = normalizedAttenuation(lDistance, pLight.dropOff);
+    let lAttenuation: f32 = normalizedAttenuation(lDistance, pLight.rotationDropOff.w);
 
-    return pLight.color.rgb * pLight.color.a * lNdotL * lAttenuation;
+    return pLight.colorIntensity.rgb * pLight.colorIntensity.a * lNdotL * lAttenuation;
 }
 
 /**
@@ -96,37 +88,42 @@ fn calculatePointLight(pLight: Light, pFragPos: vec3<f32>, pNormal: vec3<f32>) -
  */
 fn calculateDirectionalLight(pLight: Light, pNormal: vec3<f32>) -> vec3<f32> {
     // Light travels in the forward direction; surface-to-light is the negation.
-    let lDirection: vec3<f32> = normalize(-pLight.rotation.xyz);
+    let lDirection: vec3<f32> = normalize(-pLight.rotationDropOff.xyz);
     let lNdotL: f32 = max(dot(pNormal, lDirection), 0.0);
 
-    return pLight.color.rgb * pLight.color.a * lNdotL;
+    return pLight.colorIntensity.rgb * pLight.colorIntensity.a * lNdotL;
 }
 
 /**
  * Spot light: cone of light with inner (full intensity) and outer (fade) angles.
  */
 fn calculateSpotLight(pLight: Light, pFragPos: vec3<f32>, pNormal: vec3<f32>) -> vec3<f32> {
-    let lToLight: vec3<f32> = pLight.position.xyz - pFragPos;
+    let lToLight: vec3<f32> = pLight.positionRange.xyz - pFragPos;
     let lDistance: f32 = length(lToLight);
 
     // Early cull by calculated range.
-    if (lDistance > pLight.calculatedRange) {
+    if (lDistance > pLight.positionRange.w) {
         return vec3<f32>(0.0);
     }
 
     let lDirection: vec3<f32> = lToLight / max(lDistance, 0.001);
     let lNdotL: f32 = max(dot(pNormal, lDirection), 0.0);
 
+    // Unpack inner and outer cone angles from packed f16 pair.
+    let lAngles: vec2<f32> = unpack2x16float(pLight.packedAngles);
+    let lInnerAngle: f32 = lAngles.x;
+    let lOuterAngle: f32 = lAngles.y;
+
     // Spot cone: compare angle between fragment-to-light and spot forward direction.
-    let lSpotForward: vec3<f32> = normalize(pLight.rotation.xyz);
+    let lSpotForward: vec3<f32> = normalize(pLight.rotationDropOff.xyz);
     let lSpotCosine: f32 = dot(-lDirection, lSpotForward);
-    let lInnerCos: f32 = cos(radians(pLight.innerAngle * 0.5));
-    let lOuterCos: f32 = cos(radians(pLight.outerAngle * 0.5));
+    let lInnerCos: f32 = cos(radians(lInnerAngle * 0.5));
+    let lOuterCos: f32 = cos(radians(lOuterAngle * 0.5));
     let lSpotEffect: f32 = smoothstep(lOuterCos, lInnerCos, lSpotCosine);
 
-    let lAttenuation: f32 = normalizedAttenuation(lDistance, pLight.dropOff);
+    let lAttenuation: f32 = normalizedAttenuation(lDistance, pLight.rotationDropOff.w);
 
-    return pLight.color.rgb * pLight.color.a * lNdotL * lAttenuation * lSpotEffect;
+    return pLight.colorIntensity.rgb * pLight.colorIntensity.a * lNdotL * lAttenuation * lSpotEffect;
 }
 
 /**
@@ -134,11 +131,11 @@ fn calculateSpotLight(pLight: Light, pFragPos: vec3<f32>, pNormal: vec3<f32>) ->
  * Base size 1x1 at pivot center; transformation scale defines actual width/height.
  */
 fn calculateAreaLight(pLight: Light, pFragPos: vec3<f32>, pNormal: vec3<f32>) -> vec3<f32> {
-    let lToLight: vec3<f32> = pLight.position.xyz - pFragPos;
+    let lToLight: vec3<f32> = pLight.positionRange.xyz - pFragPos;
     let lDistance: f32 = length(lToLight);
 
     // Early cull by calculated range.
-    if (lDistance > pLight.calculatedRange) {
+    if (lDistance > pLight.positionRange.w) {
         return vec3<f32>(0.0);
     }
 
@@ -146,17 +143,20 @@ fn calculateAreaLight(pLight: Light, pFragPos: vec3<f32>, pNormal: vec3<f32>) ->
     let lNdotL: f32 = max(dot(pNormal, lDirection), 0.0);
 
     // Area light only emits in the forward direction.
-    let lLightForward: vec3<f32> = normalize(pLight.rotation.xyz);
+    let lLightForward: vec3<f32> = normalize(pLight.rotationDropOff.xyz);
     let lForwardDot: f32 = dot(-lDirection, lLightForward);
     if (lForwardDot <= 0.0) {
         return vec3<f32>(0.0);
     }
 
-    // Larger area spreads light more; scale contribution by the emitter surface area.
-    let lAreaScale: f32 = pLight.width * pLight.height;
-    let lAttenuation: f32 = normalizedAttenuation(lDistance, pLight.dropOff);
+    // Unpack area dimensions from packed f16 pair.
+    let lSize: vec2<f32> = unpack2x16float(pLight.packedSize);
 
-    return pLight.color.rgb * pLight.color.a * lNdotL * lAttenuation * lForwardDot * lAreaScale;
+    // Larger area spreads light more; scale contribution by the emitter surface area.
+    let lAreaScale: f32 = lSize.x * lSize.y;
+    let lAttenuation: f32 = normalizedAttenuation(lDistance, pLight.rotationDropOff.w);
+
+    return pLight.colorIntensity.rgb * pLight.colorIntensity.a * lNdotL * lAttenuation * lForwardDot * lAreaScale;
 }
 // ----------------------------------------------------------------- //
 
@@ -212,11 +212,11 @@ fn fragment_main(pFragment: FragmentIn) -> @location(0) vec4<f32> {
         let lLight: Light = lightData[i];
 
         switch (lLight.lightType) {
-            case 0: { // Point
-                lAccumulatedLight += calculatePointLight(lLight, pFragment.fragmentPosition.xyz, lNormal);
-            }
-            case 1: { // Directional
+            case 0: { // Directional
                 lAccumulatedLight += calculateDirectionalLight(lLight, lNormal);
+            }
+            case 1: { // Point
+                lAccumulatedLight += calculatePointLight(lLight, pFragment.fragmentPosition.xyz, lNormal);
             }
             case 2: { // Spot
                 lAccumulatedLight += calculateSpotLight(lLight, pFragment.fragmentPosition.xyz, lNormal);

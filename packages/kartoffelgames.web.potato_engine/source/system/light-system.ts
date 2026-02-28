@@ -1,4 +1,4 @@
-import { BufferUsage, GpuBuffer } from '@kartoffelgames/web-gpu';
+import { BufferUsage, GpuBuffer, GpuLimit } from '@kartoffelgames/web-gpu';
 import { LightComponent } from '../component/light/light-component.ts';
 import { AreaLight } from '../component/light/type/area-light.ts';
 import { DirectionalLight } from '../component/light/type/directional-light.ts';
@@ -11,6 +11,7 @@ import type { GameEnvironment, GameEnvironmentStateChange } from '../core/enviro
 import { GameSystem, type GameSystemConstructor } from '../core/game-system.ts';
 import { GpuSystem } from './gpu-system.ts';
 import { TransformationSystem } from './transformation-system.ts';
+import { LightComponentItemType } from "../component/light/type/light-component-item-type.enum.ts";
 
 /**
  * System that manages light components and their data storage in a tightly packed auto-scaling buffer.
@@ -32,17 +33,15 @@ import { TransformationSystem } from './transformation-system.ts';
  * Buffer expands in blocks of 4 lights whenever a new light has no room.
  */
 export class LightSystem extends GameSystem {
-    private static readonly LIGHT_STRIDE: number = 24;
-    private static readonly LIGHTS_PER_BLOCK: number = 4;
-    private static readonly BLOCK_SIZE: number = LightSystem.LIGHT_STRIDE * LightSystem.LIGHTS_PER_BLOCK;
+    private static readonly LIGHT_STRUCT_STRIDE: number = 16;
 
     private readonly mActiveComponents: Array<LightComponent>;
     private mCapacity: number;
     private readonly mComponentToIndex: WeakMap<LightComponent, number>;
-    private readonly mDataBuffer: SharedArrayBuffer;
-    private mDataView: Float32Array;
+    private mDataBuffer: SharedArrayBuffer | null;
+    private mDataBufferFloatView: Float32Array | null;
+    private mDataBufferView: DataView | null;
     private mGpuBuffer: GpuBuffer | null;
-    private mIntView: Int32Array;
 
     /**
      * Gets the number of currently active lights.
@@ -83,14 +82,14 @@ export class LightSystem extends GameSystem {
         super('Light', pEnvironment);
 
         // Initialize buffer with 1 block (4 lights) so the GPU always has a valid buffer to bind.
-        const lInitialBytes: number = LightSystem.BLOCK_SIZE * 4; // 96 floats * 4 bytes = 384 bytes.
-        this.mDataBuffer = new SharedArrayBuffer(lInitialBytes, { maxByteLength: LightSystem.BLOCK_SIZE * 4 * 250 });
-        this.mDataView = new Float32Array(this.mDataBuffer);
-        this.mIntView = new Int32Array(this.mDataBuffer);
+        this.mDataBuffer = null;
+        this.mDataBufferView = null;
+        this.mDataBufferFloatView = null;
+
         this.mGpuBuffer = null;
         this.mActiveComponents = [];
         this.mComponentToIndex = new WeakMap<LightComponent, number>();
-        this.mCapacity = LightSystem.LIGHTS_PER_BLOCK;
+        this.mCapacity = 0;
     }
 
     /**
@@ -99,6 +98,15 @@ export class LightSystem extends GameSystem {
     protected override async onCreate(): Promise<void> {
         const lGpuSystem: GpuSystem = this.environment.getSystem(GpuSystem);
 
+        // Read gpu system max storage buffer limit.
+        const lMaxStorageBufferBindingSize: number = lGpuSystem.gpuLimit(GpuLimit.MaxStorageBufferBindingSize);
+
+        // Create the shared buffer for all light struct data.
+        this.mDataBuffer = new SharedArrayBuffer(0, { maxByteLength: lMaxStorageBufferBindingSize });
+        this.mDataBufferView = new DataView(this.mDataBuffer);
+        this.mDataBufferFloatView = new Float32Array(this.mDataBuffer);
+
+        // Create GPU buffer for light data.
         const lGpuBuffer: GpuBuffer = new GpuBuffer(lGpuSystem.gpu, this.mDataBuffer.byteLength);
         lGpuBuffer.extendUsage(BufferUsage.Storage | BufferUsage.CopySource | BufferUsage.CopyDestination);
 
@@ -125,7 +133,7 @@ export class LightSystem extends GameSystem {
                 case 'activate': {
                     // Ensure capacity by extending buffer if needed.
                     if (this.mActiveComponents.length >= this.mCapacity) {
-                        const lExtendRange: LightSystemBufferUpdateRange = this.extendBuffer(1);
+                        const lExtendRange: LightSystemBufferUpdateRange = this.extendBuffer(4);
                         lUpdateBounds.lowerBound = Math.min(lUpdateBounds.lowerBound, lExtendRange.lowerBound);
                         lUpdateBounds.upperBound = Math.max(lUpdateBounds.upperBound, lExtendRange.upperBound);
                     }
@@ -171,8 +179,8 @@ export class LightSystem extends GameSystem {
         // Sync changed region to GPU buffer.
         if (lUpdateBounds.lowerBound !== 0 || lUpdateBounds.upperBound !== 0) {
             // Resize GPU buffer if the shared buffer has grown.
-            if (this.mGpuBuffer!.size < this.mDataBuffer.byteLength) {
-                this.mGpuBuffer!.size = this.mDataBuffer.byteLength;
+            if (this.mGpuBuffer!.size < this.mDataBuffer!.byteLength) {
+                this.mGpuBuffer!.size = this.mDataBuffer!.byteLength;
             }
 
             // Align lower bound to 8 bytes.
@@ -182,29 +190,29 @@ export class LightSystem extends GameSystem {
             lUpdateBounds.upperBound = (lUpdateBounds.upperBound + 1 + 3) & ~3;
 
             // Write changed byte range to GPU buffer.
-            this.mGpuBuffer!.write(this.mDataBuffer, lUpdateBounds.lowerBound, lUpdateBounds.lowerBound, lUpdateBounds.upperBound - lUpdateBounds.lowerBound);
+            this.mGpuBuffer!.write(this.mDataBuffer!, lUpdateBounds.lowerBound, lUpdateBounds.lowerBound, lUpdateBounds.upperBound - lUpdateBounds.lowerBound);
         }
     }
 
     /**
      * Extends the buffer to accommodate more lights.
      *
-     * @param pBlockCount - Number of blocks to add. Each block holds LIGHTS_PER_BLOCK lights.
+     * @param pLightCount - Number of lights to add.
      *
      * @returns The byte range of the newly allocated region.
      */
-    private extendBuffer(pBlockCount: number): LightSystemBufferUpdateRange {
-        const lBlockSizeInBytes: number = LightSystem.BLOCK_SIZE * 4;
-        const lOldByteLength: number = this.mDataBuffer.byteLength;
+    private extendBuffer(pLightCount: number): LightSystemBufferUpdateRange {
+        const lBlockSizeInBytes: number = LightSystem.LIGHT_STRUCT_STRIDE * 4 * pLightCount;
+        const lOldByteLength: number = this.mDataBuffer!.byteLength;
 
-        this.mDataBuffer.grow(lOldByteLength + lBlockSizeInBytes * pBlockCount);
-        this.mDataView = new Float32Array(this.mDataBuffer);
-        this.mIntView = new Int32Array(this.mDataBuffer);
-        this.mCapacity += LightSystem.LIGHTS_PER_BLOCK * pBlockCount;
+        this.mDataBuffer!.grow(lOldByteLength + lBlockSizeInBytes);
+        this.mDataBufferFloatView = new Float32Array(this.mDataBuffer!);
+        this.mDataBufferView = new DataView(this.mDataBuffer!);
+        this.mCapacity += pLightCount;
 
         return {
             lowerBound: lOldByteLength,
-            upperBound: this.mDataBuffer.byteLength - 1
+            upperBound: this.mDataBuffer!.byteLength - 1
         };
     }
 
@@ -228,15 +236,15 @@ export class LightSystem extends GameSystem {
             this.mComponentToIndex.set(lLastComponent, lIndex);
 
             // Copy buffer data from last slot to removed slot (raw float32 copy preserves i32 bits).
-            const lSrcOffset: number = lLastIndex * LightSystem.LIGHT_STRIDE;
-            const lDstOffset: number = lIndex * LightSystem.LIGHT_STRIDE;
-            for (let lElement = 0; lElement < LightSystem.LIGHT_STRIDE; lElement++) {
-                this.mDataView[lDstOffset + lElement] = this.mDataView[lSrcOffset + lElement];
+            const lSrcOffset: number = lLastIndex * LightSystem.LIGHT_STRUCT_STRIDE;
+            const lDstOffset: number = lIndex * LightSystem.LIGHT_STRUCT_STRIDE;
+            for (let lElement = 0; lElement < LightSystem.LIGHT_STRUCT_STRIDE; lElement++) {
+                this.mDataBufferFloatView![lDstOffset + lElement] = this.mDataBufferFloatView![lSrcOffset + lElement];
             }
 
             lUpdateRange = {
                 lowerBound: lDstOffset * 4,
-                upperBound: (lDstOffset + LightSystem.LIGHT_STRIDE) * 4
+                upperBound: (lDstOffset + LightSystem.LIGHT_STRUCT_STRIDE) * 4
             };
         }
 
@@ -248,31 +256,39 @@ export class LightSystem extends GameSystem {
     }
 
     /**
-     * Determines the numeric light type identifier for a given light component item.
-     * 0 = point, 1 = directional, 2 = spot, 3 = area.
+     * Calculates the effective range where light intensity drops to the 0.1% threshold.
+     * Attenuation model: 1 / (1 + d^(2 * dropOff)).
+     * At 0.1% threshold: d = (1000 * intensity - 1) ^ (1 / (2 * dropOff)).
      *
-     * @param pLight - The light component item.
+     * @param pRange - Maximum user-defined range.
+     * @param pIntensity - Light intensity multiplier.
+     * @param pDropOff - Drop-off exponent factor. 0 = no falloff, 1 = inverse square law.
      *
-     * @returns numeric type identifier.
+     * @returns The calculated effective range, clamped by the user-defined range.
      */
-    private resolveLightType(pLight: ILightComponentItem): number {
-        if (pLight instanceof PointLight) {
-            return 0;
-        } else if (pLight instanceof DirectionalLight) {
-            return 1;
-        } else if (pLight instanceof SpotLight) {
-            return 2;
-        } else if (pLight instanceof AreaLight) {
-            return 3;
+    private calculateRange(pRange: number, pIntensity: number, pDropOff: number): number {
+        // No falloff means full intensity across entire range.
+        if (pDropOff <= 0) {
+            return pRange;
         }
 
-        return 0;
+        // Solve: intensity / (1 + d^(2*dropOff)) = 0.001
+        // => d^(2*dropOff) = (intensity / 0.001) - 1 = 1000*intensity - 1
+        const lNumerator: number = 1000 * pIntensity - 1;
+        if (lNumerator <= 0) {
+            // Intensity too low for attenuation to reach 0.1% even at distance 0.
+            return 0;
+        }
+
+        const lCalculatedRange: number = Math.pow(lNumerator, 1 / (2 * pDropOff));
+
+        return Math.min(pRange, lCalculatedRange);
     }
 
     /**
      * Writes a light component's data to the buffer at the specified index.
      * Reads world position from TransformationSystem and forward direction from the rotation quaternion.
-     * Type-specific properties (range, dropOff, angles, area size) are written based on the light implementation.
+     * Type-specific properties (dropOff, angles, area size) are packed and written based on the light implementation.
      *
      * @param pComponent - The light component to write.
      * @param pIndex - The slot index in the tightly packed buffer.
@@ -283,88 +299,68 @@ export class LightSystem extends GameSystem {
         const lTransformationSystem: TransformationSystem = this.environment.getSystem(TransformationSystem);
         const lTransformation: TransformationComponent = pComponent.gameEntity.getComponent(TransformationComponent);
         const lLight: ILightComponentItem = pComponent.light;
-        const lOffset: number = pIndex * LightSystem.LIGHT_STRIDE;
-        const lLightType: number = this.resolveLightType(lLight);
+        const lOffset: number = pIndex * LightSystem.LIGHT_STRUCT_STRIDE;
 
         // Read world position from TransformationSystem world matrix (column 3 = translation).
         const lWorldMatrix = lTransformationSystem.worldMatrixOfTransformation(lTransformation);
         const lWorldData = lWorldMatrix.dataArray;
 
-        // Position (vec4<f32>, indices 0-3).
-        this.mDataView[lOffset + 0] = lWorldData[12]; // x
-        this.mDataView[lOffset + 1] = lWorldData[13]; // y
-        this.mDataView[lOffset + 2] = lWorldData[14]; // z
-        this.mDataView[lOffset + 3] = 0;              // w unused
-
-        // Color (vec4<f32>, indices 4-7). Alpha = intensity.
-        this.mDataView[lOffset + 4] = lLight.color.r;
-        this.mDataView[lOffset + 5] = lLight.color.g;
-        this.mDataView[lOffset + 6] = lLight.color.b;
-        this.mDataView[lOffset + 7] = lLight.intensity;
-
-        // Light type (i32, index 8).
-        this.mIntView[lOffset + 8] = lLightType;
-
-        // Reserved (f32, index 9). Previously intensity.
-        this.mDataView[lOffset + 9] = 0;
-
-        // Range and dropOff (f32, indices 10-11).
+        // Get range and dropOff for applicable light types.
         let lRange: number = 0;
         let lDropOff: number = 0;
-        if (lLight instanceof PointLight || lLight instanceof SpotLight || lLight instanceof AreaLight) {
-            lRange = lLight.range;
-            lDropOff = lLight.dropOff;
-        }
-        this.mDataView[lOffset + 10] = lRange;
-        this.mDataView[lOffset + 11] = lDropOff;
-
-        // Rotation / forward direction (vec4<f32>, indices 12-15). For directional, spot, and area lights.
-        if (lLight instanceof DirectionalLight || lLight instanceof SpotLight || lLight instanceof AreaLight) {
-            const lForward = lTransformation.rotation.vectorForward;
-            this.mDataView[lOffset + 12] = lForward.x;
-            this.mDataView[lOffset + 13] = lForward.y;
-            this.mDataView[lOffset + 14] = lForward.z;
-            this.mDataView[lOffset + 15] = 0;
-        } else {
-            this.mDataView[lOffset + 12] = 0;
-            this.mDataView[lOffset + 13] = 0;
-            this.mDataView[lOffset + 14] = 0;
-            this.mDataView[lOffset + 15] = 0;
+        if (lLight.type !== LightComponentItemType.Directional) {
+            // Convert into a point/spot/area light to read range and dropOff properties.
+            const lNonDirectionalLight: PointLight | SpotLight | AreaLight = lLight as PointLight | SpotLight | AreaLight;
+            lRange = lNonDirectionalLight.range;
+            lDropOff = lNonDirectionalLight.dropOff;
         }
 
-        // Calculated range (f32, index 16). Equals range. Not needed for directional lights.
-        if (lLightType !== 1) {
-            this.mDataView[lOffset + 16] = lRange;
-        } else {
-            this.mDataView[lOffset + 16] = 0;
+        // Position + calculatedRange (vec4<f32>, indices 0-3).
+        this.mDataBufferFloatView![lOffset + 0] = lWorldData[12]; // x
+        this.mDataBufferFloatView![lOffset + 1] = lWorldData[13]; // y
+        this.mDataBufferFloatView![lOffset + 2] = lWorldData[14]; // z
+
+        // Calculated range on w component of vec4.
+        if (lLight.type !== LightComponentItemType.Directional) {
+            this.mDataBufferFloatView![lOffset + 3] = this.calculateRange(lRange, lLight.intensity, lDropOff);
         }
 
-        // Inner/outer angle (f32, indices 17-18). Spot only.
-        if (lLight instanceof SpotLight) {
-            this.mDataView[lOffset + 17] = lLight.innerAngle;
-            this.mDataView[lOffset + 18] = lLight.outerAngle;
-        } else {
-            this.mDataView[lOffset + 17] = 0;
-            this.mDataView[lOffset + 18] = 0;
+        // Color + intensity (vec4<f32>, indices 4-7).
+        this.mDataBufferFloatView![lOffset + 4] = lLight.color.r;
+        this.mDataBufferFloatView![lOffset + 5] = lLight.color.g;
+        this.mDataBufferFloatView![lOffset + 6] = lLight.color.b;
+        this.mDataBufferFloatView![lOffset + 7] = lLight.intensity;
+
+        // Rotation + dropOff (vec4<f32>, indices 8-11).
+        const lForward = lTransformation.rotation.vectorForward;
+        this.mDataBufferFloatView![lOffset + 8] = lForward.x;
+        this.mDataBufferFloatView![lOffset + 9] = lForward.y;
+        this.mDataBufferFloatView![lOffset + 10] = lForward.z;
+
+        // Drop-off factor for attenuation (point, spot, area) or shadow softness (directional).
+        this.mDataBufferFloatView![lOffset + 11] = lDropOff;
+
+        // Light type (i32, index 12).
+        this.mDataBufferView!.setInt32((lOffset + 12) * 4, lLight.type, true);
+
+        // Packed innerAngle/outerAngle (2xf16, index 13).
+        if (lLight.type === LightComponentItemType.Spot) {
+            // "Convert" light into a spot light.
+            const lSpotLight: SpotLight = lLight as SpotLight;
+
+            this.mDataBufferView!.setFloat16((lOffset + 13) * 4, lSpotLight.innerAngle, true);
+            this.mDataBufferView!.setFloat16((lOffset + 13) * 4 + 2, lSpotLight.outerAngle, true);
         }
 
-        // Width/height (f32, indices 19-20). Area only, read from transformation scale.
-        if (lLight instanceof AreaLight) {
-            this.mDataView[lOffset + 19] = lTransformation.scaleWidth;
-            this.mDataView[lOffset + 20] = lTransformation.scaleHeight;
-        } else {
-            this.mDataView[lOffset + 19] = 0;
-            this.mDataView[lOffset + 20] = 0;
+        // Packed width/height (2xf16, index 14).
+        if (lLight.type === LightComponentItemType.Area) {
+            this.mDataBufferView!.setFloat16((lOffset + 14) * 4, lTransformation.scaleWidth, true);
+            this.mDataBufferView!.setFloat16((lOffset + 14) * 4 + 2, lTransformation.scaleHeight, true);
         }
-
-        // Reserved padding (indices 21-23).
-        this.mDataView[lOffset + 21] = 0;
-        this.mDataView[lOffset + 22] = 0;
-        this.mDataView[lOffset + 23] = 0;
 
         return {
             lowerBound: lOffset * 4,
-            upperBound: (lOffset + LightSystem.LIGHT_STRIDE) * 4
+            upperBound: (lOffset + LightSystem.LIGHT_STRUCT_STRIDE) * 4
         };
     }
 }

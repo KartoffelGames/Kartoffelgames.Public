@@ -4,6 +4,7 @@ import { GameComponentItem } from '../../../core/component/game-component-item.t
 import { EditorPropertyNumberType } from '../../../editor_property/editor-property-register.ts';
 import { EditorProperty } from '../../../editor_property/editor-property.ts';
 import type { ILightComponentItem } from './i-light-component-item.interface.ts';
+import { LightComponentItemType } from "./light-component-item-type.enum.ts";
 
 /**
  * Spot light that emits a cone of light from a single point in a direction.
@@ -104,6 +105,13 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
     } set range(pValue: number) {
         this.mRange = pValue;
         this.update();
+    }
+
+    /**
+     * Light type identifier.
+     */
+    public get type(): LightComponentItemType {
+        return LightComponentItemType.Spot;
     }
 
     /**

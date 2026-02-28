@@ -4,6 +4,7 @@ import { GameComponentItem } from '../../../core/component/game-component-item.t
 import { EditorPropertyNumberType } from '../../../editor_property/editor-property-register.ts';
 import { EditorProperty } from '../../../editor_property/editor-property.ts';
 import type { ILightComponentItem } from './i-light-component-item.interface.ts';
+import { LightComponentItemType } from "./light-component-item-type.enum.ts";
 
 /**
  * Area light that emits light in a specific direction from a rectangular area.
@@ -112,6 +113,13 @@ export class AreaLight extends GameComponentItem implements ILightComponentItem 
         // Set new value and update.
         this.mRange = pValue;
         this.update();
+    }
+
+    /**
+     * Light type identifier.
+     */
+    public get type(): LightComponentItemType {
+        return LightComponentItemType.Area;
     }
 
     /**

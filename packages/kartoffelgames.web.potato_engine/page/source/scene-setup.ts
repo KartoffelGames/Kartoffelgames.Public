@@ -2,7 +2,8 @@ import { PrimitiveTopology } from '../../../kartoffelgames.web.gpu/source/consta
 import { CameraComponent } from '../../source/component/camera/camera-component.ts';
 import { CameraComponentProjection } from '../../source/component/camera/projection/camera-projection.enum.ts';
 import type { PerspectiveProjection } from '../../source/component/camera/projection/perspective-projection.ts';
-import { LightComponent, LightComponentLightType } from '../../source/component/light/light-component.ts';
+import { LightComponent } from '../../source/component/light/light-component.ts';
+import { LightComponentItemType } from "../../source/component/light/type/light-component-item-type.enum.ts";
 import type { PointLight } from '../../source/component/light/type/point-light.ts';
 import type { SpotLight } from '../../source/component/light/type/spot-light.ts';
 import { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
@@ -175,7 +176,7 @@ export class SceneSetup {
     /**
      * Create a light entity at a given position with the specified type and color.
      */
-    private createLightEntity(pLabel: string, pType: LightComponentLightType, pPosition: { x: number; y: number; z: number; }, pColor: { r: number; g: number; b: number; }, pIntensity: number, pRotation?: { pitch: number; yaw: number; roll: number; }): GameEntity {
+    private createLightEntity(pLabel: string, pType: LightComponentItemType, pPosition: { x: number; y: number; z: number; }, pColor: { r: number; g: number; b: number; }, pIntensity: number, pRotation?: { pitch: number; yaw: number; roll: number; }): GameEntity {
         const lEntity: GameEntity = new GameEntity();
         lEntity.label = pLabel;
         const lTransformation: TransformationComponent = lEntity.addComponent(TransformationComponent);
@@ -243,15 +244,15 @@ export class SceneSetup {
         lScene.label = 'Scene 1: Cube Chain';
 
         // Create 3 point lights.
-        const lWhiteLight = this.createLightEntity('White Light', LightComponentLightType.Point,
+        const lWhiteLight = this.createLightEntity('White Light', LightComponentItemType.Point,
             { x: 5, y: 10, z: -5 }, { r: 1, g: 1, b: 1 }, 1);
         lScene.addObject(lWhiteLight);
 
-        const lRedLight = this.createLightEntity('Red Light', LightComponentLightType.Point,
+        const lRedLight = this.createLightEntity('Red Light', LightComponentItemType.Point,
             { x: -5, y: 3, z: 0 }, { r: 1, g: 0.2, b: 0.2 }, 0.8);
         lScene.addObject(lRedLight);
 
-        const lBlueLight = this.createLightEntity('Blue Light', LightComponentLightType.Point,
+        const lBlueLight = this.createLightEntity('Blue Light', LightComponentItemType.Point,
             { x: 10, y: 3, z: 5 }, { r: 0.2, g: 0.2, b: 1 }, 0.8);
         lScene.addObject(lBlueLight);
 
@@ -309,22 +310,22 @@ export class SceneSetup {
         this.addOpenBox(lScene, lCenter, 8);
 
         // 4 colored point lights inside the box.
-        const lRedLight = this.createLightEntity('Red Point', LightComponentLightType.Point,
+        const lRedLight = this.createLightEntity('Red Point', LightComponentItemType.Point,
             { x: lCenter.x - 2, y: lCenter.y + 1, z: lCenter.z - 2 }, { r: 1, g: 0.1, b: 0.1 }, 0.8);
         (lRedLight.getComponent(LightComponent).light as PointLight).range = 15;
         lScene.addObject(lRedLight);
 
-        const lGreenLight = this.createLightEntity('Green Point', LightComponentLightType.Point,
+        const lGreenLight = this.createLightEntity('Green Point', LightComponentItemType.Point,
             { x: lCenter.x + 2, y: lCenter.y + 1, z: lCenter.z - 2 }, { r: 0.1, g: 1, b: 0.1 }, 0.8);
         (lGreenLight.getComponent(LightComponent).light as PointLight).range = 15;
         lScene.addObject(lGreenLight);
 
-        const lBlueLight = this.createLightEntity('Blue Point', LightComponentLightType.Point,
+        const lBlueLight = this.createLightEntity('Blue Point', LightComponentItemType.Point,
             { x: lCenter.x - 2, y: lCenter.y + 1, z: lCenter.z + 2 }, { r: 0.1, g: 0.1, b: 1 }, 0.8);
         (lBlueLight.getComponent(LightComponent).light as PointLight).range = 15;
         lScene.addObject(lBlueLight);
 
-        const lYellowLight = this.createLightEntity('Yellow Point', LightComponentLightType.Point,
+        const lYellowLight = this.createLightEntity('Yellow Point', LightComponentItemType.Point,
             { x: lCenter.x + 2, y: lCenter.y + 1, z: lCenter.z + 2 }, { r: 1, g: 1, b: 0.1 }, 0.8);
         (lYellowLight.getComponent(LightComponent).light as PointLight).range = 15;
         lScene.addObject(lYellowLight);
@@ -346,7 +347,7 @@ export class SceneSetup {
 
         // Area lights on each wall, facing inward. Scale width/height defines the area size.
         // Back wall area light (facing forward, -Z).
-        const lBackAreaLight = this.createLightEntity('Back Area Light', LightComponentLightType.Area,
+        const lBackAreaLight = this.createLightEntity('Back Area Light', LightComponentItemType.Area,
             { x: lCenter.x, y: lCenter.y + 1, z: lCenter.z + 3.5 }, { r: 1, g: 0.3, b: 0.3 }, 0.8,
             { pitch: 0, yaw: 180, roll: 0 });
         const lBackTransform = lBackAreaLight.getComponent(TransformationComponent);
@@ -355,7 +356,7 @@ export class SceneSetup {
         lScene.addObject(lBackAreaLight);
 
         // Left wall area light (facing right, +X).
-        const lLeftAreaLight = this.createLightEntity('Left Area Light', LightComponentLightType.Area,
+        const lLeftAreaLight = this.createLightEntity('Left Area Light', LightComponentItemType.Area,
             { x: lCenter.x - 3.5, y: lCenter.y + 1, z: lCenter.z }, { r: 0.3, g: 1, b: 0.3 }, 0.8,
             { pitch: 0, yaw: 90, roll: 0 });
         const lLeftTransform = lLeftAreaLight.getComponent(TransformationComponent);
@@ -364,7 +365,7 @@ export class SceneSetup {
         lScene.addObject(lLeftAreaLight);
 
         // Right wall area light (facing left, -X).
-        const lRightAreaLight = this.createLightEntity('Right Area Light', LightComponentLightType.Area,
+        const lRightAreaLight = this.createLightEntity('Right Area Light', LightComponentItemType.Area,
             { x: lCenter.x + 3.5, y: lCenter.y + 1, z: lCenter.z }, { r: 0.3, g: 0.3, b: 1 }, 0.8,
             { pitch: 0, yaw: -90, roll: 0 });
         const lRightTransform = lRightAreaLight.getComponent(TransformationComponent);
@@ -373,7 +374,7 @@ export class SceneSetup {
         lScene.addObject(lRightAreaLight);
 
         // Floor area light (facing up, +Y).
-        const lFloorAreaLight = this.createLightEntity('Floor Area Light', LightComponentLightType.Area,
+        const lFloorAreaLight = this.createLightEntity('Floor Area Light', LightComponentItemType.Area,
             { x: lCenter.x, y: lCenter.y - 3.5, z: lCenter.z }, { r: 1, g: 1, b: 0.5 }, 0.6,
             { pitch: -90, yaw: 0, roll: 0 });
         const lFloorTransform = lFloorAreaLight.getComponent(TransformationComponent);
@@ -397,7 +398,7 @@ export class SceneSetup {
         this.addOpenBox(lScene, lCenter, 8);
 
         // Spot light from top-left aiming at floor center.
-        const lSpot1 = this.createLightEntity('Red Spot', LightComponentLightType.Spot,
+        const lSpot1 = this.createLightEntity('Red Spot', LightComponentItemType.Spot,
             { x: lCenter.x - 3, y: lCenter.y + 3, z: lCenter.z - 2 }, { r: 1, g: 0.2, b: 0.2 }, 1,
             { pitch: 45, yaw: 30, roll: 0 });
         const lSpot1Light = lSpot1.getComponent(LightComponent).light as SpotLight;
@@ -407,7 +408,7 @@ export class SceneSetup {
         lScene.addObject(lSpot1);
 
         // Spot light from top-right aiming at floor.
-        const lSpot2 = this.createLightEntity('Green Spot', LightComponentLightType.Spot,
+        const lSpot2 = this.createLightEntity('Green Spot', LightComponentItemType.Spot,
             { x: lCenter.x + 3, y: lCenter.y + 3, z: lCenter.z - 2 }, { r: 0.2, g: 1, b: 0.2 }, 1,
             { pitch: 45, yaw: -30, roll: 0 });
         const lSpot2Light = lSpot2.getComponent(LightComponent).light as SpotLight;
@@ -417,7 +418,7 @@ export class SceneSetup {
         lScene.addObject(lSpot2);
 
         // Spot light from back aiming forward.
-        const lSpot3 = this.createLightEntity('Blue Spot', LightComponentLightType.Spot,
+        const lSpot3 = this.createLightEntity('Blue Spot', LightComponentItemType.Spot,
             { x: lCenter.x, y: lCenter.y + 2, z: lCenter.z + 3 }, { r: 0.2, g: 0.2, b: 1 }, 1,
             { pitch: 10, yaw: 180, roll: 0 });
         const lSpot3Light = lSpot3.getComponent(LightComponent).light as SpotLight;
@@ -427,7 +428,7 @@ export class SceneSetup {
         lScene.addObject(lSpot3);
 
         // Spot light from center aiming straight down.
-        const lSpot4 = this.createLightEntity('White Spot', LightComponentLightType.Spot,
+        const lSpot4 = this.createLightEntity('White Spot', LightComponentItemType.Spot,
             { x: lCenter.x, y: lCenter.y + 3.5, z: lCenter.z }, { r: 1, g: 1, b: 1 }, 0.8,
             { pitch: 90, yaw: 0, roll: 0 });
         const lSpot4Light = lSpot4.getComponent(LightComponent).light as SpotLight;
@@ -449,7 +450,7 @@ export class SceneSetup {
         lScene.label = 'Scene 5: Directional Light';
 
         // Directional light from upper-right, angled down.
-        const lDirLight = this.createLightEntity('Sun Light', LightComponentLightType.Directional,
+        const lDirLight = this.createLightEntity('Sun Light', LightComponentItemType.Directional,
             { x: 0, y: 20, z: 35 }, { r: 1, g: 0.95, b: 0.8 }, 0.9,
             { pitch: 45, yaw: -30, roll: 0 });
         lScene.addObject(lDirLight);
@@ -495,13 +496,13 @@ export class SceneSetup {
         this.addOpenBox(lScene, lCenter, 10);
 
         // Point light at center.
-        const lPointLight = this.createLightEntity('Center Point', LightComponentLightType.Point,
+        const lPointLight = this.createLightEntity('Center Point', LightComponentItemType.Point,
             { x: lCenter.x, y: lCenter.y + 2, z: lCenter.z }, { r: 1, g: 0.8, b: 0.6 }, 0.7);
         (lPointLight.getComponent(LightComponent).light as PointLight).range = 12;
         lScene.addObject(lPointLight);
 
         // Spot light from corner.
-        const lSpotLight = this.createLightEntity('Corner Spot', LightComponentLightType.Spot,
+        const lSpotLight = this.createLightEntity('Corner Spot', LightComponentItemType.Spot,
             { x: lCenter.x + 4, y: lCenter.y + 4, z: lCenter.z - 4 }, { r: 0.5, g: 0.5, b: 1 }, 1,
             { pitch: 35, yaw: -35, roll: 0 });
         const lSpot = lSpotLight.getComponent(LightComponent).light as SpotLight;
@@ -511,13 +512,13 @@ export class SceneSetup {
         lScene.addObject(lSpotLight);
 
         // Directional fill light.
-        const lDirLight = this.createLightEntity('Fill Light', LightComponentLightType.Directional,
+        const lDirLight = this.createLightEntity('Fill Light', LightComponentItemType.Directional,
             { x: lCenter.x, y: lCenter.y + 5, z: lCenter.z }, { r: 0.4, g: 0.4, b: 0.5 }, 0.3,
             { pitch: 60, yaw: 0, roll: 0 });
         lScene.addObject(lDirLight);
 
         // Area light on back wall.
-        const lAreaLight = this.createLightEntity('Back Area', LightComponentLightType.Area,
+        const lAreaLight = this.createLightEntity('Back Area', LightComponentItemType.Area,
             { x: lCenter.x, y: lCenter.y + 1, z: lCenter.z + 4.5 }, { r: 1, g: 0.3, b: 0.7 }, 0.6,
             { pitch: 0, yaw: 180, roll: 0 });
         const lAreaTransform = lAreaLight.getComponent(TransformationComponent);
@@ -548,7 +549,7 @@ export class SceneSetup {
         const lBaseZ: number = 55;
 
         // Bright white point light at the start of the corridor.
-        const lLight = this.createLightEntity('Corridor Light', LightComponentLightType.Point,
+        const lLight = this.createLightEntity('Corridor Light', LightComponentItemType.Point,
             { x: 0, y: 1, z: lBaseZ }, { r: 1, g: 0.95, b: 0.85 }, 1);
         (lLight.getComponent(LightComponent).light as PointLight).range = 30;
         (lLight.getComponent(LightComponent).light as PointLight).dropOff = 0.8;

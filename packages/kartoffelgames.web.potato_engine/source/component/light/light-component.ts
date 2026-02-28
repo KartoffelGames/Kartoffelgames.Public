@@ -9,6 +9,7 @@ import type { ILightComponentItem } from './type/i-light-component-item.interfac
 import { PointLight } from './type/point-light.ts';
 import { SpotLight } from './type/spot-light.ts';
 import { AreaLight } from "./type/area-light.ts";
+import { LightComponentItemType } from "./type/light-component-item-type.enum.ts";
 
 /**
  * Component that holds a light source.
@@ -47,31 +48,31 @@ export class LightComponent extends GameComponent {
     /**
      * Camera projection type. Setting this will create a new projection of the given type.
      */
-    @EditorProperty.enumControl(LightComponentLightType)
-    public get lightType(): LightComponentLightType {
+    @EditorProperty.enumControl(LightComponentItemType)
+    public get lightType(): LightComponentItemType {
         switch (true) {
-            case this.light instanceof DirectionalLight: return LightComponentLightType.Directional;
-            case this.light instanceof PointLight: return LightComponentLightType.Point;
-            case this.light instanceof SpotLight: return LightComponentLightType.Spot;
-            case this.light instanceof AreaLight: return LightComponentLightType.Area;
+            case this.light instanceof DirectionalLight: return LightComponentItemType.Directional;
+            case this.light instanceof PointLight: return LightComponentItemType.Point;
+            case this.light instanceof SpotLight: return LightComponentItemType.Spot;
+            case this.light instanceof AreaLight: return LightComponentItemType.Area;
         }
 
         throw new Exception('Unknown light type.', this);
-    } set lightType(pValue: LightComponentLightType) {
+    } set lightType(pValue: LightComponentItemType) {
         switch (pValue) {
-            case LightComponentLightType.Directional: {
+            case LightComponentItemType.Directional: {
                 this.light = new DirectionalLight();
                 break;
             }
-            case LightComponentLightType.Point: {
+            case LightComponentItemType.Point: {
                 this.light = new PointLight();
                 break;
             }
-            case LightComponentLightType.Spot: {
+            case LightComponentItemType.Spot: {
                 this.light = new SpotLight();
                 break;
             }
-            case LightComponentLightType.Area: {
+            case LightComponentItemType.Area: {
                 this.light = new AreaLight();
                 break;
             }
@@ -91,13 +92,3 @@ export class LightComponent extends GameComponent {
     }
 }
 
-/**
- * Light component light type enum.
- */
-export const LightComponentLightType = {
-    Directional: 'Directional',
-    Point: 'Point',
-    Spot: 'Spot',
-    Area: 'Area',
-} as const;
-export type LightComponentLightType = typeof LightComponentLightType[keyof typeof LightComponentLightType];

@@ -73,6 +73,14 @@ export class LightSystem extends GameSystem {
     }
 
     /**
+     * Gets the GPU buffer containing ambient light data (vec4<f32>: r, g, b, intensity).
+     */
+    public get ambientLightBuffer(): GpuBuffer {
+        this.lockGate();
+        return this.mBuffers.ambientLightGpuBuffer!;
+    }
+
+    /**
      * Gets the system types this system depends on.
      */
     public override get dependentSystemTypes(): Array<GameSystemConstructor<GameSystem>> {
@@ -84,14 +92,6 @@ export class LightSystem extends GameSystem {
      */
     public override get handledComponentTypes(): Array<GameComponentConstructor> {
         return [LightComponent];
-    }
-
-    /**
-     * Gets the GPU buffer containing ambient light data (vec4<f32>: r, g, b, intensity).
-     */
-    public get ambientLightBuffer(): GpuBuffer {
-        this.lockGate();
-        return this.mBuffers.ambientLightGpuBuffer!;
     }
 
     /**

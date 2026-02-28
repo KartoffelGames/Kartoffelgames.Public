@@ -1,6 +1,7 @@
 import { Exception } from '@kartoffelgames/core';
 import type { GameComponentConstructor } from './component/game-component.ts';
 import type { GameEnvironment, GameEnvironmentStateChange } from './environment/game-environment.ts';
+import type { IGameUpdateable } from './i-game-updateable.interface.ts';
 
 /**
  * Base class for all systems in the environment.
@@ -9,7 +10,7 @@ import type { GameEnvironment, GameEnvironmentStateChange } from './environment/
  *
  * On the update cycle, systems receive a list of component state changes that they can use to manage resources and optimize their processing.
  */
-export abstract class GameSystem {
+export abstract class GameSystem implements IGameUpdateable {
     private mEnabled: boolean;
     private readonly mEnvironment: GameEnvironment;
     private mInitialized: boolean;
@@ -28,8 +29,8 @@ export abstract class GameSystem {
      */
     public get enabled(): boolean {
         return this.mEnabled;
-    } set enabled(value: boolean) {
-        this.mEnabled = value;
+    } set enabled(pValue: boolean) {
+        this.mEnabled = pValue;
     }
 
     /**
@@ -123,6 +124,13 @@ export abstract class GameSystem {
 
         // Call onCreate hook.
         await this.onCreate();
+    }
+
+    /**
+     * Trigger an update response for this system.
+     */
+    public update(): void {
+        this.environment.queueSystemChange(this);
     }
 
     /**

@@ -1,15 +1,15 @@
 import { Exception } from '@kartoffelgames/core';
 import { FileSystem } from '@kartoffelgames/web-file-system';
-import type { GameComponent } from './game-component.ts';
+import type { IGameUpdateable } from '../i-game-updateable.interface.ts';
 
 /**
  * Represents an item that can be stored in a game component, such as a material slot or a mesh slot.
  * This class manages the relationship between a component and its items, allowing items to reference their parent components and trigger updates when changed.
  */
-export abstract class GameComponentItem {
+export abstract class GameComponentItem implements IGameUpdateable{
     private mIsSystem: boolean;
     private mLabel: string;
-    private readonly mLinkedParents: Set<GameComponent | GameComponentItem>;
+    private readonly mLinkedParents: Set<IGameUpdateable>;
 
     /**
      * Indicates whether this item is a system item, which is an item that is used internally by the engine and should not be modified by user code.
@@ -40,7 +40,7 @@ export abstract class GameComponentItem {
      */
     public constructor(pLabel: string) {
         this.mLabel = pLabel;
-        this.mLinkedParents = new Set<GameComponent | GameComponentItem>();
+        this.mLinkedParents = new Set<IGameUpdateable>();
         this.mIsSystem = false;
     }
 
@@ -49,7 +49,7 @@ export abstract class GameComponentItem {
      *
      * @param pParent - The parent component to link.
      */
-    public linkParent(pParent: GameComponent | GameComponentItem): void {
+    public linkParent(pParent: IGameUpdateable): void {
         this.mLinkedParents.add(pParent);
     }
 
@@ -58,7 +58,7 @@ export abstract class GameComponentItem {
      *
      * @param pParent - The parent component to unlink.
      */
-    public unlinkParent(pParent: GameComponent | GameComponentItem): void {
+    public unlinkParent(pParent: IGameUpdateable): void {
         this.mLinkedParents.delete(pParent);
     }
 

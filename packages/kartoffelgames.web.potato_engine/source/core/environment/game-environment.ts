@@ -8,14 +8,14 @@ import { type GameEnvironmentStateType, GameEnvironmentTransmission } from './ga
  * Main hub for managing the game environment, including loaded scenes, registered systems, and processing component state changes.
  */
 export class GameEnvironment {
-    private static readonly TIMING_HISTORY_SIZE: number = 200;
     private static readonly EMPTY_SYSTEM_CHANGES: ReadonlySet<GameSystem> = new Set<GameSystem>();
-
+    private static readonly TIMING_HISTORY_SIZE: number = 200;
+    
     private mCurrentTick: number;
     private readonly mDebugData: GameEnvironmentDebugData;
     private readonly mDebugOptions: Required<GameEnvironmentDebugOptions>;
     private readonly mLoadedScenes: Set<GameScene>;
-    private mStateChangeQueue: GameEnvironmentStateChangeQueue;
+    private readonly mStateChangeQueue: GameEnvironmentStateChangeQueue;
     private readonly mSystems: Array<GameSystem>;
 
     /**

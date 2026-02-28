@@ -1,6 +1,7 @@
 import type { IVoidParameterConstructor } from '../../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import type { GameEntity } from '../hierarchy/game-entity.ts';
 import { GameObject } from '../hierarchy/game-object.ts';
+import type { IGameUpdateable } from '../i-game-updateable.interface.ts';
 
 // TODO: Define some decorators to allow easy saving and loading of components in binary or json files.
 
@@ -9,7 +10,7 @@ import { GameObject } from '../hierarchy/game-object.ts';
  * Components are used to store data and state for game objects in the environment.
  * They can be enabled or disabled, which signals the environment to activate or deactivate them.
  */
-export class GameComponent extends GameObject {
+export class GameComponent extends GameObject implements IGameUpdateable{
     private mGameEntity: GameEntity | null;
 
     /**

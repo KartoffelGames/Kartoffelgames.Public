@@ -6,7 +6,7 @@ import { TransformationComponent } from '../component/transformation-component.t
 import type { BoundingBox } from '../component_item/bounding-box.ts';
 import type { GameComponentConstructor } from '../core/component/game-component.ts';
 import type { GameEnvironment, GameEnvironmentStateChange } from '../core/environment/game-environment.ts';
-import { GameSystem, GameSystemUpdateStateChanges, type GameSystemConstructor } from '../core/game-system.ts';
+import { GameSystem, type GameSystemUpdateStateChanges, type GameSystemConstructor } from '../core/game-system.ts';
 import type { GameEntity } from '../core/hierarchy/game-entity.ts';
 import { TransformationSystem } from './transformation-system.ts';
 

@@ -486,3 +486,48 @@ Deno.test('ValueEncoder.serialize() - Circular Reference', async (pContext) => {
         expect(lIllegalInstruction).toThrow('Unsupported value type: function');
     });
 });
+
+Deno.test('ValueEncoder.serialize() - Map', async (pContext) => {
+    await pContext.step('Encode empty Map', () => {
+        // Setup.
+        const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
+        const lValue: Map<string, number> = new Map();
+
+        // Process.
+        const lResult: Uint8Array = lEncoder.serialize(lValue);
+
+        // Evaluation.
+        expect(lResult[0]).toBe(ValueTypeTag.Map);
+        const lView: DataView = new DataView(lResult.buffer, lResult.byteOffset);
+        expect(lView.getUint32(1, true)).toBe(0);
+        expect(lResult.length).toBe(5);
+    });
+
+    await pContext.step('Encode Map with string keys and number values', () => {
+        // Setup.
+        const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
+        const lValue: Map<string, number> = new Map([['a', 1], ['b', 2], ['c', 3]]);
+
+        // Process.
+        const lResult: Uint8Array = lEncoder.serialize(lValue);
+
+        // Evaluation.
+        expect(lResult[0]).toBe(ValueTypeTag.Map);
+        const lView: DataView = new DataView(lResult.buffer, lResult.byteOffset);
+        expect(lView.getUint32(1, true)).toBe(3);
+    });
+
+    await pContext.step('Encode Map with number keys', () => {
+        // Setup.
+        const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
+        const lValue: Map<number, string> = new Map([[1, 'one'], [2, 'two']]);
+
+        // Process.
+        const lResult: Uint8Array = lEncoder.serialize(lValue);
+
+        // Evaluation.
+        expect(lResult[0]).toBe(ValueTypeTag.Map);
+        const lView: DataView = new DataView(lResult.buffer, lResult.byteOffset);
+        expect(lView.getUint32(1, true)).toBe(2);
+    });
+});

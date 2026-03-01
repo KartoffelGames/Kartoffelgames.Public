@@ -11,6 +11,7 @@ export const enum ValueTypeTag {
     Object = 0x06,
     ArrayBuffer = 0x07,
     TypedArray = 0x08,
+    Map = 0x09,
 }
 
 /**

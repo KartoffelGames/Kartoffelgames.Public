@@ -554,3 +554,136 @@ Deno.test('ValueDecoder.decode() - Complex round-trip', async (pContext) => {
         expect(lResultObj.optional).toBeNull();
     });
 });
+
+Deno.test('ValueDecoder.decode() - Map', async (pContext) => {
+    await pContext.step('Round-trip empty Map', () => {
+        // Setup.
+        const lOriginal: Map<string, number> = new Map();
+        const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
+        const lEncoded: Uint8Array = lEncoder.serialize(lOriginal);
+
+        // Process.
+        const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer();
+        const lResult: unknown = lDecoder.deserialize(lEncoded);
+
+        // Evaluation.
+        expect(lResult).toBeInstanceOf(Map);
+        expect((lResult as Map<string, number>).size).toBe(0);
+    });
+
+    await pContext.step('Round-trip Map with string keys and number values', () => {
+        // Setup.
+        const lOriginal: Map<string, number> = new Map([['a', 1], ['b', 2], ['c', 3]]);
+        const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
+        const lEncoded: Uint8Array = lEncoder.serialize(lOriginal);
+
+        // Process.
+        const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer();
+        const lResult: unknown = lDecoder.deserialize(lEncoded);
+
+        // Evaluation.
+        expect(lResult).toBeInstanceOf(Map);
+        const lResultMap: Map<string, number> = lResult as Map<string, number>;
+        expect(lResultMap.size).toBe(3);
+        expect(lResultMap.get('a')).toBe(1);
+        expect(lResultMap.get('b')).toBe(2);
+        expect(lResultMap.get('c')).toBe(3);
+    });
+
+    await pContext.step('Round-trip Map with number keys and string values', () => {
+        // Setup.
+        const lOriginal: Map<number, string> = new Map([[1, 'one'], [2, 'two'], [3, 'three']]);
+        const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
+        const lEncoded: Uint8Array = lEncoder.serialize(lOriginal);
+
+        // Process.
+        const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer();
+        const lResult: unknown = lDecoder.deserialize(lEncoded);
+
+        // Evaluation.
+        expect(lResult).toBeInstanceOf(Map);
+        const lResultMap: Map<number, string> = lResult as Map<number, string>;
+        expect(lResultMap.size).toBe(3);
+        expect(lResultMap.get(1)).toBe('one');
+        expect(lResultMap.get(2)).toBe('two');
+        expect(lResultMap.get(3)).toBe('three');
+    });
+
+    await pContext.step('Round-trip Map with mixed value types', () => {
+        // Setup.
+        const lOriginal: Map<string, unknown> = new Map<string, unknown>([
+            ['number', 42],
+            ['string', 'hello'],
+            ['bool', true],
+            ['null', null],
+            ['array', [1, 2, 3]],
+        ]);
+        const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
+        const lEncoded: Uint8Array = lEncoder.serialize(lOriginal);
+
+        // Process.
+        const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer();
+        const lResult: unknown = lDecoder.deserialize(lEncoded);
+
+        // Evaluation.
+        expect(lResult).toBeInstanceOf(Map);
+        const lResultMap: Map<string, unknown> = lResult as Map<string, unknown>;
+        expect(lResultMap.size).toBe(5);
+        expect(lResultMap.get('number')).toBe(42);
+        expect(lResultMap.get('string')).toBe('hello');
+        expect(lResultMap.get('bool')).toBe(true);
+        expect(lResultMap.get('null')).toBeNull();
+        expect(lResultMap.get('array')).toBeDeepEqual([1, 2, 3]);
+    });
+
+    await pContext.step('Round-trip nested Map', () => {
+        // Setup.
+        const lInnerMap: Map<string, number> = new Map([['x', 10], ['y', 20]]);
+        const lOriginal: Map<string, Map<string, number>> = new Map([['inner', lInnerMap]]);
+        const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
+        const lEncoded: Uint8Array = lEncoder.serialize(lOriginal);
+
+        // Process.
+        const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer();
+        const lResult: unknown = lDecoder.deserialize(lEncoded);
+
+        // Evaluation.
+        expect(lResult).toBeInstanceOf(Map);
+        const lResultMap: Map<string, Map<string, number>> = lResult as Map<string, Map<string, number>>;
+        expect(lResultMap.size).toBe(1);
+        const lResultInner: Map<string, number> = lResultMap.get('inner')!;
+        expect(lResultInner).toBeInstanceOf(Map);
+        expect(lResultInner.size).toBe(2);
+        expect(lResultInner.get('x')).toBe(10);
+        expect(lResultInner.get('y')).toBe(20);
+    });
+
+    await pContext.step('Round-trip Map as property of registered object', () => {
+        // Setup.
+        const lUuid: string = 'dec-test-map-prop';
+
+        @Serializer.serializeableClass(lUuid)
+        class ObjWithMap {
+            @Serializer.property()
+            public data: Map<string, number> = new Map();
+        }
+
+        const lOriginal: ObjWithMap = new ObjWithMap();
+        lOriginal.data = new Map([['alpha', 100], ['beta', 200]]);
+
+        const lEncoder: BlobSerializerValueSerializer = new BlobSerializerValueSerializer();
+        const lEncoded: Uint8Array = lEncoder.serialize(lOriginal);
+
+        // Process.
+        const lDecoder: BlobSerializerValueDeserializer = new BlobSerializerValueDeserializer();
+        const lResult: unknown = lDecoder.deserialize(lEncoded);
+
+        // Evaluation.
+        expect(lResult).toBeInstanceOf(ObjWithMap);
+        const lResultObj: ObjWithMap = lResult as ObjWithMap;
+        expect(lResultObj.data).toBeInstanceOf(Map);
+        expect(lResultObj.data.size).toBe(2);
+        expect(lResultObj.data.get('alpha')).toBe(100);
+        expect(lResultObj.data.get('beta')).toBe(200);
+    });
+});

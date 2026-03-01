@@ -77,6 +77,8 @@ export class BlobSerializerValueDeserializer {
                 return this.decodeArrayBuffer(pCursor);
             case ValueTypeTag.TypedArray:
                 return this.decodeTypedArray(pCursor);
+            case ValueTypeTag.Map:
+                return this.decodeMap(pCursor);
             default:
                 throw new Exception(`Unknown value type tag: 0x${lTag.toString(16).padStart(2, '0')}`, this);
         }
@@ -100,7 +102,7 @@ export class BlobSerializerValueDeserializer {
 
     /**
      * Decode an ArrayBuffer.
-     * 
+     *
      * @param pCursor - The deserialization cursor containing the byte buffer and current offset.
      */
     private decodeArrayBuffer(pCursor: BlobSerializerValueDeserializerCursor): ArrayBuffer {
@@ -110,6 +112,24 @@ export class BlobSerializerValueDeserializer {
         const lBuffer: ArrayBuffer = new ArrayBuffer(lByteLength);
         new Uint8Array(lBuffer).set(lBytes);
         return lBuffer;
+    }
+
+    /**
+     * Decode a Map.
+     *
+     * @param pCursor - The deserialization cursor containing the byte buffer and current offset.
+     */
+    private decodeMap(pCursor: BlobSerializerValueDeserializerCursor): Map<unknown, unknown> {
+        const lCount: number = this.readNextBytesAsUint32(pCursor);
+        const lMap: Map<unknown, unknown> = new Map<unknown, unknown>();
+
+        for (let lIndex: number = 0; lIndex < lCount; lIndex++) {
+            const lKey: unknown = this.decode(pCursor);
+            const lValue: unknown = this.decode(pCursor);
+            lMap.set(lKey, lValue);
+        }
+
+        return lMap;
     }
 
     /**

@@ -123,6 +123,22 @@ export class BlobSerializerValueSerializer {
             return this.encodeTypedArray(pValue as TypedArray);
         }
 
+        // Map.
+        if (pValue instanceof Map) {
+            // Throw if circular reference is detected before recursing into map entries.
+            this.validateNotCircular(pValue, pVisited);
+
+            // Add to visited set before recursion to detect circular references.
+            pVisited.add(pValue);
+
+            // Try to encode map entries. Remove from visited set after recursion to allow re-serialization in different paths.
+            try {
+                return this.encodeMap(pValue, pVisited);
+            } finally {
+                pVisited.delete(pValue);
+            }
+        }
+
         // Array.
         if (Array.isArray(pValue)) {
             // Throw if circular reference is detected before recursing into array elements.
@@ -205,6 +221,31 @@ export class BlobSerializerValueSerializer {
 
         // Concat header and raw bytes of ArrayBuffer.
         return BlobSerializerValueSerializer.concat(new Uint8Array(lHeaderBuffer), new Uint8Array(pValue));
+    }
+
+    /**
+     * Encode Map. Tag 0x09 + uint32 entry count + recursive key/value pairs.
+     *
+     * @param pValue - The Map to encode.
+     * @param pVisited - Set tracking visited objects to detect circular references.
+     *
+     * @returns Uint8Array containing the encoded Map data.
+     */
+    private encodeMap(pValue: Map<unknown, unknown>, pVisited: Set<object>): Uint8Array {
+        // Create header for map: tag + entry count.
+        const lHeaderBuffer: ArrayBuffer = new ArrayBuffer(5);
+        const lHeaderView: DataView = new DataView(lHeaderBuffer);
+        lHeaderView.setUint8(0, ValueTypeTag.Map);
+        lHeaderView.setUint32(1, pValue.size, true);
+
+        // Create array of parts to concatenate: start with header, then recursively encode each key and value.
+        const lDataParts: Array<Uint8Array> = [new Uint8Array(lHeaderBuffer)];
+        for (const [lKey, lValue] of pValue) {
+            lDataParts.push(this.encode(lKey, pVisited));
+            lDataParts.push(this.encode(lValue, pVisited));
+        }
+
+        return BlobSerializerValueSerializer.concat(...lDataParts);
     }
 
     /**

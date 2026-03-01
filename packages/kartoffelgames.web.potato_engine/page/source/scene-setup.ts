@@ -8,6 +8,7 @@ import type { PointLight } from '../../source/component/light/type/point-light.t
 import type { SpotLight } from '../../source/component/light/type/spot-light.ts';
 import { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
+import { Material } from '../../source/component_item/material.ts';
 import { Mesh } from '../../source/component_item/mesh/mesh.ts';
 import { GameScene } from '../../source/core/game-scene.ts';
 import { GameEntity } from '../../source/core/hierarchy/game-entity.ts';
@@ -22,6 +23,13 @@ export class SceneSetup {
     private readonly mCameraScene: GameScene;
     private readonly mPlaneMesh: Mesh;
     private readonly mScenes: Map<number, GameScene>;
+
+    // Reusable materials.
+    private readonly mWhiteMaterial: Material;
+    private readonly mRedMaterial: Material;
+    private readonly mBlueMaterial: Material;
+    private readonly mGreenMaterial: Material;
+    private readonly mYellowMaterial: Material;
 
     // Scene 1 animation entities.
     private readonly mScene1HierarchyEntities: Array<GameEntity>;
@@ -59,6 +67,13 @@ export class SceneSetup {
         this.mScenes = new Map<number, GameScene>();
         this.mScene1HierarchyEntities = new Array<GameEntity>();
         this.mScene1BlockEntities = new Array<GameEntity>();
+
+        // Create reusable materials with different colors.
+        this.mWhiteMaterial = SceneSetup.createMaterial(1, 1, 1, 1);
+        this.mRedMaterial = SceneSetup.createMaterial(1, 0.3, 0.3, 1);
+        this.mBlueMaterial = SceneSetup.createMaterial(0.3, 0.3, 1, 1);
+        this.mGreenMaterial = SceneSetup.createMaterial(0.3, 1, 0.3, 1);
+        this.mYellowMaterial = SceneSetup.createMaterial(1, 1, 0.3, 1);
 
         // Create always-loaded camera scene.
         this.mCameraScene = new GameScene();
@@ -128,6 +143,15 @@ export class SceneSetup {
     }
 
     /**
+     * Create a material.
+     * Color tinting is no longer built-in; use material bindings for custom data.
+     */
+    private static createMaterial(_pR: number, _pG: number, _pB: number, _pA: number): Material {
+        const lMaterial: Material = new Material();
+        return lMaterial;
+    }
+
+    /**
      * Create the perspective camera entity.
      */
     private createPerspectiveCamera(): GameEntity {
@@ -149,7 +173,7 @@ export class SceneSetup {
     /**
      * Create a mesh render entity at a given position with optional rotation and scale.
      */
-    private createMeshEntity(pLabel: string, pMesh: Mesh, pPosition: { x: number; y: number; z: number; }, pRotation?: { pitch: number; yaw: number; roll: number; }, pScale?: { width: number; height: number; depth: number; }): GameEntity {
+    private createMeshEntity(pLabel: string, pMesh: Mesh, pPosition: { x: number; y: number; z: number; }, pRotation?: { pitch: number; yaw: number; roll: number; }, pScale?: { width: number; height: number; depth: number; }, pMaterial?: Material): GameEntity {
         const lEntity: GameEntity = new GameEntity();
         lEntity.label = pLabel;
         const lTransformation: TransformationComponent = lEntity.addComponent(TransformationComponent);
@@ -169,6 +193,10 @@ export class SceneSetup {
 
         const lMeshComponent = lEntity.addComponent(MeshRenderComponent);
         lMeshComponent.mesh = pMesh;
+
+        if (pMaterial) {
+            lMeshComponent.material = pMaterial;
+        }
 
         return lEntity;
     }
@@ -202,35 +230,39 @@ export class SceneSetup {
      * Create 4 planes arranged as an open box (floor + 3 walls) and add them to the scene.
      * The box is centered at the given position.
      */
-    private addOpenBox(pScene: GameScene, pCenter: { x: number; y: number; z: number; }, pSize: number): void {
+    private addOpenBox(pScene: GameScene, pCenter: { x: number; y: number; z: number; }, pSize: number, pMaterial?: Material): void {
         const lHalf: number = pSize / 2;
 
         // Floor (facing up).
         pScene.addObject(this.createMeshEntity('Floor', this.mPlaneMesh,
             { x: pCenter.x, y: pCenter.y - lHalf, z: pCenter.z },
             { pitch: -90, yaw: 0, roll: 0 },
-            { width: pSize, height: pSize, depth: 1 }
+            { width: pSize, height: pSize, depth: 1 },
+            pMaterial
         ));
 
         // Back wall (facing forward, -Z toward camera).
         pScene.addObject(this.createMeshEntity('Back Wall', this.mPlaneMesh,
             { x: pCenter.x, y: pCenter.y, z: pCenter.z + lHalf },
             { pitch: 0, yaw: 180, roll: 0 },
-            { width: pSize, height: pSize, depth: 1 }
+            { width: pSize, height: pSize, depth: 1 },
+            pMaterial
         ));
 
         // Left wall (facing right).
         pScene.addObject(this.createMeshEntity('Left Wall', this.mPlaneMesh,
             { x: pCenter.x - lHalf, y: pCenter.y, z: pCenter.z },
             { pitch: 0, yaw: 90, roll: 0 },
-            { width: pSize, height: pSize, depth: 1 }
+            { width: pSize, height: pSize, depth: 1 },
+            pMaterial
         ));
 
-        // Right wall (facing left).
+        // Right wall (facing right).
         pScene.addObject(this.createMeshEntity('Right Wall', this.mPlaneMesh,
             { x: pCenter.x + lHalf, y: pCenter.y, z: pCenter.z },
             { pitch: 0, yaw: -90, roll: 0 },
-            { width: pSize, height: pSize, depth: 1 }
+            { width: pSize, height: pSize, depth: 1 },
+            pMaterial
         ));
     }
 
@@ -256,8 +288,8 @@ export class SceneSetup {
             { x: 10, y: 3, z: 5 }, { r: 0.2, g: 0.2, b: 1 }, 0.8);
         lScene.addObject(lBlueLight);
 
-        // Create cube chain.
-        this.createCubeChain(lScene, this.mBlockMesh, 19);
+        // Create cube chain with alternating colored materials.
+        this.createCubeChain(lScene, this.mBlockMesh, 19, [this.mRedMaterial, this.mBlueMaterial, this.mGreenMaterial]);
 
         return lScene;
     }
@@ -265,7 +297,7 @@ export class SceneSetup {
     /**
      * Create a chain of nested cube entities within a scene.
      */
-    private createCubeChain(pScene: GameScene, pMesh: Mesh, pCount: number): void {
+    private createCubeChain(pScene: GameScene, pMesh: Mesh, pCount: number, pMaterials: Array<Material>): void {
         for (let lIndex = 0; lIndex < pCount; lIndex++) {
             const lParent: GameEntity | null = this.mScene1HierarchyEntities.at(-1) ?? null;
 
@@ -283,6 +315,7 @@ export class SceneSetup {
 
             const lBlockMeshComponent = lBlockEntity.addComponent(MeshRenderComponent);
             lBlockMeshComponent.mesh = pMesh;
+            lBlockMeshComponent.material = pMaterials[lIndex % pMaterials.length];
 
             lHierarchyEntity.addObject(lBlockEntity);
 
@@ -307,7 +340,7 @@ export class SceneSetup {
         lScene.label = 'Scene 2: Point Lights';
         const lCenter = { x: 0, y: 2, z: 5 };
 
-        this.addOpenBox(lScene, lCenter, 8);
+        this.addOpenBox(lScene, lCenter, 8, this.mWhiteMaterial);
 
         // 4 colored point lights inside the box.
         const lRedLight = this.createLightEntity('Red Point', LightComponentItemType.Point,
@@ -343,7 +376,7 @@ export class SceneSetup {
         lScene.label = 'Scene 3: Area Lights';
         const lCenter = { x: 0, y: 2, z: 15 };
 
-        this.addOpenBox(lScene, lCenter, 8);
+        this.addOpenBox(lScene, lCenter, 8, this.mWhiteMaterial);
 
         // Area lights on each wall, facing inward. Scale width/height defines the area size.
         // Back wall area light (facing forward, -Z).
@@ -395,7 +428,7 @@ export class SceneSetup {
         lScene.label = 'Scene 4: Spot Lights';
         const lCenter = { x: 0, y: 2, z: 25 };
 
-        this.addOpenBox(lScene, lCenter, 8);
+        this.addOpenBox(lScene, lCenter, 8, this.mWhiteMaterial);
 
         // Spot light from top-left aiming at floor center.
         const lSpot1 = this.createLightEntity('Red Spot', LightComponentItemType.Spot,
@@ -459,7 +492,8 @@ export class SceneSetup {
         lScene.addObject(this.createMeshEntity('Ground', this.mPlaneMesh,
             { x: 0, y: -2, z: 35 },
             { pitch: -90, yaw: 0, roll: 0 },
-            { width: 20, height: 20, depth: 1 }
+            { width: 20, height: 20, depth: 1 },
+            this.mWhiteMaterial
         ));
 
         // Scatter random boxes.
@@ -470,13 +504,15 @@ export class SceneSetup {
             { x: 1, y: -0.5, z: 33 }, { x: -2, y: 0, z: 38 }, { x: 6, y: -1, z: 35 },
         ];
 
+        const lBoxMaterials: Array<Material> = [this.mRedMaterial, this.mBlueMaterial, this.mGreenMaterial, this.mYellowMaterial];
         for (let lIndex = 0; lIndex < lPositions.length; lIndex++) {
             const lPos = lPositions[lIndex];
             const lScale = 0.4 + (lIndex % 3) * 0.3;
             lScene.addObject(this.createMeshEntity(`Box ${lIndex + 1}`, this.mBlockMesh,
                 lPos,
                 { pitch: lIndex * 15, yaw: lIndex * 25, roll: lIndex * 10 },
-                { width: lScale, height: lScale, depth: lScale }
+                { width: lScale, height: lScale, depth: lScale },
+                lBoxMaterials[lIndex % lBoxMaterials.length]
             ));
         }
 
@@ -493,7 +529,7 @@ export class SceneSetup {
         lScene.label = 'Scene 6: Mixed Lights';
         const lCenter = { x: 0, y: 2, z: 45 };
 
-        this.addOpenBox(lScene, lCenter, 10);
+        this.addOpenBox(lScene, lCenter, 10, this.mWhiteMaterial);
 
         // Point light at center.
         const lPointLight = this.createLightEntity('Center Point', LightComponentItemType.Point,
@@ -529,11 +565,11 @@ export class SceneSetup {
         // Some boxes inside.
         lScene.addObject(this.createMeshEntity('Box A', this.mBlockMesh,
             { x: lCenter.x - 2, y: lCenter.y - 1.5, z: lCenter.z + 1 }, undefined,
-            { width: 1, height: 1, depth: 1 }));
+            { width: 1, height: 1, depth: 1 }, this.mRedMaterial));
         lScene.addObject(this.createMeshEntity('Box B', this.mBlockMesh,
             { x: lCenter.x + 1.5, y: lCenter.y - 1, z: lCenter.z - 1 },
             { pitch: 0, yaw: 45, roll: 0 },
-            { width: 1.5, height: 2, depth: 0.8 }));
+            { width: 1.5, height: 2, depth: 0.8 }, this.mBlueMaterial));
 
         return lScene;
     }
@@ -563,32 +599,37 @@ export class SceneSetup {
             lScene.addObject(this.createMeshEntity(`Left Wall ${lStep}`, this.mPlaneMesh,
                 { x: -2, y: 0, z: lZ },
                 { pitch: 0, yaw: 90, roll: 0 },
-                { width: 3, height: 3, depth: 1 }
+                { width: 3, height: 3, depth: 1 },
+                this.mWhiteMaterial
             ));
 
             // Right wall segment.
             lScene.addObject(this.createMeshEntity(`Right Wall ${lStep}`, this.mPlaneMesh,
                 { x: 2, y: 0, z: lZ },
                 { pitch: 0, yaw: -90, roll: 0 },
-                { width: 3, height: 3, depth: 1 }
+                { width: 3, height: 3, depth: 1 },
+                this.mWhiteMaterial
             ));
 
             // Floor segment.
             lScene.addObject(this.createMeshEntity(`Floor ${lStep}`, this.mPlaneMesh,
                 { x: 0, y: -1.5, z: lZ },
                 { pitch: -90, yaw: 0, roll: 0 },
-                { width: 4, height: 3, depth: 1 }
+                { width: 4, height: 3, depth: 1 },
+                this.mWhiteMaterial
             ));
         }
 
         // A few boxes along the corridor.
+        const lCorridorMaterials: Array<Material> = [this.mRedMaterial, this.mGreenMaterial, this.mBlueMaterial, this.mYellowMaterial];
         for (let lStep = 1; lStep < 8; lStep += 2) {
             const lZ: number = lBaseZ + lStep * 3;
             const lSide: number = lStep % 4 === 1 ? -1 : 1;
             lScene.addObject(this.createMeshEntity(`Corridor Box ${lStep}`, this.mBlockMesh,
                 { x: lSide * 0.8, y: -0.8, z: lZ },
                 { pitch: 0, yaw: lStep * 20, roll: 0 },
-                { width: 0.5, height: 0.7, depth: 0.5 }
+                { width: 0.5, height: 0.7, depth: 0.5 },
+                lCorridorMaterials[Math.floor(lStep / 2) % lCorridorMaterials.length]
             ));
         }
 

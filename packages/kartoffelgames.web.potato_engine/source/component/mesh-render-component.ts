@@ -1,5 +1,5 @@
 import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-system';
-import { Material } from '../component_item/material.ts';
+import type { Material } from '../component_item/material.ts';
 import { Mesh } from '../component_item/mesh.ts';
 import { GameComponent, type GameComponentConstructor } from '../core/component/game-component.ts';
 import { TransformationComponent } from './transformation-component.ts';

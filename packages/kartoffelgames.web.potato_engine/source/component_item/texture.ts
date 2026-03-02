@@ -1,5 +1,5 @@
-import { FileSystem, FileSystemReferenceType } from "@kartoffelgames/web-file-system";
-import { GameComponentItem } from "../core/component/game-component-item.ts";
+import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-system';
+import { GameComponentItem } from '../core/component/game-component-item.ts';
 
 
 @FileSystem.fileClass('90bbb953-b8b5-4632-b6a6-19be9b03c8c1', FileSystemReferenceType.Singleton)
@@ -21,7 +21,7 @@ export class Texture extends GameComponentItem {
      * Constructor of the texture component item.
      */
     public constructor() {
-        super("Texture");
+        super('Texture');
 
         this.mImageData = new ArrayBuffer(0);
     }

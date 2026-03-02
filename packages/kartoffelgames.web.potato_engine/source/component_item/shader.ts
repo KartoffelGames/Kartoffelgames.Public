@@ -1,5 +1,5 @@
-import { FileSystem, FileSystemReferenceType } from "@kartoffelgames/web-file-system";
-import { GameComponentItem } from "../core/component/game-component-item.ts";
+import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-system';
+import { GameComponentItem } from '../core/component/game-component-item.ts';
 
 @FileSystem.fileClass('84045c8b-8626-4452-877b-2bcba2a7fe37', FileSystemReferenceType.Singleton)
 export class Shader extends GameComponentItem {
@@ -32,8 +32,8 @@ export class Shader extends GameComponentItem {
      * Constructor of the shader component item.
      */
     public constructor() {
-        super("Shader");
+        super('Shader');
 
-        this.mShaderCode = "";
+        this.mShaderCode = '';
     }
 }

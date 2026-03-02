@@ -19,6 +19,7 @@ import { GameEntity } from '../../source/core/hierarchy/game-entity.ts';
  */
 export class SceneSetup {
     private readonly mBlockMesh: Mesh;
+    private readonly mBlockMeshMaterials: Array<Material>;
     private readonly mCameraEntity: GameEntity;
     private readonly mCameraScene: GameScene;
     private readonly mPlaneMesh: Mesh;
@@ -60,9 +61,11 @@ export class SceneSetup {
      * Constructor. Builds the camera scene and all numbered scenes.
      *
      * @param pBlockMesh - The mesh to use for block entities.
+     * @param pBlockMeshMaterials - GLB-parsed materials for the block mesh (one per submesh).
      */
-    public constructor(pBlockMesh: Mesh) {
+    public constructor(pBlockMesh: Mesh, pBlockMeshMaterials?: Array<Material>) {
         this.mBlockMesh = pBlockMesh;
+        this.mBlockMeshMaterials = pBlockMeshMaterials ?? [];
         this.mPlaneMesh = SceneSetup.createPlaneMesh();
         this.mScenes = new Map<number, GameScene>();
         this.mScene1HierarchyEntities = new Array<GameEntity>();
@@ -143,11 +146,12 @@ export class SceneSetup {
     }
 
     /**
-     * Create a material.
-     * Color tinting is no longer built-in; use material bindings for custom data.
+     * Create a material with a base color.
+     * Uses the default PBR shader which reads baseColorFactor from the User group.
      */
-    private static createMaterial(_pR: number, _pG: number, _pB: number, _pA: number): Material {
+    private static createMaterial(pR: number, pG: number, pB: number, pA: number): Material {
         const lMaterial: Material = new Material();
+        lMaterial.setBinding('baseColorFactor', new Float32Array([pR, pG, pB, pA]).buffer);
         return lMaterial;
     }
 
@@ -195,7 +199,9 @@ export class SceneSetup {
         lMeshComponent.mesh = pMesh;
 
         if (pMaterial) {
-            lMeshComponent.material = pMaterial;
+            lMeshComponent.materials = [pMaterial];
+        } else if (pMesh === this.mBlockMesh && this.mBlockMeshMaterials.length > 0) {
+            lMeshComponent.materials = [...this.mBlockMeshMaterials];
         }
 
         return lEntity;
@@ -288,14 +294,18 @@ export class SceneSetup {
             { x: 10, y: 3, z: 5 }, { r: 0.2, g: 0.2, b: 1 }, 0.8);
         lScene.addObject(lBlueLight);
 
-        // Create cube chain with alternating colored materials.
-        this.createCubeChain(lScene, this.mBlockMesh, 19, [this.mRedMaterial, this.mBlueMaterial, this.mGreenMaterial]);
+        // Create cube chain with GLB materials (shows actual textures/colors from the imported mesh).
+        const lChainMaterials: Array<Material> = this.mBlockMeshMaterials.length > 0
+            ? this.mBlockMeshMaterials
+            : [this.mRedMaterial, this.mBlueMaterial, this.mGreenMaterial];
+        this.createCubeChain(lScene, this.mBlockMesh, 19, lChainMaterials);
 
         return lScene;
     }
 
     /**
      * Create a chain of nested cube entities within a scene.
+     * Each entity gets the full materials array so all submeshes render with proper materials.
      */
     private createCubeChain(pScene: GameScene, pMesh: Mesh, pCount: number, pMaterials: Array<Material>): void {
         for (let lIndex = 0; lIndex < pCount; lIndex++) {
@@ -315,7 +325,7 @@ export class SceneSetup {
 
             const lBlockMeshComponent = lBlockEntity.addComponent(MeshRenderComponent);
             lBlockMeshComponent.mesh = pMesh;
-            lBlockMeshComponent.material = pMaterials[lIndex % pMaterials.length];
+            lBlockMeshComponent.materials = [...pMaterials];
 
             lHierarchyEntity.addObject(lBlockEntity);
 

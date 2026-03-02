@@ -16,7 +16,7 @@ import {
 import type { PgslParserResult } from '@kartoffelgames/core-pgsl';
 import type { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
-import type { Material } from '../../source/component_item/material.ts';
+import { Material } from '../../source/component_item/material.ts';
 import type { Mesh } from '../../source/component_item/mesh.ts';
 import type { GameComponentConstructor } from '../../source/core/component/game-component.ts';
 import type { GameEnvironment } from '../../source/core/environment/game-environment.ts';
@@ -39,50 +39,33 @@ type MaterialMeshGroupData = {
 /**
  * System that renders all mesh components using PGSL-compiled shaders with material support.
  * Uses MaterialSystem for shader compilation and CullSystem for frustum-culled visible mesh list.
- * Groups instances by material and mesh for efficient instanced rendering.
+ * Groups instances by material, mesh, and submesh index for efficient instanced rendering.
+ * Each submesh of a mesh can have its own material from the MeshRenderComponent's materials array.
  */
 export class ShitSystem extends GameSystem {
-    // Canvas state.
     private mCanvas: HTMLCanvasElement | null;
     private mCanvasTexture: CanvasTexture | null;
-    private mResizeObserver: ResizeObserver | null;
-    private mRenderTargets: RenderTargets | null;
-
-    // GPU rendering resources.
-    private mDefaultRenderModule: ShaderRenderModule | null;
     private mDefaultPipeline: VertexFragmentPipeline | null;
-    private mWorldGroup: BindGroup | null;
-    private mWorldGroupIndex: number;
-    private mObjectGroupIndex: number;
-    private mUserGroupIndex: number;
-    private mLightDataInitialized: boolean;
-    private mLightCountBuffer: GpuBuffer | null;
-    private mLightIndexListBuffer: GpuBuffer | null;
-    private mExecutor: GpuExecution | null;
-    private mRenderPass: RenderPass | null;
-    private readonly mMaterialMeshGroups: Map<Material, Map<Mesh, MaterialMeshGroupData>>;
-    private readonly mVertexParameterCache: Map<Mesh, Array<VertexParameter>>;
-
-    // Dependencies.
-    private mDependencyTransformationSystem: TransformationSystem | null;
+    private mDefaultRenderModule: ShaderRenderModule | null;
+    private mDependencyCullSystem: CullSystem | null;
     private mDependencyGpuSystem: GpuSystem | null;
     private mDependencyLightSystem: LightSystem | null;
-    private mDependencyCullSystem: CullSystem | null;
     private mDependencyMaterialSystem: MaterialSystem | null;
-
-    /**
-     * Systems this system depends on.
-     */
-    public override get dependentSystemTypes(): Array<GameSystemConstructor<GameSystem>> {
-        return [TransformationSystem, GpuSystem, LightSystem, CullSystem, MaterialSystem];
-    }
-
-    /**
-     * Component types this system handles.
-     */
-    public override get handledComponentTypes(): Array<GameComponentConstructor> {
-        return [];
-    }
+    private mDependencyTransformationSystem: TransformationSystem | null;
+    private mExecutor: GpuExecution | null;
+    private mLightCountBuffer: GpuBuffer | null;
+    private mLightDataInitialized: boolean;
+    private mLightIndexListBuffer: GpuBuffer | null;
+    // Maps: Material -> Mesh -> subMeshIndex -> group data.
+    private readonly mMaterialMeshGroups: Map<Material, Map<Mesh, Map<number, MaterialMeshGroupData>>>;
+    private mObjectGroupIndex: number;
+    private mRenderPass: RenderPass | null;
+    private mRenderTargets: RenderTargets | null;
+    private mResizeObserver: ResizeObserver | null;
+    private mUserGroupIndex: number;
+    private readonly mVertexParameterCache: Map<Mesh, Array<VertexParameter>>;
+    private mWorldGroup: BindGroup | null;
+    private mWorldGroupIndex: number;
 
     /**
      * Canvas element used for rendering.
@@ -99,6 +82,20 @@ export class ShitSystem extends GameSystem {
     }
 
     /**
+     * Systems this system depends on.
+     */
+    public override get dependentSystemTypes(): Array<GameSystemConstructor<GameSystem>> {
+        return [TransformationSystem, GpuSystem, LightSystem, CullSystem, MaterialSystem];
+    }
+
+    /**
+     * Component types this system handles.
+     */
+    public override get handledComponentTypes(): Array<GameComponentConstructor> {
+        return [];
+    }
+
+    /**
      * Constructor.
      *
      * @param pEnvironment - The game environment this system belongs to.
@@ -106,33 +103,28 @@ export class ShitSystem extends GameSystem {
     public constructor(pEnvironment: GameEnvironment) {
         super('ShitSystem', pEnvironment);
 
-        // Canvas state.
         this.mCanvas = null;
         this.mCanvasTexture = null;
-        this.mResizeObserver = null;
-        this.mRenderTargets = null;
-
-        // GPU rendering resources.
-        this.mDefaultRenderModule = null;
         this.mDefaultPipeline = null;
-        this.mWorldGroup = null;
-        this.mWorldGroupIndex = 0;
-        this.mObjectGroupIndex = 1;
-        this.mUserGroupIndex = -1;
-        this.mLightDataInitialized = false;
-        this.mLightCountBuffer = null;
-        this.mLightIndexListBuffer = null;
-        this.mExecutor = null;
-        this.mRenderPass = null;
-        this.mMaterialMeshGroups = new Map();
-        this.mVertexParameterCache = new Map();
-
-        // Dependencies.
-        this.mDependencyTransformationSystem = null;
+        this.mDefaultRenderModule = null;
+        this.mDependencyCullSystem = null;
         this.mDependencyGpuSystem = null;
         this.mDependencyLightSystem = null;
-        this.mDependencyCullSystem = null;
         this.mDependencyMaterialSystem = null;
+        this.mDependencyTransformationSystem = null;
+        this.mExecutor = null;
+        this.mLightCountBuffer = null;
+        this.mLightDataInitialized = false;
+        this.mLightIndexListBuffer = null;
+        this.mMaterialMeshGroups = new Map();
+        this.mObjectGroupIndex = 1;
+        this.mRenderPass = null;
+        this.mRenderTargets = null;
+        this.mResizeObserver = null;
+        this.mUserGroupIndex = -1;
+        this.mVertexParameterCache = new Map();
+        this.mWorldGroup = null;
+        this.mWorldGroupIndex = 0;
     }
 
     /**
@@ -212,13 +204,13 @@ export class ShitSystem extends GameSystem {
         this.mWorldGroup = this.mDefaultRenderModule.layout.getGroupLayout('World').create();
         this.mWorldGroup.data('viewProjection').createBuffer();
 
-        // Create render pass that draws all material+mesh groups.
+        // Create render pass that draws all material+mesh+submesh groups.
         this.mRenderPass = lGpu.renderPass(this.mRenderTargets, (pContext) => {
             for (const [, lMeshGroups] of this.mMaterialMeshGroups) {
-                for (const [lMesh, lGroupData] of lMeshGroups) {
-                    if (lGroupData.instanceCount > 0) {
-                        const lVertexParams = this.mVertexParameterCache.get(lMesh)!;
-                        for (const lVertexParam of lVertexParams) {
+                for (const [lMesh, lSubMeshGroups] of lMeshGroups) {
+                    for (const [lSubMeshIndex, lGroupData] of lSubMeshGroups) {
+                        if (lGroupData.instanceCount > 0) {
+                            const lVertexParam: VertexParameter = this.mVertexParameterCache.get(lMesh)![lSubMeshIndex];
                             pContext.drawDirect(this.mDefaultPipeline!, lVertexParam, lGroupData.pipelineData, lGroupData.instanceCount);
                         }
                     }
@@ -270,140 +262,6 @@ export class ShitSystem extends GameSystem {
     }
 
     /**
-     * Create GPU render targets as standalone offscreen textures.
-     */
-    private createRenderTargets(): RenderTargets {
-        return this.mDependencyGpuSystem!.gpu.renderTargets().setup((pSetup) => {
-            pSetup.addColor('color', 0, true, { r: 0, g: 0, b: 0, a: 1 })
-                .new(TextureFormat.Bgra8unorm);
-            pSetup.addDepthStencil(true, 1).new(TextureFormat.Depth24plus);
-        });
-    }
-
-    /**
-     * Rebuild instance data from the frustum-culled visible mesh list.
-     * Groups renderers by material and mesh, updates light data and camera VP.
-     */
-    private rebuildInstanceData(pCullingData: ReadonlyCullSystemRenderTargetData): void {
-        if (!this.mDefaultRenderModule || !this.mDefaultPipeline || !this.mWorldGroup) {
-            return;
-        }
-
-        const lVisibleRenderers = pCullingData.meshes.visible;
-        const lTransformationSystem: TransformationSystem = this.mDependencyTransformationSystem!;
-        const lLightSystem: LightSystem = this.mDependencyLightSystem!;
-        const lMaterialSystem: MaterialSystem = this.mDependencyMaterialSystem!;
-
-        // Reset all instance counts.
-        for (const [, lMeshGroups] of this.mMaterialMeshGroups) {
-            for (const [, lGroupData] of lMeshGroups) {
-                lGroupData.instanceCount = 0;
-            }
-        }
-
-        // Skip when no renderers are visible.
-        if (lVisibleRenderers.length === 0) {
-            return;
-        }
-
-        // Lazily initialize light data in the World bind group.
-        if (!this.mLightDataInitialized) {
-            this.mWorldGroup.data('lightData').set(lLightSystem.lightBuffer);
-            this.mLightCountBuffer = this.mWorldGroup.data('lightCount').createBuffer(1);
-            this.mLightIndexListBuffer = this.mWorldGroup.data('lightIndexList').createBuffer(Math.max(lLightSystem.lights.length, 1));
-            this.mWorldGroup.data('ambientLight').set(lLightSystem.ambientLightBuffer);
-            this.mLightDataInitialized = true;
-        }
-
-        // Update light data each frame.
-        this.mWorldGroup.data('lightData').set(lLightSystem.lightBuffer);
-        this.mWorldGroup.data('ambientLight').set(lLightSystem.ambientLightBuffer);
-
-        const lActiveLights = lLightSystem.lights;
-        const lLightIndexList: Uint32Array = new Uint32Array(lActiveLights.length);
-        for (let lIndex: number = 0; lIndex < lActiveLights.length; lIndex++) {
-            lLightIndexList[lIndex] = lLightSystem.indexOfLight(lActiveLights[lIndex]);
-        }
-
-        this.mLightCountBuffer!.write(new Uint32Array([lActiveLights.length]).buffer);
-        if (this.mLightIndexListBuffer!.size !== lActiveLights.length * Uint32Array.BYTES_PER_ELEMENT) {
-            this.mLightIndexListBuffer!.size = lActiveLights.length * Uint32Array.BYTES_PER_ELEMENT;
-        }
-        this.mLightIndexListBuffer!.write(lLightIndexList.buffer);
-
-        // Update camera view projection matrix.
-        const lWorldMatrix = lTransformationSystem.worldMatrixOfTransformation(pCullingData.camera!.transformation!);
-        const lViewProjectionMatrix = pCullingData.camera!.component.matrix.mult(lWorldMatrix.inverse());
-        this.mWorldGroup.data('viewProjection').asBufferView(Float32Array).write(lViewProjectionMatrix.dataArray);
-
-        // Group visible renderers by material + mesh.
-        const lGroupMap: Map<Material, Map<Mesh, Array<MeshRenderComponent>>> = new Map();
-        for (const lRenderer of lVisibleRenderers) {
-            const lMaterial: Material = lRenderer.material;
-            const lMesh: Mesh = lRenderer.mesh;
-
-            let lMaterialMap = lGroupMap.get(lMaterial);
-            if (!lMaterialMap) {
-                lMaterialMap = new Map();
-                lGroupMap.set(lMaterial, lMaterialMap);
-            }
-
-            let lRenderers = lMaterialMap.get(lMesh);
-            if (!lRenderers) {
-                lRenderers = [];
-                lMaterialMap.set(lMesh, lRenderers);
-            }
-
-            lRenderers.push(lRenderer);
-        }
-
-        // Process each material+mesh group.
-        for (const [lMaterial, lMeshMap] of lGroupMap) {
-            // Load material from MaterialSystem (may return default while compiling).
-            const lLoadedMaterial: LoadedMaterial = lMaterialSystem.loadMaterial(lMaterial, RenderTechnique.Forward);
-
-            for (const [lMesh, lRenderers] of lMeshMap) {
-                // Get or create cached vertex parameters for this mesh.
-                if (!this.mVertexParameterCache.has(lMesh)) {
-                    this.createVertexParameters(lMesh);
-                }
-
-                // Get or create material+mesh group data.
-                let lMaterialGroups = this.mMaterialMeshGroups.get(lMaterial);
-                if (!lMaterialGroups) {
-                    lMaterialGroups = new Map();
-                    this.mMaterialMeshGroups.set(lMaterial, lMaterialGroups);
-                }
-
-                let lGroupData = lMaterialGroups.get(lMesh);
-                if (!lGroupData) {
-                    lGroupData = this.createMaterialMeshGroup(lLoadedMaterial, lRenderers.length);
-                    lMaterialGroups.set(lMesh, lGroupData);
-                }
-
-                // Update transformation data reference each frame.
-                lGroupData.objectBindGroup.data('transformationData').set(lTransformationSystem.gpuBuffer);
-
-                // Build component indices array.
-                const lIndices: Uint32Array = new Uint32Array(lRenderers.length);
-                for (let lIndex: number = 0; lIndex < lRenderers.length; lIndex++) {
-                    const lTransformation: TransformationComponent = lRenderers[lIndex].gameEntity.getComponent(TransformationComponent);
-                    lIndices[lIndex] = lTransformationSystem.indexOfTransformation(lTransformation);
-                }
-
-                // Resize buffer if needed and write indices.
-                if (lGroupData.componentIndicesBuffer.size !== lRenderers.length * Uint32Array.BYTES_PER_ELEMENT) {
-                    lGroupData.componentIndicesBuffer.size = lRenderers.length * Uint32Array.BYTES_PER_ELEMENT;
-                }
-                lGroupData.componentIndicesBuffer.write(lIndices.buffer);
-
-                // Update instance count.
-                lGroupData.instanceCount = lRenderers.length;
-            }
-        }
-    }
-
-    /**
      * Create a new material+mesh group with Object bind group, buffers, and pipeline data.
      */
     private createMaterialMeshGroup(pLoadedMaterial: LoadedMaterial, pInitialCount: number): MaterialMeshGroupData {
@@ -442,6 +300,17 @@ export class ShitSystem extends GameSystem {
     }
 
     /**
+     * Create GPU render targets as standalone offscreen textures.
+     */
+    private createRenderTargets(): RenderTargets {
+        return this.mDependencyGpuSystem!.gpu.renderTargets().setup((pSetup) => {
+            pSetup.addColor('color', 0, true, { r: 0, g: 0, b: 0, a: 1 })
+                .new(TextureFormat.Bgra8unorm);
+            pSetup.addDepthStencil(true, 1).new(TextureFormat.Depth24plus);
+        });
+    }
+
+    /**
      * Create and cache vertex parameters for a mesh.
      * Creates buffers for all ForwardVertexIn attributes, defaulting missing optional attributes.
      */
@@ -452,8 +321,8 @@ export class ShitSystem extends GameSystem {
         const lDefaultColors: Array<number> = new Array(lVertexCount * 4).fill(1.0);
         const lDefaultUvs: Array<number> = new Array(lVertexCount * 2).fill(0);
 
-        const lVertexParameters = pMesh.subMeshes.map((lSubMesh) => {
-            const lVertexParam: VertexParameter = this.mDefaultRenderModule!.vertexParameter.create(lSubMesh.indices);
+        const lVertexParameters = pMesh.subMeshes.map((pSubMesh) => {
+            const lVertexParam: VertexParameter = this.mDefaultRenderModule!.vertexParameter.create(pSubMesh.indices);
 
             lVertexParam.create('position', pMesh.verticesData);
             lVertexParam.create('normal', pMesh.normals);
@@ -467,5 +336,153 @@ export class ShitSystem extends GameSystem {
         });
 
         this.mVertexParameterCache.set(pMesh, lVertexParameters);
+    }
+
+    /**
+     * Rebuild instance data from the frustum-culled visible mesh list.
+     * Groups renderers by material, mesh, and submesh index. Updates light data and camera VP.
+     * Each submesh uses its corresponding material from the MeshRenderComponent's materials array.
+     */
+    private rebuildInstanceData(pCullingData: ReadonlyCullSystemRenderTargetData): void {
+        if (!this.mDefaultRenderModule || !this.mDefaultPipeline || !this.mWorldGroup) {
+            return;
+        }
+
+        const lVisibleRenderers = pCullingData.meshes.visible;
+        const lTransformationSystem: TransformationSystem = this.mDependencyTransformationSystem!;
+        const lLightSystem: LightSystem = this.mDependencyLightSystem!;
+        const lMaterialSystem: MaterialSystem = this.mDependencyMaterialSystem!;
+
+        // Reset all instance counts.
+        for (const [, lMeshGroups] of this.mMaterialMeshGroups) {
+            for (const [, lSubMeshGroups] of lMeshGroups) {
+                for (const [, lGroupData] of lSubMeshGroups) {
+                    lGroupData.instanceCount = 0;
+                }
+            }
+        }
+
+        // Skip when no renderers are visible.
+        if (lVisibleRenderers.length === 0) {
+            return;
+        }
+
+        // Lazily initialize light data in the World bind group.
+        if (!this.mLightDataInitialized) {
+            this.mWorldGroup.data('lightData').set(lLightSystem.lightBuffer);
+            this.mLightCountBuffer = this.mWorldGroup.data('lightCount').createBuffer(1);
+            this.mLightIndexListBuffer = this.mWorldGroup.data('lightIndexList').createBuffer(Math.max(lLightSystem.lights.length, 1));
+            this.mWorldGroup.data('ambientLight').set(lLightSystem.ambientLightBuffer);
+            this.mLightDataInitialized = true;
+        }
+
+        // Update light data each frame.
+        this.mWorldGroup.data('lightData').set(lLightSystem.lightBuffer);
+        this.mWorldGroup.data('ambientLight').set(lLightSystem.ambientLightBuffer);
+
+        const lActiveLights = lLightSystem.lights;
+        const lLightIndexList: Uint32Array = new Uint32Array(lActiveLights.length);
+        for (let lIndex: number = 0; lIndex < lActiveLights.length; lIndex++) {
+            lLightIndexList[lIndex] = lLightSystem.indexOfLight(lActiveLights[lIndex]);
+        }
+
+        this.mLightCountBuffer!.write(new Uint32Array([lActiveLights.length]).buffer);
+        if (this.mLightIndexListBuffer!.size !== lActiveLights.length * Uint32Array.BYTES_PER_ELEMENT) {
+            this.mLightIndexListBuffer!.size = lActiveLights.length * Uint32Array.BYTES_PER_ELEMENT;
+        }
+        this.mLightIndexListBuffer!.write(lLightIndexList.buffer);
+
+        // Update camera view projection matrix.
+        const lWorldMatrix = lTransformationSystem.worldMatrixOfTransformation(pCullingData.camera!.transformation!);
+        const lViewProjectionMatrix = pCullingData.camera!.component.matrix.mult(lWorldMatrix.inverse());
+        this.mWorldGroup.data('viewProjection').asBufferView(Float32Array).write(lViewProjectionMatrix.dataArray);
+
+        // Group visible renderers by material + mesh + submesh index.
+        // Key: Material -> Mesh -> subMeshIndex -> Array<MeshRenderComponent>.
+        const lGroupMap: Map<Material, Map<Mesh, Map<number, Array<MeshRenderComponent>>>> = new Map();
+        for (const lRenderer of lVisibleRenderers) {
+            const lMesh: Mesh = lRenderer.mesh;
+            const lMaterials: ReadonlyArray<Material> = lRenderer.materials;
+
+            for (let lSubIndex: number = 0; lSubIndex < lMesh.subMeshes.length; lSubIndex++) {
+                // Resolve material for this submesh: use indexed material, fall back to last material, then system default.
+                const lMaterial: Material = lSubIndex < lMaterials.length
+                    ? lMaterials[lSubIndex]
+                    : (lMaterials.length > 0 ? lMaterials[lMaterials.length - 1] : Material.SYSTEM_INSTANCE);
+
+                let lMaterialMap = lGroupMap.get(lMaterial);
+                if (!lMaterialMap) {
+                    lMaterialMap = new Map();
+                    lGroupMap.set(lMaterial, lMaterialMap);
+                }
+
+                let lMeshMap = lMaterialMap.get(lMesh);
+                if (!lMeshMap) {
+                    lMeshMap = new Map();
+                    lMaterialMap.set(lMesh, lMeshMap);
+                }
+
+                let lRenderers = lMeshMap.get(lSubIndex);
+                if (!lRenderers) {
+                    lRenderers = [];
+                    lMeshMap.set(lSubIndex, lRenderers);
+                }
+
+                lRenderers.push(lRenderer);
+            }
+        }
+
+        // Process each material+mesh+submesh group.
+        for (const [lMaterial, lMeshMap] of lGroupMap) {
+            // Load material from MaterialSystem (may return default while compiling).
+            const lLoadedMaterial: LoadedMaterial = lMaterialSystem.loadMaterial(lMaterial, RenderTechnique.Forward);
+
+            for (const [lMesh, lSubMeshMap] of lMeshMap) {
+                // Get or create cached vertex parameters for this mesh.
+                if (!this.mVertexParameterCache.has(lMesh)) {
+                    this.createVertexParameters(lMesh);
+                }
+
+                for (const [lSubIndex, lRenderers] of lSubMeshMap) {
+                    // Get or create material+mesh+submesh group data.
+                    let lMaterialGroups = this.mMaterialMeshGroups.get(lMaterial);
+                    if (!lMaterialGroups) {
+                        lMaterialGroups = new Map();
+                        this.mMaterialMeshGroups.set(lMaterial, lMaterialGroups);
+                    }
+
+                    let lSubMeshGroups = lMaterialGroups.get(lMesh);
+                    if (!lSubMeshGroups) {
+                        lSubMeshGroups = new Map();
+                        lMaterialGroups.set(lMesh, lSubMeshGroups);
+                    }
+
+                    let lGroupData = lSubMeshGroups.get(lSubIndex);
+                    if (!lGroupData) {
+                        lGroupData = this.createMaterialMeshGroup(lLoadedMaterial, lRenderers.length);
+                        lSubMeshGroups.set(lSubIndex, lGroupData);
+                    }
+
+                    // Update transformation data reference each frame.
+                    lGroupData.objectBindGroup.data('transformationData').set(lTransformationSystem.gpuBuffer);
+
+                    // Build component indices array.
+                    const lIndices: Uint32Array = new Uint32Array(lRenderers.length);
+                    for (let lIndex: number = 0; lIndex < lRenderers.length; lIndex++) {
+                        const lTransformation: TransformationComponent = lRenderers[lIndex].gameEntity.getComponent(TransformationComponent);
+                        lIndices[lIndex] = lTransformationSystem.indexOfTransformation(lTransformation);
+                    }
+
+                    // Resize buffer if needed and write indices.
+                    if (lGroupData.componentIndicesBuffer.size !== lRenderers.length * Uint32Array.BYTES_PER_ELEMENT) {
+                        lGroupData.componentIndicesBuffer.size = lRenderers.length * Uint32Array.BYTES_PER_ELEMENT;
+                    }
+                    lGroupData.componentIndicesBuffer.write(lIndices.buffer);
+
+                    // Update instance count.
+                    lGroupData.instanceCount = lRenderers.length;
+                }
+            }
+        }
     }
 }

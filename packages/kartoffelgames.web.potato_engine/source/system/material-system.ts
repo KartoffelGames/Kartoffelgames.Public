@@ -1,34 +1,8 @@
 import { Exception } from '@kartoffelgames/core';
-import {
-    PgslParser, WgslTranspiler,
-    PgslParserResultArrayType,
-    PgslParserResultMatrixType,
-    PgslParserResultNumericType,
-    PgslParserResultStructType,
-    PgslParserResultVectorType,
-    PgslParserResultTextureType,
-    PgslParserResultSamplerType,
-    type PgslParserResult,
-    type PgslParserResultBinding,
-    type PgslParserResultType
-} from '@kartoffelgames/core-pgsl';
-import {
-    type BindGroup,
-    type BindGroupLayout,
-    BufferItemFormat,
-    BufferItemMultiplier,
-    ComputeStage,
-    type GpuTextureView,
-    SamplerType,
-    Shader,
-    type ShaderRenderModule,
-    StorageBindingType,
-    TextureFormat,
-    TextureViewDimension,
-    VertexParameterStepMode
-} from '@kartoffelgames/web-gpu';
+import { PgslParser, WgslTranspiler, PgslParserResultArrayType, PgslParserResultMatrixType, PgslParserResultNumericType, PgslParserResultStructType, PgslParserResultVectorType, PgslParserResultTextureType, PgslParserResultSamplerType, type PgslParserResult, type PgslParserResultBinding, type PgslParserResultType } from '@kartoffelgames/core-pgsl';
+import { type BindGroup, type BindGroupLayout, BufferItemFormat, BufferItemMultiplier, ComputeStage, type GpuTextureView, SamplerType, Shader, type ShaderRenderModule, StorageBindingType, type TextureFormat, type TextureViewDimension, VertexParameterStepMode } from '@kartoffelgames/web-gpu';
 import { Color } from '../component_item/color.ts';
-import { Material, type MaterialBindingValue } from '../component_item/material.ts';
+import type { Material, MaterialBindingValue } from '../component_item/material.ts';
 import { Texture } from '../component_item/texture.ts';
 import type { GameEnvironment } from '../core/environment/game-environment.ts';
 import { GameSystem, type GameSystemConstructor, type GameSystemUpdateStateChanges } from '../core/game-system.ts';
@@ -80,14 +54,19 @@ export type LoadedMaterial = {
  * shader's "User" group and fills it with data from the Material's bindings map.
  */
 export class MaterialSystem extends GameSystem {
-    private mCompiledMaterials: WeakMap<Material, CompiledMaterialEntry>;
+    private readonly mCompiledMaterials: WeakMap<Material, CompiledMaterialEntry>;
+    private readonly mDefaultBindingDefaults: Map<string, ArrayBuffer>;
     private mDefaultLoadedMaterial: LoadedMaterial | null;
     private mDefaultParserResult: PgslParserResult | null;
+    private mDefaultRenderModule: ShaderRenderModule | null;
     private mDefaultShader: Shader | null;
+    private readonly mDefaultUserBindings: Array<PgslParserResultBinding>;
+    private mDefaultUserGroupIndex: number;
     private mGpuSystem: GpuSystem | null;
     private mParser: PgslParser | null;
-    private mPendingMaterials: Set<Material>;
+    private readonly mPendingMaterials: Set<Material>;
     private mTextureSystem: TextureSystem | null;
+    private mWhiteBitmap: ImageBitmap | null;
 
     /**
      * Gets the system types this system depends on.
@@ -114,7 +93,7 @@ export class MaterialSystem extends GameSystem {
     }
 
     /**
-     * Gets the default loaded material (default PBR shader, no User bindings).
+     * Gets the default loaded material (default PBR shader with fallback User bind group).
      */
     public get defaultLoadedMaterial(): LoadedMaterial {
         this.lockGate();
@@ -129,17 +108,28 @@ export class MaterialSystem extends GameSystem {
     public constructor(pEnvironment: GameEnvironment) {
         super('Material', pEnvironment);
 
-        // Null dependencies.
-        this.mGpuSystem = null;
-        this.mTextureSystem = null;
-        this.mParser = null;
-        this.mDefaultShader = null;
-        this.mDefaultParserResult = null;
-        this.mDefaultLoadedMaterial = null;
-
         // Compiled material tracking.
         this.mCompiledMaterials = new WeakMap<Material, CompiledMaterialEntry>();
         this.mPendingMaterials = new Set<Material>();
+
+        // Default binding defaults for the default PBR shader's User group.
+        this.mDefaultBindingDefaults = new Map<string, ArrayBuffer>([
+            ['baseColorFactor', new Float32Array([1, 1, 1, 1]).buffer],
+            ['metallicFactor', new Float32Array([0.0]).buffer],
+            ['roughnessFactor', new Float32Array([0.5]).buffer],
+        ]);
+
+        // Null dependencies and deferred initialization.
+        this.mDefaultLoadedMaterial = null;
+        this.mDefaultParserResult = null;
+        this.mDefaultRenderModule = null;
+        this.mDefaultShader = null;
+        this.mDefaultUserBindings = [];
+        this.mDefaultUserGroupIndex = -1;
+        this.mGpuSystem = null;
+        this.mParser = null;
+        this.mTextureSystem = null;
+        this.mWhiteBitmap = null;
     }
 
     /**
@@ -162,9 +152,43 @@ export class MaterialSystem extends GameSystem {
             throw new Exception(`Render technique "${pTechnique}" is not yet supported. Only Forward is implemented.`, this);
         }
 
-        // Empty shader code means use default PBR.
+        // Empty shader code means use default PBR with per-material User bind group.
         if (!pMaterial.shader.shaderCode) {
-            return this.mDefaultLoadedMaterial!;
+            // Check cache for existing per-material bind group.
+            const lExisting: CompiledMaterialEntry | undefined = this.mCompiledMaterials.get(pMaterial);
+            if (lExisting) {
+                return {
+                    shader: lExisting.gpuShader,
+                    parserResult: lExisting.parserResult,
+                    userBindGroup: lExisting.userBindGroup,
+                    userGroupIndex: lExisting.userGroupIndex
+                };
+            }
+
+            // Create per-material User bind group with material-specific binding values.
+            let lUserBindGroup: BindGroup | null = null;
+            if (this.mDefaultUserBindings.length > 0) {
+                const lUserLayout: BindGroupLayout = this.mDefaultRenderModule!.layout.getGroupLayout('User');
+                lUserBindGroup = lUserLayout.create();
+                this.fillUserBindGroup(lUserBindGroup, this.mDefaultUserBindings, pMaterial, this.mDefaultBindingDefaults);
+            }
+
+            // Cache compiled entry.
+            const lEntry: CompiledMaterialEntry = {
+                gpuShader: this.mDefaultShader!,
+                parserResult: this.mDefaultParserResult!,
+                sourceCode: '',
+                userBindGroup: lUserBindGroup,
+                userGroupIndex: this.mDefaultUserGroupIndex
+            };
+            this.mCompiledMaterials.set(pMaterial, lEntry);
+
+            return {
+                shader: this.mDefaultShader!,
+                parserResult: this.mDefaultParserResult!,
+                userBindGroup: lUserBindGroup,
+                userGroupIndex: this.mDefaultUserGroupIndex
+            };
         }
 
         // Check for existing compiled material with matching source code.
@@ -196,6 +220,15 @@ export class MaterialSystem extends GameSystem {
         this.mGpuSystem = this.environment.getSystem(GpuSystem);
         this.mTextureSystem = this.environment.getSystem(TextureSystem);
 
+        // Create 1x1 white pixel bitmap for placeholder textures.
+        // When no texture is bound for a material, the shader samples this white placeholder
+        // so that textureSample returns (1,1,1,1) instead of (0,0,0,0).
+        const lWhiteCanvas: OffscreenCanvas = new OffscreenCanvas(1, 1);
+        const lWhiteCtx: OffscreenCanvasRenderingContext2D = lWhiteCanvas.getContext('2d')!;
+        lWhiteCtx.fillStyle = '#ffffff';
+        lWhiteCtx.fillRect(0, 0, 1, 1);
+        this.mWhiteBitmap = await globalThis.createImageBitmap(lWhiteCanvas);
+
         // Create parser and register engine imports.
         this.mParser = new PgslParser();
         this.mParser.addImport('Core', CORE_IMPORT);
@@ -211,12 +244,45 @@ export class MaterialSystem extends GameSystem {
         // Configure default shader pipeline layout.
         MaterialSystem.configureShader(this.mDefaultShader, lDefaultResult);
 
-        // Build default loaded material (no User bindings).
+        // Create render module for per-material User bind group creation.
+        this.mDefaultRenderModule = this.mDefaultShader.createRenderModule('vertex_main', 'fragment_main');
+
+        // Extract User group bindings from default shader parser result.
+        for (const lBinding of lDefaultResult.bindings) {
+            if (lBinding.bindGroupName === 'User') {
+                this.mDefaultUserGroupIndex = lBinding.bindGroupIndex;
+                this.mDefaultUserBindings.push(lBinding);
+            }
+        }
+
+        // Create a shared fallback User bind group with defaults (used while custom shaders compile).
+        let lFallbackUserBindGroup: BindGroup | null = null;
+        if (this.mDefaultUserBindings.length > 0) {
+            const lUserLayout: BindGroupLayout = this.mDefaultRenderModule.layout.getGroupLayout('User');
+            lFallbackUserBindGroup = lUserLayout.create();
+
+            for (const lBinding of this.mDefaultUserBindings) {
+                if (lBinding.type instanceof PgslParserResultTextureType) {
+                    lFallbackUserBindGroup.data(lBinding.bindLocationName).createTexture().texture.copyFrom(this.mWhiteBitmap!);
+                } else if (lBinding.type instanceof PgslParserResultSamplerType) {
+                    lFallbackUserBindGroup.data(lBinding.bindLocationName).createSampler();
+                } else {
+                    const lDefault: ArrayBuffer | undefined = this.mDefaultBindingDefaults.get(lBinding.bindLocationName);
+                    if (lDefault) {
+                        lFallbackUserBindGroup.data(lBinding.bindLocationName).createBufferWithRawData(lDefault);
+                    } else {
+                        lFallbackUserBindGroup.data(lBinding.bindLocationName).createBuffer();
+                    }
+                }
+            }
+        }
+
+        // Build default loaded material (shared fallback for pending compilations).
         this.mDefaultLoadedMaterial = {
             shader: this.mDefaultShader,
             parserResult: lDefaultResult,
-            userBindGroup: null,
-            userGroupIndex: -1
+            userBindGroup: lFallbackUserBindGroup,
+            userGroupIndex: this.mDefaultUserGroupIndex
         };
     }
 
@@ -322,8 +388,9 @@ export class MaterialSystem extends GameSystem {
      * @param pBindGroup - The User bind group to fill.
      * @param pBindings - The User group bindings from the parser result.
      * @param pMaterial - The material to read binding values from.
+     * @param pDefaults - Optional default values for buffer bindings when no material value is set.
      */
-    private fillUserBindGroup(pBindGroup: BindGroup, pBindings: Array<PgslParserResultBinding>, pMaterial: Material): void {
+    private fillUserBindGroup(pBindGroup: BindGroup, pBindings: Array<PgslParserResultBinding>, pMaterial: Material, pDefaults?: Map<string, ArrayBuffer>): void {
         for (const lBinding of pBindings) {
             const lBindName: string = lBinding.bindLocationName;
             const lBindType: PgslParserResultType = lBinding.type;
@@ -339,12 +406,12 @@ export class MaterialSystem extends GameSystem {
                         const lTextureView: GpuTextureView = lGpuTexture.useAs(lDimension);
                         pBindGroup.data(lBindName).set(lTextureView);
                     } else {
-                        // Texture not yet loaded, create a placeholder texture.
-                        pBindGroup.data(lBindName).createTexture();
+                        // Texture not yet loaded, create a white placeholder texture.
+                        pBindGroup.data(lBindName).createTexture().texture.copyFrom(this.mWhiteBitmap!);
                     }
                 } else {
-                    // No matching material value or wrong type, create placeholder.
-                    pBindGroup.data(lBindName).createTexture();
+                    // No matching material value or wrong type, create white placeholder.
+                    pBindGroup.data(lBindName).createTexture().texture.copyFrom(this.mWhiteBitmap!);
                 }
                 continue;
             }
@@ -368,8 +435,13 @@ export class MaterialSystem extends GameSystem {
                 // ArrayBuffer -> write raw data.
                 pBindGroup.data(lBindName).createBufferWithRawData(lMaterialValue);
             } else {
-                // No matching material value, create buffer with default.
-                pBindGroup.data(lBindName).createBuffer();
+                // No matching material value. Use default if available, otherwise zero-initialized.
+                const lDefault: ArrayBuffer | undefined = pDefaults?.get(lBindName);
+                if (lDefault) {
+                    pBindGroup.data(lBindName).createBufferWithRawData(lDefault);
+                } else {
+                    pBindGroup.data(lBindName).createBuffer();
+                }
             }
         }
     }
@@ -401,7 +473,7 @@ export class MaterialSystem extends GameSystem {
             }
 
             // Bind groups: group bindings by group index.
-            const lBindGroups = new Map<number, { name: string; bindings: Array<PgslParserResultBinding> }>();
+            const lBindGroups = new Map<number, { name: string; bindings: Array<PgslParserResultBinding>; }>();
             for (const lBinding of pParserResult.bindings) {
                 let lGroup = lBindGroups.get(lBinding.bindGroupIndex);
                 if (!lGroup) {
@@ -503,12 +575,12 @@ export class MaterialSystem extends GameSystem {
     /**
      * Map a PgslParserResultType to GPU buffer format and multiplier.
      */
-    public static mapResultType(pType: PgslParserResultType): { format: BufferItemFormat; multiplier: BufferItemMultiplier } {
+    public static mapResultType(pType: PgslParserResultType): { format: BufferItemFormat; multiplier: BufferItemMultiplier; } {
         if (pType instanceof PgslParserResultVectorType) {
             const lNumType = pType.elementType as PgslParserResultNumericType;
             const lFormat = lNumType.numberType === 'float' ? BufferItemFormat.Float32
                 : lNumType.numberType === 'unsigned-integer' ? BufferItemFormat.Uint32
-                : BufferItemFormat.Sint32;
+                    : BufferItemFormat.Sint32;
             switch (pType.dimension) {
                 case 2: return { format: lFormat, multiplier: BufferItemMultiplier.Vector2 };
                 case 3: return { format: lFormat, multiplier: BufferItemMultiplier.Vector3 };
@@ -533,7 +605,7 @@ export class MaterialSystem extends GameSystem {
         if (pType instanceof PgslParserResultNumericType) {
             const lFormat = pType.numberType === 'float' ? BufferItemFormat.Float32
                 : pType.numberType === 'unsigned-integer' ? BufferItemFormat.Uint32
-                : BufferItemFormat.Sint32;
+                    : BufferItemFormat.Sint32;
             return { format: lFormat, multiplier: BufferItemMultiplier.Single };
         }
 

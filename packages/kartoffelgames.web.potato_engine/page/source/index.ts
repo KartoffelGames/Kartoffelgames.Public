@@ -1,4 +1,5 @@
-import { GlbConverter } from './glb-converter.ts';
+import { GlbConverter, type GlbConvertResult } from './glb-converter.ts';
+import type { Material } from '../../source/component_item/material.ts';
 import type { Mesh } from '../../source/component_item/mesh.ts';
 import { GameEnvironment } from '../../source/core/environment/game-environment.ts';
 import type { GameScene } from '../../source/core/game-scene.ts';
@@ -14,116 +15,117 @@ import { HierarchyPanel } from './ui/hierarchy-panel.ts';
 import { ResizableLayout } from './ui/resizable-layout.ts';
 
 // ── Load assets ──────────────────────────────────────────────
-const lGlbData: ArrayBuffer = await fetch('/mesh.glb').then(async (pResponse) => {
+const gGlbData: ArrayBuffer = await fetch('/mesh.glb').then(async (pResponse) => {
     return pResponse.arrayBuffer();
 });
-const lMeshes: Array<Mesh> = GlbConverter.convert(lGlbData);
-const lBlockMesh: Mesh = lMeshes[0];
+const gGlbResult: GlbConvertResult = GlbConverter.convert(gGlbData);
+const gBlockMesh: Mesh = gGlbResult.meshes[0];
+const gBlockMeshMaterials: Array<Material> = gGlbResult.materials[0] ?? [];
 
 // ── Environment setup ────────────────────────────────────────
-const lEnvironment = new GameEnvironment({
+const gEnvironment = new GameEnvironment({
     debugSystemTime: true,
     debugStateChanges: true
 });
 
 // Register systems.
-lEnvironment.registerSystem(TransformationSystem);
-lEnvironment.registerSystem(LightSystem);
-lEnvironment.registerSystem(CullSystem);
+gEnvironment.registerSystem(TransformationSystem);
+gEnvironment.registerSystem(LightSystem);
+gEnvironment.registerSystem(CullSystem);
 
-const lShitSystem: ShitSystem = lEnvironment.registerSystem(ShitSystem);
+const gShitSystem: ShitSystem = gEnvironment.registerSystem(ShitSystem);
 
 // Canvas setup.
-const lCanvas: HTMLCanvasElement = document.getElementById('canvas') as HTMLCanvasElement;
-lShitSystem.canvas = lCanvas;
+const gCanvas: HTMLCanvasElement = document.getElementById('canvas') as HTMLCanvasElement;
+gShitSystem.canvas = gCanvas;
 
 // Handle canvas resize from its wrapper.
-const lCanvasWrapper: HTMLElement | null = document.querySelector('.canvas-wrapper');
-if (lCanvasWrapper) {
+const gCanvasWrapper: HTMLElement | null = document.querySelector('.canvas-wrapper');
+if (gCanvasWrapper) {
     new ResizeObserver(() => {
-        lCanvas.width = Math.max(lCanvasWrapper.clientWidth, 0);
-        lCanvas.height = Math.max(lCanvasWrapper.clientHeight, 0);
-    }).observe(lCanvasWrapper);
+        gCanvas.width = Math.max(gCanvasWrapper.clientWidth, 0);
+        gCanvas.height = Math.max(gCanvasWrapper.clientHeight, 0);
+    }).observe(gCanvasWrapper);
 }
 
 // ── Scene setup ──────────────────────────────────────────────
-const lSceneSetup = new SceneSetup(lBlockMesh);
+const gSceneSetup = new SceneSetup(gBlockMesh, gBlockMeshMaterials);
 
 // Always load the camera scene.
-lEnvironment.loadScene(lSceneSetup.cameraScene);
+gEnvironment.loadScene(gSceneSetup.cameraScene);
 
 // Track which numbered scenes are currently loaded.
-const lLoadedScenes: Set<number> = new Set<number>();
+const gLoadedScenes: Set<number> = new Set<number>();
 
 /**
  * Toggle a numbered scene on or off.
  */
-function toggleScene(pSceneNumber: number): void {
-    const lScene: GameScene | undefined = lSceneSetup.scenes.get(pSceneNumber);
+function gToggleScene(pSceneNumber: number): void {
+    const lScene: GameScene | undefined = gSceneSetup.scenes.get(pSceneNumber);
     if (!lScene) {
         return;
     }
 
-    if (lLoadedScenes.has(pSceneNumber)) {
-        lEnvironment.unloadScene(lScene);
-        lLoadedScenes.delete(pSceneNumber);
+    if (gLoadedScenes.has(pSceneNumber)) {
+        gEnvironment.unloadScene(lScene);
+        gLoadedScenes.delete(pSceneNumber);
     } else {
-        lEnvironment.loadScene(lScene);
-        lLoadedScenes.add(pSceneNumber);
+        gEnvironment.loadScene(lScene);
+        gLoadedScenes.add(pSceneNumber);
     }
 }
 
 // Load scene 1 by default.
-toggleScene(1);
+gToggleScene(1);
 
 // Listen for number keys 0-9 to toggle scenes.
 document.addEventListener('keydown', (pEvent: KeyboardEvent) => {
     const lKey: string = pEvent.key;
     if (lKey >= '0' && lKey <= '9') {
-        toggleScene(parseInt(lKey, 10));
+        gToggleScene(parseInt(lKey, 10));
     }
 });
 
 // ── Camera controller ────────────────────────────────────────
-const lCameraController = new CameraController(lCanvas, lSceneSetup.cameraEntity);
-lCameraController.start();
+const gCameraController = new CameraController(gCanvas, gSceneSetup.cameraEntity);
+gCameraController.start();
 
 // Animate objects on the same interval as camera input.
-const lAnimationFrame = () => {
-    lSceneSetup.animateObjects();
-    globalThis.requestAnimationFrame(lAnimationFrame);
+const gAnimationFrame = () => {
+    gSceneSetup.animateObjects();
+    globalThis.requestAnimationFrame(gAnimationFrame);
 };
-globalThis.requestAnimationFrame(lAnimationFrame);
+globalThis.requestAnimationFrame(gAnimationFrame);
 
 // ── UI setup ─────────────────────────────────────────────────
 ResizableLayout.initialize();
 
-const lFrameGraph = new FrameGraph(
+const gFrameGraph = new FrameGraph(
     document.getElementById('frame-graph-bar')!,
-    lEnvironment
+    gEnvironment
 );
 
-const lDebugPanel = new DebugPanel(
+const gDebugPanel = new DebugPanel(
     document.getElementById('debug-content')!,
-    lEnvironment
+    gEnvironment
 );
 
 // Hierarchy panel builds itself on construction and updates via sniffer callback.
 new HierarchyPanel(
     document.getElementById('hierarchy-content')!,
-    lEnvironment
+    gEnvironment
 );
 
 // UI update intervals.
 globalThis.setInterval(() => {
-    lFrameGraph.update();
-    lDebugPanel.update();
+    gFrameGraph.update();
+    gDebugPanel.update();
 }, 100);
 
 // ── Start engine ─────────────────────────────────────────────
 // eslint-disable-next-line no-console
 console.log('Starting environment...');
-lEnvironment.start().then(() => {
+gEnvironment.start().then(() => {
     // eslint-disable-next-line no-console
     console.log('Environment closed.');
 });

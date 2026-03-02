@@ -1,16 +1,9 @@
 import { GpuTexture, TextureDimension, TextureFormat, TextureUsage } from '@kartoffelgames/web-gpu';
+import type { GpuTextureCopyOptions } from '../../../kartoffelgames.web.gpu/source/texture/gpu-texture.ts';
 import type { Texture } from '../component_item/texture.ts';
 import type { GameEnvironment } from '../core/environment/game-environment.ts';
 import { GameSystem, type GameSystemConstructor, type GameSystemUpdateStateChanges } from '../core/game-system.ts';
 import { GpuSystem } from './gpu-system.ts';
-
-/**
- * Tracking entry for a GPU texture linked to a component texture via WeakRef.
- */
-type TextureEntry = {
-    weakRef: WeakRef<Texture>;
-    gpuTexture: GpuTexture;
-};
 
 /**
  * Texture system that manages the loading and unloading of textures.
@@ -23,9 +16,9 @@ type TextureEntry = {
  */
 export class TextureSystem extends GameSystem {
     private mGpuSystem: GpuSystem | null;
-    private mPendingTextures: Set<Texture>;
-    private mTextureEntries: Array<TextureEntry>;
-    private mTextureLookup: WeakMap<Texture, GpuTexture>;
+    private readonly mPendingTextures: Set<Texture>;
+    private readonly mTextureEntries: Array<TextureEntry>;
+    private readonly mTextureLookup: WeakMap<Texture, GpuTexture>;
 
     /**
      * Gets the system types this system depends on.
@@ -148,7 +141,7 @@ export class TextureSystem extends GameSystem {
     private async decodeAndUpload(pTexture: Texture): Promise<GpuTexture> {
         // Decode the raw file bytes (PNG, JPG, etc.) into an ImageBitmap.
         const lBlob: Blob = new Blob([pTexture.imageData]);
-        const lImageBitmap: ImageBitmap = await createImageBitmap(lBlob);
+        const lImageBitmap: ImageBitmap = await globalThis.createImageBitmap(lBlob);
 
         const lWidth: number = lImageBitmap.width;
         const lHeight: number = lImageBitmap.height;
@@ -182,8 +175,7 @@ export class TextureSystem extends GameSystem {
     }
 
     /**
-     * Generate mipmaps for a GPU texture by progressively downscaling the source image
-     * using an OffscreenCanvas.
+     * Generate mipmaps for a GPU texture by progressively downscaling the source image using an OffscreenCanvas.
      *
      * @param pImage - The source image bitmap.
      * @param pGpuTexture - The GPU texture to write mipmaps to.
@@ -192,23 +184,51 @@ export class TextureSystem extends GameSystem {
      * @param pMipCount - Total number of mip levels.
      */
     private async generateMipmaps(pImage: ImageBitmap, pGpuTexture: GpuTexture, pWidth: number, pHeight: number, pMipCount: number): Promise<void> {
+        const lMipRenderWaiter: Array<Promise<GpuTextureCopyOptions>> = new Array<Promise<GpuTextureCopyOptions>>();
+
+        // Generate each mip level by downscaling the previous level's image.
         for (let lMipLevel: number = 1; lMipLevel < pMipCount; lMipLevel++) {
+            // Calculate dimensions for this mip level.
             const lMipWidth: number = Math.max(1, Math.floor(pWidth / Math.pow(2, lMipLevel)));
             const lMipHeight: number = Math.max(1, Math.floor(pHeight / Math.pow(2, lMipLevel)));
 
+            // Create an OffscreenCanvas to draw the downscaled image for this mip level.
+            const lCanvas: OffscreenCanvas = new OffscreenCanvas(
+                Math.max(1, Math.floor(lMipWidth / Math.pow(2, lMipLevel))),
+                Math.max(1, Math.floor(lMipHeight / Math.pow(2, lMipLevel)))
+            );
+
             // Scale the source image down to the mip level dimensions.
-            const lCanvas: OffscreenCanvas = new OffscreenCanvas(lMipWidth, lMipHeight);
             const lContext: OffscreenCanvasRenderingContext2D = lCanvas.getContext('2d')!;
             lContext.drawImage(pImage, 0, 0, pWidth, pHeight, 0, 0, lMipWidth, lMipHeight);
 
-            // Create an ImageBitmap from the canvas and copy to the GPU texture at this mip level.
-            const lMipBitmap: ImageBitmap = await createImageBitmap(lCanvas);
-            pGpuTexture.copyFrom({
-                data: lMipBitmap,
-                mipLevel: lMipLevel
-            });
+            // Queue the mip level copy operation and store the ImageBitmap promise for cleanup.
+            lMipRenderWaiter.push(createImageBitmap(lCanvas).then((pBitmap) => {
+                return {
+                    data: pBitmap,
+                    mipLevel: lMipLevel,
+                    targetOrigin: { x: 0, y: 0, z: 0 }
+                };
+            }));
+        }
 
-            lMipBitmap.close();
+        // Wait for all mip level renderings to complete and get their ImageBitmaps for cleanup.
+        const lMipOptions: Array<GpuTextureCopyOptions> = await Promise.all(lMipRenderWaiter);
+
+        // Copy images into texture.
+        pGpuTexture.copyFrom(...lMipOptions);
+
+        // Close all bitmaps used for mip generation.
+        for (const lOption of lMipOptions) {
+            (<ImageBitmap>lOption.data).close();
         }
     }
 }
+
+/**
+ * Tracking entry for a GPU texture linked to a component texture via WeakRef.
+ */
+type TextureEntry = {
+    weakRef: WeakRef<Texture>;
+    gpuTexture: GpuTexture;
+};

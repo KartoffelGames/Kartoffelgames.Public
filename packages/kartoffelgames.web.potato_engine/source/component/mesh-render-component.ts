@@ -1,6 +1,6 @@
 import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-system';
 import { Material } from '../component_item/material.ts';
-import type { Mesh } from '../component_item/mesh/mesh.ts';
+import { Mesh } from '../component_item/mesh.ts';
 import { GameComponent, type GameComponentConstructor } from '../core/component/game-component.ts';
 import { TransformationComponent } from './transformation-component.ts';
 
@@ -9,8 +9,8 @@ import { TransformationComponent } from './transformation-component.ts';
  */
 @FileSystem.fileClass('3301c7a4-b477-4c4c-9fbd-143a19ad5683', FileSystemReferenceType.Instanced)
 export class MeshRenderComponent extends GameComponent {
-    private mMaterial: Material | null;
-    private mMesh: Mesh | null;
+    private mMaterials: Array<Material>;
+    private mMesh: Mesh;
 
     /**
      * Get the list of component types that this component depends on. Override this property in subclasses to specify dependencies for a component.
@@ -25,17 +25,19 @@ export class MeshRenderComponent extends GameComponent {
      * Returns the system default material if none has been set.
      */
     @FileSystem.fileProperty()
-    public get material(): Material {
-        return this.mMaterial ?? Material.SYSTEM_INSTANCE;
-    } set material(pValue: Material) {
-        // Unlink from previous material.
-        if (this.mMaterial) {
-            this.mMaterial.unlinkParent(this);
+    public get materials(): ReadonlyArray<Material> {
+        return this.mMaterials;
+    } set materials(pValue: Array<Material>) {
+        // Unlink from previous materials.
+        for (const material of this.mMaterials) {
+            material.unlinkParent(this);
         }
 
         // Save and link to new material.
-        this.mMaterial = pValue;
-        this.mMaterial.linkParent(this);
+        this.mMaterials = pValue;
+        for (const material of this.mMaterials) {
+            material.linkParent(this);
+        }
 
         // Send update event to notify render pipelines that the material has changed.
         this.update();
@@ -46,10 +48,6 @@ export class MeshRenderComponent extends GameComponent {
      */
     @FileSystem.fileProperty()
     public get mesh(): Mesh {
-        if (!this.mMesh) {
-            throw new Error('Mesh is not set.');
-        }
-
         return this.mMesh;
     } set mesh(pValue: Mesh) {
         // Unlink from previous mesh.
@@ -65,10 +63,13 @@ export class MeshRenderComponent extends GameComponent {
         this.update();
     }
 
+    /**
+     * Constructor.
+     */
     public constructor() {
         super('Mesh renderer');
 
-        this.mMaterial = null;
-        this.mMesh = null;
+        this.mMaterials = new Array<Material>();
+        this.mMesh = Mesh.SYSTEM_INSTANCE;
     }
 }

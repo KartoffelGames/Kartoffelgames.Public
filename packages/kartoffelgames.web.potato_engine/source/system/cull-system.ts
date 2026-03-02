@@ -632,7 +632,7 @@ type CullSystemWorldBounds = {
  * Unlike entity-attached RenderTargetComponents, this standalone component sends
  * update events directly to the GameEnvironment without requiring a parent GameEntity.
  */
-export class CoreRenderTargetComponent extends RenderTargetComponent {
+class CoreRenderTargetComponent extends RenderTargetComponent {
     private readonly mEnvironment: GameEnvironment;
 
     /**

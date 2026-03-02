@@ -1,5 +1,5 @@
-import { GlbConverter } from '../../source/component_item/mesh/glb-converter.ts';
-import type { Mesh } from '../../source/component_item/mesh/mesh.ts';
+import { GlbConverter } from './glb-converter.ts';
+import type { Mesh } from '../../source/component_item/mesh.ts';
 import { GameEnvironment } from '../../source/core/environment/game-environment.ts';
 import type { GameScene } from '../../source/core/game-scene.ts';
 import { CullSystem } from '../../source/system/cull-system.ts';

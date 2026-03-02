@@ -1,14 +1,7 @@
 import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-system';
 import { GameComponentItem } from '../core/component/game-component-item.ts';
-import type { Color } from './color.ts';
 import { Shader } from './shader.ts';
 import type { Texture } from './texture.ts';
-
-/**
- * Supported value types for material bindings.
- * Each value maps to a shader User group binding by name.
- */
-export type MaterialBindingValue = Color | number | ArrayBuffer | Texture;
 
 /**
  * Component item that holds material properties for rendering.
@@ -31,9 +24,17 @@ export class Material extends GameComponentItem {
 
     /**
      * Iterator over binding names set on this material.
+     * Only used for serialization, as the shader's User group defines the available bindings and their types.
      */
-    public get bindingNames(): IterableIterator<string> {
-        return this.mBindings.keys();
+    @FileSystem.fileProperty()
+    protected get userValues(): Map<string, MaterialBindingValue> {
+        return this.mBindings;
+    } protected set userValues(pValue: Map<string, MaterialBindingValue>) {
+        this.systemgate();
+
+        this.mBindings.clear();
+        pValue.forEach((v, k) => this.mBindings.set(k, v));
+        this.update();
     }
 
     /**
@@ -58,7 +59,9 @@ export class Material extends GameComponentItem {
         super('Material');
 
         this.mBindings = new Map<string, MaterialBindingValue>();
+
         this.mShader = Shader.SYSTEM_INSTANCE;
+        this.mShader.linkParent(this);
     }
 
     /**
@@ -86,3 +89,9 @@ export class Material extends GameComponentItem {
         this.update();
     }
 }
+
+/**
+ * Supported value types for material bindings.
+ * Each value maps to a shader User group binding by name.
+ */
+export type MaterialBindingValue = ArrayBuffer | Texture;

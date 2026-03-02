@@ -1,5 +1,5 @@
-import { PrimitiveTopology } from '../../../../kartoffelgames.web.gpu/source/constant/primitive-topology.enum.ts';
-import { Mesh } from './mesh.ts';
+import { PrimitiveTopology } from '../../../kartoffelgames.web.gpu/source/constant/primitive-topology.enum.ts';
+import { Mesh } from '../../source/component_item/mesh.ts';
 
 // GLB format constants.
 const GLB_MAGIC: number = 0x46546C67;

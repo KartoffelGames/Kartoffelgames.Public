@@ -9,7 +9,7 @@ import type { SpotLight } from '../../source/component/light/type/spot-light.ts'
 import { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
 import { Material } from '../../source/component_item/material.ts';
-import { Mesh } from '../../source/component_item/mesh/mesh.ts';
+import { Mesh } from '../../source/component_item/mesh.ts';
 import { GameScene } from '../../source/core/game-scene.ts';
 import { GameEntity } from '../../source/core/hierarchy/game-entity.ts';
 

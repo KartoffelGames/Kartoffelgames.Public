@@ -17,7 +17,7 @@ import type { PgslParserResult } from '@kartoffelgames/core-pgsl';
 import type { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
 import type { Material } from '../../source/component_item/material.ts';
-import type { Mesh } from '../../source/component_item/mesh/mesh.ts';
+import type { Mesh } from '../../source/component_item/mesh.ts';
 import type { GameComponentConstructor } from '../../source/core/component/game-component.ts';
 import type { GameEnvironment } from '../../source/core/environment/game-environment.ts';
 import { GameSystem, type GameSystemConstructor, type GameSystemUpdateStateChanges } from '../../source/core/game-system.ts';

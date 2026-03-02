@@ -1,8 +1,8 @@
-import { BufferItemFormat } from '../../../../kartoffelgames.web.gpu/source/constant/buffer-item-format.enum.ts';
-import type { PrimitiveTopology } from '../../../../kartoffelgames.web.gpu/source/constant/primitive-topology.enum.ts';
-import { BoundingBox } from '../bounding-box.ts';
-import { GameComponentItem } from '../../core/component/game-component-item.ts';
-import { SubMesh } from './sub-mesh.ts';
+import { BufferItemFormat } from '../../../kartoffelgames.web.gpu/source/constant/buffer-item-format.enum.ts';
+import { PrimitiveTopology } from '../../../kartoffelgames.web.gpu/source/constant/primitive-topology.enum.ts';
+import { BoundingBox } from './bounding-box.ts';
+import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-system';
+import { GameComponentItem } from '../core/component/game-component-item.ts';
 
 // TODO: Add bone indices and bone weights per vertex for skeletal animation support.
 // TODO: Add LOD (Level of Detail) mesh variants with distance thresholds for automatic LOD switching.
@@ -13,6 +13,83 @@ import { SubMesh } from './sub-mesh.ts';
  * The mesh always contains at least one sub mesh that covers all indices by default.
  */
 export class Mesh extends GameComponentItem {
+    /**
+     * System instance with default values (default PBR shader + empty bindings).
+     * This instance is immutable and cannot be modified.
+     */
+    public static readonly SYSTEM_INSTANCE: Mesh = (() => {
+        const lInstance: Mesh = new Mesh();
+
+        // Initialize as a unit box from -0.5 to 0.5 in all axes.
+        // Vertices (x, y, z) for 8 corners of the box.
+        lInstance.verticesData = [
+            // Front face
+            -0.5, -0.5,  0.5, // 0: left-bottom-front
+             0.5, -0.5,  0.5, // 1: right-bottom-front
+             0.5,  0.5,  0.5, // 2: right-top-front
+            -0.5,  0.5,  0.5, // 3: left-top-front
+            // Back face
+            -0.5, -0.5, -0.5, // 4: left-bottom-back
+             0.5, -0.5, -0.5, // 5: right-bottom-back
+             0.5,  0.5, -0.5, // 6: right-top-back
+            -0.5,  0.5, -0.5  // 7: left-top-back
+        ];
+
+        // Normals (x, y, z) for each vertex (approximate per face).
+        lInstance.normals = [
+            // Front face
+            0, 0, 1,  0, 0, 1,  0, 0, 1,  0, 0, 1,
+            // Back face
+            0, 0, -1,  0, 0, -1,  0, 0, -1,  0, 0, -1
+        ];
+
+        // Colors (r, g, b, a) for each vertex (white, opaque).
+        lInstance.colors = [
+            1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,
+            1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1,  1, 1, 1, 1
+        ];
+
+        // UVs (u, v) for each vertex (simple mapping).
+        lInstance.uv1 = [
+            0, 0,  1, 0,  1, 1,  0, 1,
+            0, 0,  1, 0,  1, 1,  0, 1
+        ];
+        lInstance.uv2 = new Array<number>(16).fill(0);
+        lInstance.uv3 = new Array<number>(16).fill(0);
+        lInstance.uv4 = new Array<number>(16).fill(0);
+
+        // Indices for 12 triangles (two per face).
+        const lIndices: Array<number> = [
+            // Front face
+            0, 1, 2,  0, 2, 3,
+            // Right face
+            1, 5, 6,  1, 6, 2,
+            // Back face
+            5, 4, 7,  5, 7, 6,
+            // Left face
+            4, 0, 3,  4, 3, 7,
+            // Top face
+            3, 2, 6,  3, 6, 7,
+            // Bottom face
+            4, 5, 1,  4, 1, 0
+        ];
+
+        // Add a single sub mesh covering all indices (assuming triangle list topology).
+        lInstance.addSubMesh(lIndices, PrimitiveTopology.TriangleList);
+
+        // Set bounding box.
+        lInstance.bounds = new BoundingBox();
+        lInstance.bounds.maxX = 0.5;
+        lInstance.bounds.maxY = 0.5;
+        lInstance.bounds.maxZ = 0.5;
+        lInstance.bounds.minX = -0.5;
+        lInstance.bounds.minY = -0.5;
+        lInstance.bounds.minZ = -0.5;
+
+        lInstance.markAsSystem();
+        return lInstance;
+    })();
+
     private mBounds: BoundingBox;
     private mColors: Array<number>;
     private mNormals: Array<number>;
@@ -26,6 +103,7 @@ export class Mesh extends GameComponentItem {
     /**
      * Axis-aligned bounding box of the mesh in local space.
      */
+    @FileSystem.fileProperty()
     public get bounds(): BoundingBox {
         return this.mBounds;
     } set bounds(pValue: BoundingBox) {
@@ -39,6 +117,7 @@ export class Mesh extends GameComponentItem {
      * Vertex color data as a flat array of RGBA values.
      * Every four consecutive values represent one vertex color (r, g, b, a).
      */
+    @FileSystem.fileProperty()
     public get colors(): Array<number> {
         return this.mColors;
     } set colors(pValue: Array<number>) {
@@ -52,6 +131,7 @@ export class Mesh extends GameComponentItem {
      * Index buffer format determined by the vertex count.
      * Uses 16-bit unsigned integers when the vertex count fits within 65535, otherwise 32-bit.
      */
+    @FileSystem.fileProperty()
     public get indexFormat(): BufferItemFormat {
         if (this.mVertices.length <= 65535) {
             return BufferItemFormat.Uint16;
@@ -64,6 +144,7 @@ export class Mesh extends GameComponentItem {
      * Vertex normal data as a flat array of XYZ values.
      * Every three consecutive values represent one normal vector (x, y, z).
      */
+    @FileSystem.fileProperty()
     public get normals(): Array<number> {
         return this.mNormals;
     } set normals(pValue: Array<number>) {
@@ -77,6 +158,7 @@ export class Mesh extends GameComponentItem {
      * List of sub meshes defining index ranges and their rendering configuration.
      * Always contains at least one sub mesh.
      */
+    @FileSystem.fileProperty()
     public get subMeshes(): Array<SubMesh> {
         return this.mSubMeshes;
     }
@@ -85,6 +167,7 @@ export class Mesh extends GameComponentItem {
      * Primary UV channel as a flat array of UV values.
      * Every two consecutive values represent one texture coordinate (u, v).
      */
+    @FileSystem.fileProperty()
     public get uv1(): Array<number> {
         return this.mUv1;
     } set uv1(pValue: Array<number>) {
@@ -98,6 +181,7 @@ export class Mesh extends GameComponentItem {
      * Secondary UV channel as a flat array of UV values.
      * Every two consecutive values represent one texture coordinate (u, v).
      */
+    @FileSystem.fileProperty()
     public get uv2(): Array<number> {
         return this.mUv2;
     } set uv2(pValue: Array<number>) {
@@ -111,6 +195,7 @@ export class Mesh extends GameComponentItem {
      * Third UV channel as a flat array of UV values.
      * Every two consecutive values represent one texture coordinate (u, v).
      */
+    @FileSystem.fileProperty()
     public get uv3(): Array<number> {
         return this.mUv3;
     } set uv3(pValue: Array<number>) {
@@ -124,6 +209,7 @@ export class Mesh extends GameComponentItem {
      * Fourth UV channel as a flat array of UV values.
      * Every two consecutive values represent one texture coordinate (u, v).
      */
+    @FileSystem.fileProperty()
     public get uv4(): Array<number> {
         return this.mUv4;
     } set uv4(pValue: Array<number>) {
@@ -137,6 +223,7 @@ export class Mesh extends GameComponentItem {
      * Vertex position data as a flat array of XYZ values.
      * Every three consecutive values represent one vertex position (x, y, z).
      */
+    @FileSystem.fileProperty()
     public get verticesData(): Array<number> {
         return this.mVertices;
     } set verticesData(pValue: Array<number>) {
@@ -221,5 +308,54 @@ export class Mesh extends GameComponentItem {
 
         // Signal parent component of the change.
         this.update();
+    }
+}
+
+
+/**
+ * Represents a sub-section of a mesh defined by a list of vertex indices and rendering configuration.
+ * Each sub mesh defines which vertices of the parent mesh to draw with a specific primitive topology.
+ */
+@FileSystem.fileClass('1ca90e2d-721c-480d-855b-82a599c47e18', FileSystemReferenceType.Instanced)
+export class SubMesh extends GameComponentItem {
+    private mIndices: Array<number>;
+    private mTopology: PrimitiveTopology;
+
+    /**
+     * Vertex index data for this sub mesh.
+     * Each value references a vertex in the parent mesh's vertex buffer.
+     */
+    @FileSystem.fileProperty()
+    public get indices(): Array<number> {
+        return this.mIndices;
+    } set indices(pValue: Array<number>) {
+        this.mIndices = pValue;
+
+        // Send update event to parent.
+        this.update();
+    }
+
+    /**
+     * Primitive topology used for rendering this sub mesh.
+     */
+    @FileSystem.fileProperty()
+    public get topology(): PrimitiveTopology {
+        return this.mTopology;
+    } set topology(pValue: PrimitiveTopology) {
+        this.mTopology = pValue;
+
+        // Send update event to parent.
+        this.update();
+    }
+
+    /**
+     * Constructor.
+     * Creates a sub mesh with an empty index list and triangle list topology.
+     */
+    public constructor() {
+        super('Sub mesh');
+
+        this.mIndices = new Array<number>();
+        this.mTopology = PrimitiveTopology.TriangleList;
     }
 }

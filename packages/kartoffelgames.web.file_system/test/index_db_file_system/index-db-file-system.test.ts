@@ -1,8 +1,8 @@
 import { expect } from '@kartoffelgames/core-test';
-import '../mock/structured-clone-blob-support.ts';
+import { IndexDbFileSystem } from '@kartoffelgames/web-file-system';
 import 'npm:fake-indexeddb/auto';
 import { FileSystem, FileSystemReferenceType } from '../../source/file-system.ts';
-import { IndexDbFileSystem } from "@kartoffelgames/web-file-system";
+import '../mock/structured-clone-blob-support.ts';
 
 // Simple serializable test class (Instanced).
 @FileSystem.fileClass('b5931480-24c6-44cc-8479-f8c6883ba20f', FileSystemReferenceType.Instanced)

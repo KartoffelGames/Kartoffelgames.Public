@@ -1,6 +1,6 @@
 import { BlobSerializer, Serializer } from '@kartoffelgames/core-serializer';
 import { expect } from '@kartoffelgames/core-test';
-import { IndexDbFileSystem } from "@kartoffelgames/web-file-system";
+import { IndexDbFileSystem } from '@kartoffelgames/web-file-system';
 import 'npm:fake-indexeddb/auto';
 import { FileSystemLink } from '../../source/file-system-link.ts';
 import '../mock/structured-clone-blob-support.ts';

@@ -63,8 +63,7 @@ export class MockDirectoryHandle {
 
     public async getFileHandle(pName: string, pOptions?: { create?: boolean }): Promise<MockFileHandle> {
         const lExisting: MockFileHandle | undefined = this.mFiles.get(pName);
-
-        if (lExisting !== undefined) {
+        if (lExisting) {
             return lExisting;
         }
 

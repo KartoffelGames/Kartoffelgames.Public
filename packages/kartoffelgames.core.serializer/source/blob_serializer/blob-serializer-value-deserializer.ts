@@ -212,7 +212,7 @@ export class BlobSerializerValueDeserializer {
 
         // Get the constructor for this sub-type.
         const lTypedArrayInformation: BlobSerializerValueDeserializerTypedArrayInfo | undefined = BlobSerializerValueDeserializer.mTypedArrayInfo.get(lSubType);
-        if (lTypedArrayInformation === undefined) {
+        if (!lTypedArrayInformation) {
             throw new Exception(`Unknown TypedArray sub-type: ${lSubType}`, this);
         }
 

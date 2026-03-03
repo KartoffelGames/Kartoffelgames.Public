@@ -94,7 +94,7 @@ export class BlobSerializerValueSerializer {
         }
 
         // Undefined - not expected but handle gracefully during recursion.
-        if (pValue === undefined) {
+        if (typeof pValue === 'undefined') {
             return this.encodeNull();
         }
 

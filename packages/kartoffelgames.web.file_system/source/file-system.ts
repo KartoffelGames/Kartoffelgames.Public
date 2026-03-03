@@ -56,7 +56,7 @@ export class FileSystem {
     public static referenceTypeOf(pConstructor: IVoidParameterConstructor<object>): FileSystemReferenceType {
         // Check static cache first.
         const lCached: FileSystemReferenceType | undefined = FileSystem.mReferenceTypeCache.get(pConstructor);
-        if (lCached !== undefined) {
+        if (lCached) {
             return lCached;
         }
 

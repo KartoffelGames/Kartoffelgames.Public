@@ -96,9 +96,9 @@ export class IndexDbFileSystem implements IFileSystem {
 
         // Check singleton cache before deserializing.
         const lCachedReference: WeakRef<object> | undefined = this.mSingletonCache.get(lNormalizedPath);
-        if (lCachedReference !== undefined) {
+        if (lCachedReference) {
             const lCachedInstance: object | undefined = lCachedReference.deref();
-            if (lCachedInstance !== undefined) {
+            if (lCachedInstance) {
                 return lCachedInstance as T;
             }
 

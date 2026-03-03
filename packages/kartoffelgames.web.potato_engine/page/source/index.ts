@@ -1,4 +1,4 @@
-import { GlbConverter, type GlbConvertResult } from './glb-converter.ts';
+import { MemoryFileSystem } from '@kartoffelgames/web-file-system';
 import type { Material } from '../../source/component_item/material.ts';
 import type { Mesh } from '../../source/component_item/mesh.ts';
 import { GameEnvironment } from '../../source/core/environment/game-environment.ts';
@@ -7,6 +7,7 @@ import { CullSystem } from '../../source/system/cull-system.ts';
 import { LightSystem } from '../../source/system/light-system.ts';
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
 import { CameraController } from './camera-controller.ts';
+import { GlbConverter, type GlbConvertResult } from './glb-converter.ts';
 import { SceneSetup } from './scene-setup.ts';
 import { ShitSystem } from './shit-system.ts';
 import { DebugPanel } from './ui/debug-panel.ts';
@@ -23,10 +24,9 @@ const gBlockMesh: Mesh = gGlbResult.meshes[0];
 const gBlockMeshMaterials: Array<Material> = gGlbResult.materials[0] ?? [];
 
 // ── Environment setup ────────────────────────────────────────
-const gEnvironment = new GameEnvironment({
-    debugSystemTime: true,
-    debugStateChanges: true
-});
+const gEnvironment = new GameEnvironment(new MemoryFileSystem());
+gEnvironment.enableDebugOption('debugStateChanges');
+gEnvironment.enableDebugOption('debugSystemTime');
 
 // Register systems.
 gEnvironment.registerSystem(TransformationSystem);

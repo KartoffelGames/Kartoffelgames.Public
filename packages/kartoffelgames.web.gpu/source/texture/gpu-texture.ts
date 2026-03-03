@@ -194,7 +194,7 @@ export class GpuTexture extends GpuResourceObject<TextureUsage, GPUTexture> impl
         this.extendUsage(TextureUsage.RenderAttachment);
 
         // Generate native texture.
-        const lDestination: GPUImageCopyTexture = {
+        const lDestination: GPUTexelCopyTextureInfo = {
             texture: this.native,
             aspect: 'all'
         };

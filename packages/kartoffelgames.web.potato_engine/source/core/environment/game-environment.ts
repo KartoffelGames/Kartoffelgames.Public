@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { IFileSystem } from "@kartoffelgames/web-file-system";
+import type { IFileSystem } from '@kartoffelgames/web-file-system';
 import type { GameComponent, GameComponentConstructor } from '../component/game-component.ts';
 import type { GameScene } from '../game-scene.ts';
 import type { GameSystem, GameSystemConstructor, GameSystemUpdateStateChanges } from '../game-system.ts';

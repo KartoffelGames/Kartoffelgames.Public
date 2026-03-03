@@ -1,4 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
+import { IFileSystem } from "@kartoffelgames/web-file-system";
 import type { GameComponent, GameComponentConstructor } from '../component/game-component.ts';
 import type { GameScene } from '../game-scene.ts';
 import type { GameSystem, GameSystemConstructor, GameSystemUpdateStateChanges } from '../game-system.ts';
@@ -10,19 +11,27 @@ import { type GameEnvironmentStateType, GameEnvironmentTransmission } from './ga
 export class GameEnvironment {
     private static readonly EMPTY_SYSTEM_CHANGES: ReadonlySet<GameSystem> = new Set<GameSystem>();
     private static readonly TIMING_HISTORY_SIZE: number = 200;
-    
+
     private mCurrentTick: number;
     private readonly mDebugData: GameEnvironmentDebugData;
     private readonly mDebugOptions: Required<GameEnvironmentDebugOptions>;
     private readonly mLoadedScenes: Set<GameScene>;
     private readonly mStateChangeQueue: GameEnvironmentStateChangeQueue;
     private readonly mSystems: Array<GameSystem>;
+    private readonly mFileSystem: IFileSystem;
 
     /**
      * Debug data for the environment, including timing snapshots. Only filled when debugSystemTime is enabled.
      */
     public get debugData(): GameEnvironmentDebugData {
         return this.mDebugData;
+    }
+
+    /**
+     * File system for loading assets and resources.
+     */
+    public get fileSystem(): IFileSystem {
+        return this.mFileSystem;
     }
 
     /**
@@ -49,7 +58,7 @@ export class GameEnvironment {
     /**
      * Constructor.
      */
-    public constructor(pParameters?: GameEnvironmentDebugOptions) {
+    public constructor(pFileSystem: IFileSystem) {
         this.mLoadedScenes = new Set<GameScene>();
         this.mSystems = new Array<GameSystem>();
         this.mCurrentTick = 0;
@@ -58,14 +67,28 @@ export class GameEnvironment {
             system: new Array<GameSystem>()
         };
 
-        // Save debug options with defaults.
+        // Set environment file system.
+        // This is used for loading assets and can be accessed by systems and components through the environment.
+        this.mFileSystem = pFileSystem;
+
+        // Create debug options with disabled defaults.
         this.mDebugOptions = {
-            debugSystemTime: pParameters?.debugSystemTime ?? false,
-            debugStateChanges: pParameters?.debugStateChanges ?? false
+            debugSystemTime: false,
+            debugStateChanges: false
         };
 
         // Setup debug data. Even when debug options are disabled.
         this.mDebugData = new GameEnvironmentDebugData();
+    }
+
+    /**
+     * Enable a debug option at runtime.
+     * This allows for toggling certain debug features on and off.
+     * 
+     * @param pOption - Debug options name.
+     */
+    public enableDebugOption(pOption: keyof GameEnvironmentDebugOptions, pState: boolean = true): void {
+        this.mDebugOptions[pOption] = pState;
     }
 
     /**

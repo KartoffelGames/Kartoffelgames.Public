@@ -2,7 +2,7 @@ import { expect } from '@kartoffelgames/core-test';
 import '../mock/structured-clone-blob-support.ts';
 import { FileSystem, FileSystemReferenceType } from '../../source/file-system.ts';
 import { MemoryFileSystem } from '../../source/memory_file_system/memory-file-system.ts';
-import type { IFileSystem } from '../../source/i-file-system.ts';
+import { FileSystemItemType, type FileSystemItem, type IFileSystem } from '../../source/i-file-system.ts';
 
 // Simple serializable test class (Instanced).
 @FileSystem.fileClass('b5931480-24c6-44cc-8479-f8c6883ba20f', FileSystemReferenceType.Instanced)
@@ -564,5 +564,285 @@ Deno.test('MemoryFileSystem.fileClass()', async (pContext) => {
         expect(lResult).toBeInstanceOf(SimpleTestObject);
         expect(lResult.name).toBe('DecoratorTest');
         expect(lResult.value).toBe(42);
+    });
+});
+
+Deno.test('MemoryFileSystem.has()', async (pContext) => {
+    await pContext.step('Returns true for existing read path via store()', async () => {
+        // Setup.
+        const lFileSystem: IFileSystem = new MemoryFileSystem();
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'HasTest';
+        lObject.value = 1;
+        await lFileSystem.store('my/path', lObject);
+
+        // Process.
+        const lResult: boolean = await lFileSystem.has('my/path');
+
+        // Evaluation.
+        expect(lResult).toBe(true);
+    });
+
+    await pContext.step('Returns true for existing read path via storeMulti()', async () => {
+        // Setup.
+        const lFileSystem: IFileSystem = new MemoryFileSystem();
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'HasMulti';
+        lObject.value = 2;
+        await lFileSystem.storeMulti('file', 'entry', lObject);
+
+        // Process.
+        const lResult: boolean = await lFileSystem.has('file/entry');
+
+        // Evaluation.
+        expect(lResult).toBe(true);
+    });
+
+    await pContext.step('Returns true for existing file path', async () => {
+        // Setup.
+        const lFileSystem: IFileSystem = new MemoryFileSystem();
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'HasFile';
+        lObject.value = 3;
+        await lFileSystem.storeMulti('shared-file', 'sub', lObject);
+
+        // Process. Check by file path (not read path).
+        const lResult: boolean = await lFileSystem.has('shared-file');
+
+        // Evaluation.
+        expect(lResult).toBe(true);
+    });
+
+    await pContext.step('Returns false for non-existent path', async () => {
+        // Setup.
+        const lFileSystem: IFileSystem = new MemoryFileSystem();
+
+        // Process.
+        const lResult: boolean = await lFileSystem.has('does/not/exist');
+
+        // Evaluation.
+        expect(lResult).toBe(false);
+    });
+
+    await pContext.step('Is case-insensitive', async () => {
+        // Setup.
+        const lFileSystem: IFileSystem = new MemoryFileSystem();
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'CaseHas';
+        lObject.value = 4;
+        await lFileSystem.store('My/Path', lObject);
+
+        // Process.
+        const lResult: boolean = await lFileSystem.has('my/path');
+
+        // Evaluation.
+        expect(lResult).toBe(true);
+    });
+});
+
+Deno.test('MemoryFileSystem.contentOf()', async (pContext) => {
+    await pContext.step('Lists immediate children as files', async () => {
+        // Setup.
+        const lFileSystem: IFileSystem = new MemoryFileSystem();
+
+        const lFirst: SimpleTestObject = new SimpleTestObject();
+        lFirst.name = 'Alpha';
+        lFirst.value = 1;
+
+        const lSecond: SimpleTestObject = new SimpleTestObject();
+        lSecond.name = 'Beta';
+        lSecond.value = 2;
+
+        await lFileSystem.storeMulti('parent', 'alpha', lFirst);
+        await lFileSystem.storeMulti('parent', 'beta', lSecond);
+
+        // Process.
+        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('parent');
+
+        // Evaluation.
+        expect(lResult.length).toBe(2);
+
+        const lAlpha: FileSystemItem | undefined = lResult.find((pItem) => pItem.name === 'alpha');
+        const lBeta: FileSystemItem | undefined = lResult.find((pItem) => pItem.name === 'beta');
+
+        expect(lAlpha).not.toBeUndefined();
+        expect(lAlpha!.type).toBe(FileSystemItemType.File);
+        expect(lAlpha!.path).toBe('parent/alpha');
+
+        expect(lBeta).not.toBeUndefined();
+        expect(lBeta!.type).toBe(FileSystemItemType.File);
+        expect(lBeta!.path).toBe('parent/beta');
+    });
+
+    await pContext.step('Lists intermediate segments as directories', async () => {
+        // Setup.
+        const lFileSystem: IFileSystem = new MemoryFileSystem();
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'Deep';
+        lObject.value = 1;
+        await lFileSystem.storeMulti('root/middle', 'leaf', lObject);
+
+        // Process. List root level.
+        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('root');
+
+        // Evaluation. 'middle' is a directory because it has a child 'leaf'.
+        expect(lResult.length).toBe(1);
+        expect(lResult[0].name).toBe('middle');
+        expect(lResult[0].type).toBe(FileSystemItemType.Directory);
+        expect(lResult[0].path).toBe('root/middle');
+        expect(lResult[0].classType).toBeNull();
+    });
+
+    await pContext.step('File items have correct classType', async () => {
+        // Setup.
+        const lFileSystem: IFileSystem = new MemoryFileSystem();
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'ClassType';
+        lObject.value = 1;
+        await lFileSystem.store('typed/item', lObject);
+
+        // Process.
+        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('typed');
+
+        // Evaluation.
+        expect(lResult.length).toBe(1);
+        expect(lResult[0].type).toBe(FileSystemItemType.File);
+        expect(lResult[0].classType).toBe(SimpleTestObject);
+    });
+
+    await pContext.step('Directory items have null classType', async () => {
+        // Setup.
+        const lFileSystem: IFileSystem = new MemoryFileSystem();
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'Nested';
+        lObject.value = 1;
+        await lFileSystem.store('a/b/c', lObject);
+
+        // Process.
+        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('a');
+
+        // Evaluation.
+        expect(lResult.length).toBe(1);
+        expect(lResult[0].type).toBe(FileSystemItemType.Directory);
+        expect(lResult[0].classType).toBeNull();
+    });
+
+    await pContext.step('Returns empty array for non-existent prefix', async () => {
+        // Setup.
+        const lFileSystem: IFileSystem = new MemoryFileSystem();
+
+        // Process.
+        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('does/not/exist');
+
+        // Evaluation.
+        expect(lResult.length).toBe(0);
+    });
+
+    await pContext.step('Is case-insensitive', async () => {
+        // Setup.
+        const lFileSystem: IFileSystem = new MemoryFileSystem();
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'CaseContent';
+        lObject.value = 1;
+        await lFileSystem.storeMulti('Parent', 'Child', lObject);
+
+        // Process. Query with different casing.
+        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('parent');
+
+        // Evaluation.
+        expect(lResult.length).toBe(1);
+        expect(lResult[0].name).toBe('child');
+    });
+
+    await pContext.step('Path that is both a read path and a prefix is treated as directory', async () => {
+        // Setup.
+        const lFileSystem: IFileSystem = new MemoryFileSystem();
+
+        const lFileObject: SimpleTestObject = new SimpleTestObject();
+        lFileObject.name = 'FileAtPath';
+        lFileObject.value = 1;
+
+        const lChildObject: SimpleTestObject = new SimpleTestObject();
+        lChildObject.name = 'ChildOfPath';
+        lChildObject.value = 2;
+
+        // Store an object directly at 'a/b' and also store a deeper path 'a/b/c'.
+        await lFileSystem.store('a/b', lFileObject);
+        await lFileSystem.store('a/b/c', lChildObject);
+
+        // Process.
+        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('a');
+
+        // Evaluation. 'b' has children, so it is a Directory.
+        expect(lResult.length).toBe(1);
+        expect(lResult[0].name).toBe('b');
+        expect(lResult[0].type).toBe(FileSystemItemType.Directory);
+    });
+
+    await pContext.step('Works at root level with empty string', async () => {
+        // Setup.
+        const lFileSystem: IFileSystem = new MemoryFileSystem();
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'Root';
+        lObject.value = 1;
+        await lFileSystem.store('top/level/item', lObject);
+
+        // Process.
+        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('');
+
+        // Evaluation. 'top' should be a directory at the root.
+        expect(lResult.length).toBe(1);
+        expect(lResult[0].name).toBe('top');
+        expect(lResult[0].type).toBe(FileSystemItemType.Directory);
+        expect(lResult[0].path).toBe('top');
+    });
+
+    await pContext.step('Handles multiple items under same prefix', async () => {
+        // Setup.
+        const lFileSystem: IFileSystem = new MemoryFileSystem();
+
+        const lObject1: SimpleTestObject = new SimpleTestObject();
+        lObject1.name = 'One';
+        lObject1.value = 1;
+
+        const lObject2: SimpleTestObject = new SimpleTestObject();
+        lObject2.name = 'Two';
+        lObject2.value = 2;
+
+        const lObject3: SimpleTestObject = new SimpleTestObject();
+        lObject3.name = 'Three';
+        lObject3.value = 3;
+
+        await lFileSystem.store('root/file1', lObject1);
+        await lFileSystem.store('root/file2', lObject2);
+        await lFileSystem.store('root/dir/nested', lObject3);
+
+        // Process.
+        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('root');
+
+        // Evaluation. Should have file1, file2 as Files and dir as Directory.
+        expect(lResult.length).toBe(3);
+
+        const lFile1: FileSystemItem | undefined = lResult.find((pItem) => pItem.name === 'file1');
+        const lFile2: FileSystemItem | undefined = lResult.find((pItem) => pItem.name === 'file2');
+        const lDir: FileSystemItem | undefined = lResult.find((pItem) => pItem.name === 'dir');
+
+        expect(lFile1).not.toBeUndefined();
+        expect(lFile1!.type).toBe(FileSystemItemType.File);
+
+        expect(lFile2).not.toBeUndefined();
+        expect(lFile2!.type).toBe(FileSystemItemType.File);
+
+        expect(lDir).not.toBeUndefined();
+        expect(lDir!.type).toBe(FileSystemItemType.Directory);
     });
 });

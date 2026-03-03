@@ -2,6 +2,7 @@ import { expect } from '@kartoffelgames/core-test';
 import { IndexDbFileSystem } from '@kartoffelgames/web-file-system';
 import 'npm:fake-indexeddb/auto';
 import { FileSystem, FileSystemReferenceType } from '../../source/file-system.ts';
+import { FileSystemItemType, type FileSystemItem } from '../../source/i-file-system.ts';
 import '../mock/structured-clone-blob-support.ts';
 
 // Simple serializable test class (Instanced).
@@ -340,7 +341,7 @@ Deno.test('IndexDbFileSystem.read()', { sanitizeResources: false, sanitizeOps: f
     });
 
 
-    Deno.test('IndexDbFileSystem singleton caching', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
+    await pContext.step('IndexDbFileSystem singleton caching', async (pContext) => {
         await pContext.step('Singleton: reading same path twice returns same instance', async () => {
             // Setup.
             const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
@@ -660,6 +661,341 @@ Deno.test('IndexDbFileSystem.fileClass()', { sanitizeResources: false, sanitizeO
         expect(lResult).toBeInstanceOf(SimpleTestObject);
         expect(lResult.name).toBe('DecoratorTest');
         expect(lResult.value).toBe(42);
+
+        // Cleanup.
+        lFileSystem.close();
+    });
+});
+
+Deno.test('IndexDbFileSystem.has()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
+    await pContext.step('Returns true for existing read path via store()', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'HasTest';
+        lObject.value = 1;
+        await lFileSystem.store('my/path', lObject);
+
+        // Process.
+        const lResult: boolean = await lFileSystem.has('my/path');
+
+        // Evaluation.
+        expect(lResult).toBe(true);
+
+        // Cleanup.
+        lFileSystem.close();
+    });
+
+    await pContext.step('Returns true for existing read path via storeMulti()', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'HasMulti';
+        lObject.value = 2;
+        await lFileSystem.storeMulti('file', 'entry', lObject);
+
+        // Process.
+        const lResult: boolean = await lFileSystem.has('file/entry');
+
+        // Evaluation.
+        expect(lResult).toBe(true);
+
+        // Cleanup.
+        lFileSystem.close();
+    });
+
+    await pContext.step('Returns true for existing file path', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'HasFile';
+        lObject.value = 3;
+        await lFileSystem.storeMulti('shared-file', 'sub', lObject);
+
+        // Process. Check by file path (not read path).
+        const lResult: boolean = await lFileSystem.has('shared-file');
+
+        // Evaluation.
+        expect(lResult).toBe(true);
+
+        // Cleanup.
+        lFileSystem.close();
+    });
+
+    await pContext.step('Returns false for non-existent path', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+
+        // Process.
+        const lResult: boolean = await lFileSystem.has('does/not/exist');
+
+        // Evaluation.
+        expect(lResult).toBe(false);
+
+        // Cleanup.
+        lFileSystem.close();
+    });
+
+    await pContext.step('Is case-insensitive', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'CaseHas';
+        lObject.value = 4;
+        await lFileSystem.store('My/Path', lObject);
+
+        // Process.
+        const lResult: boolean = await lFileSystem.has('my/path');
+
+        // Evaluation.
+        expect(lResult).toBe(true);
+
+        // Cleanup.
+        lFileSystem.close();
+    });
+});
+
+Deno.test('IndexDbFileSystem.contentOf()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
+    await pContext.step('Lists immediate children as files', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+
+        const lFirst: SimpleTestObject = new SimpleTestObject();
+        lFirst.name = 'Alpha';
+        lFirst.value = 1;
+
+        const lSecond: SimpleTestObject = new SimpleTestObject();
+        lSecond.name = 'Beta';
+        lSecond.value = 2;
+
+        await lFileSystem.storeMulti('parent', 'alpha', lFirst);
+        await lFileSystem.storeMulti('parent', 'beta', lSecond);
+
+        // Process.
+        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('parent');
+
+        // Evaluation.
+        expect(lResult.length).toBe(2);
+
+        const lAlpha: FileSystemItem | undefined = lResult.find((pItem) => pItem.name === 'alpha');
+        const lBeta: FileSystemItem | undefined = lResult.find((pItem) => pItem.name === 'beta');
+
+        expect(lAlpha).not.toBeUndefined();
+        expect(lAlpha!.type).toBe(FileSystemItemType.File);
+        expect(lAlpha!.path).toBe('parent/alpha');
+
+        expect(lBeta).not.toBeUndefined();
+        expect(lBeta!.type).toBe(FileSystemItemType.File);
+        expect(lBeta!.path).toBe('parent/beta');
+
+        // Cleanup.
+        lFileSystem.close();
+    });
+
+    await pContext.step('Lists intermediate segments as directories', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'Deep';
+        lObject.value = 1;
+        await lFileSystem.storeMulti('root/middle', 'leaf', lObject);
+
+        // Process.
+        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('root');
+
+        // Evaluation.
+        expect(lResult.length).toBe(1);
+        expect(lResult[0].name).toBe('middle');
+        expect(lResult[0].type).toBe(FileSystemItemType.Directory);
+        expect(lResult[0].path).toBe('root/middle');
+        expect(lResult[0].classType).toBeNull();
+
+        // Cleanup.
+        lFileSystem.close();
+    });
+
+    await pContext.step('File items have correct classType', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'ClassType';
+        lObject.value = 1;
+        await lFileSystem.store('typed/item', lObject);
+
+        // Process.
+        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('typed');
+
+        // Evaluation.
+        expect(lResult.length).toBe(1);
+        expect(lResult[0].type).toBe(FileSystemItemType.File);
+        expect(lResult[0].classType).toBe(SimpleTestObject);
+
+        // Cleanup.
+        lFileSystem.close();
+    });
+
+    await pContext.step('Directory items have null classType', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'Nested';
+        lObject.value = 1;
+        await lFileSystem.store('a/b/c', lObject);
+
+        // Process.
+        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('a');
+
+        // Evaluation.
+        expect(lResult.length).toBe(1);
+        expect(lResult[0].type).toBe(FileSystemItemType.Directory);
+        expect(lResult[0].classType).toBeNull();
+
+        // Cleanup.
+        lFileSystem.close();
+    });
+
+    await pContext.step('Returns empty array for non-existent prefix', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+
+        // Process.
+        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('does/not/exist');
+
+        // Evaluation.
+        expect(lResult.length).toBe(0);
+
+        // Cleanup.
+        lFileSystem.close();
+    });
+
+    await pContext.step('Is case-insensitive', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'CaseContent';
+        lObject.value = 1;
+        await lFileSystem.storeMulti('Parent', 'Child', lObject);
+
+        // Process.
+        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('parent');
+
+        // Evaluation.
+        expect(lResult.length).toBe(1);
+        expect(lResult[0].name).toBe('child');
+
+        // Cleanup.
+        lFileSystem.close();
+    });
+
+    await pContext.step('Path that is both a read path and a prefix is treated as directory', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+
+        const lFileObject: SimpleTestObject = new SimpleTestObject();
+        lFileObject.name = 'FileAtPath';
+        lFileObject.value = 1;
+
+        const lChildObject: SimpleTestObject = new SimpleTestObject();
+        lChildObject.name = 'ChildOfPath';
+        lChildObject.value = 2;
+
+        await lFileSystem.store('a/b', lFileObject);
+        await lFileSystem.store('a/b/c', lChildObject);
+
+        // Process.
+        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('a');
+
+        // Evaluation.
+        expect(lResult.length).toBe(1);
+        expect(lResult[0].name).toBe('b');
+        expect(lResult[0].type).toBe(FileSystemItemType.Directory);
+
+        // Cleanup.
+        lFileSystem.close();
+    });
+
+    await pContext.step('Works at root level with empty string', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'Root';
+        lObject.value = 1;
+        await lFileSystem.store('top/level/item', lObject);
+
+        // Process.
+        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('');
+
+        // Evaluation.
+        expect(lResult.length).toBe(1);
+        expect(lResult[0].name).toBe('top');
+        expect(lResult[0].type).toBe(FileSystemItemType.Directory);
+        expect(lResult[0].path).toBe('top');
+
+        // Cleanup.
+        lFileSystem.close();
+    });
+
+    await pContext.step('Handles multiple items under same prefix', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+
+        const lObject1: SimpleTestObject = new SimpleTestObject();
+        lObject1.name = 'One';
+        lObject1.value = 1;
+
+        const lObject2: SimpleTestObject = new SimpleTestObject();
+        lObject2.name = 'Two';
+        lObject2.value = 2;
+
+        const lObject3: SimpleTestObject = new SimpleTestObject();
+        lObject3.name = 'Three';
+        lObject3.value = 3;
+
+        await lFileSystem.store('root/file1', lObject1);
+        await lFileSystem.store('root/file2', lObject2);
+        await lFileSystem.store('root/dir/nested', lObject3);
+
+        // Process.
+        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('root');
+
+        // Evaluation.
+        expect(lResult.length).toBe(3);
+
+        const lFile1: FileSystemItem | undefined = lResult.find((pItem) => pItem.name === 'file1');
+        const lFile2: FileSystemItem | undefined = lResult.find((pItem) => pItem.name === 'file2');
+        const lDir: FileSystemItem | undefined = lResult.find((pItem) => pItem.name === 'dir');
+
+        expect(lFile1).not.toBeUndefined();
+        expect(lFile1!.type).toBe(FileSystemItemType.File);
+
+        expect(lFile2).not.toBeUndefined();
+        expect(lFile2!.type).toBe(FileSystemItemType.File);
+
+        expect(lDir).not.toBeUndefined();
+        expect(lDir!.type).toBe(FileSystemItemType.Directory);
 
         // Cleanup.
         lFileSystem.close();

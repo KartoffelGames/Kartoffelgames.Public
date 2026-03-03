@@ -2,7 +2,7 @@ import { Exception, type IVoidParameterConstructor } from '@kartoffelgames/core'
 import { BlobSerializer } from '@kartoffelgames/core-serializer';
 import { WebDatabase } from '@kartoffelgames/web-database';
 import { FileSystem, FileSystemReferenceType } from '../file-system.ts';
-import type { IFileSystem } from '../i-file-system.ts';
+import { FileSystemItemType, type FileSystemItem, type IFileSystem } from '../i-file-system.ts';
 import { IndexDbFileSystemEntry } from './index-db-file-system-entry.ts';
 import { IndexDbFileSystemPath } from './index-db-file-system-path.ts';
 
@@ -35,6 +35,114 @@ export class IndexDbFileSystem implements IFileSystem {
     public close(): void {
         this.mSingletonCache.clear();
         this.mDatabase.close();
+    }
+
+    /**
+     * List the immediate children of the given path as a virtual directory tree.
+     *
+     * @param pPath - Parent path to list children of. Case-insensitive.
+     *                An empty string lists root-level items.
+     *
+     * @returns array of immediate child items, or an empty array when no children exist.
+     */
+    public async contentOf(pPath: string): Promise<Array<FileSystemItem>> {
+        const lNormalizedPath: string = pPath.toLowerCase();
+        const lPrefix: string = lNormalizedPath === '' ? '' : `${lNormalizedPath}/`;
+
+        // Read all path index entries from the database.
+        const lAllPaths: Array<IndexDbFileSystemPath> = await this.mDatabase.transaction([IndexDbFileSystemPath], 'readonly', async (pTransaction) => {
+            return pTransaction.table(IndexDbFileSystemPath).getAll();
+        });
+
+        // Collect unique immediate child segment names and track whether they are read paths or prefixes.
+        const lSegmentIsReadPath: Map<string, IndexDbFileSystemPath> = new Map();
+        const lSegmentHasChildren: Set<string> = new Set();
+
+        for (const lEntry of lAllPaths) {
+            // Skip paths that don't start with the prefix.
+            if (!lEntry.readPath.startsWith(lPrefix)) {
+                continue;
+            }
+
+            // Extract the remaining part after the prefix.
+            const lRemaining: string = lEntry.readPath.substring(lPrefix.length);
+            if (lRemaining.length === 0) {
+                continue;
+            }
+
+            // Get the immediate child segment name.
+            const lSlashIndex: number = lRemaining.indexOf('/');
+            const lSegmentName: string = lSlashIndex === -1 ? lRemaining : lRemaining.substring(0, lSlashIndex);
+
+            if (lSlashIndex === -1) {
+                // This read path ends at this segment → it is (or could be) a File.
+                lSegmentIsReadPath.set(lSegmentName, lEntry);
+            } else {
+                // There are deeper paths → this segment has children.
+                lSegmentHasChildren.add(lSegmentName);
+            }
+        }
+
+        // Build the result list.
+        const lAllSegments: Set<string> = new Set([...lSegmentIsReadPath.keys(), ...lSegmentHasChildren]);
+        const lResult: Array<FileSystemItem> = [];
+
+        // Group file items by filePath to load each blob only once.
+        const lBlobCache: Map<string, BlobSerializer> = new Map();
+
+        for (const lSegmentName of lAllSegments) {
+            const lFullPath: string = lPrefix + lSegmentName;
+            const lIsDirectory: boolean = lSegmentHasChildren.has(lSegmentName);
+
+            if (lIsDirectory) {
+                // Directory (or both file and directory → directory wins).
+                lResult.push({
+                    classType: null,
+                    name: lSegmentName,
+                    path: lFullPath,
+                    type: FileSystemItemType.Directory,
+                });
+            } else {
+                // Pure File: load blob to get classType.
+                const lPathEntry: IndexDbFileSystemPath = lSegmentIsReadPath.get(lSegmentName)!;
+                let lClassType: IVoidParameterConstructor<object> | null = null;
+
+                // Load the blob (cached per filePath).
+                let lSerializer: BlobSerializer | undefined = lBlobCache.get(lPathEntry.filePath);
+                if (!lSerializer) {
+                    const lBlob: Blob | null = await this.mDatabase.transaction([IndexDbFileSystemEntry], 'readonly', async (pTransaction) => {
+                        const lEntries: Array<IndexDbFileSystemEntry> = await pTransaction.table(IndexDbFileSystemEntry).where('filePath').is(lPathEntry.filePath).read();
+                        if (lEntries.length === 0) {
+                            return null;
+                        }
+
+                        return lEntries[0].data;
+                    });
+
+                    if (lBlob) {
+                        lSerializer = new BlobSerializer();
+                        await lSerializer.load(lBlob);
+                        lBlobCache.set(lPathEntry.filePath, lSerializer);
+                    }
+                }
+
+                if (lSerializer) {
+                    const lContentEntry = lSerializer.contents.find((pContent) => pContent.path === lPathEntry.subPath);
+                    if (lContentEntry) {
+                        lClassType = lContentEntry.classType;
+                    }
+                }
+
+                lResult.push({
+                    classType: lClassType,
+                    name: lSegmentName,
+                    path: lFullPath,
+                    type: FileSystemItemType.File,
+                });
+            }
+        }
+
+        return lResult;
     }
 
     /**
@@ -75,6 +183,34 @@ export class IndexDbFileSystem implements IFileSystem {
         }
 
         throw new Exception(`File not found: ${pPath}`, this);
+    }
+
+    /**
+     * Check whether a given path exists in the file system.
+     * First checks read paths, then file paths.
+     *
+     * @param pPath - Read path or file path to check. Case-insensitive.
+     *
+     * @returns `true` when a matching read path or file path exists.
+     */
+    public async has(pPath: string): Promise<boolean> {
+        const lNormalizedPath: string = pPath.toLowerCase();
+
+        // Check read paths.
+        const lReadPathExists: boolean = await this.mDatabase.transaction([IndexDbFileSystemPath], 'readonly', async (pTransaction) => {
+            const lEntries: Array<IndexDbFileSystemPath> = await pTransaction.table(IndexDbFileSystemPath).where('readPath').is(lNormalizedPath).read();
+            return lEntries.length > 0;
+        });
+
+        if (lReadPathExists) {
+            return true;
+        }
+
+        // Check file paths.
+        return this.mDatabase.transaction([IndexDbFileSystemEntry], 'readonly', async (pTransaction) => {
+            const lEntries: Array<IndexDbFileSystemEntry> = await pTransaction.table(IndexDbFileSystemEntry).where('filePath').is(lNormalizedPath).read();
+            return lEntries.length > 0;
+        });
     }
 
     /**

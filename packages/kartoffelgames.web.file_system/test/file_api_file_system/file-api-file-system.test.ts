@@ -52,9 +52,6 @@ Deno.test('FileApiFileSystem.store()', async (pContext) => {
         const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('my/path/class');
         expect(lResult.name).toBe('TestName');
         expect(lResult.value).toBe(42);
-
-        // Cleanup.
-        lFileSystem.close();
     });
 
     await pContext.step('Store overwrites existing entry at same path', async () => {
@@ -78,9 +75,6 @@ Deno.test('FileApiFileSystem.store()', async (pContext) => {
         const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('same/path');
         expect(lResult.name).toBe('Second');
         expect(lResult.value).toBe(2);
-
-        // Cleanup.
-        lFileSystem.close();
     });
 
     await pContext.step('Store is case-insensitive', async () => {
@@ -99,9 +93,6 @@ Deno.test('FileApiFileSystem.store()', async (pContext) => {
         const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('my/path/class');
         expect(lResult.name).toBe('CaseTest');
         expect(lResult.value).toBe(7);
-
-        // Cleanup.
-        lFileSystem.close();
     });
 });
 
@@ -122,9 +113,6 @@ Deno.test('FileApiFileSystem.storeMulti()', async (pContext) => {
         const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('path/to/object');
         expect(lResult.name).toBe('TestName');
         expect(lResult.value).toBe(42);
-
-        // Cleanup.
-        lFileSystem.close();
     });
 
     await pContext.step('Store overwrites existing entry at same path', async () => {
@@ -148,9 +136,6 @@ Deno.test('FileApiFileSystem.storeMulti()', async (pContext) => {
         const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('same/path');
         expect(lResult.name).toBe('Second');
         expect(lResult.value).toBe(2);
-
-        // Cleanup.
-        lFileSystem.close();
     });
 
     await pContext.step('Store nested object', async () => {
@@ -175,9 +160,6 @@ Deno.test('FileApiFileSystem.storeMulti()', async (pContext) => {
         expect(lResult.child).not.toBeNull();
         expect(lResult.child!.name).toBe('ChildName');
         expect(lResult.child!.value).toBe(99);
-
-        // Cleanup.
-        lFileSystem.close();
     });
 
     await pContext.step('Store multiple objects in same blob', async () => {
@@ -205,9 +187,6 @@ Deno.test('FileApiFileSystem.storeMulti()', async (pContext) => {
         expect(lResultAlpha.value).toBe(1);
         expect(lResultBeta.name).toBe('Second');
         expect(lResultBeta.value).toBe(2);
-
-        // Cleanup.
-        lFileSystem.close();
     });
 
     await pContext.step('Overwrite one sub-path preserves others in same blob', async () => {
@@ -240,9 +219,6 @@ Deno.test('FileApiFileSystem.storeMulti()', async (pContext) => {
         expect(lResultFirst.value).toBe(3);
         expect(lResultSecond.name).toBe('Sibling');
         expect(lResultSecond.value).toBe(2);
-
-        // Cleanup.
-        lFileSystem.close();
     });
 });
 
@@ -264,9 +240,6 @@ Deno.test('FileApiFileSystem.read()', async (pContext) => {
         expect(lResult).toBeInstanceOf(SimpleTestObject);
         expect(lResult.name).toBe('ReadTest');
         expect(lResult.value).toBe(7);
-
-        // Cleanup.
-        lFileSystem.close();
     });
 
     await pContext.step('Read is case-insensitive', async () => {
@@ -284,9 +257,6 @@ Deno.test('FileApiFileSystem.read()', async (pContext) => {
 
         // Evaluation.
         expect(lResult.name).toBe('CaseTest');
-
-        // Cleanup.
-        lFileSystem.close();
     });
 
     await pContext.step('Read non-existent path throws', async () => {
@@ -303,9 +273,6 @@ Deno.test('FileApiFileSystem.read()', async (pContext) => {
         }
 
         expect(lError).not.toBeNull();
-
-        // Cleanup.
-        lFileSystem.close();
     });
 
     await pContext.step('Read multiple different paths', async () => {
@@ -333,9 +300,6 @@ Deno.test('FileApiFileSystem.read()', async (pContext) => {
         expect(lResultOne.value).toBe(1);
         expect(lResultTwo.name).toBe('Second');
         expect(lResultTwo.value).toBe(2);
-
-        // Cleanup.
-        lFileSystem.close();
     });
 });
 
@@ -357,9 +321,6 @@ Deno.test('FileApiFileSystem singleton caching', async (pContext) => {
 
         // Evaluation. Both reads should return the exact same object reference.
         expect(lFirst).toBe(lSecond);
-
-        // Cleanup.
-        lFileSystem.close();
     });
 
     await pContext.step('Singleton: different paths return different instances', async () => {
@@ -386,9 +347,6 @@ Deno.test('FileApiFileSystem singleton caching', async (pContext) => {
         expect(lResultA).not.toBe(lResultB);
         expect(lResultA.name).toBe('A');
         expect(lResultB.name).toBe('B');
-
-        // Cleanup.
-        lFileSystem.close();
     });
 
     await pContext.step('Singleton: cache is case-insensitive', async () => {
@@ -408,9 +366,6 @@ Deno.test('FileApiFileSystem singleton caching', async (pContext) => {
 
         // Evaluation. Both should be the same cached instance.
         expect(lFirst).toBe(lSecond);
-
-        // Cleanup.
-        lFileSystem.close();
     });
 
     await pContext.step('Singleton: cache is per FileApiFileSystem instance', async () => {
@@ -433,10 +388,6 @@ Deno.test('FileApiFileSystem singleton caching', async (pContext) => {
         expect(lResultA).not.toBe(lResultB);
         expect(lResultA.name).toBe('PerInstance');
         expect(lResultB.name).toBe('PerInstance');
-
-        // Cleanup.
-        lFileSystemA.close();
-        lFileSystemB.close();
     });
 
     await pContext.step('Instanced: reading same path twice returns different instances', async () => {
@@ -458,9 +409,6 @@ Deno.test('FileApiFileSystem singleton caching', async (pContext) => {
         expect(lFirst).not.toBe(lSecond);
         expect(lFirst.name).toBe('Instanced');
         expect(lSecond.name).toBe('Instanced');
-
-        // Cleanup.
-        lFileSystem.close();
     });
 
     await pContext.step('Singleton: storeMulti with singleton class caches on read', async () => {
@@ -480,9 +428,6 @@ Deno.test('FileApiFileSystem singleton caching', async (pContext) => {
 
         // Evaluation. Both reads should return the same cached instance.
         expect(lFirst).toBe(lSecond);
-
-        // Cleanup.
-        lFileSystem.close();
     });
 });
 
@@ -509,9 +454,6 @@ Deno.test('FileApiFileSystem.delete()', async (pContext) => {
         }
 
         expect(lError).not.toBeNull();
-
-        // Cleanup.
-        lFileSystem.close();
     });
 
     await pContext.step('Delete one sub-path preserves others in same blob', async () => {
@@ -547,9 +489,6 @@ Deno.test('FileApiFileSystem.delete()', async (pContext) => {
         }
 
         expect(lError).not.toBeNull();
-
-        // Cleanup.
-        lFileSystem.close();
     });
 
     await pContext.step('Delete entire file by file path', async () => {
@@ -588,9 +527,6 @@ Deno.test('FileApiFileSystem.delete()', async (pContext) => {
 
         expect(lErrorAlpha).not.toBeNull();
         expect(lErrorBeta).not.toBeNull();
-
-        // Cleanup.
-        lFileSystem.close();
     });
 
     await pContext.step('Delete non-existent path throws', async () => {
@@ -607,9 +543,6 @@ Deno.test('FileApiFileSystem.delete()', async (pContext) => {
         }
 
         expect(lError).not.toBeNull();
-
-        // Cleanup.
-        lFileSystem.close();
     });
 
     await pContext.step('Delete is case-insensitive', async () => {
@@ -634,32 +567,9 @@ Deno.test('FileApiFileSystem.delete()', async (pContext) => {
         }
 
         expect(lError).not.toBeNull();
-
-        // Cleanup.
-        lFileSystem.close();
     });
 });
 
-Deno.test('FileApiFileSystem.close()', async (pContext) => {
-    await pContext.step('Operations after close throw', async () => {
-        // Setup.
-        const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
-
-        // Process.
-        lFileSystem.close();
-
-        // Evaluation. Operations should throw.
-        let lError: Error | null = null;
-        try {
-            await lFileSystem.read<SimpleTestObject>('any/path');
-        } catch (pError) {
-            lError = pError as Error;
-        }
-
-        expect(lError).not.toBeNull();
-    });
-});
 
 Deno.test('FileApiFileSystem.fileClass()', async (pContext) => {
     await pContext.step('Classes decorated with fileClass are serializable', async () => {
@@ -679,8 +589,5 @@ Deno.test('FileApiFileSystem.fileClass()', async (pContext) => {
         expect(lResult).toBeInstanceOf(SimpleTestObject);
         expect(lResult.name).toBe('DecoratorTest');
         expect(lResult.value).toBe(42);
-
-        // Cleanup.
-        lFileSystem.close();
     });
 });

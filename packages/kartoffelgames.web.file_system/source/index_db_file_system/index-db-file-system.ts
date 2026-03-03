@@ -33,6 +33,7 @@ export class IndexDbFileSystem implements IFileSystem {
      * Close the underlying database connection.
      */
     public close(): void {
+        this.mSingletonCache.clear();
         this.mDatabase.close();
     }
 

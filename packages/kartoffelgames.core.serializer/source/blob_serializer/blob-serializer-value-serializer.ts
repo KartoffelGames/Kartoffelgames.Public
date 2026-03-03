@@ -224,6 +224,26 @@ export class BlobSerializerValueSerializer {
     }
 
     /**
+     * Encode boolean value. Tag 0x01 (false) or 0x02 (true).
+     *
+     * @param pValue - The boolean value to encode.
+     *
+     * @returns Uint8Array containing the encoded boolean (single byte).
+     */
+    private encodeBoolean(pValue: boolean): Uint8Array {
+        return new Uint8Array([pValue ? ValueTypeTag.BooleanTrue : ValueTypeTag.BooleanFalse]);
+    }
+
+    /**
+     * Encode null value. Tag 0x00.
+     *
+     * @returns Uint8Array containing the encoded null (single byte).
+     */
+    private encodeNull(): Uint8Array {
+        return new Uint8Array([ValueTypeTag.Null]);
+    }
+
+    /**
      * Encode Map. Tag 0x09 + uint32 entry count + recursive key/value pairs.
      *
      * @param pValue - The Map to encode.
@@ -246,26 +266,6 @@ export class BlobSerializerValueSerializer {
         }
 
         return BlobSerializerValueSerializer.concat(...lDataParts);
-    }
-
-    /**
-     * Encode boolean value. Tag 0x01 (false) or 0x02 (true).
-     *
-     * @param pValue - The boolean value to encode.
-     *
-     * @returns Uint8Array containing the encoded boolean (single byte).
-     */
-    private encodeBoolean(pValue: boolean): Uint8Array {
-        return new Uint8Array([pValue ? ValueTypeTag.BooleanTrue : ValueTypeTag.BooleanFalse]);
-    }
-
-    /**
-     * Encode null value. Tag 0x00.
-     *
-     * @returns Uint8Array containing the encoded null (single byte).
-     */
-    private encodeNull(): Uint8Array {
-        return new Uint8Array([ValueTypeTag.Null]);
     }
 
     /**

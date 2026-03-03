@@ -4,11 +4,6 @@
  */
 export interface IFileSystem {
     /**
-     * Close the file system and release resources.
-     */
-    close(): void;
-
-    /**
      * Delete from the file system by path.
      * First tries to match as a read path (single class). If no read path matches,
      * tries to match as a file path (deletes the entire file and all its sub-entries).

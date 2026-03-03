@@ -4,16 +4,6 @@ import { FileSystem, FileSystemReferenceType } from '../file-system.ts';
 import type { IFileSystem } from '../i-file-system.ts';
 
 /**
- * Path index entry for the FileApiFileSystem.
- * Maps a read path to its file path and sub-path within the blob.
- */
-type FileApiPathEntry = {
-    filePath: string;
-    readPath: string;
-    subPath: string;
-};
-
-/**
  * File System Access API-backed file system implementation.
  * Uses a {@link FileSystemDirectoryHandle} for persistent storage.
  * Multiple objects can be stored in a single blob via sub-paths, and each object is
@@ -25,7 +15,6 @@ type FileApiPathEntry = {
 export class FileApiFileSystem implements IFileSystem {
     private static readonly INDEX_FILE_NAME: string = '_file_system_index_.json';
 
-    private mClosed: boolean;
     private readonly mDirectoryHandle: FileSystemDirectoryHandle;
     private readonly mSingletonCache: Map<string, WeakRef<object>>;
 
@@ -37,15 +26,6 @@ export class FileApiFileSystem implements IFileSystem {
     public constructor(pDirectoryHandle: FileSystemDirectoryHandle) {
         this.mDirectoryHandle = pDirectoryHandle;
         this.mSingletonCache = new Map();
-        this.mClosed = false;
-    }
-
-    /**
-     * Close the file system. Clears singleton cache and prevents further operations.
-     */
-    public close(): void {
-        this.mSingletonCache.clear();
-        this.mClosed = true;
     }
 
     /**
@@ -58,20 +38,17 @@ export class FileApiFileSystem implements IFileSystem {
      * @throws Exception if the path does not match any read path or file path.
      */
     public async delete(pPath: string): Promise<void> {
-        this.ensureOpen();
-
         const lNormalizedPath: string = pPath.toLowerCase();
-        const lIndex: Array<FileApiPathEntry> = await this.readIndex();
+        const lIndex: Array<FileApiFileSystemPathEntry> = await this.readFileSystemIndex();
 
         // Try to find as a read path first (single class deletion).
-        const lPathEntry: FileApiPathEntry | undefined = lIndex.find((pEntry) => pEntry.readPath === lNormalizedPath);
-
-        if (lPathEntry !== undefined) {
+        const lPathEntry: FileApiFileSystemPathEntry | undefined = lIndex.find((pEntry) => pEntry.readPath === lNormalizedPath);
+        if (lPathEntry) {
             return this.deleteSubPath(lPathEntry, lIndex);
         }
 
         // Try as a file path (delete entire file).
-        const lFileEntries: Array<FileApiPathEntry> = lIndex.filter((pEntry) => pEntry.filePath === lNormalizedPath);
+        const lFileEntries: Array<FileApiFileSystemPathEntry> = lIndex.filter((pEntry) => pEntry.filePath === lNormalizedPath);
 
         if (lFileEntries.length > 0) {
             return this.deleteFile(lNormalizedPath, lIndex);
@@ -95,8 +72,6 @@ export class FileApiFileSystem implements IFileSystem {
      * @throws Exception if no entry exists at the given path.
      */
     public async read<T extends object>(pPath: string): Promise<T> {
-        this.ensureOpen();
-
         const lNormalizedPath: string = pPath.toLowerCase();
 
         // Check singleton cache before deserializing.
@@ -112,8 +87,8 @@ export class FileApiFileSystem implements IFileSystem {
         }
 
         // Look up the index to find filePath and subPath.
-        const lIndex: Array<FileApiPathEntry> = await this.readIndex();
-        const lPathEntry: FileApiPathEntry | undefined = lIndex.find((pEntry) => pEntry.readPath === lNormalizedPath);
+        const lIndex: Array<FileApiFileSystemPathEntry> = await this.readFileSystemIndex();
+        const lPathEntry: FileApiFileSystemPathEntry | undefined = lIndex.find((pEntry) => pEntry.readPath === lNormalizedPath);
 
         if (lPathEntry === undefined) {
             throw new Exception(`File not found: ${pPath}`, this);
@@ -145,8 +120,6 @@ export class FileApiFileSystem implements IFileSystem {
      * @param pObject - The serializable object to store.
      */
     public async store(pPath: string, pObject: object): Promise<void> {
-        this.ensureOpen();
-
         const lNormalizedPath: string = pPath.toLowerCase();
 
         // Serialize the single object into a new blob (empty sub-path key).
@@ -158,10 +131,10 @@ export class FileApiFileSystem implements IFileSystem {
         await this.writeBlobFile(lNormalizedPath, lBlob);
 
         // Update the index.
-        const lIndex: Array<FileApiPathEntry> = await this.readIndex();
+        const lIndex: Array<FileApiFileSystemPathEntry> = await this.readFileSystemIndex();
 
         // Remove any existing entry for this read path.
-        const lFilteredIndex: Array<FileApiPathEntry> = lIndex.filter((pEntry) => pEntry.readPath !== lNormalizedPath);
+        const lFilteredIndex: Array<FileApiFileSystemPathEntry> = lIndex.filter((pEntry) => pEntry.readPath !== lNormalizedPath);
 
         // Add the new entry.
         lFilteredIndex.push({
@@ -183,8 +156,6 @@ export class FileApiFileSystem implements IFileSystem {
      * @param pObject - The serializable object to store.
      */
     public async storeMulti(pFilePath: string, pSubPath: string, pObject: object): Promise<void> {
-        this.ensureOpen();
-
         const lNormalizedFilePath: string = pFilePath.toLowerCase();
         const lNormalizedSubPath: string = pSubPath.toLowerCase();
         const lReadPath: string = `${lNormalizedFilePath}/${lNormalizedSubPath}`;
@@ -215,10 +186,10 @@ export class FileApiFileSystem implements IFileSystem {
         await this.writeBlobFile(lNormalizedFilePath, lBlob);
 
         // Update the index.
-        const lIndex: Array<FileApiPathEntry> = await this.readIndex();
+        const lIndex: Array<FileApiFileSystemPathEntry> = await this.readFileSystemIndex();
 
         // Remove any existing entry for this read path.
-        const lFilteredIndex: Array<FileApiPathEntry> = lIndex.filter((pEntry) => pEntry.readPath !== lReadPath);
+        const lFilteredIndex: Array<FileApiFileSystemPathEntry> = lIndex.filter((pEntry) => pEntry.readPath !== lReadPath);
 
         // Add the new entry.
         lFilteredIndex.push({
@@ -236,9 +207,9 @@ export class FileApiFileSystem implements IFileSystem {
      * @param pFilePath - The normalized file path to delete.
      * @param pIndex - The current path index.
      */
-    private async deleteFile(pFilePath: string, pIndex: Array<FileApiPathEntry>): Promise<void> {
+    private async deleteFile(pFilePath: string, pIndex: Array<FileApiFileSystemPathEntry>): Promise<void> {
         // Remove all path index entries for this file.
-        const lFilteredIndex: Array<FileApiPathEntry> = pIndex.filter((pEntry) => pEntry.filePath !== pFilePath);
+        const lFilteredIndex: Array<FileApiFileSystemPathEntry> = pIndex.filter((pEntry) => pEntry.filePath !== pFilePath);
         await this.writeIndex(lFilteredIndex);
 
         // Delete the blob file.
@@ -252,7 +223,7 @@ export class FileApiFileSystem implements IFileSystem {
      * @param pPathEntry - The path index entry to delete.
      * @param pIndex - The current path index.
      */
-    private async deleteSubPath(pPathEntry: FileApiPathEntry, pIndex: Array<FileApiPathEntry>): Promise<void> {
+    private async deleteSubPath(pPathEntry: FileApiFileSystemPathEntry, pIndex: Array<FileApiFileSystemPathEntry>): Promise<void> {
         // Try to load the existing blob.
         let lBlob: Blob | null = null;
         try {
@@ -263,7 +234,7 @@ export class FileApiFileSystem implements IFileSystem {
 
         if (lBlob === null) {
             // File entry doesn't exist, just clean up the path index.
-            const lFilteredIndex: Array<FileApiPathEntry> = pIndex.filter((pEntry) => pEntry.readPath !== pPathEntry.readPath);
+            const lFilteredIndex: Array<FileApiFileSystemPathEntry> = pIndex.filter((pEntry) => pEntry.readPath !== pPathEntry.readPath);
             await this.writeIndex(lFilteredIndex);
             return;
         }
@@ -279,7 +250,7 @@ export class FileApiFileSystem implements IFileSystem {
             const lUpdatedBlob: Blob = await lSerializer.save();
             await this.writeBlobFile(pPathEntry.filePath, lUpdatedBlob);
 
-            const lFilteredIndex: Array<FileApiPathEntry> = pIndex.filter((pEntry) => pEntry.readPath !== pPathEntry.readPath);
+            const lFilteredIndex: Array<FileApiFileSystemPathEntry> = pIndex.filter((pEntry) => pEntry.readPath !== pPathEntry.readPath);
             await this.writeIndex(lFilteredIndex);
         } else {
             // Blob is empty, delete the entire file.
@@ -296,27 +267,8 @@ export class FileApiFileSystem implements IFileSystem {
      * @returns the encoded filename with .bin extension.
      */
     private encodeFileName(pFilePath: string): string {
-        // Use TextEncoder to convert to bytes, then base64url encode.
-        const lBytes: Uint8Array = new TextEncoder().encode(pFilePath);
-        let lBase64: string = '';
-
-        for (let i = 0; i < lBytes.length; i++) {
-            lBase64 += String.fromCharCode(lBytes[i]);
-        }
-
         // Convert to base64 and make it URL-safe.
-        return btoa(lBase64).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '') + '.bin';
-    }
-
-    /**
-     * Ensure the file system is still open.
-     *
-     * @throws Exception if the file system has been closed.
-     */
-    private ensureOpen(): void {
-        if (this.mClosed) {
-            throw new Exception('File system is closed.', this);
-        }
+        return btoa(pFilePath).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '') + '.bin';
     }
 
     /**
@@ -349,13 +301,13 @@ export class FileApiFileSystem implements IFileSystem {
      *
      * @returns the array of path entries, or empty array if no index exists.
      */
-    private async readIndex(): Promise<Array<FileApiPathEntry>> {
+    private async readFileSystemIndex(): Promise<Array<FileApiFileSystemPathEntry>> {
         try {
             const lFileHandle: FileSystemFileHandle = await this.mDirectoryHandle.getFileHandle(FileApiFileSystem.INDEX_FILE_NAME);
             const lFile: File = await lFileHandle.getFile();
             const lText: string = await lFile.text();
 
-            return JSON.parse(lText) as Array<FileApiPathEntry>;
+            return JSON.parse(lText) as Array<FileApiFileSystemPathEntry>;
         } catch {
             // Index file doesn't exist yet.
             return [];
@@ -382,7 +334,7 @@ export class FileApiFileSystem implements IFileSystem {
      *
      * @param pIndex - The array of path entries to persist.
      */
-    private async writeIndex(pIndex: Array<FileApiPathEntry>): Promise<void> {
+    private async writeIndex(pIndex: Array<FileApiFileSystemPathEntry>): Promise<void> {
         const lFileHandle: FileSystemFileHandle = await this.mDirectoryHandle.getFileHandle(FileApiFileSystem.INDEX_FILE_NAME, { create: true });
         const lWritable: FileSystemWritableFileStream = await lFileHandle.createWritable();
 
@@ -390,3 +342,13 @@ export class FileApiFileSystem implements IFileSystem {
         await lWritable.close();
     }
 }
+
+/**
+ * Path index entry for the FileApiFileSystem.
+ * Maps a read path to its file path and sub-path within the blob.
+ */
+type FileApiFileSystemPathEntry = {
+    filePath: string;
+    readPath: string;
+    subPath: string;
+};

@@ -5,7 +5,7 @@ import { WebDatabase } from '@kartoffelgames/web-database';
  * Each entry maps a case-insensitive read path to its (filePath, subPath) pair.
  */
 @WebDatabase.table('file-paths')
-export class FileSystemPath {
+export class IndexDbFileSystemPath {
     @WebDatabase.field({ as: { index: {} } })
     public filePath!: string;
 

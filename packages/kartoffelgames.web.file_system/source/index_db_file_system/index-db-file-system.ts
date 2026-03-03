@@ -1,86 +1,22 @@
 import { Exception, type IVoidParameterConstructor } from '@kartoffelgames/core';
-import type { ConstructorMetadata, InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
-import { Metadata } from '@kartoffelgames/core-dependency-injection';
-import { BlobSerializer, Serializer } from '@kartoffelgames/core-serializer';
+import { BlobSerializer } from '@kartoffelgames/core-serializer';
 import { WebDatabase } from '@kartoffelgames/web-database';
-import { FileSystemEntry } from './file-system-entry.ts';
-import { FileSystemPath } from './file-system-path.ts';
+import { FileSystem, FileSystemReferenceType } from '../file-system.ts';
+import type { IFileSystem } from '../i-file-system.ts';
+import { IndexDbFileSystemEntry } from './index-db-file-system-entry.ts';
+import { IndexDbFileSystemPath } from './index-db-file-system-path.ts';
 
 /**
- * File system that combines blob serialization with a web database for persistent storage.
+ * IndexedDB-backed file system implementation.
+ * Combines blob serialization with a web database for persistent storage.
  * Multiple objects can be stored in a single blob via sub-paths, and each object is
  * addressable by a single read path.
  *
  * Objects are serialized via {@link BlobSerializer} and stored in an IndexedDB-backed {@link WebDatabase}.
- * An index table ({@link FileSystemPath}) maps single read paths to their (filePath, subPath) pairs.
- *
- * Provides decorator wrappers around {@link Serializer} decorators:
- * - {@link FileSystem.fileClass} wraps {@link Serializer.serializeableClass}
- * - {@link FileSystem.fileProperty} wraps {@link Serializer.property}
+ * An index table ({@link IndexDbFileSystemPath}) maps single read paths to their (filePath, subPath) pairs.
  */
-export class FileSystem {
-    private static readonly mMetadataKey: symbol = Symbol('FileSystemMetadata');
-    private static readonly mReferenceTypeCache: Map<IVoidParameterConstructor<object>, FileSystemReferenceType> = new Map();
-
-    /**
-     * Class decorator. Marks a class as a file system serializable class.
-     * Wraps {@link Serializer.serializeableClass} and additionally stores the {@link FileSystemReferenceType}.
-     *
-     * @param pUuid - Unique identifier string for this class type.
-     * @param pReferenceType - How instances of this class are cached when read.
-     *
-     * @returns class decorator function.
-     */
-    public static fileClass<TThis extends object>(pUuid: string, pReferenceType: FileSystemReferenceType): (_pTarget: InjectionConstructor<TThis>, pContext: ClassDecoratorContext<InjectionConstructor<TThis>>) => void {
-        return (_pTarget: InjectionConstructor<TThis>, pContext: ClassDecoratorContext<InjectionConstructor<TThis>>): void => {
-            // Store the reference type in metadata.
-            const lConstructorMetadata: ConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
-            lConstructorMetadata.setMetadata(FileSystem.mMetadataKey, pReferenceType);
-
-            // Delegate to the serializer class decorator.
-            Serializer.serializeableClass<TThis>(pUuid)(_pTarget, pContext);
-        };
-    }
-
-    /**
-     * Property decorator. Marks a property for inclusion in file system serialization.
-     * Wraps {@link Serializer.property}.
-     *
-     * @param pConfig - Optional property configuration.
-     *
-     * @returns property decorator function.
-     */
-    public static fileProperty<TThis extends object>(pConfig?: FileSystemPropertyConfig): (_pTarget: any, pContext: FilePropertyDecoratorContext<TThis>) => void {
-        return Serializer.property<TThis>(pConfig);
-    }
-
-    /**
-     * Get the {@link FileSystemReferenceType} for a constructor.
-     * The result is cached statically so that metadata is only read once per constructor.
-     *
-     * @param pConstructor - The constructor to look up.
-     *
-     * @returns the reference type, or {@link FileSystemReferenceType.Instanced} if none is set.
-     */
-    private static referenceTypeOf(pConstructor: IVoidParameterConstructor<object>): FileSystemReferenceType {
-        // Check static cache first.
-        const lCached: FileSystemReferenceType | undefined = FileSystem.mReferenceTypeCache.get(pConstructor);
-        if (lCached !== undefined) {
-            return lCached;
-        }
-
-        // Read from metadata.
-        const lConstructorMetadata: ConstructorMetadata = Metadata.get(pConstructor);
-        const lReferenceType: FileSystemReferenceType | null = lConstructorMetadata.getMetadata<FileSystemReferenceType>(FileSystem.mMetadataKey);
-        const lResult: FileSystemReferenceType = lReferenceType ?? FileSystemReferenceType.Instanced;
-
-        // Cache the result.
-        FileSystem.mReferenceTypeCache.set(pConstructor, lResult);
-
-        return lResult;
-    }
-
-    private readonly mDatabase: WebDatabase<typeof FileSystemEntry | typeof FileSystemPath>;
+export class IndexDbFileSystem implements IFileSystem {
+    private readonly mDatabase: WebDatabase<typeof IndexDbFileSystemEntry | typeof IndexDbFileSystemPath>;
     private readonly mSingletonCache: Map<string, WeakRef<object>>;
 
     /**
@@ -89,7 +25,7 @@ export class FileSystem {
      * @param pScope - Database scope name. Used as the IndexedDB database name.
      */
     public constructor(pScope: string) {
-        this.mDatabase = new WebDatabase(pScope, [FileSystemEntry, FileSystemPath]);
+        this.mDatabase = new WebDatabase(pScope, [IndexDbFileSystemEntry, IndexDbFileSystemPath]);
         this.mSingletonCache = new Map();
     }
 
@@ -113,8 +49,8 @@ export class FileSystem {
         const lNormalizedPath: string = pPath.toLowerCase();
 
         // Try to find as a read path first (single class deletion).
-        const lPathEntry: FileSystemPath | null = await this.mDatabase.transaction([FileSystemPath], 'readonly', async (pTransaction) => {
-            const lEntries: Array<FileSystemPath> = await pTransaction.table(FileSystemPath).where('readPath').is(lNormalizedPath).read();
+        const lPathEntry: IndexDbFileSystemPath | null = await this.mDatabase.transaction([IndexDbFileSystemPath], 'readonly', async (pTransaction) => {
+            const lEntries: Array<IndexDbFileSystemPath> = await pTransaction.table(IndexDbFileSystemPath).where('readPath').is(lNormalizedPath).read();
             if (lEntries.length === 0) {
                 return null;
             }
@@ -128,8 +64,8 @@ export class FileSystem {
         }
 
         // Try as a file path (delete entire file).
-        const lFileExists: boolean = await this.mDatabase.transaction([FileSystemEntry], 'readonly', async (pTransaction) => {
-            const lEntries: Array<FileSystemEntry> = await pTransaction.table(FileSystemEntry).where('filePath').is(lNormalizedPath).read();
+        const lFileExists: boolean = await this.mDatabase.transaction([IndexDbFileSystemEntry], 'readonly', async (pTransaction) => {
+            const lEntries: Array<IndexDbFileSystemEntry> = await pTransaction.table(IndexDbFileSystemEntry).where('filePath').is(lNormalizedPath).read();
             return lEntries.length > 0;
         });
 
@@ -170,8 +106,8 @@ export class FileSystem {
         }
 
         // Look up the index to find filePath and subPath.
-        const lFileSystemPath: FileSystemPath = await this.mDatabase.transaction([FileSystemPath], 'readonly', async (pTransaction) => {
-            const lEntries: Array<FileSystemPath> = await pTransaction.table(FileSystemPath).where('readPath').is(lNormalizedPath).read();
+        const lFileSystemPath: IndexDbFileSystemPath = await this.mDatabase.transaction([IndexDbFileSystemPath], 'readonly', async (pTransaction) => {
+            const lEntries: Array<IndexDbFileSystemPath> = await pTransaction.table(IndexDbFileSystemPath).where('readPath').is(lNormalizedPath).read();
             if (lEntries.length === 0) {
                 throw new Exception(`File not found: ${pPath}`, this);
             }
@@ -180,8 +116,8 @@ export class FileSystem {
         });
 
         // Read the blob from the file entry table.
-        const lBlob: Blob = await this.mDatabase.transaction([FileSystemEntry], 'readonly', async (pTransaction) => {
-            const lEntries: Array<FileSystemEntry> = await pTransaction.table(FileSystemEntry).where('filePath').is(lFileSystemPath.filePath).read();
+        const lBlob: Blob = await this.mDatabase.transaction([IndexDbFileSystemEntry], 'readonly', async (pTransaction) => {
+            const lEntries: Array<IndexDbFileSystemEntry> = await pTransaction.table(IndexDbFileSystemEntry).where('filePath').is(lFileSystemPath.filePath).read();
             if (lEntries.length === 0) {
                 throw new Exception(`File data not found for: ${lFileSystemPath.filePath}`, this);
             }
@@ -220,17 +156,17 @@ export class FileSystem {
         const lBlob: Blob = await lSerializer.save();
 
         // Write blob and path index.
-        await this.mDatabase.transaction([FileSystemEntry, FileSystemPath], 'readwrite', async (pTransaction) => {
-            const lEntry: FileSystemEntry = new FileSystemEntry();
+        await this.mDatabase.transaction([IndexDbFileSystemEntry, IndexDbFileSystemPath], 'readwrite', async (pTransaction) => {
+            const lEntry: IndexDbFileSystemEntry = new IndexDbFileSystemEntry();
             lEntry.filePath = lNormalizedPath;
             lEntry.data = lBlob;
-            await pTransaction.table(FileSystemEntry).put(lEntry);
+            await pTransaction.table(IndexDbFileSystemEntry).put(lEntry);
 
-            const lPathEntry: FileSystemPath = new FileSystemPath();
+            const lPathEntry: IndexDbFileSystemPath = new IndexDbFileSystemPath();
             lPathEntry.readPath = lNormalizedPath;
             lPathEntry.filePath = lNormalizedPath;
             lPathEntry.subPath = '';
-            await pTransaction.table(FileSystemPath).put(lPathEntry);
+            await pTransaction.table(IndexDbFileSystemPath).put(lPathEntry);
         });
     }
 
@@ -249,9 +185,9 @@ export class FileSystem {
         const lReadPath: string = `${lNormalizedFilePath}/${lNormalizedSubPath}`;
 
         // Read existing blob for this file path (if any) to append to it.
-        const lExistingBlob: Blob | null = await this.mDatabase.transaction([FileSystemEntry], 'readonly', async (pTransaction) => {
-            const lTable = pTransaction.table(FileSystemEntry);
-            const lEntries: Array<FileSystemEntry> = await lTable.where('filePath').is(lNormalizedFilePath).read();
+        const lExistingBlob: Blob | null = await this.mDatabase.transaction([IndexDbFileSystemEntry], 'readonly', async (pTransaction) => {
+            const lTable = pTransaction.table(IndexDbFileSystemEntry);
+            const lEntries: Array<IndexDbFileSystemEntry> = await lTable.where('filePath').is(lNormalizedFilePath).read();
 
             if (lEntries.length === 0) {
                 return null;
@@ -275,19 +211,19 @@ export class FileSystem {
         const lBlob: Blob = await lSerializer.save();
 
         // Write the blob and path index in a single transaction.
-        await this.mDatabase.transaction([FileSystemEntry, FileSystemPath], 'readwrite', async (pTransaction) => {
+        await this.mDatabase.transaction([IndexDbFileSystemEntry, IndexDbFileSystemPath], 'readwrite', async (pTransaction) => {
             // Update the file entry.
-            const lEntry: FileSystemEntry = new FileSystemEntry();
+            const lEntry: IndexDbFileSystemEntry = new IndexDbFileSystemEntry();
             lEntry.filePath = lNormalizedFilePath;
             lEntry.data = lBlob;
-            await pTransaction.table(FileSystemEntry).put(lEntry);
+            await pTransaction.table(IndexDbFileSystemEntry).put(lEntry);
 
             // Update the path index.
-            const lPathEntry: FileSystemPath = new FileSystemPath();
+            const lPathEntry: IndexDbFileSystemPath = new IndexDbFileSystemPath();
             lPathEntry.readPath = lReadPath;
             lPathEntry.filePath = lNormalizedFilePath;
             lPathEntry.subPath = lNormalizedSubPath;
-            await pTransaction.table(FileSystemPath).put(lPathEntry);
+            await pTransaction.table(IndexDbFileSystemPath).put(lPathEntry);
         });
     }
 
@@ -297,16 +233,16 @@ export class FileSystem {
      * @param pFilePath - The normalized file path to delete.
      */
     private async deleteFile(pFilePath: string): Promise<void> {
-        await this.mDatabase.transaction([FileSystemEntry, FileSystemPath], 'readwrite', async (pTransaction) => {
+        await this.mDatabase.transaction([IndexDbFileSystemEntry, IndexDbFileSystemPath], 'readwrite', async (pTransaction) => {
             // Delete all path index entries for this file.
-            await pTransaction.table(FileSystemPath).where('filePath').is(pFilePath).delete();
+            await pTransaction.table(IndexDbFileSystemPath).where('filePath').is(pFilePath).delete();
 
             // Create a file entry instance with the file path to delete the file entry.
-            const lEntry: FileSystemEntry = new FileSystemEntry();
+            const lEntry: IndexDbFileSystemEntry = new IndexDbFileSystemEntry();
             lEntry.filePath = pFilePath;
 
             // Delete the file entry.
-            await pTransaction.table(FileSystemEntry).delete(lEntry);
+            await pTransaction.table(IndexDbFileSystemEntry).delete(lEntry);
         });
     }
 
@@ -316,11 +252,11 @@ export class FileSystem {
      *
      * @param pPathEntry - The path index entry to delete.
      */
-    private async deleteSubPath(pPathEntry: FileSystemPath): Promise<void> {
+    private async deleteSubPath(pPathEntry: IndexDbFileSystemPath): Promise<void> {
         // Load the existing blob.
-        const lBlob: Blob | null = await this.mDatabase.transaction([FileSystemEntry], 'readonly', async (pTransaction) => {
-            const lTable = pTransaction.table(FileSystemEntry);
-            const lEntries: Array<FileSystemEntry> = await lTable.where('filePath').is(pPathEntry.filePath).read();
+        const lBlob: Blob | null = await this.mDatabase.transaction([IndexDbFileSystemEntry], 'readonly', async (pTransaction) => {
+            const lTable = pTransaction.table(IndexDbFileSystemEntry);
+            const lEntries: Array<IndexDbFileSystemEntry> = await lTable.where('filePath').is(pPathEntry.filePath).read();
 
             if (lEntries.length === 0) {
                 return null;
@@ -331,10 +267,10 @@ export class FileSystem {
 
         if (lBlob === null) {
             // File entry doesn't exist, just clean up the path index.
-            return this.mDatabase.transaction([FileSystemPath], 'readwrite', async (pTransaction) => {
-                const lEntry: FileSystemPath = new FileSystemPath();
+            return this.mDatabase.transaction([IndexDbFileSystemPath], 'readwrite', async (pTransaction) => {
+                const lEntry: IndexDbFileSystemPath = new IndexDbFileSystemPath();
                 lEntry.readPath = pPathEntry.readPath;
-                await pTransaction.table(FileSystemPath).delete(lEntry);
+                await pTransaction.table(IndexDbFileSystemPath).delete(lEntry);
             });
         }
 
@@ -348,17 +284,17 @@ export class FileSystem {
             // Save the modified blob back and remove only the path index entry.
             const lUpdatedBlob: Blob = await lSerializer.save();
 
-            await this.mDatabase.transaction([FileSystemEntry, FileSystemPath], 'readwrite', async (pTransaction) => {
+            await this.mDatabase.transaction([IndexDbFileSystemEntry, IndexDbFileSystemPath], 'readwrite', async (pTransaction) => {
                 // Update the file entry with the modified blob.
-                const lEntry: FileSystemEntry = new FileSystemEntry();
+                const lEntry: IndexDbFileSystemEntry = new IndexDbFileSystemEntry();
                 lEntry.filePath = pPathEntry.filePath;
                 lEntry.data = lUpdatedBlob;
-                await pTransaction.table(FileSystemEntry).put(lEntry);
+                await pTransaction.table(IndexDbFileSystemEntry).put(lEntry);
 
                 // Delete the path index entry.
-                const lPathToDelete: FileSystemPath = new FileSystemPath();
+                const lPathToDelete: IndexDbFileSystemPath = new IndexDbFileSystemPath();
                 lPathToDelete.readPath = pPathEntry.readPath;
-                await pTransaction.table(FileSystemPath).delete(lPathToDelete);
+                await pTransaction.table(IndexDbFileSystemPath).delete(lPathToDelete);
             });
         } else {
             // Blob is empty, delete the entire file.
@@ -366,39 +302,3 @@ export class FileSystem {
         }
     }
 }
-
-/**
- * Configuration for a file property.
- */
-export type FileSystemPropertyConfig = {
-    /**
-     * Optional alias used as the key in the binary data instead of the property name.
-     */
-    alias?: string;
-};
-
-/**
- * Determines how the file system caches deserialized instances.
- */
-export enum FileSystemReferenceType {
-    /**
-     * Each read creates a new instance from the serialized data.
-     */
-    Instanced,
-
-    /**
-     * The first read caches the instance (as a WeakRef) by path.
-     * Subsequent reads for the same path return the cached instance
-     * as long as the reference is still alive.
-     */
-    Singleton
-}
-
-/**
- * Union of all decorator contexts that @FileSystem.fileProperty() supports.
- */
-type FilePropertyDecoratorContext<TThis extends object> =
-    | ClassFieldDecoratorContext<TThis>
-    | ClassGetterDecoratorContext<TThis>
-    | ClassSetterDecoratorContext<TThis>
-    | ClassAccessorDecoratorContext<TThis>;

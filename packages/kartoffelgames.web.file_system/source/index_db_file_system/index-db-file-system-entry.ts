@@ -5,7 +5,7 @@ import { WebDatabase } from '@kartoffelgames/web-database';
  * Each entry maps a lowercase-normalized path to serialized binary data.
  */
 @WebDatabase.table('files')
-export class FileSystemEntry {
+export class IndexDbFileSystemEntry {
     @WebDatabase.field()
     public data!: Blob;
 

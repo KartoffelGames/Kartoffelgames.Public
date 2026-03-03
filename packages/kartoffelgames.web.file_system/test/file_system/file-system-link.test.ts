@@ -2,8 +2,9 @@ import { BlobSerializer, Serializer } from '@kartoffelgames/core-serializer';
 import { expect } from '@kartoffelgames/core-test';
 import '../mock/structured-clone-blob-support.ts';
 import 'npm:fake-indexeddb/auto';
-import { FileSystemLink } from '../../source/file_system/file-system-link.ts';
-import { FileSystem } from '../../source/file_system/file-system.ts';
+import { FileSystemLink } from '../../source/file-system-link.ts';
+import { IndexDbFileSystem } from '../../source/index_db_file_system/index-db-file-system.ts';
+import type { IFileSystem } from '../../source/i-file-system.ts';
 
 // Simple serializable test class.
 @Serializer.serializeableClass('b5931480-24c6-44cc-8479-f8c6883ba20f')
@@ -19,7 +20,7 @@ Deno.test('FileSystemLink', { sanitizeResources: false, sanitizeOps: false }, as
     await pContext.step('Resolve link with path', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+        const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'LinkedObject';
@@ -43,7 +44,7 @@ Deno.test('FileSystemLink', { sanitizeResources: false, sanitizeOps: false }, as
     await pContext.step('Resolve link with direct instance', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+        const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'DirectInstance';
@@ -66,7 +67,7 @@ Deno.test('FileSystemLink', { sanitizeResources: false, sanitizeOps: false }, as
     await pContext.step('Resolve link with path caches result', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+        const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'Cached';

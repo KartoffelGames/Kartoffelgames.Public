@@ -1,7 +1,9 @@
 import { expect } from '@kartoffelgames/core-test';
 import '../mock/structured-clone-blob-support.ts';
 import 'npm:fake-indexeddb/auto';
-import { FileSystem, FileSystemReferenceType } from '../../source/file_system/file-system.ts';
+import { FileSystem, FileSystemReferenceType } from '../../source/file-system.ts';
+import { IndexDbFileSystem } from '../../source/index_db_file_system/index-db-file-system.ts';
+import type { IFileSystem } from '../../source/i-file-system.ts';
 
 // Simple serializable test class (Instanced).
 @FileSystem.fileClass('b5931480-24c6-44cc-8479-f8c6883ba20f', FileSystemReferenceType.Instanced)
@@ -34,11 +36,11 @@ class SingletonTestObject {
 }
 
 // Sanitize disabled because timers are started outside of the test in fake-indexeddb.
-Deno.test('FileSystem.store()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
+Deno.test('IndexDbFileSystem.store()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
     await pContext.step('Store and read a single-class object', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+        const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'TestName';
@@ -59,7 +61,7 @@ Deno.test('FileSystem.store()', { sanitizeResources: false, sanitizeOps: false }
     await pContext.step('Store overwrites existing entry at same path', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+        const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         const lFirst: SimpleTestObject = new SimpleTestObject();
         lFirst.name = 'First';
@@ -85,7 +87,7 @@ Deno.test('FileSystem.store()', { sanitizeResources: false, sanitizeOps: false }
     await pContext.step('Store is case-insensitive', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+        const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'CaseTest';
@@ -105,11 +107,11 @@ Deno.test('FileSystem.store()', { sanitizeResources: false, sanitizeOps: false }
 });
 
 // Sanitize disabled because timers are started outside of the test in fake-indexeddb.
-Deno.test('FileSystem.storeMulti()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
+Deno.test('IndexDbFileSystem.storeMulti()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
     await pContext.step('Store a simple object', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+        const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'TestName';
@@ -130,7 +132,7 @@ Deno.test('FileSystem.storeMulti()', { sanitizeResources: false, sanitizeOps: fa
     await pContext.step('Store overwrites existing entry at same path', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+        const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         const lFirst: SimpleTestObject = new SimpleTestObject();
         lFirst.name = 'First';
@@ -156,7 +158,7 @@ Deno.test('FileSystem.storeMulti()', { sanitizeResources: false, sanitizeOps: fa
     await pContext.step('Store nested object', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+        const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         const lChild: SimpleTestObject = new SimpleTestObject();
         lChild.name = 'ChildName';
@@ -183,7 +185,7 @@ Deno.test('FileSystem.storeMulti()', { sanitizeResources: false, sanitizeOps: fa
     await pContext.step('Store multiple objects in same blob', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+        const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         const lFirst: SimpleTestObject = new SimpleTestObject();
         lFirst.name = 'First';
@@ -213,7 +215,7 @@ Deno.test('FileSystem.storeMulti()', { sanitizeResources: false, sanitizeOps: fa
     await pContext.step('Overwrite one sub-path preserves others in same blob', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+        const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         const lFirst: SimpleTestObject = new SimpleTestObject();
         lFirst.name = 'Original';
@@ -246,11 +248,11 @@ Deno.test('FileSystem.storeMulti()', { sanitizeResources: false, sanitizeOps: fa
     });
 });
 
-Deno.test('FileSystem.read()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
+Deno.test('IndexDbFileSystem.read()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
     await pContext.step('Read stored object', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+        const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'ReadTest';
@@ -272,7 +274,7 @@ Deno.test('FileSystem.read()', { sanitizeResources: false, sanitizeOps: false },
     await pContext.step('Read is case-insensitive', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+        const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'CaseTest';
@@ -292,7 +294,7 @@ Deno.test('FileSystem.read()', { sanitizeResources: false, sanitizeOps: false },
     await pContext.step('Read non-existent path throws', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+        const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         // Process & Evaluation.
         let lError: Error | null = null;
@@ -311,7 +313,7 @@ Deno.test('FileSystem.read()', { sanitizeResources: false, sanitizeOps: false },
     await pContext.step('Read multiple different paths', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+        const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         const lFirst: SimpleTestObject = new SimpleTestObject();
         lFirst.name = 'First';
@@ -339,11 +341,11 @@ Deno.test('FileSystem.read()', { sanitizeResources: false, sanitizeOps: false },
     });
 
 
-    Deno.test('FileSystem singleton caching', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
+    Deno.test('IndexDbFileSystem singleton caching', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
         await pContext.step('Singleton: reading same path twice returns same instance', async () => {
             // Setup.
             const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-            const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+            const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
             const lObject: SingletonTestObject = new SingletonTestObject();
             lObject.name = 'Singleton';
@@ -365,7 +367,7 @@ Deno.test('FileSystem.read()', { sanitizeResources: false, sanitizeOps: false },
         await pContext.step('Singleton: different paths return different instances', async () => {
             // Setup.
             const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-            const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+            const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
             const lObjectA: SingletonTestObject = new SingletonTestObject();
             lObjectA.name = 'A';
@@ -394,7 +396,7 @@ Deno.test('FileSystem.read()', { sanitizeResources: false, sanitizeOps: false },
         await pContext.step('Singleton: cache is case-insensitive', async () => {
             // Setup.
             const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-            const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+            const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
             const lObject: SingletonTestObject = new SingletonTestObject();
             lObject.name = 'CaseSingleton';
@@ -413,11 +415,11 @@ Deno.test('FileSystem.read()', { sanitizeResources: false, sanitizeOps: false },
             lFileSystem.close();
         });
 
-        await pContext.step('Singleton: cache is per FileSystem instance', async () => {
+        await pContext.step('Singleton: cache is per IndexDbFileSystem instance', async () => {
             // Setup.
             const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-            const lFileSystemA: FileSystem = new FileSystem(lDatabaseName);
-            const lFileSystemB: FileSystem = new FileSystem(lDatabaseName);
+            const lFileSystemA: IFileSystem = new IndexDbFileSystem(lDatabaseName);
+            const lFileSystemB: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
             const lObject: SingletonTestObject = new SingletonTestObject();
             lObject.name = 'PerInstance';
@@ -429,7 +431,7 @@ Deno.test('FileSystem.read()', { sanitizeResources: false, sanitizeOps: false },
             const lResultA: SingletonTestObject = await lFileSystemA.read<SingletonTestObject>('singleton/instance');
             const lResultB: SingletonTestObject = await lFileSystemB.read<SingletonTestObject>('singleton/instance');
 
-            // Evaluation. Different FileSystem instances should have independent caches.
+            // Evaluation. Different IndexDbFileSystem instances should have independent caches.
             expect(lResultA).not.toBe(lResultB);
             expect(lResultA.name).toBe('PerInstance');
             expect(lResultB.name).toBe('PerInstance');
@@ -442,7 +444,7 @@ Deno.test('FileSystem.read()', { sanitizeResources: false, sanitizeOps: false },
         await pContext.step('Instanced: reading same path twice returns different instances', async () => {
             // Setup.
             const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-            const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+            const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
             const lObject: SimpleTestObject = new SimpleTestObject();
             lObject.name = 'Instanced';
@@ -466,7 +468,7 @@ Deno.test('FileSystem.read()', { sanitizeResources: false, sanitizeOps: false },
         await pContext.step('Singleton: storeMulti with singleton class caches on read', async () => {
             // Setup.
             const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-            const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+            const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
             const lObject: SingletonTestObject = new SingletonTestObject();
             lObject.name = 'MultiSingleton';
@@ -487,11 +489,11 @@ Deno.test('FileSystem.read()', { sanitizeResources: false, sanitizeOps: false },
     });
 });
 
-Deno.test('FileSystem.delete()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
+Deno.test('IndexDbFileSystem.delete()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
     await pContext.step('Delete single class by read path', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+        const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'ToDelete';
@@ -518,7 +520,7 @@ Deno.test('FileSystem.delete()', { sanitizeResources: false, sanitizeOps: false 
     await pContext.step('Delete one sub-path preserves others in same blob', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+        const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         const lFirst: SimpleTestObject = new SimpleTestObject();
         lFirst.name = 'Keep';
@@ -556,7 +558,7 @@ Deno.test('FileSystem.delete()', { sanitizeResources: false, sanitizeOps: false 
     await pContext.step('Delete entire file by file path', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+        const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         const lFirst: SimpleTestObject = new SimpleTestObject();
         lFirst.name = 'First';
@@ -597,7 +599,7 @@ Deno.test('FileSystem.delete()', { sanitizeResources: false, sanitizeOps: false 
     await pContext.step('Delete non-existent path throws', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+        const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         // Process & Evaluation.
         let lError: Error | null = null;
@@ -616,7 +618,7 @@ Deno.test('FileSystem.delete()', { sanitizeResources: false, sanitizeOps: false 
     await pContext.step('Delete is case-insensitive', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+        const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'CaseDelete';
@@ -641,11 +643,11 @@ Deno.test('FileSystem.delete()', { sanitizeResources: false, sanitizeOps: false 
     });
 });
 
-Deno.test('FileSystem.fileClass()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
+Deno.test('IndexDbFileSystem.fileClass()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
     await pContext.step('Classes decorated with fileClass are serializable', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: FileSystem = new FileSystem(lDatabaseName);
+        const lFileSystem: IFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'DecoratorTest';

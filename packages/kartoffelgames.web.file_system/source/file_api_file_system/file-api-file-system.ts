@@ -114,7 +114,7 @@ export class FileApiFileSystem extends FileSystem {
                 lBlobSerializer.load(lClassFile);
 
                 // Should have at least one content.
-                if(lBlobSerializer.contents.length === 0) {
+                if (lBlobSerializer.contents.length === 0) {
                     continue;
                 }
 
@@ -208,7 +208,7 @@ export class FileApiFileSystem extends FileSystem {
      */
     protected override async storeDirectory(pParentReference: string, pDirectoryName: string): Promise<string> {
         // Create the actual directory path.
-        const lDirectoryPath: string = pParentReference === pDirectoryName ? '' : `${pParentReference}/${pDirectoryName}`;
+        const lDirectoryPath: string = pParentReference === '' ? pDirectoryName : `${pParentReference}/${pDirectoryName}`;
 
         // Get the directory handle of the new directory.
         // This will create it.

@@ -159,10 +159,14 @@ export class IndexDbFileSystem extends FileSystem {
             // Store the file entry in the database.
             await pTransaction.table(IndexDbFileSystemItem).put(lFileItem);
 
-            // Try to read the parent directory entry.
-            const lParentDirectoryItem: IndexDbFileSystemItem | undefined = (await pTransaction.table(IndexDbFileSystemItem).where('reference').is(pParentReference).read()).at(0);
+            // Try to read the parent directory entry. Create it if not found (can only be the root directory).
+            let lParentDirectoryItem: IndexDbFileSystemItem | undefined = (await pTransaction.table(IndexDbFileSystemItem).where('reference').is(pParentReference).read()).at(0);
             if (!lParentDirectoryItem) {
-                throw new Exception(`Parent directory entry not found for reference: ${pParentReference}`, this);
+                lParentDirectoryItem = new IndexDbFileSystemItem();
+                lParentDirectoryItem.itemType = FileSystemFileType.Directory;
+                lParentDirectoryItem.name = '';
+                lParentDirectoryItem.reference = pParentReference;
+                lParentDirectoryItem.data = {};
             }
 
             // Update its children mapping.
@@ -199,10 +203,14 @@ export class IndexDbFileSystem extends FileSystem {
             // Store the directory entry in the database.
             await pTransaction.table(IndexDbFileSystemItem).put(lDirectoryItem);
 
-            // Try to read the parent directory entry.
-            const lParentDirectoryItem: IndexDbFileSystemItem | undefined = (await pTransaction.table(IndexDbFileSystemItem).where('reference').is(pParentReference).read()).at(0);
+            // Try to read the parent directory entry. Create it if not found (can only be the root directory).
+            let lParentDirectoryItem: IndexDbFileSystemItem | undefined = (await pTransaction.table(IndexDbFileSystemItem).where('reference').is(pParentReference).read()).at(0);
             if (!lParentDirectoryItem) {
-                throw new Exception(`Parent directory entry not found for reference: ${pParentReference}`, this);
+                lParentDirectoryItem = new IndexDbFileSystemItem();
+                lParentDirectoryItem.itemType = FileSystemFileType.Directory;
+                lParentDirectoryItem.name = '';
+                lParentDirectoryItem.reference = pParentReference;
+                lParentDirectoryItem.data = {};
             }
 
             // Update its children mapping.

@@ -68,6 +68,11 @@ export class BlobSerializer {
      * @returns parsed header data.
      */
     private static async readHeader(pBlob: Blob): Promise<BlobSerializerFileHeader> {
+        // Validate minimum size.
+        if (pBlob.size < BlobSerializer.HEADER_BYTE_SIZE) {
+            throw new Exception('Blob is too small to contain a valid serializer header.', this);
+        }
+
         const lBytes: Uint8Array = await BlobSerializer.sliceToUint8Array(pBlob, 0, BlobSerializer.HEADER_BYTE_SIZE);
         const lView: DataView = new DataView(lBytes.buffer);
 
@@ -201,11 +206,6 @@ export class BlobSerializer {
      * @throws Exception if the blob has invalid magic number bytes or unsupported version.
      */
     public async load(pBlob: Blob): Promise<void> {
-        // Validate minimum size.
-        if (pBlob.size < BlobSerializer.HEADER_BYTE_SIZE) {
-            throw new Exception('Blob is too small to contain a valid serializer header.', this);
-        }
-
         // Read header.
         const lHeader: BlobSerializerFileHeader = await BlobSerializer.readHeader(pBlob);
 

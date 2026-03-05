@@ -1,16 +1,18 @@
-import { IVoidParameterConstructor } from "@kartoffelgames/core";
-import { FileSystem, FileSystemFileType, type FileSystemDirectory, type FileSystemDirectoryEntry } from '../file-system.ts';
+import { BlobSerializer } from "@kartoffelgames/core-serializer";
+import { FileSystem, FileSystemFileType, type FileSystemDirectoryEntry } from '../file-system.ts';
 
 /**
  * File system implementation backed by the File System Access API.
  * Stores blobs as `.bin` files in real directories mirroring the logical path structure.
- * Each `.bin` file has a companion `.meta` sidecar file containing the class UUID.
+ * Each directory has a companion `_directory.meta` JSON file mapping file names to class identifiers.
+ *
+ * References are path strings relative to the root directory handle.
  */
 export class FileApiFileSystem extends FileSystem {
     private static readonly BIN_EXTENSION: string = '.bin';
     private static readonly DIRECTORY_META_FILE: string = '_directory.meta';
 
-    private readonly mDirectoryHandle: FileSystemDirectoryHandle;
+    private readonly mRootDirectoryHandle: FileSystemDirectoryHandle;
 
     /**
      * Constructor.
@@ -18,51 +20,131 @@ export class FileApiFileSystem extends FileSystem {
      * @param pDirectoryHandle - Handle to the root directory used for storage.
      */
     public constructor(pDirectoryHandle: FileSystemDirectoryHandle) {
-        super();
-        this.mDirectoryHandle = pDirectoryHandle;
+        super('');
+        this.mRootDirectoryHandle = pDirectoryHandle;
     }
 
     /**
-     * Delete a file from the storage backend.
-     * 
-     * @param pFileReference - The file reference to delete, which is the logical path used when storing.
-     * 
-     * @returns `true` if the file was deleted, `false` if it did not exist.
+     * Delete a file system item by reference. Updates the parent directory's native mapping.
+     *
+     * @param pParentReference - The reference (path) of the parent directory.
+     * @param pName - The name of the item within the parent directory.
+     * @param _pReference - The reference of the item to delete (unused — parent + name is sufficient for FileApi).
+     *
+     * @returns `true` if the item was deleted, `false` if it did not exist.
      */
-    protected override async deleteFile(pFileReference: string): Promise<boolean> {
+    protected override async deleteReference(pParentReference: string, pReference: string): Promise<boolean> {
+        // Find last segment to separate directory path from file name.
+        const lLastIndexOfSeperator = pReference.lastIndexOf('/');
+        const lItemName = pReference.substring(lLastIndexOfSeperator + 1);
+
+        const lParentHandle: FileSystemDirectoryHandle = await this.getDirectoryHandle(pParentReference);
+
+        // Remove file or directory entry from native storage.
         try {
-            // Find last segment to separate directory path from file name.
-            const lLastIndexOfSeperator = pFileReference.lastIndexOf('/');
-            const lDirectoryPath = pFileReference.substring(0, lLastIndexOfSeperator);
-            const lFileName = pFileReference.substring(lLastIndexOfSeperator + 1);
-
-            // Navigate to the parent directory.
-            const lDirectory: FileSystemDirectoryHandle = await this.getDirectoryHandle(lDirectoryPath);
-
-            // Remove the .bin.
-            await lDirectory.removeEntry(`${lFileName}${FileApiFileSystem.BIN_EXTENSION}`);
-
-            // Ignore meta file, as the empty reference does nothing harmful.
-
-            return true;
+            await lParentHandle.removeEntry(lItemName);
         } catch {
+            // If removal fails, the item likely doesn't exist. Return false to indicate nothing was deleted.
             return false;
         }
+
+        // Update meta file to remove the potential file entry.
+        const lMeta: FileApiFileSystemMeta = await this.readDirectoryMeta(lParentHandle);
+        delete lMeta[lItemName];
+        await this.writeDirectoryMeta(lParentHandle, lMeta);
+
+        return true;
     }
 
     /**
-     * Load the full directory tree from the storage backend. Called once lazily on the first public method invocation.
+     * Read the immediate children of a directory from the File System Access API backend.
      *
-     * @returns - the stored directory tree, or an empty tree if none exists.
+     * @param pReference - The reference (path) of the directory to list.
+     *
+     * @returns array of directory entries, or an empty array when the directory is empty or not found.
      */
-    protected override async readDirectoryTree(): Promise<FileSystemDirectory> {
-        return this.scanDirectory(this.mDirectoryHandle, '');
+    protected override async readDirectoryItems(pReference: string): Promise<Array<FileSystemDirectoryEntry>> {
+        // Read the directory handle for the given reference.
+        const lDirectoryHandle: FileSystemDirectoryHandle = await this.getDirectoryHandle(pReference);
+
+        // Read directory metadata to get class identifiers.
+        const lDirectoryMeta: FileApiFileSystemMeta = await this.readDirectoryMeta(lDirectoryHandle);
+        let lDirectoryMetaUpdated: boolean = false;
+
+        // Create parent path
+        const lParentPath: string = pReference === '' ? '' : `${pReference}/`;
+
+        // Iterate over directory entries and construct the result array.
+        const lResult: Array<FileSystemDirectoryEntry> = [];
+        for await (const [lEntryName, lEntryHandle] of lDirectoryHandle.entries()) {
+            // Check if entry is a directory.
+            if (lEntryHandle.kind === 'directory') {
+                // Add directory entry to result.
+                lResult.push({
+                    name: lEntryName,
+                    type: FileSystemFileType.Directory,
+                    reference: `${lParentPath}${lEntryName}`,
+                    classIdentifier: null,
+                });
+
+                continue;
+            }
+
+            // Ignore files that don't end with .bin, as they are not part of the logical file system (like _directory.meta).
+            if (!lEntryName.endsWith(FileApiFileSystem.BIN_EXTENSION)) {
+                continue;
+            }
+
+            // Ignore anything that is not a file. For maybe future-proofing in case the API adds new kinds.
+            if (lEntryHandle.kind !== 'file') {
+                continue;
+            }
+
+            // Get Class identifier. Can be null if meta is corrupted or missing.
+            let lClassIdentifier: string | undefined = lDirectoryMeta[lEntryName];
+            if (!lClassIdentifier) {
+                // "Parse" handle into a file handle.
+                const lFileSystemFileHandle: FileSystemFileHandle = lEntryHandle as FileSystemFileHandle;
+
+                // Reconstruct class identifier by reading the file and checking for a valid header.
+                const lClassFile: File = await lFileSystemFileHandle.getFile();
+
+                // Create a blob serializer to read the header of the file and extract the class identifier.
+                const lBlobSerializer: BlobSerializer = new BlobSerializer();
+                lBlobSerializer.load(lClassFile);
+
+                // Should have at least one content.
+                if(lBlobSerializer.contents.length === 0) {
+                    continue;
+                }
+
+                // Read the first contents class identifier.
+                lClassIdentifier = FileSystem.identifierOfClass(lBlobSerializer.contents.at(0)!.classType);
+            }
+
+            lResult.push({
+                // Strip the .bin extension from the file name to get the logical file name.
+                name: lEntryName.slice(0, -FileApiFileSystem.BIN_EXTENSION.length),
+                type: FileSystemFileType.File,
+                reference: `${lParentPath}${lEntryName}`,
+                classIdentifier: lClassIdentifier,
+            });
+        }
+
+        // Update directory meta if we found entries that were missing from it, to avoid expensive header reads in the future.
+        if (lDirectoryMetaUpdated) {
+            await this.writeDirectoryMeta(lDirectoryHandle, lDirectoryMeta);
+        }
+
+        return lResult;
     }
 
     /**
-     * Read a file's blob data from storage.
+     * Read a file blob from the File System Access API backend.
      *
-     * @param pFileReference - The file reference to read, which is the logical path used when storing.
+     * @param pFileReference - The reference (path) of the file to read.
+     *
+     * @returns the file's Blob data.
      */
     protected override async readFile(pFileReference: string): Promise<Blob> {
         // Find last segment to separate directory path from file name.
@@ -74,76 +156,98 @@ export class FileApiFileSystem extends FileSystem {
         const lDirectory: FileSystemDirectoryHandle = await this.getDirectoryHandle(lDirectoryPath);
 
         // Read the .bin file for the blob data.
-        const lFileHandle: FileSystemFileHandle = await lDirectory.getFileHandle(`${lFileName}.bin`);
+        const lFileHandle: FileSystemFileHandle = await lDirectory.getFileHandle(lFileName);
 
         // Read the actual binary data from the file handle and return it.
         return lFileHandle.getFile();
     }
 
     /**
-     * Store a file blob in the storage backend.
-     * 
-     * @param pFilePath - The logical file path to store under. Should be unique and consistent for the same logical file.
-     * @param pFile - The file's blob data to store.
-     * @param pClassUuid - The class UUID to store in the companion metadata file.
-     * 
-     * @returns The file reference to use for future access, which is the same as the logical path.
+     * Store a file blob in the File System Access API backend. Updates the parent directory's meta file.
+     *
+     * @param pParentReference - The reference (path) of the parent directory.
+     * @param pFileName - The name of the file within the parent directory.
+     * @param pFileClassIdentifier - The class identifier of the stored object.
+     * @param pFile - The file's Blob data.
+     *
+     * @returns the reference (path) for the stored file.
      */
-    protected override async storeFile(pFilePath: string, pFileClass: IVoidParameterConstructor<object>, pFile: Blob): Promise<string> {
-        // Find last segment to separate directory path from file name.
-        const lLastIndexOfSeperator = pFilePath.lastIndexOf('/');
-        const lDirectoryPath = pFilePath.substring(0, lLastIndexOfSeperator);
-        const lFileName = pFilePath.substring(lLastIndexOfSeperator + 1);
-
+    protected override async storeFile(pParentReference: string, pFileName: string, pFileClassIdentifier: string, pFile: Blob): Promise<string> {
         // Navigate/create real subdirectories.
-        const lDirectory: FileSystemDirectoryHandle = await this.getDirectoryHandle(lDirectoryPath);
+        const lDirectory: FileSystemDirectoryHandle = await this.getDirectoryHandle(pParentReference);
+
+        // Create native filename by appending .bin extension to the logical filename.
+        const lNativeFileName: string = `${pFileName}${FileApiFileSystem.BIN_EXTENSION}`;
 
         // Write the blob as <fileName>.bin.
-        const lBinHandle: FileSystemFileHandle = await lDirectory.getFileHandle(`${lFileName}.bin`, { create: true });
-        const lBinWritable: FileSystemWritableFileStream = await lBinHandle.createWritable();
-        await lBinWritable.write(pFile);
-        await lBinWritable.close();
+        const lFileHandle: FileSystemFileHandle = await lDirectory.getFileHandle(lNativeFileName, { create: true });
+        const lFileWriter: FileSystemWritableFileStream = await lFileHandle.createWritable();
+        await lFileWriter.write(pFile);
+        await lFileWriter.close();
 
         // Read existing metadata for the directory to update it with the new file's class UUID.
         const lMetaFileJson: FileApiFileSystemMeta = await this.readDirectoryMeta(lDirectory);
 
         // Update the metadata json with the new file's class UUID and write it back to the .meta file.
-        lMetaFileJson[lFileName] = FileSystem.identifierOfClass(pFileClass);
+        lMetaFileJson[lNativeFileName] = pFileClassIdentifier;
 
         // Write updated metadata back to the .meta file.
-        const lMetaFileHandle: FileSystemFileHandle = await lDirectory.getFileHandle(FileApiFileSystem.DIRECTORY_META_FILE, { create: true });
-        const lMetaWritable: FileSystemWritableFileStream = await lMetaFileHandle.createWritable();
-        await lMetaWritable.write(JSON.stringify(lMetaFileJson));
-        await lMetaWritable.close();
+        await this.writeDirectoryMeta(lDirectory, lMetaFileJson);
 
-        return pFilePath;
+        // Return the logical file reference (path) for the stored file.
+        return pParentReference === '' ? lNativeFileName : `${pParentReference}/${lNativeFileName}`;
     }
 
     /**
-     * Get a directory handle for the given logical path, creating directories along the way if necessary.
+     * Create a directory in the File System Access API backend.
      *
-     * @param pPath - The logical path to navigate to.
+     * @param pParentReference - The reference (path) of the parent directory.
+     * @param pDirectoryName - The name of the new directory.
      *
-     * @returns the directory handle for the given path.
+     * @returns the reference (path) for the new directory.
      */
-    private async getDirectoryHandle(pPath: string): Promise<FileSystemDirectoryHandle> {
-        const lPathSegments: Array<string> = pPath.split('/');
+    protected override async storeDirectory(pParentReference: string, pDirectoryName: string): Promise<string> {
+        // Create the actual directory path.
+        const lDirectoryPath: string = pParentReference === pDirectoryName ? '' : `${pParentReference}/${pDirectoryName}`;
 
-        // Navigate to the parent directory.
-        let lDirectory: FileSystemDirectoryHandle = this.mDirectoryHandle;
-        for (const lSegment of lPathSegments) {
-            lDirectory = await lDirectory.getDirectoryHandle(lSegment, { create: true });
+        // Get the directory handle of the new directory.
+        // This will create it.
+        await this.getDirectoryHandle(lDirectoryPath);
+
+        return lDirectoryPath;
+    }
+
+    /**
+     * Get a directory handle for the given reference path, navigating from the root handle.
+     *
+     * @param pReference - The reference path to navigate to. Empty string returns the root handle.
+     *
+     * @returns the directory handle at the given path.
+     */
+    private async getDirectoryHandle(pReference: string): Promise<FileSystemDirectoryHandle> {
+        // Return root handle if reference is empty.
+        if (pReference === '') {
+            return this.mRootDirectoryHandle;
         }
 
-        return lDirectory;
+        // Split reference into path segments.
+        const lSegments: Array<string> = pReference.split('/');
+
+        // Iteratively navigate through the directory segments to get the target handle.
+        let lHandle: FileSystemDirectoryHandle = this.mRootDirectoryHandle;
+        for (const lSegment of lSegments) {
+            lHandle = await lHandle.getDirectoryHandle(lSegment, { create: true });
+        }
+
+        return lHandle;
     }
 
     /**
-     * Read the directory's metadata file and parse it into an object mapping file names to class UUIDs.
+     * Read a directory's `_directory.meta` JSON file.
      *
-     * @param pDirectoryHandle - The directory handle to read the metadata for.
+     * @param pDirectoryHandle - The directory handle to read meta from.
      *
-     * @returns the parsed metadata object, or an empty object if no metadata exists or parsing fails.
+     * @returns the parsed meta object mapping file names to class identifiers, or an empty object if missing/corrupt.
      */
     private async readDirectoryMeta(pDirectoryHandle: FileSystemDirectoryHandle): Promise<FileApiFileSystemMeta> {
         // Read current metadata and try to parse its json content.
@@ -168,53 +272,19 @@ export class FileApiFileSystem extends FileSystem {
     }
 
     /**
-     * Recursively scan a directory handle and build a {@link FileSystemDirectory} tree.
+     * Write a directory's `_directory.meta` JSON file.
      *
-     * @param pHandle - The directory handle to scan.
-     * @param pPath - Current path that led to this directory. Can be empty.
-     *
-     * @returns the directory tree for this level.
+     * @param pDirectoryHandle - The directory handle to write meta to.
+     * @param pMeta - The meta object to serialize and write.
      */
-    private async scanDirectory(pHandle: FileSystemDirectoryHandle, pPath: string): Promise<FileSystemDirectory> {
-        const lTree: FileSystemDirectory = { files: {} };
+    private async writeDirectoryMeta(pDirectoryHandle: FileSystemDirectoryHandle, pMeta: FileApiFileSystemMeta): Promise<void> {
+        // Get the meta file from native storage.
+        const lMetaHandle: FileSystemFileHandle = await pDirectoryHandle.getFileHandle(FileApiFileSystem.DIRECTORY_META_FILE, { create: true });
 
-        // Read and deserialize the directory's metadata file to get class identifier for contained files.
-        const lMetaFileJson: FileApiFileSystemMeta = await this.readDirectoryMeta(pHandle);
-
-        for await (const [lFileSystemEntryName, lFileSystemHandle] of pHandle.entries()) {
-            if (lFileSystemHandle.kind === 'directory') {
-                // "Parse" handle into a directory handle.
-                const lDirectoryHandle: FileSystemDirectoryHandle = lFileSystemHandle as FileSystemDirectoryHandle;
-
-                // Recurse into subdirectory.
-                const lDirectoryPath: string = pPath === '' ? lFileSystemEntryName : `${pPath}/${lFileSystemEntryName}`;
-
-                // Recursive save result as a dictionary entry.
-                lTree.files[lFileSystemEntryName] = {
-                    type: FileSystemFileType.Directory,
-                    data: await this.scanDirectory(lDirectoryHandle, lDirectoryPath)
-                };
-            } else if (lFileSystemHandle.kind === 'file' && lFileSystemEntryName.endsWith(FileApiFileSystem.BIN_EXTENSION)) {
-                // File entry — strip .bin extension to get the logical name.
-                const lFileName: string = lFileSystemEntryName.slice(0, -FileApiFileSystem.BIN_EXTENSION.length);
-                const lFullPath: string = pPath === '' ? lFileName : `${pPath}/${lFileName}`;
-
-                // Read companion .meta file for class UUID.
-                const lClassIdentifier: string | undefined = lMetaFileJson[lFileName];
-                if (!lClassIdentifier) {
-                    // No class identifier, skip this file as it's likely a stray .bin without metadata.
-                    continue;
-                }
-
-                // Save file entry with reference to the logical path and the class identifier from metadata.
-                lTree.files[lFileName] = {
-                    type: FileSystemFileType.File,
-                    data: { reference: lFullPath, classIdentifier: lClassIdentifier }
-                };
-            }
-        }
-
-        return lTree;
+        // Write serialized metadata to the meta file.
+        const lWritable: FileSystemWritableFileStream = await lMetaHandle.createWritable();
+        await lWritable.write(JSON.stringify(pMeta));
+        await lWritable.close();
     }
 }
 

@@ -1,12 +1,12 @@
+import { Exception } from '@kartoffelgames/core';
 import { WebDatabase } from '@kartoffelgames/web-database';
-import { FileSystem, type FileSystemDirectory, type FileSystemDirectoryEntry } from '../file-system.ts';
-import { IndexDbFileSystemItem } from "./index-db-file-system-item.ts";
-
+import { FileSystem, FileSystemFileType, type FileSystemDirectoryEntry } from '../file-system.ts';
+import { IndexDbFileSystemItem, type IndexDbFileSystemItemDirectoryData, type IndexDbFileSystemItemFileData } from './index-db-file-system-item.ts';
 
 /**
  * IndexedDB-backed file system implementation.
- * Stores blobs in a key-value table (referenced by UUID) and the directory tree
- * in a separate table where each root-level entry has its own row.
+ * Stores file blobs and directory structure in a single IndexedDB table
+ * where each entry is keyed by a unique UUID reference.
  */
 export class IndexDbFileSystem extends FileSystem {
     private static readonly ROOT_DIRECTORY_REFERENCE: string = 'b2b479cb-587d-4815-a39e-906565b58344';
@@ -19,7 +19,7 @@ export class IndexDbFileSystem extends FileSystem {
      * @param pScope - Database scope name. Used as the IndexedDB database name.
      */
     public constructor(pScope: string) {
-        super();
+        super(IndexDbFileSystem.ROOT_DIRECTORY_REFERENCE);
         this.mDatabase = new WebDatabase(pScope, [IndexDbFileSystemItem]);
     }
 
@@ -31,112 +31,188 @@ export class IndexDbFileSystem extends FileSystem {
     }
 
     /**
-     * Delete a file from the storage backend.
-     * 
-     * @param pFileReference - The file reference of the file to delete.
-     * 
-     * @returns `true` if the file was deleted, `false` if it did not exist.
+     * Delete a file system item by reference. Updates the parent directory's children mapping.
+     *
+     * @param pParentReference - The reference of the parent directory.
+     * @param pReference - The reference of the item to delete.
+     *
+     * @returns `true` if the item was deleted, `false` if it did not exist.
      */
-    protected override async deleteFile(pFileReference: string): Promise<boolean> {
-        // Open database transaction to delete the file entry with the given reference.
+    protected override async deleteReference(pParentReference: string, pReference: string): Promise<boolean> {
+        // Open a read-write transaction to delete the item and update the parent directory's children mapping.
         return this.mDatabase.transaction([IndexDbFileSystemItem], 'readwrite', async (pTransaction) => {
-            // Find the file entry with the given reference.
-            const lFileEntries: Array<IndexDbFileSystemFile> = await pTransaction.table(IndexDbFileSystemFile).where('reference').is(pFileReference).read();
-            if (lFileEntries.length === 0) {
+            // Find the item entry.
+            const lRemovedItem: IndexDbFileSystemItem | undefined = (await pTransaction.table(IndexDbFileSystemItem).where('reference').is(pReference).read()).at(0);
+            if (!lRemovedItem) {
                 return false;
             }
 
-            // Remove the file entry from the database.
-            await pTransaction.table(IndexDbFileSystemFile).delete(lFileEntries[0]);
+            // Update parent directory's children mapping.
+            const lDirectoryItem: IndexDbFileSystemItem | undefined = (await pTransaction.table(IndexDbFileSystemItem).where('reference').is(pParentReference).read()).at(0);
+            if (lDirectoryItem) {
+                // Parse the directory's children mapping, delete the entry.
+                const lParentData: IndexDbFileSystemItemDirectoryData = lDirectoryItem.data as IndexDbFileSystemItemDirectoryData;
+                delete lParentData[lRemovedItem.name];
 
-            // Directory item can be left dangling.
+                // Write updated directory entry back to the database.
+                await pTransaction.table(IndexDbFileSystemItem).put(lDirectoryItem);
+            }
+
+            // Delete the item entry.
+            await pTransaction.table(IndexDbFileSystemItem).delete(lRemovedItem);
 
             return true;
         });
     }
 
     /**
-     * @inheritdoc
+     * Read the immediate children of a directory from the IndexedDB backend.
+     *
+     * @param pReference - The reference of the directory to list.
+     *
+     * @returns array of directory entries, or an empty array when the directory is empty or not found.
      */
-    protected override async readDirectoryTree(): Promise<FileSystemDirectory> {
-        const lRows: Array<IndexDbFileSystemDirectory> = await this.mDatabase.transaction([IndexDbFileSystemDirectory], 'readonly', async (pTransaction) => {
-            return pTransaction.table(IndexDbFileSystemDirectory).getAll();
-        });
-
-        // Reconstruct the root directory tree from stored rows.
-        const lTree: FileSystemDirectory = { files: {} };
-        for (const lRow of lRows) {
-            lTree.files[lRow.name] = JSON.parse(lRow.data) as FileSystemDirectoryEntry;
-        }
-
-        return lTree;
-    }
-
-    /**
-     * Read a file blob from the storage backend.
-     * 
-     * @param pFileReference - The file reference of the file to read.
-     * 
-     * @returns The file's Blob data.
-     */
-    protected override async readFile(pFileReference: string): Promise<Blob> {
-        // Open database as readonly.
-        return this.mDatabase.transaction([IndexDbFileSystemFile], 'readonly', async (pTransaction) => {
-            // Read all file entries with the given reference.
-            const lFileEntries: Array<IndexDbFileSystemFile> = await pTransaction.table(IndexDbFileSystemFile).where('reference').is(pFileReference).read();
-            if (lFileEntries.length === 0) {
-                throw new Error(`File not found in IndexedDB: ${pFileReference}`);
+    protected override async readDirectoryItems(pReference: string): Promise<Array<FileSystemDirectoryEntry>> {
+        // Open a read-only transaction to get the directory entry by reference.
+        return this.mDatabase.transaction([IndexDbFileSystemItem], 'readonly', async (pTransaction) => {
+            // Read the directory entry.
+            const lDirectoryItem: IndexDbFileSystemItem | undefined = (await pTransaction.table(IndexDbFileSystemItem).where('reference').is(pReference).read()).at(0);
+            if (!lDirectoryItem) {
+                return [];
             }
 
-            return lFileEntries[0].data;
+            const lDirectoryData: IndexDbFileSystemItemDirectoryData = lDirectoryItem.data as IndexDbFileSystemItemDirectoryData;
+
+            // For each child, read its entry to get type and class identifier.
+            const lResult: Array<FileSystemDirectoryEntry> = [];
+            for (const lChildReference of Object.values(lDirectoryData)) {
+                // Get child item reference.
+                const lChildItem: IndexDbFileSystemItem | undefined = (await pTransaction.table(IndexDbFileSystemItem).where('reference').is(lChildReference).read()).at(0);
+                if (!lChildItem) {
+                    continue;
+                }
+
+                // Try to read class identifier for files.
+                let lClassIdentifier: string | null = null;
+                if (lChildItem.itemType === FileSystemFileType.File) {
+                    lClassIdentifier = lChildItem.data.classIdentifier;
+                }
+
+                lResult.push({
+                    name: lChildItem.name,
+                    type: lChildItem.itemType,
+                    reference: lChildReference,
+                    classIdentifier: lClassIdentifier,
+                });
+            }
+
+            return lResult;
         });
     }
 
     /**
-     * Store a file blob in the storage backend.
-     * 
-     * @param pPath - The file path where the file should be stored.
-     * @param pFileClass - The class constructor associated with the file.
-     * @param pFile - The file's Blob data.
-     * @param _pClassUuid - The class UUID associated with the file.
-     * 
-     * @returns The file reference of the stored file.
+     * Read a file blob from the IndexedDB backend.
+     *
+     * @param pFileReference - The reference of the file to read.
+     *
+     * @returns the file's Blob data.
      */
-    protected override async storeFile(pPath: string, pFileClass: IVoidParameterConstructor<object>, pFile: Blob): Promise<string> {
+    protected override async readFile(pFileReference: string): Promise<Blob> {
+        // Open a read-only transaction to get the file entry by reference, then return its blob data.
+        return this.mDatabase.transaction([IndexDbFileSystemItem], 'readonly', async (pTransaction) => {
+            // Read the file entry.
+            const lFileItem: IndexDbFileSystemItem | undefined = (await pTransaction.table(IndexDbFileSystemItem).where('reference').is(pFileReference).read()).at(0);
+            if (!lFileItem) {
+                throw new Exception(`File not found in IndexedDB: ${pFileReference}`, this);
+            }
 
-        // Open the databse file and directory tables as readwrite to store the new file and update the directory tree if needed.
-        return await this.mDatabase.transaction([IndexDbFileSystemFile, IndexDbFileSystemDirectory], 'readwrite', async (pTransaction) => {
-            // Create a unique file reference (UUID) for the new file entry.
-            const lFileReference: string = crypto.randomUUID();
+            // Return the blob data.
+            return (lFileItem.data as IndexDbFileSystemItemFileData).data;
+        });
+    }
 
-            // Create a new file entry.
-            const lFileEntry: IndexDbFileSystemFile = new IndexDbFileSystemFile();
-            lFileEntry.classIdentifier = FileSystem.identifierOfClass(pFileClass);
-            lFileEntry.reference = lFileReference;
-            lFileEntry.data = pFile;
-            await pTransaction.table(IndexDbFileSystemFile).put(lFileEntry);
+    /**
+     * Store a file blob in the IndexedDB backend. Updates the parent directory's children mapping.
+     *
+     * @param pParentReference - The reference of the parent directory.
+     * @param pFileName - The name of the file within the parent directory.
+     * @param _pFileClass - The class constructor of the stored object.
+     * @param pFile - The file's Blob data.
+     *
+     * @returns the generated UUID reference for the stored file.
+     */
+    protected override async storeFile(pParentReference: string, pFileName: string, pFileClassIdentifier: string, pFile: Blob): Promise<string> {
+        // Create a unique reference for the new file entry.
+        const lFileReference: string = crypto.randomUUID();
 
-            // Split path into segments and update the directory tree accordingly.
-            const lPathSegments: Array<string> = pPath.split('/').filter((pSegment) => pSegment.length > 0);
+        // Create the file entry.
+        const lFileItem: IndexDbFileSystemItem = new IndexDbFileSystemItem();
+        lFileItem.itemType = FileSystemFileType.File;
+        lFileItem.name = pFileName;
+        lFileItem.reference = lFileReference;
+        lFileItem.data = {
+            classIdentifier: pFileClassIdentifier,
+            data: pFile,
+        };
 
-            // Iterate through path segments to find the correct directory to store the file reference in.
-            let lCurrentDirectory: IndexDbFileSystemDirectory| undefined = (await pTransaction.table(IndexDbFileSystemDirectory).where('reference').is(IndexDbFileSystem.ROOT_DIRECTORY_REFERENCE).read())[0];
-            do{
-                // Validate that the current directory exists.
-                if (!lCurrentDirectory) {
-                    throw new Error('Invalid file path: ' + pPath);
-                }
+        return this.mDatabase.transaction([IndexDbFileSystemItem], 'readwrite', async (pTransaction) => {
+            // Store the file entry in the database.
+            await pTransaction.table(IndexDbFileSystemItem).put(lFileItem);
 
-                const lNextSegment: string | undefined = lPathSegments.shift();
-                if (!lNextSegment) {
-                    throw new Error('Invalid file path: ' + pPath);
-                }
+            // Try to read the parent directory entry.
+            const lParentDirectoryItem: IndexDbFileSystemItem | undefined = (await pTransaction.table(IndexDbFileSystemItem).where('reference').is(pParentReference).read()).at(0);
+            if (!lParentDirectoryItem) {
+                throw new Exception(`Parent directory entry not found for reference: ${pParentReference}`, this);
+            }
 
+            // Update its children mapping.
+            const lParentData: IndexDbFileSystemItemDirectoryData = lParentDirectoryItem.data as IndexDbFileSystemItemDirectoryData;
+            lParentData[pFileName] = lFileReference;
 
-            } while (lPathSegments.length > 1);
-
+            // Store the updated parent entry back to the database.
+            await pTransaction.table(IndexDbFileSystemItem).put(lParentDirectoryItem);
 
             return lFileReference;
+        });
+    }
+
+    /**
+     * Create a directory in the IndexedDB backend. Updates the parent directory's children mapping.
+     *
+     * @param pParentReference - The reference of the parent directory.
+     * @param pDirectoryName - The name of the new directory.
+     *
+     * @returns the generated UUID reference for the new directory.
+     */
+    protected override async storeDirectory(pParentReference: string, pDirectoryName: string): Promise<string> {
+        // Create a unique reference for the new directory entry.
+        const lDirReference: string = crypto.randomUUID();
+
+        // Create the directory entry with empty children.
+        const lDirectoryItem: IndexDbFileSystemItem = new IndexDbFileSystemItem();
+        lDirectoryItem.itemType = FileSystemFileType.Directory;
+        lDirectoryItem.name = pDirectoryName;
+        lDirectoryItem.reference = lDirReference;
+        lDirectoryItem.data = {};
+
+        return this.mDatabase.transaction([IndexDbFileSystemItem], 'readwrite', async (pTransaction) => {
+            // Store the directory entry in the database.
+            await pTransaction.table(IndexDbFileSystemItem).put(lDirectoryItem);
+
+            // Try to read the parent directory entry.
+            const lParentDirectoryItem: IndexDbFileSystemItem | undefined = (await pTransaction.table(IndexDbFileSystemItem).where('reference').is(pParentReference).read()).at(0);
+            if (!lParentDirectoryItem) {
+                throw new Exception(`Parent directory entry not found for reference: ${pParentReference}`, this);
+            }
+
+            // Update its children mapping.
+            const lParentData: IndexDbFileSystemItemDirectoryData = lParentDirectoryItem.data as IndexDbFileSystemItemDirectoryData;
+            lParentData[pDirectoryName] = lDirReference;
+
+            // Store the updated parent entry back to the database.
+            await pTransaction.table(IndexDbFileSystemItem).put(lParentDirectoryItem);
+
+            return lDirReference;
         });
     }
 }

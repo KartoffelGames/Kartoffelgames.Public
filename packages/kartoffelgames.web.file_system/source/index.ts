@@ -1,5 +1,5 @@
 // File System - Shared
-export { FileSystem, FileSystemFileType, type FileSystemDirectory, type FileSystemDirectoryEntry, type FileSystemItem, type FileSystemPropertyConfig as FilePropertyConfig, FileSystemReferenceType } from './file-system.ts';
+export { FileSystem, FileSystemFileType, type FileSystemCacheItem, type FileSystemDirectoryEntry, type FileSystemItem, type FileSystemPropertyConfig as FilePropertyConfig, FileSystemReferenceType } from './file-system.ts';
 export { FileSystemLink } from './file-system-link.ts';
 
 // IndexDB File System

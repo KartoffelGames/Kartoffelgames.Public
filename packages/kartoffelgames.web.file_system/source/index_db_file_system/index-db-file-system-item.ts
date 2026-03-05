@@ -2,13 +2,16 @@ import { WebDatabase } from '@kartoffelgames/web-database';
 import { FileSystemFileType } from "../file-system.ts";
 
 /**
- * Internal database table for storing serialized file entries.
- * Each entry maps a file reference to serialized binary data.
+ * Internal database table for storing file system entries.
+ * Each entry maps a unique reference to either file data (blob + class identifier)
+ * or directory data (children name-to-reference mapping).
  */
 @WebDatabase.table('files')
 export class IndexDbFileSystemItem {
     /**
-     * The binary data of the file.
+     * The binary data of the entry.
+     * For files: contains classIdentifier and blob data.
+     * For directories: contains a name-to-reference mapping of children.
      */
     @WebDatabase.field()
     public data!: IndexDbFileSystemItemData;
@@ -20,7 +23,13 @@ export class IndexDbFileSystemItem {
     public itemType!: FileSystemFileType;
 
     /**
-     * Unique reference for this file entry, used as the primary key. Can be a UUID or any unique string.
+     * The display name of this entry within its parent directory.
+     */
+    @WebDatabase.field()
+    public name!: string;
+
+    /**
+     * Unique reference for this entry, used as the primary key. Can be a UUID or any unique string.
      */
     @WebDatabase.field({ as: { identity: 'manual' } })
     public reference!: string;

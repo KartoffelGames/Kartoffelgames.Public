@@ -1,475 +1,221 @@
-import { Exception, type IVoidParameterConstructor } from '@kartoffelgames/core';
-import { BlobSerializer } from '@kartoffelgames/core-serializer';
-import { FileSystem, FileSystemReferenceType } from '../file-system.ts';
-import { FileSystemItemType, type FileSystemItem, type IFileSystem } from '../i-file-system.ts';
+import { IVoidParameterConstructor } from "@kartoffelgames/core";
+import { FileSystem, FileSystemFileType, type FileSystemDirectory, type FileSystemDirectoryEntry } from '../file-system.ts';
 
 /**
- * File System Access API-backed file system implementation.
- * Uses a {@link FileSystemDirectoryHandle} for persistent storage.
- * Multiple objects can be stored in a single blob via sub-paths, and each object is
- * addressable by a single read path.
- *
- * Objects are serialized via {@link BlobSerializer} and stored as files via the File System Access API.
- * A JSON index file maps single read paths to their (filePath, subPath) pairs.
+ * File system implementation backed by the File System Access API.
+ * Stores blobs as `.bin` files in real directories mirroring the logical path structure.
+ * Each `.bin` file has a companion `.meta` sidecar file containing the class UUID.
  */
-export class FileApiFileSystem implements IFileSystem {
-    private static readonly INDEX_FILE_NAME: string = '_file_system_index_.json';
+export class FileApiFileSystem extends FileSystem {
+    private static readonly BIN_EXTENSION: string = '.bin';
+    private static readonly DIRECTORY_META_FILE: string = '_directory.meta';
 
     private readonly mDirectoryHandle: FileSystemDirectoryHandle;
-    private readonly mSingletonCache: Map<string, WeakRef<object>>;
 
     /**
      * Constructor.
      *
-     * @param pDirectoryHandle - The directory handle to use for storage.
+     * @param pDirectoryHandle - Handle to the root directory used for storage.
      */
     public constructor(pDirectoryHandle: FileSystemDirectoryHandle) {
+        super();
         this.mDirectoryHandle = pDirectoryHandle;
-        this.mSingletonCache = new Map();
     }
 
     /**
-     * List the immediate children of the given path as a virtual directory tree.
-     *
-     * @param pPath - Parent path to list children of. Case-insensitive.
-     *                An empty string lists root-level items.
-     *
-     * @returns array of immediate child items, or an empty array when no children exist.
+     * Delete a file from the storage backend.
+     * 
+     * @param pFileReference - The file reference to delete, which is the logical path used when storing.
+     * 
+     * @returns `true` if the file was deleted, `false` if it did not exist.
      */
-    public async contentOf(pPath: string): Promise<Array<FileSystemItem>> {
-        const lNormalizedPath: string = pPath.toLowerCase();
-        const lPrefix: string = lNormalizedPath === '' ? '' : `${lNormalizedPath}/`;
+    protected override async deleteFile(pFileReference: string): Promise<boolean> {
+        try {
+            // Find last segment to separate directory path from file name.
+            const lLastIndexOfSeperator = pFileReference.lastIndexOf('/');
+            const lDirectoryPath = pFileReference.substring(0, lLastIndexOfSeperator);
+            const lFileName = pFileReference.substring(lLastIndexOfSeperator + 1);
 
-        // Read the path index.
-        const lIndex: Array<FileApiFileSystemPathEntry> = await this.readFileSystemIndex();
+            // Navigate to the parent directory.
+            const lDirectory: FileSystemDirectoryHandle = await this.getDirectoryHandle(lDirectoryPath);
 
-        // Collect unique immediate child segment names and track whether they are read paths or prefixes.
-        const lSegmentIsReadPath: Map<string, FileApiFileSystemPathEntry> = new Map();
-        const lSegmentHasChildren: Set<string> = new Set();
+            // Remove the .bin.
+            await lDirectory.removeEntry(`${lFileName}${FileApiFileSystem.BIN_EXTENSION}`);
 
-        for (const lEntry of lIndex) {
-            // Skip paths that don't start with the prefix.
-            if (!lEntry.readPath.startsWith(lPrefix)) {
-                continue;
-            }
+            // Ignore meta file, as the empty reference does nothing harmful.
 
-            // Extract the remaining part after the prefix.
-            const lRemaining: string = lEntry.readPath.substring(lPrefix.length);
-            if (lRemaining.length === 0) {
-                continue;
-            }
-
-            // Get the immediate child segment name.
-            const lSlashIndex: number = lRemaining.indexOf('/');
-            const lSegmentName: string = lSlashIndex === -1 ? lRemaining : lRemaining.substring(0, lSlashIndex);
-
-            if (lSlashIndex === -1) {
-                // This read path ends at this segment → it is (or could be) a File.
-                lSegmentIsReadPath.set(lSegmentName, lEntry);
-            } else {
-                // There are deeper paths → this segment has children.
-                lSegmentHasChildren.add(lSegmentName);
-            }
-        }
-
-        // Build the result list.
-        const lAllSegments: Set<string> = new Set([...lSegmentIsReadPath.keys(), ...lSegmentHasChildren]);
-        const lResult: Array<FileSystemItem> = [];
-
-        // Group file items by filePath to load each blob only once.
-        const lBlobCache: Map<string, BlobSerializer> = new Map();
-
-        for (const lSegmentName of lAllSegments) {
-            const lFullPath: string = lPrefix + lSegmentName;
-            const lIsDirectory: boolean = lSegmentHasChildren.has(lSegmentName);
-
-            if (lIsDirectory) {
-                // Directory (or both file and directory → directory wins).
-                lResult.push({
-                    classType: null,
-                    name: lSegmentName,
-                    path: lFullPath,
-                    type: FileSystemItemType.Directory,
-                });
-            } else {
-                // Pure File: load blob to get classType.
-                const lPathEntry: FileApiFileSystemPathEntry = lSegmentIsReadPath.get(lSegmentName)!;
-                let lClassType: IVoidParameterConstructor<object> | null = null;
-
-                // Load the blob (cached per filePath).
-                let lSerializer: BlobSerializer | undefined = lBlobCache.get(lPathEntry.filePath);
-                if (!lSerializer) {
-                    try {
-                        const lBlob: Blob = await this.readBlobFile(lPathEntry.filePath);
-                        lSerializer = new BlobSerializer();
-                        await lSerializer.load(lBlob);
-                        lBlobCache.set(lPathEntry.filePath, lSerializer);
-                    } catch {
-                        // File doesn't exist.
-                    }
-                }
-
-                if (lSerializer) {
-                    const lContentEntry = lSerializer.contents.find((pContent) => pContent.path === lPathEntry.subPath);
-                    if (lContentEntry) {
-                        lClassType = lContentEntry.classType;
-                    }
-                }
-
-                lResult.push({
-                    classType: lClassType,
-                    name: lSegmentName,
-                    path: lFullPath,
-                    type: FileSystemItemType.File,
-                });
-            }
-        }
-
-        return lResult;
-    }
-
-    /**
-     * Delete from the file system by path.
-     * First tries to match as a read path (single class). If no read path matches,
-     * tries to match as a file path (deletes the entire file and all its sub-entries).
-     *
-     * @param pPath - Read path or file path to delete. Case-insensitive.
-     *
-     * @throws Exception if the path does not match any read path or file path.
-     */
-    public async delete(pPath: string): Promise<void> {
-        const lNormalizedPath: string = pPath.toLowerCase();
-        const lIndex: Array<FileApiFileSystemPathEntry> = await this.readFileSystemIndex();
-
-        // Try to find as a read path first (single class deletion).
-        const lPathEntry: FileApiFileSystemPathEntry | undefined = lIndex.find((pEntry) => pEntry.readPath === lNormalizedPath);
-        if (lPathEntry) {
-            return this.deleteSubPath(lPathEntry, lIndex);
-        }
-
-        // Try as a file path (delete entire file).
-        const lFileEntries: Array<FileApiFileSystemPathEntry> = lIndex.filter((pEntry) => pEntry.filePath === lNormalizedPath);
-
-        if (lFileEntries.length > 0) {
-            return this.deleteFile(lNormalizedPath, lIndex);
-        }
-
-        throw new Exception(`File not found: ${pPath}`, this);
-    }
-
-    /**
-     * Check whether a given path exists in the file system.
-     * First checks read paths, then file paths.
-     *
-     * @param pPath - Read path or file path to check. Case-insensitive.
-     *
-     * @returns `true` when a matching read path or file path exists.
-     */
-    public async has(pPath: string): Promise<boolean> {
-        const lNormalizedPath: string = pPath.toLowerCase();
-        const lIndex: Array<FileApiFileSystemPathEntry> = await this.readFileSystemIndex();
-
-        // Check read paths.
-        const lReadPathMatch: boolean = lIndex.some((pEntry) => pEntry.readPath === lNormalizedPath);
-        if (lReadPathMatch) {
             return true;
-        }
-
-        // Check file paths.
-        return lIndex.some((pEntry) => pEntry.filePath === lNormalizedPath);
-    }
-
-    /**
-     * Read a serialized object from the file system by path.
-     * The path is resolved via the index to find the correct blob file and sub-path.
-     *
-     * For classes decorated with {@link FileSystemReferenceType.Singleton}, the deserialized
-     * instance is cached per path (as a {@link WeakRef}). Subsequent reads return the cached
-     * instance as long as the reference is still alive.
-     *
-     * @param pPath - Read path to the stored object. Case-insensitive.
-     *
-     * @returns the deserialized object.
-     *
-     * @throws Exception if no entry exists at the given path.
-     */
-    public async read<T extends object>(pPath: string): Promise<T> {
-        const lNormalizedPath: string = pPath.toLowerCase();
-
-        // Check singleton cache before deserializing.
-        const lCachedReference: WeakRef<object> | undefined = this.mSingletonCache.get(lNormalizedPath);
-        if (lCachedReference) {
-            const lCachedInstance: object | undefined = lCachedReference.deref();
-            if (lCachedInstance) {
-                return lCachedInstance as T;
-            }
-
-            // WeakRef expired, remove stale entry.
-            this.mSingletonCache.delete(lNormalizedPath);
-        }
-
-        // Look up the index to find filePath and subPath.
-        const lIndex: Array<FileApiFileSystemPathEntry> = await this.readFileSystemIndex();
-        const lPathEntry: FileApiFileSystemPathEntry | undefined = lIndex.find((pEntry) => pEntry.readPath === lNormalizedPath);
-        if (!lPathEntry) {
-            throw new Exception(`File not found: ${pPath}`, this);
-        }
-
-        // Read the blob from the file.
-        const lBlob: Blob = await this.readBlobFile(lPathEntry.filePath);
-
-        // Deserialize the blob and read the sub-path.
-        const lSerializer: BlobSerializer = new BlobSerializer();
-        await lSerializer.load(lBlob);
-
-        const lInstance: T = await lSerializer.read<T>(lPathEntry.subPath);
-
-        // Cache singleton instances.
-        const lReferenceType: FileSystemReferenceType = FileSystem.referenceTypeOf(lInstance.constructor as IVoidParameterConstructor<object>);
-        if (lReferenceType === FileSystemReferenceType.Singleton) {
-            this.mSingletonCache.set(lNormalizedPath, new WeakRef(lInstance));
-        }
-
-        return lInstance;
-    }
-
-    /**
-     * Serialize a single object and store it in the file system.
-     * The full path is used as both the file path and the read path.
-     *
-     * @param pPath - Full path (used as file name and read path). Case-insensitive.
-     * @param pObject - The serializable object to store.
-     */
-    public async store(pPath: string, pObject: object): Promise<void> {
-        const lNormalizedPath: string = pPath.toLowerCase();
-
-        // Serialize the single object into a new blob (empty sub-path key).
-        const lSerializer: BlobSerializer = new BlobSerializer();
-        lSerializer.store('', pObject);
-        const lBlob: Blob = await lSerializer.save();
-
-        // Write the blob file.
-        await this.writeBlobFile(lNormalizedPath, lBlob);
-
-        // Update the index.
-        const lIndex: Array<FileApiFileSystemPathEntry> = await this.readFileSystemIndex();
-
-        // Remove any existing entry for this read path.
-        const lFilteredIndex: Array<FileApiFileSystemPathEntry> = lIndex.filter((pEntry) => pEntry.readPath !== lNormalizedPath);
-
-        // Add the new entry.
-        lFilteredIndex.push({
-            readPath: lNormalizedPath,
-            filePath: lNormalizedPath,
-            subPath: ''
-        });
-
-        await this.writeIndex(lFilteredIndex);
-    }
-
-    /**
-     * Serialize an object and store it in a multi-class blob.
-     * Multiple objects can share the same file path with different sub-paths.
-     * The read path is constructed as `filePath/subPath` (case-insensitive).
-     *
-     * @param pFilePath - File path (file name). Case-insensitive.
-     * @param pSubPath - Sub-path within the blob. Case-insensitive.
-     * @param pObject - The serializable object to store.
-     */
-    public async storeMulti(pFilePath: string, pSubPath: string, pObject: object): Promise<void> {
-        const lNormalizedFilePath: string = pFilePath.toLowerCase();
-        const lNormalizedSubPath: string = pSubPath.toLowerCase();
-        const lReadPath: string = `${lNormalizedFilePath}/${lNormalizedSubPath}`;
-
-        // Read existing blob for this file path (if any) to append to it.
-        let lExistingBlob: Blob | null = null;
-        try {
-            lExistingBlob = await this.readBlobFile(lNormalizedFilePath);
         } catch {
-            // File doesn't exist yet, that's fine.
-        }
-
-        // Create a serializer and load existing blob if it exists to preserve existing entries.
-        const lSerializer: BlobSerializer = new BlobSerializer();
-
-        // If a blob already exists for this file path, load it to preserve existing entries.
-        if (lExistingBlob !== null) {
-            await lSerializer.load(lExistingBlob);
-        }
-
-        // Store the new object at the sub-path.
-        lSerializer.store(lNormalizedSubPath, pObject);
-
-        // Save the serializer to a new blob.
-        const lBlob: Blob = await lSerializer.save();
-
-        // Write the blob file.
-        await this.writeBlobFile(lNormalizedFilePath, lBlob);
-
-        // Update the index.
-        const lIndex: Array<FileApiFileSystemPathEntry> = await this.readFileSystemIndex();
-
-        // Remove any existing entry for this read path.
-        const lFilteredIndex: Array<FileApiFileSystemPathEntry> = lIndex.filter((pEntry) => pEntry.readPath !== lReadPath);
-
-        // Add the new entry.
-        lFilteredIndex.push({
-            readPath: lReadPath,
-            filePath: lNormalizedFilePath,
-            subPath: lNormalizedSubPath
-        });
-
-        await this.writeIndex(lFilteredIndex);
-    }
-
-    /**
-     * Delete an entire file and all its path index entries.
-     *
-     * @param pFilePath - The normalized file path to delete.
-     * @param pIndex - The current path index.
-     */
-    private async deleteFile(pFilePath: string, pIndex: Array<FileApiFileSystemPathEntry>): Promise<void> {
-        // Remove all path index entries for this file.
-        const lFilteredIndex: Array<FileApiFileSystemPathEntry> = pIndex.filter((pEntry) => pEntry.filePath !== pFilePath);
-        await this.writeIndex(lFilteredIndex);
-
-        // Delete the blob file.
-        await this.deleteBlobFile(pFilePath);
-    }
-
-    /**
-     * Delete a single sub-path from a file blob. If the blob becomes empty,
-     * the entire file entry is removed.
-     *
-     * @param pPathEntry - The path index entry to delete.
-     * @param pIndex - The current path index.
-     */
-    private async deleteSubPath(pPathEntry: FileApiFileSystemPathEntry, pIndex: Array<FileApiFileSystemPathEntry>): Promise<void> {
-        // Try to load the existing blob.
-        let lBlob: Blob | null = null;
-        try {
-            lBlob = await this.readBlobFile(pPathEntry.filePath);
-        } catch {
-            // File doesn't exist.
-        }
-
-        if (lBlob === null) {
-            // File entry doesn't exist, just clean up the path index.
-            const lFilteredIndex: Array<FileApiFileSystemPathEntry> = pIndex.filter((pEntry) => pEntry.readPath !== pPathEntry.readPath);
-            await this.writeIndex(lFilteredIndex);
-            return;
-        }
-
-        // Load blob and delete the sub-path.
-        const lSerializer: BlobSerializer = new BlobSerializer();
-        await lSerializer.load(lBlob);
-        lSerializer.delete(pPathEntry.subPath);
-
-        // Check if the blob still has entries.
-        if (lSerializer.contents.length > 0) {
-            // Save the modified blob back and remove only the path index entry.
-            const lUpdatedBlob: Blob = await lSerializer.save();
-            await this.writeBlobFile(pPathEntry.filePath, lUpdatedBlob);
-
-            const lFilteredIndex: Array<FileApiFileSystemPathEntry> = pIndex.filter((pEntry) => pEntry.readPath !== pPathEntry.readPath);
-            await this.writeIndex(lFilteredIndex);
-        } else {
-            // Blob is empty, delete the entire file.
-            await this.deleteFile(pPathEntry.filePath, pIndex);
+            return false;
         }
     }
 
     /**
-     * Encode a file path into a safe filename for the File System Access API.
-     * Uses base64url encoding to avoid issues with special characters.
+     * Load the full directory tree from the storage backend. Called once lazily on the first public method invocation.
      *
-     * @param pFilePath - The file path to encode.
-     *
-     * @returns the encoded filename with .bin extension.
+     * @returns - the stored directory tree, or an empty tree if none exists.
      */
-    private encodeFileName(pFilePath: string): string {
-        // Convert to base64 and make it URL-safe.
-        return btoa(pFilePath).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '') + '.bin';
+    protected override async readDirectoryTree(): Promise<FileSystemDirectory> {
+        return this.scanDirectory(this.mDirectoryHandle, '');
     }
 
     /**
-     * Delete a blob file from the directory.
+     * Read a file's blob data from storage.
      *
-     * @param pFilePath - The normalized file path (used to derive the filename).
+     * @param pFileReference - The file reference to read, which is the logical path used when storing.
      */
-    private async deleteBlobFile(pFilePath: string): Promise<void> {
-        const lFileName: string = this.encodeFileName(pFilePath);
-        await this.mDirectoryHandle.removeEntry(lFileName);
-    }
+    protected override async readFile(pFileReference: string): Promise<Blob> {
+        // Find last segment to separate directory path from file name.
+        const lLastIndexOfSeperator = pFileReference.lastIndexOf('/');
+        const lDirectoryPath = pFileReference.substring(0, lLastIndexOfSeperator);
+        const lFileName = pFileReference.substring(lLastIndexOfSeperator + 1);
 
-    /**
-     * Read a blob from a file in the directory.
-     *
-     * @param pFilePath - The normalized file path (used to derive the filename).
-     *
-     * @returns the blob read from the file.
-     *
-     * @throws if the file does not exist.
-     */
-    private async readBlobFile(pFilePath: string): Promise<Blob> {
-        const lFileName: string = this.encodeFileName(pFilePath);
-        const lFileHandle: FileSystemFileHandle = await this.mDirectoryHandle.getFileHandle(lFileName);
+        // Navigate to the parent directory.
+        const lDirectory: FileSystemDirectoryHandle = await this.getDirectoryHandle(lDirectoryPath);
+
+        // Read the .bin file for the blob data.
+        const lFileHandle: FileSystemFileHandle = await lDirectory.getFileHandle(`${lFileName}.bin`);
+
+        // Read the actual binary data from the file handle and return it.
         return lFileHandle.getFile();
     }
 
     /**
-     * Read the path index from the index file.
-     *
-     * @returns the array of path entries, or empty array if no index exists.
+     * Store a file blob in the storage backend.
+     * 
+     * @param pFilePath - The logical file path to store under. Should be unique and consistent for the same logical file.
+     * @param pFile - The file's blob data to store.
+     * @param pClassUuid - The class UUID to store in the companion metadata file.
+     * 
+     * @returns The file reference to use for future access, which is the same as the logical path.
      */
-    private async readFileSystemIndex(): Promise<Array<FileApiFileSystemPathEntry>> {
-        try {
-            const lFileHandle: FileSystemFileHandle = await this.mDirectoryHandle.getFileHandle(FileApiFileSystem.INDEX_FILE_NAME);
-            const lFile: File = await lFileHandle.getFile();
-            const lText: string = await lFile.text();
+    protected override async storeFile(pFilePath: string, pFileClass: IVoidParameterConstructor<object>, pFile: Blob): Promise<string> {
+        // Find last segment to separate directory path from file name.
+        const lLastIndexOfSeperator = pFilePath.lastIndexOf('/');
+        const lDirectoryPath = pFilePath.substring(0, lLastIndexOfSeperator);
+        const lFileName = pFilePath.substring(lLastIndexOfSeperator + 1);
 
-            return JSON.parse(lText) as Array<FileApiFileSystemPathEntry>;
-        } catch {
-            // Index file doesn't exist yet.
-            return [];
+        // Navigate/create real subdirectories.
+        const lDirectory: FileSystemDirectoryHandle = await this.getDirectoryHandle(lDirectoryPath);
+
+        // Write the blob as <fileName>.bin.
+        const lBinHandle: FileSystemFileHandle = await lDirectory.getFileHandle(`${lFileName}.bin`, { create: true });
+        const lBinWritable: FileSystemWritableFileStream = await lBinHandle.createWritable();
+        await lBinWritable.write(pFile);
+        await lBinWritable.close();
+
+        // Read existing metadata for the directory to update it with the new file's class UUID.
+        const lMetaFileJson: FileApiFileSystemMeta = await this.readDirectoryMeta(lDirectory);
+
+        // Update the metadata json with the new file's class UUID and write it back to the .meta file.
+        lMetaFileJson[lFileName] = FileSystem.identifierOfClass(pFileClass);
+
+        // Write updated metadata back to the .meta file.
+        const lMetaFileHandle: FileSystemFileHandle = await lDirectory.getFileHandle(FileApiFileSystem.DIRECTORY_META_FILE, { create: true });
+        const lMetaWritable: FileSystemWritableFileStream = await lMetaFileHandle.createWritable();
+        await lMetaWritable.write(JSON.stringify(lMetaFileJson));
+        await lMetaWritable.close();
+
+        return pFilePath;
+    }
+
+    /**
+     * Get a directory handle for the given logical path, creating directories along the way if necessary.
+     *
+     * @param pPath - The logical path to navigate to.
+     *
+     * @returns the directory handle for the given path.
+     */
+    private async getDirectoryHandle(pPath: string): Promise<FileSystemDirectoryHandle> {
+        const lPathSegments: Array<string> = pPath.split('/');
+
+        // Navigate to the parent directory.
+        let lDirectory: FileSystemDirectoryHandle = this.mDirectoryHandle;
+        for (const lSegment of lPathSegments) {
+            lDirectory = await lDirectory.getDirectoryHandle(lSegment, { create: true });
         }
+
+        return lDirectory;
     }
 
     /**
-     * Write a blob to a file in the directory.
+     * Read the directory's metadata file and parse it into an object mapping file names to class UUIDs.
      *
-     * @param pFilePath - The normalized file path (used to derive the filename).
-     * @param pBlob - The blob to write.
+     * @param pDirectoryHandle - The directory handle to read the metadata for.
+     *
+     * @returns the parsed metadata object, or an empty object if no metadata exists or parsing fails.
      */
-    private async writeBlobFile(pFilePath: string, pBlob: Blob): Promise<void> {
-        const lFileName: string = this.encodeFileName(pFilePath);
-        const lFileHandle: FileSystemFileHandle = await this.mDirectoryHandle.getFileHandle(lFileName, { create: true });
-        const lWritable: FileSystemWritableFileStream = await lFileHandle.createWritable();
+    private async readDirectoryMeta(pDirectoryHandle: FileSystemDirectoryHandle): Promise<FileApiFileSystemMeta> {
+        // Read current metadata and try to parse its json content.
+        const lMetaFileHandle: FileSystemFileHandle = await pDirectoryHandle.getFileHandle(FileApiFileSystem.DIRECTORY_META_FILE, { create: true });
+        const lMetaFile: File = await lMetaFileHandle.getFile();
+        const lMetaFileText: string = await lMetaFile.text();
 
-        await lWritable.write(pBlob);
-        await lWritable.close();
+        // Deserialize metadata, or return empty object if it doesn't exist or fails to parse.
+        // We don't want to block saving just because the metadata is corrupted.
+        return (() => {
+            if (!lMetaFileText) {
+                return {};
+            }
+
+            try {
+                return JSON.parse(lMetaFileText) as { [FileName: string]: string; };
+            } catch {
+                // If parsing fails, overwrite with a new object to avoid blocking the save.
+                return {};
+            }
+        })();
     }
 
     /**
-     * Write the path index to the index file.
+     * Recursively scan a directory handle and build a {@link FileSystemDirectory} tree.
      *
-     * @param pIndex - The array of path entries to persist.
+     * @param pHandle - The directory handle to scan.
+     * @param pPath - Current path that led to this directory. Can be empty.
+     *
+     * @returns the directory tree for this level.
      */
-    private async writeIndex(pIndex: Array<FileApiFileSystemPathEntry>): Promise<void> {
-        const lFileHandle: FileSystemFileHandle = await this.mDirectoryHandle.getFileHandle(FileApiFileSystem.INDEX_FILE_NAME, { create: true });
-        const lWritable: FileSystemWritableFileStream = await lFileHandle.createWritable();
+    private async scanDirectory(pHandle: FileSystemDirectoryHandle, pPath: string): Promise<FileSystemDirectory> {
+        const lTree: FileSystemDirectory = { files: {} };
 
-        await lWritable.write(JSON.stringify(pIndex));
-        await lWritable.close();
+        // Read and deserialize the directory's metadata file to get class identifier for contained files.
+        const lMetaFileJson: FileApiFileSystemMeta = await this.readDirectoryMeta(pHandle);
+
+        for await (const [lFileSystemEntryName, lFileSystemHandle] of pHandle.entries()) {
+            if (lFileSystemHandle.kind === 'directory') {
+                // "Parse" handle into a directory handle.
+                const lDirectoryHandle: FileSystemDirectoryHandle = lFileSystemHandle as FileSystemDirectoryHandle;
+
+                // Recurse into subdirectory.
+                const lDirectoryPath: string = pPath === '' ? lFileSystemEntryName : `${pPath}/${lFileSystemEntryName}`;
+
+                // Recursive save result as a dictionary entry.
+                lTree.files[lFileSystemEntryName] = {
+                    type: FileSystemFileType.Directory,
+                    data: await this.scanDirectory(lDirectoryHandle, lDirectoryPath)
+                };
+            } else if (lFileSystemHandle.kind === 'file' && lFileSystemEntryName.endsWith(FileApiFileSystem.BIN_EXTENSION)) {
+                // File entry — strip .bin extension to get the logical name.
+                const lFileName: string = lFileSystemEntryName.slice(0, -FileApiFileSystem.BIN_EXTENSION.length);
+                const lFullPath: string = pPath === '' ? lFileName : `${pPath}/${lFileName}`;
+
+                // Read companion .meta file for class UUID.
+                const lClassIdentifier: string | undefined = lMetaFileJson[lFileName];
+                if (!lClassIdentifier) {
+                    // No class identifier, skip this file as it's likely a stray .bin without metadata.
+                    continue;
+                }
+
+                // Save file entry with reference to the logical path and the class identifier from metadata.
+                lTree.files[lFileName] = {
+                    type: FileSystemFileType.File,
+                    data: { reference: lFullPath, classIdentifier: lClassIdentifier }
+                };
+            }
+        }
+
+        return lTree;
     }
 }
 
-/**
- * Path index entry for the FileApiFileSystem.
- * Maps a read path to its file path and sub-path within the blob.
- */
-type FileApiFileSystemPathEntry = {
-    filePath: string;
-    readPath: string;
-    subPath: string;
-};
+type FileApiFileSystemMeta = Record<string, string>;

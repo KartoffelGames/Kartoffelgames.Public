@@ -18,9 +18,9 @@ export class SerializerMetadata {
      *
      * @throws Error if UUID has not been set.
      */
-    public get uuid(): string | null {
+    public get identifier(): string | null {
         return this.mUuid;
-    } set uuid(pUuid: string | null) {
+    } set identifier(pUuid: string | null) {
         this.mUuid = pUuid;
     }
 

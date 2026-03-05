@@ -1,5 +1,5 @@
 import { Serializer } from '@kartoffelgames/core-serializer';
-import type { IFileSystem } from './i-file-system.ts';
+import type { FileSystem } from './file-system.ts';
 
 /**
  * A serializable link to a file system entry that can be resolved lazily.
@@ -66,7 +66,7 @@ export class FileSystemLink<T extends object> {
      *
      * @returns the resolved object.
      */
-    public async resolve(pFileSystem: IFileSystem): Promise<T> {
+    public async resolve(pFileSystem: FileSystem): Promise<T> {
         if (this.mInstance === null) {
             this.mInstance = await pFileSystem.read<T>(this.mPath);
         }

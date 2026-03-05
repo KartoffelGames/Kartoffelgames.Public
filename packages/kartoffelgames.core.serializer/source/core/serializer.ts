@@ -9,23 +9,24 @@ import { type PropertySerializationConfig, SerializerMetadata } from './serializ
  */
 export class Serializer {
     private static readonly mMetadataKey: symbol = Symbol('SerializerMetadata');
-    private static readonly mRegistry: Map<string, IVoidParameterConstructor<object>> = new Map<string, IVoidParameterConstructor<object>>();
+    private static readonly mIdentifierRegistry: Map<string, IVoidParameterConstructor<object>> = new Map<string, IVoidParameterConstructor<object>>();
+    private static readonly mClassRegistry: Map<IVoidParameterConstructor<object>, string> = new Map<IVoidParameterConstructor<object>, string>();
 
     /**
-     * Resolve a constructor by its registered UUID.
+     * Resolve a constructor by its registered identifier.
      *
-     * @param pUuid - The UUID to look up.
+     * @param pIdentifier - The identifier to look up.
      *
      * @returns the registered constructor.
      *
-     * @throws Exception if the UUID is not registered.
+     * @throws Exception if the identifier is not registered.
      */
-    public static classOfUuid(pUuid: string): IVoidParameterConstructor<object> {
-        if (!Serializer.mRegistry.has(pUuid)) {
-            throw new Exception(`Serializer type "${pUuid}" is not registered. Ensure @Serializer.class() is applied and the class is imported before deserialization.`, Serializer);
+    public static classOfIdentifier(pIdentifier: string): IVoidParameterConstructor<object> {
+        if (!Serializer.mIdentifierRegistry.has(pIdentifier)) {
+            throw new Exception(`Serializer type "${pIdentifier}" is not registered. Ensure @Serializer.class() is applied and the class is imported before deserialization.`, Serializer);
         }
 
-        return Serializer.mRegistry.get(pUuid)!;
+        return Serializer.mIdentifierRegistry.get(pIdentifier)!;
     }
 
     /**
@@ -75,13 +76,13 @@ export class Serializer {
     }
 
     /**
-     * Class decorator. Marks a class as serializable and registers it by UUID.
+     * Class decorator. Marks a class as serializable and registers it by identifier.
      *
-     * @param pUuid - Unique identifier string for this class type.
+     * @param pIdentifier - Unique identifier string for this class type.
      *
      * @returns class decorator function.
      */
-    public static serializeableClass<TThis extends object>(pUuid: string): (_pTarget: InjectionConstructor<TThis>, pContext: ClassDecoratorContext<InjectionConstructor<TThis>>) => void {
+    public static serializeableClass<TThis extends object>(pIdentifier: string): (_pTarget: InjectionConstructor<TThis>, pContext: ClassDecoratorContext<InjectionConstructor<TThis>>) => void {
         return (_pTarget: InjectionConstructor<TThis>, pContext: ClassDecoratorContext<InjectionConstructor<TThis>>): void => {
             // Get or create metadata for this class.
             const lConstructorMetadata: ConstructorMetadata = Metadata.forInternalDecorator(pContext.metadata);
@@ -94,17 +95,17 @@ export class Serializer {
             }
 
             // Check for duplicates.
-            if (Serializer.mRegistry.has(pUuid)) {
-                throw new Exception(`Serializer UUID "${pUuid}" is already registered.`, _pTarget);
+            if (Serializer.mIdentifierRegistry.has(pIdentifier)) {
+                throw new Exception(`Serializer identifier "${pIdentifier}" is already registered.`, _pTarget);
             }
 
-            // Check if uuid is already set on metadata, which would indicate multiple class decorators on the same class, which is not supported.
-            if (lExistingMetadata.uuid !== null) {
-                throw new Exception(`Multiple @Serializer.class() decorators on the same class are not supported.`, _pTarget);
+            // Check if identifier is already set on metadata, which would indicate multiple class decorators on the same class, which is not supported.
+            if (lExistingMetadata.identifier !== null) {
+                throw new Exception(`Multiple @Serializer.serializeableClass() decorators on the same class are not supported.`, _pTarget);
             }
 
-            // Set UUID on merged metadata and register constructor by UUID.
-            lExistingMetadata.uuid = pUuid;
+            // Set identifier on merged metadata and register constructor by identifier.
+            lExistingMetadata.identifier = pIdentifier;
 
             // Merge properties from the entire inheritance chain (parent to child order).
             // Parent classes are always defined before children, so their metadata is already finalized.
@@ -120,8 +121,24 @@ export class Serializer {
                 }
             }
 
-            Serializer.mRegistry.set(pUuid, _pTarget as IVoidParameterConstructor<object>);
+            // Save both directions of the UUID-to-constructor mapping.
+            Serializer.mIdentifierRegistry.set(pIdentifier, _pTarget as IVoidParameterConstructor<object>);
+            Serializer.mClassRegistry.set(_pTarget as IVoidParameterConstructor<object>, pIdentifier);
         };
+    }
+
+    /**
+     * Get the registered identifier of a class.
+     * 
+     * @param pConstructor - The class constructor to look up.
+     * 
+     * @returns The registered identifier of the class.
+     */
+    public static identifierOfClass(pConstructor: IVoidParameterConstructor<object>): string {
+        if (!Serializer.mClassRegistry.has(pConstructor)) {
+            throw new Exception(`Class "${pConstructor.name}" is not registered with the serializer. Ensure @Serializer.serializeableClass() is applied and the class is imported before serialization.`, pConstructor);
+        }
+        return Serializer.mClassRegistry.get(pConstructor)!;
     }
 }
 

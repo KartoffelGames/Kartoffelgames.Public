@@ -1,8 +1,7 @@
 import { expect } from '@kartoffelgames/core-test';
 import { IndexDbFileSystem } from '@kartoffelgames/web-file-system';
 import 'npm:fake-indexeddb/auto';
-import { FileSystem, FileSystemReferenceType } from '../../source/file-system.ts';
-import { FileSystemItemType, type FileSystemItem } from '../../source/i-file-system.ts';
+import { FileSystem, FileSystemFileType, FileSystemReferenceType, type FileSystemItem } from '../../source/file-system.ts';
 import '../mock/structured-clone-blob-support.ts';
 
 // Simple serializable test class (Instanced).
@@ -37,7 +36,7 @@ class SingletonTestObject {
 
 // Sanitize disabled because timers are started outside of the test in fake-indexeddb.
 Deno.test('IndexDbFileSystem.store()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
-    await pContext.step('Store and read a single-class object', async () => {
+    await pContext.step('Store and read a single object', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
         const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
@@ -104,56 +103,6 @@ Deno.test('IndexDbFileSystem.store()', { sanitizeResources: false, sanitizeOps: 
         // Cleanup.
         lFileSystem.close();
     });
-});
-
-// Sanitize disabled because timers are started outside of the test in fake-indexeddb.
-Deno.test('IndexDbFileSystem.storeMulti()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
-    await pContext.step('Store a simple object', async () => {
-        // Setup.
-        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
-
-        const lObject: SimpleTestObject = new SimpleTestObject();
-        lObject.name = 'TestName';
-        lObject.value = 42;
-
-        // Process.
-        await lFileSystem.storeMulti('path/to', 'object', lObject);
-
-        // Evaluation. Read it back to verify it was stored.
-        const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('path/to/object');
-        expect(lResult.name).toBe('TestName');
-        expect(lResult.value).toBe(42);
-
-        // Cleanup.
-        lFileSystem.close();
-    });
-
-    await pContext.step('Store overwrites existing entry at same path', async () => {
-        // Setup.
-        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
-
-        const lFirst: SimpleTestObject = new SimpleTestObject();
-        lFirst.name = 'First';
-        lFirst.value = 1;
-
-        const lSecond: SimpleTestObject = new SimpleTestObject();
-        lSecond.name = 'Second';
-        lSecond.value = 2;
-
-        // Process. Store then overwrite.
-        await lFileSystem.storeMulti('same', 'path', lFirst);
-        await lFileSystem.storeMulti('same', 'path', lSecond);
-
-        // Evaluation. Should return the second object.
-        const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('same/path');
-        expect(lResult.name).toBe('Second');
-        expect(lResult.value).toBe(2);
-
-        // Cleanup.
-        lFileSystem.close();
-    });
 
     await pContext.step('Store nested object', async () => {
         // Setup.
@@ -169,7 +118,7 @@ Deno.test('IndexDbFileSystem.storeMulti()', { sanitizeResources: false, sanitize
         lParent.child = lChild;
 
         // Process.
-        await lFileSystem.storeMulti('nested', 'object', lParent);
+        await lFileSystem.store('nested/object', lParent);
 
         // Evaluation.
         const lResult: NestedTestObject = await lFileSystem.read<NestedTestObject>('nested/object');
@@ -181,73 +130,9 @@ Deno.test('IndexDbFileSystem.storeMulti()', { sanitizeResources: false, sanitize
         // Cleanup.
         lFileSystem.close();
     });
-
-    await pContext.step('Store multiple objects in same blob', async () => {
-        // Setup.
-        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
-
-        const lFirst: SimpleTestObject = new SimpleTestObject();
-        lFirst.name = 'First';
-        lFirst.value = 1;
-
-        const lSecond: SimpleTestObject = new SimpleTestObject();
-        lSecond.name = 'Second';
-        lSecond.value = 2;
-
-        // Process. Store two objects in the same file path with different sub-paths.
-        await lFileSystem.storeMulti('shared/file', 'alpha', lFirst);
-        await lFileSystem.storeMulti('shared/file', 'beta', lSecond);
-
-        // Evaluation. Both should be readable by their full read paths.
-        const lResultAlpha: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('shared/file/alpha');
-        const lResultBeta: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('shared/file/beta');
-
-        expect(lResultAlpha.name).toBe('First');
-        expect(lResultAlpha.value).toBe(1);
-        expect(lResultBeta.name).toBe('Second');
-        expect(lResultBeta.value).toBe(2);
-
-        // Cleanup.
-        lFileSystem.close();
-    });
-
-    await pContext.step('Overwrite one sub-path preserves others in same blob', async () => {
-        // Setup.
-        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
-
-        const lFirst: SimpleTestObject = new SimpleTestObject();
-        lFirst.name = 'Original';
-        lFirst.value = 1;
-
-        const lSecond: SimpleTestObject = new SimpleTestObject();
-        lSecond.name = 'Sibling';
-        lSecond.value = 2;
-
-        const lReplacement: SimpleTestObject = new SimpleTestObject();
-        lReplacement.name = 'Replaced';
-        lReplacement.value = 3;
-
-        // Process. Store two objects, then overwrite one.
-        await lFileSystem.storeMulti('pack', 'first', lFirst);
-        await lFileSystem.storeMulti('pack', 'second', lSecond);
-        await lFileSystem.storeMulti('pack', 'first', lReplacement);
-
-        // Evaluation. First should be replaced, second untouched.
-        const lResultFirst: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('pack/first');
-        const lResultSecond: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('pack/second');
-
-        expect(lResultFirst.name).toBe('Replaced');
-        expect(lResultFirst.value).toBe(3);
-        expect(lResultSecond.name).toBe('Sibling');
-        expect(lResultSecond.value).toBe(2);
-
-        // Cleanup.
-        lFileSystem.close();
-    });
 });
 
+// Sanitize disabled because timers are started outside of the test in fake-indexeddb.
 Deno.test('IndexDbFileSystem.read()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
     await pContext.step('Read stored object', async () => {
         // Setup.
@@ -257,7 +142,7 @@ Deno.test('IndexDbFileSystem.read()', { sanitizeResources: false, sanitizeOps: f
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'ReadTest';
         lObject.value = 7;
-        await lFileSystem.storeMulti('read', 'test', lObject);
+        await lFileSystem.store('read/test', lObject);
 
         // Process.
         const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('read/test');
@@ -279,7 +164,7 @@ Deno.test('IndexDbFileSystem.read()', { sanitizeResources: false, sanitizeOps: f
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'CaseTest';
         lObject.value = 3;
-        await lFileSystem.storeMulti('My', 'Path', lObject);
+        await lFileSystem.store('My/Path', lObject);
 
         // Process.
         const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('my/path');
@@ -323,8 +208,8 @@ Deno.test('IndexDbFileSystem.read()', { sanitizeResources: false, sanitizeOps: f
         lSecond.name = 'Second';
         lSecond.value = 2;
 
-        await lFileSystem.storeMulti('path', 'one', lFirst);
-        await lFileSystem.storeMulti('path', 'two', lSecond);
+        await lFileSystem.store('path/one', lFirst);
+        await lFileSystem.store('path/two', lSecond);
 
         // Process.
         const lResultOne: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('path/one');
@@ -339,158 +224,137 @@ Deno.test('IndexDbFileSystem.read()', { sanitizeResources: false, sanitizeOps: f
         // Cleanup.
         lFileSystem.close();
     });
+});
 
+// Sanitize disabled because timers are started outside of the test in fake-indexeddb.
+Deno.test('IndexDbFileSystem singleton caching', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
+    await pContext.step('Singleton: reading same path twice returns same instance', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
 
-    await pContext.step('IndexDbFileSystem singleton caching', async (pContext) => {
-        await pContext.step('Singleton: reading same path twice returns same instance', async () => {
-            // Setup.
-            const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-            const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+        const lObject: SingletonTestObject = new SingletonTestObject();
+        lObject.name = 'Singleton';
+        lObject.value = 1;
 
-            const lObject: SingletonTestObject = new SingletonTestObject();
-            lObject.name = 'Singleton';
-            lObject.value = 1;
+        await lFileSystem.store('singleton/path', lObject);
 
-            await lFileSystem.store('singleton/path', lObject);
+        // Process.
+        const lFirst: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('singleton/path');
+        const lSecond: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('singleton/path');
 
-            // Process.
-            const lFirst: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('singleton/path');
-            const lSecond: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('singleton/path');
+        // Evaluation. Both reads should return the exact same object reference.
+        expect(lFirst).toBe(lSecond);
 
-            // Evaluation. Both reads should return the exact same object reference.
-            expect(lFirst).toBe(lSecond);
+        // Cleanup.
+        lFileSystem.close();
+    });
 
-            // Cleanup.
-            lFileSystem.close();
-        });
+    await pContext.step('Singleton: different paths return different instances', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
 
-        await pContext.step('Singleton: different paths return different instances', async () => {
-            // Setup.
-            const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-            const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+        const lObjectA: SingletonTestObject = new SingletonTestObject();
+        lObjectA.name = 'A';
+        lObjectA.value = 1;
 
-            const lObjectA: SingletonTestObject = new SingletonTestObject();
-            lObjectA.name = 'A';
-            lObjectA.value = 1;
+        const lObjectB: SingletonTestObject = new SingletonTestObject();
+        lObjectB.name = 'B';
+        lObjectB.value = 2;
 
-            const lObjectB: SingletonTestObject = new SingletonTestObject();
-            lObjectB.name = 'B';
-            lObjectB.value = 2;
+        await lFileSystem.store('singleton/a', lObjectA);
+        await lFileSystem.store('singleton/b', lObjectB);
 
-            await lFileSystem.store('singleton/a', lObjectA);
-            await lFileSystem.store('singleton/b', lObjectB);
+        // Process.
+        const lResultA: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('singleton/a');
+        const lResultB: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('singleton/b');
 
-            // Process.
-            const lResultA: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('singleton/a');
-            const lResultB: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('singleton/b');
+        // Evaluation. Different paths should yield different instances.
+        expect(lResultA).not.toBe(lResultB);
+        expect(lResultA.name).toBe('A');
+        expect(lResultB.name).toBe('B');
 
-            // Evaluation. Different paths should yield different instances.
-            expect(lResultA).not.toBe(lResultB);
-            expect(lResultA.name).toBe('A');
-            expect(lResultB.name).toBe('B');
+        // Cleanup.
+        lFileSystem.close();
+    });
 
-            // Cleanup.
-            lFileSystem.close();
-        });
+    await pContext.step('Singleton: cache is case-insensitive', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
 
-        await pContext.step('Singleton: cache is case-insensitive', async () => {
-            // Setup.
-            const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-            const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+        const lObject: SingletonTestObject = new SingletonTestObject();
+        lObject.name = 'CaseSingleton';
+        lObject.value = 7;
 
-            const lObject: SingletonTestObject = new SingletonTestObject();
-            lObject.name = 'CaseSingleton';
-            lObject.value = 7;
+        await lFileSystem.store('Singleton/Case', lObject);
 
-            await lFileSystem.store('Singleton/Case', lObject);
+        // Process. Read with different casings.
+        const lFirst: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('singleton/case');
+        const lSecond: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('SINGLETON/CASE');
 
-            // Process. Read with different casings.
-            const lFirst: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('singleton/case');
-            const lSecond: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('SINGLETON/CASE');
+        // Evaluation. Both should be the same cached instance.
+        expect(lFirst).toBe(lSecond);
 
-            // Evaluation. Both should be the same cached instance.
-            expect(lFirst).toBe(lSecond);
+        // Cleanup.
+        lFileSystem.close();
+    });
 
-            // Cleanup.
-            lFileSystem.close();
-        });
+    await pContext.step('Singleton: cache is per IndexDbFileSystem instance', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystemA: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+        const lFileSystemB: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
 
-        await pContext.step('Singleton: cache is per IndexDbFileSystem instance', async () => {
-            // Setup.
-            const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-            const lFileSystemA: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
-            const lFileSystemB: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+        const lObject: SingletonTestObject = new SingletonTestObject();
+        lObject.name = 'PerInstance';
+        lObject.value = 3;
 
-            const lObject: SingletonTestObject = new SingletonTestObject();
-            lObject.name = 'PerInstance';
-            lObject.value = 3;
+        await lFileSystemA.store('singleton/instance', lObject);
 
-            await lFileSystemA.store('singleton/instance', lObject);
+        // Process.
+        const lResultA: SingletonTestObject = await lFileSystemA.read<SingletonTestObject>('singleton/instance');
+        const lResultB: SingletonTestObject = await lFileSystemB.read<SingletonTestObject>('singleton/instance');
 
-            // Process.
-            const lResultA: SingletonTestObject = await lFileSystemA.read<SingletonTestObject>('singleton/instance');
-            const lResultB: SingletonTestObject = await lFileSystemB.read<SingletonTestObject>('singleton/instance');
+        // Evaluation. Different IndexDbFileSystem instances should have independent caches.
+        expect(lResultA).not.toBe(lResultB);
+        expect(lResultA.name).toBe('PerInstance');
+        expect(lResultB.name).toBe('PerInstance');
 
-            // Evaluation. Different IndexDbFileSystem instances should have independent caches.
-            expect(lResultA).not.toBe(lResultB);
-            expect(lResultA.name).toBe('PerInstance');
-            expect(lResultB.name).toBe('PerInstance');
+        // Cleanup.
+        lFileSystemA.close();
+        lFileSystemB.close();
+    });
 
-            // Cleanup.
-            lFileSystemA.close();
-            lFileSystemB.close();
-        });
+    await pContext.step('Instanced: reading same path twice returns different instances', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
 
-        await pContext.step('Instanced: reading same path twice returns different instances', async () => {
-            // Setup.
-            const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-            const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'Instanced';
+        lObject.value = 5;
 
-            const lObject: SimpleTestObject = new SimpleTestObject();
-            lObject.name = 'Instanced';
-            lObject.value = 5;
+        await lFileSystem.store('instanced/path', lObject);
 
-            await lFileSystem.store('instanced/path', lObject);
+        // Process.
+        const lFirst: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('instanced/path');
+        const lSecond: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('instanced/path');
 
-            // Process.
-            const lFirst: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('instanced/path');
-            const lSecond: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('instanced/path');
+        // Evaluation. Instanced classes should return different object references.
+        expect(lFirst).not.toBe(lSecond);
+        expect(lFirst.name).toBe('Instanced');
+        expect(lSecond.name).toBe('Instanced');
 
-            // Evaluation. Instanced classes should return different object references.
-            expect(lFirst).not.toBe(lSecond);
-            expect(lFirst.name).toBe('Instanced');
-            expect(lSecond.name).toBe('Instanced');
-
-            // Cleanup.
-            lFileSystem.close();
-        });
-
-        await pContext.step('Singleton: storeMulti with singleton class caches on read', async () => {
-            // Setup.
-            const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-            const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
-
-            const lObject: SingletonTestObject = new SingletonTestObject();
-            lObject.name = 'MultiSingleton';
-            lObject.value = 10;
-
-            await lFileSystem.storeMulti('multi', 'singleton', lObject);
-
-            // Process.
-            const lFirst: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('multi/singleton');
-            const lSecond: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('multi/singleton');
-
-            // Evaluation. Both reads should return the same cached instance.
-            expect(lFirst).toBe(lSecond);
-
-            // Cleanup.
-            lFileSystem.close();
-        });
+        // Cleanup.
+        lFileSystem.close();
     });
 });
 
+// Sanitize disabled because timers are started outside of the test in fake-indexeddb.
 Deno.test('IndexDbFileSystem.delete()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
-    await pContext.step('Delete single class by read path', async () => {
+    await pContext.step('Delete file by path', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
         const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
@@ -498,118 +362,36 @@ Deno.test('IndexDbFileSystem.delete()', { sanitizeResources: false, sanitizeOps:
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'ToDelete';
         lObject.value = 1;
-        await lFileSystem.storeMulti('file', 'entry', lObject);
+        await lFileSystem.store('file/entry', lObject);
 
         // Process.
-        await lFileSystem.delete('file/entry');
+        const lResult: boolean = await lFileSystem.delete('file/entry');
 
-        // Evaluation. Reading should throw.
+        // Evaluation.
+        expect(lResult).toBe(true);
+
         let lError: Error | null = null;
         try {
             await lFileSystem.read<SimpleTestObject>('file/entry');
         } catch (pError) {
             lError = pError as Error;
         }
-
         expect(lError).not.toBeNull();
 
         // Cleanup.
         lFileSystem.close();
     });
 
-    await pContext.step('Delete one sub-path preserves others in same blob', async () => {
+    await pContext.step('Delete non-existent path returns false', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
         const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
-
-        const lFirst: SimpleTestObject = new SimpleTestObject();
-        lFirst.name = 'Keep';
-        lFirst.value = 1;
-
-        const lSecond: SimpleTestObject = new SimpleTestObject();
-        lSecond.name = 'Remove';
-        lSecond.value = 2;
-
-        await lFileSystem.storeMulti('pack', 'keep', lFirst);
-        await lFileSystem.storeMulti('pack', 'remove', lSecond);
 
         // Process.
-        await lFileSystem.delete('pack/remove');
+        const lResult: boolean = await lFileSystem.delete('does/not/exist');
 
-        // Evaluation. Kept entry should still be readable.
-        const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('pack/keep');
-        expect(lResult.name).toBe('Keep');
-        expect(lResult.value).toBe(1);
-
-        // Deleted entry should throw.
-        let lError: Error | null = null;
-        try {
-            await lFileSystem.read<SimpleTestObject>('pack/remove');
-        } catch (pError) {
-            lError = pError as Error;
-        }
-
-        expect(lError).not.toBeNull();
-
-        // Cleanup.
-        lFileSystem.close();
-    });
-
-    await pContext.step('Delete entire file by file path', async () => {
-        // Setup.
-        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
-
-        const lFirst: SimpleTestObject = new SimpleTestObject();
-        lFirst.name = 'First';
-        lFirst.value = 1;
-
-        const lSecond: SimpleTestObject = new SimpleTestObject();
-        lSecond.name = 'Second';
-        lSecond.value = 2;
-
-        await lFileSystem.storeMulti('whole-file', 'alpha', lFirst);
-        await lFileSystem.storeMulti('whole-file', 'beta', lSecond);
-
-        // Process. Delete by file path.
-        await lFileSystem.delete('whole-file');
-
-        // Evaluation. Both entries should be gone.
-        let lErrorAlpha: Error | null = null;
-        try {
-            await lFileSystem.read<SimpleTestObject>('whole-file/alpha');
-        } catch (pError) {
-            lErrorAlpha = pError as Error;
-        }
-
-        let lErrorBeta: Error | null = null;
-        try {
-            await lFileSystem.read<SimpleTestObject>('whole-file/beta');
-        } catch (pError) {
-            lErrorBeta = pError as Error;
-        }
-
-        expect(lErrorAlpha).not.toBeNull();
-        expect(lErrorBeta).not.toBeNull();
-
-        // Cleanup.
-        lFileSystem.close();
-    });
-
-    await pContext.step('Delete non-existent path throws', async () => {
-        // Setup.
-        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
-
-        // Process & Evaluation.
-        let lError: Error | null = null;
-        try {
-            await lFileSystem.delete('does/not/exist');
-        } catch (pError) {
-            lError = pError as Error;
-        }
-
-        expect(lError).not.toBeNull();
+        // Evaluation.
+        expect(lResult).toBe(false);
 
         // Cleanup.
         lFileSystem.close();
@@ -623,52 +405,186 @@ Deno.test('IndexDbFileSystem.delete()', { sanitizeResources: false, sanitizeOps:
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'CaseDelete';
         lObject.value = 5;
-        await lFileSystem.storeMulti('Case', 'Path', lObject);
+        await lFileSystem.store('Case/Path', lObject);
 
         // Process. Delete with different casing.
-        await lFileSystem.delete('case/path');
+        const lResult: boolean = await lFileSystem.delete('case/path');
 
         // Evaluation.
-        let lError: Error | null = null;
-        try {
-            await lFileSystem.read<SimpleTestObject>('case/path');
-        } catch (pError) {
-            lError = pError as Error;
-        }
-
-        expect(lError).not.toBeNull();
+        expect(lResult).toBe(true);
+        expect(await lFileSystem.has('case/path')).toBe(false);
 
         // Cleanup.
         lFileSystem.close();
     });
-});
 
-Deno.test('IndexDbFileSystem.fileClass()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
-    await pContext.step('Classes decorated with fileClass are serializable', async () => {
+    await pContext.step('Delete prunes empty parent directories', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
         const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
-        lObject.name = 'DecoratorTest';
-        lObject.value = 42;
+        lObject.name = 'Nested';
+        lObject.value = 1;
+        await lFileSystem.store('a/b/c', lObject);
 
-        // Process. Store and read back.
-        await lFileSystem.store('decorator/test', lObject);
-        const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('decorator/test');
+        // Process. Delete the only file in the tree.
+        await lFileSystem.delete('a/b/c');
 
-        // Evaluation.
-        expect(lResult).toBeInstanceOf(SimpleTestObject);
-        expect(lResult.name).toBe('DecoratorTest');
-        expect(lResult.value).toBe(42);
+        // Evaluation. Parent directories should be pruned.
+        expect(await lFileSystem.has('a/b')).toBe(false);
+        expect(await lFileSystem.has('a')).toBe(false);
+
+        // Cleanup.
+        lFileSystem.close();
+    });
+
+    await pContext.step('Delete file preserves sibling files', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+
+        const lFirst: SimpleTestObject = new SimpleTestObject();
+        lFirst.name = 'Keep';
+        lFirst.value = 1;
+
+        const lSecond: SimpleTestObject = new SimpleTestObject();
+        lSecond.name = 'Remove';
+        lSecond.value = 2;
+
+        await lFileSystem.store('dir/keep', lFirst);
+        await lFileSystem.store('dir/remove', lSecond);
+
+        // Process.
+        await lFileSystem.delete('dir/remove');
+
+        // Evaluation. Sibling should be intact.
+        const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('dir/keep');
+        expect(lResult.name).toBe('Keep');
 
         // Cleanup.
         lFileSystem.close();
     });
 });
 
+// Sanitize disabled because timers are started outside of the test in fake-indexeddb.
+Deno.test('IndexDbFileSystem.deleteDirectory()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
+    await pContext.step('Delete directory and all its contents', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+
+        const lObj1: SimpleTestObject = new SimpleTestObject();
+        lObj1.name = 'One';
+        lObj1.value = 1;
+
+        const lObj2: SimpleTestObject = new SimpleTestObject();
+        lObj2.name = 'Two';
+        lObj2.value = 2;
+
+        await lFileSystem.store('dir/file1', lObj1);
+        await lFileSystem.store('dir/sub/file2', lObj2);
+
+        // Process.
+        const lResult: boolean = await lFileSystem.deleteDirectory('dir');
+
+        // Evaluation.
+        expect(lResult).toBe(true);
+        expect(await lFileSystem.has('dir/file1')).toBe(false);
+        expect(await lFileSystem.has('dir/sub/file2')).toBe(false);
+        expect(await lFileSystem.has('dir')).toBe(false);
+
+        // Cleanup.
+        lFileSystem.close();
+    });
+
+    await pContext.step('Delete non-existent directory returns false', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+
+        // Process.
+        const lResult: boolean = await lFileSystem.deleteDirectory('does/not/exist');
+
+        // Evaluation.
+        expect(lResult).toBe(false);
+
+        // Cleanup.
+        lFileSystem.close();
+    });
+
+    await pContext.step('Delete directory is case-insensitive', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'CaseDir';
+        lObject.value = 1;
+        await lFileSystem.store('MyDir/file', lObject);
+
+        // Process. Delete with different casing.
+        const lResult: boolean = await lFileSystem.deleteDirectory('mydir');
+
+        // Evaluation.
+        expect(lResult).toBe(true);
+        expect(await lFileSystem.has('mydir/file')).toBe(false);
+
+        // Cleanup.
+        lFileSystem.close();
+    });
+
+    await pContext.step('Delete directory preserves sibling directories', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+
+        const lObj1: SimpleTestObject = new SimpleTestObject();
+        lObj1.name = 'Keep';
+        lObj1.value = 1;
+
+        const lObj2: SimpleTestObject = new SimpleTestObject();
+        lObj2.name = 'Remove';
+        lObj2.value = 2;
+
+        await lFileSystem.store('keep/file', lObj1);
+        await lFileSystem.store('remove/file', lObj2);
+
+        // Process.
+        await lFileSystem.deleteDirectory('remove');
+
+        // Evaluation.
+        const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('keep/file');
+        expect(lResult.name).toBe('Keep');
+
+        // Cleanup.
+        lFileSystem.close();
+    });
+
+    await pContext.step('Delete directory prunes empty parent directories', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'Deep';
+        lObject.value = 1;
+        await lFileSystem.store('a/b/c/d', lObject);
+
+        // Process. Delete the 'b' directory.
+        await lFileSystem.deleteDirectory('a/b');
+
+        // Evaluation. 'a' should also be pruned since it's empty.
+        expect(await lFileSystem.has('a')).toBe(false);
+
+        // Cleanup.
+        lFileSystem.close();
+    });
+});
+
+// Sanitize disabled because timers are started outside of the test in fake-indexeddb.
 Deno.test('IndexDbFileSystem.has()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
-    await pContext.step('Returns true for existing read path via store()', async () => {
+    await pContext.step('Returns true for existing file path', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
         const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
@@ -688,38 +604,18 @@ Deno.test('IndexDbFileSystem.has()', { sanitizeResources: false, sanitizeOps: fa
         lFileSystem.close();
     });
 
-    await pContext.step('Returns true for existing read path via storeMulti()', async () => {
+    await pContext.step('Returns true for existing directory path', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
         const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
-        lObject.name = 'HasMulti';
-        lObject.value = 2;
-        await lFileSystem.storeMulti('file', 'entry', lObject);
+        lObject.name = 'HasDir';
+        lObject.value = 1;
+        await lFileSystem.store('parent/child', lObject);
 
         // Process.
-        const lResult: boolean = await lFileSystem.has('file/entry');
-
-        // Evaluation.
-        expect(lResult).toBe(true);
-
-        // Cleanup.
-        lFileSystem.close();
-    });
-
-    await pContext.step('Returns true for existing file path', async () => {
-        // Setup.
-        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
-        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
-
-        const lObject: SimpleTestObject = new SimpleTestObject();
-        lObject.name = 'HasFile';
-        lObject.value = 3;
-        await lFileSystem.storeMulti('shared-file', 'sub', lObject);
-
-        // Process. Check by file path (not read path).
-        const lResult: boolean = await lFileSystem.has('shared-file');
+        const lResult: boolean = await lFileSystem.has('parent');
 
         // Evaluation.
         expect(lResult).toBe(true);
@@ -764,7 +660,8 @@ Deno.test('IndexDbFileSystem.has()', { sanitizeResources: false, sanitizeOps: fa
     });
 });
 
-Deno.test('IndexDbFileSystem.contentOf()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
+// Sanitize disabled because timers are started outside of the test in fake-indexeddb.
+Deno.test('IndexDbFileSystem.readDirectory()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
     await pContext.step('Lists immediate children as files', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
@@ -778,11 +675,11 @@ Deno.test('IndexDbFileSystem.contentOf()', { sanitizeResources: false, sanitizeO
         lSecond.name = 'Beta';
         lSecond.value = 2;
 
-        await lFileSystem.storeMulti('parent', 'alpha', lFirst);
-        await lFileSystem.storeMulti('parent', 'beta', lSecond);
+        await lFileSystem.store('parent/alpha', lFirst);
+        await lFileSystem.store('parent/beta', lSecond);
 
         // Process.
-        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('parent');
+        const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('parent');
 
         // Evaluation.
         expect(lResult.length).toBe(2);
@@ -791,11 +688,11 @@ Deno.test('IndexDbFileSystem.contentOf()', { sanitizeResources: false, sanitizeO
         const lBeta: FileSystemItem | undefined = lResult.find((pItem) => pItem.name === 'beta');
 
         expect(lAlpha).not.toBeUndefined();
-        expect(lAlpha!.type).toBe(FileSystemItemType.File);
+        expect(lAlpha!.type).toBe(FileSystemFileType.File);
         expect(lAlpha!.path).toBe('parent/alpha');
 
         expect(lBeta).not.toBeUndefined();
-        expect(lBeta!.type).toBe(FileSystemItemType.File);
+        expect(lBeta!.type).toBe(FileSystemFileType.File);
         expect(lBeta!.path).toBe('parent/beta');
 
         // Cleanup.
@@ -810,15 +707,15 @@ Deno.test('IndexDbFileSystem.contentOf()', { sanitizeResources: false, sanitizeO
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'Deep';
         lObject.value = 1;
-        await lFileSystem.storeMulti('root/middle', 'leaf', lObject);
+        await lFileSystem.store('root/middle/leaf', lObject);
 
         // Process.
-        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('root');
+        const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('root');
 
         // Evaluation.
         expect(lResult.length).toBe(1);
         expect(lResult[0].name).toBe('middle');
-        expect(lResult[0].type).toBe(FileSystemItemType.Directory);
+        expect(lResult[0].type).toBe(FileSystemFileType.Directory);
         expect(lResult[0].path).toBe('root/middle');
         expect(lResult[0].classType).toBeNull();
 
@@ -837,11 +734,11 @@ Deno.test('IndexDbFileSystem.contentOf()', { sanitizeResources: false, sanitizeO
         await lFileSystem.store('typed/item', lObject);
 
         // Process.
-        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('typed');
+        const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('typed');
 
         // Evaluation.
         expect(lResult.length).toBe(1);
-        expect(lResult[0].type).toBe(FileSystemItemType.File);
+        expect(lResult[0].type).toBe(FileSystemFileType.File);
         expect(lResult[0].classType).toBe(SimpleTestObject);
 
         // Cleanup.
@@ -859,11 +756,11 @@ Deno.test('IndexDbFileSystem.contentOf()', { sanitizeResources: false, sanitizeO
         await lFileSystem.store('a/b/c', lObject);
 
         // Process.
-        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('a');
+        const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('a');
 
         // Evaluation.
         expect(lResult.length).toBe(1);
-        expect(lResult[0].type).toBe(FileSystemItemType.Directory);
+        expect(lResult[0].type).toBe(FileSystemFileType.Directory);
         expect(lResult[0].classType).toBeNull();
 
         // Cleanup.
@@ -876,7 +773,7 @@ Deno.test('IndexDbFileSystem.contentOf()', { sanitizeResources: false, sanitizeO
         const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
 
         // Process.
-        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('does/not/exist');
+        const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('does/not/exist');
 
         // Evaluation.
         expect(lResult.length).toBe(0);
@@ -893,10 +790,10 @@ Deno.test('IndexDbFileSystem.contentOf()', { sanitizeResources: false, sanitizeO
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'CaseContent';
         lObject.value = 1;
-        await lFileSystem.storeMulti('Parent', 'Child', lObject);
+        await lFileSystem.store('Parent/Child', lObject);
 
-        // Process.
-        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('parent');
+        // Process. Query with different casing.
+        const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('parent');
 
         // Evaluation.
         expect(lResult.length).toBe(1);
@@ -906,7 +803,7 @@ Deno.test('IndexDbFileSystem.contentOf()', { sanitizeResources: false, sanitizeO
         lFileSystem.close();
     });
 
-    await pContext.step('Path that is both a read path and a prefix is treated as directory', async () => {
+    await pContext.step('Path that is both a file and a directory prefix is treated as directory', async () => {
         // Setup.
         const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
         const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
@@ -919,16 +816,17 @@ Deno.test('IndexDbFileSystem.contentOf()', { sanitizeResources: false, sanitizeO
         lChildObject.name = 'ChildOfPath';
         lChildObject.value = 2;
 
+        // Store an object directly at 'a/b' and also store a deeper path 'a/b/c'.
         await lFileSystem.store('a/b', lFileObject);
         await lFileSystem.store('a/b/c', lChildObject);
 
         // Process.
-        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('a');
+        const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('a');
 
-        // Evaluation.
+        // Evaluation. 'b' has children, so it is a Directory.
         expect(lResult.length).toBe(1);
         expect(lResult[0].name).toBe('b');
-        expect(lResult[0].type).toBe(FileSystemItemType.Directory);
+        expect(lResult[0].type).toBe(FileSystemFileType.Directory);
 
         // Cleanup.
         lFileSystem.close();
@@ -945,12 +843,12 @@ Deno.test('IndexDbFileSystem.contentOf()', { sanitizeResources: false, sanitizeO
         await lFileSystem.store('top/level/item', lObject);
 
         // Process.
-        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('');
+        const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('');
 
-        // Evaluation.
+        // Evaluation. 'top' should be a directory at the root.
         expect(lResult.length).toBe(1);
         expect(lResult[0].name).toBe('top');
-        expect(lResult[0].type).toBe(FileSystemItemType.Directory);
+        expect(lResult[0].type).toBe(FileSystemFileType.Directory);
         expect(lResult[0].path).toBe('top');
 
         // Cleanup.
@@ -979,9 +877,9 @@ Deno.test('IndexDbFileSystem.contentOf()', { sanitizeResources: false, sanitizeO
         await lFileSystem.store('root/dir/nested', lObject3);
 
         // Process.
-        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('root');
+        const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('root');
 
-        // Evaluation.
+        // Evaluation. Should have file1, file2 as Files and dir as Directory.
         expect(lResult.length).toBe(3);
 
         const lFile1: FileSystemItem | undefined = lResult.find((pItem) => pItem.name === 'file1');
@@ -989,13 +887,38 @@ Deno.test('IndexDbFileSystem.contentOf()', { sanitizeResources: false, sanitizeO
         const lDir: FileSystemItem | undefined = lResult.find((pItem) => pItem.name === 'dir');
 
         expect(lFile1).not.toBeUndefined();
-        expect(lFile1!.type).toBe(FileSystemItemType.File);
+        expect(lFile1!.type).toBe(FileSystemFileType.File);
 
         expect(lFile2).not.toBeUndefined();
-        expect(lFile2!.type).toBe(FileSystemItemType.File);
+        expect(lFile2!.type).toBe(FileSystemFileType.File);
 
         expect(lDir).not.toBeUndefined();
-        expect(lDir!.type).toBe(FileSystemItemType.Directory);
+        expect(lDir!.type).toBe(FileSystemFileType.Directory);
+
+        // Cleanup.
+        lFileSystem.close();
+    });
+});
+
+// Sanitize disabled because timers are started outside of the test in fake-indexeddb.
+Deno.test('IndexDbFileSystem.fileClass()', { sanitizeResources: false, sanitizeOps: false }, async (pContext) => {
+    await pContext.step('Classes decorated with fileClass are serializable', async () => {
+        // Setup.
+        const lDatabaseName: string = Math.random().toString(36).substring(2, 15);
+        const lFileSystem: IndexDbFileSystem = new IndexDbFileSystem(lDatabaseName);
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'DecoratorTest';
+        lObject.value = 42;
+
+        // Process. Store and read back.
+        await lFileSystem.store('decorator/test', lObject);
+        const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('decorator/test');
+
+        // Evaluation.
+        expect(lResult).toBeInstanceOf(SimpleTestObject);
+        expect(lResult.name).toBe('DecoratorTest');
+        expect(lResult.value).toBe(42);
 
         // Cleanup.
         lFileSystem.close();

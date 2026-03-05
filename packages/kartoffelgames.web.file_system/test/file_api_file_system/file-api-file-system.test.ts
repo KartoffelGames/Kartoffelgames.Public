@@ -1,9 +1,8 @@
 import { expect } from '@kartoffelgames/core-test';
 import '../mock/structured-clone-blob-support.ts';
-import { FileSystem, FileSystemReferenceType } from '../../source/file-system.ts';
+import { FileSystem, FileSystemFileType, FileSystemReferenceType, type FileSystemItem } from '../../source/file-system.ts';
 import { FileApiFileSystem } from '../../source/file_api_file_system/file-api-file-system.ts';
 import { MockDirectoryHandle } from '../mock/mock-file-system-access-api.ts';
-import { FileSystemItemType, type FileSystemItem, type IFileSystem } from '../../source/i-file-system.ts';
 
 // Simple serializable test class (Instanced).
 @FileSystem.fileClass('b5931480-24c6-44cc-8479-f8c6883ba20f', FileSystemReferenceType.Instanced)
@@ -36,10 +35,10 @@ class SingletonTestObject {
 }
 
 Deno.test('FileApiFileSystem.store()', async (pContext) => {
-    await pContext.step('Store and read a single-class object', async () => {
+    await pContext.step('Store and read a single object', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'TestName';
@@ -57,7 +56,7 @@ Deno.test('FileApiFileSystem.store()', async (pContext) => {
     await pContext.step('Store overwrites existing entry at same path', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lFirst: SimpleTestObject = new SimpleTestObject();
         lFirst.name = 'First';
@@ -80,7 +79,7 @@ Deno.test('FileApiFileSystem.store()', async (pContext) => {
     await pContext.step('Store is case-insensitive', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'CaseTest';
@@ -94,54 +93,11 @@ Deno.test('FileApiFileSystem.store()', async (pContext) => {
         expect(lResult.name).toBe('CaseTest');
         expect(lResult.value).toBe(7);
     });
-});
-
-Deno.test('FileApiFileSystem.storeMulti()', async (pContext) => {
-    await pContext.step('Store a simple object', async () => {
-        // Setup.
-        const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
-
-        const lObject: SimpleTestObject = new SimpleTestObject();
-        lObject.name = 'TestName';
-        lObject.value = 42;
-
-        // Process.
-        await lFileSystem.storeMulti('path/to', 'object', lObject);
-
-        // Evaluation. Read it back to verify it was stored.
-        const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('path/to/object');
-        expect(lResult.name).toBe('TestName');
-        expect(lResult.value).toBe(42);
-    });
-
-    await pContext.step('Store overwrites existing entry at same path', async () => {
-        // Setup.
-        const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
-
-        const lFirst: SimpleTestObject = new SimpleTestObject();
-        lFirst.name = 'First';
-        lFirst.value = 1;
-
-        const lSecond: SimpleTestObject = new SimpleTestObject();
-        lSecond.name = 'Second';
-        lSecond.value = 2;
-
-        // Process. Store then overwrite.
-        await lFileSystem.storeMulti('same', 'path', lFirst);
-        await lFileSystem.storeMulti('same', 'path', lSecond);
-
-        // Evaluation. Should return the second object.
-        const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('same/path');
-        expect(lResult.name).toBe('Second');
-        expect(lResult.value).toBe(2);
-    });
 
     await pContext.step('Store nested object', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lChild: SimpleTestObject = new SimpleTestObject();
         lChild.name = 'ChildName';
@@ -152,7 +108,7 @@ Deno.test('FileApiFileSystem.storeMulti()', async (pContext) => {
         lParent.child = lChild;
 
         // Process.
-        await lFileSystem.storeMulti('nested', 'object', lParent);
+        await lFileSystem.store('nested/object', lParent);
 
         // Evaluation.
         const lResult: NestedTestObject = await lFileSystem.read<NestedTestObject>('nested/object');
@@ -161,77 +117,18 @@ Deno.test('FileApiFileSystem.storeMulti()', async (pContext) => {
         expect(lResult.child!.name).toBe('ChildName');
         expect(lResult.child!.value).toBe(99);
     });
-
-    await pContext.step('Store multiple objects in same blob', async () => {
-        // Setup.
-        const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
-
-        const lFirst: SimpleTestObject = new SimpleTestObject();
-        lFirst.name = 'First';
-        lFirst.value = 1;
-
-        const lSecond: SimpleTestObject = new SimpleTestObject();
-        lSecond.name = 'Second';
-        lSecond.value = 2;
-
-        // Process. Store two objects in the same file path with different sub-paths.
-        await lFileSystem.storeMulti('shared/file', 'alpha', lFirst);
-        await lFileSystem.storeMulti('shared/file', 'beta', lSecond);
-
-        // Evaluation. Both should be readable by their full read paths.
-        const lResultAlpha: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('shared/file/alpha');
-        const lResultBeta: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('shared/file/beta');
-
-        expect(lResultAlpha.name).toBe('First');
-        expect(lResultAlpha.value).toBe(1);
-        expect(lResultBeta.name).toBe('Second');
-        expect(lResultBeta.value).toBe(2);
-    });
-
-    await pContext.step('Overwrite one sub-path preserves others in same blob', async () => {
-        // Setup.
-        const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
-
-        const lFirst: SimpleTestObject = new SimpleTestObject();
-        lFirst.name = 'Original';
-        lFirst.value = 1;
-
-        const lSecond: SimpleTestObject = new SimpleTestObject();
-        lSecond.name = 'Sibling';
-        lSecond.value = 2;
-
-        const lReplacement: SimpleTestObject = new SimpleTestObject();
-        lReplacement.name = 'Replaced';
-        lReplacement.value = 3;
-
-        // Process. Store two objects, then overwrite one.
-        await lFileSystem.storeMulti('pack', 'first', lFirst);
-        await lFileSystem.storeMulti('pack', 'second', lSecond);
-        await lFileSystem.storeMulti('pack', 'first', lReplacement);
-
-        // Evaluation. First should be replaced, second untouched.
-        const lResultFirst: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('pack/first');
-        const lResultSecond: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('pack/second');
-
-        expect(lResultFirst.name).toBe('Replaced');
-        expect(lResultFirst.value).toBe(3);
-        expect(lResultSecond.name).toBe('Sibling');
-        expect(lResultSecond.value).toBe(2);
-    });
 });
 
 Deno.test('FileApiFileSystem.read()', async (pContext) => {
     await pContext.step('Read stored object', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'ReadTest';
         lObject.value = 7;
-        await lFileSystem.storeMulti('read', 'test', lObject);
+        await lFileSystem.store('read/test', lObject);
 
         // Process.
         const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('read/test');
@@ -245,12 +142,12 @@ Deno.test('FileApiFileSystem.read()', async (pContext) => {
     await pContext.step('Read is case-insensitive', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'CaseTest';
         lObject.value = 3;
-        await lFileSystem.storeMulti('My', 'Path', lObject);
+        await lFileSystem.store('My/Path', lObject);
 
         // Process.
         const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('my/path');
@@ -262,7 +159,7 @@ Deno.test('FileApiFileSystem.read()', async (pContext) => {
     await pContext.step('Read non-existent path throws', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         // Process & Evaluation.
         let lError: Error | null = null;
@@ -278,7 +175,7 @@ Deno.test('FileApiFileSystem.read()', async (pContext) => {
     await pContext.step('Read multiple different paths', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lFirst: SimpleTestObject = new SimpleTestObject();
         lFirst.name = 'First';
@@ -288,8 +185,8 @@ Deno.test('FileApiFileSystem.read()', async (pContext) => {
         lSecond.name = 'Second';
         lSecond.value = 2;
 
-        await lFileSystem.storeMulti('path', 'one', lFirst);
-        await lFileSystem.storeMulti('path', 'two', lSecond);
+        await lFileSystem.store('path/one', lFirst);
+        await lFileSystem.store('path/two', lSecond);
 
         // Process.
         const lResultOne: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('path/one');
@@ -307,7 +204,7 @@ Deno.test('FileApiFileSystem singleton caching', async (pContext) => {
     await pContext.step('Singleton: reading same path twice returns same instance', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lObject: SingletonTestObject = new SingletonTestObject();
         lObject.name = 'Singleton';
@@ -326,7 +223,7 @@ Deno.test('FileApiFileSystem singleton caching', async (pContext) => {
     await pContext.step('Singleton: different paths return different instances', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lObjectA: SingletonTestObject = new SingletonTestObject();
         lObjectA.name = 'A';
@@ -352,7 +249,7 @@ Deno.test('FileApiFileSystem singleton caching', async (pContext) => {
     await pContext.step('Singleton: cache is case-insensitive', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lObject: SingletonTestObject = new SingletonTestObject();
         lObject.name = 'CaseSingleton';
@@ -368,11 +265,11 @@ Deno.test('FileApiFileSystem singleton caching', async (pContext) => {
         expect(lFirst).toBe(lSecond);
     });
 
-    await pContext.step('Singleton: cache is per FileApiFileSystem instance', async () => {
+    await pContext.step('Singleton: cache is per FileSystem instance', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystemA: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
-        const lFileSystemB: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystemA: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystemB: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lObject: SingletonTestObject = new SingletonTestObject();
         lObject.name = 'PerInstance';
@@ -384,7 +281,7 @@ Deno.test('FileApiFileSystem singleton caching', async (pContext) => {
         const lResultA: SingletonTestObject = await lFileSystemA.read<SingletonTestObject>('singleton/instance');
         const lResultB: SingletonTestObject = await lFileSystemB.read<SingletonTestObject>('singleton/instance');
 
-        // Evaluation. Different FileApiFileSystem instances should have independent caches.
+        // Evaluation. Different FileSystem instances should have independent caches.
         expect(lResultA).not.toBe(lResultB);
         expect(lResultA.name).toBe('PerInstance');
         expect(lResultB.name).toBe('PerInstance');
@@ -393,7 +290,7 @@ Deno.test('FileApiFileSystem singleton caching', async (pContext) => {
     await pContext.step('Instanced: reading same path twice returns different instances', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'Instanced';
@@ -410,56 +307,86 @@ Deno.test('FileApiFileSystem singleton caching', async (pContext) => {
         expect(lFirst.name).toBe('Instanced');
         expect(lSecond.name).toBe('Instanced');
     });
-
-    await pContext.step('Singleton: storeMulti with singleton class caches on read', async () => {
-        // Setup.
-        const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
-
-        const lObject: SingletonTestObject = new SingletonTestObject();
-        lObject.name = 'MultiSingleton';
-        lObject.value = 10;
-
-        await lFileSystem.storeMulti('multi', 'singleton', lObject);
-
-        // Process.
-        const lFirst: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('multi/singleton');
-        const lSecond: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('multi/singleton');
-
-        // Evaluation. Both reads should return the same cached instance.
-        expect(lFirst).toBe(lSecond);
-    });
 });
 
 Deno.test('FileApiFileSystem.delete()', async (pContext) => {
-    await pContext.step('Delete single class by read path', async () => {
+    await pContext.step('Delete file by path', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'ToDelete';
         lObject.value = 1;
-        await lFileSystem.storeMulti('file', 'entry', lObject);
+        await lFileSystem.store('file/entry', lObject);
 
         // Process.
-        await lFileSystem.delete('file/entry');
+        const lResult: boolean = await lFileSystem.delete('file/entry');
 
-        // Evaluation. Reading should throw.
+        // Evaluation.
+        expect(lResult).toBe(true);
+
         let lError: Error | null = null;
         try {
             await lFileSystem.read<SimpleTestObject>('file/entry');
         } catch (pError) {
             lError = pError as Error;
         }
-
         expect(lError).not.toBeNull();
     });
 
-    await pContext.step('Delete one sub-path preserves others in same blob', async () => {
+    await pContext.step('Delete non-existent path returns false', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+
+        // Process.
+        const lResult: boolean = await lFileSystem.delete('does/not/exist');
+
+        // Evaluation.
+        expect(lResult).toBe(false);
+    });
+
+    await pContext.step('Delete is case-insensitive', async () => {
+        // Setup.
+        const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'CaseDelete';
+        lObject.value = 5;
+        await lFileSystem.store('Case/Path', lObject);
+
+        // Process. Delete with different casing.
+        const lResult: boolean = await lFileSystem.delete('case/path');
+
+        // Evaluation.
+        expect(lResult).toBe(true);
+        expect(await lFileSystem.has('case/path')).toBe(false);
+    });
+
+    await pContext.step('Delete prunes empty parent directories', async () => {
+        // Setup.
+        const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'Nested';
+        lObject.value = 1;
+        await lFileSystem.store('a/b/c', lObject);
+
+        // Process. Delete the only file in the tree.
+        await lFileSystem.delete('a/b/c');
+
+        // Evaluation. Parent directories should be pruned.
+        expect(await lFileSystem.has('a/b')).toBe(false);
+        expect(await lFileSystem.has('a')).toBe(false);
+    });
+
+    await pContext.step('Delete file preserves sibling files', async () => {
+        // Setup.
+        const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lFirst: SimpleTestObject = new SimpleTestObject();
         lFirst.name = 'Keep';
@@ -469,134 +396,122 @@ Deno.test('FileApiFileSystem.delete()', async (pContext) => {
         lSecond.name = 'Remove';
         lSecond.value = 2;
 
-        await lFileSystem.storeMulti('pack', 'keep', lFirst);
-        await lFileSystem.storeMulti('pack', 'remove', lSecond);
+        await lFileSystem.store('dir/keep', lFirst);
+        await lFileSystem.store('dir/remove', lSecond);
 
         // Process.
-        await lFileSystem.delete('pack/remove');
+        await lFileSystem.delete('dir/remove');
 
-        // Evaluation. Kept entry should still be readable.
-        const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('pack/keep');
+        // Evaluation. Sibling should be intact.
+        const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('dir/keep');
         expect(lResult.name).toBe('Keep');
-        expect(lResult.value).toBe(1);
-
-        // Deleted entry should throw.
-        let lError: Error | null = null;
-        try {
-            await lFileSystem.read<SimpleTestObject>('pack/remove');
-        } catch (pError) {
-            lError = pError as Error;
-        }
-
-        expect(lError).not.toBeNull();
-    });
-
-    await pContext.step('Delete entire file by file path', async () => {
-        // Setup.
-        const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
-
-        const lFirst: SimpleTestObject = new SimpleTestObject();
-        lFirst.name = 'First';
-        lFirst.value = 1;
-
-        const lSecond: SimpleTestObject = new SimpleTestObject();
-        lSecond.name = 'Second';
-        lSecond.value = 2;
-
-        await lFileSystem.storeMulti('whole-file', 'alpha', lFirst);
-        await lFileSystem.storeMulti('whole-file', 'beta', lSecond);
-
-        // Process. Delete by file path.
-        await lFileSystem.delete('whole-file');
-
-        // Evaluation. Both entries should be gone.
-        let lErrorAlpha: Error | null = null;
-        try {
-            await lFileSystem.read<SimpleTestObject>('whole-file/alpha');
-        } catch (pError) {
-            lErrorAlpha = pError as Error;
-        }
-
-        let lErrorBeta: Error | null = null;
-        try {
-            await lFileSystem.read<SimpleTestObject>('whole-file/beta');
-        } catch (pError) {
-            lErrorBeta = pError as Error;
-        }
-
-        expect(lErrorAlpha).not.toBeNull();
-        expect(lErrorBeta).not.toBeNull();
-    });
-
-    await pContext.step('Delete non-existent path throws', async () => {
-        // Setup.
-        const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
-
-        // Process & Evaluation.
-        let lError: Error | null = null;
-        try {
-            await lFileSystem.delete('does/not/exist');
-        } catch (pError) {
-            lError = pError as Error;
-        }
-
-        expect(lError).not.toBeNull();
-    });
-
-    await pContext.step('Delete is case-insensitive', async () => {
-        // Setup.
-        const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
-
-        const lObject: SimpleTestObject = new SimpleTestObject();
-        lObject.name = 'CaseDelete';
-        lObject.value = 5;
-        await lFileSystem.storeMulti('Case', 'Path', lObject);
-
-        // Process. Delete with different casing.
-        await lFileSystem.delete('case/path');
-
-        // Evaluation.
-        let lError: Error | null = null;
-        try {
-            await lFileSystem.read<SimpleTestObject>('case/path');
-        } catch (pError) {
-            lError = pError as Error;
-        }
-
-        expect(lError).not.toBeNull();
     });
 });
 
-
-Deno.test('FileApiFileSystem.fileClass()', async (pContext) => {
-    await pContext.step('Classes decorated with fileClass are serializable', async () => {
+Deno.test('FileApiFileSystem.deleteDirectory()', async (pContext) => {
+    await pContext.step('Delete directory and all its contents', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
-        const lObject: SimpleTestObject = new SimpleTestObject();
-        lObject.name = 'DecoratorTest';
-        lObject.value = 42;
+        const lObj1: SimpleTestObject = new SimpleTestObject();
+        lObj1.name = 'One';
+        lObj1.value = 1;
 
-        // Process. Store and read back.
-        await lFileSystem.store('decorator/test', lObject);
-        const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('decorator/test');
+        const lObj2: SimpleTestObject = new SimpleTestObject();
+        lObj2.name = 'Two';
+        lObj2.value = 2;
+
+        await lFileSystem.store('dir/file1', lObj1);
+        await lFileSystem.store('dir/sub/file2', lObj2);
+
+        // Process.
+        const lResult: boolean = await lFileSystem.deleteDirectory('dir');
 
         // Evaluation.
-        expect(lResult).toBeInstanceOf(SimpleTestObject);
-        expect(lResult.name).toBe('DecoratorTest');
-        expect(lResult.value).toBe(42);
+        expect(lResult).toBe(true);
+        expect(await lFileSystem.has('dir/file1')).toBe(false);
+        expect(await lFileSystem.has('dir/sub/file2')).toBe(false);
+        expect(await lFileSystem.has('dir')).toBe(false);
+    });
+
+    await pContext.step('Delete non-existent directory returns false', async () => {
+        // Setup.
+        const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+
+        // Process.
+        const lResult: boolean = await lFileSystem.deleteDirectory('does/not/exist');
+
+        // Evaluation.
+        expect(lResult).toBe(false);
+    });
+
+    await pContext.step('Delete directory is case-insensitive', async () => {
+        // Setup.
+        const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'CaseDir';
+        lObject.value = 1;
+        await lFileSystem.store('MyDir/file', lObject);
+
+        // Process. Delete with different casing.
+        const lResult: boolean = await lFileSystem.deleteDirectory('mydir');
+
+        // Evaluation.
+        expect(lResult).toBe(true);
+        expect(await lFileSystem.has('mydir/file')).toBe(false);
+    });
+
+    await pContext.step('Delete directory preserves sibling directories', async () => {
+        // Setup.
+        const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+
+        const lObj1: SimpleTestObject = new SimpleTestObject();
+        lObj1.name = 'Keep';
+        lObj1.value = 1;
+
+        const lObj2: SimpleTestObject = new SimpleTestObject();
+        lObj2.name = 'Remove';
+        lObj2.value = 2;
+
+        await lFileSystem.store('keep/file', lObj1);
+        await lFileSystem.store('remove/file', lObj2);
+
+        // Process.
+        await lFileSystem.deleteDirectory('remove');
+
+        // Evaluation.
+        const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('keep/file');
+        expect(lResult.name).toBe('Keep');
+    });
+
+    await pContext.step('Delete directory prunes empty parent directories', async () => {
+        // Setup.
+        const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'Deep';
+        lObject.value = 1;
+        await lFileSystem.store('a/b/c/d', lObject);
+
+        // Process. Delete the 'b' directory.
+        await lFileSystem.deleteDirectory('a/b');
+
+        // Evaluation. 'a' should also be pruned since it's empty.
+        expect(await lFileSystem.has('a')).toBe(false);
     });
 });
 
 Deno.test('FileApiFileSystem.has()', async (pContext) => {
-    await pContext.step('Returns true for existing read path via store()', async () => {
+    await pContext.step('Returns true for existing file path', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'HasTest';
@@ -610,35 +525,18 @@ Deno.test('FileApiFileSystem.has()', async (pContext) => {
         expect(lResult).toBe(true);
     });
 
-    await pContext.step('Returns true for existing read path via storeMulti()', async () => {
+    await pContext.step('Returns true for existing directory path', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
-        lObject.name = 'HasMulti';
-        lObject.value = 2;
-        await lFileSystem.storeMulti('file', 'entry', lObject);
+        lObject.name = 'HasDir';
+        lObject.value = 1;
+        await lFileSystem.store('parent/child', lObject);
 
         // Process.
-        const lResult: boolean = await lFileSystem.has('file/entry');
-
-        // Evaluation.
-        expect(lResult).toBe(true);
-    });
-
-    await pContext.step('Returns true for existing file path', async () => {
-        // Setup.
-        const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
-
-        const lObject: SimpleTestObject = new SimpleTestObject();
-        lObject.name = 'HasFile';
-        lObject.value = 3;
-        await lFileSystem.storeMulti('shared-file', 'sub', lObject);
-
-        // Process. Check by file path (not read path).
-        const lResult: boolean = await lFileSystem.has('shared-file');
+        const lResult: boolean = await lFileSystem.has('parent');
 
         // Evaluation.
         expect(lResult).toBe(true);
@@ -647,7 +545,7 @@ Deno.test('FileApiFileSystem.has()', async (pContext) => {
     await pContext.step('Returns false for non-existent path', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         // Process.
         const lResult: boolean = await lFileSystem.has('does/not/exist');
@@ -659,7 +557,7 @@ Deno.test('FileApiFileSystem.has()', async (pContext) => {
     await pContext.step('Is case-insensitive', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'CaseHas';
@@ -674,11 +572,11 @@ Deno.test('FileApiFileSystem.has()', async (pContext) => {
     });
 });
 
-Deno.test('FileApiFileSystem.contentOf()', async (pContext) => {
+Deno.test('FileApiFileSystem.readDirectory()', async (pContext) => {
     await pContext.step('Lists immediate children as files', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lFirst: SimpleTestObject = new SimpleTestObject();
         lFirst.name = 'Alpha';
@@ -688,11 +586,11 @@ Deno.test('FileApiFileSystem.contentOf()', async (pContext) => {
         lSecond.name = 'Beta';
         lSecond.value = 2;
 
-        await lFileSystem.storeMulti('parent', 'alpha', lFirst);
-        await lFileSystem.storeMulti('parent', 'beta', lSecond);
+        await lFileSystem.store('parent/alpha', lFirst);
+        await lFileSystem.store('parent/beta', lSecond);
 
         // Process.
-        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('parent');
+        const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('parent');
 
         // Evaluation.
         expect(lResult.length).toBe(2);
@@ -701,31 +599,31 @@ Deno.test('FileApiFileSystem.contentOf()', async (pContext) => {
         const lBeta: FileSystemItem | undefined = lResult.find((pItem) => pItem.name === 'beta');
 
         expect(lAlpha).not.toBeUndefined();
-        expect(lAlpha!.type).toBe(FileSystemItemType.File);
+        expect(lAlpha!.type).toBe(FileSystemFileType.File);
         expect(lAlpha!.path).toBe('parent/alpha');
 
         expect(lBeta).not.toBeUndefined();
-        expect(lBeta!.type).toBe(FileSystemItemType.File);
+        expect(lBeta!.type).toBe(FileSystemFileType.File);
         expect(lBeta!.path).toBe('parent/beta');
     });
 
     await pContext.step('Lists intermediate segments as directories', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'Deep';
         lObject.value = 1;
-        await lFileSystem.storeMulti('root/middle', 'leaf', lObject);
+        await lFileSystem.store('root/middle/leaf', lObject);
 
-        // Process.
-        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('root');
+        // Process. List root level.
+        const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('root');
 
-        // Evaluation.
+        // Evaluation. 'middle' is a directory because it has a child 'leaf'.
         expect(lResult.length).toBe(1);
         expect(lResult[0].name).toBe('middle');
-        expect(lResult[0].type).toBe(FileSystemItemType.Directory);
+        expect(lResult[0].type).toBe(FileSystemFileType.Directory);
         expect(lResult[0].path).toBe('root/middle');
         expect(lResult[0].classType).toBeNull();
     });
@@ -733,7 +631,7 @@ Deno.test('FileApiFileSystem.contentOf()', async (pContext) => {
     await pContext.step('File items have correct classType', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'ClassType';
@@ -741,18 +639,18 @@ Deno.test('FileApiFileSystem.contentOf()', async (pContext) => {
         await lFileSystem.store('typed/item', lObject);
 
         // Process.
-        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('typed');
+        const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('typed');
 
         // Evaluation.
         expect(lResult.length).toBe(1);
-        expect(lResult[0].type).toBe(FileSystemItemType.File);
+        expect(lResult[0].type).toBe(FileSystemFileType.File);
         expect(lResult[0].classType).toBe(SimpleTestObject);
     });
 
     await pContext.step('Directory items have null classType', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'Nested';
@@ -760,21 +658,21 @@ Deno.test('FileApiFileSystem.contentOf()', async (pContext) => {
         await lFileSystem.store('a/b/c', lObject);
 
         // Process.
-        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('a');
+        const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('a');
 
         // Evaluation.
         expect(lResult.length).toBe(1);
-        expect(lResult[0].type).toBe(FileSystemItemType.Directory);
+        expect(lResult[0].type).toBe(FileSystemFileType.Directory);
         expect(lResult[0].classType).toBeNull();
     });
 
     await pContext.step('Returns empty array for non-existent prefix', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         // Process.
-        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('does/not/exist');
+        const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('does/not/exist');
 
         // Evaluation.
         expect(lResult.length).toBe(0);
@@ -783,25 +681,25 @@ Deno.test('FileApiFileSystem.contentOf()', async (pContext) => {
     await pContext.step('Is case-insensitive', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'CaseContent';
         lObject.value = 1;
-        await lFileSystem.storeMulti('Parent', 'Child', lObject);
+        await lFileSystem.store('Parent/Child', lObject);
 
-        // Process.
-        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('parent');
+        // Process. Query with different casing.
+        const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('parent');
 
         // Evaluation.
         expect(lResult.length).toBe(1);
         expect(lResult[0].name).toBe('child');
     });
 
-    await pContext.step('Path that is both a read path and a prefix is treated as directory', async () => {
+    await pContext.step('Path that is both a file and a directory prefix is treated as directory', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lFileObject: SimpleTestObject = new SimpleTestObject();
         lFileObject.name = 'FileAtPath';
@@ -811,22 +709,23 @@ Deno.test('FileApiFileSystem.contentOf()', async (pContext) => {
         lChildObject.name = 'ChildOfPath';
         lChildObject.value = 2;
 
+        // Store an object directly at 'a/b' and also store a deeper path 'a/b/c'.
         await lFileSystem.store('a/b', lFileObject);
         await lFileSystem.store('a/b/c', lChildObject);
 
         // Process.
-        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('a');
+        const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('a');
 
-        // Evaluation.
+        // Evaluation. 'b' has children, so it is a Directory.
         expect(lResult.length).toBe(1);
         expect(lResult[0].name).toBe('b');
-        expect(lResult[0].type).toBe(FileSystemItemType.Directory);
+        expect(lResult[0].type).toBe(FileSystemFileType.Directory);
     });
 
     await pContext.step('Works at root level with empty string', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'Root';
@@ -834,19 +733,19 @@ Deno.test('FileApiFileSystem.contentOf()', async (pContext) => {
         await lFileSystem.store('top/level/item', lObject);
 
         // Process.
-        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('');
+        const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('');
 
-        // Evaluation.
+        // Evaluation. 'top' should be a directory at the root.
         expect(lResult.length).toBe(1);
         expect(lResult[0].name).toBe('top');
-        expect(lResult[0].type).toBe(FileSystemItemType.Directory);
+        expect(lResult[0].type).toBe(FileSystemFileType.Directory);
         expect(lResult[0].path).toBe('top');
     });
 
     await pContext.step('Handles multiple items under same prefix', async () => {
         // Setup.
         const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
-        const lFileSystem: IFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
 
         const lObject1: SimpleTestObject = new SimpleTestObject();
         lObject1.name = 'One';
@@ -865,9 +764,9 @@ Deno.test('FileApiFileSystem.contentOf()', async (pContext) => {
         await lFileSystem.store('root/dir/nested', lObject3);
 
         // Process.
-        const lResult: Array<FileSystemItem> = await lFileSystem.contentOf('root');
+        const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('root');
 
-        // Evaluation.
+        // Evaluation. Should have file1, file2 as Files and dir as Directory.
         expect(lResult.length).toBe(3);
 
         const lFile1: FileSystemItem | undefined = lResult.find((pItem) => pItem.name === 'file1');
@@ -875,12 +774,33 @@ Deno.test('FileApiFileSystem.contentOf()', async (pContext) => {
         const lDir: FileSystemItem | undefined = lResult.find((pItem) => pItem.name === 'dir');
 
         expect(lFile1).not.toBeUndefined();
-        expect(lFile1!.type).toBe(FileSystemItemType.File);
+        expect(lFile1!.type).toBe(FileSystemFileType.File);
 
         expect(lFile2).not.toBeUndefined();
-        expect(lFile2!.type).toBe(FileSystemItemType.File);
+        expect(lFile2!.type).toBe(FileSystemFileType.File);
 
         expect(lDir).not.toBeUndefined();
-        expect(lDir!.type).toBe(FileSystemItemType.Directory);
+        expect(lDir!.type).toBe(FileSystemFileType.Directory);
+    });
+});
+
+Deno.test('FileApiFileSystem.fileClass()', async (pContext) => {
+    await pContext.step('Classes decorated with fileClass are serializable', async () => {
+        // Setup.
+        const lDirectoryHandle: MockDirectoryHandle = new MockDirectoryHandle();
+        const lFileSystem: FileApiFileSystem = new FileApiFileSystem(lDirectoryHandle as unknown as FileSystemDirectoryHandle);
+
+        const lObject: SimpleTestObject = new SimpleTestObject();
+        lObject.name = 'DecoratorTest';
+        lObject.value = 42;
+
+        // Process. Store and read back.
+        await lFileSystem.store('decorator/test', lObject);
+        const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('decorator/test');
+
+        // Evaluation.
+        expect(lResult).toBeInstanceOf(SimpleTestObject);
+        expect(lResult.name).toBe('DecoratorTest');
+        expect(lResult.value).toBe(42);
     });
 });

@@ -152,7 +152,7 @@ export class BlobSerializerValueDeserializer {
         const lUuid: string = this.readNextBytesAsString(pCursor, lUuidByteLength);
 
         // Resolve constructor.
-        const lConstructor: IVoidParameterConstructor<object> = Serializer.classOfUuid(lUuid);
+        const lConstructor: IVoidParameterConstructor<object> = Serializer.classOfIdentifier(lUuid);
         const lInstance: object = new lConstructor();
 
         // Read metadata for property alias mapping.

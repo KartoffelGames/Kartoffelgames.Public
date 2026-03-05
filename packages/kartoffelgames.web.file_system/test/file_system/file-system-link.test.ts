@@ -1,17 +1,18 @@
-import { BlobSerializer, Serializer } from '@kartoffelgames/core-serializer';
+import { BlobSerializer } from '@kartoffelgames/core-serializer';
 import { expect } from '@kartoffelgames/core-test';
 import { IndexDbFileSystem } from '@kartoffelgames/web-file-system';
 import 'npm:fake-indexeddb/auto';
 import { FileSystemLink } from '../../source/file-system-link.ts';
+import { FileSystem, FileSystemReferenceType } from '../../source/file-system.ts';
 import '../mock/structured-clone-blob-support.ts';
 
 // Simple serializable test class.
-@Serializer.serializeableClass('b5931480-24c6-44cc-8479-f8c6883ba20f')
+@FileSystem.fileClass('b5931480-24c6-44cc-8479-f8c6883ba20f', FileSystemReferenceType.Instanced)
 class SimpleTestObject {
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public name: string = '';
 
-    @Serializer.property()
+    @FileSystem.fileProperty()
     public value: number = 0;
 }
 
@@ -24,7 +25,7 @@ Deno.test('FileSystemLink', { sanitizeResources: false, sanitizeOps: false }, as
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'LinkedObject';
         lObject.value = 55;
-        await lFileSystem.storeMulti('link', 'target', lObject);
+        await lFileSystem.store('link/target', lObject);
 
         const lLink: FileSystemLink<SimpleTestObject> = FileSystemLink.fromPath<SimpleTestObject>('link/target');
 
@@ -71,7 +72,7 @@ Deno.test('FileSystemLink', { sanitizeResources: false, sanitizeOps: false }, as
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'Cached';
         lObject.value = 10;
-        await lFileSystem.storeMulti('cache', 'test', lObject);
+        await lFileSystem.store('cache/test', lObject);
 
         const lLink: FileSystemLink<SimpleTestObject> = FileSystemLink.fromPath<SimpleTestObject>('cache/test');
 

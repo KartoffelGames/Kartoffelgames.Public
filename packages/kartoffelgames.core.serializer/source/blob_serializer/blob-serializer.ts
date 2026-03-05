@@ -42,22 +42,22 @@ export class BlobSerializer {
     private static readonly MAGIC_NUMBER: number = 0x4B475342; // `KGSB` (KartoffelGames Serializer Binary)
 
     /**
-     * Read the UUID from the first bytes of an encoded entry.
-     * Entry data starts with: tag (1 byte) + uuid byte length (2 bytes, uint16 LE) + uuid UTF-8 bytes.
+     * Read the identifier from the first bytes of an encoded entry.
+     * Entry data starts with: tag (1 byte) + identifier byte length (2 bytes, uint16 LE) + identifier UTF-8 bytes.
      *
      * @param pBlob - The source blob.
      * @param pDataOffset - Byte offset of the entry data in the blob.
      *
-     * @returns the UUID string.
+     * @returns the identifier string.
      */
-    private static async readEntryUuid(pBlob: Blob, pDataOffset: number): Promise<string> {
-        // Read tag (1 byte) + uuid byte length (2 bytes).
+    private static async readEntryIdentifier(pBlob: Blob, pDataOffset: number): Promise<string> {
+        // Read tag (1 byte) + identifier byte length (2 bytes).
         const lHeader: Uint8Array = await BlobSerializer.sliceToUint8Array(pBlob, pDataOffset, 3);
-        const lUuidByteLength: number = new DataView(lHeader.buffer).getUint16(1, true);
+        const lIdentifierByteLength: number = new DataView(lHeader.buffer).getUint16(1, true);
 
-        // Read uuid string bytes.
-        const lUuidBytes: Uint8Array = await BlobSerializer.sliceToUint8Array(pBlob, pDataOffset + 3, lUuidByteLength);
-        return new TextDecoder().decode(lUuidBytes);
+        // Read identifier string bytes.
+        const lIdentifierBytes: Uint8Array = await BlobSerializer.sliceToUint8Array(pBlob, pDataOffset + 3, lIdentifierByteLength);
+        return new TextDecoder().decode(lIdentifierBytes);
     }
 
     /**
@@ -118,9 +118,9 @@ export class BlobSerializer {
             lOffset += 4;
 
             // Read entry UUID from the start of the entry data.
-            const lUuid: string = await BlobSerializer.readEntryUuid(pBlob, lDataOffset);
+            const lUuid: string = await BlobSerializer.readEntryIdentifier(pBlob, lDataOffset);
 
-            lEntries.set(lPathString, { dataOffset: lDataOffset, dataSize: lDataSize, uuid: lUuid });
+            lEntries.set(lPathString, { dataOffset: lDataOffset, dataSize: lDataSize, identifier: lUuid });
         }
 
         return lEntries;
@@ -156,7 +156,7 @@ export class BlobSerializer {
         for (const [lEntryPath, lEntry] of this.mTableOfContent) {
             lResultList.push({
                 byteLength: lEntry.dataSize,
-                classType: Serializer.classOfUuid(lEntry.uuid),
+                classType: Serializer.classOfIdentifier(lEntry.identifier),
                 path: lEntryPath,
             });
         }
@@ -421,7 +421,7 @@ type BlobSerializerFileHeader = {
 type BlobSerializerTableOfContentEntry = {
     dataOffset: number;
     dataSize: number;
-    uuid: string;
+    identifier: string;
 };
 
 type BlobSerializerTableOfContentBinaryInfo = {

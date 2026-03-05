@@ -32,7 +32,9 @@
         "lib": [
             "ES2021",
             "DOM",
-            "deno.ns"
+            "deno.ns",
+            "DOM.asynciterable",
+            "DOM.iterable"
         ],
         "types": [
             "./bundle-environment/bundle-module-declaration.d.ts"

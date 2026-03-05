@@ -13,7 +13,7 @@ Deno.test('Serializer.class()', async (pContext) => {
         // Evaluation.
         const lMetadata = Serializer.metadataOf(TestClass);
         expect(lMetadata).not.toBeNull();
-        expect(lMetadata!.uuid).toBe(lUuid);
+        expect(lMetadata!.identifier).toBe(lUuid);
     });
 
     await pContext.step('Resolve registered constructor by UUID', () => {
@@ -24,7 +24,7 @@ Deno.test('Serializer.class()', async (pContext) => {
         class TestClass { }
 
         // Process.
-        const lResolved = Serializer.classOfUuid(lUuid);
+        const lResolved = Serializer.classOfIdentifier(lUuid);
 
         // Evaluation.
         expect(lResolved).toBe(TestClass);
@@ -54,7 +54,7 @@ Deno.test('Serializer.class()', async (pContext) => {
     await pContext.step('Throw when resolving unregistered UUID', () => {
         // Process.
         const lIllegalInstruction = () => {
-            Serializer.classOfUuid('nonexistent-uuid');
+            Serializer.classOfIdentifier('nonexistent-uuid');
         };
 
         // Evaluation.
@@ -220,7 +220,7 @@ Deno.test('Serializer inheritance', async (pContext) => {
         expect(lMetadata.propertyNames.length).toBe(2);
         expect(lMetadata.propertyNames).toContain('name');
         expect(lMetadata.propertyNames).toContain('age');
-        expect(lMetadata.uuid).toBe('test-inherit-child-1');
+        expect(lMetadata.identifier).toBe('test-inherit-child-1');
     });
 
     await pContext.step('Parent metadata is not affected by child', () => {
@@ -245,7 +245,7 @@ Deno.test('Serializer inheritance', async (pContext) => {
         // Evaluation.
         expect(lMetadata.propertyNames.length).toBe(1);
         expect(lMetadata.propertyNames).toBeDeepEqual(['name']);
-        expect(lMetadata.uuid).toBe('test-inherit-parent-2');
+        expect(lMetadata.identifier).toBe('test-inherit-parent-2');
     });
 
     await pContext.step('Multi-level inheritance collects all properties', () => {
@@ -277,7 +277,7 @@ Deno.test('Serializer inheritance', async (pContext) => {
         expect(lMetadata.propertyNames).toContain('id');
         expect(lMetadata.propertyNames).toContain('name');
         expect(lMetadata.propertyNames).toContain('active');
-        expect(lMetadata.uuid).toBe('test-inherit-leaf-3');
+        expect(lMetadata.identifier).toBe('test-inherit-leaf-3');
     });
 
     await pContext.step('Child overrides parent property config', () => {
@@ -324,7 +324,7 @@ Deno.test('Serializer inheritance', async (pContext) => {
         expect(lMetadata.propertyNames.length).toBe(2);
         expect(lMetadata.propertyNames).toContain('name');
         expect(lMetadata.propertyNames).toContain('value');
-        expect(lMetadata.uuid).toBe('test-inherit-child-5');
+        expect(lMetadata.identifier).toBe('test-inherit-child-5');
     });
 
     await pContext.step('Parent without class decorator propagates properties to child', () => {
@@ -348,6 +348,6 @@ Deno.test('Serializer inheritance', async (pContext) => {
         expect(lMetadata.propertyNames.length).toBe(2);
         expect(lMetadata.propertyNames).toContain('name');
         expect(lMetadata.propertyNames).toContain('age');
-        expect(lMetadata.uuid).toBe('test-inherit-child-6');
+        expect(lMetadata.identifier).toBe('test-inherit-child-6');
     });
 });

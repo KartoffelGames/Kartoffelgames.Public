@@ -300,7 +300,7 @@ export class BlobSerializerValueSerializer {
      * @throws Exception if the serializer UUID has not been set on the metadata.
      */
     private encodeRegisteredObject(pValue: object, pMetadata: SerializerMetadata, pVisited: Set<object>): Uint8Array {
-        const lClassUuid: string | null = pMetadata.uuid;
+        const lClassUuid: string | null = pMetadata.identifier;
         if (!lClassUuid) {
             throw new Exception('Serializer UUID has not been set.', this);
         }

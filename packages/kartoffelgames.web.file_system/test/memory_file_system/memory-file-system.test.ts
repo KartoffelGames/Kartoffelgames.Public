@@ -33,7 +33,7 @@ class SingletonTestObject {
     public value: number = 0;
 }
 
-Deno.test('MemoryFileSystem.store()', async (pContext) => {
+Deno.test('MemoryFileSystem.writeFile()', async (pContext) => {
     await pContext.step('Store and read a single object', async () => {
         // Setup.
         const lFileSystem: MemoryFileSystem = new MemoryFileSystem();
@@ -43,7 +43,7 @@ Deno.test('MemoryFileSystem.store()', async (pContext) => {
         lObject.value = 42;
 
         // Process.
-        await lFileSystem.store('my/path/class', lObject);
+        await lFileSystem.writeFile('my/path/class', lObject);
 
         // Evaluation. Read it back to verify it was stored.
         const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('my/path/class');
@@ -64,8 +64,8 @@ Deno.test('MemoryFileSystem.store()', async (pContext) => {
         lSecond.value = 2;
 
         // Process. Store then overwrite.
-        await lFileSystem.store('same/path', lFirst);
-        await lFileSystem.store('same/path', lSecond);
+        await lFileSystem.writeFile('same/path', lFirst);
+        await lFileSystem.writeFile('same/path', lSecond);
 
         // Evaluation. Should return the second object.
         const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('same/path');
@@ -82,7 +82,7 @@ Deno.test('MemoryFileSystem.store()', async (pContext) => {
         lObject.value = 7;
 
         // Process. Store with mixed case.
-        await lFileSystem.store('My/Path/Class', lObject);
+        await lFileSystem.writeFile('My/Path/Class', lObject);
 
         // Evaluation. Read with lowercase.
         const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('my/path/class');
@@ -103,7 +103,7 @@ Deno.test('MemoryFileSystem.store()', async (pContext) => {
         lParent.child = lChild;
 
         // Process.
-        await lFileSystem.store('nested/object', lParent);
+        await lFileSystem.writeFile('nested/object', lParent);
 
         // Evaluation.
         const lResult: NestedTestObject = await lFileSystem.read<NestedTestObject>('nested/object');
@@ -122,7 +122,7 @@ Deno.test('MemoryFileSystem.read()', async (pContext) => {
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'ReadTest';
         lObject.value = 7;
-        await lFileSystem.store('read/test', lObject);
+        await lFileSystem.writeFile('read/test', lObject);
 
         // Process.
         const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('read/test');
@@ -140,7 +140,7 @@ Deno.test('MemoryFileSystem.read()', async (pContext) => {
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'CaseTest';
         lObject.value = 3;
-        await lFileSystem.store('My/Path', lObject);
+        await lFileSystem.writeFile('My/Path', lObject);
 
         // Process.
         const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('my/path');
@@ -176,8 +176,8 @@ Deno.test('MemoryFileSystem.read()', async (pContext) => {
         lSecond.name = 'Second';
         lSecond.value = 2;
 
-        await lFileSystem.store('path/one', lFirst);
-        await lFileSystem.store('path/two', lSecond);
+        await lFileSystem.writeFile('path/one', lFirst);
+        await lFileSystem.writeFile('path/two', lSecond);
 
         // Process.
         const lResultOne: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('path/one');
@@ -200,7 +200,7 @@ Deno.test('MemoryFileSystem singleton caching', async (pContext) => {
         lObject.name = 'Singleton';
         lObject.value = 1;
 
-        await lFileSystem.store('singleton/path', lObject);
+        await lFileSystem.writeFile('singleton/path', lObject);
 
         // Process.
         const lFirst: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('singleton/path');
@@ -222,8 +222,8 @@ Deno.test('MemoryFileSystem singleton caching', async (pContext) => {
         lObjectB.name = 'B';
         lObjectB.value = 2;
 
-        await lFileSystem.store('singleton/a', lObjectA);
-        await lFileSystem.store('singleton/b', lObjectB);
+        await lFileSystem.writeFile('singleton/a', lObjectA);
+        await lFileSystem.writeFile('singleton/b', lObjectB);
 
         // Process.
         const lResultA: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('singleton/a');
@@ -243,7 +243,7 @@ Deno.test('MemoryFileSystem singleton caching', async (pContext) => {
         lObject.name = 'CaseSingleton';
         lObject.value = 7;
 
-        await lFileSystem.store('Singleton/Case', lObject);
+        await lFileSystem.writeFile('Singleton/Case', lObject);
 
         // Process. Read with different casings.
         const lFirst: SingletonTestObject = await lFileSystem.read<SingletonTestObject>('singleton/case');
@@ -262,8 +262,8 @@ Deno.test('MemoryFileSystem singleton caching', async (pContext) => {
         lObject.name = 'PerInstance';
         lObject.value = 3;
 
-        await lFileSystemA.store('singleton/instance', lObject);
-        await lFileSystemB.store('singleton/instance', lObject);
+        await lFileSystemA.writeFile('singleton/instance', lObject);
+        await lFileSystemB.writeFile('singleton/instance', lObject);
 
         // Process.
         const lResultA: SingletonTestObject = await lFileSystemA.read<SingletonTestObject>('singleton/instance');
@@ -283,7 +283,7 @@ Deno.test('MemoryFileSystem singleton caching', async (pContext) => {
         lObject.name = 'Instanced';
         lObject.value = 5;
 
-        await lFileSystem.store('instanced/path', lObject);
+        await lFileSystem.writeFile('instanced/path', lObject);
 
         // Process.
         const lFirst: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('instanced/path');
@@ -304,7 +304,7 @@ Deno.test('MemoryFileSystem.delete()', async (pContext) => {
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'ToDelete';
         lObject.value = 1;
-        await lFileSystem.store('file/entry', lObject);
+        await lFileSystem.writeFile('file/entry', lObject);
 
         // Process.
         const lResult: boolean = await lFileSystem.delete('file/entry');
@@ -339,7 +339,7 @@ Deno.test('MemoryFileSystem.delete()', async (pContext) => {
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'CaseDelete';
         lObject.value = 5;
-        await lFileSystem.store('Case/Path', lObject);
+        await lFileSystem.writeFile('Case/Path', lObject);
 
         // Process. Delete with different casing.
         const lResult: boolean = await lFileSystem.delete('case/path');
@@ -349,21 +349,21 @@ Deno.test('MemoryFileSystem.delete()', async (pContext) => {
         expect(await lFileSystem.has('case/path')).toBe(false);
     });
 
-    await pContext.step('Delete prunes empty parent directories', async () => {
+    await pContext.step('Delete file leaves empty parent directories intact', async () => {
         // Setup.
         const lFileSystem: MemoryFileSystem = new MemoryFileSystem();
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'Nested';
         lObject.value = 1;
-        await lFileSystem.store('a/b/c', lObject);
+        await lFileSystem.writeFile('a/b/c', lObject);
 
         // Process. Delete the only file in the tree.
         await lFileSystem.delete('a/b/c');
 
-        // Evaluation. Parent directories should be pruned.
-        expect(await lFileSystem.has('a/b')).toBe(false);
-        expect(await lFileSystem.has('a')).toBe(false);
+        // Evaluation. Parent directories should still exist as empty directories.
+        expect(await lFileSystem.has('a/b')).toBe(true);
+        expect(await lFileSystem.has('a')).toBe(true);
     });
 
     await pContext.step('Delete file preserves sibling files', async () => {
@@ -378,8 +378,8 @@ Deno.test('MemoryFileSystem.delete()', async (pContext) => {
         lSecond.name = 'Remove';
         lSecond.value = 2;
 
-        await lFileSystem.store('dir/keep', lFirst);
-        await lFileSystem.store('dir/remove', lSecond);
+        await lFileSystem.writeFile('dir/keep', lFirst);
+        await lFileSystem.writeFile('dir/remove', lSecond);
 
         // Process.
         await lFileSystem.delete('dir/remove');
@@ -390,7 +390,7 @@ Deno.test('MemoryFileSystem.delete()', async (pContext) => {
     });
 });
 
-Deno.test('MemoryFileSystem.deleteDirectory()', async (pContext) => {
+Deno.test('MemoryFileSystem.delete() directories', async (pContext) => {
     await pContext.step('Delete directory and all its contents', async () => {
         // Setup.
         const lFileSystem: MemoryFileSystem = new MemoryFileSystem();
@@ -403,11 +403,11 @@ Deno.test('MemoryFileSystem.deleteDirectory()', async (pContext) => {
         lObj2.name = 'Two';
         lObj2.value = 2;
 
-        await lFileSystem.store('dir/file1', lObj1);
-        await lFileSystem.store('dir/sub/file2', lObj2);
+        await lFileSystem.writeFile('dir/file1', lObj1);
+        await lFileSystem.writeFile('dir/sub/file2', lObj2);
 
         // Process.
-        const lResult: boolean = await lFileSystem.deleteDirectory('dir');
+        const lResult: boolean = await lFileSystem.delete('dir');
 
         // Evaluation.
         expect(lResult).toBe(true);
@@ -421,7 +421,7 @@ Deno.test('MemoryFileSystem.deleteDirectory()', async (pContext) => {
         const lFileSystem: MemoryFileSystem = new MemoryFileSystem();
 
         // Process.
-        const lResult: boolean = await lFileSystem.deleteDirectory('does/not/exist');
+        const lResult: boolean = await lFileSystem.delete('does/not/exist');
 
         // Evaluation.
         expect(lResult).toBe(false);
@@ -434,10 +434,10 @@ Deno.test('MemoryFileSystem.deleteDirectory()', async (pContext) => {
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'CaseDir';
         lObject.value = 1;
-        await lFileSystem.store('MyDir/file', lObject);
+        await lFileSystem.writeFile('MyDir/file', lObject);
 
         // Process. Delete with different casing.
-        const lResult: boolean = await lFileSystem.deleteDirectory('mydir');
+        const lResult: boolean = await lFileSystem.delete('mydir');
 
         // Evaluation.
         expect(lResult).toBe(true);
@@ -456,31 +456,31 @@ Deno.test('MemoryFileSystem.deleteDirectory()', async (pContext) => {
         lObj2.name = 'Remove';
         lObj2.value = 2;
 
-        await lFileSystem.store('keep/file', lObj1);
-        await lFileSystem.store('remove/file', lObj2);
+        await lFileSystem.writeFile('keep/file', lObj1);
+        await lFileSystem.writeFile('remove/file', lObj2);
 
         // Process.
-        await lFileSystem.deleteDirectory('remove');
+        await lFileSystem.delete('remove');
 
         // Evaluation.
         const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('keep/file');
         expect(lResult.name).toBe('Keep');
     });
 
-    await pContext.step('Delete directory prunes empty parent directories', async () => {
+    await pContext.step('Delete directory leaves empty parent directories intact', async () => {
         // Setup.
         const lFileSystem: MemoryFileSystem = new MemoryFileSystem();
 
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'Deep';
         lObject.value = 1;
-        await lFileSystem.store('a/b/c/d', lObject);
+        await lFileSystem.writeFile('a/b/c/d', lObject);
 
         // Process. Delete the 'b' directory.
-        await lFileSystem.deleteDirectory('a/b');
+        await lFileSystem.delete('a/b');
 
-        // Evaluation. 'a' should also be pruned since it's empty.
-        expect(await lFileSystem.has('a')).toBe(false);
+        // Evaluation. 'a' should still exist as an empty directory.
+        expect(await lFileSystem.has('a')).toBe(true);
     });
 });
 
@@ -492,7 +492,7 @@ Deno.test('MemoryFileSystem.has()', async (pContext) => {
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'HasTest';
         lObject.value = 1;
-        await lFileSystem.store('my/path', lObject);
+        await lFileSystem.writeFile('my/path', lObject);
 
         // Process.
         const lResult: boolean = await lFileSystem.has('my/path');
@@ -508,7 +508,7 @@ Deno.test('MemoryFileSystem.has()', async (pContext) => {
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'HasDir';
         lObject.value = 1;
-        await lFileSystem.store('parent/child', lObject);
+        await lFileSystem.writeFile('parent/child', lObject);
 
         // Process.
         const lResult: boolean = await lFileSystem.has('parent');
@@ -535,7 +535,7 @@ Deno.test('MemoryFileSystem.has()', async (pContext) => {
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'CaseHas';
         lObject.value = 4;
-        await lFileSystem.store('My/Path', lObject);
+        await lFileSystem.writeFile('My/Path', lObject);
 
         // Process.
         const lResult: boolean = await lFileSystem.has('my/path');
@@ -558,8 +558,8 @@ Deno.test('MemoryFileSystem.readDirectory()', async (pContext) => {
         lSecond.name = 'Beta';
         lSecond.value = 2;
 
-        await lFileSystem.store('parent/alpha', lFirst);
-        await lFileSystem.store('parent/beta', lSecond);
+        await lFileSystem.writeFile('parent/alpha', lFirst);
+        await lFileSystem.writeFile('parent/beta', lSecond);
 
         // Process.
         const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('parent');
@@ -586,7 +586,7 @@ Deno.test('MemoryFileSystem.readDirectory()', async (pContext) => {
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'Deep';
         lObject.value = 1;
-        await lFileSystem.store('root/middle/leaf', lObject);
+        await lFileSystem.writeFile('root/middle/leaf', lObject);
 
         // Process. List root level.
         const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('root');
@@ -606,7 +606,7 @@ Deno.test('MemoryFileSystem.readDirectory()', async (pContext) => {
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'ClassType';
         lObject.value = 1;
-        await lFileSystem.store('typed/item', lObject);
+        await lFileSystem.writeFile('typed/item', lObject);
 
         // Process.
         const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('typed');
@@ -624,7 +624,7 @@ Deno.test('MemoryFileSystem.readDirectory()', async (pContext) => {
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'Nested';
         lObject.value = 1;
-        await lFileSystem.store('a/b/c', lObject);
+        await lFileSystem.writeFile('a/b/c', lObject);
 
         // Process.
         const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('a');
@@ -653,7 +653,7 @@ Deno.test('MemoryFileSystem.readDirectory()', async (pContext) => {
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'CaseContent';
         lObject.value = 1;
-        await lFileSystem.store('Parent/Child', lObject);
+        await lFileSystem.writeFile('Parent/Child', lObject);
 
         // Process. Query with different casing.
         const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('parent');
@@ -663,7 +663,7 @@ Deno.test('MemoryFileSystem.readDirectory()', async (pContext) => {
         expect(lResult[0].name).toBe('child');
     });
 
-    await pContext.step('Path that is both a file and a directory prefix is treated as directory', async () => {
+    await pContext.step('Writing to a path through a file segment throws', async () => {
         // Setup.
         const lFileSystem: MemoryFileSystem = new MemoryFileSystem();
 
@@ -671,21 +671,21 @@ Deno.test('MemoryFileSystem.readDirectory()', async (pContext) => {
         lFileObject.name = 'FileAtPath';
         lFileObject.value = 1;
 
-        const lChildObject: SimpleTestObject = new SimpleTestObject();
-        lChildObject.name = 'ChildOfPath';
-        lChildObject.value = 2;
+        // Store an object directly at 'a/b'.
+        await lFileSystem.writeFile('a/b', lFileObject);
 
-        // Store an object directly at 'a/b' and also store a deeper path 'a/b/c'.
-        await lFileSystem.store('a/b', lFileObject);
-        await lFileSystem.store('a/b/c', lChildObject);
+        // Process & Evaluation. Storing at 'a/b/c' should throw because 'b' is a file, not a directory.
+        let lError: Error | null = null;
+        try {
+            const lChildObject: SimpleTestObject = new SimpleTestObject();
+            lChildObject.name = 'ChildOfPath';
+            lChildObject.value = 2;
+            await lFileSystem.writeFile('a/b/c', lChildObject);
+        } catch (pError) {
+            lError = pError as Error;
+        }
 
-        // Process.
-        const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('a');
-
-        // Evaluation. 'b' has children, so it is a Directory.
-        expect(lResult.length).toBe(1);
-        expect(lResult[0].name).toBe('b');
-        expect(lResult[0].type).toBe(FileSystemFileType.Directory);
+        expect(lError).not.toBeNull();
     });
 
     await pContext.step('Works at root level with empty string', async () => {
@@ -695,7 +695,7 @@ Deno.test('MemoryFileSystem.readDirectory()', async (pContext) => {
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'Root';
         lObject.value = 1;
-        await lFileSystem.store('top/level/item', lObject);
+        await lFileSystem.writeFile('top/level/item', lObject);
 
         // Process.
         const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('');
@@ -723,9 +723,9 @@ Deno.test('MemoryFileSystem.readDirectory()', async (pContext) => {
         lObject3.name = 'Three';
         lObject3.value = 3;
 
-        await lFileSystem.store('root/file1', lObject1);
-        await lFileSystem.store('root/file2', lObject2);
-        await lFileSystem.store('root/dir/nested', lObject3);
+        await lFileSystem.writeFile('root/file1', lObject1);
+        await lFileSystem.writeFile('root/file2', lObject2);
+        await lFileSystem.writeFile('root/dir/nested', lObject3);
 
         // Process.
         const lResult: Array<FileSystemItem> = await lFileSystem.readDirectory('root');
@@ -758,7 +758,7 @@ Deno.test('MemoryFileSystem.fileClass()', async (pContext) => {
         lObject.value = 42;
 
         // Process. Store and read back.
-        await lFileSystem.store('decorator/test', lObject);
+        await lFileSystem.writeFile('decorator/test', lObject);
         const lResult: SimpleTestObject = await lFileSystem.read<SimpleTestObject>('decorator/test');
 
         // Evaluation.

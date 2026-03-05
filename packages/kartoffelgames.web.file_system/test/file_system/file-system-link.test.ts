@@ -25,7 +25,7 @@ Deno.test('FileSystemLink', { sanitizeResources: false, sanitizeOps: false }, as
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'LinkedObject';
         lObject.value = 55;
-        await lFileSystem.store('link/target', lObject);
+        await lFileSystem.writeFile('link/target', lObject);
 
         const lLink: FileSystemLink<SimpleTestObject> = FileSystemLink.fromPath<SimpleTestObject>('link/target');
 
@@ -72,7 +72,7 @@ Deno.test('FileSystemLink', { sanitizeResources: false, sanitizeOps: false }, as
         const lObject: SimpleTestObject = new SimpleTestObject();
         lObject.name = 'Cached';
         lObject.value = 10;
-        await lFileSystem.store('cache/test', lObject);
+        await lFileSystem.writeFile('cache/test', lObject);
 
         const lLink: FileSystemLink<SimpleTestObject> = FileSystemLink.fromPath<SimpleTestObject>('cache/test');
 

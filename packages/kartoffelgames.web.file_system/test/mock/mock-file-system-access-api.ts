@@ -30,7 +30,7 @@ class MockWritableFileStream {
  * Mock file handle that stores a single file's data.
  */
 class MockFileHandle {
-    public readonly kind: 'file' = 'file';
+    public readonly kind = 'file' as const;
     public readonly name: string;
     private mData: Blob;
 
@@ -54,7 +54,7 @@ class MockFileHandle {
  * Mock directory handle that stores files and subdirectories in memory.
  */
 export class MockDirectoryHandle {
-    public readonly kind: 'directory' = 'directory';
+    public readonly kind = 'directory' as const;
     public readonly name: string;
     private readonly mDirectories: Map<string, MockDirectoryHandle>;
     private readonly mFiles: Map<string, MockFileHandle>;
@@ -65,7 +65,35 @@ export class MockDirectoryHandle {
         this.mDirectories = new Map();
     }
 
-    public async getDirectoryHandle(pName: string, pOptions?: { create?: boolean }): Promise<MockDirectoryHandle> {
+    /**
+     * Async iterator that yields [name, handle] entries for all files and directories.
+     */
+    public entries(): AsyncIterableIterator<[string, MockFileHandle | MockDirectoryHandle]> {
+        const lEntries: Array<[string, MockFileHandle | MockDirectoryHandle]> = [];
+
+        for (const [lName, lHandle] of this.mFiles) {
+            lEntries.push([lName, lHandle]);
+        }
+
+        for (const [lName, lHandle] of this.mDirectories) {
+            lEntries.push([lName, lHandle]);
+        }
+
+        let lIndex: number = 0;
+        return {
+            async next(): Promise<IteratorResult<[string, MockFileHandle | MockDirectoryHandle]>> {
+                if (lIndex < lEntries.length) {
+                    return Promise.resolve({ value: lEntries[lIndex++], done: false });
+                }
+                return Promise.resolve({ value: undefined, done: true });
+            },
+            [Symbol.asyncIterator]() {
+                return this;
+            }
+        };
+    }
+
+    public async getDirectoryHandle(pName: string, pOptions?: { create?: boolean; }): Promise<MockDirectoryHandle> {
         const lExisting: MockDirectoryHandle | undefined = this.mDirectories.get(pName);
         if (lExisting) {
             return lExisting;
@@ -80,7 +108,7 @@ export class MockDirectoryHandle {
         throw new DOMException(`Directory not found: ${pName}`, 'NotFoundError');
     }
 
-    public async getFileHandle(pName: string, pOptions?: { create?: boolean }): Promise<MockFileHandle> {
+    public async getFileHandle(pName: string, pOptions?: { create?: boolean; }): Promise<MockFileHandle> {
         const lExisting: MockFileHandle | undefined = this.mFiles.get(pName);
         if (lExisting) {
             return lExisting;
@@ -107,33 +135,5 @@ export class MockDirectoryHandle {
         }
 
         throw new DOMException(`Entry not found: ${pName}`, 'NotFoundError');
-    }
-
-    /**
-     * Async iterator that yields [name, handle] entries for all files and directories.
-     */
-    public entries(): AsyncIterableIterator<[string, MockFileHandle | MockDirectoryHandle]> {
-        const lEntries: Array<[string, MockFileHandle | MockDirectoryHandle]> = [];
-
-        for (const [lName, lHandle] of this.mFiles) {
-            lEntries.push([lName, lHandle]);
-        }
-
-        for (const [lName, lHandle] of this.mDirectories) {
-            lEntries.push([lName, lHandle]);
-        }
-
-        let lIndex: number = 0;
-        return {
-            next(): Promise<IteratorResult<[string, MockFileHandle | MockDirectoryHandle]>> {
-                if (lIndex < lEntries.length) {
-                    return Promise.resolve({ value: lEntries[lIndex++], done: false });
-                }
-                return Promise.resolve({ value: undefined, done: true });
-            },
-            [Symbol.asyncIterator]() {
-                return this;
-            }
-        };
     }
 }

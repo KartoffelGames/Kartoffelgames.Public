@@ -235,15 +235,6 @@ export class BlobSerializerValueSerializer {
     }
 
     /**
-     * Encode null value. Tag 0x00.
-     *
-     * @returns Uint8Array containing the encoded null (single byte).
-     */
-    private encodeNull(): Uint8Array {
-        return new Uint8Array([ValueTypeTag.Null]);
-    }
-
-    /**
      * Encode Map. Tag 0x09 + uint32 entry count + recursive key/value pairs.
      *
      * @param pValue - The Map to encode.
@@ -266,6 +257,15 @@ export class BlobSerializerValueSerializer {
         }
 
         return BlobSerializerValueSerializer.concat(...lDataParts);
+    }
+
+    /**
+     * Encode null value. Tag 0x00.
+     *
+     * @returns Uint8Array containing the encoded null (single byte).
+     */
+    private encodeNull(): Uint8Array {
+        return new Uint8Array([ValueTypeTag.Null]);
     }
 
     /**

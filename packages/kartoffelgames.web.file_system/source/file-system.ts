@@ -47,6 +47,17 @@ export abstract class FileSystem {
     }
 
     /**
+     * Get the identifier for a constructor that was registered with {@link FileSystem.fileClass}.
+     *
+     * @param pConstructor - The constructor to look up.
+     *
+     * @returns the identifier string.
+     */
+    public static identifierOfClass(pConstructor: IVoidParameterConstructor<object>): string {
+        return Serializer.identifierOfClass(pConstructor);
+    }
+
+    /**
      * Get the {@link FileSystemReferenceType} for a constructor.
      * The result is cached statically so that metadata is only read once per constructor.
      *
@@ -72,17 +83,6 @@ export abstract class FileSystem {
         return lResult;
     }
 
-    /**
-     * Get the identifier for a constructor that was registered with {@link FileSystem.fileClass}.
-     *
-     * @param pConstructor - The constructor to look up.
-     *
-     * @returns the identifier string.
-     */
-    public static identifierOfClass(pConstructor: IVoidParameterConstructor<object>): string {
-        return Serializer.identifierOfClass(pConstructor);
-    }
-
     private readonly mDirectoryCache: Map<string, FileSystemCacheItem>;
     private readonly mRootReference: string;
     private readonly mSingletonCache: Map<string, WeakRef<object>>;
@@ -101,6 +101,16 @@ export abstract class FileSystem {
     }
 
     /**
+     * Create a directory at the given path.
+     * Creates intermediate directories along the path if they do not exist.
+     *
+     * @param pPath - Full path for the directory. Case-insensitive.
+     */
+    public async createDirectory(pPath: string): Promise<void> {
+        await this.resolveDirectoryPath(pPath, true);
+    }
+
+    /**
      * Delete a file or directory from the file system by path.
      * When deleting a directory, all descendants are deleted recursively.
      *
@@ -111,42 +121,52 @@ export abstract class FileSystem {
     public async delete(pPath: string): Promise<boolean> {
         const lNormalizedPath: string = pPath.toLowerCase();
 
-        // Cannot delete root.
-        if (lNormalizedPath === '') {
+        // Find last segment to separate directory path from target name.
+        const lLastIndexOfSeperator = lNormalizedPath.lastIndexOf('/');
+        const lDirectoryPath = lNormalizedPath.substring(0, lLastIndexOfSeperator);
+        const lTargetName = lNormalizedPath.substring(lLastIndexOfSeperator + 1);
+
+        // Read parent directory.
+        const lParentDirectory: FileSystemCacheDirectoryItem | null = await this.resolveDirectoryPath(lDirectoryPath, false);
+        if (!lParentDirectory) {
             return false;
         }
 
-        // Resolve the parent directory.
-        const lResolved = await this.resolveParent(lNormalizedPath);
-        if (lResolved === null) {
+        // Read target entry from parent directory's children mapping.
+        const lTargetEntry: FileSystemCacheDirectoryItemEntry | null = lParentDirectory.children[lTargetName];
+        if (!lTargetEntry) {
             return false;
         }
 
-        const { parentReference, targetName, parentItem } = lResolved;
+        // Recursive delete function that traverses the directory tree and deletes items from the backend and cache.
+        const lDeleteRecursive = async (pParentDirectory: FileSystemCacheDirectoryItem, pDeleteTarget: FileSystemCacheDirectoryItemEntry): Promise<void> => {
+            // Delete internal item of delete target when target is a directory.
+            if (pDeleteTarget.type === FileSystemFileType.Directory) {
+                // Read directory item to get its children mapping.
+                const lDirectoryItem: FileSystemCacheDirectoryItem = await this.readCacheDirectoryEntry(pDeleteTarget.reference);
 
-        // Check the target exists in parent's children.
-        if (parentItem.type !== FileSystemFileType.Directory) {
-            return false;
-        }
+                // Delete all children recursively. That can be done in parallel since every delete only deletes its own branch.
+                // The parent directory changes are deleted anyway.
+                const lAsyncDeletions: Array<Promise<void>> = new Array<Promise<void>>();
+                for (const lChildEntry of Object.values(lDirectoryItem.children)) {
+                    lAsyncDeletions.push(lDeleteRecursive(lDirectoryItem, lChildEntry));
+                }
 
-        const lTargetReference: string | undefined = parentItem.children[targetName];
-        if (lTargetReference === undefined) {
-            return false;
-        }
-
-        // Recursively delete if directory, or just delete if file.
-        await this.deleteRecursive(parentReference, lTargetReference);
-
-        // Update parent cache: remove the child from children mapping.
-        delete parentItem.children[targetName];
-
-        // Clean singleton cache for this path and all sub-paths.
-        const lPrefix: string = lNormalizedPath + '/';
-        for (const lCachedPath of this.mSingletonCache.keys()) {
-            if (lCachedPath === lNormalizedPath || lCachedPath.startsWith(lPrefix)) {
-                this.mSingletonCache.delete(lCachedPath);
+                await Promise.all(lAsyncDeletions);
             }
-        }
+
+            // Remove delete target from parent directory's children mapping.
+            delete pParentDirectory.children[pDeleteTarget.name.toLowerCase()];
+
+            // Remove delete target from cache.
+            this.mDirectoryCache.delete(pDeleteTarget.reference);
+
+            // Delete the item from native storage. The parent reference is needed to update the native children mapping of the parent directory.
+            await this.deleteReference(pParentDirectory.reference, pDeleteTarget.reference);
+        };
+
+        // Delete the target entry and all its descendants recursively.
+        await lDeleteRecursive(lParentDirectory, lTargetEntry);
 
         return true;
     }
@@ -161,47 +181,38 @@ export abstract class FileSystem {
      * @returns `true` when a matching item exists at the path.
      */
     public async has(pPath: string, pFileType?: FileSystemFileType, pConstructor?: IVoidParameterConstructor<object>): Promise<boolean> {
+        // Fast skip if file type is directory and a constructor is specified.
+        if (pFileType === FileSystemFileType.Directory && pConstructor) {
+            return false;
+        }
+
         const lNormalizedPath: string = pPath.toLowerCase();
 
-        // Empty path is root (always exists as a directory).
-        if (lNormalizedPath === '') {
-            if (pFileType === FileSystemFileType.File) {
-                return false;
-            }
-            if (pConstructor !== undefined) {
-                return false;
-            }
-            return true;
-        }
+        // Find last segment to separate directory path from target name.
+        const lLastIndexOfSeperator = lNormalizedPath.lastIndexOf('/');
+        const lDirectoryPath = lNormalizedPath.substring(0, lLastIndexOfSeperator);
+        const lTargetName = lNormalizedPath.substring(lLastIndexOfSeperator + 1);
 
-        // Resolve the item.
-        const lResolved = await this.resolvePath(lNormalizedPath);
-        if (lResolved === null) {
+        // Read and resolve target
+        const lParentDirectory: FileSystemCacheDirectoryItem | null = await this.resolveDirectoryPath(lDirectoryPath, false);
+        if (!lParentDirectory) {
             return false;
         }
 
-        const { cacheItem } = lResolved;
-
-        // Check file type constraint.
-        if (pFileType !== undefined && cacheItem.type !== pFileType) {
+        // Read target entry from parent directory's children mapping.
+        const lTargetEntry: FileSystemCacheDirectoryItemEntry | null = lParentDirectory.children[lTargetName];
+        if (!lTargetEntry) {
             return false;
         }
 
-        // Directory + constructor constraint always fails.
-        if (cacheItem.type === FileSystemFileType.Directory && pConstructor !== undefined) {
+        // Validate file type constraint if specified.
+        if (pFileType && lTargetEntry.type !== pFileType) {
             return false;
         }
 
-        // Check constructor constraint for files.
-        if (pConstructor !== undefined && cacheItem.type === FileSystemFileType.File) {
-            try {
-                const lClassType: IVoidParameterConstructor<object> = Serializer.classOfIdentifier(cacheItem.classIdentifier);
-                if (lClassType !== pConstructor) {
-                    return false;
-                }
-            } catch {
-                return false;
-            }
+        // Validate constructor constraint if specified and this is a file.
+        if (pConstructor && lTargetEntry.classConstructor !== pConstructor) {
+            return false;
         }
 
         return true;
@@ -224,9 +235,9 @@ export abstract class FileSystem {
         const lNormalizedPath: string = pPath.toLowerCase();
 
         // Check singleton cache before deserializing.
-        const lCachedReference: WeakRef<object> | undefined = this.mSingletonCache.get(lNormalizedPath);
-        if (lCachedReference) {
-            const lCachedInstance: object | undefined = lCachedReference.deref();
+        if (this.mSingletonCache.has(lNormalizedPath)) {
+            // Read the cached instance from the WeakRef and when it's still alive, return it.
+            const lCachedInstance: object | undefined = this.mSingletonCache.get(lNormalizedPath)!.deref();
             if (lCachedInstance) {
                 return lCachedInstance as T;
             }
@@ -235,19 +246,30 @@ export abstract class FileSystem {
             this.mSingletonCache.delete(lNormalizedPath);
         }
 
-        // Navigate to find the file entry.
-        const lResolved = await this.resolvePath(lNormalizedPath);
-        if (lResolved === null || lResolved.cacheItem.type !== FileSystemFileType.File) {
+        // Find last segment to separate directory path from target name.
+        const lLastIndexOfSeperator = lNormalizedPath.lastIndexOf('/');
+        const lDirectoryPath = lNormalizedPath.substring(0, lLastIndexOfSeperator);
+        const lTargetName = lNormalizedPath.substring(lLastIndexOfSeperator + 1);
+
+        // Read and resolve target
+        const lParentDirectory: FileSystemCacheDirectoryItem | null = await this.resolveDirectoryPath(lDirectoryPath, false);
+        if (!lParentDirectory) {
+            throw new Exception(`File not found: ${pPath}`, this);
+        }
+
+        // Read target entry from parent directory's children mapping.
+        const lTargetEntry: FileSystemCacheDirectoryItemEntry | null = lParentDirectory.children[lTargetName];
+        if (!lTargetEntry || lTargetEntry.type !== FileSystemFileType.File) {
             throw new Exception(`File not found: ${pPath}`, this);
         }
 
         // Read the blob from storage.
-        const lBlob: Blob = await this.readFile(lResolved.reference);
+        const lBlob: Blob = await this.readFile(lTargetEntry.reference);
 
         // Deserialize the blob.
-        const lSerializer: BlobSerializer = new BlobSerializer();
-        await lSerializer.load(lBlob);
+        const lSerializer: BlobSerializer = await new BlobSerializer().load(lBlob);
 
+        // Deserialize the object from the blob.
         const lInstance: T = await lSerializer.read<T>('');
 
         // Cache singleton instances.
@@ -268,70 +290,36 @@ export abstract class FileSystem {
      * @returns array of immediate child items, or an empty array when no children exist.
      */
     public async readDirectory(pPath: string): Promise<Array<FileSystemItem>> {
-        const lNormalizedPath: string = pPath.toLowerCase();
-
-        // Resolve the target directory.
-        let lDirectoryReference: string;
-        let lDirectoryCacheItem: FileSystemCacheItem;
-
-        if (lNormalizedPath === '') {
-            lDirectoryReference = this.mRootReference;
-            lDirectoryCacheItem = this.mDirectoryCache.get(this.mRootReference)!;
-        } else {
-            const lResolved = await this.resolvePath(lNormalizedPath);
-            if (lResolved === null || lResolved.cacheItem.type !== FileSystemFileType.Directory) {
-                return [];
-            }
-            lDirectoryReference = lResolved.reference;
-            lDirectoryCacheItem = lResolved.cacheItem;
+        // Read parent directory.
+        const lParentDirectory: FileSystemCacheDirectoryItem | null = await this.resolveDirectoryPath(pPath, false);
+        if (!lParentDirectory) {
+            return new Array<FileSystemItem>();
         }
 
-        // Ensure children are loaded.
-        await this.ensureLoaded(lDirectoryReference);
+        // Convert parent directory's children mapping to result list.
+        const lFileSystemItems: Array<FileSystemItem> = new Array<FileSystemItem>();
+        for (const lChildEntry of Object.values(lParentDirectory.children)) {
+            // Build the full path for the child entry by combining the parent path and the child name.
+            const lChildPath: string = pPath.length > 0 ? `${pPath}/${lChildEntry.name}` : lChildEntry.name;
 
-        // After ensureLoaded, children must be populated.
-        if (lDirectoryCacheItem.type !== FileSystemFileType.Directory) {
-            return [];
-        }
-
-        // Build result list.
-        const lPrefix: string = lNormalizedPath === '' ? '' : `${lNormalizedPath}/`;
-        const lResult: Array<FileSystemItem> = [];
-
-        for (const [lName, lChildReference] of Object.entries(lDirectoryCacheItem.children)) {
-            const lChildItem: FileSystemCacheItem | undefined = this.mDirectoryCache.get(lChildReference);
-            if (!lChildItem) {
-                continue;
-            }
-
-            const lFullPath: string = lPrefix + lName;
-
-            if (lChildItem.type === FileSystemFileType.File) {
-                // Resolve classIdentifier to constructor.
-                let lClassType: IVoidParameterConstructor<object> | null = null;
-                try {
-                    lClassType = Serializer.classOfIdentifier(lChildItem.classIdentifier);
-                } catch {
-                    // UUID not registered, classType stays null.
-                }
-
-                lResult.push({
-                    classType: lClassType,
-                    name: lName,
-                    path: lFullPath,
+            if (lChildEntry.type === FileSystemFileType.File) {
+                lFileSystemItems.push({
+                    classType: lChildEntry.classConstructor,
+                    name: lChildEntry.name,
+                    path: lChildPath,
                     type: FileSystemFileType.File,
                 });
             } else {
-                lResult.push({
+                lFileSystemItems.push({
                     classType: null,
-                    name: lName,
-                    path: lFullPath,
+                    name: lChildEntry.name,
+                    path: lChildPath,
                     type: FileSystemFileType.Directory,
                 });
             }
         }
 
-        return lResult;
+        return lFileSystemItems;
     }
 
     /**
@@ -342,118 +330,129 @@ export abstract class FileSystem {
      * @param pObject - The serializable object to store.
      */
     public async writeFile(pPath: string, pObject: object): Promise<void> {
-        const lNormalizedPath: string = pPath.toLowerCase();
+        // Find last segment to separate directory path from target name.
+        const lLastIndexOfSeperator = pPath.lastIndexOf('/');
+        const lDirectoryPath = pPath.substring(0, lLastIndexOfSeperator);
+        const lTargetName = pPath.substring(lLastIndexOfSeperator + 1);
 
-        // Split path into directory segments and file name.
-        const lSegments: Array<string> = lNormalizedPath.split('/');
-        const lFileName: string = lSegments.pop()!;
+        // Read parent directory.
+        const lParentDirectory: FileSystemCacheDirectoryItem = await this.resolveDirectoryPath(lDirectoryPath, true);
 
         // Serialize the object into a blob.
-        const lSerializer: BlobSerializer = new BlobSerializer();
-        lSerializer.store('', pObject);
-        const lBlob: Blob = await lSerializer.save();
+        const lSerializer: BlobSerializer = new BlobSerializer().store('', pObject);
 
         // Get the class constructor and identifier.
-        const lClassIdentifier: string = FileSystem.identifierOfClass(pObject.constructor as IVoidParameterConstructor<object>);
-
-        // Traverse and create intermediate directories.
-        let lCurrentReference: string = this.mRootReference;
-        for (const lSegment of lSegments) {
-            await this.ensureLoaded(lCurrentReference);
-
-            const lCurrentItem: FileSystemCacheItem = this.mDirectoryCache.get(lCurrentReference)!;
-            if (lCurrentItem.type !== FileSystemFileType.Directory) {
-                throw new Exception(`Path segment is not a directory: ${lSegment}`, this);
-            }
-
-            const lChildReference: string | undefined = lCurrentItem.children[lSegment];
-            if (lChildReference === undefined) {
-                // Create missing directory.
-                const lNewDirRef: string = await this.storeDirectory(lCurrentReference, lSegment);
-                lCurrentItem.children[lSegment] = lNewDirRef;
-                this.mDirectoryCache.set(lNewDirRef, {
-                    type: FileSystemFileType.Directory,
-                    name: lSegment,
-                    reference: lNewDirRef,
-                    children: {}
-                });
-                lCurrentReference = lNewDirRef;
-            } else {
-                lCurrentReference = lChildReference;
-            }
-        }
-
-        // Ensure the final parent directory is loaded.
-        await this.ensureLoaded(lCurrentReference);
-
-        const lParentItem: FileSystemCacheItem = this.mDirectoryCache.get(lCurrentReference)!;
-        if (lParentItem.type !== FileSystemFileType.Directory) {
-            throw new Exception(`Parent path is not a directory`, this);
-        }
-
-        // Delete existing file at this path if it exists.
-        const lExistingFileRef: string | undefined = lParentItem.children[lFileName];
-        if (lExistingFileRef !== undefined) {
-            const lExistingItem: FileSystemCacheItem | undefined = this.mDirectoryCache.get(lExistingFileRef);
-            if (lExistingItem && lExistingItem.type === FileSystemFileType.File) {
-                await this.deleteReference(lCurrentReference, lExistingFileRef);
-                this.mDirectoryCache.delete(lExistingFileRef);
-                delete lParentItem.children[lFileName];
-
-                // Remove from singleton cache.
-                this.mSingletonCache.delete(lNormalizedPath);
-            }
-        }
+        const lClassConstructor: IVoidParameterConstructor<object> = pObject.constructor as IVoidParameterConstructor<object>;
+        const lClassIdentifier: string = FileSystem.identifierOfClass(lClassConstructor);
 
         // Store the new file blob.
-        const lFileReference: string = await this.storeFile(lCurrentReference, lFileName, lClassIdentifier, lBlob);
+        const lFileReference: string = await this.storeFile(lParentDirectory.reference, lTargetName, lClassIdentifier, await lSerializer.save());
+
+        // Delete existing singleton cache entry.
+        const lNormalizedPath: string = pPath.toLowerCase();
+        this.mSingletonCache.delete(lNormalizedPath);
 
         // Update cache.
         this.mDirectoryCache.set(lFileReference, {
             type: FileSystemFileType.File,
-            name: lFileName,
+            name: lTargetName,
             reference: lFileReference,
             classIdentifier: lClassIdentifier
         });
-        lParentItem.children[lFileName] = lFileReference;
+
+        lParentDirectory.children[lTargetName.toLowerCase()] = {
+            name: lTargetName,
+            type: FileSystemFileType.File,
+            reference: lFileReference,
+            classConstructor: lClassConstructor
+        };
     }
 
     /**
-     * Create a directory at the given path.
-     * Creates intermediate directories along the path if they do not exist.
-     *
-     * @param pPath - Full path for the directory. Case-insensitive.
+     * Read a directory entry by reference, loading it from the backend if not already cached.
+     * 
+     * @param pReference - The reference of the directory to read.
+     * 
+     * @returns the directory's cache item.
      */
-    public async createDirectory(pPath: string): Promise<void> {
-        const lNormalizedPath: string = pPath.toLowerCase();
-        const lPathSegments: Array<string> = lNormalizedPath.split('/');
-
-        // Traverse and create all segments.
-        let lCurrentReference: string = this.mRootReference;
-        for (const lSegment of lPathSegments) {
-            await this.ensureLoaded(lCurrentReference);
-
-            const lCurrentItem: FileSystemCacheItem = this.mDirectoryCache.get(lCurrentReference)!;
-            if (lCurrentItem.type !== FileSystemFileType.Directory) {
-                throw new Exception(`Path segment is not a directory: ${lSegment}`, this);
+    private async readCacheDirectoryEntry(pReference: string): Promise<FileSystemCacheDirectoryItem> {
+        // Check if directory is already in cache.
+        if (!this.mDirectoryCache.has(pReference)) {
+            // Load root directory and convert to cache item with children mapping.
+            const lRootChildren: { [name: string]: FileSystemCacheDirectoryItemEntry; } = {};
+            for (const lChildEntry of await this.readDirectoryItems(pReference)) {
+                lRootChildren[lChildEntry.name.toLowerCase()] = {
+                    name: lChildEntry.name,
+                    type: lChildEntry.type,
+                    reference: lChildEntry.reference,
+                    classConstructor: lChildEntry.classIdentifier ? Serializer.classOfIdentifier(lChildEntry.classIdentifier) : null
+                };
             }
 
-            const lChildReference: string | undefined = lCurrentItem.children[lSegment];
-            if (lChildReference === undefined) {
-                // Create missing directory.
-                const lNewDirRef: string = await this.storeDirectory(lCurrentReference, lSegment);
-                lCurrentItem.children[lSegment] = lNewDirRef;
-                this.mDirectoryCache.set(lNewDirRef, {
-                    type: FileSystemFileType.Directory,
-                    name: lSegment,
-                    reference: lNewDirRef,
-                    children: {}
-                });
-                lCurrentReference = lNewDirRef;
-            } else {
-                lCurrentReference = lChildReference;
-            }
+            // Save root directory in cache.
+            this.mDirectoryCache.set(pReference, {
+                type: FileSystemFileType.Directory,
+                name: '',
+                reference: pReference,
+                children: lRootChildren
+            } satisfies FileSystemCacheDirectoryItem);
         }
+
+        // Read from cache after loading.
+        return this.mDirectoryCache.get(pReference)! as FileSystemCacheDirectoryItem;
+    }
+
+    /**
+     * Resolve a normalized path to its final directory cache item, creating intermediate directories if needed.
+     * 
+     * @param pPath - The normalized (lowercase) path. Empty string returns root.
+     * 
+     * @returns the final directory's cache item.
+     */
+    private async resolveDirectoryPath(pPath: string, pCreate: true): Promise<FileSystemCacheDirectoryItem>;
+    private async resolveDirectoryPath(pPath: string, pCreate: false): Promise<FileSystemCacheDirectoryItem | null>;
+    private async resolveDirectoryPath(pPath: string, pCreate: boolean): Promise<FileSystemCacheDirectoryItem | null> {
+        const lPathSegments: Array<string> = pPath.toLowerCase().split('/').filter(pSegment => pSegment.length > 0);
+
+        // Read the first directory entry (root) from cache or backend. This also ensures the root directory is loaded in the cache.
+        let lCurrentItem: FileSystemCacheDirectoryItem = await this.readCacheDirectoryEntry(this.mRootReference);
+
+        // Traverse segments, ensuring directories are loaded and exist. Returns the final directory's cache item.
+        while (lPathSegments.length > 0) {
+            // Read next segment and their reference from the current directory's children mapping.
+            const lNextSegment: string = lPathSegments.shift()!;
+
+            // Create child directory if it doesn't exist.
+            let lChildReference: FileSystemCacheDirectoryItemEntry | undefined = lCurrentItem.children[lNextSegment];
+            if (lChildReference && lChildReference.type !== FileSystemFileType.Directory) {
+                // A non-directory entry exists at this segment, cannot resolve.
+                throw new Exception(`Path is not a directory: ${pPath}`, this);
+            }
+
+            // When the reference does not exist, eighter return null when pCreate is false or create the directory and continue.
+            if (!lChildReference && !pCreate) {
+                return null;
+            } else if (!lChildReference) {
+                // Create the new directory in the backend and get its reference.
+                const lNewDirectoryReference: string = await this.storeDirectory(lCurrentItem.reference, lNextSegment);
+
+                // Create new cache entry for the child directory with empty children mapping.
+                lChildReference = {
+                    name: lNextSegment,
+                    type: FileSystemFileType.Directory,
+                    reference: lNewDirectoryReference,
+                    classConstructor: null
+                };
+
+                // Update current directory's children mapping and cache the new directory.
+                lCurrentItem.children[lNextSegment] = lChildReference;
+            }
+
+            // Read the child directory's cache entry.
+            lCurrentItem = await this.readCacheDirectoryEntry(lChildReference.reference);
+        }
+
+        return lCurrentItem;
     }
 
     /**
@@ -486,18 +485,6 @@ export abstract class FileSystem {
     protected abstract readFile(pFileReference: string): Promise<Blob>;
 
     /**
-     * Store a file blob in the storage backend. Also updates the parent directory's native children mapping.
-     *
-     * @param pParentReference - The reference of the parent directory.
-     * @param pFileName - The name of the file within the parent directory.
-     * @param pFileClassIdentifier - The class identifier of the stored object.
-     * @param pFile - The blob content to store.
-     *
-     * @returns the generated reference string for the stored file.
-     */
-    protected abstract storeFile(pParentReference: string, pFileName: string, pFileClassIdentifier: string, pFile: Blob): Promise<string>;
-
-    /**
      * Create a directory in the storage backend. Also updates the parent directory's native children mapping.
      *
      * @param pParentReference - The reference of the parent directory.
@@ -508,161 +495,16 @@ export abstract class FileSystem {
     protected abstract storeDirectory(pParentReference: string, pDirectoryName: string): Promise<string>;
 
     /**
-     * Recursively delete an item and all its descendants from both native storage and cache.
-     * Deletes children depth-first before deleting the item itself.
+     * Store a file blob in the storage backend. Also updates the parent directory's native children mapping.
      *
      * @param pParentReference - The reference of the parent directory.
-     * @param pName - The name of the item within its parent.
-     * @param pReference - The reference of the item to delete.
+     * @param pFileName - The name of the file within the parent directory.
+     * @param pFileClassIdentifier - The class identifier of the stored object.
+     * @param pFile - The blob content to store.
+     *
+     * @returns the generated reference string for the stored file.
      */
-    private async deleteRecursive(pParentReference: string, pReference: string): Promise<void> {
-        const lCacheItem: FileSystemCacheItem | undefined = this.mDirectoryCache.get(pReference);
-
-        // If it's a directory, recursively delete all children first.
-        if (lCacheItem && lCacheItem.type === FileSystemFileType.Directory) {
-            await this.ensureLoaded(pReference);
-
-            if (lCacheItem.children !== null) {
-                // Iterate over a copy of entries since we're modifying during iteration.
-                const lChildren: Array<[string, string]> = Object.entries(lCacheItem.children);
-                for (const [lChildName, lChildReference] of lChildren) {
-                    await this.deleteRecursive(pReference, lChildReference);
-                }
-            }
-        }
-
-        // Delete the item from native storage.
-        await this.deleteReference(pParentReference, pReference);
-
-        // Remove from cache.
-        this.mDirectoryCache.delete(pReference);
-    }
-
-    /**
-     * Ensure a directory's children are loaded into the cache.
-     * If the directory's children are `null` (not yet loaded), calls {@link readDirectoryItems}
-     * to populate the cache.
-     *
-     * @param pReference - The reference of the directory to load.
-     */
-    private async ensureLoaded(pReference: string): Promise<void> {
-        const lCacheItem: FileSystemCacheItem | undefined = this.mDirectoryCache.get(pReference);
-        if (!lCacheItem || lCacheItem.type !== FileSystemFileType.Directory || lCacheItem.children !== null) {
-            return;
-        }
-
-        // Load children from backend.
-        const lEntries: Array<FileSystemDirectoryEntry> = await this.readDirectoryItems(pReference);
-
-        // Populate cache and build children mapping.
-        const lChildren: { [name: string]: string; } = {};
-        for (const lEntry of lEntries) {
-            if (lEntry.type === FileSystemFileType.File) {
-                this.mDirectoryCache.set(lEntry.reference, {
-                    type: FileSystemFileType.File,
-                    name: lEntry.name,
-                    reference: lEntry.reference,
-                    classIdentifier: lEntry.classIdentifier!,
-                });
-            } else {
-                this.mDirectoryCache.set(lEntry.reference, {
-                    type: FileSystemFileType.Directory,
-                    name: lEntry.name,
-                    reference: lEntry.reference,
-                    children: {},
-                    childrenLoaded: false
-                });
-            }
-
-            lChildren[lEntry.name] = lEntry.reference;
-        }
-
-        lCacheItem.children = lChildren;
-    }
-
-    /**
-     * Resolve a normalized path to its cache entry and reference.
-     *
-     * @param pPath - The normalized (lowercase) path. Empty string returns root.
-     *
-     * @returns the reference and cache item, or `null` if not found.
-     */
-    private async resolvePath(pPath: string): Promise<{ reference: string; cacheItem: FileSystemCacheItem; } | null> {
-        if (pPath === '') {
-            return { reference: this.mRootReference, cacheItem: this.mDirectoryCache.get(this.mRootReference)! };
-        }
-
-        const lSegments: Array<string> = pPath.split('/');
-        let lCurrentReference: string = this.mRootReference;
-
-        for (const lSegment of lSegments) {
-            await this.ensureLoaded(lCurrentReference);
-
-            const lCurrentItem: FileSystemCacheItem | undefined = this.mDirectoryCache.get(lCurrentReference);
-            if (!lCurrentItem || lCurrentItem.type !== FileSystemFileType.Directory) {
-                return null;
-            }
-
-            const lChildReference: string | undefined = lCurrentItem.children[lSegment];
-            if (lChildReference === undefined) {
-                return null;
-            }
-
-            lCurrentReference = lChildReference;
-        }
-
-        const lFinalItem: FileSystemCacheItem | undefined = this.mDirectoryCache.get(lCurrentReference);
-        if (!lFinalItem) {
-            return null;
-        }
-
-        return { reference: lCurrentReference, cacheItem: lFinalItem };
-    }
-
-    /**
-     * Resolve a normalized path to its parent directory, returning the parent reference and the target name.
-     *
-     * @param pPath - The normalized (lowercase) path. Must not be empty.
-     *
-     * @returns the parent reference, target name, and parent cache item, or `null` if parent not found.
-     */
-    private async resolveParent(pPath: string): Promise<{ parentReference: string; targetName: string; parentItem: FileSystemCacheItem; } | null> {
-        const lSegments: Array<string> = pPath.split('/');
-        const lTargetName: string = lSegments.pop()!;
-        const lParentPath: string = lSegments.join('/');
-
-        const lParentResolved = await this.resolvePath(lParentPath);
-        if (lParentResolved === null || lParentResolved.cacheItem.type !== FileSystemFileType.Directory) {
-            return null;
-        }
-
-        // Ensure parent's children are loaded.
-        await this.ensureLoaded(lParentResolved.reference);
-
-        return {
-            parentReference: lParentResolved.reference,
-            targetName: lTargetName,
-            parentItem: lParentResolved.cacheItem,
-        };
-    }
-
-    private async resolveDirectoryPath(pPath: string): Promise<FileSystemCacheItem> {
-        const lPathSegments: Array<string> = pPath.split('/').filter(segment => segment.length > 0);
-
-        // Traverse segments, ensuring directories are loaded and exist. Returns the final directory's cache item.
-        let lCurrentItem: FileSystemCacheDirectoryItem | undefined = this.mDirectoryCache.get(this.mRootReference) as FileSystemCacheDirectoryItem | undefined;
-        while(lPathSegments.length > 0) {
-            // Load current directory's children if not loaded.
-            if (!lCurrentItem) {
-                const lChildItems:Array<FileSystemDirectoryEntry> = await this.readDirectoryItems(lCurrentItem.reference);
-                for(const lChildItem of lChildItems) {
-                    lCurrentItem.children[lChildItem.name] = lChildItem.reference;
-                }
-            }
-
-
-        }
-    }
+    protected abstract storeFile(pParentReference: string, pFileName: string, pFileClassIdentifier: string, pFile: Blob): Promise<string>;
 }
 
 /**
@@ -677,34 +519,36 @@ type FilePropertyDecoratorContext<TThis extends object> =
 
 /**
  * Determines the type of a file system entry.
+ * Avoid 0 to allow falsy checks for logic.
  */
 export enum FileSystemFileType {
     /**
      * A leaf entry that holds a stored (serialized) object.
      */
-    File,
+    File = 1,
 
     /**
      * An intermediate path segment that contains child entries.
      */
-    Directory
+    Directory = 2
 }
 
 /**
  * Determines how the file system caches deserialized instances.
+ * Avoid 0 to allow falsy checks for logic.
  */
 export enum FileSystemReferenceType {
     /**
      * Each read creates a new instance from the serialized data.
      */
-    Instanced,
+    Instanced = 1,
 
     /**
      * The first read caches the instance (as a WeakRef) by path.
      * Subsequent reads for the same path return the cached instance
      * as long as the reference is still alive.
      */
-    Singleton
+    Singleton = 2
 }
 
 /**
@@ -770,11 +614,19 @@ export type FileSystemCacheFileItem = {
     reference: string;
     classIdentifier: string;
 };
+export type FileSystemCacheDirectoryItemEntry = {
+    name: string;
+    type: FileSystemFileType;
+    reference: string;
+    classConstructor: IVoidParameterConstructor<object> | null;
+};
 export type FileSystemCacheDirectoryItem = {
     type: FileSystemFileType.Directory;
     name: string;
     reference: string;
-    children: { [name: string]: string; };
+    children: {
+        [name: string]: FileSystemCacheDirectoryItemEntry;
+    };
 };
 export type FileSystemCacheItem = FileSystemCacheFileItem | FileSystemCacheDirectoryItem;
 

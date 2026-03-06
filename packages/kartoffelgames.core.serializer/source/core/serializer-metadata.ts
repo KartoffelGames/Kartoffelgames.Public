@@ -7,13 +7,6 @@ export class SerializerMetadata {
     private mUuid: string | null;
 
     /**
-     * Get all property names registered for serialization.
-     */
-    public get propertyNames(): Array<string> {
-        return new Array(...this.mProperties.keys());
-    }
-
-    /**
      * Get the registered UUID for this class.
      *
      * @throws Error if UUID has not been set.
@@ -22,6 +15,13 @@ export class SerializerMetadata {
         return this.mUuid;
     } set identifier(pUuid: string | null) {
         this.mUuid = pUuid;
+    }
+
+    /**
+     * Get all property names registered for serialization.
+     */
+    public get propertyNames(): Array<string> {
+        return new Array(...this.mProperties.keys());
     }
 
     /**

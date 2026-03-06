@@ -188,12 +188,16 @@ export class BlobSerializer {
      * The deletion takes effect when {@link save} is called.
      *
      * @param pPath - The path to delete. Case-insensitive.
+     * 
+     * @returns this for chaining.
      */
-    public delete(pPath: string): void {
+    public delete(pPath: string): this {
         const lNormalizedPath: string = pPath.toLowerCase();
 
         this.mUnsavedEntries.delete(lNormalizedPath);
         this.mTableOfContent.delete(lNormalizedPath);
+
+        return this;
     }
 
     /**
@@ -202,10 +206,12 @@ export class BlobSerializer {
      * Entry data is not loaded until `read()` is called.
      *
      * @param pBlob - The blob to load.
+     * 
+     * @return this for chaining.
      *
      * @throws Exception if the blob has invalid magic number bytes or unsupported version.
      */
-    public async load(pBlob: Blob): Promise<void> {
+    public async load(pBlob: Blob): Promise<this> {
         // Read header.
         const lHeader: BlobSerializerFileHeader = await BlobSerializer.readHeader(pBlob);
 
@@ -227,6 +233,8 @@ export class BlobSerializer {
 
         // Store loaded blob for later partial reads.
         this.mBlob = pBlob;
+
+        return this;
     }
 
     /**
@@ -389,9 +397,13 @@ export class BlobSerializer {
      *
      * @param pPath - The path to store the object at.
      * @param pObject - The serializable object to store.
+     * 
+     * @return this for chaining.
      */
-    public store(pPath: string, pObject: object): void {
+    public store(pPath: string, pObject: object): this {
         this.mUnsavedEntries.set(pPath.toLowerCase(), this.mValueSerializer.serialize(pObject));
+
+        return this;
     }
 }
 

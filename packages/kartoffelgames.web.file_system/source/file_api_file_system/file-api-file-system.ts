@@ -1,4 +1,4 @@
-import { BlobSerializer } from "@kartoffelgames/core-serializer";
+import { BlobSerializer } from '@kartoffelgames/core-serializer';
 import { FileSystem, FileSystemFileType, type FileSystemDirectoryEntry } from '../file-system.ts';
 
 /**
@@ -69,7 +69,7 @@ export class FileApiFileSystem extends FileSystem {
 
         // Read directory metadata to get class identifiers.
         const lDirectoryMeta: FileApiFileSystemMeta = await this.readDirectoryMeta(lDirectoryHandle);
-        let lDirectoryMetaUpdated: boolean = false;
+        const lDirectoryMetaUpdated: boolean = false;
 
         // Create parent path
         const lParentPath: string = pReference === '' ? '' : `${pReference}/`;
@@ -163,6 +163,25 @@ export class FileApiFileSystem extends FileSystem {
     }
 
     /**
+     * Create a directory in the File System Access API backend.
+     *
+     * @param pParentReference - The reference (path) of the parent directory.
+     * @param pDirectoryName - The name of the new directory.
+     *
+     * @returns the reference (path) for the new directory.
+     */
+    protected override async storeDirectory(pParentReference: string, pDirectoryName: string): Promise<string> {
+        // Create the actual directory path.
+        const lDirectoryPath: string = pParentReference === '' ? pDirectoryName : `${pParentReference}/${pDirectoryName}`;
+
+        // Get the directory handle of the new directory.
+        // This will create it.
+        await this.getDirectoryHandle(lDirectoryPath);
+
+        return lDirectoryPath;
+    }
+
+    /**
      * Store a file blob in the File System Access API backend. Updates the parent directory's meta file.
      *
      * @param pParentReference - The reference (path) of the parent directory.
@@ -196,25 +215,6 @@ export class FileApiFileSystem extends FileSystem {
 
         // Return the logical file reference (path) for the stored file.
         return pParentReference === '' ? lNativeFileName : `${pParentReference}/${lNativeFileName}`;
-    }
-
-    /**
-     * Create a directory in the File System Access API backend.
-     *
-     * @param pParentReference - The reference (path) of the parent directory.
-     * @param pDirectoryName - The name of the new directory.
-     *
-     * @returns the reference (path) for the new directory.
-     */
-    protected override async storeDirectory(pParentReference: string, pDirectoryName: string): Promise<string> {
-        // Create the actual directory path.
-        const lDirectoryPath: string = pParentReference === '' ? pDirectoryName : `${pParentReference}/${pDirectoryName}`;
-
-        // Get the directory handle of the new directory.
-        // This will create it.
-        await this.getDirectoryHandle(lDirectoryPath);
-
-        return lDirectoryPath;
     }
 
     /**

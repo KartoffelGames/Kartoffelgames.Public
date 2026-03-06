@@ -797,7 +797,7 @@ Deno.test('IndexDbFileSystem.readDirectory()', { sanitizeResources: false, sanit
 
         // Evaluation.
         expect(lResult.length).toBe(1);
-        expect(lResult[0].name).toBe('child');
+        expect(lResult[0].name).toBe('Child');
 
         // Cleanup.
         lFileSystem.close();

@@ -660,7 +660,7 @@ Deno.test('MemoryFileSystem.readDirectory()', async (pContext) => {
 
         // Evaluation.
         expect(lResult.length).toBe(1);
-        expect(lResult[0].name).toBe('child');
+        expect(lResult[0].name).toBe('Child');
     });
 
     await pContext.step('Writing to a path through a file segment throws', async () => {

@@ -8,9 +8,9 @@ import { type PropertySerializationConfig, SerializerMetadata } from './serializ
  * Decoupled from any specific serialization format.
  */
 export class Serializer {
-    private static readonly mMetadataKey: symbol = Symbol('SerializerMetadata');
-    private static readonly mIdentifierRegistry: Map<string, IVoidParameterConstructor<object>> = new Map<string, IVoidParameterConstructor<object>>();
     private static readonly mClassRegistry: Map<IVoidParameterConstructor<object>, string> = new Map<IVoidParameterConstructor<object>, string>();
+    private static readonly mIdentifierRegistry: Map<string, IVoidParameterConstructor<object>> = new Map<string, IVoidParameterConstructor<object>>();
+    private static readonly mMetadataKey: symbol = Symbol('SerializerMetadata');
 
     /**
      * Resolve a constructor by its registered identifier.
@@ -27,6 +27,20 @@ export class Serializer {
         }
 
         return Serializer.mIdentifierRegistry.get(pIdentifier)!;
+    }
+
+    /**
+     * Get the registered identifier of a class.
+     * 
+     * @param pConstructor - The class constructor to look up.
+     * 
+     * @returns The registered identifier of the class.
+     */
+    public static identifierOfClass(pConstructor: IVoidParameterConstructor<object>): string {
+        if (!Serializer.mClassRegistry.has(pConstructor)) {
+            throw new Exception(`Class "${pConstructor.name}" is not registered with the serializer. Ensure @Serializer.serializeableClass() is applied and the class is imported before serialization.`, pConstructor);
+        }
+        return Serializer.mClassRegistry.get(pConstructor)!;
     }
 
     /**
@@ -89,7 +103,7 @@ export class Serializer {
 
             // Read existing metadata, primarily to check for duplicates, but later to merge properties from the entire inheritance chain.
             let lExistingMetadata: SerializerMetadata | null = lConstructorMetadata.getMetadata<SerializerMetadata>(Serializer.mMetadataKey);
-            if(!lExistingMetadata) {
+            if (!lExistingMetadata) {
                 lExistingMetadata = new SerializerMetadata();
                 lConstructorMetadata.setMetadata(Serializer.mMetadataKey, lExistingMetadata);
             }
@@ -112,11 +126,11 @@ export class Serializer {
             for (const lMetadata of lConstructorMetadata.getInheritedMetadata<SerializerMetadata>(Serializer.mMetadataKey)) {
                 // Merge all parent properties into existing metadata.
                 for (const lPropertyName of lMetadata.propertyNames) {
-                     // Child class property overrides parent class property, so skip if already defined on child.
-                    if(lExistingMetadata.hasProperty(lPropertyName)) { 
+                    // Child class property overrides parent class property, so skip if already defined on child.
+                    if (lExistingMetadata.hasProperty(lPropertyName)) {
                         continue;
                     }
-                    
+
                     lExistingMetadata.addProperty(lPropertyName, lMetadata.getPropertyConfig(lPropertyName));
                 }
             }
@@ -125,20 +139,6 @@ export class Serializer {
             Serializer.mIdentifierRegistry.set(pIdentifier, _pTarget as IVoidParameterConstructor<object>);
             Serializer.mClassRegistry.set(_pTarget as IVoidParameterConstructor<object>, pIdentifier);
         };
-    }
-
-    /**
-     * Get the registered identifier of a class.
-     * 
-     * @param pConstructor - The class constructor to look up.
-     * 
-     * @returns The registered identifier of the class.
-     */
-    public static identifierOfClass(pConstructor: IVoidParameterConstructor<object>): string {
-        if (!Serializer.mClassRegistry.has(pConstructor)) {
-            throw new Exception(`Class "${pConstructor.name}" is not registered with the serializer. Ensure @Serializer.serializeableClass() is applied and the class is imported before serialization.`, pConstructor);
-        }
-        return Serializer.mClassRegistry.get(pConstructor)!;
     }
 }
 

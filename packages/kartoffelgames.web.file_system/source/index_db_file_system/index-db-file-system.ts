@@ -1,5 +1,4 @@
-import { Exception } from '@kartoffelgames/core';
-import { WebDatabase } from '@kartoffelgames/web-database';
+import { WebDatabase, type WebDatabaseTransaction } from '@kartoffelgames/web-database';
 import { FileSystem, FileSystemFileType, type FileSystemDirectoryEntry } from '../file-system.ts';
 import { IndexDbFileSystemItem, type IndexDbFileSystemItemDirectoryData, type IndexDbFileSystemItemFileData } from './index-db-file-system-item.ts';
 
@@ -47,19 +46,18 @@ export class IndexDbFileSystem extends FileSystem {
                 return false;
             }
 
-            // Update parent directory's children mapping.
-            const lDirectoryItem: IndexDbFileSystemItem | undefined = (await pTransaction.table(IndexDbFileSystemItem).where('reference').is(pParentReference).read()).at(0);
-            if (lDirectoryItem) {
-                // Parse the directory's children mapping, delete the entry.
-                const lParentData: IndexDbFileSystemItemDirectoryData = lDirectoryItem.data as IndexDbFileSystemItemDirectoryData;
-                delete lParentData[lRemovedItem.name];
-
-                // Write updated directory entry back to the database.
-                await pTransaction.table(IndexDbFileSystemItem).put(lDirectoryItem);
-            }
-
             // Delete the item entry.
             await pTransaction.table(IndexDbFileSystemItem).delete(lRemovedItem);
+
+            // Update parent directory's children mapping.
+            const lDirectoryItem: IndexDbFileSystemItem = await this.readFileSystemItemDirectory(pTransaction, pParentReference);
+
+            // Parse the directory's children mapping, delete the entry.
+            const lParentData: IndexDbFileSystemItemDirectoryData = lDirectoryItem.data as IndexDbFileSystemItemDirectoryData;
+            delete lParentData[lRemovedItem.name];
+
+            // Write updated directory entry back to the database.
+            await pTransaction.table(IndexDbFileSystemItem).put(lDirectoryItem);
 
             return true;
         });
@@ -74,14 +72,9 @@ export class IndexDbFileSystem extends FileSystem {
      */
     protected override async readDirectoryItems(pReference: string): Promise<Array<FileSystemDirectoryEntry>> {
         // Open a read-only transaction to get the directory entry by reference.
-        return this.mDatabase.transaction([IndexDbFileSystemItem], 'readonly', async (pTransaction) => {
+        return this.mDatabase.transaction([IndexDbFileSystemItem], 'readwrite', async (pTransaction) => {
             // Read the directory entry.
-            const lDirectoryItem: IndexDbFileSystemItem | undefined = (await pTransaction.table(IndexDbFileSystemItem).where('reference').is(pReference).read()).at(0);
-            if (!lDirectoryItem) {
-                // This should not happen for any called directory unless user has manually tampered with the database.
-                throw new Exception(`Directory not found in IndexedDB: ${pReference}`, this);
-            }
-
+            const lDirectoryItem: IndexDbFileSystemItem = await this.readFileSystemItemDirectory(pTransaction, pReference);
             const lDirectoryData: IndexDbFileSystemItemDirectoryData = lDirectoryItem.data as IndexDbFileSystemItemDirectoryData;
 
             // For each child, read its entry to get type and class identifier.
@@ -120,15 +113,49 @@ export class IndexDbFileSystem extends FileSystem {
      */
     protected override async readFile(pFileReference: string): Promise<Blob> {
         // Open a read-only transaction to get the file entry by reference, then return its blob data.
-        return this.mDatabase.transaction([IndexDbFileSystemItem], 'readonly', async (pTransaction) => {
+        return this.mDatabase.transaction([IndexDbFileSystemItem], 'readwrite', async (pTransaction) => {
             // Read the file entry.
-            const lFileItem: IndexDbFileSystemItem | undefined = (await pTransaction.table(IndexDbFileSystemItem).where('reference').is(pFileReference).read()).at(0);
-            if (!lFileItem) {
-                throw new Exception(`File not found in IndexedDB: ${pFileReference}`, this);
-            }
+            const lFileItem: IndexDbFileSystemItem = await this.readFileSystemItemDirectory(pTransaction, pFileReference);
 
             // Return the blob data.
             return (lFileItem.data as IndexDbFileSystemItemFileData).data;
+        });
+    }
+
+    /**
+     * Create a directory in the IndexedDB backend. Updates the parent directory's children mapping.
+     *
+     * @param pParentReference - The reference of the parent directory.
+     * @param pDirectoryName - The name of the new directory.
+     *
+     * @returns the generated UUID reference for the new directory.
+     */
+    protected override async storeDirectory(pParentReference: string, pDirectoryName: string): Promise<string> {
+        // Create a unique reference for the new directory entry.
+        const lDirReference: string = crypto.randomUUID();
+
+        // Create the directory entry with empty children.
+        const lDirectoryItem: IndexDbFileSystemItem = new IndexDbFileSystemItem();
+        lDirectoryItem.itemType = FileSystemFileType.Directory;
+        lDirectoryItem.name = pDirectoryName;
+        lDirectoryItem.reference = lDirReference;
+        lDirectoryItem.data = {};
+
+        return this.mDatabase.transaction([IndexDbFileSystemItem], 'readwrite', async (pTransaction) => {
+            // Store the directory entry in the database.
+            await pTransaction.table(IndexDbFileSystemItem).put(lDirectoryItem);
+
+            // Read the parent directory entry.
+            const lParentDirectoryItem: IndexDbFileSystemItem = await this.readFileSystemItemDirectory(pTransaction, pParentReference);
+
+            // Update its children mapping.
+            const lParentData: IndexDbFileSystemItemDirectoryData = lParentDirectoryItem.data as IndexDbFileSystemItemDirectoryData;
+            lParentData[pDirectoryName] = lDirReference;
+
+            // Store the updated parent entry back to the database.
+            await pTransaction.table(IndexDbFileSystemItem).put(lParentDirectoryItem);
+
+            return lDirReference;
         });
     }
 
@@ -160,15 +187,8 @@ export class IndexDbFileSystem extends FileSystem {
             // Store the file entry in the database.
             await pTransaction.table(IndexDbFileSystemItem).put(lFileItem);
 
-            // Try to read the parent directory entry. Create it if not found (can only be the root directory).
-            let lParentDirectoryItem: IndexDbFileSystemItem | undefined = (await pTransaction.table(IndexDbFileSystemItem).where('reference').is(pParentReference).read()).at(0);
-            if (!lParentDirectoryItem) {
-                lParentDirectoryItem = new IndexDbFileSystemItem();
-                lParentDirectoryItem.itemType = FileSystemFileType.Directory;
-                lParentDirectoryItem.name = '';
-                lParentDirectoryItem.reference = pParentReference;
-                lParentDirectoryItem.data = {};
-            }
+            // Read the parent directory entry.
+            const lParentDirectoryItem: IndexDbFileSystemItem = await this.readFileSystemItemDirectory(pTransaction, pParentReference);
 
             // Update its children mapping.
             const lParentData: IndexDbFileSystemItemDirectoryData = lParentDirectoryItem.data as IndexDbFileSystemItemDirectoryData;
@@ -182,46 +202,29 @@ export class IndexDbFileSystem extends FileSystem {
     }
 
     /**
-     * Create a directory in the IndexedDB backend. Updates the parent directory's children mapping.
-     *
-     * @param pParentReference - The reference of the parent directory.
-     * @param pDirectoryName - The name of the new directory.
-     *
-     * @returns the generated UUID reference for the new directory.
+     * Read a directory entry by reference. If not found, creates a new directory entry with the given reference.
+     * That empty directory can only be the root directory.
+     * 
+     * @param pTransaction - The database transaction to use for reading and potentially creating the directory entry.
+     * @param pReference - The reference of the directory to read or create.
+     * 
+     * @returns the existing or newly created directory entry. 
      */
-    protected override async storeDirectory(pParentReference: string, pDirectoryName: string): Promise<string> {
-        // Create a unique reference for the new directory entry.
-        const lDirReference: string = crypto.randomUUID();
+    private async readFileSystemItemDirectory(pTransaction: WebDatabaseTransaction<typeof IndexDbFileSystemItem>, pReference: string): Promise<IndexDbFileSystemItem> {
+        // Try to read the parent directory entry. Create it if not found (can only be the root directory).
+        let lParentDirectoryItem: IndexDbFileSystemItem | undefined = (await pTransaction.table(IndexDbFileSystemItem).where('reference').is(pReference).read()).at(0);
+        if (!lParentDirectoryItem) {
+            // Create a new directory entry with empty children mapping.
+            lParentDirectoryItem = new IndexDbFileSystemItem();
+            lParentDirectoryItem.itemType = FileSystemFileType.Directory;
+            lParentDirectoryItem.name = '';
+            lParentDirectoryItem.reference = pReference;
+            lParentDirectoryItem.data = {};
 
-        // Create the directory entry with empty children.
-        const lDirectoryItem: IndexDbFileSystemItem = new IndexDbFileSystemItem();
-        lDirectoryItem.itemType = FileSystemFileType.Directory;
-        lDirectoryItem.name = pDirectoryName;
-        lDirectoryItem.reference = lDirReference;
-        lDirectoryItem.data = {};
-
-        return this.mDatabase.transaction([IndexDbFileSystemItem], 'readwrite', async (pTransaction) => {
-            // Store the directory entry in the database.
-            await pTransaction.table(IndexDbFileSystemItem).put(lDirectoryItem);
-
-            // Try to read the parent directory entry. Create it if not found (can only be the root directory).
-            let lParentDirectoryItem: IndexDbFileSystemItem | undefined = (await pTransaction.table(IndexDbFileSystemItem).where('reference').is(pParentReference).read()).at(0);
-            if (!lParentDirectoryItem) {
-                lParentDirectoryItem = new IndexDbFileSystemItem();
-                lParentDirectoryItem.itemType = FileSystemFileType.Directory;
-                lParentDirectoryItem.name = '';
-                lParentDirectoryItem.reference = pParentReference;
-                lParentDirectoryItem.data = {};
-            }
-
-            // Update its children mapping.
-            const lParentData: IndexDbFileSystemItemDirectoryData = lParentDirectoryItem.data as IndexDbFileSystemItemDirectoryData;
-            lParentData[pDirectoryName] = lDirReference;
-
-            // Store the updated parent entry back to the database.
+            // Store the new directory entry back to the database.
             await pTransaction.table(IndexDbFileSystemItem).put(lParentDirectoryItem);
+        }
 
-            return lDirReference;
-        });
+        return lParentDirectoryItem;
     }
 }

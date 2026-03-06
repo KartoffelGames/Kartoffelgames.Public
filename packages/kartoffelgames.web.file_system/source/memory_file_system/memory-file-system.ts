@@ -1,4 +1,4 @@
-import { Exception, type IVoidParameterConstructor } from '@kartoffelgames/core';
+import { Exception } from '@kartoffelgames/core';
 import { FileSystem, FileSystemFileType, type FileSystemDirectoryEntry } from '../file-system.ts';
 
 /**
@@ -111,6 +111,33 @@ export class MemoryFileSystem extends FileSystem {
     }
 
     /**
+     * Create a directory in memory storage. Updates the parent directory's children mapping.
+     *
+     * @param pParentReference - The reference of the parent directory.
+     * @param pDirectoryName - The name of the new directory.
+     *
+     * @returns the generated UUID reference for the new directory.
+     */
+    protected override async storeDirectory(pParentReference: string, pDirectoryName: string): Promise<string> {
+        const lDirReference: string = crypto.randomUUID();
+
+        // Store the directory item with empty children.
+        this.mFileSystemItems.set(lDirReference, {
+            name: pDirectoryName,
+            itemType: FileSystemFileType.Directory,
+            data: {},
+        });
+
+        // Update parent's children mapping.
+        const lParent: MemoryFileSystemItem | undefined = this.mFileSystemItems.get(pParentReference);
+        if (lParent && lParent.itemType === FileSystemFileType.Directory) {
+            (lParent.data as MemoryFileSystemDirectoryData)[pDirectoryName] = lDirReference;
+        }
+
+        return lDirReference;
+    }
+
+    /**
      * Store a file blob in memory storage. Updates the parent directory's children mapping.
      *
      * @param pParentReference - The reference of the parent directory.
@@ -141,33 +168,6 @@ export class MemoryFileSystem extends FileSystem {
         }
 
         return lFileReference;
-    }
-
-    /**
-     * Create a directory in memory storage. Updates the parent directory's children mapping.
-     *
-     * @param pParentReference - The reference of the parent directory.
-     * @param pDirectoryName - The name of the new directory.
-     *
-     * @returns the generated UUID reference for the new directory.
-     */
-    protected override async storeDirectory(pParentReference: string, pDirectoryName: string): Promise<string> {
-        const lDirReference: string = crypto.randomUUID();
-
-        // Store the directory item with empty children.
-        this.mFileSystemItems.set(lDirReference, {
-            name: pDirectoryName,
-            itemType: FileSystemFileType.Directory,
-            data: {},
-        });
-
-        // Update parent's children mapping.
-        const lParent: MemoryFileSystemItem | undefined = this.mFileSystemItems.get(pParentReference);
-        if (lParent && lParent.itemType === FileSystemFileType.Directory) {
-            (lParent.data as MemoryFileSystemDirectoryData)[pDirectoryName] = lDirReference;
-        }
-
-        return lDirReference;
     }
 }
 

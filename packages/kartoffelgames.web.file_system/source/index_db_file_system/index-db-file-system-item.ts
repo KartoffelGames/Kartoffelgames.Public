@@ -1,5 +1,5 @@
 import { WebDatabase } from '@kartoffelgames/web-database';
-import { FileSystemFileType } from "../file-system.ts";
+import type { FileSystemFileType } from '../file-system.ts';
 
 /**
  * Internal database table for storing file system entries.

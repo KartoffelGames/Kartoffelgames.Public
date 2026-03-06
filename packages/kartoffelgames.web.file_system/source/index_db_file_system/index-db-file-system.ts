@@ -78,7 +78,8 @@ export class IndexDbFileSystem extends FileSystem {
             // Read the directory entry.
             const lDirectoryItem: IndexDbFileSystemItem | undefined = (await pTransaction.table(IndexDbFileSystemItem).where('reference').is(pReference).read()).at(0);
             if (!lDirectoryItem) {
-                return [];
+                // This should not happen for any called directory unless user has manually tampered with the database.
+                throw new Exception(`Directory not found in IndexedDB: ${pReference}`, this);
             }
 
             const lDirectoryData: IndexDbFileSystemItemDirectoryData = lDirectoryItem.data as IndexDbFileSystemItemDirectoryData;
@@ -101,7 +102,7 @@ export class IndexDbFileSystem extends FileSystem {
                 lResult.push({
                     name: lChildItem.name,
                     type: lChildItem.itemType,
-                    reference: lChildReference,
+                    reference: lChildItem.reference,
                     classIdentifier: lClassIdentifier,
                 });
             }

@@ -83,7 +83,7 @@ export abstract class FileSystem {
         return Serializer.identifierOfClass(pConstructor);
     }
 
-    private readonly mCache: Map<string, FileSystemCacheItem>;
+    private readonly mDirectoryCache: Map<string, FileSystemCacheItem>;
     private readonly mRootReference: string;
     private readonly mSingletonCache: Map<string, WeakRef<object>>;
 
@@ -96,9 +96,8 @@ export abstract class FileSystem {
         this.mRootReference = pRootDirectoryReference;
         this.mSingletonCache = new Map();
 
-        // Initialize cache with root directory entry (children not yet loaded).
-        this.mCache = new Map();
-        this.mCache.set(pRootDirectoryReference, { type: FileSystemFileType.Directory, name: '', children: null });
+        // Initialize empty cache
+        this.mDirectoryCache = new Map();
     }
 
     /**
@@ -126,7 +125,7 @@ export abstract class FileSystem {
         const { parentReference, targetName, parentItem } = lResolved;
 
         // Check the target exists in parent's children.
-        if (parentItem.type !== FileSystemFileType.Directory || parentItem.children === null) {
+        if (parentItem.type !== FileSystemFileType.Directory) {
             return false;
         }
 
@@ -277,7 +276,7 @@ export abstract class FileSystem {
 
         if (lNormalizedPath === '') {
             lDirectoryReference = this.mRootReference;
-            lDirectoryCacheItem = this.mCache.get(this.mRootReference)!;
+            lDirectoryCacheItem = this.mDirectoryCache.get(this.mRootReference)!;
         } else {
             const lResolved = await this.resolvePath(lNormalizedPath);
             if (lResolved === null || lResolved.cacheItem.type !== FileSystemFileType.Directory) {
@@ -291,7 +290,7 @@ export abstract class FileSystem {
         await this.ensureLoaded(lDirectoryReference);
 
         // After ensureLoaded, children must be populated.
-        if (lDirectoryCacheItem.type !== FileSystemFileType.Directory || lDirectoryCacheItem.children === null) {
+        if (lDirectoryCacheItem.type !== FileSystemFileType.Directory) {
             return [];
         }
 
@@ -300,7 +299,7 @@ export abstract class FileSystem {
         const lResult: Array<FileSystemItem> = [];
 
         for (const [lName, lChildReference] of Object.entries(lDirectoryCacheItem.children)) {
-            const lChildItem: FileSystemCacheItem | undefined = this.mCache.get(lChildReference);
+            const lChildItem: FileSystemCacheItem | undefined = this.mDirectoryCache.get(lChildReference);
             if (!lChildItem) {
                 continue;
             }
@@ -362,8 +361,8 @@ export abstract class FileSystem {
         for (const lSegment of lSegments) {
             await this.ensureLoaded(lCurrentReference);
 
-            const lCurrentItem: FileSystemCacheItem = this.mCache.get(lCurrentReference)!;
-            if (lCurrentItem.type !== FileSystemFileType.Directory || lCurrentItem.children === null) {
+            const lCurrentItem: FileSystemCacheItem = this.mDirectoryCache.get(lCurrentReference)!;
+            if (lCurrentItem.type !== FileSystemFileType.Directory) {
                 throw new Exception(`Path segment is not a directory: ${lSegment}`, this);
             }
 
@@ -372,7 +371,12 @@ export abstract class FileSystem {
                 // Create missing directory.
                 const lNewDirRef: string = await this.storeDirectory(lCurrentReference, lSegment);
                 lCurrentItem.children[lSegment] = lNewDirRef;
-                this.mCache.set(lNewDirRef, { type: FileSystemFileType.Directory, name: lSegment, children: {} });
+                this.mDirectoryCache.set(lNewDirRef, {
+                    type: FileSystemFileType.Directory,
+                    name: lSegment,
+                    reference: lNewDirRef,
+                    children: {}
+                });
                 lCurrentReference = lNewDirRef;
             } else {
                 lCurrentReference = lChildReference;
@@ -382,18 +386,18 @@ export abstract class FileSystem {
         // Ensure the final parent directory is loaded.
         await this.ensureLoaded(lCurrentReference);
 
-        const lParentItem: FileSystemCacheItem = this.mCache.get(lCurrentReference)!;
-        if (lParentItem.type !== FileSystemFileType.Directory || lParentItem.children === null) {
+        const lParentItem: FileSystemCacheItem = this.mDirectoryCache.get(lCurrentReference)!;
+        if (lParentItem.type !== FileSystemFileType.Directory) {
             throw new Exception(`Parent path is not a directory`, this);
         }
 
         // Delete existing file at this path if it exists.
         const lExistingFileRef: string | undefined = lParentItem.children[lFileName];
         if (lExistingFileRef !== undefined) {
-            const lExistingItem: FileSystemCacheItem | undefined = this.mCache.get(lExistingFileRef);
+            const lExistingItem: FileSystemCacheItem | undefined = this.mDirectoryCache.get(lExistingFileRef);
             if (lExistingItem && lExistingItem.type === FileSystemFileType.File) {
                 await this.deleteReference(lCurrentReference, lExistingFileRef);
-                this.mCache.delete(lExistingFileRef);
+                this.mDirectoryCache.delete(lExistingFileRef);
                 delete lParentItem.children[lFileName];
 
                 // Remove from singleton cache.
@@ -405,7 +409,12 @@ export abstract class FileSystem {
         const lFileReference: string = await this.storeFile(lCurrentReference, lFileName, lClassIdentifier, lBlob);
 
         // Update cache.
-        this.mCache.set(lFileReference, { type: FileSystemFileType.File, name: lFileName, classIdentifier: lClassIdentifier });
+        this.mDirectoryCache.set(lFileReference, {
+            type: FileSystemFileType.File,
+            name: lFileName,
+            reference: lFileReference,
+            classIdentifier: lClassIdentifier
+        });
         lParentItem.children[lFileName] = lFileReference;
     }
 
@@ -417,15 +426,15 @@ export abstract class FileSystem {
      */
     public async createDirectory(pPath: string): Promise<void> {
         const lNormalizedPath: string = pPath.toLowerCase();
-        const lSegments: Array<string> = lNormalizedPath.split('/');
+        const lPathSegments: Array<string> = lNormalizedPath.split('/');
 
         // Traverse and create all segments.
         let lCurrentReference: string = this.mRootReference;
-        for (const lSegment of lSegments) {
+        for (const lSegment of lPathSegments) {
             await this.ensureLoaded(lCurrentReference);
 
-            const lCurrentItem: FileSystemCacheItem = this.mCache.get(lCurrentReference)!;
-            if (lCurrentItem.type !== FileSystemFileType.Directory || lCurrentItem.children === null) {
+            const lCurrentItem: FileSystemCacheItem = this.mDirectoryCache.get(lCurrentReference)!;
+            if (lCurrentItem.type !== FileSystemFileType.Directory) {
                 throw new Exception(`Path segment is not a directory: ${lSegment}`, this);
             }
 
@@ -434,7 +443,12 @@ export abstract class FileSystem {
                 // Create missing directory.
                 const lNewDirRef: string = await this.storeDirectory(lCurrentReference, lSegment);
                 lCurrentItem.children[lSegment] = lNewDirRef;
-                this.mCache.set(lNewDirRef, { type: FileSystemFileType.Directory, name: lSegment, children: {} });
+                this.mDirectoryCache.set(lNewDirRef, {
+                    type: FileSystemFileType.Directory,
+                    name: lSegment,
+                    reference: lNewDirRef,
+                    children: {}
+                });
                 lCurrentReference = lNewDirRef;
             } else {
                 lCurrentReference = lChildReference;
@@ -502,7 +516,7 @@ export abstract class FileSystem {
      * @param pReference - The reference of the item to delete.
      */
     private async deleteRecursive(pParentReference: string, pReference: string): Promise<void> {
-        const lCacheItem: FileSystemCacheItem | undefined = this.mCache.get(pReference);
+        const lCacheItem: FileSystemCacheItem | undefined = this.mDirectoryCache.get(pReference);
 
         // If it's a directory, recursively delete all children first.
         if (lCacheItem && lCacheItem.type === FileSystemFileType.Directory) {
@@ -521,7 +535,7 @@ export abstract class FileSystem {
         await this.deleteReference(pParentReference, pReference);
 
         // Remove from cache.
-        this.mCache.delete(pReference);
+        this.mDirectoryCache.delete(pReference);
     }
 
     /**
@@ -532,7 +546,7 @@ export abstract class FileSystem {
      * @param pReference - The reference of the directory to load.
      */
     private async ensureLoaded(pReference: string): Promise<void> {
-        const lCacheItem: FileSystemCacheItem | undefined = this.mCache.get(pReference);
+        const lCacheItem: FileSystemCacheItem | undefined = this.mDirectoryCache.get(pReference);
         if (!lCacheItem || lCacheItem.type !== FileSystemFileType.Directory || lCacheItem.children !== null) {
             return;
         }
@@ -541,19 +555,22 @@ export abstract class FileSystem {
         const lEntries: Array<FileSystemDirectoryEntry> = await this.readDirectoryItems(pReference);
 
         // Populate cache and build children mapping.
-        const lChildren: { [name: string]: string } = {};
+        const lChildren: { [name: string]: string; } = {};
         for (const lEntry of lEntries) {
             if (lEntry.type === FileSystemFileType.File) {
-                this.mCache.set(lEntry.reference, {
+                this.mDirectoryCache.set(lEntry.reference, {
                     type: FileSystemFileType.File,
                     name: lEntry.name,
+                    reference: lEntry.reference,
                     classIdentifier: lEntry.classIdentifier!,
                 });
             } else {
-                this.mCache.set(lEntry.reference, {
+                this.mDirectoryCache.set(lEntry.reference, {
                     type: FileSystemFileType.Directory,
                     name: lEntry.name,
-                    children: null, // Children not yet loaded.
+                    reference: lEntry.reference,
+                    children: {},
+                    childrenLoaded: false
                 });
             }
 
@@ -570,9 +587,9 @@ export abstract class FileSystem {
      *
      * @returns the reference and cache item, or `null` if not found.
      */
-    private async resolvePath(pPath: string): Promise<{ reference: string; cacheItem: FileSystemCacheItem } | null> {
+    private async resolvePath(pPath: string): Promise<{ reference: string; cacheItem: FileSystemCacheItem; } | null> {
         if (pPath === '') {
-            return { reference: this.mRootReference, cacheItem: this.mCache.get(this.mRootReference)! };
+            return { reference: this.mRootReference, cacheItem: this.mDirectoryCache.get(this.mRootReference)! };
         }
 
         const lSegments: Array<string> = pPath.split('/');
@@ -581,8 +598,8 @@ export abstract class FileSystem {
         for (const lSegment of lSegments) {
             await this.ensureLoaded(lCurrentReference);
 
-            const lCurrentItem: FileSystemCacheItem | undefined = this.mCache.get(lCurrentReference);
-            if (!lCurrentItem || lCurrentItem.type !== FileSystemFileType.Directory || lCurrentItem.children === null) {
+            const lCurrentItem: FileSystemCacheItem | undefined = this.mDirectoryCache.get(lCurrentReference);
+            if (!lCurrentItem || lCurrentItem.type !== FileSystemFileType.Directory) {
                 return null;
             }
 
@@ -594,7 +611,7 @@ export abstract class FileSystem {
             lCurrentReference = lChildReference;
         }
 
-        const lFinalItem: FileSystemCacheItem | undefined = this.mCache.get(lCurrentReference);
+        const lFinalItem: FileSystemCacheItem | undefined = this.mDirectoryCache.get(lCurrentReference);
         if (!lFinalItem) {
             return null;
         }
@@ -609,7 +626,7 @@ export abstract class FileSystem {
      *
      * @returns the parent reference, target name, and parent cache item, or `null` if parent not found.
      */
-    private async resolveParent(pPath: string): Promise<{ parentReference: string; targetName: string; parentItem: FileSystemCacheItem } | null> {
+    private async resolveParent(pPath: string): Promise<{ parentReference: string; targetName: string; parentItem: FileSystemCacheItem; } | null> {
         const lSegments: Array<string> = pPath.split('/');
         const lTargetName: string = lSegments.pop()!;
         const lParentPath: string = lSegments.join('/');
@@ -627,6 +644,24 @@ export abstract class FileSystem {
             targetName: lTargetName,
             parentItem: lParentResolved.cacheItem,
         };
+    }
+
+    private async resolveDirectoryPath(pPath: string): Promise<FileSystemCacheItem> {
+        const lPathSegments: Array<string> = pPath.split('/').filter(segment => segment.length > 0);
+
+        // Traverse segments, ensuring directories are loaded and exist. Returns the final directory's cache item.
+        let lCurrentItem: FileSystemCacheDirectoryItem | undefined = this.mDirectoryCache.get(this.mRootReference) as FileSystemCacheDirectoryItem | undefined;
+        while(lPathSegments.length > 0) {
+            // Load current directory's children if not loaded.
+            if (!lCurrentItem) {
+                const lChildItems:Array<FileSystemDirectoryEntry> = await this.readDirectoryItems(lCurrentItem.reference);
+                for(const lChildItem of lChildItems) {
+                    lCurrentItem.children[lChildItem.name] = lChildItem.reference;
+                }
+            }
+
+
+        }
     }
 }
 
@@ -729,18 +764,19 @@ export type FileSystemItem = {
  * Internal cache entry stored in the base class's reference-to-item map.
  * Discriminated union on the `type` field.
  */
-export type FileSystemCacheItem = {
+export type FileSystemCacheFileItem = {
     type: FileSystemFileType.File;
     name: string;
+    reference: string;
     classIdentifier: string;
-} | {
+};
+export type FileSystemCacheDirectoryItem = {
     type: FileSystemFileType.Directory;
     name: string;
-    /**
-     * Maps child names to their references. `null` means children have not been loaded yet.
-     */
-    children: { [name: string]: string } | null;
+    reference: string;
+    children: { [name: string]: string; };
 };
+export type FileSystemCacheItem = FileSystemCacheFileItem | FileSystemCacheDirectoryItem;
 
 /**
  * Configuration for a file property.

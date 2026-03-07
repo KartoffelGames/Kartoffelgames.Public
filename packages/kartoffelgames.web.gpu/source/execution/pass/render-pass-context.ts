@@ -228,7 +228,8 @@ export class RenderPassContext {
             // Same pipelines must have set the same bind group layouts.
             if (this.mRenderResourceBuffer.highestBindGroupListIndex > lLocalHighestBindGroupListIndex) {
                 for (let lBindGroupIndex: number = (lLocalHighestBindGroupListIndex + 1); lBindGroupIndex < (this.mRenderResourceBuffer.highestBindGroupListIndex + 1); lBindGroupIndex++) {
-                    this.mEncoder.setBindGroup(lBindGroupIndex, null);
+                    // TODO: Currently not supported for Firefox. Remove when supported.
+                    // this.mEncoder.setBindGroup(lBindGroupIndex, null);
                 }
             }
 
@@ -239,7 +240,8 @@ export class RenderPassContext {
             // Same pipeline must have the same vertex parameter layout.
             if (this.mRenderResourceBuffer.highestVertexParameterIndex > lLocalHighestVertexParameterListIndex) {
                 for (let lVertexParameterBufferIndex: number = (lLocalHighestVertexParameterListIndex + 1); lVertexParameterBufferIndex < (this.mRenderResourceBuffer.highestVertexParameterIndex + 1); lVertexParameterBufferIndex++) {
-                    this.mEncoder.setVertexBuffer(lVertexParameterBufferIndex, null);
+                    // TODO: Currently not supported for Firefox. Remove when supported.
+                    // this.mEncoder.setVertexBuffer(lVertexParameterBufferIndex, null);
                 }
             }
 

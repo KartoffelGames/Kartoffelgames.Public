@@ -16,9 +16,9 @@ export class TextureSampler extends GpuResourceObject<0, GPUSampler> implements 
     private mLodMinClamp: number;
     private mMagFilter: FilterMode;
     private mMaxAnisotropy: number;
-    private readonly mSamplerType: SamplerType;
     private mMinFilter: FilterMode;
     private mMipmapFilter: FilterMode;
+    private readonly mSamplerType: SamplerType;
     private mWrapMode: WrappingMode;
 
     /**
@@ -82,13 +82,6 @@ export class TextureSampler extends GpuResourceObject<0, GPUSampler> implements 
     }
 
     /**
-     * Sampler type.
-     */
-    public get samplerType(): SamplerType {
-        return this.mSamplerType;
-    }
-
-    /**
      * How the texture is sampled when a texel covers less than one pixel.
      */
     public get minFilter(): FilterMode {
@@ -117,6 +110,13 @@ export class TextureSampler extends GpuResourceObject<0, GPUSampler> implements 
      */
     public override get native(): GPUSampler {
         return super.native;
+    }
+
+    /**
+     * Sampler type.
+     */
+    public get samplerType(): SamplerType {
+        return this.mSamplerType;
     }
 
     /**

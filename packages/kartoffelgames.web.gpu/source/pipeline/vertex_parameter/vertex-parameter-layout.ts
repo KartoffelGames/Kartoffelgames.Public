@@ -1,5 +1,4 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum.ts';
 import { BufferItemFormat } from '../../constant/buffer-item-format.enum.ts';
 import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum.ts';
 import { VertexParameterStepMode } from '../../constant/vertex-parameter-step-mode.enum.ts';
@@ -7,8 +6,8 @@ import type { GpuDevice } from '../../device/gpu-device.ts';
 import { GpuObject, type GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
 import type { IGpuObjectNative } from '../../gpu_object/interface/i-gpu-object-native.ts';
 import type { IGpuObjectSetup } from '../../gpu_object/interface/i-gpu-object-setup.ts';
-import { VertexParameter } from './vertex-parameter.ts';
 import { VertexParameterLayoutSetup, type VertexParameterLayoutSetupData } from './vertex-parameter-layout-setup.ts';
+import { VertexParameter } from './vertex-parameter.ts';
 
 /**
  * Vertex parameter layout.

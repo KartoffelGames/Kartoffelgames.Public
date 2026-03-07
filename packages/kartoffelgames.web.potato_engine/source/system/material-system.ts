@@ -1,8 +1,8 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslParser, type PgslParserResult, PgslParserResultArrayType, type PgslParserResultBinding, PgslParserResultMatrixType, PgslParserResultNumericType, PgslParserResultSamplerType, PgslParserResultStructType, PgslParserResultTextureType, type PgslParserResultType, PgslParserResultVectorType, WgslTranspiler } from '@kartoffelgames/core-pgsl';
-import { type BindGroup, type BindGroupLayout, BufferItemFormat, BufferItemMultiplier, ComputeStage, type GpuTextureView, SamplerType, Shader as GpuShader, type ShaderRenderModule, StorageBindingType, type TextureFormat, type TextureViewDimension, VertexFragmentPipeline, VertexParameterStepMode } from '@kartoffelgames/web-gpu';
+import { type BindGroup, type BindGroupLayout, BufferItemFormat, BufferItemMultiplier, ComputeStage, type GpuTextureView, SamplerType, Shader as GpuShader, type ShaderRenderModule, StorageBindingType, type TextureFormat, type TextureViewDimension, type VertexFragmentPipeline, VertexParameterStepMode } from '@kartoffelgames/web-gpu';
 import { Color } from '../component_item/color.ts';
-import { Material, MaterialBindingValue } from '../component_item/material.ts';
+import { Material, type MaterialBindingValue } from '../component_item/material.ts';
 import { Texture } from '../component_item/texture.ts';
 import type { GameEnvironment } from '../core/environment/game-environment.ts';
 import { GameSystem, type GameSystemConstructor, type GameSystemUpdateStateChanges } from '../core/game-system.ts';
@@ -15,7 +15,7 @@ import DEFAULT_PBR_SHADER from '../shader/default-pbr-shader.pgsl';
 import FORWARD_ENTRY_POINTS from '../shader/forward-entry-points.pgsl';
 import FORWARD_IMPORT from '../shader/forward-import.pgsl';
 import OBJECT_IMPORT from '../shader/object-import.pgsl';
-import { Shader } from "../component_item/shader.ts";
+import { Shader } from '../component_item/shader.ts';
 
 /**
  * Material system that manages PGSL shader compilation and User bind group creation.
@@ -194,7 +194,7 @@ export class MaterialSystem extends GameSystem {
 
         // Skip empty shader code.
         if (!lShaderCode) {
-            // eslint-disable-next-line no-console
+             
             throw new Exception('Material shader code is empty. Using default material.', this);
         }
 

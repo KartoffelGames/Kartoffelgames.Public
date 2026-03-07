@@ -20,8 +20,9 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
     private readonly mLayout: RenderTargetsLayout;
     private readonly mResolveCanvasList: Array<RenderTargetResolveCanvas>;
     private readonly mSize: RenderTargetsTextureSize;
-    private readonly mTargets: RenderTargetsTextures;
     private readonly mTargetViewUpdateQueue: Set<number>;
+    private readonly mTargets: RenderTargetsTextures;
+    
 
 
     /**
@@ -291,6 +292,23 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         }
     }
 
+    /**
+     * Add all needed texture invalidation listener for passthrow and descriptor invalidation.
+     *
+     * @param pTexture - Texture.
+     * @param pTextureIndex - Texture index, -1 for depth stencil.
+     */
+    private setTextureInvalidationListener(pTexture: GpuTextureView, pTextureIndex: number): void {
+        // Update descriptor only on view changes.
+        pTexture.addInvalidationListener(() => {
+            // Invalidate.
+            this.invalidate(RenderTargetsInvalidationType.NativeUpdate);
+
+            // Set texture as updateable.
+            this.mTargetViewUpdateQueue.add(pTextureIndex);
+        }, GpuResourceObjectInvalidationType.ResourceRebuild);
+    }
+
     private setupTextures(): RenderTargetsTextures {
         // Create empty texture data structure.
         const lTextures: RenderTargetsTextures = {
@@ -346,23 +364,6 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
         }
 
         return lTextures;
-    }
-
-    /**
-     * Add all needed texture invalidation listener for passthrow and descriptor invalidation.
-     *
-     * @param pTexture - Texture.
-     * @param pTextureIndex - Texture index, -1 for depth stencil.
-     */
-    private setTextureInvalidationListener(pTexture: GpuTextureView, pTextureIndex: number): void {
-        // Update descriptor only on view changes.
-        pTexture.addInvalidationListener(() => {
-            // Invalidate.
-            this.invalidate(RenderTargetsInvalidationType.NativeUpdate);
-
-            // Set texture as updateable.
-            this.mTargetViewUpdateQueue.add(pTextureIndex);
-        }, GpuResourceObjectInvalidationType.ResourceRebuild);
     }
 }
 

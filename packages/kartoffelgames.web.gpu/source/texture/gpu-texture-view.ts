@@ -58,13 +58,6 @@ export class GpuTextureView extends GpuResourceObject<TextureUsage, GPUTextureVi
     }
 
     /**
-     * Texture multi sampled.
-     */
-    public get multisampled(): boolean {
-        return this.mMultisampled;
-    }
-
-    /**
      * End index of mip level.
      */
     public get mipLevelEnd(): number {
@@ -86,6 +79,13 @@ export class GpuTextureView extends GpuResourceObject<TextureUsage, GPUTextureVi
 
         // Invalidate view.
         this.invalidate(GpuResourceObjectInvalidationType.ResourceRebuild);
+    }
+
+    /**
+     * Texture multi sampled.
+     */
+    public get multisampled(): boolean {
+        return this.mMultisampled;
     }
 
     /**

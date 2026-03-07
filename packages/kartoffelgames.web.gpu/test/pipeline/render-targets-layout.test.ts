@@ -7,14 +7,14 @@ import { TextureFormat } from '../../source/constant/texture-format.enum.ts';
  * Helper to request a GPU device for tests.
  * Tests will fail in environments without WebGPU support - that is expected.
  */
-async function requestDevice(): Promise<GpuDevice> {
+async function gRequestDevice(): Promise<GpuDevice> {
     return GpuDevice.request('high-performance');
 }
 
 Deno.test('RenderTargetsLayout.setup() -- color targets', async (pContext) => {
     await pContext.step('Setup with a single color target', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
 
         // Process.
@@ -30,7 +30,7 @@ Deno.test('RenderTargetsLayout.setup() -- color targets', async (pContext) => {
 
     await pContext.step('Setup with multiple color targets', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
 
         // Process.
@@ -48,7 +48,7 @@ Deno.test('RenderTargetsLayout.setup() -- color targets', async (pContext) => {
 
     await pContext.step('Color target stores correct format and keepOnEnd', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
 
         // Process.
@@ -67,7 +67,7 @@ Deno.test('RenderTargetsLayout.setup() -- color targets', async (pContext) => {
 
     await pContext.step('Default keepOnEnd is true and clearValue is zero', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
 
         // Process. Use default keepOnEnd and clearValue.
@@ -88,7 +88,7 @@ Deno.test('RenderTargetsLayout.setup() -- color targets', async (pContext) => {
 Deno.test('RenderTargetsLayout.setup() -- depth and stencil', async (pContext) => {
     await pContext.step('Setup with depth only', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
 
         // Process.
@@ -105,7 +105,7 @@ Deno.test('RenderTargetsLayout.setup() -- depth and stencil', async (pContext) =
 
     await pContext.step('Setup with stencil only', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
 
         // Process.
@@ -122,7 +122,7 @@ Deno.test('RenderTargetsLayout.setup() -- depth and stencil', async (pContext) =
 
     await pContext.step('Setup with both depth and stencil', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
 
         // Process.
@@ -141,7 +141,7 @@ Deno.test('RenderTargetsLayout.setup() -- depth and stencil', async (pContext) =
 Deno.test('RenderTargetsLayout.hasDepth', async (pContext) => {
     await pContext.step('Returns false when no depth stencil is configured', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
 
         // Process.
@@ -155,7 +155,7 @@ Deno.test('RenderTargetsLayout.hasDepth', async (pContext) => {
 
     await pContext.step('Returns true when depth is configured', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
 
         // Process.
@@ -172,7 +172,7 @@ Deno.test('RenderTargetsLayout.hasDepth', async (pContext) => {
 Deno.test('RenderTargetsLayout.hasStencil', async (pContext) => {
     await pContext.step('Returns false when no stencil is configured', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
 
         // Process.
@@ -187,7 +187,7 @@ Deno.test('RenderTargetsLayout.hasStencil', async (pContext) => {
 
     await pContext.step('Returns true when stencil is configured', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
 
         // Process.
@@ -204,7 +204,7 @@ Deno.test('RenderTargetsLayout.hasStencil', async (pContext) => {
 Deno.test('RenderTargetsLayout.multisampled', async (pContext) => {
     await pContext.step('Returns false when constructed without multisampling', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
 
         // Process.
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
@@ -215,7 +215,7 @@ Deno.test('RenderTargetsLayout.multisampled', async (pContext) => {
 
     await pContext.step('Returns true when constructed with multisampling', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
 
         // Process.
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, true);
@@ -228,7 +228,7 @@ Deno.test('RenderTargetsLayout.multisampled', async (pContext) => {
 Deno.test('RenderTargetsLayout.hasColorTarget()', async (pContext) => {
     await pContext.step('Returns true for existing color target', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
 
         // Process.
@@ -242,7 +242,7 @@ Deno.test('RenderTargetsLayout.hasColorTarget()', async (pContext) => {
 
     await pContext.step('Returns false for non-existing color target', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
 
         // Process.
@@ -258,7 +258,7 @@ Deno.test('RenderTargetsLayout.hasColorTarget()', async (pContext) => {
 Deno.test('RenderTargetsLayout.depthStencilConfig()', async (pContext) => {
     await pContext.step('Returns depth stencil config when configured', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
 
         // Process.
@@ -278,7 +278,7 @@ Deno.test('RenderTargetsLayout.depthStencilConfig()', async (pContext) => {
 
     await pContext.step('Throws when no depth stencil is configured', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
 
         // Process.

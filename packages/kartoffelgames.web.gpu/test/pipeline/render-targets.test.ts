@@ -7,14 +7,14 @@ import { TextureFormat } from '../../source/constant/texture-format.enum.ts';
  * Helper to request a GPU device for tests.
  * Tests will fail in environments without WebGPU support - that is expected.
  */
-async function requestDevice(): Promise<GpuDevice> {
+async function gRequestDevice(): Promise<GpuDevice> {
     return GpuDevice.request('high-performance');
 }
 
 Deno.test('RenderTargets.layout', async (pContext) => {
     await pContext.step('Returns the layout passed to createRenderTargets', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
         lLayout.setup((pSetup) => {
             pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
@@ -31,7 +31,7 @@ Deno.test('RenderTargets.layout', async (pContext) => {
 Deno.test('RenderTargets.resize()', async (pContext) => {
     await pContext.step('Resize updates width and height', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
         lLayout.setup((pSetup) => {
             pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
@@ -49,7 +49,7 @@ Deno.test('RenderTargets.resize()', async (pContext) => {
 
     await pContext.step('Default size is 1x1', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
         lLayout.setup((pSetup) => {
             pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
@@ -67,7 +67,7 @@ Deno.test('RenderTargets.resize()', async (pContext) => {
 Deno.test('RenderTargets.colorTarget()', async (pContext) => {
     await pContext.step('Returns texture view for existing color target', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
         lLayout.setup((pSetup) => {
             pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
@@ -84,7 +84,7 @@ Deno.test('RenderTargets.colorTarget()', async (pContext) => {
 
     await pContext.step('Throws for non-existing color target name', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
         lLayout.setup((pSetup) => {
             pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
@@ -103,7 +103,7 @@ Deno.test('RenderTargets.colorTarget()', async (pContext) => {
 Deno.test('RenderTargets.depthStencilTarget()', async (pContext) => {
     await pContext.step('Returns depth stencil texture view when configured', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
         lLayout.setup((pSetup) => {
             pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
@@ -121,7 +121,7 @@ Deno.test('RenderTargets.depthStencilTarget()', async (pContext) => {
 
     await pContext.step('Throws when no depth stencil is configured', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
         lLayout.setup((pSetup) => {
             pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);

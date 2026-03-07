@@ -11,14 +11,14 @@ import { TextureFormat } from '../../source/constant/texture-format.enum.ts';
  * Helper to request a GPU device for tests.
  * Tests will fail in environments without WebGPU support - that is expected.
  */
-async function requestDevice(): Promise<GpuDevice> {
+async function gRequestDevice(): Promise<GpuDevice> {
     return GpuDevice.request('high-performance');
 }
 
 Deno.test('BindGroupLayout.setup() -- buffer binding', async (pContext) => {
     await pContext.step('Setup with a uniform buffer binding creates correct bind layout', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: BindGroupLayout = new BindGroupLayout(lDevice, 'TestGroup');
 
         // Process.
@@ -37,7 +37,7 @@ Deno.test('BindGroupLayout.setup() -- buffer binding', async (pContext) => {
 
     await pContext.step('Setup with a storage buffer binding has correct storage type', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: BindGroupLayout = new BindGroupLayout(lDevice, 'StorageGroup');
 
         // Process.
@@ -52,7 +52,7 @@ Deno.test('BindGroupLayout.setup() -- buffer binding', async (pContext) => {
 
     await pContext.step('Setup with dynamic offset buffer binding', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: BindGroupLayout = new BindGroupLayout(lDevice, 'DynamicGroup');
 
         // Process.
@@ -68,7 +68,7 @@ Deno.test('BindGroupLayout.setup() -- buffer binding', async (pContext) => {
 
     await pContext.step('Resource counter counts uniform buffers', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: BindGroupLayout = new BindGroupLayout(lDevice, 'CounterGroup');
 
         // Process.
@@ -85,7 +85,7 @@ Deno.test('BindGroupLayout.setup() -- buffer binding', async (pContext) => {
 Deno.test('BindGroupLayout.setup() -- sampler binding', async (pContext) => {
     await pContext.step('Setup with a filtering sampler binding', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: BindGroupLayout = new BindGroupLayout(lDevice, 'SamplerGroup');
 
         // Process.
@@ -104,7 +104,7 @@ Deno.test('BindGroupLayout.setup() -- sampler binding', async (pContext) => {
 
     await pContext.step('Resource counter counts samplers', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: BindGroupLayout = new BindGroupLayout(lDevice, 'SamplerCountGroup');
 
         // Process.
@@ -121,7 +121,7 @@ Deno.test('BindGroupLayout.setup() -- sampler binding', async (pContext) => {
 Deno.test('BindGroupLayout.setup() -- texture binding', async (pContext) => {
     await pContext.step('Setup with a 2D texture binding', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: BindGroupLayout = new BindGroupLayout(lDevice, 'TextureGroup');
 
         // Process.
@@ -142,7 +142,7 @@ Deno.test('BindGroupLayout.setup() -- texture binding', async (pContext) => {
 
     await pContext.step('Resource counter counts sampled textures', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: BindGroupLayout = new BindGroupLayout(lDevice, 'TexCountGroup');
 
         // Process.
@@ -156,7 +156,7 @@ Deno.test('BindGroupLayout.setup() -- texture binding', async (pContext) => {
 
     await pContext.step('Storage texture is counted as storage texture', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: BindGroupLayout = new BindGroupLayout(lDevice, 'StorageTexGroup');
 
         // Process.
@@ -172,7 +172,7 @@ Deno.test('BindGroupLayout.setup() -- texture binding', async (pContext) => {
 Deno.test('BindGroupLayout -- type discriminated union', async (pContext) => {
     await pContext.step('Buffer resource has fixedSize and variableSize properties', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: BindGroupLayout = new BindGroupLayout(lDevice, 'TypeCheckGroup');
 
         // Process.
@@ -190,7 +190,7 @@ Deno.test('BindGroupLayout -- type discriminated union', async (pContext) => {
 
     await pContext.step('Sampler resource has samplerType property', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: BindGroupLayout = new BindGroupLayout(lDevice, 'SamplerTypeCheck');
 
         // Process.
@@ -207,7 +207,7 @@ Deno.test('BindGroupLayout -- type discriminated union', async (pContext) => {
 
     await pContext.step('Texture resource has dimension, format, and multisampled properties', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: BindGroupLayout = new BindGroupLayout(lDevice, 'TextureTypeCheck');
 
         // Process.
@@ -228,7 +228,7 @@ Deno.test('BindGroupLayout -- type discriminated union', async (pContext) => {
 Deno.test('BindGroupLayout.orderedBindingNames', async (pContext) => {
     await pContext.step('Returns binding names ordered by index', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: BindGroupLayout = new BindGroupLayout(lDevice, 'OrderGroup');
 
         // Process.
@@ -249,7 +249,7 @@ Deno.test('BindGroupLayout.orderedBindingNames', async (pContext) => {
 Deno.test('BindGroupLayout.name', async (pContext) => {
     await pContext.step('Returns the name passed in the constructor', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: BindGroupLayout = new BindGroupLayout(lDevice, 'MyGroupName');
 
         // Evaluation.

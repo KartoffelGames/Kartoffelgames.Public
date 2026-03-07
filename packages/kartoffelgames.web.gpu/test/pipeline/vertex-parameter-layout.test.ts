@@ -9,14 +9,14 @@ import { BufferItemMultiplier } from '../../source/constant/buffer-item-multipli
  * Helper to request a GPU device for tests.
  * Tests will fail in environments without WebGPU support - that is expected.
  */
-async function requestDevice(): Promise<GpuDevice> {
+async function gRequestDevice(): Promise<GpuDevice> {
     return GpuDevice.request('high-performance');
 }
 
 Deno.test('VertexParameterLayout.setup() -- single buffer with parameters', async (pContext) => {
     await pContext.step('Setup with a single vertex buffer and two parameters', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: VertexParameterLayout = new VertexParameterLayout(lDevice);
 
         // Process.
@@ -39,7 +39,7 @@ Deno.test('VertexParameterLayout.setup() -- single buffer with parameters', asyn
 Deno.test('VertexParameterLayout.parameter()', async (pContext) => {
     await pContext.step('Returns parameter with correct name and location', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: VertexParameterLayout = new VertexParameterLayout(lDevice);
 
         // Process.
@@ -63,7 +63,7 @@ Deno.test('VertexParameterLayout.parameter()', async (pContext) => {
 Deno.test('VertexParameterLayout.parameterBuffer()', async (pContext) => {
     await pContext.step('Returns buffer with computed layout sizes', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: VertexParameterLayout = new VertexParameterLayout(lDevice);
 
         // Process. Float32 Vector3 = 12 bytes, Float32 Vector4 = 16 bytes.
@@ -88,7 +88,7 @@ Deno.test('VertexParameterLayout.parameterBuffer()', async (pContext) => {
 
     await pContext.step('Computed layout fixedSize is aligned to struct alignment', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: VertexParameterLayout = new VertexParameterLayout(lDevice);
 
         // Process. Single Float32 Single = 4 bytes, packed alignment = 1.
@@ -106,7 +106,7 @@ Deno.test('VertexParameterLayout.parameterBuffer()', async (pContext) => {
 Deno.test('VertexParameterLayout.indexable', async (pContext) => {
     await pContext.step('Returns false when any buffer uses Vertex step mode', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: VertexParameterLayout = new VertexParameterLayout(lDevice);
 
         // Process.
@@ -121,7 +121,7 @@ Deno.test('VertexParameterLayout.indexable', async (pContext) => {
 
     await pContext.step('Returns true when all buffers use Instance or Index step mode', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: VertexParameterLayout = new VertexParameterLayout(lDevice);
 
         // Process.
@@ -138,7 +138,7 @@ Deno.test('VertexParameterLayout.indexable', async (pContext) => {
 Deno.test('VertexParameterLayout.setup() -- multiple buffers', async (pContext) => {
     await pContext.step('Setup with multiple vertex buffers', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: VertexParameterLayout = new VertexParameterLayout(lDevice);
 
         // Process.
@@ -164,7 +164,7 @@ Deno.test('VertexParameterLayout.setup() -- multiple buffers', async (pContext) 
 Deno.test('VertexParameterLayout -- computed byte offsets', async (pContext) => {
     await pContext.step('Parameters have sequential byte offsets based on packed alignment', async () => {
         // Setup.
-        const lDevice: GpuDevice = await requestDevice();
+        const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: VertexParameterLayout = new VertexParameterLayout(lDevice);
 
         // Process. Two Float32 Vector3 parameters = 12 bytes each.

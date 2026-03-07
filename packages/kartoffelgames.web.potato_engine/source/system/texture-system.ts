@@ -19,11 +19,17 @@ export class TextureSystem extends GameSystem {
 
     private mDefaultTexture: GpuTexture | null;
     private mGpuSystem: GpuSystem | null;
-    private readonly mPendingTextures: Set<Texture>;
     private readonly mTextureEntries: Array<TextureEntry>;
     private mTextureEntryIndex: number;
     private readonly mTextureLookup: WeakMap<Texture, GpuTexture>;
-    
+
+    /**
+     * Gets the default white texture used as a fallback when a texture is not yet loaded or fails to load.
+     */
+    public get defaultTexture(): GpuTexture {
+        return this.mDefaultTexture!;
+    }
+
     /**
      * Gets the system types this system depends on.
      */
@@ -44,7 +50,6 @@ export class TextureSystem extends GameSystem {
 
         // Texture tracking.
         this.mTextureLookup = new WeakMap<Texture, GpuTexture>();
-        this.mPendingTextures = new Set<Texture>();
 
         // Track texture entries in an array to allow cleanup of dead WeakRefs.
         this.mTextureEntries = new Array<TextureEntry>();
@@ -65,7 +70,7 @@ export class TextureSystem extends GameSystem {
      *
      * @returns The GPU texture, or null if the texture is not yet available.
      */
-    public getGpuTexture(pTexture: Texture): GpuTexture {
+    public async getGpuTexture(pTexture: Texture): Promise<GpuTexture> {
         this.lockGate();
 
         // Return existing GPU texture if already uploaded.
@@ -74,34 +79,25 @@ export class TextureSystem extends GameSystem {
             return lExisting;
         }
 
-        // Pending texture is not yet available, return default texture to ensure a valid texture is always returned.
-        if (this.mPendingTextures.has(pTexture)) {
-            return this.mDefaultTexture!;
-        }
-
-        // Add to pending so it wont be loaded multiple times.
-        this.mPendingTextures.add(pTexture);
-
         // Start loading of textures.
-        this.generateGpuTexture(pTexture).then((pGpuTexture) => {
+        try {
+            // Start loading texture.
+            const lLoadedGpuTexture: GpuTexture = await this.generateGpuTexture(pTexture);
+
             // Track the texture.
             this.mTextureEntries.push({
                 weakRef: new WeakRef<Texture>(pTexture),
-                gpuTexture: pGpuTexture
+                gpuTexture: lLoadedGpuTexture
             });
-            this.mTextureLookup.set(pTexture, pGpuTexture);
-        }).catch((pError: unknown) => {
+            this.mTextureLookup.set(pTexture, lLoadedGpuTexture);
+
+            return lLoadedGpuTexture;
+        } catch (pError: unknown) {
             // eslint-disable-next-line no-console
             console.error('Failed to decode and upload texture:', pError);
-        }).finally(() => {
-            // Remove from pending set even if loading failed to allow retry and prevent blocking.
-            this.mPendingTextures.delete(pTexture);
 
-            // Trigger an update of the texture to signal that the GPU texture is now available (even if it failed).
-            pTexture.update();
-        });
-
-        return this.mDefaultTexture!;
+            return this.mDefaultTexture!;
+        }
     }
 
     /**

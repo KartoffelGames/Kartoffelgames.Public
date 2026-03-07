@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import type { IFileSystem } from '@kartoffelgames/web-file-system';
+import type { FileSystem } from '@kartoffelgames/web-file-system';
 import type { GameComponent, GameComponentConstructor } from '../component/game-component.ts';
 import type { GameScene } from '../game-scene.ts';
 import type { GameSystem, GameSystemConstructor, GameSystemUpdateStateChanges } from '../game-system.ts';
@@ -9,7 +9,6 @@ import { type GameEnvironmentStateType, GameEnvironmentTransmission } from './ga
  * Main hub for managing the game environment, including loaded scenes, registered systems, and processing component state changes.
  */
 export class GameEnvironment {
-    private static readonly EMPTY_SYSTEM_CHANGES: ReadonlySet<GameSystem> = new Set<GameSystem>();
     private static readonly TIMING_HISTORY_SIZE: number = 200;
 
     private mCurrentTick: number;
@@ -18,7 +17,7 @@ export class GameEnvironment {
     private readonly mLoadedScenes: Set<GameScene>;
     private readonly mStateChangeQueue: GameEnvironmentStateChangeQueue;
     private readonly mSystems: Array<GameSystem>;
-    private readonly mFileSystem: IFileSystem;
+    private readonly mFileSystem: FileSystem;
 
     /**
      * Debug data for the environment, including timing snapshots. Only filled when debugSystemTime is enabled.
@@ -30,7 +29,7 @@ export class GameEnvironment {
     /**
      * File system for loading assets and resources.
      */
-    public get fileSystem(): IFileSystem {
+    public get fileSystem(): FileSystem {
         return this.mFileSystem;
     }
 
@@ -58,13 +57,12 @@ export class GameEnvironment {
     /**
      * Constructor.
      */
-    public constructor(pFileSystem: IFileSystem) {
+    public constructor(pFileSystem: FileSystem) {
         this.mLoadedScenes = new Set<GameScene>();
         this.mSystems = new Array<GameSystem>();
         this.mCurrentTick = 0;
         this.mStateChangeQueue = {
-            component: new Array<GameEnvironmentStateChange>(),
-            system: new Array<GameSystem>()
+            component: new Array<GameEnvironmentStateChange>()
         };
 
         // Set environment file system.
@@ -194,20 +192,11 @@ export class GameEnvironment {
     public async executeUpdate(pSnapshot: GameEnvironmentTimingSnapshot | null): Promise<void> {
         // Optimize and order the state change queue
         const lChangeState: GameSystemUpdateStateChanges = {
-            componentChanges: this.optimizeStateChangeQueue(),
-            systemChanges: GameEnvironment.EMPTY_SYSTEM_CHANGES
+            componentChanges: this.optimizeStateChangeQueue()
         };
 
         // Clear the original queue. Creating a new array is the fastest way to clear an array in JavaScript.
         this.mStateChangeQueue.component = new Array<GameEnvironmentStateChange>();
-
-        // System changes does not happen regularly so check if there are any before clearing to avoid unnecessary allocations.
-        if (this.mStateChangeQueue.system.length > 0) {
-            // Copy changes to the update state and clear the original queue.
-            lChangeState.systemChanges = new Set(this.mStateChangeQueue.system);
-
-            this.mStateChangeQueue.system = new Array<GameSystem>();
-        }
 
         // "Convert" component changes into a writable map.
         const lComponentChanges: Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>> = lChangeState.componentChanges as Map<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>;
@@ -327,16 +316,6 @@ export class GameEnvironment {
         if (this.mDebugOptions.debugStateChanges) {
             this.mDebugData.executeStateChangeListeners(lStateChange);
         }
-    }
-
-    /**
-     * Queue a system change to be processed in the next update cycle.
-     * System changes are used to notify systems of changes in other systems.
-     *
-     * @param pSystem - The system that changed.
-     */
-    public queueSystemChange(pSystem: GameSystem): void {
-        this.mStateChangeQueue.system.push(pSystem);
     }
 
     /**
@@ -539,7 +518,6 @@ export type GameEnvironmentStateChange = {
 
 type GameEnvironmentStateChangeQueue = {
     component: Array<GameEnvironmentStateChange>;
-    system: Array<GameSystem>;
 };
 
 /**

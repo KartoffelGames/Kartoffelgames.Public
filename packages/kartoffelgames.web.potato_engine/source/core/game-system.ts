@@ -10,7 +10,7 @@ import type { IGameUpdateable } from './i-game-updateable.interface.ts';
  *
  * On the update cycle, systems receive a list of component state changes that they can use to manage resources and optimize their processing.
  */
-export abstract class GameSystem implements IGameUpdateable {
+export abstract class GameSystem {
     private mEnabled: boolean;
     private readonly mEnvironment: GameEnvironment;
     private mInitialized: boolean;
@@ -127,13 +127,6 @@ export abstract class GameSystem implements IGameUpdateable {
     }
 
     /**
-     * Trigger an update response for this system.
-     */
-    public update(): void {
-        this.environment.queueSystemChange(this);
-    }
-
-    /**
      * Lock the system to prevent access to dependency systems before initialization.
      */
     protected lockGate(): void {
@@ -182,11 +175,6 @@ export type GameSystemUpdateStateChanges = {
      * Map of component types to arrays of state changes that occurred since the last update.
      */
     componentChanges: ReadonlyMap<GameComponentConstructor, ReadonlyArray<GameEnvironmentStateChange>>;
-
-    /**
-     * Set of systems that changed since the last update.
-     */
-    systemChanges: ReadonlySet<GameSystem>;
 };
 
 export type GameSystemConstructor<T extends GameSystem = GameSystem> = new (pEnvironment: GameEnvironment) => T;

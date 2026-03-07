@@ -1,13 +1,3 @@
-/**
- * Core PGSL import defining shared types and World bindings.
- *
- * Provides:
- * - PBR output struct for fragment shader results
- * - Vertex/Fragment communication structs for user shader functions
- * - Light struct matching CPU-side buffer layout
- * - World bindings: camera, lights
- */
-export const CORE_IMPORT: string = `
 // ===== PBR Output Struct =====
 struct PbrOutput {
     albedo: Vector4<float>,
@@ -76,4 +66,3 @@ uniform lightCount: uint;
 [GroupBinding("World", "lightIndexList")]
 [AccessMode(AccessMode.Read)]
 storage lightIndexList: Array<uint>;
-`;

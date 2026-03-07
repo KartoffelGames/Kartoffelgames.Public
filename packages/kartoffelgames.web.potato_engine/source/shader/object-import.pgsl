@@ -1,0 +1,10 @@
+#IMPORT "Core";
+
+// ===== Object Bindings (per-object data) =====
+[GroupBinding("Object", "transformationData")]
+[AccessMode(AccessMode.Read)]
+storage transformationData: Array<Matrix44<float>>;
+
+[GroupBinding("Object", "componentIndices")]
+[AccessMode(AccessMode.Read)]
+storage componentIndices: Array<uint>;

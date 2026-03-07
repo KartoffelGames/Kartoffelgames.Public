@@ -1,3 +1,4 @@
+import type { PgslParserResult } from '@kartoffelgames/core-pgsl';
 import {
     type BindGroup,
     type CanvasTexture,
@@ -13,7 +14,6 @@ import {
     type VertexFragmentPipeline,
     type VertexParameter,
 } from '@kartoffelgames/web-gpu';
-import type { PgslParserResult } from '@kartoffelgames/core-pgsl';
 import type { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
 import { Material } from '../../source/component_item/material.ts';
@@ -24,8 +24,7 @@ import { GameSystem, type GameSystemConstructor, type GameSystemUpdateStateChang
 import { CullSystem, type ReadonlyCullSystemRenderTargetData } from '../../source/system/cull-system.ts';
 import { GpuSystem } from '../../source/system/gpu-system.ts';
 import { LightSystem } from '../../source/system/light-system.ts';
-import { MaterialSystem, type LoadedMaterial } from '../../source/system/material-system.ts';
-import { RenderTechnique } from '../../source/system/render-technique.enum.ts';
+import { type MaterialSystemMaterial, MaterialSystem, ShaderRenderMode } from '../../source/system/material-system.ts';
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
 
 type MaterialMeshGroupData = {
@@ -180,7 +179,7 @@ export class ShitSystem extends GameSystem {
         this.mResizeObserver.observe(this.mCanvas);
 
         // Get default loaded material from MaterialSystem (shader is already configured).
-        const lDefaultMaterial: LoadedMaterial = this.mDependencyMaterialSystem.defaultLoadedMaterial;
+        const lDefaultMaterial: MaterialSystemMaterial = this.mDependencyMaterialSystem.defaultMaterial;
         const lDefaultShader: Shader = lDefaultMaterial.shader;
         const lParserResult: PgslParserResult = lDefaultMaterial.parserResult;
 
@@ -264,7 +263,7 @@ export class ShitSystem extends GameSystem {
     /**
      * Create a new material+mesh group with Object bind group, buffers, and pipeline data.
      */
-    private createMaterialMeshGroup(pLoadedMaterial: LoadedMaterial, pInitialCount: number): MaterialMeshGroupData {
+    private createMaterialMeshGroup(pLoadedMaterial: MaterialSystemMaterial, pInitialCount: number): MaterialMeshGroupData {
         const lObjectBindGroup: BindGroup = this.mDefaultRenderModule!.layout.getGroupLayout('Object').create();
         lObjectBindGroup.data('transformationData').set(this.mDependencyTransformationSystem!.gpuBuffer);
         const lComponentIndicesBuffer: GpuBuffer = lObjectBindGroup.data('componentIndices').createBuffer(pInitialCount);
@@ -433,7 +432,7 @@ export class ShitSystem extends GameSystem {
         // Process each material+mesh+submesh group.
         for (const [lMaterial, lMeshMap] of lGroupMap) {
             // Load material from MaterialSystem (may return default while compiling).
-            const lLoadedMaterial: LoadedMaterial = lMaterialSystem.loadMaterial(lMaterial, RenderTechnique.Forward);
+            const lLoadedMaterial: MaterialSystemMaterial = lMaterialSystem.loadMaterial(lMaterial, ShaderRenderMode.Forward);
 
             for (const [lMesh, lSubMeshMap] of lMeshMap) {
                 // Get or create cached vertex parameters for this mesh.

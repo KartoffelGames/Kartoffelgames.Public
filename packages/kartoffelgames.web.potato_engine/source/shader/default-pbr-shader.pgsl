@@ -1,16 +1,3 @@
-/**
- * Default PBR shader user code.
- *
- * Declares User group bindings for PBR material properties:
- * - baseColorFactor: RGBA color multiplier for albedo (default white).
- * - metallicFactor: Metalness value (default 0.0).
- * - roughnessFactor: Roughness value (default 0.5).
- * - baseColorTexture + baseColorSampler: Optional albedo texture (placeholder when unset).
- *
- * Final albedo = baseColorFactor * textureColor * vertexColor.
- * Used as fallback while custom shaders are compiling or when compilation fails.
- */
-export const DEFAULT_PBR_SHADER: string = `
 [GroupBinding("User", "baseColorFactor")]
 uniform baseColorFactor: Vector4<float>;
 
@@ -51,4 +38,3 @@ function fragment(input: FragmentInput): PbrOutput {
     out.alphaThreshold = 0.0;
     return out;
 }
-`;

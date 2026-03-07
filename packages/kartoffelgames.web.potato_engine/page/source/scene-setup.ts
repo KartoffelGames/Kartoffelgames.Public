@@ -4,6 +4,7 @@ import { CameraComponentProjection } from '../../source/component/camera/project
 import type { PerspectiveProjection } from '../../source/component/camera/projection/perspective-projection.ts';
 import { LightComponent } from '../../source/component/light/light-component.ts';
 import { LightComponentItemType } from '../../source/component/light/type/light-component-item-type.enum.ts';
+import type { AmbientLight } from '../../source/component/light/type/ambient-light.ts';
 import type { PointLight } from '../../source/component/light/type/point-light.ts';
 import type { SpotLight } from '../../source/component/light/type/spot-light.ts';
 import { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
@@ -83,6 +84,11 @@ export class SceneSetup {
         this.mCameraScene.label = 'Camera Scene';
         this.mCameraEntity = this.createPerspectiveCamera();
         this.mCameraScene.addObject(this.mCameraEntity);
+
+        // Add ambient light to the camera scene (always active).
+        const lAmbientLightEntity: GameEntity = this.createLightEntity('Ambient Light', LightComponentItemType.Ambient,
+            { x: 0, y: 0, z: 0 }, { r: 1, g: 1, b: 1 }, 0.1);
+        this.mCameraScene.addObject(lAmbientLightEntity);
 
         // Create numbered scenes.
         this.mScenes.set(1, this.createScene1());

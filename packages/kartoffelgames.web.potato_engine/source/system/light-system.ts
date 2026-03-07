@@ -1,17 +1,15 @@
-import { FileSystem } from '@kartoffelgames/web-file-system';
 import { BufferUsage, GpuBuffer, GpuLimit } from '@kartoffelgames/web-gpu';
 import { LightComponent } from '../component/light/light-component.ts';
+import type { AmbientLight } from '../component/light/type/ambient-light.ts';
 import type { AreaLight } from '../component/light/type/area-light.ts';
 import type { ILightComponentItem } from '../component/light/type/i-light-component-item.interface.ts';
 import { LightComponentItemType } from '../component/light/type/light-component-item-type.enum.ts';
 import type { PointLight } from '../component/light/type/point-light.ts';
 import type { SpotLight } from '../component/light/type/spot-light.ts';
 import { TransformationComponent } from '../component/transformation-component.ts';
-import { Color } from '../component_item/color.ts';
 import type { GameComponentConstructor } from '../core/component/game-component.ts';
 import type { GameEnvironment } from '../core/environment/game-environment.ts';
-import { GameSystem, type GameSystemUpdateStateChanges, type GameSystemConstructor } from '../core/game-system.ts';
-import { EditorProperty } from '../editor_property/editor-property.ts';
+import { GameSystem, type GameSystemConstructor, type GameSystemUpdateStateChanges } from '../core/game-system.ts';
 import { GpuSystem } from './gpu-system.ts';
 import { TransformationSystem } from './transformation-system.ts';
 
@@ -39,46 +37,7 @@ export class LightSystem extends GameSystem {
 
     private readonly mActiveLights: Array<LightComponent>;
     private readonly mActiveLightsIndexMap: WeakMap<LightComponent, number>;
-    private mAmbientLightColor: Color;
     private readonly mBuffers: LightSystemBuffer;
-
-    /**
-     * Light color.
-     */
-    @EditorProperty.objectControl()
-    @FileSystem.fileProperty()
-    public get ambientLight(): Color {
-        if (this.mAmbientLightColor.isSystem) {
-            // Copy color to allow modifications without affecting other components using the same system instance.
-            const lNewColor = new Color();
-            lNewColor.a = this.mAmbientLightColor.a;
-            lNewColor.b = this.mAmbientLightColor.b;
-            lNewColor.g = this.mAmbientLightColor.g;
-            lNewColor.r = this.mAmbientLightColor.r;
-
-            // Set color with accessor to link it to this component and trigger updates.
-            this.ambientLight = lNewColor;
-        }
-
-        return this.mAmbientLightColor;
-    } set ambientLight(pValue: Color) {
-        // Unlink previous color.
-        this.mAmbientLightColor.unlinkParent(this);
-
-        // Save and link new color.
-        this.mAmbientLightColor = pValue;
-        this.mAmbientLightColor.linkParent(this);
-
-        this.update();
-    }
-
-    /**
-     * Gets the GPU buffer containing ambient light data (vec4<f32>: r, g, b, intensity).
-     */
-    public get ambientLightBuffer(): GpuBuffer {
-        this.lockGate();
-        return this.mBuffers.ambientLightGpuBuffer!;
-    }
 
     /**
      * Gets the system types this system depends on.
@@ -118,10 +77,6 @@ export class LightSystem extends GameSystem {
     public constructor(pEnvironment: GameEnvironment) {
         super('Light', pEnvironment);
 
-        // Initialize ambient light color with a system instance.
-        this.mAmbientLightColor = Color.SYSTEM_INSTANCE;
-        this.mAmbientLightColor.linkParent(this);
-
         // Null any buffer and views and setup maps for component to buffer index tracking.
         this.mBuffers = {
             // Dynamic light buffer management:
@@ -131,11 +86,6 @@ export class LightSystem extends GameSystem {
             dynamicLightDataBufferView: null,
             dynamicLightDataBufferFloatView: null,
             dynamicLightGpuBuffer: null,
-
-            // Ambient light buffer management:
-            ambientLightDataBuffer: null,
-            ambientLightDataBufferFloatView: null,
-            ambientLightGpuBuffer: null
         };
 
         // Init active lists.
@@ -174,16 +124,6 @@ export class LightSystem extends GameSystem {
         const lDynamicLightGpuBuffer: GpuBuffer = new GpuBuffer(lGpuSystem.gpu, this.mBuffers.dynamicLightDataBuffer.byteLength);
         lDynamicLightGpuBuffer.extendUsage(BufferUsage.Storage | BufferUsage.CopySource | BufferUsage.CopyDestination);
         this.mBuffers.dynamicLightGpuBuffer = lDynamicLightGpuBuffer;
-
-        // Create the shared buffer for ambient light data.
-        this.mBuffers.ambientLightDataBuffer = new SharedArrayBuffer(16);
-        this.mBuffers.ambientLightDataBufferFloatView = new Float32Array(this.mBuffers.ambientLightDataBuffer);
-        this.mBuffers.ambientLightGpuBuffer = null;
-
-        // Create GPU buffer for ambient light data.
-        const lAmbientLightGpuBuffer: GpuBuffer = new GpuBuffer(lGpuSystem.gpu, this.mBuffers.ambientLightDataBuffer.byteLength);
-        lAmbientLightGpuBuffer.extendUsage(BufferUsage.Uniform | BufferUsage.CopySource | BufferUsage.CopyDestination);
-        this.mBuffers.ambientLightGpuBuffer = lAmbientLightGpuBuffer;
     }
 
     /**
@@ -290,18 +230,6 @@ export class LightSystem extends GameSystem {
             // Write changed byte range to GPU buffer.
             this.mBuffers.dynamicLightGpuBuffer!.write(this.mBuffers.dynamicLightDataBuffer!, lLowerBoundByteIndex, lLowerBoundByteIndex, lDataLength);
         }
-
-        // Update ambient light buffer if ambient light color changed.
-        if (pStateChanges.systemChanges.has(this)) {
-            // Write ambient light color to GPU buffer.
-            this.mBuffers.ambientLightDataBufferFloatView![0] = this.mAmbientLightColor.r;
-            this.mBuffers.ambientLightDataBufferFloatView![1] = this.mAmbientLightColor.g;
-            this.mBuffers.ambientLightDataBufferFloatView![2] = this.mAmbientLightColor.b;
-            this.mBuffers.ambientLightDataBufferFloatView![3] = this.mAmbientLightColor.a;
-
-            // Update gpu buffer.
-            this.mBuffers.ambientLightGpuBuffer!.write(this.mBuffers.ambientLightDataBufferFloatView!.buffer);
-        }
     }
 
     /**
@@ -347,6 +275,11 @@ export class LightSystem extends GameSystem {
      * @returns The calculated effective range, clamped by the user-defined range.
      */
     private calculateRange(pRange: number, pIntensity: number, pDropOff: number): number {
+        // No range and no falloff means no range restriction.
+        if (pRange <= 0 && pDropOff <= 0) {
+            return Number.MAX_VALUE;
+        }
+
         // No falloff means full intensity across entire range.
         if (pDropOff <= 0) {
             return pRange;
@@ -458,8 +391,8 @@ export class LightSystem extends GameSystem {
         let lRange: number = 0;
         let lDropOff: number = 0;
         if (lLight.type !== LightComponentItemType.Directional) {
-            // Convert into a point/spot/area light to read range and dropOff properties.
-            const lNonDirectionalLight: PointLight | SpotLight | AreaLight = lLight as PointLight | SpotLight | AreaLight;
+            // Convert into a point/spot/area/ambient light to read range and dropOff properties.
+            const lNonDirectionalLight: PointLight | SpotLight | AreaLight | AmbientLight = lLight as PointLight | SpotLight | AreaLight | AmbientLight;
             lRange = lNonDirectionalLight.range;
             lDropOff = lNonDirectionalLight.dropOff;
         }
@@ -522,9 +455,6 @@ type LightSystemBuffer = {
     dynamicLightDataBufferFloatView: Float32Array | null;
     dynamicLightDataBufferView: DataView | null;
     dynamicLightGpuBuffer: GpuBuffer | null;
-    ambientLightDataBuffer: SharedArrayBuffer | null;
-    ambientLightDataBufferFloatView: Float32Array | null;
-    ambientLightGpuBuffer: GpuBuffer | null;
 };
 
 type LightSystemBufferUpdateRange = {

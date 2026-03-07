@@ -372,13 +372,11 @@ export class ShitSystem extends GameSystem {
             this.mWorldGroup.data('lightData').set(lLightSystem.lightBuffer);
             this.mLightCountBuffer = this.mWorldGroup.data('lightCount').createBuffer(1);
             this.mLightIndexListBuffer = this.mWorldGroup.data('lightIndexList').createBuffer(Math.max(lLightSystem.lights.length, 1));
-            this.mWorldGroup.data('ambientLight').set(lLightSystem.ambientLightBuffer);
             this.mLightDataInitialized = true;
         }
 
         // Update light data each frame.
         this.mWorldGroup.data('lightData').set(lLightSystem.lightBuffer);
-        this.mWorldGroup.data('ambientLight').set(lLightSystem.ambientLightBuffer);
 
         const lActiveLights = lLightSystem.lights;
         const lLightIndexList: Uint32Array = new Uint32Array(lActiveLights.length);

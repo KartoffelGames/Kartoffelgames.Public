@@ -4,12 +4,13 @@ import type { GameComponentConstructor } from '../../core/component/game-compone
 import { GameComponent } from '../../core/component/game-component.ts';
 import { EditorProperty } from '../../editor_property/editor-property.ts';
 import { TransformationComponent } from '../transformation-component.ts';
+import { AmbientLight } from './type/ambient-light.ts';
+import { AreaLight } from './type/area-light.ts';
 import { DirectionalLight } from './type/directional-light.ts';
 import type { ILightComponentItem } from './type/i-light-component-item.interface.ts';
+import { LightComponentItemType } from './type/light-component-item-type.enum.ts';
 import { PointLight } from './type/point-light.ts';
 import { SpotLight } from './type/spot-light.ts';
-import { AreaLight } from './type/area-light.ts';
-import { LightComponentItemType } from './type/light-component-item-type.enum.ts';
 
 /**
  * Component that holds a light source.
@@ -55,6 +56,7 @@ export class LightComponent extends GameComponent {
             case this.light instanceof PointLight: return LightComponentItemType.Point;
             case this.light instanceof SpotLight: return LightComponentItemType.Spot;
             case this.light instanceof AreaLight: return LightComponentItemType.Area;
+            case this.light instanceof AmbientLight: return LightComponentItemType.Ambient;
         }
 
         throw new Exception('Unknown light type.', this);
@@ -74,6 +76,10 @@ export class LightComponent extends GameComponent {
             }
             case LightComponentItemType.Area: {
                 this.light = new AreaLight();
+                break;
+            }
+            case LightComponentItemType.Ambient: {
+                this.light = new AmbientLight();
                 break;
             }
             default: {

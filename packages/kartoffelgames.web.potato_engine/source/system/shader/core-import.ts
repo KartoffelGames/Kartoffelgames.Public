@@ -5,7 +5,7 @@
  * - PBR output struct for fragment shader results
  * - Vertex/Fragment communication structs for user shader functions
  * - Light struct matching CPU-side buffer layout
- * - World bindings: camera, lights, ambient light
+ * - World bindings: camera, lights
  */
 export const CORE_IMPORT: string = `
 // ===== PBR Output Struct =====
@@ -76,7 +76,4 @@ uniform lightCount: uint;
 [GroupBinding("World", "lightIndexList")]
 [AccessMode(AccessMode.Read)]
 storage lightIndexList: Array<uint>;
-
-[GroupBinding("World", "ambientLight")]
-uniform ambientLight: Vector4<float>;
 `;

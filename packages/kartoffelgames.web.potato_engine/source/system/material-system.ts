@@ -205,7 +205,6 @@ export class MaterialSystem extends GameSystem {
         // Add to pending compilation queue if not already pending.
         if (!this.mPendingMaterials.has(pMaterial)) {
             this.mPendingMaterials.add(pMaterial);
-            this.update();
         }
 
         // Return default material while compilation is pending.

@@ -111,7 +111,7 @@ function calculatePointLight(pLight: Light, pFragPos: Vector3<float>, pNormal: V
     const toLight: Vector3<float> = pLight.positionRange.xyz - pFragPos;
     const dist: float = length(toLight);
 
-    if (dist > pLight.positionRange.w) {
+    if ((pLight.positionRange.w > 0.0) && (dist > pLight.positionRange.w)) {
         return new Vector3<float>(0.0, 0.0, 0.0);
     }
 
@@ -133,7 +133,7 @@ function calculateSpotLight(pLight: Light, pFragPos: Vector3<float>, pNormal: Ve
     const toLight: Vector3<float> = pLight.positionRange.xyz - pFragPos;
     const dist: float = length(toLight);
 
-    if (dist > pLight.positionRange.w) {
+    if ((pLight.positionRange.w > 0.0) && (dist > pLight.positionRange.w)) {
         return new Vector3<float>(0.0, 0.0, 0.0);
     }
 
@@ -159,7 +159,7 @@ function calculateAreaLight(pLight: Light, pFragPos: Vector3<float>, pNormal: Ve
     const toLight: Vector3<float> = pLight.positionRange.xyz - pFragPos;
     const dist: float = length(toLight);
 
-    if (dist > pLight.positionRange.w) {
+    if ((pLight.positionRange.w > 0.0) && (dist > pLight.positionRange.w)) {
         return new Vector3<float>(0.0, 0.0, 0.0);
     }
 
@@ -179,8 +179,27 @@ function calculateAreaLight(pLight: Light, pFragPos: Vector3<float>, pNormal: Ve
     return pLight.colorIntensity.rgb * pLight.colorIntensity.a * nDotL * attenuation * forwardDot * areaScale;
 }
 
+function calculateAmbientLight(pLight: Light, pFragPos: Vector3<float>): Vector3<float> {
+    // When range is 0 (infinite), apply full intensity everywhere.
+    if (pLight.positionRange.w <= 0.0) {
+        return pLight.colorIntensity.rgb * pLight.colorIntensity.a;
+    }
+
+    // When range is set, attenuate by distance.
+    const toLight: Vector3<float> = pLight.positionRange.xyz - pFragPos;
+    const dist: float = length(toLight);
+
+    if (dist > pLight.positionRange.w) {
+        return new Vector3<float>(0.0, 0.0, 0.0);
+    }
+
+    const attenuation: float = normalizedAttenuation(dist, pLight.rotationDropOff.w);
+
+    return pLight.colorIntensity.rgb * pLight.colorIntensity.a * attenuation;
+}
+
 function calculateLighting(pFragPos: Vector3<float>, pNormal: Vector3<float>): Vector3<float> {
-    let accumulatedLight: Vector3<float> = ambientLight.xyz * ambientLight.w;
+    let accumulatedLight: Vector3<float> = new Vector3<float>(0.0, 0.0, 0.0);
 
     for (let i: uint = 0; i < lightCount; i++) {
         const light: Light = lightData[lightIndexList[i]];
@@ -197,6 +216,9 @@ function calculateLighting(pFragPos: Vector3<float>, pNormal: Vector3<float>): V
             }
             case 3: {
                 accumulatedLight += calculateAreaLight(light, pFragPos, pNormal);
+            }
+            case 4: {
+                accumulatedLight += calculateAmbientLight(light, pFragPos);
             }
             default: {}
         }

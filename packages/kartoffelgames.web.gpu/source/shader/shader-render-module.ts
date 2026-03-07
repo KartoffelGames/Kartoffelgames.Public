@@ -1,7 +1,7 @@
 import type { GpuDevice } from '../device/gpu-device.ts';
 import { GpuObject } from '../gpu_object/gpu-object.ts';
 import type { PipelineLayout } from '../pipeline/pipeline-layout.ts';
-import type { RenderTargets } from '../pipeline/render_targets/render-targets.ts';
+import type { RenderTargetsLayout } from '../pipeline/render_targets/render-targets-layout.ts';
 import { VertexFragmentPipeline } from '../pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline.ts';
 import type { VertexParameterLayout } from '../pipeline/vertex_parameter/vertex-parameter-layout.ts';
 import type { Shader } from './shader.ts';
@@ -69,13 +69,13 @@ export class ShaderRenderModule extends GpuObject {
     }
 
     /**
-     * Create a new render pipeline for set render targets.
-     * 
-     * @param pRenderTargets - Render targets of pipeline.
-     * 
-     * @returns new render pipeline. 
+     * Create a new render pipeline for set render targets layout.
+     *
+     * @param pLayout - Render targets layout of pipeline.
+     *
+     * @returns new render pipeline.
      */
-    public create(pRenderTargets: RenderTargets): VertexFragmentPipeline {
-        return new VertexFragmentPipeline(this.device, this, pRenderTargets);
+    public create(pLayout: RenderTargetsLayout): VertexFragmentPipeline {
+        return new VertexFragmentPipeline(this.device, this, pLayout);
     }
 }

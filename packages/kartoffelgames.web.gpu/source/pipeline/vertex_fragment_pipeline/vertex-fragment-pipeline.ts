@@ -13,15 +13,14 @@ import { GpuObject } from '../../gpu_object/gpu-object.ts';
 import type { GpuObjectInvalidationReasons } from '../../gpu_object/gpu-object-invalidation-reasons.ts';
 import type { IGpuObjectNative } from '../../gpu_object/interface/i-gpu-object-native.ts';
 import type { ShaderRenderModule } from '../../shader/shader-render-module.ts';
-import type { GpuTextureView } from '../../texture/gpu-texture-view.ts';
 import type { PipelineLayout } from '../pipeline-layout.ts';
-import type { RenderTargets } from '../render_targets/render-targets.ts';
+import type { RenderTargetsLayout } from '../render_targets/render-targets-layout.ts';
 import { VertexFragmentPipelineDepthConfiguration } from './vertex-fragment-pipeline-depth-configuration.ts';
 import { VertexFragmentPipelineStencilConfiguration } from './vertex-fragment-pipeline-stencil-configuration.ts';
 import { VertexFragmentPipelineTargetConfiguration } from './vertex-fragment-pipeline-target-configuration.ts';
 
 /**
- * Gpu pipeline resource for rendering with a vertex and fragment shader. 
+ * Gpu pipeline resource for rendering with a vertex and fragment shader.
  */
 export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, VertexFragmentPipelineInvalidationType> implements IGpuObjectNative<GPURenderPipeline | null> {
     private readonly mDepthConfiguration: VertexFragmentPipelineDepthConfigurationData;
@@ -31,7 +30,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
     private mPrimitiveFrontFace: PrimitiveFrontFace;
     private mPrimitiveTopology: PrimitiveTopology;
     private readonly mRenderTargetConfig: Dictionary<string, VertexFragmentPipelineTargetConfigData>;
-    private readonly mRenderTargets: RenderTargets;
+    private readonly mRenderTargetsLayout: RenderTargetsLayout;
     private readonly mShaderModule: ShaderRenderModule;
     private readonly mStencilConfiguration: VertexFragmentPipelineStencilConfigurationData;
 
@@ -93,20 +92,21 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
     }
 
     /**
-     * Render targets.
+     * Render targets layout.
      */
-    public get renderTargets(): RenderTargets {
-        return this.mRenderTargets;
+    public get renderTargets(): RenderTargetsLayout {
+        return this.mRenderTargetsLayout;
     }
 
     /**
      * Constructor.
      * Set default data.
-     * 
+     *
      * @param pDevice - Device.
      * @param pShaderRenderModule - Pipeline shader.
+     * @param pRenderTargetsLayout - Render targets layout with format metadata.
      */
-    public constructor(pDevice: GpuDevice, pShaderRenderModule: ShaderRenderModule, pRenderTargets: RenderTargets) {
+    public constructor(pDevice: GpuDevice, pShaderRenderModule: ShaderRenderModule, pRenderTargetsLayout: RenderTargetsLayout) {
         super(pDevice);
 
         // Loaded pipeline for async creation.
@@ -114,7 +114,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
 
         // Set config objects.
         this.mShaderModule = pShaderRenderModule;
-        this.mRenderTargets = pRenderTargets;
+        this.mRenderTargetsLayout = pRenderTargetsLayout;
         this.mRenderTargetConfig = new Dictionary<string, VertexFragmentPipelineTargetConfigData>();
 
         // Pipeline constants.
@@ -122,7 +122,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
 
         // Depth default settings.
         this.mDepthConfiguration = {
-            depthWriteEnabled: this.mRenderTargets.hasDepth,
+            depthWriteEnabled: this.mRenderTargetsLayout.hasDepth,
             depthCompare: CompareFunction.Less,
             depthBias: 0,
             depthBiasSlopeScale: 0,
@@ -165,11 +165,11 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
 
     /**
      * Set optional parameter of pipeline.
-     * 
+     *
      * @param pParameterName - name of parameter.
      * @param pValue - Value.
-     * 
-     * @returns this. 
+     *
+     * @returns this.
      */
     public setParameter(pParameterName: string, pValue: number): this {
         const lParameterUsage: Set<ComputeStage> | undefined = this.mShaderModule.shader.parameter(pParameterName);
@@ -203,13 +203,13 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
 
     /**
      * Create or update target config.
-     * 
+     *
      * @param pTargetName - Target name.
-     * 
-     * @returns config object. 
+     *
+     * @returns config object.
      */
     public targetConfig(pTargetName: string): VertexFragmentPipelineTargetConfiguration {
-        if (!this.mRenderTargets.hasColorTarget(pTargetName)) {
+        if (!this.mRenderTargetsLayout.hasColorTarget(pTargetName)) {
             throw new Exception(`Color target "${pTargetName}" does not exists.`, this);
         }
 
@@ -267,11 +267,11 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
         if (this.module.fragmentEntryPoint) {
             // Generate fragment targets only when fragment state is needed.
             const lFragmentTargetList: Array<GPUColorTargetState> = new Array<GPUColorTargetState>();
-            for (const lRenderTargetName of this.mRenderTargets.colorTargetNames) {
-                const lRenderTarget: GpuTextureView = this.mRenderTargets.colorTarget(lRenderTargetName);
+            for (const lRenderTargetName of this.mRenderTargetsLayout.colorTargetNames) {
+                const lLayoutTarget = this.mRenderTargetsLayout.colorTarget(lRenderTargetName);
 
                 lFragmentTargetList.push({
-                    format: lRenderTarget.layout.format as GPUTextureFormat,
+                    format: lLayoutTarget.format as GPUTextureFormat,
                     blend: this.generateRenderTargetBlendState(lRenderTargetName),
                     writeMask: this.generateRenderTargetWriteMask(lRenderTargetName)
                 });
@@ -286,13 +286,13 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
         }
 
         // Setup optional depth or and stencil attachment.
-        if (this.mRenderTargets.hasDepth || this.mRenderTargets.hasStencil) {
+        if (this.mRenderTargetsLayout.hasDepth || this.mRenderTargetsLayout.hasStencil) {
             lPipelineDescriptor.depthStencil = {
-                format: this.mRenderTargets.depthStencilTarget().layout.format as GPUTextureFormat
+                format: this.mRenderTargetsLayout.depthStencilFormat as GPUTextureFormat
             };
 
             // Setup depth options.
-            if (this.mRenderTargets.hasDepth) {
+            if (this.mRenderTargetsLayout.hasDepth) {
                 lPipelineDescriptor.depthStencil.depthWriteEnabled = this.mDepthConfiguration.depthWriteEnabled;
                 lPipelineDescriptor.depthStencil.depthCompare = this.mDepthConfiguration.depthCompare;
                 lPipelineDescriptor.depthStencil.depthBias = this.mDepthConfiguration.depthBias;
@@ -308,7 +308,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
             }
 
             // Setup stencil options.
-            if (this.mRenderTargets.hasStencil) {
+            if (this.mRenderTargetsLayout.hasStencil) {
                 lPipelineDescriptor.depthStencil.stencilReadMask = this.mStencilConfiguration.stencilReadMask;
                 lPipelineDescriptor.depthStencil.stencilWriteMask = this.mStencilConfiguration.stencilWriteMask;
                 lPipelineDescriptor.depthStencil.stencilBack = {
@@ -327,7 +327,7 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
         }
 
         // Set multisample count.
-        if (this.mRenderTargets.multisampled) {
+        if (this.mRenderTargetsLayout.multisampled) {
             lPipelineDescriptor.multisample = {
                 count: 4
             };
@@ -376,10 +376,10 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
 
     /**
      * Generate blend state for render target.
-     * 
+     *
      * @param pTargetName - Render target name.
-     * 
-     * @returns generated blend state. 
+     *
+     * @returns generated blend state.
      */
     private generateRenderTargetBlendState(pTargetName: string): GPUBlendState {
         const lConfig: VertexFragmentPipelineTargetConfigData | undefined = this.mRenderTargetConfig.get(pTargetName);
@@ -417,9 +417,9 @@ export class VertexFragmentPipeline extends GpuObject<GPURenderPipeline | null, 
 
     /**
      * Generate gpu color write mask for the set render target.
-     * 
+     *
      * @param pTargetName - Target name.
-     * 
+     *
      * @returns color write flags.
      */
     private generateRenderTargetWriteMask(pTargetName: string): GPUColorWriteFlags {

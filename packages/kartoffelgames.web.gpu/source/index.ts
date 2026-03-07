@@ -1,9 +1,3 @@
-// Memory layouts
-export { ArrayBufferMemoryLayout } from './buffer/memory_layout/array-buffer-memory-layout.ts';
-export { PrimitiveBufferMemoryLayout } from './buffer/memory_layout/primitive-buffer-memory-layout.ts';
-export { StructBufferMemoryLayout } from './buffer/memory_layout/struct-buffer-memory-layout.ts';
-export { SamplerMemoryLayout } from './texture/memory_layout/sampler-memory-layout.ts';
-export { TextureViewMemoryLayout } from './texture/memory_layout/texture-view-memory-layout.ts';
 
 // Shader
 export { Shader } from './shader/shader.ts';
@@ -13,10 +7,12 @@ export { ShaderRenderModule } from './shader/shader-render-module.ts';
 // Pipeline
 export { BindGroup } from './pipeline/bind_group/bind-group.ts';
 export { BindGroupLayout } from './pipeline/bind_group_layout/bind-group-layout.ts';
+export type { BindGroupBindLayout, BindLayoutBinding, BindLayoutBufferBinding, BindLayoutSamplerBinding, BindLayoutTextureBinding } from './pipeline/bind_group_layout/bind-group-layout.ts';
 export { ComputePipeline } from './pipeline/compute-pipeline.ts';
 export { PipelineLayout } from './pipeline/pipeline-layout.ts';
 export { PipelineData } from './pipeline/pipeline_data/pipeline-data.ts';
 export { RenderTargets, RenderTargetsInvalidationType } from './pipeline/render_targets/render-targets.ts';
+export { RenderTargetsLayout } from './pipeline/render_targets/render-targets-layout.ts';
 export { VertexFragmentPipeline } from './pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline.ts';
 export { VertexParameter } from './pipeline/vertex_parameter/vertex-parameter.ts';
 export { VertexParameterLayout } from './pipeline/vertex_parameter/vertex-parameter-layout.ts';

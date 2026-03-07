@@ -1,10 +1,8 @@
-import { Exception, type TypedArray } from '@kartoffelgames/core';
+import { Exception } from '@kartoffelgames/core';
 import { BufferUsage } from '../constant/buffer-usage.enum.ts';
 import type { GpuDevice } from '../device/gpu-device.ts';
 import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu_object/gpu-resource-object.ts';
 import type { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native.ts';
-import { GpuBufferView, type GpuBufferViewFormat } from './gpu-buffer-view.ts';
-import type { BaseBufferMemoryLayout } from './memory_layout/base-buffer-memory-layout.ts';
 
 /**
  * GpuBuffer. Uses local and native gpu buffers.
@@ -129,19 +127,6 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
 
         // Get mapped data and force it into typed array.
         return lBufferReadResult;
-    }
-
-    /**
-     * Create view of buffer.
-     * 
-     * @param pLayout - View layout.
-     * @param pType - Type of view.
-     * @param pDynamicOffsetIndex - Index of dynamic offset.
-     * 
-     * @returns view of buffer. 
-     */
-    public view<T extends TypedArray>(pLayout: BaseBufferMemoryLayout, pType: GpuBufferViewFormat<T>, pDynamicOffsetIndex: number = 0): GpuBufferView<T> {
-        return new GpuBufferView(this, pLayout, pType, pDynamicOffsetIndex);
     }
 
     /**

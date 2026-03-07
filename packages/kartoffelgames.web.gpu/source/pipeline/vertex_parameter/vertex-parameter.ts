@@ -1,16 +1,11 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { GpuBuffer } from '../../buffer/gpu-buffer.ts';
-import type { GpuBufferView } from '../../buffer/gpu-buffer-view.ts';
-import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum.ts';
 import { BufferItemFormat } from '../../constant/buffer-item-format.enum.ts';
-import { BufferItemMultiplier } from '../../constant/buffer-item-multiplier.enum.ts';
 import { BufferUsage } from '../../constant/buffer-usage.enum.ts';
 import { VertexParameterStepMode } from '../../constant/vertex-parameter-step-mode.enum.ts';
-import type { VertexParameterLayout, VertexParameterLayoutBuffer } from './vertex-parameter-layout.ts';
-import { ArrayBufferMemoryLayout } from '../../buffer/memory_layout/array-buffer-memory-layout.ts';
-import { PrimitiveBufferMemoryLayout } from '../../buffer/memory_layout/primitive-buffer-memory-layout.ts';
 import type { GpuDevice } from '../../device/gpu-device.ts';
 import { GpuObject } from '../../gpu_object/gpu-object.ts';
+import type { VertexParameterLayout, VertexParameterLayoutBuffer } from './vertex-parameter-layout.ts';
 
 /**
  * Vertex parameters used for a single render draw call.
@@ -18,15 +13,23 @@ import { GpuObject } from '../../gpu_object/gpu-object.ts';
  */
 export class VertexParameter extends GpuObject<null, VertexParameterInvalidationType> {
     private readonly mBuffer: Dictionary<string, GpuBuffer>;
-    private readonly mIndexBufferView: GpuBufferView<Uint16Array | Uint32Array> | null;
+    private readonly mIndexBuffer: GpuBuffer | null;
+    private readonly mIndexBufferFormat: Uint16ArrayConstructor | Uint32ArrayConstructor;
     private readonly mIndices: Array<number>;
     private readonly mLayout: VertexParameterLayout;
 
     /**
      * Get index buffer.
      */
-    public get indexBuffer(): GpuBufferView<Uint16Array | Uint32Array> | null {
-        return this.mIndexBufferView;
+    public get indexBuffer(): GpuBuffer | null {
+        return this.mIndexBuffer;
+    }
+
+    /**
+     * Get index buffer format.
+     */
+    public get indexBufferFormat(): Uint16ArrayConstructor | Uint32ArrayConstructor {
+        return this.mIndexBufferFormat;
     }
 
     /**
@@ -60,45 +63,24 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
         this.mIndices = pIndices;
 
         // Create index buffer.
-        this.mIndexBufferView = null;
+        this.mIndexBuffer = null;
+        this.mIndexBufferFormat = Uint32Array;
         if (this.mLayout.indexable) {
             // Decide wich format to use.
             if (pIndices.length < Math.pow(2, 16)) {
-                // Create index buffer layout.
-                const lIndexBufferLayout: ArrayBufferMemoryLayout = new ArrayBufferMemoryLayout(this.device, {
-                    arraySize: pIndices.length,
-                    innerType: new PrimitiveBufferMemoryLayout(this.device, {
-                        alignmentType: BufferAlignmentType.Packed,
-                        primitiveFormat: BufferItemFormat.Uint16,
-                        primitiveMultiplier: BufferItemMultiplier.Single,
-                    })
-                });
-
                 // Create index buffer.
-                const lIndexBuffer: GpuBuffer = new GpuBuffer(pDevice, pIndices.length * 2);
-                lIndexBuffer.extendUsage(BufferUsage.Index);
-                lIndexBuffer.initialData(new Uint16Array(pIndices).buffer);
+                this.mIndexBuffer = new GpuBuffer(pDevice, pIndices.length * 2);
+                this.mIndexBuffer.extendUsage(BufferUsage.Index);
+                this.mIndexBuffer.initialData(new Uint16Array(pIndices).buffer);
 
-                // Create view of buffer.
-                this.mIndexBufferView = lIndexBuffer.view(lIndexBufferLayout, Uint16Array);
+                this.mIndexBufferFormat = Uint16Array;
             } else {
-                // Create index buffer layout.
-                const lIndexBufferLayout: ArrayBufferMemoryLayout = new ArrayBufferMemoryLayout(this.device, {
-                    arraySize: pIndices.length,
-                    innerType: new PrimitiveBufferMemoryLayout(this.device, {
-                        alignmentType: BufferAlignmentType.Packed,
-                        primitiveFormat: BufferItemFormat.Uint32,
-                        primitiveMultiplier: BufferItemMultiplier.Single,
-                    })
-                });
-
                 // Create index buffer.
-                const lIndexBuffer: GpuBuffer = new GpuBuffer(pDevice, pIndices.length * 4);
-                lIndexBuffer.extendUsage(BufferUsage.Index);
-                lIndexBuffer.initialData(new Uint32Array(pIndices).buffer);
+                this.mIndexBuffer = new GpuBuffer(pDevice, pIndices.length * 4);
+                this.mIndexBuffer.extendUsage(BufferUsage.Index);
+                this.mIndexBuffer.initialData(new Uint32Array(pIndices).buffer);
 
-                // Create view of buffer.
-                this.mIndexBufferView = lIndexBuffer.view(lIndexBufferLayout, Uint32Array);
+                this.mIndexBufferFormat = Uint32Array;
             }
         }
     }
@@ -111,25 +93,25 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
     public create(pBufferName: string, pData: Array<number>): GpuBuffer {
         const lParameterLayout: VertexParameterLayoutBuffer = this.mLayout.parameterBuffer(pBufferName);
 
+        // Internal type for stride parameter data.
+        type StrideParameterData = {
+            format: BufferItemFormat;
+            count: number;
+            itemByteCount: number;
+        };
+
         // Get item count of layout. => Vec3<float> + int + Vex2<uint> => 6 Items
-        const lStrideParameter: Array<{ format: BufferItemFormat, count: number, alignment: number; itemByteCount: number; }> = new Array<{ format: BufferItemFormat, count: number, alignment: number; itemByteCount: number; }>();
+        const lStrideParameter: Array<StrideParameterData> = new Array<StrideParameterData>();
         let lStrideDataCount: number = 0;
-        for (const lBufferParameter of lParameterLayout.layout.properties) {
-            const lParameterLayout: PrimitiveBufferMemoryLayout = lBufferParameter.layout as PrimitiveBufferMemoryLayout;
-
-            // Read item count and format of parameter.
-            const lParameterItemCount: number = PrimitiveBufferMemoryLayout.itemCountOfMultiplier(lParameterLayout.itemMultiplier);
-            const lParameterItemFormat: BufferItemFormat = lParameterLayout.itemFormat;
-
+        for (const lBufferProperty of lParameterLayout.layout.properties) {
             // Add stride data count.
-            lStrideDataCount += lParameterItemCount;
+            lStrideDataCount += lBufferProperty.item.count;
 
             // Add formats for each item of parameter.
             lStrideParameter.push({
-                count: lParameterItemCount,
-                format: lParameterItemFormat,
-                alignment: lParameterLayout.alignment,
-                itemByteCount: PrimitiveBufferMemoryLayout.itemFormatByteCount(lParameterItemFormat)
+                count: lBufferProperty.item.count,
+                format: lBufferProperty.item.format,
+                itemByteCount: lBufferProperty.item.byteCount
             });
         }
 
@@ -190,9 +172,6 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
         let lByteOffset: number = 0;
         for (let lStrideIndex: number = 0; lStrideIndex < lStrideCount; lStrideIndex++) {
             for (const lStrideItem of lStrideParameter) {
-                // Apply stride item alignment to offset.
-                lByteOffset = Math.ceil(lByteOffset / lStrideItem.alignment) * lStrideItem.alignment;
-
                 // Add each parameter to buffer.
                 for (let lStrideItemIndex: number = 0; lStrideItemIndex < lStrideItem.count; lStrideItemIndex++) {
                     // Add and iterate data.
@@ -203,9 +182,6 @@ export class VertexParameter extends GpuObject<null, VertexParameterInvalidation
                     lByteOffset += lStrideItem.itemByteCount;
                 }
             }
-
-            // Apply stride alignment
-            lByteOffset = Math.ceil(lByteOffset / lParameterLayout.layout.alignment) * lParameterLayout.layout.alignment;
         }
 
         // Load typed array from layout format.

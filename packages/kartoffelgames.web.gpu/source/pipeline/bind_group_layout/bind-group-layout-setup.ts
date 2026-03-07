@@ -1,9 +1,8 @@
-import type { BaseMemoryLayout } from '../../base-memory-layout.ts';
-import { BufferAlignmentType } from '../../constant/buffer-alignment-type.enum.ts';
 import type { ComputeStage } from '../../constant/compute-stage.enum.ts';
 import { StorageBindingType } from '../../constant/storage-binding-type.enum.ts';
 import { GpuObjectSetup } from '../../gpu_object/gpu-object-setup.ts';
-import { type BindGroupBindingMemoryLayoutSetuData, BindGroupLayoutMemoryLayoutSetup } from './bind-group-layout-memory-layout-setup.ts';
+import type { BindLayoutBinding } from './bind-group-layout.ts';
+import { type BindGroupLayoutMemoryLayoutSetupData, BindGroupLayoutMemoryLayoutSetup } from './bind-group-layout-memory-layout-setup.ts';
 
 /**
  * setup object to add bindings to bind group layouts.
@@ -11,7 +10,7 @@ import { type BindGroupBindingMemoryLayoutSetuData, BindGroupLayoutMemoryLayoutS
 export class BindGroupLayoutSetup extends GpuObjectSetup<BindGroupLayoutSetupData> {
     /**
      * Add binding to group.
-     * 
+     *
      * @param pName - Binding name.
      * @param pIndex - - Binding index.
      * @param pUsage - Buffer usage.
@@ -27,7 +26,7 @@ export class BindGroupLayoutSetup extends GpuObjectSetup<BindGroupLayoutSetupDat
             name: pName,
             index: pIndex,
             visibility: pVisibility,
-            layout: null,
+            resource: null,
             storageType: pStorageBinding ?? StorageBindingType.None,
             hasDynamicOffset: false,
         };
@@ -35,19 +34,16 @@ export class BindGroupLayoutSetup extends GpuObjectSetup<BindGroupLayoutSetupDat
         // Set layout.
         this.setupData.bindings.push(lBind);
 
-        // Aligment type of memory layout. When it is not a storage buffer then is is a uniform buffer.
-        const lAlignmentType: BufferAlignmentType = (lBind.storageType === StorageBindingType.None) ? BufferAlignmentType.Uniform : BufferAlignmentType.Storage;
-
         // Create layout memory layout.
-        return new BindGroupLayoutMemoryLayoutSetup(this.setupReferences, lAlignmentType, (pMemoryLayout: BindGroupBindingMemoryLayoutSetuData) => {
-            lBind.layout = pMemoryLayout.layout;
-            lBind.hasDynamicOffset = pMemoryLayout.hasDynamicOffset;
+        return new BindGroupLayoutMemoryLayoutSetup(this.setupReferences, (pResourceData: BindGroupLayoutMemoryLayoutSetupData) => {
+            lBind.resource = pResourceData.resource;
+            lBind.hasDynamicOffset = pResourceData.hasDynamicOffset;
         });
     }
 
     /**
      * Fill in default data before the setup starts.
-     * 
+     *
      * @param pDataReference - Setup data reference.
      */
     protected override fillDefaultData(pDataReference: BindGroupLayoutSetupData): void {
@@ -58,7 +54,7 @@ export class BindGroupLayoutSetup extends GpuObjectSetup<BindGroupLayoutSetupDat
 type BindLayoutSetupData = {
     name: string;
     index: number;
-    layout: BaseMemoryLayout | null;
+    resource: BindLayoutBinding | null;
     visibility: ComputeStage;
     storageType: StorageBindingType;
     hasDynamicOffset: boolean;

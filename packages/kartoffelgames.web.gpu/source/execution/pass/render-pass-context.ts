@@ -61,8 +61,8 @@ export class RenderPassContext {
      * @param pInstanceOffset - Instance offset. 
      */
     public drawDirect(pPipeline: VertexFragmentPipeline, pParameter: VertexParameter, pPipelineData: PipelineData, pInstanceCount: number = 1, pInstanceOffset: number = 0): void {
-        // Validate same render targets.
-        if (this.mRenderTargets !== pPipeline.renderTargets) {
+        // Validate same render targets layout.
+        if (this.mRenderTargets.layout !== pPipeline.renderTargets) {
             throw new Exception('Pipelines render targets not valid for this render pass.', this);
         }
 
@@ -112,8 +112,8 @@ export class RenderPassContext {
         // Extend usage.
         pIndirectBuffer.extendUsage(BufferUsage.Indirect);
 
-        // Validate same render targets.
-        if (this.mRenderTargets !== pPipeline.renderTargets) {
+        // Validate same render targets layout.
+        if (this.mRenderTargets.layout !== pPipeline.renderTargets) {
             throw new Exception('Pipelines render targets not valid for this render pass.', this);
         }
 
@@ -263,14 +263,14 @@ export class RenderPassContext {
         // Draw indexed when parameters are indexable.
         if (pParameter.layout.indexable) {
             // Set indexbuffer. Dynamicly switch between 32 and 16 bit based on length.
-            if (pParameter.indexBuffer!.format === Uint16Array) {
-                this.mEncoder.setIndexBuffer(pParameter.indexBuffer!.buffer.native, 'uint16');
+            if (pParameter.indexBufferFormat === Uint16Array) {
+                this.mEncoder.setIndexBuffer(pParameter.indexBuffer!.native, 'uint16');
             } else {
-                this.mEncoder.setIndexBuffer(pParameter.indexBuffer!.buffer.native, 'uint32');
+                this.mEncoder.setIndexBuffer(pParameter.indexBuffer!.native, 'uint32');
             }
 
             // Create draw call.
-            this.mEncoder.drawIndexed(pParameter.indexBuffer!.length, pInstanceCount, 0, 0, pInstanceOffset);
+            this.mEncoder.drawIndexed(pParameter.vertexCount, pInstanceCount, 0, 0, pInstanceOffset);
         } else {
             // Create draw call.
             this.mEncoder.draw(pParameter.vertexCount, pInstanceCount, 0, pInstanceOffset);
@@ -294,10 +294,10 @@ export class RenderPassContext {
             }
 
             // Set indexbuffer. Dynamicly switch between 32 and 16 bit based on length.
-            if (pParameter.indexBuffer!.format === Uint16Array) {
-                this.mEncoder.setIndexBuffer(pParameter.indexBuffer!.buffer.native, 'uint16');
+            if (pParameter.indexBufferFormat === Uint16Array) {
+                this.mEncoder.setIndexBuffer(pParameter.indexBuffer!.native, 'uint16');
             } else {
-                this.mEncoder.setIndexBuffer(pParameter.indexBuffer!.buffer.native, 'uint32');
+                this.mEncoder.setIndexBuffer(pParameter.indexBuffer!.native, 'uint32');
             }
 
             // Start indirect indexed call.

@@ -1,10 +1,10 @@
+import type { TextureFormat } from '../constant/texture-format.enum.ts';
 import type { TextureUsage } from '../constant/texture-usage.enum.ts';
 import { TextureViewDimension } from '../constant/texture-view-dimension.enum.ts';
 import type { GpuDevice } from '../device/gpu-device.ts';
 import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu_object/gpu-resource-object.ts';
 import type { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native.ts';
 import type { GpuTexture } from './gpu-texture.ts';
-import type { TextureViewMemoryLayout } from './memory_layout/texture-view-memory-layout.ts';
 
 /**
  * View to a gpu texture.
@@ -12,9 +12,11 @@ import type { TextureViewMemoryLayout } from './memory_layout/texture-view-memor
 export class GpuTextureView extends GpuResourceObject<TextureUsage, GPUTextureView> implements IGpuObjectNative<GPUTextureView> {
     private mArrayLayerEnd: number;
     private mArrayLayerStart: number;
-    private readonly mLayout: TextureViewMemoryLayout;
+    private readonly mDimension: TextureViewDimension;
+    private readonly mFormat: TextureFormat;
     private mMipLevelEnd: number;
     private mMipLevelStart: number;
+    private readonly mMultisampled: boolean;
     private readonly mTexture: GpuTexture;
 
     /**
@@ -42,10 +44,24 @@ export class GpuTextureView extends GpuResourceObject<TextureUsage, GPUTextureVi
     }
 
     /**
-     * Texture layout.
+     * Texture view dimension.
      */
-    public get layout(): TextureViewMemoryLayout {
-        return this.mLayout;
+    public get dimension(): TextureViewDimension {
+        return this.mDimension;
+    }
+
+    /**
+     * Texture format.
+     */
+    public get format(): TextureFormat {
+        return this.mFormat;
+    }
+
+    /**
+     * Texture multi sampled.
+     */
+    public get multisampled(): boolean {
+        return this.mMultisampled;
     }
 
     /**
@@ -90,13 +106,18 @@ export class GpuTextureView extends GpuResourceObject<TextureUsage, GPUTextureVi
      * Constructor.
      * @param pDevice - Device.
      * @param pTexture - Texture of view.
+     * @param pDimension - Texture view dimension.
+     * @param pFormat - Texture format.
+     * @param pMultisampled - Whether the texture is multisampled.
      */
-    public constructor(pDevice: GpuDevice, pTexture: GpuTexture, pLayout: TextureViewMemoryLayout) {
+    public constructor(pDevice: GpuDevice, pTexture: GpuTexture, pDimension: TextureViewDimension, pFormat: TextureFormat, pMultisampled: boolean) {
         super(pDevice);
 
         // Set statics.
         this.mTexture = pTexture;
-        this.mLayout = pLayout;
+        this.mDimension = pDimension;
+        this.mFormat = pFormat;
+        this.mMultisampled = pMultisampled;
 
         // Set defaults.
         this.mMipLevelStart = 0;
@@ -123,7 +144,7 @@ export class GpuTextureView extends GpuResourceObject<TextureUsage, GPUTextureVi
 
         // Validate dimension based on 
         const lDimensionViewDepthCount: number = (() => {
-            switch (this.mLayout.dimension) {
+            switch (this.mDimension) {
                 case TextureViewDimension.OneDimension:
                 case TextureViewDimension.TwoDimension: {
                     return 1;
@@ -147,8 +168,8 @@ export class GpuTextureView extends GpuResourceObject<TextureUsage, GPUTextureVi
         // Create and configure canvas context.
         return lNativeTexture.createView({
             aspect: 'all',
-            format: this.mLayout.format as GPUTextureFormat,
-            dimension: this.mLayout.dimension,
+            format: this.mFormat as GPUTextureFormat,
+            dimension: this.mDimension,
 
             // Mip start and end.
             baseMipLevel: this.mMipLevelStart,

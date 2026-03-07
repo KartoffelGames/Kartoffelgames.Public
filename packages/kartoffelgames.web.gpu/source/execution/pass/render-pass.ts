@@ -152,12 +152,12 @@ export class RenderPass extends GpuObject {
         if (!this.mBundleConfig.descriptor) {
             // Generate GPURenderBundleEncoderDescriptor from GPURenderPassDescriptor.
             const lRenderBundleEncoderDescriptor: GPURenderBundleEncoderDescriptor = {
-                colorFormats: this.mRenderTargets.colorTargetNames.map<GPUTextureFormat>((pColorTargetName) => {
-                    return this.mRenderTargets.colorTarget(pColorTargetName).layout.format as GPUTextureFormat;
+                colorFormats: this.mRenderTargets.layout.colorTargetNames.map<GPUTextureFormat>((pColorTargetName) => {
+                    return this.mRenderTargets.layout.colorTarget(pColorTargetName).format as GPUTextureFormat;
                 }),
 
                 // Render target multisample level.
-                sampleCount: this.mRenderTargets.multisampled ? 4 : 1,
+                sampleCount: this.mRenderTargets.layout.multisampled ? 4 : 1,
 
                 // Enable depth or stencil write.
                 depthReadOnly: false,
@@ -165,8 +165,8 @@ export class RenderPass extends GpuObject {
             };
 
             // Optional depth stencil.
-            if (this.mRenderTargets.hasDepth || this.mRenderTargets.hasStencil) {
-                lRenderBundleEncoderDescriptor.depthStencilFormat = this.mRenderTargets.depthStencilTarget().layout.format as GPUTextureFormat;
+            if (this.mRenderTargets.layout.hasDepth || this.mRenderTargets.layout.hasStencil) {
+                lRenderBundleEncoderDescriptor.depthStencilFormat = this.mRenderTargets.layout.depthStencilFormat as GPUTextureFormat;
             }
 
             // Save descriptor.
@@ -239,7 +239,7 @@ export class RenderPass extends GpuObject {
             return;
         }
 
-        if (this.mRenderTargets.multisampled) {
+        if (this.mRenderTargets.layout.multisampled) {
             // Generate resolve target descriptor with operation that does nothing.
             const lColorTargetList: Array<GPURenderPassColorAttachment> = this.mRenderTargets.resolveCanvasList.map((pResolveTexture) => {
                 return {

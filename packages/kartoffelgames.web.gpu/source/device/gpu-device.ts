@@ -4,7 +4,8 @@ import { GpuLimit } from '../constant/gpu-limit.enum.ts';
 import { GpuExecution, type GpuExecutionFunction } from '../execution/gpu-execution.ts';
 import { ComputePass, type ComputePassExecutionFunction } from '../execution/pass/compute-pass.ts';
 import { RenderPass, type RenderPassExecutionFunction } from '../execution/pass/render-pass.ts';
-import { RenderTargets } from '../pipeline/render_targets/render-targets.ts';
+import { RenderTargetsLayout } from '../pipeline/render_targets/render-targets-layout.ts';
+import type { RenderTargets } from '../pipeline/render_targets/render-targets.ts';
 import { Shader } from '../shader/shader.ts';
 import { CanvasTexture } from '../texture/canvas-texture.ts';
 import { GpuDeviceCapabilities } from './capabilities/gpu-device-capabilities.ts';
@@ -20,7 +21,7 @@ export class GpuDevice {
      */
     public static async readDeviceLimits(pPerformance: GPUPowerPreference): Promise<Record<GpuLimit, number>> {
         // Try to load cached adapter. When not cached, request new one.
-        const lAdapter: GPUAdapter | null = await window.navigator.gpu.requestAdapter({ powerPreference: pPerformance });
+        const lAdapter: GPUAdapter | null = await globalThis.navigator.gpu.requestAdapter({ powerPreference: pPerformance });
         if (!lAdapter) {
             throw new Exception('Error requesting GPU adapter', GpuDevice);
         }
@@ -41,7 +42,7 @@ export class GpuDevice {
      */
     public static async request(pPerformance: GPUPowerPreference, pOptions?: GpuDeviceLimitConfiguration): Promise<GpuDevice> {
         // Try to load cached adapter. When not cached, request new one.
-        const lAdapter: GPUAdapter | null = await window.navigator.gpu.requestAdapter({ powerPreference: pPerformance });
+        const lAdapter: GPUAdapter | null = await globalThis.navigator.gpu.requestAdapter({ powerPreference: pPerformance });
         if (!lAdapter) {
             throw new Exception('Error requesting GPU adapter', GpuDevice);
         }
@@ -227,14 +228,14 @@ export class GpuDevice {
     }
 
     /**
-     * Create render target object.
-     * 
+     * Create render targets layout object.
+     *
      * @param pMultisampled - Render targets are multisampled.
-     * 
-     * @returns render target object. 
+     *
+     * @returns render targets layout object.
      */
-    public renderTargets(pMultisampled: boolean = false): RenderTargets {
-        return new RenderTargets(this, pMultisampled);
+    public renderTargetsLayout(pMultisampled: boolean = false): RenderTargetsLayout {
+        return new RenderTargetsLayout(this, pMultisampled);
     }
 
     /**

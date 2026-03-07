@@ -6,7 +6,6 @@ import { WrappingMode } from '../constant/wrapping-mode.enum.ts';
 import type { GpuDevice } from '../device/gpu-device.ts';
 import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu_object/gpu-resource-object.ts';
 import type { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native.ts';
-import type { SamplerMemoryLayout } from './memory_layout/sampler-memory-layout.ts';
 
 /**
  * Gpu texture sampler resource.
@@ -17,7 +16,7 @@ export class TextureSampler extends GpuResourceObject<0, GPUSampler> implements 
     private mLodMinClamp: number;
     private mMagFilter: FilterMode;
     private mMaxAnisotropy: number;
-    private readonly mMemoryLayout: SamplerMemoryLayout;
+    private readonly mSamplerType: SamplerType;
     private mMinFilter: FilterMode;
     private mMipmapFilter: FilterMode;
     private mWrapMode: WrappingMode;
@@ -83,10 +82,10 @@ export class TextureSampler extends GpuResourceObject<0, GPUSampler> implements 
     }
 
     /**
-     * Sampler memory layout.
+     * Sampler type.
      */
-    public get memoryLayout(): SamplerMemoryLayout {
-        return this.mMemoryLayout;
+    public get samplerType(): SamplerType {
+        return this.mSamplerType;
     }
 
     /**
@@ -135,12 +134,12 @@ export class TextureSampler extends GpuResourceObject<0, GPUSampler> implements 
     /**
      * Constructor.
      * @param pDevice - Device.
-     * @param pLayout - Sampler memory layout.
+     * @param pSamplerType - Sampler type.
      */
-    public constructor(pDevice: GpuDevice, pLayout: SamplerMemoryLayout) {
+    public constructor(pDevice: GpuDevice, pSamplerType: SamplerType) {
         super(pDevice);
 
-        this.mMemoryLayout = pLayout;
+        this.mSamplerType = pSamplerType;
 
         // Set defaults.
         this.mCompare = null;
@@ -172,7 +171,7 @@ export class TextureSampler extends GpuResourceObject<0, GPUSampler> implements 
         };
 
         // Add compare function when sampler is a compare sampler.
-        if (this.memoryLayout.samplerType === SamplerType.Comparison) {
+        if (this.mSamplerType === SamplerType.Comparison) {
             if (!this.compare) {
                 throw new Exception(`No compare function is set for a comparison sampler.`, this);
             }

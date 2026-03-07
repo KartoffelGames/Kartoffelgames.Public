@@ -8,7 +8,6 @@ import type { GpuDevice } from '../device/gpu-device.ts';
 import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu_object/gpu-resource-object.ts';
 import type { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native.ts';
 import { GpuTextureView } from './gpu-texture-view.ts';
-import { TextureViewMemoryLayout } from './memory_layout/texture-view-memory-layout.ts';
 
 /**
  * Gpu texture that is alocated on gpu memory.
@@ -293,13 +292,7 @@ export class GpuTexture extends GpuResourceObject<TextureUsage, GPUTexture> impl
             }
         })();
 
-        const lLayout: TextureViewMemoryLayout = new TextureViewMemoryLayout(this.device, {
-            format: this.mFormat,
-            dimension: lViewDimension,
-            multisampled: this.mMultisampled
-        });
-
-        return new GpuTextureView(this.device, this, lLayout);
+        return new GpuTextureView(this.device, this, lViewDimension, this.mFormat, this.mMultisampled);
     }
 
     /**

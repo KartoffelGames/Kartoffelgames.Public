@@ -1,16 +1,15 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import type { BaseMemoryLayout } from '../../base-memory-layout.ts';
-import { BaseBufferMemoryLayout } from '../../buffer/memory_layout/base-buffer-memory-layout.ts';
 import type { ComputeStage } from '../../constant/compute-stage.enum.ts';
 import { GpuLimit } from '../../constant/gpu-limit.enum.ts';
+import type { SamplerType } from '../../constant/sampler-type.enum.ts';
 import { StorageBindingType } from '../../constant/storage-binding-type.enum.ts';
+import type { TextureFormat } from '../../constant/texture-format.enum.ts';
+import type { TextureViewDimension } from '../../constant/texture-view-dimension.enum.ts';
 import type { TextureFormatCapability } from '../../device/capabilities/gpu-texture-format-capabilities.ts';
 import type { GpuDevice } from '../../device/gpu-device.ts';
 import { GpuObject, type GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
 import type { IGpuObjectNative } from '../../gpu_object/interface/i-gpu-object-native.ts';
 import type { IGpuObjectSetup } from '../../gpu_object/interface/i-gpu-object-setup.ts';
-import { SamplerMemoryLayout } from '../../texture/memory_layout/sampler-memory-layout.ts';
-import { TextureViewMemoryLayout } from '../../texture/memory_layout/texture-view-memory-layout.ts';
 import { BindGroup } from '../bind_group/bind-group.ts';
 import { BindGroupLayoutSetup, type BindGroupLayoutSetupData } from './bind-group-layout-setup.ts';
 
@@ -18,7 +17,7 @@ import { BindGroupLayoutSetup, type BindGroupLayoutSetupData } from './bind-grou
  * Bind group layout. Fixed at creation. 
  */
 export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroupLayoutSetup> implements IGpuObjectNative<GPUBindGroupLayout>, IGpuObjectSetup<BindGroupLayoutSetup> {
-    private readonly mBindings: Dictionary<string, BindLayout>;
+    private readonly mBindings: Dictionary<string, BindGroupBindLayout>;
     private mHasDynamicOffset: boolean;
     private readonly mName: string;
     private readonly mOrderedBindingNames: Array<string>;
@@ -84,7 +83,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
         };
 
         // Init bindings.
-        this.mBindings = new Dictionary<string, BindLayout>();
+        this.mBindings = new Dictionary<string, BindGroupBindLayout>();
         this.mOrderedBindingNames = new Array<string>();
     }
 
@@ -104,7 +103,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
      * Get full bind information.
      * @param pName - Bind name.
      */
-    public getBind(pName: string): Readonly<BindLayout> {
+    public getBind(pName: string): Readonly<BindGroupBindLayout> {
         // Ensure setup.
         this.ensureSetup();
 
@@ -140,11 +139,11 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
                 binding: lEntry.index
             };
 
-            // Different binding for different
-            switch (true) {
+            // Different binding for different resource types.
+            switch (lEntry.resource.type) {
                 // Buffer layouts.
-                case lEntry.layout instanceof BaseBufferMemoryLayout: {
-                    // Convert bind type info bufer binding type.
+                case 'buffer': {
+                    // Convert bind type info buffer binding type.
                     const lBufferBindingType: GPUBufferBindingType = (() => {
                         switch (lEntry.storageType) {
                             case StorageBindingType.None: {
@@ -170,27 +169,27 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
                 }
 
                 // Sampler layouts.
-                case lEntry.layout instanceof SamplerMemoryLayout: {
+                case 'sampler': {
                     // Create sampler layout with all optional values.
                     lLayoutEntry.sampler = {
-                        type: lEntry.layout.samplerType
+                        type: lEntry.resource.samplerType
                     } satisfies Required<GPUSamplerBindingLayout>;
 
                     break;
                 }
 
                 // Texture layouts.
-                case lEntry.layout instanceof TextureViewMemoryLayout: {
+                case 'texture': {
                     // Uniform bind when without storage binding.
                     if (lEntry.storageType === StorageBindingType.None) {
                         // Read texture capabilities.
-                        const lTextureFormatCapabilities: TextureFormatCapability = this.device.formatValidator.capabilityOf(lEntry.layout.format);
+                        const lTextureFormatCapabilities: TextureFormatCapability = this.device.formatValidator.capabilityOf(lEntry.resource.format);
 
                         // Create image texture bind information.
                         lLayoutEntry.texture = {
                             sampleType: lTextureFormatCapabilities.sampleTypes.primary,
-                            multisampled: lEntry.layout.multisampled,
-                            viewDimension: lEntry.layout.dimension
+                            multisampled: lEntry.resource.multisampled,
+                            viewDimension: lEntry.resource.dimension
                         } satisfies Required<GPUTextureBindingLayout>;
 
                         break;
@@ -216,8 +215,8 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
                     // Create storage texture bind information.
                     lLayoutEntry.storageTexture = {
                         access: lStorageAccess!,
-                        format: lEntry.layout.format as GPUTextureFormat,
-                        viewDimension: lEntry.layout.dimension,
+                        format: lEntry.resource.format as GPUTextureFormat,
+                        viewDimension: lEntry.resource.dimension,
                     } satisfies Required<GPUStorageTextureBindingLayout>;
                 }
             }
@@ -252,17 +251,17 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
         // Add each binding.
         for (const lBinding of pReferences.bindings) {
             // Validate layout.
-            if (!lBinding.layout) {
+            if (!lBinding.resource) {
                 throw new Exception(`Bind group binding "${lBinding.name}" has no setup layout.`, this);
             }
 
             // Only buffers can have a dynamic offset.
-            if (lBinding.hasDynamicOffset && !(lBinding.layout instanceof BaseBufferMemoryLayout)) {
+            if (lBinding.hasDynamicOffset && lBinding.resource.type !== 'buffer') {
                 throw new Exception(`Bind group binding "${lBinding.name}" must be a buffer binding to have dynamic offsets.`, this);
             }
 
             // Buffers with dynamic offsets must be fixed in size.
-            if (lBinding.hasDynamicOffset && (<BaseBufferMemoryLayout>lBinding.layout).variableSize > 0) {
+            if (lBinding.hasDynamicOffset && lBinding.resource.type === 'buffer' && lBinding.resource.variableSize > 0) {
                 throw new Exception(`Bind group binding "${lBinding.name}" must have a fixed buffer layout to have dynamic offsets.`, this);
             }
 
@@ -272,7 +271,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
             this.mBindings.set(lBinding.name, {
                 name: lBinding.name,
                 index: lBinding.index,
-                layout: lBinding.layout,
+                resource: lBinding.resource,
                 visibility: lBinding.visibility,
                 storageType: lBinding.storageType,
                 hasDynamicOffset: lBinding.hasDynamicOffset
@@ -303,12 +302,12 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
             this.mOrderedBindingNames[lBinding.index] = lBinding.name;
 
             // Count resources.
-            switch (true) {
-                case lBinding.layout instanceof SamplerMemoryLayout: {
+            switch (lBinding.resource.type) {
+                case 'sampler': {
                     this.mResourceCounter.sampler++;
                     break;
                 }
-                case lBinding.layout instanceof TextureViewMemoryLayout: {
+                case 'texture': {
                     if (lBinding.storageType === StorageBindingType.None) {
                         this.mResourceCounter.sampledTextures++;
                     } else {
@@ -317,7 +316,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
 
                     break;
                 }
-                case lBinding.layout instanceof BaseBufferMemoryLayout: {
+                case 'buffer': {
                     if (lBinding.storageType === StorageBindingType.None) {
                         this.mResourceCounter.uniformBuffers++;
                     } else {
@@ -342,10 +341,15 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
     }
 }
 
-export type BindLayout = {
+export type BindLayoutBufferBinding = { type: 'buffer'; fixedSize: number; variableSize: number; };
+export type BindLayoutSamplerBinding = { type: 'sampler'; samplerType: SamplerType; };
+export type BindLayoutTextureBinding = { type: 'texture'; dimension: TextureViewDimension; format: TextureFormat; multisampled: boolean; };
+export type BindLayoutBinding = BindLayoutBufferBinding | BindLayoutSamplerBinding | BindLayoutTextureBinding;
+
+export type BindGroupBindLayout = {
     name: string,
     index: number,
-    layout: BaseMemoryLayout;
+    resource: BindLayoutBinding;
     visibility: ComputeStage;
     storageType: StorageBindingType;
     hasDynamicOffset: boolean;

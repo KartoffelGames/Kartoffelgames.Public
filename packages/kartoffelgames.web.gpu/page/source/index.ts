@@ -1,5 +1,4 @@
 import { GpuBuffer } from '../../source/buffer/gpu-buffer.ts';
-import type { GpuBufferView } from '../../source/buffer/gpu-buffer-view.ts';
 import { BufferItemFormat } from '../../source/constant/buffer-item-format.enum.ts';
 import { BufferItemMultiplier } from '../../source/constant/buffer-item-multiplier.enum.ts';
 import { CompareFunction } from '../../source/constant/compare-function.enum.ts';
@@ -22,6 +21,7 @@ import { BindGroupLayout } from '../../source/pipeline/bind_group_layout/bind-gr
 import { ComputePipeline } from '../../source/pipeline/compute-pipeline.ts';
 import type { PipelineData } from '../../source/pipeline/pipeline_data/pipeline-data.ts';
 import { type RenderTargets, RenderTargetsInvalidationType } from '../../source/pipeline/render_targets/render-targets.ts';
+import type { RenderTargetsLayout } from '../../source/pipeline/render_targets/render-targets-layout.ts';
 import type { VertexFragmentPipeline } from '../../source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline.ts';
 import type { VertexParameter } from '../../source/pipeline/vertex_parameter/vertex-parameter.ts';
 import type { Shader } from '../../source/shader/shader.ts';
@@ -44,7 +44,7 @@ import { CubeVertexIndices, CubeVertexNormalData, CubeVertexPositionData, CubeVe
 import { ParticleVertexIndices, ParticleVertexPositionUvData } from './meshes/particle-mesh.ts';
 import { InitCameraControls, UpdateFpsDisplay } from './util.ts';
 
-const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorldGroup: BindGroup): RenderInstruction => {
+const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTargetsLayout, pWorldGroup: BindGroup): RenderInstruction => {
     const lHeight: number = 50;
     const lWidth: number = 50;
     const lDepth: number = 50;
@@ -73,10 +73,10 @@ const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorl
         // Object bind group.
         pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'transformationMatrix', ComputeStage.Vertex)
-                .asBuffer().withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
+                .asBuffer(64); // mat4x4<f32>
 
             pBindGroupSetup.binding(1, 'instancePositions', ComputeStage.Vertex, StorageBindingType.Read)
-                .asBuffer().withArray().withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+                .asBuffer(0, 16); // array<vec4<f32>>, variableSize=16
         });
 
         // World bind group.
@@ -99,7 +99,7 @@ const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorl
     const lWoodBoxTransformationGroup = lWoodBoxRenderModule.layout.getGroupLayout('object').create();
 
     // Create transformation.
-    lWoodBoxTransformationGroup.data('transformationMatrix').createBuffer(new Transform().setScale(1, 1, 1).getMatrix(TransformMatrix.Transformation).dataArray);
+    lWoodBoxTransformationGroup.data('transformationMatrix').createBufferWithRawData(new Float32Array(new Transform().setScale(1, 1, 1).getMatrix(TransformMatrix.Transformation).dataArray).buffer);
 
     // Create instance positions.
     const lCubeInstanceTransformationData: Array<number> = new Array<number>();
@@ -110,7 +110,7 @@ const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorl
             }
         }
     }
-    lWoodBoxTransformationGroup.data('instancePositions').createBuffer(lCubeInstanceTransformationData);
+    lWoodBoxTransformationGroup.data('instancePositions').createBufferWithRawData(new Float32Array(lCubeInstanceTransformationData).buffer);
 
     /*
      * User defined group.
@@ -225,7 +225,7 @@ const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorl
     lMesh.create('normal', CubeVertexNormalData);
 
     // Create pipeline.
-    const lWoodBoxPipeline: VertexFragmentPipeline = lWoodBoxRenderModule.create(pRenderTargets);
+    const lWoodBoxPipeline: VertexFragmentPipeline = lWoodBoxRenderModule.create(pRenderTargetsLayout);
     lWoodBoxPipeline.primitiveCullMode = PrimitiveCullMode.Front;
     lWoodBoxPipeline.setParameter('animationSeconds', 3);
     (<any>window).animationSpeed = (pSeconds: number) => {
@@ -244,7 +244,7 @@ const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorl
     };
 };
 
-const gGenerateColorCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorldGroup: BindGroup): Array<RenderInstruction> => {
+const gGenerateColorCubeStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTargetsLayout, pWorldGroup: BindGroup): Array<RenderInstruction> => {
     // Create shader.
     const lColorBoxShader = pGpu.shader(colorCubeShader).setup((pShaderSetup) => {
         // Vertex entry.
@@ -263,10 +263,10 @@ const gGenerateColorCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, 
         // Object bind group.
         pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'transformationMatrix', ComputeStage.Vertex)
-                .asBuffer(true).withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
+                .asBuffer(64, 0, true); // mat4x4<f32>, dynamic offset
 
             pBindGroupSetup.binding(1, 'color', ComputeStage.Vertex)
-                .asBuffer(true).withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+                .asBuffer(16, 0, true); // vec4<f32>, dynamic offset
         });
 
         // World bind group.
@@ -279,17 +279,20 @@ const gGenerateColorCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, 
     // Transformation and position group. 
     const lColorBoxTransformationGroup = lWoodBoxRenderModule.layout.getGroupLayout('object').create();
 
-    // Create transformation.
+    // Create transformation. Buffer with 3 dynamic offset elements.
     lColorBoxTransformationGroup.data('transformationMatrix').createBuffer(3);
-    lColorBoxTransformationGroup.data('transformationMatrix').asBufferView(Float32Array, 0).write(new Transform().setScale(1, 1, 1).setTranslation(2, -30, 5).getMatrix(TransformMatrix.Transformation).dataArray);
-    lColorBoxTransformationGroup.data('transformationMatrix').asBufferView(Float32Array, 1).write(new Transform().setScale(1, 1, 1).setTranslation(0, -30, 5).getMatrix(TransformMatrix.Transformation).dataArray);
-    lColorBoxTransformationGroup.data('transformationMatrix').asBufferView(Float32Array, 2).write(new Transform().setScale(1, 1, 1).setTranslation(-2, -30, 5).getMatrix(TransformMatrix.Transformation).dataArray);
+    const lColorBoxTransformBuffer: GpuBuffer = lColorBoxTransformationGroup.data('transformationMatrix').getRaw<GpuBuffer>();
+    // Each transformationMatrix element is mat4x4<f32> = 64 bytes.
+    lColorBoxTransformBuffer.write(new Float32Array(new Transform().setScale(1, 1, 1).setTranslation(2, -30, 5).getMatrix(TransformMatrix.Transformation).dataArray).buffer, 0);
+    lColorBoxTransformBuffer.write(new Float32Array(new Transform().setScale(1, 1, 1).setTranslation(0, -30, 5).getMatrix(TransformMatrix.Transformation).dataArray).buffer, 64);
+    lColorBoxTransformBuffer.write(new Float32Array(new Transform().setScale(1, 1, 1).setTranslation(-2, -30, 5).getMatrix(TransformMatrix.Transformation).dataArray).buffer, 128);
 
-    // Setup cube texture.
-    lColorBoxTransformationGroup.data('color').createBuffer([
-        /* Color 1*/ 0.89, 0.74, 0.00, 1,
-        /* Color 2*/ 0.92, 0.48, 0.14, 1
-    ]);
+    // Setup color buffer with dynamic offsets (2 colors for different cube instances).
+    lColorBoxTransformationGroup.data('color').createBuffer(2);
+    const lColorBuffer: GpuBuffer = lColorBoxTransformationGroup.data('color').getRaw<GpuBuffer>();
+    const lColorSlotSize: number = lColorBuffer.size / 2; // Alignment-correct by construction.
+    lColorBuffer.write(new Float32Array([/* Color 1 */ 0.89, 0.74, 0.00, 1]).buffer, 0);
+    lColorBuffer.write(new Float32Array([/* Color 2 */ 0.92, 0.48, 0.14, 1]).buffer, lColorSlotSize);
 
     // Generate render parameter from parameter layout.
     const lMesh: VertexParameter = lWoodBoxRenderModule.vertexParameter.create(CubeVertexIndices);
@@ -297,7 +300,7 @@ const gGenerateColorCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, 
     lMesh.create('normal', CubeVertexNormalData);
 
     // Create pipeline.
-    const lColorBoxPipeline: VertexFragmentPipeline = lWoodBoxRenderModule.create(pRenderTargets);
+    const lColorBoxPipeline: VertexFragmentPipeline = lWoodBoxRenderModule.create(pRenderTargetsLayout);
     lColorBoxPipeline.primitiveCullMode = PrimitiveCullMode.Front;
 
     return [{
@@ -335,7 +338,7 @@ const gGenerateColorCubeStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, 
     }];
 };
 
-const gGenerateLightBoxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorldGroup: BindGroup): RenderInstruction => {
+const gGenerateLightBoxStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTargetsLayout, pWorldGroup: BindGroup): RenderInstruction => {
     // Create shader.
     const lLightBoxShader: Shader = pGpu.shader(lightBoxShader).setup((pShaderSetup) => {
         // Vertex entry.
@@ -357,7 +360,7 @@ const gGenerateLightBoxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
         // Object bind group.
         pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'transformationMatrix', ComputeStage.Vertex)
-                .asBuffer().withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
+                .asBuffer(64); // mat4x4<f32>
         });
 
         // World bind group.
@@ -371,9 +374,9 @@ const gGenerateLightBoxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
     const lLightBoxTransformationGroup = lLightBoxShader.layout.getGroupLayout('object').create();
 
     // Create transformation.
-    lLightBoxTransformationGroup.data('transformationMatrix').createBuffer(new Transform().setScale(1, 1, 1).getMatrix(TransformMatrix.Transformation).dataArray);
+    lLightBoxTransformationGroup.data('transformationMatrix').createBufferWithRawData(new Float32Array(new Transform().setScale(1, 1, 1).getMatrix(TransformMatrix.Transformation).dataArray).buffer);
 
-    const lLightBoxPipeline: VertexFragmentPipeline = lLightBoxRenderModule.create(pRenderTargets);
+    const lLightBoxPipeline: VertexFragmentPipeline = lLightBoxRenderModule.create(pRenderTargetsLayout);
     lLightBoxPipeline.primitiveCullMode = PrimitiveCullMode.Front;
 
     // Generate render parameter from parameter layout.
@@ -382,13 +385,13 @@ const gGenerateLightBoxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
     lMesh.create('uv', CubeVertexUvData);
     lMesh.create('normal', CubeVertexNormalData);
 
-    // Create buffer view for pointlights.
-    const lPointLightsBuffer: GpuBufferView<Float32Array> = pWorldGroup.data('pointLights').asBufferView(Float32Array);
+    // Point light count: 3 lights (each struct is 48 bytes = 12 floats: vec4 position + vec4 color + f32 range + 3f padding).
+    const lPointLightCount: number = 3;
 
     return {
         pipeline: lLightBoxPipeline,
         parameter: lMesh,
-        instanceCount: lPointLightsBuffer.length / 12,
+        instanceCount: lPointLightCount,
         data: lLightBoxPipeline.layout.withData((pSetup) => {
             pSetup.addGroup(lLightBoxTransformationGroup);
             pSetup.addGroup(pWorldGroup);
@@ -396,7 +399,7 @@ const gGenerateLightBoxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
     };
 };
 
-const gGenerateSkyboxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorldGroup: BindGroup): RenderInstruction => {
+const gGenerateSkyboxStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTargetsLayout, pWorldGroup: BindGroup): RenderInstruction => {
     const lSkyBoxShader: Shader = pGpu.shader(skyboxShader).setup((pShaderSetup) => {
         // Vertex entry.
         pShaderSetup.vertexEntryPoint('vertex_main', (pVertexParameterSetup) => {
@@ -481,7 +484,7 @@ const gGenerateSkyboxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWo
     const lMesh: VertexParameter = lSkyBoxRenderModule.vertexParameter.create(CubeVertexIndices);
     lMesh.create('position', CubeVertexPositionData);
 
-    const lSkyBoxPipeline: VertexFragmentPipeline = lSkyBoxRenderModule.create(pRenderTargets);
+    const lSkyBoxPipeline: VertexFragmentPipeline = lSkyBoxRenderModule.create(pRenderTargetsLayout);
     lSkyBoxPipeline.primitiveCullMode = PrimitiveCullMode.Back;
     lSkyBoxPipeline.depthConfig().enableWrite(false).compareWith(CompareFunction.Allways);
 
@@ -496,7 +499,7 @@ const gGenerateSkyboxStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWo
     };
 };
 
-const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorldGroup: BindGroup): RenderInstruction => {
+const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTargetsLayout, pWorldGroup: BindGroup): RenderInstruction => {
     // Create shader.
     const lWoodBoxShader = pGpu.shader(videoCanvasShader).setup((pShaderSetup) => {
         // Vertex entry.
@@ -518,7 +521,7 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets
         // Object bind group.
         pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'transformationMatrix', ComputeStage.Vertex)
-                .asBuffer().withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
+                .asBuffer(64); // mat4x4<f32>
         });
 
         // World bind group.
@@ -541,7 +544,7 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets
     const lTransformationGroup = lWoodBoxRenderModule.layout.getGroupLayout('object').create();
 
     // Create transformation.
-    lTransformationGroup.data('transformationMatrix').createBuffer(new Transform().addTranslation(-0.5, -0.5, 100).setScale(15, 8.4, 0).getMatrix(TransformMatrix.Transformation).dataArray);
+    lTransformationGroup.data('transformationMatrix').createBufferWithRawData(new Float32Array(new Transform().addTranslation(-0.5, -0.5, 100).setScale(15, 8.4, 0).getMatrix(TransformMatrix.Transformation).dataArray).buffer);
 
     /*
      * User defined group.
@@ -589,7 +592,7 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets
     lMesh.create('normal', CanvasVertexNormalData);
 
     // Create pipeline.
-    const lPipeline: VertexFragmentPipeline = lWoodBoxRenderModule.create(pRenderTargets);
+    const lPipeline: VertexFragmentPipeline = lWoodBoxRenderModule.create(pRenderTargetsLayout);
     lPipeline.primitiveCullMode = PrimitiveCullMode.None;
     lPipeline.depthConfig().enableWrite(false);
     lPipeline.targetConfig('color')
@@ -608,7 +611,7 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets
     };
 };
 
-const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, pWorldGroup: BindGroup): [RenderInstruction, ComputeInstruction] => {
+const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTargetsLayout, pWorldGroup: BindGroup): [RenderInstruction, ComputeInstruction] => {
     const lMaxParticleCount: number = 18000;
 
     const lParticleRenderShader: Shader = pGpu.shader(particleShader).setup((pShaderSetup) => {
@@ -632,14 +635,9 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
         // Object bind group.
         pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'transformationMatrix', ComputeStage.Vertex)
-                .asBuffer().withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
+                .asBuffer(64); // mat4x4<f32>
             pBindGroupSetup.binding(1, 'particles', ComputeStage.Vertex, StorageBindingType.Read)
-                .asBuffer().withArray().withStruct((pStructSetup) => {
-                    pStructSetup.property('position').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
-                    pStructSetup.property('rotation').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
-                    pStructSetup.property('velocity').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
-                    pStructSetup.property('lifetime').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
-                });
+                .asBuffer(0, 48); // array<Particle>, Particle struct stride = 48 => (3x vec3 + 4byte-alignment) + 1x f32 = 48 bytes
         });
 
         // World bind group.
@@ -662,7 +660,7 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
     lParticleInformationGroup.data('particles').createBuffer(lMaxParticleCount);
 
     // Create transformation.
-    lParticleInformationGroup.data('transformationMatrix').createBuffer(new Transform().setScale(0.02, 0.02, 0.02).getMatrix(TransformMatrix.Transformation).dataArray);
+    lParticleInformationGroup.data('transformationMatrix').createBufferWithRawData(new Float32Array(new Transform().setScale(0.02, 0.02, 0.02).getMatrix(TransformMatrix.Transformation).dataArray).buffer);
 
     // Transformation and position group. 
     const lParticleTextureGroup = lParticleRenderShader.layout.getGroupLayout('user').create();
@@ -717,7 +715,7 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
     const lMesh: VertexParameter = lParticleRenderModule.vertexParameter.create(ParticleVertexIndices);
     lMesh.create('position-uv', ParticleVertexPositionUvData);
 
-    const lParticlePipeline: VertexFragmentPipeline = lParticleRenderModule.create(pRenderTargets);
+    const lParticlePipeline: VertexFragmentPipeline = lParticleRenderModule.create(pRenderTargetsLayout);
     lParticlePipeline.primitiveCullMode = PrimitiveCullMode.None;
     lParticlePipeline.depthConfig().enableWrite(true).compareWith(CompareFunction.Less);
     lParticlePipeline.targetConfig('color')
@@ -752,15 +750,10 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
         // Object bind group.
         pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'particles', ComputeStage.Compute, StorageBindingType.ReadWrite)
-                .asBuffer().withArray().withStruct((pStructSetup) => {
-                    pStructSetup.property('position').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
-                    pStructSetup.property('rotation').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
-                    pStructSetup.property('velocity').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
-                    pStructSetup.property('lifetime').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
-                });
+                .asBuffer(0, 48); // array<Particle>, Particle struct stride = 48
 
             pBindGroupSetup.binding(1, 'indirect', ComputeStage.Compute, StorageBindingType.ReadWrite)
-                .asBuffer().withPrimitive(BufferItemFormat.Uint32, BufferItemMultiplier.Vector4);
+                .asBuffer(16); // vec4<u32>
         });
 
         // World bind group.
@@ -798,43 +791,20 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargets: RenderTargets, p
 
 const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
     const lWorldGroupLayout = new BindGroupLayout(pGpu, 'world').setup((pBindGroupSetup) => {
-        pBindGroupSetup.binding(0, 'camera', ComputeStage.Vertex | ComputeStage.Compute).asBuffer().withStruct((pStructSetup) => {
-            pStructSetup.property('viewProjection').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
-            pStructSetup.property('view').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
-            pStructSetup.property('projection').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
+        pBindGroupSetup.binding(0, 'camera', ComputeStage.Vertex | ComputeStage.Compute)
+            .asBuffer(464); // Camera struct: viewProjection(64) + view(64) + projection(64) + translation(128) + invertedTranslation(128) + position(16) = 464
 
-            pStructSetup.property('translation').asStruct((pTranslationStruct) => {
-                pTranslationStruct.property('rotation').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
-                pTranslationStruct.property('translation').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
-            });
-
-            pStructSetup.property('invertedTranslation').asStruct((pTranslationStruct) => {
-                pTranslationStruct.property('rotation').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
-                pTranslationStruct.property('translation').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Matrix44);
-            });
-
-            pStructSetup.property('position').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
-        });
-
-        pBindGroupSetup.binding(1, 'timestamp', ComputeStage.Vertex | ComputeStage.Fragment | ComputeStage.Compute).asBuffer().withStruct((pTimeStruct) => {
-            pTimeStruct.property('timestamp').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
-            pTimeStruct.property('delta').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
-        });
+        pBindGroupSetup.binding(1, 'timestamp', ComputeStage.Vertex | ComputeStage.Fragment | ComputeStage.Compute)
+            .asBuffer(8); // Timestamp struct: timestamp(4) + delta(4) = 8
 
         pBindGroupSetup.binding(2, 'ambientLight', ComputeStage.Fragment)
-            .asBuffer().withStruct((pStruct) => {
-                pStruct.property('color').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            .asBuffer(16); // AmbientLight struct: color vec4<f32> = 16
 
         pBindGroupSetup.binding(3, 'pointLights', ComputeStage.Fragment | ComputeStage.Vertex, StorageBindingType.Read)
-            .asBuffer().withArray().withStruct((pStruct) => {
-                pStruct.property('position').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-                pStruct.property('color').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-                pStruct.property('range').asPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
-            });
+            .asBuffer(0, 48); // array<PointLight>, stride = 48 (position(16) + color(16) + range(4) rounded to 48)
 
         pBindGroupSetup.binding(4, 'debugValue', ComputeStage.Fragment | ComputeStage.Compute, StorageBindingType.ReadWrite)
-            .asBuffer().withPrimitive(BufferItemFormat.Float32, BufferItemMultiplier.Single);
+            .asBuffer(4); // f32
 
     });
 
@@ -847,25 +817,25 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
     // Create ambient light.
     const lAmbientLight: AmbientLight = new AmbientLight();
     lAmbientLight.setColor(0.3, 0.3, 0.3);
-    lWorldGroup.data('ambientLight').createBuffer(lAmbientLight.data);
+    lWorldGroup.data('ambientLight').createBufferWithRawData(new Float32Array(lAmbientLight.data).buffer);
 
     // Create point lights.
-    lWorldGroup.data('pointLights').createBuffer([
-        /* Position */1, 1, 1, 1, /* Color */1, 0, 0, 1,/* Range */ 200,
-        /* Position */10, 10, 10, 1, /* Color */0, 0, 1, 1,/* Range */ 200,
-        /* Position */-10, 10, 10, 1, /* Color */0, 1, 0, 1,/* Range */ 200
-    ]);
+    lWorldGroup.data('pointLights').createBufferWithRawData(new Float32Array([
+        /* Position */1, 1, 1, 1, /* Color */1, 0, 0, 1,/* Range */ 200, 0, 0, 0,
+        /* Position */10, 10, 10, 1, /* Color */0, 0, 1, 1,/* Range */ 200, 0, 0, 0,
+        /* Position */-10, 10, 10, 1, /* Color */0, 1, 0, 1,/* Range */ 200, 0, 0, 0
+    ]).buffer);
 
     // Create timestamp.
     lWorldGroup.data('timestamp').createBuffer();
 
     // Create debug value.
     lWorldGroup.data('debugValue').createBuffer();
-    const lDebugBuffer: GpuBufferView<Float32Array> = lWorldGroup.data('debugValue').asBufferView(Float32Array);
+    const lDebugBuffer: GpuBuffer = lWorldGroup.data('debugValue').getRaw<GpuBuffer>();
     (<any>window).debugBuffer = () => {
-        lDebugBuffer.read().then((pResulto) => {
+        lDebugBuffer.read(0, 4).then((pResult) => {
             // eslint-disable-next-line no-console
-            console.log(pResulto);
+            console.log(new Float32Array(pResult));
         });
     };
 
@@ -882,16 +852,18 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
     // Create canvas.
     const lCanvasTexture: CanvasTexture = lGpu.canvas(document.getElementById('canvas') as HTMLCanvasElement);
 
-    // Create and configure render targets.
-    const lRenderTargets: RenderTargets = lGpu.renderTargets(true).setup((pSetup) => {
-        // Add "color" target and init new texture.
-        pSetup.addColor('color', 0, true, { r: 0, g: 1, b: 0, a: 0 })
-            .new(TextureFormat.Bgra8unorm, lCanvasTexture);
+    // Create and configure render targets layout.
+    const lRenderTargetsLayout: RenderTargetsLayout = lGpu.renderTargetsLayout(true).setup((pSetup) => {
+        // Add "color" target format.
+        pSetup.addColor('color', 0, TextureFormat.Bgra8unorm, true, { r: 0, g: 1, b: 0, a: 0 });
 
-        // Add depth texture and init new texture.    
-        pSetup.addDepthStencil(true, 1)
-            .new(TextureFormat.Depth24plus);
+        // Add depth format.
+        pSetup.addDepthStencil(TextureFormat.Depth24plus, true, 1);
     });
+
+    // Create render targets from layout.
+    const lRenderTargets: RenderTargets = lRenderTargetsLayout.create();
+    lRenderTargets.setResolveCanvas('color', lCanvasTexture);
 
     // Resize canvas.
     (() => {
@@ -920,17 +892,17 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
     lCamera.transformation.setTranslation(0, 0, -4);
 
     const lWorldGroup: BindGroup = gGenerateWorldBindGroup(lGpu);
-    const lTimestampBuffer: GpuBufferView<Float32Array> = lWorldGroup.data('timestamp').asBufferView(Float32Array);
+    const lTimestampBuffer: GpuBuffer = lWorldGroup.data('timestamp').getRaw<GpuBuffer>();
 
-    const [lParticelRenderInstruction, lParticelComputeInstruction] = gGenerateParticleStep(lGpu, lRenderTargets, lWorldGroup);
+    const [lParticelRenderInstruction, lParticelComputeInstruction] = gGenerateParticleStep(lGpu, lRenderTargetsLayout, lWorldGroup);
 
     // Create instruction.
     const lRenderSteps: Array<RenderInstruction> = [
-        gGenerateSkyboxStep(lGpu, lRenderTargets, lWorldGroup),
-        gGenerateCubeStep(lGpu, lRenderTargets, lWorldGroup),
-        gGenerateLightBoxStep(lGpu, lRenderTargets, lWorldGroup),
-        gGenerateVideoCanvasStep(lGpu, lRenderTargets, lWorldGroup),
-        ...gGenerateColorCubeStep(lGpu, lRenderTargets, lWorldGroup),
+        gGenerateSkyboxStep(lGpu, lRenderTargetsLayout, lWorldGroup),
+        gGenerateCubeStep(lGpu, lRenderTargetsLayout, lWorldGroup),
+        gGenerateLightBoxStep(lGpu, lRenderTargetsLayout, lWorldGroup),
+        gGenerateVideoCanvasStep(lGpu, lRenderTargetsLayout, lWorldGroup),
+        ...gGenerateColorCubeStep(lGpu, lRenderTargetsLayout, lWorldGroup),
         lParticelRenderInstruction
     ];
     const lRenderPass: RenderPass = lGpu.renderPass(lRenderTargets, (pContext) => {
@@ -986,7 +958,7 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
     /**
      * Controls
      */
-    InitCameraControls(lCanvasTexture.canvas, lCamera, lWorldGroup.data('camera').asBufferView(Float32Array));
+    InitCameraControls(lCanvasTexture.canvas, lCamera, lWorldGroup.data('camera').getRaw<GpuBuffer>());
 
     /*
      * Execution 
@@ -1010,7 +982,7 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
         lCurrentFps = (1 - 0.05) * lCurrentFps + 0.05 * lFps;
 
         // Update time stamp data.
-        lTimestampBuffer.write([pTime / 1000, (pTime - lLastTime) / 1000]);
+        lTimestampBuffer.write(new Float32Array([pTime / 1000, (pTime - lLastTime) / 1000]).buffer, 0);
 
         lLastTime = pTime;
 

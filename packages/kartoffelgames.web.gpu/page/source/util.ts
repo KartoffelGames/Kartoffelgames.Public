@@ -1,8 +1,8 @@
 import { Dictionary } from '@kartoffelgames/core';
-import type { GpuBufferView } from '../../source/buffer/gpu-buffer-view.ts';
+import type { GpuBuffer } from '../../source/buffer/gpu-buffer.ts';
 import { CameraMatrix, type ViewProjection } from './camera/view_projection/view-projection.ts';
 
-export const InitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection, pCameraBuffer: GpuBufferView<Float32Array>): void => {
+export const InitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProjection, pCameraBuffer: GpuBuffer): void => {
 
     const lCurrentActionValue: Dictionary<string, number> = new Dictionary<string, number>();
 
@@ -149,16 +149,25 @@ export const InitCameraControls = (pCanvas: HTMLCanvasElement, pCamera: ViewProj
             pCamera.transformation.addEulerRotation(0, 0, -lCurrentActionValue.get('RotateRight')!);
         }
 
-        // Update transformation buffer.
-        pCameraBuffer.write(pCamera.getMatrix(CameraMatrix.ViewProjection).dataArray, ['viewProjection']);
-        pCameraBuffer.write(pCamera.getMatrix(CameraMatrix.View).dataArray, ['view']);
-        pCameraBuffer.write(pCamera.getMatrix(CameraMatrix.Projection).dataArray, ['projection']);
-        pCameraBuffer.write([pCamera.transformation.translationX, pCamera.transformation.translationY, pCamera.transformation.translationZ], ['position']);
+        // Update transformation buffer using raw byte offsets.
+        // Camera struct layout:
+        //   viewProjection: mat4x4<f32>             offset 0,   64 bytes
+        //   view: mat4x4<f32>                       offset 64,  64 bytes
+        //   projection: mat4x4<f32>                 offset 128, 64 bytes
+        //   translation.rotation: mat4x4<f32>       offset 192, 64 bytes
+        //   translation.translation: mat4x4<f32>    offset 256, 64 bytes
+        //   invertedTranslation.rotation: mat4x4<f32>   offset 320, 64 bytes
+        //   invertedTranslation.translation: mat4x4<f32> offset 384, 64 bytes
+        //   position: vec3<f32>                     offset 448, 12 bytes
+        pCameraBuffer.write(new Float32Array(pCamera.getMatrix(CameraMatrix.ViewProjection).dataArray).buffer, 0);
+        pCameraBuffer.write(new Float32Array(pCamera.getMatrix(CameraMatrix.View).dataArray).buffer, 64);
+        pCameraBuffer.write(new Float32Array(pCamera.getMatrix(CameraMatrix.Projection).dataArray).buffer, 128);
+        pCameraBuffer.write(new Float32Array([pCamera.transformation.translationX, pCamera.transformation.translationY, pCamera.transformation.translationZ]).buffer, 448);
 
-        pCameraBuffer.write(pCamera.getMatrix(CameraMatrix.Rotation).dataArray, ['translation', 'rotation']);
-        pCameraBuffer.write(pCamera.getMatrix(CameraMatrix.Translation).dataArray, ['translation', 'translation']);
-        pCameraBuffer.write(pCamera.getMatrix(CameraMatrix.Rotation).inverse().dataArray, ['invertedTranslation', 'rotation']);
-        pCameraBuffer.write(pCamera.getMatrix(CameraMatrix.Translation).inverse().dataArray, ['invertedTranslation', 'translation']);
+        pCameraBuffer.write(new Float32Array(pCamera.getMatrix(CameraMatrix.Rotation).dataArray).buffer, 192);
+        pCameraBuffer.write(new Float32Array(pCamera.getMatrix(CameraMatrix.Translation).dataArray).buffer, 256);
+        pCameraBuffer.write(new Float32Array(pCamera.getMatrix(CameraMatrix.Rotation).inverse().dataArray).buffer, 320);
+        pCameraBuffer.write(new Float32Array(pCamera.getMatrix(CameraMatrix.Translation).inverse().dataArray).buffer, 384);
     }, 8);
 };
 

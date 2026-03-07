@@ -1,13 +1,12 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import type { GpuBuffer } from '../../buffer/gpu-buffer.ts';
-import type { BaseBufferMemoryLayout } from '../../buffer/memory_layout/base-buffer-memory-layout.ts';
 import { GpuLimit } from '../../constant/gpu-limit.enum.ts';
 import { StorageBindingType } from '../../constant/storage-binding-type.enum.ts';
 import type { GpuDevice } from '../../device/gpu-device.ts';
 import { GpuObject, type GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
 import type { IGpuObjectSetup } from '../../gpu_object/interface/i-gpu-object-setup.ts';
 import { type BindGroup, BindGroupInvalidationType } from '../bind_group/bind-group.ts';
-import type { BindLayout } from '../bind_group_layout/bind-group-layout.ts';
+import type { BindGroupBindLayout, BindLayoutBufferBinding } from '../bind_group_layout/bind-group-layout.ts';
 import type { PipelineLayout } from '../pipeline-layout.ts';
 import { PipelineDataSetup, type PipelineDataSetupData, type PipelineDataSetupDataGroup } from './pipeline-data-setup.ts';
 
@@ -148,7 +147,7 @@ export class PipelineData extends GpuObject<null, PipelineDataInvalidationType, 
             if (lBindGroupLayout.hasDynamicOffset) {
                 for (const lBindingName of lBindGroupLayout.orderedBindingNames) {
                     // Skip any binding not having a dynamic offset.
-                    const lBindingLayout: Readonly<BindLayout> = lBindGroupLayout.getBind(lBindingName);
+                    const lBindingLayout: Readonly<BindGroupBindLayout> = lBindGroupLayout.getBind(lBindingName);
                     if (!lBindingLayout.hasDynamicOffset) {
                         continue;
                     }
@@ -171,8 +170,8 @@ export class PipelineData extends GpuObject<null, PipelineDataInvalidationType, 
                     const lBindingDynamicOffsetIndex: number = lBindGroupSetupData.offsets.get(lBindingName)!;
 
                     // Get offset byte count.
-                    const lBufferMemoryLayout: BaseBufferMemoryLayout = lBindingLayout.layout as BaseBufferMemoryLayout;
-                    const lSingleLayoutLength: number = Math.ceil(lBufferMemoryLayout.fixedSize / lOffsetAlignment) * lOffsetAlignment;
+                    const lBufferDefinition: BindLayoutBufferBinding = lBindingLayout.resource as BindLayoutBufferBinding;
+                    const lSingleLayoutLength: number = Math.ceil(lBufferDefinition.fixedSize / lOffsetAlignment) * lOffsetAlignment;
 
                     // Read buffer size and validate if it meets offset bound.
                     const lBufferSize: number = lBindGroup.data(lBindingName).getRaw<GpuBuffer>().size;

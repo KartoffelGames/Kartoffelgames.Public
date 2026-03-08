@@ -21,17 +21,26 @@ import { type PgslParserResultTextureDimensionType, PgslParserResultTextureType 
 import type { PgslParserResultType, PgslParserResultTypeAlignmentType } from './type/pgsl-parser-result-type.ts';
 import { PgslParserResultVectorType } from './type/pgsl-parser-result-vector-type.ts';
 import { PgslParserResultObject } from './pgsl-parser-result-object.ts';
+import { PgslAccessModeEnum } from '../buildin/enum/pgsl-access-mode-enum.ts';
 
 /**
  * Represents a binding result from PGSL parser with type and location information.
  */
 export class PgslParserResultBinding extends PgslParserResultObject {
+    private readonly mAccessMode: PgslParserResultAccessMode;
     private readonly mBindGroupIndex: number;
     private readonly mBindGroupName: string;
     private readonly mBindLocationIndex: number;
     private readonly mBindLocationName: string;
     private readonly mBindingType: PgslParserResultBindingType;
     private readonly mType: PgslParserResultType;
+    
+    /**
+     * Gets the access mode of the binding.
+     */
+    public get accessMode(): PgslParserResultAccessMode {
+        return this.mAccessMode;
+    }
 
     /**
      * Gets the index of the bind group.
@@ -101,6 +110,15 @@ export class PgslParserResultBinding extends PgslParserResultObject {
                 case PgslDeclarationType.Uniform: return 'uniform';
                 case PgslDeclarationType.Storage: return 'storage';
                 default: throw new Exception(`Unsupported binding declaration type in PgslValueTrace: ${pValue.data.declarationType}`, this);
+            }
+        })();
+
+        this.mAccessMode = (()=>{
+            switch (pValue.data.accessMode) {
+                case PgslAccessModeEnum.VALUES.Read: return 'read';
+                case PgslAccessModeEnum.VALUES.Write: return 'write';
+                case PgslAccessModeEnum.VALUES.ReadWrite: return 'read-write';
+                default: throw new Exception(`Unsupported access mode in PgslValueTrace: ${pValue.data.accessMode}`, this);
             }
         })();
 
@@ -266,4 +284,4 @@ export class PgslParserResultBinding extends PgslParserResultObject {
 }
 
 export type PgslParserResultBindingType = 'uniform' | 'storage';
-
+export type PgslParserResultAccessMode = 'read' | 'write' | 'read-write';

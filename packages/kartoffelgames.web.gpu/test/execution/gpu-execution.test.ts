@@ -4,8 +4,8 @@ import { TextureFormat } from '../../source/constant/texture-format.enum.ts';
 import { GpuDevice } from '../../source/device/gpu-device.ts';
 import type { GpuExecutionContext } from '../../source/execution/gpu-execution-context.ts';
 import { GpuExecution } from '../../source/execution/gpu-execution.ts';
-import { RenderTargets } from '../../source/pipeline/render_targets/render-targets.ts';
 import { RenderTargetsLayout } from '../../source/pipeline/render_targets/render-targets-layout.ts';
+import { RenderTargets } from '../../source/pipeline/render_targets/render-targets.ts';
 import { Shader } from '../../source/shader/shader.ts';
 
 /**
@@ -138,7 +138,9 @@ Deno.test('Full compute execution flow', async (pContext) => {
         `;
         const lShader: Shader = new Shader(lDevice, lShaderSource);
         lShader.setup((pSetup) => {
-            pSetup.computeEntryPoint('compute_main').size(1);
+            pSetup.computeEntryPoint('compute_main', (pComputeSetup) => {
+                pComputeSetup.size(1);
+            });
             pSetup.group(0, 'data', (pGroupSetup) => {
                 pGroupSetup.binding(0, 'output', ComputeStage.Compute, // StorageBindingType.ReadWrite would be ideal
                 ).asBuffer(0, 4); // variable size buffer

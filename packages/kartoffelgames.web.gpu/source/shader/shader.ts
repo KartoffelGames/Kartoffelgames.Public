@@ -25,6 +25,25 @@ export class Shader extends GpuObject<GPUShaderModule, '', ShaderSetup> implemen
     private readonly mSourceMap: any | null;
 
     /**
+     * Shader compute entry points.
+     */
+    public get computeEntryPoints(): Array<string> {
+        // Ensure setup is called.
+        this.ensureSetup();
+        return [...this.mEntryPoints.compute.keys()];
+    }
+
+    /**
+     * Shader fragment entry points.
+     */
+    public get fragmentEntryPoints(): Array<string> {
+        // Ensure setup is called.
+        this.ensureSetup();
+
+        return [...this.mEntryPoints.fragment.keys()];
+    }
+
+    /**
      * Shader pipeline layout.
      */
     public get layout(): PipelineLayout {
@@ -39,6 +58,16 @@ export class Shader extends GpuObject<GPUShaderModule, '', ShaderSetup> implemen
      */
     public override get native(): GPUShaderModule {
         return super.native;
+    }
+
+    /**
+     * Shader vertex entry points.
+     */
+    public get vertexEntryPoints(): Array<string> {
+        // Ensure setup is called.
+        this.ensureSetup();
+
+        return [...this.mEntryPoints.vertex.keys()];
     }
 
     /**

@@ -41,8 +41,9 @@ async function gCreateSetupShader(): Promise<{ device: GpuDevice; shader: Shader
             pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
                 .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
         });
-        pSetup.fragmentEntryPoint('fragment_main')
-            .addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+        pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
+            pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+        });
     });
     return { device: lDevice, shader: lShader };
 }
@@ -225,8 +226,9 @@ Deno.test('VertexParameter -- with parameters', async (pContext) => {
                 pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
                     .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             });
-            pSetup.fragmentEntryPoint('fragment_main')
-                .addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+            pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
+                pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+            });
         });
 
         // Evaluation. Should not throw.

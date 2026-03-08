@@ -23,8 +23,6 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
     private readonly mTargetViewUpdateQueue: Set<number>;
     private readonly mTargets: RenderTargetsTextures;
     
-
-
     /**
      * Render target height.
      */

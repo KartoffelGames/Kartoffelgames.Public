@@ -50,8 +50,9 @@ async function gCreateRenderPipelineComponents(): Promise<{
             pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
                 .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
         });
-        pSetup.fragmentEntryPoint('fragment_main')
-            .addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+        pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
+            pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+        });
     });
 
     const lRenderTargetsLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
@@ -218,8 +219,9 @@ Deno.test('VertexFragmentPipeline.depthConfig()', async (pContext) => {
                 pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
                     .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             });
-            pSetup.fragmentEntryPoint('fragment_main')
-                .addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+            pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
+                pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+            });
         });
         const lRtLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
         lRtLayout.setup((pSetup) => {

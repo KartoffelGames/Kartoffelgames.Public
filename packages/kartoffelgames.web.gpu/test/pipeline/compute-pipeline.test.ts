@@ -27,7 +27,9 @@ async function gCreateComputeShader(): Promise<{ device: GpuDevice; shader: Shad
     const lDevice: GpuDevice = await gRequestDevice();
     const lShader: Shader = new Shader(lDevice, gComputeShaderSource);
     lShader.setup((pSetup) => {
-        pSetup.computeEntryPoint('compute_main').size(64);
+        pSetup.computeEntryPoint('compute_main', (pComputeSetup) => {
+            pComputeSetup.size(64);
+        });
     });
     return { device: lDevice, shader: lShader };
 }
@@ -109,7 +111,9 @@ Deno.test('ComputePipeline.setParameter()', async (pContext) => {
         const lShader: Shader = new Shader(lDevice, lShaderSource);
         lShader.setup((pSetup) => {
             pSetup.parameter('workSize', ComputeStage.Compute);
-            pSetup.computeEntryPoint('compute_main').size(64);
+            pSetup.computeEntryPoint('compute_main', (pComputeSetup) => {
+                pComputeSetup.size(64);
+            });
         });
 
         const lModule: ShaderComputeModule = lShader.createComputeModule('compute_main');

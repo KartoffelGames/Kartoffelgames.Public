@@ -17,8 +17,9 @@ export class ShaderSetup extends GpuObjectSetup<ShaderSetupReferenceData> {
      * When size is not called, the compute entry point will be setup with a dynamic size.
      * 
      * @param pName - Compute entry name.
+     * @param pSetupCallback - Setup callback to setup compute entry point.
      */
-    public computeEntryPoint(pName: string): ShaderComputeEntryPointSetup {
+    public computeEntryPoint(pName: string, pSetupCallback: (pSetup: ShaderComputeEntryPointSetup) => void): void {
         // Lock setup to a setup call.
         this.ensureThatInSetup();
 
@@ -32,21 +33,24 @@ export class ShaderSetup extends GpuObjectSetup<ShaderSetupReferenceData> {
         this.setupData.computeEntrypoints.push(lEntryPoint);
 
         // Return compute entry setup object.
-        return new ShaderComputeEntryPointSetup(this.setupReferences, (pX: number, pY: number, pZ: number) => {
+        const lSetup: ShaderComputeEntryPointSetup = new ShaderComputeEntryPointSetup(this.setupReferences, (pX: number, pY: number, pZ: number) => {
             lEntryPoint.workgroupDimension = {
                 x: pX,
                 y: pY,
                 z: pZ
             };
         });
+
+        pSetupCallback(lSetup);
     }
 
     /**
      * Setup fragment entry point.
      * 
      * @param pName - Fragment entry name.
+     * @param pSetupCallback - Setup callback to setup fragment render targets.
      */
-    public fragmentEntryPoint(pName: string): ShaderFragmentEntryPointSetup {
+    public fragmentEntryPoint(pName: string, pSetupCallback: (pSetup: ShaderFragmentEntryPointSetup) => void): void {
         // Lock setup to a setup call.
         this.ensureThatInSetup();
 
@@ -60,9 +64,11 @@ export class ShaderSetup extends GpuObjectSetup<ShaderSetupReferenceData> {
         this.setupData.fragmentEntrypoints.push(lEntryPoint);
 
         // Return fragment entry setup object.
-        return new ShaderFragmentEntryPointSetup(this.setupReferences, (pRenderTarget: ShaderModuleEntryPointFragmentRenderTarget) => {
+        const lSetup: ShaderFragmentEntryPointSetup = new ShaderFragmentEntryPointSetup(this.setupReferences, (pRenderTarget: ShaderModuleEntryPointFragmentRenderTarget) => {
             lEntryPoint.renderTargets.push(pRenderTarget);
         });
+
+        pSetupCallback(lSetup);
     }
 
     /**
@@ -117,6 +123,7 @@ export class ShaderSetup extends GpuObjectSetup<ShaderSetupReferenceData> {
      * Setup vertex entry point.
      * 
      * @param pName - Vertex entry name.
+     * @param pSetupCallback - Setup callback to setup vertex parameter layout.
      */
     public vertexEntryPoint(pName: string, pSetupCallback: (pSetup: VertexParameterLayoutSetup) => void): VertexParameterLayout {
         // Lock setup to a setup call.

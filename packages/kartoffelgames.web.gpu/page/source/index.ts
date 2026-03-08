@@ -64,8 +64,9 @@ const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTargetsL
         });
 
         // Fragment entry.
-        pShaderSetup.fragmentEntryPoint('fragment_main')
-            .addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+        pShaderSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
+            pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+        });
 
         // Object bind group.
         pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
@@ -254,8 +255,9 @@ const gGenerateColorCubeStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTar
         });
 
         // Fragment entry.
-        pShaderSetup.fragmentEntryPoint('fragment_main')
-            .addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+        pShaderSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
+            pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+        });
 
         // Object bind group.
         pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
@@ -351,8 +353,9 @@ const gGenerateLightBoxStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTarg
         });
 
         // Fragment entry.
-        pShaderSetup.fragmentEntryPoint('fragment_main')
-            .addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+        pShaderSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
+            pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+        });
 
         // Object bind group.
         pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
@@ -405,8 +408,9 @@ const gGenerateSkyboxStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTarget
         });
 
         // Fragment entry.
-        pShaderSetup.fragmentEntryPoint('fragment_main')
-            .addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+        pShaderSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
+            pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+        });
 
         pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'cubeTextureSampler', ComputeStage.Fragment)
@@ -512,8 +516,9 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderT
         });
 
         // Fragment entry.
-        pShaderSetup.fragmentEntryPoint('fragment_main')
-            .addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+        pShaderSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
+            pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+        });
 
         // Object bind group.
         pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
@@ -623,11 +628,14 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTarg
         });
 
         // Fragment entry.
-        pShaderSetup.fragmentEntryPoint('fragment_main')
-            .addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+        pShaderSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
+            pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+        });
 
         // Compute entry.
-        pShaderSetup.computeEntryPoint('compute_main').size(64);
+        pShaderSetup.computeEntryPoint('compute_main', (pComputeSetup) => {
+            pComputeSetup.size(64);
+        });
 
         // Object bind group.
         pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
@@ -742,7 +750,9 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTarg
         pShaderSetup.parameter('animationSeconds', ComputeStage.Vertex);
 
         // Compute entry.
-        pShaderSetup.computeEntryPoint('compute_main').size(64);
+        pShaderSetup.computeEntryPoint('compute_main', (pComputeSetup) => {
+            pComputeSetup.size(64);
+        });
 
         // Object bind group.
         pShaderSetup.group(0, 'object', (pBindGroupSetup) => {

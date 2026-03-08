@@ -646,7 +646,7 @@ export class MaterialSystem extends GameSystem {
 
                 } else {
                     // No matching material value or wrong type, create white placeholder.
-                    pBindGroup.data(lBindName).set(this.mTextureSystem!.defaultTexture);
+                    pBindGroup.data(lBindName).set(this.mTextureSystem!.defaultTexture.useAs());
                 }
                 continue;
             }

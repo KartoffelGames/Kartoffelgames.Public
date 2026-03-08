@@ -64,7 +64,7 @@ export class BindGroup extends GpuObject<GPUBindGroup, BindGroupInvalidationType
             data: null
         };
 
-        return new BindGroupDataSetup(lBindLayout, lData, lDataSetupReferences, (pData: GpuResourceObject) => {
+        return new BindGroupDataSetup(lBindLayout, lData, lDataSetupReferences, (pData: GpuBuffer | TextureSampler | GpuTextureView) => {
             // Validate if layout fits bind data and dynamicly extend usage type of bind data.
             switch (true) {
                 // Buffers must use a buffer resource layout.

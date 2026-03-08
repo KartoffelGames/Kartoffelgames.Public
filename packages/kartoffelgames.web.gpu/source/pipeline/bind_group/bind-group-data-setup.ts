@@ -210,7 +210,7 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
      *
      * @returns set data.
      */
-    public set<T extends GpuResourceObject<any, any, any, any>>(pData: T): T {
+    public set<T extends GpuBuffer | TextureSampler | GpuTextureView>(pData: T): T {
         this.sendData(pData);
 
         // Return same data.
@@ -267,4 +267,4 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
     }
 }
 
-type BindGroupDataCallback = (pData: GpuResourceObject<any, any, any, any>) => void;
+type BindGroupDataCallback = (pData: GpuBuffer | TextureSampler | GpuTextureView) => void;

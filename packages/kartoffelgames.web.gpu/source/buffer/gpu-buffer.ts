@@ -120,7 +120,7 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
         await this.mReadBuffer.mapAsync(GPUMapMode.READ, lOffset, lSize);
 
         // Read result from mapped range and copy it with slice.
-        const lBufferReadResult: ArrayBuffer = this.mReadBuffer.getMappedRange().slice(0);
+        const lBufferReadResult: ArrayBuffer = this.mReadBuffer.getMappedRange(lOffset, lSize).slice(0);
 
         // Map read buffer again.
         this.mReadBuffer.unmap();

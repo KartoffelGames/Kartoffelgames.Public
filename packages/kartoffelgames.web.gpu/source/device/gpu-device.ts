@@ -1,4 +1,4 @@
-import { EnumUtil, Exception, List } from '@kartoffelgames/core';
+import { EnumUtil, Exception, IDeconstructable, List } from '@kartoffelgames/core';
 import type { GpuFeature } from '../constant/gpu-feature.enum.ts';
 import { GpuLimit } from '../constant/gpu-limit.enum.ts';
 import { GpuExecution, type GpuExecutionFunction } from '../execution/gpu-execution.ts';
@@ -8,7 +8,7 @@ import { CanvasTexture } from '../texture/canvas-texture.ts';
 import { GpuDeviceCapabilities } from './capabilities/gpu-device-capabilities.ts';
 import { GpuTextureFormatCapabilities } from './capabilities/gpu-texture-format-capabilities.ts';
 
-export class GpuDevice {
+export class GpuDevice implements IDeconstructable{
     /**
      * Read gpu max limits for the specified performance level.
      * 
@@ -183,6 +183,13 @@ export class GpuDevice {
         const lCanvas: HTMLCanvasElement = pCanvas ?? document.createElement('canvas');
 
         return new CanvasTexture(this, lCanvas);
+    }
+
+    /**
+     * Deconstruct gpu device and release resources.
+     */
+    public deconstruct(): void {
+        this.mGpuDevice.destroy();
     }
 
     /**

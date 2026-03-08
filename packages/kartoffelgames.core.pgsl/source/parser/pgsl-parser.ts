@@ -22,7 +22,7 @@ import { PgslFrexpResult } from '../buildin/struct/pgsl-frexp-result.ts';
 import { PgslModfResult } from '../buildin/struct/pgsl-modf-result.ts';
 import type { AliasDeclarationCst, DeclarationCst, DeclarationCstType, EnumDeclarationCst, EnumDeclarationValueCst, FunctionDeclarationCst, FunctionDeclarationHeaderCst, FunctionDeclarationParameterCst, StructDeclarationCst, StructPropertyDeclarationCst, VariableDeclarationCst } from '../concrete_syntax_tree/declaration.type.ts';
 import type { AddressOfExpressionCst, ArithmeticExpressionCst, BinaryExpressionCst, ComparisonExpressionCst, ExpressionCst, ExpressionCstType, FunctionCallExpressionCst, IndexedValueExpressionCst, LiteralValueExpressionCst, LogicalExpressionCst, NewExpressionCst, ParenthesizedExpressionCst, PointerExpressionCst, StringValueExpressionCst, UnaryExpressionCst, ValueDecompositionExpressionCst, VariableNameExpressionCst } from '../concrete_syntax_tree/expression.type.ts';
-import type { AttributeCst, AttributeListCst, CstRange, DocumentCst, DocumentCstImport, TypeDeclarationCst } from '../concrete_syntax_tree/general.type.ts';
+import type { AttributeCst, AttributeListCst, CstRange, DocumentCst, DocumentCstDeclarations, TypeDeclarationCst } from '../concrete_syntax_tree/general.type.ts';
 import type { AssignmentStatementCst, BlockStatementCst, BreakStatementCst, ContinueStatementCst, DiscardStatementCst, DoWhileStatementCst, ForStatementCst, FunctionCallStatementCst, IfStatementCst, IncrementDecrementStatementCst, ReturnStatementCst, StatementCst, StatementCstType, SwitchCaseCst, SwitchStatementCst, VariableDeclarationStatementCst, WhileStatementCst } from '../concrete_syntax_tree/statement.type.ts';
 import { PgslParserResult } from '../parser_result/pgsl-parser-result.ts';
 import { TranspilationMeta } from '../transpilation/transpilation-meta.ts';
@@ -1275,12 +1275,19 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
             return GraphNode.new<PgslToken>()
                 .required('list<-list', lModuleScopeDeclarationListGraph);
         }).converter((pData, pStartToken?: LexerToken<PgslToken>, pEndToken?: LexerToken<PgslToken>): DocumentCst => {
+            const lDeclarations: Array<DocumentCstDeclarations> = new Array<DocumentCstDeclarations>();
+
+            // Add core declaration.
+            lDeclarations.push({
+                name: 'core',
+                declarations: pData.list
+            });
+
             return {
                 type: 'Document',
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                buildInDeclarations: new Array<DeclarationCst>(), 
-                imports: new Array<DocumentCstImport>(),
-                declarations: pData.list ?? new Array<DeclarationCst<DeclarationCstType>>(),
+                buildInDeclarations: new Array<DeclarationCst>(),
+                declarations: lDeclarations,
                 metaValues: new Map<string, string>()
             } satisfies DocumentCst;
         });
@@ -1734,86 +1741,77 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
     private internalParse(pCodeText: string, pEnvironmentData: Map<string, string>, pUsedImports: Set<string>): DocumentCst {
         const lProcessedCode: PgslParserPreprocessResult = this.preprocessText(pCodeText, pEnvironmentData);
 
+        // Create empty document that is filled while code parts and imports are parsed.
+        const lParsedDocument: DocumentCst = {
+            type: 'Document',
+            range: [0, 0, 0, 0],
+            buildInDeclarations: new Array<DeclarationCst>(),
+            declarations: new Array<DocumentCstDeclarations>(),
+            metaValues: new Map<string, string>()
+        } satisfies DocumentCst;
+
         // Define bucket for all user defined type names used in this document and its imports.
         const lUserDefinedNames: Set<string> = new Set<string>();
 
-        // Parse imports.
-        const lParsedImportList: Array<DocumentCstImport> = new Array<DocumentCstImport>();
-        const lParsedMetaValues: Map<string, string> = new Map<string, string>();
-        for (const lImport of lProcessedCode.imports) {
-            const lImportName: string = lImport;
+        // Parse each code part with its potential import and fill in declarations and meta values to the document.
+        for (let lCodePartIndex = 0; lCodePartIndex < lProcessedCode.codeParts.length; lCodePartIndex++) {
+            const lCodePart: PgslParserPreprocessResultCodePart = lProcessedCode.codeParts[lCodePartIndex];
+            const lImportName: string | null = lProcessedCode.imports[lCodePartIndex];
 
-            // Skip already used imports.
-            if (pUsedImports.has(lImportName)) {
-                continue;
+            // Merge meta values from code part.
+            for (const [lKey, lValue] of lCodePart.metaValues) {
+                lParsedDocument.metaValues.set(lKey, lValue);
             }
 
-            // Find import.
-            const lImportCode: string | undefined = this.mImports.get(lImportName);
+            // Parse code part when not empty.
+            if (lCodePart.code.trim() !== '') {
+                // Parse code part.
+                const lCodePartParse: DocumentCst = super.parse(lCodePart.code);
 
-            // Throw exception when import not found.
-            if (!lImportCode) {
-                throw new Exception(`Import "${lImportName}" not found.`, this);
+                // Fill in declarations.
+                lParsedDocument.declarations.push(...lCodePartParse.declarations);
+
+                // Collect user defined type names from code part.
+                for (const lUserDefinedTypeName of this.mUserDefinedTypeNames) {
+                    lUserDefinedNames.add(lUserDefinedTypeName);
+                }
             }
 
-            // Add import as used before starting the actual parsing.
-            pUsedImports.add(lImportName);
+            // Parse import when set and has not been imported already.
+            if (lImportName && !pUsedImports.has(lImportName)) {
+                // Find import.
+                const lImportCode: string | undefined = this.mImports.get(lImportName);
 
-            // Parse import code.
-            const lImportDocumentCst: DocumentCst = this.internalParse(lImportCode, pEnvironmentData, pUsedImports);
+                // Throw exception when import not found.
+                if (!lImportCode) {
+                    throw new Exception(`Import "${lImportName}" not found.`, this);
+                }
 
-            // Push each inner imports from imported document to used imports.
-            lParsedImportList.push(...lImportDocumentCst.imports);
+                // Add import as used before starting the actual parsing.
+                pUsedImports.add(lImportName);
 
-            // Merge meta values from imported document.
-            for (const [lKey, lValue] of lImportDocumentCst.metaValues) {
-                lParsedMetaValues.set(lKey, lValue);
-            }
+                // Parse import code.
+                const lImportDocumentCst: DocumentCst = this.internalParse(lImportCode, pEnvironmentData, pUsedImports);
 
-            // Add imported document to import list.
-            lParsedImportList.push({
-                name: lImportName,
-                declarations: lImportDocumentCst.declarations
-            } satisfies DocumentCstImport);
+                // Push each declaration from imported document to current document.
+                lParsedDocument.declarations.push(...lImportDocumentCst.declarations);
 
-            // Collect user defined type names from import.
-            for (const lUserDefinedTypeName of this.mUserDefinedTypeNames) {
-                lUserDefinedNames.add(lUserDefinedTypeName);
+                // Merge meta values from imported document.
+                for (const [lKey, lValue] of lImportDocumentCst.metaValues) {
+                    lParsedDocument.metaValues.set(lKey, lValue);
+                }
+
+                // Collect user defined type names from import.
+                for (const lUserDefinedTypeName of this.mUserDefinedTypeNames) {
+                    lUserDefinedNames.add(lUserDefinedTypeName);
+                }
             }
         }
 
         // Clear user defined type names.
         this.mUserDefinedTypeNames = lUserDefinedNames;
 
-        // Parse document CST.
-        const lDocumentCst: DocumentCst = (() => {
-            // Create a empty document when there is no code to parse.
-                // This allows documents to only contain imports and meta values.
-            if (lProcessedCode.code.trim() === '') {
-                return {
-                    type: 'Document',
-                    range: [0, 0, 0, 0],
-                    buildInDeclarations: new Array<DeclarationCst>(),
-                    imports: new Array<DocumentCstImport>(),
-                    declarations: new Array<DeclarationCst<DeclarationCstType>>(),
-                    metaValues: new Map<string, string>()
-                } satisfies DocumentCst;
-            }
-
-            return super.parse(lProcessedCode.code);
-        })();
-
-        // Merge meta values from parsed document.
-        // Core document values have priority over imported ones.
-        for (const [lKey, lValue] of lProcessedCode.metaValues) {
-            lParsedMetaValues.set(lKey, lValue);
-        }
-
-        // Set imports property.
-        lDocumentCst.imports = lParsedImportList;
-        lDocumentCst.metaValues = lParsedMetaValues;
-
-        return lDocumentCst;
+        return lParsedDocument;
     }
 
     /**
@@ -1915,37 +1913,50 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         // Process conditional compilation replacements.
         lResultCode = this.preprocessIfDefReplacements(lResultCode, pEnvironmentData);
 
-        // Read import names while replaceing them at the same time.
+        // Find and store all imports by name.
         const lImportList: Array<string> = new Array<string>();
-        lResultCode = lResultCode.replace(/^\s*#IMPORT\s+"(.*?)"\s*;/gm, (_pMatch: string, pImportName: string) => {
-            // Save import.
-            lImportList.push(pImportName.toLowerCase());
+        for (const lImportMatch of lResultCode.matchAll(/^\s*#IMPORT\s+"(.*?)"\s*;/gm)) {
+            lImportList.push(lImportMatch[1].toLowerCase());
+        }
 
-            // Replace with newlines only to keep line numbers lined up.
-            return '\n';
-        });
+        // Split the code on each import to get code parts without imports.
+        // This allows to parse the document in the correct order with imports first and then the actual document content.
+        const lCodeImportSplits: Array<string> = lResultCode.split(/^\s*#IMPORT\s+".*?"\s*;/gm);
 
-        // Replace "#META name value" and save the values.
-        const lMetaValues: Map<string, string> = new Map<string, string>();
-        lResultCode = lResultCode.replace(/^\s*#META\s+"(.*?)"\s*(?:"(.*?)")?;\s*$/gm, (_pMatch: string, pMetaName: string, pMetaValue: string) => {
-            // Save meta value.
-            lMetaValues.set(pMetaName, pMetaValue || '');
+        // Process meta declarations for each code part.
+        const lMetaDeclarationRegex: RegExp = /^\s*#META\s+"(.*?)"\s*(?:"(.*?)")?;\s*$/gm;
+        const lCodeParts: Array<PgslParserPreprocessResultCodePart> = lCodeImportSplits.map((pCodePart: string) => {
+            // Storage for replaced code parts meta values.
+            const lMetaValues: Map<string, string> = new Map<string, string>();
 
-            // Replace with newlines only to keep line numbers lined up.
-            return '\n';
+            // Replace "#META name value" and save the values.
+            const lResultCode = pCodePart.replace(lMetaDeclarationRegex, (_pMatch: string, pMetaName: string, pMetaValue: string) => {
+                // Save meta value.
+                lMetaValues.set(pMetaName, pMetaValue || '');
+
+                // Replace with newlines only to keep line numbers lined up.
+                return '\n';
+            });
+
+            return {
+                code: lResultCode,
+                metaValues: lMetaValues
+            };
         });
 
         return {
-            code: lResultCode,
-            imports: lImportList,
-            metaValues: lMetaValues
+            codeParts: lCodeParts,
+            imports: lImportList
         };
     }
 }
 
 type PgslParserPreprocessResult = {
-    code: string;
+    codeParts: Array<PgslParserPreprocessResultCodePart>;
     imports: Array<string>;
+};
+type PgslParserPreprocessResultCodePart = {
+    code: string,
     metaValues: Map<string, string>;
 };
 

@@ -244,4 +244,32 @@ Deno.test('Import', async (pContext) => {
             `const PI:f32=3.14;`
         );
     });
+
+    await pContext.step('Import statement order', () => {
+        // Setup. Create parser.
+        const lPgslParser: PgslParser = new PgslParser();
+
+        // Setup. Assign a import.
+        lPgslParser.addImport('FirstImport', `
+            const PI: ${PgslNumericType.typeName.float32} = EPSILON + 3.14;    
+        `);
+
+        // Setup. Create code text that uses the import.
+        const lCodeText: string = `
+            const EPSILON: ${PgslNumericType.typeName.float32} = 0.001;
+            #IMPORT "FirstImport";
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = lPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. No errors.
+        expect(lTranspilationResult.incidents).toHaveLength(0);
+
+        // Evaluation. Correct transpilation output.
+        expect(lTranspilationResult.source).toBe(
+            `const EPSILON:f32=0.001;` +
+            `const PI:f32=EPSILON+3.14;`
+        );
+    });
 });

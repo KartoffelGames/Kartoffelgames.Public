@@ -33,6 +33,10 @@ Deno.test('VertexParameterLayout.setup() -- single buffer with parameters', asyn
 
         const lParamNames: Array<string> = lLayout.parameterNames;
         expect(lParamNames.length).toBe(2);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 });
 
@@ -57,6 +61,10 @@ Deno.test('VertexParameterLayout.parameter()', async (pContext) => {
         const lNormalParam = lLayout.parameter('normal');
         expect(lNormalParam.name).toBe('normal');
         expect(lNormalParam.location).toBe(1);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 });
 
@@ -84,6 +92,10 @@ Deno.test('VertexParameterLayout.parameterBuffer()', async (pContext) => {
         expect(lBuffer.layout.properties[0].byteSize).toBe(12); // Float32 * 3
         expect(lBuffer.layout.properties[1].name).toBe('color');
         expect(lBuffer.layout.properties[1].byteSize).toBe(16); // Float32 * 4
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Computed layout fixedSize is aligned to struct alignment', async () => {
@@ -100,6 +112,10 @@ Deno.test('VertexParameterLayout.parameterBuffer()', async (pContext) => {
         // Evaluation. Packed alignment struct: fixedSize should be 4 (no padding needed).
         const lBuffer = lLayout.parameterBuffer('simpleBuf');
         expect(lBuffer.layout.fixedSize).toBe(4);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 });
 
@@ -117,6 +133,10 @@ Deno.test('VertexParameterLayout.indexable', async (pContext) => {
 
         // Evaluation.
         expect(lLayout.indexable).toBe(false);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Returns true when all buffers use Instance or Index step mode', async () => {
@@ -132,6 +152,10 @@ Deno.test('VertexParameterLayout.indexable', async (pContext) => {
 
         // Evaluation.
         expect(lLayout.indexable).toBe(true);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 });
 
@@ -158,6 +182,10 @@ Deno.test('VertexParameterLayout.setup() -- multiple buffers', async (pContext) 
 
         // Mixed step modes: vertex buffer present, so not indexable.
         expect(lLayout.indexable).toBe(false);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 });
 
@@ -178,5 +206,9 @@ Deno.test('VertexParameterLayout -- computed byte offsets', async (pContext) => 
         const lBuffer = lLayout.parameterBuffer('buf');
         expect(lBuffer.layout.properties[0].byteOffset).toBe(0);
         expect(lBuffer.layout.properties[1].byteOffset).toBe(12);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 });

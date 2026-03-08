@@ -1,6 +1,6 @@
 import { expect } from '@kartoffelgames/core-test';
 import { GpuDevice } from '../../source/device/gpu-device.ts';
-import { RenderTargetsLayout } from '../../source/pipeline/render_targets/render-targets-layout.ts';
+import { RenderTargetsLayout, type RenderTargetsLayoutColorTarget, type RenderTargetsLayoutDepthStencil } from '../../source/pipeline/render_targets/render-targets-layout.ts';
 import { TextureFormat } from '../../source/constant/texture-format.enum.ts';
 
 /**
@@ -26,6 +26,10 @@ Deno.test('RenderTargetsLayout.setup() -- color targets', async (pContext) => {
         const lNames: Array<string> = lLayout.colorTargetNames;
         expect(lNames.length).toBe(1);
         expect(lNames[0]).toBe('color0');
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Setup with multiple color targets', async () => {
@@ -44,6 +48,10 @@ Deno.test('RenderTargetsLayout.setup() -- color targets', async (pContext) => {
         expect(lNames.length).toBe(2);
         expect(lNames[0]).toBe('color0');
         expect(lNames[1]).toBe('color1');
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Color target stores correct format and keepOnEnd', async () => {
@@ -57,12 +65,16 @@ Deno.test('RenderTargetsLayout.setup() -- color targets', async (pContext) => {
         });
 
         // Evaluation.
-        const lTarget = lLayout.colorTarget('myTarget');
+        const lTarget: RenderTargetsLayoutColorTarget = lLayout.colorTarget('myTarget');
         expect(lTarget.format).toBe(TextureFormat.Bgra8unorm);
         expect(lTarget.keepOnEnd).toBe(false);
         expect(lTarget.clearValue.r).toBe(0.5);
         expect(lTarget.clearValue.a).toBe(1.0);
         expect(lTarget.index).toBe(0);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Default keepOnEnd is true and clearValue is zero', async () => {
@@ -76,12 +88,16 @@ Deno.test('RenderTargetsLayout.setup() -- color targets', async (pContext) => {
         });
 
         // Evaluation.
-        const lTarget = lLayout.colorTarget('defaultTarget');
+        const lTarget: RenderTargetsLayoutColorTarget = lLayout.colorTarget('defaultTarget');
         expect(lTarget.keepOnEnd).toBe(true);
         expect(lTarget.clearValue.r).toBe(0);
         expect(lTarget.clearValue.g).toBe(0);
         expect(lTarget.clearValue.b).toBe(0);
         expect(lTarget.clearValue.a).toBe(0);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 });
 
@@ -101,6 +117,10 @@ Deno.test('RenderTargetsLayout.setup() -- depth and stencil', async (pContext) =
         expect(lLayout.hasDepth).toBe(true);
         expect(lLayout.hasStencil).toBe(false);
         expect(lLayout.depthStencilFormat).toBe(TextureFormat.Depth24plus);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Setup with stencil only', async () => {
@@ -118,6 +138,10 @@ Deno.test('RenderTargetsLayout.setup() -- depth and stencil', async (pContext) =
         expect(lLayout.hasDepth).toBe(false);
         expect(lLayout.hasStencil).toBe(true);
         expect(lLayout.depthStencilFormat).toBe(TextureFormat.Stencil8);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Setup with both depth and stencil', async () => {
@@ -135,6 +159,10 @@ Deno.test('RenderTargetsLayout.setup() -- depth and stencil', async (pContext) =
         expect(lLayout.hasDepth).toBe(true);
         expect(lLayout.hasStencil).toBe(true);
         expect(lLayout.depthStencilFormat).toBe(TextureFormat.Depth24plusStencil8);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 });
 
@@ -151,6 +179,10 @@ Deno.test('RenderTargetsLayout.hasDepth', async (pContext) => {
 
         // Evaluation.
         expect(lLayout.hasDepth).toBe(false);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Returns true when depth is configured', async () => {
@@ -166,6 +198,10 @@ Deno.test('RenderTargetsLayout.hasDepth', async (pContext) => {
 
         // Evaluation.
         expect(lLayout.hasDepth).toBe(true);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 });
 
@@ -183,6 +219,10 @@ Deno.test('RenderTargetsLayout.hasStencil', async (pContext) => {
 
         // Evaluation.
         expect(lLayout.hasStencil).toBe(false);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Returns true when stencil is configured', async () => {
@@ -198,6 +238,10 @@ Deno.test('RenderTargetsLayout.hasStencil', async (pContext) => {
 
         // Evaluation.
         expect(lLayout.hasStencil).toBe(true);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 });
 
@@ -211,6 +255,10 @@ Deno.test('RenderTargetsLayout.multisampled', async (pContext) => {
 
         // Evaluation.
         expect(lLayout.multisampled).toBe(false);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Returns true when constructed with multisampling', async () => {
@@ -222,6 +270,10 @@ Deno.test('RenderTargetsLayout.multisampled', async (pContext) => {
 
         // Evaluation.
         expect(lLayout.multisampled).toBe(true);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 });
 
@@ -238,6 +290,10 @@ Deno.test('RenderTargetsLayout.hasColorTarget()', async (pContext) => {
 
         // Evaluation.
         expect(lLayout.hasColorTarget('existingTarget')).toBe(true);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Returns false for non-existing color target', async () => {
@@ -252,6 +308,10 @@ Deno.test('RenderTargetsLayout.hasColorTarget()', async (pContext) => {
 
         // Evaluation.
         expect(lLayout.hasColorTarget('nonExistingTarget')).toBe(false);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 });
 
@@ -268,12 +328,16 @@ Deno.test('RenderTargetsLayout.depthStencilConfig()', async (pContext) => {
         });
 
         // Evaluation.
-        const lConfig = lLayout.depthStencilTarget();
+        const lConfig: RenderTargetsLayoutDepthStencil = lLayout.depthStencilTarget();
         expect(lConfig.format).toBe(TextureFormat.Depth24plusStencil8);
         expect(lConfig.depth!.keepOnEnd).toBe(true);
         expect(lConfig.depth!.clearValue).toBe(1.0);
         expect(lConfig.stencil!.keepOnEnd).toBe(true);
         expect(lConfig.stencil!.clearValue).toBe(0);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Throws when no depth stencil is configured', async () => {
@@ -287,9 +351,13 @@ Deno.test('RenderTargetsLayout.depthStencilConfig()', async (pContext) => {
         });
 
         // Evaluation.
-        const lThrowFunction = () => {
+        const lThrowFunction: () => void = () => {
             lLayout.depthStencilTarget();
         };
         expect(lThrowFunction).toThrow();
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 });

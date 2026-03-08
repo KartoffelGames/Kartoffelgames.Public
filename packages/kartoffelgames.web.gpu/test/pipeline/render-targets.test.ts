@@ -1,7 +1,9 @@
 import { expect } from '@kartoffelgames/core-test';
 import { GpuDevice } from '../../source/device/gpu-device.ts';
 import { RenderTargetsLayout } from '../../source/pipeline/render_targets/render-targets-layout.ts';
+import { RenderTargets } from '../../source/pipeline/render_targets/render-targets.ts';
 import { TextureFormat } from '../../source/constant/texture-format.enum.ts';
+import { GpuTextureView } from '../../source/texture/gpu-texture-view.ts';
 
 /**
  * Helper to request a GPU device for tests.
@@ -21,10 +23,15 @@ Deno.test('RenderTargets.layout', async (pContext) => {
         });
 
         // Process.
-        const lRenderTargets = lLayout.create();
+        const lRenderTargets: RenderTargets = lLayout.create();
 
         // Evaluation.
         expect(lRenderTargets.layout).toBe(lLayout);
+
+        // Cleanup.
+        lRenderTargets.deconstruct();
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 });
 
@@ -37,7 +44,7 @@ Deno.test('RenderTargets.resize()', async (pContext) => {
             pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
         });
 
-        const lRenderTargets = lLayout.create();
+        const lRenderTargets: RenderTargets = lLayout.create();
 
         // Process.
         lRenderTargets.resize(600, 800);
@@ -45,6 +52,11 @@ Deno.test('RenderTargets.resize()', async (pContext) => {
         // Evaluation.
         expect(lRenderTargets.width).toBe(800);
         expect(lRenderTargets.height).toBe(600);
+
+        // Cleanup.
+        lRenderTargets.deconstruct();
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Default size is 1x1', async () => {
@@ -56,11 +68,16 @@ Deno.test('RenderTargets.resize()', async (pContext) => {
         });
 
         // Process.
-        const lRenderTargets = lLayout.create();
+        const lRenderTargets: RenderTargets = lLayout.create();
 
         // Evaluation.
         expect(lRenderTargets.width).toBe(1);
         expect(lRenderTargets.height).toBe(1);
+
+        // Cleanup.
+        lRenderTargets.deconstruct();
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 });
 
@@ -73,13 +90,18 @@ Deno.test('RenderTargets.colorTarget()', async (pContext) => {
             pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
         });
 
-        const lRenderTargets = lLayout.create();
+        const lRenderTargets: RenderTargets = lLayout.create();
 
         // Process.
-        const lTextureView = lRenderTargets.colorTarget('color0');
+        const lTextureView: GpuTextureView = lRenderTargets.colorTarget('color0');
 
         // Evaluation.
         expect(lTextureView).toBeTruthy();
+
+        // Cleanup.
+        lRenderTargets.deconstruct();
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Throws for non-existing color target name', async () => {
@@ -90,13 +112,18 @@ Deno.test('RenderTargets.colorTarget()', async (pContext) => {
             pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
         });
 
-        const lRenderTargets = lLayout.create();
+        const lRenderTargets: RenderTargets = lLayout.create();
 
         // Evaluation.
         const lThrowFunction = () => {
             lRenderTargets.colorTarget('nonExistent');
         };
         expect(lThrowFunction).toThrow();
+
+        // Cleanup.
+        lRenderTargets.deconstruct();
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 });
 
@@ -110,13 +137,18 @@ Deno.test('RenderTargets.depthStencilTarget()', async (pContext) => {
             pSetup.addDepthStencil(TextureFormat.Depth24plus, true, 1.0);
         });
 
-        const lRenderTargets = lLayout.create();
+        const lRenderTargets: RenderTargets = lLayout.create();
 
         // Process.
-        const lDepthTexture = lRenderTargets.depthStencilTarget();
+        const lDepthTexture: GpuTextureView = lRenderTargets.depthStencilTarget();
 
         // Evaluation.
         expect(lDepthTexture).toBeTruthy();
+
+        // Cleanup.
+        lRenderTargets.deconstruct();
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Throws when no depth stencil is configured', async () => {
@@ -127,12 +159,17 @@ Deno.test('RenderTargets.depthStencilTarget()', async (pContext) => {
             pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
         });
 
-        const lRenderTargets = lLayout.create();
+        const lRenderTargets: RenderTargets = lLayout.create();
 
         // Evaluation.
         const lThrowFunction = () => {
             lRenderTargets.depthStencilTarget();
         };
         expect(lThrowFunction).toThrow();
+
+        // Cleanup.
+        lRenderTargets.deconstruct();
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 });

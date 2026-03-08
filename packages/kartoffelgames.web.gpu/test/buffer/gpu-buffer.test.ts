@@ -21,6 +21,10 @@ Deno.test('GpuBuffer.size -- alignment to 4 bytes', async (pContext) => {
 
         // Evaluation.
         expect(lBuffer.size).toBe(16);
+
+        // Cleanup.
+        lBuffer.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Size 1 is aligned up to 4', async () => {
@@ -32,6 +36,10 @@ Deno.test('GpuBuffer.size -- alignment to 4 bytes', async (pContext) => {
 
         // Evaluation.
         expect(lBuffer.size).toBe(4);
+
+        // Cleanup.
+        lBuffer.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Size 5 is aligned up to 8', async () => {
@@ -43,6 +51,10 @@ Deno.test('GpuBuffer.size -- alignment to 4 bytes', async (pContext) => {
 
         // Evaluation.
         expect(lBuffer.size).toBe(8);
+
+        // Cleanup.
+        lBuffer.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Size 13 is aligned up to 16', async () => {
@@ -54,6 +66,10 @@ Deno.test('GpuBuffer.size -- alignment to 4 bytes', async (pContext) => {
 
         // Evaluation.
         expect(lBuffer.size).toBe(16);
+
+        // Cleanup.
+        lBuffer.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Size 0 stays 0', async () => {
@@ -65,6 +81,10 @@ Deno.test('GpuBuffer.size -- alignment to 4 bytes', async (pContext) => {
 
         // Evaluation.
         expect(lBuffer.size).toBe(0);
+
+        // Cleanup.
+        lBuffer.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Size setter aligns to 4 bytes', async () => {
@@ -77,6 +97,10 @@ Deno.test('GpuBuffer.size -- alignment to 4 bytes', async (pContext) => {
 
         // Evaluation.
         expect(lBuffer.size).toBe(8);
+
+        // Cleanup.
+        lBuffer.deconstruct();
+        lDevice.deconstruct();
     });
 });
 
@@ -94,6 +118,10 @@ Deno.test('GpuBuffer.initialData()', async (pContext) => {
         // Evaluation. Getting native should not throw (buffer is created with initial data).
         const lNative: GPUBuffer = lBuffer.native;
         expect(lNative).toBeTruthy();
+
+        // Cleanup.
+        lBuffer.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Initial data can only be set once', async () => {
@@ -110,6 +138,10 @@ Deno.test('GpuBuffer.initialData()', async (pContext) => {
             lBuffer.initialData(lData.buffer);
         };
         expect(lThrowFunction).toThrow();
+
+        // Cleanup.
+        lBuffer.deconstruct();
+        lDevice.deconstruct();
     });
 });
 
@@ -131,6 +163,10 @@ Deno.test('GpuBuffer.write() and GpuBuffer.read()', async (pContext) => {
         expect(lResultArray[1]).toBe(2.0);
         expect(lResultArray[2]).toBe(3.0);
         expect(lResultArray[3]).toBe(4.0);
+
+        // Cleanup.
+        lBuffer.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Read with offset and size returns subset', async () => {
@@ -148,6 +184,10 @@ Deno.test('GpuBuffer.write() and GpuBuffer.read()', async (pContext) => {
         const lResultArray: Float32Array = new Float32Array(lReadResult);
         expect(lResultArray[0]).toBe(30.0);
         expect(lResultArray[1]).toBe(40.0);
+
+        // Cleanup.
+        lBuffer.deconstruct();
+        lDevice.deconstruct();
     });
 });
 
@@ -163,5 +203,9 @@ Deno.test('GpuBuffer -- usage extension', async (pContext) => {
         // Evaluation. Buffer native should be created with at least Uniform + CopySource + CopyDestination.
         const lNative: GPUBuffer = lBuffer.native;
         expect(lNative).toBeTruthy();
+
+        // Cleanup.
+        lBuffer.deconstruct();
+        lDevice.deconstruct();
     });
 });

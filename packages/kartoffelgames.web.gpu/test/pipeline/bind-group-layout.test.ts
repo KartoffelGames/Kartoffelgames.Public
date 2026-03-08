@@ -33,6 +33,10 @@ Deno.test('BindGroupLayout.setup() -- buffer binding', async (pContext) => {
         expect(lBind.resource.type).toBe('buffer');
         expect(lBind.storageType).toBe(StorageBindingType.None);
         expect(lBind.hasDynamicOffset).toBe(false);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Setup with a storage buffer binding has correct storage type', async () => {
@@ -48,6 +52,10 @@ Deno.test('BindGroupLayout.setup() -- buffer binding', async (pContext) => {
         // Evaluation.
         const lBind: Readonly<BindGroupBindLayout> = lLayout.getBind('storageBuffer');
         expect(lBind.storageType).toBe(StorageBindingType.Read);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Setup with dynamic offset buffer binding', async () => {
@@ -64,6 +72,10 @@ Deno.test('BindGroupLayout.setup() -- buffer binding', async (pContext) => {
         const lBind: Readonly<BindGroupBindLayout> = lLayout.getBind('dynamicBuffer');
         expect(lBind.hasDynamicOffset).toBe(true);
         expect(lLayout.hasDynamicOffset).toBe(true);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Resource counter counts uniform buffers', async () => {
@@ -79,6 +91,10 @@ Deno.test('BindGroupLayout.setup() -- buffer binding', async (pContext) => {
 
         // Evaluation.
         expect(lLayout.resourceCounter.uniformBuffers).toBe(2);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 });
 
@@ -100,6 +116,10 @@ Deno.test('BindGroupLayout.setup() -- sampler binding', async (pContext) => {
         if (lBind.resource.type === 'sampler') {
             expect(lBind.resource.samplerType).toBe(SamplerType.Filter);
         }
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Resource counter counts samplers', async () => {
@@ -115,6 +135,10 @@ Deno.test('BindGroupLayout.setup() -- sampler binding', async (pContext) => {
 
         // Evaluation.
         expect(lLayout.resourceCounter.sampler).toBe(2);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 });
 
@@ -138,6 +162,10 @@ Deno.test('BindGroupLayout.setup() -- texture binding', async (pContext) => {
             expect(lBind.resource.format).toBe(TextureFormat.Rgba8unorm);
             expect(lBind.resource.multisampled).toBe(false);
         }
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Resource counter counts sampled textures', async () => {
@@ -152,6 +180,10 @@ Deno.test('BindGroupLayout.setup() -- texture binding', async (pContext) => {
 
         // Evaluation.
         expect(lLayout.resourceCounter.sampledTextures).toBe(1);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Storage texture is counted as storage texture', async () => {
@@ -166,6 +198,10 @@ Deno.test('BindGroupLayout.setup() -- texture binding', async (pContext) => {
 
         // Evaluation.
         expect(lLayout.resourceCounter.storageTextures).toBe(1);
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 });
 
@@ -186,6 +222,10 @@ Deno.test('BindGroupLayout -- type discriminated union', async (pContext) => {
             expect(typeof lBind.resource.fixedSize).toBe('number');
             expect(typeof lBind.resource.variableSize).toBe('number');
         }
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Sampler resource has samplerType property', async () => {
@@ -203,6 +243,10 @@ Deno.test('BindGroupLayout -- type discriminated union', async (pContext) => {
         if (lBind.resource.type === 'sampler') {
             expect(lBind.resource.samplerType).toBe(SamplerType.NoneFiltering);
         }
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 
     await pContext.step('Texture resource has dimension, format, and multisampled properties', async () => {
@@ -222,6 +266,10 @@ Deno.test('BindGroupLayout -- type discriminated union', async (pContext) => {
             expect(lBind.resource.format).toBe(TextureFormat.Rgba32float);
             expect(lBind.resource.multisampled).toBe(false);
         }
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 });
 
@@ -243,6 +291,10 @@ Deno.test('BindGroupLayout.orderedBindingNames', async (pContext) => {
         expect(lNames[0]).toBe('first');
         expect(lNames[1]).toBe('second');
         expect(lNames[2]).toBe('third');
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 });
 
@@ -254,5 +306,9 @@ Deno.test('BindGroupLayout.name', async (pContext) => {
 
         // Evaluation.
         expect(lLayout.name).toBe('MyGroupName');
+
+        // Cleanup.
+        lLayout.deconstruct();
+        lDevice.deconstruct();
     });
 });

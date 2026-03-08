@@ -8,7 +8,7 @@ import type { PgslStructType } from '../../abstract_syntax_tree/type/pgsl-struct
 import { PgslVectorType } from '../../abstract_syntax_tree/type/pgsl-vector-type.ts';
 import type { TranspilationMeta } from '../../transpilation/transpilation-meta.ts';
 import { PgslParserResultNumericType } from '../type/pgsl-parser-result-numeric-type.ts';
-import type { PgslParserResultType, PgslParserResultTypeAlignmentType } from '../type/pgsl-parser-result-type.ts';
+import type { PgslParserResultType } from '../type/pgsl-parser-result-type.ts';
 import { PgslParserResultVectorType } from '../type/pgsl-parser-result-vector-type.ts';
 import { PgslParserResultEntryPoint } from './pgsl-parser-result-entry-point.ts';
 
@@ -93,32 +93,45 @@ export class PgslParserResultVertexEntryPoint extends PgslParserResultEntryPoint
      * @returns The parser result type.
      */
     private convertType(pType: IType): PgslParserResultType {
-        // Convert binding type to alignment type.
-        const lAlignmentType: PgslParserResultTypeAlignmentType = 'packed';
+        const lType: PgslParserResultType = (() => {
+            switch (true) {
+                // Numeric types.
+                case pType instanceof PgslNumericType: {
+                    // Build numeric type based on the specific numeric type.
+                    const lNumericType: PgslParserResultNumericType = new PgslParserResultNumericType();
+                    switch (pType.numericTypeName) {
+                        case PgslNumericType.typeName.float32:
+                            lNumericType.numberType = 'float';
+                            break;
+                        case PgslNumericType.typeName.signedInteger:
+                            lNumericType.numberType = 'integer';
+                            break;
+                        case PgslNumericType.typeName.unsignedInteger:
+                            lNumericType.numberType = 'unsigned-integer';
+                            break;
+                        case PgslNumericType.typeName.float16:
+                            lNumericType.numberType = 'float16';
+                            break;
+                    }
 
-        switch (true) {
-            // Numeric types.
-            case pType instanceof PgslNumericType: {
-                switch (pType.numericTypeName) {
-                    case PgslNumericType.typeName.float32:
-                        return new PgslParserResultNumericType('float', lAlignmentType);
-                    case PgslNumericType.typeName.signedInteger:
-                        return new PgslParserResultNumericType('integer', lAlignmentType);
-                    case PgslNumericType.typeName.unsignedInteger:
-                        return new PgslParserResultNumericType('unsigned-integer', lAlignmentType);
+                    return lNumericType;
                 }
-                throw new Exception(`Unsupported numeric type in PgslNumericType: ${pType.numericTypeName}`, this);
-            }
 
-            // Vector types.
-            case pType instanceof PgslVectorType: {
-                const lElementType = this.convertType(pType.innerType) as PgslParserResultNumericType;
-                return new PgslParserResultVectorType(lElementType, pType.dimension, lAlignmentType);
-            }
+                // Vector types.
+                case pType instanceof PgslVectorType: {
+                    const lElementType = this.convertType(pType.innerType) as PgslParserResultNumericType;
+                    return new PgslParserResultVectorType(lElementType, pType.dimension);
+                }
 
-            default:
-                throw new Exception(`Unsupported type in PgslParserResultVertexEntryPoint conversion.`, this);
-        }
+                default:
+                    throw new Exception(`Unsupported type in PgslParserResultVertexEntryPoint conversion.`, this);
+            }
+        })();
+
+        // Set packed alignment for fragment output types.
+        lType.alignmentType = 'packed';
+
+        return lType;
     }
 }
 

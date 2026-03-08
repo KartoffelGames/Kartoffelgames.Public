@@ -2,9 +2,12 @@
  * Abstract base class for representing parsed PGSL types.
  */
 export abstract class PgslParserResultType {
-    private readonly mAlignmentType: PgslParserResultTypeAlignmentType;
+    private mAlignmentType: PgslParserResultTypeAlignmentType;
+    private mByteAlignment: number;
+    private mByteSize: number;
+    private mVariableByteSize: number;
     private readonly mType: PgslParserResultTypeType;
-    
+
     /**
      * Gets the alignment type of this type.
      *
@@ -12,6 +15,35 @@ export abstract class PgslParserResultType {
      */
     public get alignmentType(): PgslParserResultTypeAlignmentType {
         return this.mAlignmentType;
+    } set alignmentType(value: PgslParserResultTypeAlignmentType) {
+        this.mAlignmentType = value;
+
+        // Reset size and alignment caches.
+        this.resetType();
+    }
+
+    /**
+     * Gets the byte alignment of this type, calculated lazily and cached for performance.
+     *
+     * @returns The byte alignment of the type.
+     */
+    public get byteAlignment(): number {
+        if (this.mByteAlignment < 0) {
+            this.mByteAlignment = this.onCalculateByteAlignment();
+        }
+        return this.mByteAlignment;
+    }
+
+    /**
+     * Gets the byte size of this type, calculated lazily and cached for performance.
+     *
+     * @returns The byte size of the type.
+     */
+    public get byteSize(): number {
+        if (this.mByteSize < 0) {
+            this.mByteSize = this.onCalculateByteSize();
+        }
+        return this.mByteSize;
     }
 
     /**
@@ -24,23 +56,61 @@ export abstract class PgslParserResultType {
     }
 
     /**
+     * Gets the variable byte size of this type.
+     * This is useful for types with runtime-sized components (e.g., runtime-sized arrays in structs).
+     * Calculated lazily and cached for performance.
+     *
+     * @returns The variable byte size of the type.
+     */
+    public get variableByteSize(): number {
+        if (this.mVariableByteSize < 0) {
+            this.mVariableByteSize = this.onCalculateVariableByteSize();
+        }
+        return this.mVariableByteSize;
+    }
+
+    /**
      * Creates a new PGSL parser result type with the specified type category.
      *
      * @param pType - The category of the type (numeric, struct, array-like, or texture).
-     * @param pAlignmentType - The alignment type (uniform, storage, or packed).
      */
-    public constructor(pType: PgslParserResultTypeType, pAlignmentType: PgslParserResultTypeAlignmentType) {
+    public constructor(pType: PgslParserResultTypeType) {
         this.mType = pType;
-        this.mAlignmentType = pAlignmentType;
+        this.mAlignmentType = 'packed';
+
+        // Set initial size and alignment to negative; they will be calculated lazily when requested.
+        this.mByteSize = -1;
+        this.mByteAlignment = -1;
+        this.mVariableByteSize = -1;
     }
+
+    /**
+     * Reset the cached byte size, alignment, and variable byte size values.
+     * This should be called whenever the type's properties change in a way that would affect its size or alignment calculations.
+     */
+    protected resetType() {
+        this.mByteSize = -1;
+        this.mByteAlignment = -1;
+        this.mVariableByteSize = -1;
+    }
+
+    protected abstract onCalculateByteSize(): number;
+
+    protected abstract onCalculateByteAlignment(): number;
+
+    protected abstract onCalculateVariableByteSize(): number;
 }
 
 /**
  * Type category enumeration for PGSL parser result types.
  * - 'numeric': Basic numeric types like integers and floats
+ * - 'boolean': Boolean types
  * - 'struct': Structured types with multiple fields
- * - 'array-like': Array, matrix and vector types
- * - 'texture': Texture and sampler types
+ * - 'array': Array-like types including arrays, vectors, and matrices
+ * - 'texture': Texture types for sampling in shaders
+ * - 'sampler': Sampler types for texture sampling
+ * - 'vector': Vector types representing multiple components (e.g., vec3)
+ * - 'matrix': Matrix types representing 2D arrays of components (e.g., mat4)
  */
 export type PgslParserResultTypeType = 'numeric' | 'boolean' | 'struct' | 'array' | 'texture' | 'sampler' | 'vector' | 'matrix';
 

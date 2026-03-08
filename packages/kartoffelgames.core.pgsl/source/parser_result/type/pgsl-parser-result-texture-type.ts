@@ -7,9 +7,9 @@ import { PgslParserResultType } from './pgsl-parser-result-type.ts';
  * Textures are opaque types in WGSL and do not have meaningful size/alignment for buffer layout.
  */
 export class PgslParserResultTextureType extends PgslParserResultType {
-    private readonly mDimension: PgslParserResultTextureDimensionType;
-    private readonly mSampledType: PgslParserResultNumericType;
-    private readonly mTextureFormat: PgslTexelFormat;
+    private mDimension: PgslParserResultTextureDimensionType;
+    private mSampledType: PgslParserResultNumericType;
+    private mTextureFormat: PgslTexelFormat;
 
     /**
      * Gets the texture dimension (1D, 2D, 3D, etc.).
@@ -18,6 +18,8 @@ export class PgslParserResultTextureType extends PgslParserResultType {
      */
     public get dimension(): PgslParserResultTextureDimensionType {
         return this.mDimension;
+    } set dimension(pValue: PgslParserResultTextureDimensionType) {
+        this.mDimension = pValue;
     }
 
     /**
@@ -27,6 +29,8 @@ export class PgslParserResultTextureType extends PgslParserResultType {
      */
     public get sampledType(): PgslParserResultNumericType {
         return this.mSampledType;
+    } set sampledType(pValue: PgslParserResultNumericType) {
+        this.mSampledType = pValue;
     }
 
     /**
@@ -36,6 +40,8 @@ export class PgslParserResultTextureType extends PgslParserResultType {
      */
     public get textureFormat(): PgslTexelFormat {
         return this.mTextureFormat;
+    } set textureFormat(pValue: PgslTexelFormat) {
+        this.mTextureFormat = pValue;
     }
 
     /**
@@ -46,12 +52,32 @@ export class PgslParserResultTextureType extends PgslParserResultType {
      * @param pTextureFormat - The texture format specification.
      */
     public constructor(pDimension: PgslParserResultTextureDimensionType, pSampledType: PgslParserResultNumericType, pTextureFormat: PgslTexelFormat) {
-        // Textures are always packed alignment.
-        super('texture', 'packed');
+        super('texture');
 
         this.mDimension = pDimension;
         this.mSampledType = pSampledType;
         this.mTextureFormat = pTextureFormat;
+    }
+
+    /**
+     * Textures are opaque types with no buffer alignment.
+     */
+    protected onCalculateByteAlignment(): number {
+        return 0;
+    }
+
+    /**
+     * Textures are opaque types with no buffer size.
+     */
+    protected onCalculateByteSize(): number {
+        return 0;
+    }
+
+    /**
+     * Textures have no variable-sized component.
+     */
+    protected onCalculateVariableByteSize(): number {
+        return 0;
     }
 }
 

@@ -54,23 +54,40 @@ export class PgslParserResultParameter extends PgslParserResultObject {
      */
     private convertType(pType: IType): PgslParserResultType {
         // Handle numeric types
-        if (pType instanceof PgslNumericType) {
-            switch (pType.numericTypeName) {
-                case PgslNumericType.typeName.float32:
-                    return new PgslParserResultNumericType('float', 'packed');
-                case PgslNumericType.typeName.signedInteger:
-                    return new PgslParserResultNumericType('integer', 'packed');
-                case PgslNumericType.typeName.unsignedInteger:
-                    return new PgslParserResultNumericType('unsigned-integer', 'packed');
+        const lType = (() => {
+            if (pType instanceof PgslNumericType) {
+                // Build numeric type based on the specific numeric type.
+                const lNumericType: PgslParserResultNumericType = new PgslParserResultNumericType();
+                switch (pType.numericTypeName) {
+                    case PgslNumericType.typeName.float32:
+                        lNumericType.numberType = 'float';
+                        break;
+                    case PgslNumericType.typeName.signedInteger:
+                        lNumericType.numberType = 'integer';
+                        break;
+                    case PgslNumericType.typeName.unsignedInteger:
+                        lNumericType.numberType = 'unsigned-integer';
+                        break;
+                    case PgslNumericType.typeName.float16:
+                        lNumericType.numberType = 'float16';
+                        break;
+                }
+
+                return lNumericType;
             }
-        }
 
-        // Handle boolean type
-        if (pType instanceof PgslBooleanType) {
-            return new PgslParserResultBooleanType('packed');
-        }
+            // Handle boolean type
+            if (pType instanceof PgslBooleanType) {
+                return new PgslParserResultBooleanType();
+            }
 
-        // Any other types are not supported and should be catched by the tracer.
-        throw new Exception(`Unsupported parameter type`, this);
+            // Any other types are not supported and should be catched by the tracer.
+            throw new Exception(`Unsupported parameter type`, this);
+        })();
+
+        // Set alignment type on the result.
+        lType.alignmentType = 'packed';
+
+        return lType;
     }
 }

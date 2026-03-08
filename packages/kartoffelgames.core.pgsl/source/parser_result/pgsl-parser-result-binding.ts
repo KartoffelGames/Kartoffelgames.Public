@@ -141,107 +141,127 @@ export class PgslParserResultBinding extends PgslParserResultObject {
             }
         })();
 
-        switch (true) {
-            // Numeric types.
-            case pType instanceof PgslNumericType: {
-                switch (pType.numericTypeName) {
-                    case PgslNumericType.typeName.float32:
-                        return new PgslParserResultNumericType('float', lAlignmentType);
-                    case PgslNumericType.typeName.signedInteger:
-                        return new PgslParserResultNumericType('integer', lAlignmentType);
-                    case PgslNumericType.typeName.unsignedInteger:
-                        return new PgslParserResultNumericType('unsigned-integer', lAlignmentType);
+        // Convert the type and set alignment.
+        const lResult: PgslParserResultType = (() => {
+            switch (true) {
+                // Numeric types.
+                case pType instanceof PgslNumericType: {
+                    const lNumericType: PgslParserResultNumericType = new PgslParserResultNumericType();
+
+                    switch (pType.numericTypeName) {
+                        case PgslNumericType.typeName.float32:
+                            lNumericType.numberType = 'float';
+                            break;
+                        case PgslNumericType.typeName.signedInteger:
+                            lNumericType.numberType = 'integer';
+                            break;
+                        case PgslNumericType.typeName.unsignedInteger:
+                            lNumericType.numberType = 'unsigned-integer';
+                            break;
+                        case PgslNumericType.typeName.float16:
+                            lNumericType.numberType = 'float16';
+                            break;
+                    }
+
+                    return lNumericType;
                 }
-                throw new Exception(`Unsupported numeric type in PgslNumericType: ${pType.numericTypeName}`, this);
-            }
 
-            // Vector types.
-            case pType instanceof PgslVectorType: {
-                const lElementType = this.convertType(pType.innerType, pDocument) as PgslParserResultNumericType;
-                return new PgslParserResultVectorType(lElementType, pType.dimension, lAlignmentType);
-            }
+                // Vector types.
+                case pType instanceof PgslVectorType: {
+                    const lElementType = this.convertType(pType.innerType, pDocument) as PgslParserResultNumericType;
+                    return new PgslParserResultVectorType(lElementType, pType.dimension);
+                }
 
-            // Matrix types.
-            case pType instanceof PgslMatrixType: {
-                const lElementType = this.convertType(pType.innerType, pDocument) as PgslParserResultNumericType;
-                return new PgslParserResultMatrixType(lElementType, pType.rowCount, pType.columnCount, lAlignmentType);
-            }
+                // Matrix types.
+                case pType instanceof PgslMatrixType: {
+                    const lElementType = this.convertType(pType.innerType, pDocument) as PgslParserResultNumericType;
+                    return new PgslParserResultMatrixType(lElementType, pType.rowCount, pType.columnCount);
+                }
 
-            // Array types.
-            case pType instanceof PgslArrayType: {
-                const lElementType = this.convertType(pType.innerType, pDocument) as PgslParserResultNumericType;
-                return new PgslParserResultArrayType(lElementType, pType.length, lAlignmentType);
-            }
+                // Array types.
+                case pType instanceof PgslArrayType: {
+                    const lElementType = this.convertType(pType.innerType, pDocument) as PgslParserResultNumericType;
+                    return new PgslParserResultArrayType(lElementType, pType.length);
+                }
 
-            // Texture types.
-            case pType instanceof PgslTextureType: {
-                // Parse texture dimension based on PGSL texture type.
-                const lDimensionType: PgslParserResultTextureDimensionType = PgslTextureType.textureDimensionFromTypeName(pType.textureType);
+                // Texture types.
+                case pType instanceof PgslTextureType: {
+                    // Parse texture dimension based on PGSL texture type.
+                    const lDimensionType: PgslParserResultTextureDimensionType = PgslTextureType.textureDimensionFromTypeName(pType.textureType);
 
-                // Convert sampled type.
-                const lSampledType: PgslParserResultNumericType = this.convertType(pType.sampledType, pDocument, 'packed') as PgslParserResultNumericType;
+                    // Convert sampled type.
+                    const lSampledType: PgslParserResultNumericType = this.convertType(pType.sampledType, pDocument, 'packed') as PgslParserResultNumericType;
 
-                return new PgslParserResultTextureType(lDimensionType, lSampledType, pType.format);
-            }
+                    return new PgslParserResultTextureType(lDimensionType, lSampledType, pType.format);
+                }
 
-            // Sampler type
-            case pType instanceof PgslSamplerType: {
-                // Samplers are always packed alignment.
-                return new PgslParserResultSamplerType(pType.comparison);
-            }
+                // Sampler type.
+                case pType instanceof PgslSamplerType: {
+                    return new PgslParserResultSamplerType(pType.comparison);
+                }
 
-            // Struct types.
-            case pType instanceof PgslStructType: {
-                const lStruct: StructDeclarationAst | null = (() => {
-                    for (const lValue of pDocument.data.content) {
-                        if (!(lValue instanceof StructDeclarationAst)) {
-                            continue;
+                // Struct types.
+                case pType instanceof PgslStructType: {
+                    const lStruct: StructDeclarationAst | null = (() => {
+                        for (const lValue of pDocument.data.content) {
+                            if (!(lValue instanceof StructDeclarationAst)) {
+                                continue;
+                            }
+
+                            if (lValue.data.name !== pType.structName) {
+                                continue;
+                            }
+
+                            return lValue;
                         }
 
-                        if (lValue.data.name !== pType.structName) {
-                            continue;
+                        return null;
+                    })();
+
+                    if (!lStruct) {
+                        throw new Exception(`Struct trace not found for struct: ${pType.structName}`, this);
+                    }
+
+                    const lPropertyArray: Array<PgslParserResultStructProperty> = new Array<PgslParserResultStructProperty>();
+
+                    // Convert property types.
+                    for (const lStructProperty of lStruct.data.properties) {
+                        // Create default property result.
+                        const lPropertyResult: PgslParserResultStructProperty = {
+                            name: lStructProperty.data.name,
+                            type: this.convertType(lStructProperty.data.typeDeclaration.data.type, pDocument),
+                        };
+
+                        // Apply size override if present.
+                        if (typeof lStructProperty.data.meta.size === 'number') {
+                            lPropertyResult.sizeOverride = lStructProperty.data.meta.size;
                         }
 
-                        return lValue;
+                        // Apply alignment override if present.
+                        if (typeof lStructProperty.data.meta.alignment === 'number') {
+                            lPropertyResult.alignmentOverride = lStructProperty.data.meta.alignment;
+                        }
+
+                        // Add property result to array.
+                        lPropertyArray.push(lPropertyResult);
                     }
 
-                    return null;
-                })();
+                    // Create struct type result with converted properties.
+                    const lStructType: PgslParserResultStructType = new PgslParserResultStructType();
+                    lStructType.properties = lPropertyArray;
 
-                if (!lStruct) {
-                    throw new Exception(`Struct trace not found for struct: ${pType.structName}`, this);
+                    return lStructType;
                 }
 
-                const lPropertyArray: Array<PgslParserResultStructProperty> = new Array<PgslParserResultStructProperty>();
-
-                // Convert property types.
-                for (const lStructProperty of lStruct.data.properties) {
-                    // Create default property result.
-                    const lPropertyResult: PgslParserResultStructProperty = {
-                        name: lStructProperty.data.name,
-                        type: this.convertType(lStructProperty.data.typeDeclaration.data.type, pDocument),
-                    };
-
-                    // Apply size override if present.
-                    if (typeof lStructProperty.data.meta.size === 'number') {
-                        lPropertyResult.sizeOverride = lStructProperty.data.meta.size;
-                    }
-
-                    // Apply alignment override if present.
-                    if (typeof lStructProperty.data.meta.alignment === 'number') {
-                        lPropertyResult.alignmentOverride = lStructProperty.data.meta.alignment;
-                    }
-
-                    // Add property result to array.
-                    lPropertyArray.push(lPropertyResult);
-                }
-
-                return new PgslParserResultStructType(lPropertyArray, lAlignmentType);
+                default:
+                    throw new Exception(`Unsupported type in PgslParserResultBinding conversion.`, this);
             }
+        })();
 
-            default:
-                throw new Exception(`Unsupported type in PgslParserResultBinding conversion.`, this);
-        }
+        // Set alignment type on the result.
+        lResult.alignmentType = lAlignmentType;
+
+        return lResult;
     }
 }
 

@@ -4,15 +4,16 @@ import { CameraComponentProjection } from '../../source/component/camera/project
 import type { PerspectiveProjection } from '../../source/component/camera/projection/perspective-projection.ts';
 import { LightComponent } from '../../source/component/light/light-component.ts';
 import { LightComponentItemType } from '../../source/component/light/type/light-component-item-type.enum.ts';
-import type { AmbientLight } from '../../source/component/light/type/ambient-light.ts';
 import type { PointLight } from '../../source/component/light/type/point-light.ts';
 import type { SpotLight } from '../../source/component/light/type/spot-light.ts';
 import { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
 import { Material } from '../../source/component_item/material.ts';
 import { Mesh } from '../../source/component_item/mesh.ts';
+import { Shader } from '../../source/component_item/shader.ts';
 import { GameScene } from '../../source/core/game-scene.ts';
 import { GameEntity } from '../../source/core/hierarchy/game-entity.ts';
+import DEFAULT_PBR_SHADER from '../../source/shader/default-pbr-shader.pgsl';
 
 /**
  * Central place for scene content creation.
@@ -157,6 +158,11 @@ export class SceneSetup {
      */
     private static createMaterial(pR: number, pG: number, pB: number, pA: number): Material {
         const lMaterial: Material = new Material();
+
+        const lShader: Shader = new Shader();
+        lShader.shaderCode = DEFAULT_PBR_SHADER;
+        lMaterial.shader = lShader;
+
         lMaterial.setBinding('baseColorFactor', new Float32Array([pR, pG, pB, pA]).buffer);
         return lMaterial;
     }

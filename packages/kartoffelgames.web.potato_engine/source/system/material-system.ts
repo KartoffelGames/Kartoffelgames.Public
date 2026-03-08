@@ -342,12 +342,22 @@ export class MaterialSystem extends GameSystem {
         // Create group layouts by transpiling declaration-only shaders.
         const lGroupLayouts: Map<string, RenderModeGroupLayout> = new Map();
 
-        // World group layout from declaration shader.
-        const lWorldResult: PgslParserResult = this.mParser.transpile('#IMPORT "WorldGroupForward";', new WgslTranspiler());
-        if (lWorldResult.incidents.length > 0) {
-            throw new Exception('Failed to transpile World group declaration shader.', this);
+        const lReferenceShaderResult: PgslParserResult = this.mParser.transpile(`
+            #IMPORT "WorldGroupForward";
+            #IMPORT "ObjectGroupForward";
+            #IMPORT "Forward";
+            ${pDefaultShaderCode}
+            #IMPORT "ForwardEntryPoints";
+        `, new WgslTranspiler());
+
+        // Check for incidents before extracting layouts to avoid partial registration if the default shader has issues.
+        if (lReferenceShaderResult.incidents.length > 0) {
+            throw new Exception('Failed to transpile reference shader.', this);
         }
-        const lWorldBindings: Array<PgslParserResultBinding> = lWorldResult.bindings.filter((pB) => pB.bindGroupName === 'World');
+
+        // World group layout from declaration shader.
+
+        const lWorldBindings: Array<PgslParserResultBinding> = lReferenceShaderResult.bindings.filter((pB) => pB.bindGroupName === 'World');
         if (lWorldBindings.length > 0) {
             lGroupLayouts.set('World', {
                 index: lWorldBindings[0].bindGroupIndex,
@@ -356,11 +366,7 @@ export class MaterialSystem extends GameSystem {
         }
 
         // Object group layout from declaration shader.
-        const lObjectResult: PgslParserResult = this.mParser.transpile('#IMPORT "ObjectGroupForward";', new WgslTranspiler());
-        if (lObjectResult.incidents.length > 0) {
-            throw new Exception('Failed to transpile Object group declaration shader.', this);
-        }
-        const lObjectBindings: Array<PgslParserResultBinding> = lObjectResult.bindings.filter((pB) => pB.bindGroupName === 'Object');
+        const lObjectBindings: Array<PgslParserResultBinding> = lReferenceShaderResult.bindings.filter((pB) => pB.bindGroupName === 'Object');
         if (lObjectBindings.length > 0) {
             lGroupLayouts.set('Object', {
                 index: lObjectBindings[0].bindGroupIndex,
@@ -369,17 +375,7 @@ export class MaterialSystem extends GameSystem {
         }
 
         // Create RenderTargetsLayout by compiling a full Forward shader to extract fragment entry.
-        const lTemplateCode: string = `
-            #IMPORT "Forward";
-            ${pDefaultShaderCode}
-            #IMPORT "ForwardEntryPoints";
-        `;
-        const lTemplateResult: PgslParserResult = this.mParser.transpile(lTemplateCode, new WgslTranspiler());
-        if (lTemplateResult.incidents.length > 0) {
-            throw new Exception('Failed to transpile Forward template shader for render targets layout.', this);
-        }
-
-        const lFragmentEntry: PgslParserResultFragmentEntryPoint = lTemplateResult.entryPoints.fragment.values().next()!.value!;
+        const lFragmentEntry: PgslParserResultFragmentEntryPoint = lReferenceShaderResult.entryPoints.fragment.values().next()!.value!;
         const lRenderTargetsLayout: RenderTargetsLayout = this.createRenderTargetsLayoutFromEntryPoint(lFragmentEntry);
 
         // Store the Forward mode configuration.

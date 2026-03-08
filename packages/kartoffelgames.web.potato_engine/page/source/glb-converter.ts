@@ -3,8 +3,10 @@ import { MeshRenderComponent } from '../../source/component/mesh-render-componen
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
 import { Material } from '../../source/component_item/material.ts';
 import { Mesh } from '../../source/component_item/mesh.ts';
+import { Shader } from '../../source/component_item/shader.ts';
 import { Texture } from '../../source/component_item/texture.ts';
 import { GameEntity } from '../../source/core/hierarchy/game-entity.ts';
+import DEFAULT_PBR_SHADER from '../../source/shader/default-pbr-shader.pgsl';
 
 // GLB format constants.
 const gGlbMagic: number = 0x46546C67;
@@ -329,6 +331,12 @@ export class GlbConverter {
 
         for (const lGltfMaterial of pJson.materials) {
             const lMaterial: Material = new Material();
+
+            // Assign default PBR shader.
+            const lShader: Shader = new Shader();
+            lShader.shaderCode = DEFAULT_PBR_SHADER;
+            lMaterial.shader = lShader;
+
             const lPbr: GltfPbrMetallicRoughness | undefined = lGltfMaterial.pbrMetallicRoughness;
 
             if (lPbr) {

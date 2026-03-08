@@ -17,7 +17,7 @@ import { GameSystem, type GameSystemConstructor, type GameSystemUpdateStateChang
 import { CullSystem, type ReadonlyCullSystemRenderTargetData } from '../../source/system/cull-system.ts';
 import { GpuSystem } from '../../source/system/gpu-system.ts';
 import { LightSystem } from '../../source/system/light-system.ts';
-import { type MaterialSystemMaterial, MaterialSystem, ShaderRenderMode } from '../../source/system/material-system.ts';
+import { MaterialSystem, ShaderRenderMode, type MaterialSystemMaterial } from '../../source/system/material-system.ts';
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
 
 type MaterialMeshGroupData = {
@@ -194,7 +194,7 @@ export class ShitSystem extends GameSystem {
         }
 
         // Rebuild instance data from the frustum-culled visible list.
-        this.rebuildInstanceData(lCullingData);
+        await this.rebuildInstanceData(lCullingData);
 
         // Create executor that runs the render pass and copies result to canvas.
         this.mDependencyGpuSystem!.gpu.execute((pExecutor) => {

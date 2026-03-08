@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
-import { PgslParser, type PgslParserResult, PgslParserResultArrayType, type PgslParserResultBinding, PgslParserResultMatrixType, PgslParserResultNumericType, PgslParserResultSamplerType, PgslParserResultStructType, PgslParserResultTextureType, type PgslParserResultType, PgslParserResultVectorType, WgslTranspiler } from '@kartoffelgames/core-pgsl';
-import { type BindGroup, type BindGroupLayout, BufferItemFormat, BufferItemMultiplier, ComputeStage, type GpuTextureView, SamplerType, Shader as GpuShader, type ShaderRenderModule, StorageBindingType, type TextureFormat, type TextureViewDimension, type VertexFragmentPipeline, VertexParameterStepMode } from '@kartoffelgames/web-gpu';
+import { PgslParser, type PgslParserResult, PgslParserResultArrayType, type PgslParserResultBinding, PgslParserResultFragmentEntryPoint, PgslParserResultMatrixType, PgslParserResultNumericType, PgslParserResultSamplerType, PgslParserResultStructType, PgslParserResultTextureType, type PgslParserResultType, PgslParserResultVectorType, PgslParserResultVertexEntryPoint, WgslTranspiler } from '@kartoffelgames/core-pgsl';
+import { type BindGroup, type BindGroupLayout, BufferItemFormat, BufferItemMultiplier, ComputeStage, type GpuTextureView, SamplerType, Shader as GpuShader, type ShaderRenderModule, StorageBindingType, type TextureFormat, type TextureViewDimension, type VertexFragmentPipeline, VertexParameterStepMode, GpuTexture } from '@kartoffelgames/web-gpu';
 import { Color } from '../component_item/color.ts';
 import { Material, type MaterialBindingValue } from '../component_item/material.ts';
 import { Texture } from '../component_item/texture.ts';
@@ -75,7 +75,6 @@ export class MaterialSystem extends GameSystem {
         this.mParser.addImport('Forward', FORWARD_IMPORT);
         this.mParser.addImport('ForwardEntryPoints', FORWARD_ENTRY_POINTS);
 
-
         // Null dependencies and deferred initialization.
         this.mDefaultMaterial = null;
         this.mGpuSystem = null;
@@ -103,56 +102,21 @@ export class MaterialSystem extends GameSystem {
             throw new Exception(`Render technique "${pTechnique}" is not yet supported. Only Forward is implemented.`, this);
         }
 
-        // Empty shader code means use default PBR with per-material User bind group.
-        if (!pMaterial.shader.shaderCode) {
-            // Check cache for existing per-material bind group.
-            const lExisting: CompiledMaterialEntry | undefined = this.mCompiledMaterials.get(pMaterial);
-            if (lExisting) {
-                return {
-                    shader: lExisting.gpuShader,
-                    userBindGroup: lExisting.userBindGroup,
-                    userGroupIndex: lExisting.userGroupIndex
-                };
-            }
-
-            // Create per-material User bind group with material-specific binding values.
-            let lUserBindGroup: BindGroup | null = null;
-            if (this.mDefaultUserBindings.length > 0) {
-                const lUserLayout: BindGroupLayout = this.mDefaultRenderModule!.layout.getGroupLayout('User');
-                lUserBindGroup = lUserLayout.create();
-                this.fillUserBindGroup(lUserBindGroup, this.mDefaultUserBindings, pMaterial, this.mDefaultBindingDefaults);
-            }
-
-            // Cache compiled entry.
-            const lEntry: CompiledMaterialEntry = {
-                gpuShader: this.mDefaultShader!,
-                sourceCode: '',
-                userBindGroup: lUserBindGroup,
-                userGroupIndex: this.mDefaultUserGroupIndex
-            };
-            this.mCompiledMaterials.set(pMaterial, lEntry);
-
-            return {
-                shader: this.mDefaultShader!,
-                userBindGroup: lUserBindGroup,
-                userGroupIndex: this.mDefaultUserGroupIndex
-            };
-        }
-
         // Check for existing compiled material with matching source code.
-        const lExisting: CompiledMaterialEntry | undefined = this.mCompiledMaterials.get(pMaterial);
-        if (lExisting && lExisting.sourceCode === pMaterial.shader.shaderCode) {
-            return {
-                shader: lExisting.gpuShader,
-                userBindGroup: lExisting.userBindGroup,
-                userGroupIndex: lExisting.userGroupIndex
-            };
+        const lExisting: MaterialSystemMaterial | undefined = this.mCompiledMaterials.get(pMaterial);
+        if (lExisting && lExisting.pipelines.has(pTechnique)) {
+            return lExisting;
         }
 
-        this.compileForwardMaterial(pMaterial);
+        // Compile new material and cache it.
+        const lShaderCode: PgslParserResult = (() => {
+            switch (pTechnique) {
+                case ShaderRenderMode.Forward: {
+                    return this.createForwardShaderCode(pMaterial);
+                }
+            }
+        })();
 
-        // Return default material while compilation is pending.
-        return this.mDefaultMaterial!;
     }
 
     /**
@@ -165,7 +129,7 @@ export class MaterialSystem extends GameSystem {
         this.mTextureSystem = this.environment.getSystem(TextureSystem);
 
         // Compile default PBR shader.
-        const lDefaultShader: Shader =  new Shader();
+        const lDefaultShader: Shader = new Shader();
         lDefaultShader.label = 'Default Shader';
         lDefaultShader.shaderCode = DEFAULT_PBR_SHADER;
 
@@ -178,7 +142,28 @@ export class MaterialSystem extends GameSystem {
         lDefaultMaterial.setBinding('metallicFactor', new Float32Array([0.0]).buffer);
         lDefaultMaterial.setBinding('roughnessFactor', new Float32Array([0.5]).buffer);
 
+        // Load default material and cache it for future use.
         this.mDefaultMaterial = await this.loadMaterial(lDefaultMaterial, ShaderRenderMode.Forward);
+    }
+
+    private createForwardShaderCode(pMaterial: Material): PgslParserResult {
+        const lShaderCode: string = pMaterial.shader.shaderCode;
+
+        // Prepend Forward import and append entry points after user code.
+        const lPgslCode: string = `
+            #IMPORT "Forward";
+            ${lShaderCode}
+            #IMPORT "ForwardEntryPoints";
+        `;
+
+        const lParserResult: PgslParserResult = this.mParser!.transpile(lPgslCode, new WgslTranspiler());
+
+        // Check for compilation errors.
+        if (lParserResult.incidents.length > 0) {
+            throw new Exception(`Shader compilation produced ${lParserResult.incidents.length} incident(s)`, this);
+        }
+
+        return lParserResult;
     }
 
     /**
@@ -194,8 +179,7 @@ export class MaterialSystem extends GameSystem {
 
         // Skip empty shader code.
         if (!lShaderCode) {
-             
-            throw new Exception('Material shader code is empty. Using default material.', this);
+            throw new Exception('Material shader code is empty.', this);
         }
 
         // Prepend Forward import and append entry points after user code.
@@ -215,10 +199,10 @@ export class MaterialSystem extends GameSystem {
                 throw new Exception(`Shader compilation produced ${lParserResult.incidents.length} incident(s)`, this);
             }
 
-            
+
 
             // Configure shader pipeline layout from parser result.
-            this.setupShader(lParserResult);
+            const lGpuShader = this.createGpuShader(lParserResult);
 
             // Create render module to access the pipeline layout for bind group creation.
             const lRenderModule: ShaderRenderModule = lGpuShader.createRenderModule('vertex_main', 'fragment_main');
@@ -270,7 +254,7 @@ export class MaterialSystem extends GameSystem {
      * @param pMaterial - The material to read binding values from.
      * @param pDefaults - Optional default values for buffer bindings when no material value is set.
      */
-    private fillUserBindGroup(pBindGroup: BindGroup, pBindings: Array<PgslParserResultBinding>, pMaterial: Material, pDefaults?: Map<string, ArrayBuffer>): void {
+    private async fillUserBindGroup(pBindGroup: BindGroup, pBindings: Array<PgslParserResultBinding>, pMaterial: Material, pDefaults?: Map<string, ArrayBuffer>): Promise<void> {
         for (const lBinding of pBindings) {
             const lBindName: string = lBinding.bindLocationName;
             const lBindType: PgslParserResultType = lBinding.type;
@@ -279,8 +263,8 @@ export class MaterialSystem extends GameSystem {
             // Handle texture bindings.
             if (lBindType instanceof PgslParserResultTextureType) {
                 if (lMaterialValue instanceof Texture) {
-                    const lGpuTexture = this.mTextureSystem!.getGpuTexture(lMaterialValue);
-  
+                    const lGpuTexture: GpuTexture = await this.mTextureSystem!.getGpuTexture(lMaterialValue);
+
                     // Map parser result dimension string to TextureViewDimension.
                     const lDimension: TextureViewDimension = lBindType.dimension as TextureViewDimension;
                     const lTextureView: GpuTextureView = lGpuTexture.useAs(lDimension);
@@ -324,77 +308,93 @@ export class MaterialSystem extends GameSystem {
     }
 
     /**
-     * Configure a GPU shader's pipeline layout from PgslParserResult metadata.
-     * Sets up vertex entry point parameters, fragment render targets, and bind groups.
+     * Creates a GPU shader from the PGSL parser result, configuring the vertex and fragment entry points,
+     * and setting up bind groups.
      *
      * Handles buffer, texture, and sampler binding types.
+     * 
+     * @param pParserResult - The pgsl parser result of the shader.
      */
-    private setupShader(pParserResult: PgslParserResult): GpuShader {
+    private createGpuShader(pParserResult: PgslParserResult): GpuShader {
         // Create GPU shader from transpiled WGSL.
         const lGpuShader: GpuShader = new GpuShader(this.mGpuSystem!.gpu, pParserResult.source, pParserResult.sourceMap);
 
+        // Setup and return the configured GPU shader.
         return lGpuShader.setup((pShaderSetup) => {
-            // Vertex entry point: create one buffer per attribute.
-            const lVertexEntry = pParserResult.entryPoints.vertex.get('vertex_main')!;
-            pShaderSetup.vertexEntryPoint('vertex_main', (pVertexSetup) => {
+            // Vertex entry point: Read first vertex entry point and create one buffer per attribute.
+            const lVertexEntry: PgslParserResultVertexEntryPoint = pParserResult.entryPoints.vertex.values().next()!.value!;
+            pShaderSetup.vertexEntryPoint(lVertexEntry.name, (pVertexSetup) => {
+                // Map each vertex parameter.
                 for (const lParam of lVertexEntry.parameters) {
-                    const lMapped = MaterialSystem.mapResultType(lParam.type);
-                    pVertexSetup.buffer(lParam.name, VertexParameterStepMode.Index)
-                        .withParameter(lParam.name, lParam.location, lMapped.format, lMapped.multiplier);
+                    const lVertexParameterType: MaterialSystemEntryPointType = this.convertEntryPointType(lParam.type);
+                    pVertexSetup.buffer(lParam.name, VertexParameterStepMode.Index).withParameter(lParam.name, lParam.location, lVertexParameterType.format, lVertexParameterType.multiplier);
                 }
             });
 
-            // Fragment entry point: add render targets.
-            const lFragmentEntry = pParserResult.entryPoints.fragment.get('fragment_main')!;
-            const lFragmentSetup = pShaderSetup.fragmentEntryPoint('fragment_main');
-            for (const lTarget of lFragmentEntry.renderTargets) {
-                const lMapped = MaterialSystem.mapResultType(lTarget.type);
-                lFragmentSetup.addRenderTarget(lTarget.name, lTarget.location, lMapped.format, lMapped.multiplier);
-            }
+            // Fragment entry point: Read first fragment entry point and add render targets.
+            const lFragmentEntry: PgslParserResultFragmentEntryPoint = pParserResult.entryPoints.fragment.values().next()!.value!;
+            pShaderSetup.fragmentEntryPoint(lFragmentEntry.name, (pFragmentSetup) => {
+                // Map each render target.
+                for (const lTarget of lFragmentEntry.renderTargets) {
+                    const lFragmentResultType: MaterialSystemEntryPointType = this.convertEntryPointType(lTarget.type);
+                    pFragmentSetup.addRenderTarget(lTarget.name, lTarget.location, lFragmentResultType.format, lFragmentResultType.multiplier);
+                }
+            });
 
-            // Bind groups: group bindings by group index.
+            // Group bindings by group index.
             const lBindGroups = new Map<number, { name: string; bindings: Array<PgslParserResultBinding>; }>();
             for (const lBinding of pParserResult.bindings) {
-                let lGroup = lBindGroups.get(lBinding.bindGroupIndex);
-                if (!lGroup) {
-                    lGroup = { name: lBinding.bindGroupName, bindings: [] };
-                    lBindGroups.set(lBinding.bindGroupIndex, lGroup);
+                // Create new group entry if it doesn't exist, then add binding to the group.
+                if (!lBindGroups.has(lBinding.bindGroupIndex)) {
+                    lBindGroups.set(lBinding.bindGroupIndex, { name: lBinding.bindGroupName, bindings: [] });
                 }
-                lGroup.bindings.push(lBinding);
+
+                lBindGroups.get(lBinding.bindGroupIndex)!.bindings.push(lBinding);
             }
 
+            // TODO: Set world and object bind groups from imports and only create user binding from shader code.
+
+            // Create bind groups.
             for (const [lIndex, lGroup] of lBindGroups) {
                 pShaderSetup.group(lIndex, lGroup.name, (pBindGroupSetup) => {
                     for (const lBinding of lGroup.bindings) {
-                        const lStorageType = lBinding.bindingType === 'storage' ? StorageBindingType.Read : undefined;
+                        // Map storage access mode to StorageBindingType.
+                        const lStorageType: StorageBindingType = (() => {
+                            // Only storage bindings have access modes.
+                            if (lBinding.bindingType !== 'storage') {
+                                return StorageBindingType.None;
+                            }
+
+                            switch (lBinding.accessMode) {
+                                case 'read': return StorageBindingType.Read;
+                                case 'write': return StorageBindingType.Write;
+                                case 'read-write': return StorageBindingType.ReadWrite;
+                            }
+                        })();
+
+                        // Default to complete visibility for all stages since PGSL doesn't specify stage-specific bindings.
                         const lVisibility = ComputeStage.Vertex | ComputeStage.Fragment;
+
+                        // Create new binding in the bind group layout.
+                        const lBindGroupLayoutEntry = pBindGroupSetup.binding(lBinding.bindLocationIndex, lBinding.bindLocationName, lVisibility, lStorageType);
 
                         // Handle texture bindings.
                         if (lBinding.type instanceof PgslParserResultTextureType) {
                             const lDimension: TextureViewDimension = lBinding.type.dimension as TextureViewDimension;
                             const lFormat: TextureFormat = lBinding.type.textureFormat as TextureFormat;
-                            pBindGroupSetup
-                                .binding(lBinding.bindLocationIndex, lBinding.bindLocationName, lVisibility, lStorageType)
-                                .asTexture(lDimension, lFormat);
+
+                            lBindGroupLayoutEntry.asTexture(lDimension, lFormat);
                             continue;
                         }
 
                         // Handle sampler bindings.
                         if (lBinding.type instanceof PgslParserResultSamplerType) {
-                            const lSamplerType: SamplerType = lBinding.type.isComparison ? SamplerType.Comparison : SamplerType.Filter;
-                            pBindGroupSetup
-                                .binding(lBinding.bindLocationIndex, lBinding.bindLocationName, lVisibility, lStorageType)
-                                .asSampler(lSamplerType);
+                            lBindGroupLayoutEntry.asSampler(lBinding.type.isComparison ? SamplerType.Comparison : SamplerType.Filter);
                             continue;
                         }
 
                         // Handle buffer bindings.
-                        const lBufferSetup = pBindGroupSetup
-                            .binding(lBinding.bindLocationIndex, lBinding.bindLocationName, lVisibility, lStorageType)
-                            .asBuffer();
-
-                        // Configure buffer memory layout based on binding type.
-                        MaterialSystem.configureBufferType(lBufferSetup, lBinding.type);
+                        lBindGroupLayoutEntry.asBuffer(lBinding.type.byteSize, lBinding.type.variableByteSize);
                     }
                 });
             }
@@ -402,109 +402,75 @@ export class MaterialSystem extends GameSystem {
     }
 
     /**
-     * Configure buffer memory layout from a PgslParserResultType.
-     * Handles arrays, structs, and primitive types recursively.
-     */
-    // deno-lint-ignore no-explicit-any
-    private static configureBufferType(pSetup: any, pType: PgslParserResultType): void {
-        if (pType instanceof PgslParserResultArrayType) {
-            const lArraySetup = pSetup.withArray();
-            const lElementType = pType.elementType;
-
-            if (lElementType instanceof PgslParserResultStructType) {
-                lArraySetup.withStruct((pStructSetup: any) => { // deno-lint-ignore no-explicit-any
-                    MaterialSystem.configureStructProperties(pStructSetup, lElementType);
-                });
-            } else {
-                const lMapped = MaterialSystem.mapResultType(lElementType);
-                lArraySetup.withPrimitive(lMapped.format, lMapped.multiplier);
-            }
-        } else if (pType instanceof PgslParserResultStructType) {
-            pSetup.withStruct((pStructSetup: any) => { // deno-lint-ignore no-explicit-any
-                MaterialSystem.configureStructProperties(pStructSetup, pType);
-            });
-        } else {
-            const lMapped = MaterialSystem.mapResultType(pType);
-            pSetup.withPrimitive(lMapped.format, lMapped.multiplier);
-        }
-    }
-
-    /**
-     * Configure struct properties on a struct buffer memory layout setup.
-     */
-    // deno-lint-ignore no-explicit-any
-    private static configureStructProperties(pStructSetup: any, pStructType: PgslParserResultStructType): void {
-        for (const lProp of pStructType.properties) {
-            const lPropSetup = pStructSetup.property(lProp.name);
-
-            if (lProp.type instanceof PgslParserResultArrayType) {
-                const lArrayPropSetup = lPropSetup.asArray();
-                const lMapped = MaterialSystem.mapResultType(lProp.type.elementType);
-                lArrayPropSetup.asPrimitive(lMapped.format, lMapped.multiplier);
-            } else if (lProp.type instanceof PgslParserResultStructType) {
-                lPropSetup.asStruct((pInnerStructSetup: any) => { // deno-lint-ignore no-explicit-any
-                    MaterialSystem.configureStructProperties(pInnerStructSetup, lProp.type as PgslParserResultStructType);
-                });
-            } else {
-                const lMapped = MaterialSystem.mapResultType(lProp.type);
-                lPropSetup.asPrimitive(lMapped.format, lMapped.multiplier);
-            }
-        }
-    }
-
-    /**
      * Map a PgslParserResultType to GPU buffer format and multiplier.
+     * 
+     * @param pType - The PGSL parser result type to convert.
+     * 
+     * @returns The corresponding MaterialSystemEntryPointType with buffer format and multiplier.
+     * 
+     * @throws Error if the type cannot be mapped to a buffer format (e.g. unsupported types).
      */
-    public static mapResultType(pType: PgslParserResultType): { format: BufferItemFormat; multiplier: BufferItemMultiplier; } {
-        if (pType instanceof PgslParserResultVectorType) {
-            const lNumType = pType.elementType as PgslParserResultNumericType;
-            const lFormat = lNumType.numberType === 'float' ? BufferItemFormat.Float32
-                : lNumType.numberType === 'unsigned-integer' ? BufferItemFormat.Uint32
-                    : BufferItemFormat.Sint32;
-            switch (pType.dimension) {
-                case 2: return { format: lFormat, multiplier: BufferItemMultiplier.Vector2 };
-                case 3: return { format: lFormat, multiplier: BufferItemMultiplier.Vector3 };
-                case 4: return { format: lFormat, multiplier: BufferItemMultiplier.Vector4 };
-            }
-        }
-
-        if (pType instanceof PgslParserResultMatrixType) {
-            const lKey = `${pType.rows}${pType.columns}`;
-            const lMatrixMap: Record<string, BufferItemMultiplier> = {
-                '22': BufferItemMultiplier.Matrix22, 
-                '23': BufferItemMultiplier.Matrix23, 
-                '24': BufferItemMultiplier.Matrix24,
-                '32': BufferItemMultiplier.Matrix32, 
-                '33': BufferItemMultiplier.Matrix33, 
-                '34': BufferItemMultiplier.Matrix34,
-                '42': BufferItemMultiplier.Matrix42, 
-                '43': BufferItemMultiplier.Matrix43, 
-                '44': BufferItemMultiplier.Matrix44,
-            };
-            const lMultiplier = lMatrixMap[lKey];
-            if (lMultiplier) {
-                return { format: BufferItemFormat.Float32, multiplier: lMultiplier };
-            }
-            throw new Error(`Unsupported matrix dimensions: ${pType.rows}x${pType.columns}`);
-        }
-
+    public convertEntryPointType(pType: PgslParserResultType): MaterialSystemEntryPointType {
         if (pType instanceof PgslParserResultNumericType) {
-            const lFormat = pType.numberType === 'float' ? BufferItemFormat.Float32
-                : pType.numberType === 'unsigned-integer' ? BufferItemFormat.Uint32
-                    : BufferItemFormat.Sint32;
+            // Map numeric types directly to buffer formats.
+            const lFormat: BufferItemFormat = (() => {
+                switch (pType.numberType) {
+                    case 'unsigned-integer': return BufferItemFormat.Uint32;
+                    case 'integer': return BufferItemFormat.Sint32;
+                    case 'float': return BufferItemFormat.Float32;
+                    case 'float16': return BufferItemFormat.Float16;
+                    default:
+                        throw new Error(`Unsupported numeric type: ${pType.numberType}`);
+                }
+            })();
+
             return { format: lFormat, multiplier: BufferItemMultiplier.Single };
+        }
+
+        // Map vector types to their element type format and appropriate multiplier.
+        if (pType instanceof PgslParserResultVectorType) {
+            // Convert inner numeric type to buffer format.
+            const lInnerType: MaterialSystemEntryPointType = this.convertEntryPointType(pType.elementType);
+
+            // Map vector dimension to appropriate multiplier.
+            switch (pType.dimension) {
+                case 2: return { format: lInnerType.format, multiplier: BufferItemMultiplier.Vector2 };
+                case 3: return { format: lInnerType.format, multiplier: BufferItemMultiplier.Vector3 };
+                case 4: return { format: lInnerType.format, multiplier: BufferItemMultiplier.Vector4 };
+            }
+        }
+
+        // Map matrix dimensions to appropriate format and multiplier.
+        if (pType instanceof PgslParserResultMatrixType) {
+            switch (`${pType.rows}${pType.columns}`) {
+                case '22': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix22 };
+                case '23': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix23 };
+                case '24': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix24 };
+                case '32': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix32 };
+                case '33': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix33 };
+                case '34': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix34 };
+                case '42': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix42 };
+                case '43': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix43 };
+                case '44': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix44 };
+                default:
+                    throw new Error(`Unsupported matrix dimensions: ${pType.rows}x${pType.columns}`);
+            }
         }
 
         throw new Error(`Unsupported type for buffer mapping: ${pType.type}`);
     }
 }
 
+type MaterialSystemEntryPointType = {
+    format: BufferItemFormat;
+    multiplier: BufferItemMultiplier;
+};
+
 /**
  * Public return type for loaded materials.
  */
 export type MaterialSystemMaterial = {
-    readonly renderMode: ShaderRenderMode;
-    readonly pipeline: VertexFragmentPipeline;
+    readonly pipelines: Map<ShaderRenderMode, VertexFragmentPipeline>;
     readonly userBinding: {
         group: BindGroup;
         index: number;

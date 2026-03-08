@@ -1672,7 +1672,7 @@ Deno.test('VariableDeclarationAst - Parser Result', async (pContext) => {
             // Validation. Check type details.
             const lUniformType: PgslParserResultTextureType = lBinding.type as PgslParserResultTextureType;
             expect(lUniformType.type).toBe('texture');
-            expect(lUniformType.alignmentType).toBe('packed'); // Textures are always 'packed' aligned.
+            expect(lUniformType.alignmentType).toBe('uniform');
             expect(lUniformType.dimension).toBe('2d');
             expect(lUniformType.sampledType).toBeInstanceOf(PgslParserResultNumericType);
 
@@ -1712,7 +1712,7 @@ Deno.test('VariableDeclarationAst - Parser Result', async (pContext) => {
             // Validation. Check type details.
             const lUniformType: PgslParserResultSamplerType = lBinding.type as PgslParserResultSamplerType;
             expect(lUniformType.type).toBe('sampler');
-            expect(lUniformType.alignmentType).toBe('packed'); // Samplers are always 'packed' aligned.
+            expect(lUniformType.alignmentType).toBe('uniform');
             expect(lUniformType.isComparison).toBeFalsy();
         });
 
@@ -1745,7 +1745,7 @@ Deno.test('VariableDeclarationAst - Parser Result', async (pContext) => {
             // Validation. Check type details.
             const lUniformType: PgslParserResultSamplerType = lBinding.type as PgslParserResultSamplerType;
             expect(lUniformType.type).toBe('sampler');
-            expect(lUniformType.alignmentType).toBe('packed'); // Samplers are always 'packed' aligned.
+            expect(lUniformType.alignmentType).toBe('uniform');
             expect(lUniformType.isComparison).toBeTruthy();
         });
 

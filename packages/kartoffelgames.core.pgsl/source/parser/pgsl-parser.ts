@@ -1278,9 +1278,9 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
             return {
                 type: 'Document',
                 range: this.createTokenBoundParameter(pStartToken, pEndToken),
-                buildInDeclarations: [],
-                imports: [],
-                declarations: pData.list ?? [],
+                buildInDeclarations: new Array<DeclarationCst>(), 
+                imports: new Array<DocumentCstImport>(),
+                declarations: pData.list ?? new Array<DeclarationCst<DeclarationCstType>>(),
                 metaValues: new Map<string, string>()
             } satisfies DocumentCst;
         });
@@ -1786,7 +1786,22 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
         this.mUserDefinedTypeNames = lUserDefinedNames;
 
         // Parse document CST.
-        const lDocumentCst: DocumentCst = super.parse(lProcessedCode.code);
+        const lDocumentCst: DocumentCst = (() => {
+            // Create a empty document when there is no code to parse.
+                // This allows documents to only contain imports and meta values.
+            if (lProcessedCode.code.trim() === '') {
+                return {
+                    type: 'Document',
+                    range: [0, 0, 0, 0],
+                    buildInDeclarations: new Array<DeclarationCst>(),
+                    imports: new Array<DocumentCstImport>(),
+                    declarations: new Array<DeclarationCst<DeclarationCstType>>(),
+                    metaValues: new Map<string, string>()
+                } satisfies DocumentCst;
+            }
+
+            return super.parse(lProcessedCode.code);
+        })();
 
         // Merge meta values from parsed document.
         // Core document values have priority over imported ones.

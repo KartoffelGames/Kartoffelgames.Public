@@ -218,4 +218,30 @@ Deno.test('Import', async (pContext) => {
             `}`
         );
     });
+
+    await pContext.step('Import statement without core code', () => {
+        // Setup. Create parser.
+        const lPgslParser: PgslParser = new PgslParser();
+
+        // Setup. Assign a import.
+        lPgslParser.addImport('FirstImport', `
+            const PI: ${PgslNumericType.typeName.float32} = 3.14;    
+        `);
+
+        // Setup. Create code text that uses the import.
+        const lCodeText: string = `
+            #IMPORT "FirstImport";
+        `;
+
+        // Process.
+        const lTranspilationResult: PgslParserResult = lPgslParser.transpile(lCodeText, new WgslTranspiler());
+
+        // Evaluation. No errors.
+        expect(lTranspilationResult.incidents).toHaveLength(0);
+
+        // Evaluation. Correct transpilation output.
+        expect(lTranspilationResult.source).toBe(
+            `const PI:f32=3.14;`
+        );
+    });
 });

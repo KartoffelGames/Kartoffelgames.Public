@@ -1,0 +1,16 @@
+#IMPORT "SharedTypes";
+
+// ===== World Bindings (shared across all objects for same camera) =====
+[GroupBinding("World", "viewProjection")]
+uniform viewProjection: Matrix44<float>;
+
+[GroupBinding("World", "lightData")]
+[AccessMode(AccessMode.Read)]
+storage lightData: Array<Light>;
+
+[GroupBinding("World", "lightCount")]
+uniform lightCount: uint;
+
+[GroupBinding("World", "lightIndexList")]
+[AccessMode(AccessMode.Read)]
+storage lightIndexList: Array<uint>;

@@ -1,17 +1,9 @@
-import type { PgslParserResult } from '@kartoffelgames/core-pgsl';
 import {
     type BindGroup,
     type CanvasTexture,
     type GpuBuffer,
-    type GpuExecution,
     type PipelineData,
-    PrimitiveCullMode,
-    type RenderPass,
     type RenderTargets,
-    RenderTargetsLayout,
-    type Shader,
-    type ShaderRenderModule,
-    TextureFormat,
     type VertexFragmentPipeline,
     type VertexParameter,
 } from '@kartoffelgames/web-gpu';
@@ -33,6 +25,7 @@ type MaterialMeshGroupData = {
     componentIndicesBuffer: GpuBuffer;
     userBindGroup: BindGroup | null;
     pipelineData: PipelineData;
+    pipeline: VertexFragmentPipeline;
     instanceCount: number;
 };
 
@@ -45,7 +38,6 @@ type MaterialMeshGroupData = {
 export class ShitSystem extends GameSystem {
     private mCanvas: HTMLCanvasElement | null;
     private mDefaultPipeline: VertexFragmentPipeline | null;
-    private mDefaultRenderModule: ShaderRenderModule | null;
     private mDependencyCullSystem: CullSystem | null;
     private mDependencyGpuSystem: GpuSystem | null;
     private mDependencyLightSystem: LightSystem | null;
@@ -59,7 +51,6 @@ export class ShitSystem extends GameSystem {
     private mObjectGroupIndex: number;
     private mRenderTargets: RenderTargets | null;
     private mResizeObserver: ResizeObserver | null;
-    private mUserGroupIndex: number;
     private readonly mVertexParameterCache: Map<Mesh, Array<VertexParameter>>;
     private mWorldGroup: BindGroup | null;
     private mWorldGroupIndex: number;
@@ -102,7 +93,6 @@ export class ShitSystem extends GameSystem {
 
         this.mCanvas = null;
         this.mDefaultPipeline = null;
-        this.mDefaultRenderModule = null;
         this.mDependencyCullSystem = null;
         this.mDependencyGpuSystem = null;
         this.mDependencyLightSystem = null;
@@ -115,14 +105,13 @@ export class ShitSystem extends GameSystem {
         this.mObjectGroupIndex = 1;
         this.mRenderTargets = null;
         this.mResizeObserver = null;
-        this.mUserGroupIndex = -1;
         this.mVertexParameterCache = new Map();
         this.mWorldGroup = null;
         this.mWorldGroupIndex = 0;
     }
 
     /**
-     * Initialize canvas, GPU render targets, shader pipeline from MaterialSystem, render pass, and executor.
+     * Initialize canvas, GPU render targets from MaterialSystem's layout, and bind groups.
      */
     protected override async onCreate(): Promise<void> {
         // Read dependencies.
@@ -139,13 +128,17 @@ export class ShitSystem extends GameSystem {
 
         const lGpu = this.mDependencyGpuSystem.gpu;
 
-        // Create GPU render targets as standalone offscreen textures.
+        // Get canvas dimensions.
         const lCanvasWidth: number = Math.round(this.mCanvas.clientWidth * devicePixelRatio);
         const lCanvasHeight: number = Math.round(this.mCanvas.clientHeight * devicePixelRatio);
         const lCanvasTexture: CanvasTexture = lGpu.canvas(this.mCanvas);
         lCanvasTexture.width = lCanvasWidth;
         lCanvasTexture.height = lCanvasHeight;
-        this.mRenderTargets = this.createRenderTargets(lCanvasTexture);
+
+        // Create RenderTargets from MaterialSystem's RenderTargetsLayout.
+        const lRenderTargetsLayout = this.mDependencyMaterialSystem.getRenderTargetsLayout(ShaderRenderMode.Forward);
+        this.mRenderTargets = lRenderTargetsLayout.create();
+        this.mRenderTargets.setResolveCanvas('color', lCanvasTexture);
         this.mRenderTargets.resize(lCanvasHeight, lCanvasWidth);
 
         // Update core render target component dimensions to match canvas.
@@ -171,29 +164,17 @@ export class ShitSystem extends GameSystem {
         });
         this.mResizeObserver.observe(this.mCanvas);
 
-        // Get default loaded material from MaterialSystem (shader is already configured).
+        // Get group indices from MaterialSystem.
+        this.mWorldGroupIndex = this.mDependencyMaterialSystem.getGroupIndex(ShaderRenderMode.Forward, 'World');
+        this.mObjectGroupIndex = this.mDependencyMaterialSystem.getGroupIndex(ShaderRenderMode.Forward, 'Object');
+
+        // Get default material and its pipeline.
         const lDefaultMaterial: MaterialSystemMaterial = this.mDependencyMaterialSystem.defaultMaterial;
-        const lDefaultShader: Shader = lDefaultMaterial.shader;
-        const lParserResult: PgslParserResult = lDefaultMaterial.parserResult;
+        this.mDefaultPipeline = lDefaultMaterial.pipelines.get(ShaderRenderMode.Forward)!;
 
-        // Determine bind group indices from parser result.
-        for (const lBinding of lParserResult.bindings) {
-            if (lBinding.bindGroupName === 'World') {
-                this.mWorldGroupIndex = lBinding.bindGroupIndex;
-            } else if (lBinding.bindGroupName === 'Object') {
-                this.mObjectGroupIndex = lBinding.bindGroupIndex;
-            } else if (lBinding.bindGroupName === 'User') {
-                this.mUserGroupIndex = lBinding.bindGroupIndex;
-            }
-        }
-
-        // Create render module and pipeline.
-        this.mDefaultRenderModule = lDefaultShader.createRenderModule('vertex_main', 'fragment_main');
-        this.mDefaultPipeline = this.mDefaultRenderModule.create(this.mRenderTargets.layout);
-        this.mDefaultPipeline.primitiveCullMode = PrimitiveCullMode.Front;
-
-        // Create World bind group with VP buffer. Light data is lazily initialized.
-        this.mWorldGroup = this.mDefaultRenderModule.layout.getGroupLayout('World').create();
+        // Create World bind group from MaterialSystem's layout and initialize VP buffer.
+        const lWorldLayout = this.mDependencyMaterialSystem.getGroupLayout(ShaderRenderMode.Forward, 'World');
+        this.mWorldGroup = lWorldLayout.create();
         this.mWorldGroup.data('viewProjection').createBuffer();
     }
 
@@ -201,7 +182,7 @@ export class ShitSystem extends GameSystem {
      * Execute rendering every frame.
      */
     protected override async onFrame(): Promise<void> {
-        if (!this.mDefaultRenderModule || !this.mDefaultPipeline) {
+        if (!this.mDefaultPipeline) {
             return;
         }
 
@@ -223,7 +204,7 @@ export class ShitSystem extends GameSystem {
                         for (const [lSubMeshIndex, lGroupData] of lSubMeshGroups) {
                             if (lGroupData.instanceCount > 0) {
                                 const lVertexParam: VertexParameter = this.mVertexParameterCache.get(lMesh)![lSubMeshIndex];
-                                pContext.drawDirect(this.mDefaultPipeline!, lVertexParam, lGroupData.pipelineData, lGroupData.instanceCount);
+                                pContext.drawDirect(lGroupData.pipeline, lVertexParam, lGroupData.pipelineData, lGroupData.instanceCount);
                             }
                         }
                     }
@@ -243,15 +224,20 @@ export class ShitSystem extends GameSystem {
      * Create a new material+mesh group with Object bind group, buffers, and pipeline data.
      */
     private createMaterialMeshGroup(pLoadedMaterial: MaterialSystemMaterial, pInitialCount: number): MaterialMeshGroupData {
-        const lObjectBindGroup: BindGroup = this.mDefaultRenderModule!.layout.getGroupLayout('Object').create();
+        // Get pipeline for this material.
+        const lPipeline: VertexFragmentPipeline = pLoadedMaterial.pipelines.get(ShaderRenderMode.Forward)!;
+
+        // Create Object bind group from MaterialSystem's layout.
+        const lObjectLayout = this.mDependencyMaterialSystem!.getGroupLayout(ShaderRenderMode.Forward, 'Object');
+        const lObjectBindGroup: BindGroup = lObjectLayout.create();
         lObjectBindGroup.data('transformationData').set(this.mDependencyTransformationSystem!.gpuBuffer);
         const lComponentIndicesBuffer: GpuBuffer = lObjectBindGroup.data('componentIndices').createBuffer(pInitialCount);
 
-        // Create pipeline data with groups in index order.
-        const lUserBindGroup: BindGroup | null = pLoadedMaterial.userBindGroup;
-        const lUserGroupIndex: number = pLoadedMaterial.userGroupIndex;
+        // Create pipeline data from material's pipeline layout.
+        const lUserBindGroup: BindGroup | null = pLoadedMaterial.userBinding.group;
+        const lUserGroupIndex: number = pLoadedMaterial.userBinding.index;
 
-        const lPipelineData: PipelineData = this.mDefaultPipeline!.layout.withData((pSetup) => {
+        const lPipelineData: PipelineData = lPipeline.layout.withData((pSetup) => {
             const lMaxIndex = Math.max(this.mWorldGroupIndex, this.mObjectGroupIndex, lUserGroupIndex);
             const lGroups: Array<BindGroup | null> = new Array(lMaxIndex + 1).fill(null);
             lGroups[this.mWorldGroupIndex] = this.mWorldGroup!;
@@ -273,23 +259,9 @@ export class ShitSystem extends GameSystem {
             componentIndicesBuffer: lComponentIndicesBuffer,
             userBindGroup: lUserBindGroup,
             pipelineData: lPipelineData,
+            pipeline: lPipeline,
             instanceCount: 0
         };
-    }
-
-    /**
-     * Create GPU render targets as standalone offscreen textures.
-     */
-    private createRenderTargets(pCanvasTexture: CanvasTexture): RenderTargets {
-        const lRenderTargetsLayout: RenderTargetsLayout = this.mDependencyGpuSystem!.gpu.renderTargetsLayout(true).setup((pSetup) => {
-            pSetup.addColor('color', 0, TextureFormat.Bgra8unorm, false, { r: 0, g: 0, b: 0, a: 1 });
-            pSetup.addDepthStencil(TextureFormat.Depth24plus, false, 1);
-        });
-
-        const lRenderTargets: RenderTargets = lRenderTargetsLayout.create();
-        lRenderTargets.setResolveCanvas('color', pCanvasTexture);
-
-        return lRenderTargets;
     }
 
     /**
@@ -304,7 +276,7 @@ export class ShitSystem extends GameSystem {
         const lDefaultUvs: Array<number> = new Array(lVertexCount * 2).fill(0);
 
         const lVertexParameters = pMesh.subMeshes.map((pSubMesh) => {
-            const lVertexParam: VertexParameter = this.mDefaultRenderModule!.vertexParameter.create(pSubMesh.indices);
+            const lVertexParam: VertexParameter = this.mDefaultPipeline!.module.vertexParameter.create(pSubMesh.indices);
 
             lVertexParam.create('position', pMesh.verticesData);
             lVertexParam.create('normal', pMesh.normals);
@@ -326,7 +298,7 @@ export class ShitSystem extends GameSystem {
      * Each submesh uses its corresponding material from the MeshRenderComponent's materials array.
      */
     private async rebuildInstanceData(pCullingData: ReadonlyCullSystemRenderTargetData): Promise<void> {
-        if (!this.mDefaultRenderModule || !this.mDefaultPipeline || !this.mWorldGroup) {
+        if (!this.mDefaultPipeline || !this.mWorldGroup) {
             return;
         }
 
@@ -414,7 +386,7 @@ export class ShitSystem extends GameSystem {
 
         // Process each material+mesh+submesh group.
         for (const [lMaterial, lMeshMap] of lGroupMap) {
-            // Load material from MaterialSystem (may return default while compiling).
+            // Load material from MaterialSystem (returns compiled material with pipeline).
             const lLoadedMaterial: MaterialSystemMaterial = await lMaterialSystem.loadMaterial(lMaterial, ShaderRenderMode.Forward);
 
             for (const [lMesh, lSubMeshMap] of lMeshMap) {

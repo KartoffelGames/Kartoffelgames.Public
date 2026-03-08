@@ -1,5 +1,3 @@
-#IMPORT "Core";
-
 // ===== Object Bindings (per-object data) =====
 [GroupBinding("Object", "transformationData")]
 [AccessMode(AccessMode.Read)]

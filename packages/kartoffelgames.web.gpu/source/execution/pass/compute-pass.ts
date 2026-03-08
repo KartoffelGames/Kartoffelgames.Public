@@ -3,32 +3,32 @@ import { BufferUsage } from '../../constant/buffer-usage.enum.ts';
 import { GpuFeature } from '../../constant/gpu-feature.enum.ts';
 import type { GpuDevice } from '../../device/gpu-device.ts';
 import { GpuObject } from '../../gpu_object/gpu-object.ts';
-import type { GpuExecutionContext } from '../gpu-execution.ts';
+import type { GpuExecutionContext } from '../gpu-execution-context.ts';
 import { ComputePassContext } from './compute-pass-context.ts';
 
 /**
  * Gpu compute pass.
  */
 export class ComputePass extends GpuObject {
-    private readonly mExecutionFunction: ComputePassExecutionFunction;
+    private readonly mExecutionContext: GpuExecutionContext;
     private readonly mQueries: ComputePassQuery;
 
     /**
      * Constructor.
      * @param pDevice - Device reference.
      */
-    public constructor(pDevice: GpuDevice, pExecution: ComputePassExecutionFunction) {
+    public constructor(pDevice: GpuDevice, pExecutionContext: GpuExecutionContext) {
         super(pDevice);
 
-        this.mExecutionFunction = pExecution;
         this.mQueries = {};
+        this.mExecutionContext = pExecutionContext;
     }
 
     /**
      * Execute steps in a row.
      * @param pExecutionContext - Executor context.
      */
-    public execute(pExecutionContext: GpuExecutionContext): void {
+    public execute(pExecution: ComputePassExecutionFunction): void {
         // Read render pass descriptor and inject timestamp query when it is setup.
         const lComputePassDescriptor: GPUComputePassDescriptor = {};
         if (this.mQueries.timestamp) {
@@ -36,17 +36,17 @@ export class ComputePass extends GpuObject {
         }
 
         // Pass descriptor is set, when the pipeline ist set.
-        const lComputePassEncoder: GPUComputePassEncoder = pExecutionContext.commandEncoder.beginComputePass(lComputePassDescriptor);
+        const lComputePassEncoder: GPUComputePassEncoder = this.mExecutionContext.commandEncoder.beginComputePass(lComputePassDescriptor);
 
         // Direct execute function.
-        this.mExecutionFunction(new ComputePassContext(lComputePassEncoder));
+        pExecution(new ComputePassContext(lComputePassEncoder));
 
         // End compute pass.
         lComputePassEncoder.end();
 
         // Resolve query.
         if (this.mQueries.timestamp) {
-            pExecutionContext.commandEncoder.resolveQuerySet(this.mQueries.timestamp.query.querySet, 0, 2, this.mQueries.timestamp.buffer.native, 0);
+            this.mExecutionContext.commandEncoder.resolveQuerySet(this.mQueries.timestamp.query.querySet, 0, 2, this.mQueries.timestamp.buffer.native, 0);
         }
     }
 

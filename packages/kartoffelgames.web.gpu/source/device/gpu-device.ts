@@ -2,10 +2,7 @@ import { EnumUtil, Exception, List } from '@kartoffelgames/core';
 import type { GpuFeature } from '../constant/gpu-feature.enum.ts';
 import { GpuLimit } from '../constant/gpu-limit.enum.ts';
 import { GpuExecution, type GpuExecutionFunction } from '../execution/gpu-execution.ts';
-import { ComputePass, type ComputePassExecutionFunction } from '../execution/pass/compute-pass.ts';
-import { RenderPass, type RenderPassExecutionFunction } from '../execution/pass/render-pass.ts';
 import { RenderTargetsLayout } from '../pipeline/render_targets/render-targets-layout.ts';
-import type { RenderTargets } from '../pipeline/render_targets/render-targets.ts';
 import { Shader } from '../shader/shader.ts';
 import { CanvasTexture } from '../texture/canvas-texture.ts';
 import { GpuDeviceCapabilities } from './capabilities/gpu-device-capabilities.ts';
@@ -189,21 +186,12 @@ export class GpuDevice {
     }
 
     /**
-     * Create new compute pass.
-     *
-     * @returns new compute pass. 
-     */
-    public computePass(pExecution: ComputePassExecutionFunction): ComputePass {
-        return new ComputePass(this, pExecution);
-    }
-
-    /**
      * Create pass executor.
      * 
      * @param pOnExecute - On executor execute.
      */
-    public executor(pOnExecute: GpuExecutionFunction): GpuExecution {
-        return new GpuExecution(this, pOnExecute);
+    public execute(pOnExecute: GpuExecutionFunction): void {
+        new GpuExecution(this).execute(pOnExecute);
     }
 
     /**
@@ -213,18 +201,6 @@ export class GpuDevice {
      */
     public removeFrameChangeListener(pListener: GpuDeviceFrameChangeListener): void {
         this.mFrameChangeListener.remove(pListener);
-    }
-
-    /**
-     * Create new render pass.
-     * 
-     * @param pRenderTargets - Render targets of pass.
-     * @param pStaticBundle - Bundle is static and does not update very often.
-     * 
-     * @returns new render pass. 
-     */
-    public renderPass(pRenderTargets: RenderTargets, pExecution: RenderPassExecutionFunction, pStaticBundle: boolean = true): RenderPass {
-        return new RenderPass(this, pRenderTargets, pStaticBundle, pExecution);
     }
 
     /**

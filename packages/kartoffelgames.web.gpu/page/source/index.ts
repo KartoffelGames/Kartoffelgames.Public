@@ -13,19 +13,16 @@ import { TextureFormat } from '../../source/constant/texture-format.enum.ts';
 import { TextureViewDimension } from '../../source/constant/texture-view-dimension.enum.ts';
 import { VertexParameterStepMode } from '../../source/constant/vertex-parameter-step-mode.enum.ts';
 import { GpuDevice } from '../../source/device/gpu-device.ts';
-import type { GpuExecution } from '../../source/execution/gpu-execution.ts';
-import type { ComputePass } from '../../source/execution/pass/compute-pass.ts';
-import type { RenderPass } from '../../source/execution/pass/render-pass.ts';
 import type { BindGroup } from '../../source/pipeline/bind_group/bind-group.ts';
 import { BindGroupLayout } from '../../source/pipeline/bind_group_layout/bind-group-layout.ts';
 import { ComputePipeline } from '../../source/pipeline/compute-pipeline.ts';
 import type { PipelineData } from '../../source/pipeline/pipeline_data/pipeline-data.ts';
-import { type RenderTargets, RenderTargetsInvalidationType } from '../../source/pipeline/render_targets/render-targets.ts';
 import type { RenderTargetsLayout } from '../../source/pipeline/render_targets/render-targets-layout.ts';
+import { type RenderTargets, RenderTargetsInvalidationType } from '../../source/pipeline/render_targets/render-targets.ts';
 import type { VertexFragmentPipeline } from '../../source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline.ts';
 import type { VertexParameter } from '../../source/pipeline/vertex_parameter/vertex-parameter.ts';
-import type { Shader } from '../../source/shader/shader.ts';
 import type { ShaderRenderModule } from '../../source/shader/shader-render-module.ts';
+import type { Shader } from '../../source/shader/shader.ts';
 import type { CanvasTexture } from '../../source/texture/canvas-texture.ts';
 import type { GpuTexture, GpuTextureCopyOptions } from '../../source/texture/gpu-texture.ts';
 import { AmbientLight } from './camera/light/ambient-light.ts';
@@ -905,70 +902,22 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
         ...gGenerateColorCubeStep(lGpu, lRenderTargetsLayout, lWorldGroup),
         lParticelRenderInstruction
     ];
-    const lRenderPass: RenderPass = lGpu.renderPass(lRenderTargets, (pContext) => {
-        for (const lStep of lRenderSteps) {
-            if (lStep.indirectBuffer) {
-                pContext.drawIndirect(
-                    lStep.pipeline,
-                    lStep.parameter,
-                    lStep.data,
-                    lStep.indirectBuffer
-                );
-            } else {
-                pContext.drawDirect(
-                    lStep.pipeline,
-                    lStep.parameter,
-                    lStep.data,
-                    lStep.instanceCount
-                );
-            }
-        }
-    });
-
-    (<any>window).renderpassRuntime = () => {
-        lRenderPass.probeTimestamp().then(([pStart, pEnd]) => {
-            // eslint-disable-next-line no-console
-            console.log('Runtime:', Number(pEnd - pStart) / 1000000, 'ms');
-        });
-    };
 
     // Create instruction.
     const lComputeSteps: Array<ComputeInstruction> = [
         lParticelComputeInstruction
     ];
-    const lComputePass: ComputePass = lGpu.computePass((pContext) => {
-        for (const lStep of lComputeSteps) {
-            pContext.computeDirect(
-                lStep.pipeline,
-                lStep.data,
-                lStep.dimensions.x,
-                lStep.dimensions.y,
-                lStep.dimensions.z
-            );
-        }
-    });
-
-    (<any>window).computepassRuntime = () => {
-        lComputePass.probeTimestamp().then(([pStart, pEnd]) => {
-            // eslint-disable-next-line no-console
-            console.log('Runtime:', Number(pEnd - pStart) / 1000000, 'ms');
-        });
-    };
 
     /**
      * Controls
      */
     InitCameraControls(lCanvasTexture.canvas, lCamera, lWorldGroup.data('camera').getRaw<GpuBuffer>());
 
+    const lFpsLabel = document.getElementById('fpsCounter')!;
+
     /*
      * Execution 
      */
-    const lRenderExecutor: GpuExecution = lGpu.executor((pExecutor) => {
-        lComputePass.execute(pExecutor);
-        lRenderPass.execute(pExecutor);
-    });
-
-    const lFpsLabel = document.getElementById('fpsCounter')!;
 
     // Actual execute.
     let lLastTime: number = 0;
@@ -987,7 +936,40 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
         lLastTime = pTime;
 
         // Generate encoder and add render commands.
-        lRenderExecutor.execute();
+        lGpu.execute((pExecutor) => {
+            pExecutor.computePass((pContext) => {
+                for (const lStep of lComputeSteps) {
+                    pContext.computeDirect(
+                        lStep.pipeline,
+                        lStep.data,
+                        lStep.dimensions.x,
+                        lStep.dimensions.y,
+                        lStep.dimensions.z
+                    );
+                }
+            });
+
+            // Render.
+            pExecutor.renderPass(lRenderTargets, (pContext) => {
+                for (const lStep of lRenderSteps) {
+                    if (lStep.indirectBuffer) {
+                        pContext.drawIndirect(
+                            lStep.pipeline,
+                            lStep.parameter,
+                            lStep.data,
+                            lStep.indirectBuffer
+                        );
+                    } else {
+                        pContext.drawDirect(
+                            lStep.pipeline,
+                            lStep.parameter,
+                            lStep.data,
+                            lStep.instanceCount
+                        );
+                    }
+                }
+            });
+        });
 
         // Update fps display.
         UpdateFpsDisplay(lFps, lRenderTargets.width);

@@ -80,7 +80,27 @@ export class ShaderSetup extends GpuObjectSetup<ShaderSetupReferenceData> {
      * @returns the same group.
      */
     public group(pIndex: number, pGroup: BindGroupLayout): BindGroupLayout;
+
+    /**
+     * Add a new group to layout and setup it with the provided callback.
+     * 
+     * @param pIndex - Bind group index.
+     * @param pGroupName - Name for the new bind group layout.
+     * @param pSetupCall - Setup callback to setup the new bind group layout.
+     */
     public group(pIndex: number, pGroupName: string, pSetupCall: ((pSetup: BindGroupLayoutSetup) => void)): BindGroupLayout;
+
+    /**
+     * Add a binding group to the shader layout.
+     * If a group name and setup call is provided, a new group will be created and setup with the provided callback.
+     * Otherwise, the provided group will be used.
+     * 
+     * @param pIndex - Bind group index.
+     * @param pGroupOrName - Either an existing bind group layout or a name for a new bind group layout to create.
+     * @param pSetupCall - Optional setup callback to setup a new bind group layout when a name is provided.
+     * 
+     * @returns The used bind group layout. 
+     */
     public group(pIndex: number, pGroupOrName: BindGroupLayout | string, pSetupCall?: ((pSetup: BindGroupLayoutSetup) => void)): BindGroupLayout {
         // Use existing or create new bind group.
         let lBindGroupLayout: BindGroupLayout;
@@ -120,26 +140,51 @@ export class ShaderSetup extends GpuObjectSetup<ShaderSetupReferenceData> {
     }
 
     /**
+     * Setup vertex entry point with an existing vertex parameter layout.
+     *
+     * @param pName - Vertex entry name.
+     * @param pExistingLayout - Existing vertex parameter layout to reuse.
+     */
+    public vertexEntryPoint(pName: string, pExistingLayout: VertexParameterLayout): VertexParameterLayout;
+    /**
      * Setup vertex entry point.
-     * 
+     *
      * @param pName - Vertex entry name.
      * @param pSetupCallback - Setup callback to setup vertex parameter layout.
      */
-    public vertexEntryPoint(pName: string, pSetupCallback: (pSetup: VertexParameterLayoutSetup) => void): VertexParameterLayout {
+    public vertexEntryPoint(pName: string, pSetupCallback: (pSetup: VertexParameterLayoutSetup) => void): VertexParameterLayout;
+
+    /**
+     * Add a vertex entry point to the shader layout.
+     * If an existing vertex parameter layout is provided, it will be reused for the new entry point.
+     * Otherwise, a new vertex parameter layout will be created and setup with the provided callback.
+     * 
+     * @param pName - Vertex entry name. 
+     * @param pSetupCallbackOrLayout - Either an existing vertex parameter layout to reuse or a setup callback to setup a new vertex parameter layout.
+     * 
+     * @returns The used vertex parameter layout. 
+     */
+    public vertexEntryPoint(pName: string, pSetupCallbackOrLayout: ((pSetup: VertexParameterLayoutSetup) => void) | VertexParameterLayout): VertexParameterLayout {
         // Lock setup to a setup call.
         this.ensureThatInSetup();
 
-        // Create and setup vertex parameter.
-        const lVertexParameterLayout: VertexParameterLayout = new VertexParameterLayout(this.device)
-            .setup(pSetupCallback);
-
-        // Create empty fragment entry point.
+        // Use existing layout or create a new one.
+        let lVertexParameterLayout: VertexParameterLayout;
+        if(pSetupCallbackOrLayout instanceof VertexParameterLayout) {
+            // Use existing layout.
+            lVertexParameterLayout = pSetupCallbackOrLayout;
+        } else {
+            // Create new layout.
+            lVertexParameterLayout = new VertexParameterLayout(this.device).setup(pSetupCallbackOrLayout);
+        }
+        
+        // Create vertex entry point.
         const lEntryPoint: ShaderEntryPointVertexSetupData = {
             name: pName,
             parameter: lVertexParameterLayout
         };
 
-        // Append compute entry.
+        // Append vertex entry.
         this.setupData.vertexEntrypoints.push(lEntryPoint);
 
         return lVertexParameterLayout;

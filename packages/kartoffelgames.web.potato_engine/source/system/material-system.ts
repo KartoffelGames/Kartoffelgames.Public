@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslParser, type PgslParserResult, type PgslParserResultBinding, PgslParserResultFragmentEntryPoint, PgslParserResultMatrixType, PgslParserResultNumericType, PgslParserResultSamplerType, PgslParserResultTextureType, type PgslParserResultType, PgslParserResultVectorType, PgslParserResultVertexEntryPoint, WgslTranspiler } from '@kartoffelgames/core-pgsl';
-import { type BindGroup, BindGroupLayout, BufferItemFormat, BufferItemMultiplier, ComputeStage, Shader as GpuShader, GpuTexture, type GpuTextureView, PrimitiveCullMode, type RenderTargetsLayout, SamplerType, StorageBindingType, TextureFormat, type TextureViewDimension, type VertexFragmentPipeline, VertexParameterStepMode } from '@kartoffelgames/web-gpu';
+import { type BindGroup, BindGroupLayout, BufferItemFormat, BufferItemMultiplier, ComputeStage, Shader as GpuShader, GpuTexture, type GpuTextureView, PrimitiveCullMode, type RenderTargetsLayout, SamplerType, StorageBindingType, TextureFormat, type TextureViewDimension, type VertexFragmentPipeline, type VertexParameterLayout, VertexParameterStepMode } from '@kartoffelgames/web-gpu';
 import { Color } from '../component_item/color.ts';
 import { Material, type MaterialBindingValue } from '../component_item/material.ts';
 import { Texture } from '../component_item/texture.ts';
@@ -386,7 +386,8 @@ export class MaterialSystem extends GameSystem {
             vertexEntryPoint: 'vertex_main',
             fragmentEntryPoint: 'fragment_main',
             groupLayouts: lGroupLayouts,
-            renderTargetsLayout: lRenderTargetsLayout
+            renderTargetsLayout: lRenderTargetsLayout,
+            vertexParameterLayout: null
         });
     }
 
@@ -534,14 +535,20 @@ export class MaterialSystem extends GameSystem {
 
         // Setup and return the configured GPU shader.
         return lGpuShader.setup((pShaderSetup) => {
-            // Vertex entry point: Read first vertex entry point and create one buffer per attribute.
+            // Vertex entry point: Reuse shared layout or create on first use.
             const lVertexEntry: PgslParserResultVertexEntryPoint = pParserResult.entryPoints.vertex.values().next()!.value!;
-            pShaderSetup.vertexEntryPoint(lVertexEntry.name, (pVertexSetup) => {
-                for (const lParam of lVertexEntry.parameters) {
-                    const lVertexParameterType: MaterialSystemEntryPointType = this.convertEntryPointType(lParam.type);
-                    pVertexSetup.buffer(lParam.name, VertexParameterStepMode.Index).withParameter(lParam.name, lParam.location, lVertexParameterType.format, lVertexParameterType.multiplier);
-                }
-            });
+            if (pModeConfig.vertexParameterLayout) {
+                // Reuse existing shared layout.
+                pShaderSetup.vertexEntryPoint(lVertexEntry.name, pModeConfig.vertexParameterLayout);
+            } else {
+                // First material for this mode: create layout and store for reuse.
+                pModeConfig.vertexParameterLayout = pShaderSetup.vertexEntryPoint(lVertexEntry.name, (pVertexSetup) => {
+                    for (const lParam of lVertexEntry.parameters) {
+                        const lVertexParameterType: MaterialSystemEntryPointType = this.convertEntryPointType(lParam.type);
+                        pVertexSetup.buffer(lParam.name, VertexParameterStepMode.Index).withParameter(lParam.name, lParam.location, lVertexParameterType.format, lVertexParameterType.multiplier);
+                    }
+                });
+            }
 
             // Fragment entry point: Read first fragment entry point and add render targets.
             const lFragmentEntry: PgslParserResultFragmentEntryPoint = pParserResult.entryPoints.fragment.values().next()!.value!;
@@ -725,10 +732,17 @@ type RenderModeConfig = {
      */
     groupLayouts: Map<string, RenderModeGroupLayout>;
 
-    /** 
-     * RenderTargetsLayout for this mode (derived from fragment entry render targets + Depth24plus). 
+    /**
+     * RenderTargetsLayout for this mode (derived from fragment entry render targets + Depth24plus).
      */
     renderTargetsLayout: RenderTargetsLayout;
+
+    /**
+     * Shared VertexParameterLayout for this mode.
+     * All pipelines in the same mode reuse this layout so that identity checks pass.
+     * Null until first material is compiled for this mode.
+     */
+    vertexParameterLayout: VertexParameterLayout | null;
 };
 
 /**

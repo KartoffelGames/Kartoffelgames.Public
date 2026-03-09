@@ -455,7 +455,7 @@ export class MaterialSystem extends GameSystem {
             // Add color targets from fragment entry render targets.
             for (const lTarget of pFragmentEntry.renderTargets) {
                 const lFormat: TextureFormat = this.mapTypeToTextureFormat(lTarget.type);
-                pSetup.addColor(lTarget.name, lTarget.location, lFormat, false, { r: 0, g: 0, b: 0, a: 1 });
+                pSetup.addColor(lTarget.name, lTarget.location, lFormat, true, { r: 0, g: 0, b: 0, a: 1 });
             }
 
             // Hardcoded Depth24plus for all render modes.

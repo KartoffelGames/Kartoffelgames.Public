@@ -25,8 +25,7 @@ fn compute_main(@builtin(global_invocation_id) id: vec3u) {
  */
 async function gCreateComputeShader(): Promise<{ device: GpuDevice; shader: Shader; }> {
     const lDevice: GpuDevice = await gRequestDevice();
-    const lShader: Shader = new Shader(lDevice, gComputeShaderSource);
-    lShader.setup((pSetup) => {
+    const lShader: Shader = new Shader(lDevice, gComputeShaderSource).setup((pSetup) => {
         pSetup.computeEntryPoint('compute_main').size(64);
     });
     return { device: lDevice, shader: lShader };
@@ -97,8 +96,7 @@ Deno.test('ComputePipeline.setParameter()', async (pContext) => {
                 let x = workSize;
             }
         `;
-        const lShader: Shader = new Shader(lDevice, lShaderSource);
-        lShader.setup((pSetup) => {
+        const lShader: Shader = new Shader(lDevice, lShaderSource).setup((pSetup) => {
             pSetup.parameter('workSize', ComputeStage.Compute);
             pSetup.computeEntryPoint('compute_main').size(64);
         });

@@ -46,22 +46,17 @@ async function gCreateRenderPipelineComponents(): Promise<{
 }> {
     const lDevice: GpuDevice = await gRequestDevice();
 
-    const lVertexLayout: VertexParameterLayout = new VertexParameterLayout(lDevice);
-    lVertexLayout.setup((pSetup) => {
-        pSetup.buffer('position', VertexParameterStepMode.Vertex)
-            .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-    });
-
-    const lShader: Shader = new Shader(lDevice, gRenderShaderSource);
-    lShader.setup((pSetup) => {
-        pSetup.vertexEntryPoint('vertex_main', lVertexLayout);
+    const lShader: Shader = new Shader(lDevice, gRenderShaderSource).setup((pSetup) => {
+        pSetup.vertexEntryPoint('vertex_main', new VertexParameterLayout(lDevice).setup((pVertexSetup) => {
+            pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
+                .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+        }));
         pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
             pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
         });
     });
 
-    const lRenderTargetsLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
-    lRenderTargetsLayout.setup((pSetup) => {
+    const lRenderTargetsLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false).setup((pSetup) => {
         pSetup.addColor('color', 0, TextureFormat.Rgba8unorm);
     });
 
@@ -191,21 +186,16 @@ Deno.test('VertexFragmentPipeline.depthConfig()', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
 
-        const lVertexLayout: VertexParameterLayout = new VertexParameterLayout(lDevice);
-        lVertexLayout.setup((pSetup) => {
-            pSetup.buffer('position', VertexParameterStepMode.Vertex)
-                .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-        });
-
-        const lShader: Shader = new Shader(lDevice, gRenderShaderSource);
-        lShader.setup((pSetup) => {
-            pSetup.vertexEntryPoint('vertex_main', lVertexLayout);
+        const lShader: Shader = new Shader(lDevice, gRenderShaderSource).setup((pSetup) => {
+            pSetup.vertexEntryPoint('vertex_main', new VertexParameterLayout(lDevice).setup((pVertexSetup) => {
+                pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
+                    .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+            }));
             pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
                 pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             });
         });
-        const lRtLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
-        lRtLayout.setup((pSetup) => {
+        const lRtLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false).setup((pSetup) => {
             pSetup.addColor('color', 0, TextureFormat.Rgba8unorm);
             pSetup.addDepthStencil(TextureFormat.Depth24plus, true, 1.0);
         });

@@ -35,14 +35,11 @@ fn fragment_main() -> @location(0) vec4f {
  */
 async function gCreateSetupShader(): Promise<{ device: GpuDevice; shader: Shader; }> {
     const lDevice: GpuDevice = await gRequestDevice();
-    const lShader: Shader = new Shader(lDevice, gVertexFragmentShaderSource);
-    const lVertexLayout: VertexParameterLayout = new VertexParameterLayout(lDevice);
-    lVertexLayout.setup((pSetup) => {
-        pSetup.buffer('position', VertexParameterStepMode.Vertex)
-            .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-    });
-    lShader.setup((pSetup) => {
-        pSetup.vertexEntryPoint('vertex_main', lVertexLayout);
+    const lShader: Shader = new Shader(lDevice, gVertexFragmentShaderSource).setup((pSetup) => {
+        pSetup.vertexEntryPoint('vertex_main', new VertexParameterLayout(lDevice).setup((pVertexSetup) => {
+            pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
+                .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+        }));
         pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
             pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
         });
@@ -199,15 +196,12 @@ Deno.test('VertexParameter -- with parameters', async (pContext) => {
             }
         `;
 
-        const lShader: Shader = new Shader(lDevice, lShaderSource);
-        const lVertexLayout: VertexParameterLayout = new VertexParameterLayout(lDevice);
-        lVertexLayout.setup((pSetup) => {
-            pSetup.buffer('position', VertexParameterStepMode.Vertex)
-                .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-        });
-        lShader.setup((pSetup) => {
+        const lShader: Shader = new Shader(lDevice, lShaderSource).setup((pSetup) => {
             pSetup.parameter('animationSeconds', ComputeStage.Vertex);
-            pSetup.vertexEntryPoint('vertex_main', lVertexLayout);
+            pSetup.vertexEntryPoint('vertex_main', new VertexParameterLayout(lDevice).setup((pVertexSetup) => {
+                pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
+                    .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+            }));
             pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
                 pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             });

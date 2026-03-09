@@ -19,11 +19,9 @@ async function gRequestDevice(): Promise<GpuDevice> {
  * Helper to create a simple bind group layout.
  */
 function gCreateSimpleLayout(pDevice: GpuDevice, pName: string): BindGroupLayout {
-    const lLayout: BindGroupLayout = new BindGroupLayout(pDevice, pName);
-    lLayout.setup((pSetup) => {
+    return new BindGroupLayout(pDevice, pName).setup((pSetup) => {
         pSetup.binding(0, 'buffer', ComputeStage.Vertex).asBuffer(64);
     });
-    return lLayout;
 }
 
 Deno.test('PipelineLayout.groups', async (pContext) => {

@@ -19,8 +19,6 @@ export class TextureSystem extends GameSystem {
 
     private mDefaultTexture: GpuTexture | null;
     private mGpuSystem: GpuSystem | null;
-    private readonly mTextureEntries: Array<TextureEntry>;
-    private mTextureEntryIndex: number;
     private readonly mTextureLookup: WeakMap<Texture, GpuTexture>;
 
     /**
@@ -50,10 +48,6 @@ export class TextureSystem extends GameSystem {
 
         // Texture tracking.
         this.mTextureLookup = new WeakMap<Texture, GpuTexture>();
-
-        // Track texture entries in an array to allow cleanup of dead WeakRefs.
-        this.mTextureEntries = new Array<TextureEntry>();
-        this.mTextureEntryIndex = 0;
 
         // Empty default texture until created in onCreate.
         this.mDefaultTexture = null;
@@ -85,10 +79,6 @@ export class TextureSystem extends GameSystem {
             const lLoadedGpuTexture: GpuTexture = await this.generateGpuTexture(pTexture);
 
             // Track the texture.
-            this.mTextureEntries.push({
-                weakRef: new WeakRef<Texture>(pTexture),
-                gpuTexture: lLoadedGpuTexture
-            });
             this.mTextureLookup.set(pTexture, lLoadedGpuTexture);
 
             return lLoadedGpuTexture;
@@ -127,30 +117,6 @@ export class TextureSystem extends GameSystem {
 
         // Decode and upload the default texture to the GPU.
         this.mDefaultTexture = await this.generateGpuTexture(lDefaultTexture);
-    }
-
-    /**
-     * Cleanup texture entries whose Texture component item has been garbage collected.
-     * Iterates in reverse to safely splice during iteration.
-     */
-    protected override async onUpdate(_pStateChanges: GameSystemUpdateStateChanges): Promise<void> {
-        // Calculate max checked entires. Can never be zero as the default texture is always present.
-        const lMaxLoopCount: number = Math.min(this.mTextureEntries.length, TextureSystem.GARBAGE_COLLECTION_SIZE);
-
-        // Cleanup dead WeakRef entries.
-        for (let lTextureEntryIndex: number = 0; lTextureEntryIndex < lMaxLoopCount; lTextureEntryIndex++) {
-            const lEntry: TextureEntry = this.mTextureEntries[this.mTextureEntryIndex];
-
-            // Check if the Texture reference is still alive.
-            if (lEntry.weakRef.deref() === undefined) {
-                // Texture was garbage collected, dispose the GPU texture.
-                lEntry.gpuTexture.deconstruct();
-                this.mTextureEntries.splice(this.mTextureEntryIndex, 1);
-            } else {
-                // Move to the next entry for the next update.
-                this.mTextureEntryIndex = (this.mTextureEntryIndex + 1) % this.mTextureEntries.length;
-            }
-        }
     }
 
     /**

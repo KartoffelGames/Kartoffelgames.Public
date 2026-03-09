@@ -301,6 +301,9 @@ export class GpuTexture extends GpuResourceObject<TextureUsage, GPUTexture> impl
      * @param _pNativeObject - Native gpu texture.
      */
     protected override destroyNative(pNativeObject: GPUTexture): void {
+        // Remove from freeable resources.
+        this.unregisterFreeableResource(pNativeObject);
+
         pNativeObject.destroy();
     }
 
@@ -375,6 +378,9 @@ export class GpuTexture extends GpuResourceObject<TextureUsage, GPUTexture> impl
             mipLevelCount: Math.min(this.mMipLevelCount, lMaxMipCount)
         });
 
+        // Register new texture as freeable resource.
+        this.registerFreeableResource(lNewTexture);
+
         // Copy old texture data into new texture.
         if (pOldTexture !== null && lNewTexture.sampleCount === 1) {
             // Create copy command encoder to store copy actions.
@@ -385,7 +391,7 @@ export class GpuTexture extends GpuResourceObject<TextureUsage, GPUTexture> impl
             for (let lMipLevel: number = 0; lMipLevel < lCopyMipCount; lMipLevel++) {
 
                 // Create copy source settings.
-                const lSource: GPUImageCopyTexture = {
+                const lSource: GPUTexelCopyTextureInfo = {
                     texture: pOldTexture,
                     aspect: 'all',
                     origin: [0, 0, 0],
@@ -393,7 +399,7 @@ export class GpuTexture extends GpuResourceObject<TextureUsage, GPUTexture> impl
                 };
 
                 // Create copy destination settings.
-                const lDestination: GPUImageCopyTexture = {
+                const lDestination: GPUTexelCopyTextureInfo = {
                     texture: lNewTexture,
                     aspect: 'all',
                     origin: [0, 0, 0],

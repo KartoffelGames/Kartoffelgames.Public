@@ -109,6 +109,9 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
                 usage: GPUBufferUsage.MAP_READ | GPUBufferUsage.COPY_DST,
                 mappedAtCreation: false,
             });
+
+            // Register new buffer as freeable resource.
+            this.registerFreeableResource(this.mReadBuffer);
         }
 
         // Copy buffer data from native into staging.
@@ -156,6 +159,9 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
                     usage: GPUBufferUsage.MAP_WRITE | GPUBufferUsage.COPY_SRC,
                     mappedAtCreation: true,
                 });
+
+                // Register new buffer as freeable resource.
+                this.registerFreeableResource(lStagingBuffer);
 
                 // Add new buffer to complete list.
                 this.mWriteBuffer.buffer.add(lStagingBuffer);
@@ -215,7 +221,10 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
         }).catch(() => {
             // Remove buffer when it could not be mapped.
             this.mWriteBuffer.buffer.delete(lStagingBuffer);
+
+            // Destroy staging buffer when it is not already destroyed.
             lStagingBuffer.destroy();
+            this.unregisterFreeableResource(lStagingBuffer);
         });
     }
 
@@ -223,11 +232,14 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
      * Destroy wave and ready buffer.
      */
     protected override destroyNative(pNativeObject: GPUBuffer): void {
+        // Destroy native buffer and remove from freeable resources.
         pNativeObject.destroy();
+        this.unregisterFreeableResource(pNativeObject);
 
         // Destroy all wave buffer and clear list.
         for (const lWriteBuffer of this.mWriteBuffer.buffer) {
             lWriteBuffer.destroy();
+            this.unregisterFreeableResource(lWriteBuffer);
         }
         this.mWriteBuffer.buffer.clear();
 
@@ -249,6 +261,9 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
             usage: this.usage,
             mappedAtCreation: !!this.mInitialData
         });
+
+        // Register new buffer as freeable resource.
+        this.registerFreeableResource(lBuffer);
 
         // Write data. Is completly async.
         if (this.mInitialData) {

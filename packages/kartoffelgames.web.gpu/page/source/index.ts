@@ -569,7 +569,7 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderT
     lVideo.play();
 
     let lTimeStamp: number = performance.now();
-    pGpu.addFrameChangeListener(() => {
+    pGpu.addTickListener(() => {
         // Has at least one frame buffered.
         if (lVideo.readyState > 1) {
             const lFrameTimeStamp: number = performance.now();
@@ -934,7 +934,7 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
     let lCurrentFps: number = 0;
     const lRender = (pTime: number) => {
         // Start new frame.
-        lGpu.startNewFrame();
+        lGpu.processTick();
 
         // Generate fps and smooth fps numbers.
         const lFps: number = 1000 / (pTime - lLastTime);

@@ -71,6 +71,6 @@ export class GpuSystem extends GameSystem {
      * Start a new frame on the gpu device at the beginning of each frame to reset internal states and prepare for rendering.
      */
     protected override async onFrame(): Promise<void> {
-        this.mGpu!.startNewFrame();
+        this.mGpu!.processTick();
     }
 }

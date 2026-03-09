@@ -2,8 +2,8 @@ import { TextureDimension } from '../constant/texture-dimension.enum.ts';
 import type { TextureFormat } from '../constant/texture-format.enum.ts';
 import { TextureUsage } from '../constant/texture-usage.enum.ts';
 import type { GpuDevice } from '../device/gpu-device.ts';
-import { GpuObject } from '../gpu_object/gpu-object.ts';
 import type { GpuObjectInvalidationReasons } from '../gpu_object/gpu-object-invalidation-reasons.ts';
+import { GpuObject } from '../gpu_object/gpu-object.ts';
 import type { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native.ts';
 
 /**
@@ -33,14 +33,14 @@ export class CanvasTexture extends GpuObject<GPUTexture, CanvasTextureInvalidati
      * Texture dimension.
      */
     public get dimension(): TextureDimension {
-        return TextureDimension.ThreeDimension;
+        return TextureDimension.TwoDimension;
     }
 
     /**
      * Canvas format.
      */
     public get format(): TextureFormat {
-        return this.device.formatValidator.preferredCanvasFormat;
+        return this.device.formatValidator.preferredCanvasFormat as TextureFormat;
     }
 
     /**
@@ -96,18 +96,23 @@ export class CanvasTexture extends GpuObject<GPUTexture, CanvasTextureInvalidati
         this.mFrameListener = () => {
             this.invalidate(CanvasTextureInvalidationType.NativeRebuild);
         };
-        this.device.addFrameChangeListener(this.mFrameListener);
+        this.device.addTickListener(this.mFrameListener);
     }
 
     /**
      * Destory texture object.
-     * @param _pNativeObject - Native canvas texture.
+     * @param pNativeObject - Native canvas texture.
+     * @param pReasons - Invalidation reasons. Contains all reasons that triggered the destroy call. Might be used to optimize destroy process.
      */
-    protected override destroyNative(_pNativeObject: GPUTexture, pReasons: GpuObjectInvalidationReasons<CanvasTextureInvalidationType>): void {
+    protected override destroyNative(pNativeObject: GPUTexture, pReasons: GpuObjectInvalidationReasons<CanvasTextureInvalidationType>): void {
+        // Destroy native texture and remove from freeable resources.
+        pNativeObject.destroy();
+        this.unregisterFreeableResource(pNativeObject);
+
         // Only destroy context when child data/layout has changes.
         if (pReasons.deconstruct) {
             // Remove frame listener.
-            this.device.removeFrameChangeListener(this.mFrameListener);
+            this.device.removeTickListener(this.mFrameListener);
 
             // Destory context.
             this.mContext!.unconfigure();
@@ -134,6 +139,9 @@ export class CanvasTexture extends GpuObject<GPUTexture, CanvasTextureInvalidati
         // Read current texture of canvas. Needs to be retrieved for each frame.
         const lTexture = this.mContext.getCurrentTexture();
         lTexture.label = 'Canvas-Texture';
+
+        // Register new texture as freeable resource.
+        this.registerFreeableResource(lTexture);
 
         return lTexture;
     }

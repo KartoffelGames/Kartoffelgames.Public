@@ -1,7 +1,7 @@
 // @ts-types="npm:@webgpu/types@^0.1.69"
 
 import { Dictionary, Exception, type IDeconstructable, List, type Writeable } from '@kartoffelgames/core';
-import type { GpuDevice } from '../device/gpu-device.ts';
+import type { GpuDevice, GpuDeviceDestroyableObject } from '../device/gpu-device.ts';
 import { GpuObjectInvalidationReasons } from './gpu-object-invalidation-reasons.ts';
 import type { GpuObjectSetup } from './gpu-object-setup.ts';
 
@@ -16,6 +16,7 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
     private mNativeObject: TNativeObject | null;
     private readonly mUpdateListener: Dictionary<TInvalidationType, List<GpuObjectUpdateListener<TInvalidationType>>>;
     private readonly mUpdateListenerAffectedTyped: WeakMap<GpuObjectUpdateListener<TInvalidationType>, Array<TInvalidationType>>;
+    private readonly mFreeableResources: Set<GpuDeviceDestroyableObject>;
 
     /**
      * Gpu Device.
@@ -56,6 +57,11 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
         this.mUpdateListener = new Dictionary<TInvalidationType, List<GpuObjectUpdateListener<TInvalidationType>>>();
         this.mUpdateListenerAffectedTyped = new WeakMap<GpuObjectUpdateListener<TInvalidationType>, Array<TInvalidationType>>();
         this.mInvalidationReasons = new GpuObjectInvalidationReasons<TInvalidationType>();
+
+        // Init freeable resources set.
+        this.mFreeableResources = new Set<GpuDeviceDestroyableObject>();
+
+        this.mDevice.registerFreeableResource(this, this.mFreeableResources);
     }
 
     /**
@@ -168,6 +174,47 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
     }
 
     /**
+     * Call setup.
+     * 
+     * @param pSetupCallback - Setup callback. 
+     * 
+     * @returns this. 
+     */
+    public setup(pSetupCallback?: (pSetup: TSetupObject) => void): this {
+        // Dont call twice.
+        if (this.mIsSetup) {
+            throw new Exception(`Render targets setup can't be called twice.`, this);
+        }
+
+        // Create unfilled
+        const lSetupReferences: GpuObjectSetupReferences<GpuObjectSetupData<TSetupObject>> = {
+            inSetup: true,
+            device: this.mDevice,
+            data: {}
+        };
+
+        // Creates setup object.
+        const lSetupObject: TSetupObject | null = this.onSetupObjectCreate(lSetupReferences);
+        if (lSetupObject !== null) {
+            // Call optional user setup.
+            if (pSetupCallback) {
+                pSetupCallback(lSetupObject);
+            }
+
+            // Call gpu object setup. At this point all references should be filled.
+            this.onSetup(lSetupReferences.data as GpuObjectSetupData<TSetupObject>);
+        }
+
+        // Defuse setup references.
+        (<Writeable<GpuObjectSetupReferences<GpuObjectSetupData<TSetupObject>>>>lSetupReferences).inSetup = false;
+
+        // Set gpu object as setup.
+        this.mIsSetup = true;
+
+        return this;
+    }
+
+    /**
      * Destroy native object.
      * 
      * @param _pNative - Native object.
@@ -219,44 +266,23 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
     }
 
     /**
-     * Call setup.
+     * Register freeable resource.
+     * When the gpu object reference is garbage collected, all registered resources will be automatically freed.
      * 
-     * @param pSetupCallback - Setup callback. 
-     * 
-     * @returns this. 
+     * @param pResource - Resource to be freed when the reference is garbage collected.
      */
-    protected setup(pSetupCallback?: (pSetup: TSetupObject) => void): this {
-        // Dont call twice.
-        if (this.mIsSetup) {
-            throw new Exception(`Render targets setup can't be called twice.`, this);
-        }
+    protected registerFreeableResource(pResource: GpuDeviceDestroyableObject): void {
+        this.mFreeableResources.add(pResource);
+    }
 
-        // Create unfilled
-        const lSetupReferences: GpuObjectSetupReferences<GpuObjectSetupData<TSetupObject>> = {
-            inSetup: true,
-            device: this.mDevice,
-            data: {}
-        };
-
-        // Creates setup object.
-        const lSetupObject: TSetupObject | null = this.onSetupObjectCreate(lSetupReferences);
-        if (lSetupObject !== null) {
-            // Call optional user setup.
-            if (pSetupCallback) {
-                pSetupCallback(lSetupObject);
-            }
-
-            // Call gpu object setup. At this point all references should be filled.
-            this.onSetup(lSetupReferences.data as GpuObjectSetupData<TSetupObject>);
-        }
-
-        // Defuse setup references.
-        (<Writeable<GpuObjectSetupReferences<GpuObjectSetupData<TSetupObject>>>>lSetupReferences).inSetup = false;
-
-        // Set gpu object as setup.
-        this.mIsSetup = true;
-
-        return this;
+    /**
+     * Unregister freeable resource.
+     * Unregistered resource won't be automatically freed when the gpu object reference is garbage collected.
+     * 
+     * @param pResource - Resource to be unregistered.
+     */
+    protected unregisterFreeableResource(pResource: GpuDeviceDestroyableObject): void {
+        this.mFreeableResources.delete(pResource);
     }
 
     /**
@@ -269,7 +295,7 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
      */
     protected updateNative(_pNative: TNativeObject, _pReasons: GpuObjectInvalidationReasons<TInvalidationType>): boolean {
         return false;
-    }
+    }    
 
     /**
      * Read up to date native object.

@@ -7,8 +7,10 @@ import { Shader } from '../shader/shader.ts';
 import { CanvasTexture } from '../texture/canvas-texture.ts';
 import { GpuDeviceCapabilities } from './capabilities/gpu-device-capabilities.ts';
 import { GpuTextureFormatCapabilities } from './capabilities/gpu-texture-format-capabilities.ts';
+import { IGpuObjectNative } from "../gpu_object/interface/i-gpu-object-native.ts";
+import { GpuObject } from "@kartoffelgames/web-gpu";
 
-export class GpuDevice implements IDeconstructable{
+export class GpuDevice implements IDeconstructable {
     /**
      * Read gpu max limits for the specified performance level.
      * 
@@ -109,9 +111,11 @@ export class GpuDevice implements IDeconstructable{
     private readonly mCapabilities: GpuDeviceCapabilities;
     private readonly mFormatValidator: GpuTextureFormatCapabilities;
     private readonly mFrameChangeListener: List<GpuDeviceFrameChangeListener>;
-    private mFrameCounter: number;
     private readonly mGpuDevice: GPUDevice;
 
+    private readonly mFreeableGpuObjects: Array<WeakRef<GpuObject>>;
+    private mFreeableGpuObjectIndex: number;
+    private readonly mFreeableGpuObjectResources: Map<WeakRef<GpuObject>, Set<GpuDeviceDestroyableObject>>;
 
     /**
      * Gpu capabilities.
@@ -125,13 +129,6 @@ export class GpuDevice implements IDeconstructable{
      */
     public get formatValidator(): GpuTextureFormatCapabilities {
         return this.mFormatValidator;
-    }
-
-    /**
-     * Get frame count.
-     */
-    public get frameCount(): number {
-        return this.mFrameCounter;
     }
 
     /**
@@ -152,14 +149,16 @@ export class GpuDevice implements IDeconstructable{
         // Setup capabilities.
         this.mCapabilities = new GpuDeviceCapabilities(pDevice);
 
-        // Set default for frame counter.
-        this.mFrameCounter = 0;
-
         // Init form validator.
         this.mFormatValidator = new GpuTextureFormatCapabilities(this);
 
         // Frame change listener.
         this.mFrameChangeListener = new List<GpuDeviceFrameChangeListener>();
+
+        // Freeable resources.
+        this.mFreeableGpuObjects = new Array<WeakRef<GpuObject>>();
+        this.mFreeableGpuObjectIndex = 0;
+        this.mFreeableGpuObjectResources = new Map<WeakRef<GpuObject>, Set<GpuDeviceDestroyableObject>>();
     }
 
     /**
@@ -167,28 +166,34 @@ export class GpuDevice implements IDeconstructable{
      * 
      * @param pListener - Listener.
      */
-    public addFrameChangeListener(pListener: GpuDeviceFrameChangeListener): void {
+    public addTickListener(pListener: GpuDeviceFrameChangeListener): void {
         this.mFrameChangeListener.push(pListener);
-    }
-
-    /**
-     * Create or use a html canvas to create a canvas texture.
-     * 
-     * @param pCanvas - Created canvas element.
-     * 
-     * @returns canvas texture. 
-     */
-    public canvas(pCanvas?: HTMLCanvasElement): CanvasTexture {
-        // Create or use canvas.
-        const lCanvas: HTMLCanvasElement = pCanvas ?? document.createElement('canvas');
-
-        return new CanvasTexture(this, lCanvas);
     }
 
     /**
      * Deconstruct gpu device and release resources.
      */
     public deconstruct(): void {
+        // Go over each freeable resource and try to free it.
+        for (const lResourceReference of this.mFreeableGpuObjects) {
+            // Skip resources without native object references.
+            if (!this.mFreeableGpuObjectResources.has(lResourceReference)) {
+                continue;
+            }
+
+            // Free all resources of the reference.
+            for (const lResource of this.mFreeableGpuObjectResources.get(lResourceReference)!) {
+                lResource.destroy();
+            }
+
+            // And finally remove the reference from the mapping.
+            this.mFreeableGpuObjectResources.delete(lResourceReference);
+        }
+
+        // Clear freeable resources list.
+        this.mFreeableGpuObjects.splice(0, this.mFreeableGpuObjects.length);
+
+        // And finally destroy the gpu device.
         this.mGpuDevice.destroy();
     }
 
@@ -206,39 +211,65 @@ export class GpuDevice implements IDeconstructable{
      * 
      * @param pListener - Listener.
      */
-    public removeFrameChangeListener(pListener: GpuDeviceFrameChangeListener): void {
+    public removeTickListener(pListener: GpuDeviceFrameChangeListener): void {
         this.mFrameChangeListener.remove(pListener);
     }
 
     /**
-     * Create render targets layout object.
-     *
-     * @param pMultisampled - Render targets are multisampled.
-     *
-     * @returns render targets layout object.
-     */
-    public renderTargetsLayout(pMultisampled: boolean = false): RenderTargetsLayout {
-        return new RenderTargetsLayout(this, pMultisampled);
-    }
-
-    /**
-     * Create shader.
+     * Register freeable resource for the specified gpu object reference.
+     * When the gpu object reference is garbage collected, all registered resources will be automatically freed.
      * 
-     * @param pSource - Shader source as wgsl.
+     * @param pReference - Gpu object reference.
+     * @param pResource - Resource to be freed when the reference is garbage collected.
      */
-    public shader(pSource: string): Shader {
-        return new Shader(this, pSource);
+    public registerFreeableResource(pReference: GpuObject<any, any, any>, pResourceListReference: Set<GpuDeviceDestroyableObject>): void {
+        // Create weak reference for the resource reference.
+        const lResourceReference: WeakRef<GpuObject> = new WeakRef<GpuObject>(pReference);
+
+        // Add weak reference to the list of freeable resources.
+        this.mFreeableGpuObjects.push(lResourceReference);
+
+        // Link resource reference to the resource list reference for later resource freeing when the gpu object reference is garbage collected.
+        // This list should persist after the gpu object reference is garbage collected to be able to free the resources of the reference.
+        this.mFreeableGpuObjectResources.set(lResourceReference, pResourceListReference);
     }
 
     /**
      * Start new frame.
      */
-    public startNewFrame(): void {
-        this.mFrameCounter++;
-
+    public processTick(): void {
         // Call all frame change listener.
         for (const lListener of this.mFrameChangeListener) {
             lListener();
+        }
+
+        // Try to free ten resources per frame to avoid performance spikes.
+        const lMaxFreeIterations: number = Math.min(10, this.mFreeableGpuObjects.length);
+        for (let lIterationIndex = 0; lIterationIndex < lMaxFreeIterations; lIterationIndex++) {
+            // Get resource reference and try to dereference it.
+            const lGpuObjectReference: WeakRef<GpuObject> = this.mFreeableGpuObjects[this.mFreeableGpuObjectIndex];
+            const lGpuObject: GpuObject | undefined = lGpuObjectReference.deref();
+
+            // When reference is already garbage collected, remove it from the mapping and free all resources of the reference.
+            if (!lGpuObject) {
+                // Free all resources of the reference.
+                if (this.mFreeableGpuObjectResources.has(lGpuObjectReference)) {
+                    for (const lResource of this.mFreeableGpuObjectResources.get(lGpuObjectReference)!) {
+                        lResource.destroy();
+                    }
+
+                    // And finally remove the reference from the mapping.
+                    this.mFreeableGpuObjectResources.delete(lGpuObjectReference);
+                }
+
+                // Remove reference from the list.
+                this.mFreeableGpuObjects.splice(this.mFreeableGpuObjectIndex, 1);
+            }
+
+            // Process next resource in the next iteration and loop back index when it reaches the end of the list.
+            if (++this.mFreeableGpuObjectIndex >= this.mFreeableGpuObjects.length) {
+                this.mFreeableGpuObjectIndex = 0;
+            }
         }
     }
 }
@@ -255,4 +286,8 @@ type GpuDeviceLimitConfiguration = {
         value: number,
         required?: boolean;
     }>;
+};
+
+export type GpuDeviceDestroyableObject = {
+    destroy: () => any;
 };

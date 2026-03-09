@@ -122,8 +122,8 @@ Deno.test('GpuDevice.frameCount', async (pContext) => {
         const lDevice: GpuDevice = await gRequestDevice();
 
         // Process.
-        lDevice.startNewFrame();
-        lDevice.startNewFrame();
+        lDevice.processTick();
+        lDevice.processTick();
 
         // Evaluation.
         expect(lDevice.frameCount).toBe(2);
@@ -138,12 +138,12 @@ Deno.test('GpuDevice.startNewFrame()', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         let lListenerCalled: boolean = false;
-        lDevice.addFrameChangeListener(() => {
+        lDevice.addTickListener(() => {
             lListenerCalled = true;
         });
 
         // Process.
-        lDevice.startNewFrame();
+        lDevice.processTick();
 
         // Evaluation.
         expect(lListenerCalled).toBe(true);
@@ -159,12 +159,12 @@ Deno.test('GpuDevice.startNewFrame()', async (pContext) => {
         const lListener = () => {
             lCallCount++;
         };
-        lDevice.addFrameChangeListener(lListener);
+        lDevice.addTickListener(lListener);
 
         // Process.
-        lDevice.startNewFrame(); // +1
-        lDevice.removeFrameChangeListener(lListener);
-        lDevice.startNewFrame(); // should not call
+        lDevice.processTick(); // +1
+        lDevice.removeTickListener(lListener);
+        lDevice.processTick(); // should not call
 
         // Evaluation.
         expect(lCallCount).toBe(1);

@@ -7,6 +7,7 @@ import { GpuExecution } from '../../source/execution/gpu-execution.ts';
 import { RenderTargetsLayout } from '../../source/pipeline/render_targets/render-targets-layout.ts';
 import { RenderTargets } from '../../source/pipeline/render_targets/render-targets.ts';
 import { Shader } from '../../source/shader/shader.ts';
+import { BindGroupLayout } from '../../source/pipeline/bind_group_layout/bind-group-layout.ts';
 
 /**
  * Helper to request a GPU device for tests.
@@ -32,7 +33,6 @@ Deno.test('GpuExecution.execute()', async (pContext) => {
         expect(lContextReceived).toBe(true);
 
         // Cleanup.
-        lExecution.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -51,7 +51,6 @@ Deno.test('GpuExecution.execute()', async (pContext) => {
         expect(lHasCommandEncoder).toBe(true);
 
         // Cleanup.
-        lExecution.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -118,8 +117,6 @@ Deno.test('GpuExecutionContext.renderPass()', async (pContext) => {
         expect(lRenderPassCalled).toBe(true);
 
         // Cleanup.
-        lRenderTargets.deconstruct();
-        lRenderTargetsLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -137,14 +134,13 @@ Deno.test('Full compute execution flow', async (pContext) => {
             }
         `;
         const lShader: Shader = new Shader(lDevice, lShaderSource);
+        const lBindGroupLayout: BindGroupLayout = new BindGroupLayout(lDevice, 'data');
+        lBindGroupLayout.setup((pSetup) => {
+            pSetup.binding(0, 'output', ComputeStage.Compute).asBuffer(0, 4);
+        });
         lShader.setup((pSetup) => {
-            pSetup.computeEntryPoint('compute_main', (pComputeSetup) => {
-                pComputeSetup.size(1);
-            });
-            pSetup.group(0, 'data', (pGroupSetup) => {
-                pGroupSetup.binding(0, 'output', ComputeStage.Compute, // StorageBindingType.ReadWrite would be ideal
-                ).asBuffer(0, 4); // variable size buffer
-            });
+            pSetup.computeEntryPoint('compute_main').size(1);
+            pSetup.group(0, lBindGroupLayout);
         });
 
         let lComputeExecuted: boolean = false;
@@ -160,7 +156,6 @@ Deno.test('Full compute execution flow', async (pContext) => {
         expect(lComputeExecuted).toBe(true);
 
         // Cleanup.
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -188,8 +183,6 @@ Deno.test('Full render execution flow', async (pContext) => {
         expect(lRenderPassExecuted).toBe(true);
 
         // Cleanup.
-        lRenderTargets.deconstruct();
-        lRenderTargetsLayout.deconstruct();
         lDevice.deconstruct();
     });
 });

@@ -29,8 +29,6 @@ Deno.test('RenderTargets.layout', async (pContext) => {
         expect(lRenderTargets.layout).toBe(lLayout);
 
         // Cleanup.
-        lRenderTargets.deconstruct();
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -54,8 +52,6 @@ Deno.test('RenderTargets.resize()', async (pContext) => {
         expect(lRenderTargets.height).toBe(600);
 
         // Cleanup.
-        lRenderTargets.deconstruct();
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -75,8 +71,6 @@ Deno.test('RenderTargets.resize()', async (pContext) => {
         expect(lRenderTargets.height).toBe(1);
 
         // Cleanup.
-        lRenderTargets.deconstruct();
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -99,8 +93,6 @@ Deno.test('RenderTargets.colorTarget()', async (pContext) => {
         expect(lTextureView).toBeTruthy();
 
         // Cleanup.
-        lRenderTargets.deconstruct();
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -121,8 +113,6 @@ Deno.test('RenderTargets.colorTarget()', async (pContext) => {
         expect(lThrowFunction).toThrow();
 
         // Cleanup.
-        lRenderTargets.deconstruct();
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -146,8 +136,6 @@ Deno.test('RenderTargets.depthStencilTarget()', async (pContext) => {
         expect(lDepthTexture).toBeTruthy();
 
         // Cleanup.
-        lRenderTargets.deconstruct();
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -168,8 +156,6 @@ Deno.test('RenderTargets.depthStencilTarget()', async (pContext) => {
         expect(lThrowFunction).toThrow();
 
         // Cleanup.
-        lRenderTargets.deconstruct();
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });

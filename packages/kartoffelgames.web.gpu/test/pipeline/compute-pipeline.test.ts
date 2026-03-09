@@ -27,9 +27,7 @@ async function gCreateComputeShader(): Promise<{ device: GpuDevice; shader: Shad
     const lDevice: GpuDevice = await gRequestDevice();
     const lShader: Shader = new Shader(lDevice, gComputeShaderSource);
     lShader.setup((pSetup) => {
-        pSetup.computeEntryPoint('compute_main', (pComputeSetup) => {
-            pComputeSetup.size(64);
-        });
+        pSetup.computeEntryPoint('compute_main').size(64);
     });
     return { device: lDevice, shader: lShader };
 }
@@ -47,9 +45,6 @@ Deno.test('ComputePipeline.module', async (pContext) => {
         expect(lPipeline.module).toBe(lModule);
 
         // Cleanup.
-        lPipeline.deconstruct();
-        lModule.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -68,9 +63,6 @@ Deno.test('ComputePipeline.layout', async (pContext) => {
         expect(lPipeline.layout).toBe(lShader.layout);
 
         // Cleanup.
-        lPipeline.deconstruct();
-        lModule.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -88,9 +80,6 @@ Deno.test('ComputePipeline -- creation', async (pContext) => {
         expect(lPipeline).toBeTruthy();
 
         // Cleanup.
-        lPipeline.deconstruct();
-        lModule.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -111,9 +100,7 @@ Deno.test('ComputePipeline.setParameter()', async (pContext) => {
         const lShader: Shader = new Shader(lDevice, lShaderSource);
         lShader.setup((pSetup) => {
             pSetup.parameter('workSize', ComputeStage.Compute);
-            pSetup.computeEntryPoint('compute_main', (pComputeSetup) => {
-                pComputeSetup.size(64);
-            });
+            pSetup.computeEntryPoint('compute_main').size(64);
         });
 
         const lModule: ShaderComputeModule = lShader.createComputeModule('compute_main');
@@ -123,9 +110,6 @@ Deno.test('ComputePipeline.setParameter()', async (pContext) => {
         lPipeline.setParameter('workSize', 128);
 
         // Cleanup.
-        lPipeline.deconstruct();
-        lModule.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -142,8 +126,6 @@ Deno.test('ShaderComputeModule', async (pContext) => {
         expect(lModule.entryPoint).toBe('compute_main');
 
         // Cleanup.
-        lModule.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -158,8 +140,6 @@ Deno.test('ShaderComputeModule', async (pContext) => {
         expect(lModule.shader).toBe(lShader);
 
         // Cleanup.
-        lModule.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -174,8 +154,6 @@ Deno.test('ShaderComputeModule', async (pContext) => {
         expect(lModule.layout).toBe(lShader.layout);
 
         // Cleanup.
-        lModule.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -192,8 +170,6 @@ Deno.test('ShaderComputeModule', async (pContext) => {
         expect(lModule.workGroupSizeZ).toBe(1);
 
         // Cleanup.
-        lModule.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -209,9 +185,6 @@ Deno.test('ShaderComputeModule', async (pContext) => {
         expect(lPipeline).toBeInstanceOf(ComputePipeline);
 
         // Cleanup.
-        lPipeline.deconstruct();
-        lModule.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });

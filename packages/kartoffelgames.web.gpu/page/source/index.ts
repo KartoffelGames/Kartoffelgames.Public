@@ -17,13 +17,14 @@ import type { BindGroup } from '../../source/pipeline/bind_group/bind-group.ts';
 import { BindGroupLayout } from '../../source/pipeline/bind_group_layout/bind-group-layout.ts';
 import { ComputePipeline } from '../../source/pipeline/compute-pipeline.ts';
 import type { PipelineData } from '../../source/pipeline/pipeline_data/pipeline-data.ts';
-import type { RenderTargetsLayout } from '../../source/pipeline/render_targets/render-targets-layout.ts';
+import { RenderTargetsLayout } from '../../source/pipeline/render_targets/render-targets-layout.ts';
 import { type RenderTargets, RenderTargetsInvalidationType } from '../../source/pipeline/render_targets/render-targets.ts';
 import type { VertexFragmentPipeline } from '../../source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline.ts';
 import type { VertexParameter } from '../../source/pipeline/vertex_parameter/vertex-parameter.ts';
+import { VertexParameterLayout } from '../../source/pipeline/vertex_parameter/vertex-parameter-layout.ts';
 import type { ShaderRenderModule } from '../../source/shader/shader-render-module.ts';
-import type { Shader } from '../../source/shader/shader.ts';
-import type { CanvasTexture } from '../../source/texture/canvas-texture.ts';
+import { Shader } from '../../source/shader/shader.ts';
+import { CanvasTexture } from '../../source/texture/canvas-texture.ts';
 import type { GpuTexture, GpuTextureCopyOptions } from '../../source/texture/gpu-texture.ts';
 import { AmbientLight } from './camera/light/ambient-light.ts';
 import { Transform, TransformMatrix } from './camera/transform.ts';
@@ -47,21 +48,21 @@ const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTargetsL
     const lDepth: number = 50;
 
     // Create shader.
-    const lWoodBoxShader = pGpu.shader(cubeShader).setup((pShaderSetup) => {
+    const lWoodBoxShader = new Shader(pGpu, cubeShader).setup((pShaderSetup) => {
         // Set parameter.
         pShaderSetup.parameter('animationSeconds', ComputeStage.Vertex);
 
         // Vertex entry.
-        pShaderSetup.vertexEntryPoint('vertex_main', (pVertexParameterSetup) => {
-            pVertexParameterSetup.buffer('position', VertexParameterStepMode.Index)
+        pShaderSetup.vertexEntryPoint('vertex_main', new VertexParameterLayout(pGpu).setup((pSetup) => {
+            pSetup.buffer('position', VertexParameterStepMode.Index)
                 .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
 
-            pVertexParameterSetup.buffer('uv', VertexParameterStepMode.Vertex)
+            pSetup.buffer('uv', VertexParameterStepMode.Vertex)
                 .withParameter('uv', 1, BufferItemFormat.Float32, BufferItemMultiplier.Vector2);
 
-            pVertexParameterSetup.buffer('normal', VertexParameterStepMode.Vertex)
+            pSetup.buffer('normal', VertexParameterStepMode.Vertex)
                 .withParameter('normal', 2, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-        });
+        }));
 
         // Fragment entry.
         pShaderSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
@@ -69,25 +70,25 @@ const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTargetsL
         });
 
         // Object bind group.
-        pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
+        pShaderSetup.group(0, new BindGroupLayout(pGpu, 'object').setup((pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'transformationMatrix', ComputeStage.Vertex)
                 .asBuffer(64); // mat4x4<f32>
 
             pBindGroupSetup.binding(1, 'instancePositions', ComputeStage.Vertex, StorageBindingType.Read)
                 .asBuffer(0, 16); // array<vec4<f32>>, variableSize=16
-        });
+        }));
 
         // World bind group.
         pShaderSetup.group(1, pWorldGroup.layout);
 
         // User bind group
-        pShaderSetup.group(2, 'user', (pBindGroupSetup) => {
+        pShaderSetup.group(2, new BindGroupLayout(pGpu, 'user').setup((pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'cubeTextureSampler', ComputeStage.Fragment)
                 .asSampler(SamplerType.Filter);
 
             pBindGroupSetup.binding(1, 'cubeTexture', ComputeStage.Fragment | ComputeStage.Vertex)
                 .asTexture(TextureViewDimension.TwoDimensionArray, TextureFormat.Rgba8unorm);
-        });
+        }));
     });
 
     // Create render module from shader.
@@ -244,15 +245,15 @@ const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTargetsL
 
 const gGenerateColorCubeStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTargetsLayout, pWorldGroup: BindGroup): Array<RenderInstruction> => {
     // Create shader.
-    const lColorBoxShader = pGpu.shader(colorCubeShader).setup((pShaderSetup) => {
+    const lColorBoxShader = new Shader(pGpu, colorCubeShader).setup((pShaderSetup) => {
         // Vertex entry.
-        pShaderSetup.vertexEntryPoint('vertex_main', (pVertexParameterSetup) => {
-            pVertexParameterSetup.buffer('position', VertexParameterStepMode.Index)
+        pShaderSetup.vertexEntryPoint('vertex_main', new VertexParameterLayout(pGpu).setup((pSetup) => {
+            pSetup.buffer('position', VertexParameterStepMode.Index)
                 .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
 
-            pVertexParameterSetup.buffer('normal', VertexParameterStepMode.Vertex)
+            pSetup.buffer('normal', VertexParameterStepMode.Vertex)
                 .withParameter('normal', 1, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-        });
+        }));
 
         // Fragment entry.
         pShaderSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
@@ -260,13 +261,13 @@ const gGenerateColorCubeStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTar
         });
 
         // Object bind group.
-        pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
+        pShaderSetup.group(0, new BindGroupLayout(pGpu, 'object').setup((pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'transformationMatrix', ComputeStage.Vertex)
                 .asBuffer(64, 0, true); // mat4x4<f32>, dynamic offset
 
             pBindGroupSetup.binding(1, 'color', ComputeStage.Vertex)
                 .asBuffer(16, 0, true); // vec4<f32>, dynamic offset
-        });
+        }));
 
         // World bind group.
         pShaderSetup.group(1, pWorldGroup.layout);
@@ -339,18 +340,18 @@ const gGenerateColorCubeStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTar
 
 const gGenerateLightBoxStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTargetsLayout, pWorldGroup: BindGroup): RenderInstruction => {
     // Create shader.
-    const lLightBoxShader: Shader = pGpu.shader(lightBoxShader).setup((pShaderSetup) => {
+    const lLightBoxShader: Shader = new Shader(pGpu, lightBoxShader).setup((pShaderSetup) => {
         // Vertex entry.
-        pShaderSetup.vertexEntryPoint('vertex_main', (pVertexParameterSetup) => {
-            pVertexParameterSetup.buffer('position', VertexParameterStepMode.Index)
+        pShaderSetup.vertexEntryPoint('vertex_main', new VertexParameterLayout(pGpu).setup((pSetup) => {
+            pSetup.buffer('position', VertexParameterStepMode.Index)
                 .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
 
-            pVertexParameterSetup.buffer('uv', VertexParameterStepMode.Vertex)
+            pSetup.buffer('uv', VertexParameterStepMode.Vertex)
                 .withParameter('uv', 1, BufferItemFormat.Float32, BufferItemMultiplier.Vector2);
 
-            pVertexParameterSetup.buffer('normal', VertexParameterStepMode.Vertex)
+            pSetup.buffer('normal', VertexParameterStepMode.Vertex)
                 .withParameter('normal', 2, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-        });
+        }));
 
         // Fragment entry.
         pShaderSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
@@ -358,10 +359,10 @@ const gGenerateLightBoxStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTarg
         });
 
         // Object bind group.
-        pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
+        pShaderSetup.group(0, new BindGroupLayout(pGpu, 'object').setup((pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'transformationMatrix', ComputeStage.Vertex)
                 .asBuffer(64); // mat4x4<f32>
-        });
+        }));
 
         // World bind group.
         pShaderSetup.group(1, pWorldGroup.layout);
@@ -400,25 +401,25 @@ const gGenerateLightBoxStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTarg
 };
 
 const gGenerateSkyboxStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTargetsLayout, pWorldGroup: BindGroup): RenderInstruction => {
-    const lSkyBoxShader: Shader = pGpu.shader(skyboxShader).setup((pShaderSetup) => {
+    const lSkyBoxShader: Shader = new Shader(pGpu, skyboxShader).setup((pShaderSetup) => {
         // Vertex entry.
-        pShaderSetup.vertexEntryPoint('vertex_main', (pVertexParameterSetup) => {
-            pVertexParameterSetup.buffer('position', VertexParameterStepMode.Index)
+        pShaderSetup.vertexEntryPoint('vertex_main', new VertexParameterLayout(pGpu).setup((pSetup) => {
+            pSetup.buffer('position', VertexParameterStepMode.Index)
                 .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-        });
+        }));
 
         // Fragment entry.
         pShaderSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
             pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
         });
 
-        pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
+        pShaderSetup.group(0, new BindGroupLayout(pGpu, 'object').setup((pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'cubeTextureSampler', ComputeStage.Fragment)
                 .asSampler(SamplerType.Filter);
 
             pBindGroupSetup.binding(1, 'cubeMap', ComputeStage.Fragment)
                 .asTexture(TextureViewDimension.Cube, TextureFormat.Rgba8unorm);
-        });
+        }));
 
         // World bind group.
         pShaderSetup.group(1, pWorldGroup.layout);
@@ -502,18 +503,18 @@ const gGenerateSkyboxStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTarget
 
 const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTargetsLayout, pWorldGroup: BindGroup): RenderInstruction => {
     // Create shader.
-    const lWoodBoxShader = pGpu.shader(videoCanvasShader).setup((pShaderSetup) => {
+    const lWoodBoxShader = new Shader(pGpu, videoCanvasShader).setup((pShaderSetup) => {
         // Vertex entry.
-        pShaderSetup.vertexEntryPoint('vertex_main', (pVertexParameterSetup) => {
-            pVertexParameterSetup.buffer('position', VertexParameterStepMode.Index)
+        pShaderSetup.vertexEntryPoint('vertex_main', new VertexParameterLayout(pGpu).setup((pSetup) => {
+            pSetup.buffer('position', VertexParameterStepMode.Index)
                 .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
 
-            pVertexParameterSetup.buffer('uv', VertexParameterStepMode.Vertex)
+            pSetup.buffer('uv', VertexParameterStepMode.Vertex)
                 .withParameter('uv', 1, BufferItemFormat.Float32, BufferItemMultiplier.Vector2);
 
-            pVertexParameterSetup.buffer('normal', VertexParameterStepMode.Vertex)
+            pSetup.buffer('normal', VertexParameterStepMode.Vertex)
                 .withParameter('normal', 2, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-        });
+        }));
 
         // Fragment entry.
         pShaderSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
@@ -521,22 +522,22 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderT
         });
 
         // Object bind group.
-        pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
+        pShaderSetup.group(0, new BindGroupLayout(pGpu, 'object').setup((pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'transformationMatrix', ComputeStage.Vertex)
                 .asBuffer(64); // mat4x4<f32>
-        });
+        }));
 
         // World bind group.
         pShaderSetup.group(1, pWorldGroup.layout);
 
         // User bind group
-        pShaderSetup.group(2, 'user', (pBindGroupSetup) => {
+        pShaderSetup.group(2, new BindGroupLayout(pGpu, 'user').setup((pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'videoTextureSampler', ComputeStage.Fragment)
                 .asSampler(SamplerType.Filter);
 
             pBindGroupSetup.binding(1, 'videoTexture', ComputeStage.Fragment)
                 .asTexture(TextureViewDimension.TwoDimension, TextureFormat.Rgba8unorm);
-        });
+        }));
     });
 
     // Create render module from shader.
@@ -616,16 +617,16 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderT
 const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTargetsLayout, pWorldGroup: BindGroup): [RenderInstruction, ComputeInstruction] => {
     const lMaxParticleCount: number = 18000;
 
-    const lParticleRenderShader: Shader = pGpu.shader(particleShader).setup((pShaderSetup) => {
+    const lParticleRenderShader: Shader = new Shader(pGpu, particleShader).setup((pShaderSetup) => {
         // Set parameter.
         pShaderSetup.parameter('animationSeconds', ComputeStage.Vertex);
 
         // Vertex entry.
-        pShaderSetup.vertexEntryPoint('vertex_main', (pVertexParameterSetup) => {
-            pVertexParameterSetup.buffer('position-uv', VertexParameterStepMode.Index)
+        pShaderSetup.vertexEntryPoint('vertex_main', new VertexParameterLayout(pGpu).setup((pSetup) => {
+            pSetup.buffer('position-uv', VertexParameterStepMode.Index)
                 .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4)
                 .withParameter('uv', 1, BufferItemFormat.Float32, BufferItemMultiplier.Vector2);
-        });
+        }));
 
         // Fragment entry.
         pShaderSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
@@ -633,28 +634,26 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTarg
         });
 
         // Compute entry.
-        pShaderSetup.computeEntryPoint('compute_main', (pComputeSetup) => {
-            pComputeSetup.size(64);
-        });
+        pShaderSetup.computeEntryPoint('compute_main').size(64);
 
         // Object bind group.
-        pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
+        pShaderSetup.group(0, new BindGroupLayout(pGpu, 'object').setup((pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'transformationMatrix', ComputeStage.Vertex)
                 .asBuffer(64); // mat4x4<f32>
             pBindGroupSetup.binding(1, 'particles', ComputeStage.Vertex, StorageBindingType.Read)
                 .asBuffer(0, 48); // array<Particle>, Particle struct stride = 48 => (3x vec3 + 4byte-alignment) + 1x f32 = 48 bytes
-        });
+        }));
 
         // World bind group.
         pShaderSetup.group(1, pWorldGroup.layout);
 
-        pShaderSetup.group(2, 'user', (pBindGroupSetup) => {
+        pShaderSetup.group(2, new BindGroupLayout(pGpu, 'user').setup((pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'textureSampler', ComputeStage.Fragment)
                 .asSampler(SamplerType.Filter);
 
             pBindGroupSetup.binding(1, 'texture', ComputeStage.Fragment)
                 .asTexture(TextureViewDimension.TwoDimension, TextureFormat.Rgba8unorm);
-        });
+        }));
     });
 
     // Create render module from shader.
@@ -745,23 +744,21 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTarg
     /*
      * Compute shader.
      */
-    const lParticleComputeShader: Shader = pGpu.shader(particleComputeShader).setup((pShaderSetup) => {
+    const lParticleComputeShader: Shader = new Shader(pGpu, particleComputeShader).setup((pShaderSetup) => {
         // Set parameter.
         pShaderSetup.parameter('animationSeconds', ComputeStage.Vertex);
 
         // Compute entry.
-        pShaderSetup.computeEntryPoint('compute_main', (pComputeSetup) => {
-            pComputeSetup.size(64);
-        });
+        pShaderSetup.computeEntryPoint('compute_main').size(64);
 
         // Object bind group.
-        pShaderSetup.group(0, 'object', (pBindGroupSetup) => {
+        pShaderSetup.group(0, new BindGroupLayout(pGpu, 'object').setup((pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'particles', ComputeStage.Compute, StorageBindingType.ReadWrite)
                 .asBuffer(0, 48); // array<Particle>, Particle struct stride = 48
 
             pBindGroupSetup.binding(1, 'indirect', ComputeStage.Compute, StorageBindingType.ReadWrite)
                 .asBuffer(16); // vec4<u32>
-        });
+        }));
 
         // World bind group.
         pShaderSetup.group(1, pWorldGroup.layout);
@@ -776,7 +773,7 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTarg
 
     // Transformation and position group. 
     const lParticleComputeInformationGroup = lParticleComputeModule.layout.getGroupLayout('object').create();
-    lParticleComputeInformationGroup.data('particles').set(lParticleInformationGroup.data('particles').getRaw());
+    lParticleComputeInformationGroup.data('particles').set(lParticleInformationGroup.data('particles').getRaw<GpuBuffer>());
     lParticleComputeInformationGroup.data('indirect').set(lIndirectionBuffer);
 
     // Create compute instruction
@@ -857,10 +854,10 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
     });
 
     // Create canvas.
-    const lCanvasTexture: CanvasTexture = lGpu.canvas(document.getElementById('canvas') as HTMLCanvasElement);
+    const lCanvasTexture: CanvasTexture = new CanvasTexture(lGpu, document.getElementById('canvas') as HTMLCanvasElement);
 
     // Create and configure render targets layout.
-    const lRenderTargetsLayout: RenderTargetsLayout = lGpu.renderTargetsLayout(true).setup((pSetup) => {
+    const lRenderTargetsLayout: RenderTargetsLayout = new RenderTargetsLayout(lGpu, true).setup((pSetup) => {
         // Add "color" target format.
         pSetup.addColor('color', 0, TextureFormat.Bgra8unorm, true, { r: 0, g: 1, b: 0, a: 0 });
 

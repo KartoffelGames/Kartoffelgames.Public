@@ -28,7 +28,6 @@ Deno.test('RenderTargetsLayout.setup() -- color targets', async (pContext) => {
         expect(lNames[0]).toBe('color0');
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -50,7 +49,6 @@ Deno.test('RenderTargetsLayout.setup() -- color targets', async (pContext) => {
         expect(lNames[1]).toBe('color1');
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -73,7 +71,6 @@ Deno.test('RenderTargetsLayout.setup() -- color targets', async (pContext) => {
         expect(lTarget.index).toBe(0);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -96,7 +93,6 @@ Deno.test('RenderTargetsLayout.setup() -- color targets', async (pContext) => {
         expect(lTarget.clearValue.a).toBe(0);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -119,7 +115,6 @@ Deno.test('RenderTargetsLayout.setup() -- depth and stencil', async (pContext) =
         expect(lLayout.depthStencilFormat).toBe(TextureFormat.Depth24plus);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -140,7 +135,6 @@ Deno.test('RenderTargetsLayout.setup() -- depth and stencil', async (pContext) =
         expect(lLayout.depthStencilFormat).toBe(TextureFormat.Stencil8);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -161,7 +155,6 @@ Deno.test('RenderTargetsLayout.setup() -- depth and stencil', async (pContext) =
         expect(lLayout.depthStencilFormat).toBe(TextureFormat.Depth24plusStencil8);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -181,7 +174,6 @@ Deno.test('RenderTargetsLayout.hasDepth', async (pContext) => {
         expect(lLayout.hasDepth).toBe(false);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -200,7 +192,6 @@ Deno.test('RenderTargetsLayout.hasDepth', async (pContext) => {
         expect(lLayout.hasDepth).toBe(true);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -221,7 +212,6 @@ Deno.test('RenderTargetsLayout.hasStencil', async (pContext) => {
         expect(lLayout.hasStencil).toBe(false);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -240,7 +230,6 @@ Deno.test('RenderTargetsLayout.hasStencil', async (pContext) => {
         expect(lLayout.hasStencil).toBe(true);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -257,7 +246,6 @@ Deno.test('RenderTargetsLayout.multisampled', async (pContext) => {
         expect(lLayout.multisampled).toBe(false);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -272,7 +260,6 @@ Deno.test('RenderTargetsLayout.multisampled', async (pContext) => {
         expect(lLayout.multisampled).toBe(true);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -292,7 +279,6 @@ Deno.test('RenderTargetsLayout.hasColorTarget()', async (pContext) => {
         expect(lLayout.hasColorTarget('existingTarget')).toBe(true);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -310,7 +296,6 @@ Deno.test('RenderTargetsLayout.hasColorTarget()', async (pContext) => {
         expect(lLayout.hasColorTarget('nonExistingTarget')).toBe(false);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -336,7 +321,6 @@ Deno.test('RenderTargetsLayout.depthStencilConfig()', async (pContext) => {
         expect(lConfig.stencil!.clearValue).toBe(0);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -357,7 +341,6 @@ Deno.test('RenderTargetsLayout.depthStencilConfig()', async (pContext) => {
         expect(lThrowFunction).toThrow();
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });

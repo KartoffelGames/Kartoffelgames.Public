@@ -23,7 +23,6 @@ Deno.test('GpuBuffer.size -- alignment to 4 bytes', async (pContext) => {
         expect(lBuffer.size).toBe(16);
 
         // Cleanup.
-        lBuffer.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -38,7 +37,6 @@ Deno.test('GpuBuffer.size -- alignment to 4 bytes', async (pContext) => {
         expect(lBuffer.size).toBe(4);
 
         // Cleanup.
-        lBuffer.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -53,7 +51,6 @@ Deno.test('GpuBuffer.size -- alignment to 4 bytes', async (pContext) => {
         expect(lBuffer.size).toBe(8);
 
         // Cleanup.
-        lBuffer.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -68,7 +65,6 @@ Deno.test('GpuBuffer.size -- alignment to 4 bytes', async (pContext) => {
         expect(lBuffer.size).toBe(16);
 
         // Cleanup.
-        lBuffer.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -83,7 +79,6 @@ Deno.test('GpuBuffer.size -- alignment to 4 bytes', async (pContext) => {
         expect(lBuffer.size).toBe(0);
 
         // Cleanup.
-        lBuffer.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -99,7 +94,6 @@ Deno.test('GpuBuffer.size -- alignment to 4 bytes', async (pContext) => {
         expect(lBuffer.size).toBe(8);
 
         // Cleanup.
-        lBuffer.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -120,7 +114,6 @@ Deno.test('GpuBuffer.initialData()', async (pContext) => {
         expect(lNative).toBeTruthy();
 
         // Cleanup.
-        lBuffer.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -140,7 +133,6 @@ Deno.test('GpuBuffer.initialData()', async (pContext) => {
         expect(lThrowFunction).toThrow();
 
         // Cleanup.
-        lBuffer.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -165,7 +157,6 @@ Deno.test('GpuBuffer.write() and GpuBuffer.read()', async (pContext) => {
         expect(lResultArray[3]).toBe(4.0);
 
         // Cleanup.
-        lBuffer.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -186,7 +177,6 @@ Deno.test('GpuBuffer.write() and GpuBuffer.read()', async (pContext) => {
         expect(lResultArray[1]).toBe(40.0);
 
         // Cleanup.
-        lBuffer.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -205,7 +195,6 @@ Deno.test('GpuBuffer -- usage extension', async (pContext) => {
         expect(lNative).toBeTruthy();
 
         // Cleanup.
-        lBuffer.deconstruct();
         lDevice.deconstruct();
     });
 });

@@ -43,8 +43,6 @@ Deno.test('BindGroup.layout', async (pContext) => {
         expect(lBindGroup.layout).toBe(lLayout);
 
         // Cleanup.
-        lBindGroup.deconstruct();
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -63,9 +61,6 @@ Deno.test('BindGroup.data() -- buffer', async (pContext) => {
         expect(lBuffer.size).toBeGreaterThanOrEqual(64);
 
         // Cleanup.
-        lBuffer.deconstruct();
-        lBindGroup.deconstruct();
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -83,9 +78,6 @@ Deno.test('BindGroup.data() -- buffer', async (pContext) => {
         expect(lBuffer).toBeTruthy();
 
         // Cleanup.
-        lBuffer.deconstruct();
-        lBindGroup.deconstruct();
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -107,9 +99,6 @@ Deno.test('BindGroup.data() -- sampler', async (pContext) => {
         expect(lSampler).toBeTruthy();
 
         // Cleanup.
-        lSampler.deconstruct();
-        lBindGroup.deconstruct();
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -132,9 +121,6 @@ Deno.test('BindGroup.data() -- texture', async (pContext) => {
         expect(lTextureView.texture).toBeTruthy();
 
         // Cleanup.
-        lTextureView.deconstruct();
-        lBindGroup.deconstruct();
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -153,8 +139,6 @@ Deno.test('BindGroup.native', async (pContext) => {
         expect(lNative).toBeTruthy();
 
         // Cleanup.
-        lBindGroup.deconstruct();
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -170,8 +154,6 @@ Deno.test('BindGroup.native', async (pContext) => {
         expect(lThrowFunction).toThrow();
 
         // Cleanup.
-        lBindGroup.deconstruct();
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -201,9 +183,6 @@ Deno.test('BindGroup -- multiple bindings', async (pContext) => {
         expect(lNative).toBeTruthy();
 
         // Cleanup.
-        lTextureView.deconstruct();
-        lBindGroup.deconstruct();
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -227,8 +206,6 @@ Deno.test('BindGroup -- storage buffer binding', async (pContext) => {
         expect(lNative).toBeTruthy();
 
         // Cleanup.
-        lBindGroup.deconstruct();
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });

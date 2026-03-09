@@ -14,6 +14,7 @@ import { PrimitiveTopology } from '../../source/constant/primitive-topology.enum
 import { CompareFunction } from '../../source/constant/compare-function.enum.ts';
 import { TextureBlendFactor } from '../../source/constant/texture-blend-factor.enum.ts';
 import { TextureBlendOperation } from '../../source/constant/texture-blend-operation.enum.ts';
+import { VertexParameterLayout } from '../../source/pipeline/vertex_parameter/vertex-parameter-layout.ts';
 
 /**
  * Helper to request a GPU device for tests.
@@ -44,12 +45,16 @@ async function gCreateRenderPipelineComponents(): Promise<{
     renderTargetsLayout: RenderTargetsLayout;
 }> {
     const lDevice: GpuDevice = await gRequestDevice();
+
+    const lVertexLayout: VertexParameterLayout = new VertexParameterLayout(lDevice);
+    lVertexLayout.setup((pSetup) => {
+        pSetup.buffer('position', VertexParameterStepMode.Vertex)
+            .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+    });
+
     const lShader: Shader = new Shader(lDevice, gRenderShaderSource);
     lShader.setup((pSetup) => {
-        pSetup.vertexEntryPoint('vertex_main', (pVertexSetup) => {
-            pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
-                .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-        });
+        pSetup.vertexEntryPoint('vertex_main', lVertexLayout);
         pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
             pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
         });
@@ -76,10 +81,6 @@ Deno.test('VertexFragmentPipeline -- creation', async (pContext) => {
         expect(lPipeline).toBeTruthy();
 
         // Cleanup.
-        lPipeline.deconstruct();
-        lRenderModule.deconstruct();
-        lRtLayout.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -97,10 +98,6 @@ Deno.test('VertexFragmentPipeline.module', async (pContext) => {
         expect(lPipeline.module).toBe(lRenderModule);
 
         // Cleanup.
-        lPipeline.deconstruct();
-        lRenderModule.deconstruct();
-        lRtLayout.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -118,10 +115,6 @@ Deno.test('VertexFragmentPipeline.layout', async (pContext) => {
         expect(lPipeline.layout).toBe(lShader.layout);
 
         // Cleanup.
-        lPipeline.deconstruct();
-        lRenderModule.deconstruct();
-        lRtLayout.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -139,10 +132,6 @@ Deno.test('VertexFragmentPipeline.renderTargets', async (pContext) => {
         expect(lPipeline.renderTargets).toBe(lRtLayout);
 
         // Cleanup.
-        lPipeline.deconstruct();
-        lRenderModule.deconstruct();
-        lRtLayout.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -161,10 +150,6 @@ Deno.test('VertexFragmentPipeline -- primitive properties', async (pContext) => 
         expect(lPipeline.primitiveCullMode).toBe(PrimitiveCullMode.Front);
 
         // Cleanup.
-        lPipeline.deconstruct();
-        lRenderModule.deconstruct();
-        lRtLayout.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -181,10 +166,6 @@ Deno.test('VertexFragmentPipeline -- primitive properties', async (pContext) => 
         expect(lPipeline.primitiveFrontFace).toBe(PrimitiveFrontFace.ClockWise);
 
         // Cleanup.
-        lPipeline.deconstruct();
-        lRenderModule.deconstruct();
-        lRtLayout.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -201,10 +182,6 @@ Deno.test('VertexFragmentPipeline -- primitive properties', async (pContext) => 
         expect(lPipeline.primitiveTopology).toBe(PrimitiveTopology.LineList);
 
         // Cleanup.
-        lPipeline.deconstruct();
-        lRenderModule.deconstruct();
-        lRtLayout.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -213,12 +190,16 @@ Deno.test('VertexFragmentPipeline.depthConfig()', async (pContext) => {
     await pContext.step('Returns a depth configuration object', async () => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
+
+        const lVertexLayout: VertexParameterLayout = new VertexParameterLayout(lDevice);
+        lVertexLayout.setup((pSetup) => {
+            pSetup.buffer('position', VertexParameterStepMode.Vertex)
+                .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+        });
+
         const lShader: Shader = new Shader(lDevice, gRenderShaderSource);
         lShader.setup((pSetup) => {
-            pSetup.vertexEntryPoint('vertex_main', (pVertexSetup) => {
-                pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
-                    .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.vertexEntryPoint('vertex_main', lVertexLayout);
             pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
                 pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             });
@@ -240,10 +221,6 @@ Deno.test('VertexFragmentPipeline.depthConfig()', async (pContext) => {
         expect(lDepthConfig).toBeTruthy();
 
         // Cleanup.
-        lPipeline.deconstruct();
-        lRenderModule.deconstruct();
-        lRtLayout.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -264,10 +241,6 @@ Deno.test('VertexFragmentPipeline.targetConfig()', async (pContext) => {
         expect(lTargetConfig).toBeTruthy();
 
         // Cleanup.
-        lPipeline.deconstruct();
-        lRenderModule.deconstruct();
-        lRtLayout.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -285,10 +258,6 @@ Deno.test('VertexFragmentPipeline -- pipeline creation', async (pContext) => {
         expect(lPipeline).toBeTruthy();
 
         // Cleanup.
-        lPipeline.deconstruct();
-        lRenderModule.deconstruct();
-        lRtLayout.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -305,9 +274,6 @@ Deno.test('ShaderRenderModule', async (pContext) => {
         expect(lModule.vertexEntryPoint).toBe('vertex_main');
 
         // Cleanup.
-        lModule.deconstruct();
-        lRtLayout.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -322,9 +288,6 @@ Deno.test('ShaderRenderModule', async (pContext) => {
         expect(lModule.fragmentEntryPoint).toBe('fragment_main');
 
         // Cleanup.
-        lModule.deconstruct();
-        lRtLayout.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -339,9 +302,6 @@ Deno.test('ShaderRenderModule', async (pContext) => {
         expect(lModule.shader).toBe(lShader);
 
         // Cleanup.
-        lModule.deconstruct();
-        lRtLayout.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -356,9 +316,6 @@ Deno.test('ShaderRenderModule', async (pContext) => {
         expect(lModule.layout).toBe(lShader.layout);
 
         // Cleanup.
-        lModule.deconstruct();
-        lRtLayout.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -374,9 +331,6 @@ Deno.test('ShaderRenderModule', async (pContext) => {
         expect(lModule.vertexParameter.bufferNames.length).toBe(1);
 
         // Cleanup.
-        lModule.deconstruct();
-        lRtLayout.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });

@@ -36,11 +36,13 @@ fn fragment_main() -> @location(0) vec4f {
 async function gCreateSetupShader(): Promise<{ device: GpuDevice; shader: Shader; }> {
     const lDevice: GpuDevice = await gRequestDevice();
     const lShader: Shader = new Shader(lDevice, gVertexFragmentShaderSource);
+    const lVertexLayout: VertexParameterLayout = new VertexParameterLayout(lDevice);
+    lVertexLayout.setup((pSetup) => {
+        pSetup.buffer('position', VertexParameterStepMode.Vertex)
+            .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+    });
     lShader.setup((pSetup) => {
-        pSetup.vertexEntryPoint('vertex_main', (pVertexSetup) => {
-            pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
-                .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-        });
+        pSetup.vertexEntryPoint('vertex_main', lVertexLayout);
         pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
             pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
         });
@@ -61,9 +63,6 @@ Deno.test('VertexParameter.vertexCount', async (pContext) => {
         expect(lVertexParam.vertexCount).toBe(3);
 
         // Cleanup.
-        lVertexParam.deconstruct();
-        lRenderModule.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -82,9 +81,6 @@ Deno.test('VertexParameter.layout', async (pContext) => {
         expect(lVertexParam.layout).toBe(lVertexParamLayout);
 
         // Cleanup.
-        lVertexParam.deconstruct();
-        lRenderModule.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -107,10 +103,6 @@ Deno.test('VertexParameter.create()', async (pContext) => {
         expect(lBuffer).toBeTruthy();
 
         // Cleanup.
-        lBuffer.deconstruct();
-        lVertexParam.deconstruct();
-        lRenderModule.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -134,9 +126,6 @@ Deno.test('VertexParameter.get()', async (pContext) => {
         expect(lRetrievedBuffer).toBe(lCreatedBuffer);
 
         // Cleanup.
-        lVertexParam.deconstruct();
-        lRenderModule.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -153,9 +142,6 @@ Deno.test('VertexParameter.get()', async (pContext) => {
         expect(lThrowFunction).toThrow();
 
         // Cleanup.
-        lVertexParam.deconstruct();
-        lRenderModule.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -174,9 +160,6 @@ Deno.test('VertexParameter.create() -- data alignment', async (pContext) => {
         expect(lThrowFunction).toThrow();
 
         // Cleanup.
-        lVertexParam.deconstruct();
-        lRenderModule.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -194,9 +177,6 @@ Deno.test('VertexParameter.indexBuffer', async (pContext) => {
         expect(lVertexParam.indexBuffer).toBeNull();
 
         // Cleanup.
-        lVertexParam.deconstruct();
-        lRenderModule.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -220,12 +200,14 @@ Deno.test('VertexParameter -- with parameters', async (pContext) => {
         `;
 
         const lShader: Shader = new Shader(lDevice, lShaderSource);
+        const lVertexLayout: VertexParameterLayout = new VertexParameterLayout(lDevice);
+        lVertexLayout.setup((pSetup) => {
+            pSetup.buffer('position', VertexParameterStepMode.Vertex)
+                .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+        });
         lShader.setup((pSetup) => {
             pSetup.parameter('animationSeconds', ComputeStage.Vertex);
-            pSetup.vertexEntryPoint('vertex_main', (pVertexSetup) => {
-                pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
-                    .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.vertexEntryPoint('vertex_main', lVertexLayout);
             pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
                 pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             });
@@ -236,7 +218,6 @@ Deno.test('VertexParameter -- with parameters', async (pContext) => {
         expect(lParamUsage.has(ComputeStage.Vertex)).toBe(true);
 
         // Cleanup.
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });

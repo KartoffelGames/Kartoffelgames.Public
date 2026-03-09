@@ -105,35 +105,7 @@ Deno.test('GpuDevice.formatValidator', async (pContext) => {
     });
 });
 
-Deno.test('GpuDevice.frameCount', async (pContext) => {
-    await pContext.step('Initial frame count is 0', async () => {
-        // Setup.
-        const lDevice: GpuDevice = await gRequestDevice();
-
-        // Evaluation.
-        expect(lDevice.frameCount).toBe(0);
-
-        // Cleanup.
-        lDevice.deconstruct();
-    });
-
-    await pContext.step('Frame count increments after startNewFrame', async () => {
-        // Setup.
-        const lDevice: GpuDevice = await gRequestDevice();
-
-        // Process.
-        lDevice.processTick();
-        lDevice.processTick();
-
-        // Evaluation.
-        expect(lDevice.frameCount).toBe(2);
-
-        // Cleanup.
-        lDevice.deconstruct();
-    });
-});
-
-Deno.test('GpuDevice.startNewFrame()', async (pContext) => {
+Deno.test('GpuDevice.processTick()', async (pContext) => {
     await pContext.step('Calls frame change listeners', async () => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
@@ -174,36 +146,34 @@ Deno.test('GpuDevice.startNewFrame()', async (pContext) => {
     });
 });
 
-Deno.test('GpuDevice.shader()', async (pContext) => {
+Deno.test('Shader creation', async (pContext) => {
     await pContext.step('Creates a Shader instance', async () => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
 
         // Process.
-        const lShader: Shader = lDevice.shader('@vertex fn vs() -> @builtin(position) vec4f { return vec4f(0.0); }');
+        const lShader: Shader = new Shader(lDevice, '@vertex fn vs() -> @builtin(position) vec4f { return vec4f(0.0); }');
 
         // Evaluation.
         expect(lShader).toBeTruthy();
 
         // Cleanup.
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
 
-Deno.test('GpuDevice.renderTargetsLayout()', async (pContext) => {
+Deno.test('RenderTargetsLayout creation', async (pContext) => {
     await pContext.step('Creates non-multisampled layout by default', async () => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
 
         // Process.
-        const lLayout: RenderTargetsLayout = lDevice.renderTargetsLayout();
+        const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
 
         // Evaluation.
         expect(lLayout.multisampled).toBe(false);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -212,13 +182,12 @@ Deno.test('GpuDevice.renderTargetsLayout()', async (pContext) => {
         const lDevice: GpuDevice = await gRequestDevice();
 
         // Process.
-        const lLayout: RenderTargetsLayout = lDevice.renderTargetsLayout(true);
+        const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, true);
 
         // Evaluation.
         expect(lLayout.multisampled).toBe(true);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });

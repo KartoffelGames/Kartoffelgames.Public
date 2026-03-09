@@ -35,7 +35,6 @@ Deno.test('GpuTexture -- constructor defaults', async (pContext) => {
         expect(lTexture.depth).toBe(1);
 
         // Cleanup.
-        lTexture.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -54,7 +53,6 @@ Deno.test('GpuTexture -- constructor defaults', async (pContext) => {
         expect(lTexture.mipCount).toBe(1);
 
         // Cleanup.
-        lTexture.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -75,7 +73,6 @@ Deno.test('GpuTexture -- constructor defaults', async (pContext) => {
         expect(lTexture.multiSampled).toBe(false);
 
         // Cleanup.
-        lTexture.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -94,7 +91,6 @@ Deno.test('GpuTexture -- constructor defaults', async (pContext) => {
         expect(lTexture.multiSampled).toBe(true);
 
         // Cleanup.
-        lTexture.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -116,7 +112,6 @@ Deno.test('GpuTexture -- property setters', async (pContext) => {
         expect(lTexture.width).toBe(256);
 
         // Cleanup.
-        lTexture.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -136,7 +131,6 @@ Deno.test('GpuTexture -- property setters', async (pContext) => {
         expect(lTexture.height).toBe(512);
 
         // Cleanup.
-        lTexture.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -156,7 +150,6 @@ Deno.test('GpuTexture -- property setters', async (pContext) => {
         expect(lTexture.depth).toBe(6);
 
         // Cleanup.
-        lTexture.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -176,7 +169,6 @@ Deno.test('GpuTexture -- property setters', async (pContext) => {
         expect(lTexture.mipCount).toBe(4);
 
         // Cleanup.
-        lTexture.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -201,7 +193,6 @@ Deno.test('GpuTexture.native', async (pContext) => {
         expect(lNative).toBeTruthy();
 
         // Cleanup.
-        lTexture.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -229,8 +220,6 @@ Deno.test('GpuTexture.useAs()', async (pContext) => {
         expect(lView.texture).toBe(lTexture);
 
         // Cleanup.
-        lView.deconstruct();
-        lTexture.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -254,8 +243,6 @@ Deno.test('GpuTexture.useAs()', async (pContext) => {
         expect(lView.dimension).toBe(TextureViewDimension.Cube);
 
         // Cleanup.
-        lView.deconstruct();
-        lTexture.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -286,8 +273,6 @@ Deno.test('GpuTexture.copyFrom()', async (pContext) => {
         lDestTexture.copyFrom(lSourceTexture);
 
         // Cleanup.
-        lDestTexture.deconstruct();
-        lSourceTexture.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -314,8 +299,6 @@ Deno.test('GpuTextureView -- constructor defaults', async (pContext) => {
         expect(lView.arrayLayerEnd).toBe(-1);
 
         // Cleanup.
-        lView.deconstruct();
-        lTexture.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -340,8 +323,6 @@ Deno.test('GpuTextureView -- property access', async (pContext) => {
         expect(lView.texture).toBe(lTexture);
 
         // Cleanup.
-        lView.deconstruct();
-        lTexture.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -364,8 +345,6 @@ Deno.test('GpuTextureView -- property setters', async (pContext) => {
         expect(lView.mipLevelStart).toBe(1);
 
         // Cleanup.
-        lView.deconstruct();
-        lTexture.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -386,8 +365,6 @@ Deno.test('GpuTextureView -- property setters', async (pContext) => {
         expect(lView.arrayLayerStart).toBe(2);
 
         // Cleanup.
-        lView.deconstruct();
-        lTexture.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -413,8 +390,6 @@ Deno.test('GpuTextureView.native', async (pContext) => {
         expect(lNative).toBeTruthy();
 
         // Cleanup.
-        lView.deconstruct();
-        lTexture.deconstruct();
         lDevice.deconstruct();
     });
 });

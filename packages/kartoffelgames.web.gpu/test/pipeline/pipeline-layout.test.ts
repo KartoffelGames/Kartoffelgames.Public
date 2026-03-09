@@ -42,8 +42,6 @@ Deno.test('PipelineLayout.groups', async (pContext) => {
         expect(lPipelineLayout.groups[0]).toBe('group0');
 
         // Cleanup.
-        lPipelineLayout.deconstruct();
-        lGroup0.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -63,9 +61,6 @@ Deno.test('PipelineLayout.groups', async (pContext) => {
         expect(lPipelineLayout.groups.length).toBe(2);
 
         // Cleanup.
-        lPipelineLayout.deconstruct();
-        lGroup1.deconstruct();
-        lGroup0.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -86,8 +81,6 @@ Deno.test('PipelineLayout.getGroupLayout()', async (pContext) => {
         expect(lRetrievedLayout).toBe(lGroup0);
 
         // Cleanup.
-        lPipelineLayout.deconstruct();
-        lGroup0.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -106,8 +99,6 @@ Deno.test('PipelineLayout.getGroupLayout()', async (pContext) => {
         expect(lThrowFunction).toThrow();
 
         // Cleanup.
-        lPipelineLayout.deconstruct();
-        lGroup0.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -128,9 +119,6 @@ Deno.test('PipelineLayout.groupIndex()', async (pContext) => {
         expect(lPipelineLayout.groupIndex('second')).toBe(1);
 
         // Cleanup.
-        lPipelineLayout.deconstruct();
-        lGroup1.deconstruct();
-        lGroup0.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -149,8 +137,6 @@ Deno.test('PipelineLayout.groupIndex()', async (pContext) => {
         expect(lThrowFunction).toThrow();
 
         // Cleanup.
-        lPipelineLayout.deconstruct();
-        lGroup0.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -171,8 +157,6 @@ Deno.test('PipelineLayout.native', async (pContext) => {
         expect(lNative).toBeTruthy();
 
         // Cleanup.
-        lPipelineLayout.deconstruct();
-        lGroup0.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -194,8 +178,6 @@ Deno.test('PipelineLayout -- validation', async (pContext) => {
         expect(lThrowFunction).toThrow();
 
         // Cleanup.
-        lGroup1.deconstruct();
-        lGroup0.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -223,10 +205,6 @@ Deno.test('PipelineLayout.withData()', async (pContext) => {
         expect(lPipelineData.layout).toBe(lPipelineLayout);
 
         // Cleanup.
-        lPipelineData.deconstruct();
-        lBindGroup.deconstruct();
-        lPipelineLayout.deconstruct();
-        lGroup0.deconstruct();
         lDevice.deconstruct();
     });
 });

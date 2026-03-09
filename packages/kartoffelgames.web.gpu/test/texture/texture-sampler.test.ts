@@ -28,7 +28,6 @@ Deno.test('TextureSampler -- constructor defaults', async (pContext) => {
         expect(lSampler.mipmapFilter).toBe(FilterMode.Linear);
 
         // Cleanup.
-        lSampler.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -43,7 +42,6 @@ Deno.test('TextureSampler -- constructor defaults', async (pContext) => {
         expect(lSampler.wrapMode).toBe(WrappingMode.ClampToEdge);
 
         // Cleanup.
-        lSampler.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -59,7 +57,6 @@ Deno.test('TextureSampler -- constructor defaults', async (pContext) => {
         expect(lSampler.lodMaxClamp).toBe(32);
 
         // Cleanup.
-        lSampler.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -74,7 +71,6 @@ Deno.test('TextureSampler -- constructor defaults', async (pContext) => {
         expect(lSampler.maxAnisotropy).toBe(16);
 
         // Cleanup.
-        lSampler.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -89,7 +85,6 @@ Deno.test('TextureSampler -- constructor defaults', async (pContext) => {
         expect(lSampler.compare).toBeNull();
 
         // Cleanup.
-        lSampler.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -104,7 +99,6 @@ Deno.test('TextureSampler -- constructor defaults', async (pContext) => {
         expect(lSampler.samplerType).toBe(SamplerType.Comparison);
 
         // Cleanup.
-        lSampler.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -122,7 +116,6 @@ Deno.test('TextureSampler -- property setters', async (pContext) => {
         expect(lSampler.magFilter).toBe(FilterMode.Nearest);
 
         // Cleanup.
-        lSampler.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -138,7 +131,6 @@ Deno.test('TextureSampler -- property setters', async (pContext) => {
         expect(lSampler.minFilter).toBe(FilterMode.Nearest);
 
         // Cleanup.
-        lSampler.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -154,7 +146,6 @@ Deno.test('TextureSampler -- property setters', async (pContext) => {
         expect(lSampler.mipmapFilter).toBe(FilterMode.Nearest);
 
         // Cleanup.
-        lSampler.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -170,7 +161,6 @@ Deno.test('TextureSampler -- property setters', async (pContext) => {
         expect(lSampler.wrapMode).toBe(WrappingMode.Repeat);
 
         // Cleanup.
-        lSampler.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -186,7 +176,6 @@ Deno.test('TextureSampler -- property setters', async (pContext) => {
         expect(lSampler.lodMinClamp).toBe(2);
 
         // Cleanup.
-        lSampler.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -202,7 +191,6 @@ Deno.test('TextureSampler -- property setters', async (pContext) => {
         expect(lSampler.lodMaxClamp).toBe(16);
 
         // Cleanup.
-        lSampler.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -218,7 +206,6 @@ Deno.test('TextureSampler -- property setters', async (pContext) => {
         expect(lSampler.maxAnisotropy).toBe(8);
 
         // Cleanup.
-        lSampler.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -234,7 +221,6 @@ Deno.test('TextureSampler -- property setters', async (pContext) => {
         expect(lSampler.compare).toBe(CompareFunction.Less);
 
         // Cleanup.
-        lSampler.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -252,7 +238,6 @@ Deno.test('TextureSampler.native', async (pContext) => {
         expect(lNative).toBeTruthy();
 
         // Cleanup.
-        lSampler.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -269,7 +254,6 @@ Deno.test('TextureSampler.native', async (pContext) => {
         expect(lNative).toBeTruthy();
 
         // Cleanup.
-        lSampler.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -285,7 +269,6 @@ Deno.test('TextureSampler.native', async (pContext) => {
         expect(lThrowFunction).toThrow();
 
         // Cleanup.
-        lSampler.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -301,7 +284,6 @@ Deno.test('TextureSampler.native', async (pContext) => {
         expect(lNative).toBeTruthy();
 
         // Cleanup.
-        lSampler.deconstruct();
         lDevice.deconstruct();
     });
 });

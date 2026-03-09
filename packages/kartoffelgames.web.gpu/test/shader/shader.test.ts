@@ -12,6 +12,7 @@ import { ShaderRenderModule } from '../../source/shader/shader-render-module.ts'
 import { ShaderComputeModule } from '../../source/shader/shader-compute-module.ts';
 import { BindGroupLayout } from '../../source/pipeline/bind_group_layout/bind-group-layout.ts';
 import { PipelineLayout } from '../../source/pipeline/pipeline-layout.ts';
+import { VertexParameterLayout } from '../../source/pipeline/vertex_parameter/vertex-parameter-layout.ts';
 
 /**
  * Helper to request a GPU device for tests.
@@ -67,18 +68,28 @@ fn fragment_main() -> @location(0) vec4f {
 }
 `;
 
+/**
+ * Helper to create a basic VertexParameterLayout with a single position buffer.
+ */
+function gCreatePositionVertexLayout(pDevice: GpuDevice): VertexParameterLayout {
+    const lVertexLayout = new VertexParameterLayout(pDevice);
+    lVertexLayout.setup((pSetup) => {
+        pSetup.buffer('position', VertexParameterStepMode.Vertex)
+            .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
+    });
+    return lVertexLayout;
+}
+
 Deno.test('Shader.setup()', async (pContext) => {
     await pContext.step('Can be setup with vertex and fragment entry points', async () => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lShader: Shader = new Shader(lDevice, gBasicRenderShaderSource);
+        const lVertexLayout: VertexParameterLayout = gCreatePositionVertexLayout(lDevice);
 
         // Process.
         lShader.setup((pSetup) => {
-            pSetup.vertexEntryPoint('vertex_main', (pVertexSetup) => {
-                pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
-                    .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.vertexEntryPoint('vertex_main', lVertexLayout);
             pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
                 pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             });
@@ -88,7 +99,6 @@ Deno.test('Shader.setup()', async (pContext) => {
         expect(lShader.layout).toBeTruthy();
 
         // Cleanup.
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -99,16 +109,13 @@ Deno.test('Shader.setup()', async (pContext) => {
 
         // Process.
         lShader.setup((pSetup) => {
-            pSetup.computeEntryPoint('compute_main', (pComputeSetup) => {
-                pComputeSetup.size(64);
-            });
+            pSetup.computeEntryPoint('compute_main').size(64);
         });
 
         // Evaluation.
         expect(lShader.layout).toBeTruthy();
 
         // Cleanup.
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -117,23 +124,18 @@ Deno.test('Shader.setup()', async (pContext) => {
         const lDevice: GpuDevice = await gRequestDevice();
         const lShader: Shader = new Shader(lDevice, gBasicComputeShaderSource);
         lShader.setup((pSetup) => {
-            pSetup.computeEntryPoint('compute_main', (pComputeSetup) => {
-                pComputeSetup.size(64);
-            });
+            pSetup.computeEntryPoint('compute_main').size(64);
         });
 
         // Evaluation.
         const lThrowFunction = () => {
             lShader.setup((pSetup) => {
-                pSetup.computeEntryPoint('compute_main', (pComputeSetup) => {
-                    pComputeSetup.size(64);
-                });
+                pSetup.computeEntryPoint('compute_main').size(64);
             });
         };
         expect(lThrowFunction).toThrow();
 
         // Cleanup.
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -143,11 +145,9 @@ Deno.test('Shader.layout', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lShader: Shader = new Shader(lDevice, gBasicRenderShaderSource);
+        const lVertexLayout: VertexParameterLayout = gCreatePositionVertexLayout(lDevice);
         lShader.setup((pSetup) => {
-            pSetup.vertexEntryPoint('vertex_main', (pVertexSetup) => {
-                pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
-                    .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.vertexEntryPoint('vertex_main', lVertexLayout);
             pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
                 pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             });
@@ -158,7 +158,6 @@ Deno.test('Shader.layout', async (pContext) => {
         expect(lShader.layout.groups).toBeInstanceOf(Array);
 
         // Cleanup.
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -174,7 +173,6 @@ Deno.test('Shader.layout', async (pContext) => {
         expect(lThrowFunction).toThrow();
 
         // Cleanup.
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -184,19 +182,20 @@ Deno.test('Shader.setup() -- with bind groups', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lShader: Shader = new Shader(lDevice, gBindGroupShaderSource);
+        const lVertexLayout: VertexParameterLayout = gCreatePositionVertexLayout(lDevice);
+
+        const lBindGroupLayout: BindGroupLayout = new BindGroupLayout(lDevice, 'transform');
+        lBindGroupLayout.setup((pSetup) => {
+            pSetup.binding(0, 'transform', ComputeStage.Vertex).asBuffer(64); // mat4x4f = 64 bytes
+        });
 
         // Process.
         lShader.setup((pSetup) => {
-            pSetup.vertexEntryPoint('vertex_main', (pVertexSetup) => {
-                pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
-                    .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.vertexEntryPoint('vertex_main', lVertexLayout);
             pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
                 pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             });
-            pSetup.group(0, 'transform', (pGroupSetup) => {
-                pGroupSetup.binding(0, 'transform', ComputeStage.Vertex).asBuffer(64); // mat4x4f = 64 bytes
-            });
+            pSetup.group(0, lBindGroupLayout);
         });
 
         // Evaluation.
@@ -205,7 +204,6 @@ Deno.test('Shader.setup() -- with bind groups', async (pContext) => {
         expect(lGroups[0]).toBe('transform');
 
         // Cleanup.
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -213,17 +211,19 @@ Deno.test('Shader.setup() -- with bind groups', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lShader: Shader = new Shader(lDevice, gBindGroupShaderSource);
+        const lVertexLayout: VertexParameterLayout = gCreatePositionVertexLayout(lDevice);
+
+        const lBindGroupLayout: BindGroupLayout = new BindGroupLayout(lDevice, 'transform');
+        lBindGroupLayout.setup((pSetup) => {
+            pSetup.binding(0, 'transform', ComputeStage.Vertex).asBuffer(64);
+        });
+
         lShader.setup((pSetup) => {
-            pSetup.vertexEntryPoint('vertex_main', (pVertexSetup) => {
-                pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
-                    .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.vertexEntryPoint('vertex_main', lVertexLayout);
             pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
                 pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             });
-            pSetup.group(0, 'transform', (pGroupSetup) => {
-                pGroupSetup.binding(0, 'transform', ComputeStage.Vertex).asBuffer(64);
-            });
+            pSetup.group(0, lBindGroupLayout);
         });
 
         // Process.
@@ -234,8 +234,6 @@ Deno.test('Shader.setup() -- with bind groups', async (pContext) => {
         expect(lGroupLayout.name).toBe('transform');
 
         // Cleanup.
-        lGroupLayout.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -245,12 +243,10 @@ Deno.test('Shader.parameter()', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lShader: Shader = new Shader(lDevice, gBasicRenderShaderSource);
+        const lVertexLayout: VertexParameterLayout = gCreatePositionVertexLayout(lDevice);
         lShader.setup((pSetup) => {
             pSetup.parameter('animationSeconds', ComputeStage.Vertex);
-            pSetup.vertexEntryPoint('vertex_main', (pVertexSetup) => {
-                pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
-                    .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.vertexEntryPoint('vertex_main', lVertexLayout);
             pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
                 pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             });
@@ -263,7 +259,6 @@ Deno.test('Shader.parameter()', async (pContext) => {
         expect(lUsage.has(ComputeStage.Vertex)).toBe(true);
 
         // Cleanup.
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -271,11 +266,9 @@ Deno.test('Shader.parameter()', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lShader: Shader = new Shader(lDevice, gBasicRenderShaderSource);
+        const lVertexLayout: VertexParameterLayout = gCreatePositionVertexLayout(lDevice);
         lShader.setup((pSetup) => {
-            pSetup.vertexEntryPoint('vertex_main', (pVertexSetup) => {
-                pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
-                    .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.vertexEntryPoint('vertex_main', lVertexLayout);
             pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
                 pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             });
@@ -288,7 +281,6 @@ Deno.test('Shader.parameter()', async (pContext) => {
         expect(lThrowFunction).toThrow();
 
         // Cleanup.
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -298,11 +290,9 @@ Deno.test('Shader.createRenderModule()', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lShader: Shader = new Shader(lDevice, gBasicRenderShaderSource);
+        const lVertexLayout: VertexParameterLayout = gCreatePositionVertexLayout(lDevice);
         lShader.setup((pSetup) => {
-            pSetup.vertexEntryPoint('vertex_main', (pVertexSetup) => {
-                pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
-                    .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.vertexEntryPoint('vertex_main', lVertexLayout);
             pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
                 pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             });
@@ -317,8 +307,6 @@ Deno.test('Shader.createRenderModule()', async (pContext) => {
         expect(lModule.fragmentEntryPoint).toBe('fragment_main');
 
         // Cleanup.
-        lModule.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -326,11 +314,9 @@ Deno.test('Shader.createRenderModule()', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lShader: Shader = new Shader(lDevice, gBasicRenderShaderSource);
+        const lVertexLayout: VertexParameterLayout = gCreatePositionVertexLayout(lDevice);
         lShader.setup((pSetup) => {
-            pSetup.vertexEntryPoint('vertex_main', (pVertexSetup) => {
-                pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
-                    .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.vertexEntryPoint('vertex_main', lVertexLayout);
             pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
                 pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             });
@@ -345,8 +331,6 @@ Deno.test('Shader.createRenderModule()', async (pContext) => {
         expect(lModule.fragmentEntryPoint).toBeNull();
 
         // Cleanup.
-        lModule.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -354,11 +338,9 @@ Deno.test('Shader.createRenderModule()', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lShader: Shader = new Shader(lDevice, gBasicRenderShaderSource);
+        const lVertexLayout: VertexParameterLayout = gCreatePositionVertexLayout(lDevice);
         lShader.setup((pSetup) => {
-            pSetup.vertexEntryPoint('vertex_main', (pVertexSetup) => {
-                pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
-                    .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.vertexEntryPoint('vertex_main', lVertexLayout);
             pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
                 pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             });
@@ -371,7 +353,6 @@ Deno.test('Shader.createRenderModule()', async (pContext) => {
         expect(lThrowFunction).toThrow();
 
         // Cleanup.
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -379,11 +360,9 @@ Deno.test('Shader.createRenderModule()', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lShader: Shader = new Shader(lDevice, gBasicRenderShaderSource);
+        const lVertexLayout: VertexParameterLayout = gCreatePositionVertexLayout(lDevice);
         lShader.setup((pSetup) => {
-            pSetup.vertexEntryPoint('vertex_main', (pVertexSetup) => {
-                pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
-                    .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.vertexEntryPoint('vertex_main', lVertexLayout);
             pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
                 pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             });
@@ -396,7 +375,6 @@ Deno.test('Shader.createRenderModule()', async (pContext) => {
         expect(lThrowFunction).toThrow();
 
         // Cleanup.
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -407,9 +385,7 @@ Deno.test('Shader.createComputeModule()', async (pContext) => {
         const lDevice: GpuDevice = await gRequestDevice();
         const lShader: Shader = new Shader(lDevice, gBasicComputeShaderSource);
         lShader.setup((pSetup) => {
-            pSetup.computeEntryPoint('compute_main', (pComputeSetup) => {
-                pComputeSetup.size(64);
-            });
+            pSetup.computeEntryPoint('compute_main').size(64);
         });
 
         // Process.
@@ -420,8 +396,6 @@ Deno.test('Shader.createComputeModule()', async (pContext) => {
         expect(lModule.entryPoint).toBe('compute_main');
 
         // Cleanup.
-        lModule.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -430,9 +404,7 @@ Deno.test('Shader.createComputeModule()', async (pContext) => {
         const lDevice: GpuDevice = await gRequestDevice();
         const lShader: Shader = new Shader(lDevice, gBasicComputeShaderSource);
         lShader.setup((pSetup) => {
-            pSetup.computeEntryPoint('compute_main', (pComputeSetup) => {
-                pComputeSetup.size(64);
-            });
+            pSetup.computeEntryPoint('compute_main').size(64);
         });
 
         // Process.
@@ -444,8 +416,6 @@ Deno.test('Shader.createComputeModule()', async (pContext) => {
         expect(lModule.workGroupSizeZ).toBe(1);
 
         // Cleanup.
-        lModule.deconstruct();
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -454,9 +424,7 @@ Deno.test('Shader.createComputeModule()', async (pContext) => {
         const lDevice: GpuDevice = await gRequestDevice();
         const lShader: Shader = new Shader(lDevice, gBasicComputeShaderSource);
         lShader.setup((pSetup) => {
-            pSetup.computeEntryPoint('compute_main', (pComputeSetup) => {
-                pComputeSetup.size(64);
-            });
+            pSetup.computeEntryPoint('compute_main').size(64);
         });
 
         // Evaluation.
@@ -466,7 +434,6 @@ Deno.test('Shader.createComputeModule()', async (pContext) => {
         expect(lThrowFunction).toThrow();
 
         // Cleanup.
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -476,11 +443,9 @@ Deno.test('Shader.native', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lShader: Shader = new Shader(lDevice, gBasicRenderShaderSource);
+        const lVertexLayout: VertexParameterLayout = gCreatePositionVertexLayout(lDevice);
         lShader.setup((pSetup) => {
-            pSetup.vertexEntryPoint('vertex_main', (pVertexSetup) => {
-                pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
-                    .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.vertexEntryPoint('vertex_main', lVertexLayout);
             pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
                 pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             });
@@ -493,7 +458,6 @@ Deno.test('Shader.native', async (pContext) => {
         expect(lNative).toBeTruthy();
 
         // Cleanup.
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -521,24 +485,28 @@ Deno.test('Shader.setup() -- multiple bind groups', async (pContext) => {
             }
         `;
         const lShader: Shader = new Shader(lDevice, lShaderSource);
+        const lVertexLayout: VertexParameterLayout = gCreatePositionVertexLayout(lDevice);
+
+        const lObjectBindGroupLayout: BindGroupLayout = new BindGroupLayout(lDevice, 'object');
+        lObjectBindGroupLayout.setup((pSetup) => {
+            pSetup.binding(0, 'object_data', ComputeStage.Vertex).asBuffer(64);
+        });
+
+        const lTextureBindGroupLayout: BindGroupLayout = new BindGroupLayout(lDevice, 'texture');
+        lTextureBindGroupLayout.setup((pSetup) => {
+            pSetup.binding(0, 'tex_sampler', ComputeStage.Fragment).asSampler(SamplerType.Filter);
+            pSetup.binding(1, 'tex', ComputeStage.Fragment).asTexture(TextureViewDimension.TwoDimension, TextureFormat.Rgba8unorm);
+        });
 
         // Process.
         lShader.setup((pSetup) => {
-            pSetup.vertexEntryPoint('vertex_main', (pVertexSetup) => {
-                pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
-                    .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.vertexEntryPoint('vertex_main', lVertexLayout);
             pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
                 pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             });
 
-            pSetup.group(0, 'object', (pGroupSetup) => {
-                pGroupSetup.binding(0, 'object_data', ComputeStage.Vertex).asBuffer(64);
-            });
-            pSetup.group(1, 'texture', (pGroupSetup) => {
-                pGroupSetup.binding(0, 'tex_sampler', ComputeStage.Fragment).asSampler(SamplerType.Filter);
-                pGroupSetup.binding(1, 'tex', ComputeStage.Fragment).asTexture(TextureViewDimension.TwoDimension, TextureFormat.Rgba8unorm);
-            });
+            pSetup.group(0, lObjectBindGroupLayout);
+            pSetup.group(1, lTextureBindGroupLayout);
         });
 
         // Evaluation.
@@ -548,7 +516,6 @@ Deno.test('Shader.setup() -- multiple bind groups', async (pContext) => {
         expect(lGroups).toContain('texture');
 
         // Cleanup.
-        lShader.deconstruct();
         lDevice.deconstruct();
     });
 });

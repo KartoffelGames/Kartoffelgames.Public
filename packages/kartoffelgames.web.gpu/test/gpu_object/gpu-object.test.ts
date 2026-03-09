@@ -23,7 +23,6 @@ Deno.test('GpuObject.device', async (pContext) => {
         expect(lBuffer.device).toBe(lDevice);
 
         // Cleanup.
-        lBuffer.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -76,7 +75,6 @@ Deno.test('GpuObject.invalidate()', async (pContext) => {
         expect(lInvalidationCalled).toBe(true);
 
         // Cleanup.
-        lBuffer.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -101,7 +99,6 @@ Deno.test('GpuObject.addInvalidationListener()', async (pContext) => {
         expect(lCallCount).toBeGreaterThanOrEqual(1);
 
         // Cleanup.
-        lBuffer.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -121,7 +118,6 @@ Deno.test('GpuObject.addInvalidationListener()', async (pContext) => {
         expect(lThrowFunction).toThrow();
 
         // Cleanup.
-        lBuffer.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -148,7 +144,6 @@ Deno.test('GpuObject.removeInvalidationListener()', async (pContext) => {
         expect(lCallCount).toBe(1);
 
         // Cleanup.
-        lBuffer.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -167,7 +162,6 @@ Deno.test('GpuObject -- lazy native creation', async (pContext) => {
         expect(lNative).toBeTruthy();
 
         // Cleanup.
-        lBuffer.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -185,7 +179,6 @@ Deno.test('GpuObject -- lazy native creation', async (pContext) => {
         expect(lNative1).toBe(lNative2);
 
         // Cleanup.
-        lBuffer.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -206,7 +199,6 @@ Deno.test('GpuObject -- lazy native creation', async (pContext) => {
         // But the native should be functional.
 
         // Cleanup.
-        lBuffer.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -226,7 +218,6 @@ Deno.test('GpuObject -- setup pattern', async (pContext) => {
         expect(lBuffer.native).toBeTruthy();
 
         // Cleanup.
-        lBuffer.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -245,7 +236,6 @@ Deno.test('GpuResourceObject.extendUsage()', async (pContext) => {
         expect(lNative).toBeTruthy();
 
         // Cleanup.
-        lBuffer.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -263,7 +253,6 @@ Deno.test('GpuResourceObject.extendUsage()', async (pContext) => {
         expect(lNative).toBeTruthy();
 
         // Cleanup.
-        lBuffer.deconstruct();
         lDevice.deconstruct();
     });
 });

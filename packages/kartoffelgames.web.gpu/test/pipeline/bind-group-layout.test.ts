@@ -35,7 +35,6 @@ Deno.test('BindGroupLayout.setup() -- buffer binding', async (pContext) => {
         expect(lBind.hasDynamicOffset).toBe(false);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -54,7 +53,6 @@ Deno.test('BindGroupLayout.setup() -- buffer binding', async (pContext) => {
         expect(lBind.storageType).toBe(StorageBindingType.Read);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -74,7 +72,6 @@ Deno.test('BindGroupLayout.setup() -- buffer binding', async (pContext) => {
         expect(lLayout.hasDynamicOffset).toBe(true);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -93,7 +90,6 @@ Deno.test('BindGroupLayout.setup() -- buffer binding', async (pContext) => {
         expect(lLayout.resourceCounter.uniformBuffers).toBe(2);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -118,7 +114,6 @@ Deno.test('BindGroupLayout.setup() -- sampler binding', async (pContext) => {
         }
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -137,7 +132,6 @@ Deno.test('BindGroupLayout.setup() -- sampler binding', async (pContext) => {
         expect(lLayout.resourceCounter.sampler).toBe(2);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -164,7 +158,6 @@ Deno.test('BindGroupLayout.setup() -- texture binding', async (pContext) => {
         }
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -182,7 +175,6 @@ Deno.test('BindGroupLayout.setup() -- texture binding', async (pContext) => {
         expect(lLayout.resourceCounter.sampledTextures).toBe(1);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -200,7 +192,6 @@ Deno.test('BindGroupLayout.setup() -- texture binding', async (pContext) => {
         expect(lLayout.resourceCounter.storageTextures).toBe(1);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -224,7 +215,6 @@ Deno.test('BindGroupLayout -- type discriminated union', async (pContext) => {
         }
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -245,7 +235,6 @@ Deno.test('BindGroupLayout -- type discriminated union', async (pContext) => {
         }
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -268,7 +257,6 @@ Deno.test('BindGroupLayout -- type discriminated union', async (pContext) => {
         }
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -293,7 +281,6 @@ Deno.test('BindGroupLayout.orderedBindingNames', async (pContext) => {
         expect(lNames[2]).toBe('third');
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -308,7 +295,6 @@ Deno.test('BindGroupLayout.name', async (pContext) => {
         expect(lLayout.name).toBe('MyGroupName');
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });

@@ -35,7 +35,6 @@ Deno.test('VertexParameterLayout.setup() -- single buffer with parameters', asyn
         expect(lParamNames.length).toBe(2);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -63,7 +62,6 @@ Deno.test('VertexParameterLayout.parameter()', async (pContext) => {
         expect(lNormalParam.location).toBe(1);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -94,7 +92,6 @@ Deno.test('VertexParameterLayout.parameterBuffer()', async (pContext) => {
         expect(lBuffer.layout.properties[1].byteSize).toBe(16); // Float32 * 4
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -114,7 +111,6 @@ Deno.test('VertexParameterLayout.parameterBuffer()', async (pContext) => {
         expect(lBuffer.layout.fixedSize).toBe(4);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -135,7 +131,6 @@ Deno.test('VertexParameterLayout.indexable', async (pContext) => {
         expect(lLayout.indexable).toBe(false);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 
@@ -154,7 +149,6 @@ Deno.test('VertexParameterLayout.indexable', async (pContext) => {
         expect(lLayout.indexable).toBe(true);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -184,7 +178,6 @@ Deno.test('VertexParameterLayout.setup() -- multiple buffers', async (pContext) 
         expect(lLayout.indexable).toBe(false);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });
@@ -208,7 +201,6 @@ Deno.test('VertexParameterLayout -- computed byte offsets', async (pContext) => 
         expect(lBuffer.layout.properties[1].byteOffset).toBe(12);
 
         // Cleanup.
-        lLayout.deconstruct();
         lDevice.deconstruct();
     });
 });

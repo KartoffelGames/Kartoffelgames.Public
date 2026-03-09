@@ -1,6 +1,6 @@
 import {
+CanvasTexture,
     type BindGroup,
-    type CanvasTexture,
     type GpuBuffer,
     type PipelineData,
     type RenderTargets,
@@ -131,7 +131,7 @@ export class ShitSystem extends GameSystem {
         // Get canvas dimensions.
         const lCanvasWidth: number = Math.round(this.mCanvas.clientWidth * devicePixelRatio);
         const lCanvasHeight: number = Math.round(this.mCanvas.clientHeight * devicePixelRatio);
-        const lCanvasTexture: CanvasTexture = lGpu.canvas(this.mCanvas);
+        const lCanvasTexture: CanvasTexture = new CanvasTexture(lGpu, this.mCanvas);
         lCanvasTexture.width = lCanvasWidth;
         lCanvasTexture.height = lCanvasHeight;
 

@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslParser, type PgslParserResult, type PgslParserResultBinding, PgslParserResultFragmentEntryPoint, PgslParserResultMatrixType, PgslParserResultNumericType, PgslParserResultSamplerType, PgslParserResultTextureType, type PgslParserResultType, PgslParserResultVectorType, PgslParserResultVertexEntryPoint, WgslTranspiler } from '@kartoffelgames/core-pgsl';
-import { type BindGroup, BindGroupLayout, BufferItemFormat, BufferItemMultiplier, ComputeStage, Shader as GpuShader, GpuTexture, type GpuTextureView, PrimitiveCullMode, type RenderTargetsLayout, SamplerType, StorageBindingType, TextureFormat, type TextureViewDimension, type VertexFragmentPipeline, type VertexParameterLayout, VertexParameterStepMode } from '@kartoffelgames/web-gpu';
+import { type BindGroup, BindGroupLayout, BufferItemFormat, BufferItemMultiplier, ComputeStage, Shader as GpuShader, GpuTexture, type GpuTextureView, PrimitiveCullMode, RenderTargetsLayout, SamplerType, StorageBindingType, TextureFormat, type TextureViewDimension, type VertexFragmentPipeline, VertexParameterLayout, VertexParameterStepMode } from '@kartoffelgames/web-gpu';
 import { Color } from '../component_item/color.ts';
 import { Material, type MaterialBindingValue } from '../component_item/material.ts';
 import { Texture } from '../component_item/texture.ts';
@@ -449,9 +449,7 @@ export class MaterialSystem extends GameSystem {
      * @returns A configured RenderTargetsLayout.
      */
     private createRenderTargetsLayoutFromEntryPoint(pFragmentEntry: PgslParserResultFragmentEntryPoint): RenderTargetsLayout {
-        const lLayout: RenderTargetsLayout = this.mGpuSystem!.gpu.renderTargetsLayout(true);
-
-        return lLayout.setup((pSetup) => {
+        return new RenderTargetsLayout(this.mGpuSystem!.gpu, true).setup((pSetup) => {
             // Add color targets from fragment entry render targets.
             for (const lTarget of pFragmentEntry.renderTargets) {
                 const lFormat: TextureFormat = this.mapTypeToTextureFormat(lTarget.type);
@@ -542,12 +540,14 @@ export class MaterialSystem extends GameSystem {
                 pShaderSetup.vertexEntryPoint(lVertexEntry.name, pModeConfig.vertexParameterLayout);
             } else {
                 // First material for this mode: create layout and store for reuse.
-                pModeConfig.vertexParameterLayout = pShaderSetup.vertexEntryPoint(lVertexEntry.name, (pVertexSetup) => {
+                pModeConfig.vertexParameterLayout = new VertexParameterLayout(this.mGpuSystem!.gpu).setup((pVertexSetup) => {
                     for (const lParam of lVertexEntry.parameters) {
                         const lVertexParameterType: MaterialSystemEntryPointType = this.convertEntryPointType(lParam.type);
                         pVertexSetup.buffer(lParam.name, VertexParameterStepMode.Index).withParameter(lParam.name, lParam.location, lVertexParameterType.format, lVertexParameterType.multiplier);
                     }
                 });
+
+                pShaderSetup.vertexEntryPoint(lVertexEntry.name, pModeConfig.vertexParameterLayout);
             }
 
             // Fragment entry point: Read first fragment entry point and add render targets.
@@ -577,7 +577,7 @@ export class MaterialSystem extends GameSystem {
                     pShaderSetup.group(lIndex, lPreCreated.layout);
                 } else {
                     // Create group inline (User group or any unregistered group).
-                    pShaderSetup.group(lIndex, lGroup.name, (pBindGroupSetup) => {
+                    const lUserGroupLayout: BindGroupLayout = new BindGroupLayout(this.mGpuSystem!.gpu, lGroup.name).setup((pBindGroupSetup) => {
                         for (const lBinding of lGroup.bindings) {
                             // Map storage access mode to StorageBindingType.
                             const lStorageType: StorageBindingType = (() => {
@@ -613,6 +613,9 @@ export class MaterialSystem extends GameSystem {
                             lEntry.asBuffer(lBinding.type.byteSize, lBinding.type.variableByteSize);
                         }
                     });
+
+                    // Add user group layout to shader setup.
+                    pShaderSetup.group(lIndex, lUserGroupLayout);
                 }
             }
         });

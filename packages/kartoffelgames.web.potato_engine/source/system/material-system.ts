@@ -1,22 +1,22 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslParser, type PgslParserResult, type PgslParserResultBinding, PgslParserResultFragmentEntryPoint, PgslParserResultMatrixType, PgslParserResultNumericType, PgslParserResultSamplerType, PgslParserResultTextureType, type PgslParserResultType, PgslParserResultVectorType, PgslParserResultVertexEntryPoint, WgslTranspiler } from '@kartoffelgames/core-pgsl';
-import { type BindGroup, BindGroupLayout, BufferItemFormat, BufferItemMultiplier, ComputeStage, type GpuTextureView, PrimitiveCullMode, type RenderTargetsLayout, SamplerType, Shader as GpuShader, StorageBindingType, TextureFormat, type TextureViewDimension, type VertexFragmentPipeline, VertexParameterStepMode, GpuTexture } from '@kartoffelgames/web-gpu';
+import { type BindGroup, BindGroupLayout, BufferItemFormat, BufferItemMultiplier, ComputeStage, Shader as GpuShader, GpuTexture, type GpuTextureView, PrimitiveCullMode, type RenderTargetsLayout, SamplerType, StorageBindingType, TextureFormat, type TextureViewDimension, type VertexFragmentPipeline, VertexParameterStepMode } from '@kartoffelgames/web-gpu';
 import { Color } from '../component_item/color.ts';
 import { Material, type MaterialBindingValue } from '../component_item/material.ts';
 import { Texture } from '../component_item/texture.ts';
 import type { GameEnvironment } from '../core/environment/game-environment.ts';
-import { GameSystem, type GameSystemConstructor, type GameSystemUpdateStateChanges } from '../core/game-system.ts';
+import { GameSystem, type GameSystemConstructor } from '../core/game-system.ts';
 import { GpuSystem } from './gpu-system.ts';
 import { TextureSystem } from './texture-system.ts';
 
 // PGSL shader sources.
+import { Shader } from '../component_item/shader.ts';
 import DEFAULT_PBR_SHADER from '../shader/default-pbr-shader.pgsl';
 import FORWARD_ENTRY_POINTS from '../shader/forward-entry-points.pgsl';
 import FORWARD_IMPORT from '../shader/forward-import.pgsl';
 import OBJECT_GROUP_FORWARD from '../shader/object-group-forward.pgsl';
 import SHARED_TYPES from '../shader/shared-types.pgsl';
 import WORLD_GROUP_FORWARD from '../shader/world-group-forward.pgsl';
-import { Shader } from '../component_item/shader.ts';
 
 /**
  * Material system that manages PGSL shader compilation, per-render-mode bind group layouts,
@@ -695,19 +695,39 @@ type RenderModeGroupLayout = {
  * Configuration for a registered render mode.
  */
 type RenderModeConfig = {
-    /** Default user shader code for this render mode (used for default material and template compilation). */
+    /** 
+     * Default user shader code for this render mode (used for default material and template compilation). 
+     */
     defaultShaderCode: string;
-    /** Parser import name for the functional shader (e.g., "Forward"). */
+
+    /** 
+     * Parser import name for the functional shader (e.g., "Forward"). 
+     */
     functionalImport: string;
-    /** Parser import name for the entry points shader (e.g., "ForwardEntryPoints"). */
+
+    /** 
+     * Parser import name for the entry points shader (e.g., "ForwardEntryPoints").
+     */
     entryPointImport: string;
-    /** Vertex entry point function name (e.g., "vertex_main"). */
+
+    /** 
+     * Vertex entry point function name (e.g., "vertex_main").
+     */
     vertexEntryPoint: string;
-    /** Fragment entry point function name (e.g., "fragment_main"). */
+
+    /**
+     * Fragment entry point function name (e.g., "fragment_main").
+     */
     fragmentEntryPoint: string;
-    /** Pre-created BindGroupLayouts for non-User groups, keyed by group name. */
+
+    /** 
+     * Pre-created BindGroupLayouts for non-User groups, keyed by group name. 
+     */
     groupLayouts: Map<string, RenderModeGroupLayout>;
-    /** RenderTargetsLayout for this mode (derived from fragment entry render targets + Depth24plus). */
+
+    /** 
+     * RenderTargetsLayout for this mode (derived from fragment entry render targets + Depth24plus). 
+     */
     renderTargetsLayout: RenderTargetsLayout;
 };
 

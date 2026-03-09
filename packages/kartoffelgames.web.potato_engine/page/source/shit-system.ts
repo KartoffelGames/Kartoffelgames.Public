@@ -268,7 +268,7 @@ export class ShitSystem extends GameSystem {
      * Create and cache vertex parameters for a mesh.
      * Creates buffers for all ForwardVertexIn attributes, defaulting missing optional attributes.
      */
-    private createVertexParameters(pMesh: Mesh): void {
+    private createVertexParameters(pMesh: Mesh, pLoadedMaterial: MaterialSystemMaterial): void {
         const lVertexCount: number = pMesh.verticesData.length / 3;
 
         // Default arrays for optional attributes.
@@ -276,7 +276,7 @@ export class ShitSystem extends GameSystem {
         const lDefaultUvs: Array<number> = new Array(lVertexCount * 2).fill(0);
 
         const lVertexParameters = pMesh.subMeshes.map((pSubMesh) => {
-            const lVertexParam: VertexParameter = this.mDefaultPipeline!.module.vertexParameter.create(pSubMesh.indices);
+            const lVertexParam: VertexParameter = pLoadedMaterial.pipelines.get(ShaderRenderMode.Forward)!.module.vertexParameter.create(pSubMesh.indices);
 
             lVertexParam.create('position', pMesh.verticesData);
             lVertexParam.create('normal', pMesh.normals);
@@ -392,7 +392,7 @@ export class ShitSystem extends GameSystem {
             for (const [lMesh, lSubMeshMap] of lMeshMap) {
                 // Get or create cached vertex parameters for this mesh.
                 if (!this.mVertexParameterCache.has(lMesh)) {
-                    this.createVertexParameters(lMesh);
+                    this.createVertexParameters(lMesh, lLoadedMaterial);
                 }
 
                 for (const [lSubIndex, lRenderers] of lSubMeshMap) {

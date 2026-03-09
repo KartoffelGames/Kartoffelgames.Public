@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslParser, type PgslParserResult, type PgslParserResultBinding, PgslParserResultFragmentEntryPoint, PgslParserResultMatrixType, PgslParserResultNumericType, PgslParserResultSamplerType, PgslParserResultTextureType, type PgslParserResultType, PgslParserResultVectorType, PgslParserResultVertexEntryPoint, WgslTranspiler } from '@kartoffelgames/core-pgsl';
-import { type BindGroup, BindGroupLayout, BufferItemFormat, BufferItemMultiplier, ComputeStage, Shader as GpuShader, GpuTexture, type GpuTextureView, PrimitiveCullMode, RenderTargetsLayout, SamplerType, StorageBindingType, TextureFormat, type TextureViewDimension, type VertexFragmentPipeline, VertexParameterLayout, VertexParameterStepMode } from '@kartoffelgames/web-gpu';
+import { type BindGroup, BindGroupLayout, BufferItemFormat, BufferItemMultiplier, ComputeStage, Shader as GpuShader, GpuTexture, type GpuTextureView, PrimitiveCullMode, PrimitiveFrontFace, RenderTargetsLayout, SamplerType, StorageBindingType, TextureFormat, type TextureViewDimension, type VertexFragmentPipeline, VertexParameterLayout, VertexParameterStepMode } from '@kartoffelgames/web-gpu';
 import { Color } from '../component_item/color.ts';
 import { Material, type MaterialBindingValue } from '../component_item/material.ts';
 import { Texture } from '../component_item/texture.ts';
@@ -199,7 +199,8 @@ export class MaterialSystem extends GameSystem {
         // Create render module and pipeline.
         const lRenderModule = lGpuShader.createRenderModule(lModeConfig.vertexEntryPoint, lModeConfig.fragmentEntryPoint);
         const lPipeline: VertexFragmentPipeline = lRenderModule.create(lModeConfig.renderTargetsLayout);
-        lPipeline.primitiveCullMode = PrimitiveCullMode.Front;
+        lPipeline.primitiveCullMode = PrimitiveCullMode.Back;
+        lPipeline.primitiveFrontFace = PrimitiveFrontFace.CounterClockWise;
 
         // Create User bind group if the shader defines one.
         let lUserBindGroup: BindGroup | null = null;

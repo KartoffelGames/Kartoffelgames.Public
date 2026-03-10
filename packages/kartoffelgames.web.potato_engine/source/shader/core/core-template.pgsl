@@ -1,0 +1,9 @@
+function vertex(input: VertexInput): VertexOutput {
+    let out: VertexOutput;
+    return out;
+}
+
+function fragment(input: FragmentInput): PbrOutput {
+    let out: FragmentOutput;
+    return out;
+}

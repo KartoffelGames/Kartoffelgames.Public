@@ -8,15 +8,12 @@ import type { GameEnvironment } from '../core/environment/game-environment.ts';
 import { GameSystem, type GameSystemConstructor } from '../core/game-system.ts';
 import { GpuSystem } from './gpu-system.ts';
 import { TextureSystem } from './texture-system.ts';
+import { Shader } from '../component_item/shader.ts';
 
 // PGSL shader sources.
-import { Shader } from '../component_item/shader.ts';
-import DEFAULT_PBR_SHADER from '../shader/default-pbr-shader.pgsl';
-import FORWARD_ENTRY_POINTS from '../shader/forward-entry-points.pgsl';
-import FORWARD_IMPORT from '../shader/forward-import.pgsl';
-import OBJECT_GROUP_FORWARD from '../shader/object-group-forward.pgsl';
-import SHARED_TYPES from '../shader/shared-types.pgsl';
-import WORLD_GROUP_FORWARD from '../shader/world-group-forward.pgsl';
+import CORE_PARAMETER_SHADER from '../shader/core/core-parameter.pgsl';
+import CORE_TEMPLATE_SHADER from '../shader/core/core-template.pgsl';
+
 
 /**
  * Material system that manages PGSL shader compilation, per-render-mode bind group layouts,
@@ -36,19 +33,10 @@ import WORLD_GROUP_FORWARD from '../shader/world-group-forward.pgsl';
  */
 export class MaterialSystem extends GameSystem {
     private readonly mCompiledMaterials: WeakMap<Material, MaterialSystemMaterial>;
-    private mDefaultMaterial: MaterialSystemMaterial | null;
     private mGpuSystem: GpuSystem | null;
     private readonly mParser: PgslParser;
-    private readonly mRenderModes: Map<ShaderRenderMode, RenderModeConfig>;
+    private readonly mRenderModes: Map<string, MaterialSystemRenderMode>;
     private mTextureSystem: TextureSystem | null;
-
-    /**
-     * Gets the default loaded material (default PBR shader with fallback User bind group).
-     */
-    public get defaultMaterial(): MaterialSystemMaterial {
-        this.lockGate();
-        return this.mDefaultMaterial!;
-    }
 
     /**
      * Gets the system types this system depends on.
@@ -68,14 +56,15 @@ export class MaterialSystem extends GameSystem {
         // Compiled material tracking.
         this.mCompiledMaterials = new WeakMap<Material, MaterialSystemMaterial>();
 
-        // Create parser (imports registered in onCreate when GPU is available).
+        // Create parser and register core imports.
         this.mParser = new PgslParser();
+        this.mParser.addImport('Core-Parameter', CORE_PARAMETER_SHADER);
+        this.mParser.addImport('Core-Template', CORE_TEMPLATE_SHADER);
 
         // Render mode registry.
-        this.mRenderModes = new Map<ShaderRenderMode, RenderModeConfig>();
+        this.mRenderModes = new Map<string, MaterialSystemRenderMode>();
 
         // Null dependencies and deferred initialization.
-        this.mDefaultMaterial = null;
         this.mGpuSystem = null;
         this.mTextureSystem = null;
     }
@@ -92,12 +81,12 @@ export class MaterialSystem extends GameSystem {
     public getGroupLayout(pMode: ShaderRenderMode, pGroupName: string): BindGroupLayout {
         this.lockGate();
 
-        const lConfig: RenderModeConfig | undefined = this.mRenderModes.get(pMode);
+        const lConfig: MaterialSystemRenderMode | undefined = this.mRenderModes.get(pMode);
         if (!lConfig) {
             throw new Exception(`Render mode "${pMode}" is not registered.`, this);
         }
 
-        const lGroup: RenderModeGroupLayout | undefined = lConfig.groupLayouts.get(pGroupName);
+        const lGroup: MaterialSystemGroupLayout | undefined = lConfig.groupLayouts.get(pGroupName);
         if (!lGroup) {
             throw new Exception(`Group "${pGroupName}" not found in render mode "${pMode}".`, this);
         }
@@ -116,12 +105,12 @@ export class MaterialSystem extends GameSystem {
     public getGroupIndex(pMode: ShaderRenderMode, pGroupName: string): number {
         this.lockGate();
 
-        const lConfig: RenderModeConfig | undefined = this.mRenderModes.get(pMode);
+        const lConfig: MaterialSystemRenderMode | undefined = this.mRenderModes.get(pMode);
         if (!lConfig) {
             throw new Exception(`Render mode "${pMode}" is not registered.`, this);
         }
 
-        const lGroup: RenderModeGroupLayout | undefined = lConfig.groupLayouts.get(pGroupName);
+        const lGroup: MaterialSystemGroupLayout | undefined = lConfig.groupLayouts.get(pGroupName);
         if (!lGroup) {
             throw new Exception(`Group "${pGroupName}" not found in render mode "${pMode}".`, this);
         }
@@ -140,7 +129,7 @@ export class MaterialSystem extends GameSystem {
     public getRenderTargetsLayout(pMode: ShaderRenderMode): RenderTargetsLayout {
         this.lockGate();
 
-        const lConfig: RenderModeConfig | undefined = this.mRenderModes.get(pMode);
+        const lConfig: MaterialSystemRenderMode | undefined = this.mRenderModes.get(pMode);
         if (!lConfig) {
             throw new Exception(`Render mode "${pMode}" is not registered.`, this);
         }
@@ -164,7 +153,7 @@ export class MaterialSystem extends GameSystem {
         this.lockGate();
 
         // Get mode configuration.
-        const lModeConfig: RenderModeConfig | undefined = this.mRenderModes.get(pTechnique);
+        const lModeConfig: MaterialSystemRenderMode | undefined = this.mRenderModes.get(pTechnique);
         if (!lModeConfig) {
             throw new Exception(`Render mode "${pTechnique}" is not registered.`, this);
         }
@@ -312,7 +301,7 @@ export class MaterialSystem extends GameSystem {
         this.registerForwardMode(DEFAULT_PBR_SHADER);
 
         // Compile default material from Forward mode's default shader.
-        const lForwardConfig: RenderModeConfig = this.mRenderModes.get(ShaderRenderMode.Forward)!;
+        const lForwardConfig: MaterialSystemRenderMode = this.mRenderModes.get(ShaderRenderMode.Forward)!;
 
         const lDefaultShader: Shader = new Shader();
         lDefaultShader.label = 'Default Shader';
@@ -341,7 +330,7 @@ export class MaterialSystem extends GameSystem {
      */
     private registerForwardMode(pDefaultShaderCode: string): void {
         // Create group layouts by transpiling declaration-only shaders.
-        const lGroupLayouts: Map<string, RenderModeGroupLayout> = new Map();
+        const lGroupLayouts: Map<string, MaterialSystemGroupLayout> = new Map();
 
         const lReferenceShaderResult: PgslParserResult = this.mParser.transpile(`
             #IMPORT "WorldGroupForward";
@@ -528,7 +517,7 @@ export class MaterialSystem extends GameSystem {
      *
      * @returns A configured GpuShader.
      */
-    private createGpuShader(pParserResult: PgslParserResult, pModeConfig: RenderModeConfig): GpuShader {
+    private createGpuShader(pParserResult: PgslParserResult, pModeConfig: MaterialSystemRenderMode): GpuShader {
         // Create GPU shader from transpiled WGSL.
         const lGpuShader: GpuShader = new GpuShader(this.mGpuSystem!.gpu, pParserResult.source, pParserResult.sourceMap);
 
@@ -571,7 +560,7 @@ export class MaterialSystem extends GameSystem {
 
             // Set bind groups — use pre-created layouts for global groups, create User group inline.
             for (const [lIndex, lGroup] of lBindGroups) {
-                const lPreCreated: RenderModeGroupLayout | undefined = pModeConfig.groupLayouts.get(lGroup.name);
+                const lPreCreated: MaterialSystemGroupLayout | undefined = pModeConfig.groupLayouts.get(lGroup.name);
 
                 if (lPreCreated) {
                     // Use pre-created BindGroupLayout for World/Object.
@@ -687,7 +676,119 @@ export class MaterialSystem extends GameSystem {
             }
         }
     }
+
+
+
+
+
+
+
+
+
+
+    /**
+     * Register a new render mode.
+     * 
+     * Allows adding custom render modes with their own shader imports, entry points, and render target configurations.
+     */
+    public registerRenderMode(pMode: string, pConfiguration: MaterialSystemRenderModeConfiguration): void {
+        // Register render mode shaders.
+        this.mParser.addImport(`${pMode}__entry-point`, pConfiguration.entryPointImport);
+        for (let lFunctionalImportIndex: number = 0; lFunctionalImportIndex < pConfiguration.functionalImports.length; lFunctionalImportIndex++) {
+            this.mParser.addImport(`${pMode}__functional-${lFunctionalImportIndex}`, pConfiguration.functionalImports[lFunctionalImportIndex]);
+        }
+        for (let lTypeImportIndex: number = 0; lTypeImportIndex < pConfiguration.typeImports.length; lTypeImportIndex++) {
+            this.mParser.addImport(`${pMode}__type-${lTypeImportIndex}`, pConfiguration.typeImports[lTypeImportIndex]);
+        }
+
+        // Build the prefix and suffix shader code for this mode based on the provided imports.
+        const lPrefixShader: string = '#IMPORT "Core-Parameter";' + pConfiguration.functionalImports.map((_pImport, pIndex) => {
+            return `#IMPORT "${pMode}__functional-${pIndex}"`;
+        }).join('\n');
+        const lSuffixShader: string = `#IMPORT "${pMode}__entry-point"`;
+
+        // Create reference shader with the empty core template
+        const lReferenceShaderResult: PgslParserResult = this.mParser.transpile(`
+            ${lPrefixShader}
+            #IMPORT "Core-Template";
+            ${lSuffixShader};
+        `, new WgslTranspiler());
+
+        // Check for incidents before extracting layouts to avoid partial registration if the default shader has issues.
+        if (lReferenceShaderResult.incidents.length > 0) {
+            throw new Exception('Failed to transpile reference shader.', this);
+        }
+
+
+
+
+
+        // Create group layouts by transpiling declaration-only shaders.
+        const lGroupLayouts: Map<string, MaterialSystemGroupLayout> = new Map();
+
+        // World group layout from declaration shader.
+        const lWorldBindings: Array<PgslParserResultBinding> = lReferenceShaderResult.bindings.filter((pB) => pB.bindGroupName === 'World');
+        if (lWorldBindings.length > 0) {
+            lGroupLayouts.set('World', {
+                index: lWorldBindings[0].bindGroupIndex,
+                layout: this.createBindGroupLayoutFromBindings('World', lWorldBindings)
+            });
+        }
+
+        // Object group layout from declaration shader.
+        const lObjectBindings: Array<PgslParserResultBinding> = lReferenceShaderResult.bindings.filter((pB) => pB.bindGroupName === 'Object');
+        if (lObjectBindings.length > 0) {
+            lGroupLayouts.set('Object', {
+                index: lObjectBindings[0].bindGroupIndex,
+                layout: this.createBindGroupLayoutFromBindings('Object', lObjectBindings)
+            });
+        }
+
+        // Create RenderTargetsLayout by compiling a full Forward shader to extract fragment entry.
+        const lFragmentEntry: PgslParserResultFragmentEntryPoint = lReferenceShaderResult.entryPoints.fragment.values().next()!.value!;
+        const lRenderTargetsLayout: RenderTargetsLayout = this.createRenderTargetsLayoutFromEntryPoint(lFragmentEntry);
+
+        // Store the Forward mode configuration.
+        this.mRenderModes.set(ShaderRenderMode.Forward, {
+            defaultShaderCode: pDefaultShaderCode,
+            functionalImport: 'Forward',
+            entryPointImport: 'ForwardEntryPoints',
+            vertexEntryPoint: 'vertex_main',
+            fragmentEntryPoint: 'fragment_main',
+            groupLayouts: lGroupLayouts,
+            renderTargetsLayout: lRenderTargetsLayout,
+            vertexParameterLayout: null
+        });
+    }
 }
+
+/**
+ * Configuration for a registered render mode.
+ */
+export type MaterialSystemRenderModeConfiguration = {
+    /** 
+     * Vertex entry point function name (e.g., "vertex_main").
+     */
+    entryPointImport: string;
+
+    /** 
+     * Parser import name for the functional shader (e.g., "Forward"). 
+     */
+    functionalImports: Array<string>;
+
+    /**
+     * General shaderd type imports used by the modes shaders.
+     */
+    typeImports: Array<string>;
+
+    /** 
+     * Parser import name for the entry points shader (e.g., "ForwardEntryPoints").
+     */
+    userGroupImports: {
+        world: string;
+        object: string;
+    };
+};
 
 type MaterialSystemEntryPointType = {
     format: BufferItemFormat;
@@ -697,7 +798,7 @@ type MaterialSystemEntryPointType = {
 /**
  * Pre-created BindGroupLayout and its index for a render mode group.
  */
-type RenderModeGroupLayout = {
+type MaterialSystemGroupLayout = {
     index: number;
     layout: BindGroupLayout;
 };
@@ -705,67 +806,41 @@ type RenderModeGroupLayout = {
 /**
  * Configuration for a registered render mode.
  */
-type RenderModeConfig = {
-    /** 
-     * Default user shader code for this render mode (used for default material and template compilation). 
+type MaterialSystemRenderMode = {
+    /**
+     * Shader code imported before the user defined shader.
      */
-    defaultShaderCode: string;
+    prefixShader: string;
 
-    /** 
-     * Parser import name for the functional shader (e.g., "Forward"). 
+    /**
+     * Shader code imported after the user defined shader.
      */
-    functionalImport: string;
+    suffixShader: string;
 
     /** 
      * Parser import name for the entry points shader (e.g., "ForwardEntryPoints").
      */
-    entryPointImport: string;
-
-    /** 
-     * Vertex entry point function name (e.g., "vertex_main").
-     */
-    vertexEntryPoint: string;
-
-    /**
-     * Fragment entry point function name (e.g., "fragment_main").
-     */
-    fragmentEntryPoint: string;
-
-    /** 
-     * Pre-created BindGroupLayouts for non-User groups, keyed by group name. 
-     */
-    groupLayouts: Map<string, RenderModeGroupLayout>;
+    userGroup: {
+        world: MaterialSystemGroupLayout;
+        object: MaterialSystemGroupLayout;
+    };
 
     /**
      * RenderTargetsLayout for this mode (derived from fragment entry render targets + Depth24plus).
      */
     renderTargetsLayout: RenderTargetsLayout;
-
-    /**
-     * Shared VertexParameterLayout for this mode.
-     * All pipelines in the same mode reuse this layout so that identity checks pass.
-     * Null until first material is compiled for this mode.
-     */
-    vertexParameterLayout: VertexParameterLayout | null;
 };
 
 /**
  * Public return type for loaded materials.
  */
 export type MaterialSystemMaterial = {
-    readonly pipelines: Map<ShaderRenderMode, VertexFragmentPipeline>;
+    // Pipelines for this material, keyed by render technique (ShaderRenderMode).
+    readonly pipelines: Map<string, VertexFragmentPipeline>;
+
+    // The extracted user binding group initialized with the materials data.
     readonly userBinding: {
         readonly group: BindGroup;
         readonly index: number;
     };
 };
-
-/**
- * Shader render mode used for shader compilation.
- * Determines which shader imports and entry points are used.
- */
-export enum ShaderRenderMode {
-    Forward = 'Forward',
-    Deferred = 'Deferred',
-    Particle = 'Particle'
-}

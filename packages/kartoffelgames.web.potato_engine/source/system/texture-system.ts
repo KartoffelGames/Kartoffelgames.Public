@@ -15,8 +15,6 @@ import { GpuSystem } from './gpu-system.ts';
  * corresponding Texture component item is garbage collected.
  */
 export class TextureSystem extends GameSystem {
-    private static readonly GARBAGE_COLLECTION_SIZE: number = 10;
-
     private mDefaultTexture: GpuTexture | null;
     private mGpuSystem: GpuSystem | null;
     private readonly mTextureLookup: WeakMap<Texture, GpuTexture>;
@@ -95,6 +93,8 @@ export class TextureSystem extends GameSystem {
      */
     protected override async onCreate(): Promise<void> {
         this.mGpuSystem = this.environment.getSystem(GpuSystem);
+
+        // TODO: Remove the defauklt texture.
 
         // texture data containing a 2x2 checkerboard pattern;
         const lTextureData: string = 'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdv' +

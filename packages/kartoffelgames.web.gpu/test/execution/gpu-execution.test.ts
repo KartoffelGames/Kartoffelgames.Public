@@ -1,15 +1,13 @@
 import { expect } from '@kartoffelgames/core-test';
 import { ComputeStage } from '../../source/constant/compute-stage.enum.ts';
-import { TextureFormat } from '../../source/constant/texture-format.enum.ts';
 import { GpuDevice } from '../../source/device/gpu-device.ts';
 import type { GpuExecutionContext } from '../../source/execution/gpu-execution-context.ts';
 import { GpuExecution } from '../../source/execution/gpu-execution.ts';
-import { RenderTargetsLayout } from '../../source/pipeline/render_targets/render-targets-layout.ts';
-import { RenderTargets } from '../../source/pipeline/render_targets/render-targets.ts';
-import { Shader } from '../../source/shader/shader.ts';
 import { BindGroupLayout } from '../../source/pipeline/bind_group_layout/bind-group-layout.ts';
-import { ComputePipeline } from '../../source/pipeline/compute-pipeline.ts';
-import { ComputePassExecutionFunction } from "../../source/execution/pass/compute-pass.ts";
+import type { ComputePipeline } from '../../source/pipeline/compute-pipeline.ts';
+import { RenderTargetsLayout } from '../../source/pipeline/render_targets/render-targets-layout.ts';
+import type { RenderTargets } from '../../source/pipeline/render_targets/render-targets.ts';
+import { Shader } from '../../source/shader/shader.ts';
 
 /**
  * Helper to request a GPU device for tests.
@@ -102,7 +100,7 @@ Deno.test('GpuExecutionContext.renderPass()', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lRenderTargetsLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false).setup((pSetup) => {
-            pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
+            pSetup.addColor('color0', 0, 'rgba8unorm');
         });
         const lRenderTargets: RenderTargets = lRenderTargetsLayout.create();
         let lRenderPassCalled: boolean = false;
@@ -177,7 +175,7 @@ Deno.test('Full render execution flow', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lRenderTargetsLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false).setup((pSetup) => {
-            pSetup.addColor('color', 0, TextureFormat.Rgba8unorm);
+            pSetup.addColor('color', 0, 'rgba8unorm');
         });
         const lRenderTargets: RenderTargets = lRenderTargetsLayout.create();
         lRenderTargets.resize(128, 128);

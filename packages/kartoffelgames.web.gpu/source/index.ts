@@ -1,4 +1,3 @@
-
 // Shader
 export { Shader } from './shader/shader.ts';
 export { ShaderComputeModule } from './shader/shader-compute-module.ts';
@@ -16,6 +15,7 @@ export { RenderTargetsLayout } from './pipeline/render_targets/render-targets-la
 export { VertexFragmentPipeline } from './pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline.ts';
 export { VertexParameter } from './pipeline/vertex_parameter/vertex-parameter.ts';
 export { VertexParameterLayout } from './pipeline/vertex_parameter/vertex-parameter-layout.ts';
+export { BindGroupLayoutMemoryLayoutSetup } from './pipeline/bind_group_layout/bind-group-layout-memory-layout-setup.ts';
 
 // Execution
 export { GpuExecution } from './execution/gpu-execution.ts';
@@ -55,11 +55,8 @@ export { StorageBindingType } from './constant/storage-binding-type.enum.ts';
 export { TextureAspect } from './constant/texture-aspect.enum.ts';
 export { TextureBlendFactor } from './constant/texture-blend-factor.enum.ts';
 export { TextureBlendOperation } from './constant/texture-blend-operation.enum.ts';
-export { TextureDimension } from './constant/texture-dimension.enum.ts';
-export { TextureFormat } from './constant/texture-format.enum.ts';
-export { TextureOperation } from './constant/texture-operation.enum.ts';
+export type { TextureOperation } from './constant/texture-operation.type.ts';
 export { TextureSampleType } from './constant/texture-sample-type.enum.ts';
 export { TextureUsage } from './constant/texture-usage.enum.ts';
-export { TextureViewDimension } from './constant/texture-view-dimension.enum.ts';
 export { VertexParameterStepMode } from './constant/vertex-parameter-step-mode.enum.ts';
 export { WrappingMode } from './constant/wrapping-mode.enum.ts';

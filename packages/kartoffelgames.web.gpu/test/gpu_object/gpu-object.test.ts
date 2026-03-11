@@ -43,7 +43,7 @@ Deno.test('GpuObject.deconstruct()', async (pContext) => {
 
         // Evaluation.
         const lThrowFunction = () => {
-            lBuffer.native;
+            return lBuffer.native;
         };
         expect(lThrowFunction).toThrow();
 
@@ -60,7 +60,7 @@ Deno.test('GpuObject.invalidate()', async (pContext) => {
         lBuffer.extendUsage(BufferUsage.Uniform);
 
         // Force native creation first.
-        lBuffer.native;
+        const _ = lBuffer.native;
 
         let lInvalidationCalled: boolean = false;
         // GpuResourceObjectInvalidationType.ResourceRebuild is the type used by resource objects.
@@ -195,8 +195,7 @@ Deno.test('GpuObject -- lazy native creation', async (pContext) => {
 
         // Evaluation. After invalidation, a fresh native should be created.
         expect(lNative2).toBeTruthy();
-        // They might or might not be the same object depending on implementation.
-        // But the native should be functional.
+        expect(lNative2).not.toBe(lNative1);
 
         // Cleanup.
         lDevice.deconstruct();

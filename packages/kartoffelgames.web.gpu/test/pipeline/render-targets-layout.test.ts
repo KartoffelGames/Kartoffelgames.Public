@@ -1,7 +1,6 @@
 import { expect } from '@kartoffelgames/core-test';
 import { GpuDevice } from '../../source/device/gpu-device.ts';
 import { RenderTargetsLayout, type RenderTargetsLayoutColorTarget, type RenderTargetsLayoutDepthStencil } from '../../source/pipeline/render_targets/render-targets-layout.ts';
-import { TextureFormat } from '../../source/constant/texture-format.enum.ts';
 
 /**
  * Helper to request a GPU device for tests.
@@ -19,7 +18,7 @@ Deno.test('RenderTargetsLayout.setup() -- color targets', async (pContext) => {
 
         // Process.
         lLayout.setup((pSetup) => {
-            pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
+            pSetup.addColor('color0', 0, 'rgba8unorm');
         });
 
         // Evaluation.
@@ -38,8 +37,8 @@ Deno.test('RenderTargetsLayout.setup() -- color targets', async (pContext) => {
 
         // Process.
         lLayout.setup((pSetup) => {
-            pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
-            pSetup.addColor('color1', 1, TextureFormat.Rgba16float);
+            pSetup.addColor('color0', 0, 'rgba8unorm');
+            pSetup.addColor('color1', 1, 'rgba16float');
         });
 
         // Evaluation.
@@ -59,12 +58,12 @@ Deno.test('RenderTargetsLayout.setup() -- color targets', async (pContext) => {
 
         // Process.
         lLayout.setup((pSetup) => {
-            pSetup.addColor('myTarget', 0, TextureFormat.Bgra8unorm, false, { r: 0.5, g: 0.5, b: 0.5, a: 1.0 });
+            pSetup.addColor('myTarget', 0, 'bgra8unorm', false, { r: 0.5, g: 0.5, b: 0.5, a: 1.0 });
         });
 
         // Evaluation.
         const lTarget: RenderTargetsLayoutColorTarget = lLayout.colorTarget('myTarget');
-        expect(lTarget.format).toBe(TextureFormat.Bgra8unorm);
+        expect(lTarget.format).toBe('bgra8unorm');
         expect(lTarget.keepOnEnd).toBe(false);
         expect(lTarget.clearValue.r).toBe(0.5);
         expect(lTarget.clearValue.a).toBe(1.0);
@@ -81,7 +80,7 @@ Deno.test('RenderTargetsLayout.setup() -- color targets', async (pContext) => {
 
         // Process. Use default keepOnEnd and clearValue.
         lLayout.setup((pSetup) => {
-            pSetup.addColor('defaultTarget', 0, TextureFormat.Rgba8unorm);
+            pSetup.addColor('defaultTarget', 0, 'rgba8unorm');
         });
 
         // Evaluation.
@@ -105,14 +104,14 @@ Deno.test('RenderTargetsLayout.setup() -- depth and stencil', async (pContext) =
 
         // Process.
         lLayout.setup((pSetup) => {
-            pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
-            pSetup.addDepthStencil(TextureFormat.Depth24plus, true, 1.0);
+            pSetup.addColor('color0', 0, 'rgba8unorm');
+            pSetup.addDepthStencil('depth24plus', true, 1.0);
         });
 
         // Evaluation.
         expect(lLayout.hasDepth).toBe(true);
         expect(lLayout.hasStencil).toBe(false);
-        expect(lLayout.depthStencilFormat).toBe(TextureFormat.Depth24plus);
+        expect(lLayout.depthStencilFormat).toBe('depth24plus');
 
         // Cleanup.
         lDevice.deconstruct();
@@ -125,14 +124,14 @@ Deno.test('RenderTargetsLayout.setup() -- depth and stencil', async (pContext) =
 
         // Process.
         lLayout.setup((pSetup) => {
-            pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
-            pSetup.addDepthStencil(TextureFormat.Stencil8, null, null, true, 0);
+            pSetup.addColor('color0', 0, 'rgba8unorm');
+            pSetup.addDepthStencil('stencil8', null, null, true, 0);
         });
 
         // Evaluation.
         expect(lLayout.hasDepth).toBe(false);
         expect(lLayout.hasStencil).toBe(true);
-        expect(lLayout.depthStencilFormat).toBe(TextureFormat.Stencil8);
+        expect(lLayout.depthStencilFormat).toBe('stencil8');
 
         // Cleanup.
         lDevice.deconstruct();
@@ -145,14 +144,14 @@ Deno.test('RenderTargetsLayout.setup() -- depth and stencil', async (pContext) =
 
         // Process.
         lLayout.setup((pSetup) => {
-            pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
-            pSetup.addDepthStencil(TextureFormat.Depth24plusStencil8, true, 1.0, true, 0);
+            pSetup.addColor('color0', 0, 'rgba8unorm');
+            pSetup.addDepthStencil('depth32floatStencil8', true, 1.0, true, 0);
         });
 
         // Evaluation.
         expect(lLayout.hasDepth).toBe(true);
         expect(lLayout.hasStencil).toBe(true);
-        expect(lLayout.depthStencilFormat).toBe(TextureFormat.Depth24plusStencil8);
+        expect(lLayout.depthStencilFormat).toBe('depth32floatStencil8');
 
         // Cleanup.
         lDevice.deconstruct();
@@ -167,7 +166,7 @@ Deno.test('RenderTargetsLayout.hasDepth', async (pContext) => {
 
         // Process.
         lLayout.setup((pSetup) => {
-            pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
+            pSetup.addColor('color0', 0, 'rgba8unorm');
         });
 
         // Evaluation.
@@ -184,8 +183,8 @@ Deno.test('RenderTargetsLayout.hasDepth', async (pContext) => {
 
         // Process.
         lLayout.setup((pSetup) => {
-            pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
-            pSetup.addDepthStencil(TextureFormat.Depth32float, true, 1.0);
+            pSetup.addColor('color0', 0, 'rgba8unorm');
+            pSetup.addDepthStencil('depth32float', true, 1.0);
         });
 
         // Evaluation.
@@ -204,8 +203,8 @@ Deno.test('RenderTargetsLayout.hasStencil', async (pContext) => {
 
         // Process.
         lLayout.setup((pSetup) => {
-            pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
-            pSetup.addDepthStencil(TextureFormat.Depth24plus, true, 1.0);
+            pSetup.addColor('color0', 0, 'rgba8unorm');
+            pSetup.addDepthStencil('depth24plus', true, 1.0);
         });
 
         // Evaluation.
@@ -222,8 +221,8 @@ Deno.test('RenderTargetsLayout.hasStencil', async (pContext) => {
 
         // Process.
         lLayout.setup((pSetup) => {
-            pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
-            pSetup.addDepthStencil(TextureFormat.Depth24plusStencil8, null, null, true, 0);
+            pSetup.addColor('color0', 0, 'rgba8unorm');
+            pSetup.addDepthStencil('depth32floatStencil8', null, null, true, 0);
         });
 
         // Evaluation.
@@ -272,7 +271,7 @@ Deno.test('RenderTargetsLayout.hasColorTarget()', async (pContext) => {
 
         // Process.
         lLayout.setup((pSetup) => {
-            pSetup.addColor('existingTarget', 0, TextureFormat.Rgba8unorm);
+            pSetup.addColor('existingTarget', 0, 'rgba8unorm');
         });
 
         // Evaluation.
@@ -289,7 +288,7 @@ Deno.test('RenderTargetsLayout.hasColorTarget()', async (pContext) => {
 
         // Process.
         lLayout.setup((pSetup) => {
-            pSetup.addColor('existingTarget', 0, TextureFormat.Rgba8unorm);
+            pSetup.addColor('existingTarget', 0, 'rgba8unorm');
         });
 
         // Evaluation.
@@ -308,13 +307,13 @@ Deno.test('RenderTargetsLayout.depthStencilConfig()', async (pContext) => {
 
         // Process.
         lLayout.setup((pSetup) => {
-            pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
-            pSetup.addDepthStencil(TextureFormat.Depth24plusStencil8, true, 1.0, true, 0);
+            pSetup.addColor('color0', 0, 'rgba8unorm');
+            pSetup.addDepthStencil('depth32floatStencil8', true, 1.0, true, 0);
         });
 
         // Evaluation.
         const lConfig: RenderTargetsLayoutDepthStencil = lLayout.depthStencilTarget();
-        expect(lConfig.format).toBe(TextureFormat.Depth24plusStencil8);
+        expect(lConfig.format).toBe('depth32floatStencil8');
         expect(lConfig.depth!.keepOnEnd).toBe(true);
         expect(lConfig.depth!.clearValue).toBe(1.0);
         expect(lConfig.stencil!.keepOnEnd).toBe(true);
@@ -331,7 +330,7 @@ Deno.test('RenderTargetsLayout.depthStencilConfig()', async (pContext) => {
 
         // Process.
         lLayout.setup((pSetup) => {
-            pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
+            pSetup.addColor('color0', 0, 'rgba8unorm');
         });
 
         // Evaluation.

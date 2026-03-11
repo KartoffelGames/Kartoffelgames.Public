@@ -14,11 +14,11 @@ export class GameEnvironment {
     private mCurrentTick: number;
     private readonly mDebugData: GameEnvironmentDebugData;
     private readonly mDebugOptions: Required<GameEnvironmentDebugOptions>;
+    private readonly mFileSystem: FileSystem;
     private readonly mLoadedScenes: Set<GameScene>;
     private readonly mStateChangeQueue: GameEnvironmentStateChangeQueue;
     private readonly mSystems: Array<GameSystem>;
-    private readonly mFileSystem: FileSystem;
-
+    
     /**
      * Debug data for the environment, including timing snapshots. Only filled when debugSystemTime is enabled.
      */

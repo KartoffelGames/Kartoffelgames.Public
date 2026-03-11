@@ -1,11 +1,11 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { GpuFeature } from '../../constant/gpu-feature.enum.ts';
 import { TextureAspect } from '../../constant/texture-aspect.enum.ts';
-import { TextureDimension } from '../../constant/texture-dimension.enum.ts';
-import { TextureFormat } from '../../constant/texture-format.enum.ts';
 import { TextureSampleType } from '../../constant/texture-sample-type.enum.ts';
 import { TextureUsage } from '../../constant/texture-usage.enum.ts';
 import type { GpuDevice } from '../gpu-device.ts';
+import type { TextureDimension } from '../../constant/texture-dimension.ts';
+import type { TextureFormat } from '../../constant/texture-format.type.ts';
 
 export class GpuTextureFormatCapabilities {
     private readonly mDevice: GpuDevice;
@@ -36,13 +36,13 @@ export class GpuTextureFormatCapabilities {
         this.mFormatCapabilitys = new Dictionary<TextureFormat, TextureFormatCapabilityDefinition>();
 
         // 8-bit formats
-        this.mFormatCapabilitys.set(TextureFormat.R8unorm, {
-            format: TextureFormat.R8unorm,
+        this.mFormatCapabilitys.set('r8unorm', {
+            format: 'r8unorm',
             aspect: {
                 types: [TextureAspect.Red],
                 byteCost: 1
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -53,7 +53,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.R8unorm],
+                    compatible: ['r8unorm'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -62,20 +62,20 @@ export class GpuTextureFormatCapabilities {
                 storage: false,
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.R8snorm, {
-            format: TextureFormat.R8snorm,
+        this.mFormatCapabilitys.set('r8snorm', {
+            format: 'r8snorm',
             aspect: {
                 types: [TextureAspect.Red],
                 byteCost: 1
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionBlock: { width: 1, height: 1 },
             usage: {
                 textureBinding: true,
                 renderAttachment: false,
                 copy: {
-                    compatible: [TextureFormat.R8snorm],
+                    compatible: ['r8snorm'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -84,13 +84,13 @@ export class GpuTextureFormatCapabilities {
                 storage: false
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.R8uint, {
-            format: TextureFormat.R8uint,
+        this.mFormatCapabilitys.set('r8uint', {
+            format: 'r8uint',
             aspect: {
                 types: [TextureAspect.Red],
                 byteCost: 1
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.UnsignedInteger],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -101,7 +101,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.R8uint],
+                    compatible: ['r8uint'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -110,13 +110,13 @@ export class GpuTextureFormatCapabilities {
                 storage: false
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.R8sint, {
-            format: TextureFormat.R8sint,
+        this.mFormatCapabilitys.set('r8sint', {
+            format: 'r8sint',
             aspect: {
                 types: [TextureAspect.Red],
                 byteCost: 1
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.SignedInteger],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -127,7 +127,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.R8sint],
+                    compatible: ['r8sint'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -138,13 +138,13 @@ export class GpuTextureFormatCapabilities {
         });
 
         // 16-bit formats
-        this.mFormatCapabilitys.set(TextureFormat.R16uint, {
-            format: TextureFormat.R16uint,
+        this.mFormatCapabilitys.set('r16uint', {
+            format: 'r16uint',
             aspect: {
                 types: [TextureAspect.Red],
                 byteCost: 2
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.UnsignedInteger],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -155,7 +155,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.R16uint],
+                    compatible: ['r16uint'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -164,13 +164,13 @@ export class GpuTextureFormatCapabilities {
                 storage: false
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.R16sint, {
-            format: TextureFormat.R16sint,
+        this.mFormatCapabilitys.set('r16sint', {
+            format: 'r16sint',
             aspect: {
                 types: [TextureAspect.Red],
                 byteCost: 2
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.SignedInteger],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -181,7 +181,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.R16sint],
+                    compatible: ['r16sint'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -190,13 +190,13 @@ export class GpuTextureFormatCapabilities {
                 storage: false
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.R16float, {
-            format: TextureFormat.R16float,
+        this.mFormatCapabilitys.set('r16float', {
+            format: 'r16float',
             aspect: {
                 types: [TextureAspect.Red],
                 byteCost: 2
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -207,7 +207,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.R16float],
+                    compatible: ['r16float'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -216,13 +216,13 @@ export class GpuTextureFormatCapabilities {
                 storage: false
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Rg8unorm, {
-            format: TextureFormat.Rg8unorm,
+        this.mFormatCapabilitys.set('rg8unorm', {
+            format: 'rg8unorm',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green],
                 byteCost: 1
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -233,7 +233,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.Rg8unorm],
+                    compatible: ['rg8unorm'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -242,20 +242,20 @@ export class GpuTextureFormatCapabilities {
                 storage: false
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Rg8snorm, {
-            format: TextureFormat.Rg8snorm,
+        this.mFormatCapabilitys.set('rg8snorm', {
+            format: 'rg8snorm',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green],
                 byteCost: 1
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionBlock: { width: 1, height: 1 },
             usage: {
                 textureBinding: true,
                 renderAttachment: false,
                 copy: {
-                    compatible: [TextureFormat.Rg8snorm],
+                    compatible: ['rg8snorm'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -264,13 +264,13 @@ export class GpuTextureFormatCapabilities {
                 storage: false
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Rg8uint, {
-            format: TextureFormat.Rg8uint,
+        this.mFormatCapabilitys.set('rg8uint', {
+            format: 'rg8uint',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green],
                 byteCost: 1
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.UnsignedInteger],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -281,7 +281,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.Rg8uint],
+                    compatible: ['rg8uint'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -290,13 +290,13 @@ export class GpuTextureFormatCapabilities {
                 storage: false
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Rg8sint, {
-            format: TextureFormat.Rg8sint,
+        this.mFormatCapabilitys.set('rg8sint', {
+            format: 'rg8sint',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green],
                 byteCost: 1
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.SignedInteger],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -307,7 +307,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.Rg8sint],
+                    compatible: ['rg8sint'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -318,13 +318,13 @@ export class GpuTextureFormatCapabilities {
         });
 
         // 32-bit formats
-        this.mFormatCapabilitys.set(TextureFormat.R32uint, {
-            format: TextureFormat.R32uint,
+        this.mFormatCapabilitys.set('r32uint', {
+            format: 'r32uint',
             aspect: {
                 types: [TextureAspect.Red],
                 byteCost: 4
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.UnsignedInteger],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -335,7 +335,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: false,
                 },
                 copy: {
-                    compatible: [TextureFormat.R32uint],
+                    compatible: ['r32uint'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -348,13 +348,13 @@ export class GpuTextureFormatCapabilities {
                 }
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.R32sint, {
-            format: TextureFormat.R32sint,
+        this.mFormatCapabilitys.set('r32sint', {
+            format: 'r32sint',
             aspect: {
                 types: [TextureAspect.Red],
                 byteCost: 4
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.SignedInteger],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -365,7 +365,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: false,
                 },
                 copy: {
-                    compatible: [TextureFormat.R32sint],
+                    compatible: ['r32sint'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -378,13 +378,13 @@ export class GpuTextureFormatCapabilities {
                 }
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.R32float, {
-            format: TextureFormat.R32float,
+        this.mFormatCapabilitys.set('r32float', {
+            format: 'r32float',
             aspect: {
                 types: [TextureAspect.Red],
                 byteCost: 4
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: lFloat32Filterable,
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -395,7 +395,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.R32float],
+                    compatible: ['r32float'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -408,13 +408,13 @@ export class GpuTextureFormatCapabilities {
                 }
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Rg16uint, {
-            format: TextureFormat.Rg16uint,
+        this.mFormatCapabilitys.set('rg16uint', {
+            format: 'rg16uint',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green],
                 byteCost: 2
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.UnsignedInteger],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -425,7 +425,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.Rg16uint],
+                    compatible: ['rg16uint'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -434,13 +434,13 @@ export class GpuTextureFormatCapabilities {
                 storage: false
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Rg16sint, {
-            format: TextureFormat.Rg16sint,
+        this.mFormatCapabilitys.set('rg16sint', {
+            format: 'rg16sint',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green],
                 byteCost: 2
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.SignedInteger],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -451,7 +451,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.Rg16sint],
+                    compatible: ['rg16sint'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -460,13 +460,13 @@ export class GpuTextureFormatCapabilities {
                 storage: false
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Rg16float, {
-            format: TextureFormat.Rg16float,
+        this.mFormatCapabilitys.set('rg16float', {
+            format: 'rg16float',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green],
                 byteCost: 2
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -477,7 +477,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.Rg16float],
+                    compatible: ['rg16float'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -486,13 +486,13 @@ export class GpuTextureFormatCapabilities {
                 storage: false
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Rgba8unorm, {
-            format: TextureFormat.Rgba8unorm,
+        this.mFormatCapabilitys.set('rgba8unorm', {
+            format: 'rgba8unorm',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 1
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -503,7 +503,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.Rgba8unorm, TextureFormat.Rgba8unormSrgb],
+                    compatible: ['rgba8unorm', 'rgba8unorm-srgb'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -516,13 +516,13 @@ export class GpuTextureFormatCapabilities {
                 }
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Rgba8unormSrgb, {
-            format: TextureFormat.Rgba8unormSrgb,
+        this.mFormatCapabilitys.set('rgba8unorm-srgb', {
+            format: 'rgba8unorm-srgb',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 1
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -533,7 +533,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.Rgba8unormSrgb, TextureFormat.Rgba8unorm],
+                    compatible: ['rgba8unorm-srgb', 'rgba8unorm'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -542,20 +542,20 @@ export class GpuTextureFormatCapabilities {
                 storage: false
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Rgba8snorm, {
-            format: TextureFormat.Rgba8snorm,
+        this.mFormatCapabilitys.set('rgba8snorm', {
+            format: 'rgba8snorm',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 1
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionBlock: { width: 1, height: 1 },
             usage: {
                 textureBinding: true,
                 renderAttachment: false,
                 copy: {
-                    compatible: [TextureFormat.Rgba8snorm],
+                    compatible: ['rgba8snorm'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -568,13 +568,13 @@ export class GpuTextureFormatCapabilities {
                 }
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Rgba8uint, {
-            format: TextureFormat.Rgba8uint,
+        this.mFormatCapabilitys.set('rgba8uint', {
+            format: 'rgba8uint',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 1
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.UnsignedInteger],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -585,7 +585,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.Rgba8uint],
+                    compatible: ['rgba8uint'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -598,13 +598,13 @@ export class GpuTextureFormatCapabilities {
                 }
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Rgba8sint, {
-            format: TextureFormat.Rgba8sint,
+        this.mFormatCapabilitys.set('rgba8sint', {
+            format: 'rgba8sint',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 1
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.SignedInteger],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -615,7 +615,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.Rgba8sint],
+                    compatible: ['rgba8sint'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -628,13 +628,13 @@ export class GpuTextureFormatCapabilities {
                 }
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Bgra8unorm, {
-            format: TextureFormat.Bgra8unorm,
+        this.mFormatCapabilitys.set('bgra8unorm', {
+            format: 'bgra8unorm',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 1
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -645,7 +645,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.Bgra8unorm, TextureFormat.Bgra8unormSrgb],
+                    compatible: ['bgra8unorm', 'bgra8unorm-srgb'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -658,13 +658,13 @@ export class GpuTextureFormatCapabilities {
                 }
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Bgra8unormSrgb, {
-            format: TextureFormat.Bgra8unormSrgb,
+        this.mFormatCapabilitys.set('bgra8unorm-srgb', {
+            format: 'bgra8unorm-srgb',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 1
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -675,7 +675,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.Bgra8unormSrgb, TextureFormat.Bgra8unorm],
+                    compatible: ['bgra8unorm-srgb', 'bgra8unorm'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -686,20 +686,20 @@ export class GpuTextureFormatCapabilities {
         });
 
         // Packed 32-bit formats
-        this.mFormatCapabilitys.set(TextureFormat.Rgb9e5ufloat, {
-            format: TextureFormat.Rgb9e5ufloat,
+        this.mFormatCapabilitys.set('rgb9e5ufloat', {
+            format: 'rgb9e5ufloat',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 1
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionBlock: { width: 1, height: 1 },
             usage: {
                 textureBinding: true,
                 renderAttachment: false,
                 copy: {
-                    compatible: [TextureFormat.Rgb9e5ufloat],
+                    compatible: ['rgb9e5ufloat'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -708,13 +708,13 @@ export class GpuTextureFormatCapabilities {
                 storage: false
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Rgb10a2uint, {
-            format: TextureFormat.Rgb10a2uint,
+        this.mFormatCapabilitys.set('rgb10a2uint', {
+            format: 'rgb10a2uint',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 2
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.UnsignedInteger],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -725,7 +725,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.Rgb10a2uint],
+                    compatible: ['rgb10a2uint'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -734,13 +734,13 @@ export class GpuTextureFormatCapabilities {
                 storage: false
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Rgb10a2unorm, {
-            format: TextureFormat.Rgb10a2unorm,
+        this.mFormatCapabilitys.set('rgb10a2unorm', {
+            format: 'rgb10a2unorm',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 2
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -751,7 +751,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.Rgb10a2unorm],
+                    compatible: ['rgb10a2unorm'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -760,13 +760,13 @@ export class GpuTextureFormatCapabilities {
                 storage: false
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Rg11b10ufloat, {
-            format: TextureFormat.Rg11b10ufloat,
+        this.mFormatCapabilitys.set('rg11b10ufloat', {
+            format: 'rg11b10ufloat',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 2
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -777,7 +777,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 } : false,
                 copy: {
-                    compatible: [TextureFormat.Rg11b10ufloat],
+                    compatible: ['rg11b10ufloat'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -788,13 +788,13 @@ export class GpuTextureFormatCapabilities {
         });
 
         // 64-bit formats
-        this.mFormatCapabilitys.set(TextureFormat.Rg32uint, {
-            format: TextureFormat.Rg32uint,
+        this.mFormatCapabilitys.set('rg32uint', {
+            format: 'rg32uint',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green],
                 byteCost: 4
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.UnsignedInteger],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -805,7 +805,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: false,
                 },
                 copy: {
-                    compatible: [TextureFormat.Rg32uint],
+                    compatible: ['rg32uint'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -818,13 +818,13 @@ export class GpuTextureFormatCapabilities {
                 }
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Rg32sint, {
-            format: TextureFormat.Rg32sint,
+        this.mFormatCapabilitys.set('rg32sint', {
+            format: 'rg32sint',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green],
                 byteCost: 4
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.SignedInteger],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -835,7 +835,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: false,
                 },
                 copy: {
-                    compatible: [TextureFormat.Rg32sint],
+                    compatible: ['rg32sint'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -848,13 +848,13 @@ export class GpuTextureFormatCapabilities {
                 }
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Rg32float, {
-            format: TextureFormat.Rg32float,
+        this.mFormatCapabilitys.set('rg32float', {
+            format: 'rg32float',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green],
                 byteCost: 4
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: lFloat32Filterable,
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -865,7 +865,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: false,
                 },
                 copy: {
-                    compatible: [TextureFormat.Rg32float],
+                    compatible: ['rg32float'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -878,13 +878,13 @@ export class GpuTextureFormatCapabilities {
                 }
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Rgba16uint, {
-            format: TextureFormat.Rgba16uint,
+        this.mFormatCapabilitys.set('rgba16uint', {
+            format: 'rgba16uint',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 2
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.UnsignedInteger],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -895,7 +895,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.Rgba16uint],
+                    compatible: ['rgba16uint'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -908,13 +908,13 @@ export class GpuTextureFormatCapabilities {
                 }
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Rgba16sint, {
-            format: TextureFormat.Rgba16sint,
+        this.mFormatCapabilitys.set('rgba16sint', {
+            format: 'rgba16sint',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 2
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.SignedInteger],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -925,7 +925,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.Rgba16sint],
+                    compatible: ['rgba16sint'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -938,13 +938,13 @@ export class GpuTextureFormatCapabilities {
                 }
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Rgba16float, {
-            format: TextureFormat.Rgba16float,
+        this.mFormatCapabilitys.set('rgba16float', {
+            format: 'rgba16float',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 2
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.Float, TextureSampleType.UnfilterableFloat],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -955,7 +955,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.Rgba16float],
+                    compatible: ['rgba16float'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -970,13 +970,13 @@ export class GpuTextureFormatCapabilities {
         });
 
         // 128-bit formats
-        this.mFormatCapabilitys.set(TextureFormat.Rgba32uint, {
-            format: TextureFormat.Rgba32uint,
+        this.mFormatCapabilitys.set('rgba32uint', {
+            format: 'rgba32uint',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 4
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.UnsignedInteger],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -987,7 +987,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: false,
                 },
                 copy: {
-                    compatible: [TextureFormat.Rgba32uint],
+                    compatible: ['rgba32uint'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -1000,13 +1000,13 @@ export class GpuTextureFormatCapabilities {
                 }
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Rgba32sint, {
-            format: TextureFormat.Rgba32sint,
+        this.mFormatCapabilitys.set('rgba32sint', {
+            format: 'rgba32sint',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 4
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: [TextureSampleType.SignedInteger],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -1017,7 +1017,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: false,
                 },
                 copy: {
-                    compatible: [TextureFormat.Rgba32sint],
+                    compatible: ['rgba32sint'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -1030,13 +1030,13 @@ export class GpuTextureFormatCapabilities {
                 }
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Rgba32float, {
-            format: TextureFormat.Rgba32float,
+        this.mFormatCapabilitys.set('rgba32float', {
+            format: 'rgba32float',
             aspect: {
                 types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                 byteCost: 4
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension, TextureDimension.ThreeDimension],
+            dimensions: ['1d', '2d', '3d'],
             type: lFloat32Filterable,
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -1047,7 +1047,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: false,
                 },
                 copy: {
-                    compatible: [TextureFormat.Rgba32float],
+                    compatible: ['rgba32float'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -1062,13 +1062,13 @@ export class GpuTextureFormatCapabilities {
         });
 
         // Depth/stencil formats
-        this.mFormatCapabilitys.set(TextureFormat.Stencil8, {
-            format: TextureFormat.Stencil8,
+        this.mFormatCapabilitys.set('stencil8', {
+            format: 'stencil8',
             aspect: {
                 types: [TextureAspect.Stencil],
                 byteCost: 1
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension],
+            dimensions: ['1d', '2d'],
             type: [TextureSampleType.UnsignedInteger],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -1079,7 +1079,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.Stencil8],
+                    compatible: ['stencil8'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -1088,13 +1088,13 @@ export class GpuTextureFormatCapabilities {
                 storage: false
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Depth16unorm, {
-            format: TextureFormat.Depth16unorm,
+        this.mFormatCapabilitys.set('depth16unorm', {
+            format: 'depth16unorm',
             aspect: {
                 types: [TextureAspect.Depth],
                 byteCost: 2
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension],
+            dimensions: ['1d', '2d'],
             type: [TextureSampleType.Depth, TextureSampleType.UnfilterableFloat],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -1105,7 +1105,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.Depth16unorm],
+                    compatible: ['depth16unorm'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -1114,13 +1114,13 @@ export class GpuTextureFormatCapabilities {
                 storage: false
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Depth24plus, {
-            format: TextureFormat.Depth24plus,
+        this.mFormatCapabilitys.set('depth24plus', {
+            format: 'depth24plus',
             aspect: {
                 types: [TextureAspect.Depth],
                 byteCost: 4
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension],
+            dimensions: ['1d', '2d'],
             type: [TextureSampleType.Depth, TextureSampleType.UnfilterableFloat],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -1131,7 +1131,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.Depth24plus],
+                    compatible: ['depth24plus'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: false,
@@ -1140,13 +1140,13 @@ export class GpuTextureFormatCapabilities {
                 storage: false
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Depth24plusStencil8, {
-            format: TextureFormat.Depth24plusStencil8,
+        this.mFormatCapabilitys.set('depth24plusStencil8', {
+            format: 'depth24plusStencil8',
             aspect: {
                 types: [TextureAspect.Depth, TextureAspect.Stencil],
                 byteCost: 2
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension],
+            dimensions: ['1d', '2d'],
             type: [TextureSampleType.Depth, TextureSampleType.UnfilterableFloat, TextureSampleType.UnsignedInteger],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -1157,7 +1157,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.Depth24plusStencil8],
+                    compatible: ['depth24plusStencil8'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: false, // Stencil supports image copy but depth does not.
@@ -1166,13 +1166,13 @@ export class GpuTextureFormatCapabilities {
                 storage: false
             }
         });
-        this.mFormatCapabilitys.set(TextureFormat.Depth32float, {
-            format: TextureFormat.Depth32float,
+        this.mFormatCapabilitys.set('depth32float', {
+            format: 'depth32float',
             aspect: {
                 types: [TextureAspect.Depth],
                 byteCost: 4
             },
-            dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension],
+            dimensions: ['1d', '2d'],
             type: [TextureSampleType.Depth, TextureSampleType.UnfilterableFloat],
             compressionBlock: { width: 1, height: 1 },
             usage: {
@@ -1183,7 +1183,7 @@ export class GpuTextureFormatCapabilities {
                     multisample: true,
                 },
                 copy: {
-                    compatible: [TextureFormat.Depth32float],
+                    compatible: ['depth32float'],
                     textureSource: true,
                     textureDestination: true,
                     imageSource: true,
@@ -1195,13 +1195,13 @@ export class GpuTextureFormatCapabilities {
 
         // "depth32float-stencil8" feature
         if (pDevice.capabilities.hasFeature(GpuFeature.Depth32floatStencil8)) {
-            this.mFormatCapabilitys.set(TextureFormat.Depth32floatStencil8, {
-                format: TextureFormat.Depth32floatStencil8,
+            this.mFormatCapabilitys.set('depth32floatStencil8', {
+                format: 'depth32floatStencil8',
                 aspect: {
                     types: [TextureAspect.Depth, TextureAspect.Stencil],
                     byteCost: 4
                 },
-                dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension],
+                dimensions: ['1d', '2d'],
                 type: [TextureSampleType.Depth, TextureSampleType.UnfilterableFloat, TextureSampleType.UnsignedInteger],
                 compressionBlock: { width: 1, height: 1 },
                 usage: {
@@ -1212,7 +1212,7 @@ export class GpuTextureFormatCapabilities {
                         multisample: true,
                     },
                     copy: {
-                        compatible: [TextureFormat.Depth32floatStencil8],
+                        compatible: ['depth32floatStencil8'],
                         textureSource: true,
                         textureDestination: true,
                         imageSource: true,
@@ -1232,7 +1232,7 @@ export class GpuTextureFormatCapabilities {
                         types: pAspects,
                         byteCost: pByteOfAspect
                     },
-                    dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension],
+                    dimensions: ['1d', '2d'],
                     type: [TextureSampleType.UnfilterableFloat, TextureSampleType.Float],
                     compressionBlock: { width: 4, height: 4 },
                     usage: {
@@ -1250,26 +1250,26 @@ export class GpuTextureFormatCapabilities {
                 };
 
                 if (pDevice.capabilities.hasFeature(GpuFeature.TextureCompressionBcSliced3d)) {
-                    lFormat.dimensions.push(TextureDimension.ThreeDimension);
+                    lFormat.dimensions.push('3d');
                 }
 
                 return lFormat;
             };
 
-            this.mFormatCapabilitys.set(TextureFormat.Bc1RgbaUnorm, lBcTextureFormatCapability(TextureFormat.Bc1RgbaUnorm, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 2, [TextureFormat.Bc1RgbaUnormSrgb]));
-            this.mFormatCapabilitys.set(TextureFormat.Bc1RgbaUnormSrgb, lBcTextureFormatCapability(TextureFormat.Bc1RgbaUnormSrgb, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 2, [TextureFormat.Bc1RgbaUnorm]));
-            this.mFormatCapabilitys.set(TextureFormat.Bc2RgbaUnorm, lBcTextureFormatCapability(TextureFormat.Bc2RgbaUnorm, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4, [TextureFormat.Bc2RgbaUnormSrgb]));
-            this.mFormatCapabilitys.set(TextureFormat.Bc2RgbaUnormSrgb, lBcTextureFormatCapability(TextureFormat.Bc2RgbaUnormSrgb, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4, [TextureFormat.Bc2RgbaUnorm]));
-            this.mFormatCapabilitys.set(TextureFormat.Bc3RgbaUnorm, lBcTextureFormatCapability(TextureFormat.Bc3RgbaUnorm, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4, [TextureFormat.Bc3RgbaUnormSrgb]));
-            this.mFormatCapabilitys.set(TextureFormat.Bc3RgbaUnormSrgb, lBcTextureFormatCapability(TextureFormat.Bc3RgbaUnormSrgb, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4, [TextureFormat.Bc3RgbaUnorm]));
-            this.mFormatCapabilitys.set(TextureFormat.Bc4Runorm, lBcTextureFormatCapability(TextureFormat.Bc4Runorm, [TextureAspect.Red], 8, []));
-            this.mFormatCapabilitys.set(TextureFormat.Bc4Rsnorm, lBcTextureFormatCapability(TextureFormat.Bc4Rsnorm, [TextureAspect.Red], 8, []));
-            this.mFormatCapabilitys.set(TextureFormat.Bc5RgUnorm, lBcTextureFormatCapability(TextureFormat.Bc5RgUnorm, [TextureAspect.Red, TextureAspect.Green], 8, []));
-            this.mFormatCapabilitys.set(TextureFormat.Bc5RgSnorm, lBcTextureFormatCapability(TextureFormat.Bc5RgSnorm, [TextureAspect.Red, TextureAspect.Green], 8, []));
-            this.mFormatCapabilitys.set(TextureFormat.Bc6hRgbUfloat, lBcTextureFormatCapability(TextureFormat.Bc6hRgbUfloat, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue], 4, []));
-            this.mFormatCapabilitys.set(TextureFormat.Bc6hRgbFloat, lBcTextureFormatCapability(TextureFormat.Bc6hRgbFloat, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue], 4, []));
-            this.mFormatCapabilitys.set(TextureFormat.Bc7RgbaUnorm, lBcTextureFormatCapability(TextureFormat.Bc7RgbaUnorm, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4, [TextureFormat.Bc7RgbaUnormSrgb]));
-            this.mFormatCapabilitys.set(TextureFormat.Bc7RgbaUnormSrgb, lBcTextureFormatCapability(TextureFormat.Bc7RgbaUnormSrgb, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4, [TextureFormat.Bc7RgbaUnorm]));
+            this.mFormatCapabilitys.set('bc1-rgba-unorm', lBcTextureFormatCapability('bc1-rgba-unorm', [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 2, ['bc1-rgba-unorm-srgb']));
+            this.mFormatCapabilitys.set('bc1-rgba-unorm-srgb', lBcTextureFormatCapability('bc1-rgba-unorm-srgb', [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 2, ['bc1-rgba-unorm']));
+            this.mFormatCapabilitys.set('bc2-rgba-unorm', lBcTextureFormatCapability('bc2-rgba-unorm', [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4, ['bc2-rgba-unorm-srgb']));
+            this.mFormatCapabilitys.set('bc2-rgba-unorm-srgb', lBcTextureFormatCapability('bc2-rgba-unorm-srgb', [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4, ['bc2-rgba-unorm']));
+            this.mFormatCapabilitys.set('bc3-rgba-unorm', lBcTextureFormatCapability('bc3-rgba-unorm', [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4, ['bc3-rgba-unorm-srgb']));
+            this.mFormatCapabilitys.set('bc3-rgba-unorm-srgb', lBcTextureFormatCapability('bc3-rgba-unorm-srgb', [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4, ['bc3-rgba-unorm']));
+            this.mFormatCapabilitys.set('bc4-r-unorm', lBcTextureFormatCapability('bc4-r-unorm', [TextureAspect.Red], 8, []));
+            this.mFormatCapabilitys.set('bc4-r-snorm', lBcTextureFormatCapability('bc4-r-snorm', [TextureAspect.Red], 8, []));
+            this.mFormatCapabilitys.set('bc5-rg-unorm', lBcTextureFormatCapability('bc5-rg-unorm', [TextureAspect.Red, TextureAspect.Green], 8, []));
+            this.mFormatCapabilitys.set('bc5-rg-snorm', lBcTextureFormatCapability('bc5-rg-snorm', [TextureAspect.Red, TextureAspect.Green], 8, []));
+            this.mFormatCapabilitys.set('bc6h-rgb-ufloat', lBcTextureFormatCapability('bc6h-rgb-ufloat', [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue], 4, []));
+            this.mFormatCapabilitys.set('bc6h-rgb-float', lBcTextureFormatCapability('bc6h-rgb-float', [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue], 4, []));
+            this.mFormatCapabilitys.set('bc7-rgba-unorm', lBcTextureFormatCapability('bc7-rgba-unorm', [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4, ['bc7-rgba-unorm-srgb']));
+            this.mFormatCapabilitys.set('bc7-rgba-unorm-srgb', lBcTextureFormatCapability('bc7-rgba-unorm-srgb', [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4, ['bc7-rgba-unorm']));
         }
 
         // ETC2 compressed formats
@@ -1281,7 +1281,7 @@ export class GpuTextureFormatCapabilities {
                         types: pAspects,
                         byteCost: pByteOfAspect
                     },
-                    dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension],
+                    dimensions: ['1d', '2d'],
                     type: [TextureSampleType.UnfilterableFloat, TextureSampleType.Float],
                     compressionBlock: { width: 4, height: 4 },
                     usage: {
@@ -1301,16 +1301,16 @@ export class GpuTextureFormatCapabilities {
                 return lFormat;
             };
 
-            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgb8unorm, lEtc2TextureFormatCapability(TextureFormat.Etc2Rgb8unorm, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue], 2, [TextureFormat.Etc2Rgb8unormSrgb]));
-            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgb8unormSrgb, lEtc2TextureFormatCapability(TextureFormat.Etc2Rgb8unormSrgb, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue], 2, [TextureFormat.Etc2Rgb8unorm]));
-            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgb8a1unorm, lEtc2TextureFormatCapability(TextureFormat.Etc2Rgb8a1unorm, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 2, [TextureFormat.Etc2Rgb8a1unormSrgb]));
-            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgb8a1unormSrgb, lEtc2TextureFormatCapability(TextureFormat.Etc2Rgb8a1unormSrgb, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 2, [TextureFormat.Etc2Rgb8a1unorm]));
-            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgba8unorm, lEtc2TextureFormatCapability(TextureFormat.Etc2Rgba8unorm, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4, [TextureFormat.Etc2Rgba8unormSrgb]));
-            this.mFormatCapabilitys.set(TextureFormat.Etc2Rgba8unormSrgb, lEtc2TextureFormatCapability(TextureFormat.Etc2Rgba8unormSrgb, [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4, [TextureFormat.Etc2Rgba8unorm]));
-            this.mFormatCapabilitys.set(TextureFormat.EacR11unorm, lEtc2TextureFormatCapability(TextureFormat.EacR11unorm, [TextureAspect.Red], 8, []));
-            this.mFormatCapabilitys.set(TextureFormat.EacR11snorm, lEtc2TextureFormatCapability(TextureFormat.EacR11snorm, [TextureAspect.Red], 8, []));
-            this.mFormatCapabilitys.set(TextureFormat.EacRg11unorm, lEtc2TextureFormatCapability(TextureFormat.EacRg11unorm, [TextureAspect.Red, TextureAspect.Green], 8, []));
-            this.mFormatCapabilitys.set(TextureFormat.EacRg11snorm, lEtc2TextureFormatCapability(TextureFormat.EacRg11snorm, [TextureAspect.Red, TextureAspect.Green], 8, []));
+            this.mFormatCapabilitys.set('etc2-rgb8unorm', lEtc2TextureFormatCapability('etc2-rgb8unorm', [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue], 2, ['etc2-rgb8unorm-srgb']));
+            this.mFormatCapabilitys.set('etc2-rgb8unorm-srgb', lEtc2TextureFormatCapability('etc2-rgb8unorm-srgb', [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue], 2, ['etc2-rgb8unorm']));
+            this.mFormatCapabilitys.set('etc2-rgb8a1unorm', lEtc2TextureFormatCapability('etc2-rgb8a1unorm', [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 2, ['etc2-rgb8a1unorm-srgb']));
+            this.mFormatCapabilitys.set('etc2-rgb8a1unorm-srgb', lEtc2TextureFormatCapability('etc2-rgb8a1unorm-srgb', [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 2, ['etc2-rgb8a1unorm']));
+            this.mFormatCapabilitys.set('etc2-rgba8unorm', lEtc2TextureFormatCapability('etc2-rgba8unorm', [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4, ['etc2-rgba8unorm-srgb']));
+            this.mFormatCapabilitys.set('etc2-rgba8unorm-srgb', lEtc2TextureFormatCapability('etc2-rgba8unorm-srgb', [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha], 4, ['etc2-rgba8unorm']));
+            this.mFormatCapabilitys.set('eac-r11unorm', lEtc2TextureFormatCapability('eac-r11unorm', [TextureAspect.Red], 8, []));
+            this.mFormatCapabilitys.set('eac-r11snorm', lEtc2TextureFormatCapability('eac-r11snorm', [TextureAspect.Red], 8, []));
+            this.mFormatCapabilitys.set('eac-rg11unorm', lEtc2TextureFormatCapability('eac-rg11unorm', [TextureAspect.Red, TextureAspect.Green], 8, []));
+            this.mFormatCapabilitys.set('eac-rg11snorm', lEtc2TextureFormatCapability('eac-rg11snorm', [TextureAspect.Red, TextureAspect.Green], 8, []));
         }
 
         // ASTC compressed formats
@@ -1322,7 +1322,7 @@ export class GpuTextureFormatCapabilities {
                         types: [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha],
                         byteCost: 4
                     },
-                    dimensions: [TextureDimension.OneDimension, TextureDimension.TwoDimension],
+                    dimensions: ['1d', '2d'],
                     type: [TextureSampleType.UnfilterableFloat, TextureSampleType.Float],
                     compressionBlock: {
                         width: pCompressionLevel[0],
@@ -1345,34 +1345,34 @@ export class GpuTextureFormatCapabilities {
                 return lFormat;
             };
 
-            this.mFormatCapabilitys.set(TextureFormat.Astc4x4unorm, lAstcTextureFormatCapability(TextureFormat.Astc4x4unorm, [4, 4], [TextureFormat.Astc4x4unormSrgb]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc4x4unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc4x4unormSrgb, [4, 4], [TextureFormat.Astc4x4unorm]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc5x4unorm, lAstcTextureFormatCapability(TextureFormat.Astc5x4unorm, [5, 4], [TextureFormat.Astc5x4unormSrgb]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc5x4unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc5x4unormSrgb, [5, 4], [TextureFormat.Astc5x4unorm]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc5x5unorm, lAstcTextureFormatCapability(TextureFormat.Astc5x5unorm, [5, 5], [TextureFormat.Astc5x5unormSrgb]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc5x5unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc5x5unormSrgb, [5, 5], [TextureFormat.Astc5x5unorm]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc6x5unorm, lAstcTextureFormatCapability(TextureFormat.Astc6x5unorm, [6, 5], [TextureFormat.Astc6x5unormSrgb]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc6x5unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc6x5unormSrgb, [6, 5], [TextureFormat.Astc6x5unorm]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc6x6unorm, lAstcTextureFormatCapability(TextureFormat.Astc6x6unorm, [6, 6], [TextureFormat.Astc6x6unormSrgb]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc6x6unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc6x6unormSrgb, [6, 6], [TextureFormat.Astc6x6unorm]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc8x5unorm, lAstcTextureFormatCapability(TextureFormat.Astc8x5unorm, [8, 5], [TextureFormat.Astc8x5unormSrgb]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc8x5unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc8x5unormSrgb, [8, 5], [TextureFormat.Astc8x5unorm]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc8x6unorm, lAstcTextureFormatCapability(TextureFormat.Astc8x6unorm, [8, 6], [TextureFormat.Astc8x6unormSrgb]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc8x6unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc8x6unormSrgb, [8, 6], [TextureFormat.Astc8x6unorm]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc8x8unorm, lAstcTextureFormatCapability(TextureFormat.Astc8x8unorm, [8, 8], [TextureFormat.Astc8x8unormSrgb]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc8x8unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc8x8unormSrgb, [8, 8], [TextureFormat.Astc8x8unorm]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc10x5unorm, lAstcTextureFormatCapability(TextureFormat.Astc10x5unorm, [10, 5], [TextureFormat.Astc10x5unormSrgb]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc10x5unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc10x5unormSrgb, [10, 5], [TextureFormat.Astc10x5unorm]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc10x6unorm, lAstcTextureFormatCapability(TextureFormat.Astc10x6unorm, [10, 6], [TextureFormat.Astc10x6unormSrgb]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc10x6unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc10x6unormSrgb, [10, 6], [TextureFormat.Astc10x6unorm]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc10x8unorm, lAstcTextureFormatCapability(TextureFormat.Astc10x8unorm, [10, 8], [TextureFormat.Astc10x8unormSrgb]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc10x8unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc10x8unormSrgb, [10, 8], [TextureFormat.Astc10x8unorm]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc10x10unorm, lAstcTextureFormatCapability(TextureFormat.Astc10x10unorm, [10, 10], [TextureFormat.Astc10x10unormSrgb]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc10x10unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc10x10unormSrgb, [10, 10], [TextureFormat.Astc10x10unorm]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc12x10unorm, lAstcTextureFormatCapability(TextureFormat.Astc12x10unorm, [12, 10], [TextureFormat.Astc12x10unormSrgb]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc12x10unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc12x10unormSrgb, [12, 10], [TextureFormat.Astc12x10unorm]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc12x12unorm, lAstcTextureFormatCapability(TextureFormat.Astc12x12unorm, [12, 12], [TextureFormat.Astc12x12unormSrgb]));
-            this.mFormatCapabilitys.set(TextureFormat.Astc12x12unormSrgb, lAstcTextureFormatCapability(TextureFormat.Astc12x12unormSrgb, [12, 12], [TextureFormat.Astc12x12unorm]));
+            this.mFormatCapabilitys.set('astc-4x4-unorm', lAstcTextureFormatCapability('astc-4x4-unorm', [4, 4], ['astc-4x4-unorm-srgb']));
+            this.mFormatCapabilitys.set('astc-4x4-unorm-srgb', lAstcTextureFormatCapability('astc-4x4-unorm-srgb', [4, 4], ['astc-4x4-unorm']));
+            this.mFormatCapabilitys.set('astc-5x4-unorm', lAstcTextureFormatCapability('astc-5x4-unorm', [5, 4], ['astc-5x4-unorm-srgb']));
+            this.mFormatCapabilitys.set('astc-5x4-unorm-srgb', lAstcTextureFormatCapability('astc-5x4-unorm-srgb', [5, 4], ['astc-5x4-unorm']));
+            this.mFormatCapabilitys.set('astc-5x5-unorm', lAstcTextureFormatCapability('astc-5x5-unorm', [5, 5], ['astc-5x5-unorm-srgb']));
+            this.mFormatCapabilitys.set('astc-5x5-unorm-srgb', lAstcTextureFormatCapability('astc-5x5-unorm-srgb', [5, 5], ['astc-5x5-unorm']));
+            this.mFormatCapabilitys.set('astc-6x5-unorm', lAstcTextureFormatCapability('astc-6x5-unorm', [6, 5], ['astc-6x5-unorm-srgb']));
+            this.mFormatCapabilitys.set('astc-6x5-unorm-srgb', lAstcTextureFormatCapability('astc-6x5-unorm-srgb', [6, 5], ['astc-6x5-unorm']));
+            this.mFormatCapabilitys.set('astc-6x6-unorm', lAstcTextureFormatCapability('astc-6x6-unorm', [6, 6], ['astc-6x6-unorm-srgb']));
+            this.mFormatCapabilitys.set('astc-6x6-unorm-srgb', lAstcTextureFormatCapability('astc-6x6-unorm-srgb', [6, 6], ['astc-6x6-unorm']));
+            this.mFormatCapabilitys.set('astc-8x5-unorm', lAstcTextureFormatCapability('astc-8x5-unorm', [8, 5], ['astc-8x5-unorm-srgb']));
+            this.mFormatCapabilitys.set('astc-8x5-unorm-srgb', lAstcTextureFormatCapability('astc-8x5-unorm-srgb', [8, 5], ['astc-8x5-unorm']));
+            this.mFormatCapabilitys.set('astc-8x6-unorm', lAstcTextureFormatCapability('astc-8x6-unorm', [8, 6], ['astc-8x6-unorm-srgb']));
+            this.mFormatCapabilitys.set('astc-8x6-unorm-srgb', lAstcTextureFormatCapability('astc-8x6-unorm-srgb', [8, 6], ['astc-8x6-unorm']));
+            this.mFormatCapabilitys.set('astc-8x8-unorm', lAstcTextureFormatCapability('astc-8x8-unorm', [8, 8], ['astc-8x8-unorm-srgb']));
+            this.mFormatCapabilitys.set('astc-8x8-unorm-srgb', lAstcTextureFormatCapability('astc-8x8-unorm-srgb', [8, 8], ['astc-8x8-unorm']));
+            this.mFormatCapabilitys.set('astc-10x5-unorm', lAstcTextureFormatCapability('astc-10x5-unorm', [10, 5], ['astc-10x5-unorm-srgb']));
+            this.mFormatCapabilitys.set('astc-10x5-unorm-srgb', lAstcTextureFormatCapability('astc-10x5-unorm-srgb', [10, 5], ['astc-10x5-unorm']));
+            this.mFormatCapabilitys.set('astc-10x6-unorm', lAstcTextureFormatCapability('astc-10x6-unorm', [10, 6], ['astc-10x6-unorm-srgb']));
+            this.mFormatCapabilitys.set('astc-10x6-unorm-srgb', lAstcTextureFormatCapability('astc-10x6-unorm-srgb', [10, 6], ['astc-10x6-unorm']));
+            this.mFormatCapabilitys.set('astc-10x8-unorm', lAstcTextureFormatCapability('astc-10x8-unorm', [10, 8], ['astc-10x8-unorm-srgb']));
+            this.mFormatCapabilitys.set('astc-10x8-unorm-srgb', lAstcTextureFormatCapability('astc-10x8-unorm-srgb', [10, 8], ['astc-10x8-unorm']));
+            this.mFormatCapabilitys.set('astc-10x10-unorm', lAstcTextureFormatCapability('astc-10x10-unorm', [10, 10], ['astc-10x10-unorm-srgb']));
+            this.mFormatCapabilitys.set('astc-10x10-unorm-srgb', lAstcTextureFormatCapability('astc-10x10-unorm-srgb', [10, 10], ['astc-10x10-unorm']));
+            this.mFormatCapabilitys.set('astc-12x10-unorm', lAstcTextureFormatCapability('astc-12x10-unorm', [12, 10], ['astc-12x10-unorm-srgb']));
+            this.mFormatCapabilitys.set('astc-12x10-unorm-srgb', lAstcTextureFormatCapability('astc-12x10-unorm-srgb', [12, 10], ['astc-12x10-unorm']));
+            this.mFormatCapabilitys.set('astc-12x12-unorm', lAstcTextureFormatCapability('astc-12x12-unorm', [12, 12], ['astc-12x12-unorm-srgb']));
+            this.mFormatCapabilitys.set('astc-12x12-unorm-srgb', lAstcTextureFormatCapability('astc-12x12-unorm-srgb', [12, 12], ['astc-12x12-unorm']));
         }
 
     }

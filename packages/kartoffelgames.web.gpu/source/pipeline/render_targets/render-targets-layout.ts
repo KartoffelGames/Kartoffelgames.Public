@@ -1,11 +1,11 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
 import { GpuLimit } from '../../constant/gpu-limit.enum.ts';
-import type { TextureFormat } from '../../constant/texture-format.enum.ts';
 import type { GpuDevice } from '../../device/gpu-device.ts';
 import { GpuObject, type GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
 import type { IGpuObjectSetup } from '../../gpu_object/interface/i-gpu-object-setup.ts';
 import { RenderTargetsLayoutSetup, type RenderTargetsLayoutSetupData } from './render-targets-layout-setup.ts';
 import { RenderTargets } from './render-targets.ts';
+import type { TextureFormat } from '../../constant/texture-format.type.ts';
 
 /**
  * Layout metadata for render targets.

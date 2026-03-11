@@ -5,9 +5,9 @@ export abstract class PgslParserResultType {
     private mAlignmentType: PgslParserResultTypeAlignmentType;
     private mByteAlignment: number;
     private mByteSize: number;
-    private mVariableByteSize: number;
     private readonly mType: PgslParserResultTypeType;
-
+    private mVariableByteSize: number;
+    
     /**
      * Gets the alignment type of this type.
      *
@@ -15,8 +15,8 @@ export abstract class PgslParserResultType {
      */
     public get alignmentType(): PgslParserResultTypeAlignmentType {
         return this.mAlignmentType;
-    } set alignmentType(value: PgslParserResultTypeAlignmentType) {
-        this.mAlignmentType = value;
+    } set alignmentType(pValue: PgslParserResultTypeAlignmentType) {
+        this.mAlignmentType = pValue;
 
         // Reset size and alignment caches.
         this.resetType();
@@ -88,16 +88,31 @@ export abstract class PgslParserResultType {
      * Reset the cached byte size, alignment, and variable byte size values.
      * This should be called whenever the type's properties change in a way that would affect its size or alignment calculations.
      */
-    protected resetType() {
+    protected resetType(): void {
         this.mByteSize = -1;
         this.mByteAlignment = -1;
         this.mVariableByteSize = -1;
     }
 
-    protected abstract onCalculateByteSize(): number;
-
+    /**
+     * Method to calculate the byte alignment of this type.
+     *
+     * @returns The byte alignment of the type.
+     */
     protected abstract onCalculateByteAlignment(): number;
 
+    /**
+     * Method to calculate the byte size of this type.
+     *
+     * @returns The byte size of the type.
+     */
+    protected abstract onCalculateByteSize(): number;
+
+    /**
+     * Method to calculate the variable byte size of this type.
+     *
+     * @returns The variable byte size of the type.
+     */
     protected abstract onCalculateVariableByteSize(): number;
 }
 

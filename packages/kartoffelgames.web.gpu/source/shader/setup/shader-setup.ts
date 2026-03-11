@@ -1,9 +1,7 @@
 import type { ComputeStage } from '../../constant/compute-stage.enum.ts';
 import { GpuObjectSetup } from '../../gpu_object/gpu-object-setup.ts';
-import { BindGroupLayout } from '../../pipeline/bind_group_layout/bind-group-layout.ts';
-import type { BindGroupLayoutSetup } from '../../pipeline/bind_group_layout/bind-group-layout-setup.ts';
-import { VertexParameterLayout } from '../../pipeline/vertex_parameter/vertex-parameter-layout.ts';
-import type { VertexParameterLayoutSetup } from '../../pipeline/vertex_parameter/vertex-parameter-layout-setup.ts';
+import type { BindGroupLayout } from '../../pipeline/bind_group_layout/bind-group-layout.ts';
+import type { VertexParameterLayout } from '../../pipeline/vertex_parameter/vertex-parameter-layout.ts';
 import type { ShaderModuleEntryPointFragmentRenderTarget } from '../shader.ts';
 import { ShaderComputeEntryPointSetup } from './shader-compute-entry-point-setup.ts';
 import { type ShaderFragmentEntryPointRenderTargetSetupData, ShaderFragmentEntryPointSetup } from './shader-fragment-entry-point-setup.ts';

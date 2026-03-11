@@ -264,7 +264,7 @@ Deno.test('TextureSampler.native', async (pContext) => {
 
         // Evaluation.
         const lThrowFunction = () => {
-            lSampler.native;
+            return lSampler.native;
         };
         expect(lThrowFunction).toThrow();
 

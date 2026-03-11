@@ -11,13 +11,13 @@ import type { GpuObjectSetup } from './gpu-object-setup.ts';
 export abstract class GpuObject<TNativeObject = null, TInvalidationType extends string = '', TSetupObject extends GpuObjectSetup<any> | null = null> implements IDeconstructable {
     private mDeconstructed: boolean;
     private readonly mDevice: GpuDevice;
+    private readonly mFreeableResources: Set<GpuDeviceDestroyableObject>;
     private readonly mInvalidationReasons: GpuObjectInvalidationReasons<TInvalidationType>;
     private mIsSetup: boolean;
     private mNativeObject: TNativeObject | null;
     private readonly mUpdateListener: Dictionary<TInvalidationType, List<GpuObjectUpdateListener<TInvalidationType>>>;
     private readonly mUpdateListenerAffectedTyped: WeakMap<GpuObjectUpdateListener<TInvalidationType>, Array<TInvalidationType>>;
-    private readonly mFreeableResources: Set<GpuDeviceDestroyableObject>;
-
+    
     /**
      * Gpu Device.
      */

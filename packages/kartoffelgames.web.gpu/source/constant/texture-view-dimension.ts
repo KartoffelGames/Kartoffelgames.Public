@@ -1,0 +1,1 @@
+export type TextureViewDimension = '1d' | '2d' | '2d-array' | '3d' | 'cube' | 'cube-array';

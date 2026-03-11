@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
-import { PgslParser, type PgslParserResult, type PgslParserResultBinding, PgslParserResultFragmentEntryPoint, PgslParserResultMatrixType, PgslParserResultNumericType, PgslParserResultSamplerType, PgslParserResultTextureType, type PgslParserResultType, PgslParserResultVectorType, PgslParserResultVertexEntryPoint, WgslTranspiler } from '@kartoffelgames/core-pgsl';
-import { type BindGroup, BindGroupLayout, BufferItemFormat, BufferItemMultiplier, ComputeStage, Shader as GpuShader, GpuTexture, type GpuTextureView, PrimitiveCullMode, PrimitiveFrontFace, RenderTargetsLayout, SamplerType, StorageBindingType, TextureFormat, type TextureViewDimension, type VertexFragmentPipeline, VertexParameterLayout, VertexParameterStepMode } from '@kartoffelgames/web-gpu';
+import { PgslParser, type PgslParserResult, type PgslParserResultBinding, type PgslParserResultFragmentEntryPoint, PgslParserResultMatrixType, PgslParserResultNumericType, PgslParserResultSamplerType, PgslParserResultTextureType, type PgslParserResultType, PgslParserResultVectorType, type PgslParserResultVertexEntryPoint, WgslTranspiler } from '@kartoffelgames/core-pgsl';
+import { type BindGroup, BindGroupLayout, type BindGroupLayoutMemoryLayoutSetup, BufferItemFormat, BufferItemMultiplier, ComputeStage, Shader as GpuShader, type GpuTexture, type GpuTextureView, PrimitiveCullMode, PrimitiveFrontFace, RenderTargetsLayout, SamplerType, StorageBindingType, TextureFormat, type TextureViewDimension, type VertexFragmentPipeline, VertexParameterLayout, VertexParameterStepMode } from '@kartoffelgames/web-gpu';
 import { Color } from '../component_item/color.ts';
 import { Material, type MaterialBindingValue } from '../component_item/material.ts';
 import { Texture } from '../component_item/texture.ts';
@@ -382,55 +382,6 @@ export class MaterialSystem extends GameSystem {
     }
 
     /**
-     * Create a standalone BindGroupLayout from a set of parser result bindings.
-     *
-     * @param pGroupName - The name of the bind group.
-     * @param pBindings - The bindings for this group from a parser result.
-     *
-     * @returns A configured BindGroupLayout.
-     */
-    private createBindGroupLayoutFromBindings(pGroupName: string, pBindings: Array<PgslParserResultBinding>): BindGroupLayout {
-        const lLayout: BindGroupLayout = new BindGroupLayout(this.mGpuSystem!.gpu, pGroupName);
-
-        return lLayout.setup((pSetup) => {
-            for (const lBinding of pBindings) {
-                // Map storage access mode to StorageBindingType.
-                const lStorageType: StorageBindingType = (() => {
-                    if (lBinding.bindingType !== 'storage') {
-                        return StorageBindingType.None;
-                    }
-
-                    switch (lBinding.accessMode) {
-                        case 'read': return StorageBindingType.Read;
-                        case 'write': return StorageBindingType.Write;
-                        case 'read-write': return StorageBindingType.ReadWrite;
-                    }
-                })();
-
-                const lVisibility = ComputeStage.Vertex | ComputeStage.Fragment;
-                const lEntry = pSetup.binding(lBinding.bindLocationIndex, lBinding.bindLocationName, lVisibility, lStorageType);
-
-                // Handle texture bindings.
-                if (lBinding.type instanceof PgslParserResultTextureType) {
-                    const lDimension: TextureViewDimension = lBinding.type.dimension as TextureViewDimension;
-                    const lFormat: TextureFormat = lBinding.type.textureFormat as TextureFormat;
-                    lEntry.asTexture(lDimension, lFormat);
-                    continue;
-                }
-
-                // Handle sampler bindings.
-                if (lBinding.type instanceof PgslParserResultSamplerType) {
-                    lEntry.asSampler(lBinding.type.isComparison ? SamplerType.Comparison : SamplerType.Filter);
-                    continue;
-                }
-
-                // Handle buffer bindings.
-                lEntry.asBuffer(lBinding.type.byteSize, lBinding.type.variableByteSize);
-            }
-        });
-    }
-
-    /**
      * Create a RenderTargetsLayout from a fragment entry point's render targets.
      * Adds Depth24plus depth-stencil to all modes.
      *
@@ -684,7 +635,53 @@ export class MaterialSystem extends GameSystem {
 
 
 
+    /**
+     * Create a standalone BindGroupLayout from a set of parser result bindings.
+     *
+     * @param pGroupName - The name of the bind group.
+     * @param pBindings - The bindings for this group from a parser result.
+     *
+     * @returns A configured BindGroupLayout.
+     */
+    private createBindGroupLayoutFromBindings(pGroupName: string, pBindings: Array<PgslParserResultBinding>): BindGroupLayout {
+        return new BindGroupLayout(this.mGpuSystem!.gpu, pGroupName).setup((pSetup) => {
+            for (const lBinding of pBindings) {
+                // Map storage access mode to StorageBindingType.
+                const lStorageType: StorageBindingType = (() => {
+                    // Only a storage binding can have a storage binding type.
+                    if (lBinding.bindingType !== 'storage') {
+                        return StorageBindingType.None;
+                    }
 
+                    switch (lBinding.accessMode) {
+                        case 'read': return StorageBindingType.Read;
+                        case 'write': return StorageBindingType.Write;
+                        case 'read-write': return StorageBindingType.ReadWrite;
+                    }
+                })();
+
+                const lComputeStageVisibility = ComputeStage.Vertex | ComputeStage.Fragment;
+                const lEntry: BindGroupLayoutMemoryLayoutSetup = pSetup.binding(lBinding.bindLocationIndex, lBinding.bindLocationName, lComputeStageVisibility, lStorageType);
+
+                // Handle texture bindings.
+                if (lBinding.type instanceof PgslParserResultTextureType) {
+                    const lDimension: TextureViewDimension = lBinding.type.dimension;
+                    const lFormat: TextureFormat = lBinding.type.textureFormat;
+                    lEntry.asTexture(lDimension, lFormat);
+                    continue;
+                }
+
+                // Handle sampler bindings.
+                if (lBinding.type instanceof PgslParserResultSamplerType) {
+                    lEntry.asSampler(lBinding.type.isComparison ? SamplerType.Comparison : SamplerType.Filter);
+                    continue;
+                }
+
+                // Handle buffer bindings.
+                lEntry.asBuffer(lBinding.type.byteSize, lBinding.type.variableByteSize);
+            }
+        });
+    }
 
     /**
      * Register a new render mode.
@@ -719,45 +716,47 @@ export class MaterialSystem extends GameSystem {
             throw new Exception('Failed to transpile reference shader.', this);
         }
 
-
-
-
-
-        // Create group layouts by transpiling declaration-only shaders.
-        const lGroupLayouts: Map<string, MaterialSystemGroupLayout> = new Map();
-
         // World group layout from declaration shader.
-        const lWorldBindings: Array<PgslParserResultBinding> = lReferenceShaderResult.bindings.filter((pB) => pB.bindGroupName === 'World');
-        if (lWorldBindings.length > 0) {
-            lGroupLayouts.set('World', {
+        const lWorldBindingLayout: MaterialSystemGroupLayout = (() => {
+            // Try to find world bindings in the reference shader result. If not found, throw an error since World group is required for the core template.
+            const lWorldBindings: Array<PgslParserResultBinding> = lReferenceShaderResult.bindings.filter((pB) => pB.bindGroupName === 'World');
+            if (lWorldBindings.length === 0) {
+                throw new Exception(`World group bindings not found in reference shader for render mode "${pMode}".`, this);
+            }
+
+            return {
                 index: lWorldBindings[0].bindGroupIndex,
                 layout: this.createBindGroupLayoutFromBindings('World', lWorldBindings)
-            });
-        }
+            };
+        })();
 
         // Object group layout from declaration shader.
-        const lObjectBindings: Array<PgslParserResultBinding> = lReferenceShaderResult.bindings.filter((pB) => pB.bindGroupName === 'Object');
-        if (lObjectBindings.length > 0) {
-            lGroupLayouts.set('Object', {
+        const lObjectBindingLayout: MaterialSystemGroupLayout = (() => {
+            // Try to find object bindings in the reference shader result. If not found, throw an error since Object group is required for the core template.
+            const lObjectBindings: Array<PgslParserResultBinding> = lReferenceShaderResult.bindings.filter((pB) => pB.bindGroupName === 'Object');
+            if (lObjectBindings.length === 0) {
+                throw new Exception(`Object group bindings not found in reference shader for render mode "${pMode}".`, this);
+            }
+
+            return {
                 index: lObjectBindings[0].bindGroupIndex,
                 layout: this.createBindGroupLayoutFromBindings('Object', lObjectBindings)
-            });
-        }
+            };
+        })();
 
         // Create RenderTargetsLayout by compiling a full Forward shader to extract fragment entry.
         const lFragmentEntry: PgslParserResultFragmentEntryPoint = lReferenceShaderResult.entryPoints.fragment.values().next()!.value!;
         const lRenderTargetsLayout: RenderTargetsLayout = this.createRenderTargetsLayoutFromEntryPoint(lFragmentEntry);
 
         // Store the Forward mode configuration.
-        this.mRenderModes.set(ShaderRenderMode.Forward, {
-            defaultShaderCode: pDefaultShaderCode,
-            functionalImport: 'Forward',
-            entryPointImport: 'ForwardEntryPoints',
-            vertexEntryPoint: 'vertex_main',
-            fragmentEntryPoint: 'fragment_main',
-            groupLayouts: lGroupLayouts,
-            renderTargetsLayout: lRenderTargetsLayout,
-            vertexParameterLayout: null
+        this.mRenderModes.set(pMode, {
+            prefixShader: lPrefixShader,
+            suffixShader: lSuffixShader,
+            userGroup: {
+                world: lWorldBindingLayout,
+                object: lObjectBindingLayout
+            },
+            renderTargetsLayout: lRenderTargetsLayout
         });
     }
 }

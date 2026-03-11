@@ -5,10 +5,10 @@ import { VertexParameterStepMode } from '../../source/constant/vertex-parameter-
 import { BufferItemFormat } from '../../source/constant/buffer-item-format.enum.ts';
 import { BufferItemMultiplier } from '../../source/constant/buffer-item-multiplier.enum.ts';
 import { ComputeStage } from '../../source/constant/compute-stage.enum.ts';
-import { ShaderRenderModule } from '../../source/shader/shader-render-module.ts';
+import type { ShaderRenderModule } from '../../source/shader/shader-render-module.ts';
 import { VertexParameterLayout } from '../../source/pipeline/vertex_parameter/vertex-parameter-layout.ts';
-import { VertexParameter } from '../../source/pipeline/vertex_parameter/vertex-parameter.ts';
-import { GpuBuffer } from '../../source/buffer/gpu-buffer.ts';
+import type { VertexParameter } from '../../source/pipeline/vertex_parameter/vertex-parameter.ts';
+import type { GpuBuffer } from '../../source/buffer/gpu-buffer.ts';
 
 /**
  * Helper to request a GPU device for tests.

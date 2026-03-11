@@ -2,10 +2,7 @@ import { expect } from '@kartoffelgames/core-test';
 import { GpuDevice } from '../../source/device/gpu-device.ts';
 import { GpuTexture } from '../../source/texture/gpu-texture.ts';
 import { GpuTextureView } from '../../source/texture/gpu-texture-view.ts';
-import { TextureDimension } from '../../source/constant/texture-dimension.enum.ts';
-import { TextureFormat } from '../../source/constant/texture-format.enum.ts';
 import { TextureUsage } from '../../source/constant/texture-usage.enum.ts';
-import { TextureViewDimension } from '../../source/constant/texture-view-dimension.enum.ts';
 
 /**
  * Helper to request a GPU device for tests.
@@ -24,8 +21,8 @@ Deno.test('GpuTexture -- constructor defaults', async (pContext) => {
 
         // Process.
         const lTexture: GpuTexture = new GpuTexture(lDevice, {
-            format: TextureFormat.Rgba8unorm,
-            dimension: TextureDimension.TwoDimension,
+            format: 'rgba8unorm',
+            dimension: '2d',
             multisampled: false
         });
 
@@ -44,8 +41,8 @@ Deno.test('GpuTexture -- constructor defaults', async (pContext) => {
 
         // Process.
         const lTexture: GpuTexture = new GpuTexture(lDevice, {
-            format: TextureFormat.Rgba8unorm,
-            dimension: TextureDimension.TwoDimension,
+            format: 'rgba8unorm',
+            dimension: '2d',
             multisampled: false
         });
 
@@ -62,14 +59,14 @@ Deno.test('GpuTexture -- constructor defaults', async (pContext) => {
 
         // Process.
         const lTexture: GpuTexture = new GpuTexture(lDevice, {
-            format: TextureFormat.Rgba16float,
-            dimension: TextureDimension.ThreeDimension,
+            format: 'rgba16float',
+            dimension: '3d',
             multisampled: false
         });
 
         // Evaluation.
-        expect(lTexture.format).toBe(TextureFormat.Rgba16float);
-        expect(lTexture.dimension).toBe(TextureDimension.ThreeDimension);
+        expect(lTexture.format).toBe('rgba16float');
+        expect(lTexture.dimension).toBe('3d');
         expect(lTexture.multiSampled).toBe(false);
 
         // Cleanup.
@@ -82,8 +79,8 @@ Deno.test('GpuTexture -- constructor defaults', async (pContext) => {
 
         // Process.
         const lTexture: GpuTexture = new GpuTexture(lDevice, {
-            format: TextureFormat.Rgba8unorm,
-            dimension: TextureDimension.TwoDimension,
+            format: 'rgba8unorm',
+            dimension: '2d',
             multisampled: true
         });
 
@@ -100,8 +97,8 @@ Deno.test('GpuTexture -- property setters', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lTexture: GpuTexture = new GpuTexture(lDevice, {
-            format: TextureFormat.Rgba8unorm,
-            dimension: TextureDimension.TwoDimension,
+            format: 'rgba8unorm',
+            dimension: '2d',
             multisampled: false
         });
 
@@ -119,8 +116,8 @@ Deno.test('GpuTexture -- property setters', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lTexture: GpuTexture = new GpuTexture(lDevice, {
-            format: TextureFormat.Rgba8unorm,
-            dimension: TextureDimension.TwoDimension,
+            format: 'rgba8unorm',
+            dimension: '2d',
             multisampled: false
         });
 
@@ -138,8 +135,8 @@ Deno.test('GpuTexture -- property setters', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lTexture: GpuTexture = new GpuTexture(lDevice, {
-            format: TextureFormat.Rgba8unorm,
-            dimension: TextureDimension.TwoDimension,
+            format: 'rgba8unorm',
+            dimension: '2d',
             multisampled: false
         });
 
@@ -157,8 +154,8 @@ Deno.test('GpuTexture -- property setters', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lTexture: GpuTexture = new GpuTexture(lDevice, {
-            format: TextureFormat.Rgba8unorm,
-            dimension: TextureDimension.TwoDimension,
+            format: 'rgba8unorm',
+            dimension: '2d',
             multisampled: false
         });
 
@@ -178,8 +175,8 @@ Deno.test('GpuTexture.native', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lTexture: GpuTexture = new GpuTexture(lDevice, {
-            format: TextureFormat.Rgba8unorm,
-            dimension: TextureDimension.TwoDimension,
+            format: 'rgba8unorm',
+            dimension: '2d',
             multisampled: false
         });
         lTexture.width = 64;
@@ -202,8 +199,8 @@ Deno.test('GpuTexture.useAs()', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lTexture: GpuTexture = new GpuTexture(lDevice, {
-            format: TextureFormat.Rgba8unorm,
-            dimension: TextureDimension.TwoDimension,
+            format: 'rgba8unorm',
+            dimension: '2d',
             multisampled: false
         });
         lTexture.width = 64;
@@ -215,8 +212,8 @@ Deno.test('GpuTexture.useAs()', async (pContext) => {
 
         // Evaluation.
         expect(lView).toBeTruthy();
-        expect(lView.dimension).toBe(TextureViewDimension.TwoDimension);
-        expect(lView.format).toBe(TextureFormat.Rgba8unorm);
+        expect(lView.dimension).toBe('2d');
+        expect(lView.format).toBe('rgba8unorm');
         expect(lView.texture).toBe(lTexture);
 
         // Cleanup.
@@ -227,8 +224,8 @@ Deno.test('GpuTexture.useAs()', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lTexture: GpuTexture = new GpuTexture(lDevice, {
-            format: TextureFormat.Rgba8unorm,
-            dimension: TextureDimension.TwoDimension,
+            format: 'rgba8unorm',
+            dimension: '2d',
             multisampled: false
         });
         lTexture.width = 64;
@@ -237,10 +234,10 @@ Deno.test('GpuTexture.useAs()', async (pContext) => {
         lTexture.extendUsage(TextureUsage.TextureBinding);
 
         // Process.
-        const lView: GpuTextureView = lTexture.useAs(TextureViewDimension.Cube);
+        const lView: GpuTextureView = lTexture.useAs('cube');
 
         // Evaluation.
-        expect(lView.dimension).toBe(TextureViewDimension.Cube);
+        expect(lView.dimension).toBe('cube');
 
         // Cleanup.
         lDevice.deconstruct();
@@ -252,8 +249,8 @@ Deno.test('GpuTexture.copyFrom()', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lSourceTexture: GpuTexture = new GpuTexture(lDevice, {
-            format: TextureFormat.Rgba8unorm,
-            dimension: TextureDimension.TwoDimension,
+            format: 'rgba8unorm',
+            dimension: '2d',
             multisampled: false
         });
         lSourceTexture.width = 32;
@@ -261,8 +258,8 @@ Deno.test('GpuTexture.copyFrom()', async (pContext) => {
         lSourceTexture.extendUsage(TextureUsage.TextureBinding);
 
         const lDestTexture: GpuTexture = new GpuTexture(lDevice, {
-            format: TextureFormat.Rgba8unorm,
-            dimension: TextureDimension.TwoDimension,
+            format: 'rgba8unorm',
+            dimension: '2d',
             multisampled: false
         });
         lDestTexture.width = 32;
@@ -284,13 +281,13 @@ Deno.test('GpuTextureView -- constructor defaults', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lTexture: GpuTexture = new GpuTexture(lDevice, {
-            format: TextureFormat.Rgba8unorm,
-            dimension: TextureDimension.TwoDimension,
+            format: 'rgba8unorm',
+            dimension: '2d',
             multisampled: false
         });
 
         // Process.
-        const lView: GpuTextureView = new GpuTextureView(lDevice, lTexture, TextureViewDimension.TwoDimension, TextureFormat.Rgba8unorm, false);
+        const lView: GpuTextureView = new GpuTextureView(lDevice, lTexture, '2d', 'rgba8unorm', false);
 
         // Evaluation.
         expect(lView.mipLevelStart).toBe(0);
@@ -308,17 +305,17 @@ Deno.test('GpuTextureView -- property access', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lTexture: GpuTexture = new GpuTexture(lDevice, {
-            format: TextureFormat.Rgba8unorm,
-            dimension: TextureDimension.TwoDimension,
+            format: 'rgba8unorm',
+            dimension: '2d',
             multisampled: false
         });
 
         // Process.
-        const lView: GpuTextureView = new GpuTextureView(lDevice, lTexture, TextureViewDimension.TwoDimension, TextureFormat.Rgba8unorm, false);
+        const lView: GpuTextureView = new GpuTextureView(lDevice, lTexture, '2d', 'rgba8unorm', false);
 
         // Evaluation.
-        expect(lView.dimension).toBe(TextureViewDimension.TwoDimension);
-        expect(lView.format).toBe(TextureFormat.Rgba8unorm);
+        expect(lView.dimension).toBe('2d');
+        expect(lView.format).toBe('rgba8unorm');
         expect(lView.multisampled).toBe(false);
         expect(lView.texture).toBe(lTexture);
 
@@ -332,11 +329,11 @@ Deno.test('GpuTextureView -- property setters', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lTexture: GpuTexture = new GpuTexture(lDevice, {
-            format: TextureFormat.Rgba8unorm,
-            dimension: TextureDimension.TwoDimension,
+            format: 'rgba8unorm',
+            dimension: '2d',
             multisampled: false
         });
-        const lView: GpuTextureView = new GpuTextureView(lDevice, lTexture, TextureViewDimension.TwoDimension, TextureFormat.Rgba8unorm, false);
+        const lView: GpuTextureView = new GpuTextureView(lDevice, lTexture, '2d', 'rgba8unorm', false);
 
         // Process.
         lView.mipLevelStart = 1;
@@ -352,11 +349,11 @@ Deno.test('GpuTextureView -- property setters', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lTexture: GpuTexture = new GpuTexture(lDevice, {
-            format: TextureFormat.Rgba8unorm,
-            dimension: TextureDimension.TwoDimension,
+            format: 'rgba8unorm',
+            dimension: '2d',
             multisampled: false
         });
-        const lView: GpuTextureView = new GpuTextureView(lDevice, lTexture, TextureViewDimension.TwoDimension, TextureFormat.Rgba8unorm, false);
+        const lView: GpuTextureView = new GpuTextureView(lDevice, lTexture, '2d', 'rgba8unorm', false);
 
         // Process.
         lView.arrayLayerStart = 2;
@@ -374,8 +371,8 @@ Deno.test('GpuTextureView.native', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lTexture: GpuTexture = new GpuTexture(lDevice, {
-            format: TextureFormat.Rgba8unorm,
-            dimension: TextureDimension.TwoDimension,
+            format: 'rgba8unorm',
+            dimension: '2d',
             multisampled: false
         });
         lTexture.width = 64;

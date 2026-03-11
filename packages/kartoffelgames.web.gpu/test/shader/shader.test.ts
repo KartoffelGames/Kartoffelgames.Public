@@ -6,12 +6,9 @@ import { BufferItemFormat } from '../../source/constant/buffer-item-format.enum.
 import { BufferItemMultiplier } from '../../source/constant/buffer-item-multiplier.enum.ts';
 import { VertexParameterStepMode } from '../../source/constant/vertex-parameter-step-mode.enum.ts';
 import { SamplerType } from '../../source/constant/sampler-type.enum.ts';
-import { TextureViewDimension } from '../../source/constant/texture-view-dimension.enum.ts';
-import { TextureFormat } from '../../source/constant/texture-format.enum.ts';
-import { ShaderRenderModule } from '../../source/shader/shader-render-module.ts';
-import { ShaderComputeModule } from '../../source/shader/shader-compute-module.ts';
+import type { ShaderRenderModule } from '../../source/shader/shader-render-module.ts';
+import type { ShaderComputeModule } from '../../source/shader/shader-compute-module.ts';
 import { BindGroupLayout } from '../../source/pipeline/bind_group_layout/bind-group-layout.ts';
-import { PipelineLayout } from '../../source/pipeline/pipeline-layout.ts';
 import { VertexParameterLayout } from '../../source/pipeline/vertex_parameter/vertex-parameter-layout.ts';
 
 /**
@@ -156,7 +153,7 @@ Deno.test('Shader.layout', async (pContext) => {
 
         // Evaluation.
         const lThrowFunction = () => {
-            lShader.layout;
+            return lShader.layout;
         };
         expect(lThrowFunction).toThrow();
 
@@ -486,7 +483,7 @@ Deno.test('Shader.setup() -- multiple bind groups', async (pContext) => {
             }));
             pSetup.group(1, new BindGroupLayout(lDevice, 'texture').setup((pGroupSetup) => {
                 pGroupSetup.binding(0, 'tex_sampler', ComputeStage.Fragment).asSampler(SamplerType.Filter);
-                pGroupSetup.binding(1, 'tex', ComputeStage.Fragment).asTexture(TextureViewDimension.TwoDimension, TextureFormat.Rgba8unorm);
+                pGroupSetup.binding(1, 'tex', ComputeStage.Fragment).asTexture('2d', 'rgba8unorm');
             }));
         });
 

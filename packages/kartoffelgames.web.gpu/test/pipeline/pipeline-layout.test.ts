@@ -3,8 +3,8 @@ import { expect } from '@kartoffelgames/core-test';
 import { GpuDevice } from '../../source/device/gpu-device.ts';
 import { PipelineLayout } from '../../source/pipeline/pipeline-layout.ts';
 import { BindGroupLayout } from '../../source/pipeline/bind_group_layout/bind-group-layout.ts';
-import { BindGroup } from '../../source/pipeline/bind_group/bind-group.ts';
-import { PipelineData } from '../../source/pipeline/pipeline_data/pipeline-data.ts';
+import type { BindGroup } from '../../source/pipeline/bind_group/bind-group.ts';
+import type { PipelineData } from '../../source/pipeline/pipeline_data/pipeline-data.ts';
 import { ComputeStage } from '../../source/constant/compute-stage.enum.ts';
 
 /**

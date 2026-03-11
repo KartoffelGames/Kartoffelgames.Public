@@ -1,7 +1,6 @@
 import { expect } from '@kartoffelgames/core-test';
 import { GpuDevice } from '../../source/device/gpu-device.ts';
 import { GpuLimit } from '../../source/constant/gpu-limit.enum.ts';
-import { TextureFormat } from '../../source/constant/texture-format.enum.ts';
 import type { TextureFormatCapability } from '../../source/device/capabilities/gpu-texture-format-capabilities.ts';
 import { Shader } from '../../source/shader/shader.ts';
 import { RenderTargetsLayout } from '../../source/pipeline/render_targets/render-targets-layout.ts';
@@ -95,7 +94,7 @@ Deno.test('GpuDevice.formatValidator', async (pContext) => {
         const lDevice: GpuDevice = await gRequestDevice();
 
         // Process.
-        const lCapability: TextureFormatCapability = lDevice.formatValidator.capabilityOf(TextureFormat.Rgba8unorm);
+        const lCapability: TextureFormatCapability = lDevice.formatValidator.capabilityOf('rgba8unorm');
 
         // Evaluation.
         expect(lCapability).toBeTruthy();

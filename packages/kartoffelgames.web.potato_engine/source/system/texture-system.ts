@@ -1,8 +1,8 @@
-import { GpuTexture, TextureDimension, TextureFormat, TextureUsage } from '@kartoffelgames/web-gpu';
+import { GpuTexture, TextureUsage } from '@kartoffelgames/web-gpu';
 import type { GpuTextureCopyOptions } from '../../../kartoffelgames.web.gpu/source/texture/gpu-texture.ts';
 import { Texture } from '../component_item/texture.ts';
 import type { GameEnvironment } from '../core/environment/game-environment.ts';
-import { GameSystem, type GameSystemConstructor, type GameSystemUpdateStateChanges } from '../core/game-system.ts';
+import { GameSystem, type GameSystemConstructor } from '../core/game-system.ts';
 import { GpuSystem } from './gpu-system.ts';
 
 /**
@@ -140,8 +140,8 @@ export class TextureSystem extends GameSystem {
 
         // Create GPU texture.
         const lGpuTexture: GpuTexture = new GpuTexture(this.mGpuSystem!.gpu, {
-            format: TextureFormat.Rgba8unorm,
-            dimension: TextureDimension.TwoDimension,
+            format: 'rgba8unorm',
+            dimension: '2d',
             multisampled: false
         });
 
@@ -213,11 +213,3 @@ export class TextureSystem extends GameSystem {
         return Promise.all(lMipRenderWaiter);
     }
 }
-
-/**
- * Tracking entry for a GPU texture linked to a component texture via WeakRef.
- */
-type TextureEntry = {
-    weakRef: WeakRef<Texture>;
-    gpuTexture: GpuTexture;
-};

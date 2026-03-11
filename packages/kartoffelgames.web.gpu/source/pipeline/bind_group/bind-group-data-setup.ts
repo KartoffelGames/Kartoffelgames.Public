@@ -2,8 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import { GpuBuffer } from '../../buffer/gpu-buffer.ts';
 import { GpuLimit } from '../../constant/gpu-limit.enum.ts';
 import { StorageBindingType } from '../../constant/storage-binding-type.enum.ts';
-import { TextureDimension } from '../../constant/texture-dimension.enum.ts';
-import { TextureViewDimension } from '../../constant/texture-view-dimension.enum.ts';
+import type { TextureDimension } from '../../constant/texture-dimension.ts';
 import { GpuObjectChildSetup } from '../../gpu_object/gpu-object-child-setup.ts';
 import type { GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
 import type { GpuResourceObject } from '../../gpu_object/gpu-resource-object.ts';
@@ -154,17 +153,17 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
         // Generate texture dimension from view dimensions.
         const lTextureDimension: TextureDimension = (() => {
             switch (lBindLayoutTexture.dimension) {
-                case TextureViewDimension.OneDimension: {
-                    return TextureDimension.OneDimension;
+                case '1d': {
+                    return '1d';
                 }
-                case TextureViewDimension.TwoDimensionArray:
-                case TextureViewDimension.Cube:
-                case TextureViewDimension.CubeArray:
-                case TextureViewDimension.TwoDimension: {
-                    return TextureDimension.TwoDimension;
+                case '2d-array':
+                case 'cube':
+                case 'cube-array':
+                case '2d': {
+                    return '2d';
                 }
-                case TextureViewDimension.ThreeDimension: {
-                    return TextureDimension.ThreeDimension;
+                case '3d': {
+                    return '3d';
                 }
             }
         })();

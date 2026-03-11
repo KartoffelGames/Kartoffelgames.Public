@@ -1,9 +1,8 @@
 import { expect } from '@kartoffelgames/core-test';
 import { GpuDevice } from '../../source/device/gpu-device.ts';
 import { RenderTargetsLayout } from '../../source/pipeline/render_targets/render-targets-layout.ts';
-import { RenderTargets } from '../../source/pipeline/render_targets/render-targets.ts';
-import { TextureFormat } from '../../source/constant/texture-format.enum.ts';
-import { GpuTextureView } from '../../source/texture/gpu-texture-view.ts';
+import type { RenderTargets } from '../../source/pipeline/render_targets/render-targets.ts';
+import type { GpuTextureView } from '../../source/texture/gpu-texture-view.ts';
 
 /**
  * Helper to request a GPU device for tests.
@@ -19,7 +18,7 @@ Deno.test('RenderTargets.layout', async (pContext) => {
         const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
         lLayout.setup((pSetup) => {
-            pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
+            pSetup.addColor('color0', 0, 'rgba8unorm');
         });
 
         // Process.
@@ -39,7 +38,7 @@ Deno.test('RenderTargets.resize()', async (pContext) => {
         const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
         lLayout.setup((pSetup) => {
-            pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
+            pSetup.addColor('color0', 0, 'rgba8unorm');
         });
 
         const lRenderTargets: RenderTargets = lLayout.create();
@@ -60,7 +59,7 @@ Deno.test('RenderTargets.resize()', async (pContext) => {
         const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
         lLayout.setup((pSetup) => {
-            pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
+            pSetup.addColor('color0', 0, 'rgba8unorm');
         });
 
         // Process.
@@ -81,7 +80,7 @@ Deno.test('RenderTargets.colorTarget()', async (pContext) => {
         const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
         lLayout.setup((pSetup) => {
-            pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
+            pSetup.addColor('color0', 0, 'rgba8unorm');
         });
 
         const lRenderTargets: RenderTargets = lLayout.create();
@@ -101,7 +100,7 @@ Deno.test('RenderTargets.colorTarget()', async (pContext) => {
         const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
         lLayout.setup((pSetup) => {
-            pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
+            pSetup.addColor('color0', 0, 'rgba8unorm');
         });
 
         const lRenderTargets: RenderTargets = lLayout.create();
@@ -123,8 +122,8 @@ Deno.test('RenderTargets.depthStencilTarget()', async (pContext) => {
         const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
         lLayout.setup((pSetup) => {
-            pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
-            pSetup.addDepthStencil(TextureFormat.Depth24plus, true, 1.0);
+            pSetup.addColor('color0', 0, 'rgba8unorm');
+            pSetup.addDepthStencil('depth24plus', true, 1.0);
         });
 
         const lRenderTargets: RenderTargets = lLayout.create();
@@ -144,7 +143,7 @@ Deno.test('RenderTargets.depthStencilTarget()', async (pContext) => {
         const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false);
         lLayout.setup((pSetup) => {
-            pSetup.addColor('color0', 0, TextureFormat.Rgba8unorm);
+            pSetup.addColor('color0', 0, 'rgba8unorm');
         });
 
         const lRenderTargets: RenderTargets = lLayout.create();

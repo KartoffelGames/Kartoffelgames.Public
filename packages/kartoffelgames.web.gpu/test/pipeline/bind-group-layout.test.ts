@@ -4,8 +4,6 @@ import { BindGroupLayout, type BindGroupBindLayout } from '../../source/pipeline
 import { StorageBindingType } from '../../source/constant/storage-binding-type.enum.ts';
 import { ComputeStage } from '../../source/constant/compute-stage.enum.ts';
 import { SamplerType } from '../../source/constant/sampler-type.enum.ts';
-import { TextureViewDimension } from '../../source/constant/texture-view-dimension.enum.ts';
-import { TextureFormat } from '../../source/constant/texture-format.enum.ts';
 
 /**
  * Helper to request a GPU device for tests.
@@ -144,7 +142,7 @@ Deno.test('BindGroupLayout.setup() -- texture binding', async (pContext) => {
 
         // Process.
         lLayout.setup((pSetup) => {
-            pSetup.binding(0, 'myTexture', ComputeStage.Fragment).asTexture(TextureViewDimension.TwoDimension, TextureFormat.Rgba8unorm);
+            pSetup.binding(0, 'myTexture', ComputeStage.Fragment).asTexture('2d', 'rgba8unorm');
         });
 
         // Evaluation.
@@ -152,8 +150,8 @@ Deno.test('BindGroupLayout.setup() -- texture binding', async (pContext) => {
         expect(lBind.name).toBe('myTexture');
         expect(lBind.resource.type).toBe('texture');
         if (lBind.resource.type === 'texture') {
-            expect(lBind.resource.dimension).toBe(TextureViewDimension.TwoDimension);
-            expect(lBind.resource.format).toBe(TextureFormat.Rgba8unorm);
+            expect(lBind.resource.dimension).toBe('2d');
+            expect(lBind.resource.format).toBe('rgba8unorm');
             expect(lBind.resource.multisampled).toBe(false);
         }
 
@@ -168,7 +166,7 @@ Deno.test('BindGroupLayout.setup() -- texture binding', async (pContext) => {
 
         // Process.
         lLayout.setup((pSetup) => {
-            pSetup.binding(0, 'tex1', ComputeStage.Fragment).asTexture(TextureViewDimension.TwoDimension, TextureFormat.Rgba8unorm);
+            pSetup.binding(0, 'tex1', ComputeStage.Fragment).asTexture('2d', 'rgba8unorm');
         });
 
         // Evaluation.
@@ -185,7 +183,7 @@ Deno.test('BindGroupLayout.setup() -- texture binding', async (pContext) => {
 
         // Process.
         lLayout.setup((pSetup) => {
-            pSetup.binding(0, 'storageTex', ComputeStage.Fragment, StorageBindingType.Write).asTexture(TextureViewDimension.TwoDimension, TextureFormat.Rgba8unorm);
+            pSetup.binding(0, 'storageTex', ComputeStage.Fragment, StorageBindingType.Write).asTexture('2d', 'rgba8unorm');
         });
 
         // Evaluation.
@@ -245,14 +243,14 @@ Deno.test('BindGroupLayout -- type discriminated union', async (pContext) => {
 
         // Process.
         lLayout.setup((pSetup) => {
-            pSetup.binding(0, 'tex', ComputeStage.Fragment).asTexture(TextureViewDimension.Cube, TextureFormat.Rgba32float);
+            pSetup.binding(0, 'tex', ComputeStage.Fragment).asTexture('cube', 'rgba32float');
         });
 
         // Evaluation.
         const lBind: Readonly<BindGroupBindLayout> = lLayout.getBind('tex');
         if (lBind.resource.type === 'texture') {
-            expect(lBind.resource.dimension).toBe(TextureViewDimension.Cube);
-            expect(lBind.resource.format).toBe(TextureFormat.Rgba32float);
+            expect(lBind.resource.dimension).toBe('cube');
+            expect(lBind.resource.format).toBe('rgba32float');
             expect(lBind.resource.multisampled).toBe(false);
         }
 
@@ -271,7 +269,7 @@ Deno.test('BindGroupLayout.orderedBindingNames', async (pContext) => {
         lLayout.setup((pSetup) => {
             pSetup.binding(0, 'first', ComputeStage.Vertex).asBuffer(4); // f32
             pSetup.binding(1, 'second', ComputeStage.Vertex).asSampler(SamplerType.Filter);
-            pSetup.binding(2, 'third', ComputeStage.Fragment).asTexture(TextureViewDimension.TwoDimension, TextureFormat.Rgba8unorm);
+            pSetup.binding(2, 'third', ComputeStage.Fragment).asTexture('2d', 'rgba8unorm');
         });
 
         // Evaluation.

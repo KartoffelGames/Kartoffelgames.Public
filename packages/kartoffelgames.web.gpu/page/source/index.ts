@@ -9,8 +9,6 @@ import { SamplerType } from '../../source/constant/sampler-type.enum.ts';
 import { StorageBindingType } from '../../source/constant/storage-binding-type.enum.ts';
 import { TextureBlendFactor } from '../../source/constant/texture-blend-factor.enum.ts';
 import { TextureBlendOperation } from '../../source/constant/texture-blend-operation.enum.ts';
-import { TextureFormat } from '../../source/constant/texture-format.enum.ts';
-import { TextureViewDimension } from '../../source/constant/texture-view-dimension.enum.ts';
 import { VertexParameterStepMode } from '../../source/constant/vertex-parameter-step-mode.enum.ts';
 import { GpuDevice } from '../../source/device/gpu-device.ts';
 import type { BindGroup } from '../../source/pipeline/bind_group/bind-group.ts';
@@ -87,7 +85,7 @@ const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTargetsL
                 .asSampler(SamplerType.Filter);
 
             pBindGroupSetup.binding(1, 'cubeTexture', ComputeStage.Fragment | ComputeStage.Vertex)
-                .asTexture(TextureViewDimension.TwoDimensionArray, TextureFormat.Rgba8unorm);
+                .asTexture('2d-array', 'rgba8unorm');
         }));
     });
 
@@ -418,7 +416,7 @@ const gGenerateSkyboxStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTarget
                 .asSampler(SamplerType.Filter);
 
             pBindGroupSetup.binding(1, 'cubeMap', ComputeStage.Fragment)
-                .asTexture(TextureViewDimension.Cube, TextureFormat.Rgba8unorm);
+                .asTexture('cube', 'rgba8unorm');
         }));
 
         // World bind group.
@@ -536,7 +534,7 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderT
                 .asSampler(SamplerType.Filter);
 
             pBindGroupSetup.binding(1, 'videoTexture', ComputeStage.Fragment)
-                .asTexture(TextureViewDimension.TwoDimension, TextureFormat.Rgba8unorm);
+                .asTexture('2d', 'rgba8unorm');
         }));
     });
 
@@ -652,7 +650,7 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTarg
                 .asSampler(SamplerType.Filter);
 
             pBindGroupSetup.binding(1, 'texture', ComputeStage.Fragment)
-                .asTexture(TextureViewDimension.TwoDimension, TextureFormat.Rgba8unorm);
+                .asTexture('2d', 'rgba8unorm');
         }));
     });
 
@@ -859,10 +857,10 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
     // Create and configure render targets layout.
     const lRenderTargetsLayout: RenderTargetsLayout = new RenderTargetsLayout(lGpu, true).setup((pSetup) => {
         // Add "color" target format.
-        pSetup.addColor('color', 0, TextureFormat.Bgra8unorm, true, { r: 0, g: 1, b: 0, a: 0 });
+        pSetup.addColor('color', 0, 'bgra8unorm', true, { r: 0, g: 1, b: 0, a: 0 });
 
         // Add depth format.
-        pSetup.addDepthStencil(TextureFormat.Depth24plus, true, 1);
+        pSetup.addDepthStencil('depth24plus', true, 1);
     });
 
     // Create render targets from layout.

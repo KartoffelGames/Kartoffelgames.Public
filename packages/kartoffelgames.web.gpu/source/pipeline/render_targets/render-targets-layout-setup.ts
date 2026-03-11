@@ -1,6 +1,6 @@
-import type { TextureFormat } from '../../constant/texture-format.enum.ts';
 import { GpuObjectSetup } from '../../gpu_object/gpu-object-setup.ts';
 import type { GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
+import type { TextureFormat } from '../../constant/texture-format.type.ts';
 
 /**
  * Render target layout setup.

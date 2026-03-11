@@ -4,12 +4,10 @@ import { BindGroupLayout } from '../../source/pipeline/bind_group_layout/bind-gr
 import { BindGroup } from '../../source/pipeline/bind_group/bind-group.ts';
 import { ComputeStage } from '../../source/constant/compute-stage.enum.ts';
 import { SamplerType } from '../../source/constant/sampler-type.enum.ts';
-import { TextureViewDimension } from '../../source/constant/texture-view-dimension.enum.ts';
-import { TextureFormat } from '../../source/constant/texture-format.enum.ts';
 import { StorageBindingType } from '../../source/constant/storage-binding-type.enum.ts';
-import { GpuBuffer } from '../../source/buffer/gpu-buffer.ts';
-import { TextureSampler } from '../../source/texture/texture-sampler.ts';
-import { GpuTextureView } from '../../source/texture/gpu-texture-view.ts';
+import type { GpuBuffer } from '../../source/buffer/gpu-buffer.ts';
+import type { TextureSampler } from '../../source/texture/texture-sampler.ts';
+import type { GpuTextureView } from '../../source/texture/gpu-texture-view.ts';
 
 /**
  * Helper to request a GPU device for tests.
@@ -109,7 +107,7 @@ Deno.test('BindGroup.data() -- texture', async (pContext) => {
         const lDevice: GpuDevice = await gRequestDevice();
         const lLayout: BindGroupLayout = new BindGroupLayout(lDevice, 'TextureGroup');
         lLayout.setup((pSetup) => {
-            pSetup.binding(0, 'texture', ComputeStage.Fragment).asTexture(TextureViewDimension.TwoDimension, TextureFormat.Rgba8unorm);
+            pSetup.binding(0, 'texture', ComputeStage.Fragment).asTexture('2d', 'rgba8unorm');
         });
         const lBindGroup: BindGroup = new BindGroup(lDevice, lLayout);
 
@@ -149,7 +147,7 @@ Deno.test('BindGroup.native', async (pContext) => {
 
         // Evaluation. Native access without setting data should throw.
         const lThrowFunction = () => {
-            lBindGroup.native;
+            return lBindGroup.native;
         };
         expect(lThrowFunction).toThrow();
 
@@ -166,7 +164,7 @@ Deno.test('BindGroup -- multiple bindings', async (pContext) => {
         lLayout.setup((pSetup) => {
             pSetup.binding(0, 'uniformBuffer', ComputeStage.Vertex).asBuffer(64);
             pSetup.binding(1, 'sampler', ComputeStage.Fragment).asSampler(SamplerType.Filter);
-            pSetup.binding(2, 'texture', ComputeStage.Fragment).asTexture(TextureViewDimension.TwoDimension, TextureFormat.Rgba8unorm);
+            pSetup.binding(2, 'texture', ComputeStage.Fragment).asTexture('2d', 'rgba8unorm');
         });
 
         const lBindGroup: BindGroup = new BindGroup(lDevice, lLayout);

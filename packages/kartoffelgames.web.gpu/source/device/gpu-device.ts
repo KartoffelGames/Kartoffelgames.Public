@@ -1,14 +1,10 @@
-import { EnumUtil, Exception, IDeconstructable, List } from '@kartoffelgames/core';
+import { EnumUtil, Exception, type IDeconstructable, List } from '@kartoffelgames/core';
+import type { GpuObject } from '@kartoffelgames/web-gpu';
 import type { GpuFeature } from '../constant/gpu-feature.enum.ts';
 import { GpuLimit } from '../constant/gpu-limit.enum.ts';
 import { GpuExecution, type GpuExecutionFunction } from '../execution/gpu-execution.ts';
-import { RenderTargetsLayout } from '../pipeline/render_targets/render-targets-layout.ts';
-import { Shader } from '../shader/shader.ts';
-import { CanvasTexture } from '../texture/canvas-texture.ts';
 import { GpuDeviceCapabilities } from './capabilities/gpu-device-capabilities.ts';
 import { GpuTextureFormatCapabilities } from './capabilities/gpu-texture-format-capabilities.ts';
-import { IGpuObjectNative } from "../gpu_object/interface/i-gpu-object-native.ts";
-import { GpuObject } from "@kartoffelgames/web-gpu";
 
 export class GpuDevice implements IDeconstructable {
     /**
@@ -111,11 +107,10 @@ export class GpuDevice implements IDeconstructable {
     private readonly mCapabilities: GpuDeviceCapabilities;
     private readonly mFormatValidator: GpuTextureFormatCapabilities;
     private readonly mFrameChangeListener: List<GpuDeviceFrameChangeListener>;
-    private readonly mGpuDevice: GPUDevice;
-
-    private readonly mFreeableGpuObjects: Array<WeakRef<GpuObject>>;
     private mFreeableGpuObjectIndex: number;
     private readonly mFreeableGpuObjectResources: Map<WeakRef<GpuObject>, Set<GpuDeviceDestroyableObject>>;
+    private readonly mFreeableGpuObjects: Array<WeakRef<GpuObject>>;
+    private readonly mGpuDevice: GPUDevice;
 
     /**
      * Gpu capabilities.
@@ -207,34 +202,6 @@ export class GpuDevice implements IDeconstructable {
     }
 
     /**
-     * Remove listener called on frame change.
-     * 
-     * @param pListener - Listener.
-     */
-    public removeTickListener(pListener: GpuDeviceFrameChangeListener): void {
-        this.mFrameChangeListener.remove(pListener);
-    }
-
-    /**
-     * Register freeable resource for the specified gpu object reference.
-     * When the gpu object reference is garbage collected, all registered resources will be automatically freed.
-     * 
-     * @param pReference - Gpu object reference.
-     * @param pResource - Resource to be freed when the reference is garbage collected.
-     */
-    public registerFreeableResource(pReference: GpuObject<any, any, any>, pResourceListReference: Set<GpuDeviceDestroyableObject>): void {
-        // Create weak reference for the resource reference.
-        const lResourceReference: WeakRef<GpuObject> = new WeakRef<GpuObject>(pReference);
-
-        // Add weak reference to the list of freeable resources.
-        this.mFreeableGpuObjects.push(lResourceReference);
-
-        // Link resource reference to the resource list reference for later resource freeing when the gpu object reference is garbage collected.
-        // This list should persist after the gpu object reference is garbage collected to be able to free the resources of the reference.
-        this.mFreeableGpuObjectResources.set(lResourceReference, pResourceListReference);
-    }
-
-    /**
      * Start new frame.
      */
     public processTick(): void {
@@ -271,6 +238,34 @@ export class GpuDevice implements IDeconstructable {
                 this.mFreeableGpuObjectIndex = 0;
             }
         }
+    }
+
+    /**
+     * Register freeable resource for the specified gpu object reference.
+     * When the gpu object reference is garbage collected, all registered resources will be automatically freed.
+     * 
+     * @param pReference - Gpu object reference.
+     * @param pResource - Resource to be freed when the reference is garbage collected.
+     */
+    public registerFreeableResource(pReference: GpuObject<any, any, any>, pResourceListReference: Set<GpuDeviceDestroyableObject>): void {
+        // Create weak reference for the resource reference.
+        const lResourceReference: WeakRef<GpuObject> = new WeakRef<GpuObject>(pReference);
+
+        // Add weak reference to the list of freeable resources.
+        this.mFreeableGpuObjects.push(lResourceReference);
+
+        // Link resource reference to the resource list reference for later resource freeing when the gpu object reference is garbage collected.
+        // This list should persist after the gpu object reference is garbage collected to be able to free the resources of the reference.
+        this.mFreeableGpuObjectResources.set(lResourceReference, pResourceListReference);
+    }
+
+    /**
+     * Remove listener called on frame change.
+     * 
+     * @param pListener - Listener.
+     */
+    public removeTickListener(pListener: GpuDeviceFrameChangeListener): void {
+        this.mFrameChangeListener.remove(pListener);
     }
 }
 

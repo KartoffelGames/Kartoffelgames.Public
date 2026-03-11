@@ -1,9 +1,9 @@
 import { Exception } from '@kartoffelgames/core';
 import { GpuLimit } from '../constant/gpu-limit.enum.ts';
-import { TextureDimension } from '../constant/texture-dimension.enum.ts';
-import type { TextureFormat } from '../constant/texture-format.enum.ts';
+import type { TextureDimension } from '../constant/texture-dimension.ts';
+import type { TextureFormat } from '../constant/texture-format.type.ts';
 import { TextureUsage } from '../constant/texture-usage.enum.ts';
-import { TextureViewDimension } from '../constant/texture-view-dimension.enum.ts';
+import type { TextureViewDimension } from '../constant/texture-view-dimension.ts';
 import type { GpuDevice } from '../device/gpu-device.ts';
 import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu_object/gpu-resource-object.ts';
 import type { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native.ts';
@@ -278,19 +278,7 @@ export class GpuTexture extends GpuResourceObject<TextureUsage, GPUTexture> impl
      */
     public useAs(pDimension?: TextureViewDimension /* Others Optional, layer, mip ... */): GpuTextureView {
         // Use dimension form parameter or convert texture dimension to view dimension.
-        const lViewDimension: TextureViewDimension = pDimension ?? (() => {
-            switch (this.mDimension) {
-                case TextureDimension.OneDimension: {
-                    return TextureViewDimension.OneDimension;
-                }
-                case TextureDimension.TwoDimension: {
-                    return TextureViewDimension.TwoDimension;
-                }
-                case TextureDimension.ThreeDimension: {
-                    return TextureViewDimension.ThreeDimension;
-                }
-            }
-        })();
+        const lViewDimension: TextureViewDimension = pDimension ?? this.mDimension;
 
         return new GpuTextureView(this.device, this, lViewDimension, this.mFormat, this.mMultisampled);
     }
@@ -314,7 +302,7 @@ export class GpuTexture extends GpuResourceObject<TextureUsage, GPUTexture> impl
         // Generate gpu dimension from memory layout dimension and enforce limits.
         const lTextureDimensions: { textureDimension: GPUTextureDimension, clampedDimensions: [number, number, number]; } = (() => {
             switch (this.mDimension) {
-                case TextureDimension.OneDimension: {
+                case '1d': {
                     // Enforce dimension limits.
                     const lDimensionLimit: number = this.device.capabilities.getLimit(GpuLimit.MaxTextureDimension1D);
                     if (this.mWidth > lDimensionLimit) {
@@ -326,7 +314,7 @@ export class GpuTexture extends GpuResourceObject<TextureUsage, GPUTexture> impl
                         clampedDimensions: [this.mWidth, 1, 1]
                     };
                 }
-                case TextureDimension.TwoDimension: {
+                case '2d': {
                     // Enforce dimension limits.
                     const lDimensionLimit: number = this.device.capabilities.getLimit(GpuLimit.MaxTextureDimension1D);
                     if (this.mWidth > lDimensionLimit || this.mHeight > lDimensionLimit) {
@@ -344,7 +332,7 @@ export class GpuTexture extends GpuResourceObject<TextureUsage, GPUTexture> impl
                         clampedDimensions: [this.mWidth, this.mHeight, this.mDepth]
                     };
                 }
-                case TextureDimension.ThreeDimension: {
+                case '3d': {
                     // Enforce dimension limits.
                     const lDimensionLimit: number = this.device.capabilities.getLimit(GpuLimit.MaxTextureDimension3D);
                     if (this.mWidth > lDimensionLimit || this.mHeight > lDimensionLimit || this.mDepth > lDimensionLimit) {

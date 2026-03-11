@@ -1,11 +1,10 @@
 import type { SamplerType } from '../../constant/sampler-type.enum.ts';
-import type { TextureFormat } from '../../constant/texture-format.enum.ts';
-import type { TextureViewDimension } from '../../constant/texture-view-dimension.enum.ts';
-import type { GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
+import type { TextureFormat } from '../../constant/texture-format.type.ts';
+import type { TextureViewDimension } from '../../constant/texture-view-dimension.ts';
 import { GpuObjectChildSetup } from '../../gpu_object/gpu-object-child-setup.ts';
-import type { BindLayoutBinding } from './bind-group-layout.ts';
+import type { GpuObjectSetupReferences } from '../../gpu_object/gpu-object.ts';
 import type { BindGroupLayoutSetupData } from './bind-group-layout-setup.ts';
-
+import type { BindLayoutBinding } from './bind-group-layout.ts';
 /**
  * Child setup object to set types to single bindings.
  */

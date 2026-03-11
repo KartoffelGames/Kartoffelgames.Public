@@ -19,23 +19,8 @@ export class Material extends GameComponentItem {
         return lInstance;
     })();
 
-    private readonly mBindings: Map<string, MaterialBindingValue>;
+    private mBindings: Map<string, MaterialBindingValue>;
     private mShader: Shader;
-
-    /**
-     * Iterator over binding names set on this material.
-     * Only used for serialization, as the shader's User group defines the available bindings and their types.
-     */
-    @FileSystem.fileProperty()
-    protected get userValues(): Map<string, MaterialBindingValue> {
-        return this.mBindings;
-    } protected set userValues(pValue: Map<string, MaterialBindingValue>) {
-        this.systemgate();
-
-        this.mBindings.clear();
-        pValue.forEach((v, k) => this.mBindings.set(k, v));
-        this.update();
-    }
 
     /**
      * PGSL shader used for rendering. Empty shader code uses the default PBR shader.
@@ -51,6 +36,23 @@ export class Material extends GameComponentItem {
         this.mShader.linkParent(this);
         this.update();
     }
+
+    /**
+     * Iterator over binding names set on this material.
+     * Only used for serialization, as the shader's User group defines the available bindings and their types.
+     */
+    @FileSystem.fileProperty()
+    protected get userValues(): Map<string, MaterialBindingValue> {
+        return this.mBindings;
+    } protected set userValues(pValue: Map<string, MaterialBindingValue>) {
+        this.systemgate();
+
+        // Clear and reapply specified user values.
+        this.mBindings = pValue;
+
+        this.update();
+    }
+
 
     /**
      * Constructor.

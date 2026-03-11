@@ -29,14 +29,14 @@ export class MeshRenderComponent extends GameComponent {
         return this.mMaterials;
     } set materials(pValue: Array<Material>) {
         // Unlink from previous materials.
-        for (const material of this.mMaterials) {
-            material.unlinkParent(this);
+        for (const lMaterial of this.mMaterials) {
+            lMaterial.unlinkParent(this);
         }
 
         // Save and link to new material.
         this.mMaterials = pValue;
-        for (const material of this.mMaterials) {
-            material.linkParent(this);
+        for (const lMaterial of this.mMaterials) {
+            lMaterial.linkParent(this);
         }
 
         // Send update event to notify render pipelines that the material has changed.

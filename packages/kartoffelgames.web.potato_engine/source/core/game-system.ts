@@ -1,7 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import type { GameComponentConstructor } from './component/game-component.ts';
 import type { GameEnvironment, GameEnvironmentStateChange } from './environment/game-environment.ts';
-import type { IGameUpdateable } from './i-game-updateable.interface.ts';
 
 /**
  * Base class for all systems in the environment.

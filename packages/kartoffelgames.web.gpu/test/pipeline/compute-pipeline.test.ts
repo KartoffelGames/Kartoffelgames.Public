@@ -2,7 +2,7 @@ import { expect } from '@kartoffelgames/core-test';
 import { GpuDevice } from '../../source/device/gpu-device.ts';
 import { Shader } from '../../source/shader/shader.ts';
 import { ComputePipeline } from '../../source/pipeline/compute-pipeline.ts';
-import { ShaderComputeModule } from '../../source/shader/shader-compute-module.ts';
+import type { ShaderComputeModule } from '../../source/shader/shader-compute-module.ts';
 import { ComputeStage } from '../../source/constant/compute-stage.enum.ts';
 
 /**

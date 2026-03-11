@@ -1,7 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { TextureDimension } from '../../constant/texture-dimension.enum.ts';
 import { TextureUsage } from '../../constant/texture-usage.enum.ts';
-import { TextureViewDimension } from '../../constant/texture-view-dimension.enum.ts';
 import type { GpuDevice } from '../../device/gpu-device.ts';
 import { GpuObject } from '../../gpu_object/gpu-object.ts';
 import { GpuResourceObjectInvalidationType } from '../../gpu_object/gpu-resource-object.ts';
@@ -320,11 +318,11 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
 
             const lTexture: GpuTexture = new GpuTexture(this.device, {
                 format: lLayoutTarget.format,
-                dimension: TextureDimension.TwoDimension,
+                dimension: '2d',
                 multisampled: this.mLayout.multisampled
             });
 
-            const lView: GpuTextureView = lTexture.useAs(TextureViewDimension.TwoDimension);
+            const lView: GpuTextureView = lTexture.useAs('2d');
             lView.texture.extendUsage(TextureUsage.RenderAttachment);
 
             // Listen for texture invalidation.
@@ -346,11 +344,11 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
 
             const lTexture: GpuTexture = new GpuTexture(this.device, {
                 format: lConfig.format,
-                dimension: TextureDimension.TwoDimension,
+                dimension: '2d',
                 multisampled: this.mLayout.multisampled
             });
 
-            const lView: GpuTextureView = lTexture.useAs(TextureViewDimension.TwoDimension);
+            const lView: GpuTextureView = lTexture.useAs('2d');
             lView.texture.extendUsage(TextureUsage.RenderAttachment);
 
             // Listen for texture invalidation.

@@ -1,5 +1,5 @@
-import { TextureDimension } from '../constant/texture-dimension.enum.ts';
-import type { TextureFormat } from '../constant/texture-format.enum.ts';
+import type { TextureDimension } from '../constant/texture-dimension.ts';
+import type { TextureFormat } from '../constant/texture-format.type.ts';
 import { TextureUsage } from '../constant/texture-usage.enum.ts';
 import type { GpuDevice } from '../device/gpu-device.ts';
 import type { GpuObjectInvalidationReasons } from '../gpu_object/gpu-object-invalidation-reasons.ts';
@@ -33,7 +33,7 @@ export class CanvasTexture extends GpuObject<GPUTexture, CanvasTextureInvalidati
      * Texture dimension.
      */
     public get dimension(): TextureDimension {
-        return TextureDimension.TwoDimension;
+        return '2d';
     }
 
     /**

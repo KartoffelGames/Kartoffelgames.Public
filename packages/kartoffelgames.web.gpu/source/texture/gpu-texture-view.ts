@@ -1,6 +1,6 @@
-import type { TextureFormat } from '../constant/texture-format.enum.ts';
+import type { TextureFormat } from '../constant/texture-format.type.ts';
 import type { TextureUsage } from '../constant/texture-usage.enum.ts';
-import { TextureViewDimension } from '../constant/texture-view-dimension.enum.ts';
+import type { TextureViewDimension } from '../constant/texture-view-dimension.ts';
 import type { GpuDevice } from '../device/gpu-device.ts';
 import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu_object/gpu-resource-object.ts';
 import type { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native.ts';
@@ -145,18 +145,18 @@ export class GpuTextureView extends GpuResourceObject<TextureUsage, GPUTextureVi
         // Validate dimension based on 
         const lDimensionViewDepthCount: number = (() => {
             switch (this.mDimension) {
-                case TextureViewDimension.OneDimension:
-                case TextureViewDimension.TwoDimension: {
+                case '1d':
+                case '2d': {
                     return 1;
                 }
-                case TextureViewDimension.Cube: {
+                case 'cube': {
                     return 6;
                 }
-                case TextureViewDimension.CubeArray: {
+                case 'cube-array': {
                     return Math.floor(((lArrayLayerEnd - this.mArrayLayerStart) + 1) / 6) * 6;
                 }
-                case TextureViewDimension.TwoDimensionArray:
-                case TextureViewDimension.ThreeDimension: {
+                case '2d-array':
+                case '3d': {
                     return (lArrayLayerEnd - this.mArrayLayerStart) + 1;
                 }
                 default: {

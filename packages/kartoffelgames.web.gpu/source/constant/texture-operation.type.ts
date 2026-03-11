@@ -1,0 +1,1 @@
+export type TextureOperation = 'keep' | 'clear';

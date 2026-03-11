@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslParser, type PgslParserResult, type PgslParserResultBinding, type PgslParserResultFragmentEntryPoint, PgslParserResultMatrixType, PgslParserResultNumericType, PgslParserResultSamplerType, PgslParserResultTextureType, type PgslParserResultType, PgslParserResultVectorType, type PgslParserResultVertexEntryPoint, WgslTranspiler } from '@kartoffelgames/core-pgsl';
-import { type BindGroup, BindGroupLayout, type BindGroupLayoutMemoryLayoutSetup, BufferItemFormat, BufferItemMultiplier, ComputeStage, Shader as GpuShader, type GpuTexture, type GpuTextureView, PrimitiveCullMode, PrimitiveFrontFace, RenderTargetsLayout, SamplerType, StorageBindingType, TextureFormat, type TextureViewDimension, type VertexFragmentPipeline, VertexParameterLayout, VertexParameterStepMode } from '@kartoffelgames/web-gpu';
+import { type BindGroup, BindGroupLayout, type BindGroupLayoutMemoryLayoutSetup, BufferItemFormat, BufferItemMultiplier, ComputeStage, Shader as GpuShader, type GpuTexture, type GpuTextureView, PrimitiveCullMode, PrimitiveFrontFace, RenderTargetsLayout, SamplerType, StorageBindingType, type VertexFragmentPipeline, VertexParameterLayout, VertexParameterStepMode } from '@kartoffelgames/web-gpu';
 import { Color } from '../component_item/color.ts';
 import { Material, type MaterialBindingValue } from '../component_item/material.ts';
 import { Texture } from '../component_item/texture.ts';
@@ -13,7 +13,6 @@ import { Shader } from '../component_item/shader.ts';
 // PGSL shader sources.
 import CORE_PARAMETER_SHADER from '../shader/core/core-parameter.pgsl';
 import CORE_TEMPLATE_SHADER from '../shader/core/core-template.pgsl';
-
 
 /**
  * Material system that manages PGSL shader compilation, per-render-mode bind group layouts,
@@ -32,7 +31,10 @@ import CORE_TEMPLATE_SHADER from '../shader/core/core-template.pgsl';
  * to create their own BindGroups (filled with data) and RenderTargets (with canvas assignment).
  */
 export class MaterialSystem extends GameSystem {
-    private readonly mCompiledMaterials: WeakMap<Material, MaterialSystemMaterial>;
+    private static readonly WORLD_GROUP_NAME = 'World';
+    private static readonly OBJECT_GROUP_NAME = 'Object';
+
+    private readonly mCompiledMaterials: WeakMap<Material, MaterialSystemCompiledMaterial>;
     private mGpuSystem: GpuSystem | null;
     private readonly mParser: PgslParser;
     private readonly mRenderModes: Map<string, MaterialSystemRenderMode>;
@@ -54,7 +56,7 @@ export class MaterialSystem extends GameSystem {
         super('Material', pEnvironment);
 
         // Compiled material tracking.
-        this.mCompiledMaterials = new WeakMap<Material, MaterialSystemMaterial>();
+        this.mCompiledMaterials = new WeakMap<Material, MaterialSystemCompiledMaterial>();
 
         // Create parser and register core imports.
         this.mParser = new PgslParser();
@@ -67,163 +69,6 @@ export class MaterialSystem extends GameSystem {
         // Null dependencies and deferred initialization.
         this.mGpuSystem = null;
         this.mTextureSystem = null;
-    }
-
-    /**
-     * Get the BindGroupLayout for a specific group in a render mode.
-     * Used by consumers to create their own BindGroups.
-     *
-     * @param pMode - The render mode.
-     * @param pGroupName - The group name (e.g. "World", "Object").
-     *
-     * @returns The pre-created BindGroupLayout for the group.
-     */
-    public getGroupLayout(pMode: ShaderRenderMode, pGroupName: string): BindGroupLayout {
-        this.lockGate();
-
-        const lConfig: MaterialSystemRenderMode | undefined = this.mRenderModes.get(pMode);
-        if (!lConfig) {
-            throw new Exception(`Render mode "${pMode}" is not registered.`, this);
-        }
-
-        const lGroup: MaterialSystemGroupLayout | undefined = lConfig.groupLayouts.get(pGroupName);
-        if (!lGroup) {
-            throw new Exception(`Group "${pGroupName}" not found in render mode "${pMode}".`, this);
-        }
-
-        return lGroup.layout;
-    }
-
-    /**
-     * Get the bind group index for a specific group in a render mode.
-     *
-     * @param pMode - The render mode.
-     * @param pGroupName - The group name (e.g. "World", "Object").
-     *
-     * @returns The bind group index.
-     */
-    public getGroupIndex(pMode: ShaderRenderMode, pGroupName: string): number {
-        this.lockGate();
-
-        const lConfig: MaterialSystemRenderMode | undefined = this.mRenderModes.get(pMode);
-        if (!lConfig) {
-            throw new Exception(`Render mode "${pMode}" is not registered.`, this);
-        }
-
-        const lGroup: MaterialSystemGroupLayout | undefined = lConfig.groupLayouts.get(pGroupName);
-        if (!lGroup) {
-            throw new Exception(`Group "${pGroupName}" not found in render mode "${pMode}".`, this);
-        }
-
-        return lGroup.index;
-    }
-
-    /**
-     * Get the RenderTargetsLayout for a render mode.
-     * Used by consumers to create their own RenderTargets.
-     *
-     * @param pMode - The render mode.
-     *
-     * @returns The RenderTargetsLayout for the mode.
-     */
-    public getRenderTargetsLayout(pMode: ShaderRenderMode): RenderTargetsLayout {
-        this.lockGate();
-
-        const lConfig: MaterialSystemRenderMode | undefined = this.mRenderModes.get(pMode);
-        if (!lConfig) {
-            throw new Exception(`Render mode "${pMode}" is not registered.`, this);
-        }
-
-        return lConfig.renderTargetsLayout;
-    }
-
-    /**
-     * Load a material for a given render technique.
-     *
-     * Compiles the material's PGSL shader code with the mode-specific imports and entry points,
-     * creates a complete pipeline using pre-created global BindGroupLayouts, and returns
-     * the MaterialSystemMaterial with pipeline and User bind group.
-     *
-     * @param pMaterial - The material component item.
-     * @param pTechnique - The render technique to compile the shader for.
-     *
-     * @returns The loaded material data with pipeline and user binding.
-     */
-    public async loadMaterial(pMaterial: Material, pTechnique: ShaderRenderMode): Promise<MaterialSystemMaterial> {
-        this.lockGate();
-
-        // Get mode configuration.
-        const lModeConfig: MaterialSystemRenderMode | undefined = this.mRenderModes.get(pTechnique);
-        if (!lModeConfig) {
-            throw new Exception(`Render mode "${pTechnique}" is not registered.`, this);
-        }
-
-        // Check for existing compiled material with matching technique.
-        const lExisting: MaterialSystemMaterial | undefined = this.mCompiledMaterials.get(pMaterial);
-        if (lExisting && lExisting.pipelines.has(pTechnique)) {
-            return lExisting;
-        }
-
-        // Validate shader code.
-        const lShaderCode: string = pMaterial.shader.shaderCode;
-        if (!lShaderCode) {
-            throw new Exception('Material shader code is empty.', this);
-        }
-
-        // Compile shader code with mode-specific imports.
-        const lPgsl: string = `
-            #IMPORT "${lModeConfig.functionalImport}";
-            ${lShaderCode}
-            #IMPORT "${lModeConfig.entryPointImport}";
-        `;
-
-        const lParserResult: PgslParserResult = this.mParser.transpile(lPgsl, new WgslTranspiler());
-        if (lParserResult.incidents.length > 0) {
-            throw new Exception(`Shader compilation produced ${lParserResult.incidents.length} incident(s)`, this);
-        }
-
-        // Create GpuShader using pre-created layouts for global groups.
-        const lGpuShader: GpuShader = this.createGpuShader(lParserResult, lModeConfig);
-
-        // Create render module and pipeline.
-        const lRenderModule = lGpuShader.createRenderModule(lModeConfig.vertexEntryPoint, lModeConfig.fragmentEntryPoint);
-        const lPipeline: VertexFragmentPipeline = lRenderModule.create(lModeConfig.renderTargetsLayout);
-        lPipeline.primitiveCullMode = PrimitiveCullMode.Back;
-        lPipeline.primitiveFrontFace = PrimitiveFrontFace.CounterClockWise;
-
-        // Create User bind group if the shader defines one.
-        let lUserBindGroup: BindGroup | null = null;
-        let lUserGroupIndex: number = -1;
-
-        const lUserBindings: Array<PgslParserResultBinding> = [];
-        for (const lBinding of lParserResult.bindings) {
-            if (lBinding.bindGroupName === 'User') {
-                lUserGroupIndex = lBinding.bindGroupIndex;
-                lUserBindings.push(lBinding);
-            }
-        }
-
-        if (lUserBindings.length > 0) {
-            const lUserLayout: BindGroupLayout = lRenderModule.layout.getGroupLayout('User');
-            lUserBindGroup = lUserLayout.create();
-            await this.fillUserBindGroup(lUserBindGroup, lUserBindings, pMaterial);
-        }
-
-        // Build or update MaterialSystemMaterial.
-        let lMaterialEntry: MaterialSystemMaterial | undefined = lExisting;
-        if (!lMaterialEntry) {
-            lMaterialEntry = {
-                pipelines: new Map<ShaderRenderMode, VertexFragmentPipeline>(),
-                userBinding: {
-                    group: lUserBindGroup!,
-                    index: lUserGroupIndex
-                }
-            };
-            this.mCompiledMaterials.set(pMaterial, lMaterialEntry);
-        }
-
-        lMaterialEntry.pipelines.set(pTechnique, lPipeline);
-        return lMaterialEntry;
     }
 
     /**
@@ -347,20 +192,20 @@ export class MaterialSystem extends GameSystem {
 
         // World group layout from declaration shader.
 
-        const lWorldBindings: Array<PgslParserResultBinding> = lReferenceShaderResult.bindings.filter((pB) => pB.bindGroupName === 'World');
+        const lWorldBindings: Array<PgslParserResultBinding> = lReferenceShaderResult.bindings.filter((pB) => pB.bindGroupName === MaterialSystem.WORLD_GROUP_NAME);
         if (lWorldBindings.length > 0) {
-            lGroupLayouts.set('World', {
+            lGroupLayouts.set(MaterialSystem.WORLD_GROUP_NAME, {
                 index: lWorldBindings[0].bindGroupIndex,
-                layout: this.createBindGroupLayoutFromBindings('World', lWorldBindings)
+                layout: this.createBindGroupLayout(MaterialSystem.WORLD_GROUP_NAME, lWorldBindings)
             });
         }
 
         // Object group layout from declaration shader.
-        const lObjectBindings: Array<PgslParserResultBinding> = lReferenceShaderResult.bindings.filter((pB) => pB.bindGroupName === 'Object');
+        const lObjectBindings: Array<PgslParserResultBinding> = lReferenceShaderResult.bindings.filter((pB) => pB.bindGroupName === MaterialSystem.OBJECT_GROUP_NAME);
         if (lObjectBindings.length > 0) {
-            lGroupLayouts.set('Object', {
+            lGroupLayouts.set(MaterialSystem.OBJECT_GROUP_NAME, {
                 index: lObjectBindings[0].bindGroupIndex,
-                layout: this.createBindGroupLayoutFromBindings('Object', lObjectBindings)
+                layout: this.createBindGroupLayout(MaterialSystem.OBJECT_GROUP_NAME, lObjectBindings)
             });
         }
 
@@ -635,6 +480,107 @@ export class MaterialSystem extends GameSystem {
 
 
 
+
+
+    /**
+     * Load a material for a given render technique.
+     *
+     * Compiles the material's PGSL shader code with the mode-specific imports and entry points,
+     * creates a complete pipeline using pre-created global BindGroupLayouts, and returns
+     * the MaterialSystemMaterial with pipeline and User bind group.
+     *
+     * @param pMode - The render mode to compile the shader for.
+     * @param pMaterial - The material component item.
+     *
+     * @returns The loaded material data with pipeline and user binding.
+     */
+    public async loadMaterial(pMode: string, pMaterial: Material): Promise<MaterialSystemMaterial> {
+        this.lockGate();
+
+        // Get mode configuration.
+        const lModeConfig: MaterialSystemRenderMode | undefined = this.mRenderModes.get(pMode);
+        if (!lModeConfig) {
+            throw new Exception(`Render mode "${pMode}" is not registered.`, this);
+        }
+
+        // Check for existing compiled material with matching mode.
+        const lExisting: MaterialSystemCompiledMaterial | undefined = this.mCompiledMaterials.get(pMaterial);
+        if (lExisting && lExisting.pipelines.has(pMode)) {
+            return {
+                pipeline: lExisting.pipelines.get(pMode)!,
+                userBinding: lExisting.userBinding
+            };
+        }
+
+        // Validate shader code.
+        const lShaderCode: string = pMaterial.shader.shaderCode;
+        if (!lShaderCode) {
+            throw new Exception('Material shader code is empty.', this);
+        }
+
+        // Compile shader code with mode-specific imports.
+        const lPgsl: string = `
+            #IMPORT "${lModeConfig.prefixShader}";
+            ${lShaderCode}
+            #IMPORT "${lModeConfig.suffixShader}";
+        `;
+
+        const lParserResult: PgslParserResult = this.mParser.transpile(lPgsl, new WgslTranspiler());
+        if (lParserResult.incidents.length > 0) {
+            throw new Exception(`Shader compilation produced ${lParserResult.incidents.length} incident(s)`, this);
+        }
+
+
+
+
+
+
+        
+
+        // Create GpuShader using pre-created layouts for global groups.
+        const lGpuShader: GpuShader = this.createGpuShader(lParserResult, lModeConfig);
+
+        // Create render module and pipeline.
+        const lRenderModule = lGpuShader.createRenderModule(lModeConfig.vertexEntryPoint, lModeConfig.fragmentEntryPoint);
+        const lPipeline: VertexFragmentPipeline = lRenderModule.create(lModeConfig.renderTargetsLayout);
+        lPipeline.primitiveCullMode = PrimitiveCullMode.Back;
+        lPipeline.primitiveFrontFace = PrimitiveFrontFace.CounterClockWise;
+
+        // Create User bind group if the shader defines one.
+        let lUserBindGroup: BindGroup | null = null;
+        let lUserGroupIndex: number = -1;
+
+        const lUserBindings: Array<PgslParserResultBinding> = [];
+        for (const lBinding of lParserResult.bindings) {
+            if (lBinding.bindGroupName === 'User') {
+                lUserGroupIndex = lBinding.bindGroupIndex;
+                lUserBindings.push(lBinding);
+            }
+        }
+
+        if (lUserBindings.length > 0) {
+            const lUserLayout: BindGroupLayout = lRenderModule.layout.getGroupLayout('User');
+            lUserBindGroup = lUserLayout.create();
+            await this.fillUserBindGroup(lUserBindGroup, lUserBindings, pMaterial);
+        }
+
+        // Build or update MaterialSystemMaterial.
+        let lMaterialEntry: MaterialSystemCompiledMaterial | undefined = lExisting;
+        if (!lMaterialEntry) {
+            lMaterialEntry = {
+                pipelines: new Map<ShaderRenderMode, VertexFragmentPipeline>(),
+                userBinding: {
+                    group: lUserBindGroup!,
+                    index: lUserGroupIndex
+                }
+            };
+            this.mCompiledMaterials.set(pMaterial, lMaterialEntry);
+        }
+
+        lMaterialEntry.pipelines.set(pTechnique, lPipeline);
+        return lMaterialEntry;
+    }
+
     /**
      * Create a standalone BindGroupLayout from a set of parser result bindings.
      *
@@ -643,7 +589,7 @@ export class MaterialSystem extends GameSystem {
      *
      * @returns A configured BindGroupLayout.
      */
-    private createBindGroupLayoutFromBindings(pGroupName: string, pBindings: Array<PgslParserResultBinding>): BindGroupLayout {
+    private createBindGroupLayout(pGroupName: string, pBindings: Array<PgslParserResultBinding>): BindGroupLayout {
         return new BindGroupLayout(this.mGpuSystem!.gpu, pGroupName).setup((pSetup) => {
             for (const lBinding of pBindings) {
                 // Map storage access mode to StorageBindingType.
@@ -665,9 +611,7 @@ export class MaterialSystem extends GameSystem {
 
                 // Handle texture bindings.
                 if (lBinding.type instanceof PgslParserResultTextureType) {
-                    const lDimension: TextureViewDimension = lBinding.type.dimension;
-                    const lFormat: TextureFormat = lBinding.type.textureFormat;
-                    lEntry.asTexture(lDimension, lFormat);
+                    lEntry.asTexture(lBinding.type.dimension, lBinding.type.textureFormat);
                     continue;
                 }
 
@@ -688,7 +632,7 @@ export class MaterialSystem extends GameSystem {
      * 
      * Allows adding custom render modes with their own shader imports, entry points, and render target configurations.
      */
-    public registerRenderMode(pMode: string, pConfiguration: MaterialSystemRenderModeConfiguration): void {
+    public registerRenderMode(pMode: string, pConfiguration: MaterialSystemRenderModeConfiguration): MaterialSystemRenderModeRegisterResult {
         // Register render mode shaders.
         this.mParser.addImport(`${pMode}__entry-point`, pConfiguration.entryPointImport);
         for (let lFunctionalImportIndex: number = 0; lFunctionalImportIndex < pConfiguration.functionalImports.length; lFunctionalImportIndex++) {
@@ -719,28 +663,28 @@ export class MaterialSystem extends GameSystem {
         // World group layout from declaration shader.
         const lWorldBindingLayout: MaterialSystemGroupLayout = (() => {
             // Try to find world bindings in the reference shader result. If not found, throw an error since World group is required for the core template.
-            const lWorldBindings: Array<PgslParserResultBinding> = lReferenceShaderResult.bindings.filter((pB) => pB.bindGroupName === 'World');
+            const lWorldBindings: Array<PgslParserResultBinding> = lReferenceShaderResult.bindings.filter((pB) => pB.bindGroupName === MaterialSystem.WORLD_GROUP_NAME);
             if (lWorldBindings.length === 0) {
                 throw new Exception(`World group bindings not found in reference shader for render mode "${pMode}".`, this);
             }
 
             return {
                 index: lWorldBindings[0].bindGroupIndex,
-                layout: this.createBindGroupLayoutFromBindings('World', lWorldBindings)
+                layout: this.createBindGroupLayout(MaterialSystem.WORLD_GROUP_NAME, lWorldBindings)
             };
         })();
 
         // Object group layout from declaration shader.
         const lObjectBindingLayout: MaterialSystemGroupLayout = (() => {
             // Try to find object bindings in the reference shader result. If not found, throw an error since Object group is required for the core template.
-            const lObjectBindings: Array<PgslParserResultBinding> = lReferenceShaderResult.bindings.filter((pB) => pB.bindGroupName === 'Object');
+            const lObjectBindings: Array<PgslParserResultBinding> = lReferenceShaderResult.bindings.filter((pB) => pB.bindGroupName === MaterialSystem.OBJECT_GROUP_NAME);
             if (lObjectBindings.length === 0) {
                 throw new Exception(`Object group bindings not found in reference shader for render mode "${pMode}".`, this);
             }
 
             return {
                 index: lObjectBindings[0].bindGroupIndex,
-                layout: this.createBindGroupLayoutFromBindings('Object', lObjectBindings)
+                layout: this.createBindGroupLayout(MaterialSystem.OBJECT_GROUP_NAME, lObjectBindings)
             };
         })();
 
@@ -752,12 +696,21 @@ export class MaterialSystem extends GameSystem {
         this.mRenderModes.set(pMode, {
             prefixShader: lPrefixShader,
             suffixShader: lSuffixShader,
-            userGroup: {
+            bindingGroupLayouts: {
                 world: lWorldBindingLayout,
                 object: lObjectBindingLayout
             },
             renderTargetsLayout: lRenderTargetsLayout
         });
+
+        // Return the pre-created bind group layouts for this mode to be used in material loading and shader creation.
+        return {
+            bindGroupLayouts: {
+                world: lWorldBindingLayout,
+                object: lObjectBindingLayout
+            }, 
+            renderTargetsLayout: lRenderTargetsLayout
+        };
     }
 }
 
@@ -783,7 +736,7 @@ export type MaterialSystemRenderModeConfiguration = {
     /** 
      * Parser import name for the entry points shader (e.g., "ForwardEntryPoints").
      */
-    userGroupImports: {
+    bindingGroupImports: {
         world: string;
         object: string;
     };
@@ -819,7 +772,7 @@ type MaterialSystemRenderMode = {
     /** 
      * Parser import name for the entry points shader (e.g., "ForwardEntryPoints").
      */
-    userGroup: {
+    bindingGroupLayouts: {
         world: MaterialSystemGroupLayout;
         object: MaterialSystemGroupLayout;
     };
@@ -830,12 +783,34 @@ type MaterialSystemRenderMode = {
     renderTargetsLayout: RenderTargetsLayout;
 };
 
+export type MaterialSystemRenderModeRegisterResult = {
+    bindGroupLayouts: {
+        world: MaterialSystemGroupLayout;
+        object: MaterialSystemGroupLayout;
+    };
+    renderTargetsLayout: RenderTargetsLayout;
+};
+
+/**
+ * Cache for loaded materials.
+ */
+type MaterialSystemCompiledMaterial = {
+    // Pipelines for this material, keyed by render technique (ShaderRenderMode).
+    readonly pipelines: Map<string, VertexFragmentPipeline>;
+
+    // The extracted user binding group initialized with the materials data.
+    readonly userBinding: {
+        readonly group: BindGroup;
+        readonly index: number;
+    };
+};
+
 /**
  * Public return type for loaded materials.
  */
 export type MaterialSystemMaterial = {
     // Pipelines for this material, keyed by render technique (ShaderRenderMode).
-    readonly pipelines: Map<string, VertexFragmentPipeline>;
+    readonly pipeline: VertexFragmentPipeline;
 
     // The extracted user binding group initialized with the materials data.
     readonly userBinding: {

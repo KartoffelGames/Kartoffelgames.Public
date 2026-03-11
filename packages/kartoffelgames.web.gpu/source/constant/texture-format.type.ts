@@ -9,6 +9,10 @@ export type TextureFormat =
     'r16uint' |
     'r16sint' |
     'r16float' |
+    'r16unorm' |
+    'r16snorm' |
+    'rg16unorm' |
+    'rg16snorm' |
     'rg8unorm' |
     'rg8snorm' |
     'rg8uint' |
@@ -42,6 +46,8 @@ export type TextureFormat =
     'rgba16uint' |
     'rgba16sint' |
     'rgba16float' |
+    'rgba16unorm' |
+    'rgba16snorm' |
 
     // 128-bit formats
     'rgba32uint' |

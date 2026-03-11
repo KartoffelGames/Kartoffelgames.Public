@@ -17,7 +17,7 @@ import { GameSystem, type GameSystemConstructor, type GameSystemUpdateStateChang
 import { CullSystem, type ReadonlyCullSystemRenderTargetData } from '../../source/system/cull-system.ts';
 import { GpuSystem } from '../../source/system/gpu-system.ts';
 import { LightSystem } from '../../source/system/light-system.ts';
-import { MaterialSystem, ShaderRenderMode, type MaterialSystemMaterial } from '../../source/system/material-system.ts';
+import { MaterialSystem, ShaderRenderMode, type MaterialSystemCompiledMaterial } from '../../source/system/material-system.ts';
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
 
 type MaterialMeshGroupData = {
@@ -169,7 +169,7 @@ export class ShitSystem extends GameSystem {
         this.mObjectGroupIndex = this.mDependencyMaterialSystem.getGroupIndex(ShaderRenderMode.Forward, 'Object');
 
         // Get default material and its pipeline.
-        const lDefaultMaterial: MaterialSystemMaterial = this.mDependencyMaterialSystem.defaultMaterial;
+        const lDefaultMaterial: MaterialSystemCompiledMaterial = this.mDependencyMaterialSystem.defaultMaterial;
         this.mDefaultPipeline = lDefaultMaterial.pipelines.get(ShaderRenderMode.Forward)!;
 
         // Create World bind group from MaterialSystem's layout and initialize VP buffer.
@@ -223,7 +223,7 @@ export class ShitSystem extends GameSystem {
     /**
      * Create a new material+mesh group with Object bind group, buffers, and pipeline data.
      */
-    private createMaterialMeshGroup(pLoadedMaterial: MaterialSystemMaterial, pInitialCount: number): MaterialMeshGroupData {
+    private createMaterialMeshGroup(pLoadedMaterial: MaterialSystemCompiledMaterial, pInitialCount: number): MaterialMeshGroupData {
         // Get pipeline for this material.
         const lPipeline: VertexFragmentPipeline = pLoadedMaterial.pipelines.get(ShaderRenderMode.Forward)!;
 
@@ -268,7 +268,7 @@ export class ShitSystem extends GameSystem {
      * Create and cache vertex parameters for a mesh.
      * Creates buffers for all ForwardVertexIn attributes, defaulting missing optional attributes.
      */
-    private createVertexParameters(pMesh: Mesh, pLoadedMaterial: MaterialSystemMaterial): void {
+    private createVertexParameters(pMesh: Mesh, pLoadedMaterial: MaterialSystemCompiledMaterial): void {
         const lVertexCount: number = pMesh.verticesData.length / 3;
 
         // Default arrays for optional attributes.
@@ -387,7 +387,7 @@ export class ShitSystem extends GameSystem {
         // Process each material+mesh+submesh group.
         for (const [lMaterial, lMeshMap] of lGroupMap) {
             // Load material from MaterialSystem (returns compiled material with pipeline).
-            const lLoadedMaterial: MaterialSystemMaterial = await lMaterialSystem.loadMaterial(lMaterial, ShaderRenderMode.Forward);
+            const lLoadedMaterial: MaterialSystemCompiledMaterial = await lMaterialSystem.loadMaterial(lMaterial, ShaderRenderMode.Forward);
 
             for (const [lMesh, lSubMeshMap] of lMeshMap) {
                 // Get or create cached vertex parameters for this mesh.

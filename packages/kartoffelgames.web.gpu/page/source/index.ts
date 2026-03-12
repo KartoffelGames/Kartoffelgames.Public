@@ -63,9 +63,7 @@ const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTargetsL
         }));
 
         // Fragment entry.
-        pShaderSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
-            pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-        });
+        pShaderSetup.fragmentEntryPoint('fragment_main', pRenderTargetsLayout);
 
         // Object bind group.
         pShaderSetup.group(0, new BindGroupLayout(pGpu, 'object').setup((pBindGroupSetup) => {
@@ -222,7 +220,7 @@ const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTargetsL
     lMesh.create('normal', CubeVertexNormalData);
 
     // Create pipeline.
-    const lWoodBoxPipeline: VertexFragmentPipeline = lWoodBoxRenderModule.create(pRenderTargetsLayout);
+    const lWoodBoxPipeline: VertexFragmentPipeline = lWoodBoxRenderModule.create();
     lWoodBoxPipeline.primitiveCullMode = PrimitiveCullMode.Front;
     lWoodBoxPipeline.setParameter('animationSeconds', 3);
     (<any>window).animationSpeed = (pSeconds: number) => {
@@ -254,9 +252,7 @@ const gGenerateColorCubeStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTar
         }));
 
         // Fragment entry.
-        pShaderSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
-            pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-        });
+        pShaderSetup.fragmentEntryPoint('fragment_main', pRenderTargetsLayout);
 
         // Object bind group.
         pShaderSetup.group(0, new BindGroupLayout(pGpu, 'object').setup((pBindGroupSetup) => {
@@ -298,7 +294,7 @@ const gGenerateColorCubeStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTar
     lMesh.create('normal', CubeVertexNormalData);
 
     // Create pipeline.
-    const lColorBoxPipeline: VertexFragmentPipeline = lWoodBoxRenderModule.create(pRenderTargetsLayout);
+    const lColorBoxPipeline: VertexFragmentPipeline = lWoodBoxRenderModule.create();
     lColorBoxPipeline.primitiveCullMode = PrimitiveCullMode.Front;
 
     return [{
@@ -352,9 +348,7 @@ const gGenerateLightBoxStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTarg
         }));
 
         // Fragment entry.
-        pShaderSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
-            pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-        });
+        pShaderSetup.fragmentEntryPoint('fragment_main', pRenderTargetsLayout);
 
         // Object bind group.
         pShaderSetup.group(0, new BindGroupLayout(pGpu, 'object').setup((pBindGroupSetup) => {
@@ -375,7 +369,7 @@ const gGenerateLightBoxStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTarg
     // Create transformation.
     lLightBoxTransformationGroup.data('transformationMatrix').createBufferWithRawData(new Float32Array(new Transform().setScale(1, 1, 1).getMatrix(TransformMatrix.Transformation).dataArray).buffer);
 
-    const lLightBoxPipeline: VertexFragmentPipeline = lLightBoxRenderModule.create(pRenderTargetsLayout);
+    const lLightBoxPipeline: VertexFragmentPipeline = lLightBoxRenderModule.create();
     lLightBoxPipeline.primitiveCullMode = PrimitiveCullMode.Front;
 
     // Generate render parameter from parameter layout.
@@ -407,9 +401,7 @@ const gGenerateSkyboxStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTarget
         }));
 
         // Fragment entry.
-        pShaderSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
-            pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-        });
+        pShaderSetup.fragmentEntryPoint('fragment_main', pRenderTargetsLayout);
 
         pShaderSetup.group(0, new BindGroupLayout(pGpu, 'object').setup((pBindGroupSetup) => {
             pBindGroupSetup.binding(0, 'cubeTextureSampler', ComputeStage.Fragment)
@@ -484,7 +476,7 @@ const gGenerateSkyboxStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTarget
     const lMesh: VertexParameter = lSkyBoxRenderModule.vertexParameter.create(CubeVertexIndices);
     lMesh.create('position', CubeVertexPositionData);
 
-    const lSkyBoxPipeline: VertexFragmentPipeline = lSkyBoxRenderModule.create(pRenderTargetsLayout);
+    const lSkyBoxPipeline: VertexFragmentPipeline = lSkyBoxRenderModule.create();
     lSkyBoxPipeline.primitiveCullMode = PrimitiveCullMode.Back;
     lSkyBoxPipeline.depthConfig().enableWrite(false).compareWith(CompareFunction.Allways);
 
@@ -515,9 +507,7 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderT
         }));
 
         // Fragment entry.
-        pShaderSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
-            pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-        });
+        pShaderSetup.fragmentEntryPoint('fragment_main', pRenderTargetsLayout);
 
         // Object bind group.
         pShaderSetup.group(0, new BindGroupLayout(pGpu, 'object').setup((pBindGroupSetup) => {
@@ -593,7 +583,7 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderT
     lMesh.create('normal', CanvasVertexNormalData);
 
     // Create pipeline.
-    const lPipeline: VertexFragmentPipeline = lWoodBoxRenderModule.create(pRenderTargetsLayout);
+    const lPipeline: VertexFragmentPipeline = lWoodBoxRenderModule.create();
     lPipeline.primitiveCullMode = PrimitiveCullMode.None;
     lPipeline.depthConfig().enableWrite(false);
     lPipeline.targetConfig('color')
@@ -627,12 +617,10 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTarg
         }));
 
         // Fragment entry.
-        pShaderSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
-            pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-        });
+        pShaderSetup.fragmentEntryPoint('fragment_main', pRenderTargetsLayout);
 
         // Compute entry.
-        pShaderSetup.computeEntryPoint('compute_main').size(64);
+        pShaderSetup.computeEntryPoint('compute_main', 64);
 
         // Object bind group.
         pShaderSetup.group(0, new BindGroupLayout(pGpu, 'object').setup((pBindGroupSetup) => {
@@ -717,7 +705,7 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTarg
     const lMesh: VertexParameter = lParticleRenderModule.vertexParameter.create(ParticleVertexIndices);
     lMesh.create('position-uv', ParticleVertexPositionUvData);
 
-    const lParticlePipeline: VertexFragmentPipeline = lParticleRenderModule.create(pRenderTargetsLayout);
+    const lParticlePipeline: VertexFragmentPipeline = lParticleRenderModule.create();
     lParticlePipeline.primitiveCullMode = PrimitiveCullMode.None;
     lParticlePipeline.depthConfig().enableWrite(true).compareWith(CompareFunction.Less);
     lParticlePipeline.targetConfig('color')
@@ -747,7 +735,7 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTarg
         pShaderSetup.parameter('animationSeconds', ComputeStage.Vertex);
 
         // Compute entry.
-        pShaderSetup.computeEntryPoint('compute_main').size(64);
+        pShaderSetup.computeEntryPoint('compute_main', 64);
 
         // Object bind group.
         pShaderSetup.group(0, new BindGroupLayout(pGpu, 'object').setup((pBindGroupSetup) => {

@@ -133,7 +133,7 @@ Deno.test('Full compute execution flow', async (pContext) => {
             }
         `;
         const lShader: Shader = new Shader(lDevice, lShaderSource).setup((pSetup) => {
-            pSetup.computeEntryPoint('compute_main').size(1);
+            pSetup.computeEntryPoint('compute_main', 1, 1, 1);
             pSetup.group(0, new BindGroupLayout(lDevice, 'data').setup((pGroupSetup) => {
                 pGroupSetup.binding(0, 'output', ComputeStage.Compute).asBuffer(0, 4);
             }));

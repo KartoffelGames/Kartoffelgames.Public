@@ -1,14 +1,15 @@
 import { expect } from '@kartoffelgames/core-test';
-import { GpuDevice } from '../../source/device/gpu-device.ts';
-import { Shader } from '../../source/shader/shader.ts';
-import { VertexParameterStepMode } from '../../source/constant/vertex-parameter-step-mode.enum.ts';
+import type { GpuBuffer } from '../../source/buffer/gpu-buffer.ts';
 import { BufferItemFormat } from '../../source/constant/buffer-item-format.enum.ts';
 import { BufferItemMultiplier } from '../../source/constant/buffer-item-multiplier.enum.ts';
 import { ComputeStage } from '../../source/constant/compute-stage.enum.ts';
-import type { ShaderRenderModule } from '../../source/shader/shader-render-module.ts';
+import { VertexParameterStepMode } from '../../source/constant/vertex-parameter-step-mode.enum.ts';
+import { GpuDevice } from '../../source/device/gpu-device.ts';
+import { RenderTargetsLayout } from '../../source/pipeline/render_targets/render-targets-layout.ts';
 import { VertexParameterLayout } from '../../source/pipeline/vertex_parameter/vertex-parameter-layout.ts';
 import type { VertexParameter } from '../../source/pipeline/vertex_parameter/vertex-parameter.ts';
-import type { GpuBuffer } from '../../source/buffer/gpu-buffer.ts';
+import type { ShaderRenderModule } from '../../source/shader/shader-render-module.ts';
+import { Shader } from '../../source/shader/shader.ts';
 
 /**
  * Helper to request a GPU device for tests.
@@ -40,9 +41,9 @@ async function gCreateSetupShader(): Promise<{ device: GpuDevice; shader: Shader
             pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
                 .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
         }));
-        pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
-            pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-        });
+        pSetup.fragmentEntryPoint('fragment_main', new RenderTargetsLayout(lDevice, false).setup((pFragmentSetup) => {
+            pFragmentSetup.addColor('main', 0, 'rgba8unorm');
+        }));
     });
     return { device: lDevice, shader: lShader };
 }
@@ -202,9 +203,9 @@ Deno.test('VertexParameter -- with parameters', async (pContext) => {
                 pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
                     .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             }));
-            pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
-                pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.fragmentEntryPoint('fragment_main', new RenderTargetsLayout(lDevice, false).setup((pFragmentSetup) => {
+                pFragmentSetup.addColor('main', 0, 'rgba8unorm');
+            }));
         });
 
         // Evaluation. Should not throw.

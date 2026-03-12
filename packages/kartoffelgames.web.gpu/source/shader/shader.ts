@@ -1,4 +1,5 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
+import { RenderTargetsLayout } from "@kartoffelgames/web-gpu";
 import type { BufferItemFormat } from '../constant/buffer-item-format.enum.ts';
 import type { BufferItemMultiplier } from '../constant/buffer-item-multiplier.enum.ts';
 import type { ComputeStage } from '../constant/compute-stage.enum.ts';
@@ -123,11 +124,11 @@ export class Shader extends GpuObject<GPUShaderModule, '', ShaderSetup> implemen
      * Create a render module from a vertex and fragment entry point.
      * 
      * @param pVertexEntryName - Vertex entry point.
-     * @param pFragmentEntryName - Optional fragment entry point.
+     * @param pFragmentEntryName - Fragment entry point.
      * 
      * @returns shader render module. 
      */
-    public createRenderModule(pVertexEntryName: string, pFragmentEntryName?: string): ShaderRenderModule {
+    public createRenderModule(pVertexEntryName: string, pFragmentEntryName: string): ShaderRenderModule {
         // Ensure setup is called.
         this.ensureSetup();
 
@@ -136,18 +137,13 @@ export class Shader extends GpuObject<GPUShaderModule, '', ShaderSetup> implemen
             throw new Exception(`Vertex entry point "${pVertexEntryName}" does not exists.`, this);
         }
 
-        // Return shader module without fragment entry.
-        if (!pFragmentEntryName) {
-            return new ShaderRenderModule(this.device, this, pVertexEntryName, lVertexEntryPoint.parameter);
-        }
-
         // Validate fragment entry point.
         const lFragmentEntryPoint: ShaderModuleEntryPointFragment | undefined = this.mEntryPoints.fragment.get(pFragmentEntryName);
         if (!lFragmentEntryPoint) {
             throw new Exception(`Fragment entry point "${pFragmentEntryName}" does not exists.`, this);
         }
 
-        return new ShaderRenderModule(this.device, this, pVertexEntryName, lVertexEntryPoint.parameter, pFragmentEntryName);
+        return new ShaderRenderModule(this.device, this, pVertexEntryName, lVertexEntryPoint.parameter, pFragmentEntryName, lFragmentEntryPoint.renderTargets);
     }
 
     /**
@@ -228,35 +224,9 @@ export class Shader extends GpuObject<GPUShaderModule, '', ShaderSetup> implemen
                 throw new Exception(`Fragment entry "${lFragmentEntry.name}" was setup more than once.`, this);
             }
 
-            // Convert all render attachments to a location mapping.
-            const lRenderTargetLocations: Set<number> = new Set<number>();
-            const lRenderTargets: ShaderModuleEntryPointFragment['renderTargets'] = new Dictionary<string, any>();
-            for (const lRenderTarget of lFragmentEntry.renderTargets) {
-                // Restrict doublicate fragment entry render target names.
-                if (lRenderTargets.has(lRenderTarget.name)) {
-                    throw new Exception(`Fragment entry "${lFragmentEntry.name}" was has doublicate render attachment name "${lRenderTarget.name}".`, this);
-                }
-
-                // Restrict doublicate fragment entry render target locations.
-                if (lRenderTargetLocations.has(lRenderTarget.location)) {
-                    throw new Exception(`Fragment entry "${lFragmentEntry.name}" was has doublicate render attachment location index "${lRenderTarget.location}".`, this);
-                }
-
-                // Add location to location index buffer. Used for finding dublicates.
-                lRenderTargetLocations.add(lRenderTarget.location);
-
-                // Add target to list. 
-                lRenderTargets.set(lRenderTarget.name, {
-                    name: lRenderTarget.name,
-                    location: lRenderTarget.location,
-                    format: lRenderTarget.format,
-                    multiplier: lRenderTarget.multiplier
-                });
-            }
-
             // Set fragment entry point definition. 
             this.mEntryPoints.fragment.set(lFragmentEntry.name, {
-                renderTargets: lRenderTargets
+                renderTargets: lFragmentEntry.renderTargets
             });
         }
 
@@ -332,7 +302,7 @@ export type ShaderModuleEntryPointFragmentRenderTarget = {
     multiplier: BufferItemMultiplier;
 };
 export type ShaderModuleEntryPointFragment = {
-    renderTargets: Dictionary<string, ShaderModuleEntryPointFragmentRenderTarget>;
+    renderTargets: RenderTargetsLayout;
 };
 
 type ShaderModuleEntryPoints = {

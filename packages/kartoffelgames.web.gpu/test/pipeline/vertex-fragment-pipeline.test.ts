@@ -1,19 +1,19 @@
 import { expect } from '@kartoffelgames/core-test';
-import { GpuDevice } from '../../source/device/gpu-device.ts';
-import { Shader } from '../../source/shader/shader.ts';
-import type { ShaderRenderModule } from '../../source/shader/shader-render-module.ts';
-import type { VertexFragmentPipeline } from '../../source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline.ts';
-import { RenderTargetsLayout } from '../../source/pipeline/render_targets/render-targets-layout.ts';
-import { VertexParameterStepMode } from '../../source/constant/vertex-parameter-step-mode.enum.ts';
 import { BufferItemFormat } from '../../source/constant/buffer-item-format.enum.ts';
 import { BufferItemMultiplier } from '../../source/constant/buffer-item-multiplier.enum.ts';
+import { CompareFunction } from '../../source/constant/compare-function.enum.ts';
 import { PrimitiveCullMode } from '../../source/constant/primitive-cullmode.enum.ts';
 import { PrimitiveFrontFace } from '../../source/constant/primitive-front-face.enum.ts';
 import { PrimitiveTopology } from '../../source/constant/primitive-topology.enum.ts';
-import { CompareFunction } from '../../source/constant/compare-function.enum.ts';
 import { TextureBlendFactor } from '../../source/constant/texture-blend-factor.enum.ts';
 import { TextureBlendOperation } from '../../source/constant/texture-blend-operation.enum.ts';
+import { VertexParameterStepMode } from '../../source/constant/vertex-parameter-step-mode.enum.ts';
+import { GpuDevice } from '../../source/device/gpu-device.ts';
+import { RenderTargetsLayout } from '../../source/pipeline/render_targets/render-targets-layout.ts';
+import type { VertexFragmentPipeline } from '../../source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline.ts';
 import { VertexParameterLayout } from '../../source/pipeline/vertex_parameter/vertex-parameter-layout.ts';
+import type { ShaderRenderModule } from '../../source/shader/shader-render-module.ts';
+import { Shader } from '../../source/shader/shader.ts';
 
 /**
  * Helper to request a GPU device for tests.
@@ -38,25 +38,19 @@ fn fragment_main() -> @location(0) vec4f {
 /**
  * Helper to create a shader + render targets layout for pipeline creation.
  */
-async function gCreateRenderPipelineComponents(): Promise<{
-    device: GpuDevice;
-    shader: Shader;
-    renderTargetsLayout: RenderTargetsLayout;
-}> {
+async function gCreateRenderPipelineComponents(): Promise<{ device: GpuDevice; shader: Shader; renderTargetsLayout: RenderTargetsLayout; }> {
     const lDevice: GpuDevice = await gRequestDevice();
+
+    const lRenderTargetsLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false).setup((pSetup) => {
+        pSetup.addColor('color', 0, 'rgba8unorm');
+    });
 
     const lShader: Shader = new Shader(lDevice, gRenderShaderSource).setup((pSetup) => {
         pSetup.vertexEntryPoint('vertex_main', new VertexParameterLayout(lDevice).setup((pVertexSetup) => {
             pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
                 .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
         }));
-        pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
-            pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-        });
-    });
-
-    const lRenderTargetsLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false).setup((pSetup) => {
-        pSetup.addColor('color', 0, 'rgba8unorm');
+        pSetup.fragmentEntryPoint('fragment_main', lRenderTargetsLayout);
     });
 
     return { device: lDevice, shader: lShader, renderTargetsLayout: lRenderTargetsLayout };
@@ -65,11 +59,11 @@ async function gCreateRenderPipelineComponents(): Promise<{
 Deno.test('VertexFragmentPipeline -- creation', async (pContext) => {
     await pContext.step('Can be created from render module and render targets layout', async () => {
         // Setup.
-        const { device: lDevice, shader: lShader, renderTargetsLayout: lRtLayout } = await gCreateRenderPipelineComponents();
+        const { device: lDevice, shader: lShader } = await gCreateRenderPipelineComponents();
         const lRenderModule: ShaderRenderModule = lShader.createRenderModule('vertex_main', 'fragment_main');
 
         // Process.
-        const lPipeline: VertexFragmentPipeline = lRenderModule.create(lRtLayout);
+        const lPipeline: VertexFragmentPipeline = lRenderModule.create();
 
         // Evaluation.
         expect(lPipeline).toBeTruthy();
@@ -82,11 +76,11 @@ Deno.test('VertexFragmentPipeline -- creation', async (pContext) => {
 Deno.test('VertexFragmentPipeline.module', async (pContext) => {
     await pContext.step('Returns the shader render module', async () => {
         // Setup.
-        const { device: lDevice, shader: lShader, renderTargetsLayout: lRtLayout } = await gCreateRenderPipelineComponents();
+        const { device: lDevice, shader: lShader } = await gCreateRenderPipelineComponents();
         const lRenderModule: ShaderRenderModule = lShader.createRenderModule('vertex_main', 'fragment_main');
 
         // Process.
-        const lPipeline: VertexFragmentPipeline = lRenderModule.create(lRtLayout);
+        const lPipeline: VertexFragmentPipeline = lRenderModule.create();
 
         // Evaluation.
         expect(lPipeline.module).toBe(lRenderModule);
@@ -99,11 +93,11 @@ Deno.test('VertexFragmentPipeline.module', async (pContext) => {
 Deno.test('VertexFragmentPipeline.layout', async (pContext) => {
     await pContext.step('Returns the pipeline layout from shader', async () => {
         // Setup.
-        const { device: lDevice, shader: lShader, renderTargetsLayout: lRtLayout } = await gCreateRenderPipelineComponents();
+        const { device: lDevice, shader: lShader } = await gCreateRenderPipelineComponents();
         const lRenderModule: ShaderRenderModule = lShader.createRenderModule('vertex_main', 'fragment_main');
 
         // Process.
-        const lPipeline: VertexFragmentPipeline = lRenderModule.create(lRtLayout);
+        const lPipeline: VertexFragmentPipeline = lRenderModule.create();
 
         // Evaluation.
         expect(lPipeline.layout).toBe(lShader.layout);
@@ -116,14 +110,14 @@ Deno.test('VertexFragmentPipeline.layout', async (pContext) => {
 Deno.test('VertexFragmentPipeline.renderTargets', async (pContext) => {
     await pContext.step('Returns the render targets layout', async () => {
         // Setup.
-        const { device: lDevice, shader: lShader, renderTargetsLayout: lRtLayout } = await gCreateRenderPipelineComponents();
+        const { device: lDevice, shader: lShader, renderTargetsLayout: lRenderTargetsLayout } = await gCreateRenderPipelineComponents();
         const lRenderModule: ShaderRenderModule = lShader.createRenderModule('vertex_main', 'fragment_main');
 
         // Process.
-        const lPipeline: VertexFragmentPipeline = lRenderModule.create(lRtLayout);
+        const lPipeline: VertexFragmentPipeline = lRenderModule.create();
 
         // Evaluation.
-        expect(lPipeline.renderTargets).toBe(lRtLayout);
+        expect(lPipeline.renderTargets).toBe(lRenderTargetsLayout);
 
         // Cleanup.
         lDevice.deconstruct();
@@ -133,9 +127,9 @@ Deno.test('VertexFragmentPipeline.renderTargets', async (pContext) => {
 Deno.test('VertexFragmentPipeline -- primitive properties', async (pContext) => {
     await pContext.step('Default primitive cull mode can be overridden', async () => {
         // Setup.
-        const { device: lDevice, shader: lShader, renderTargetsLayout: lRtLayout } = await gCreateRenderPipelineComponents();
+        const { device: lDevice, shader: lShader } = await gCreateRenderPipelineComponents();
         const lRenderModule: ShaderRenderModule = lShader.createRenderModule('vertex_main', 'fragment_main');
-        const lPipeline: VertexFragmentPipeline = lRenderModule.create(lRtLayout);
+        const lPipeline: VertexFragmentPipeline = lRenderModule.create();
 
         // Process.
         lPipeline.primitiveCullMode = PrimitiveCullMode.Front;
@@ -149,9 +143,9 @@ Deno.test('VertexFragmentPipeline -- primitive properties', async (pContext) => 
 
     await pContext.step('Default primitive front face can be overridden', async () => {
         // Setup.
-        const { device: lDevice, shader: lShader, renderTargetsLayout: lRtLayout } = await gCreateRenderPipelineComponents();
+        const { device: lDevice, shader: lShader } = await gCreateRenderPipelineComponents();
         const lRenderModule: ShaderRenderModule = lShader.createRenderModule('vertex_main', 'fragment_main');
-        const lPipeline: VertexFragmentPipeline = lRenderModule.create(lRtLayout);
+        const lPipeline: VertexFragmentPipeline = lRenderModule.create();
 
         // Process.
         lPipeline.primitiveFrontFace = PrimitiveFrontFace.ClockWise;
@@ -165,9 +159,9 @@ Deno.test('VertexFragmentPipeline -- primitive properties', async (pContext) => 
 
     await pContext.step('Default primitive topology can be overridden', async () => {
         // Setup.
-        const { device: lDevice, shader: lShader, renderTargetsLayout: lRtLayout } = await gCreateRenderPipelineComponents();
+        const { device: lDevice, shader: lShader } = await gCreateRenderPipelineComponents();
         const lRenderModule: ShaderRenderModule = lShader.createRenderModule('vertex_main', 'fragment_main');
-        const lPipeline: VertexFragmentPipeline = lRenderModule.create(lRtLayout);
+        const lPipeline: VertexFragmentPipeline = lRenderModule.create();
 
         // Process.
         lPipeline.primitiveTopology = PrimitiveTopology.LineList;
@@ -185,21 +179,21 @@ Deno.test('VertexFragmentPipeline.depthConfig()', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
 
+        const lRenderTargetLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false).setup((pSetup) => {
+            pSetup.addColor('color', 0, 'rgba8unorm');
+            pSetup.addDepthStencil('depth24plus', true, 1.0);
+        });
+
         const lShader: Shader = new Shader(lDevice, gRenderShaderSource).setup((pSetup) => {
             pSetup.vertexEntryPoint('vertex_main', new VertexParameterLayout(lDevice).setup((pVertexSetup) => {
                 pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
                     .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             }));
-            pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
-                pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.fragmentEntryPoint('fragment_main', lRenderTargetLayout);
         });
-        const lRtLayout: RenderTargetsLayout = new RenderTargetsLayout(lDevice, false).setup((pSetup) => {
-            pSetup.addColor('color', 0, 'rgba8unorm');
-            pSetup.addDepthStencil('depth24plus', true, 1.0);
-        });
+        
         const lRenderModule: ShaderRenderModule = lShader.createRenderModule('vertex_main', 'fragment_main');
-        const lPipeline: VertexFragmentPipeline = lRenderModule.create(lRtLayout);
+        const lPipeline: VertexFragmentPipeline = lRenderModule.create();
 
         // Process. Chain depth configuration.
         const lDepthConfig = lPipeline.depthConfig()
@@ -217,9 +211,9 @@ Deno.test('VertexFragmentPipeline.depthConfig()', async (pContext) => {
 Deno.test('VertexFragmentPipeline.targetConfig()', async (pContext) => {
     await pContext.step('Returns a target configuration object', async () => {
         // Setup.
-        const { device: lDevice, shader: lShader, renderTargetsLayout: lRtLayout } = await gCreateRenderPipelineComponents();
+        const { device: lDevice, shader: lShader } = await gCreateRenderPipelineComponents();
         const lRenderModule: ShaderRenderModule = lShader.createRenderModule('vertex_main', 'fragment_main');
-        const lPipeline: VertexFragmentPipeline = lRenderModule.create(lRtLayout);
+        const lPipeline: VertexFragmentPipeline = lRenderModule.create();
 
         // Process. Chain target configuration for blending.
         const lTargetConfig = lPipeline.targetConfig('color')
@@ -237,11 +231,11 @@ Deno.test('VertexFragmentPipeline.targetConfig()', async (pContext) => {
 Deno.test('VertexFragmentPipeline -- pipeline creation', async (pContext) => {
     await pContext.step('Pipeline can be created from render module', async () => {
         // Setup.
-        const { device: lDevice, shader: lShader, renderTargetsLayout: lRtLayout } = await gCreateRenderPipelineComponents();
+        const { device: lDevice, shader: lShader } = await gCreateRenderPipelineComponents();
         const lRenderModule: ShaderRenderModule = lShader.createRenderModule('vertex_main', 'fragment_main');
 
         // Process.
-        const lPipeline: VertexFragmentPipeline = lRenderModule.create(lRtLayout);
+        const lPipeline: VertexFragmentPipeline = lRenderModule.create();
 
         // Evaluation. Pipeline is created (native is loaded asynchronously).
         expect(lPipeline).toBeTruthy();

@@ -1,10 +1,8 @@
+import { RenderTargetsLayout } from "@kartoffelgames/web-gpu";
 import type { ComputeStage } from '../../constant/compute-stage.enum.ts';
 import { GpuObjectSetup } from '../../gpu_object/gpu-object-setup.ts';
 import type { BindGroupLayout } from '../../pipeline/bind_group_layout/bind-group-layout.ts';
 import type { VertexParameterLayout } from '../../pipeline/vertex_parameter/vertex-parameter-layout.ts';
-import type { ShaderModuleEntryPointFragmentRenderTarget } from '../shader.ts';
-import { ShaderComputeEntryPointSetup } from './shader-compute-entry-point-setup.ts';
-import { type ShaderFragmentEntryPointRenderTargetSetupData, ShaderFragmentEntryPointSetup } from './shader-fragment-entry-point-setup.ts';
 
 /**
  * Setup object to setup all layout and constant informations for shaders.
@@ -17,29 +15,22 @@ export class ShaderSetup extends GpuObjectSetup<ShaderSetupReferenceData> {
      * @param pName - Compute entry name.
      * @param pSetupCallback - Setup callback to setup compute entry point.
      */
-    public computeEntryPoint(pName: string): ShaderComputeEntryPointSetup {
+    public computeEntryPoint(pName: string, pX: number, pY: number = 1, pZ: number = 1): void {
         // Lock setup to a setup call.
         this.ensureThatInSetup();
 
         // Create dynamic compute entry point.
         const lEntryPoint: ShaderEntryPointComputeSetupData = {
             name: pName,
-            workgroupDimension: null
+            workgroupDimension: {
+                x: pX,
+                y: pY,
+                z: pZ
+            }
         };
 
         // Append compute entry.
         this.setupData.computeEntrypoints.push(lEntryPoint);
-
-        // Return compute entry setup object.
-        const lSetup: ShaderComputeEntryPointSetup = new ShaderComputeEntryPointSetup(this.setupReferences, (pX: number, pY: number, pZ: number) => {
-            lEntryPoint.workgroupDimension = {
-                x: pX,
-                y: pY,
-                z: pZ
-            };
-        });
-
-        return lSetup;
     }
 
     /**
@@ -48,25 +39,21 @@ export class ShaderSetup extends GpuObjectSetup<ShaderSetupReferenceData> {
      * @param pName - Fragment entry name.
      * @param pSetupCallback - Setup callback to setup fragment render targets.
      */
-    public fragmentEntryPoint(pName: string, pSetupCallback: (pSetup: ShaderFragmentEntryPointSetup) => void): void {
+    public fragmentEntryPoint(pName: string, pRenderTargetsLayout: RenderTargetsLayout): RenderTargetsLayout {
         // Lock setup to a setup call.
         this.ensureThatInSetup();
 
         // Create empty fragment entry point.
         const lEntryPoint: ShaderEntryPointFragmentSetupData = {
             name: pName,
-            renderTargets: new Array<ShaderFragmentEntryPointRenderTargetSetupData>()
+            renderTargets: pRenderTargetsLayout
         };
 
         // Append compute entry.
         this.setupData.fragmentEntrypoints.push(lEntryPoint);
 
-        // Return fragment entry setup object.
-        const lSetup: ShaderFragmentEntryPointSetup = new ShaderFragmentEntryPointSetup(this.setupReferences, (pRenderTarget: ShaderModuleEntryPointFragmentRenderTarget) => {
-            lEntryPoint.renderTargets.push(pRenderTarget);
-        });
-
-        pSetupCallback(lSetup);
+        // Return fragment render targets.
+        return pRenderTargetsLayout;
     }
 
     /**
@@ -168,7 +155,7 @@ type ShaderEntryPointVertexSetupData = {
 
 type ShaderEntryPointFragmentSetupData = {
     name: string;
-    renderTargets: Array<ShaderFragmentEntryPointRenderTargetSetupData>;
+    renderTargets: RenderTargetsLayout;
 };
 
 export type ShaderSetupReferenceData = {

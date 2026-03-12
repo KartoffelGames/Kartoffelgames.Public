@@ -1,9 +1,9 @@
 import { expect } from '@kartoffelgames/core-test';
+import { ComputeStage } from '../../source/constant/compute-stage.enum.ts';
 import { GpuDevice } from '../../source/device/gpu-device.ts';
-import { Shader } from '../../source/shader/shader.ts';
 import { ComputePipeline } from '../../source/pipeline/compute-pipeline.ts';
 import type { ShaderComputeModule } from '../../source/shader/shader-compute-module.ts';
-import { ComputeStage } from '../../source/constant/compute-stage.enum.ts';
+import { Shader } from '../../source/shader/shader.ts';
 
 /**
  * Helper to request a GPU device for tests.
@@ -26,7 +26,7 @@ fn compute_main(@builtin(global_invocation_id) id: vec3u) {
 async function gCreateComputeShader(): Promise<{ device: GpuDevice; shader: Shader; }> {
     const lDevice: GpuDevice = await gRequestDevice();
     const lShader: Shader = new Shader(lDevice, gComputeShaderSource).setup((pSetup) => {
-        pSetup.computeEntryPoint('compute_main').size(64);
+        pSetup.computeEntryPoint('compute_main', 64);
     });
     return { device: lDevice, shader: lShader };
 }
@@ -98,7 +98,7 @@ Deno.test('ComputePipeline.setParameter()', async (pContext) => {
         `;
         const lShader: Shader = new Shader(lDevice, lShaderSource).setup((pSetup) => {
             pSetup.parameter('workSize', ComputeStage.Compute);
-            pSetup.computeEntryPoint('compute_main').size(64);
+            pSetup.computeEntryPoint('compute_main', 64);
         });
 
         const lModule: ShaderComputeModule = lShader.createComputeModule('compute_main');

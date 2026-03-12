@@ -1,15 +1,16 @@
 import { expect } from '@kartoffelgames/core-test';
-import { GpuDevice } from '../../source/device/gpu-device.ts';
-import { Shader } from '../../source/shader/shader.ts';
-import { ComputeStage } from '../../source/constant/compute-stage.enum.ts';
 import { BufferItemFormat } from '../../source/constant/buffer-item-format.enum.ts';
 import { BufferItemMultiplier } from '../../source/constant/buffer-item-multiplier.enum.ts';
-import { VertexParameterStepMode } from '../../source/constant/vertex-parameter-step-mode.enum.ts';
+import { ComputeStage } from '../../source/constant/compute-stage.enum.ts';
 import { SamplerType } from '../../source/constant/sampler-type.enum.ts';
-import type { ShaderRenderModule } from '../../source/shader/shader-render-module.ts';
-import type { ShaderComputeModule } from '../../source/shader/shader-compute-module.ts';
+import { VertexParameterStepMode } from '../../source/constant/vertex-parameter-step-mode.enum.ts';
+import { GpuDevice } from '../../source/device/gpu-device.ts';
 import { BindGroupLayout } from '../../source/pipeline/bind_group_layout/bind-group-layout.ts';
+import { RenderTargetsLayout } from "../../source/pipeline/render_targets/render-targets-layout.ts";
 import { VertexParameterLayout } from '../../source/pipeline/vertex_parameter/vertex-parameter-layout.ts';
+import type { ShaderComputeModule } from '../../source/shader/shader-compute-module.ts';
+import type { ShaderRenderModule } from '../../source/shader/shader-render-module.ts';
+import { Shader } from '../../source/shader/shader.ts';
 
 /**
  * Helper to request a GPU device for tests.
@@ -76,9 +77,9 @@ Deno.test('Shader.setup()', async (pContext) => {
                 pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
                     .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             }));
-            pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
-                pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.fragmentEntryPoint('fragment_main', new RenderTargetsLayout(lDevice, false).setup((pFragmentSetup) => {
+                pFragmentSetup.addColor('main', 0, 'rgba8unorm');
+            }));
         });
 
         // Evaluation.
@@ -94,7 +95,7 @@ Deno.test('Shader.setup()', async (pContext) => {
 
         // Process.
         const lShader: Shader = new Shader(lDevice, gBasicComputeShaderSource).setup((pSetup) => {
-            pSetup.computeEntryPoint('compute_main').size(64);
+            pSetup.computeEntryPoint('compute_main', 64);
         });
 
         // Evaluation.
@@ -108,13 +109,13 @@ Deno.test('Shader.setup()', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lShader: Shader = new Shader(lDevice, gBasicComputeShaderSource).setup((pSetup) => {
-            pSetup.computeEntryPoint('compute_main').size(64);
+            pSetup.computeEntryPoint('compute_main', 64);
         });
 
         // Evaluation.
         const lThrowFunction = () => {
             lShader.setup((pSetup) => {
-                pSetup.computeEntryPoint('compute_main').size(64);
+                pSetup.computeEntryPoint('compute_main', 64);
             });
         };
         expect(lThrowFunction).toThrow();
@@ -133,9 +134,9 @@ Deno.test('Shader.layout', async (pContext) => {
                 pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
                     .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             }));
-            pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
-                pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.fragmentEntryPoint('fragment_main', new RenderTargetsLayout(lDevice, false).setup((pFragmentSetup) => {
+                pFragmentSetup.addColor('main', 0, 'rgba8unorm');
+            }));
         });
 
         // Evaluation.
@@ -173,9 +174,9 @@ Deno.test('Shader.setup() -- with bind groups', async (pContext) => {
                 pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
                     .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             }));
-            pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
-                pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.fragmentEntryPoint('fragment_main', new RenderTargetsLayout(lDevice, false).setup((pFragmentSetup) => {
+                pFragmentSetup.addColor('main', 0, 'rgba8unorm');
+            }));
             pSetup.group(0, new BindGroupLayout(lDevice, 'transform').setup((pGroupSetup) => {
                 pGroupSetup.binding(0, 'transform', ComputeStage.Vertex).asBuffer(64); // mat4x4f = 64 bytes
             }));
@@ -198,9 +199,9 @@ Deno.test('Shader.setup() -- with bind groups', async (pContext) => {
                 pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
                     .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             }));
-            pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
-                pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.fragmentEntryPoint('fragment_main', new RenderTargetsLayout(lDevice, false).setup((pFragmentSetup) => {
+                pFragmentSetup.addColor('main', 0, 'rgba8unorm');
+            }));
             pSetup.group(0, new BindGroupLayout(lDevice, 'transform').setup((pGroupSetup) => {
                 pGroupSetup.binding(0, 'transform', ComputeStage.Vertex).asBuffer(64);
             }));
@@ -228,9 +229,9 @@ Deno.test('Shader.parameter()', async (pContext) => {
                 pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
                     .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             }));
-            pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
-                pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.fragmentEntryPoint('fragment_main', new RenderTargetsLayout(lDevice, false).setup((pFragmentSetup) => {
+                pFragmentSetup.addColor('main', 0, 'rgba8unorm');
+            }));
         });
 
         // Process.
@@ -251,9 +252,9 @@ Deno.test('Shader.parameter()', async (pContext) => {
                 pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
                     .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             }));
-            pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
-                pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.fragmentEntryPoint('fragment_main', new RenderTargetsLayout(lDevice, false).setup((pFragmentSetup) => {
+                pFragmentSetup.addColor('main', 0, 'rgba8unorm');
+            }));
         });
 
         // Evaluation.
@@ -276,9 +277,9 @@ Deno.test('Shader.createRenderModule()', async (pContext) => {
                 pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
                     .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             }));
-            pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
-                pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.fragmentEntryPoint('fragment_main', new RenderTargetsLayout(lDevice, false).setup((pFragmentSetup) => {
+                pFragmentSetup.addColor('main', 0, 'rgba8unorm');
+            }));
         });
 
         // Process.
@@ -293,7 +294,7 @@ Deno.test('Shader.createRenderModule()', async (pContext) => {
         lDevice.deconstruct();
     });
 
-    await pContext.step('Creates a ShaderRenderModule without fragment entry', async () => {
+    await pContext.step('Creates a ShaderRenderModule with vertex and fragment entry', async () => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lShader: Shader = new Shader(lDevice, gBasicRenderShaderSource).setup((pSetup) => {
@@ -301,18 +302,18 @@ Deno.test('Shader.createRenderModule()', async (pContext) => {
                 pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
                     .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             }));
-            pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
-                pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.fragmentEntryPoint('fragment_main', new RenderTargetsLayout(lDevice, false).setup((pFragmentSetup) => {
+                pFragmentSetup.addColor('main', 0, 'rgba8unorm');
+            }));
         });
 
         // Process.
-        const lModule: ShaderRenderModule = lShader.createRenderModule('vertex_main');
+        const lModule: ShaderRenderModule = lShader.createRenderModule('vertex_main', 'fragment_main');
 
         // Evaluation.
         expect(lModule).toBeTruthy();
         expect(lModule.vertexEntryPoint).toBe('vertex_main');
-        expect(lModule.fragmentEntryPoint).toBeNull();
+        expect(lModule.fragmentEntryPoint).toBe('fragment_main');
 
         // Cleanup.
         lDevice.deconstruct();
@@ -326,14 +327,14 @@ Deno.test('Shader.createRenderModule()', async (pContext) => {
                 pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
                     .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             }));
-            pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
-                pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.fragmentEntryPoint('fragment_main', new RenderTargetsLayout(lDevice, false).setup((pFragmentSetup) => {
+                pFragmentSetup.addColor('main', 0, 'rgba8unorm');
+            }));
         });
 
         // Evaluation.
         const lThrowFunction = () => {
-            lShader.createRenderModule('nonExistent');
+            lShader.createRenderModule('nonExistent', 'fragment_main');
         };
         expect(lThrowFunction).toThrow();
 
@@ -349,9 +350,9 @@ Deno.test('Shader.createRenderModule()', async (pContext) => {
                 pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
                     .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             }));
-            pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
-                pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.fragmentEntryPoint('fragment_main', new RenderTargetsLayout(lDevice, false).setup((pFragmentSetup) => {
+                pFragmentSetup.addColor('main', 0, 'rgba8unorm');
+            }));
         });
 
         // Evaluation.
@@ -370,7 +371,7 @@ Deno.test('Shader.createComputeModule()', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lShader: Shader = new Shader(lDevice, gBasicComputeShaderSource).setup((pSetup) => {
-            pSetup.computeEntryPoint('compute_main').size(64);
+            pSetup.computeEntryPoint('compute_main', 64);
         });
 
         // Process.
@@ -388,7 +389,7 @@ Deno.test('Shader.createComputeModule()', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lShader: Shader = new Shader(lDevice, gBasicComputeShaderSource).setup((pSetup) => {
-            pSetup.computeEntryPoint('compute_main').size(64);
+            pSetup.computeEntryPoint('compute_main', 64);
         });
 
         // Process.
@@ -407,7 +408,7 @@ Deno.test('Shader.createComputeModule()', async (pContext) => {
         // Setup.
         const lDevice: GpuDevice = await gRequestDevice();
         const lShader: Shader = new Shader(lDevice, gBasicComputeShaderSource).setup((pSetup) => {
-            pSetup.computeEntryPoint('compute_main').size(64);
+            pSetup.computeEntryPoint('compute_main', 64);
         });
 
         // Evaluation.
@@ -430,9 +431,9 @@ Deno.test('Shader.native', async (pContext) => {
                 pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
                     .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             }));
-            pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
-                pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.fragmentEntryPoint('fragment_main', new RenderTargetsLayout(lDevice, false).setup((pFragmentSetup) => {
+                pFragmentSetup.addColor('main', 0, 'rgba8unorm');
+            }));
         });
 
         // Process.
@@ -475,9 +476,9 @@ Deno.test('Shader.setup() -- multiple bind groups', async (pContext) => {
                 pVertexSetup.buffer('position', VertexParameterStepMode.Vertex)
                     .withParameter('position', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
             }));
-            pSetup.fragmentEntryPoint('fragment_main', (pFragmentSetup) => {
-                pFragmentSetup.addRenderTarget('main', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            });
+            pSetup.fragmentEntryPoint('fragment_main', new RenderTargetsLayout(lDevice, false).setup((pFragmentSetup) => {
+                pFragmentSetup.addColor('main', 0, 'rgba8unorm', true);
+            }));
             pSetup.group(0, new BindGroupLayout(lDevice, 'object').setup((pGroupSetup) => {
                 pGroupSetup.binding(0, 'object_data', ComputeStage.Vertex).asBuffer(64);
             }));

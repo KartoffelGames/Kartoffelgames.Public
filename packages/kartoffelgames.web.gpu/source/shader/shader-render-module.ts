@@ -12,6 +12,7 @@ import type { Shader } from './shader.ts';
  */
 export class ShaderRenderModule extends GpuObject {
     private readonly mFragmentEntryPoint: string | null;
+    private readonly mFragmentRenderTargetsLayout: RenderTargetsLayout;
     private readonly mShader: Shader;
     private readonly mVertexEntryPoint: string;
     private readonly mVertexParameter: VertexParameterLayout;
@@ -59,23 +60,22 @@ export class ShaderRenderModule extends GpuObject {
      * @param pEntryPointName - Compute entry point.
      * @param pSize - Workgroup size.
      */
-    public constructor(pDevice: GpuDevice, pShader: Shader, pVertexEntryPointName: string, pVertexParameter: VertexParameterLayout, pFragmentEntryPointName?: string) {
+    public constructor(pDevice: GpuDevice, pShader: Shader, pVertexEntryPointName: string, pVertexParameter: VertexParameterLayout, pFragmentEntryPointName: string, pFragmentRenderTargetsLayout: RenderTargetsLayout) {
         super(pDevice);
 
         this.mVertexEntryPoint = pVertexEntryPointName;
         this.mVertexParameter = pVertexParameter;
-        this.mFragmentEntryPoint = pFragmentEntryPointName ?? null;
+        this.mFragmentEntryPoint = pFragmentEntryPointName;
+        this.mFragmentRenderTargetsLayout = pFragmentRenderTargetsLayout;
         this.mShader = pShader;
     }
 
     /**
      * Create a new render pipeline for set render targets layout.
      *
-     * @param pLayout - Render targets layout of pipeline.
-     *
      * @returns new render pipeline.
      */
-    public create(pLayout: RenderTargetsLayout): VertexFragmentPipeline {
-        return new VertexFragmentPipeline(this.device, this, pLayout);
+    public create(): VertexFragmentPipeline {
+        return new VertexFragmentPipeline(this.device, this, this.mFragmentRenderTargetsLayout);
     }
 }

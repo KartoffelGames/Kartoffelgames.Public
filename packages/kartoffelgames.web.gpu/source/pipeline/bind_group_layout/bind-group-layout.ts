@@ -183,11 +183,11 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
                     // Uniform bind when without storage binding.
                     if (lEntry.storageType === StorageBindingType.None) {
                         // Read texture capabilities.
-                        const lTextureFormatCapabilities: TextureFormatCapability = this.device.formatValidator.capabilityOf(lEntry.resource.format);
+                        const lTextureFormatCapabilities: TextureFormatCapability = this.device.textureCapabilities.capabilityOf(lEntry.resource.format);
 
                         // Create image texture bind information.
                         lLayoutEntry.texture = {
-                            sampleType: lTextureFormatCapabilities.sampleTypes.primary,
+                            sampleType: lTextureFormatCapabilities.sampleTypes.values().next().value!, // Use the first supported sample type as the default for sampled textures.
                             multisampled: lEntry.resource.multisampled,
                             viewDimension: lEntry.resource.dimension
                         } satisfies Required<GPUTextureBindingLayout>;

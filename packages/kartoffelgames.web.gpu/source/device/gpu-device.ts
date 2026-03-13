@@ -105,7 +105,7 @@ export class GpuDevice implements IDeconstructable {
     }
 
     private readonly mCapabilities: GpuDeviceCapabilities;
-    private readonly mFormatValidator: GpuTextureFormatCapabilities;
+    private readonly mTextureCapabilities: GpuTextureFormatCapabilities;
     private readonly mFrameChangeListener: List<GpuDeviceFrameChangeListener>;
     private mFreeableGpuObjectIndex: number;
     private readonly mFreeableGpuObjectResources: Map<WeakRef<GpuObject>, Set<GpuDeviceDestroyableObject>>;
@@ -120,10 +120,10 @@ export class GpuDevice implements IDeconstructable {
     }
 
     /**
-     * Texture format validator.
+     * Texture format capabilities.
      */
-    public get formatValidator(): GpuTextureFormatCapabilities {
-        return this.mFormatValidator;
+    public get textureCapabilities(): GpuTextureFormatCapabilities {
+        return this.mTextureCapabilities;
     }
 
     /**
@@ -144,8 +144,8 @@ export class GpuDevice implements IDeconstructable {
         // Setup capabilities.
         this.mCapabilities = new GpuDeviceCapabilities(pDevice);
 
-        // Init form validator.
-        this.mFormatValidator = new GpuTextureFormatCapabilities(this);
+        // Init texture capabilities.
+        this.mTextureCapabilities = new GpuTextureFormatCapabilities(this);
 
         // Frame change listener.
         this.mFrameChangeListener = new List<GpuDeviceFrameChangeListener>();

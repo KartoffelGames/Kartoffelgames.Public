@@ -40,7 +40,7 @@ export class CanvasTexture extends GpuObject<GPUTexture, CanvasTextureInvalidati
      * Canvas format.
      */
     public get format(): TextureFormat {
-        return this.device.formatValidator.preferredCanvasFormat as TextureFormat;
+        return this.device.textureCapabilities.preferredCanvasFormat as TextureFormat;
     }
 
     /**
@@ -130,7 +130,7 @@ export class CanvasTexture extends GpuObject<GPUTexture, CanvasTextureInvalidati
             this.mContext = <GPUCanvasContext><any>this.canvas.getContext('webgpu');
             this.mContext.configure({
                 device: this.device.gpu,
-                format: this.device.formatValidator.preferredCanvasFormat as GPUTextureFormat,
+                format: this.device.textureCapabilities.preferredCanvasFormat as GPUTextureFormat,
                 usage: TextureUsage.CopyDestination | TextureUsage.RenderAttachment,
                 alphaMode: 'opaque'
             });

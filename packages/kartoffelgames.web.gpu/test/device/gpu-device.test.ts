@@ -83,7 +83,7 @@ Deno.test('GpuDevice.formatValidator', async (pContext) => {
         const lDevice: GpuDevice = await gRequestDevice();
 
         // Evaluation.
-        expect(lDevice.formatValidator).toBeTruthy();
+        expect(lDevice.textureCapabilities).toBeTruthy();
 
         // Cleanup.
         lDevice.deconstruct();
@@ -94,7 +94,7 @@ Deno.test('GpuDevice.formatValidator', async (pContext) => {
         const lDevice: GpuDevice = await gRequestDevice();
 
         // Process.
-        const lCapability: TextureFormatCapability = lDevice.formatValidator.capabilityOf('rgba8unorm');
+        const lCapability: TextureFormatCapability = lDevice.textureCapabilities.capabilityOf('rgba8unorm');
 
         // Evaluation.
         expect(lCapability).toBeTruthy();

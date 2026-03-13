@@ -24,6 +24,9 @@ export { ComputePassContext } from './execution/pass/compute-pass-context.ts';
 export { RenderPass } from './execution/pass/render-pass.ts';
 export { RenderPassContext } from './execution/pass/render-pass-context.ts';
 
+// Texture 
+export type { TextureFormatCapability } from './device/capabilities/gpu-texture-format-capabilities.ts';
+
 // Core
 export { GpuDevice } from './device/gpu-device.ts';
 export { GpuObject } from './gpu_object/gpu-object.ts';
@@ -36,6 +39,10 @@ export { CanvasTexture } from './texture/canvas-texture.ts';
 export { TextureSampler } from './texture/texture-sampler.ts';
 
 // Constants
+export type { TextureOperation } from './constant/texture-operation.type.ts';
+export type { TextureDimension } from "./constant/texture-dimension.ts";
+export type { TextureFormat } from "./constant/texture-format.type.ts";
+export type { TextureViewDimension } from "./constant/texture-view-dimension.ts";
 export { BufferAlignmentType } from './constant/buffer-alignment-type.enum.ts';
 export { BufferBindingType } from './constant/buffer-binding-type.enum.ts';
 export { BufferItemFormat } from './constant/buffer-item-format.enum.ts';
@@ -55,8 +62,9 @@ export { StorageBindingType } from './constant/storage-binding-type.enum.ts';
 export { TextureAspect } from './constant/texture-aspect.enum.ts';
 export { TextureBlendFactor } from './constant/texture-blend-factor.enum.ts';
 export { TextureBlendOperation } from './constant/texture-blend-operation.enum.ts';
-export type { TextureOperation } from './constant/texture-operation.type.ts';
 export { TextureSampleType } from './constant/texture-sample-type.enum.ts';
 export { TextureUsage } from './constant/texture-usage.enum.ts';
 export { VertexParameterStepMode } from './constant/vertex-parameter-step-mode.enum.ts';
 export { WrappingMode } from './constant/wrapping-mode.enum.ts';
+
+

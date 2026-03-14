@@ -8,14 +8,3 @@ struct Light {
     packedSize: uint,
     reserved: uint
 }
-
-// ===== PBR Output Struct =====
-struct PbrOutput {
-    albedo: Vector4<float>,
-    normal: Vector3<float>,
-    metallic: float,
-    roughness: float,
-    occlusion: float,
-    emission: Vector3<float>,
-    alphaThreshold: float
-}

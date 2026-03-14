@@ -157,6 +157,17 @@ export class PgslParser extends CodeParser<PgslToken, DocumentCst> {
     }
 
     /**
+     * Check if an import with the given name exists in the parser.
+     * 
+     * @param pImportName - Name of a import.
+     * 
+     * @returns True if the import exists, false otherwise. 
+     */
+    public hasImport(pImportName: string): boolean {
+        return this.mImports.has(pImportName.toLowerCase());
+    }
+
+    /**
      * Parse a text with the set syntax into a concrete sytnax tree.
      * 
      * @param pCodeText - Code as text.

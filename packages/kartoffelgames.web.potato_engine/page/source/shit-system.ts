@@ -17,8 +17,13 @@ import { GameSystem, type GameSystemConstructor, type GameSystemUpdateStateChang
 import { CullSystem, type ReadonlyCullSystemRenderTargetData } from '../../source/system/cull-system.ts';
 import { GpuSystem } from '../../source/system/gpu-system.ts';
 import { LightSystem } from '../../source/system/light-system.ts';
-import { MaterialSystem, ShaderRenderMode, type MaterialSystemCompiledMaterial } from '../../source/system/material-system.ts';
+import { MaterialSystem, type MaterialSystemMaterial, type MaterialSystemRenderModeRegisterResult } from '../../source/system/material-system.ts';
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
+import FORWARD_ENTRY_POINTS from '../../source/shader/forward-entry-points.pgsl';
+import FORWARD_IMPORT from '../../source/shader/forward-import.pgsl';
+import SHARED_TYPES from '../../source/shader/shared-types.pgsl';
+import FORWARD_OBJECT_GROUP from '../../source/shader/object-group-forward.pgsl';
+import FORWARD_WORLD_GROUP from '../../source/shader/world-group-forward.pgsl';
 
 type MaterialMeshGroupData = {
     objectBindGroup: BindGroup;
@@ -36,8 +41,9 @@ type MaterialMeshGroupData = {
  * Each submesh of a mesh can have its own material from the MeshRenderComponent's materials array.
  */
 export class ShitSystem extends GameSystem {
+    private static readonly RENDER_MODE: string = 'ShitRenderMode';
+
     private mCanvas: HTMLCanvasElement | null;
-    private mDefaultPipeline: VertexFragmentPipeline | null;
     private mDependencyCullSystem: CullSystem | null;
     private mDependencyGpuSystem: GpuSystem | null;
     private mDependencyLightSystem: LightSystem | null;
@@ -48,12 +54,11 @@ export class ShitSystem extends GameSystem {
     private mLightIndexListBuffer: GpuBuffer | null;
     // Maps: Material -> Mesh -> subMeshIndex -> group data.
     private readonly mMaterialMeshGroups: Map<Material, Map<Mesh, Map<number, MaterialMeshGroupData>>>;
-    private mObjectGroupIndex: number;
+    private mRenderModeResult: MaterialSystemRenderModeRegisterResult | null;
     private mRenderTargets: RenderTargets | null;
     private mResizeObserver: ResizeObserver | null;
     private readonly mVertexParameterCache: Map<Mesh, Array<VertexParameter>>;
     private mWorldGroup: BindGroup | null;
-    private mWorldGroupIndex: number;
 
     /**
      * Canvas element used for rendering.
@@ -92,7 +97,6 @@ export class ShitSystem extends GameSystem {
         super('ShitSystem', pEnvironment);
 
         this.mCanvas = null;
-        this.mDefaultPipeline = null;
         this.mDependencyCullSystem = null;
         this.mDependencyGpuSystem = null;
         this.mDependencyLightSystem = null;
@@ -102,12 +106,11 @@ export class ShitSystem extends GameSystem {
         this.mLightDataInitialized = false;
         this.mLightIndexListBuffer = null;
         this.mMaterialMeshGroups = new Map();
-        this.mObjectGroupIndex = 1;
+        this.mRenderModeResult = null;
         this.mRenderTargets = null;
         this.mResizeObserver = null;
         this.mVertexParameterCache = new Map();
         this.mWorldGroup = null;
-        this.mWorldGroupIndex = 0;
     }
 
     /**
@@ -121,12 +124,23 @@ export class ShitSystem extends GameSystem {
         this.mDependencyCullSystem = this.environment.getSystem(CullSystem);
         this.mDependencyMaterialSystem = this.environment.getSystem(MaterialSystem);
 
+        // Set global shader import for shared types.
+        this.mDependencyMaterialSystem.setGlobalImport('WorldGroupForward', FORWARD_WORLD_GROUP);
+        this.mDependencyMaterialSystem.setGlobalImport('ObjectGroupForward', FORWARD_OBJECT_GROUP);
+
         // Create canvas if not set before system creation.
         if (!this.mCanvas) {
             this.mCanvas = document.createElement('canvas');
         }
 
         const lGpu = this.mDependencyGpuSystem.gpu;
+
+        // Register the ShitRenderMode with the MaterialSystem using forward shaders.
+        this.mRenderModeResult = this.mDependencyMaterialSystem.registerRenderMode(ShitSystem.RENDER_MODE, {
+            entryPointImport: FORWARD_ENTRY_POINTS,
+            functionalImports: [FORWARD_IMPORT],
+            typeImports: [SHARED_TYPES]
+        });
 
         // Get canvas dimensions.
         const lCanvasWidth: number = Math.round(this.mCanvas.clientWidth * devicePixelRatio);
@@ -135,9 +149,8 @@ export class ShitSystem extends GameSystem {
         lCanvasTexture.width = lCanvasWidth;
         lCanvasTexture.height = lCanvasHeight;
 
-        // Create RenderTargets from MaterialSystem's RenderTargetsLayout.
-        const lRenderTargetsLayout = this.mDependencyMaterialSystem.getRenderTargetsLayout(ShaderRenderMode.Forward);
-        this.mRenderTargets = lRenderTargetsLayout.create();
+        // Create RenderTargets from the registered render mode's layout.
+        this.mRenderTargets = this.mRenderModeResult.renderTargetsLayout.create();
         this.mRenderTargets.setResolveCanvas('color', lCanvasTexture);
         this.mRenderTargets.resize(lCanvasHeight, lCanvasWidth);
 
@@ -164,17 +177,8 @@ export class ShitSystem extends GameSystem {
         });
         this.mResizeObserver.observe(this.mCanvas);
 
-        // Get group indices from MaterialSystem.
-        this.mWorldGroupIndex = this.mDependencyMaterialSystem.getGroupIndex(ShaderRenderMode.Forward, 'World');
-        this.mObjectGroupIndex = this.mDependencyMaterialSystem.getGroupIndex(ShaderRenderMode.Forward, 'Object');
-
-        // Get default material and its pipeline.
-        const lDefaultMaterial: MaterialSystemCompiledMaterial = this.mDependencyMaterialSystem.defaultMaterial;
-        this.mDefaultPipeline = lDefaultMaterial.pipelines.get(ShaderRenderMode.Forward)!;
-
-        // Create World bind group from MaterialSystem's layout and initialize VP buffer.
-        const lWorldLayout = this.mDependencyMaterialSystem.getGroupLayout(ShaderRenderMode.Forward, 'World');
-        this.mWorldGroup = lWorldLayout.create();
+        // Create World bind group from the registered render mode's layout and initialize VP buffer.
+        this.mWorldGroup = this.mRenderModeResult.bindGroupLayouts.world.layout.create();
         this.mWorldGroup.data('viewProjection').createBuffer();
     }
 
@@ -182,7 +186,7 @@ export class ShitSystem extends GameSystem {
      * Execute rendering every frame.
      */
     protected override async onFrame(): Promise<void> {
-        if (!this.mDefaultPipeline) {
+        if (!this.mRenderModeResult) {
             return;
         }
 
@@ -223,25 +227,26 @@ export class ShitSystem extends GameSystem {
     /**
      * Create a new material+mesh group with Object bind group, buffers, and pipeline data.
      */
-    private createMaterialMeshGroup(pLoadedMaterial: MaterialSystemCompiledMaterial, pInitialCount: number): MaterialMeshGroupData {
+    private createMaterialMeshGroup(pLoadedMaterial: MaterialSystemMaterial, pInitialCount: number): MaterialMeshGroupData {
         // Get pipeline for this material.
-        const lPipeline: VertexFragmentPipeline = pLoadedMaterial.pipelines.get(ShaderRenderMode.Forward)!;
+        const lPipeline: VertexFragmentPipeline = pLoadedMaterial.pipeline;
 
-        // Create Object bind group from MaterialSystem's layout.
-        const lObjectLayout = this.mDependencyMaterialSystem!.getGroupLayout(ShaderRenderMode.Forward, 'Object');
-        const lObjectBindGroup: BindGroup = lObjectLayout.create();
+        // Create Object bind group from the registered render mode's layout.
+        const lObjectBindGroup: BindGroup = this.mRenderModeResult!.bindGroupLayouts.object.layout.create();
         lObjectBindGroup.data('transformationData').set(this.mDependencyTransformationSystem!.gpuBuffer);
         const lComponentIndicesBuffer: GpuBuffer = lObjectBindGroup.data('componentIndices').createBuffer(pInitialCount);
 
         // Create pipeline data from material's pipeline layout.
-        const lUserBindGroup: BindGroup | null = pLoadedMaterial.userBinding.group;
-        const lUserGroupIndex: number = pLoadedMaterial.userBinding.index;
+        const lUserBindGroup: BindGroup | null = pLoadedMaterial.userBinding?.group ?? null;
+        const lUserGroupIndex: number = pLoadedMaterial.userBinding?.index ?? -1;
+        const lWorldGroupIndex: number = this.mRenderModeResult!.bindGroupLayouts.world.index;
+        const lObjectGroupIndex: number = this.mRenderModeResult!.bindGroupLayouts.object.index;
 
         const lPipelineData: PipelineData = lPipeline.layout.withData((pSetup) => {
-            const lMaxIndex = Math.max(this.mWorldGroupIndex, this.mObjectGroupIndex, lUserGroupIndex);
+            const lMaxIndex = Math.max(lWorldGroupIndex, lObjectGroupIndex, lUserGroupIndex);
             const lGroups: Array<BindGroup | null> = new Array(lMaxIndex + 1).fill(null);
-            lGroups[this.mWorldGroupIndex] = this.mWorldGroup!;
-            lGroups[this.mObjectGroupIndex] = lObjectBindGroup;
+            lGroups[lWorldGroupIndex] = this.mWorldGroup!;
+            lGroups[lObjectGroupIndex] = lObjectBindGroup;
 
             if (lUserBindGroup && lUserGroupIndex >= 0) {
                 lGroups[lUserGroupIndex] = lUserBindGroup;
@@ -268,7 +273,7 @@ export class ShitSystem extends GameSystem {
      * Create and cache vertex parameters for a mesh.
      * Creates buffers for all ForwardVertexIn attributes, defaulting missing optional attributes.
      */
-    private createVertexParameters(pMesh: Mesh, pLoadedMaterial: MaterialSystemCompiledMaterial): void {
+    private createVertexParameters(pMesh: Mesh, pLoadedMaterial: MaterialSystemMaterial): void {
         const lVertexCount: number = pMesh.verticesData.length / 3;
 
         // Default arrays for optional attributes.
@@ -276,7 +281,7 @@ export class ShitSystem extends GameSystem {
         const lDefaultUvs: Array<number> = new Array(lVertexCount * 2).fill(0);
 
         const lVertexParameters = pMesh.subMeshes.map((pSubMesh) => {
-            const lVertexParam: VertexParameter = pLoadedMaterial.pipelines.get(ShaderRenderMode.Forward)!.module.vertexParameter.create(pSubMesh.indices);
+            const lVertexParam: VertexParameter = pLoadedMaterial.pipeline.module.vertexParameter.create(pSubMesh.indices);
 
             lVertexParam.create('position', pMesh.verticesData);
             lVertexParam.create('normal', pMesh.normals);
@@ -298,7 +303,7 @@ export class ShitSystem extends GameSystem {
      * Each submesh uses its corresponding material from the MeshRenderComponent's materials array.
      */
     private async rebuildInstanceData(pCullingData: ReadonlyCullSystemRenderTargetData): Promise<void> {
-        if (!this.mDefaultPipeline || !this.mWorldGroup) {
+        if (!this.mRenderModeResult || !this.mWorldGroup) {
             return;
         }
 
@@ -387,7 +392,7 @@ export class ShitSystem extends GameSystem {
         // Process each material+mesh+submesh group.
         for (const [lMaterial, lMeshMap] of lGroupMap) {
             // Load material from MaterialSystem (returns compiled material with pipeline).
-            const lLoadedMaterial: MaterialSystemCompiledMaterial = await lMaterialSystem.loadMaterial(lMaterial, ShaderRenderMode.Forward);
+            const lLoadedMaterial: MaterialSystemMaterial = await lMaterialSystem.loadMaterial(ShitSystem.RENDER_MODE, lMaterial);
 
             for (const [lMesh, lSubMeshMap] of lMeshMap) {
                 // Get or create cached vertex parameters for this mesh.

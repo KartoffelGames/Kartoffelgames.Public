@@ -1,28 +1,6 @@
 #IMPORT "WorldGroupForward";
 #IMPORT "ObjectGroupForward";
 
-// ===== User Vertex Input (local-space attributes) =====
-struct VertexInput {
-    position: Vector3<float>,
-    normal: Vector3<float>,
-    color: Vector4<float>,
-    uv: Vector2<float>,
-    uv2: Vector2<float>,
-    uv3: Vector2<float>,
-    uv4: Vector2<float>
-}
-
-// ===== User Vertex Output (modified local-space) =====
-struct VertexOutput {
-    position: Vector3<float>,
-    normal: Vector3<float>,
-    color: Vector4<float>,
-    uv: Vector2<float>,
-    uv2: Vector2<float>,
-    uv3: Vector2<float>,
-    uv4: Vector2<float>
-}
-
 // ===== User Fragment Input (interpolated values) =====
 struct FragmentInput {
     normal: Vector3<float>,
@@ -30,32 +8,6 @@ struct FragmentInput {
     uv: Vector2<float>,
     uv2: Vector2<float>,
     uv3: Vector2<float>,
-    uv4: Vector2<float>
-}
-
-// ===== Internal Raw Vertex Input (GPU attributes) =====
-struct ForwardVertexIn {
-    instanceId: InstanceIndex,
-
-    [Location("position")]
-    position: Vector3<float>,
-
-    [Location("normal")]
-    normal: Vector3<float>,
-
-    [Location("color")]
-    color: Vector4<float>,
-
-    [Location("uv")]
-    uv: Vector2<float>,
-
-    [Location("uv2")]
-    uv2: Vector2<float>,
-
-    [Location("uv3")]
-    uv3: Vector2<float>,
-
-    [Location("uv4")]
     uv4: Vector2<float>
 }
 

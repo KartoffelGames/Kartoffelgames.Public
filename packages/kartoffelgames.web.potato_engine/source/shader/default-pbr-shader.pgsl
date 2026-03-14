@@ -25,10 +25,10 @@ function vertex(input: VertexInput): VertexOutput {
     return out;
 }
 
-function fragment(input: FragmentInput): PbrOutput {
+function fragment(input: FragmentInput): FragmentOutput {
     const texColor: Vector4<float> = textureSample(baseColorTexture, baseColorSampler, input.uv);
 
-    let out: PbrOutput;
+    let out: FragmentOutput;
     out.albedo = baseColorFactor * texColor * input.color;
     out.normal = input.normal;
     out.metallic = metallicFactor;

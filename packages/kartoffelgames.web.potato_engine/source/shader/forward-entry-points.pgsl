@@ -1,6 +1,6 @@
 // ===== Vertex Entry Point =====
 [Vertex()]
-function vertex_main(pVertex: ForwardVertexIn): ForwardVertexOutput {
+function vertex_main(pVertex: GpuVertexInput): ForwardVertexOutput {
     const componentIndex: uint = componentIndices[pVertex.instanceId];
     const worldMatrix: Matrix44<float> = transformationData[componentIndex];
 
@@ -47,7 +47,7 @@ function fragment_main(pFragment: ForwardFragmentInput): ForwardFragmentOutput {
     userInput.uv4 = pFragment.uv4;
 
     // Call user fragment function.
-    const pbrResult: PbrOutput = fragment(userInput);
+    const pbrResult: FragmentOutput = fragment(userInput);
 
     // Apply PBR lighting.
     const lighting: Vector3<float> = calculateLighting(pFragment.worldPosition.xyz, normalize(pbrResult.normal));

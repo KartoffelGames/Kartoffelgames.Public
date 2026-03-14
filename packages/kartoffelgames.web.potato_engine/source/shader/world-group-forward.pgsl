@@ -1,5 +1,3 @@
-#IMPORT "SharedTypes";
-
 // ===== World Bindings (shared across all objects for same camera) =====
 [GroupBinding("World", "viewProjection")]
 uniform viewProjection: Matrix44<float>;

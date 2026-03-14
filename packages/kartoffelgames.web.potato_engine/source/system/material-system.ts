@@ -359,11 +359,7 @@ export class MaterialSystem extends GameSystem {
         }
 
         // Compile shader code with mode-specific imports.
-        const lPgsl: string = `
-            ${lModeConfig.prefixShader}
-            ${lShaderCode}
-            ${lModeConfig.suffixShader}
-        `;
+        const lPgsl: string = `${lModeConfig.prefixShader}\n${lShaderCode}\n${lModeConfig.suffixShader}`;
 
         // Transpile PGSL to WGSL and check for incidents.
         const lParserResult: PgslParserResult = this.mParser.transpile(lPgsl, new WgslTranspiler());
@@ -587,6 +583,22 @@ export class MaterialSystem extends GameSystem {
     }
 
     /**
+     * Set a global shader import that can be used in any material shader.
+     * 
+     * @param pImportName - The name of the import to register. This name is used in the shader with `#IMPORT "ImportName"`.
+     * @param pShaderCode - The PGSL shader code to register as an import. This code can contain bindings and functions that will be available in any shader that imports it.
+     */
+    public setGlobalImport(pImportName: string, pShaderCode: string): void {
+        // Restrict dublicate imports.
+        if (this.mParser.hasImport(pImportName)) {
+            throw new Exception(`Import with name "${pImportName}" already exists.`, this);
+        }
+
+        // Update the global import in the parser.
+        this.mParser.addImport(pImportName, pShaderCode);
+    }
+
+    /**
      * Register a new render mode.
      * Allows adding custom render modes with their own shader imports, entry points, and render target configurations.
      * 
@@ -608,22 +620,18 @@ export class MaterialSystem extends GameSystem {
         // Build the prefix and suffix shader code for this mode based on the provided imports.
         let lPrefixShader: string = '#IMPORT "Core-Parameter";\n';
         lPrefixShader += pConfiguration.typeImports.map((_pImport, pIndex) => {
-            return `#IMPORT "${pMode}__type-${pIndex}"`;
+            return `#IMPORT "${pMode}__type-${pIndex}";`;
         }).join('\n');
         lPrefixShader += '\n';
         lPrefixShader += pConfiguration.functionalImports.map((_pImport, pIndex) => {
-            return `#IMPORT "${pMode}__functional-${pIndex}"`;
+            return `#IMPORT "${pMode}__functional-${pIndex}";`;
         }).join('\n');
 
         // Suffix shader only contains the entry point imports.
-        const lSuffixShader: string = `#IMPORT "${pMode}__entry-point"`;
+        const lSuffixShader: string = `#IMPORT "${pMode}__entry-point";`;
 
         // Create reference shader with the empty core template
-        const lReferenceShaderResult: PgslParserResult = this.mParser.transpile(`
-            ${lPrefixShader}
-            #IMPORT "Core-Template";
-            ${lSuffixShader};
-        `, new WgslTranspiler());
+        const lReferenceShaderResult: PgslParserResult = this.mParser.transpile(`${lPrefixShader}\n#IMPORT "Core-Template";\n${lSuffixShader}`, new WgslTranspiler());
 
         // Check for incidents before extracting layouts to avoid partial registration if the default shader has issues.
         if (lReferenceShaderResult.incidents.length > 0) {

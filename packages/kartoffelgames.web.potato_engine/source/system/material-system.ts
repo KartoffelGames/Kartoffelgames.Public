@@ -488,7 +488,7 @@ export class MaterialSystem extends GameSystem {
                 const lParameterType: MaterialSystemEntryPointType = this.convertEntryPointType(lEntryPointParameter.type);
 
                 // Set buffer layout based on parameter type.
-                pSetup.buffer(lEntryPointParameter.name, VertexParameterStepMode.Vertex).withParameter(lEntryPointParameter.name, lEntryPointParameter.location, lParameterType.format, lParameterType.multiplier);
+                pSetup.buffer(lEntryPointParameter.name, VertexParameterStepMode.Index).withParameter(lEntryPointParameter.name, lEntryPointParameter.location, lParameterType.format, lParameterType.multiplier);
             }
         });
 

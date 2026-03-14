@@ -78,7 +78,7 @@ export class PgslParserResultFragmentEntryPoint extends PgslParserResultEntryPoi
             const lLocationIndex: number = pMeta.createLocationFor(lStruct, lProperty);
 
             lParameters.push({
-                metaValues: new Map<string, string>(Object.entries(lProperty.data.attributes.data.metaValues)),
+                metaValues: new Map<string, string>(lProperty.data.attributes.data.metaValues),
                 name: lProperty.data.name,
                 location: lLocationIndex,
                 type: this.convertType(lProperty.data.typeDeclaration.data.type)

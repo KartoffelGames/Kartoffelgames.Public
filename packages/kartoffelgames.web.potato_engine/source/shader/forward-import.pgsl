@@ -64,6 +64,7 @@ struct ForwardFragmentInput {
 // ===== Fragment Output =====
 struct ForwardFragmentOutput {
     [Location("color")]
+    [Meta("format", "bgra8unorm")]
     color: Vector4<float>
 }
 

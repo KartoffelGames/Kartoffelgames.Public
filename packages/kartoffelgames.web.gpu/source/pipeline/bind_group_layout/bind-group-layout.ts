@@ -101,6 +101,7 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
 
     /**
      * Get full bind information.
+     * 
      * @param pName - Bind name.
      */
     public getBind(pName: string): Readonly<BindGroupBindLayout> {
@@ -112,6 +113,20 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
         }
 
         return this.mBindings.get(pName)!;
+    }
+
+    /**
+     * Check if a bind with the specified name exists.
+     * 
+     * @param pName - Bind name.
+     * 
+     * @returns True if the bind exists, false otherwise. 
+     */
+    public hasBind(pName: string): boolean {
+        // Ensure setup.
+        this.ensureSetup();
+
+        return this.mBindings.has(pName);
     }
 
     /**

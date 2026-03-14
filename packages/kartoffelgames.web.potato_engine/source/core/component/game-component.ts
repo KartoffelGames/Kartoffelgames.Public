@@ -1,7 +1,7 @@
 import type { IVoidParameterConstructor } from '../../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import type { GameEntity } from '../hierarchy/game-entity.ts';
 import { GameObject } from '../hierarchy/game-object.ts';
-import type { IGameUpdateable } from '../i-game-updateable.interface.ts';
+import type { GameUpdateableUpdateListener, IGameUpdateable } from '../i-game-updateable.interface.ts';
 
 // TODO: Define some decorators to allow easy saving and loading of components in binary or json files.
 
@@ -10,8 +10,9 @@ import type { IGameUpdateable } from '../i-game-updateable.interface.ts';
  * Components are used to store data and state for game objects in the environment.
  * They can be enabled or disabled, which signals the environment to activate or deactivate them.
  */
-export class GameComponent extends GameObject implements IGameUpdateable{
+export class GameComponent<TUpdateStateChanges extends string = any> extends GameObject implements IGameUpdateable<TUpdateStateChanges> {
     private mGameEntity: GameEntity | null;
+    private readonly mUpdateListeners: Array<GameUpdateableUpdateListener<TUpdateStateChanges>>;
 
     /**
      * Get the list of component types that this component depends on.
@@ -30,7 +31,7 @@ export class GameComponent extends GameObject implements IGameUpdateable{
      * 
      * @returns The game entity that this component is attached to.
      */
-    public get gameEntity(): GameEntity { 
+    public get gameEntity(): GameEntity {
         // We assume that the parent of a component is always a game entity, as components should only be added to game entities.
         return this.mGameEntity!; // lets assume this is always set, as components should only be added to game entities and the parent should be set in the addComponent method of GameEntity.
     }
@@ -44,8 +45,19 @@ export class GameComponent extends GameObject implements IGameUpdateable{
     public constructor(pLabel: string) {
         super(pLabel);
 
+        this.mUpdateListeners = new Array<GameUpdateableUpdateListener<TUpdateStateChanges>>();
+
         // Initialy not set.
         this.mGameEntity = null;
+    }
+
+    /**
+     * Add a listener function that will be called whenever this object is updated.
+     * 
+     * @param pListener - The listener function to add.
+     */
+    public addUpdateListener(pListener: GameUpdateableUpdateListener<TUpdateStateChanges>): void {
+        this.mUpdateListeners.push(pListener);
     }
 
     /**
@@ -70,6 +82,18 @@ export class GameComponent extends GameObject implements IGameUpdateable{
     }
 
     /**
+     * Removes a previously added update listener function.
+     * 
+     * @param pListener - The listener function to remove.
+     */
+    public removeUpdateListener(pListener: GameUpdateableUpdateListener<TUpdateStateChanges>): void {
+        const lIndex = this.mUpdateListeners.indexOf(pListener);
+        if (lIndex !== -1) {
+            this.mUpdateListeners.splice(lIndex, 1);
+        }
+    }
+
+    /**
      * Set the parent of this component to the given game entity.
      * 
      * @param pParent - Parent game entity.
@@ -83,8 +107,14 @@ export class GameComponent extends GameObject implements IGameUpdateable{
      *
      * @internal
      */
-    public update(): void {
+    public update(pStateChanges?: TUpdateStateChanges): void {
         this.gameEntity.sendComponentChangeEvent('update', this);
+
+        if (this.mUpdateListeners.length > 0) {
+            for (const lListener of this.mUpdateListeners) {
+                lListener(pStateChanges);
+            }
+        }
     }
 
     /**

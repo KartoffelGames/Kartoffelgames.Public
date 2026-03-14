@@ -170,14 +170,14 @@ export class SceneSetup {
 
         // 1x1 white PNG placeholder for baseColorTexture.
         // texture data containing a 2x2 checkerboard pattern;
-        const lTextureData: string = '/9j/4AAQSkZJRgABAQEAYABgAAD/4QAiRXhpZgAATU0AKgAAAAgAAQESAAMAAAABAAEAAAAAAAD/2wBDAAIBAQI' + 
-            'BAQICAgICAgICAwUDAwMDAwYEBAMFBwYHBwcGBwcICQsJCAgKCAcHCg0KCgsMDAwMBwkODw0MDgsMDAz/2wBDAQICAgMDAwYDAwYMCAcIDAwMDAw' + 
-            'MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAz/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAA' + 
-            'AAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo' + 
-            '0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytL' + 
-            'T1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAE' + 
-            'CAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ' + 
-            '3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAI' + 
+        const lTextureData: string = '/9j/4AAQSkZJRgABAQEAYABgAAD/4QAiRXhpZgAATU0AKgAAAAgAAQESAAMAAAABAAEAAAAAAAD/2wBDAAIBAQI' +
+            'BAQICAgICAgICAwUDAwMDAwYEBAMFBwYHBwcGBwcICQsJCAgKCAcHCg0KCgsMDAwMBwkODw0MDgsMDAz/2wBDAQICAgMDAwYDAwYMCAcIDAwMDAw' +
+            'MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAz/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAA' +
+            'AAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo' +
+            '0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytL' +
+            'T1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAE' +
+            'CAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ' +
+            '3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAI' +
             'RAxEAPwD9/KKKKAP/2Q==';
 
         // Convert the base64 string to binary data.
@@ -553,7 +553,17 @@ export class SceneSetup {
             { x: 1, y: -0.5, z: 33 }, { x: -2, y: 0, z: 38 }, { x: 6, y: -1, z: 35 },
         ];
 
-        const lBoxMaterials: Array<Material> = [this.mRedMaterial, this.mBlueMaterial, this.mGreenMaterial, this.mYellowMaterial];
+        // Create a custom material for a box that changes color each second.
+        const lSpecialMaterial: Material = SceneSetup.createMaterial(1, 1, 1, 1);
+        globalThis.setInterval(() => {
+            const lTime = Date.now() / 1000;
+            const r = (Math.sin(lTime) * 0.5 + 0.5);
+            const g = (Math.sin(lTime + 2) * 0.5 + 0.5);
+            const b = (Math.sin(lTime + 4) * 0.5 + 0.5);
+            lSpecialMaterial.setBinding('baseColorFactor', new Float32Array([r, g, b, 1]).buffer);
+        }, 10);
+
+        const lBoxMaterials: Array<Material> = [this.mRedMaterial, this.mBlueMaterial, this.mGreenMaterial, this.mYellowMaterial, lSpecialMaterial];
         for (let lIndex = 0; lIndex < lPositions.length; lIndex++) {
             const lPos = lPositions[lIndex];
             const lScale = 0.4 + (lIndex % 3) * 0.3;

@@ -1,11 +1,11 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslParser, type PgslParserResult, type PgslParserResultBinding, type PgslParserResultFragmentEntryPoint, PgslParserResultMatrixType, type PgslParserResultNumberTypeType, PgslParserResultNumericType, PgslParserResultSamplerType, PgslParserResultTextureType, type PgslParserResultType, PgslParserResultVectorType, type PgslParserResultVertexEntryPoint, WgslTranspiler } from '@kartoffelgames/core-pgsl';
-import { type BindGroup, type BindGroupBindLayout, BindGroupLayout, type BindGroupLayoutMemoryLayoutSetup, BufferItemFormat, BufferItemMultiplier, ComputeStage, Shader as GpuShader, type GpuTexture, type GpuTextureView, PrimitiveCullMode, PrimitiveFrontFace, PrimitiveTopology, RenderTargetsLayout, SamplerType, type ShaderRenderModule, StorageBindingType, TextureAspect, type TextureFormat, type TextureFormatCapability, TextureSampleType, type VertexFragmentPipeline, VertexParameterLayout, VertexParameterStepMode } from '@kartoffelgames/web-gpu';
+import { type BindGroup, type BindGroupBindLayout, type BindGroupDataSetup, BindGroupLayout, type BindGroupLayoutMemoryLayoutSetup, BufferItemFormat, BufferItemMultiplier, ComputeStage, type GpuBuffer, Shader as GpuShader, type GpuTexture, type GpuTextureView, PrimitiveCullMode, PrimitiveFrontFace, PrimitiveTopology, RenderTargetsLayout, SamplerType, type ShaderRenderModule, StorageBindingType, TextureAspect, type TextureFormat, type TextureFormatCapability, TextureSampleType, type VertexFragmentPipeline, VertexParameterLayout, VertexParameterStepMode } from '@kartoffelgames/web-gpu';
 import { Color } from '../component_item/color.ts';
 import type { Material, MaterialBindingValue } from '../component_item/material.ts';
 import { Texture } from '../component_item/texture.ts';
 import type { GameEnvironment } from '../core/environment/game-environment.ts';
-import { GameSystem, type GameSystemConstructor } from '../core/game-system.ts';
+import { GameSystem, type GameSystemUpdateStateChanges, type GameSystemConstructor } from '../core/game-system.ts';
 import { GpuSystem } from './gpu-system.ts';
 import { TextureSystem } from './texture-system.ts';
 
@@ -39,8 +39,9 @@ export class MaterialSystem extends GameSystem {
     private readonly mParser: PgslParser;
     private readonly mRenderModes: Map<string, MaterialSystemRenderMode>;
     private mTextureSystem: TextureSystem | null;
+    private mUpdatedMaterials: Array<MaterialSystemMaterialUpdate>;
     private mVertexParameterLayout: VertexParameterLayout | null;
-
+    
     /**
      * Gets the system types this system depends on.
      */
@@ -71,61 +72,7 @@ export class MaterialSystem extends GameSystem {
         this.mGpuSystem = null;
         this.mTextureSystem = null;
         this.mVertexParameterLayout = null;
-    }
-
-    /**
-     * Map a PgslParserResultType to GPU buffer format and multiplier.
-     *
-     * @param pType - The PGSL parser result type to convert.
-     *
-     * @returns The corresponding MaterialSystemEntryPointType with buffer format and multiplier.
-     */
-    public convertEntryPointType(pType: PgslParserResultType): MaterialSystemEntryPointType {
-        if (pType instanceof PgslParserResultNumericType) {
-            // Map numeric types directly to buffer formats.
-            const lFormat: BufferItemFormat = (() => {
-                switch (pType.numberType) {
-                    case 'unsigned-integer': return BufferItemFormat.Uint32;
-                    case 'integer': return BufferItemFormat.Sint32;
-                    case 'float': return BufferItemFormat.Float32;
-                    case 'float16': return BufferItemFormat.Float16;
-                    default:
-                        throw new Error(`Unsupported numeric type: ${pType.numberType}`);
-                }
-            })();
-
-            return { format: lFormat, multiplier: BufferItemMultiplier.Single };
-        }
-
-        // Map vector types to their element type format and appropriate multiplier.
-        if (pType instanceof PgslParserResultVectorType) {
-            const lInnerType: MaterialSystemEntryPointType = this.convertEntryPointType(pType.elementType);
-
-            switch (pType.dimension) {
-                case 2: return { format: lInnerType.format, multiplier: BufferItemMultiplier.Vector2 };
-                case 3: return { format: lInnerType.format, multiplier: BufferItemMultiplier.Vector3 };
-                case 4: return { format: lInnerType.format, multiplier: BufferItemMultiplier.Vector4 };
-            }
-        }
-
-        // Map matrix dimensions to appropriate format and multiplier.
-        if (pType instanceof PgslParserResultMatrixType) {
-            switch (`${pType.rows}${pType.columns}`) {
-                case '22': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix22 };
-                case '23': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix23 };
-                case '24': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix24 };
-                case '32': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix32 };
-                case '33': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix33 };
-                case '34': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix34 };
-                case '42': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix42 };
-                case '43': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix43 };
-                case '44': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix44 };
-                default:
-                    throw new Error(`Unsupported matrix dimensions: ${pType.rows}x${pType.columns}`);
-            }
-        }
-
-        throw new Error(`Unsupported type for buffer mapping: ${pType.type}`);
+        this.mUpdatedMaterials = new Array<MaterialSystemMaterialUpdate>();
     }
 
     /**
@@ -328,6 +275,86 @@ export class MaterialSystem extends GameSystem {
         // Get dependencies.
         this.mGpuSystem = this.environment.getSystem(GpuSystem);
         this.mTextureSystem = this.environment.getSystem(TextureSystem);
+    }
+
+    /**
+     * Update method called by the game environment. Processes material updates and updates bind groups accordingly.
+     */
+    protected override async onUpdate(_pStateChanges: GameSystemUpdateStateChanges): Promise<void> {
+        // Skip update if no materials have been updated since the last update.
+        if (this.mUpdatedMaterials.length === 0) {
+            return;
+        }
+
+        // Update each updated material's bind groups with the new data.
+        for (const lMaterialUpdate of this.mUpdatedMaterials) {
+            // Read compiled material for the updated material.
+            const lCompiledMaterial: MaterialSystemCompiledMaterial | undefined = this.mCompiledMaterials.get(lMaterialUpdate.material);
+            if(!lCompiledMaterial) {
+                continue;
+            }
+
+            // Update the material's user bind group with the new binding value.
+            await this.updateBindingValue(lMaterialUpdate.material, lCompiledMaterial.userBinding!.group, lMaterialUpdate.updatedBinding);
+        }
+
+        // Clear the updated materials array after processing all updates.
+        this.mUpdatedMaterials = new Array<MaterialSystemMaterialUpdate>();
+    }
+
+    /**
+     * Map a PgslParserResultType to GPU buffer format and multiplier.
+     *
+     * @param pType - The PGSL parser result type to convert.
+     *
+     * @returns The corresponding MaterialSystemEntryPointType with buffer format and multiplier.
+     */
+    private convertEntryPointType(pType: PgslParserResultType): MaterialSystemEntryPointType {
+        if (pType instanceof PgslParserResultNumericType) {
+            // Map numeric types directly to buffer formats.
+            const lFormat: BufferItemFormat = (() => {
+                switch (pType.numberType) {
+                    case 'unsigned-integer': return BufferItemFormat.Uint32;
+                    case 'integer': return BufferItemFormat.Sint32;
+                    case 'float': return BufferItemFormat.Float32;
+                    case 'float16': return BufferItemFormat.Float16;
+                    default:
+                        throw new Error(`Unsupported numeric type: ${pType.numberType}`);
+                }
+            })();
+
+            return { format: lFormat, multiplier: BufferItemMultiplier.Single };
+        }
+
+        // Map vector types to their element type format and appropriate multiplier.
+        if (pType instanceof PgslParserResultVectorType) {
+            const lInnerType: MaterialSystemEntryPointType = this.convertEntryPointType(pType.elementType);
+
+            switch (pType.dimension) {
+                case 2: return { format: lInnerType.format, multiplier: BufferItemMultiplier.Vector2 };
+                case 3: return { format: lInnerType.format, multiplier: BufferItemMultiplier.Vector3 };
+                case 4: return { format: lInnerType.format, multiplier: BufferItemMultiplier.Vector4 };
+            }
+        }
+
+        // Map matrix dimensions to appropriate format and multiplier.
+        if (pType instanceof PgslParserResultMatrixType) {
+            switch (`${pType.rows}${pType.columns}`) {
+                case '22': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix22 };
+                case '23': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix23 };
+                case '24': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix24 };
+                case '32': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix32 };
+                case '33': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix33 };
+                case '34': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix34 };
+                case '42': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix42 };
+                case '43': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix43 };
+                case '44': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix44 };
+                default:
+                    throw new Error(`Unsupported matrix dimensions: ${pType.rows}x${pType.columns}`);
+            }
+        }
+
+        throw new Error(`Unsupported type for buffer mapping: ${pType.type}`);
     }
 
     /**
@@ -612,51 +639,23 @@ export class MaterialSystem extends GameSystem {
 
             // Fill each bindings by name.
             for (const lBindingName of lUserBindingLayout.layout.orderedBindingNames) {
-                // Read definition and value for this binding.
-                const lBindingLayout: Readonly<BindGroupBindLayout> = lUserBindingLayout.layout.getBind(lBindingName);
-                const lBindingValue: MaterialBindingValue | undefined = pMaterial.getBinding(lBindingName);
-
-                switch (lBindingLayout.resource.type) {
-                    case 'sampler': {
-                        lUserBindGroup.data(lBindingName).createSampler();
-                        break;
-                    }
-
-                    case 'texture': {
-                        if (!(lBindingValue instanceof Texture)) {
-                            throw new Exception(`Expected a Texture material binding value for texture binding "${lBindingName}", but got ${typeof lBindingValue}.`, this);
-                        }
-
-                        const lGpuTexture: GpuTexture = await this.mTextureSystem!.getGpuTexture(lBindingValue);
-
-                        // Map parser result dimension string to TextureViewDimension.
-                        const lTextureView: GpuTextureView = lGpuTexture.useAs(lBindingLayout.resource.dimension);
-                        lUserBindGroup.data(lBindingName).set(lTextureView);
-                        break;
-                    }
-
-                    case 'buffer': {
-                        // Handle buffer bindings.
-                        if (lBindingValue instanceof Color) {
-                            // Color -> write as Float32Array [r, g, b, a].
-                            lUserBindGroup.data(lBindingName).createBuffer().write(new Float32Array(lBindingValue.data).buffer);
-                        } else if (typeof lBindingValue === 'number') {
-                            // Number -> write as single Float32.
-                            lUserBindGroup.data(lBindingName).createBuffer().write(new Float32Array([lBindingValue]).buffer);
-                        } else if (lBindingValue instanceof ArrayBuffer) {
-                            // ArrayBuffer -> write raw data.
-                            lUserBindGroup.data(lBindingName).createBufferWithRawData(lBindingValue);
-                        } else {
-                            // No matching material value.
-                            throw new Exception(`No material binding value found for buffer binding "${lBindingName}".`, this);
-                        }
-                        break;
-                    }
-                }
+                // Update the bind group with the material's binding value for this binding. 
+                await this.updateBindingValue(pMaterial, lUserBindGroup, lBindingName);
             }
 
             return lUserBindGroup;
         })();
+
+        // Register a change listener on the material to update the bind group when the material bindings change.
+        pMaterial.addUpdateListener((pChangedBinding) => {
+            // Only update materials that have this binding in their shader to avoid unnecessary updates.
+            if (lBindGroup.layout.hasBind(pChangedBinding)) {
+                this.mUpdatedMaterials.push({
+                    material: pMaterial,
+                    updatedBinding: pChangedBinding
+                });
+            }
+        });
 
         return {
             group: lBindGroup,
@@ -690,27 +689,74 @@ export class MaterialSystem extends GameSystem {
 
         return this.mVertexParameterLayout;
     }
-}
-
-/**
- * Configuration for a registered render mode.
- */
-export type MaterialSystemRenderModeConfiguration = {
-    /** 
-     * Vertex entry point function name (e.g., "vertex_main").
-     */
-    entryPointImport: string;
-
-    /** 
-     * Parser import name for the functional shader (e.g., "Forward"). 
-     */
-    functionalImports: Array<string>;
 
     /**
-     * General shaderd type imports used by the modes shaders.
+     * Update a User bind group binding value based on the material's current binding value for that binding.
+     * 
+     * @param pMaterial - The material with the updated binding value.
+     * @param pUserBindGroup - The User bind group to update.
+     * @param pBindingName - The name of the binding to update in the bind group.
      */
-    typeImports: Array<string>;
+    private async updateBindingValue(pMaterial: Material, pUserBindGroup: BindGroup, pBindingName: string): Promise<void> {
+        const lBindingValue: MaterialBindingValue | undefined = pMaterial.getBinding(pBindingName);
+        const lBindingLayout: Readonly<BindGroupBindLayout> = pUserBindGroup.layout.getBind(pBindingName);
 
+        switch (lBindingLayout.resource.type) {
+            case 'sampler': {
+                pUserBindGroup.data(pBindingName).createSampler();
+                break;
+            }
+
+            case 'texture': {
+                if (!(lBindingValue instanceof Texture)) {
+                    throw new Exception(`Expected a Texture material binding value for texture binding "${pBindingName}", but got ${typeof lBindingValue}.`, this);
+                }
+
+                const lGpuTexture: GpuTexture = await this.mTextureSystem!.getGpuTexture(lBindingValue);
+
+                // Map parser result dimension string to TextureViewDimension.
+                const lTextureView: GpuTextureView = lGpuTexture.useAs(lBindingLayout.resource.dimension);
+                pUserBindGroup.data(pBindingName).set(lTextureView);
+                break;
+            }
+
+            case 'buffer': {
+                // Read buffer data from material binding.
+                const lBufferData: ArrayBuffer = (() => {
+                    if (lBindingValue instanceof Color) {
+                        // Color -> write as Float32Array [r, g, b, a].
+                        return new Float32Array(lBindingValue.data).buffer;
+                    } else if (typeof lBindingValue === 'number') {
+                        // Number -> write as single Float32.
+                        return new Float32Array([lBindingValue]).buffer;
+                    } else if (lBindingValue instanceof ArrayBuffer) {
+                        // ArrayBuffer -> write raw data.
+                        return lBindingValue;
+                    } else {
+                        // No matching material value.
+                        throw new Exception(`No material binding value found for buffer binding "${pBindingName}".`, this);
+                    }
+                })();
+
+                // Read binding data.
+                const lBindGroupData: BindGroupDataSetup = pUserBindGroup.data(pBindingName);
+
+                // Create or update buffer with the binding data.
+                if(lBindGroupData.hasData) {
+                    lBindGroupData.getRaw<GpuBuffer>().write(lBufferData);
+                } else {
+                    lBindGroupData.createBuffer().write(lBufferData);
+                }
+
+                break;
+            }
+        }
+    }
+}
+
+type MaterialSystemMaterialUpdate = {
+    material: Material;
+    updatedBinding: string;
 };
 
 type MaterialSystemEntryPointType = {
@@ -754,14 +800,6 @@ type MaterialSystemRenderMode = {
     renderTargetsLayout: RenderTargetsLayout;
 };
 
-export type MaterialSystemRenderModeRegisterResult = {
-    bindGroupLayouts: {
-        world: MaterialSystemGroupLayout;
-        object: MaterialSystemGroupLayout;
-    };
-    renderTargetsLayout: RenderTargetsLayout;
-};
-
 /**
  * Cache for loaded materials.
  */
@@ -790,4 +828,35 @@ export type MaterialSystemMaterial = {
         readonly group: BindGroup;
         readonly index: number;
     } | null;
+};
+
+/**
+ * Return type for render mode registration, containing the pre-created bind group layouts and render targets layout for the mode to be used in material loading and shader creation.
+ */
+export type MaterialSystemRenderModeRegisterResult = {
+    bindGroupLayouts: {
+        world: MaterialSystemGroupLayout;
+        object: MaterialSystemGroupLayout;
+    };
+    renderTargetsLayout: RenderTargetsLayout;
+};
+
+/**
+ * Configuration for a registered render mode.
+ */
+export type MaterialSystemRenderModeConfiguration = {
+    /** 
+     * Vertex entry point function name (e.g., "vertex_main").
+     */
+    entryPointImport: string;
+
+    /** 
+     * Parser import name for the functional shader (e.g., "Forward"). 
+     */
+    functionalImports: Array<string>;
+
+    /**
+     * General shaderd type imports used by the modes shaders.
+     */
+    typeImports: Array<string>;
 };

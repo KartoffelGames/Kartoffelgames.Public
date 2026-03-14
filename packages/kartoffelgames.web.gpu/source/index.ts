@@ -1,5 +1,3 @@
-
-
 // Shader
 export { Shader } from './shader/shader.ts';
 export { ShaderComputeModule } from './shader/shader-compute-module.ts';
@@ -18,6 +16,7 @@ export { VertexFragmentPipeline } from './pipeline/vertex_fragment_pipeline/vert
 export { VertexParameter } from './pipeline/vertex_parameter/vertex-parameter.ts';
 export { VertexParameterLayout } from './pipeline/vertex_parameter/vertex-parameter-layout.ts';
 export { BindGroupLayoutMemoryLayoutSetup } from './pipeline/bind_group_layout/bind-group-layout-memory-layout-setup.ts';
+export { BindGroupDataSetup } from './pipeline/bind_group/bind-group-data-setup.ts';
 
 // Execution
 export { GpuExecution } from './execution/gpu-execution.ts';

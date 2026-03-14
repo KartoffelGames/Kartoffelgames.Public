@@ -19,6 +19,14 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
     private readonly mCurrentData: GpuResourceObject | null;
 
     /**
+     * Indicates whether this bind group data setup currently has data set.
+     * When false, the bind group will not be able to be used for rendering until data is set.
+     */
+    public get hasData(): boolean {
+        return this.mCurrentData !== null;
+    }
+
+    /**
      * Constructor.
      *
      * @param pLayout - Target layout.
@@ -234,7 +242,7 @@ export class BindGroupDataSetup extends GpuObjectChildSetup<null, BindGroupDataC
         // Calculate variable item count from initial buffer data.
         const lVariableItemCount: number = (() => {
             // When layout has variable size but no variable count was set, throw an error.
-            if(lBindLayoutBuffer.variableSize > 0 && pVariableSizeCount === null) {
+            if (lBindLayoutBuffer.variableSize > 0 && pVariableSizeCount === null) {
                 throw new Exception(`For bind group data buffer "${this.mBindLayout.name}" a variable item count must be set.`, this);
             }
 

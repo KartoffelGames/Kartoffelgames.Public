@@ -53,7 +53,6 @@ export class Material extends GameComponentItem {
         this.update();
     }
 
-
     /**
      * Constructor.
      */
@@ -88,7 +87,7 @@ export class Material extends GameComponentItem {
         this.systemgate();
 
         this.mBindings.set(pName, pValue);
-        this.update();
+        this.update(pName);
     }
 }
 

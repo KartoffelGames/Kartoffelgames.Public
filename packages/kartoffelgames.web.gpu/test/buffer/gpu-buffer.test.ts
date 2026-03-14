@@ -146,7 +146,7 @@ Deno.test('GpuBuffer.write() and GpuBuffer.read()', async (pContext) => {
 
         // Process. Write data into buffer and read it back.
         const lWriteData: Float32Array = new Float32Array([1.0, 2.0, 3.0, 4.0]);
-        await lBuffer.write(lWriteData.buffer);
+        lBuffer.write(lWriteData.buffer);
         const lReadResult: ArrayBuffer = await lBuffer.read();
 
         // Evaluation.
@@ -168,7 +168,7 @@ Deno.test('GpuBuffer.write() and GpuBuffer.read()', async (pContext) => {
 
         // Process. Write full data then read only 8 bytes starting at offset 8.
         const lWriteData: Float32Array = new Float32Array([10.0, 20.0, 30.0, 40.0]);
-        await lBuffer.write(lWriteData.buffer);
+        lBuffer.write(lWriteData.buffer);
         const lReadResult: ArrayBuffer = await lBuffer.read(8, 8);
 
         // Evaluation.

@@ -1,12 +1,13 @@
 import { Exception } from '@kartoffelgames/core';
-import { PgslParser, type PgslParserResult, type PgslParserResultBinding, type PgslParserResultFragmentEntryPoint, PgslParserResultMatrixType, type PgslParserResultNumberTypeType, PgslParserResultNumericType, PgslParserResultSamplerType, PgslParserResultTextureType, type PgslParserResultType, PgslParserResultVectorType, type PgslParserResultVertexEntryPoint, WgslTranspiler } from '@kartoffelgames/core-pgsl';
-import { type BindGroup, type BindGroupBindLayout, type BindGroupDataSetup, BindGroupLayout, type BindGroupLayoutMemoryLayoutSetup, BufferItemFormat, BufferItemMultiplier, ComputeStage, type GpuBuffer, Shader as GpuShader, type GpuTexture, type GpuTextureView, PrimitiveCullMode, PrimitiveFrontFace, PrimitiveTopology, RenderTargetsLayout, SamplerType, type ShaderRenderModule, StorageBindingType, TextureAspect, type TextureFormat, type TextureFormatCapability, TextureSampleType, type VertexFragmentPipeline, VertexParameterLayout, VertexParameterStepMode } from '@kartoffelgames/web-gpu';
+import { PgslParser, type PgslParserResult, type PgslParserResultBinding, type PgslParserResultFragmentEntryPoint, type PgslParserResultNumberTypeType, PgslParserResultNumericType, PgslParserResultSamplerType, PgslParserResultTextureType, type PgslParserResultType, PgslParserResultVectorType, type PgslParserResultVertexEntryPoint, WgslTranspiler } from '@kartoffelgames/core-pgsl';
+import { type BindGroup, type BindGroupBindLayout, type BindGroupDataSetup, BindGroupLayout, type BindGroupLayoutMemoryLayoutSetup, ComputeStage, type GpuBuffer, Shader as GpuShader, type GpuTexture, type GpuTextureView, PrimitiveCullMode, PrimitiveFrontFace, PrimitiveTopology, RenderTargetsLayout, SamplerType, type ShaderRenderModule, StorageBindingType, TextureAspect, type TextureFormat, type TextureFormatCapability, TextureSampleType, type VertexFragmentPipeline } from '@kartoffelgames/web-gpu';
 import { Color } from '../component_item/color.ts';
 import type { Material, MaterialBindingValue } from '../component_item/material.ts';
 import { Texture } from '../component_item/texture.ts';
 import type { GameEnvironment } from '../core/environment/game-environment.ts';
 import { GameSystem, type GameSystemUpdateStateChanges, type GameSystemConstructor } from '../core/game-system.ts';
 import { GpuSystem } from './gpu-system.ts';
+import { MeshSystem } from './mesh-system.ts';
 import { TextureSystem } from './texture-system.ts';
 
 // PGSL shader sources.
@@ -36,17 +37,17 @@ export class MaterialSystem extends GameSystem {
 
     private readonly mCompiledMaterials: WeakMap<Material, MaterialSystemCompiledMaterial>;
     private mGpuSystem: GpuSystem | null;
+    private mMeshSystem: MeshSystem | null;
     private readonly mParser: PgslParser;
     private readonly mRenderModes: Map<string, MaterialSystemRenderMode>;
     private mTextureSystem: TextureSystem | null;
     private mUpdatedMaterials: Array<MaterialSystemMaterialUpdate>;
-    private mVertexParameterLayout: VertexParameterLayout | null;
     
     /**
      * Gets the system types this system depends on.
      */
     public override get dependentSystemTypes(): Array<GameSystemConstructor<GameSystem>> {
-        return [GpuSystem, TextureSystem];
+        return [GpuSystem, TextureSystem, MeshSystem];
     }
 
     /**
@@ -70,8 +71,8 @@ export class MaterialSystem extends GameSystem {
 
         // Null dependencies and deferred initialization.
         this.mGpuSystem = null;
+        this.mMeshSystem = null;
         this.mTextureSystem = null;
-        this.mVertexParameterLayout = null;
         this.mUpdatedMaterials = new Array<MaterialSystemMaterialUpdate>();
     }
 
@@ -274,6 +275,7 @@ export class MaterialSystem extends GameSystem {
     protected override async onCreate(): Promise<void> {
         // Get dependencies.
         this.mGpuSystem = this.environment.getSystem(GpuSystem);
+        this.mMeshSystem = this.environment.getSystem(MeshSystem);
         this.mTextureSystem = this.environment.getSystem(TextureSystem);
     }
 
@@ -300,61 +302,6 @@ export class MaterialSystem extends GameSystem {
 
         // Clear the updated materials array after processing all updates.
         this.mUpdatedMaterials = new Array<MaterialSystemMaterialUpdate>();
-    }
-
-    /**
-     * Map a PgslParserResultType to GPU buffer format and multiplier.
-     *
-     * @param pType - The PGSL parser result type to convert.
-     *
-     * @returns The corresponding MaterialSystemEntryPointType with buffer format and multiplier.
-     */
-    private convertEntryPointType(pType: PgslParserResultType): MaterialSystemEntryPointType {
-        if (pType instanceof PgslParserResultNumericType) {
-            // Map numeric types directly to buffer formats.
-            const lFormat: BufferItemFormat = (() => {
-                switch (pType.numberType) {
-                    case 'unsigned-integer': return BufferItemFormat.Uint32;
-                    case 'integer': return BufferItemFormat.Sint32;
-                    case 'float': return BufferItemFormat.Float32;
-                    case 'float16': return BufferItemFormat.Float16;
-                    default:
-                        throw new Error(`Unsupported numeric type: ${pType.numberType}`);
-                }
-            })();
-
-            return { format: lFormat, multiplier: BufferItemMultiplier.Single };
-        }
-
-        // Map vector types to their element type format and appropriate multiplier.
-        if (pType instanceof PgslParserResultVectorType) {
-            const lInnerType: MaterialSystemEntryPointType = this.convertEntryPointType(pType.elementType);
-
-            switch (pType.dimension) {
-                case 2: return { format: lInnerType.format, multiplier: BufferItemMultiplier.Vector2 };
-                case 3: return { format: lInnerType.format, multiplier: BufferItemMultiplier.Vector3 };
-                case 4: return { format: lInnerType.format, multiplier: BufferItemMultiplier.Vector4 };
-            }
-        }
-
-        // Map matrix dimensions to appropriate format and multiplier.
-        if (pType instanceof PgslParserResultMatrixType) {
-            switch (`${pType.rows}${pType.columns}`) {
-                case '22': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix22 };
-                case '23': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix23 };
-                case '24': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix24 };
-                case '32': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix32 };
-                case '33': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix33 };
-                case '34': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix34 };
-                case '42': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix42 };
-                case '43': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix43 };
-                case '44': return { format: BufferItemFormat.Float32, multiplier: BufferItemMultiplier.Matrix44 };
-                default:
-                    throw new Error(`Unsupported matrix dimensions: ${pType.rows}x${pType.columns}`);
-            }
-        }
-
-        throw new Error(`Unsupported type for buffer mapping: ${pType.type}`);
     }
 
     /**
@@ -422,8 +369,8 @@ export class MaterialSystem extends GameSystem {
                 throw new Exception('Vertex entry point not found in shader.', this);
             }
 
-            // Reuse shared vertex layout.
-            pShaderSetup.vertexEntryPoint(lVertexEntry.name, this.getVerticesLayout(lVertexEntry));
+            // Reuse shared vertex layout from MeshSystem.
+            pShaderSetup.vertexEntryPoint(lVertexEntry.name, this.mMeshSystem!.vertexParameterLayout);
 
             // Fragment entry point: Read first fragment entry point and add render targets.
             const lFragmentEntry: PgslParserResultFragmentEntryPoint | undefined = pParserResult.entryPoints.fragment.values().next()!.value;
@@ -664,33 +611,6 @@ export class MaterialSystem extends GameSystem {
     }
 
     /**
-     * Get or create a shared VertexParameterLayout based on the parameters of the vertex entry point.
-     * 
-     * @param pVertexEntry - The vertex entry point parser result.
-     * 
-     * @returns The shared VertexParameterLayout.
-     */
-    private getVerticesLayout(pVertexEntry: PgslParserResultVertexEntryPoint): VertexParameterLayout {
-        // Return cached layout if already created. All materials share the same vertex layout based on the vertex entry point parameters, so we can reuse it across materials and modes.
-        if (this.mVertexParameterLayout) {
-            return this.mVertexParameterLayout;
-        }
-
-        // Vertex entry point: Reuse shared layout or create on first use.
-        this.mVertexParameterLayout = new VertexParameterLayout(this.mGpuSystem!.gpu).setup((pSetup) => {
-            for (const lEntryPointParameter of pVertexEntry.parameters) {
-                // Convert entry point parameter type to buffer format and multiplier.
-                const lParameterType: MaterialSystemEntryPointType = this.convertEntryPointType(lEntryPointParameter.type);
-
-                // Set buffer layout based on parameter type.
-                pSetup.buffer(lEntryPointParameter.name, VertexParameterStepMode.Index).withParameter(lEntryPointParameter.name, lEntryPointParameter.location, lParameterType.format, lParameterType.multiplier);
-            }
-        });
-
-        return this.mVertexParameterLayout;
-    }
-
-    /**
      * Update a User bind group binding value based on the material's current binding value for that binding.
      * 
      * @param pMaterial - The material with the updated binding value.
@@ -757,11 +677,6 @@ export class MaterialSystem extends GameSystem {
 type MaterialSystemMaterialUpdate = {
     material: Material;
     updatedBinding: string;
-};
-
-type MaterialSystemEntryPointType = {
-    format: BufferItemFormat;
-    multiplier: BufferItemMultiplier;
 };
 
 /**

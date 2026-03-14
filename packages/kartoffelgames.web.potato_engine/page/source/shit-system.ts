@@ -5,7 +5,6 @@ CanvasTexture,
     type PipelineData,
     type RenderTargets,
     type VertexFragmentPipeline,
-    type VertexParameter,
 } from '@kartoffelgames/web-gpu';
 import type { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
@@ -18,6 +17,7 @@ import { CullSystem, type ReadonlyCullSystemRenderTargetData } from '../../sourc
 import { GpuSystem } from '../../source/system/gpu-system.ts';
 import { LightSystem } from '../../source/system/light-system.ts';
 import { MaterialSystem, type MaterialSystemMaterial, type MaterialSystemRenderModeRegisterResult } from '../../source/system/material-system.ts';
+import { MeshSystem } from '../../source/system/mesh-system.ts';
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
 import FORWARD_ENTRY_POINTS from '../../source/shader/forward-entry-points.pgsl';
 import FORWARD_IMPORT from '../../source/shader/forward-import.pgsl';
@@ -48,6 +48,7 @@ export class ShitSystem extends GameSystem {
     private mDependencyGpuSystem: GpuSystem | null;
     private mDependencyLightSystem: LightSystem | null;
     private mDependencyMaterialSystem: MaterialSystem | null;
+    private mDependencyMeshSystem: MeshSystem | null;
     private mDependencyTransformationSystem: TransformationSystem | null;
     private mLightCountBuffer: GpuBuffer | null;
     private mLightDataInitialized: boolean;
@@ -57,7 +58,6 @@ export class ShitSystem extends GameSystem {
     private mRenderModeResult: MaterialSystemRenderModeRegisterResult | null;
     private mRenderTargets: RenderTargets | null;
     private mResizeObserver: ResizeObserver | null;
-    private readonly mVertexParameterCache: Map<Mesh, Array<VertexParameter>>;
     private mWorldGroup: BindGroup | null;
 
     /**
@@ -78,7 +78,7 @@ export class ShitSystem extends GameSystem {
      * Systems this system depends on.
      */
     public override get dependentSystemTypes(): Array<GameSystemConstructor<GameSystem>> {
-        return [TransformationSystem, GpuSystem, LightSystem, CullSystem, MaterialSystem];
+        return [TransformationSystem, GpuSystem, LightSystem, CullSystem, MaterialSystem, MeshSystem];
     }
 
     /**
@@ -101,6 +101,7 @@ export class ShitSystem extends GameSystem {
         this.mDependencyGpuSystem = null;
         this.mDependencyLightSystem = null;
         this.mDependencyMaterialSystem = null;
+        this.mDependencyMeshSystem = null;
         this.mDependencyTransformationSystem = null;
         this.mLightCountBuffer = null;
         this.mLightDataInitialized = false;
@@ -109,7 +110,6 @@ export class ShitSystem extends GameSystem {
         this.mRenderModeResult = null;
         this.mRenderTargets = null;
         this.mResizeObserver = null;
-        this.mVertexParameterCache = new Map();
         this.mWorldGroup = null;
     }
 
@@ -123,6 +123,7 @@ export class ShitSystem extends GameSystem {
         this.mDependencyLightSystem = this.environment.getSystem(LightSystem);
         this.mDependencyCullSystem = this.environment.getSystem(CullSystem);
         this.mDependencyMaterialSystem = this.environment.getSystem(MaterialSystem);
+        this.mDependencyMeshSystem = this.environment.getSystem(MeshSystem);
 
         // Set global shader import for shared types.
         this.mDependencyMaterialSystem.setGlobalImport('WorldGroupForward', FORWARD_WORLD_GROUP);
@@ -207,7 +208,7 @@ export class ShitSystem extends GameSystem {
                     for (const [lMesh, lSubMeshGroups] of lMeshGroups) {
                         for (const [lSubMeshIndex, lGroupData] of lSubMeshGroups) {
                             if (lGroupData.instanceCount > 0) {
-                                const lVertexParam: VertexParameter = this.mVertexParameterCache.get(lMesh)![lSubMeshIndex];
+                                const lVertexParam = this.mDependencyMeshSystem!.loadMesh(lMesh, lMesh.subMeshes[lSubMeshIndex]);
                                 pContext.drawDirect(lGroupData.pipeline, lVertexParam, lGroupData.pipelineData, lGroupData.instanceCount);
                             }
                         }
@@ -267,34 +268,6 @@ export class ShitSystem extends GameSystem {
             pipeline: lPipeline,
             instanceCount: 0
         };
-    }
-
-    /**
-     * Create and cache vertex parameters for a mesh.
-     * Creates buffers for all ForwardVertexIn attributes, defaulting missing optional attributes.
-     */
-    private createVertexParameters(pMesh: Mesh, pLoadedMaterial: MaterialSystemMaterial): void {
-        const lVertexCount: number = pMesh.verticesData.length / 3;
-
-        // Default arrays for optional attributes.
-        const lDefaultColors: Array<number> = new Array(lVertexCount * 4).fill(1.0);
-        const lDefaultUvs: Array<number> = new Array(lVertexCount * 2).fill(0);
-
-        const lVertexParameters = pMesh.subMeshes.map((pSubMesh) => {
-            const lVertexParam: VertexParameter = pLoadedMaterial.pipeline.module.vertexParameter.create(pSubMesh.indices);
-
-            lVertexParam.create('position', pMesh.verticesData);
-            lVertexParam.create('normal', pMesh.normals);
-            lVertexParam.create('color', pMesh.colors.length > 0 ? pMesh.colors : lDefaultColors);
-            lVertexParam.create('uv', pMesh.uv1.length > 0 ? pMesh.uv1 : lDefaultUvs);
-            lVertexParam.create('uv2', pMesh.uv2.length > 0 ? pMesh.uv2 : lDefaultUvs);
-            lVertexParam.create('uv3', pMesh.uv3.length > 0 ? pMesh.uv3 : lDefaultUvs);
-            lVertexParam.create('uv4', pMesh.uv4.length > 0 ? pMesh.uv4 : lDefaultUvs);
-
-            return lVertexParam;
-        });
-
-        this.mVertexParameterCache.set(pMesh, lVertexParameters);
     }
 
     /**
@@ -395,12 +368,10 @@ export class ShitSystem extends GameSystem {
             const lLoadedMaterial: MaterialSystemMaterial = await lMaterialSystem.loadMaterial(ShitSystem.RENDER_MODE, lMaterial);
 
             for (const [lMesh, lSubMeshMap] of lMeshMap) {
-                // Get or create cached vertex parameters for this mesh.
-                if (!this.mVertexParameterCache.has(lMesh)) {
-                    this.createVertexParameters(lMesh, lLoadedMaterial);
-                }
-
                 for (const [lSubIndex, lRenderers] of lSubMeshMap) {
+                    // Ensure vertex parameters are created and cached in MeshSystem.
+                    this.mDependencyMeshSystem!.loadMesh(lMesh, lMesh.subMeshes[lSubIndex]);
+
                     // Get or create material+mesh+submesh group data.
                     let lMaterialGroups = this.mMaterialMeshGroups.get(lMaterial);
                     if (!lMaterialGroups) {

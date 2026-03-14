@@ -140,7 +140,7 @@ export class GpuBuffer extends GpuResourceObject<BufferUsage, GPUBuffer> impleme
      * @param pDataOffset - Data offset within the source data.
      * @param pDataLength - Length of data to write.
      */
-    public async write(pData: ArrayBufferLike, pBufferOffset?: number, pDataOffset?: number, pDataLength?: number): Promise<void> {
+    public write(pData: ArrayBufferLike, pBufferOffset?: number, pDataOffset?: number, pDataLength?: number): void {
         // Set buffer as writeable.
         this.extendUsage(BufferUsage.CopyDestination);
 

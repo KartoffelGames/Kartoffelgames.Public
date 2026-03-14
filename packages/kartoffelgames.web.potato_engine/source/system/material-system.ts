@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import { PgslParser, type PgslParserResult, type PgslParserResultBinding, type PgslParserResultFragmentEntryPoint, PgslParserResultMatrixType, PgslParserResultNumberTypeType, PgslParserResultNumericType, PgslParserResultSamplerType, PgslParserResultTextureType, type PgslParserResultType, PgslParserResultVectorType, type PgslParserResultVertexEntryPoint, WgslTranspiler } from '@kartoffelgames/core-pgsl';
-import { type BindGroup, BindGroupBindLayout, BindGroupLayout, BindGroupLayoutMemoryLayoutSetup, BufferItemFormat, BufferItemMultiplier, ComputeStage, Shader as GpuShader, type GpuTexture, type GpuTextureView, PrimitiveCullMode, PrimitiveFrontFace, PrimitiveTopology, RenderTargetsLayout, SamplerType, ShaderRenderModule, StorageBindingType, TextureAspect, TextureFormat, TextureFormatCapability, TextureSampleType, type VertexFragmentPipeline, VertexParameterLayout } from '@kartoffelgames/web-gpu';
+import { type BindGroup, BindGroupBindLayout, BindGroupLayout, BindGroupLayoutMemoryLayoutSetup, BufferItemFormat, BufferItemMultiplier, ComputeStage, Shader as GpuShader, type GpuTexture, type GpuTextureView, PrimitiveCullMode, PrimitiveFrontFace, PrimitiveTopology, RenderTargetsLayout, SamplerType, ShaderRenderModule, StorageBindingType, TextureAspect, TextureFormat, TextureFormatCapability, TextureSampleType, type VertexFragmentPipeline, VertexParameterLayout, VertexParameterStepMode } from '@kartoffelgames/web-gpu';
 import { Color } from '../component_item/color.ts';
 import { Material, type MaterialBindingValue } from '../component_item/material.ts';
 import { Texture } from '../component_item/texture.ts';
@@ -12,8 +12,6 @@ import { TextureSystem } from './texture-system.ts';
 // PGSL shader sources.
 import CORE_PARAMETER_SHADER from '../shader/core/core-parameter.pgsl';
 import CORE_TEMPLATE_SHADER from '../shader/core/core-template.pgsl';
-import { VertexParameterStepMode } from "../../../kartoffelgames.web.gpu/source/constant/vertex-parameter-step-mode.enum.ts";
-
 
 /**
  * Material system that manages PGSL shader compilation, per-render-mode bind group layouts,
@@ -138,16 +136,6 @@ export class MaterialSystem extends GameSystem {
         // Get dependencies.
         this.mGpuSystem = this.environment.getSystem(GpuSystem);
         this.mTextureSystem = this.environment.getSystem(TextureSystem);
-
-        // Create vertex parameter layout as it is shared across all materials.
-        this.mVertexParameterLayout = new VertexParameterLayout(this.mGpuSystem!.gpu).setup((pSetup) => {
-            pSetup.buffer('normal', VertexParameterStepMode.Index).withParameter('normal', 0, BufferItemFormat.Float32, BufferItemMultiplier.Vector3);
-            pSetup.buffer('color', VertexParameterStepMode.Index).withParameter('color', 1, BufferItemFormat.Float32, BufferItemMultiplier.Vector4);
-            pSetup.buffer('uv', VertexParameterStepMode.Index).withParameter('uv', 2, BufferItemFormat.Float32, BufferItemMultiplier.Vector2);
-            pSetup.buffer('uv2', VertexParameterStepMode.Index).withParameter('uv2', 3, BufferItemFormat.Float32, BufferItemMultiplier.Vector2);
-            pSetup.buffer('uv3', VertexParameterStepMode.Index).withParameter('uv3', 4, BufferItemFormat.Float32, BufferItemMultiplier.Vector2);
-            pSetup.buffer('uv4', VertexParameterStepMode.Index).withParameter('uv4', 5, BufferItemFormat.Float32, BufferItemMultiplier.Vector2);
-        });
     }
 
     /**
@@ -227,6 +215,7 @@ export class MaterialSystem extends GameSystem {
                             // No matching material value.
                             throw new Exception(`No material binding value found for buffer binding "${lBindingName}".`, this);
                         }
+                        break;
                     }
                 }
             }
@@ -371,9 +360,9 @@ export class MaterialSystem extends GameSystem {
 
         // Compile shader code with mode-specific imports.
         const lPgsl: string = `
-            #IMPORT "${lModeConfig.prefixShader}";
+            ${lModeConfig.prefixShader}
             ${lShaderCode}
-            #IMPORT "${lModeConfig.suffixShader}";
+            ${lModeConfig.suffixShader}
         `;
 
         // Transpile PGSL to WGSL and check for incidents.
@@ -484,6 +473,33 @@ export class MaterialSystem extends GameSystem {
     }
 
     /**
+     * Get or create a shared VertexParameterLayout based on the parameters of the vertex entry point.
+     * 
+     * @param pVertexEntry - The vertex entry point parser result.
+     * 
+     * @returns The shared VertexParameterLayout.
+     */
+    private getVerticesLayout(pVertexEntry: PgslParserResultVertexEntryPoint): VertexParameterLayout {
+        // Return cached layout if already created. All materials share the same vertex layout based on the vertex entry point parameters, so we can reuse it across materials and modes.
+        if (this.mVertexParameterLayout) {
+            return this.mVertexParameterLayout;
+        }
+
+        // Vertex entry point: Reuse shared layout or create on first use.
+        this.mVertexParameterLayout = new VertexParameterLayout(this.mGpuSystem!.gpu).setup((pSetup) => {
+            for (const lEntryPointParameter of pVertexEntry.parameters) {
+                // Convert entry point parameter type to buffer format and multiplier.
+                const lParameterType: MaterialSystemEntryPointType = this.convertEntryPointType(lEntryPointParameter.type);
+
+                // Set buffer layout based on parameter type.
+                pSetup.buffer(lEntryPointParameter.name, VertexParameterStepMode.Vertex).withParameter(lEntryPointParameter.name, lEntryPointParameter.location, lParameterType.format, lParameterType.multiplier);
+            }
+        });
+
+        return this.mVertexParameterLayout;
+    }
+
+    /**
      * Creates a GPU shader from the PGSL parser result.
      * Uses pre-created BindGroupLayouts for global groups (World, Object) and creates the User group inline.
      *
@@ -503,7 +519,7 @@ export class MaterialSystem extends GameSystem {
             }
 
             // Reuse shared vertex layout.
-            pShaderSetup.vertexEntryPoint(lVertexEntry.name, this.mVertexParameterLayout!);
+            pShaderSetup.vertexEntryPoint(lVertexEntry.name, this.getVerticesLayout(lVertexEntry));
 
             // Fragment entry point: Read first fragment entry point and add render targets.
             const lFragmentEntry: PgslParserResultFragmentEntryPoint | undefined = pParserResult.entryPoints.fragment.values().next()!.value;
@@ -590,10 +606,11 @@ export class MaterialSystem extends GameSystem {
         }
 
         // Build the prefix and suffix shader code for this mode based on the provided imports.
-        let lPrefixShader: string = '#IMPORT "Core-Parameter";';
+        let lPrefixShader: string = '#IMPORT "Core-Parameter";\n';
         lPrefixShader += pConfiguration.typeImports.map((_pImport, pIndex) => {
             return `#IMPORT "${pMode}__type-${pIndex}"`;
         }).join('\n');
+        lPrefixShader += '\n';
         lPrefixShader += pConfiguration.functionalImports.map((_pImport, pIndex) => {
             return `#IMPORT "${pMode}__functional-${pIndex}"`;
         }).join('\n');
@@ -686,13 +703,6 @@ export type MaterialSystemRenderModeConfiguration = {
      */
     typeImports: Array<string>;
 
-    /** 
-     * Parser import name for the entry points shader (e.g., "ForwardEntryPoints").
-     */
-    bindingGroupImports: {
-        world: string;
-        object: string;
-    };
 };
 
 type MaterialSystemEntryPointType = {

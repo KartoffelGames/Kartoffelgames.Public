@@ -134,7 +134,7 @@ export class Mesh extends GameComponentItem {
      */
     @FileSystem.fileProperty()
     public get indexFormat(): BufferItemFormat {
-        if (this.mVertices.length <= 65535) {
+        if (this.verticesCount <= 65535) {
             return BufferItemFormat.Uint16;
         }
 
@@ -238,7 +238,7 @@ export class Mesh extends GameComponentItem {
      * Number of vertices in the mesh.
      * Calculated from the vertex position data assuming three components per vertex (x, y, z).
      */
-    public get verticlesCount(): number {
+    public get verticesCount(): number {
         return this.mVertices.length / 3;
     }
 

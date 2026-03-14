@@ -41,7 +41,7 @@ export class PgslParserResultVertexEntryPoint extends PgslParserResultEntryPoint
      * 
      * @returns An array of PgslParserResultVertexEntryPointParameter instances.
      */
-    public convertParameters(pParameterType: PgslStructType, pDocument: DocumentAst, pMeta: TranspilationMeta): Array<PgslParserResultVertexEntryPointParameter> {
+    private convertParameters(pParameterType: PgslStructType, pDocument: DocumentAst, pMeta: TranspilationMeta): Array<PgslParserResultVertexEntryPointParameter> {
         // Try to find struct declaration for parameter type.
         const lStruct: StructDeclarationAst | null = (() => {
             for (const lValue of pDocument.data.content) {

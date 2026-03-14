@@ -58,6 +58,13 @@ export class Color extends GameComponentItem {
     }
 
     /**
+     * Read-only access to the internal color data array [r, g, b, a].
+     */
+    public get data(): ReadonlyArray<number> {
+        return this.mData;
+    }
+
+    /**
      * Green channel (0-1).
      */
     @EditorProperty.rangeControl(0, 1, EditorPropertyNumberType.Float)

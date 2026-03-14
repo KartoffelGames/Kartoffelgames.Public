@@ -24,6 +24,7 @@ export { PgslParserResultSamplerType } from './parser_result/type/pgsl-parser-re
 export { PgslParserResultStructType } from './parser_result/type/pgsl-parser-result-struct-type.ts';
 export { PgslParserResultTextureType } from './parser_result/type/pgsl-parser-result-texture-type.ts';
 export { PgslParserResultVectorType } from './parser_result/type/pgsl-parser-result-vector-type.ts';
+export type { PgslParserResultNumberTypeType } from './parser_result/type/pgsl-parser-result-numeric-type.ts';
 
 // Build-in enums.
 export type { PgslTexelFormat } from './buildin/enum/pgsl-texel-format-enum.ts';

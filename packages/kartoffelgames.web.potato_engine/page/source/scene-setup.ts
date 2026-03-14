@@ -11,6 +11,7 @@ import { TransformationComponent } from '../../source/component/transformation-c
 import { Material } from '../../source/component_item/material.ts';
 import { Mesh } from '../../source/component_item/mesh.ts';
 import { Shader } from '../../source/component_item/shader.ts';
+import { Texture } from '../../source/component_item/texture.ts';
 import { GameScene } from '../../source/core/game-scene.ts';
 import { GameEntity } from '../../source/core/hierarchy/game-entity.ts';
 import DEFAULT_PBR_SHADER from '../../source/shader/default-pbr-shader.pgsl';
@@ -164,6 +165,29 @@ export class SceneSetup {
         lMaterial.shader = lShader;
 
         lMaterial.setBinding('baseColorFactor', new Float32Array([pR, pG, pB, pA]).buffer);
+        lMaterial.setBinding('metallicFactor', new Float32Array([0.0]).buffer);
+        lMaterial.setBinding('roughnessFactor', new Float32Array([0.5]).buffer);
+
+        // 1x1 white PNG placeholder for baseColorTexture.
+        // texture data containing a 2x2 checkerboard pattern;
+        const lTextureData: string = 'iVBORw0KGgoAAAANSUhEUgAAAAIAAAACCAYAAABytg0kAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdv' +
+            'qGQAAAGHaVRYdFhNTDpjb20uYWRvYmUueG1wAAAAAAA8P3hwYWNrZXQgYmVnaW49J++7vycgaWQ9J1c1TTBNcENlaGlIenJlU3pOVGN6a2M5ZCc/Pg0KPHg6eG1wbWV0YSB4b' +
+            'Wxuczp4PSJhZG9iZTpuczptZXRhLyI+PHJkZjpSREYgeG1sbnM6cmRmPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5LzAyLzIyLXJkZi1zeW50YXgtbnMjIj48cmRmOkRlc2NyaX' +
+            'B0aW9uIHJkZjphYm91dD0idXVpZDpmYWY1YmRkNS1iYTNkLTExZGEtYWQzMS1kMzNkNzUxODJmMWIiIHhtbG5zOnRpZmY9Imh0dHA6Ly9ucy5hZG9iZS5jb20vdGlmZi8xLjA' +
+            'vIj48dGlmZjpPcmllbnRhdGlvbj4xPC90aWZmOk9yaWVudGF0aW9uPjwvcmRmOkRlc2NyaXB0aW9uPjwvcmRmOlJERj48L3g6eG1wbWV0YT4NCjw/eHBhY2tldCBlbmQ9J3cn' +
+            'Pz4slJgLAAAAFElEQVQYV2NkYGD4////fxjJ8B8ATNcI+UH3gegAAAAASUVORK5CYII=';
+
+        // Convert the base64 string to binary data.
+        const lTextureBinaryString: string = atob(lTextureData);
+        const lTextureBinaryBytes: Uint8Array<ArrayBuffer> = new Uint8Array(lTextureBinaryString.length);
+        for (let lByteIndex = 0; lByteIndex < lTextureBinaryString.length; lByteIndex++) {
+            lTextureBinaryBytes[lByteIndex] = lTextureBinaryString.charCodeAt(lByteIndex);
+        }
+        
+        const lPlaceholderTexture: Texture = new Texture();
+        lPlaceholderTexture.imageData = lTextureBinaryBytes.buffer;
+        lMaterial.setBinding('baseColorTexture', lPlaceholderTexture);
+
         return lMaterial;
     }
 

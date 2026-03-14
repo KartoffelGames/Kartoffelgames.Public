@@ -1,4 +1,4 @@
-import { RenderTargetsLayout } from "@kartoffelgames/web-gpu";
+import type { RenderTargetsLayout } from '@kartoffelgames/web-gpu';
 import type { ComputeStage } from '../../constant/compute-stage.enum.ts';
 import { GpuObjectSetup } from '../../gpu_object/gpu-object-setup.ts';
 import type { BindGroupLayout } from '../../pipeline/bind_group_layout/bind-group-layout.ts';

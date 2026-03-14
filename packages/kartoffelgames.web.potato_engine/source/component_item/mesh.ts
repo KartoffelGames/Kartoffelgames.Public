@@ -221,6 +221,14 @@ export class Mesh extends GameComponentItem {
     }
 
     /**
+     * Number of vertices in the mesh.
+     * Calculated from the vertex position data assuming three components per vertex (x, y, z).
+     */
+    public get verticesCount(): number {
+        return this.mVertices.length / 3;
+    }
+
+    /**
      * Vertex position data as a flat array of XYZ values.
      * Every three consecutive values represent one vertex position (x, y, z).
      */
@@ -232,14 +240,6 @@ export class Mesh extends GameComponentItem {
 
         // Signal parent component of the change.
         this.update();
-    }
-
-    /**
-     * Number of vertices in the mesh.
-     * Calculated from the vertex position data assuming three components per vertex (x, y, z).
-     */
-    public get verticesCount(): number {
-        return this.mVertices.length / 3;
     }
 
     /**

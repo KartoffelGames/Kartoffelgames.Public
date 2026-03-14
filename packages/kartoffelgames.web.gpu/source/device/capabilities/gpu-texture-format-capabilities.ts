@@ -103,32 +103,25 @@ export class GpuTextureFormatCapabilities {
         // Iterate through all available formats and return the first one that matches all filter criteria.
         for (const lFormatDefinition of this.mFormatCapabilitys.values()) {
             // Check TextureSampleType filter: if set, format must support this sample type.
-            if (pFilter.sampleType) {
-                if (!lFormatDefinition.type.includes(pFilter.sampleType)) {
-                    continue;
-                }
+            if (pFilter.sampleType && !lFormatDefinition.type.includes(pFilter.sampleType)) {
+                continue;
             }
 
             // Check bytePerAspect filter: if set, must match exactly.
-            if (pFilter.bytePerAspect) {
-                if (lFormatDefinition.aspect.byteCost !== pFilter.bytePerAspect) {
-                    continue;
-                }
+            if (lFormatDefinition.aspect.byteCost !== pFilter.bytePerAspect) {
+                continue;
             }
 
             // Check TextureAspect filter: if set, format must have exactly these aspects.
             if (pFilter.aspects) {
-                if (lFormatDefinition.aspect.types.length !== pFilter.aspects.length ||
-                    !lFormatDefinition.aspect.types.every((lType) => pFilter.aspects!.includes(lType))) {
+                if (lFormatDefinition.aspect.types.length !== pFilter.aspects.length || !lFormatDefinition.aspect.types.every((pType) => pFilter.aspects!.includes(pType))) {
                     continue;
                 }
             }
 
             // Check TextureDimension filter: if set, format must support this dimension.
-            if (pFilter.dimension) {
-                if (!lFormatDefinition.dimensions.includes(pFilter.dimension)) {
-                    continue;
-                }
+            if (pFilter.dimension && !lFormatDefinition.dimensions.includes(pFilter.dimension)) {
+                continue;
             }
 
             // Check renderAttachment filter: if set, format must support at least the specified properties.
@@ -138,21 +131,15 @@ export class GpuTextureFormatCapabilities {
                     continue;
                 }
 
-                // Check each optional property in the filter.
-                if (typeof pFilter.renderAttachment.blendable === 'boolean') {
-                    if (lFormatDefinition.usage.renderAttachment.blendable !== pFilter.renderAttachment.blendable) {
-                        continue;
-                    }
+                // Check each optional property in the filter. Typechecks for boolean so a undefined whould never pass.
+                if (lFormatDefinition.usage.renderAttachment.blendable !== pFilter.renderAttachment.blendable) {
+                    continue;
                 }
-                if (typeof pFilter.renderAttachment.multisample === 'boolean') {
-                    if (lFormatDefinition.usage.renderAttachment.multisample !== pFilter.renderAttachment.multisample) {
-                        continue;
-                    }
+                if (lFormatDefinition.usage.renderAttachment.multisample !== pFilter.renderAttachment.multisample) {
+                    continue;
                 }
-                if (typeof pFilter.renderAttachment.resolveTarget === 'boolean') {
-                    if (lFormatDefinition.usage.renderAttachment.resolveTarget !== pFilter.renderAttachment.resolveTarget) {
-                        continue;
-                    }
+                if (lFormatDefinition.usage.renderAttachment.resolveTarget !== pFilter.renderAttachment.resolveTarget) {
+                    continue;
                 }
             }
 

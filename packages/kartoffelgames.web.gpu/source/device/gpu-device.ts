@@ -105,12 +105,12 @@ export class GpuDevice implements IDeconstructable {
     }
 
     private readonly mCapabilities: GpuDeviceCapabilities;
-    private readonly mTextureCapabilities: GpuTextureFormatCapabilities;
     private readonly mFrameChangeListener: List<GpuDeviceFrameChangeListener>;
     private mFreeableGpuObjectIndex: number;
     private readonly mFreeableGpuObjectResources: Map<WeakRef<GpuObject>, Set<GpuDeviceDestroyableObject>>;
     private readonly mFreeableGpuObjects: Array<WeakRef<GpuObject>>;
     private readonly mGpuDevice: GPUDevice;
+    private readonly mTextureCapabilities: GpuTextureFormatCapabilities;
 
     /**
      * Gpu capabilities.
@@ -120,17 +120,17 @@ export class GpuDevice implements IDeconstructable {
     }
 
     /**
-     * Texture format capabilities.
-     */
-    public get textureCapabilities(): GpuTextureFormatCapabilities {
-        return this.mTextureCapabilities;
-    }
-
-    /**
      * Gpu device.
      */
     public get gpu(): GPUDevice {
         return this.mGpuDevice;
+    }
+
+    /**
+     * Texture format capabilities.
+     */
+    public get textureCapabilities(): GpuTextureFormatCapabilities {
+        return this.mTextureCapabilities;
     }
 
     /**

@@ -42,9 +42,9 @@ export { TextureSampler } from './texture/texture-sampler.ts';
 
 // Constants
 export type { TextureOperation } from './constant/texture-operation.type.ts';
-export type { TextureDimension } from "./constant/texture-dimension.ts";
-export type { TextureFormat } from "./constant/texture-format.type.ts";
-export type { TextureViewDimension } from "./constant/texture-view-dimension.ts";
+export type { TextureDimension } from './constant/texture-dimension.ts';
+export type { TextureFormat } from './constant/texture-format.type.ts';
+export type { TextureViewDimension } from './constant/texture-view-dimension.ts';
 export { BufferAlignmentType } from './constant/buffer-alignment-type.enum.ts';
 export { BufferBindingType } from './constant/buffer-binding-type.enum.ts';
 export { BufferItemFormat } from './constant/buffer-item-format.enum.ts';

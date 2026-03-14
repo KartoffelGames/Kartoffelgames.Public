@@ -6,7 +6,7 @@ import { SamplerType } from '../../source/constant/sampler-type.enum.ts';
 import { VertexParameterStepMode } from '../../source/constant/vertex-parameter-step-mode.enum.ts';
 import { GpuDevice } from '../../source/device/gpu-device.ts';
 import { BindGroupLayout } from '../../source/pipeline/bind_group_layout/bind-group-layout.ts';
-import { RenderTargetsLayout } from "../../source/pipeline/render_targets/render-targets-layout.ts";
+import { RenderTargetsLayout } from '../../source/pipeline/render_targets/render-targets-layout.ts';
 import { VertexParameterLayout } from '../../source/pipeline/vertex_parameter/vertex-parameter-layout.ts';
 import type { ShaderComputeModule } from '../../source/shader/shader-compute-module.ts';
 import type { ShaderRenderModule } from '../../source/shader/shader-render-module.ts';

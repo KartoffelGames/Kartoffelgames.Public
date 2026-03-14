@@ -1,5 +1,5 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import { RenderTargetsLayout } from "@kartoffelgames/web-gpu";
+import type { RenderTargetsLayout } from '@kartoffelgames/web-gpu';
 import type { BufferItemFormat } from '../constant/buffer-item-format.enum.ts';
 import type { BufferItemMultiplier } from '../constant/buffer-item-multiplier.enum.ts';
 import type { ComputeStage } from '../constant/compute-stage.enum.ts';

@@ -151,8 +151,9 @@ export class ShitSystem extends GameSystem {
         lCanvasTexture.height = lCanvasHeight;
 
         // Create RenderTargets from the registered render mode's layout.
-        this.mRenderTargets = this.mRenderModeResult.renderTargetsLayout.create();
-        this.mRenderTargets.setResolveCanvas('color', lCanvasTexture);
+        this.mRenderTargets = this.mRenderModeResult.renderTargetsLayout.create((pSetup)=>{
+            pSetup.setOwnColorTarget('color', lCanvasTexture);
+        });
         this.mRenderTargets.resize(lCanvasHeight, lCanvasWidth);
 
         // Update core render target component dimensions to match canvas.

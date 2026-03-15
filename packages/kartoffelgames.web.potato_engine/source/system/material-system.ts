@@ -5,7 +5,7 @@ import { Color } from '../component_item/color.ts';
 import type { Material, MaterialBindingValue } from '../component_item/material.ts';
 import { Texture } from '../component_item/texture.ts';
 import type { GameEnvironment } from '../core/environment/game-environment.ts';
-import { GameSystem, type GameSystemUpdateStateChanges, type GameSystemConstructor } from '../core/game-system.ts';
+import { GameSystem, type GameSystemConstructor, type GameSystemUpdateStateChanges } from '../core/game-system.ts';
 import { GpuSystem } from './gpu-system.ts';
 import { MeshSystem } from './mesh-system.ts';
 import { TextureSystem } from './texture-system.ts';
@@ -498,7 +498,13 @@ export class MaterialSystem extends GameSystem {
                 const lTextureFormat: TextureFormat = (() => {
                     // Try to read format from shader meta values.
                     if (lTarget.metaValues.has('format')) {
-                        return lTarget.metaValues.get('format')! as TextureFormat;
+                        // When the format is set to "auto", select a suitable format based on the target's sample type and aspect count.
+                        const lFormatName: string = lTarget.metaValues.get('format')! as TextureFormat | 'auto';
+                        if (lFormatName === 'auto') {
+                            return this.mGpuSystem!.gpu.textureCapabilities.preferredCanvasFormat;
+                        }
+
+                        return lFormatName as TextureFormat;
                     }
 
                     const lTextureAspects: Array<TextureAspect> = [TextureAspect.Red, TextureAspect.Green, TextureAspect.Blue, TextureAspect.Alpha];

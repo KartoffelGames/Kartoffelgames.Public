@@ -18,8 +18,8 @@ import type { PipelineData } from '../../source/pipeline/pipeline_data/pipeline-
 import { RenderTargetsLayout } from '../../source/pipeline/render_targets/render-targets-layout.ts';
 import { type RenderTargets, RenderTargetsInvalidationType } from '../../source/pipeline/render_targets/render-targets.ts';
 import type { VertexFragmentPipeline } from '../../source/pipeline/vertex_fragment_pipeline/vertex-fragment-pipeline.ts';
-import type { VertexParameter } from '../../source/pipeline/vertex_parameter/vertex-parameter.ts';
 import { VertexParameterLayout } from '../../source/pipeline/vertex_parameter/vertex-parameter-layout.ts';
+import type { VertexParameter } from '../../source/pipeline/vertex_parameter/vertex-parameter.ts';
 import type { ShaderRenderModule } from '../../source/shader/shader-render-module.ts';
 import { Shader } from '../../source/shader/shader.ts';
 import { CanvasTexture } from '../../source/texture/canvas-texture.ts';
@@ -113,7 +113,7 @@ const gGenerateCubeStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTargetsL
     const lWoodBoxUserGroup = lWoodBoxRenderModule.layout.getGroupLayout('user').create();
 
     // Setup cube texture.
-    const lImageTexture: GpuTexture = lWoodBoxUserGroup.data('cubeTexture').createTexture().texture;
+    const lImageTexture: GpuTexture = lWoodBoxUserGroup.data('cubeTexture').createTexture().texture as GpuTexture;
     lImageTexture.depth = 3;
     lImageTexture.mipCount = 20;
     (async () => {
@@ -421,7 +421,7 @@ const gGenerateSkyboxStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTarget
     // Transformation and position group. 
     const lSkyBoxTextureGroup = lSkyBoxShader.layout.getGroupLayout('object').create();
 
-    const lImageTexture: GpuTexture = lSkyBoxTextureGroup.data('cubeMap').createTexture().texture;
+    const lImageTexture: GpuTexture = lSkyBoxTextureGroup.data('cubeMap').createTexture().texture as GpuTexture;
     lImageTexture.depth = 6;
     (async () => {
         const lSourceList: Array<string> = [
@@ -543,7 +543,7 @@ const gGenerateVideoCanvasStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderT
     const lUserGroup = lWoodBoxRenderModule.layout.getGroupLayout('user').create();
 
     // Setup cube texture.
-    const lVideoTexture: GpuTexture = lUserGroup.data('videoTexture').createTexture().texture;
+    const lVideoTexture: GpuTexture = lUserGroup.data('videoTexture').createTexture().texture as GpuTexture;
 
     // Create video.
     const lVideo = document.createElement('video');
@@ -655,7 +655,7 @@ const gGenerateParticleStep = (pGpu: GpuDevice, pRenderTargetsLayout: RenderTarg
     // Transformation and position group. 
     const lParticleTextureGroup = lParticleRenderShader.layout.getGroupLayout('user').create();
 
-    const lImageTexture: GpuTexture = lParticleTextureGroup.data('texture').createTexture().texture;
+    const lImageTexture: GpuTexture = lParticleTextureGroup.data('texture').createTexture().texture as GpuTexture;
     lImageTexture.depth = 6;
     (async () => {
         const lSourceList: Array<string> = [
@@ -852,8 +852,9 @@ const gGenerateWorldBindGroup = (pGpu: GpuDevice): BindGroup => {
     });
 
     // Create render targets from layout.
-    const lRenderTargets: RenderTargets = lRenderTargetsLayout.create();
-    lRenderTargets.setResolveCanvas('color', lCanvasTexture);
+    const lRenderTargets: RenderTargets = lRenderTargetsLayout.create((pSetup) => {
+        pSetup.setOwnColorTarget('color', lCanvasTexture);
+    });
 
     // Resize canvas.
     (() => {

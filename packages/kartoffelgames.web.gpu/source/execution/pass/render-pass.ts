@@ -14,7 +14,7 @@ export class RenderPass extends GpuObject {
     private readonly mExecutionContext: GpuExecutionContext;
     private readonly mQueries: RenderPassQuery;
     private readonly mRenderTargets: RenderTargets;
-    
+
     /**
      * Constructor.
      * 
@@ -58,8 +58,10 @@ export class RenderPass extends GpuObject {
             this.mExecutionContext.commandEncoder.resolveQuerySet(this.mQueries.timestamp.query.querySet, 0, 2, this.mQueries.timestamp.buffer.native, 0);
         }
 
-        // Execute optional resolve targets.
-        this.resolveCanvasTargets(this.mExecutionContext);
+        // Clear query set.
+        if (this.mQueries.timestamp) {
+            this.mQueries.timestamp.query.querySet.destroy();
+        }
     }
 
     /**
@@ -114,61 +116,6 @@ export class RenderPass extends GpuObject {
         });
 
         return this.mQueries.timestamp.resolver;
-    }
-
-    /**
-     * Resolve gpu textures into canvas textures.
-     * 
-     * @param pExecutionContext - Executor context.
-     */
-    private resolveCanvasTargets(pExecutionContext: GpuExecutionContext): void {
-        // Skip when nothing to be resolved.
-        if (this.mRenderTargets.resolveCanvasList.length === 0) {
-            return;
-        }
-
-        if (this.mRenderTargets.layout.multisampled) {
-            // Generate resolve target descriptor with operation that does nothing.
-            const lColorTargetList: Array<GPURenderPassColorAttachment> = this.mRenderTargets.resolveCanvasList.map((pResolveTexture) => {
-                return {
-                    view: pResolveTexture.source.native,
-                    resolveTarget: pResolveTexture.canvas.native.createView(),
-                    loadOp: 'load',
-                    storeOp: 'store'
-                };
-            });
-
-            // Begin and end render pass. Render pass does only resolve targets.
-            pExecutionContext.commandEncoder.beginRenderPass({
-                colorAttachments: lColorTargetList
-            }).end();
-        } else {
-            // Copy targets into canvas.
-            for (const lResolveTexture of this.mRenderTargets.resolveCanvasList) {
-                // Create External source.
-                const lSource: GPUTexelCopyTextureInfo = {
-                    texture: lResolveTexture.source.texture.native,
-                    aspect: 'all',
-                    mipLevel: lResolveTexture.source.mipLevelStart,
-                };
-
-                // Generate native texture.
-                const lDestination: GPUTexelCopyTextureInfo = {
-                    texture: lResolveTexture.canvas.native,
-                    aspect: 'all',
-                    mipLevel: 0,
-                };
-
-                // Clamp copy sizes to lowest.
-                const lCopySize: GPUExtent3DStrict = {
-                    width: this.mRenderTargets.width,
-                    height: this.mRenderTargets.height,
-                    depthOrArrayLayers: lResolveTexture.source.arrayLayerStart + 1
-                };
-
-                pExecutionContext.commandEncoder.copyTextureToTexture(lSource, lDestination, lCopySize);
-            }
-        }
     }
 }
 

@@ -8,11 +8,12 @@ import type { GpuDevice } from '../device/gpu-device.ts';
 import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu_object/gpu-resource-object.ts';
 import type { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native.ts';
 import { GpuTextureView } from './gpu-texture-view.ts';
+import type { IGpuTexture } from './i-gpu-texture.ts';
 
 /**
  * Gpu texture that is alocated on gpu memory.
  */
-export class GpuTexture extends GpuResourceObject<TextureUsage, GPUTexture> implements IGpuObjectNative<GPUTexture> {
+export class GpuTexture extends GpuResourceObject<TextureUsage, GPUTexture> implements IGpuObjectNative<GPUTexture>, IGpuTexture {
     private mDepth: number;
     private readonly mDimension: TextureDimension;
     private readonly mFormat: TextureFormat;
@@ -274,9 +275,12 @@ export class GpuTexture extends GpuResourceObject<TextureUsage, GPUTexture> impl
 
     /**
      * Use texture as view. 
+     * 
+     * @param pDimension - Texture views dimension.
+     * 
      * @returns Texture view.
      */
-    public useAs(pDimension?: TextureViewDimension /* Others Optional, layer, mip ... */): GpuTextureView {
+    public useAs(pDimension?: TextureViewDimension): GpuTextureView {
         // Use dimension form parameter or convert texture dimension to view dimension.
         const lViewDimension: TextureViewDimension = pDimension ?? this.mDimension;
 

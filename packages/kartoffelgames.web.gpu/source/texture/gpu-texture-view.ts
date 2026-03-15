@@ -4,7 +4,7 @@ import type { TextureViewDimension } from '../constant/texture-view-dimension.ts
 import type { GpuDevice } from '../device/gpu-device.ts';
 import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu_object/gpu-resource-object.ts';
 import type { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native.ts';
-import type { GpuTexture } from './gpu-texture.ts';
+import type { IGpuTexture } from './i-gpu-texture.ts';
 
 /**
  * View to a gpu texture.
@@ -17,7 +17,7 @@ export class GpuTextureView extends GpuResourceObject<TextureUsage, GPUTextureVi
     private mMipLevelEnd: number;
     private mMipLevelStart: number;
     private readonly mMultisampled: boolean;
-    private readonly mTexture: GpuTexture;
+    private readonly mTexture: IGpuTexture;
 
     /**
      * End index of depth or array level.
@@ -98,7 +98,7 @@ export class GpuTextureView extends GpuResourceObject<TextureUsage, GPUTextureVi
     /**
      * Views texture.
      */
-    public get texture(): GpuTexture {
+    public get texture(): IGpuTexture {
         return this.mTexture;
     }
 
@@ -110,7 +110,7 @@ export class GpuTextureView extends GpuResourceObject<TextureUsage, GPUTextureVi
      * @param pFormat - Texture format.
      * @param pMultisampled - Whether the texture is multisampled.
      */
-    public constructor(pDevice: GpuDevice, pTexture: GpuTexture, pDimension: TextureViewDimension, pFormat: TextureFormat, pMultisampled: boolean) {
+    public constructor(pDevice: GpuDevice, pTexture: IGpuTexture, pDimension: TextureViewDimension, pFormat: TextureFormat, pMultisampled: boolean) {
         super(pDevice);
 
         // Set statics.

@@ -88,17 +88,6 @@ export class PipelineData extends GpuObject<null, PipelineDataInvalidationType, 
     }
 
     /**
-     * Call setup.
-     * 
-     * @param pSetupCallback - Setup callback.
-     *
-     * @returns — this. 
-     */
-    public override setup(pSetupCallback?: ((pSetup: PipelineDataSetup) => void) | undefined): this {
-        return super.setup(pSetupCallback);
-    }
-
-    /**
      * Setup pipeline data.
      * 
      * @param pReferences - Setup data references. 

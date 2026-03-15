@@ -130,17 +130,6 @@ export class BindGroupLayout extends GpuObject<GPUBindGroupLayout, '', BindGroup
     }
 
     /**
-     * Call setup.
-     * 
-     * @param pSetupCallback - Setup callback.
-     *
-     * @returns — this. 
-     */
-    public override setup(pSetupCallback?: ((pSetup: BindGroupLayoutSetup) => void) | undefined): this {
-        return super.setup(pSetupCallback);
-    }
-
-    /**
      * Generate native bind data group layout object.
      */
     protected override generateNative(): GPUBindGroupLayout {

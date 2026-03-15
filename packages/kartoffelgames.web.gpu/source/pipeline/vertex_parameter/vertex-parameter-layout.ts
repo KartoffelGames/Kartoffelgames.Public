@@ -107,17 +107,6 @@ export class VertexParameterLayout extends GpuObject<Array<GPUVertexBufferLayout
     }
 
     /**
-     * Call setup.
-     * 
-     * @param pSetupCallback - Setup callback.
-     *
-     * @returns — this.
-     */
-    public override setup(pSetupCallback?: ((pSetup: VertexParameterLayoutSetup) => void)): this {
-        return super.setup(pSetupCallback);
-    }
-
-    /**
      * Generate new native object.
      */
     protected override generateNative(): Array<GPUVertexBufferLayout> {

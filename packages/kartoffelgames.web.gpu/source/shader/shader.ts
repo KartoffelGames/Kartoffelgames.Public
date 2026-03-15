@@ -165,18 +165,6 @@ export class Shader extends GpuObject<GPUShaderModule, '', ShaderSetup> implemen
     }
 
     /**
-     * Setup render targets.
-     * Can only be called once and is the only way to create or add target textures.
-     * 
-     * @param pSetup - Setup call.
-     * 
-     * @returns this. 
-     */
-    public override setup(pSetupCallback?: ((pSetup: ShaderSetup) => void) | undefined): this {
-        return super.setup(pSetupCallback);
-    }
-
-    /**
      * Generate shader module.
      */
     protected override generateNative(): GPUShaderModule {

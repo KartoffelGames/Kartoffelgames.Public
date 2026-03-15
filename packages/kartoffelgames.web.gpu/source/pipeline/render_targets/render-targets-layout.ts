@@ -6,6 +6,7 @@ import type { IGpuObjectSetup } from '../../gpu_object/interface/i-gpu-object-se
 import { RenderTargetsLayoutSetup, type RenderTargetsLayoutSetupData } from './render-targets-layout-setup.ts';
 import { RenderTargets } from './render-targets.ts';
 import type { TextureFormat } from '../../constant/texture-format.type.ts';
+import type { RenderTargetsSetup } from './render-targets-setup.ts';
 
 /**
  * Layout metadata for render targets.
@@ -106,13 +107,15 @@ export class RenderTargetsLayout extends GpuObject<null, '', RenderTargetsLayout
      * Create render targets from this layout.
      * Textures are created lazily when first needed.
      *
+     * @param pSetupCallback - Optional callback to configure render targets setup before creation.
+     * 
      * @returns new render targets.
      */
-    public create(): RenderTargets {
+    public create(pSetupCallback?: ((pSetup: RenderTargetsSetup) => void) | undefined): RenderTargets {
         // Ensure layout is setup.
         this.ensureSetup();
 
-        return new RenderTargets(this.device, this);
+        return new RenderTargets(this.device, this).setup(pSetupCallback);
     }
 
     /**
@@ -140,18 +143,6 @@ export class RenderTargetsLayout extends GpuObject<null, '', RenderTargetsLayout
      */
     public hasColorTarget(pTargetName: string): boolean {
         return this.mColorTargetFormats.has(pTargetName);
-    }
-
-    /**
-     * Call setup.
-     * Exposes internal setup.
-     *
-     * @param pSetupCallback - Setup callback.
-     *
-     * @returns this.
-     */
-    public override setup(pSetupCallback?: ((pSetup: RenderTargetsLayoutSetup) => void) | undefined): this {
-        return super.setup(pSetupCallback);
     }
 
     /**

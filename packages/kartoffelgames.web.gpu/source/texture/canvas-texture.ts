@@ -1,16 +1,19 @@
 import type { TextureDimension } from '../constant/texture-dimension.ts';
 import type { TextureFormat } from '../constant/texture-format.type.ts';
 import { TextureUsage } from '../constant/texture-usage.enum.ts';
+import type { TextureViewDimension } from '../constant/texture-view-dimension.ts';
 import type { GpuDevice } from '../device/gpu-device.ts';
 import type { GpuObjectInvalidationReasons } from '../gpu_object/gpu-object-invalidation-reasons.ts';
-import { GpuObject } from '../gpu_object/gpu-object.ts';
+import { GpuResourceObject, GpuResourceObjectInvalidationType } from '../gpu_object/gpu-resource-object.ts';
 import type { IGpuObjectNative } from '../gpu_object/interface/i-gpu-object-native.ts';
+import { GpuTextureView } from './gpu-texture-view.ts';
+import type { IGpuTexture } from './i-gpu-texture.ts';
 
 /**
  * Canvas texture. Can only be used as render attachment or to be copied into.
  * Allways 2D with preferred format.
  */
-export class CanvasTexture extends GpuObject<GPUTexture, CanvasTextureInvalidationType> implements IGpuObjectNative<GPUTexture> {
+export class CanvasTexture extends GpuResourceObject<TextureUsage, GPUTexture, CanvasTextureInvalidationType> implements IGpuObjectNative<GPUTexture>, IGpuTexture {
     private readonly mCanvas: HTMLCanvasElement;
     private mContext: GPUCanvasContext | null;
     private readonly mFrameListener: () => void;
@@ -60,6 +63,13 @@ export class CanvasTexture extends GpuObject<GPUTexture, CanvasTextureInvalidati
     }
 
     /**
+     * If texture is multisampled.
+     */
+    public get multiSampled(): boolean {
+        return false;
+    }
+
+    /**
      * Native gpu object.
      */
     public override get native(): GPUTexture {
@@ -94,9 +104,23 @@ export class CanvasTexture extends GpuObject<GPUTexture, CanvasTextureInvalidati
 
         // Rebuild view on every frame.
         this.mFrameListener = () => {
-            this.invalidate(CanvasTextureInvalidationType.NativeRebuild);
+            this.invalidate(GpuResourceObjectInvalidationType.ResourceRebuild);
         };
         this.device.addTickListener(this.mFrameListener);
+    }
+
+    /**
+     * Use texture as view. 
+     * 
+     * @param pDimension - Texture views dimension.
+     * 
+     * @returns Texture view.
+     */
+    public useAs(pDimension?: TextureViewDimension): GpuTextureView {
+        // Use dimension form parameter or convert texture dimension to view dimension.
+        const lViewDimension: TextureViewDimension = pDimension ?? this.dimension;
+
+        return new GpuTextureView(this.device, this, lViewDimension, this.format, this.multiSampled);
     }
 
     /**

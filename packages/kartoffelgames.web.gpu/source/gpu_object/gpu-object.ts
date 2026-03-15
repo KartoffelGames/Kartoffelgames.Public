@@ -17,7 +17,7 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
     private mNativeObject: TNativeObject | null;
     private readonly mUpdateListener: Dictionary<TInvalidationType, List<GpuObjectUpdateListener<TInvalidationType>>>;
     private readonly mUpdateListenerAffectedTyped: WeakMap<GpuObjectUpdateListener<TInvalidationType>, Array<TInvalidationType>>;
-    
+
     /**
      * Gpu Device.
      */
@@ -26,17 +26,17 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
     }
 
     /**
+     * Native gpu object.
+     */
+    public get native(): TNativeObject {
+        return this.readNative();
+    }
+
+    /**
      * Object was setup.
      */
     protected get isSetup(): boolean {
         return this.mIsSetup;
-    }
-
-    /**
-     * Native gpu object.
-     */
-    protected get native(): TNativeObject {
-        return this.readNative();
     }
 
     /**
@@ -295,7 +295,7 @@ export abstract class GpuObject<TNativeObject = null, TInvalidationType extends 
      */
     protected updateNative(_pNative: TNativeObject, _pReasons: GpuObjectInvalidationReasons<TInvalidationType>): boolean {
         return false;
-    }    
+    }
 
     /**
      * Read up to date native object.

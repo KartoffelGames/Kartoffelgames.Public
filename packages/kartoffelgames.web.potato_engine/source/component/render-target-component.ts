@@ -1,19 +1,31 @@
+import { FileSystemReferenceType, FileSystem } from '@kartoffelgames/web-file-system';
 import { GameComponent } from '../core/component/game-component.ts';
+import { CameraComponent } from "./camera/camera-component.ts";
 
 /**
  * Component representing a render target in the environment.
  * Render targets can be attached to game entities or used as standalone components for core render targets.
  * They define properties such as size, passthrough behavior, and render type that influence how rendering is performed for the associated game entities.
  */
+@FileSystem.fileClass('567596b5-8f19-4710-8f55-99f493be2f47', FileSystemReferenceType.Instanced)
 export class RenderTargetComponent extends GameComponent {
     private mHeight: number;
     private mPassthrough: boolean;
-    private mRenderType: RenderTargetRenderType;
+    private mRenderer: string | null;
     private mWidth: number;
+    private mAssignedCamera: CameraComponent | null;
+
+    /**
+     * Get assigned camera for this render target, if any.
+     */
+    public get camera(): CameraComponent | null {
+        return this.mAssignedCamera;
+    }
 
     /**
      * Height of the render target in pixels.
      */
+    @FileSystem.fileProperty()
     public get height(): number {
         return this.mHeight;
     } set height(pValue: number) {
@@ -26,6 +38,7 @@ export class RenderTargetComponent extends GameComponent {
     /**
      * Whether the render target should passthrough game entities to the next render target in the chain.
      */
+    @FileSystem.fileProperty()
     public get passthrough(): boolean {
         return this.mPassthrough;
     } set passthrough(pValue: boolean) {
@@ -38,10 +51,11 @@ export class RenderTargetComponent extends GameComponent {
     /**
      * Render type of the render target, determining which rendering pipeline it participates in.
      */
-    public get renderType(): RenderTargetRenderType {
-        return this.mRenderType;
-    } set renderType(pValue: RenderTargetRenderType) {
-        this.mRenderType = pValue;
+    @FileSystem.fileProperty()
+    public get renderer(): string | null {
+        return this.mRenderer;
+    } set renderer(pValue: string | null) {
+        this.mRenderer = pValue;
 
         // Signal parent component of the change.
         this.update();
@@ -50,12 +64,16 @@ export class RenderTargetComponent extends GameComponent {
     /**
      * Width of the render target in pixels.
      */
+    @FileSystem.fileProperty()
     public get width(): number {
         return this.mWidth;
     } set width(pValue: number) {
         this.mWidth = pValue;
     }
 
+    /**
+     * Constructor.
+     */
     public constructor() {
         super('Render target');
 
@@ -63,11 +81,19 @@ export class RenderTargetComponent extends GameComponent {
         this.mWidth = 512;
         this.mHeight = 512;
         this.mPassthrough = false;
-        this.mRenderType = RenderTargetRenderType.Forward;
+        this.mRenderer = null;
+        this.mAssignedCamera = null;
     }
-}
 
-export enum RenderTargetRenderType {
-    Forward = 'Forward',
-    Deferred = 'Deferred'
+    /**
+     * Set a camera as the active camera for this render target.
+     * 
+     * @param pCamera 
+     */
+    public assignCamera(pCamera: CameraComponent): void {
+        this.mAssignedCamera = pCamera;
+
+        // Signal changes.
+        this.update();
+    }
 }

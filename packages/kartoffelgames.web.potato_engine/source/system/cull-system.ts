@@ -211,6 +211,7 @@ export class CullSystem extends GameSystem {
                     }
                     case 'deactivate': {
                         // Does absolutly nothing, as disabled mesh renderers are ignored in culling and won't be visible regardless of bounds.
+                        break;
                     }
                     case 'activate':
                     case 'update': {

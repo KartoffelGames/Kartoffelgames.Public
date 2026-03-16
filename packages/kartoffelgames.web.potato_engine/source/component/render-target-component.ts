@@ -16,7 +16,8 @@ export class RenderTargetComponent extends GameComponent {
     private mAssignedCamera: CameraComponent | null;
 
     /**
-     * Get assigned camera for this render target, if any.
+     * Get the currently assigned camera for this render target.
+     * Returns null if no camera is assigned.
      */
     public get camera(): CameraComponent | null {
         return this.mAssignedCamera;
@@ -86,11 +87,12 @@ export class RenderTargetComponent extends GameComponent {
     }
 
     /**
-     * Set a camera as the active camera for this render target.
-     * 
-     * @param pCamera 
+     * Set or clear the active camera for this render target.
+     * Pass null to unassign the current camera.
+     *
+     * @param pCamera - The camera component to assign, or null to clear the assignment.
      */
-    public assignCamera(pCamera: CameraComponent): void {
+    public assignCamera(pCamera: CameraComponent | null): void {
         this.mAssignedCamera = pCamera;
 
         // Signal changes.

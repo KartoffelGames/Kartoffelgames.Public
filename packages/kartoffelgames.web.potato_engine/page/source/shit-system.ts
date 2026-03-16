@@ -1,9 +1,8 @@
 import {
-CanvasTexture,
+    CanvasTexture,
     type BindGroup,
     type GpuBuffer,
     type PipelineData,
-    type RenderTargets,
     type VertexFragmentPipeline,
 } from '@kartoffelgames/web-gpu';
 import type { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
@@ -18,6 +17,7 @@ import { GpuSystem } from '../../source/system/gpu-system.ts';
 import { LightSystem } from '../../source/system/light-system.ts';
 import { MaterialSystem, type MaterialSystemMaterial, type MaterialSystemRenderModeRegisterResult } from '../../source/system/material-system.ts';
 import { MeshSystem } from '../../source/system/mesh-system.ts';
+import { RenderTargetSystem } from '../../source/system/render-target-system.ts';
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
 import FORWARD_ENTRY_POINTS from '../../source/shader/forward-entry-points.pgsl';
 import FORWARD_IMPORT from '../../source/shader/forward-import.pgsl';
@@ -49,6 +49,7 @@ export class ShitSystem extends GameSystem {
     private mDependencyLightSystem: LightSystem | null;
     private mDependencyMaterialSystem: MaterialSystem | null;
     private mDependencyMeshSystem: MeshSystem | null;
+    private mDependencyRenderTargetSystem: RenderTargetSystem | null;
     private mDependencyTransformationSystem: TransformationSystem | null;
     private mLightCountBuffer: GpuBuffer | null;
     private mLightDataInitialized: boolean;
@@ -56,7 +57,6 @@ export class ShitSystem extends GameSystem {
     // Maps: Material -> Mesh -> subMeshIndex -> group data.
     private readonly mMaterialMeshGroups: Map<Material, Map<Mesh, Map<number, MaterialMeshGroupData>>>;
     private mRenderModeResult: MaterialSystemRenderModeRegisterResult | null;
-    private mRenderTargets: RenderTargets | null;
     private mResizeObserver: ResizeObserver | null;
     private mWorldGroup: BindGroup | null;
 
@@ -78,7 +78,7 @@ export class ShitSystem extends GameSystem {
      * Systems this system depends on.
      */
     public override get dependentSystemTypes(): Array<GameSystemConstructor<GameSystem>> {
-        return [TransformationSystem, GpuSystem, LightSystem, CullSystem, MaterialSystem, MeshSystem];
+        return [TransformationSystem, GpuSystem, LightSystem, CullSystem, MaterialSystem, MeshSystem, RenderTargetSystem];
     }
 
     /**
@@ -102,19 +102,19 @@ export class ShitSystem extends GameSystem {
         this.mDependencyLightSystem = null;
         this.mDependencyMaterialSystem = null;
         this.mDependencyMeshSystem = null;
+        this.mDependencyRenderTargetSystem = null;
         this.mDependencyTransformationSystem = null;
         this.mLightCountBuffer = null;
         this.mLightDataInitialized = false;
         this.mLightIndexListBuffer = null;
         this.mMaterialMeshGroups = new Map();
         this.mRenderModeResult = null;
-        this.mRenderTargets = null;
         this.mResizeObserver = null;
         this.mWorldGroup = null;
     }
 
     /**
-     * Initialize canvas, GPU render targets from MaterialSystem's layout, and bind groups.
+     * Initialize canvas, register renderer with RenderTargetSystem, and set up bind groups.
      */
     protected override async onCreate(): Promise<void> {
         // Read dependencies.
@@ -124,6 +124,7 @@ export class ShitSystem extends GameSystem {
         this.mDependencyCullSystem = this.environment.getSystem(CullSystem);
         this.mDependencyMaterialSystem = this.environment.getSystem(MaterialSystem);
         this.mDependencyMeshSystem = this.environment.getSystem(MeshSystem);
+        this.mDependencyRenderTargetSystem = this.environment.getSystem(RenderTargetSystem);
 
         // Set global shader import for shared types.
         this.mDependencyMaterialSystem.setGlobalImport('WorldGroupForward', FORWARD_WORLD_GROUP);
@@ -143,23 +144,20 @@ export class ShitSystem extends GameSystem {
             typeImports: [SHARED_TYPES]
         });
 
-        // Get canvas dimensions.
-        const lCanvasWidth: number = Math.round(this.mCanvas.clientWidth * devicePixelRatio);
-        const lCanvasHeight: number = Math.round(this.mCanvas.clientHeight * devicePixelRatio);
+        // Create CanvasTexture for the setup callback.
         const lCanvasTexture: CanvasTexture = new CanvasTexture(lGpu, this.mCanvas);
-        lCanvasTexture.width = lCanvasWidth;
-        lCanvasTexture.height = lCanvasHeight;
 
-        // Create RenderTargets from the registered render mode's layout.
-        this.mRenderTargets = this.mRenderModeResult.renderTargetsLayout.create((pSetup)=>{
+        // Register renderer with RenderTargetSystem using the layout and canvas setup callback.
+        this.mDependencyRenderTargetSystem.registerRenderer(ShitSystem.RENDER_MODE, this.mRenderModeResult.renderTargetsLayout, (pSetup) => {
             pSetup.setOwnColorTarget('color', lCanvasTexture);
         });
-        this.mRenderTargets.resize(lCanvasHeight, lCanvasWidth);
 
-        // Update core render target component dimensions to match canvas.
-        const lCoreRenderTarget = this.mDependencyCullSystem.rootRenderTarget;
-        lCoreRenderTarget.width = lCanvasWidth;
-        lCoreRenderTarget.height = lCanvasHeight;
+        // Get root render target from RenderTargetSystem and set initial dimensions.
+        const lRootRenderTarget = this.mDependencyRenderTargetSystem.rootRenderTarget;
+        const lCanvasWidth: number = Math.round(this.mCanvas.clientWidth * devicePixelRatio);
+        const lCanvasHeight: number = Math.round(this.mCanvas.clientHeight * devicePixelRatio);
+        lRootRenderTarget.width = lCanvasWidth;
+        lRootRenderTarget.height = lCanvasHeight;
 
         // Observe canvas size changes via ResizeObserver.
         this.mResizeObserver = new ResizeObserver((pEntries: Array<ResizeObserverEntry>) => {
@@ -167,15 +165,9 @@ export class ShitSystem extends GameSystem {
             const lNewWidth: number = Math.round(lEntry.contentBoxSize[0].inlineSize * devicePixelRatio);
             const lNewHeight: number = Math.round(lEntry.contentBoxSize[0].blockSize * devicePixelRatio);
 
-            if (this.mRenderTargets) {
-                this.mRenderTargets.resize(lNewHeight, lNewWidth);
-            }
-
-            lCanvasTexture.width = lNewWidth;
-            lCanvasTexture.height = lNewHeight;
-
-            lCoreRenderTarget.width = lNewWidth;
-            lCoreRenderTarget.height = lNewHeight;
+            // Update root render target dimensions. RenderTargetSystem handles resizing the RenderTargets.
+            lRootRenderTarget.width = lNewWidth;
+            lRootRenderTarget.height = lNewHeight;
         });
         this.mResizeObserver.observe(this.mCanvas);
 
@@ -192,19 +184,28 @@ export class ShitSystem extends GameSystem {
             return;
         }
 
-        // Get culling data for the core render target from CullSystem.
-        const lCullingData: ReadonlyCullSystemRenderTargetData | undefined = this.mDependencyCullSystem!.getRenderTargetCulling(this.mDependencyCullSystem!.rootRenderTarget);
+        // Get root render target and its camera from RenderTargetSystem.
+        const lRootRenderTarget = this.mDependencyRenderTargetSystem!.rootRenderTarget;
+        const lCamera = lRootRenderTarget.camera;
+        if (!lCamera) {
+            return;
+        }
 
-        if (!lCullingData || !lCullingData.camera || !lCullingData.camera.transformation) {
+        // Get culling data for the root render target from CullSystem.
+        const lCullingData: ReadonlyCullSystemRenderTargetData | undefined = this.mDependencyCullSystem!.getRenderTargetCulling(lRootRenderTarget);
+        if (!lCullingData) {
             return;
         }
 
         // Rebuild instance data from the frustum-culled visible list.
         await this.rebuildInstanceData(lCullingData);
 
+        // Get RenderTargets from RenderTargetSystem for the root render target.
+        const lRenderTargets = this.mDependencyRenderTargetSystem!.getRenderTarget(lRootRenderTarget);
+
         // Create executor that runs the render pass and copies result to canvas.
         this.mDependencyGpuSystem!.gpu.execute((pExecutor) => {
-            pExecutor.renderPass(this.mRenderTargets!, (pContext) => {
+            pExecutor.renderPass(lRenderTargets, (pContext) => {
                 for (const [, lMeshGroups] of this.mMaterialMeshGroups) {
                     for (const [lMesh, lSubMeshGroups] of lMeshGroups) {
                         for (const [lSubMeshIndex, lGroupData] of lSubMeshGroups) {
@@ -323,9 +324,12 @@ export class ShitSystem extends GameSystem {
         }
         this.mLightIndexListBuffer!.write(lLightIndexList.buffer);
 
-        // Update camera view projection matrix.
-        const lWorldMatrix = lTransformationSystem.worldMatrixOfTransformation(pCullingData.camera!.transformation!);
-        const lViewProjectionMatrix = pCullingData.camera!.component.matrix.mult(lWorldMatrix.inverse());
+        // Update camera view projection matrix from root render target's camera.
+        const lRootRenderTarget = this.mDependencyRenderTargetSystem!.rootRenderTarget;
+        const lCamera = lRootRenderTarget.camera!;
+        const lCameraTransformation: TransformationComponent = lCamera.gameEntity.getComponent(TransformationComponent)!;
+        const lWorldMatrix = lTransformationSystem.worldMatrixOfTransformation(lCameraTransformation);
+        const lViewProjectionMatrix = lCamera.matrix.mult(lWorldMatrix.inverse());
         this.mWorldGroup.data('viewProjection').getRaw<GpuBuffer>().write(new Float32Array(lViewProjectionMatrix.dataArray).buffer);
 
         // Group visible renderers by material + mesh + submesh index.

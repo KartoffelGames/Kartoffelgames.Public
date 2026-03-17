@@ -26,8 +26,7 @@ import { TransformationSystem } from './transformation-system.ts';
 export class CullSystem extends GameSystem {
     private mDependencyRenderTargetSystem: RenderTargetSystem | null;
     private mDependencyTransformationSystem: TransformationSystem | null;
-    private readonly mFrustumCache: Map<RenderTargetComponent, Frustum>;
-    private readonly mMeshRendererToRenderTargets: WeakMap<MeshRenderComponent, Array<RenderTargetComponent>>;
+    private readonly mMeshRendererToRenderTargets: WeakMap<MeshRenderComponent, Set<RenderTargetComponent>>;
     private readonly mMeshRendererWorldBounds: WeakMap<MeshRenderComponent, CullSystemWorldBounds>;
     private readonly mRenderTargetDataMap: Map<RenderTargetComponent, CullSystemRenderTargetData>;
 
@@ -55,9 +54,8 @@ export class CullSystem extends GameSystem {
 
         // Initialize render target data and mesh assignment maps.
         this.mRenderTargetDataMap = new Map<RenderTargetComponent, CullSystemRenderTargetData>();
-        this.mMeshRendererToRenderTargets = new WeakMap<MeshRenderComponent, Array<RenderTargetComponent>>();
+        this.mMeshRendererToRenderTargets = new WeakMap<MeshRenderComponent, Set<RenderTargetComponent>>();
         this.mMeshRendererWorldBounds = new WeakMap<MeshRenderComponent, CullSystemWorldBounds>();
-        this.mFrustumCache = new Map<RenderTargetComponent, Frustum>();
 
         // Set dependencies to null. Resolved during onCreate.
         this.mDependencyTransformationSystem = null;
@@ -179,8 +177,14 @@ export class CullSystem extends GameSystem {
      */
     private addRenderTarget(pRenderTarget: RenderTargetComponent): void {
         // Create new empty culling data for this render target and a fresh frustum.
-        this.mRenderTargetDataMap.set(pRenderTarget, this.createEmptyRenderTargetData());
-        this.mFrustumCache.set(pRenderTarget, new Frustum());
+        this.mRenderTargetDataMap.set(pRenderTarget, {
+            frustum: new Frustum(),
+            meshes: {
+                available: new Array<MeshRenderComponent>(),
+                visible: new Array<MeshRenderComponent>(),
+                indexMap: new Map<MeshRenderComponent, number>()
+            }
+        });
 
         // Read all mesh renderer entities under this render target and reassign them.
         const lMeshEntities: Array<MeshRenderComponent> = pRenderTarget.gameEntity.getParentComponents(MeshRenderComponent);
@@ -203,12 +207,11 @@ export class CullSystem extends GameSystem {
         const lRootRenderTarget: RenderTargetComponent = this.mDependencyRenderTargetSystem!.rootRenderTarget;
 
         // List of all found mesh render targets.
-        const lAssignedRenderTargets: Array<RenderTargetComponent> = new Array<RenderTargetComponent>();
+        const lAssignedRenderTargets: Set<RenderTargetComponent> = new Set<RenderTargetComponent>();
 
         // Read last assigned render targets and create a set for quick lookup.
         // This is needed to avoid duplicate assignments when traversing the hierarchy and passthrough render targets.
-        const lLastAssignedRenderTargets: Array<RenderTargetComponent> = this.mMeshRendererToRenderTargets.get(pMeshRenderer) ?? new Array<RenderTargetComponent>();
-        const lLastAssignedRenderTargetSet: Set<RenderTargetComponent> = new Set<RenderTargetComponent>(lLastAssignedRenderTargets);
+        const lLastAssignedRenderTargets: Set<RenderTargetComponent> = this.mMeshRendererToRenderTargets.get(pMeshRenderer) ?? new Set<RenderTargetComponent>();
 
         // Find next parent render target as long as it exists.
         let lCurrentNode: GameObject | null = pMeshRenderer.gameEntity;
@@ -229,8 +232,8 @@ export class CullSystem extends GameSystem {
 
             // Remove from last assigned set. When it was previously assigned,
             // it means we have already processed this render target and can skip to the next one in the hierarchy.
-            if (lLastAssignedRenderTargetSet.delete(lParentRenderTarget)) {
-                lAssignedRenderTargets.push(lParentRenderTarget);
+            if (lLastAssignedRenderTargets.delete(lParentRenderTarget)) {
+                lAssignedRenderTargets.add(lParentRenderTarget);
                 continue;
             }
 
@@ -241,7 +244,7 @@ export class CullSystem extends GameSystem {
             }
 
             // Add render target to mesh renderer's target list.
-            lAssignedRenderTargets.push(lParentRenderTarget);
+            lAssignedRenderTargets.add(lParentRenderTarget);
 
             // Add mesh renderer to this render target's active list.
             const lData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(lParentRenderTarget)!;
@@ -320,21 +323,6 @@ export class CullSystem extends GameSystem {
     }
 
     /**
-     * Create an empty render target data object for culling.
-     *
-     * @returns A new culling data object with empty mesh lists.
-     */
-    private createEmptyRenderTargetData(): CullSystemRenderTargetData {
-        return {
-            meshes: {
-                available: new Array<MeshRenderComponent>(),
-                visible: new Array<MeshRenderComponent>(),
-                indexMap: new Map<MeshRenderComponent, number>()
-            }
-        };
-    }
-
-    /**
      * Rebuild the visible mesh renderer list for a render target using its frustum and world bounding boxes.
      * Reads the camera from the render target component directly.
      *
@@ -349,12 +337,6 @@ export class CullSystem extends GameSystem {
 
         // Skip render targets without an assigned camera.
         if (!pRenderTarget.camera) {
-            return lVisibleMeshRenderers;
-        }
-
-        // Read the cached frustum for this render target.
-        const lFrustum: Frustum | undefined = this.mFrustumCache.get(pRenderTarget);
-        if (!lFrustum) {
             return lVisibleMeshRenderers;
         }
 
@@ -376,7 +358,7 @@ export class CullSystem extends GameSystem {
             }
 
             // Test the cached world-space bounding box against the frustum.
-            if (lFrustum.intersectsBoundingBox(lWorldBounds.minX, lWorldBounds.minY, lWorldBounds.minZ, lWorldBounds.maxX, lWorldBounds.maxY, lWorldBounds.maxZ)) {
+            if (pData.frustum.intersectsBoundingBox(lWorldBounds.minX, lWorldBounds.minY, lWorldBounds.minZ, lWorldBounds.maxX, lWorldBounds.maxY, lWorldBounds.maxZ)) {
                 lVisibleMeshRenderers.push(lMeshRenderer);
             }
         }
@@ -392,7 +374,7 @@ export class CullSystem extends GameSystem {
      */
     private removeMeshRenderer(pMeshRenderer: MeshRenderComponent): void {
         // Get all render targets this mesh renderer belongs to.
-        const lRenderTargets: Array<RenderTargetComponent> = this.mMeshRendererToRenderTargets.get(pMeshRenderer)!;
+        const lRenderTargets: Set<RenderTargetComponent> = this.mMeshRendererToRenderTargets.get(pMeshRenderer)!;
 
         // Remove render target list, as it could clash when the mesh renderer is added again.
         this.mMeshRendererToRenderTargets.delete(pMeshRenderer);
@@ -423,7 +405,6 @@ export class CullSystem extends GameSystem {
         // Get current render target data and remove it from tracking maps.
         const lData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(pRenderTarget)!;
         this.mRenderTargetDataMap.delete(pRenderTarget);
-        this.mFrustumCache.delete(pRenderTarget);
 
         // Reassign all mesh renderers that were under this render target to their next ancestor render target.
         for (const lMeshRenderer of lData.meshes.available) {
@@ -446,12 +427,6 @@ export class CullSystem extends GameSystem {
             return;
         }
 
-        // Get the cached frustum for this render target.
-        const lFrustum: Frustum | undefined = this.mFrustumCache.get(pRenderTarget);
-        if (!lFrustum) {
-            return;
-        }
-
         // Read the camera's transformation component.
         const lTransformation: TransformationComponent = lCamera.gameEntity.getComponent(TransformationComponent)!;
 
@@ -459,8 +434,11 @@ export class CullSystem extends GameSystem {
         const lWorldMatrix: Matrix = this.mDependencyTransformationSystem!.worldMatrixOfTransformation(lTransformation);
         const lViewProjectionMatrix: Matrix = lCamera.matrix.mult(lWorldMatrix.inverse());
 
+        // Get culling data for this render target and update its frustum.
+        const lRenderTargetData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(pRenderTarget)!;
+
         // Update the frustum with the new view-projection matrix.
-        lFrustum.update(lViewProjectionMatrix);
+        lRenderTargetData.frustum.update(lViewProjectionMatrix);
     }
 }
 
@@ -470,6 +448,7 @@ export class CullSystem extends GameSystem {
  * Includes the swap-remove index map for O(1) mesh renderer add/remove.
  */
 type CullSystemRenderTargetData = {
+    frustum: Frustum;
     meshes: {
         available: Array<MeshRenderComponent>;
         visible: Array<MeshRenderComponent>;

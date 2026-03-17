@@ -1,9 +1,6 @@
 import type { GameComponent } from '../../../source/core/component/game-component.ts';
 import type { GameEnvironment, GameEnvironmentStateChange } from '../../../source/core/environment/game-environment.ts';
-import type { GameEnvironmentStateType } from '../../../source/core/environment/game-environment-event-transmittion.ts';
-import { GameScene } from '../../../source/core/game-scene.ts';
-import { GameEntity } from '../../../source/core/hierarchy/game-entity.ts';
-import type { GameNode } from '../../../source/core/hierarchy/game-node.ts';
+import { GameObject } from '../../../source/core/hierarchy/game-object.ts';
 
 /**
  * Renders the hierarchy panel in the left sidebar.
@@ -20,7 +17,7 @@ export class HierarchyPanel {
     private readonly mCollapsedPaths: Set<string>;
 
     // DOM element tracking for incremental updates.
-    private readonly mNodeElements: Map<GameNode, HierarchyNodeElements>;
+    private readonly mNodeElements: Map<GameObject, HierarchyNodeElements>;
     private readonly mComponentElements: Map<GameComponent, HTMLElement>;
 
     // Event buffering.
@@ -37,7 +34,7 @@ export class HierarchyPanel {
         this.mContainer = pContainer;
         this.mEnvironment = pEnvironment;
         this.mCollapsedPaths = new Set<string>();
-        this.mNodeElements = new Map<GameNode, HierarchyNodeElements>();
+        this.mNodeElements = new Map<GameObject, HierarchyNodeElements>();
         this.mComponentElements = new Map<GameComponent, HTMLElement>();
         this.mPendingChanges = new Array<GameEnvironmentStateChange>();
         this.mUpdateScheduled = false;
@@ -63,7 +60,7 @@ export class HierarchyPanel {
     /**
      * Build a scene node and all its descendants.
      */
-    private buildSceneNode(pScene: GameScene): void {
+    private buildSceneNode(pScene: GameObject): void {
         const lPath: string = pScene.label;
         const lHasChildren: boolean = pScene.childNodes.length > 0;
         const lElements: HierarchyNodeElements = this.createTreeNode(pScene.label, 'scene', 'S', pScene.enabled, lHasChildren, lPath);
@@ -80,10 +77,10 @@ export class HierarchyPanel {
     /**
      * Build an entity node and all its descendants. Recursively builds child entities and components.
      */
-    private buildEntityNode(pNode: GameNode, pParentElements: HierarchyNodeElements, pParentPath: string): void {
+    private buildEntityNode(pNode: GameObject, pParentElements: HierarchyNodeElements, pParentPath: string): void {
         const lPath: string = pParentPath + '/' + pNode.label;
-        const lIsEntity: boolean = pNode instanceof GameEntity;
-        const lEntity: GameEntity | null = lIsEntity ? pNode as GameEntity : null;
+        const lIsEntity: boolean = pNode instanceof GameObject;
+        const lEntity: GameObject | null = lIsEntity ? pNode as GameObject : null;
 
         const lComponentCount: number = lEntity ? lEntity.components.size : 0;
         const lHasChildren: boolean = pNode.childNodes.length > 0 || lComponentCount > 0;
@@ -151,7 +148,7 @@ export class HierarchyPanel {
         this.mPendingChanges = new Array<GameEnvironmentStateChange>();
 
         // Track entities that need an enabled-state refresh after all changes are processed.
-        const lAffectedEntities: Set<GameEntity> = new Set<GameEntity>();
+        const lAffectedEntities: Set<GameObject> = new Set<GameObject>();
 
         for (const lChange of lChanges) {
             switch (lChange.type) {
@@ -190,7 +187,7 @@ export class HierarchyPanel {
         // is never removed by cleanupEmptyNode (which skips scenes). This sweep catches
         // unloaded scenes and any remaining descendant tracking entries.
         for (const [lNode] of this.mNodeElements) {
-            if (lNode instanceof GameScene && !this.mEnvironment.childNodes.includes(lNode)) {
+            if (lNode instanceof GameObject && !this.mEnvironment.childNodes.includes(lNode)) {
                 this.removeNodeSubtree(lNode);
             }
         }
@@ -217,7 +214,7 @@ export class HierarchyPanel {
             return;
         }
 
-        const lEntity: GameEntity = pComponent.gameEntity;
+        const lEntity: GameObject = pComponent.gameEntity;
 
         // Ensure the entity's entire ancestor chain exists in the DOM.
         this.ensureEntityInTree(lEntity);
@@ -244,7 +241,7 @@ export class HierarchyPanel {
         this.mComponentElements.delete(pComponent);
 
         // Clean up empty entity nodes up the chain.
-        const lEntity: GameEntity = pComponent.gameEntity;
+        const lEntity: GameObject = pComponent.gameEntity;
         this.cleanupEmptyNode(lEntity);
     }
 
@@ -252,24 +249,24 @@ export class HierarchyPanel {
      * Ensure an entity and all its ancestors exist as DOM nodes in the tree.
      * Walks up the hierarchy from the entity to the scene, creating nodes as needed.
      */
-    private ensureEntityInTree(pEntity: GameEntity): void {
+    private ensureEntityInTree(pEntity: GameObject): void {
         // If already in the DOM, nothing to do.
         if (this.mNodeElements.has(pEntity)) {
             return;
         }
 
         // Collect the ancestor chain from entity up to (but not including) the scene or an already-tracked node.
-        const lChain: Array<GameNode> = new Array<GameNode>();
-        let lCurrent: GameNode = pEntity;
+        const lChain: Array<GameObject> = new Array<GameObject>();
+        let lCurrent: GameObject = pEntity;
 
         while (!this.mNodeElements.has(lCurrent)) {
             lChain.push(lCurrent);
-            const lParent: GameNode | null = lCurrent.parent;
+            const lParent: GameObject | null = lCurrent.parent;
 
             if (!lParent) {
                 // Reached a root node without a parent - this might be a scene.
                 // Scenes should already be in the tree from initial build. If not, add it.
-                if (lCurrent instanceof GameScene && !this.mNodeElements.has(lCurrent)) {
+                if (lCurrent instanceof GameObject && !this.mNodeElements.has(lCurrent)) {
                     this.buildSceneNode(lCurrent);
                 }
                 break;
@@ -281,7 +278,7 @@ export class HierarchyPanel {
         // Walk back down the chain and create nodes.
         lChain.reverse();
         for (const lNode of lChain) {
-            const lParent: GameNode | null = lNode.parent;
+            const lParent: GameObject | null = lNode.parent;
             if (!lParent) {
                 continue;
             }
@@ -300,12 +297,7 @@ export class HierarchyPanel {
      * Remove empty entity nodes from the DOM. After a component is removed,
      * the entity node might have no children left. If so, remove it and check its parent.
      */
-    private cleanupEmptyNode(pNode: GameNode): void {
-        // Don't clean up scenes.
-        if (pNode instanceof GameScene) {
-            return;
-        }
-
+    private cleanupEmptyNode(pNode: GameObject): void {
         const lElements: HierarchyNodeElements | undefined = this.mNodeElements.get(pNode);
         if (!lElements) {
             return;
@@ -321,7 +313,7 @@ export class HierarchyPanel {
         this.mNodeElements.delete(pNode);
 
         // Recurse to parent.
-        const lParent: GameNode | null = pNode.parent;
+        const lParent: GameObject | null = pNode.parent;
         if (lParent) {
             this.cleanupEmptyNode(lParent);
         }
@@ -332,9 +324,9 @@ export class HierarchyPanel {
      * Walks the game object hierarchy (preserved after disconnect) and cleans up
      * all component entries, node entries, and DOM elements.
      */
-    private removeNodeSubtree(pNode: GameNode): void {
+    private removeNodeSubtree(pNode: GameObject): void {
         // Clean up component entries if this is an entity.
-        if (pNode instanceof GameEntity) {
+        if (pNode instanceof GameObject) {
             for (const lComponent of pNode.components) {
                 this.mComponentElements.delete(lComponent);
             }
@@ -357,9 +349,9 @@ export class HierarchyPanel {
      * Build the path string for a node by walking up the hierarchy.
      * Used for collapse state tracking.
      */
-    private buildNodePath(pNode: GameNode): string {
+    private buildNodePath(pNode: GameObject): string {
         const lParts: Array<string> = new Array<string>();
-        let lCurrent: GameNode | null = pNode;
+        let lCurrent: GameObject | null = pNode;
 
         while (lCurrent) {
             lParts.push(lCurrent.label);

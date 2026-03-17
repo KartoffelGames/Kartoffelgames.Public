@@ -59,7 +59,8 @@ export class RenderTargetSystem extends GameSystem {
         super('RenderTarget', pEnvironment);
 
         // Init root render target as early as possible and connect it to ensure it receives updates even without a parent GameEntity.
-        this.mRootRenderTarget = new CoreRenderTargetComponent(this.environment);
+        this.mRootRenderTarget = this.environment.addComponent(RenderTargetComponent);
+        this.mRootRenderTarget.label = 'Root Render Target';
 
         // Initialize renderer tracking.
         this.mRenderers = new Map<string, RenderTargetSystemRendererData>();
@@ -137,22 +138,6 @@ export class RenderTargetSystem extends GameSystem {
         // Set as default renderer if this is the first registered renderer or explicitly requested.
         if (this.mDefaultRendererName === null || pDefault === true) {
             this.mDefaultRendererName = pName;
-
-            // Create RenderTargets for the root render target if it has none yet.
-            if (!this.mRenderTargets.has(this.mRootRenderTarget)) {
-                this.assignRenderTargetToRenderer(this.mRootRenderTarget, pName);
-            }
-        }
-    }
-
-    /**
-     * Initialize the system.
-     * The root render target's RenderTargets will be created when a renderer is registered via registerRenderer.
-     */
-    protected override async onCreate(): Promise<void> {
-        // Assign root render target to the default renderer if one was registered before onCreate.
-        if (this.mDefaultRendererName !== null && !this.mRenderTargets.has(this.mRootRenderTarget)) {
-            this.assignRenderTargetToRenderer(this.mRootRenderTarget, this.mDefaultRendererName);
         }
     }
 
@@ -283,11 +268,8 @@ export class RenderTargetSystem extends GameSystem {
         this.mActiveCameras.add(pCamera);
 
         // Find the render target this camera belongs to by walking up the entity hierarchy.
-        let lParentRenderTarget: RenderTargetComponent | null = pCamera.gameEntity.getParentComponent(RenderTargetComponent);
-        if (!lParentRenderTarget) {
-            // Fall back to the root render target when no parent render target is found.
-            lParentRenderTarget = this.mRootRenderTarget;
-        }
+        // Does allways find a render target component, as the root render target is added directly to the environment and thus is a parent of all entities.
+        let lParentRenderTarget: RenderTargetComponent | null = pCamera.gameEntity.getParentComponent(RenderTargetComponent)!;
 
         // Assign camera only when the render target has no active camera.
         if (!lParentRenderTarget.camera) {
@@ -334,10 +316,7 @@ export class RenderTargetSystem extends GameSystem {
             }
 
             // Find the render target this camera belongs to.
-            let lParentRenderTarget: RenderTargetComponent | null = lCamera.gameEntity.getParentComponent(RenderTargetComponent);
-            if (!lParentRenderTarget) {
-                lParentRenderTarget = this.mRootRenderTarget;
-            }
+            const lParentRenderTarget: RenderTargetComponent | null = lCamera.gameEntity.getParentComponent(RenderTargetComponent)!;
 
             // When the camera belongs to the affected render target, assign it as the new camera.
             if (lParentRenderTarget === lRenderTarget) {
@@ -410,33 +389,3 @@ type RenderTargetSystemRendererData = {
     setupCallback: ((pSetup: RenderTargetsSetup) => void) | undefined;
     renderTargets: Set<RenderTargetComponent>;
 };
-
-/**
- * Extended render target component for the core (canvas-backed) render target.
- * Unlike entity-attached RenderTargetComponents, this standalone component sends
- * update events directly to the GameEnvironment without requiring a parent GameEntity.
- */
-class CoreRenderTargetComponent extends RenderTargetComponent {
-    private readonly mEnvironment: GameEnvironment;
-
-    /**
-     * Constructor.
-     *
-     * @param pEnvironment - The game environment this system belongs to.
-     */
-    public constructor(pEnvironment: GameEnvironment) {
-        super();
-
-        this.mEnvironment = pEnvironment;
-    }
-
-    /**
-     * Override update to send the state change directly to the environment
-     * instead of going through a parent GameEntity.
-     */
-    public override update(): void {
-        if (this.mEnvironment) {
-            this.mEnvironment.queueComponentStateChange('update', this);
-        }
-    }
-}

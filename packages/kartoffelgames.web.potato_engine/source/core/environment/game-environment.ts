@@ -2,13 +2,13 @@ import { Exception } from '@kartoffelgames/core';
 import type { FileSystem } from '@kartoffelgames/web-file-system';
 import type { GameComponent, GameComponentConstructor } from '../component/game-component.ts';
 import type { GameSystem, GameSystemConstructor, GameSystemUpdateStateChanges } from '../game-system.ts';
-import { GameEntity } from "../hierarchy/game-entity.ts";
+import { GameObject } from "../hierarchy/game-object.ts";
 import { type GameEnvironmentStateType, GameEnvironmentEventTransmission } from './game-environment-event-transmittion.ts';
 
 /**
  * Main hub for managing the game environment, including loaded scenes, registered systems, and processing component state changes.
  */
-export class GameEnvironment extends GameEntity {
+export class GameEnvironment extends GameObject {
     private static readonly TIMING_HISTORY_SIZE: number = 200;
 
     private mCurrentTick: number;

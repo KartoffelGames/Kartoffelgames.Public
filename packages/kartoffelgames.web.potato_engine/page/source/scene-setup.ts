@@ -12,8 +12,7 @@ import { Material } from '../../source/component_item/material.ts';
 import { Mesh } from '../../source/component_item/mesh.ts';
 import { Shader } from '../../source/component_item/shader.ts';
 import { Texture } from '../../source/component_item/texture.ts';
-import { GameScene } from '../../source/core/game-scene.ts';
-import { GameEntity } from '../../source/core/hierarchy/game-entity.ts';
+import { GameObject } from '../../source/core/hierarchy/game-object.ts';
 import DEFAULT_PBR_SHADER from '../../source/shader/default-pbr-shader.pgsl';
 
 /**
@@ -23,10 +22,10 @@ import DEFAULT_PBR_SHADER from '../../source/shader/default-pbr-shader.pgsl';
 export class SceneSetup {
     private readonly mBlockMesh: Mesh;
     private readonly mBlockMeshMaterials: Array<Material>;
-    private readonly mCameraEntity: GameEntity;
-    private readonly mCameraScene: GameScene;
+    private readonly mCameraEntity: GameObject;
+    private readonly mCameraScene: GameObject;
     private readonly mPlaneMesh: Mesh;
-    private readonly mScenes: Map<number, GameScene>;
+    private readonly mScenes: Map<number, GameObject>;
 
     // Reusable materials.
     private readonly mWhiteMaterial: Material;
@@ -36,27 +35,27 @@ export class SceneSetup {
     private readonly mYellowMaterial: Material;
 
     // Scene 1 animation entities.
-    private readonly mScene1HierarchyEntities: Array<GameEntity>;
-    private readonly mScene1BlockEntities: Array<GameEntity>;
+    private readonly mScene1HierarchyEntities: Array<GameObject>;
+    private readonly mScene1BlockEntities: Array<GameObject>;
 
     /**
      * The camera scene (always loaded).
      */
-    public get cameraScene(): GameScene {
+    public get cameraScene(): GameObject {
         return this.mCameraScene;
     }
 
     /**
      * The camera entity.
      */
-    public get cameraEntity(): GameEntity {
+    public get cameraEntity(): GameObject {
         return this.mCameraEntity;
     }
 
     /**
      * All numbered scenes.
      */
-    public get scenes(): ReadonlyMap<number, GameScene> {
+    public get scenes(): ReadonlyMap<number, GameObject> {
         return this.mScenes;
     }
 
@@ -70,9 +69,9 @@ export class SceneSetup {
         this.mBlockMesh = pBlockMesh;
         this.mBlockMeshMaterials = pBlockMeshMaterials ?? [];
         this.mPlaneMesh = SceneSetup.createPlaneMesh();
-        this.mScenes = new Map<number, GameScene>();
-        this.mScene1HierarchyEntities = new Array<GameEntity>();
-        this.mScene1BlockEntities = new Array<GameEntity>();
+        this.mScenes = new Map<number, GameObject>();
+        this.mScene1HierarchyEntities = new Array<GameObject>();
+        this.mScene1BlockEntities = new Array<GameObject>();
 
         // Create reusable materials with different colors.
         this.mWhiteMaterial = SceneSetup.createMaterial(1, 1, 1, 1);
@@ -82,13 +81,13 @@ export class SceneSetup {
         this.mYellowMaterial = SceneSetup.createMaterial(1, 1, 0.3, 1);
 
         // Create always-loaded camera scene.
-        this.mCameraScene = new GameScene();
+        this.mCameraScene = new GameObject();
         this.mCameraScene.label = 'Camera Scene';
         this.mCameraEntity = this.createPerspectiveCamera();
         this.mCameraScene.addObject(this.mCameraEntity);
 
         // Add ambient light to the camera scene (always active).
-        const lAmbientLightEntity: GameEntity = this.createLightEntity('Ambient Light', LightComponentItemType.Ambient,
+        const lAmbientLightEntity: GameObject = this.createLightEntity('Ambient Light', LightComponentItemType.Ambient,
             { x: 0, y: 0, z: 0 }, { r: 1, g: 1, b: 1 }, 0.1);
         this.mCameraScene.addObject(lAmbientLightEntity);
 
@@ -197,8 +196,8 @@ export class SceneSetup {
     /**
      * Create the perspective camera entity.
      */
-    private createPerspectiveCamera(): GameEntity {
-        const lCameraEntity: GameEntity = new GameEntity();
+    private createPerspectiveCamera(): GameObject {
+        const lCameraEntity: GameObject = new GameObject();
         lCameraEntity.label = 'Camera';
         const lCameraTransformation: TransformationComponent = lCameraEntity.addComponent(TransformationComponent);
         lCameraTransformation.translationZ = -5;
@@ -216,8 +215,8 @@ export class SceneSetup {
     /**
      * Create a mesh render entity at a given position with optional rotation and scale.
      */
-    private createMeshEntity(pLabel: string, pMesh: Mesh, pPosition: { x: number; y: number; z: number; }, pRotation?: { pitch: number; yaw: number; roll: number; }, pScale?: { width: number; height: number; depth: number; }, pMaterial?: Material): GameEntity {
-        const lEntity: GameEntity = new GameEntity();
+    private createMeshEntity(pLabel: string, pMesh: Mesh, pPosition: { x: number; y: number; z: number; }, pRotation?: { pitch: number; yaw: number; roll: number; }, pScale?: { width: number; height: number; depth: number; }, pMaterial?: Material): GameObject {
+        const lEntity: GameObject = new GameObject();
         lEntity.label = pLabel;
         const lTransformation: TransformationComponent = lEntity.addComponent(TransformationComponent);
         lTransformation.translationX = pPosition.x;
@@ -249,8 +248,8 @@ export class SceneSetup {
     /**
      * Create a light entity at a given position with the specified type and color.
      */
-    private createLightEntity(pLabel: string, pType: LightComponentItemType, pPosition: { x: number; y: number; z: number; }, pColor: { r: number; g: number; b: number; }, pIntensity: number, pRotation?: { pitch: number; yaw: number; roll: number; }): GameEntity {
-        const lEntity: GameEntity = new GameEntity();
+    private createLightEntity(pLabel: string, pType: LightComponentItemType, pPosition: { x: number; y: number; z: number; }, pColor: { r: number; g: number; b: number; }, pIntensity: number, pRotation?: { pitch: number; yaw: number; roll: number; }): GameObject {
+        const lEntity: GameObject = new GameObject();
         lEntity.label = pLabel;
         const lTransformation: TransformationComponent = lEntity.addComponent(TransformationComponent);
         lTransformation.translationX = pPosition.x;
@@ -275,7 +274,7 @@ export class SceneSetup {
      * Create 4 planes arranged as an open box (floor + 3 walls) and add them to the scene.
      * The box is centered at the given position.
      */
-    private addOpenBox(pScene: GameScene, pCenter: { x: number; y: number; z: number; }, pSize: number, pMaterial?: Material): void {
+    private addOpenBox(pScene: GameObject, pCenter: { x: number; y: number; z: number; }, pSize: number, pMaterial?: Material): void {
         const lHalf: number = pSize / 2;
 
         // Floor (facing up).
@@ -316,8 +315,8 @@ export class SceneSetup {
     /**
      * Scene 1: Animated cube chain with 3 colored point lights.
      */
-    private createScene1(): GameScene {
-        const lScene: GameScene = new GameScene();
+    private createScene1(): GameObject {
+        const lScene: GameObject = new GameObject();
         lScene.label = 'Scene 1: Cube Chain';
 
         // Create 3 point lights.
@@ -346,16 +345,16 @@ export class SceneSetup {
      * Create a chain of nested cube entities within a scene.
      * Each entity gets the full materials array so all submeshes render with proper materials.
      */
-    private createCubeChain(pScene: GameScene, pMesh: Mesh, pCount: number, pMaterials: Array<Material>): void {
+    private createCubeChain(pScene: GameObject, pMesh: Mesh, pCount: number, pMaterials: Array<Material>): void {
         for (let lIndex = 0; lIndex < pCount; lIndex++) {
-            const lParent: GameEntity | null = this.mScene1HierarchyEntities.at(-1) ?? null;
+            const lParent: GameObject | null = this.mScene1HierarchyEntities.at(-1) ?? null;
 
-            const lHierarchyEntity = new GameEntity();
+            const lHierarchyEntity = new GameObject();
             lHierarchyEntity.label = `Hierarchy Entity ${this.mScene1HierarchyEntities.length + 1}`;
             const lHierarchyTransformation: TransformationComponent = lHierarchyEntity.addComponent(TransformationComponent);
             lHierarchyTransformation.translationX = 2;
 
-            const lBlockEntity: GameEntity = new GameEntity();
+            const lBlockEntity: GameObject = new GameObject();
             lBlockEntity.label = `Block Entity ${this.mScene1BlockEntities.length + 1}`;
             const lBlockTransformation: TransformationComponent = lBlockEntity.addComponent(TransformationComponent);
             lBlockTransformation.scaleHeight = 0.5;
@@ -384,8 +383,8 @@ export class SceneSetup {
     /**
      * Scene 2: Open box (4 planes) with 4 colored point lights inside.
      */
-    private createScene2(): GameScene {
-        const lScene: GameScene = new GameScene();
+    private createScene2(): GameObject {
+        const lScene: GameObject = new GameObject();
         lScene.label = 'Scene 2: Point Lights';
         const lCenter = { x: 0, y: 2, z: 5 };
 
@@ -420,8 +419,8 @@ export class SceneSetup {
     /**
      * Scene 3: Open box with 4 colored area lights facing inward.
      */
-    private createScene3(): GameScene {
-        const lScene: GameScene = new GameScene();
+    private createScene3(): GameObject {
+        const lScene: GameObject = new GameObject();
         lScene.label = 'Scene 3: Area Lights';
         const lCenter = { x: 0, y: 2, z: 15 };
 
@@ -472,8 +471,8 @@ export class SceneSetup {
     /**
      * Scene 4: Open box with spot lights in various colors and directions.
      */
-    private createScene4(): GameScene {
-        const lScene: GameScene = new GameScene();
+    private createScene4(): GameObject {
+        const lScene: GameObject = new GameObject();
         lScene.label = 'Scene 4: Spot Lights';
         const lCenter = { x: 0, y: 2, z: 25 };
 
@@ -527,8 +526,8 @@ export class SceneSetup {
     /**
      * Scene 5: Random scattered boxes with a directional light from above.
      */
-    private createScene5(): GameScene {
-        const lScene: GameScene = new GameScene();
+    private createScene5(): GameObject {
+        const lScene: GameObject = new GameObject();
         lScene.label = 'Scene 5: Directional Light';
 
         // Directional light from upper-right, angled down.
@@ -583,8 +582,8 @@ export class SceneSetup {
     /**
      * Scene 6: Multiple light types in one scene.
      */
-    private createScene6(): GameScene {
-        const lScene: GameScene = new GameScene();
+    private createScene6(): GameObject {
+        const lScene: GameObject = new GameObject();
         lScene.label = 'Scene 6: Mixed Lights';
         const lCenter = { x: 0, y: 2, z: 45 };
 
@@ -638,8 +637,8 @@ export class SceneSetup {
     /**
      * Scene 7: A corridor of boxes lit by a single bright point light to demonstrate falloff.
      */
-    private createScene7(): GameScene {
-        const lScene: GameScene = new GameScene();
+    private createScene7(): GameObject {
+        const lScene: GameObject = new GameObject();
         lScene.label = 'Scene 7: Light Corridor';
         const lBaseZ: number = 55;
 

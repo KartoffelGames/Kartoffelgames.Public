@@ -1,5 +1,5 @@
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
-import type { GameEntity } from '../../source/core/hierarchy/game-entity.ts';
+import type { GameObject } from '../../source/core/hierarchy/game-object.ts';
 
 /**
  * Handles keyboard and mouse input for camera movement and rotation.
@@ -7,7 +7,7 @@ import type { GameEntity } from '../../source/core/hierarchy/game-entity.ts';
  */
 export class CameraController {
     private readonly mCanvas: HTMLCanvasElement;
-    private readonly mCamera: GameEntity;
+    private readonly mCamera: GameObject;
     private readonly mKeyState: Set<string>;
     private mMouseDown: boolean;
     private readonly mMouseMovement: { x: number; y: number };
@@ -16,7 +16,7 @@ export class CameraController {
     /**
      * The camera entity.
      */
-    public get camera(): GameEntity {
+    public get camera(): GameObject {
         return this.mCamera;
     }
 
@@ -26,7 +26,7 @@ export class CameraController {
      * @param pCanvas - The canvas element to listen for mouse events on.
      * @param pCamera - The camera entity to control.
      */
-    public constructor(pCanvas: HTMLCanvasElement, pCamera: GameEntity) {
+    public constructor(pCanvas: HTMLCanvasElement, pCamera: GameObject) {
         this.mCanvas = pCanvas;
         this.mCamera = pCamera;
         this.mKeyState = new Set<string>();

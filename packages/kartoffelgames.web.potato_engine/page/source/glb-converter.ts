@@ -5,7 +5,7 @@ import { Material } from '../../source/component_item/material.ts';
 import { Mesh } from '../../source/component_item/mesh.ts';
 import { Shader } from '../../source/component_item/shader.ts';
 import { Texture } from '../../source/component_item/texture.ts';
-import { GameEntity } from '../../source/core/hierarchy/game-entity.ts';
+import { GameObject } from '../../source/core/hierarchy/game-object.ts';
 import DEFAULT_PBR_SHADER from '../../source/shader/default-pbr-shader.pgsl';
 
 // GLB format constants.
@@ -180,12 +180,12 @@ export class GlbConverter {
      *
      * @returns Array of GameEntity objects, one per mesh in the GLB file.
      */
-    public static convertToEntities(pData: ArrayBuffer): Array<GameEntity> {
+    public static convertToEntities(pData: ArrayBuffer): Array<GameObject> {
         const lResult: GlbConvertResult = GlbConverter.convert(pData);
-        const lEntities: Array<GameEntity> = new Array<GameEntity>();
+        const lEntities: Array<GameObject> = new Array<GameObject>();
 
         for (let lIndex: number = 0; lIndex < lResult.meshes.length; lIndex++) {
-            const lEntity: GameEntity = new GameEntity();
+            const lEntity: GameObject = new GameObject();
             lEntity.label = `GLB Mesh ${lIndex}`;
             lEntity.addComponent(TransformationComponent);
 

@@ -2,7 +2,6 @@ import { MemoryFileSystem } from '@kartoffelgames/web-file-system';
 import type { Material } from '../../source/component_item/material.ts';
 import type { Mesh } from '../../source/component_item/mesh.ts';
 import { GameEnvironment } from '../../source/core/environment/game-environment.ts';
-import type { GameScene } from '../../source/core/game-scene.ts';
 import { CullSystem } from '../../source/system/cull-system.ts';
 import { LightSystem } from '../../source/system/light-system.ts';
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
@@ -14,6 +13,7 @@ import { DebugPanel } from './ui/debug-panel.ts';
 import { FrameGraph } from './ui/frame-graph.ts';
 import { HierarchyPanel } from './ui/hierarchy-panel.ts';
 import { ResizableLayout } from './ui/resizable-layout.ts';
+import { GameObject } from "../../source/core/hierarchy/game-object.ts";
 
 // ── Load assets ──────────────────────────────────────────────
 const gGlbData: ArrayBuffer = await fetch('/mesh.glb').then(async (pResponse) => {
@@ -61,7 +61,7 @@ const gLoadedScenes: Set<number> = new Set<number>();
  * Toggle a numbered scene on or off.
  */
 function gToggleScene(pSceneNumber: number): void {
-    const lScene: GameScene | undefined = gSceneSetup.scenes.get(pSceneNumber);
+    const lScene: GameObject | undefined = gSceneSetup.scenes.get(pSceneNumber);
     if (!lScene) {
         return;
     }

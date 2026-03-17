@@ -1,6 +1,6 @@
 import type { IVoidParameterConstructor } from '../../../../kartoffelgames.core/source/interface/i-constructor.ts';
-import type { GameEntity } from '../hierarchy/game-entity.ts';
-import { GameObject } from '../hierarchy/game-object.ts';
+import type { GameObject } from '../hierarchy/game-object.ts';
+import { GameEntity } from '../hierarchy/game-entity.ts';
 import type { GameUpdateableUpdateListener, IGameUpdateable } from '../i-game-updateable.interface.ts';
 
 // TODO: Define some decorators to allow easy saving and loading of components in binary or json files.
@@ -10,8 +10,8 @@ import type { GameUpdateableUpdateListener, IGameUpdateable } from '../i-game-up
  * Components are used to store data and state for game objects in the environment.
  * They can be enabled or disabled, which signals the environment to activate or deactivate them.
  */
-export class GameComponent<TUpdateStateChanges extends string = any> extends GameObject implements IGameUpdateable<TUpdateStateChanges> {
-    private mGameEntity: GameEntity | null;
+export class GameComponent<TUpdateStateChanges extends string = any> extends GameEntity implements IGameUpdateable<TUpdateStateChanges> {
+    private mGameEntity: GameObject | null;
     private readonly mUpdateListeners: Array<GameUpdateableUpdateListener<TUpdateStateChanges>>;
 
     /**
@@ -31,7 +31,7 @@ export class GameComponent<TUpdateStateChanges extends string = any> extends Gam
      * 
      * @returns The game entity that this component is attached to.
      */
-    public get gameEntity(): GameEntity {
+    public get gameEntity(): GameObject {
         // We assume that the parent of a component is always a game entity, as components should only be added to game entities.
         return this.mGameEntity!; // lets assume this is always set, as components should only be added to game entities and the parent should be set in the addComponent method of GameEntity.
     }
@@ -98,7 +98,7 @@ export class GameComponent<TUpdateStateChanges extends string = any> extends Gam
      * 
      * @param pParent - Parent game entity.
      */
-    public setParent(pParent: GameEntity): void {
+    public setParent(pParent: GameObject): void {
         this.mGameEntity = pParent;
     }
 

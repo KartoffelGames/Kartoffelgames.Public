@@ -4,7 +4,7 @@ import { TransformationComponent } from '../component/transformation-component.t
 import type { GameComponentConstructor } from '../core/component/game-component.ts';
 import type { GameEnvironment } from '../core/environment/game-environment.ts';
 import { GameSystem, type GameSystemConstructor, type GameSystemUpdateStateChanges } from '../core/game-system.ts';
-import { GameEntity } from '../core/hierarchy/game-entity.ts';
+import { GameObject } from '../core/hierarchy/game-object.ts';
 import { GpuSystem } from './gpu-system.ts';
 
 /**
@@ -312,11 +312,11 @@ export class TransformationSystem extends GameSystem {
         this.mComponentIndexMap.set(pComponent, this.mAvailableIndices.pop()!);
 
         // Get parent entity of this component.
-        const lGameObject: GameEntity = pComponent.gameEntity;
+        const lGameObject: GameObject = pComponent.gameEntity;
 
         // Find parent component.
         let lParentComponent: TransformationComponent | null = null;
-        if (lGameObject.parent instanceof GameEntity) {
+        if (lGameObject.parent instanceof GameObject) {
             lParentComponent = lGameObject.parent.getParentComponent(TransformationComponent);
         }
 

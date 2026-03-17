@@ -6,7 +6,7 @@ import type { BoundingBox } from '../component_item/bounding-box.ts';
 import type { GameComponentConstructor } from '../core/component/game-component.ts';
 import type { GameEnvironment, GameEnvironmentStateChange } from '../core/environment/game-environment.ts';
 import { GameSystem, type GameSystemUpdateStateChanges, type GameSystemConstructor } from '../core/game-system.ts';
-import type { GameEntity } from '../core/hierarchy/game-entity.ts';
+import type { GameObject } from '../core/hierarchy/game-object.ts';
 import { RenderTargetSystem } from './render-target-system.ts';
 import { TransformationSystem } from './transformation-system.ts';
 
@@ -85,11 +85,6 @@ export class CullSystem extends GameSystem {
         // Resolve system dependencies.
         this.mDependencyTransformationSystem = this.environment.getSystem(TransformationSystem);
         this.mDependencyRenderTargetSystem = this.environment.getSystem(RenderTargetSystem);
-
-        // Register the root render target for mesh tracking and culling.
-        const lRootRenderTarget: RenderTargetComponent = this.mDependencyRenderTargetSystem.rootRenderTarget;
-        this.mRenderTargetDataMap.set(lRootRenderTarget, this.createEmptyRenderTargetData());
-        this.mFrustumCache.set(lRootRenderTarget, new Frustum());
     }
 
     /**
@@ -188,10 +183,8 @@ export class CullSystem extends GameSystem {
         this.mFrustumCache.set(pRenderTarget, new Frustum());
 
         // Read all mesh renderer entities under this render target and reassign them.
-        const lMeshEntities: Array<GameEntity> = pRenderTarget.gameEntity.getGameObjectsWithComponent(MeshRenderComponent);
-        for (const lEntity of lMeshEntities) {
-            const lMeshRenderer: MeshRenderComponent = lEntity.getComponent(MeshRenderComponent)!;
-
+        const lMeshEntities: Array<MeshRenderComponent> = pRenderTarget.gameEntity.getParentComponents(MeshRenderComponent);
+        for (const lMeshRenderer of lMeshEntities) {
             // Remove and reassign mesh renderer to update its render target assignment based on the new render target in the hierarchy.
             this.removeMeshRenderer(lMeshRenderer);
             this.assignMeshRenderer(lMeshRenderer);
@@ -218,7 +211,7 @@ export class CullSystem extends GameSystem {
         const lLastAssignedRenderTargetSet: Set<RenderTargetComponent> = new Set<RenderTargetComponent>(lLastAssignedRenderTargets);
 
         // Find next parent render target as long as it exists.
-        let lCurrentNode: GameEntity | null = pMeshRenderer.gameEntity;
+        let lCurrentNode: GameObject | null = pMeshRenderer.gameEntity;
         while (lCurrentNode) {
             // Find the nearest ancestor RenderTargetComponent.
             let lParentRenderTarget: RenderTargetComponent | null = lCurrentNode!.getParentComponent(RenderTargetComponent);
@@ -231,7 +224,7 @@ export class CullSystem extends GameSystem {
             if (lParentRenderTarget === lRootRenderTarget) {
                 lCurrentNode = null;
             } else {
-                lCurrentNode = lParentRenderTarget.gameEntity.parent as GameEntity | null;
+                lCurrentNode = lParentRenderTarget.gameEntity.parent as GameObject | null;
             }
 
             // Remove from last assigned set. When it was previously assigned,

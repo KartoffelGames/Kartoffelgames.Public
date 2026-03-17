@@ -1,6 +1,6 @@
 import type { GameComponent } from '../../../source/core/component/game-component.ts';
 import type { GameEnvironment, GameEnvironmentStateChange } from '../../../source/core/environment/game-environment.ts';
-import type { GameEnvironmentStateType } from '../../../source/core/environment/game-environment-transmittion.ts';
+import type { GameEnvironmentStateType } from '../../../source/core/environment/game-environment-event-transmittion.ts';
 import { GameScene } from '../../../source/core/game-scene.ts';
 import { GameEntity } from '../../../source/core/hierarchy/game-entity.ts';
 import type { GameNode } from '../../../source/core/hierarchy/game-node.ts';
@@ -55,7 +55,7 @@ export class HierarchyPanel {
      * Build the full tree from currently loaded scenes. Called once at construction time.
      */
     private buildInitialTree(): void {
-        for (const lScene of this.mEnvironment.loadedScenes) {
+        for (const lScene of this.mEnvironment.childNodes) {
             this.buildSceneNode(lScene);
         }
     }
@@ -190,7 +190,7 @@ export class HierarchyPanel {
         // is never removed by cleanupEmptyNode (which skips scenes). This sweep catches
         // unloaded scenes and any remaining descendant tracking entries.
         for (const [lNode] of this.mNodeElements) {
-            if (lNode instanceof GameScene && !this.mEnvironment.loadedScenes.has(lNode)) {
+            if (lNode instanceof GameScene && !this.mEnvironment.childNodes.includes(lNode)) {
                 this.removeNodeSubtree(lNode);
             }
         }

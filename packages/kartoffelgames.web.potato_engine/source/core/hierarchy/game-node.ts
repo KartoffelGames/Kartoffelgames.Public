@@ -1,4 +1,4 @@
-import type { GameEnvironmentTransmission } from '../environment/game-environment-transmittion.ts';
+import { GameEnvironment } from "../environment/game-environment.ts";
 import { GameObject } from './game-object.ts';
 
 /**
@@ -20,7 +20,7 @@ export abstract class GameNode extends GameObject {
      * Environment this game object is in.
      * A game object is in the same environment as its parent, so this gets bubbled up to the parent until it reaches the scene, which has the environment connection.
      */
-    public get environment(): GameEnvironmentTransmission | null {
+    public get environment(): GameEnvironment | null {
         if (!this.mParent) {
             return null;
         }
@@ -34,7 +34,6 @@ export abstract class GameNode extends GameObject {
         return this.mParent;
     }
 
-
     /**
      * Constructor.
      * 
@@ -44,7 +43,7 @@ export abstract class GameNode extends GameObject {
         super(pLabel);
 
         this.mChildNodeList = new Array<GameNode>();
-                this.mParent = null;
+        this.mParent = null;
     }
 
     /**

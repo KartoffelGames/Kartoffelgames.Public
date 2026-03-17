@@ -5,7 +5,7 @@ import type { GameEnvironment } from './game-environment.ts';
  * Transmits environment state changes from various sources to a registered event handler.
  * Acts as a relay for component lifecycle events including addition, removal, activation, deactivation and updates.
  */
-export class GameEnvironmentTransmission {
+export class GameEnvironmentEventTransmission {
     private readonly mComponentStateRecord: WeakMap<GameComponent, GameEnvironmentComponentState>;
     private readonly mEnvironment: GameEnvironment;
     private readonly mEventSubmitHandler: GameEnvironmentTransmissionEventSubmitHandler;
@@ -27,7 +27,7 @@ export class GameEnvironmentTransmission {
      *
      * @param pComponent - The component being changed.
      */
-    public sendChangeEvent(pEventType: GameEnvironmentStateType, pComponent: GameComponent): void {
+    public sendChange(pEventType: GameEnvironmentStateType, pComponent: GameComponent): void {
         // Submit only when the state change has priority.
         if (this.priorizeStateChange(pEventType, pComponent)) {
             this.mEventSubmitHandler(pEventType, pComponent);

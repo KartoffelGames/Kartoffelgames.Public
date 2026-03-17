@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-system';
 import type { IAnyParameterConstructor } from '../../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import type { GameComponent, GameComponentConstructor } from '../component/game-component.ts';
-import type { GameEnvironmentStateType } from '../environment/game-environment-transmittion.ts';
+import type { GameEnvironmentStateType } from '../environment/game-environment-event-transmittion.ts';
 import { GameNode } from '../hierarchy/game-node.ts';
 
 /**
@@ -247,11 +247,11 @@ export class GameEntity extends GameNode {
             // Read dependent components and send change event to them.
             const lDependentComponents: Array<GameComponent> = this.mComponentUpdateDependencies.get(pComponent)!;
             for(const lDependentComponent of lDependentComponents) {
-                this.environment.sendChangeEvent(pType, lDependentComponent);
+                this.environment.events.sendChange(pType, lDependentComponent);
             }
         }
 
-        this.environment.sendChangeEvent(pType, pComponent);
+        this.environment.events.sendChange(pType, pComponent);
     }
 
     /**

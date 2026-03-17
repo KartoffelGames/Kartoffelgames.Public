@@ -52,7 +52,7 @@ if (gCanvasWrapper) {
 const gSceneSetup = new SceneSetup(gBlockMesh, gBlockMeshMaterials);
 
 // Always load the camera scene.
-gEnvironment.loadScene(gSceneSetup.cameraScene);
+gEnvironment.addObject(gSceneSetup.cameraScene);
 
 // Track which numbered scenes are currently loaded.
 const gLoadedScenes: Set<number> = new Set<number>();
@@ -67,10 +67,10 @@ function gToggleScene(pSceneNumber: number): void {
     }
 
     if (gLoadedScenes.has(pSceneNumber)) {
-        gEnvironment.unloadScene(lScene);
+        gEnvironment.removeObject(lScene);
         gLoadedScenes.delete(pSceneNumber);
     } else {
-        gEnvironment.loadScene(lScene);
+        gEnvironment.addObject(lScene);
         gLoadedScenes.add(pSceneNumber);
     }
 }

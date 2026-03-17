@@ -1,24 +1,24 @@
 import { Exception } from '@kartoffelgames/core';
 import type { FileSystem } from '@kartoffelgames/web-file-system';
 import type { GameComponent, GameComponentConstructor } from '../component/game-component.ts';
-import type { GameScene } from '../game-scene.ts';
 import type { GameSystem, GameSystemConstructor, GameSystemUpdateStateChanges } from '../game-system.ts';
-import { type GameEnvironmentStateType, GameEnvironmentTransmission } from './game-environment-transmittion.ts';
+import { GameEntity } from "../hierarchy/game-entity.ts";
+import { type GameEnvironmentStateType, GameEnvironmentEventTransmission } from './game-environment-event-transmittion.ts';
 
 /**
  * Main hub for managing the game environment, including loaded scenes, registered systems, and processing component state changes.
  */
-export class GameEnvironment {
+export class GameEnvironment extends GameEntity {
     private static readonly TIMING_HISTORY_SIZE: number = 200;
 
     private mCurrentTick: number;
     private readonly mDebugData: GameEnvironmentDebugData;
     private readonly mDebugOptions: Required<GameEnvironmentDebugOptions>;
     private readonly mFileSystem: FileSystem;
-    private readonly mLoadedScenes: Set<GameScene>;
     private readonly mStateChangeQueue: GameEnvironmentStateChangeQueue;
     private readonly mSystems: Array<GameSystem>;
-    
+    private readonly mEventTransmission: GameEnvironmentEventTransmission;
+
     /**
      * Debug data for the environment, including timing snapshots. Only filled when debugSystemTime is enabled.
      */
@@ -27,17 +27,21 @@ export class GameEnvironment {
     }
 
     /**
+     * The environment connection of this scene.
+     */
+    public override get environment(): GameEnvironment | null {
+        return this;
+    }
+
+    public get events(): GameEnvironmentEventTransmission {
+        return this.mEventTransmission;
+    }
+
+    /**
      * File system for loading assets and resources.
      */
     public get fileSystem(): FileSystem {
         return this.mFileSystem;
-    }
-
-    /**
-     * All loaded scenes in this environment.
-     */
-    public get loadedScenes(): ReadonlySet<GameScene> {
-        return this.mLoadedScenes;
     }
 
     /**
@@ -58,7 +62,8 @@ export class GameEnvironment {
      * Constructor.
      */
     public constructor(pFileSystem: FileSystem) {
-        this.mLoadedScenes = new Set<GameScene>();
+        super();
+
         this.mSystems = new Array<GameSystem>();
         this.mCurrentTick = 0;
         this.mStateChangeQueue = {
@@ -77,6 +82,11 @@ export class GameEnvironment {
 
         // Setup debug data. Even when debug options are disabled.
         this.mDebugData = new GameEnvironmentDebugData();
+
+        // Setup event transmission.
+        this.mEventTransmission = new GameEnvironmentEventTransmission(this, (pType: GameEnvironmentStateType, pComponent: GameComponent) => {
+            this.queueComponentStateChange(pType, pComponent);
+        });
     }
 
     /**
@@ -278,26 +288,6 @@ export class GameEnvironment {
     }
 
     /**
-     * Load a scene into the environment.
-     * This establishes the environment connection for all game objects in the scene,
-     * allowing them to transmit component state changes.
-     *
-     * @param pScene - The scene to load
-     */
-    public loadScene(pScene: GameScene): void {
-        // Mark scene as loaded
-        this.mLoadedScenes.add(pScene);
-
-        // Create a transmission object that queues state changes
-        const lTransmission = new GameEnvironmentTransmission(this, (pType: GameEnvironmentStateType, pComponent: GameComponent) => {
-            this.queueComponentStateChange(pType, pComponent);
-        });
-
-        // Establish environment connection for all root game objects in the scene
-        pScene.setEnvironmentConnection(lTransmission);
-    }
-
-    /**
      * Queue a component state change to be processed in the next update cycle.
      *
      * @param pType - The type of state change.
@@ -401,20 +391,6 @@ export class GameEnvironment {
             // Wait for the next frame to complete.
             await new Promise(pResolve => requestAnimationFrame(pResolve));
         }
-    }
-
-    /**
-     * Unload a scene from the environment.
-     * All components from the scene will be removed from tracking by systems.
-     *
-     * @param pScene - The scene to unload
-     */
-    public unloadScene(pScene: GameScene): void {
-        // Disconnect environment connection for all root game objects in the scene
-        pScene.setEnvironmentConnection(null);
-
-        // Mark scene as unloaded
-        this.mLoadedScenes.delete(pScene);
     }
 
     /**

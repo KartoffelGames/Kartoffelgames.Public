@@ -1,5 +1,4 @@
 import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-system';
-import type { GameEnvironmentTransmission } from './environment/game-environment-transmittion.ts';
 import { GameNode } from './hierarchy/game-node.ts';
 
 /**
@@ -8,42 +7,10 @@ import { GameNode } from './hierarchy/game-node.ts';
  */
 @FileSystem.fileClass('ab6f365a-c777-4df7-b781-74bd8d5eed4c', FileSystemReferenceType.Instanced)
 export class GameScene extends GameNode {
-    private mTransmission: GameEnvironmentTransmission | null;
-
-    /**
-     * The environment connection of this scene.
-     */
-    public override get environment(): GameEnvironmentTransmission | null {
-        return this.mTransmission;
-    }
-
     /**
      * Constructor of the scene.
      */
     public constructor() {
         super('Scene');
-        this.mTransmission = null;
-    }
-
-    /**
-     * Loads the scene into the given environment.
-     * This call handles the signaling to the environment itself.
-     * This call gets bubbled down to all child game objects, so that they can also signal the environment.
-     * 
-     * @param pEnvironment 
-     */
-    public setEnvironmentConnection(pConnection: GameEnvironmentTransmission | null): void {
-        // Order of disconnect and connect is important.
-        if (pConnection) {
-            // Save environment connection for later use.
-            this.mTransmission = pConnection;
-
-            this.connect();
-        } else {
-            this.disconnect();
-
-            // Set environment connection to null, AFTER disconnect event has been send with the transmission object.
-            this.mTransmission = null;
-        }
     }
 }

@@ -94,14 +94,12 @@ export class GameObject extends GameEntity {
             }
 
             // Read the update dependency list of the dependency component.
-            let lDependencyUpdateList: Array<GameComponent> | undefined = this.mComponentUpdateDependencies.get(lDependencyComponent);
-            if (!lDependencyUpdateList) {
-                lDependencyUpdateList = new Array<GameComponent>();
-                this.mComponentUpdateDependencies.set(lDependencyComponent, lDependencyUpdateList);
+            if (!this.mComponentUpdateDependencies.has(lDependencyComponent)) {
+                this.mComponentUpdateDependencies.set(lDependencyComponent, new Array<GameComponent>());
             }
 
             // Create a new update dependency list for this component.
-            lDependencyUpdateList.push(lComponent);
+            this.mComponentUpdateDependencies.get(lDependencyComponent)!.push(lComponent);
         }
 
         // Add component to set and update parent.

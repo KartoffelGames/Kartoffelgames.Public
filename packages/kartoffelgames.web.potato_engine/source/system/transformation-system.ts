@@ -364,14 +364,12 @@ export class TransformationSystem extends GameSystem {
      * @returns A set of child transformation components associated with the given parent component.
      */
     private getChildTransformations(pComponent: TransformationComponent): Set<TransformationComponent> {
-        // Read current children for this parent.
-        let lChildren: Set<TransformationComponent> | undefined = this.mComponentChildrenMap.get(pComponent);
-        if (!lChildren) {
-            lChildren = new Set<TransformationComponent>();
-            this.mComponentChildrenMap.set(pComponent, lChildren);
+        // Create new empty set for child components if is does not exist.
+        if (!this.mComponentChildrenMap.has(pComponent)) {
+            this.mComponentChildrenMap.set(pComponent, new Set<TransformationComponent>());
         }
 
-        return lChildren;
+        return this.mComponentChildrenMap.get(pComponent)!;
     }
 
     /**

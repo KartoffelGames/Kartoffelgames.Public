@@ -24,7 +24,6 @@ import { TransformationSystem } from './transformation-system.ts';
  * When a render target has passthrough enabled, its mesh renderers are also added to the next ancestor render target.
  */
 export class CullSystem extends GameSystem {
-    private mDependencyRenderTargetSystem: RenderTargetSystem | null;
     private mDependencyTransformationSystem: TransformationSystem | null;
     private readonly mMeshRendererToRenderTargets: WeakMap<MeshRenderComponent, Set<RenderTargetComponent>>;
     private readonly mMeshRendererWorldBounds: WeakMap<MeshRenderComponent, CullSystemWorldBounds>;
@@ -34,7 +33,7 @@ export class CullSystem extends GameSystem {
      * Systems this system depends on.
      */
     public override get dependentSystemTypes(): Array<GameSystemConstructor<GameSystem>> {
-        return [TransformationSystem, RenderTargetSystem];
+        return [TransformationSystem];
     }
 
     /**
@@ -59,12 +58,10 @@ export class CullSystem extends GameSystem {
 
         // Set dependencies to null. Resolved during onCreate.
         this.mDependencyTransformationSystem = null;
-        this.mDependencyRenderTargetSystem = null;
     }
 
     /**
      * Get readonly culling data for a render target component.
-     * Works for both the root render target and entity-attached render target components.
      *
      * @param pRenderTarget - The render target component to look up.
      *
@@ -77,12 +74,11 @@ export class CullSystem extends GameSystem {
     }
 
     /**
-     * Initialize dependencies and register the root render target for culling.
+     * Initialize dependencies.
      */
     protected override async onCreate(): Promise<void> {
         // Resolve system dependencies.
         this.mDependencyTransformationSystem = this.environment.getSystem(TransformationSystem);
-        this.mDependencyRenderTargetSystem = this.environment.getSystem(RenderTargetSystem);
     }
 
     /**
@@ -203,9 +199,6 @@ export class CullSystem extends GameSystem {
      * @param pMeshRenderer - The mesh render component to add.
      */
     private assignMeshRenderer(pMeshRenderer: MeshRenderComponent): void {
-        // Get the root render target from the RenderTargetSystem as the fallback.
-        const lRootRenderTarget: RenderTargetComponent = this.mDependencyRenderTargetSystem!.rootRenderTarget;
-
         // List of all found mesh render targets.
         const lAssignedRenderTargets: Set<RenderTargetComponent> = new Set<RenderTargetComponent>();
 
@@ -217,19 +210,11 @@ export class CullSystem extends GameSystem {
         let lCurrentNode: GameObject | null = pMeshRenderer.gameEntity;
         while (lCurrentNode) {
             // Find the nearest ancestor RenderTargetComponent.
-            let lParentRenderTarget: RenderTargetComponent | null = lCurrentNode!.getParentComponent(RenderTargetComponent);
-            if (!lParentRenderTarget) {
-                // Fall back to the root render target when no parent render target is found.
-                lParentRenderTarget = lRootRenderTarget;
-            }
+            const lParentRenderTarget: RenderTargetComponent = lCurrentNode!.getParentComponent(RenderTargetComponent)!;
 
-            // Update current node for next iteration. Special behavior for root render target since its game entity is null.
-            if (lParentRenderTarget === lRootRenderTarget) {
-                lCurrentNode = null;
-            } else {
-                lCurrentNode = lParentRenderTarget.gameEntity.parent as GameObject | null;
-            }
-
+            // Update current node for next iteration.
+            lCurrentNode = lParentRenderTarget.gameEntity.parent;
+            
             // Remove from last assigned set. When it was previously assigned,
             // it means we have already processed this render target and can skip to the next one in the hierarchy.
             if (lLastAssignedRenderTargets.delete(lParentRenderTarget)) {
@@ -348,14 +333,13 @@ export class CullSystem extends GameSystem {
             }
 
             // Try to read cached world bounds. If not found, calculate and cache them for future frames.
-            let lWorldBounds: CullSystemWorldBounds | undefined = this.mMeshRendererWorldBounds.get(lMeshRenderer);
-            if (!lWorldBounds) {
-                // Recalculate world bounds if not cached.
-                lWorldBounds = this.calculateWorldBounds(lMeshRenderer);
-
-                // Cache the world bounds for future frames.
-                this.mMeshRendererWorldBounds.set(lMeshRenderer, lWorldBounds);
+            if (!this.mMeshRendererWorldBounds.has(lMeshRenderer)) {
+                // Recalculate world bounds and cache them for future frames. This happens when a mesh renderer is added or its local bounds change.
+                this.mMeshRendererWorldBounds.set(lMeshRenderer, this.calculateWorldBounds(lMeshRenderer));
             }
+
+            // Read cached world bounds. Always available.
+            const lWorldBounds: CullSystemWorldBounds  = this.mMeshRendererWorldBounds.get(lMeshRenderer)!;
 
             // Test the cached world-space bounding box against the frustum.
             if (pData.frustum.intersectsBoundingBox(lWorldBounds.minX, lWorldBounds.minY, lWorldBounds.minZ, lWorldBounds.maxX, lWorldBounds.maxY, lWorldBounds.maxZ)) {
@@ -402,7 +386,7 @@ export class CullSystem extends GameSystem {
      * @param pRenderTarget - The render target component being removed.
      */
     private removeRenderTarget(pRenderTarget: RenderTargetComponent): void {
-        // Get current render target data and remove it from tracking maps.
+        // First get current render target data and then remove it from tracking maps.
         const lData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(pRenderTarget)!;
         this.mRenderTargetDataMap.delete(pRenderTarget);
 

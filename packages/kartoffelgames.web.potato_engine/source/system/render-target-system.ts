@@ -41,26 +41,12 @@ export class RenderTargetSystem extends GameSystem {
     }
 
     /**
-     * The core render target component.
-     * This standalone component represents the primary render target (typically canvas-backed).
-     * External systems can update its width and height to trigger camera aspect ratio changes.
-     */
-    public get rootRenderTarget(): RenderTargetComponent {
-        this.lockGate();
-        return this.mRootRenderTarget;
-    }
-
-    /**
      * Constructor.
      *
      * @param pEnvironment - The game environment this system belongs to.
      */
     public constructor(pEnvironment: GameEnvironment) {
         super('RenderTarget', pEnvironment);
-
-        // Init root render target as early as possible and connect it to ensure it receives updates even without a parent GameEntity.
-        this.mRootRenderTarget = this.environment.addComponent(RenderTargetComponent);
-        this.mRootRenderTarget.label = 'Root Render Target';
 
         // Initialize renderer tracking.
         this.mRenderers = new Map<string, RenderTargetSystemRendererData>();
@@ -73,6 +59,10 @@ export class RenderTargetSystem extends GameSystem {
         // Initialize camera tracking.
         this.mActiveCameras = new Set<CameraComponent>();
         this.mCameraToRenderTarget = new WeakMap<CameraComponent, RenderTargetComponent>();
+
+        // Init root render target as early as possible and connect it to ensure it receives updates even without a parent GameEntity.
+        const lRootRenderTarget = this.environment.addComponent(RenderTargetComponent);
+        lRootRenderTarget.label = 'Root Render Target';
     }
 
     /**
@@ -128,16 +118,33 @@ export class RenderTargetSystem extends GameSystem {
             throw new Exception(`Renderer "${pName}" is already registered.`, this);
         }
 
-        // Create renderer data entry.
-        this.mRenderers.set(pName, {
+        // Set as default renderer if this is the first registered renderer or explicitly requested.
+        if (pDefault || this.mDefaultRendererName === null) {
+            this.mDefaultRendererName = pName;
+        }
+
+        // Create new render data.
+        const lRendererData: RenderTargetSystemRendererData = {
             layout: pLayout,
             setupCallback: pSetupCallback,
             renderTargets: new Set<RenderTargetComponent>()
-        });
+        };
 
-        // Set as default renderer if this is the first registered renderer or explicitly requested.
-        if (this.mDefaultRendererName === null || pDefault === true) {
-            this.mDefaultRendererName = pName;
+        // Map renderer name to its data.
+        this.mRenderers.set(pName, lRendererData);
+
+        // Get all render targets assigned to this renderer and add them to the renderer data and create RenderTargets for them.
+        for (const [lRenderTarget, lRendererName] of this.mRenderTargetToRenderer.entries()) {
+            // Skip render targets that are not assigned to this renderer.
+            if (lRendererName !== pName) {
+                continue;
+            }
+
+            // Read render data and add render target to the it.
+            lRendererData.renderTargets.add(lRenderTarget);
+
+            // Store the RenderTargets instance.
+            this.mRenderTargets.set(lRenderTarget, this.createRenderTargets(lRenderTarget, lRendererData));
         }
     }
 
@@ -218,15 +225,27 @@ export class RenderTargetSystem extends GameSystem {
      * @param pRenderTarget - The render target component being added.
      */
     private addRenderTarget(pRenderTarget: RenderTargetComponent): void {
-        // Determine which renderer this render target belongs to.
-        const lRendererName: string | null = pRenderTarget.renderer ?? this.mDefaultRendererName;
+        // Check that a renderer is registered. If any renderer is registered, the default renderer is always set.
+        if (!this.mDefaultRendererName) {
+            throw new Exception(`No renderer is registered.`, this);
+        }
 
-        // Skip render targets that cannot be assigned to any renderer.
-        if (lRendererName === null || !this.mRenderers.has(lRendererName)) {
+        // Determine which renderer this render target belongs to and track the assignment.
+        const lRendererName: string = pRenderTarget.renderer ?? this.mDefaultRendererName;
+        this.mRenderTargetToRenderer.set(pRenderTarget, lRendererName);
+
+        // Skip initializing render targets when the assigned renderer is not registered.
+        // This allows render targets to be added before their renderer is registered.
+        if (!this.mRenderers.has(lRendererName)) {
             return;
         }
 
-        this.assignRenderTargetToRenderer(pRenderTarget, lRendererName);
+        // Read render data and add render target to the it.
+        const lRendererData: RenderTargetSystemRendererData = this.mRenderers.get(lRendererName)!;
+        lRendererData.renderTargets.add(pRenderTarget);
+
+        // Store the RenderTargets instance.
+        this.mRenderTargets.set(pRenderTarget, this.createRenderTargets(pRenderTarget, lRendererData));
     }
 
     /**
@@ -271,17 +290,12 @@ export class RenderTargetSystem extends GameSystem {
         const lRendererData: RenderTargetSystemRendererData = this.mRenderers.get(pRendererName)!;
 
         // Create a RenderTargets instance using the renderer's layout and optional setup callback.
-        const lRenderTargets: RenderTargets = lRendererData.layout.create(lRendererData.setupCallback);
+        const lRenderTargets: RenderTargets = pRendererData.layout.create(pRendererData.setupCallback);
 
         // Resize to match the render target component dimensions.
         lRenderTargets.resize(pRenderTarget.height, pRenderTarget.width);
 
-        // Store the RenderTargets instance.
-        this.mRenderTargets.set(pRenderTarget, lRenderTargets);
-
-        // Add render target to the renderer's set and track the assignment.
-        lRendererData.renderTargets.add(pRenderTarget);
-        this.mRenderTargetToRenderer.set(pRenderTarget, pRendererName);
+        return lRenderTargets;
     }
 
     /**
@@ -316,7 +330,7 @@ export class RenderTargetSystem extends GameSystem {
             }
 
             // Find the render target this camera belongs to.
-            const lParentRenderTarget: RenderTargetComponent | null = lCamera.gameEntity.getParentComponent(RenderTargetComponent)!;
+            const lParentRenderTarget: RenderTargetComponent = lCamera.gameEntity.getParentComponent(RenderTargetComponent)!;
 
             // When the camera belongs to the affected render target, assign it as the new camera.
             if (lParentRenderTarget === lRenderTarget) {

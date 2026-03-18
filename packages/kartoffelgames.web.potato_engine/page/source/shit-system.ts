@@ -153,7 +153,7 @@ export class ShitSystem extends GameSystem {
         });
 
         // Get root render target from RenderTargetSystem and set initial dimensions.
-        const lRootRenderTarget = this.mDependencyRenderTargetSystem.rootRenderTarget;
+        const lRootRenderTarget = this.environment.getComponent(RenderTargetComponent);
         const lCanvasWidth: number = Math.round(this.mCanvas.clientWidth * devicePixelRatio);
         const lCanvasHeight: number = Math.round(this.mCanvas.clientHeight * devicePixelRatio);
         lRootRenderTarget.width = lCanvasWidth;
@@ -185,7 +185,7 @@ export class ShitSystem extends GameSystem {
         }
 
         // Get root render target and its camera from RenderTargetSystem.
-        const lRootRenderTarget = this.mDependencyRenderTargetSystem!.rootRenderTarget;
+        const lRootRenderTarget = this.environment.getComponent(RenderTargetComponent);
         const lCamera = lRootRenderTarget.camera;
         if (!lCamera) {
             return;
@@ -198,7 +198,7 @@ export class ShitSystem extends GameSystem {
         }
 
         // Rebuild instance data from the frustum-culled visible list.
-        await this.rebuildInstanceData(lCullingData);
+        await this.rebuildInstanceData(lRootRenderTarget, lCullingData);
 
         // Get RenderTargets from RenderTargetSystem for the root render target.
         const lRenderTargets = this.mDependencyRenderTargetSystem!.getRenderTarget(lRootRenderTarget);
@@ -277,7 +277,7 @@ export class ShitSystem extends GameSystem {
      * Groups renderers by material, mesh, and submesh index. Updates light data and camera VP.
      * Each submesh uses its corresponding material from the MeshRenderComponent's materials array.
      */
-    private async rebuildInstanceData(pCullingData: ReadonlyCullSystemRenderTargetData): Promise<void> {
+    private async rebuildInstanceData(pRenderTarget: RenderTargetComponent, pCullingData: ReadonlyCullSystemRenderTargetData): Promise<void> {
         if (!this.mRenderModeResult || !this.mWorldGroup) {
             return;
         }
@@ -325,8 +325,7 @@ export class ShitSystem extends GameSystem {
         this.mLightIndexListBuffer!.write(lLightIndexList.buffer);
 
         // Update camera view projection matrix from root render target's camera.
-        const lRootRenderTarget = this.mDependencyRenderTargetSystem!.rootRenderTarget;
-        const lCamera = lRootRenderTarget.camera!;
+        const lCamera = pRenderTarget.camera!;
         const lCameraTransformation: TransformationComponent = lCamera.gameEntity.getComponent(TransformationComponent)!;
         const lWorldMatrix = lTransformationSystem.worldMatrixOfTransformation(lCameraTransformation);
         const lViewProjectionMatrix = lCamera.matrix.mult(lWorldMatrix.inverse());

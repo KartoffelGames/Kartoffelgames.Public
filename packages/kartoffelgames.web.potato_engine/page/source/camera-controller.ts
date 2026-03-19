@@ -6,12 +6,12 @@ import type { GameObject } from '../../source/core/hierarchy/game-object.ts';
  * Polls input state at a fixed interval and applies movement to the camera entity.
  */
 export class CameraController {
-    private readonly mCanvas: HTMLCanvasElement;
     private readonly mCamera: GameObject;
+    private readonly mCanvas: HTMLCanvasElement;
+    private mIntervalId: number | null;
     private readonly mKeyState: Set<string>;
     private mMouseDown: boolean;
     private readonly mMouseMovement: { x: number; y: number };
-    private mIntervalId: number | null;
 
     /**
      * The camera entity.
@@ -50,38 +50,6 @@ export class CameraController {
             this.mIntervalId = globalThis.requestAnimationFrame(lAnimationFrame);
         };
         this.mIntervalId = globalThis.requestAnimationFrame(lAnimationFrame);
-    }
-
-    /**
-     * Register keyboard and mouse event listeners.
-     */
-    private setupEventListeners(): void {
-        document.addEventListener('keydown', (pEvent: KeyboardEvent) => {
-            this.mKeyState.add(pEvent.key.toLowerCase());
-            if (['shift', 'control'].includes(pEvent.key.toLowerCase())) {
-                pEvent.preventDefault();
-            }
-        });
-
-        document.addEventListener('keyup', (pEvent: KeyboardEvent) => {
-            this.mKeyState.delete(pEvent.key.toLowerCase());
-        });
-
-        this.mCanvas.addEventListener('mousedown', () => {
-            this.mMouseDown = true;
-        });
-
-        document.addEventListener('mouseup', () => {
-            this.mMouseDown = false;
-        });
-
-        this.mCanvas.addEventListener('mousemove', (pEvent: MouseEvent) => {
-            if (this.mMouseDown) {
-                const lSensitivity: number = 0.3;
-                this.mMouseMovement.x += pEvent.movementX * lSensitivity;
-                this.mMouseMovement.y += pEvent.movementY * lSensitivity;
-            }
-        });
     }
 
     /**
@@ -124,5 +92,37 @@ export class CameraController {
         if (lRoll !== 0) {
             lCameraTransformation.addEulerRotation(0, 0, lRoll);
         }
+    }
+
+    /**
+     * Register keyboard and mouse event listeners.
+     */
+    private setupEventListeners(): void {
+        document.addEventListener('keydown', (pEvent: KeyboardEvent) => {
+            this.mKeyState.add(pEvent.key.toLowerCase());
+            if (['shift', 'control'].includes(pEvent.key.toLowerCase())) {
+                pEvent.preventDefault();
+            }
+        });
+
+        document.addEventListener('keyup', (pEvent: KeyboardEvent) => {
+            this.mKeyState.delete(pEvent.key.toLowerCase());
+        });
+
+        this.mCanvas.addEventListener('mousedown', () => {
+            this.mMouseDown = true;
+        });
+
+        document.addEventListener('mouseup', () => {
+            this.mMouseDown = false;
+        });
+
+        this.mCanvas.addEventListener('mousemove', (pEvent: MouseEvent) => {
+            if (this.mMouseDown) {
+                const lSensitivity: number = 0.3;
+                this.mMouseMovement.x += pEvent.movementX * lSensitivity;
+                this.mMouseMovement.y += pEvent.movementY * lSensitivity;
+            }
+        });
     }
 }

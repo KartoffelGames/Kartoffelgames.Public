@@ -19,17 +19,17 @@ export class GameObject extends GameEntity {
     private mParent: GameObject | null;
 
     /**
-     * All components attached to this game entity.
-     */
-    public get components(): ReadonlySet<GameComponent> {
-        return this.mComponents;
-    }
-
-    /**
      * Children of this game node.
      */
     public get childNodes(): ReadonlyArray<GameObject> {
         return this.mChildNodeList;
+    }
+
+    /**
+     * All components attached to this game entity.
+     */
+    public get components(): ReadonlySet<GameComponent> {
+        return this.mComponents;
     }
 
     /**

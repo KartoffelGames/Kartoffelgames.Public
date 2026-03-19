@@ -21,9 +21,9 @@ export class RenderTargetSystem extends GameSystem {
     private readonly mActiveCameras: Set<CameraComponent>;
     private readonly mCameraToRenderTarget: WeakMap<CameraComponent, RenderTargetComponent>;
     private mDefaultRendererName: string | null;
-    private readonly mRenderers: Map<string, RenderTargetSystemRendererData>;
-    private readonly mRenderTargets: WeakMap<RenderTargetComponent, RenderTargets>;
     private readonly mRenderTargetToRenderer: Map<RenderTargetComponent, string>;
+    private readonly mRenderTargets: WeakMap<RenderTargetComponent, RenderTargets>;
+    private readonly mRenderers: Map<string, RenderTargetSystemRendererData>;
     private readonly mRootRenderTarget: RenderTargetComponent;
 
     /**
@@ -230,29 +230,6 @@ export class RenderTargetSystem extends GameSystem {
     }
 
     /**
-     * Create a RenderTargets instance for a render target component and assign it to a renderer.
-     *
-     * @param pRenderTarget - The render target component to assign.
-     * @param pRendererName - The renderer name to assign it to.
-     */
-    private assignRenderTargetToRenderer(pRenderTarget: RenderTargetComponent, pRendererName: string): void {
-        const lRendererData: RenderTargetSystemRendererData = this.mRenderers.get(pRendererName)!;
-
-        // Create a RenderTargets instance using the renderer's layout and optional setup callback.
-        const lRenderTargets: RenderTargets = lRendererData.layout.create(lRendererData.setupCallback);
-
-        // Resize to match the render target component dimensions.
-        lRenderTargets.resize(pRenderTarget.height, pRenderTarget.width);
-
-        // Store the RenderTargets instance.
-        this.mRenderTargets.set(pRenderTarget, lRenderTargets);
-
-        // Add render target to the renderer's set and track the assignment.
-        lRendererData.renderTargets.add(pRenderTarget);
-        this.mRenderTargetToRenderer.set(pRenderTarget, pRendererName);
-    }
-
-    /**
      * Assign a camera component to the nearest parent render target that has no camera assigned.
      * If the camera is already assigned to a render target, it will be skipped.
      *
@@ -282,6 +259,29 @@ export class RenderTargetSystem extends GameSystem {
             // Update camera aspect ratio to match the render target dimensions.
             pCamera.projection.aspectRatio = lParentRenderTarget.width / lParentRenderTarget.height;
         }
+    }
+
+    /**
+     * Create a RenderTargets instance for a render target component and assign it to a renderer.
+     *
+     * @param pRenderTarget - The render target component to assign.
+     * @param pRendererName - The renderer name to assign it to.
+     */
+    private assignRenderTargetToRenderer(pRenderTarget: RenderTargetComponent, pRendererName: string): void {
+        const lRendererData: RenderTargetSystemRendererData = this.mRenderers.get(pRendererName)!;
+
+        // Create a RenderTargets instance using the renderer's layout and optional setup callback.
+        const lRenderTargets: RenderTargets = lRendererData.layout.create(lRendererData.setupCallback);
+
+        // Resize to match the render target component dimensions.
+        lRenderTargets.resize(pRenderTarget.height, pRenderTarget.width);
+
+        // Store the RenderTargets instance.
+        this.mRenderTargets.set(pRenderTarget, lRenderTargets);
+
+        // Add render target to the renderer's set and track the assignment.
+        lRendererData.renderTargets.add(pRenderTarget);
+        this.mRenderTargetToRenderer.set(pRenderTarget, pRendererName);
     }
 
     /**

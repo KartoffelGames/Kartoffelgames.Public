@@ -6,7 +6,7 @@ import { Mesh } from '../../source/component_item/mesh.ts';
 import { Shader } from '../../source/component_item/shader.ts';
 import { Texture } from '../../source/component_item/texture.ts';
 import { GameObject } from '../../source/core/hierarchy/game-object.ts';
-import DEFAULT_PBR_SHADER from '../../source/shader/default-pbr-shader.pgsl';
+import defaultPbrShader from '../../source/shader/default-pbr-shader.pgsl';
 
 // GLB format constants.
 const gGlbMagic: number = 0x46546C67;
@@ -355,7 +355,7 @@ export class GlbConverter {
 
             // Assign default PBR shader.
             const lShader: Shader = new Shader();
-            lShader.shaderCode = DEFAULT_PBR_SHADER;
+            lShader.shaderCode = defaultPbrShader;
             lMaterial.shader = lShader;
 
             const lPbr: GltfPbrMetallicRoughness | undefined = lGltfMaterial.pbrMetallicRoughness;

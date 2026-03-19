@@ -9,11 +9,11 @@ import type { CameraComponent } from './camera/camera-component.ts';
  */
 @FileSystem.fileClass('567596b5-8f19-4710-8f55-99f493be2f47', FileSystemReferenceType.Instanced)
 export class RenderTargetComponent extends GameComponent {
+    private mAssignedCamera: CameraComponent | null;
     private mHeight: number;
     private mPassthrough: boolean;
     private mRenderer: string | null;
     private mWidth: number;
-    private mAssignedCamera: CameraComponent | null;
 
     /**
      * Get the currently assigned camera for this render target.

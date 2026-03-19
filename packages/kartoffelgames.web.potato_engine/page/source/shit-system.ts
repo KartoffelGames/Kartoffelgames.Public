@@ -19,11 +19,11 @@ import { MaterialSystem, type MaterialSystemMaterial, type MaterialSystemRenderM
 import { MeshSystem } from '../../source/system/mesh-system.ts';
 import { RenderTargetSystem } from '../../source/system/render-target-system.ts';
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
-import FORWARD_ENTRY_POINTS from '../../source/shader/forward-entry-points.pgsl';
-import FORWARD_IMPORT from '../../source/shader/forward-import.pgsl';
-import SHARED_TYPES from '../../source/shader/shared-types.pgsl';
-import FORWARD_OBJECT_GROUP from '../../source/shader/object-group-forward.pgsl';
-import FORWARD_WORLD_GROUP from '../../source/shader/world-group-forward.pgsl';
+import forwardEntryPoints from '../../source/shader/forward-entry-points.pgsl';
+import forwardImport from '../../source/shader/forward-import.pgsl';
+import sharedTypes from '../../source/shader/shared-types.pgsl';
+import forwardObjectGroup from '../../source/shader/object-group-forward.pgsl';
+import forwardWorldGroup from '../../source/shader/world-group-forward.pgsl';
 
 type MaterialMeshGroupData = {
     objectBindGroup: BindGroup;
@@ -127,8 +127,8 @@ export class ShitSystem extends GameSystem {
         this.mDependencyRenderTargetSystem = this.environment.getSystem(RenderTargetSystem);
 
         // Set global shader import for shared types.
-        this.mDependencyMaterialSystem.setGlobalImport('WorldGroupForward', FORWARD_WORLD_GROUP);
-        this.mDependencyMaterialSystem.setGlobalImport('ObjectGroupForward', FORWARD_OBJECT_GROUP);
+        this.mDependencyMaterialSystem.setGlobalImport('WorldGroupForward', forwardWorldGroup);
+        this.mDependencyMaterialSystem.setGlobalImport('ObjectGroupForward', forwardObjectGroup);
 
         // Create canvas if not set before system creation.
         if (!this.mCanvas) {
@@ -139,9 +139,9 @@ export class ShitSystem extends GameSystem {
 
         // Register the ShitRenderMode with the MaterialSystem using forward shaders.
         this.mRenderModeResult = this.mDependencyMaterialSystem.registerRenderMode(ShitSystem.RENDER_MODE, {
-            entryPointImport: FORWARD_ENTRY_POINTS,
-            functionalImports: [FORWARD_IMPORT],
-            typeImports: [SHARED_TYPES]
+            entryPointImport: forwardEntryPoints,
+            functionalImports: [forwardImport],
+            typeImports: [sharedTypes]
         });
 
         // Create CanvasTexture for the setup callback.

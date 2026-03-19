@@ -8,11 +8,11 @@ export class FrameGraph {
     private readonly mCanvas: HTMLCanvasElement;
     private readonly mCanvasWrap: HTMLDivElement;
     private readonly mCtx: CanvasRenderingContext2D;
-    private readonly mFpsLabel: HTMLSpanElement;
-    private readonly mFpsAvgLabel: HTMLSpanElement;
-    private readonly mFrameTimeLabel: HTMLSpanElement;
-    private readonly mFrameTimeAvgLabel: HTMLSpanElement;
     private readonly mEnvironment: GameEnvironment;
+    private readonly mFpsAvgLabel: HTMLSpanElement;
+    private readonly mFpsLabel: HTMLSpanElement;
+    private readonly mFrameTimeAvgLabel: HTMLSpanElement;
+    private readonly mFrameTimeLabel: HTMLSpanElement;
 
     /**
      * Constructor.

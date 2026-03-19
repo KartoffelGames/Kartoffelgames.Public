@@ -12,15 +12,11 @@ import { GameObject } from '../../../source/core/hierarchy/game-object.ts';
  * (e.g. when an entity is disabled, its components fire deactivate one by one).
  */
 export class HierarchyPanel {
+    private readonly mCollapsedPaths: Set<string>;
+    private readonly mComponentElements: Map<GameComponent, HTMLElement>;
     private readonly mContainer: HTMLElement;
     private readonly mEnvironment: GameEnvironment;
-    private readonly mCollapsedPaths: Set<string>;
-
-    // DOM element tracking for incremental updates.
     private readonly mNodeElements: Map<GameObject, HierarchyNodeElements>;
-    private readonly mComponentElements: Map<GameComponent, HTMLElement>;
-
-    // Event buffering.
     private mPendingChanges: Array<GameEnvironmentStateChange>;
     private mUpdateScheduled: boolean;
 
@@ -49,29 +45,34 @@ export class HierarchyPanel {
     }
 
     /**
-     * Build the full tree from currently loaded scenes. Called once at construction time.
+     * Buffer a state change event and schedule processing on the next animation frame.
+     * Ignores update events since they don't affect the hierarchy.
      */
-    private buildInitialTree(): void {
-        for (const lScene of this.mEnvironment.childNodes) {
-            this.buildSceneNode(lScene);
+    private bufferStateChange(pEvent: GameEnvironmentStateChange): void {
+        if (pEvent.type === 'update') {
+            return;
+        }
+
+        this.mPendingChanges.push(pEvent);
+
+        if (!this.mUpdateScheduled) {
+            this.mUpdateScheduled = true;
+            requestAnimationFrame(() => {
+                this.processPendingChanges();
+            });
         }
     }
 
     /**
-     * Build a scene node and all its descendants.
+     * Build a component leaf node.
      */
-    private buildSceneNode(pScene: GameObject): void {
-        const lPath: string = pScene.label;
-        const lHasChildren: boolean = pScene.childNodes.length > 0;
-        const lElements: HierarchyNodeElements = this.createTreeNode(pScene.label, 'scene', 'S', pScene.enabled, lHasChildren, lPath);
+    private buildComponentNode(pComponent: GameComponent, pParentElements: HierarchyNodeElements, pParentPath: string): void {
+        const lPath: string = pParentPath + '/' + pComponent.constructor.name;
+        const lElements: HierarchyNodeElements = this.createTreeNode(pComponent.constructor.name, 'component', 'C', pComponent.enabled, false, lPath);
 
-        this.mContainer.appendChild(lElements.root);
-        this.mNodeElements.set(pScene, lElements);
-
-        // Build children recursively.
-        for (const lChild of pScene.childNodes) {
-            this.buildEntityNode(lChild, lElements, lPath);
-        }
+        this.ensureChildContainer(pParentElements);
+        pParentElements.childContainer!.appendChild(lElements.root);
+        this.mComponentElements.set(pComponent, lElements.root);
     }
 
     /**
@@ -106,190 +107,45 @@ export class HierarchyPanel {
     }
 
     /**
-     * Build a component leaf node.
+     * Build the full tree from currently loaded scenes. Called once at construction time.
      */
-    private buildComponentNode(pComponent: GameComponent, pParentElements: HierarchyNodeElements, pParentPath: string): void {
-        const lPath: string = pParentPath + '/' + pComponent.constructor.name;
-        const lElements: HierarchyNodeElements = this.createTreeNode(pComponent.constructor.name, 'component', 'C', pComponent.enabled, false, lPath);
-
-        this.ensureChildContainer(pParentElements);
-        pParentElements.childContainer!.appendChild(lElements.root);
-        this.mComponentElements.set(pComponent, lElements.root);
-    }
-
-    /**
-     * Buffer a state change event and schedule processing on the next animation frame.
-     * Ignores update events since they don't affect the hierarchy.
-     */
-    private bufferStateChange(pEvent: GameEnvironmentStateChange): void {
-        if (pEvent.type === 'update') {
-            return;
-        }
-
-        this.mPendingChanges.push(pEvent);
-
-        if (!this.mUpdateScheduled) {
-            this.mUpdateScheduled = true;
-            requestAnimationFrame(() => {
-                this.processPendingChanges();
-            });
+    private buildInitialTree(): void {
+        for (const lScene of this.mEnvironment.childNodes) {
+            this.buildSceneNode(lScene);
         }
     }
 
     /**
-     * Process all buffered state changes in a single pass.
-     * By the time this runs, all component state changes within the same engine tick
-     * have been queued, so entity enabled states are final and consistent.
+     * Build the path string for a node by walking up the hierarchy.
+     * Used for collapse state tracking.
      */
-    private processPendingChanges(): void {
-        this.mUpdateScheduled = false;
+    private buildNodePath(pNode: GameObject): string {
+        const lParts: Array<string> = new Array<string>();
+        let lCurrent: GameObject | null = pNode;
 
-        const lChanges: Array<GameEnvironmentStateChange> = this.mPendingChanges;
-        this.mPendingChanges = new Array<GameEnvironmentStateChange>();
-
-        // Track entities that need an enabled-state refresh after all changes are processed.
-        const lAffectedEntities: Set<GameObject> = new Set<GameObject>();
-
-        for (const lChange of lChanges) {
-            switch (lChange.type) {
-                case 'add': {
-                    this.handleComponentAdd(lChange.component);
-                    break;
-                }
-                case 'remove': {
-                    this.handleComponentRemove(lChange.component);
-                    break;
-                }
-                case 'activate':
-                case 'deactivate': {
-                    // Update the component's own label.
-                    this.updateComponentLabel(lChange.component);
-
-                    // Defer the entity enabled-state check until all changes are processed.
-                    lAffectedEntities.add(lChange.component.gameEntity);
-                    break;
-                }
-            }
+        while (lCurrent) {
+            lParts.push(lCurrent.label);
+            lCurrent = lCurrent.parent;
         }
 
-        // Single pass over all affected entities to update their enabled state.
-        // At this point all component activate/deactivate events have been processed,
-        // so the entity's enabled property reflects the final state.
-        for (const lEntity of lAffectedEntities) {
-            const lEntityElements: HierarchyNodeElements | undefined = this.mNodeElements.get(lEntity);
-            if (lEntityElements) {
-                lEntityElements.label.className = lEntity.enabled ? 'tree-label' : 'tree-label disabled';
-            }
-        }
-
-        // Clean up scene nodes that are no longer loaded.
-        // Component 'remove' events clean up entities via cascade, but the scene node itself
-        // is never removed by cleanupEmptyNode (which skips scenes). This sweep catches
-        // unloaded scenes and any remaining descendant tracking entries.
-        for (const [lNode] of this.mNodeElements) {
-            if (lNode instanceof GameObject && !this.mEnvironment.childNodes.includes(lNode)) {
-                this.removeNodeSubtree(lNode);
-            }
-        }
+        lParts.reverse();
+        return lParts.join('/');
     }
 
     /**
-     * Update a single component's label to reflect its current enabled state.
+     * Build a scene node and all its descendants.
      */
-    private updateComponentLabel(pComponent: GameComponent): void {
-        const lComponentRoot: HTMLElement | undefined = this.mComponentElements.get(pComponent);
-        if (lComponentRoot) {
-            const lLabel: HTMLSpanElement = lComponentRoot.querySelector('.tree-label')!;
-            lLabel.className = pComponent.enabled ? 'tree-label' : 'tree-label disabled';
-        }
-    }
+    private buildSceneNode(pScene: GameObject): void {
+        const lPath: string = pScene.label;
+        const lHasChildren: boolean = pScene.childNodes.length > 0;
+        const lElements: HierarchyNodeElements = this.createTreeNode(pScene.label, 'scene', 'S', pScene.enabled, lHasChildren, lPath);
 
-    /**
-     * Handle a component being added. Ensures the entity path exists in the DOM,
-     * then adds the component node.
-     */
-    private handleComponentAdd(pComponent: GameComponent): void {
-        // Skip if this component is already tracked.
-        if (this.mComponentElements.has(pComponent)) {
-            return;
-        }
+        this.mContainer.appendChild(lElements.root);
+        this.mNodeElements.set(pScene, lElements);
 
-        const lEntity: GameObject = pComponent.gameEntity;
-
-        // Ensure the entity's entire ancestor chain exists in the DOM.
-        this.ensureEntityInTree(lEntity);
-
-        const lEntityElements: HierarchyNodeElements = this.mNodeElements.get(lEntity)!;
-        const lEntityPath: string = this.buildNodePath(lEntity);
-
-        // Add the component node.
-        this.buildComponentNode(pComponent, lEntityElements, lEntityPath);
-    }
-
-    /**
-     * Handle a component being removed. Removes its DOM node and cleans up
-     * empty parent entity nodes.
-     */
-    private handleComponentRemove(pComponent: GameComponent): void {
-        const lComponentRoot: HTMLElement | undefined = this.mComponentElements.get(pComponent);
-        if (!lComponentRoot) {
-            return;
-        }
-
-        // Remove from DOM.
-        lComponentRoot.remove();
-        this.mComponentElements.delete(pComponent);
-
-        // Clean up empty entity nodes up the chain.
-        const lEntity: GameObject = pComponent.gameEntity;
-        this.cleanupEmptyNode(lEntity);
-    }
-
-    /**
-     * Ensure an entity and all its ancestors exist as DOM nodes in the tree.
-     * Walks up the hierarchy from the entity to the scene, creating nodes as needed.
-     */
-    private ensureEntityInTree(pEntity: GameObject): void {
-        // If already in the DOM, nothing to do.
-        if (this.mNodeElements.has(pEntity)) {
-            return;
-        }
-
-        // Collect the ancestor chain from entity up to (but not including) the scene or an already-tracked node.
-        const lChain: Array<GameObject> = new Array<GameObject>();
-        let lCurrent: GameObject = pEntity;
-
-        while (!this.mNodeElements.has(lCurrent)) {
-            lChain.push(lCurrent);
-            const lParent: GameObject | null = lCurrent.parent;
-
-            if (!lParent) {
-                // Reached a root node without a parent - this might be a scene.
-                // Scenes should already be in the tree from initial build. If not, add it.
-                if (lCurrent instanceof GameObject && !this.mNodeElements.has(lCurrent)) {
-                    this.buildSceneNode(lCurrent);
-                }
-                break;
-            }
-
-            lCurrent = lParent;
-        }
-
-        // Walk back down the chain and create nodes.
-        lChain.reverse();
-        for (const lNode of lChain) {
-            const lParent: GameObject | null = lNode.parent;
-            if (!lParent) {
-                continue;
-            }
-
-            const lParentElements: HierarchyNodeElements | undefined = this.mNodeElements.get(lParent);
-            if (!lParentElements) {
-                continue;
-            }
-
-            const lParentPath: string = this.buildNodePath(lParent);
-            this.buildEntityNode(lNode, lParentElements, lParentPath);
+        // Build children recursively.
+        for (const lChild of pScene.childNodes) {
+            this.buildEntityNode(lChild, lElements, lPath);
         }
     }
 
@@ -317,82 +173,6 @@ export class HierarchyPanel {
         if (lParent) {
             this.cleanupEmptyNode(lParent);
         }
-    }
-
-    /**
-     * Remove a node and its entire subtree from the DOM and tracking maps.
-     * Walks the game object hierarchy (preserved after disconnect) and cleans up
-     * all component entries, node entries, and DOM elements.
-     */
-    private removeNodeSubtree(pNode: GameObject): void {
-        // Clean up component entries if this is an entity.
-        if (pNode instanceof GameObject) {
-            for (const lComponent of pNode.components) {
-                this.mComponentElements.delete(lComponent);
-            }
-        }
-
-        // Recurse to children.
-        for (const lChild of pNode.childNodes) {
-            this.removeNodeSubtree(lChild);
-        }
-
-        // Remove DOM node and tracking entry.
-        const lElements: HierarchyNodeElements | undefined = this.mNodeElements.get(pNode);
-        if (lElements) {
-            lElements.root.remove();
-            this.mNodeElements.delete(pNode);
-        }
-    }
-
-    /**
-     * Build the path string for a node by walking up the hierarchy.
-     * Used for collapse state tracking.
-     */
-    private buildNodePath(pNode: GameObject): string {
-        const lParts: Array<string> = new Array<string>();
-        let lCurrent: GameObject | null = pNode;
-
-        while (lCurrent) {
-            lParts.push(lCurrent.label);
-            lCurrent = lCurrent.parent;
-        }
-
-        lParts.reverse();
-        return lParts.join('/');
-    }
-
-    /**
-     * Ensure a node element has a child container. If the node was created as a leaf
-     * (no children), this adds a child container and makes the toggle arrow visible.
-     */
-    private ensureChildContainer(pElements: HierarchyNodeElements): void {
-        if (pElements.childContainer) {
-            return;
-        }
-
-        // Create child container.
-        const lChildren: HTMLDivElement = document.createElement('div');
-        lChildren.className = 'tree-children';
-        pElements.root.appendChild(lChildren);
-        pElements.childContainer = lChildren;
-
-        // Make toggle visible and functional.
-        pElements.toggle.className = 'tree-toggle expanded';
-
-        const lRow: HTMLElement = pElements.toggle.parentElement!;
-        lRow.addEventListener('click', () => {
-            const lCurrentlyExpanded: boolean = pElements.toggle.classList.contains('expanded');
-            if (lCurrentlyExpanded) {
-                pElements.toggle.classList.remove('expanded');
-                lChildren.classList.add('collapsed');
-                this.mCollapsedPaths.add(pElements.path);
-            } else {
-                pElements.toggle.classList.add('expanded');
-                lChildren.classList.remove('collapsed');
-                this.mCollapsedPaths.delete(pElements.path);
-            }
-        });
     }
 
     /**
@@ -462,6 +242,222 @@ export class HierarchyPanel {
             childContainer: lChildContainer,
             path: pPath
         };
+    }
+
+    /**
+     * Ensure a node element has a child container. If the node was created as a leaf
+     * (no children), this adds a child container and makes the toggle arrow visible.
+     */
+    private ensureChildContainer(pElements: HierarchyNodeElements): void {
+        if (pElements.childContainer) {
+            return;
+        }
+
+        // Create child container.
+        const lChildren: HTMLDivElement = document.createElement('div');
+        lChildren.className = 'tree-children';
+        pElements.root.appendChild(lChildren);
+        pElements.childContainer = lChildren;
+
+        // Make toggle visible and functional.
+        pElements.toggle.className = 'tree-toggle expanded';
+
+        const lRow: HTMLElement = pElements.toggle.parentElement!;
+        lRow.addEventListener('click', () => {
+            const lCurrentlyExpanded: boolean = pElements.toggle.classList.contains('expanded');
+            if (lCurrentlyExpanded) {
+                pElements.toggle.classList.remove('expanded');
+                lChildren.classList.add('collapsed');
+                this.mCollapsedPaths.add(pElements.path);
+            } else {
+                pElements.toggle.classList.add('expanded');
+                lChildren.classList.remove('collapsed');
+                this.mCollapsedPaths.delete(pElements.path);
+            }
+        });
+    }
+
+    /**
+     * Ensure an entity and all its ancestors exist as DOM nodes in the tree.
+     * Walks up the hierarchy from the entity to the scene, creating nodes as needed.
+     */
+    private ensureEntityInTree(pEntity: GameObject): void {
+        // If already in the DOM, nothing to do.
+        if (this.mNodeElements.has(pEntity)) {
+            return;
+        }
+
+        // Collect the ancestor chain from entity up to (but not including) the scene or an already-tracked node.
+        const lChain: Array<GameObject> = new Array<GameObject>();
+        let lCurrent: GameObject = pEntity;
+
+        while (!this.mNodeElements.has(lCurrent)) {
+            lChain.push(lCurrent);
+            const lParent: GameObject | null = lCurrent.parent;
+
+            if (!lParent) {
+                // Reached a root node without a parent - this might be a scene.
+                // Scenes should already be in the tree from initial build. If not, add it.
+                if (lCurrent instanceof GameObject && !this.mNodeElements.has(lCurrent)) {
+                    this.buildSceneNode(lCurrent);
+                }
+                break;
+            }
+
+            lCurrent = lParent;
+        }
+
+        // Walk back down the chain and create nodes.
+        lChain.reverse();
+        for (const lNode of lChain) {
+            const lParent: GameObject | null = lNode.parent;
+            if (!lParent) {
+                continue;
+            }
+
+            const lParentElements: HierarchyNodeElements | undefined = this.mNodeElements.get(lParent);
+            if (!lParentElements) {
+                continue;
+            }
+
+            const lParentPath: string = this.buildNodePath(lParent);
+            this.buildEntityNode(lNode, lParentElements, lParentPath);
+        }
+    }
+
+    /**
+     * Handle a component being added. Ensures the entity path exists in the DOM,
+     * then adds the component node.
+     */
+    private handleComponentAdd(pComponent: GameComponent): void {
+        // Skip if this component is already tracked.
+        if (this.mComponentElements.has(pComponent)) {
+            return;
+        }
+
+        const lEntity: GameObject = pComponent.gameEntity;
+
+        // Ensure the entity's entire ancestor chain exists in the DOM.
+        this.ensureEntityInTree(lEntity);
+
+        const lEntityElements: HierarchyNodeElements = this.mNodeElements.get(lEntity)!;
+        const lEntityPath: string = this.buildNodePath(lEntity);
+
+        // Add the component node.
+        this.buildComponentNode(pComponent, lEntityElements, lEntityPath);
+    }
+
+    /**
+     * Handle a component being removed. Removes its DOM node and cleans up
+     * empty parent entity nodes.
+     */
+    private handleComponentRemove(pComponent: GameComponent): void {
+        const lComponentRoot: HTMLElement | undefined = this.mComponentElements.get(pComponent);
+        if (!lComponentRoot) {
+            return;
+        }
+
+        // Remove from DOM.
+        lComponentRoot.remove();
+        this.mComponentElements.delete(pComponent);
+
+        // Clean up empty entity nodes up the chain.
+        const lEntity: GameObject = pComponent.gameEntity;
+        this.cleanupEmptyNode(lEntity);
+    }
+
+    /**
+     * Process all buffered state changes in a single pass.
+     * By the time this runs, all component state changes within the same engine tick
+     * have been queued, so entity enabled states are final and consistent.
+     */
+    private processPendingChanges(): void {
+        this.mUpdateScheduled = false;
+
+        const lChanges: Array<GameEnvironmentStateChange> = this.mPendingChanges;
+        this.mPendingChanges = new Array<GameEnvironmentStateChange>();
+
+        // Track entities that need an enabled-state refresh after all changes are processed.
+        const lAffectedEntities: Set<GameObject> = new Set<GameObject>();
+
+        for (const lChange of lChanges) {
+            switch (lChange.type) {
+                case 'add': {
+                    this.handleComponentAdd(lChange.component);
+                    break;
+                }
+                case 'remove': {
+                    this.handleComponentRemove(lChange.component);
+                    break;
+                }
+                case 'activate':
+                case 'deactivate': {
+                    // Update the component's own label.
+                    this.updateComponentLabel(lChange.component);
+
+                    // Defer the entity enabled-state check until all changes are processed.
+                    lAffectedEntities.add(lChange.component.gameEntity);
+                    break;
+                }
+            }
+        }
+
+        // Single pass over all affected entities to update their enabled state.
+        // At this point all component activate/deactivate events have been processed,
+        // so the entity's enabled property reflects the final state.
+        for (const lEntity of lAffectedEntities) {
+            const lEntityElements: HierarchyNodeElements | undefined = this.mNodeElements.get(lEntity);
+            if (lEntityElements) {
+                lEntityElements.label.className = lEntity.enabled ? 'tree-label' : 'tree-label disabled';
+            }
+        }
+
+        // Clean up scene nodes that are no longer loaded.
+        // Component 'remove' events clean up entities via cascade, but the scene node itself
+        // is never removed by cleanupEmptyNode (which skips scenes). This sweep catches
+        // unloaded scenes and any remaining descendant tracking entries.
+        for (const [lNode] of this.mNodeElements) {
+            if (lNode instanceof GameObject && !this.mEnvironment.childNodes.includes(lNode)) {
+                this.removeNodeSubtree(lNode);
+            }
+        }
+    }
+
+    /**
+     * Remove a node and its entire subtree from the DOM and tracking maps.
+     * Walks the game object hierarchy (preserved after disconnect) and cleans up
+     * all component entries, node entries, and DOM elements.
+     */
+    private removeNodeSubtree(pNode: GameObject): void {
+        // Clean up component entries if this is an entity.
+        if (pNode instanceof GameObject) {
+            for (const lComponent of pNode.components) {
+                this.mComponentElements.delete(lComponent);
+            }
+        }
+
+        // Recurse to children.
+        for (const lChild of pNode.childNodes) {
+            this.removeNodeSubtree(lChild);
+        }
+
+        // Remove DOM node and tracking entry.
+        const lElements: HierarchyNodeElements | undefined = this.mNodeElements.get(pNode);
+        if (lElements) {
+            lElements.root.remove();
+            this.mNodeElements.delete(pNode);
+        }
+    }
+
+    /**
+     * Update a single component's label to reflect its current enabled state.
+     */
+    private updateComponentLabel(pComponent: GameComponent): void {
+        const lComponentRoot: HTMLElement | undefined = this.mComponentElements.get(pComponent);
+        if (lComponentRoot) {
+            const lLabel: HTMLSpanElement = lComponentRoot.querySelector('.tree-label')!;
+            lLabel.className = pComponent.enabled ? 'tree-label' : 'tree-label disabled';
+        }
     }
 }
 

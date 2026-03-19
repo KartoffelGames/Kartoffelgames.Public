@@ -14,10 +14,10 @@ export class GameEnvironment extends GameObject {
     private mCurrentTick: number;
     private readonly mDebugData: GameEnvironmentDebugData;
     private readonly mDebugOptions: Required<GameEnvironmentDebugOptions>;
+    private readonly mEventTransmission: GameEnvironmentEventTransmission;
     private readonly mFileSystem: FileSystem;
     private readonly mStateChangeQueue: GameEnvironmentStateChangeQueue;
     private readonly mSystems: Array<GameSystem>;
-    private readonly mEventTransmission: GameEnvironmentEventTransmission;
 
     /**
      * Debug data for the environment, including timing snapshots. Only filled when debugSystemTime is enabled.

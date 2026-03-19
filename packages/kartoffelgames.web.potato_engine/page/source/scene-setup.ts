@@ -13,43 +13,116 @@ import { Mesh } from '../../source/component_item/mesh.ts';
 import { Shader } from '../../source/component_item/shader.ts';
 import { Texture } from '../../source/component_item/texture.ts';
 import { GameObject } from '../../source/core/hierarchy/game-object.ts';
-import DEFAULT_PBR_SHADER from '../../source/shader/default-pbr-shader.pgsl';
+import { default as defaultPbrShader } from '../../source/shader/default-pbr-shader.pgsl';
 
 /**
  * Central place for scene content creation.
  * Creates a camera scene (always loaded) and multiple numbered scenes toggleable via keyboard.
  */
 export class SceneSetup {
-    private readonly mBlockMesh: Mesh;
-    private readonly mBlockMeshMaterials: Array<Material>;
-    private readonly mCameraEntity: GameObject;
-    private readonly mCameraScene: GameObject;
-    private readonly mPlaneMesh: Mesh;
-    private readonly mScenes: Map<number, GameObject>;
+    /**
+     * Create a material with a base color.
+     * Uses the default PBR shader which reads baseColorFactor from the User group.
+     */
+    private static createMaterial(pR: number, pG: number, pB: number, pA: number): Material {
+        const lMaterial: Material = new Material();
 
-    // Reusable materials.
-    private readonly mWhiteMaterial: Material;
-    private readonly mRedMaterial: Material;
-    private readonly mBlueMaterial: Material;
-    private readonly mGreenMaterial: Material;
-    private readonly mYellowMaterial: Material;
+        const lShader: Shader = new Shader();
+        lShader.shaderCode = defaultPbrShader;
+        lMaterial.shader = lShader;
 
-    // Scene 1 animation entities.
-    private readonly mScene1HierarchyEntities: Array<GameObject>;
-    private readonly mScene1BlockEntities: Array<GameObject>;
+        lMaterial.setBinding('baseColorFactor', new Float32Array([pR, pG, pB, pA]).buffer);
+        lMaterial.setBinding('metallicFactor', new Float32Array([0.0]).buffer);
+        lMaterial.setBinding('roughnessFactor', new Float32Array([0.5]).buffer);
+
+        // 1x1 white PNG placeholder for baseColorTexture.
+        // texture data containing a 2x2 checkerboard pattern;
+        const lTextureData: string = '/9j/4AAQSkZJRgABAQEAYABgAAD/4QAiRXhpZgAATU0AKgAAAAgAAQESAAMAAAABAAEAAAAAAAD/2wBDAAIBAQI' +
+            'BAQICAgICAgICAwUDAwMDAwYEBAMFBwYHBwcGBwcICQsJCAgKCAcHCg0KCgsMDAwMBwkODw0MDgsMDAz/2wBDAQICAgMDAwYDAwYMCAcIDAwMDAw' +
+            'MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAz/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAA' +
+            'AAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo' +
+            '0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytL' +
+            'T1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAE' +
+            'CAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ' +
+            '3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAI' +
+            'RAxEAPwD9/KKKKAP/2Q==';
+
+        // Convert the base64 string to binary data.
+        const lTextureBinaryString: string = atob(lTextureData);
+        const lTextureBinaryBytes: Uint8Array<ArrayBuffer> = new Uint8Array(lTextureBinaryString.length);
+        for (let lByteIndex = 0; lByteIndex < lTextureBinaryString.length; lByteIndex++) {
+            lTextureBinaryBytes[lByteIndex] = lTextureBinaryString.charCodeAt(lByteIndex);
+        }
+
+        const lPlaceholderTexture: Texture = new Texture();
+        lPlaceholderTexture.imageData = lTextureBinaryBytes.buffer;
+        lMaterial.setBinding('baseColorTexture', lPlaceholderTexture);
+
+        return lMaterial;
+    }
 
     /**
-     * The camera scene (always loaded).
+     * Create a programmatic plane mesh (unit quad facing +Z, centered at origin).
      */
-    public get cameraScene(): GameObject {
-        return this.mCameraScene;
+    private static createPlaneMesh(): Mesh {
+        const lMesh: Mesh = new Mesh();
+
+        // Unit quad vertices (-0.5 to 0.5) facing +Z.
+        lMesh.verticesData = [
+            -0.5, -0.5, 0,
+            0.5, -0.5, 0,
+            0.5, 0.5, 0,
+            -0.5, 0.5, 0,
+        ];
+
+        // All normals face +Z.
+        lMesh.normals = [
+            0, 0, 1,
+            0, 0, 1,
+            0, 0, 1,
+            0, 0, 1,
+        ];
+
+        // Two triangles forming the quad.
+        lMesh.addSubMesh([0, 1, 2, 0, 2, 3], PrimitiveTopology.TriangleList);
+
+        // Set bounding box.
+        lMesh.bounds.minX = -0.5;
+        lMesh.bounds.minY = -0.5;
+        lMesh.bounds.minZ = 0;
+        lMesh.bounds.maxX = 0.5;
+        lMesh.bounds.maxY = 0.5;
+        lMesh.bounds.maxZ = 0;
+
+        return lMesh;
     }
+
+    private readonly mBlockMesh: Mesh;
+    private readonly mBlockMeshMaterials: Array<Material>;
+    private readonly mBlueMaterial: Material;
+    private readonly mCameraEntity: GameObject;
+    private readonly mCameraScene: GameObject;
+    private readonly mGreenMaterial: Material;
+    private readonly mPlaneMesh: Mesh;
+    private readonly mRedMaterial: Material;
+    private readonly mScene1BlockEntities: Array<GameObject>;
+    private readonly mScene1HierarchyEntities: Array<GameObject>;
+    private readonly mScenes: Map<number, GameObject>;
+    private readonly mWhiteMaterial: Material;
+    private readonly mYellowMaterial: Material;
 
     /**
      * The camera entity.
      */
     public get cameraEntity(): GameObject {
         return this.mCameraEntity;
+    }
+
+    /**
+     * The camera scene (always loaded).
+     */
+    public get cameraScene(): GameObject {
+        return this.mCameraScene;
     }
 
     /**
@@ -117,160 +190,6 @@ export class SceneSetup {
     }
 
     /**
-     * Create a programmatic plane mesh (unit quad facing +Z, centered at origin).
-     */
-    private static createPlaneMesh(): Mesh {
-        const lMesh: Mesh = new Mesh();
-
-        // Unit quad vertices (-0.5 to 0.5) facing +Z.
-        lMesh.verticesData = [
-            -0.5, -0.5, 0,
-            0.5, -0.5, 0,
-            0.5, 0.5, 0,
-            -0.5, 0.5, 0,
-        ];
-
-        // All normals face +Z.
-        lMesh.normals = [
-            0, 0, 1,
-            0, 0, 1,
-            0, 0, 1,
-            0, 0, 1,
-        ];
-
-        // Two triangles forming the quad.
-        lMesh.addSubMesh([0, 1, 2, 0, 2, 3], PrimitiveTopology.TriangleList);
-
-        // Set bounding box.
-        lMesh.bounds.minX = -0.5;
-        lMesh.bounds.minY = -0.5;
-        lMesh.bounds.minZ = 0;
-        lMesh.bounds.maxX = 0.5;
-        lMesh.bounds.maxY = 0.5;
-        lMesh.bounds.maxZ = 0;
-
-        return lMesh;
-    }
-
-    /**
-     * Create a material with a base color.
-     * Uses the default PBR shader which reads baseColorFactor from the User group.
-     */
-    private static createMaterial(pR: number, pG: number, pB: number, pA: number): Material {
-        const lMaterial: Material = new Material();
-
-        const lShader: Shader = new Shader();
-        lShader.shaderCode = DEFAULT_PBR_SHADER;
-        lMaterial.shader = lShader;
-
-        lMaterial.setBinding('baseColorFactor', new Float32Array([pR, pG, pB, pA]).buffer);
-        lMaterial.setBinding('metallicFactor', new Float32Array([0.0]).buffer);
-        lMaterial.setBinding('roughnessFactor', new Float32Array([0.5]).buffer);
-
-        // 1x1 white PNG placeholder for baseColorTexture.
-        // texture data containing a 2x2 checkerboard pattern;
-        const lTextureData: string = '/9j/4AAQSkZJRgABAQEAYABgAAD/4QAiRXhpZgAATU0AKgAAAAgAAQESAAMAAAABAAEAAAAAAAD/2wBDAAIBAQI' +
-            'BAQICAgICAgICAwUDAwMDAwYEBAMFBwYHBwcGBwcICQsJCAgKCAcHCg0KCgsMDAwMBwkODw0MDgsMDAz/2wBDAQICAgMDAwYDAwYMCAcIDAwMDAw' +
-            'MDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAwMDAz/wAARCAABAAEDASIAAhEBAxEB/8QAHwAAAQUBAQEBAQEAAAAAAAA' +
-            'AAAECAwQFBgcICQoL/8QAtRAAAgEDAwIEAwUFBAQAAAF9AQIDAAQRBRIhMUEGE1FhByJxFDKBkaEII0KxwRVS0fAkM2JyggkKFhcYGRolJicoKSo' +
-            '0NTY3ODk6Q0RFRkdISUpTVFVWV1hZWmNkZWZnaGlqc3R1dnd4eXqDhIWGh4iJipKTlJWWl5iZmqKjpKWmp6ipqrKztLW2t7i5usLDxMXGx8jJytL' +
-            'T1NXW19jZ2uHi4+Tl5ufo6erx8vP09fb3+Pn6/8QAHwEAAwEBAQEBAQEBAQAAAAAAAAECAwQFBgcICQoL/8QAtREAAgECBAQDBAcFBAQAAQJ3AAE' +
-            'CAxEEBSExBhJBUQdhcRMiMoEIFEKRobHBCSMzUvAVYnLRChYkNOEl8RcYGRomJygpKjU2Nzg5OkNERUZHSElKU1RVVldYWVpjZGVmZ2hpanN0dXZ' +
-            '3eHl6goOEhYaHiImKkpOUlZaXmJmaoqOkpaanqKmqsrO0tba3uLm6wsPExcbHyMnK0tPU1dbX2Nna4uPk5ebn6Onq8vP09fb3+Pn6/9oADAMBAAI' +
-            'RAxEAPwD9/KKKKAP/2Q==';
-
-        // Convert the base64 string to binary data.
-        const lTextureBinaryString: string = atob(lTextureData);
-        const lTextureBinaryBytes: Uint8Array<ArrayBuffer> = new Uint8Array(lTextureBinaryString.length);
-        for (let lByteIndex = 0; lByteIndex < lTextureBinaryString.length; lByteIndex++) {
-            lTextureBinaryBytes[lByteIndex] = lTextureBinaryString.charCodeAt(lByteIndex);
-        }
-
-        const lPlaceholderTexture: Texture = new Texture();
-        lPlaceholderTexture.imageData = lTextureBinaryBytes.buffer;
-        lMaterial.setBinding('baseColorTexture', lPlaceholderTexture);
-
-        return lMaterial;
-    }
-
-    /**
-     * Create the perspective camera entity.
-     */
-    private createPerspectiveCamera(): GameObject {
-        const lCameraEntity: GameObject = new GameObject();
-        lCameraEntity.label = 'Camera';
-        const lCameraTransformation: TransformationComponent = lCameraEntity.addComponent(TransformationComponent);
-        lCameraTransformation.translationZ = -5;
-        const lCameraComponent: CameraComponent = lCameraEntity.addComponent(CameraComponent);
-        lCameraComponent.projectionType = CameraComponentProjection.Perspective;
-
-        const lPerspectiveProjection: PerspectiveProjection = lCameraComponent.projection as PerspectiveProjection;
-        lPerspectiveProjection.angleOfView = 72;
-        lPerspectiveProjection.near = 0.1;
-        lPerspectiveProjection.far = Number.MAX_SAFE_INTEGER;
-
-        return lCameraEntity;
-    }
-
-    /**
-     * Create a mesh render entity at a given position with optional rotation and scale.
-     */
-    private createMeshEntity(pLabel: string, pMesh: Mesh, pPosition: { x: number; y: number; z: number; }, pRotation?: { pitch: number; yaw: number; roll: number; }, pScale?: { width: number; height: number; depth: number; }, pMaterial?: Material): GameObject {
-        const lEntity: GameObject = new GameObject();
-        lEntity.label = pLabel;
-        const lTransformation: TransformationComponent = lEntity.addComponent(TransformationComponent);
-        lTransformation.translationX = pPosition.x;
-        lTransformation.translationY = pPosition.y;
-        lTransformation.translationZ = pPosition.z;
-
-        if (pRotation) {
-            lTransformation.addEulerRotation(pRotation.pitch, pRotation.yaw, pRotation.roll);
-        }
-
-        if (pScale) {
-            lTransformation.scaleWidth = pScale.width;
-            lTransformation.scaleHeight = pScale.height;
-            lTransformation.scaleDepth = pScale.depth;
-        }
-
-        const lMeshComponent = lEntity.addComponent(MeshRenderComponent);
-        lMeshComponent.mesh = pMesh;
-
-        if (pMaterial) {
-            lMeshComponent.materials = [pMaterial];
-        } else if (pMesh === this.mBlockMesh && this.mBlockMeshMaterials.length > 0) {
-            lMeshComponent.materials = [...this.mBlockMeshMaterials];
-        }
-
-        return lEntity;
-    }
-
-    /**
-     * Create a light entity at a given position with the specified type and color.
-     */
-    private createLightEntity(pLabel: string, pType: LightComponentItemType, pPosition: { x: number; y: number; z: number; }, pColor: { r: number; g: number; b: number; }, pIntensity: number, pRotation?: { pitch: number; yaw: number; roll: number; }): GameObject {
-        const lEntity: GameObject = new GameObject();
-        lEntity.label = pLabel;
-        const lTransformation: TransformationComponent = lEntity.addComponent(TransformationComponent);
-        lTransformation.translationX = pPosition.x;
-        lTransformation.translationY = pPosition.y;
-        lTransformation.translationZ = pPosition.z;
-
-        if (pRotation) {
-            lTransformation.addEulerRotation(pRotation.pitch, pRotation.yaw, pRotation.roll);
-        }
-
-        const lLightComponent: LightComponent = lEntity.addComponent(LightComponent);
-        lLightComponent.lightType = pType;
-        lLightComponent.light.color.r = pColor.r;
-        lLightComponent.light.color.g = pColor.g;
-        lLightComponent.light.color.b = pColor.b;
-        lLightComponent.light.intensity = pIntensity;
-
-        return lEntity;
-    }
-
-    /**
      * Create 4 planes arranged as an open box (floor + 3 walls) and add them to the scene.
      * The box is centered at the given position.
      */
@@ -310,37 +229,6 @@ export class SceneSetup {
         ));
     }
 
-    // ── Scene 1: Cube chain with 3 colored point lights ─────────
-
-    /**
-     * Scene 1: Animated cube chain with 3 colored point lights.
-     */
-    private createScene1(): GameObject {
-        const lScene: GameObject = new GameObject();
-        lScene.label = 'Scene 1: Cube Chain';
-
-        // Create 3 point lights.
-        const lWhiteLight = this.createLightEntity('White Light', LightComponentItemType.Point,
-            { x: 5, y: 10, z: -5 }, { r: 1, g: 1, b: 1 }, 1);
-        lScene.addObject(lWhiteLight);
-
-        const lRedLight = this.createLightEntity('Red Light', LightComponentItemType.Point,
-            { x: -5, y: 3, z: 0 }, { r: 1, g: 0.2, b: 0.2 }, 0.8);
-        lScene.addObject(lRedLight);
-
-        const lBlueLight = this.createLightEntity('Blue Light', LightComponentItemType.Point,
-            { x: 10, y: 3, z: 5 }, { r: 0.2, g: 0.2, b: 1 }, 0.8);
-        lScene.addObject(lBlueLight);
-
-        // Create cube chain with GLB materials (shows actual textures/colors from the imported mesh).
-        const lChainMaterials: Array<Material> = this.mBlockMeshMaterials.length > 0
-            ? this.mBlockMeshMaterials
-            : [this.mRedMaterial, this.mBlueMaterial, this.mGreenMaterial];
-        this.createCubeChain(lScene, this.mBlockMesh, 19, lChainMaterials);
-
-        return lScene;
-    }
-
     /**
      * Create a chain of nested cube entities within a scene.
      * Each entity gets the full materials array so all submeshes render with proper materials.
@@ -376,6 +264,114 @@ export class SceneSetup {
                 pScene.addObject(lHierarchyEntity);
             }
         }
+    }
+
+    /**
+     * Create a light entity at a given position with the specified type and color.
+     */
+    private createLightEntity(pLabel: string, pType: LightComponentItemType, pPosition: { x: number; y: number; z: number; }, pColor: { r: number; g: number; b: number; }, pIntensity: number, pRotation?: { pitch: number; yaw: number; roll: number; }): GameObject {
+        const lEntity: GameObject = new GameObject();
+        lEntity.label = pLabel;
+        const lTransformation: TransformationComponent = lEntity.addComponent(TransformationComponent);
+        lTransformation.translationX = pPosition.x;
+        lTransformation.translationY = pPosition.y;
+        lTransformation.translationZ = pPosition.z;
+
+        if (pRotation) {
+            lTransformation.addEulerRotation(pRotation.pitch, pRotation.yaw, pRotation.roll);
+        }
+
+        const lLightComponent: LightComponent = lEntity.addComponent(LightComponent);
+        lLightComponent.lightType = pType;
+        lLightComponent.light.color.r = pColor.r;
+        lLightComponent.light.color.g = pColor.g;
+        lLightComponent.light.color.b = pColor.b;
+        lLightComponent.light.intensity = pIntensity;
+
+        return lEntity;
+    }
+
+    /**
+     * Create a mesh render entity at a given position with optional rotation and scale.
+     */
+    private createMeshEntity(pLabel: string, pMesh: Mesh, pPosition: { x: number; y: number; z: number; }, pRotation?: { pitch: number; yaw: number; roll: number; }, pScale?: { width: number; height: number; depth: number; }, pMaterial?: Material): GameObject {
+        const lEntity: GameObject = new GameObject();
+        lEntity.label = pLabel;
+        const lTransformation: TransformationComponent = lEntity.addComponent(TransformationComponent);
+        lTransformation.translationX = pPosition.x;
+        lTransformation.translationY = pPosition.y;
+        lTransformation.translationZ = pPosition.z;
+
+        if (pRotation) {
+            lTransformation.addEulerRotation(pRotation.pitch, pRotation.yaw, pRotation.roll);
+        }
+
+        if (pScale) {
+            lTransformation.scaleWidth = pScale.width;
+            lTransformation.scaleHeight = pScale.height;
+            lTransformation.scaleDepth = pScale.depth;
+        }
+
+        const lMeshComponent = lEntity.addComponent(MeshRenderComponent);
+        lMeshComponent.mesh = pMesh;
+
+        if (pMaterial) {
+            lMeshComponent.materials = [pMaterial];
+        } else if (pMesh === this.mBlockMesh && this.mBlockMeshMaterials.length > 0) {
+            lMeshComponent.materials = [...this.mBlockMeshMaterials];
+        }
+
+        return lEntity;
+    }
+
+    /**
+     * Create the perspective camera entity.
+     */
+    private createPerspectiveCamera(): GameObject {
+        const lCameraEntity: GameObject = new GameObject();
+        lCameraEntity.label = 'Camera';
+        const lCameraTransformation: TransformationComponent = lCameraEntity.addComponent(TransformationComponent);
+        lCameraTransformation.translationZ = -5;
+        const lCameraComponent: CameraComponent = lCameraEntity.addComponent(CameraComponent);
+        lCameraComponent.projectionType = CameraComponentProjection.Perspective;
+
+        const lPerspectiveProjection: PerspectiveProjection = lCameraComponent.projection as PerspectiveProjection;
+        lPerspectiveProjection.angleOfView = 72;
+        lPerspectiveProjection.near = 0.1;
+        lPerspectiveProjection.far = Number.MAX_SAFE_INTEGER;
+
+        return lCameraEntity;
+    }
+
+    // ── Scene 1: Cube chain with 3 colored point lights ─────────
+
+    /**
+     * Scene 1: Animated cube chain with 3 colored point lights.
+     */
+    private createScene1(): GameObject {
+        const lScene: GameObject = new GameObject();
+        lScene.label = 'Scene 1: Cube Chain';
+
+        // Create 3 point lights.
+        const lWhiteLight = this.createLightEntity('White Light', LightComponentItemType.Point,
+            { x: 5, y: 10, z: -5 }, { r: 1, g: 1, b: 1 }, 1);
+        lScene.addObject(lWhiteLight);
+
+        const lRedLight = this.createLightEntity('Red Light', LightComponentItemType.Point,
+            { x: -5, y: 3, z: 0 }, { r: 1, g: 0.2, b: 0.2 }, 0.8);
+        lScene.addObject(lRedLight);
+
+        const lBlueLight = this.createLightEntity('Blue Light', LightComponentItemType.Point,
+            { x: 10, y: 3, z: 5 }, { r: 0.2, g: 0.2, b: 1 }, 0.8);
+        lScene.addObject(lBlueLight);
+
+        // Create cube chain with GLB materials (shows actual textures/colors from the imported mesh).
+        const lChainMaterials: Array<Material> = this.mBlockMeshMaterials.length > 0
+            ? this.mBlockMeshMaterials
+            : [this.mRedMaterial, this.mBlueMaterial, this.mGreenMaterial];
+        this.createCubeChain(lScene, this.mBlockMesh, 19, lChainMaterials);
+
+        return lScene;
     }
 
     // ── Scene 2: Open box with 4 colored point lights ───────────
@@ -556,10 +552,10 @@ export class SceneSetup {
         const lSpecialMaterial: Material = SceneSetup.createMaterial(1, 1, 1, 1);
         globalThis.setInterval(() => {
             const lTime = Date.now() / 1000;
-            const r = (Math.sin(lTime) * 0.5 + 0.5);
-            const g = (Math.sin(lTime + 2) * 0.5 + 0.5);
-            const b = (Math.sin(lTime + 4) * 0.5 + 0.5);
-            lSpecialMaterial.setBinding('baseColorFactor', new Float32Array([r, g, b, 1]).buffer);
+            const lR = (Math.sin(lTime) * 0.5 + 0.5);
+            const lG = (Math.sin(lTime + 2) * 0.5 + 0.5);
+            const lB = (Math.sin(lTime + 4) * 0.5 + 0.5);
+            lSpecialMaterial.setBinding('baseColorFactor', new Float32Array([lR, lG, lB, 1]).buffer);
         }, 10);
 
         const lBoxMaterials: Array<Material> = [this.mRedMaterial, this.mBlueMaterial, this.mGreenMaterial, this.mYellowMaterial, lSpecialMaterial];

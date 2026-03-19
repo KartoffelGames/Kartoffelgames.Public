@@ -3,8 +3,8 @@ import { FileSystem, FileSystemReferenceType } from '@kartoffelgames/web-file-sy
 import type { IAnyParameterConstructor } from '../../../../kartoffelgames.core/source/interface/i-constructor.ts';
 import type { GameComponent, GameComponentConstructor } from '../component/game-component.ts';
 import type { GameEnvironmentStateType } from '../environment/game-environment-event-transmittion.ts';
-import { GameEntity } from "./game-entity.ts";
-import { GameEnvironment } from "../environment/game-environment.ts";
+import { GameEntity } from './game-entity.ts';
+import type { GameEnvironment } from '../environment/game-environment.ts';
 
 /**
  * A GameEntity is a game node that can have components.

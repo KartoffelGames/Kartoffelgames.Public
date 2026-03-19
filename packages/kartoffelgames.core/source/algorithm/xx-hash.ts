@@ -14,6 +14,7 @@ export class XxHash {
 
     /**
      * Constructor.
+     * 
      * @param pSeed - Seed value for the hash function.
      */
     public constructor(pSeed: number) {
@@ -22,7 +23,9 @@ export class XxHash {
 
     /**
      * Compute the xxHash32 hash of the given data.
+     * 
      * @param pData - Input data to hash.
+     * 
      * @returns 32-bit hash value as unsigned integer.
      */
     public hash(pData: Uint8Array): number {
@@ -48,10 +51,10 @@ export class XxHash {
 
             // Merge accumulators.
             lHash = (
-                this.rotateLeft(lAccumulatorOne, 1)
-                + this.rotateLeft(lAccumulatorTwo, 7)
-                + this.rotateLeft(lAccumulatorThree, 12)
-                + this.rotateLeft(lAccumulatorFour, 18)
+                this.rotateLeft(lAccumulatorOne, 1) +
+                this.rotateLeft(lAccumulatorTwo, 7) +
+                this.rotateLeft(lAccumulatorThree, 12) +
+                this.rotateLeft(lAccumulatorFour, 18)
             ) >>> 0;
         } else {
             lHash = (this.mSeed + XxHash.PRIME_FIVE) >>> 0;
@@ -86,20 +89,17 @@ export class XxHash {
 
     /**
      * Read a 32-bit unsigned integer from a byte array in little-endian order.
+     * 
      * @param pData - Source byte array.
      * @param pOffset - Byte offset to read from.
      */
     private readUint32LittleEndian(pData: Uint8Array, pOffset: number): number {
-        return (
-            pData[pOffset]
-            | (pData[pOffset + 1] << 8)
-            | (pData[pOffset + 2] << 16)
-            | (pData[pOffset + 3] << 24)
-        ) >>> 0;
+        return (pData[pOffset] | (pData[pOffset + 1] << 8) | (pData[pOffset + 2] << 16) | (pData[pOffset + 3] << 24)) >>> 0;
     }
 
     /**
      * Rotate a 32-bit unsigned integer left by the given number of bits.
+     * 
      * @param pValue - Value to rotate.
      * @param pBits - Number of bits to rotate by.
      */
@@ -109,6 +109,7 @@ export class XxHash {
 
     /**
      * Perform a single xxHash32 round operation.
+     * 
      * @param pAccumulator - Current accumulator value.
      * @param pInput - Input lane value.
      */
@@ -116,6 +117,7 @@ export class XxHash {
         let lAccumulator: number = (pAccumulator + Math.imul(pInput, XxHash.PRIME_TWO)) >>> 0;
         lAccumulator = this.rotateLeft(lAccumulator, 13);
         lAccumulator = Math.imul(lAccumulator, XxHash.PRIME_ONE) >>> 0;
+
         return lAccumulator;
     }
 }

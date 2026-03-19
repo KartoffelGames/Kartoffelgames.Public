@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import type { FileSystem } from '@kartoffelgames/web-file-system';
 import type { GameComponent, GameComponentConstructor } from '../component/game-component.ts';
 import type { GameSystem, GameSystemConstructor, GameSystemUpdateStateChanges } from '../game-system.ts';
-import { GameObject } from "../hierarchy/game-object.ts";
+import { GameObject } from '../hierarchy/game-object.ts';
 import { type GameEnvironmentStateType, GameEnvironmentEventTransmission } from './game-environment-event-transmittion.ts';
 
 /**

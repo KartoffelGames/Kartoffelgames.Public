@@ -1,6 +1,6 @@
 import { FileSystemReferenceType, FileSystem } from '@kartoffelgames/web-file-system';
 import { GameComponent } from '../core/component/game-component.ts';
-import { CameraComponent } from "./camera/camera-component.ts";
+import type { CameraComponent } from './camera/camera-component.ts';
 
 /**
  * Component representing a render target in the environment.

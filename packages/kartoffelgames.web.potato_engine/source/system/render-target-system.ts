@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import { type RenderTargets, type RenderTargetsLayout } from '@kartoffelgames/web-gpu';
+import type { RenderTargets, RenderTargetsLayout } from '@kartoffelgames/web-gpu';
 import { CameraComponent } from '../component/camera/camera-component.ts';
 import { RenderTargetComponent } from '../component/render-target-component.ts';
 import type { GameComponentConstructor } from '../core/component/game-component.ts';
@@ -269,7 +269,7 @@ export class RenderTargetSystem extends GameSystem {
 
         // Find the render target this camera belongs to by walking up the entity hierarchy.
         // Does allways find a render target component, as the root render target is added directly to the environment and thus is a parent of all entities.
-        let lParentRenderTarget: RenderTargetComponent | null = pCamera.gameEntity.getParentComponent(RenderTargetComponent)!;
+        const lParentRenderTarget: RenderTargetComponent | null = pCamera.gameEntity.getParentComponent(RenderTargetComponent)!;
 
         // Assign camera only when the render target has no active camera.
         if (!lParentRenderTarget.camera) {

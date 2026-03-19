@@ -13,7 +13,7 @@ import { DebugPanel } from './ui/debug-panel.ts';
 import { FrameGraph } from './ui/frame-graph.ts';
 import { HierarchyPanel } from './ui/hierarchy-panel.ts';
 import { ResizableLayout } from './ui/resizable-layout.ts';
-import { GameObject } from "../../source/core/hierarchy/game-object.ts";
+import type { GameObject } from '../../source/core/hierarchy/game-object.ts';
 
 // ── Load assets ──────────────────────────────────────────────
 const gGlbData: ArrayBuffer = await fetch('/mesh.glb').then(async (pResponse) => {

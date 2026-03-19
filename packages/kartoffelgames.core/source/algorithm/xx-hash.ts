@@ -30,6 +30,7 @@ export class XxHash {
      */
     public hash(pData: Uint8Array): number {
         const lDataLength: number = pData.length;
+        
         let lHash: number;
         let lOffset: number = 0;
 

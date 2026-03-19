@@ -1,5 +1,5 @@
 import { expect } from '@kartoffelgames/core-test';
-import { LinearBoundVolumeHierarchy } from '../../source/data_container/linear_bound_volume_hierarchy/linear-bound-volume-hierarchy.ts';
+import { LinearBoundVolumeHierarchy } from '../../source/data_container/linear-bound-volume-hierarchy.ts';
 import type { IBoundable } from '../../source/interface/i-boundable.ts';
 
 /**
@@ -119,10 +119,10 @@ Deno.test('LinearBoundVolumeHierarchy.constructor()', async (pContext) => {
         const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
 
         // Evaluation.
-        expect(lBvh.aabbBuffer).toBeInstanceOf(ArrayBuffer);
-        expect(lBvh.topologyBuffer).toBeInstanceOf(ArrayBuffer);
-        expect(lBvh.aabbBuffer.byteLength).toBeGreaterThan(0);
-        expect(lBvh.topologyBuffer.byteLength).toBeGreaterThan(0);
+        expect(lBvh.aabbBuffer).toBeInstanceOf(SharedArrayBuffer);
+        expect(lBvh.topologyBuffer).toBeInstanceOf(SharedArrayBuffer);
+        expect(lBvh.aabbBuffer.byteLength).toBe(0);
+        expect(lBvh.topologyBuffer.byteLength).toBe(0);
     });
 
     await pContext.step('should accept a custom rebuild threshold', () => {

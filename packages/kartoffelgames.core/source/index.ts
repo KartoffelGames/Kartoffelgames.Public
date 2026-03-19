@@ -41,6 +41,7 @@ export {
 
 // Algorythms
 export { ChangeState, MyersDiff, type HistoryItem } from './algorithm/myers-diff.ts';
+export { XxHash } from './algorithm/xx-hash.ts';
 
 // Math
 export { Euler } from './math/euler.ts';

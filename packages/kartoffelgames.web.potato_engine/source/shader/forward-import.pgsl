@@ -74,10 +74,24 @@ const PI: float = 3.14159265359;
 // ===== Attenuation Helpers =====
 
 function normalizedAttenuation(pDistance: float, pDropOff: float): float {
-    if (pDropOff <= 0.0) {
-        return 1.0;
-    }
-    return 1.0 / (1.0 + pow(pDistance, 2.0 * pDropOff));
+    // When dropOff is 0, attenuation is 1.0 (no falloff). Otherwise compute inverse power falloff.
+    // step(x, y) returns 1.0 when y >= x, 0.0 otherwise.
+    const hasDropOff: float = step(0.001, pDropOff);
+    const computed: float = 1.0 / (1.0 + pow(pDistance, 2.0 * max(pDropOff, 0.001)));
+    return mix(1.0, computed, hasDropOff);
+}
+
+// Computes a range mask: 1.0 when the fragment is within range, 0.0 when outside.
+// When range <= 0 (infinite), always returns 1.0.
+function rangeAttenuation(pRange: float, pDist: float): float {
+    // hasRange is 1.0 when range > 0, 0.0 when range <= 0 (infinite).
+    const hasRange: float = step(0.001, pRange);
+
+    // inRange is 1.0 when dist <= range, 0.0 when dist > range.
+    const inRange: float = step(pDist, pRange);
+
+    // When hasRange is 0 (infinite), result is 1.0. When hasRange is 1, result is inRange.
+    return mix(1.0, inRange, hasRange);
 }
 
 // ===== Per-Type Light Calculations =====
@@ -85,16 +99,13 @@ function normalizedAttenuation(pDistance: float, pDropOff: float): float {
 function calculatePointLight(pLight: Light, pFragPos: Vector3<float>, pNormal: Vector3<float>): Vector3<float> {
     const toLight: Vector3<float> = pLight.positionRange.xyz - pFragPos;
     const dist: float = length(toLight);
-
-    if ((pLight.positionRange.w > 0.0) && (dist > pLight.positionRange.w)) {
-        return new Vector3<float>(0.0, 0.0, 0.0);
-    }
+    const rangeMask: float = rangeAttenuation(pLight.positionRange.w, dist);
 
     const direction: Vector3<float> = toLight / max(dist, 0.001);
     const nDotL: float = max(dot(pNormal, direction), 0.0);
     const attenuation: float = normalizedAttenuation(dist, pLight.rotationDropOff.w);
 
-    return pLight.colorIntensity.rgb * pLight.colorIntensity.a * nDotL * attenuation;
+    return pLight.colorIntensity.rgb * pLight.colorIntensity.a * nDotL * attenuation * rangeMask;
 }
 
 function calculateDirectionalLight(pLight: Light, pNormal: Vector3<float>): Vector3<float> {
@@ -107,10 +118,7 @@ function calculateDirectionalLight(pLight: Light, pNormal: Vector3<float>): Vect
 function calculateSpotLight(pLight: Light, pFragPos: Vector3<float>, pNormal: Vector3<float>): Vector3<float> {
     const toLight: Vector3<float> = pLight.positionRange.xyz - pFragPos;
     const dist: float = length(toLight);
-
-    if ((pLight.positionRange.w > 0.0) && (dist > pLight.positionRange.w)) {
-        return new Vector3<float>(0.0, 0.0, 0.0);
-    }
+    const rangeMask: float = rangeAttenuation(pLight.positionRange.w, dist);
 
     const direction: Vector3<float> = toLight / max(dist, 0.001);
     const nDotL: float = max(dot(pNormal, direction), 0.0);
@@ -127,50 +135,36 @@ function calculateSpotLight(pLight: Light, pFragPos: Vector3<float>, pNormal: Ve
 
     const attenuation: float = normalizedAttenuation(dist, pLight.rotationDropOff.w);
 
-    return pLight.colorIntensity.rgb * pLight.colorIntensity.a * nDotL * attenuation * spotEffect;
+    return pLight.colorIntensity.rgb * pLight.colorIntensity.a * nDotL * attenuation * spotEffect * rangeMask;
 }
 
 function calculateAreaLight(pLight: Light, pFragPos: Vector3<float>, pNormal: Vector3<float>): Vector3<float> {
     const toLight: Vector3<float> = pLight.positionRange.xyz - pFragPos;
     const dist: float = length(toLight);
-
-    if ((pLight.positionRange.w > 0.0) && (dist > pLight.positionRange.w)) {
-        return new Vector3<float>(0.0, 0.0, 0.0);
-    }
+    const rangeMask: float = rangeAttenuation(pLight.positionRange.w, dist);
 
     const direction: Vector3<float> = toLight / max(dist, 0.001);
     const nDotL: float = max(dot(pNormal, direction), 0.0);
 
     const lightForward: Vector3<float> = normalize(pLight.rotationDropOff.xyz);
-    const forwardDot: float = dot(-direction, lightForward);
-    if (forwardDot <= 0.0) {
-        return new Vector3<float>(0.0, 0.0, 0.0);
-    }
+    const forwardDot: float = max(dot(-direction, lightForward), 0.0);
 
     const size: Vector2<float> = unpack2x16float(pLight.packedSize);
     const areaScale: float = size.x * size.y;
     const attenuation: float = normalizedAttenuation(dist, pLight.rotationDropOff.w);
 
-    return pLight.colorIntensity.rgb * pLight.colorIntensity.a * nDotL * attenuation * forwardDot * areaScale;
+    return pLight.colorIntensity.rgb * pLight.colorIntensity.a * nDotL * attenuation * forwardDot * areaScale * rangeMask;
 }
 
 function calculateAmbientLight(pLight: Light, pFragPos: Vector3<float>): Vector3<float> {
-    // When range is 0 (infinite), apply full intensity everywhere.
-    if (pLight.positionRange.w <= 0.0) {
-        return pLight.colorIntensity.rgb * pLight.colorIntensity.a;
-    }
-
-    // When range is set, attenuate by distance.
     const toLight: Vector3<float> = pLight.positionRange.xyz - pFragPos;
     const dist: float = length(toLight);
-
-    if (dist > pLight.positionRange.w) {
-        return new Vector3<float>(0.0, 0.0, 0.0);
-    }
-
+    const rangeMask: float = rangeAttenuation(pLight.positionRange.w, dist);
     const attenuation: float = normalizedAttenuation(dist, pLight.rotationDropOff.w);
 
-    return pLight.colorIntensity.rgb * pLight.colorIntensity.a * attenuation;
+    // When range <= 0 (infinite), rangeMask is 1.0 and attenuation with dropOff 0 is also 1.0.
+    // When range > 0 and dist > range, rangeMask zeroes out the result.
+    return pLight.colorIntensity.rgb * pLight.colorIntensity.a * attenuation * rangeMask;
 }
 
 function calculateLighting(pFragPos: Vector3<float>, pNormal: Vector3<float>): Vector3<float> {

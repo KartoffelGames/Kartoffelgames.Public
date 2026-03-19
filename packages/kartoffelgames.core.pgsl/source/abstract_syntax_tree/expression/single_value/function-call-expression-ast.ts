@@ -129,9 +129,9 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
         // Build ordered generic type list.
         const lGenericList: Array<IType> = new Array<IType>();
         if (lMatchedFunctionHeader) {
-            for(const lGeneric of lMatchedFunctionHeader.header.generics) {
+            for (const lGeneric of lMatchedFunctionHeader.header.generics) {
                 // When generic type is not infered, assign invalid type.
-                if(!lMatchedFunctionHeader.genericTypes.has(lGeneric.name)) {
+                if (!lMatchedFunctionHeader.genericTypes.has(lGeneric.name)) {
                     lGenericList.push(new PgslInvalidType().process(pContext));
                     continue;
                 }
@@ -158,13 +158,13 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
 
     /**
      * Match function declaration headers against provided generics and parameters.
-     * 
+     *
      * @param pContext - Process context.
      * @param pFunctionDeclaration - Function declaation of call.
      * @param pGenericList - Generic types used for this call.
      * @param pParameterList - Parameter expressions used for this call.
-     * 
-     * @returns Matched function header and infered generics or null when no match is found. 
+     *
+     * @returns Matched function header and infered generics or null when no match is found.
      */
     private matchFunctionHeader(pContext: AbstractSyntaxTreeContext, pFunctionDeclaration: FunctionDeclarationAst, pGenericList: Array<IType>, pParameterList: Array<IExpressionAst>): FunctionHeaderMatchResult | null {
         // Check each function header for a match.
@@ -179,92 +179,111 @@ export class FunctionCallExpressionAst extends AbstractSyntaxTree<FunctionCallEx
                 continue;
             }
 
-            // Create valid generic name set.
-            const lValidGenericNames: Map<string, Array<string> | null> = new Map<string, Array<string> | null>();
+            // Build generic restrictions map from header definition.
+            const lGenericRestrictions: Map<string, Array<string> | null> = new Map<string, Array<string> | null>();
             for (const lGeneric of lFunctionHeader.generics) {
-                lValidGenericNames.set(lGeneric.name, lGeneric.restrictions);
+                lGenericRestrictions.set(lGeneric.name, lGeneric.restrictions);
             }
 
-            // Map of infered generic types and map any known types to them.
-            const lInferedGenericTypes: Map<string, IType> = new Map<string, IType>();
+            // Map static provided generic types.
+            const lStaticGenericTypes: Map<string, IType> = new Map<string, IType>();
             for (let lGenericIndex = 0; lGenericIndex < pGenericList.length; lGenericIndex++) {
-                const lGenericName = lFunctionHeader.generics[lGenericIndex].name;
-                lInferedGenericTypes.set(lGenericName, pGenericList[lGenericIndex]);
+                lStaticGenericTypes.set(lFunctionHeader.generics[lGenericIndex].name, pGenericList[lGenericIndex]);
             }
 
-            // Validate function parameter.
+            // Collect candidate types for each generic that needs inference.
+            const lGenericCandidates: Map<string, Array<IType>> = new Map<string, Array<IType>>();
+
+            // Validate each parameter against the function header.
             for (let lParameterIndex = 0; lParameterIndex < pParameterList.length; lParameterIndex++) {
                 const lParameterExpression: IExpressionAst = pParameterList[lParameterIndex];
-                const lFunctionParameterDeclaration: FunctionDeclarationAstDataParameter | undefined = lFunctionHeader.parameter[lParameterIndex];
+                const lParameterDeclaration: FunctionDeclarationAstDataParameter | undefined = lFunctionHeader.parameter[lParameterIndex];
+                const lParameterType: IType = lParameterExpression.data.resolveType;
 
-                // Validate parameter expression.
-                if (!lFunctionParameterDeclaration) {
+                // Validate parameter declaration exists.
+                if (!lParameterDeclaration) {
                     pContext.pushIncident(`Parameter ${lParameterIndex} of function '${this.cst.functionName}' is not defined.`, this);
                     continue FUNCTION_HEADER_LOOP;
                 }
 
-                // Get valid types for the function parameter.
-                const lFunctionParameterDeclarationValidTypes: IType | Array<string> | null = (() => {
-                    // When the parameter is not generic, return its type as the only valid type.
-                    if (typeof lFunctionParameterDeclaration.type !== 'string') {
-                        return lFunctionParameterDeclaration.type.data.type;
+                // Non-generic parameter: check implicit cast compatibility directly.
+                if (typeof lParameterDeclaration.type !== 'string') {
+                    if (!lParameterType.isImplicitCastableInto(lParameterDeclaration.type.data.type)) {
+                        continue FUNCTION_HEADER_LOOP;
                     }
+                    continue;
+                }
 
-                    const lGenericName: string = lFunctionParameterDeclaration.type;
+                const lGenericName: string = lParameterDeclaration.type;
 
-                    // When a generic type is provided, use that as the valid type.
-                    if (lInferedGenericTypes.has(lGenericName)) {
-                        return lInferedGenericTypes.get(lGenericName)!;
+                // Explicit generic provided: validate parameter is implicitly castable into the provided type.
+                if (lStaticGenericTypes.has(lGenericName)) {
+                    if (!lParameterType.isImplicitCastableInto(lStaticGenericTypes.get(lGenericName)!)) {
+                        continue FUNCTION_HEADER_LOOP;
                     }
+                    
+                    continue;
+                }
 
-                    // Validate generic index bounds.
-                    if (!lValidGenericNames.has(lGenericName)) {
-                        pContext.pushIncident(`Generic name ${lGenericName} of function '${this.cst.functionName}' is out of bounds.`, this);
-                        return [];
-                    }
-
-                    // Read valid types from function header definition.
-                    return lValidGenericNames.get(lGenericName)!;
-                })();
-
-                // Get function parameter type. When it is null, it meant to be a generic type.
-                const lFunctionParameterType: IType = lParameterExpression.data.resolveType;
-
-                // Check if parameter type matches any of the valid types.
-                const lMatchesValidType: boolean = (() => {
-                    if (lFunctionParameterDeclarationValidTypes === null) {
-                        return true;
-                    }
-
-                    if (Array.isArray(lFunctionParameterDeclarationValidTypes)) {
-                        for(const lValidTypeName of lFunctionParameterDeclarationValidTypes) {
-                            if (lFunctionParameterType.data.metaTypes.includes(lValidTypeName)) {
-                                return true;
-                            }
-                        }
-
-                        return false;
-                    }
-
-                    return lFunctionParameterType.isImplicitCastableInto(lFunctionParameterDeclarationValidTypes);
-                })();
-
-                // Parameter type does not match any valid type. Continue to next function header.
-                if (!lMatchesValidType) {
+                // Validate generic name exists in header definition.
+                if (!lGenericRestrictions.has(lGenericName)) {
+                    pContext.pushIncident(`Generic name ${lGenericName} of function '${this.cst.functionName}' is out of bounds.`, this);
                     continue FUNCTION_HEADER_LOOP;
                 }
 
-                // Save infered generic type when parameter is generic.
-                if (typeof lFunctionParameterDeclaration.type === 'string') {
-                    const lGenericName: string = lFunctionParameterDeclaration.type;
-                    lInferedGenericTypes.set(lGenericName, lFunctionParameterType);
+                // Validate parameter type satisfies the generic restrictions.
+                const lRestrictions: Array<string> | null = lGenericRestrictions.get(lGenericName)!;
+                if (lRestrictions !== null) {
+                    const lSatisfiesRestriction: boolean = lRestrictions.some((pRestriction) => {
+                        return lParameterType.data.metaTypes.includes(pRestriction);
+                    });
+
+                    if (!lSatisfiesRestriction) {
+                        continue FUNCTION_HEADER_LOOP;
+                    }
                 }
+
+                // Collect candidate type for generic inference.
+                if (!lGenericCandidates.has(lGenericName)) {
+                    lGenericCandidates.set(lGenericName, []);
+                }
+                lGenericCandidates.get(lGenericName)!.push(lParameterType);
+            }
+
+            // Resolve inferred generic types from collected candidates.
+            for (const [lGenericName, lCandidates] of lGenericCandidates) {
+                const lResolvedType: IType | null = this.resolveStrictestType(lCandidates);
+                if (!lResolvedType) {
+                    continue FUNCTION_HEADER_LOOP;
+                }
+
+                lStaticGenericTypes.set(lGenericName, lResolvedType);
             }
 
             return {
                 header: lFunctionHeader,
-                genericTypes: lInferedGenericTypes
+                genericTypes: lStaticGenericTypes
             };
+        }
+
+        return null;
+    }
+
+    /**
+     * Find the strictest type among candidates.
+     * The strictest type is the one that all other candidates can be implicitly cast into.
+     *
+     * @param pCandidates - List of candidate types to compare.
+     *
+     * @returns The strictest type or null if no single type satisfies all candidates.
+     */
+    private resolveStrictestType(pCandidates: Array<IType>): IType | null {
+        // Check all candidates against each other and return the first type that all other types can be implicitly cast into.
+        for (const lCandidate of pCandidates) {
+            // Check if all other candidates can be implicitly cast into the current candidate.
+            if (pCandidates.every((pOther) => { return pOther.isImplicitCastableInto(lCandidate); })) {
+                return lCandidate;
+            }
         }
 
         return null;

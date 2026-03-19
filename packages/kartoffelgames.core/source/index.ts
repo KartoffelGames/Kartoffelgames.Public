@@ -13,6 +13,7 @@ export { List } from './data_container/list.ts';
 export { Stack } from './data_container/stack.ts';
 export { Exception } from './exception/exception.ts';
 export { LinkedList } from './data_container/linked-list.ts';
+export { LinearBoundVolumeHierarchy } from './data_container/linear_bound_volume_hierarchy/linear-bound-volume-hierarchy.ts';
 
 // Handler.
 export { EnumUtil } from './util/enum-util.ts';
@@ -22,6 +23,7 @@ export { TypeUtil } from './util/type-util.ts';
 export { type ICloneable } from './interface/i-cloneable.ts';
 export { type IVoidParameterConstructor } from './interface/i-constructor.ts';
 export { type IDeconstructable } from './interface/i-deconstructable.ts';
+export { type IBoundable } from './interface/i-boundable.ts';
 
 // Support types.
 export { 

@@ -196,7 +196,10 @@ export class MaterialSystem extends GameSystem {
 
         // Check for incidents before extracting layouts to avoid partial registration if the default shader has issues.
         if (lReferenceShaderResult.incidents.length > 0) {
-            throw new Exception('Failed to transpile reference shader.', this);
+            console.warn('Shader transpilation incidents:', lReferenceShaderResult.incidents);
+            throw new Exception('Failed to transpile reference shader.', this, {
+                cause: { incidents: lReferenceShaderResult.incidents }
+            });
         }
 
         // World group layout from declaration shader.

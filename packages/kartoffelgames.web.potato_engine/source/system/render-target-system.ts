@@ -24,7 +24,6 @@ export class RenderTargetSystem extends GameSystem {
     private readonly mRenderTargetToRenderer: Map<RenderTargetComponent, string>;
     private readonly mRenderTargets: WeakMap<RenderTargetComponent, RenderTargets>;
     private readonly mRenderers: Map<string, RenderTargetSystemRendererData>;
-    private readonly mRootRenderTarget: RenderTargetComponent;
 
     /**
      * Systems this system depends on.
@@ -284,11 +283,9 @@ export class RenderTargetSystem extends GameSystem {
      * Create a RenderTargets instance for a render target component and assign it to a renderer.
      *
      * @param pRenderTarget - The render target component to assign.
-     * @param pRendererName - The renderer name to assign it to.
+     * @param pRendererData - The renderer data to use for creating the RenderTargets instance.
      */
-    private assignRenderTargetToRenderer(pRenderTarget: RenderTargetComponent, pRendererName: string): void {
-        const lRendererData: RenderTargetSystemRendererData = this.mRenderers.get(pRendererName)!;
-
+    private createRenderTargets(pRenderTarget: RenderTargetComponent, pRendererData: RenderTargetSystemRendererData): RenderTargets {
         // Create a RenderTargets instance using the renderer's layout and optional setup callback.
         const lRenderTargets: RenderTargets = pRendererData.layout.create(pRendererData.setupCallback);
 

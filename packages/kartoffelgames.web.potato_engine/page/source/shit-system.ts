@@ -25,6 +25,7 @@ import forwardImport from '../../source/shader/forward-import.pgsl';
 import sharedTypes from '../../source/shader/shared-types.pgsl';
 import forwardObjectGroup from '../../source/shader/object-group-forward.pgsl';
 import forwardWorldGroup from '../../source/shader/world-group-forward.pgsl';
+import { RenderTargetComponent } from "../../source/component/render-target-component.ts";
 
 type MaterialMeshGroupData = {
     objectBindGroup: BindGroup;

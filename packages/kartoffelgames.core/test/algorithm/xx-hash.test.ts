@@ -6,7 +6,7 @@ import { XxHash } from '../../source/algorithm/xx-hash.ts';
  * Uses the deterministic generator from the xxHash reference implementation.
  * @param pLength - Number of bytes to generate.
  */
-function generateTestBuffer(pLength: number): Uint8Array {
+function gGenerateTestBuffer(pLength: number): Uint8Array {
     const lBuffer: Uint8Array = new Uint8Array(pLength);
     const lPrimeSixtyFour: bigint = 11400714785074694797n;
     const lMaskSixtyFour: bigint = (1n << 64n) - 1n;
@@ -24,7 +24,7 @@ Deno.test('XxHash.hash()', async (pContext) => {
     await pContext.step('Hash empty input with seed zero', () => {
         // Setup.
         const lHasher: XxHash = new XxHash(0);
-        const lData: Uint8Array = generateTestBuffer(0);
+        const lData: Uint8Array = gGenerateTestBuffer(0);
 
         // Process.
         const lResult: number = lHasher.hash(lData);
@@ -36,7 +36,7 @@ Deno.test('XxHash.hash()', async (pContext) => {
     await pContext.step('Hash single byte input with seed zero', () => {
         // Setup.
         const lHasher: XxHash = new XxHash(0);
-        const lData: Uint8Array = generateTestBuffer(1);
+        const lData: Uint8Array = gGenerateTestBuffer(1);
 
         // Process.
         const lResult: number = lHasher.hash(lData);
@@ -48,7 +48,7 @@ Deno.test('XxHash.hash()', async (pContext) => {
     await pContext.step('Hash 14-byte input with seed zero', () => {
         // Setup.
         const lHasher: XxHash = new XxHash(0);
-        const lData: Uint8Array = generateTestBuffer(14);
+        const lData: Uint8Array = gGenerateTestBuffer(14);
 
         // Process.
         const lResult: number = lHasher.hash(lData);
@@ -60,7 +60,7 @@ Deno.test('XxHash.hash()', async (pContext) => {
     await pContext.step('Hash 222-byte input with seed zero', () => {
         // Setup.
         const lHasher: XxHash = new XxHash(0);
-        const lData: Uint8Array = generateTestBuffer(222);
+        const lData: Uint8Array = gGenerateTestBuffer(222);
 
         // Process.
         const lResult: number = lHasher.hash(lData);
@@ -72,7 +72,7 @@ Deno.test('XxHash.hash()', async (pContext) => {
     await pContext.step('Hash empty input with prime seed', () => {
         // Setup.
         const lHasher: XxHash = new XxHash(2654435761);
-        const lData: Uint8Array = generateTestBuffer(0);
+        const lData: Uint8Array = gGenerateTestBuffer(0);
 
         // Process.
         const lResult: number = lHasher.hash(lData);
@@ -84,7 +84,7 @@ Deno.test('XxHash.hash()', async (pContext) => {
     await pContext.step('Hash single byte input with prime seed', () => {
         // Setup.
         const lHasher: XxHash = new XxHash(2654435761);
-        const lData: Uint8Array = generateTestBuffer(1);
+        const lData: Uint8Array = gGenerateTestBuffer(1);
 
         // Process.
         const lResult: number = lHasher.hash(lData);
@@ -96,7 +96,7 @@ Deno.test('XxHash.hash()', async (pContext) => {
     await pContext.step('Hash 14-byte input with prime seed', () => {
         // Setup.
         const lHasher: XxHash = new XxHash(2654435761);
-        const lData: Uint8Array = generateTestBuffer(14);
+        const lData: Uint8Array = gGenerateTestBuffer(14);
 
         // Process.
         const lResult: number = lHasher.hash(lData);
@@ -108,7 +108,7 @@ Deno.test('XxHash.hash()', async (pContext) => {
     await pContext.step('Hash 222-byte input with prime seed', () => {
         // Setup.
         const lHasher: XxHash = new XxHash(2654435761);
-        const lData: Uint8Array = generateTestBuffer(222);
+        const lData: Uint8Array = gGenerateTestBuffer(222);
 
         // Process.
         const lResult: number = lHasher.hash(lData);
@@ -120,7 +120,7 @@ Deno.test('XxHash.hash()', async (pContext) => {
     await pContext.step('Produce consistent hash for same input', () => {
         // Setup.
         const lHasher: XxHash = new XxHash(0);
-        const lData: Uint8Array = generateTestBuffer(100);
+        const lData: Uint8Array = gGenerateTestBuffer(100);
 
         // Process.
         const lResultFirst: number = lHasher.hash(lData);
@@ -134,7 +134,7 @@ Deno.test('XxHash.hash()', async (pContext) => {
         // Setup.
         const lHasherOne: XxHash = new XxHash(0);
         const lHasherTwo: XxHash = new XxHash(1);
-        const lData: Uint8Array = generateTestBuffer(50);
+        const lData: Uint8Array = gGenerateTestBuffer(50);
 
         // Process.
         const lResultOne: number = lHasherOne.hash(lData);

@@ -4,11 +4,11 @@
  * @see {@link https://github.com/Cyan4973/xxHash/blob/dev/doc/xxhash_spec.md | xxHash specification}
  */
 export class XxHash {
-    private static readonly PRIME_ONE: number = 0x9E3779B1;
-    private static readonly PRIME_TWO: number = 0x85EBCA77;
-    private static readonly PRIME_THREE: number = 0xC2B2AE3D;
-    private static readonly PRIME_FOUR: number = 0x27D4EB2F;
     private static readonly PRIME_FIVE: number = 0x165667B1;
+    private static readonly PRIME_FOUR: number = 0x27D4EB2F;
+    private static readonly PRIME_ONE: number = 0x9E3779B1;
+    private static readonly PRIME_THREE: number = 0xC2B2AE3D;
+    private static readonly PRIME_TWO: number = 0x85EBCA77;
 
     private readonly mSeed: number;
 
@@ -99,6 +99,15 @@ export class XxHash {
     }
 
     /**
+     * Rotate a 32-bit unsigned integer left by the given number of bits.
+     * @param pValue - Value to rotate.
+     * @param pBits - Number of bits to rotate by.
+     */
+    private rotateLeft(pValue: number, pBits: number): number {
+        return ((pValue << pBits) | (pValue >>> (32 - pBits))) >>> 0;
+    }
+
+    /**
      * Perform a single xxHash32 round operation.
      * @param pAccumulator - Current accumulator value.
      * @param pInput - Input lane value.
@@ -108,14 +117,5 @@ export class XxHash {
         lAccumulator = this.rotateLeft(lAccumulator, 13);
         lAccumulator = Math.imul(lAccumulator, XxHash.PRIME_ONE) >>> 0;
         return lAccumulator;
-    }
-
-    /**
-     * Rotate a 32-bit unsigned integer left by the given number of bits.
-     * @param pValue - Value to rotate.
-     * @param pBits - Number of bits to rotate by.
-     */
-    private rotateLeft(pValue: number, pBits: number): number {
-        return ((pValue << pBits) | (pValue >>> (32 - pBits))) >>> 0;
     }
 }

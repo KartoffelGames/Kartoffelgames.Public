@@ -1,5 +1,5 @@
 import { expect } from '@kartoffelgames/core-test';
-import { LinearBoundVolumeHierarchy } from '../../source/data_container/linear-bound-volume-hierarchy.ts';
+import { BoundVolumeHierarchy } from '../../source/data_container/bound-volume-hierarchy.ts';
 import type { IBoundable } from '../../source/interface/i-boundable.ts';
 
 /**
@@ -31,7 +31,7 @@ class TestBox implements IBoundable {
 /**
  * Count objects in the tree by using find with a static true callback.
  */
-function gCountObjects<T>(pBvh: LinearBoundVolumeHierarchy<T>): number {
+function gCountObjects<T>(pBvh: BoundVolumeHierarchy<T>): number {
     return pBvh.find(() => true).length;
 }
 
@@ -39,7 +39,7 @@ function gCountObjects<T>(pBvh: LinearBoundVolumeHierarchy<T>): number {
  * Find the root node index by scanning the topology buffer for the node with parentIndex === -1
  * whose subtree contains all objects. Returns -1 when the tree is empty.
  */
-function gFindRoot<T>(pBvh: LinearBoundVolumeHierarchy<T>): number {
+function gFindRoot<T>(pBvh: BoundVolumeHierarchy<T>): number {
     const lExpectedObjects: number = pBvh.find(() => true).length;
 
     // If no objects exist, the tree is logically empty.
@@ -82,7 +82,7 @@ function gFindRoot<T>(pBvh: LinearBoundVolumeHierarchy<T>): number {
  * Count all nodes (leaf + internal) in the tree by walking from the root.
  * Returns { leafCount, internalCount, totalCount }.
  */
-function gCountNodes<T>(pBvh: LinearBoundVolumeHierarchy<T>): { leafCount: number; internalCount: number; totalCount: number; } {
+function gCountNodes<T>(pBvh: BoundVolumeHierarchy<T>): { leafCount: number; internalCount: number; totalCount: number; } {
     const lObjectCount: number = gCountObjects(pBvh);
 
     if (lObjectCount === 0) {
@@ -98,7 +98,7 @@ function gCountNodes<T>(pBvh: LinearBoundVolumeHierarchy<T>): { leafCount: numbe
  * Validate tree structural integrity. Checks that all parent-child relationships
  * are consistent and AABBs of parents enclose their children.
  */
-function gValidateTree<T>(pBvh: LinearBoundVolumeHierarchy<T>): void {
+function gValidateTree<T>(pBvh: BoundVolumeHierarchy<T>): void {
     const lObjectCount: number = gCountObjects(pBvh);
     if (lObjectCount === 0) {
         return;
@@ -170,10 +170,10 @@ function gValidateTree<T>(pBvh: LinearBoundVolumeHierarchy<T>): void {
 
 // --- Constructor ---
 
-Deno.test('LinearBoundVolumeHierarchy.constructor()', async (pContext) => {
+Deno.test('BoundVolumeHierarchy.constructor()', async (pContext) => {
     await pContext.step('should initialize with zero count and empty root', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
 
         // Evaluation.
         expect(gCountObjects(lBvh)).toBe(0);
@@ -183,7 +183,7 @@ Deno.test('LinearBoundVolumeHierarchy.constructor()', async (pContext) => {
 
     await pContext.step('should create valid ArrayBuffer buffers', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
 
         // Evaluation.
         expect(lBvh.aabbBuffer).toBeInstanceOf(SharedArrayBuffer);
@@ -194,7 +194,7 @@ Deno.test('LinearBoundVolumeHierarchy.constructor()', async (pContext) => {
 
     await pContext.step('should start with quality of 1.0', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
 
         // Evaluation.
         expect(lBvh.quality).toBe(1.0);
@@ -203,10 +203,10 @@ Deno.test('LinearBoundVolumeHierarchy.constructor()', async (pContext) => {
 
 // --- insert() ---
 
-Deno.test('LinearBoundVolumeHierarchy.insert()', async (pContext) => {
+Deno.test('BoundVolumeHierarchy.insert()', async (pContext) => {
     await pContext.step('should insert a single object as root', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBox: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
 
         // Process.
@@ -230,7 +230,7 @@ Deno.test('LinearBoundVolumeHierarchy.insert()', async (pContext) => {
 
     await pContext.step('should insert two objects creating one internal node', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBoxA: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
         const lBoxB: TestBox = new TestBox(2, 2, 2, 3, 3, 3);
 
@@ -246,7 +246,7 @@ Deno.test('LinearBoundVolumeHierarchy.insert()', async (pContext) => {
 
     await pContext.step('should insert multiple objects with correct topology', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBoxes: Array<TestBox> = [
             new TestBox(0, 0, 0, 1, 1, 1),
             new TestBox(2, 0, 0, 3, 1, 1),
@@ -268,7 +268,7 @@ Deno.test('LinearBoundVolumeHierarchy.insert()', async (pContext) => {
 
     await pContext.step('should throw on duplicate insert', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBox: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
         lBvh.insert(lBox);
 
@@ -280,7 +280,7 @@ Deno.test('LinearBoundVolumeHierarchy.insert()', async (pContext) => {
 
     await pContext.step('should store correct object indices in topology buffer', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBoxA: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
         const lBoxB: TestBox = new TestBox(2, 2, 2, 3, 3, 3);
         lBvh.insert(lBoxA);
@@ -311,7 +311,7 @@ Deno.test('LinearBoundVolumeHierarchy.insert()', async (pContext) => {
 
     await pContext.step('should grow buffers when capacity is exceeded', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lInitialByteLength: number = lBvh.aabbBuffer.byteLength;
 
         // Process. Insert enough objects to exceed initial capacity.
@@ -331,10 +331,10 @@ Deno.test('LinearBoundVolumeHierarchy.insert()', async (pContext) => {
 
 // --- remove() ---
 
-Deno.test('LinearBoundVolumeHierarchy.remove()', async (pContext) => {
+Deno.test('BoundVolumeHierarchy.remove()', async (pContext) => {
     await pContext.step('should remove the only object leaving the tree empty', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBox: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
         lBvh.insert(lBox);
 
@@ -349,7 +349,7 @@ Deno.test('LinearBoundVolumeHierarchy.remove()', async (pContext) => {
 
     await pContext.step('should remove one of two objects', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBoxA: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
         const lBoxB: TestBox = new TestBox(2, 2, 2, 3, 3, 3);
         lBvh.insert(lBoxA);
@@ -367,7 +367,7 @@ Deno.test('LinearBoundVolumeHierarchy.remove()', async (pContext) => {
 
     await pContext.step('should remove objects from a larger tree', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBoxes: Array<TestBox> = [];
         for (let lIndex: number = 0; lIndex < 10; lIndex++) {
             const lBox: TestBox = new TestBox(lIndex * 2, 0, 0, lIndex * 2 + 1, 1, 1);
@@ -388,7 +388,7 @@ Deno.test('LinearBoundVolumeHierarchy.remove()', async (pContext) => {
 
     await pContext.step('should silently ignore removing a non-existent object', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBox: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
 
         // Evaluation. Removing a non-existent object should not throw.
@@ -398,7 +398,7 @@ Deno.test('LinearBoundVolumeHierarchy.remove()', async (pContext) => {
 
     await pContext.step('should allow re-inserting a removed object', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBox: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
         lBvh.insert(lBox);
         lBvh.remove(lBox);
@@ -415,10 +415,10 @@ Deno.test('LinearBoundVolumeHierarchy.remove()', async (pContext) => {
 
 // --- update() ---
 
-Deno.test('LinearBoundVolumeHierarchy.update()', async (pContext) => {
+Deno.test('BoundVolumeHierarchy.update()', async (pContext) => {
     await pContext.step('should refit AABB upward after bounds change', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBoxA: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
         const lBoxB: TestBox = new TestBox(2, 2, 2, 3, 3, 3);
         const lBoxC: TestBox = new TestBox(4, 4, 4, 5, 5, 5);
@@ -449,7 +449,7 @@ Deno.test('LinearBoundVolumeHierarchy.update()', async (pContext) => {
 
     await pContext.step('should not change node count after update', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBoxA: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
         const lBoxB: TestBox = new TestBox(2, 2, 2, 3, 3, 3);
         lBvh.insert(lBoxA);
@@ -466,7 +466,7 @@ Deno.test('LinearBoundVolumeHierarchy.update()', async (pContext) => {
 
     await pContext.step('should throw when updating a non-existent object', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBox: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
 
         // Evaluation.
@@ -478,10 +478,10 @@ Deno.test('LinearBoundVolumeHierarchy.update()', async (pContext) => {
 
 // --- rebuild() ---
 
-Deno.test('LinearBoundVolumeHierarchy.rebuild()', async (pContext) => {
+Deno.test('BoundVolumeHierarchy.rebuild()', async (pContext) => {
     await pContext.step('should preserve all objects after rebuild', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBoxes: Array<TestBox> = [];
         for (let lIndex: number = 0; lIndex < 10; lIndex++) {
             const lBox: TestBox = new TestBox(lIndex * 3, lIndex, 0, lIndex * 3 + 2, lIndex + 1, 1);
@@ -506,7 +506,7 @@ Deno.test('LinearBoundVolumeHierarchy.rebuild()', async (pContext) => {
 
     await pContext.step('should reset quality to 1.0', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBoxA: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
         const lBoxB: TestBox = new TestBox(2, 0, 0, 3, 1, 1);
         const lBoxC: TestBox = new TestBox(4, 0, 0, 5, 1, 1);
@@ -528,7 +528,7 @@ Deno.test('LinearBoundVolumeHierarchy.rebuild()', async (pContext) => {
 
     await pContext.step('should handle rebuild with 1 object', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBox: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
         lBvh.insert(lBox);
 
@@ -542,7 +542,7 @@ Deno.test('LinearBoundVolumeHierarchy.rebuild()', async (pContext) => {
 
     await pContext.step('should produce a compact layout after insert and remove cycles', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBoxes: Array<TestBox> = [];
         for (let lIndex: number = 0; lIndex < 10; lIndex++) {
             const lBox: TestBox = new TestBox(lIndex * 2, 0, 0, lIndex * 2 + 1, 1, 1);
@@ -567,10 +567,10 @@ Deno.test('LinearBoundVolumeHierarchy.rebuild()', async (pContext) => {
 
 // --- objectOf() ---
 
-Deno.test('LinearBoundVolumeHierarchy.objectOf()', async (pContext) => {
+Deno.test('BoundVolumeHierarchy.objectOf()', async (pContext) => {
     await pContext.step('should return the correct object for a valid index', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBox: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
         lBvh.insert(lBox);
 
@@ -586,7 +586,7 @@ Deno.test('LinearBoundVolumeHierarchy.objectOf()', async (pContext) => {
 
     await pContext.step('should throw for an invalid object index', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
 
         // Evaluation.
         expect(() => {
@@ -601,10 +601,10 @@ Deno.test('LinearBoundVolumeHierarchy.objectOf()', async (pContext) => {
 
 // --- quality ---
 
-Deno.test('LinearBoundVolumeHierarchy.quality', async (pContext) => {
+Deno.test('BoundVolumeHierarchy.quality', async (pContext) => {
     await pContext.step('should return 1.0 for newly built tree', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         lBvh.insert(new TestBox(0, 0, 0, 1, 1, 1));
         lBvh.insert(new TestBox(2, 0, 0, 3, 1, 1));
         lBvh.insert(new TestBox(4, 0, 0, 5, 1, 1));
@@ -615,7 +615,7 @@ Deno.test('LinearBoundVolumeHierarchy.quality', async (pContext) => {
 
     await pContext.step('should return 1.0 for empty tree', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
 
         // Evaluation.
         expect(lBvh.quality).toBe(1.0);
@@ -623,7 +623,7 @@ Deno.test('LinearBoundVolumeHierarchy.quality', async (pContext) => {
 
     await pContext.step('should return 1.0 for single object tree', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         lBvh.insert(new TestBox(0, 0, 0, 1, 1, 1));
 
         // Evaluation.
@@ -632,7 +632,7 @@ Deno.test('LinearBoundVolumeHierarchy.quality', async (pContext) => {
 
     await pContext.step('should increase above 1.0 after AABB-enlarging updates', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBoxA: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
         const lBoxB: TestBox = new TestBox(2, 0, 0, 3, 1, 1);
         const lBoxC: TestBox = new TestBox(4, 0, 0, 5, 1, 1);
@@ -654,10 +654,10 @@ Deno.test('LinearBoundVolumeHierarchy.quality', async (pContext) => {
 
 // --- Buffer correctness ---
 
-Deno.test('LinearBoundVolumeHierarchy buffer correctness', async (pContext) => {
+Deno.test('BoundVolumeHierarchy buffer correctness', async (pContext) => {
     await pContext.step('should have correct AABB data for leaf nodes', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBox: TestBox = new TestBox(1, 2, 3, 4, 5, 6);
         lBvh.insert(lBox);
 
@@ -674,7 +674,7 @@ Deno.test('LinearBoundVolumeHierarchy buffer correctness', async (pContext) => {
 
     await pContext.step('should have root with parentIndex -1', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         lBvh.insert(new TestBox(0, 0, 0, 1, 1, 1));
         lBvh.insert(new TestBox(2, 2, 2, 3, 3, 3));
 
@@ -686,7 +686,7 @@ Deno.test('LinearBoundVolumeHierarchy buffer correctness', async (pContext) => {
 
     await pContext.step('should have internal nodes with objectIndex -1', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         lBvh.insert(new TestBox(0, 0, 0, 1, 1, 1));
         lBvh.insert(new TestBox(2, 2, 2, 3, 3, 3));
         lBvh.insert(new TestBox(4, 4, 4, 5, 5, 5));
@@ -707,7 +707,7 @@ Deno.test('LinearBoundVolumeHierarchy buffer correctness', async (pContext) => {
 
     await pContext.step('should have leaf nodes with leftChild and rightChild -1', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         lBvh.insert(new TestBox(0, 0, 0, 1, 1, 1));
         lBvh.insert(new TestBox(2, 2, 2, 3, 3, 3));
         lBvh.insert(new TestBox(4, 4, 4, 5, 5, 5));
@@ -730,7 +730,7 @@ Deno.test('LinearBoundVolumeHierarchy buffer correctness', async (pContext) => {
 
     await pContext.step('should have parent AABBs enclosing both children', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         for (let lIndex: number = 0; lIndex < 8; lIndex++) {
             lBvh.insert(new TestBox(lIndex * 3, lIndex * 2, lIndex, lIndex * 3 + 2, lIndex * 2 + 1, lIndex + 1));
         }
@@ -742,10 +742,10 @@ Deno.test('LinearBoundVolumeHierarchy buffer correctness', async (pContext) => {
 
 // --- find() ---
 
-Deno.test('LinearBoundVolumeHierarchy.find()', async (pContext) => {
+Deno.test('BoundVolumeHierarchy.find()', async (pContext) => {
     await pContext.step('should return empty array for empty tree', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
 
         // Process.
         const lResults: Array<TestBox> = lBvh.find(() => true);
@@ -756,7 +756,7 @@ Deno.test('LinearBoundVolumeHierarchy.find()', async (pContext) => {
 
     await pContext.step('should return all objects when callback always returns true', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBoxA: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
         const lBoxB: TestBox = new TestBox(5, 5, 5, 6, 6, 6);
         const lBoxC: TestBox = new TestBox(10, 10, 10, 11, 11, 11);
@@ -777,7 +777,7 @@ Deno.test('LinearBoundVolumeHierarchy.find()', async (pContext) => {
 
     await pContext.step('should return no objects when callback always returns false', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         lBvh.insert(new TestBox(0, 0, 0, 1, 1, 1));
         lBvh.insert(new TestBox(5, 5, 5, 6, 6, 6));
         lBvh.insert(new TestBox(10, 10, 10, 11, 11, 11));
@@ -791,7 +791,7 @@ Deno.test('LinearBoundVolumeHierarchy.find()', async (pContext) => {
 
     await pContext.step('should return only objects overlapping a query region', () => {
         // Setup. Place boxes along the X axis with gaps between them.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBoxA: TestBox = new TestBox(0, 0, 0, 1, 1, 1);     // X: 0-1
         const lBoxB: TestBox = new TestBox(3, 0, 0, 4, 1, 1);     // X: 3-4
         const lBoxC: TestBox = new TestBox(6, 0, 0, 7, 1, 1);     // X: 6-7
@@ -818,7 +818,7 @@ Deno.test('LinearBoundVolumeHierarchy.find()', async (pContext) => {
 
     await pContext.step('should prune subtrees when callback rejects internal node', () => {
         // Setup. Create a tree with spatially separated groups.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         for (let lIndex: number = 0; lIndex < 10; lIndex++) {
             lBvh.insert(new TestBox(lIndex * 5, 0, 0, lIndex * 5 + 1, 1, 1));
         }
@@ -846,7 +846,7 @@ Deno.test('LinearBoundVolumeHierarchy.find()', async (pContext) => {
 
     await pContext.step('should work on a single object tree', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBox: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
         lBvh.insert(lBox);
 
@@ -863,7 +863,7 @@ Deno.test('LinearBoundVolumeHierarchy.find()', async (pContext) => {
 
     await pContext.step('should return correct results after object removal', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBoxA: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
         const lBoxB: TestBox = new TestBox(5, 0, 0, 6, 1, 1);
         const lBoxC: TestBox = new TestBox(10, 0, 0, 11, 1, 1);
@@ -885,7 +885,7 @@ Deno.test('LinearBoundVolumeHierarchy.find()', async (pContext) => {
 
     await pContext.step('should return correct results after object update', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBoxA: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
         const lBoxB: TestBox = new TestBox(5, 0, 0, 6, 1, 1);
         lBvh.insert(lBoxA);
@@ -910,7 +910,7 @@ Deno.test('LinearBoundVolumeHierarchy.find()', async (pContext) => {
 
     await pContext.step('should return correct results after rebuild', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBoxes: Array<TestBox> = [];
         for (let lIndex: number = 0; lIndex < 8; lIndex++) {
             const lBox: TestBox = new TestBox(lIndex * 3, 0, 0, lIndex * 3 + 1, 1, 1);
@@ -932,7 +932,7 @@ Deno.test('LinearBoundVolumeHierarchy.find()', async (pContext) => {
 
     await pContext.step('should provide correct AABB bounds to the callback', () => {
         // Setup. Single object, so root is the leaf itself.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBox: TestBox = new TestBox(1, 2, 3, 4, 5, 6);
         lBvh.insert(lBox);
 
@@ -955,7 +955,7 @@ Deno.test('LinearBoundVolumeHierarchy.find()', async (pContext) => {
 
     await pContext.step('should provide updated bounds after object update', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBox: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
         lBvh.insert(lBox);
 
@@ -979,7 +979,7 @@ Deno.test('LinearBoundVolumeHierarchy.find()', async (pContext) => {
 
     await pContext.step('should work with large tree and selective query', () => {
         // Setup. Insert 100 objects spread along X axis.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBoxes: Array<TestBox> = [];
         for (let lIndex: number = 0; lIndex < 100; lIndex++) {
             const lBox: TestBox = new TestBox(lIndex * 3, 0, 0, lIndex * 3 + 1, 1, 1);
@@ -1007,10 +1007,10 @@ Deno.test('LinearBoundVolumeHierarchy.find()', async (pContext) => {
 
 // --- Edge cases ---
 
-Deno.test('LinearBoundVolumeHierarchy edge cases', async (pContext) => {
+Deno.test('BoundVolumeHierarchy edge cases', async (pContext) => {
     await pContext.step('should handle objects at the same position', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
 
         // Process. Insert multiple objects at the exact same position.
         for (let lIndex: number = 0; lIndex < 5; lIndex++) {
@@ -1030,7 +1030,7 @@ Deno.test('LinearBoundVolumeHierarchy edge cases', async (pContext) => {
 
     await pContext.step('should handle large numbers of objects', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
 
         // Process.
         const lCount: number = 1000;
@@ -1046,7 +1046,7 @@ Deno.test('LinearBoundVolumeHierarchy edge cases', async (pContext) => {
 
     await pContext.step('should handle alternating insert and remove', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
 
         // Process. Insert and remove alternately.
         const lKeptBoxes: Array<TestBox> = [];
@@ -1070,7 +1070,7 @@ Deno.test('LinearBoundVolumeHierarchy edge cases', async (pContext) => {
 
     await pContext.step('should degrade quality after AABB-enlarging updates without rebuild', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBoxA: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
         const lBoxB: TestBox = new TestBox(2, 0, 0, 3, 1, 1);
         const lBoxC: TestBox = new TestBox(4, 0, 0, 5, 1, 1);
@@ -1094,7 +1094,7 @@ Deno.test('LinearBoundVolumeHierarchy edge cases', async (pContext) => {
 
     await pContext.step('should handle update on single object tree', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBox: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
         lBvh.insert(lBox);
 
@@ -1113,7 +1113,7 @@ Deno.test('LinearBoundVolumeHierarchy edge cases', async (pContext) => {
 
     await pContext.step('should handle all objects removed then re-inserted', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBvh: BoundVolumeHierarchy<TestBox> = new BoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBoxes: Array<TestBox> = [];
         for (let lIndex: number = 0; lIndex < 5; lIndex++) {
             const lBox: TestBox = new TestBox(lIndex, 0, 0, lIndex + 1, 1, 1);

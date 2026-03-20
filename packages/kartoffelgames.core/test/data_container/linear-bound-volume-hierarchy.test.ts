@@ -720,6 +720,271 @@ Deno.test('LinearBoundVolumeHierarchy buffer correctness', async (pContext) => {
     });
 });
 
+// --- find() ---
+
+Deno.test('LinearBoundVolumeHierarchy.find()', async (pContext) => {
+    await pContext.step('should return empty array for empty tree', () => {
+        // Setup.
+        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+
+        // Process.
+        const lResults: Array<TestBox> = lBvh.find(() => true);
+
+        // Evaluation.
+        expect(lResults.length).toBe(0);
+    });
+
+    await pContext.step('should return all objects when callback always returns true', () => {
+        // Setup.
+        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBoxA: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
+        const lBoxB: TestBox = new TestBox(5, 5, 5, 6, 6, 6);
+        const lBoxC: TestBox = new TestBox(10, 10, 10, 11, 11, 11);
+        lBvh.insert(lBoxA);
+        lBvh.insert(lBoxB);
+        lBvh.insert(lBoxC);
+
+        // Process.
+        const lResults: Array<TestBox> = lBvh.find(() => true);
+
+        // Evaluation.
+        expect(lResults.length).toBe(3);
+        const lResultSet: Set<TestBox> = new Set(lResults);
+        expect(lResultSet.has(lBoxA)).toBe(true);
+        expect(lResultSet.has(lBoxB)).toBe(true);
+        expect(lResultSet.has(lBoxC)).toBe(true);
+    });
+
+    await pContext.step('should return no objects when callback always returns false', () => {
+        // Setup.
+        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        lBvh.insert(new TestBox(0, 0, 0, 1, 1, 1));
+        lBvh.insert(new TestBox(5, 5, 5, 6, 6, 6));
+        lBvh.insert(new TestBox(10, 10, 10, 11, 11, 11));
+
+        // Process.
+        const lResults: Array<TestBox> = lBvh.find(() => false);
+
+        // Evaluation.
+        expect(lResults.length).toBe(0);
+    });
+
+    await pContext.step('should return only objects overlapping a query region', () => {
+        // Setup. Place boxes along the X axis with gaps between them.
+        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBoxA: TestBox = new TestBox(0, 0, 0, 1, 1, 1);     // X: 0-1
+        const lBoxB: TestBox = new TestBox(3, 0, 0, 4, 1, 1);     // X: 3-4
+        const lBoxC: TestBox = new TestBox(6, 0, 0, 7, 1, 1);     // X: 6-7
+        const lBoxD: TestBox = new TestBox(9, 0, 0, 10, 1, 1);    // X: 9-10
+        lBvh.insert(lBoxA);
+        lBvh.insert(lBoxB);
+        lBvh.insert(lBoxC);
+        lBvh.insert(lBoxD);
+
+        // Process. Query region overlaps only boxB and boxC (X: 2.5-7.5).
+        const lResults: Array<TestBox> = lBvh.find((pBounds: IBoundable) => {
+            return pBounds.maxX >= 2.5 && pBounds.minX <= 7.5 &&
+                   pBounds.maxY >= 0 && pBounds.minY <= 1 &&
+                   pBounds.maxZ >= 0 && pBounds.minZ <= 1;
+        });
+
+        // Evaluation.
+        const lResultSet: Set<TestBox> = new Set(lResults);
+        expect(lResultSet.has(lBoxB)).toBe(true);
+        expect(lResultSet.has(lBoxC)).toBe(true);
+        expect(lResultSet.has(lBoxA)).toBe(false);
+        expect(lResultSet.has(lBoxD)).toBe(false);
+    });
+
+    await pContext.step('should prune subtrees when callback rejects internal node', () => {
+        // Setup. Create a tree with spatially separated groups.
+        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        for (let lIndex: number = 0; lIndex < 10; lIndex++) {
+            lBvh.insert(new TestBox(lIndex * 5, 0, 0, lIndex * 5 + 1, 1, 1));
+        }
+
+        // Process. Count how many times the callback is invoked.
+        let lCallCount: number = 0;
+        lBvh.find(() => {
+            lCallCount++;
+            return false;
+        });
+        const lRejectAllCount: number = lCallCount;
+
+        lCallCount = 0;
+        lBvh.find(() => {
+            lCallCount++;
+            return true;
+        });
+        const lAcceptAllCount: number = lCallCount;
+
+        // Evaluation. Rejecting at root should call the callback only once.
+        // Accepting all should call it for every node in the tree.
+        expect(lRejectAllCount).toBe(1);
+        expect(lAcceptAllCount).toBe(lBvh.nodeCount);
+    });
+
+    await pContext.step('should work on a single object tree', () => {
+        // Setup.
+        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBox: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
+        lBvh.insert(lBox);
+
+        // Process. Match.
+        const lMatched: Array<TestBox> = lBvh.find(() => true);
+        // Process. No match.
+        const lUnmatched: Array<TestBox> = lBvh.find(() => false);
+
+        // Evaluation.
+        expect(lMatched.length).toBe(1);
+        expect(lMatched[0]).toBe(lBox);
+        expect(lUnmatched.length).toBe(0);
+    });
+
+    await pContext.step('should return correct results after object removal', () => {
+        // Setup.
+        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBoxA: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
+        const lBoxB: TestBox = new TestBox(5, 0, 0, 6, 1, 1);
+        const lBoxC: TestBox = new TestBox(10, 0, 0, 11, 1, 1);
+        lBvh.insert(lBoxA);
+        lBvh.insert(lBoxB);
+        lBvh.insert(lBoxC);
+
+        // Process. Remove boxB then find all.
+        lBvh.remove(lBoxB);
+        const lResults: Array<TestBox> = lBvh.find(() => true);
+
+        // Evaluation.
+        const lResultSet: Set<TestBox> = new Set(lResults);
+        expect(lResults.length).toBe(2);
+        expect(lResultSet.has(lBoxA)).toBe(true);
+        expect(lResultSet.has(lBoxC)).toBe(true);
+        expect(lResultSet.has(lBoxB)).toBe(false);
+    });
+
+    await pContext.step('should return correct results after object update', () => {
+        // Setup.
+        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBoxA: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
+        const lBoxB: TestBox = new TestBox(5, 0, 0, 6, 1, 1);
+        lBvh.insert(lBoxA);
+        lBvh.insert(lBoxB);
+
+        // Process. Move boxA far to the right so it no longer overlaps the query region.
+        lBoxA.minX = 100;
+        lBoxA.maxX = 101;
+        lBvh.update(lBoxA);
+
+        // Query a region that only overlaps boxB (X: 4-7).
+        const lResults: Array<TestBox> = lBvh.find((pBounds: IBoundable) => {
+            return pBounds.maxX >= 4 && pBounds.minX <= 7 &&
+                   pBounds.maxY >= 0 && pBounds.minY <= 1 &&
+                   pBounds.maxZ >= 0 && pBounds.minZ <= 1;
+        });
+
+        // Evaluation.
+        expect(lResults.length).toBe(1);
+        expect(lResults[0]).toBe(lBoxB);
+    });
+
+    await pContext.step('should return correct results after rebuild', () => {
+        // Setup.
+        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBoxes: Array<TestBox> = [];
+        for (let lIndex: number = 0; lIndex < 8; lIndex++) {
+            const lBox: TestBox = new TestBox(lIndex * 3, 0, 0, lIndex * 3 + 1, 1, 1);
+            lBoxes.push(lBox);
+            lBvh.insert(lBox);
+        }
+
+        // Process.
+        lBvh.rebuild();
+        const lResults: Array<TestBox> = lBvh.find(() => true);
+
+        // Evaluation.
+        expect(lResults.length).toBe(8);
+        const lResultSet: Set<TestBox> = new Set(lResults);
+        for (const lBox of lBoxes) {
+            expect(lResultSet.has(lBox)).toBe(true);
+        }
+    });
+
+    await pContext.step('should provide correct AABB bounds to the callback', () => {
+        // Setup. Single object, so root is the leaf itself.
+        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBox: TestBox = new TestBox(1, 2, 3, 4, 5, 6);
+        lBvh.insert(lBox);
+
+        // Process. Capture the bounds passed to the callback.
+        let lReceivedBounds: IBoundable | null = null;
+        lBvh.find((pBounds: IBoundable) => {
+            lReceivedBounds = pBounds;
+            return true;
+        });
+
+        // Evaluation.
+        expect(lReceivedBounds).not.toBeNull();
+        expect(lReceivedBounds!.minX).toBe(1);
+        expect(lReceivedBounds!.minY).toBe(2);
+        expect(lReceivedBounds!.minZ).toBe(3);
+        expect(lReceivedBounds!.maxX).toBe(4);
+        expect(lReceivedBounds!.maxY).toBe(5);
+        expect(lReceivedBounds!.maxZ).toBe(6);
+    });
+
+    await pContext.step('should provide updated bounds after object update', () => {
+        // Setup.
+        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBox: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
+        lBvh.insert(lBox);
+
+        // Process. Move the object and update.
+        lBox.minX = 10;
+        lBox.maxX = 20;
+        lBvh.update(lBox);
+
+        // Capture the bounds passed to the callback.
+        let lReceivedBounds: IBoundable | null = null;
+        lBvh.find((pBounds: IBoundable) => {
+            lReceivedBounds = pBounds;
+            return true;
+        });
+
+        // Evaluation.
+        expect(lReceivedBounds).not.toBeNull();
+        expect(lReceivedBounds!.minX).toBe(10);
+        expect(lReceivedBounds!.maxX).toBe(20);
+    });
+
+    await pContext.step('should work with large tree and selective query', () => {
+        // Setup. Insert 100 objects spread along X axis.
+        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
+        const lBoxes: Array<TestBox> = [];
+        for (let lIndex: number = 0; lIndex < 100; lIndex++) {
+            const lBox: TestBox = new TestBox(lIndex * 3, 0, 0, lIndex * 3 + 1, 1, 1);
+            lBoxes.push(lBox);
+            lBvh.insert(lBox);
+        }
+
+        // Process. Query a narrow region that should only match a few objects.
+        // Objects at indices 10-14 have X ranges: 30-31, 33-34, 36-37, 39-40, 42-43.
+        const lResults: Array<TestBox> = lBvh.find((pBounds: IBoundable) => {
+            return pBounds.maxX >= 30 && pBounds.minX <= 43 &&
+                   pBounds.maxY >= 0 && pBounds.minY <= 1 &&
+                   pBounds.maxZ >= 0 && pBounds.minZ <= 1;
+        });
+
+        // Evaluation. Should find exactly the objects in that X range.
+        const lResultSet: Set<TestBox> = new Set(lResults);
+        for (let lIndex: number = 0; lIndex < 100; lIndex++) {
+            const lBox: TestBox = lBoxes[lIndex];
+            const lOverlaps: boolean = lBox.maxX >= 30 && lBox.minX <= 43;
+            expect(lResultSet.has(lBox)).toBe(lOverlaps);
+        }
+    });
+});
+
 // --- Edge cases ---
 
 Deno.test('LinearBoundVolumeHierarchy edge cases', async (pContext) => {

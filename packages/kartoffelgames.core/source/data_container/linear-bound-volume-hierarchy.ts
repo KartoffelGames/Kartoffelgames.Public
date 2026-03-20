@@ -1,5 +1,6 @@
 import { Exception } from '../exception/exception.ts';
 import type { IBoundable } from '../interface/i-boundable.ts';
+import { Writeable } from "../types.ts";
 
 /**
  * Online linearized bounding volume hierarchy for 3D axis-aligned bounding boxes.
@@ -47,6 +48,7 @@ export class LinearBoundVolumeHierarchy<T> {
 
     private readonly mAabbBuffer: SharedArrayBuffer;
     private mAabbBufferView: Float32Array;
+    private readonly mBoundableCache: Array<Writeable<IBoundable>>;
     private readonly mBoundsCallback: (pObject: T) => IBoundable;
     private readonly mAvailableNodeIndices: Array<number>;
     private readonly mAvailableObjectIndices: Array<number>;
@@ -59,6 +61,7 @@ export class LinearBoundVolumeHierarchy<T> {
     private mOptimalSurfaceArea: number;
     private readonly mRebuildThreshold: number;
     private mRootIndex: number;
+    private readonly mSurfaceAreaCache: Array<number>;
     private readonly mTopologyBuffer: SharedArrayBuffer;
     private mTopologyBufferView: Int32Array;
     private mTotalInternalSurfaceArea: number;
@@ -161,6 +164,8 @@ export class LinearBoundVolumeHierarchy<T> {
      */
     public constructor(pBoundsCallback: (pObject: T) => IBoundable, pRebuildThreshold: number = 2.0) {
         this.mBoundsCallback = pBoundsCallback;
+        this.mBoundableCache = [];
+        this.mSurfaceAreaCache = [];
 
         // Create buffers with a max byte length set to 100.000 nodes.
         this.mAabbBuffer = new SharedArrayBuffer(0, {maxByteLength: 100000 * LinearBoundVolumeHierarchy.AABB_STRIDE * Float32Array.BYTES_PER_ELEMENT});
@@ -183,6 +188,54 @@ export class LinearBoundVolumeHierarchy<T> {
         this.mTotalInternalSurfaceArea = 0;
         this.mOptimalSurfaceArea = 0;
         this.mRebuildThreshold = pRebuildThreshold;
+    }
+
+    /**
+     * Find all objects whose bounding boxes satisfy the given test callback.
+     * Traverses the tree top-down, pruning entire subtrees when the callback
+     * returns false for an internal node's AABB.
+     *
+     * @param pCallback - Test function receiving a node's AABB bounds.
+     *        Return true to include (leaf) or descend into (internal) the node.
+     *        Return false to skip the node and its entire subtree.
+     *
+     * @returns Array of objects whose leaf AABBs passed the test.
+     */
+    public find(pCallback: (pBounds: IBoundable) => boolean): Array<T> {
+        const lResults: Array<T> = [];
+
+        // Empty tree has no results.
+        if (this.mRootIndex === LinearBoundVolumeHierarchy.NODE_NULL_INDEX) {
+            return lResults;
+        }
+
+        // Iterative traversal using an explicit stack.
+        const lStack: Array<number> = [this.mRootIndex];
+
+        while (lStack.length > 0) {
+            const lNodeIndex: number = lStack.pop()!;
+
+            // Test the node's AABB against the callback.
+            if (!pCallback(this.mBoundableCache[lNodeIndex])) {
+                continue;
+            }
+
+            const lBase: number = lNodeIndex * LinearBoundVolumeHierarchy.TOPOLOGY_STRIDE;
+            const lLeftChild: number = this.mTopologyBufferView[lBase + LinearBoundVolumeHierarchy.TOPOLOGY_LEFT_CHILD_OFFSET];
+
+            if (lLeftChild === LinearBoundVolumeHierarchy.NODE_NULL_INDEX) {
+                // Leaf node passed the test, collect the associated object.
+                const lObjectIndex: number = this.mTopologyBufferView[lBase + LinearBoundVolumeHierarchy.TOPOLOGY_OBJECT_INDEX_OFFSET];
+                lResults.push(this.mObjects[lObjectIndex]!);
+            } else {
+                // Internal node passed the test, descend into both children.
+                const lRightChild: number = this.mTopologyBufferView[lBase + LinearBoundVolumeHierarchy.TOPOLOGY_RIGHT_CHILD_OFFSET];
+                lStack.push(lLeftChild);
+                lStack.push(lRightChild);
+            }
+        }
+
+        return lResults;
     }
 
     /**
@@ -253,7 +306,7 @@ export class LinearBoundVolumeHierarchy<T> {
         this.writeUnionAabb(lNewParentIndex, lSiblingIndex, lLeafIndex);
 
         // Track surface area of the new internal node.
-        this.mTotalInternalSurfaceArea += this.computeSurfaceArea(lNewParentIndex);
+        this.mTotalInternalSurfaceArea += this.mSurfaceAreaCache[lNewParentIndex];
 
         // Refit AABBs upward from grandparent to root.
         this.refitFrom(lOldParentIndex);
@@ -369,7 +422,7 @@ export class LinearBoundVolumeHierarchy<T> {
         const lGrandparentIndex: number = this.mTopologyBufferView[lParentBase + LinearBoundVolumeHierarchy.TOPOLOGY_PARENT_OFFSET];
 
         // Subtract the removed internal parent surface area from the total.
-        this.mTotalInternalSurfaceArea -= this.computeSurfaceArea(lParentIndex);
+        this.mTotalInternalSurfaceArea -= this.mSurfaceAreaCache[lParentIndex];
 
         // Patch the sibling into the grandparent's slot, replacing the removed parent.
         if (lGrandparentIndex !== LinearBoundVolumeHierarchy.NODE_NULL_INDEX) {
@@ -485,12 +538,12 @@ export class LinearBoundVolumeHierarchy<T> {
             const lLeftLeaf: number = pLeaves[pStart];
             const lRightLeaf: number = pLeaves[pStart + 1];
 
-            this.writeTopology(lInternalIndex, lLeftLeaf, lRightLeaf, null, LinearBoundVolumeHierarchy.NODE_NULL_INDEX);
+            this.writeTopology(lInternalIndex, lLeftLeaf, lRightLeaf, null, LinearBoundVolumeHierarchy.OBJECT_NULL_INDEX);
             this.writeTopology(lLeftLeaf, null, null, lInternalIndex, null);
             this.writeTopology(lRightLeaf, null, null, lInternalIndex, null);
             this.writeUnionAabb(lInternalIndex, lLeftLeaf, lRightLeaf);
 
-            this.mTotalInternalSurfaceArea += this.computeSurfaceArea(lInternalIndex);
+            this.mTotalInternalSurfaceArea += this.mSurfaceAreaCache[lInternalIndex];
             return lInternalIndex;
         }
 
@@ -564,31 +617,13 @@ export class LinearBoundVolumeHierarchy<T> {
         const lLeftChild: number = this.buildTopDown(pLeaves, pStart, lMid);
         const lRightChild: number = this.buildTopDown(pLeaves, lMid, pEnd);
 
-        this.writeTopology(lInternalIndex, lLeftChild, lRightChild, null, LinearBoundVolumeHierarchy.NODE_NULL_INDEX);
+        this.writeTopology(lInternalIndex, lLeftChild, lRightChild, null, LinearBoundVolumeHierarchy.OBJECT_NULL_INDEX);
         this.writeTopology(lLeftChild, null, null, lInternalIndex, null);
         this.writeTopology(lRightChild, null, null, lInternalIndex, null);
         this.writeUnionAabb(lInternalIndex, lLeftChild, lRightChild);
 
-        this.mTotalInternalSurfaceArea += this.computeSurfaceArea(lInternalIndex);
+        this.mTotalInternalSurfaceArea += this.mSurfaceAreaCache[lInternalIndex];
         return lInternalIndex;
-    }
-
-    /**
-     * Compute the surface area of a node's AABB.
-     *
-     * @param pNodeIndex - Index of the node.
-     */
-    private computeSurfaceArea(pNodeIndex: number): number {
-        // Get base index for the node's AABB in the buffer.
-        const lBaseIndex: number = pNodeIndex * LinearBoundVolumeHierarchy.AABB_STRIDE;
-
-        // Read the AABB extents and compute surface area.
-        const lDx: number = this.mAabbBufferView[lBaseIndex + LinearBoundVolumeHierarchy.AABB_MAX_X_OFFSET] - this.mAabbBufferView[lBaseIndex + LinearBoundVolumeHierarchy.AABB_MIN_X_OFFSET];
-        const lDy: number = this.mAabbBufferView[lBaseIndex + LinearBoundVolumeHierarchy.AABB_MAX_Y_OFFSET] - this.mAabbBufferView[lBaseIndex + LinearBoundVolumeHierarchy.AABB_MIN_Y_OFFSET];
-        const lDz: number = this.mAabbBufferView[lBaseIndex + LinearBoundVolumeHierarchy.AABB_MAX_Z_OFFSET] - this.mAabbBufferView[lBaseIndex + LinearBoundVolumeHierarchy.AABB_MIN_Z_OFFSET];
-
-        // AABB surface area = 2 * (dx*dy + dy*dz + dz*dx)
-        return 2.0 * (lDx * lDy + lDy * lDz + lDz * lDx);
     }
 
     /**
@@ -664,7 +699,7 @@ export class LinearBoundVolumeHierarchy<T> {
 
             // Cost of creating a new parent at this node.
             const lCombinedArea: number = this.computeUnionSurfaceAreaWithRaw(lNode, lLeafMinX, lLeafMinY, lLeafMinZ, lLeafMaxX, lLeafMaxY, lLeafMaxZ);
-            const lCurrentArea: number = this.computeSurfaceArea(lNode);
+            const lCurrentArea: number = this.mSurfaceAreaCache[lNode];
             const lInheritanceCost: number = lCombinedArea - lCurrentArea;
 
             // Cost of descending to the left child. For leaf children, the cost is the
@@ -674,7 +709,7 @@ export class LinearBoundVolumeHierarchy<T> {
             if (this.mTopologyBufferView[lLeft * LinearBoundVolumeHierarchy.TOPOLOGY_STRIDE + LinearBoundVolumeHierarchy.TOPOLOGY_LEFT_CHILD_OFFSET] === LinearBoundVolumeHierarchy.NODE_NULL_INDEX) {
                 lCostLeft = lLeftUnionArea + lInheritanceCost;
             } else {
-                lCostLeft = (lLeftUnionArea - this.computeSurfaceArea(lLeft)) + lInheritanceCost;
+                lCostLeft = (lLeftUnionArea - this.mSurfaceAreaCache[lLeft]) + lInheritanceCost;
             }
 
             // Cost of descending to the right child.
@@ -683,7 +718,7 @@ export class LinearBoundVolumeHierarchy<T> {
             if (this.mTopologyBufferView[lRight * LinearBoundVolumeHierarchy.TOPOLOGY_STRIDE + LinearBoundVolumeHierarchy.TOPOLOGY_LEFT_CHILD_OFFSET] === LinearBoundVolumeHierarchy.NODE_NULL_INDEX) {
                 lCostRight = lRightUnionArea + lInheritanceCost;
             } else {
-                lCostRight = (lRightUnionArea - this.computeSurfaceArea(lRight)) + lInheritanceCost;
+                lCostRight = (lRightUnionArea - this.mSurfaceAreaCache[lRight]) + lInheritanceCost;
             }
 
             // Stop if inserting here is cheaper than descending further.
@@ -750,13 +785,13 @@ export class LinearBoundVolumeHierarchy<T> {
             const lRight: number = this.mTopologyBufferView[lCurrentNodeIndex * LinearBoundVolumeHierarchy.TOPOLOGY_STRIDE + LinearBoundVolumeHierarchy.TOPOLOGY_RIGHT_CHILD_OFFSET];
 
             // Subtract old surface area before recomputing.
-            this.mTotalInternalSurfaceArea -= this.computeSurfaceArea(lCurrentNodeIndex);
+            this.mTotalInternalSurfaceArea -= this.mSurfaceAreaCache[lCurrentNodeIndex];
 
             // Recompute AABB as union of children.
             this.writeUnionAabb(lCurrentNodeIndex, lLeft, lRight);
 
             // Add new surface area after recomputing.
-            this.mTotalInternalSurfaceArea += this.computeSurfaceArea(lCurrentNodeIndex);
+            this.mTotalInternalSurfaceArea += this.mSurfaceAreaCache[lCurrentNodeIndex];
 
             // Walk upward to parent.
             lCurrentNodeIndex = this.mTopologyBufferView[lCurrentNodeIndex * LinearBoundVolumeHierarchy.TOPOLOGY_STRIDE + LinearBoundVolumeHierarchy.TOPOLOGY_PARENT_OFFSET];
@@ -785,6 +820,25 @@ export class LinearBoundVolumeHierarchy<T> {
         this.mAabbBufferView[lBase + LinearBoundVolumeHierarchy.AABB_MAX_X_OFFSET] = pMaxX;
         this.mAabbBufferView[lBase + LinearBoundVolumeHierarchy.AABB_MAX_Y_OFFSET] = pMaxY;
         this.mAabbBufferView[lBase + LinearBoundVolumeHierarchy.AABB_MAX_Z_OFFSET] = pMaxZ;
+
+        // Cache surface area.
+        const lDx: number = pMaxX - pMinX;
+        const lDy: number = pMaxY - pMinY;
+        const lDz: number = pMaxZ - pMinZ;
+        this.mSurfaceAreaCache[pNodeIndex] = 2.0 * (lDx * lDy + lDy * lDz + lDz * lDx);
+
+        // Cache boundable.
+        const lCached = this.mBoundableCache[pNodeIndex];
+        if (lCached === undefined) {
+            this.mBoundableCache[pNodeIndex] = { minX: pMinX, minY: pMinY, minZ: pMinZ, maxX: pMaxX, maxY: pMaxY, maxZ: pMaxZ };
+        } else {
+            lCached.minX = pMinX;
+            lCached.minY = pMinY;
+            lCached.minZ = pMinZ;
+            lCached.maxX = pMaxX;
+            lCached.maxY = pMaxY;
+            lCached.maxZ = pMaxZ;
+        }
     }
 
     /**
@@ -828,12 +882,39 @@ export class LinearBoundVolumeHierarchy<T> {
         const lBaseB: number = pNodeB * LinearBoundVolumeHierarchy.AABB_STRIDE;
         const lBaseTarget: number = pTargetIndex * LinearBoundVolumeHierarchy.AABB_STRIDE;
 
-        // Compute the union of the two AABBs and write to the target node.
-        this.mAabbBufferView[lBaseTarget + LinearBoundVolumeHierarchy.AABB_MIN_X_OFFSET] = Math.min(this.mAabbBufferView[lBaseA + LinearBoundVolumeHierarchy.AABB_MIN_X_OFFSET], this.mAabbBufferView[lBaseB + LinearBoundVolumeHierarchy.AABB_MIN_X_OFFSET]);
-        this.mAabbBufferView[lBaseTarget + LinearBoundVolumeHierarchy.AABB_MIN_Y_OFFSET] = Math.min(this.mAabbBufferView[lBaseA + LinearBoundVolumeHierarchy.AABB_MIN_Y_OFFSET], this.mAabbBufferView[lBaseB + LinearBoundVolumeHierarchy.AABB_MIN_Y_OFFSET]);
-        this.mAabbBufferView[lBaseTarget + LinearBoundVolumeHierarchy.AABB_MIN_Z_OFFSET] = Math.min(this.mAabbBufferView[lBaseA + LinearBoundVolumeHierarchy.AABB_MIN_Z_OFFSET], this.mAabbBufferView[lBaseB + LinearBoundVolumeHierarchy.AABB_MIN_Z_OFFSET]);
-        this.mAabbBufferView[lBaseTarget + LinearBoundVolumeHierarchy.AABB_MAX_X_OFFSET] = Math.max(this.mAabbBufferView[lBaseA + LinearBoundVolumeHierarchy.AABB_MAX_X_OFFSET], this.mAabbBufferView[lBaseB + LinearBoundVolumeHierarchy.AABB_MAX_X_OFFSET]);
-        this.mAabbBufferView[lBaseTarget + LinearBoundVolumeHierarchy.AABB_MAX_Y_OFFSET] = Math.max(this.mAabbBufferView[lBaseA + LinearBoundVolumeHierarchy.AABB_MAX_Y_OFFSET], this.mAabbBufferView[lBaseB + LinearBoundVolumeHierarchy.AABB_MAX_Y_OFFSET]);
-        this.mAabbBufferView[lBaseTarget + LinearBoundVolumeHierarchy.AABB_MAX_Z_OFFSET] = Math.max(this.mAabbBufferView[lBaseA + LinearBoundVolumeHierarchy.AABB_MAX_Z_OFFSET], this.mAabbBufferView[lBaseB + LinearBoundVolumeHierarchy.AABB_MAX_Z_OFFSET]);
+        // Compute the union of the two AABBs.
+        const lMinX: number = Math.min(this.mAabbBufferView[lBaseA + LinearBoundVolumeHierarchy.AABB_MIN_X_OFFSET], this.mAabbBufferView[lBaseB + LinearBoundVolumeHierarchy.AABB_MIN_X_OFFSET]);
+        const lMinY: number = Math.min(this.mAabbBufferView[lBaseA + LinearBoundVolumeHierarchy.AABB_MIN_Y_OFFSET], this.mAabbBufferView[lBaseB + LinearBoundVolumeHierarchy.AABB_MIN_Y_OFFSET]);
+        const lMinZ: number = Math.min(this.mAabbBufferView[lBaseA + LinearBoundVolumeHierarchy.AABB_MIN_Z_OFFSET], this.mAabbBufferView[lBaseB + LinearBoundVolumeHierarchy.AABB_MIN_Z_OFFSET]);
+        const lMaxX: number = Math.max(this.mAabbBufferView[lBaseA + LinearBoundVolumeHierarchy.AABB_MAX_X_OFFSET], this.mAabbBufferView[lBaseB + LinearBoundVolumeHierarchy.AABB_MAX_X_OFFSET]);
+        const lMaxY: number = Math.max(this.mAabbBufferView[lBaseA + LinearBoundVolumeHierarchy.AABB_MAX_Y_OFFSET], this.mAabbBufferView[lBaseB + LinearBoundVolumeHierarchy.AABB_MAX_Y_OFFSET]);
+        const lMaxZ: number = Math.max(this.mAabbBufferView[lBaseA + LinearBoundVolumeHierarchy.AABB_MAX_Z_OFFSET], this.mAabbBufferView[lBaseB + LinearBoundVolumeHierarchy.AABB_MAX_Z_OFFSET]);
+
+        // Write union to the target node.
+        this.mAabbBufferView[lBaseTarget + LinearBoundVolumeHierarchy.AABB_MIN_X_OFFSET] = lMinX;
+        this.mAabbBufferView[lBaseTarget + LinearBoundVolumeHierarchy.AABB_MIN_Y_OFFSET] = lMinY;
+        this.mAabbBufferView[lBaseTarget + LinearBoundVolumeHierarchy.AABB_MIN_Z_OFFSET] = lMinZ;
+        this.mAabbBufferView[lBaseTarget + LinearBoundVolumeHierarchy.AABB_MAX_X_OFFSET] = lMaxX;
+        this.mAabbBufferView[lBaseTarget + LinearBoundVolumeHierarchy.AABB_MAX_Y_OFFSET] = lMaxY;
+        this.mAabbBufferView[lBaseTarget + LinearBoundVolumeHierarchy.AABB_MAX_Z_OFFSET] = lMaxZ;
+
+        // Cache surface area.
+        const lDx: number = lMaxX - lMinX;
+        const lDy: number = lMaxY - lMinY;
+        const lDz: number = lMaxZ - lMinZ;
+        this.mSurfaceAreaCache[pTargetIndex] = 2.0 * (lDx * lDy + lDy * lDz + lDz * lDx);
+
+        // Cache boundable.
+        const lCached = this.mBoundableCache[pTargetIndex];
+        if (lCached === undefined) {
+            this.mBoundableCache[pTargetIndex] = { minX: lMinX, minY: lMinY, minZ: lMinZ, maxX: lMaxX, maxY: lMaxY, maxZ: lMaxZ };
+        } else {
+            lCached.minX = lMinX;
+            lCached.minY = lMinY;
+            lCached.minZ = lMinZ;
+            lCached.maxX = lMaxX;
+            lCached.maxY = lMaxY;
+            lCached.maxZ = lMaxZ;
+        }
     }
 }

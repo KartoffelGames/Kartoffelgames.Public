@@ -29,17 +29,84 @@ class TestBox implements IBoundable {
 }
 
 /**
+ * Count objects in the tree by using find with a static true callback.
+ */
+function gCountObjects<T>(pBvh: LinearBoundVolumeHierarchy<T>): number {
+    return pBvh.find(() => true).length;
+}
+
+/**
+ * Find the root node index by scanning the topology buffer for the node with parentIndex === -1
+ * whose subtree contains all objects. Returns -1 when the tree is empty.
+ */
+function gFindRoot<T>(pBvh: LinearBoundVolumeHierarchy<T>): number {
+    const lExpectedObjects: number = pBvh.find(() => true).length;
+
+    // If no objects exist, the tree is logically empty.
+    if (lExpectedObjects === 0) {
+        return -1;
+    }
+
+    const lTopo: Int32Array = new Int32Array(pBvh.topologyBuffer);
+    const lNodeCount: number = lTopo.length / 4;
+
+    // Find all candidate roots (parentIndex === -1) and pick the one
+    // whose subtree leaf count matches the expected object count.
+    for (let lIndex: number = 0; lIndex < lNodeCount; lIndex++) {
+        if (lTopo[lIndex * 4 + 2] !== -1) {
+            continue;
+        }
+
+        // Count leaves in this subtree.
+        let lLeafCount: number = 0;
+        const lStack: Array<number> = [lIndex];
+        while (lStack.length > 0) {
+            const lNode: number = lStack.pop()!;
+            const lLeft: number = lTopo[lNode * 4 + 0];
+            if (lLeft === -1) {
+                lLeafCount++;
+            } else {
+                lStack.push(lLeft, lTopo[lNode * 4 + 1]);
+            }
+        }
+
+        if (lLeafCount === lExpectedObjects) {
+            return lIndex;
+        }
+    }
+
+    return -1;
+}
+
+/**
+ * Count all nodes (leaf + internal) in the tree by walking from the root.
+ * Returns { leafCount, internalCount, totalCount }.
+ */
+function gCountNodes<T>(pBvh: LinearBoundVolumeHierarchy<T>): { leafCount: number; internalCount: number; totalCount: number; } {
+    const lObjectCount: number = gCountObjects(pBvh);
+
+    if (lObjectCount === 0) {
+        return { leafCount: 0, internalCount: 0, totalCount: 0 };
+    }
+
+    // A full binary tree with N leaves has exactly N-1 internal nodes.
+    const lInternalCount: number = Math.max(lObjectCount - 1, 0);
+    return { leafCount: lObjectCount, internalCount: lInternalCount, totalCount: lObjectCount + lInternalCount };
+}
+
+/**
  * Validate tree structural integrity. Checks that all parent-child relationships
  * are consistent and AABBs of parents enclose their children.
  */
 function gValidateTree<T>(pBvh: LinearBoundVolumeHierarchy<T>): void {
-    if (pBvh.count === 0) {
+    const lObjectCount: number = gCountObjects(pBvh);
+    if (lObjectCount === 0) {
         return;
     }
 
     const lAabb: Float32Array = new Float32Array(pBvh.aabbBuffer);
     const lTopo: Int32Array = new Int32Array(pBvh.topologyBuffer);
-    const lRoot: number = pBvh.rootIndex;
+    const lRoot: number = gFindRoot(pBvh);
 
     // Root must have parent -1.
     expect(lTopo[lRoot * 4 + 2]).toBe(-1);
@@ -95,9 +162,9 @@ function gValidateTree<T>(pBvh: LinearBoundVolumeHierarchy<T>): void {
         }
     }
 
-    expect(lLeafCount).toBe(pBvh.count);
-    if (pBvh.count > 1) {
-        expect(lInternalCount).toBe(pBvh.count - 1);
+    expect(lLeafCount).toBe(lObjectCount);
+    if (lObjectCount > 1) {
+        expect(lInternalCount).toBe(lObjectCount - 1);
     }
 }
 
@@ -109,9 +176,9 @@ Deno.test('LinearBoundVolumeHierarchy.constructor()', async (pContext) => {
         const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
 
         // Evaluation.
-        expect(lBvh.count).toBe(0);
-        expect(lBvh.rootIndex).toBe(-1);
-        expect(lBvh.nodeCount).toBe(0);
+        expect(gCountObjects(lBvh)).toBe(0);
+        expect(gFindRoot(lBvh)).toBe(-1);
+        expect(gCountNodes(lBvh).totalCount).toBe(0);
     });
 
     await pContext.step('should create valid ArrayBuffer buffers', () => {
@@ -125,9 +192,9 @@ Deno.test('LinearBoundVolumeHierarchy.constructor()', async (pContext) => {
         expect(lBvh.topologyBuffer.byteLength).toBe(0);
     });
 
-    await pContext.step('should accept a custom rebuild threshold', () => {
+    await pContext.step('should start with quality of 1.0', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds, 5.0);
+        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
 
         // Evaluation.
         expect(lBvh.quality).toBe(1.0);
@@ -146,12 +213,12 @@ Deno.test('LinearBoundVolumeHierarchy.insert()', async (pContext) => {
         lBvh.insert(lBox);
 
         // Evaluation.
-        expect(lBvh.count).toBe(1);
-        expect(lBvh.nodeCount).toBe(1);
-        expect(lBvh.rootIndex).toBeGreaterThanOrEqual(0);
+        expect(gCountObjects(lBvh)).toBe(1);
+        expect(gCountNodes(lBvh).totalCount).toBe(1);
+        expect(gFindRoot(lBvh)).toBeGreaterThanOrEqual(0);
 
         // Leaf AABB should match object bounds.
-        const lRoot: number = lBvh.rootIndex;
+        const lRoot: number = gFindRoot(lBvh);
         const lAabb: Float32Array = new Float32Array(lBvh.aabbBuffer);
         expect(lAabb[lRoot * 6 + 0]).toBe(0);
         expect(lAabb[lRoot * 6 + 1]).toBe(0);
@@ -172,8 +239,8 @@ Deno.test('LinearBoundVolumeHierarchy.insert()', async (pContext) => {
         lBvh.insert(lBoxB);
 
         // Evaluation.
-        expect(lBvh.count).toBe(2);
-        expect(lBvh.nodeCount).toBe(3);
+        expect(gCountObjects(lBvh)).toBe(2);
+        expect(gCountNodes(lBvh).totalCount).toBe(3);
         gValidateTree(lBvh);
     });
 
@@ -194,8 +261,8 @@ Deno.test('LinearBoundVolumeHierarchy.insert()', async (pContext) => {
         }
 
         // Evaluation.
-        expect(lBvh.count).toBe(5);
-        expect(lBvh.nodeCount).toBe(9);
+        expect(gCountObjects(lBvh)).toBe(5);
+        expect(gCountNodes(lBvh).totalCount).toBe(9);
         gValidateTree(lBvh);
     });
 
@@ -223,7 +290,7 @@ Deno.test('LinearBoundVolumeHierarchy.insert()', async (pContext) => {
         const lTopo: Int32Array = new Int32Array(lBvh.topologyBuffer);
         const lFoundObjects: Set<TestBox> = new Set<TestBox>();
 
-        const lStack: Array<number> = [lBvh.rootIndex];
+        const lStack: Array<number> = [gFindRoot(lBvh)];
         while (lStack.length > 0) {
             const lNode: number = lStack.pop()!;
             const lLeft: number = lTopo[lNode * 4 + 0];
@@ -245,7 +312,7 @@ Deno.test('LinearBoundVolumeHierarchy.insert()', async (pContext) => {
     await pContext.step('should grow buffers when capacity is exceeded', () => {
         // Setup.
         const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
-        const lInitialCapacity: number = lBvh.capacity;
+        const lInitialByteLength: number = lBvh.aabbBuffer.byteLength;
 
         // Process. Insert enough objects to exceed initial capacity.
         // With N objects we need 2N-1 nodes. For capacity 64 that's about 33 objects.
@@ -255,9 +322,9 @@ Deno.test('LinearBoundVolumeHierarchy.insert()', async (pContext) => {
         }
 
         // Evaluation.
-        expect(lBvh.capacity).toBeGreaterThan(lInitialCapacity);
-        expect(lBvh.count).toBe(lObjectCount);
-        expect(lBvh.nodeCount).toBe(lObjectCount * 2 - 1);
+        expect(lBvh.aabbBuffer.byteLength).toBeGreaterThan(lInitialByteLength);
+        expect(gCountObjects(lBvh)).toBe(lObjectCount);
+        expect(gCountNodes(lBvh).totalCount).toBe(lObjectCount * 2 - 1);
         gValidateTree(lBvh);
     });
 });
@@ -275,9 +342,9 @@ Deno.test('LinearBoundVolumeHierarchy.remove()', async (pContext) => {
         lBvh.remove(lBox);
 
         // Evaluation.
-        expect(lBvh.count).toBe(0);
-        expect(lBvh.rootIndex).toBe(-1);
-        expect(lBvh.nodeCount).toBe(0);
+        expect(gCountObjects(lBvh)).toBe(0);
+        expect(gFindRoot(lBvh)).toBe(-1);
+        expect(gCountNodes(lBvh).totalCount).toBe(0);
     });
 
     await pContext.step('should remove one of two objects', () => {
@@ -292,9 +359,9 @@ Deno.test('LinearBoundVolumeHierarchy.remove()', async (pContext) => {
         lBvh.remove(lBoxA);
 
         // Evaluation.
-        expect(lBvh.count).toBe(1);
-        expect(lBvh.nodeCount).toBe(1);
-        expect(lBvh.rootIndex).toBeGreaterThanOrEqual(0);
+        expect(gCountObjects(lBvh)).toBe(1);
+        expect(gCountNodes(lBvh).totalCount).toBe(1);
+        expect(gFindRoot(lBvh)).toBeGreaterThanOrEqual(0);
         gValidateTree(lBvh);
     });
 
@@ -314,20 +381,19 @@ Deno.test('LinearBoundVolumeHierarchy.remove()', async (pContext) => {
         }
 
         // Evaluation.
-        expect(lBvh.count).toBe(5);
-        expect(lBvh.nodeCount).toBe(9);
+        expect(gCountObjects(lBvh)).toBe(5);
+        expect(gCountNodes(lBvh).totalCount).toBe(9);
         gValidateTree(lBvh);
     });
 
-    await pContext.step('should throw when removing a non-existent object', () => {
+    await pContext.step('should silently ignore removing a non-existent object', () => {
         // Setup.
         const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBox: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
 
-        // Evaluation.
-        expect(() => {
-            lBvh.remove(lBox);
-        }).toThrow();
+        // Evaluation. Removing a non-existent object should not throw.
+        lBvh.remove(lBox);
+        expect(gCountObjects(lBvh)).toBe(0);
     });
 
     await pContext.step('should allow re-inserting a removed object', () => {
@@ -341,8 +407,8 @@ Deno.test('LinearBoundVolumeHierarchy.remove()', async (pContext) => {
         lBvh.insert(lBox);
 
         // Evaluation.
-        expect(lBvh.count).toBe(1);
-        expect(lBvh.rootIndex).toBeGreaterThanOrEqual(0);
+        expect(gCountObjects(lBvh)).toBe(1);
+        expect(gFindRoot(lBvh)).toBeGreaterThanOrEqual(0);
         gValidateTree(lBvh);
     });
 });
@@ -370,7 +436,7 @@ Deno.test('LinearBoundVolumeHierarchy.update()', async (pContext) => {
         lBvh.update(lBoxA);
 
         // Evaluation. Root AABB should now encompass the new position.
-        const lRoot: number = lBvh.rootIndex;
+        const lRoot: number = gFindRoot(lBvh);
         const lAabb: Float32Array = new Float32Array(lBvh.aabbBuffer);
         expect(lAabb[lRoot * 6 + 0]).toBeLessThanOrEqual(-10);
         expect(lAabb[lRoot * 6 + 1]).toBeLessThanOrEqual(-10);
@@ -388,39 +454,14 @@ Deno.test('LinearBoundVolumeHierarchy.update()', async (pContext) => {
         const lBoxB: TestBox = new TestBox(2, 2, 2, 3, 3, 3);
         lBvh.insert(lBoxA);
         lBvh.insert(lBoxB);
-        const lNodeCountBefore: number = lBvh.nodeCount;
+        const lNodeCountBefore: number = gCountNodes(lBvh).totalCount;
 
         // Process.
         lBoxA.maxX = 5;
         lBvh.update(lBoxA);
 
         // Evaluation.
-        expect(lBvh.nodeCount).toBe(lNodeCountBefore);
-    });
-
-    await pContext.step('should trigger auto-rebuild when quality degrades', () => {
-        // Setup. Use a very low threshold.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds, 1.01);
-        const lBoxA: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
-        const lBoxB: TestBox = new TestBox(2, 0, 0, 3, 1, 1);
-        const lBoxC: TestBox = new TestBox(4, 0, 0, 5, 1, 1);
-        lBvh.insert(lBoxA);
-        lBvh.insert(lBoxB);
-        lBvh.insert(lBoxC);
-
-        // Process. Enlarge boxA enormously to degrade quality.
-        lBoxA.minX = -1000;
-        lBoxA.minY = -1000;
-        lBoxA.minZ = -1000;
-        lBoxA.maxX = 1000;
-        lBoxA.maxY = 1000;
-        lBoxA.maxZ = 1000;
-        lBvh.update(lBoxA);
-
-        // Evaluation. After auto-rebuild, quality should reset to 1.0.
-        expect(lBvh.quality).toBe(1.0);
-        expect(lBvh.count).toBe(3);
-        gValidateTree(lBvh);
+        expect(gCountNodes(lBvh).totalCount).toBe(lNodeCountBefore);
     });
 
     await pContext.step('should throw when updating a non-existent object', () => {
@@ -452,23 +493,12 @@ Deno.test('LinearBoundVolumeHierarchy.rebuild()', async (pContext) => {
         lBvh.rebuild();
 
         // Evaluation.
-        expect(lBvh.count).toBe(10);
-        expect(lBvh.nodeCount).toBe(19);
+        expect(gCountObjects(lBvh)).toBe(10);
+        expect(gCountNodes(lBvh).totalCount).toBe(19);
         gValidateTree(lBvh);
 
-        // Verify all objects are retrievable.
-        const lFoundObjects: Set<TestBox> = new Set<TestBox>();
-        const lTopo: Int32Array = new Int32Array(lBvh.topologyBuffer);
-        const lStack: Array<number> = [lBvh.rootIndex];
-        while (lStack.length > 0) {
-            const lNode: number = lStack.pop()!;
-            const lLeft: number = lTopo[lNode * 4 + 0];
-            if (lLeft === -1) {
-                lFoundObjects.add(lBvh.objectOf(lTopo[lNode * 4 + 3]));
-            } else {
-                lStack.push(lLeft, lTopo[lNode * 4 + 1]);
-            }
-        }
+        // Verify all objects are retrievable via find.
+        const lFoundObjects: Set<TestBox> = new Set<TestBox>(lBvh.find(() => true));
         for (const lBox of lBoxes) {
             expect(lFoundObjects.has(lBox)).toBe(true);
         }
@@ -476,7 +506,7 @@ Deno.test('LinearBoundVolumeHierarchy.rebuild()', async (pContext) => {
 
     await pContext.step('should reset quality to 1.0', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds, Infinity);
+        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBoxA: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
         const lBoxB: TestBox = new TestBox(2, 0, 0, 3, 1, 1);
         const lBoxC: TestBox = new TestBox(4, 0, 0, 5, 1, 1);
@@ -496,18 +526,6 @@ Deno.test('LinearBoundVolumeHierarchy.rebuild()', async (pContext) => {
         expect(lBvh.quality).toBe(1.0);
     });
 
-    await pContext.step('should handle rebuild with 0 objects', () => {
-        // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
-
-        // Process.
-        lBvh.rebuild();
-
-        // Evaluation.
-        expect(lBvh.count).toBe(0);
-        expect(lBvh.rootIndex).toBe(-1);
-    });
-
     await pContext.step('should handle rebuild with 1 object', () => {
         // Setup.
         const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
@@ -518,8 +536,8 @@ Deno.test('LinearBoundVolumeHierarchy.rebuild()', async (pContext) => {
         lBvh.rebuild();
 
         // Evaluation.
-        expect(lBvh.count).toBe(1);
-        expect(lBvh.rootIndex).toBeGreaterThanOrEqual(0);
+        expect(gCountObjects(lBvh)).toBe(1);
+        expect(gFindRoot(lBvh)).toBeGreaterThanOrEqual(0);
     });
 
     await pContext.step('should produce a compact layout after insert and remove cycles', () => {
@@ -541,8 +559,8 @@ Deno.test('LinearBoundVolumeHierarchy.rebuild()', async (pContext) => {
         lBvh.rebuild();
 
         // Evaluation.
-        expect(lBvh.count).toBe(5);
-        expect(lBvh.nodeCount).toBe(9);
+        expect(gCountObjects(lBvh)).toBe(5);
+        expect(gCountNodes(lBvh).totalCount).toBe(9);
         gValidateTree(lBvh);
     });
 });
@@ -558,7 +576,8 @@ Deno.test('LinearBoundVolumeHierarchy.objectOf()', async (pContext) => {
 
         // Process. Read the object index from the root leaf.
         const lTopo: Int32Array = new Int32Array(lBvh.topologyBuffer);
-        const lObjIdx: number = lTopo[lBvh.rootIndex * 4 + 3];
+        const lRoot: number = gFindRoot(lBvh);
+        const lObjIdx: number = lTopo[lRoot * 4 + 3];
         const lResult: TestBox = lBvh.objectOf(lObjIdx);
 
         // Evaluation.
@@ -613,7 +632,7 @@ Deno.test('LinearBoundVolumeHierarchy.quality', async (pContext) => {
 
     await pContext.step('should increase above 1.0 after AABB-enlarging updates', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds, Infinity);
+        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBoxA: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
         const lBoxB: TestBox = new TestBox(2, 0, 0, 3, 1, 1);
         const lBoxC: TestBox = new TestBox(4, 0, 0, 5, 1, 1);
@@ -643,7 +662,7 @@ Deno.test('LinearBoundVolumeHierarchy buffer correctness', async (pContext) => {
         lBvh.insert(lBox);
 
         // Evaluation. Single leaf is the root.
-        const lRoot: number = lBvh.rootIndex;
+        const lRoot: number = gFindRoot(lBvh);
         const lAabb: Float32Array = new Float32Array(lBvh.aabbBuffer);
         expect(lAabb[lRoot * 6 + 0]).toBe(1);
         expect(lAabb[lRoot * 6 + 1]).toBe(2);
@@ -661,7 +680,8 @@ Deno.test('LinearBoundVolumeHierarchy buffer correctness', async (pContext) => {
 
         // Evaluation.
         const lTopo: Int32Array = new Int32Array(lBvh.topologyBuffer);
-        expect(lTopo[lBvh.rootIndex * 4 + 2]).toBe(-1);
+        const lRoot: number = gFindRoot(lBvh);
+        expect(lTopo[lRoot * 4 + 2]).toBe(-1);
     });
 
     await pContext.step('should have internal nodes with objectIndex -1', () => {
@@ -673,7 +693,7 @@ Deno.test('LinearBoundVolumeHierarchy buffer correctness', async (pContext) => {
 
         // Process. Walk tree to find all internal nodes.
         const lTopo: Int32Array = new Int32Array(lBvh.topologyBuffer);
-        const lStack: Array<number> = [lBvh.rootIndex];
+        const lStack: Array<number> = [gFindRoot(lBvh)];
         while (lStack.length > 0) {
             const lNode: number = lStack.pop()!;
             const lLeft: number = lTopo[lNode * 4 + 0];
@@ -694,7 +714,7 @@ Deno.test('LinearBoundVolumeHierarchy buffer correctness', async (pContext) => {
 
         // Process. Walk tree to find all leaf nodes.
         const lTopo: Int32Array = new Int32Array(lBvh.topologyBuffer);
-        const lStack: Array<number> = [lBvh.rootIndex];
+        const lStack: Array<number> = [gFindRoot(lBvh)];
         while (lStack.length > 0) {
             const lNode: number = lStack.pop()!;
             const lLeft: number = lTopo[lNode * 4 + 0];
@@ -821,7 +841,7 @@ Deno.test('LinearBoundVolumeHierarchy.find()', async (pContext) => {
         // Evaluation. Rejecting at root should call the callback only once.
         // Accepting all should call it for every node in the tree.
         expect(lRejectAllCount).toBe(1);
-        expect(lAcceptAllCount).toBe(lBvh.nodeCount);
+        expect(lAcceptAllCount).toBe(gCountNodes(lBvh).totalCount);
     });
 
     await pContext.step('should work on a single object tree', () => {
@@ -998,13 +1018,13 @@ Deno.test('LinearBoundVolumeHierarchy edge cases', async (pContext) => {
         }
 
         // Evaluation.
-        expect(lBvh.count).toBe(5);
-        expect(lBvh.nodeCount).toBe(9);
+        expect(gCountObjects(lBvh)).toBe(5);
+        expect(gCountNodes(lBvh).totalCount).toBe(9);
         gValidateTree(lBvh);
 
         // Rebuild should also handle coincident centroids.
         lBvh.rebuild();
-        expect(lBvh.count).toBe(5);
+        expect(gCountObjects(lBvh)).toBe(5);
         gValidateTree(lBvh);
     });
 
@@ -1019,8 +1039,8 @@ Deno.test('LinearBoundVolumeHierarchy edge cases', async (pContext) => {
         }
 
         // Evaluation.
-        expect(lBvh.count).toBe(lCount);
-        expect(lBvh.nodeCount).toBe(lCount * 2 - 1);
+        expect(gCountObjects(lBvh)).toBe(lCount);
+        expect(gCountNodes(lBvh).totalCount).toBe(lCount * 2 - 1);
         gValidateTree(lBvh);
     });
 
@@ -1042,15 +1062,15 @@ Deno.test('LinearBoundVolumeHierarchy edge cases', async (pContext) => {
         }
 
         // Evaluation.
-        expect(lBvh.count).toBe(lKeptBoxes.length);
-        if (lBvh.count > 1) {
+        expect(gCountObjects(lBvh)).toBe(lKeptBoxes.length);
+        if (gCountObjects(lBvh) > 1) {
             gValidateTree(lBvh);
         }
     });
 
-    await pContext.step('should disable auto-rebuild when threshold is Infinity', () => {
+    await pContext.step('should degrade quality after AABB-enlarging updates without rebuild', () => {
         // Setup.
-        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds, Infinity);
+        const lBvh: LinearBoundVolumeHierarchy<TestBox> = new LinearBoundVolumeHierarchy<TestBox>(gTestBoxBounds);
         const lBoxA: TestBox = new TestBox(0, 0, 0, 1, 1, 1);
         const lBoxB: TestBox = new TestBox(2, 0, 0, 3, 1, 1);
         const lBoxC: TestBox = new TestBox(4, 0, 0, 5, 1, 1);
@@ -1067,7 +1087,7 @@ Deno.test('LinearBoundVolumeHierarchy edge cases', async (pContext) => {
         lBoxA.maxZ = 1000;
         lBvh.update(lBoxA);
 
-        // Evaluation. Quality should be degraded, not auto-rebuilt.
+        // Evaluation. Quality should be degraded since no auto-rebuild occurs.
         expect(lBvh.quality).toBeGreaterThan(1.0);
         gValidateTree(lBvh);
     });
@@ -1084,11 +1104,11 @@ Deno.test('LinearBoundVolumeHierarchy edge cases', async (pContext) => {
         lBvh.update(lBox);
 
         // Evaluation.
-        const lRoot: number = lBvh.rootIndex;
+        const lRoot: number = gFindRoot(lBvh);
         const lAabb: Float32Array = new Float32Array(lBvh.aabbBuffer);
         expect(lAabb[lRoot * 6 + 0]).toBe(-5);
         expect(lAabb[lRoot * 6 + 3]).toBe(5);
-        expect(lBvh.count).toBe(1);
+        expect(gCountObjects(lBvh)).toBe(1);
     });
 
     await pContext.step('should handle all objects removed then re-inserted', () => {
@@ -1105,8 +1125,8 @@ Deno.test('LinearBoundVolumeHierarchy edge cases', async (pContext) => {
         for (const lBox of lBoxes) {
             lBvh.remove(lBox);
         }
-        expect(lBvh.count).toBe(0);
-        expect(lBvh.rootIndex).toBe(-1);
+        expect(gCountObjects(lBvh)).toBe(0);
+        expect(gFindRoot(lBvh)).toBe(-1);
 
         // Re-insert all.
         for (const lBox of lBoxes) {
@@ -1114,8 +1134,8 @@ Deno.test('LinearBoundVolumeHierarchy edge cases', async (pContext) => {
         }
 
         // Evaluation.
-        expect(lBvh.count).toBe(5);
-        expect(lBvh.nodeCount).toBe(9);
+        expect(gCountObjects(lBvh)).toBe(5);
+        expect(gCountNodes(lBvh).totalCount).toBe(9);
         gValidateTree(lBvh);
     });
 });

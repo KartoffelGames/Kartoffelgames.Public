@@ -331,7 +331,7 @@ export class GameObject extends GameEntity {
             // Read dependent components and send change event to them.
             const lDependentComponents: Array<GameComponent> = this.mComponentUpdateDependencies.get(pComponent)!;
             for (const lDependentComponent of lDependentComponents) {
-                lDependentComponent.update('DependencyUpdate');
+                lDependentComponent.update(`${this.label}_Dependency`);
             }
         }
     }

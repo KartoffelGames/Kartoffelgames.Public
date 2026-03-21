@@ -85,9 +85,6 @@ export class CullSystem extends GameSystem {
     protected override async onFrame(): Promise<void> {
         // Update frustums and rebuild visible mesh lists for each tracked render target.
         for (const [lRenderTarget, lData] of this.mRenderTargetDataMap) {
-            // Update the frustum from the render target's current camera.
-            this.updateFrustum(lRenderTarget);
-
             // Rebuild visible mesh list using BVH-accelerated frustum culling.
             lData.meshes.visible = this.executeCulling(lRenderTarget, lData);
         }
@@ -122,7 +119,9 @@ export class CullSystem extends GameSystem {
                     }
                     case 'activate':
                     case 'update': {
-                        // No action needed. Camera aspect ratio updates are handled by RenderTargetSystem.
+                        // Update the frustum from the render target's current camera.
+                        this.updateFrustum(lRenderTarget);
+
                         break;
                     }
                 }

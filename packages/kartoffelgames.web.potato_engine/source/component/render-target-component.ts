@@ -103,7 +103,7 @@ export class RenderTargetComponent extends GameComponent {
 
         // Create components camera update listener to react to changes in the assigned camera.
         this.mCameraUpdateListener = (pUpdateName) => {
-            console.log(pUpdateName)
+            console.log(pUpdateName);
             this.update(`RenderTargetComponent_${pUpdateName}`);
         };
     }

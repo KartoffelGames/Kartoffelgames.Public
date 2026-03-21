@@ -250,6 +250,11 @@ export class LightSystem extends GameSystem {
      * @returns The byte range of the updated region in the buffer.
      */
     private assignLight(pComponent: LightComponent): void {
+        // Skip assignment if the component is already assigned to a buffer index.
+        if (this.mBuffers.componentIndexMap.has(pComponent)) {
+            return;
+        }
+
         // Assign an index for this component in the buffer.
         if (this.mBuffers.dynamicLightAvailableIndices.length === 0) {
             // Extend buffer by one block (4 components) if no indices are available.

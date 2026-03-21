@@ -183,13 +183,12 @@ export class GameObject extends GameEntity {
      */
     public getComponent<T extends GameComponent>(pType: IAnyParameterConstructor<T>): T {
         // Get all components of the requested type
-        const lComponent: GameComponent | undefined = this.mComponentTypeMap.get(pType);
-        if (!lComponent) {
+        if (!this.mComponentTypeMap.has(pType)) {
             throw new Error(`Component of type "${pType.name}" not found on game object "${this.label}".`);
         }
 
         // Return the first component of the requested type
-        return lComponent as T;
+        return this.mComponentTypeMap.get(pType)! as T;
     }
 
     /**
@@ -321,20 +320,20 @@ export class GameObject extends GameEntity {
      */
     public sendComponentChangeEvent(pType: GameEnvironmentStateType, pComponent: GameComponent): void {
         // Skip when no environment is connected, as there is no need to send change events.
-        if(!this.environment){
+        if (!this.environment) {
             return;
         }
 
+        this.environment.events.sendChange(pType, pComponent);
+
         // Send exact change event to any dependend components, so they can react to the change before the environment gets notified.
-        if(this.mComponentUpdateDependencies.has(pComponent)) {
+        if (pType === 'update' && this.mComponentUpdateDependencies.has(pComponent)) {
             // Read dependent components and send change event to them.
             const lDependentComponents: Array<GameComponent> = this.mComponentUpdateDependencies.get(pComponent)!;
-            for(const lDependentComponent of lDependentComponents) {
-                this.environment.events.sendChange(pType, lDependentComponent);
+            for (const lDependentComponent of lDependentComponents) {
+                lDependentComponent.update('DependencyUpdate');
             }
         }
-
-        this.environment.events.sendChange(pType, pComponent);
     }
 
     /**

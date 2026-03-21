@@ -42,7 +42,7 @@ export class MaterialSystem extends GameSystem {
     private readonly mRenderModes: Map<string, MaterialSystemRenderMode>;
     private mTextureSystem: TextureSystem | null;
     private mUpdatedMaterials: Array<MaterialSystemMaterialUpdate>;
-    
+
     /**
      * Gets the system types this system depends on.
      */
@@ -198,7 +198,7 @@ export class MaterialSystem extends GameSystem {
         if (lReferenceShaderResult.incidents.length > 0) {
             // eslint-disable-next-line no-console
             console.warn('Shader transpilation incidents:', lReferenceShaderResult.incidents);
-            
+
             throw new Exception('Failed to transpile reference shader.', this, {
                 cause: { incidents: lReferenceShaderResult.incidents }
             });
@@ -297,7 +297,7 @@ export class MaterialSystem extends GameSystem {
         for (const lMaterialUpdate of this.mUpdatedMaterials) {
             // Read compiled material for the updated material.
             const lCompiledMaterial: MaterialSystemCompiledMaterial | undefined = this.mCompiledMaterials.get(lMaterialUpdate.material);
-            if(!lCompiledMaterial) {
+            if (!lCompiledMaterial) {
                 continue;
             }
 
@@ -605,7 +605,7 @@ export class MaterialSystem extends GameSystem {
         })();
 
         // Register a change listener on the material to update the bind group when the material bindings change.
-        pMaterial.addUpdateListener((pChangedBinding) => {
+        pMaterial.addUpdateListener((_pUpdateLabel, pChangedBinding) => {
             // Only update materials that have this binding in their shader to avoid unnecessary updates.
             if (lBindGroup.layout.hasBind(pChangedBinding)) {
                 this.mUpdatedMaterials.push({
@@ -673,7 +673,7 @@ export class MaterialSystem extends GameSystem {
                 const lBindGroupData: BindGroupDataSetup = pUserBindGroup.data(pBindingName);
 
                 // Create or update buffer with the binding data.
-                if(lBindGroupData.hasData) {
+                if (lBindGroupData.hasData) {
                     lBindGroupData.getRaw<GpuBuffer>().write(lBufferData);
                 } else {
                     lBindGroupData.createBuffer().write(lBufferData);

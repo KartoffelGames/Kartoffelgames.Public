@@ -26,7 +26,6 @@ export class TransformationSystem extends GameSystem {
     private mGpuBuffer: GpuBuffer | null;
     private mMatrixDataView: Float32Array | null;
 
-
     /**
      * Gets the system types that this system depends on for its operation, such as required systems that must be initialized before this system.
      *

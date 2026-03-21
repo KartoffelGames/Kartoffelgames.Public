@@ -339,12 +339,14 @@ export class CullSystem extends GameSystem {
         // Use BVH to find all mesh renderers whose world-space AABB intersects the frustum.
         // The BVH prunes entire subtrees when their AABB does not intersect.
         const lFrustum: Frustum = pData.frustum;
-        const lResults: Array<MeshRenderComponent> = pData.bvh.find((pBounds: IBoundable) => {
+        return pData.bvh.find((pBounds: IBoundable, pMeshRenderer: MeshRenderComponent | null) => {
+            // Skip disabled mesh renderers, as they should not be visible regardless of bounds.
+            if (pMeshRenderer && !pMeshRenderer.enabled) {
+                return false;
+            }
+
             return lFrustum.intersectsBoundingBox(pBounds);
         });
-
-        // Filter out disabled mesh renderers. The BVH contains all mesh renderers regardless of enabled state.
-        return lResults.filter((pMeshRenderer: MeshRenderComponent) => pMeshRenderer.enabled);
     }
 
     /**

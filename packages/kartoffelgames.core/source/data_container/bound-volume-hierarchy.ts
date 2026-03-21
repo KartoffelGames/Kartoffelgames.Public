@@ -167,7 +167,7 @@ export class BoundVolumeHierarchy<T> {
      *
      * @returns Array of objects whose leaf AABBs passed the test.
      */
-    public find(pCallback: (pBounds: IBoundable) => boolean): Array<T> {
+    public find(pCallback: BoundVolumeHierarchyFindCallback<T>): Array<T> {
         const lResults: Array<T> = [];
 
         // Empty tree has no results.
@@ -181,21 +181,32 @@ export class BoundVolumeHierarchy<T> {
         while (lStack.length > 0) {
             const lNodeIndex: number = lStack.pop()!;
 
+            const lNodeBaseIndex: number = lNodeIndex * BoundVolumeHierarchy.TOPOLOGY_STRIDE_LENGTH;
+            const lLeftChild: number = this.mBuffers.topology.view[lNodeBaseIndex + BoundVolumeHierarchy.TOPOLOGY_LEFT_CHILD_OFFSET];
+
+            // Try to find an associated object for this node. Will be non-null only for leaf nodes.
+            const lObject: T | null = (() => {
+                // If leftChild is null, this is a leaf node. Collect the associated object and test it with the callback.
+                if (lLeftChild === BoundVolumeHierarchy.NODE_NULL_INDEX) {
+                    // Leaf node passed the test, collect the associated object.
+                    const lObjectIndex: number = this.mBuffers.topology.view[lNodeBaseIndex + BoundVolumeHierarchy.TOPOLOGY_OBJECT_INDEX_OFFSET];
+                    return this.mObjects[lObjectIndex]!;
+                }
+
+                return null;
+            })();
+
             // Test the node's AABB against the callback.
-            if (!pCallback(this.mCache.boundable.nodes.get(lNodeIndex)!)) {
+            if (!pCallback(this.mCache.boundable.nodes.get(lNodeIndex)!, lObject)) {
                 continue;
             }
 
-            const lBase: number = lNodeIndex * BoundVolumeHierarchy.TOPOLOGY_STRIDE_LENGTH;
-            const lLeftChild: number = this.mBuffers.topology.view[lBase + BoundVolumeHierarchy.TOPOLOGY_LEFT_CHILD_OFFSET];
-
-            if (lLeftChild === BoundVolumeHierarchy.NODE_NULL_INDEX) {
-                // Leaf node passed the test, collect the associated object.
-                const lObjectIndex: number = this.mBuffers.topology.view[lBase + BoundVolumeHierarchy.TOPOLOGY_OBJECT_INDEX_OFFSET];
-                lResults.push(this.mObjects[lObjectIndex]!);
+            // Eighter a leaf node passed the test, or an internal node passed the test and needs to be descended into.
+            if (lObject) {
+                lResults.push(lObject);
             } else {
                 // Internal node passed the test, descend into both children.
-                const lRightChild: number = this.mBuffers.topology.view[lBase + BoundVolumeHierarchy.TOPOLOGY_RIGHT_CHILD_OFFSET];
+                const lRightChild: number = this.mBuffers.topology.view[lNodeBaseIndex + BoundVolumeHierarchy.TOPOLOGY_RIGHT_CHILD_OFFSET];
                 lStack.push(lLeftChild);
                 lStack.push(lRightChild);
             }
@@ -890,3 +901,5 @@ type BoundVolumeHierarchyCache = {
 };
 
 type WriteableBoundable = Writeable<IBoundable>;
+
+export type BoundVolumeHierarchyFindCallback<T> = (pBounding: IBoundable, pObject: T | null) => boolean;

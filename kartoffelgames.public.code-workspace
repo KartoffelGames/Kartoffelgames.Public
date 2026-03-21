@@ -49,6 +49,10 @@
             "path": "packages\\kartoffelgames.web.gpu"
         },
         {
+            "name": "Kartoffelgames.Web.Potatno_Code",
+            "path": "./packages\\kartoffelgames.web.potatno_code"
+        },
+        {
             "name": "Kartoffelgames.Web.Potato_Engine",
             "path": "./packages\\kartoffelgames.web.potato_engine"
         },

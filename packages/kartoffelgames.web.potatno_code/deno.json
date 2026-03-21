@@ -1,5 +1,5 @@
 {
-    "name": "@kartoffelgames/web-potato-engine-editor",
+    "name": "@kartoffelgames/web-potatno-code",
     "version": "1.0.1",
     "license": "LGPL-3.0-only",
     "tasks": {},
@@ -18,7 +18,7 @@
         ]
     },
     "kg": {
-        "name": "Kartoffelgames.Web.Potato_Engine_Editor",
+        "name": "Kartoffelgames.Web.Potatno_Code",
         "config": {
             "package-blueprint": "kg-main",
             "bundle": {
@@ -31,8 +31,8 @@
                 "port": 8088
             },
             "page": {
-                "enabled": false,
-                "bundleSettingsFile": "",
+                "enabled": true,
+                "bundleSettingsFile": "../../bundle-environment/bundle-settings.ts",
                 "mainBundleRequired": false,
                 "port": 8088
             },

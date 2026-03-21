@@ -14,7 +14,8 @@
         "././packages/kartoffelgames.core.pgsl",
         "././packages/kartoffelgames.web.potato_engine",
         "././packages/kartoffelgames.web.potato_engine_editor",
-        "././packages/kartoffelgames.web.file_system"
+        "././packages/kartoffelgames.web.file_system",
+        "././packages/kartoffelgames.web.potatno_code"
     ],
     "tasks": {
         "lint": "deno run -A npm:eslint --config eslint.config.js",

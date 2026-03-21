@@ -1,4 +1,4 @@
-import { Frustum, Vector, type Matrix } from '@kartoffelgames/core';
+import { BoundVolumeHierarchy, Frustum, Vector, type IBoundable, type Matrix } from '@kartoffelgames/core';
 import { MeshRenderComponent } from '../component/mesh-render-component.ts';
 import { RenderTargetComponent } from '../component/render-target-component.ts';
 import { TransformationComponent } from '../component/transformation-component.ts';
@@ -26,7 +26,6 @@ import { TransformationSystem } from './transformation-system.ts';
 export class CullSystem extends GameSystem {
     private mDependencyTransformationSystem: TransformationSystem | null;
     private readonly mMeshRendererToRenderTargets: WeakMap<MeshRenderComponent, Set<RenderTargetComponent>>;
-    private readonly mMeshRendererWorldBounds: WeakMap<MeshRenderComponent, CullSystemWorldBounds>;
     private readonly mRenderTargetDataMap: Map<RenderTargetComponent, CullSystemRenderTargetData>;
 
     /**
@@ -54,7 +53,6 @@ export class CullSystem extends GameSystem {
         // Initialize render target data and mesh assignment maps.
         this.mRenderTargetDataMap = new Map<RenderTargetComponent, CullSystemRenderTargetData>();
         this.mMeshRendererToRenderTargets = new WeakMap<MeshRenderComponent, Set<RenderTargetComponent>>();
-        this.mMeshRendererWorldBounds = new WeakMap<MeshRenderComponent, CullSystemWorldBounds>();
 
         // Set dependencies to null. Resolved during onCreate.
         this.mDependencyTransformationSystem = null;
@@ -90,17 +88,19 @@ export class CullSystem extends GameSystem {
             // Update the frustum from the render target's current camera.
             this.updateFrustum(lRenderTarget);
 
-            // Rebuild visible mesh list using the updated frustum.
+            // Rebuild visible mesh list using BVH-accelerated frustum culling.
             lData.meshes.visible = this.executeCulling(lRenderTarget, lData);
         }
     }
 
     /**
-     * Handle component state changes for render targets and mesh renderers.
+     * Handle component state changes for render targets, mesh renderers, and transformations.
      *
      * @param pStateChanges - Map of component types to their state change events.
      */
     protected override async onUpdate(pStateChanges: GameSystemUpdateStateChanges): Promise<void> {
+        const lUpdatedRenderTargets: Set<RenderTargetComponent> = new Set<RenderTargetComponent>();
+
         // Process RenderTargetComponent changes.
         const lRenderTargetChanges: ReadonlyArray<GameEnvironmentStateChange> = pStateChanges.componentChanges.get(RenderTargetComponent)!;
         if (lRenderTargetChanges.length > 0) {
@@ -137,12 +137,10 @@ export class CullSystem extends GameSystem {
 
                 switch (lChange.type) {
                     case 'add': {
-                        // Add mesh renderer to the render target chain and compute its world bounding box.
                         this.assignMeshRenderer(lMeshRenderer);
                         break;
                     }
                     case 'remove': {
-                        // Remove mesh renderer from all assigned render targets.
                         this.removeMeshRenderer(lMeshRenderer);
                         break;
                     }
@@ -157,13 +155,23 @@ export class CullSystem extends GameSystem {
                             break;
                         }
 
-                        // Invalidate world bounds cache for this mesh renderer since its local bounds may have changed.
-                        this.mMeshRendererWorldBounds.delete(lMeshRenderer);
+                        // Update BVH in all render targets this mesh renderer belongs to.
+                        this.updateMeshRendererInBvh(lMeshRenderer);
                         break;
                     }
                 }
             }
         }
+
+        // Rebuild BVH if quality has degraded beyond threshold.
+        for (const lRenderTarget of lUpdatedRenderTargets) {
+            const lRenderTargetData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(lRenderTarget)!;
+
+            if (lRenderTargetData.bvh.quality > 2.0) {
+                lRenderTargetData.bvh.rebuild();
+            }
+        }
+
     }
 
     /**
@@ -172,9 +180,15 @@ export class CullSystem extends GameSystem {
      * @param pRenderTarget - The render target component being added.
      */
     private addRenderTarget(pRenderTarget: RenderTargetComponent): void {
-        // Create new empty culling data for this render target and a fresh frustum.
+        // Create BVH with world-bounds callback for this render target.
+        const lBvh: BoundVolumeHierarchy<MeshRenderComponent> = new BoundVolumeHierarchy<MeshRenderComponent>((pMeshRenderer: MeshRenderComponent) => {
+            return this.calculateWorldBounds(pMeshRenderer);
+        });
+
+        // Create new empty culling data for this render target.
         this.mRenderTargetDataMap.set(pRenderTarget, {
             frustum: new Frustum(),
+            bvh: lBvh,
             meshes: {
                 available: new Array<MeshRenderComponent>(),
                 visible: new Array<MeshRenderComponent>(),
@@ -214,7 +228,7 @@ export class CullSystem extends GameSystem {
 
             // Update current node for next iteration.
             lCurrentNode = lParentRenderTarget.gameEntity.parent;
-            
+
             // Remove from last assigned set. When it was previously assigned,
             // it means we have already processed this render target and can skip to the next one in the hierarchy.
             if (lLastAssignedRenderTargets.delete(lParentRenderTarget)) {
@@ -240,6 +254,7 @@ export class CullSystem extends GameSystem {
                 // Call order matters: set index before push to get length as next index.
                 lData.meshes.indexMap.set(pMeshRenderer, lData.meshes.available.length);
                 lData.meshes.available.push(pMeshRenderer);
+                lData.bvh.insert(pMeshRenderer);
             }
 
             // Stop if passthrough is not enabled.
@@ -262,7 +277,7 @@ export class CullSystem extends GameSystem {
      *
      * @returns The world-space bounding box.
      */
-    private calculateWorldBounds(pMeshRenderer: MeshRenderComponent): CullSystemWorldBounds {
+    private calculateWorldBounds(pMeshRenderer: MeshRenderComponent): IBoundable {
         // Read transformation of mesh.
         const lTransformation: TransformationComponent = pMeshRenderer.gameEntity.getComponent(TransformationComponent)!;
 
@@ -308,46 +323,29 @@ export class CullSystem extends GameSystem {
     }
 
     /**
-     * Rebuild the visible mesh renderer list for a render target using its frustum and world bounding boxes.
+     * Rebuild the visible mesh renderer list for a render target using BVH-accelerated frustum culling.
      * Reads the camera from the render target component directly.
      *
      * @param pRenderTarget - The render target component to cull for.
-     * @param pData - The culling data containing the mesh lists.
+     * @param pData - The culling data containing the BVH and frustum.
      *
      * @returns Array of visible mesh render components that passed the frustum test.
      */
     private executeCulling(pRenderTarget: RenderTargetComponent, pData: CullSystemRenderTargetData): Array<MeshRenderComponent> {
-        // Clear previous visible list.
-        const lVisibleMeshRenderers: Array<MeshRenderComponent> = new Array<MeshRenderComponent>();
-
         // Skip render targets without an assigned camera.
         if (!pRenderTarget.camera) {
-            return lVisibleMeshRenderers;
+            return new Array<MeshRenderComponent>();
         }
 
-        // Iterate active mesh renderers and test their cached world bounds against the frustum.
-        for (const lMeshRenderer of pData.meshes.available) {
-            // Skip disabled mesh renderers. They won't be visible regardless of bounds.
-            if (!lMeshRenderer.enabled) {
-                continue;
-            }
+        // Use BVH to find all mesh renderers whose world-space AABB intersects the frustum.
+        // The BVH prunes entire subtrees when their AABB does not intersect.
+        const lFrustum: Frustum = pData.frustum;
+        const lResults: Array<MeshRenderComponent> = pData.bvh.find((pBounds: IBoundable) => {
+            return lFrustum.intersectsBoundingBox(pBounds);
+        });
 
-            // Try to read cached world bounds. If not found, calculate and cache them for future frames.
-            if (!this.mMeshRendererWorldBounds.has(lMeshRenderer)) {
-                // Recalculate world bounds and cache them for future frames. This happens when a mesh renderer is added or its local bounds change.
-                this.mMeshRendererWorldBounds.set(lMeshRenderer, this.calculateWorldBounds(lMeshRenderer));
-            }
-
-            // Read cached world bounds. Always available.
-            const lWorldBounds: CullSystemWorldBounds  = this.mMeshRendererWorldBounds.get(lMeshRenderer)!;
-
-            // Test the cached world-space bounding box against the frustum.
-            if (pData.frustum.intersectsBoundingBox(lWorldBounds.minX, lWorldBounds.minY, lWorldBounds.minZ, lWorldBounds.maxX, lWorldBounds.maxY, lWorldBounds.maxZ)) {
-                lVisibleMeshRenderers.push(lMeshRenderer);
-            }
-        }
-
-        return lVisibleMeshRenderers;
+        // Filter out disabled mesh renderers. The BVH contains all mesh renderers regardless of enabled state.
+        return lResults.filter((pMeshRenderer: MeshRenderComponent) => pMeshRenderer.enabled);
     }
 
     /**
@@ -365,6 +363,9 @@ export class CullSystem extends GameSystem {
 
         for (const lRenderTarget of lRenderTargets) {
             const lRenderTargetData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(lRenderTarget)!;
+
+            // Remove from BVH.
+            lRenderTargetData.bvh.remove(pMeshRenderer);
 
             // Get current index of the mesh renderer to remove.
             const lIndex: number = lRenderTargetData.meshes.indexMap.get(pMeshRenderer)!;
@@ -396,6 +397,29 @@ export class CullSystem extends GameSystem {
             // So we can directly call assign without removing first.
             this.assignMeshRenderer(lMeshRenderer);
         }
+    }
+
+    /**
+     * Update a mesh renderer's BVH leaf AABB in all render targets it belongs to.
+     *
+     * @param pMeshRenderer - The mesh render component whose bounds changed.
+     */
+    private updateMeshRendererInBvh(pMeshRenderer: MeshRenderComponent): Array<RenderTargetComponent> {
+        const lUpdatedRenderTargets: Array<RenderTargetComponent> = new Array<RenderTargetComponent>();
+
+        // Read render targets of this mesh renderer.
+        const lRenderTargets: Set<RenderTargetComponent> = this.mMeshRendererToRenderTargets.get(pMeshRenderer)!;
+
+        // Update BVH for each render target this mesh renderer belongs to.
+        for (const lRenderTarget of lRenderTargets) {
+            const lData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(lRenderTarget)!;
+            lData.bvh.update(pMeshRenderer);
+
+            // Add render target to updated list for return value.
+            lUpdatedRenderTargets.push(lRenderTarget);
+        }
+
+        return lUpdatedRenderTargets;
     }
 
     /**
@@ -433,6 +457,7 @@ export class CullSystem extends GameSystem {
  */
 type CullSystemRenderTargetData = {
     frustum: Frustum;
+    bvh: BoundVolumeHierarchy<MeshRenderComponent>;
     meshes: {
         available: Array<MeshRenderComponent>;
         visible: Array<MeshRenderComponent>;
@@ -449,16 +474,4 @@ export type ReadonlyCullSystemRenderTargetData = {
         readonly available: ReadonlyArray<MeshRenderComponent>;
         readonly visible: ReadonlyArray<MeshRenderComponent>;
     };
-};
-
-/**
- * Axis-aligned bounding box in world space defined by min/max coordinates.
- */
-type CullSystemWorldBounds = {
-    minX: number;
-    minY: number;
-    minZ: number;
-    maxX: number;
-    maxY: number;
-    maxZ: number;
 };

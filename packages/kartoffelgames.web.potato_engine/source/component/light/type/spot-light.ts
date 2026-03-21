@@ -43,7 +43,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
         this.mColor.unlinkParent(this);
         this.mColor = pValue;
         this.mColor.linkParent(this);
-        this.update();
+        this.update('SpotLight_color');
     }
 
     /**
@@ -56,7 +56,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
         return this.mDropOff;
     } set dropOff(pValue: number) {
         this.mDropOff = pValue;
-        this.update();
+        this.update('SpotLight_dropOff');
     }
 
     /**
@@ -68,7 +68,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
         return this.mInnerAngle;
     } set innerAngle(pValue: number) {
         this.mInnerAngle = pValue;
-        this.update();
+        this.update('SpotLight_innerAngle');
     }
 
     /**
@@ -80,7 +80,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
         return this.mIntensity;
     } set intensity(pValue: number) {
         this.mIntensity = pValue;
-        this.update();
+        this.update('SpotLight_intensity');
     }
 
     /**
@@ -92,7 +92,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
         return this.mOuterAngle;
     } set outerAngle(pValue: number) {
         this.mOuterAngle = pValue;
-        this.update();
+        this.update('SpotLight_outerAngle');
     }
 
     /**
@@ -104,7 +104,7 @@ export class SpotLight extends GameComponentItem implements ILightComponentItem 
         return this.mRange;
     } set range(pValue: number) {
         this.mRange = pValue;
-        this.update();
+        this.update('SpotLight_range');
     }
 
     /**

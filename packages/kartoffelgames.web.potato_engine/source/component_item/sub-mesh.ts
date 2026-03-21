@@ -22,7 +22,7 @@ export class SubMesh extends GameComponentItem {
         this.mIndices = pValue;
 
         // Send update event to parent.
-        this.update();
+        this.update('SubMesh_indices');
     }
 
     /**
@@ -35,7 +35,7 @@ export class SubMesh extends GameComponentItem {
         this.mTopology = pValue;
 
         // Send update event to parent.
-        this.update();
+        this.update('SubMesh_topology');
     }
 
     /**

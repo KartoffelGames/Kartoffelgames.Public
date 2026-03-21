@@ -40,7 +40,7 @@ export class MeshRenderComponent extends GameComponent {
         }
 
         // Send update event to notify render pipelines that the material has changed.
-        this.update();
+        this.update('MeshRenderComponent_materials');
     }
 
     /**
@@ -60,7 +60,7 @@ export class MeshRenderComponent extends GameComponent {
         this.mMesh.linkParent(this);
 
         // Send update event to notify render pipelines that the mesh has changed.
-        this.update();
+        this.update('MeshRenderComponent_mesh');
     }
 
     /**

@@ -63,7 +63,8 @@ export class PointLight extends GameComponentItem implements ILightComponentItem
         this.mColor = pValue;
         this.mColor.linkParent(this);
 
-        this.update();
+        // Signal parent component of the change.
+        this.update('PointLight_color');
     }
 
     /**
@@ -80,7 +81,7 @@ export class PointLight extends GameComponentItem implements ILightComponentItem
 
         // Set new value and update.
         this.mDropOff = pValue;
-        this.update();
+        this.update('PointLight_dropOff');
     }
 
     /**
@@ -96,7 +97,7 @@ export class PointLight extends GameComponentItem implements ILightComponentItem
 
         // Set new value and update.
         this.mIntensity = pValue;
-        this.update();
+        this.update('PointLight_intensity');
     }
 
     /**
@@ -112,7 +113,7 @@ export class PointLight extends GameComponentItem implements ILightComponentItem
 
         // Set new value and update.
         this.mRange = pValue;
-        this.update();
+        this.update('PointLight_range');
     }
 
     /**

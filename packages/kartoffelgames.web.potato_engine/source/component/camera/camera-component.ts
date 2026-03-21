@@ -47,7 +47,7 @@ export class CameraComponent extends GameComponent {
         pValue.linkParent(this);
 
         // Trigger update.
-        this.update();
+        this.update('CameraComponent_projection');
     }
 
     /**

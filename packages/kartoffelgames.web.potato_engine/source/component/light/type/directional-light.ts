@@ -52,7 +52,9 @@ export class DirectionalLight extends GameComponentItem implements ILightCompone
         this.mColor.unlinkParent(this);
         this.mColor = pValue;
         this.mColor.linkParent(this);
-        this.update();
+
+        // Signal parent component of the change.
+        this.update('DirectionalLight_color');
     }
 
     /**
@@ -64,7 +66,9 @@ export class DirectionalLight extends GameComponentItem implements ILightCompone
         return this.mIntensity;
     } set intensity(pValue: number) {
         this.mIntensity = pValue;
-        this.update();
+
+        // Signal parent component of the change.
+        this.update('DirectionalLight_intensity');
     }
 
     /**

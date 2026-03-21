@@ -25,7 +25,9 @@ export class Shader extends GameComponentItem {
         this.systemgate();
 
         this.mShaderCode = pValue;
-        this.update();
+        
+        // Signal parent component of the change.
+        this.update('Shader_shaderCode');
     }
 
     /**

@@ -34,7 +34,9 @@ export class Material extends GameComponentItem {
         this.mShader.unlinkParent(this);
         this.mShader = pValue;
         this.mShader.linkParent(this);
-        this.update();
+
+        // Signal parent component of the change.
+        this.update('Material_shader');
     }
 
     /**
@@ -50,7 +52,8 @@ export class Material extends GameComponentItem {
         // Clear and reapply specified user values.
         this.mBindings = pValue;
 
-        this.update();
+        // Signal parent component of the change.
+        this.update('Material_userValues');
     }
 
     /**
@@ -87,7 +90,9 @@ export class Material extends GameComponentItem {
         this.systemgate();
 
         this.mBindings.set(pName, pValue);
-        this.update(pName);
+
+        // Signal parent component of the change.
+        this.update('Material_binding', pName);
     }
 }
 

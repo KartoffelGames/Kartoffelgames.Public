@@ -47,7 +47,7 @@ export class PerspectiveProjection extends GameComponentItem implements IProject
         this.mAngleOfView = pValue;
 
         // Trigger update.
-        this.triggerItemChange();
+        this.triggerItemChange('PerspectiveProjection_angleOfView');
     }
 
     /**
@@ -63,7 +63,7 @@ export class PerspectiveProjection extends GameComponentItem implements IProject
         this.mAspectRatio = pValue;
 
         // Trigger update.
-        this.triggerItemChange();
+        this.triggerItemChange('PerspectiveProjection_aspectRatio');
     }
 
     /**
@@ -80,7 +80,7 @@ export class PerspectiveProjection extends GameComponentItem implements IProject
         this.mFar = pValue;
 
         // Trigger update.
-        this.triggerItemChange();
+        this.triggerItemChange('PerspectiveProjection_far');
     }
 
     /**
@@ -97,7 +97,7 @@ export class PerspectiveProjection extends GameComponentItem implements IProject
         this.mNear = pValue;
 
         // Trigger update.
-        this.triggerItemChange();
+        this.triggerItemChange('PerspectiveProjection_near');
     }
 
     /**
@@ -208,10 +208,10 @@ export class PerspectiveProjection extends GameComponentItem implements IProject
     /**
      * Marks this component as dirty to trigger a matrix recalculation on the next access and signals the environment of the change.
      */
-    private triggerItemChange(): void {
+    private triggerItemChange(pUpdateName: string): void {
         this.mMatrix = null;
 
         // Signal environment of change for systems to react to.
-        this.update();
+        this.update(pUpdateName);
     }
 }

@@ -8,6 +8,10 @@ import { Writeable } from "../types.ts";
  * Supports incremental insert, remove, and update operations with automatic
  * quality tracking and optional full rebuild.
  *
+ * Insert uses a fast volume-increase heuristic for sloppy but cheap placement.
+ * Rebuild uses a full SAH centroid midpoint split for optimal tree quality.
+ * The {@link quality} metric tracks degradation so callers can trigger rebuilds.
+ *
  * The AABB buffer is a {@link Float32Array} with 6 floats per node
  * (minX, minY, minZ, maxX, maxY, maxZ).
  * The topology buffer is an {@link Int32Array} with 4 integers per node
@@ -202,7 +206,8 @@ export class BoundVolumeHierarchy<T> {
 
     /**
      * Insert an object into the hierarchy.
-     * Uses SAH-guided sibling selection for near-optimal tree quality.
+     * Uses a fast volume-increase heuristic for sibling selection.
+     * The resulting placement may be suboptimal; use {@link rebuild} to restore optimal quality.
      *
      * @param pObject - Object to insert.
      *
@@ -579,24 +584,33 @@ export class BoundVolumeHierarchy<T> {
     }
 
     /**
-     * Compute the surface area of the union of a node's AABB and a raw AABB.
+     * Compute the volume of a node's AABB from its cached bounds.
+     *
+     * @param pNodeIndex - Index of the node.
+     *
+     * @returns Volume of the node's AABB.
+     */
+    private computeNodeVolume(pNodeIndex: number): number {
+        const lBounds: WriteableBoundable = this.mCache.boundable.nodes.get(pNodeIndex)!;
+        return (lBounds.maxX - lBounds.minX) * (lBounds.maxY - lBounds.minY) * (lBounds.maxZ - lBounds.minZ);
+    }
+
+    /**
+     * Compute the volume of the union of a node's AABB and a raw AABB.
      *
      * @param pNodeIndex - Index of the existing node.
-     * @param pNodeTwoBounds - Raw AABB to union with the node's AABB.
+     * @param pBounds - Raw AABB to union with the node's AABB.
      *
-     * @returns Surface area of the union AABB.
+     * @returns Volume of the union AABB.
      */
-    private computeUnionSurfaceAreaWithRaw(pNodeIndex: number, pNodeTwoBounds: IBoundable): number {
-        // Get base index for the node's AABB in the buffer.
+    private computeUnionVolumeWithRaw(pNodeIndex: number, pBounds: IBoundable): number {
         const lBaseIndex: number = pNodeIndex * BoundVolumeHierarchy.AABB_STRIDE_LENGTH;
 
-        // Read min and max of the node's AABB and compute the extents of the union with the raw AABB.
-        const lDx: number = Math.max(this.mBuffers.aabb.view[lBaseIndex + BoundVolumeHierarchy.AABB_MAX_X_OFFSET], pNodeTwoBounds.maxX) - Math.min(this.mBuffers.aabb.view[lBaseIndex + BoundVolumeHierarchy.AABB_MIN_X_OFFSET], pNodeTwoBounds.minX);
-        const lDy: number = Math.max(this.mBuffers.aabb.view[lBaseIndex + BoundVolumeHierarchy.AABB_MAX_Y_OFFSET], pNodeTwoBounds.maxY) - Math.min(this.mBuffers.aabb.view[lBaseIndex + BoundVolumeHierarchy.AABB_MIN_Y_OFFSET], pNodeTwoBounds.minY);
-        const lDz: number = Math.max(this.mBuffers.aabb.view[lBaseIndex + BoundVolumeHierarchy.AABB_MAX_Z_OFFSET], pNodeTwoBounds.maxZ) - Math.min(this.mBuffers.aabb.view[lBaseIndex + BoundVolumeHierarchy.AABB_MIN_Z_OFFSET], pNodeTwoBounds.minZ);
+        const lDx: number = Math.max(this.mBuffers.aabb.view[lBaseIndex + BoundVolumeHierarchy.AABB_MAX_X_OFFSET], pBounds.maxX) - Math.min(this.mBuffers.aabb.view[lBaseIndex + BoundVolumeHierarchy.AABB_MIN_X_OFFSET], pBounds.minX);
+        const lDy: number = Math.max(this.mBuffers.aabb.view[lBaseIndex + BoundVolumeHierarchy.AABB_MAX_Y_OFFSET], pBounds.maxY) - Math.min(this.mBuffers.aabb.view[lBaseIndex + BoundVolumeHierarchy.AABB_MIN_Y_OFFSET], pBounds.minY);
+        const lDz: number = Math.max(this.mBuffers.aabb.view[lBaseIndex + BoundVolumeHierarchy.AABB_MAX_Z_OFFSET], pBounds.maxZ) - Math.min(this.mBuffers.aabb.view[lBaseIndex + BoundVolumeHierarchy.AABB_MIN_Z_OFFSET], pBounds.minZ);
 
-        // AABB surface area = 2 * (dx*dy + dy*dz + dz*dx)
-        return 2.0 * (lDx * lDy + lDy * lDz + lDz * lDx);
+        return lDx * lDy * lDz;
     }
 
     /**
@@ -625,52 +639,27 @@ export class BoundVolumeHierarchy<T> {
     }
 
     /**
-     * Find the best sibling for inserting a new leaf using SAH-guided greedy descent.
+     * Find the best sibling for inserting a new leaf using smallest volume increase descent.
+     * Descends to a leaf, picking the child whose AABB volume grows the least when unioned with the new leaf.
      *
      * @param pLeafIndex - Index of the new leaf node to insert.
      */
     private findBestSibling(pLeafIndex: number): number {
-        // Read leaf bounds from the cache to avoid redundant buffer reads during descent.
         const lLeafBounds: IBoundable = this.mCache.boundable.nodes.get(pLeafIndex)!;
 
         let lNode: number = this.mRootIndex;
 
-        // Descend the tree greedily, choosing the child with lower SAH cost at each level.
+        // Descend to a leaf, at each level picking the child with smaller volume increase.
         while (this.mBuffers.topology.view[lNode * BoundVolumeHierarchy.TOPOLOGY_STRIDE_LENGTH + BoundVolumeHierarchy.TOPOLOGY_LEFT_CHILD_OFFSET] !== BoundVolumeHierarchy.NODE_NULL_INDEX) {
             const lLeft: number = this.mBuffers.topology.view[lNode * BoundVolumeHierarchy.TOPOLOGY_STRIDE_LENGTH + BoundVolumeHierarchy.TOPOLOGY_LEFT_CHILD_OFFSET];
             const lRight: number = this.mBuffers.topology.view[lNode * BoundVolumeHierarchy.TOPOLOGY_STRIDE_LENGTH + BoundVolumeHierarchy.TOPOLOGY_RIGHT_CHILD_OFFSET];
 
-            // Cost of creating a new parent at this node.
-            const lCombinedArea: number = this.computeUnionSurfaceAreaWithRaw(lNode, lLeafBounds);
-            const lCurrentArea: number = this.mCache.surface.nodes.get(lNode)!;
-            const lInheritanceCost: number = lCombinedArea - lCurrentArea;
+            // Volume increase for each child when unioned with the new leaf.
+            const lLeftVolumeIncrease: number = this.computeUnionVolumeWithRaw(lLeft, lLeafBounds) - this.computeNodeVolume(lLeft);
+            const lRightVolumeIncrease: number = this.computeUnionVolumeWithRaw(lRight, lLeafBounds) - this.computeNodeVolume(lRight);
 
-            // Cost of descending to the left child. For leaf children, the cost is the
-            // full union area. For internal children, only the area increase matters.
-            const lLeftUnionArea: number = this.computeUnionSurfaceAreaWithRaw(lLeft, lLeafBounds);
-            let lCostLeft: number;
-            if (this.mBuffers.topology.view[lLeft * BoundVolumeHierarchy.TOPOLOGY_STRIDE_LENGTH + BoundVolumeHierarchy.TOPOLOGY_LEFT_CHILD_OFFSET] === BoundVolumeHierarchy.NODE_NULL_INDEX) {
-                lCostLeft = lLeftUnionArea + lInheritanceCost;
-            } else {
-                lCostLeft = (lLeftUnionArea - this.mCache.surface.nodes.get(lLeft)!) + lInheritanceCost;
-            }
-
-            // Cost of descending to the right child.
-            const lRightUnionArea: number = this.computeUnionSurfaceAreaWithRaw(lRight, lLeafBounds);
-            let lCostRight: number;
-            if (this.mBuffers.topology.view[lRight * BoundVolumeHierarchy.TOPOLOGY_STRIDE_LENGTH + BoundVolumeHierarchy.TOPOLOGY_LEFT_CHILD_OFFSET] === BoundVolumeHierarchy.NODE_NULL_INDEX) {
-                lCostRight = lRightUnionArea + lInheritanceCost;
-            } else {
-                lCostRight = (lRightUnionArea - this.mCache.surface.nodes.get(lRight)!) + lInheritanceCost;
-            }
-
-            // Stop if inserting here is cheaper than descending further.
-            if (lCombinedArea <= Math.min(lCostLeft, lCostRight)) {
-                break;
-            }
-
-            // Descend toward the cheaper child.
-            if (lCostLeft < lCostRight) {
+            // Descend toward the child with smaller volume increase.
+            if (lLeftVolumeIncrease <= lRightVolumeIncrease) {
                 lNode = lLeft;
             } else {
                 lNode = lRight;

@@ -91,17 +91,17 @@ export abstract class GameComponentItem<TUpdateStateChanges extends string = any
      *
      * @internal
      */
-    public update(pStateChanges?: TUpdateStateChanges): void {
+    public update(pUpdateName: string, pStateChanges?: TUpdateStateChanges): void {
         // Send a component update event for every linked parent component to signal that this item has changed and that the parent components may need to update as well.
         for (const lParent of this.mLinkedParents) {
-            lParent.update(pStateChanges);
+            lParent.update(pUpdateName, pStateChanges);
         }
 
         // Notify all update listeners. 
         // Small performance optimization to avoid iterating over the listeners array if there are no listeners.
         if (this.mUpdateListeners.length > 0) {
             for (const lListener of this.mUpdateListeners) {
-                lListener(pStateChanges);
+                lListener(pUpdateName, pStateChanges);
             }
         }
     }

@@ -14,7 +14,9 @@ export class Texture extends GameComponentItem {
         return this.mImageData;
     } set imageData(pValue: ArrayBuffer) {
         this.mImageData = pValue;
-        this.update();
+
+        // Signal parent component of the change.
+        this.update('Texture_imageData');
     }
 
     /**

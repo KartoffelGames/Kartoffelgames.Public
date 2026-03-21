@@ -1,3 +1,4 @@
+import { IBoundable } from "../interface/i-boundable.ts";
 import type { Matrix } from './matrix.ts';
 
 /**
@@ -42,12 +43,12 @@ export class Frustum {
      *
      * @returns True if the AABB intersects or is inside the frustum.
      */
-    public intersectsBoundingBox(pMinX: number, pMinY: number, pMinZ: number, pMaxX: number, pMaxY: number, pMaxZ: number): boolean {
+    public intersectsBoundingBox(pBoundingBox: IBoundable): boolean {
         for (const lPlane of this.mPlanes) {
             // Select the positive vertex: the corner of the AABB most aligned with the plane normal.
-            const lPositiveVertexX: number = lPlane.normalX >= 0 ? pMaxX : pMinX;
-            const lPositiveVertexY: number = lPlane.normalY >= 0 ? pMaxY : pMinY;
-            const lPositiveVertexZ: number = lPlane.normalZ >= 0 ? pMaxZ : pMinZ;
+            const lPositiveVertexX: number = lPlane.normalX >= 0 ? pBoundingBox.maxX : pBoundingBox.minX;
+            const lPositiveVertexY: number = lPlane.normalY >= 0 ? pBoundingBox.maxY : pBoundingBox.minY;
+            const lPositiveVertexZ: number = lPlane.normalZ >= 0 ? pBoundingBox.maxZ : pBoundingBox.minZ;
 
             // If the positive vertex is on the negative side of this plane, the entire AABB is outside.
             if (lPlane.normalX * lPositiveVertexX + lPlane.normalY * lPositiveVertexY + lPlane.normalZ * lPositiveVertexZ + lPlane.distance < 0) {

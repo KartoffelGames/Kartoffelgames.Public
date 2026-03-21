@@ -49,7 +49,9 @@ export class BoundingBox extends GameComponentItem{
 
         // Set new value and update.
         this.mMaxX = pValue;
-        this.update();
+
+        // Signal parent component of the change.
+        this.update('BoundingBox_maxX');
     }
 
     /**
@@ -65,7 +67,9 @@ export class BoundingBox extends GameComponentItem{
 
         // Set new value and update.
         this.mMaxY = pValue;
-        this.update();
+
+        // Signal parent component of the change.
+        this.update('BoundingBox_maxY');
     }
 
     /**
@@ -81,7 +85,9 @@ export class BoundingBox extends GameComponentItem{
 
         // Set new value and update.
         this.mMaxZ = pValue;
-        this.update();
+
+        // Signal parent component of the change.
+        this.update('BoundingBox_maxZ');
     }
 
     /**
@@ -97,7 +103,9 @@ export class BoundingBox extends GameComponentItem{
 
         // Set new value and update.
         this.mMinX = pValue;
-        this.update();
+
+        // Signal parent component of the change.
+        this.update('BoundingBox_minX');
     }
 
     /**
@@ -113,7 +121,9 @@ export class BoundingBox extends GameComponentItem{
 
         // Set new value and update.
         this.mMinY = pValue;
-        this.update();
+
+        // Signal parent component of the change.
+        this.update('BoundingBox_minY');
     }
 
     /**
@@ -129,7 +139,9 @@ export class BoundingBox extends GameComponentItem{
 
         // Set new value and update.
         this.mMinZ = pValue;
-        this.update();
+
+        // Signal parent component of the change.
+        this.update('BoundingBox_minZ');
     }
 
     /**

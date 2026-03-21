@@ -198,6 +198,6 @@ export class OrthographicProjection extends GameComponentItem implements IProjec
         this.mMatrix = null;
 
         // Signal environment of change for systems to react to.
-        this.update();
+        this.update('OrthographicProjection_change');
     }
 } 

@@ -43,7 +43,8 @@ export class LightComponent extends GameComponent {
         this.mLight = pValue;
         this.mLight.linkParent(this);
 
-        this.update();
+        // Trigger update to notify systems of the change.
+        this.update('LightComponent_light');
     }
 
     /**

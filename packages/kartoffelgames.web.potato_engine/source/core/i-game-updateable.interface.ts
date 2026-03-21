@@ -2,7 +2,7 @@ export interface IGameUpdateable<TUpdateStateChanges extends string> {
     /**
      * Trigger an update response for this object.
      */
-    update(pStateChanges?: TUpdateStateChanges): void;
+    update(pUpdateName: string, pStateChanges?: TUpdateStateChanges): void;
 
     /**
      * Adds a listener function that will be called whenever this object is updated.
@@ -19,4 +19,4 @@ export interface IGameUpdateable<TUpdateStateChanges extends string> {
     removeUpdateListener(pListener: GameUpdateableUpdateListener<TUpdateStateChanges>): void;
 }
 
-export type GameUpdateableUpdateListener<TUpdateStateChanges extends string> = (pStateChanges?: TUpdateStateChanges) => void;
+export type GameUpdateableUpdateListener<TUpdateStateChanges extends string> = (pUpdateName: string, pStateChanges?: TUpdateStateChanges) => void;

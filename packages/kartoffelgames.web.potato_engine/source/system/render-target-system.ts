@@ -269,7 +269,7 @@ export class RenderTargetSystem extends GameSystem {
         // Assign camera only when the render target has no active camera.
         if (!lParentRenderTarget.camera) {
             // Set camera on the render target component.
-            lParentRenderTarget.assignCamera(pCamera);
+            lParentRenderTarget.camera = pCamera;
 
             // Track the camera-to-render-target assignment.
             this.mCameraToRenderTarget.set(pCamera, lParentRenderTarget);
@@ -314,7 +314,7 @@ export class RenderTargetSystem extends GameSystem {
         const lRenderTarget: RenderTargetComponent = this.mCameraToRenderTarget.get(pCamera)!;
 
         // Clear camera assignment on the render target.
-        lRenderTarget.assignCamera(null);
+        lRenderTarget.camera = null;
 
         // Remove camera-to-render-target tracking.
         this.mCameraToRenderTarget.delete(pCamera);
@@ -349,7 +349,7 @@ export class RenderTargetSystem extends GameSystem {
         if (lCamera) {
             // Remove camera tracking.
             this.mCameraToRenderTarget.delete(lCamera);
-            pRenderTarget.assignCamera(null);
+            pRenderTarget.camera = null;
 
             // Try to reassign the camera to its new parent render target.
             this.assignCamera(lCamera);
@@ -386,7 +386,11 @@ export class RenderTargetSystem extends GameSystem {
         // Update camera aspect ratio when the render target has an assigned camera.
         const lCamera: CameraComponent | null = pRenderTarget.camera;
         if (lCamera) {
-            lCamera.projection.aspectRatio = pRenderTarget.width / pRenderTarget.height;
+            // Only update aspect ratio when it actually changed to avoid unnecessary updates.
+            const lNewAspectRatio: number = pRenderTarget.width / pRenderTarget.height;
+            if (lCamera.projection.aspectRatio !== lNewAspectRatio) {
+                lCamera.projection.aspectRatio = pRenderTarget.width / pRenderTarget.height;
+            }
         }
     }
 }

@@ -111,7 +111,7 @@ export class Mesh extends GameComponentItem {
         this.mBounds = pValue;
 
         // Signal parent component of the change.
-        this.update();
+        this.update('Mesh_bounds');
     }
 
     /**
@@ -125,7 +125,7 @@ export class Mesh extends GameComponentItem {
         this.mColors = pValue;
 
         // Signal parent component of the change.
-        this.update();
+        this.update('Mesh_colors');
     }
 
     /**
@@ -152,7 +152,7 @@ export class Mesh extends GameComponentItem {
         this.mNormals = pValue;
 
         // Signal parent component of the change.
-        this.update();
+        this.update('Mesh_normals');
     }
 
     /**
@@ -175,7 +175,7 @@ export class Mesh extends GameComponentItem {
         this.mUv1 = pValue;
 
         // Signal parent component of the change.
-        this.update();
+        this.update('Mesh_uv1');
     }
 
     /**
@@ -189,7 +189,7 @@ export class Mesh extends GameComponentItem {
         this.mUv2 = pValue;
 
         // Signal parent component of the change.
-        this.update();
+        this.update('Mesh_uv2');
     }
 
     /**
@@ -203,7 +203,7 @@ export class Mesh extends GameComponentItem {
         this.mUv3 = pValue;
 
         // Signal parent component of the change.
-        this.update();
+        this.update('Mesh_uv3');
     }
 
     /**
@@ -217,7 +217,7 @@ export class Mesh extends GameComponentItem {
         this.mUv4 = pValue;
 
         // Signal parent component of the change.
-        this.update();
+        this.update('Mesh_uv4');
     }
 
     /**
@@ -239,7 +239,7 @@ export class Mesh extends GameComponentItem {
         this.mVertices = pValue;
 
         // Signal parent component of the change.
-        this.update();
+        this.update('Mesh_verticesData');
     }
 
     /**
@@ -285,7 +285,7 @@ export class Mesh extends GameComponentItem {
         this.mSubMeshes.push(lSubMesh);
 
         // Signal parent component of the change.
-        this.update();
+        this.update('Mesh_addSubMesh');
 
         return lSubMesh;
     }
@@ -308,6 +308,6 @@ export class Mesh extends GameComponentItem {
         this.mSubMeshes.splice(pIndex, 1);
 
         // Signal parent component of the change.
-        this.update();
+        this.update('Mesh_removeSubMesh');
     }
 }

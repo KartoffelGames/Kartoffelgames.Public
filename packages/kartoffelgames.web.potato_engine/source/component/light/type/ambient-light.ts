@@ -63,7 +63,8 @@ export class AmbientLight extends GameComponentItem implements ILightComponentIt
         this.mColor = pValue;
         this.mColor.linkParent(this);
 
-        this.update();
+        // Signal parent component of the change.
+        this.update('AmbientLight_color');
     }
 
     /**
@@ -80,7 +81,9 @@ export class AmbientLight extends GameComponentItem implements ILightComponentIt
 
         // Set new value and update.
         this.mDropOff = pValue;
-        this.update();
+
+        // Signal parent component of the change.
+        this.update('AmbientLight_dropOff');
     }
 
     /**
@@ -96,7 +99,9 @@ export class AmbientLight extends GameComponentItem implements ILightComponentIt
 
         // Set new value and update.
         this.mIntensity = pValue;
-        this.update();
+
+        // Signal parent component of the change.
+        this.update('AmbientLight_intensity');
     }
 
     /**
@@ -112,7 +117,9 @@ export class AmbientLight extends GameComponentItem implements ILightComponentIt
 
         // Set new value and update.
         this.mRange = pValue;
-        this.update();
+
+        // Signal parent component of the change.
+        this.update('AmbientLight_range');
     }
 
     /**

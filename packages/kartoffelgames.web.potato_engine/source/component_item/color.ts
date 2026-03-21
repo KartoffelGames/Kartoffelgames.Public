@@ -38,7 +38,9 @@ export class Color extends GameComponentItem {
 
         // Set new value and update.
         this.mData[3] = pValue;
-        this.update();
+
+        // Signal parent component of the change.
+        this.update('Color_a');
     }
 
     /**
@@ -54,7 +56,9 @@ export class Color extends GameComponentItem {
 
         // Set new value and update.
         this.mData[2] = pValue;
-        this.update();
+
+        // Signal parent component of the change.
+        this.update('Color_b');
     }
 
     /**
@@ -77,7 +81,9 @@ export class Color extends GameComponentItem {
 
         // Set new value and update.
         this.mData[1] = pValue;
-        this.update();
+
+        // Signal parent component of the change.
+        this.update('Color_g');
     }
 
     /**
@@ -93,7 +99,9 @@ export class Color extends GameComponentItem {
 
         // Set new value and update.
         this.mData[0] = pValue;
-        this.update();
+
+        // Signal parent component of the change.
+        this.update('Color_r');
     }
 
     /**

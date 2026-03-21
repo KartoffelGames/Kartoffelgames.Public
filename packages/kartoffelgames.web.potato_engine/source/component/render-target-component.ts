@@ -10,6 +10,7 @@ import type { CameraComponent } from './camera/camera-component.ts';
 @FileSystem.fileClass('567596b5-8f19-4710-8f55-99f493be2f47', FileSystemReferenceType.Instanced)
 export class RenderTargetComponent extends GameComponent {
     private mAssignedCamera: CameraComponent | null;
+    private readonly mCameraUpdateListener: (pUpdateName: string) => void;
     private mHeight: number;
     private mPassthrough: boolean;
     private mRenderer: string | null;
@@ -21,6 +22,21 @@ export class RenderTargetComponent extends GameComponent {
      */
     public get camera(): CameraComponent | null {
         return this.mAssignedCamera;
+    } set camera(pCamera: CameraComponent | null) {
+        // Remove listener from old camera if assigned.
+        if (this.mAssignedCamera) {
+            this.mAssignedCamera.removeUpdateListener(this.mCameraUpdateListener);
+        }
+
+        this.mAssignedCamera = pCamera;
+
+        // Add listener to new camera to react to changes.
+        if (this.mAssignedCamera) {
+            this.mAssignedCamera.addUpdateListener(this.mCameraUpdateListener);
+        }
+
+        // Signal changes.
+        this.update('RenderTargetComponent_camera');
     }
 
     /**
@@ -33,7 +49,7 @@ export class RenderTargetComponent extends GameComponent {
         this.mHeight = pValue;
 
         // Signal parent component of the change.
-        this.update();
+        this.update('RenderTargetComponent_height');
     }
 
     /**
@@ -46,7 +62,7 @@ export class RenderTargetComponent extends GameComponent {
         this.mPassthrough = pValue;
 
         // Signal parent component of the change.
-        this.update();
+        this.update('RenderTargetComponent_passthrough');
     }
 
     /**
@@ -59,7 +75,7 @@ export class RenderTargetComponent extends GameComponent {
         this.mRenderer = pValue;
 
         // Signal parent component of the change.
-        this.update();
+        this.update('RenderTargetComponent_renderer');
     }
 
     /**
@@ -84,18 +100,11 @@ export class RenderTargetComponent extends GameComponent {
         this.mPassthrough = false;
         this.mRenderer = null;
         this.mAssignedCamera = null;
-    }
 
-    /**
-     * Set or clear the active camera for this render target.
-     * Pass null to unassign the current camera.
-     *
-     * @param pCamera - The camera component to assign, or null to clear the assignment.
-     */
-    public assignCamera(pCamera: CameraComponent | null): void {
-        this.mAssignedCamera = pCamera;
-
-        // Signal changes.
-        this.update();
+        // Create components camera update listener to react to changes in the assigned camera.
+        this.mCameraUpdateListener = (pUpdateName) => {
+            console.log(pUpdateName)
+            this.update(`RenderTargetComponent_${pUpdateName}`);
+        };
     }
 }

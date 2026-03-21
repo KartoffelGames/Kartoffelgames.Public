@@ -440,6 +440,6 @@ export class TransformationComponent extends GameComponent {
         this.mMatrix = null;
 
         // Signal environment of change for systems to react to.
-        this.update();
+        this.update('TransformationComponent_change');
     }
 }

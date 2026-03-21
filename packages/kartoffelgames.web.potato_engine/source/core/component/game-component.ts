@@ -104,15 +104,18 @@ export class GameComponent<TUpdateStateChanges extends string = any> extends Gam
 
     /**
      * Transmits a component update event to the environment handler.
+     * 
+     * @param pUpdateName - Label name of update.
+     * @param pStateChanges - Explicit changed state of a component.
      *
      * @internal
      */
-    public update(pStateChanges?: TUpdateStateChanges): void {
+    public update(pUpdateName: string, pStateChanges?: TUpdateStateChanges): void {
         this.gameEntity.sendComponentChangeEvent('update', this);
 
         if (this.mUpdateListeners.length > 0) {
             for (const lListener of this.mUpdateListeners) {
-                lListener(pStateChanges);
+                lListener(pUpdateName, pStateChanges);
             }
         }
     }

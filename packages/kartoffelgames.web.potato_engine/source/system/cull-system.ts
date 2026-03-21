@@ -5,9 +5,8 @@ import { TransformationComponent } from '../component/transformation-component.t
 import type { BoundingBox } from '../component_item/bounding-box.ts';
 import type { GameComponentConstructor } from '../core/component/game-component.ts';
 import type { GameEnvironment, GameEnvironmentStateChange } from '../core/environment/game-environment.ts';
-import { GameSystem, type GameSystemUpdateStateChanges, type GameSystemConstructor } from '../core/game-system.ts';
+import { GameSystem, type GameSystemConstructor, type GameSystemUpdateStateChanges } from '../core/game-system.ts';
 import type { GameObject } from '../core/hierarchy/game-object.ts';
-import { RenderTargetSystem } from './render-target-system.ts';
 import { TransformationSystem } from './transformation-system.ts';
 
 /**
@@ -406,31 +405,6 @@ export class CullSystem extends GameSystem {
     }
 
     /**
-     * Update a mesh renderer's BVH leaf AABB in all render targets it belongs to.
-     *
-     * @param pMeshRenderer - The mesh render component whose bounds changed.
-     */
-    private updateMeshRendererInBvh(pMeshRenderer: MeshRenderComponent): Array<RenderTargetComponent> {
-        const lUpdatedRenderTargets: Array<RenderTargetComponent> = new Array<RenderTargetComponent>();
-
-        // Read render targets of this mesh renderer.
-        const lRenderTargets: Set<RenderTargetComponent> = this.mMeshRendererToRenderTargets.get(pMeshRenderer)!;
-
-        // Update BVH for each render target this mesh renderer belongs to.
-        for (const lRenderTarget of lRenderTargets) {
-            // Update BVH leaf for this mesh renderer and add BVH to update tracking set for potential clustered rebuild.
-            const lBoundingVolumeHierarchy: BoundVolumeHierarchy<MeshRenderComponent> = this.mRenderTargetDataMap.get(lRenderTarget)!.bvh;
-            lBoundingVolumeHierarchy.update(pMeshRenderer);
-            this.mUpdatedBoundingVolumeHierarchies.add(lBoundingVolumeHierarchy);
-
-            // Add render target to updated list for return value.
-            lUpdatedRenderTargets.push(lRenderTarget);
-        }
-
-        return lUpdatedRenderTargets;
-    }
-
-    /**
      * Update the cached frustum for a render target using its assigned camera's world transformation.
      * Reads the camera directly from the render target component.
      *
@@ -455,6 +429,31 @@ export class CullSystem extends GameSystem {
 
         // Update the frustum with the new view-projection matrix.
         lRenderTargetData.frustum.update(lViewProjectionMatrix);
+    }
+
+    /**
+     * Update a mesh renderer's BVH leaf AABB in all render targets it belongs to.
+     *
+     * @param pMeshRenderer - The mesh render component whose bounds changed.
+     */
+    private updateMeshRendererInBvh(pMeshRenderer: MeshRenderComponent): Array<RenderTargetComponent> {
+        const lUpdatedRenderTargets: Array<RenderTargetComponent> = new Array<RenderTargetComponent>();
+
+        // Read render targets of this mesh renderer.
+        const lRenderTargets: Set<RenderTargetComponent> = this.mMeshRendererToRenderTargets.get(pMeshRenderer)!;
+
+        // Update BVH for each render target this mesh renderer belongs to.
+        for (const lRenderTarget of lRenderTargets) {
+            // Update BVH leaf for this mesh renderer and add BVH to update tracking set for potential clustered rebuild.
+            const lBoundingVolumeHierarchy: BoundVolumeHierarchy<MeshRenderComponent> = this.mRenderTargetDataMap.get(lRenderTarget)!.bvh;
+            lBoundingVolumeHierarchy.update(pMeshRenderer);
+            this.mUpdatedBoundingVolumeHierarchies.add(lBoundingVolumeHierarchy);
+
+            // Add render target to updated list for return value.
+            lUpdatedRenderTargets.push(lRenderTarget);
+        }
+
+        return lUpdatedRenderTargets;
     }
 }
 

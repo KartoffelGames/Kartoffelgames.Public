@@ -7,7 +7,7 @@ import type { GameEnvironment, GameEnvironmentStateChange } from '../core/enviro
 import { GameSystem, type GameSystemConstructor, type GameSystemUpdateStateChanges } from '../core/game-system.ts';
 import { GpuSystem } from './gpu-system.ts';
 import type { RenderTargetsSetup } from '../../../kartoffelgames.web.gpu/source/pipeline/render_targets/render-targets-setup.ts';
-import { ReadonlyRenderTargetsColorTexture } from "../../../kartoffelgames.web.gpu/source/pipeline/render_targets/render-targets.ts";
+import type { ReadonlyRenderTargetsColorTexture } from '../../../kartoffelgames.web.gpu/source/pipeline/render_targets/render-targets.ts';
 
 /**
  * System responsible for managing render targets in the environment.
@@ -23,11 +23,11 @@ export class RenderTargetSystem extends GameSystem {
     private readonly mCameraToRenderTarget: WeakMap<CameraComponent, RenderTargetComponent>;
     private mCanvas: HTMLCanvasElement | null;
     private mDefaultRendererName: string | null;
+    private readonly mForcedRenderTargetTextures: WeakMap<RenderTargetComponent, IGpuTexture>;
     private readonly mRenderTargetToRenderer: Map<RenderTargetComponent, string>;
     private readonly mRenderTargets: WeakMap<RenderTargetComponent, RenderTargets>;
     private readonly mRenderers: Map<string, RenderTargetSystemRendererData>;
-    private readonly mForcedRenderTargetTextures: WeakMap<RenderTargetComponent, IGpuTexture>;
-
+    
     /**
      * Canvas element used for rendering.
      */

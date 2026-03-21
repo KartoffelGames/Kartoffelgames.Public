@@ -1,4 +1,4 @@
-import { IBoundable } from "../interface/i-boundable.ts";
+import type { IBoundable } from '../interface/i-boundable.ts';
 import type { Matrix } from './matrix.ts';
 
 /**

@@ -196,7 +196,9 @@ export class MaterialSystem extends GameSystem {
 
         // Check for incidents before extracting layouts to avoid partial registration if the default shader has issues.
         if (lReferenceShaderResult.incidents.length > 0) {
+            // eslint-disable-next-line no-console
             console.warn('Shader transpilation incidents:', lReferenceShaderResult.incidents);
+            
             throw new Exception('Failed to transpile reference shader.', this, {
                 cause: { incidents: lReferenceShaderResult.incidents }
             });

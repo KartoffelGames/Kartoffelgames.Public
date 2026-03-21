@@ -1,6 +1,6 @@
 import { Exception } from '../exception/exception.ts';
 import type { IBoundable } from '../interface/i-boundable.ts';
-import { Writeable } from "../types.ts";
+import type { Writeable } from '../types.ts';
 
 /**
  * Online linearized bounding volume hierarchy for 3D axis-aligned bounding boxes.
@@ -609,18 +609,18 @@ export class BoundVolumeHierarchy<T> {
      */
     private calculateUnionAabb(pNodeOne: number, pNodeTwo: number): WriteableBoundable {
         // Read source AABBs from cache.
-        const lNodeABounds: WriteableBoundable = this.mCache.boundable.nodes.get(pNodeOne)!;
-        const lNodeBBounds: WriteableBoundable = this.mCache.boundable.nodes.get(pNodeTwo)!;
+        const lNodeOneBounds: WriteableBoundable = this.mCache.boundable.nodes.get(pNodeOne)!;
+        const lNodeTwoBounds: WriteableBoundable = this.mCache.boundable.nodes.get(pNodeTwo)!;
 
         // Compute the union of the two AABBs.
         return {
-           minX: Math.min(lNodeABounds.minX, lNodeBBounds.minX),
-           minY: Math.min(lNodeABounds.minY, lNodeBBounds.minY),
-           minZ: Math.min(lNodeABounds.minZ, lNodeBBounds.minZ),
-           maxX: Math.max(lNodeABounds.maxX, lNodeBBounds.maxX),
-           maxY: Math.max(lNodeABounds.maxY, lNodeBBounds.maxY),
-           maxZ: Math.max(lNodeABounds.maxZ, lNodeBBounds.maxZ)
-        }
+           minX: Math.min(lNodeOneBounds.minX, lNodeTwoBounds.minX),
+           minY: Math.min(lNodeOneBounds.minY, lNodeTwoBounds.minY),
+           minZ: Math.min(lNodeOneBounds.minZ, lNodeTwoBounds.minZ),
+           maxX: Math.max(lNodeOneBounds.maxX, lNodeTwoBounds.maxX),
+           maxY: Math.max(lNodeOneBounds.maxY, lNodeTwoBounds.maxY),
+           maxZ: Math.max(lNodeOneBounds.maxZ, lNodeTwoBounds.maxZ)
+        };
     }
 
     /**

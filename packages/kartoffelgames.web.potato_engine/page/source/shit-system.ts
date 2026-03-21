@@ -1,18 +1,23 @@
-import {
-    CanvasTexture,
-    type BindGroup,
-    type GpuBuffer,
-    type PipelineData,
-    type RenderTargets,
-    type VertexFragmentPipeline,
+import type {
+    BindGroup,
+    GpuBuffer,
+    PipelineData,
+    RenderTargets,
+    VertexFragmentPipeline
 } from '@kartoffelgames/web-gpu';
 import type { MeshRenderComponent } from '../../source/component/mesh-render-component.ts';
+import type { RenderTargetComponent } from '../../source/component/render-target-component.ts';
 import { TransformationComponent } from '../../source/component/transformation-component.ts';
 import { Material } from '../../source/component_item/material.ts';
 import type { Mesh } from '../../source/component_item/mesh.ts';
 import type { GameComponentConstructor } from '../../source/core/component/game-component.ts';
 import type { GameEnvironment } from '../../source/core/environment/game-environment.ts';
 import { GameSystem, type GameSystemConstructor, type GameSystemUpdateStateChanges } from '../../source/core/game-system.ts';
+import forwardEntryPoints from '../../source/shader/forward-entry-points.pgsl';
+import forwardImport from '../../source/shader/forward-import.pgsl';
+import forwardObjectGroup from '../../source/shader/object-group-forward.pgsl';
+import sharedTypes from '../../source/shader/shared-types.pgsl';
+import forwardWorldGroup from '../../source/shader/world-group-forward.pgsl';
 import { CullSystem, type ReadonlyCullSystemRenderTargetData } from '../../source/system/cull-system.ts';
 import { GpuSystem } from '../../source/system/gpu-system.ts';
 import { LightSystem } from '../../source/system/light-system.ts';
@@ -20,12 +25,6 @@ import { MaterialSystem, type MaterialSystemMaterial, type MaterialSystemRenderM
 import { MeshSystem } from '../../source/system/mesh-system.ts';
 import { RenderTargetSystem } from '../../source/system/render-target-system.ts';
 import { TransformationSystem } from '../../source/system/transformation-system.ts';
-import forwardEntryPoints from '../../source/shader/forward-entry-points.pgsl';
-import forwardImport from '../../source/shader/forward-import.pgsl';
-import sharedTypes from '../../source/shader/shared-types.pgsl';
-import forwardObjectGroup from '../../source/shader/object-group-forward.pgsl';
-import forwardWorldGroup from '../../source/shader/world-group-forward.pgsl';
-import { RenderTargetComponent } from "../../source/component/render-target-component.ts";
 
 type MaterialMeshGroupData = {
     objectBindGroup: BindGroup;

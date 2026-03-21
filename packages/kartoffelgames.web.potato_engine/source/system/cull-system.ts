@@ -27,6 +27,7 @@ export class CullSystem extends GameSystem {
     private mDependencyTransformationSystem: TransformationSystem | null;
     private readonly mMeshRendererToRenderTargets: WeakMap<MeshRenderComponent, Set<RenderTargetComponent>>;
     private readonly mRenderTargetDataMap: Map<RenderTargetComponent, CullSystemRenderTargetData>;
+    private readonly mUpdatedBoundingVolumeHierarchies: Set<BoundVolumeHierarchy<MeshRenderComponent>>;
 
     /**
      * Systems this system depends on.
@@ -56,6 +57,9 @@ export class CullSystem extends GameSystem {
 
         // Set dependencies to null. Resolved during onCreate.
         this.mDependencyTransformationSystem = null;
+
+        // Initialize clustered update tracking set for BVH rebuilds.
+        this.mUpdatedBoundingVolumeHierarchies = new Set<BoundVolumeHierarchy<MeshRenderComponent>>();
     }
 
     /**
@@ -96,8 +100,6 @@ export class CullSystem extends GameSystem {
      * @param pStateChanges - Map of component types to their state change events.
      */
     protected override async onUpdate(pStateChanges: GameSystemUpdateStateChanges): Promise<void> {
-        const lUpdatedRenderTargets: Set<RenderTargetComponent> = new Set<RenderTargetComponent>();
-
         // Process RenderTargetComponent changes.
         const lRenderTargetChanges: ReadonlyArray<GameEnvironmentStateChange> = pStateChanges.componentChanges.get(RenderTargetComponent)!;
         if (lRenderTargetChanges.length > 0) {
@@ -163,14 +165,15 @@ export class CullSystem extends GameSystem {
         }
 
         // Rebuild BVH if quality has degraded beyond threshold.
-        for (const lRenderTarget of lUpdatedRenderTargets) {
-            const lRenderTargetData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(lRenderTarget)!;
-
-            if (lRenderTargetData.bvh.quality > 2.0) {
-                lRenderTargetData.bvh.rebuild();
+        if (this.mUpdatedBoundingVolumeHierarchies.size > 0) {
+            // Iterate all updated BVHs and rebuild if quality is below threshold.
+            for (const lBoundingVolumeHierarchy of this.mUpdatedBoundingVolumeHierarchies) {
+                // Recalculate quality and rebuild if it has degraded beyond the threshold of 2.0.
+                if (lBoundingVolumeHierarchy.quality > 2.0) {
+                    lBoundingVolumeHierarchy.rebuild();
+                }
             }
         }
-
     }
 
     /**
@@ -254,6 +257,7 @@ export class CullSystem extends GameSystem {
                 lData.meshes.indexMap.set(pMeshRenderer, lData.meshes.available.length);
                 lData.meshes.available.push(pMeshRenderer);
                 lData.bvh.insert(pMeshRenderer);
+                this.mUpdatedBoundingVolumeHierarchies.add(lData.bvh);
             }
 
             // Stop if passthrough is not enabled.
@@ -365,8 +369,9 @@ export class CullSystem extends GameSystem {
         for (const lRenderTarget of lRenderTargets) {
             const lRenderTargetData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(lRenderTarget)!;
 
-            // Remove from BVH.
+            // Remove from BVH and add bvh to update tracking set for potential clustered rebuild.
             lRenderTargetData.bvh.remove(pMeshRenderer);
+            this.mUpdatedBoundingVolumeHierarchies.add(lRenderTargetData.bvh);
 
             // Get current index of the mesh renderer to remove.
             const lIndex: number = lRenderTargetData.meshes.indexMap.get(pMeshRenderer)!;
@@ -413,8 +418,10 @@ export class CullSystem extends GameSystem {
 
         // Update BVH for each render target this mesh renderer belongs to.
         for (const lRenderTarget of lRenderTargets) {
-            const lData: CullSystemRenderTargetData = this.mRenderTargetDataMap.get(lRenderTarget)!;
-            lData.bvh.update(pMeshRenderer);
+            // Update BVH leaf for this mesh renderer and add BVH to update tracking set for potential clustered rebuild.
+            const lBoundingVolumeHierarchy: BoundVolumeHierarchy<MeshRenderComponent> = this.mRenderTargetDataMap.get(lRenderTarget)!.bvh;
+            lBoundingVolumeHierarchy.update(pMeshRenderer);
+            this.mUpdatedBoundingVolumeHierarchies.add(lBoundingVolumeHierarchy);
 
             // Add render target to updated list for return value.
             lUpdatedRenderTargets.push(lRenderTarget);

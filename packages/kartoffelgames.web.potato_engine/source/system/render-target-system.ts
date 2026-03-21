@@ -1,5 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
-import type { RenderTargets, RenderTargetsLayout } from '@kartoffelgames/web-gpu';
+import { CanvasTexture, type IGpuTexture, type RenderTargets, type RenderTargetsLayout } from '@kartoffelgames/web-gpu';
 import { CameraComponent } from '../component/camera/camera-component.ts';
 import { RenderTargetComponent } from '../component/render-target-component.ts';
 import type { GameComponentConstructor } from '../core/component/game-component.ts';
@@ -7,6 +7,7 @@ import type { GameEnvironment, GameEnvironmentStateChange } from '../core/enviro
 import { GameSystem, type GameSystemConstructor, type GameSystemUpdateStateChanges } from '../core/game-system.ts';
 import { GpuSystem } from './gpu-system.ts';
 import type { RenderTargetsSetup } from '../../../kartoffelgames.web.gpu/source/pipeline/render_targets/render-targets-setup.ts';
+import { ReadonlyRenderTargetsColorTexture } from "../../../kartoffelgames.web.gpu/source/pipeline/render_targets/render-targets.ts";
 
 /**
  * System responsible for managing render targets in the environment.
@@ -24,6 +25,7 @@ export class RenderTargetSystem extends GameSystem {
     private readonly mRenderTargetToRenderer: Map<RenderTargetComponent, string>;
     private readonly mRenderTargets: WeakMap<RenderTargetComponent, RenderTargets>;
     private readonly mRenderers: Map<string, RenderTargetSystemRendererData>;
+    private readonly mForcedRenderTargetTextures: WeakMap<RenderTargetComponent, IGpuTexture>;
 
     /**
      * Systems this system depends on.
@@ -62,6 +64,23 @@ export class RenderTargetSystem extends GameSystem {
         // Init root render target as early as possible and connect it to ensure it receives updates even without a parent GameEntity.
         const lRootRenderTarget = this.environment.addComponent(RenderTargetComponent);
         lRootRenderTarget.label = 'Root Render Target';
+
+        // Initialize forced render target texture tracking.
+        this.mForcedRenderTargetTextures = new WeakMap<RenderTargetComponent, IGpuTexture>();
+    }
+
+    /**
+     * Force a specific texture to be used for a render target.
+     * This overrides the default texture creation for the render target and can be used to provide custom textures (e.g. from a canvas) for render targets.
+     * 
+     * @param pRenderTarget - The render target component to force the texture for.
+     * @param pTexture - The GPU texture to use for the render target.
+     */
+    public forceTexture(pRenderTarget: RenderTargetComponent, pTexture: IGpuTexture): void {
+        this.lockGate();
+
+        // Store the forced texture for this render target.
+        this.mForcedRenderTargetTextures.set(pRenderTarget, pTexture);
     }
 
     /**
@@ -111,7 +130,7 @@ export class RenderTargetSystem extends GameSystem {
      * @param pSetupCallback - Optional callback for setting up the RenderTargets (e.g. providing custom textures).
      * @param pDefault - Whether this renderer should be set as the default renderer.
      */
-    public registerRenderer(pName: string, pLayout: RenderTargetsLayout, pSetupCallback?: (pSetup: RenderTargetsSetup) => void, pDefault?: boolean): void {
+    public registerRenderer(pName: string, pLayout: RenderTargetsLayout, pSetupCallback?: RenderTargetSystemRegisterRendererSetupCallback, pDefault?: boolean): void {
         // Throw on duplicate registration.
         if (this.mRenderers.has(pName)) {
             throw new Exception(`Renderer "${pName}" is already registered.`, this);
@@ -162,6 +181,7 @@ export class RenderTargetSystem extends GameSystem {
                 switch (lChange.type) {
                     case 'add': {
                         this.addRenderTarget(lRenderTarget);
+                        this.updateRenderTarget(lRenderTarget);
                         break;
                     }
                     case 'remove': {
@@ -286,11 +306,52 @@ export class RenderTargetSystem extends GameSystem {
      * @param pRendererData - The renderer data to use for creating the RenderTargets instance.
      */
     private createRenderTargets(pRenderTarget: RenderTargetComponent, pRendererData: RenderTargetSystemRendererData): RenderTargets {
-        // Create a RenderTargets instance using the renderer's layout and optional setup callback.
-        const lRenderTargets: RenderTargets = pRendererData.layout.create(pRendererData.setupCallback);
+        // Read forced render target texture for this render target if it exists.
+        const lForcedTexture: IGpuTexture | null = this.mForcedRenderTargetTextures.get(pRenderTarget) ?? null;
 
-        // Resize to match the render target component dimensions.
-        lRenderTargets.resize(pRenderTarget.height, pRenderTarget.width);
+        // Create a RenderTargets instance using the renderer's layout and optional setup callback.
+        const lRenderTargets: RenderTargets = pRendererData.layout.create((pSetup: RenderTargetsSetup) => {
+            if (pRendererData.setupCallback) {
+                pRendererData.setupCallback(pSetup, lForcedTexture);
+            }
+        });
+
+        // Iterate all color targets to search for canvas textures.
+        for (const lColorTargetName of lRenderTargets.layout.colorTargetNames) {
+            // Read the color texture of the target.
+            const lColorTexture: ReadonlyRenderTargetsColorTexture = lRenderTargets.colorTarget(lColorTargetName);
+
+            // Read canvas texture from eighter the render or resolve view, as the canvas texture can be used as either depending on the multisample flag of the layout.
+            const lCanvasTexture: CanvasTexture | null = (() => {
+                if (lColorTexture.renderView.texture instanceof CanvasTexture) {
+                    return lColorTexture.renderView.texture;
+                }
+                if (lColorTexture.resolveView?.texture instanceof CanvasTexture) {
+                    return lColorTexture.resolveView.texture;
+                }
+
+                return null;
+            })();
+
+            // We are not interested in any non-canvas textures.
+            if (!lCanvasTexture) {
+                continue;
+            }
+
+            // Observe canvas size changes via ResizeObserver.
+            const lResizeObserver = new ResizeObserver((pEntries: Array<ResizeObserverEntry>) => {
+                const lEntry: ResizeObserverEntry = pEntries[0];
+
+                // Update root render target dimensions. RenderTargetSystem handles resizing the RenderTargets.
+                pRenderTarget.width = Math.round(lEntry.contentBoxSize[0].inlineSize * devicePixelRatio);
+                pRenderTarget.height = Math.round(lEntry.contentBoxSize[0].blockSize * devicePixelRatio);
+            });
+            lResizeObserver.observe(lCanvasTexture.canvas);
+
+            // Only support one canvas. Otherwise, when multiple canvases are updated, they end up in a feedback loop of updating each other's size.
+            break;
+        }
+
 
         return lRenderTargets;
     }
@@ -401,6 +462,8 @@ export class RenderTargetSystem extends GameSystem {
  */
 type RenderTargetSystemRendererData = {
     layout: RenderTargetsLayout;
-    setupCallback: ((pSetup: RenderTargetsSetup) => void) | undefined;
+    setupCallback: RenderTargetSystemRegisterRendererSetupCallback | undefined;
     renderTargets: Set<RenderTargetComponent>;
 };
+
+export type RenderTargetSystemRegisterRendererSetupCallback = (pSetup: RenderTargetsSetup, pForcedColorTexture: IGpuTexture | null) => void;

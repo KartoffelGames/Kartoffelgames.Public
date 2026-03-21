@@ -34,6 +34,7 @@ export { GpuObject } from './gpu_object/gpu-object.ts';
 
 // Resources
 export { GpuBuffer } from './buffer/gpu-buffer.ts';
+export type { IGpuTexture } from './texture/i-gpu-texture.ts';
 export { GpuTexture } from './texture/gpu-texture.ts';
 export { GpuTextureView } from './texture/gpu-texture-view.ts';
 export { CanvasTexture } from './texture/canvas-texture.ts';

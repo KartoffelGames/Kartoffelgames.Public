@@ -69,7 +69,6 @@ export class ShitSystem extends GameSystem {
     private mDependencyTransformationSystem: TransformationSystem | null;
     private mRenderModeResult: MaterialSystemRenderModeRegisterResult | null;
     private readonly mRenderTargetData: Map<RenderTargetComponent, RenderTargetFrameData>;
-    private mResizeObserver: ResizeObserver | null;
 
     /**
      * Canvas element used for rendering.
@@ -117,7 +116,6 @@ export class ShitSystem extends GameSystem {
         this.mDependencyTransformationSystem = null;
         this.mRenderModeResult = null;
         this.mRenderTargetData = new Map();
-        this.mResizeObserver = null;
     }
 
     /**
@@ -165,18 +163,6 @@ export class ShitSystem extends GameSystem {
         const lCanvasHeight: number = Math.round(this.mCanvas.clientHeight * devicePixelRatio);
         lRootRenderTarget.width = lCanvasWidth;
         lRootRenderTarget.height = lCanvasHeight;
-
-        // Observe canvas size changes via ResizeObserver.
-        this.mResizeObserver = new ResizeObserver((pEntries: Array<ResizeObserverEntry>) => {
-            const lEntry: ResizeObserverEntry = pEntries[0];
-            const lNewWidth: number = Math.round(lEntry.contentBoxSize[0].inlineSize * devicePixelRatio);
-            const lNewHeight: number = Math.round(lEntry.contentBoxSize[0].blockSize * devicePixelRatio);
-
-            // Update root render target dimensions. RenderTargetSystem handles resizing the RenderTargets.
-            lRootRenderTarget.width = lNewWidth;
-            lRootRenderTarget.height = lNewHeight;
-        });
-        this.mResizeObserver.observe(this.mCanvas);
     }
 
     /**

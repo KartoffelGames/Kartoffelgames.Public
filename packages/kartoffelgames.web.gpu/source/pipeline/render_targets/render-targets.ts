@@ -80,7 +80,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
      *
      * @returns target texture view.
      */
-    public colorTarget(pTargetName: string): GpuTextureView {
+    public colorTarget(pTargetName: string): ReadonlyRenderTargetsColorTexture {
         // Ensure setup was called.
         this.ensureSetup();
 
@@ -89,13 +89,13 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
             throw new Exception(`Color target "${pTargetName}" does not exists.`, this);
         }
 
-        return this.mTargets.get(pTargetName)!.texture.renderView;
+        return this.mTargets.get(pTargetName)!.texture;
     }
 
     /**
      * Get depth attachment texture.
      */
-    public depthStencilTarget(): GpuTextureView {
+    public depthStencilTarget(): ReadonlyRenderTargetsColorTexture {
         // Ensure setup was called.
         this.ensureSetup();
 
@@ -104,7 +104,7 @@ export class RenderTargets extends GpuObject<GPURenderPassDescriptor, RenderTarg
             throw new Exception(`Depth or stencil target does not exists.`, this);
         }
 
-        return this.mTargets.get(RenderTargets.DEPTH_STENCIL_KEY)!.texture.renderView;
+        return this.mTargets.get(RenderTargets.DEPTH_STENCIL_KEY)!.texture;
     }
 
     /**
@@ -396,7 +396,7 @@ type RenderTargetsColorTexture = {
     renderView: GpuTextureView;
 
     /**
-     * Eighter the rende ror resolve view determend by layout multisample flag.
+     * Eighter the render or resolve view determend by layout multisample flag.
      * When multisampled and a resolve view is set, this primary view is the resolve view, otherwise the render view.
      */
     primaryView: GpuTextureView;
@@ -412,3 +412,5 @@ export enum RenderTargetsInvalidationType {
     NativeUpdate = 'NativeUpdate',
     Resize = 'Resize'
 }
+
+export type ReadonlyRenderTargetsColorTexture = Readonly<RenderTargetsColorTexture>;

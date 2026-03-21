@@ -86,7 +86,7 @@ Deno.test('RenderTargets.colorTarget()', async (pContext) => {
         const lRenderTargets: RenderTargets = lLayout.create();
 
         // Process.
-        const lTextureView: GpuTextureView = lRenderTargets.colorTarget('color0');
+        const lTextureView: GpuTextureView = lRenderTargets.colorTarget('color0').renderView;
 
         // Evaluation.
         expect(lTextureView).toBeTruthy();
@@ -129,7 +129,7 @@ Deno.test('RenderTargets.depthStencilTarget()', async (pContext) => {
         const lRenderTargets: RenderTargets = lLayout.create();
 
         // Process.
-        const lDepthTexture: GpuTextureView = lRenderTargets.depthStencilTarget();
+        const lDepthTexture: GpuTextureView = lRenderTargets.depthStencilTarget().renderView;
 
         // Evaluation.
         expect(lDepthTexture).toBeTruthy();

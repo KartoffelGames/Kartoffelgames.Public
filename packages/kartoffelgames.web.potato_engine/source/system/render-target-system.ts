@@ -21,11 +21,19 @@ import { ReadonlyRenderTargetsColorTexture } from "../../../kartoffelgames.web.g
 export class RenderTargetSystem extends GameSystem {
     private readonly mActiveCameras: Set<CameraComponent>;
     private readonly mCameraToRenderTarget: WeakMap<CameraComponent, RenderTargetComponent>;
+    private mCanvas: HTMLCanvasElement | null;
     private mDefaultRendererName: string | null;
     private readonly mRenderTargetToRenderer: Map<RenderTargetComponent, string>;
     private readonly mRenderTargets: WeakMap<RenderTargetComponent, RenderTargets>;
     private readonly mRenderers: Map<string, RenderTargetSystemRendererData>;
     private readonly mForcedRenderTargetTextures: WeakMap<RenderTargetComponent, IGpuTexture>;
+
+    /**
+     * Canvas element used for rendering.
+     */
+    public set canvas(pCanvas: HTMLCanvasElement) {
+        this.mCanvas = pCanvas;
+    }
 
     /**
      * Systems this system depends on.
@@ -61,12 +69,11 @@ export class RenderTargetSystem extends GameSystem {
         this.mActiveCameras = new Set<CameraComponent>();
         this.mCameraToRenderTarget = new WeakMap<CameraComponent, RenderTargetComponent>();
 
-        // Init root render target as early as possible and connect it to ensure it receives updates even without a parent GameEntity.
-        const lRootRenderTarget = this.environment.addComponent(RenderTargetComponent);
-        lRootRenderTarget.label = 'Root Render Target';
-
         // Initialize forced render target texture tracking.
         this.mForcedRenderTargetTextures = new WeakMap<RenderTargetComponent, IGpuTexture>();
+
+        // Initialize canvas to null.
+        this.mCanvas = null;
     }
 
     /**
@@ -164,6 +171,29 @@ export class RenderTargetSystem extends GameSystem {
             // Store the RenderTargets instance.
             this.mRenderTargets.set(lRenderTarget, this.createRenderTargets(lRenderTarget, lRendererData));
         }
+    }
+
+    /**
+     * Override onCreate to initialize the root render target and create a canvas if not provided before system creation.
+     */
+    protected override async onCreate(): Promise<void> {
+        // Create canvas if not set before system creation.
+        if (!this.mCanvas) {
+            this.mCanvas = document.createElement('canvas');
+        }
+
+        // Get GPU from dependency for setup callback.
+        const lGpu = this.environment.getSystem(GpuSystem).gpu;
+
+        // Create CanvasTexture for the setup callback.
+        const lCanvasTexture: CanvasTexture = new CanvasTexture(lGpu, this.mCanvas);
+
+        // Init root render target as early as possible and connect it to ensure it receives updates even without a parent GameEntity.
+        const lRootRenderTarget = this.environment.addComponent(RenderTargetComponent);
+        lRootRenderTarget.label = 'Root Render Target';
+
+        // Force the canvas texture for the root render target so it can be used in the default renderer setup callback.
+        this.forceTexture(lRootRenderTarget, lCanvasTexture);
     }
 
     /**

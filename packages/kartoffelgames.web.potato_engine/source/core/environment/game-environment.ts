@@ -315,6 +315,12 @@ export class GameEnvironment extends GameObject {
      * @param pSystem - The system to register
      */
     public registerSystem<T extends GameSystem>(pSystem: GameSystemConstructor<T>): T {
+        // Check if system is already registered.
+        const lExistingSystem = this.mSystems.find((pSystemInstance) => pSystemInstance.constructor === pSystem);
+        if (lExistingSystem) {
+            return lExistingSystem as T;
+        }
+
         // Create an instance of the system
         const lSystem = new pSystem(this);
 

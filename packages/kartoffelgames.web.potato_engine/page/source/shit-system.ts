@@ -59,7 +59,6 @@ type RenderTargetFrameData = {
 export class ShitSystem extends GameSystem {
     private static readonly RENDER_MODE: string = 'ShitRenderMode';
 
-    private mCanvas: HTMLCanvasElement | null;
     private mDependencyCullSystem: CullSystem | null;
     private mDependencyGpuSystem: GpuSystem | null;
     private mDependencyLightSystem: LightSystem | null;
@@ -70,19 +69,7 @@ export class ShitSystem extends GameSystem {
     private mRenderModeResult: MaterialSystemRenderModeRegisterResult | null;
     private readonly mRenderTargetData: Map<RenderTargetComponent, RenderTargetFrameData>;
 
-    /**
-     * Canvas element used for rendering.
-     */
-    public get canvas(): HTMLCanvasElement {
-        return this.mCanvas!;
-    }
-
-    /**
-     * Set the canvas element before the system is created.
-     */
-    public set canvas(pCanvas: HTMLCanvasElement) {
-        this.mCanvas = pCanvas;
-    }
+   
 
     /**
      * Systems this system depends on.
@@ -106,7 +93,6 @@ export class ShitSystem extends GameSystem {
     public constructor(pEnvironment: GameEnvironment) {
         super('ShitSystem', pEnvironment);
 
-        this.mCanvas = null;
         this.mDependencyCullSystem = null;
         this.mDependencyGpuSystem = null;
         this.mDependencyLightSystem = null;
@@ -135,34 +121,17 @@ export class ShitSystem extends GameSystem {
         this.mDependencyMaterialSystem.setGlobalImport('WorldGroupForward', forwardWorldGroup);
         this.mDependencyMaterialSystem.setGlobalImport('ObjectGroupForward', forwardObjectGroup);
 
-        // Create canvas if not set before system creation.
-        if (!this.mCanvas) {
-            this.mCanvas = document.createElement('canvas');
-        }
-
-        const lGpu = this.mDependencyGpuSystem.gpu;
-
         // Register the ShitRenderMode with the MaterialSystem using forward shaders.
         this.mRenderModeResult = this.mDependencyMaterialSystem.registerRenderMode(ShitSystem.RENDER_MODE, {
             entryPointImport: forwardEntryPoints,
             functionalImports: [forwardImport],
             typeImports: [sharedTypes]
         });
-
-        // Create CanvasTexture for the setup callback.
-        const lCanvasTexture: CanvasTexture = new CanvasTexture(lGpu, this.mCanvas);
-
+       
         // Register renderer with RenderTargetSystem using the layout and canvas setup callback.
-        this.mDependencyRenderTargetSystem.registerRenderer(ShitSystem.RENDER_MODE, this.mRenderModeResult.renderTargetsLayout, (pSetup) => {
-            pSetup.setOwnColorTarget('color', lCanvasTexture);
+        this.mDependencyRenderTargetSystem.registerRenderer(ShitSystem.RENDER_MODE, this.mRenderModeResult.renderTargetsLayout, (pSetup, pForcedTexture) => {
+            pSetup.setOwnColorTarget('color', pForcedTexture!);
         });
-
-        // Get root render target from RenderTargetSystem and set initial dimensions.
-        const lRootRenderTarget = this.environment.getComponent(RenderTargetComponent);
-        const lCanvasWidth: number = Math.round(this.mCanvas.clientWidth * devicePixelRatio);
-        const lCanvasHeight: number = Math.round(this.mCanvas.clientHeight * devicePixelRatio);
-        lRootRenderTarget.width = lCanvasWidth;
-        lRootRenderTarget.height = lCanvasHeight;
     }
 
     /**

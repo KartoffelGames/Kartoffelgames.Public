@@ -14,6 +14,7 @@ import { FrameGraph } from './ui/frame-graph.ts';
 import { HierarchyPanel } from './ui/hierarchy-panel.ts';
 import { ResizableLayout } from './ui/resizable-layout.ts';
 import type { GameObject } from '../../source/core/hierarchy/game-object.ts';
+import { RenderTargetSystem } from "../../source/system/render-target-system.ts";
 
 // ── Load assets ──────────────────────────────────────────────
 const gGlbData: ArrayBuffer = await fetch('/mesh.glb').then(async (pResponse) => {
@@ -32,12 +33,13 @@ gEnvironment.enableDebugOption('debugSystemTime');
 gEnvironment.registerSystem(TransformationSystem);
 gEnvironment.registerSystem(LightSystem);
 gEnvironment.registerSystem(CullSystem);
+gEnvironment.registerSystem(ShitSystem);
 
-const gShitSystem: ShitSystem = gEnvironment.registerSystem(ShitSystem);
+const gRenderTargetSystem: RenderTargetSystem = gEnvironment.registerSystem(RenderTargetSystem); 
 
 // Canvas setup.
 const gCanvas: HTMLCanvasElement = document.getElementById('canvas') as HTMLCanvasElement;
-gShitSystem.canvas = gCanvas;
+gRenderTargetSystem.canvas = gCanvas;
 
 // Handle canvas resize from its wrapper.
 const gCanvasWrapper: HTMLElement | null = document.querySelector('.canvas-wrapper');

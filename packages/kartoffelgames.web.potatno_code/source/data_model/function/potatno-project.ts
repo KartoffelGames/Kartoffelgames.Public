@@ -35,7 +35,11 @@ export class PotatnoProject {
      */
     public initializeMainFunctions(): void {
         for (const lMainDef of this.configuration.mainFunctions) {
-            const lFunc: PotatnoFunction = this.addFunction(lMainDef.name, lMainDef.label, true);
+            const lFunc: PotatnoFunction = this.addFunction(lMainDef.name, lMainDef.label, true, lMainDef.editableByUser ?? false);
+
+            // Set initial inputs/outputs from the definition.
+            lFunc.setInputs([...lMainDef.inputs]);
+            lFunc.setOutputs([...lMainDef.outputs]);
 
             // Create fixed input nodes for the function's inputs.
             for (const lInput of lMainDef.inputs) {
@@ -71,9 +75,9 @@ export class PotatnoProject {
     /**
      * Add a new function to the project.
      */
-    public addFunction(pName: string, pLabel: string, pSystem: boolean = false): PotatnoFunction {
+    public addFunction(pName: string, pLabel: string, pSystem: boolean = false, pEditableByUser: boolean = false): PotatnoFunction {
         const lId: string = crypto.randomUUID();
-        const lFunc: PotatnoFunction = new PotatnoFunction(lId, pName, pLabel, pSystem);
+        const lFunc: PotatnoFunction = new PotatnoFunction(lId, pName, pLabel, pSystem, pEditableByUser);
         this.mFunctions.set(lId, lFunc);
 
         if (!this.mActiveFunctionId) {

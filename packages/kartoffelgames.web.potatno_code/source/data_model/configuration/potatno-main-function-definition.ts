@@ -8,4 +8,5 @@ export interface PotatnoMainFunctionDefinition {
     readonly label: string;
     readonly inputs: Array<PotatnoPortDefinition>;
     readonly outputs: Array<PotatnoPortDefinition>;
+    readonly editableByUser?: boolean;
 }

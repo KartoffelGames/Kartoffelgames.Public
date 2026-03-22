@@ -328,11 +328,12 @@ lEditor.setFunctionCodeGenerator((pFunc: PotatnoCodeFunction) => {
 lEditor.defineMainFunction({
     name: 'main',
     label: 'Main',
+    editableByUser: true,
     inputs: [
-        { name: 'args', type: 'string' }
+
     ],
     outputs: [
-        { name: 'result', type: 'number' }
+
     ]
 });
 

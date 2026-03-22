@@ -1,6 +1,6 @@
 :host {
     display: block;
-    position: absolute;
+    width: 100%;
     font-family: var(--pn-font-family);
     font-size: var(--pn-font-size);
 }

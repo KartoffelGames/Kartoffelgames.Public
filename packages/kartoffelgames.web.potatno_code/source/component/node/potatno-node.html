@@ -1,6 +1,7 @@
 $if(this.nodeData) {
     $if(this.isComment) {
         <div class="node-comment {{this.selectedClass}}"
+             [style]="this.commentSizeStyle"
              (pointerdown)="this.onNodePointerDown($event)">
             <div class="comment-header">
                 <span class="node-icon">{{this.nodeData.categoryIcon}}</span>

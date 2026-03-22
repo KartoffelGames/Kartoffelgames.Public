@@ -221,6 +221,16 @@ export class PotatnoNodeComponent extends Processor {
     }
 
     /**
+     * Inline CSS style for comment node sizing (height is set from the node's grid size).
+     */
+    public get commentSizeStyle(): string {
+        if (!this.nodeData) {
+            return '';
+        }
+        return `height: ${this.nodeData.size.h * this.gridSize}px;`;
+    }
+
+    /**
      * Whether this is a value-category node.
      */
     public get isValue(): boolean {

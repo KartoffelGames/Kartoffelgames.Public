@@ -2,7 +2,7 @@
 <div class="properties-content">
     <div class="section">
         <div class="section-label">Function Name</div>
-        <input class="name-input" type="text" [value]="this.functionName" [disabled]="this.isSystem" pattern="[a-zA-Z][a-zA-Z0-9_]*" title="Must start with a letter, use only letters, digits, underscores" (change)="this.onNameChange($event)" />
+        <input class="name-input" type="text" [value]="this.functionName" [disabled]="this.nameDisabled" pattern="[a-zA-Z][a-zA-Z0-9_]*" title="Must start with a letter, use only letters, digits, underscores" (change)="this.onNameChange($event)" />
     </div>
 
     <div class="section">
@@ -10,13 +10,13 @@
         <div class="port-list">
             $for(input of this.functionInputs; index = $index) {
                 <div class="port-entry">
-                    <input class="port-name-input" type="text" [value]="this.input.name" [disabled]="this.isSystem" pattern="[a-zA-Z][a-zA-Z0-9_]*" title="Must start with a letter, use only letters, digits, underscores" (change)="this.onInputNameChange(this.index, $event)" />
-                    <select class="port-type-input" [disabled]="this.isSystem" (change)="this.onInputTypeChange(this.index, $event)">
+                    <input class="port-name-input" type="text" [value]="this.input.name" [disabled]="this.portsDisabled" pattern="[a-zA-Z][a-zA-Z0-9_]*" title="Must start with a letter, use only letters, digits, underscores" (change)="this.onInputNameChange(this.index, $event)" />
+                    <select class="port-type-input" [disabled]="this.portsDisabled" (change)="this.onInputTypeChange(this.index, $event)">
                         $for(t of this.availableTypes) {
                             <option [value]="this.t" [selected]="this.t === this.input.type">{{this.t}}</option>
                         }
                     </select>
-                    $if(!this.isSystem) {
+                    $if(!this.portsDisabled) {
                         <button class="port-delete-button" (click)="this.onDeleteInput(this.index)">✕</button>
                     }
                 </div>
@@ -25,7 +25,7 @@
                 <div class="empty-note">No inputs defined.</div>
             }
         </div>
-        $if(!this.isSystem) {
+        $if(!this.portsDisabled) {
             <button class="add-button" (click)="this.onAddInput()">+ Add Input</button>
         }
     </div>
@@ -35,13 +35,13 @@
         <div class="port-list">
             $for(output of this.functionOutputs; index = $index) {
                 <div class="port-entry">
-                    <input class="port-name-input" type="text" [value]="this.output.name" [disabled]="this.isSystem" pattern="[a-zA-Z][a-zA-Z0-9_]*" title="Must start with a letter, use only letters, digits, underscores" (change)="this.onOutputNameChange(this.index, $event)" />
-                    <select class="port-type-input" [disabled]="this.isSystem" (change)="this.onOutputTypeChange(this.index, $event)">
+                    <input class="port-name-input" type="text" [value]="this.output.name" [disabled]="this.portsDisabled" pattern="[a-zA-Z][a-zA-Z0-9_]*" title="Must start with a letter, use only letters, digits, underscores" (change)="this.onOutputNameChange(this.index, $event)" />
+                    <select class="port-type-input" [disabled]="this.portsDisabled" (change)="this.onOutputTypeChange(this.index, $event)">
                         $for(t of this.availableTypes) {
                             <option [value]="this.t" [selected]="this.t === this.output.type">{{this.t}}</option>
                         }
                     </select>
-                    $if(!this.isSystem) {
+                    $if(!this.portsDisabled) {
                         <button class="port-delete-button" (click)="this.onDeleteOutput(this.index)">✕</button>
                     }
                 </div>
@@ -50,7 +50,7 @@
                 <div class="empty-note">No outputs defined.</div>
             }
         </div>
-        $if(!this.isSystem) {
+        $if(!this.portsDisabled) {
             <button class="add-button" (click)="this.onAddOutput()">+ Add Output</button>
         }
     </div>
@@ -61,7 +61,7 @@
             $for(imp of this.functionImports; index = $index) {
                 <div class="import-entry">
                     <span class="import-name">{{this.imp}}</span>
-                    $if(!this.isSystem) {
+                    $if(!this.portsDisabled) {
                         <button class="port-delete-button" (click)="this.onDeleteImport(this.index)">✕</button>
                     }
                 </div>
@@ -70,7 +70,7 @@
                 <div class="empty-note">No imports added.</div>
             }
         </div>
-        $if(!this.isSystem) {
+        $if(!this.portsDisabled) {
             $if(this.unusedImports.length > 0) {
                 <div class="add-import-row">
                     <select class="import-select" (change)="this.onImportSelectChange($event)">

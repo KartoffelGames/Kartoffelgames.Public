@@ -1,4 +1,4 @@
-import type { PotatnoConnection } from '../graph/potatno-connection.ts';
+import { PortKind } from '../enum/port-kind.enum.ts';
 import type { PotatnoGraph } from '../graph/potatno-graph.ts';
 import type { PotatnoNode } from '../graph/potatno-node.ts';
 
@@ -18,6 +18,7 @@ interface ClipboardData {
         sourcePortName: string;
         targetNodeIndex: number;
         targetPortName: string;
+        kind: 'data' | 'flow';
     }>;
 }
 
@@ -36,7 +37,7 @@ export class PotatnoClipboard {
     }
 
     /**
-     * Copy selected nodes and their internal connections.
+     * Copy selected nodes and their internal connections (data + flow).
      */
     public copy(pGraph: PotatnoGraph, pSelectedNodeIds: ReadonlySet<string>): void {
         const lSelectedNodes: Array<PotatnoNode> = new Array<PotatnoNode>();
@@ -77,31 +78,48 @@ export class PotatnoClipboard {
             };
         });
 
-        // Find internal data connections (both ends in selection).
-        const lInternalConnections: Array<{ sourceNodeIndex: number; sourcePortName: string; targetNodeIndex: number; targetPortName: string }> = new Array();
+        // Find internal connections (both ends in selection) — data AND flow.
+        const lInternalConnections: ClipboardData['internalConnections'] = [];
 
         for (const lConnection of pGraph.connections.values()) {
             const lSourceIdx: number | undefined = lNodeIndexMap.get(lConnection.sourceNodeId);
             const lTargetIdx: number | undefined = lNodeIndexMap.get(lConnection.targetNodeId);
 
             if (lSourceIdx !== undefined && lTargetIdx !== undefined) {
-                // Find port names by ID.
                 const lSourceNode: PotatnoNode = lSelectedNodes[lSourceIdx];
                 const lTargetNode: PotatnoNode = lSelectedNodes[lTargetIdx];
 
                 let lSourcePortName: string = '';
-                for (const [lName, lPort] of lSourceNode.outputs) {
-                    if (lPort.id === lConnection.sourcePortId) {
-                        lSourcePortName = lName;
-                        break;
-                    }
-                }
-
                 let lTargetPortName: string = '';
-                for (const [lName, lPort] of lTargetNode.inputs) {
-                    if (lPort.id === lConnection.targetPortId) {
-                        lTargetPortName = lName;
-                        break;
+                let lKind: 'data' | 'flow';
+
+                if (lConnection.kind === PortKind.Data) {
+                    lKind = 'data';
+                    for (const [lName, lPort] of lSourceNode.outputs) {
+                        if (lPort.id === lConnection.sourcePortId) {
+                            lSourcePortName = lName;
+                            break;
+                        }
+                    }
+                    for (const [lName, lPort] of lTargetNode.inputs) {
+                        if (lPort.id === lConnection.targetPortId) {
+                            lTargetPortName = lName;
+                            break;
+                        }
+                    }
+                } else {
+                    lKind = 'flow';
+                    for (const [lName, lPort] of lSourceNode.flowOutputs) {
+                        if (lPort.id === lConnection.sourcePortId) {
+                            lSourcePortName = lName;
+                            break;
+                        }
+                    }
+                    for (const [lName, lPort] of lTargetNode.flowInputs) {
+                        if (lPort.id === lConnection.targetPortId) {
+                            lTargetPortName = lName;
+                            break;
+                        }
                     }
                 }
 
@@ -110,7 +128,8 @@ export class PotatnoClipboard {
                         sourceNodeIndex: lSourceIdx,
                         sourcePortName: lSourcePortName,
                         targetNodeIndex: lTargetIdx,
-                        targetPortName: lTargetPortName
+                        targetPortName: lTargetPortName,
+                        kind: lKind
                     });
                 }
             }

@@ -5,6 +5,7 @@ import { PotatnoGraph } from '../graph/potatno-graph.ts';
  * Represents a user-editable function containing a sub-graph.
  */
 export class PotatnoFunction {
+    public readonly editableByUser: boolean;
     public readonly graph: PotatnoGraph;
     public readonly id: string;
     public readonly system: boolean;
@@ -35,11 +36,12 @@ export class PotatnoFunction {
         return this.mOutputs;
     }
 
-    public constructor(pId: string, pName: string, pLabel: string, pSystem: boolean) {
+    public constructor(pId: string, pName: string, pLabel: string, pSystem: boolean, pEditableByUser: boolean = false) {
         this.id = pId;
         this.mName = pName;
         this.mLabel = pLabel;
         this.system = pSystem;
+        this.editableByUser = pEditableByUser;
         this.graph = new PotatnoGraph();
         this.mInputs = new Array<PotatnoPortDefinition>();
         this.mOutputs = new Array<PotatnoPortDefinition>();

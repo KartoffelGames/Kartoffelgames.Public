@@ -25,7 +25,7 @@
                 <svg #svgLayer class="svg-layer" xmlns="http://www.w3.org/2000/svg"></svg>
                 <div class="node-layer">
                     $for(nodeRender of this.visibleNodes) {
-                        <div class="node-position" style="left:{{this.nodeRender.pixelX}}px;top:{{this.nodeRender.pixelY}}px">
+                        <div class="node-position" style="left:{{this.nodeRender.pixelX}}px;top:{{this.nodeRender.pixelY}}px;width:{{this.nodeRender.size.w * this.interaction.gridSize}}px">
                             <potatno-node
                                 [nodeData]="this.nodeRender"
                                 [selected]="this.nodeRender.selected"
@@ -33,7 +33,10 @@
                                 (pointerdown)="this.onNodePointerDown($event, this.nodeRender)"
                                 (port-drag-start)="this.onPortDragStart($event)"
                                 (port-hover)="this.onPortHover($event)"
-                                (port-leave)="this.onPortLeave($event)">
+                                (port-leave)="this.onPortLeave($event)"
+                                (resize-start)="this.onNodeResizeStart($event, this.nodeRender)"
+                                (comment-change)="this.onCommentChange($event)"
+                                (value-change)="this.onValueChange($event)">
                             </potatno-node>
                         </div>
                     }
@@ -59,6 +62,7 @@
             [functionOutputs]="this.activeFunctionOutputs"
             [functionImports]="this.activeFunctionImports"
             [isSystem]="this.activeFunctionIsSystem"
+            [editableByUser]="this.activeFunctionEditableByUser"
             [availableImports]="this.availableImportsList"
             [availableTypes]="this.availableTypes"
             (properties-change)="this.onPropertiesChange($event)">

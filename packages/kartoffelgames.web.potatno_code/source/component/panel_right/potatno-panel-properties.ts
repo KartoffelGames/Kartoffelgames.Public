@@ -65,6 +65,28 @@ export class PotatnoPanelProperties extends Processor {
     public isSystem: boolean = false;
 
     /**
+     * Whether the system function allows user editing of ports/imports.
+     */
+    @PwbExport
+    public editableByUser: boolean = false;
+
+    /**
+     * Whether the function name input should be disabled.
+     * System functions always have their name locked.
+     */
+    public get nameDisabled(): boolean {
+        return this.isSystem;
+    }
+
+    /**
+     * Whether port/import editing is disabled.
+     * System functions are locked unless editableByUser is true.
+     */
+    public get portsDisabled(): boolean {
+        return this.isSystem && !this.editableByUser;
+    }
+
+    /**
      * Available import names that can be added.
      */
     private mAvailableImports: Array<string> = [];
@@ -161,11 +183,9 @@ export class PotatnoPanelProperties extends Processor {
     public onNameChange(pEvent: Event): void {
         const lInput: HTMLInputElement = pEvent.target as HTMLInputElement;
         const lNewName: string = lInput.value;
-        if (!this.validateName(lNewName) || this.isNameDuplicate(lNewName, 'function')) {
-            lInput.style.borderColor = 'var(--pn-accent-danger)';
-            return;
-        }
-        lInput.style.borderColor = '';
+        const lIsInvalid: boolean = !this.validateName(lNewName) || this.isNameDuplicate(lNewName, 'function');
+        lInput.style.borderColor = lIsInvalid ? 'var(--pn-accent-danger)' : '';
+        // Always dispatch so the editor can run validation and show errors in the preview.
         this.functionName = lNewName;
         this.mPropertiesChange.dispatchEvent({ name: lNewName });
     }
@@ -179,11 +199,9 @@ export class PotatnoPanelProperties extends Processor {
     public onInputNameChange(pIndex: number, pEvent: Event): void {
         const lInput: HTMLInputElement = pEvent.target as HTMLInputElement;
         const lNewName: string = lInput.value;
-        if (!this.validateName(lNewName) || this.isNameDuplicate(lNewName, 'input', pIndex)) {
-            lInput.style.borderColor = 'var(--pn-accent-danger)';
-            return;
-        }
-        lInput.style.borderColor = '';
+        const lIsInvalid: boolean = !this.validateName(lNewName) || this.isNameDuplicate(lNewName, 'input', pIndex);
+        lInput.style.borderColor = lIsInvalid ? 'var(--pn-accent-danger)' : '';
+        // Always dispatch so the editor can run validation and show errors.
         const lInputs: Array<PortEntry> = [...this.functionInputs];
         lInputs[pIndex] = { ...lInputs[pIndex], name: lNewName };
         this.functionInputs = lInputs;
@@ -213,11 +231,9 @@ export class PotatnoPanelProperties extends Processor {
     public onOutputNameChange(pIndex: number, pEvent: Event): void {
         const lInput: HTMLInputElement = pEvent.target as HTMLInputElement;
         const lNewName: string = lInput.value;
-        if (!this.validateName(lNewName) || this.isNameDuplicate(lNewName, 'output', pIndex)) {
-            lInput.style.borderColor = 'var(--pn-accent-danger)';
-            return;
-        }
-        lInput.style.borderColor = '';
+        const lIsInvalid: boolean = !this.validateName(lNewName) || this.isNameDuplicate(lNewName, 'output', pIndex);
+        lInput.style.borderColor = lIsInvalid ? 'var(--pn-accent-danger)' : '';
+        // Always dispatch so the editor can run validation and show errors.
         const lOutputs: Array<PortEntry> = [...this.functionOutputs];
         lOutputs[pIndex] = { ...lOutputs[pIndex], name: lNewName };
         this.functionOutputs = lOutputs;
@@ -242,7 +258,8 @@ export class PotatnoPanelProperties extends Processor {
      * Add a new empty input port.
      */
     public onAddInput(): void {
-        const lInputs: Array<PortEntry> = [...this.functionInputs, { name: 'new_input', type: 'float' }];
+        const lDefaultType: string = this.mAvailableTypes.length > 0 ? this.mAvailableTypes[0] : 'number';
+        const lInputs: Array<PortEntry> = [...this.functionInputs, { name: 'new_input', type: lDefaultType }];
         this.functionInputs = lInputs;
         this.mPropertiesChange.dispatchEvent({ inputs: lInputs });
     }
@@ -263,7 +280,8 @@ export class PotatnoPanelProperties extends Processor {
      * Add a new empty output port.
      */
     public onAddOutput(): void {
-        const lOutputs: Array<PortEntry> = [...this.functionOutputs, { name: 'new_output', type: 'float' }];
+        const lDefaultType: string = this.mAvailableTypes.length > 0 ? this.mAvailableTypes[0] : 'number';
+        const lOutputs: Array<PortEntry> = [...this.functionOutputs, { name: 'new_output', type: lDefaultType }];
         this.functionOutputs = lOutputs;
         this.mPropertiesChange.dispatchEvent({ outputs: lOutputs });
     }

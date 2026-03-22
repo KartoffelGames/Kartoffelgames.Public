@@ -1,0 +1,93 @@
+:host {
+    display: block;
+    position: relative;
+}
+
+.port-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: var(--pn-node-port-gap);
+    position: relative;
+}
+
+.port-wrapper.direction-output {
+    flex-direction: row-reverse;
+}
+
+.port-circle {
+    width: 16px;
+    height: 14px;
+    position: relative;
+    cursor: crosshair;
+    flex-shrink: 0;
+    transition: transform 0.1s;
+}
+
+.port-circle:hover {
+    transform: scale(1.3);
+}
+
+/* Rectangle body */
+.port-circle::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 9px;
+    height: 100%;
+    background: var(--port-color, var(--pn-text-muted));
+}
+
+/* Triangle tip */
+.port-circle::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    width: 0;
+    height: 0;
+    border-top: 7px solid transparent;
+    border-bottom: 7px solid transparent;
+}
+
+/* Output: arrow points right */
+.port-circle.direction-output::before {
+    left: 0;
+    border-radius: 3px 0 0 3px;
+}
+.port-circle.direction-output::after {
+    left: 9px;
+    border-left: 7px solid var(--port-color, var(--pn-text-muted));
+}
+
+/* Input: arrow points left */
+.port-circle.direction-input::before {
+    right: 0;
+    border-radius: 0 3px 3px 0;
+}
+.port-circle.direction-input::after {
+    right: 9px;
+    border-right: 7px solid var(--port-color, var(--pn-text-muted));
+}
+
+/* Connected: solid fill (default) */
+.port-circle.connected::before { background: var(--port-color, var(--pn-text-muted)); }
+.port-circle.connected.direction-output::after { border-left-color: var(--port-color, var(--pn-text-muted)); }
+.port-circle.connected.direction-input::after { border-right-color: var(--port-color, var(--pn-text-muted)); }
+
+/* Disconnected: dimmed */
+.port-circle.disconnected::before { background: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg)); }
+.port-circle.disconnected.direction-output::after { border-left-color: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg)); }
+.port-circle.disconnected.direction-input::after { border-right-color: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg)); }
+
+/* Invalid: red glow */
+.port-circle.invalid::before { background: var(--pn-accent-danger); }
+.port-circle.invalid.direction-output::after { border-left-color: var(--pn-accent-danger); }
+.port-circle.invalid.direction-input::after { border-right-color: var(--pn-accent-danger); }
+.port-circle.invalid { filter: drop-shadow(0 0 4px var(--pn-accent-danger)); }
+
+.port-label {
+    color: var(--port-label-color, var(--pn-text-secondary));
+    font-size: var(--pn-font-size-sm);
+    white-space: nowrap;
+    user-select: none;
+}

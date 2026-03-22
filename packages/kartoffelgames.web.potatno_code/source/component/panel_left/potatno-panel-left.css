@@ -1,0 +1,42 @@
+:host {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+}
+
+.tab-bar {
+    display: flex;
+    background: var(--pn-bg-secondary);
+    border-bottom: 1px solid var(--pn-border-default);
+    flex-shrink: 0;
+}
+
+.tab-button {
+    flex: 1;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    color: var(--pn-text-secondary);
+    font-family: var(--pn-font-family);
+    font-size: var(--pn-font-size);
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.tab-button:hover {
+    color: var(--pn-text-primary);
+}
+
+.tab-button.active {
+    color: var(--pn-accent-primary);
+    border-bottom-color: var(--pn-accent-primary);
+}
+
+.tab-content {
+    flex: 1;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}

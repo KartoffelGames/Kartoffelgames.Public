@@ -1,0 +1,26 @@
+<div class="search-wrapper">
+    <span class="search-icon">⌕</span>
+    <input class="search-field" type="text" placeholder="Search nodes..." (input)="this.onSearchInput($event)" />
+</div>
+<div class="category-list">
+    $for(group of this.filteredGroups) {
+        <div class="category-group">
+            <button class="category-header" (click)="this.toggleCategory(this.group.category)">
+                <span class="category-border" style="background: {{this.group.cssColor}}"></span>
+                <span class="category-icon">{{this.group.icon}}</span>
+                <span class="category-label">{{this.group.label}}</span>
+                <span [className]="this.getToggleClass(this.group.category)">▼</span>
+            </button>
+            $if(!this.isCategoryCollapsed(this.group.category)) {
+                <div class="category-items">
+                    $for(node of this.group.nodes) {
+                        <div class="node-entry" (mousedown)="this.onNodeMouseDown(this.node.name)">{{this.node.name}}</div>
+                    }
+                </div>
+            }
+        </div>
+    }
+    $if(this.filteredGroups.length === 0) {
+        <div class="empty-message">No matching nodes found.</div>
+    }
+</div>

@@ -1,0 +1,127 @@
+:host {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    font-family: var(--pn-font-family);
+    color: var(--pn-text-primary);
+    background: var(--pn-bg-primary);
+    overflow: hidden;
+}
+
+.editor-layout {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.panel-left {
+    width: var(--pn-panel-width);
+    min-width: var(--pn-panel-min-width);
+    max-width: var(--pn-panel-max-width);
+    background: var(--pn-bg-secondary);
+    border-right: 1px solid var(--pn-border-default);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.resize-handle-left {
+    width: 4px;
+    cursor: col-resize;
+    background: transparent;
+    flex-shrink: 0;
+    transition: background 0.15s;
+    z-index: 10;
+}
+
+.resize-handle-left:hover {
+    background: var(--pn-accent-primary);
+}
+
+.center-area {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+    min-width: 200px;
+}
+
+.preview-wrapper {
+    position: absolute;
+    bottom: 12px;
+    right: 12px;
+    z-index: 100;
+}
+
+.resize-handle-right {
+    width: 4px;
+    cursor: col-resize;
+    background: transparent;
+    flex-shrink: 0;
+    transition: background 0.15s;
+    z-index: 10;
+}
+
+.resize-handle-right:hover {
+    background: var(--pn-accent-primary);
+}
+
+.panel-right {
+    width: var(--pn-panel-width);
+    min-width: var(--pn-panel-min-width);
+    max-width: var(--pn-panel-max-width);
+    background: var(--pn-bg-secondary);
+    border-left: 1px solid var(--pn-border-default);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    flex-shrink: 0;
+}
+
+.grid-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    transform-origin: 0 0;
+}
+
+.svg-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    pointer-events: none;
+    overflow: visible;
+}
+
+.node-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.node-position {
+    position: absolute;
+}
+
+.canvas-wrapper {
+    background: var(--pn-bg-primary);
+    position: relative;
+    overflow: hidden;
+    flex: 1;
+    cursor: default;
+}
+
+.selection-box {
+    position: absolute;
+    border: 1px solid var(--pn-accent-primary);
+    background: var(--pn-selection-color);
+    pointer-events: none;
+    z-index: 1000;
+}

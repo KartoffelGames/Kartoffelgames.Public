@@ -1,0 +1,12 @@
+<div class="tab-bar">
+    <button [className]="this.getTabClass(0)" (click)="this.onTabClick(0)">Nodes</button>
+    <button [className]="this.getTabClass(1)" (click)="this.onTabClick(1)">Functions</button>
+</div>
+<div class="tab-content">
+    $if(this.activeTabIndex === 0) {
+        <potatno-node-library [nodeDefinitions]="this.nodeDefinitions" (node-drag-start)="this.onNodeDragStart($event)"></potatno-node-library>
+    }
+    $if(this.activeTabIndex === 1) {
+        <potatno-function-list [functions]="this.functions" [activeFunctionId]="this.activeFunctionId" (function-select)="this.onFunctionSelect($event)" (function-add)="this.onFunctionAdd($event)" (function-delete)="this.onFunctionDelete($event)"></potatno-function-list>
+    }
+</div>

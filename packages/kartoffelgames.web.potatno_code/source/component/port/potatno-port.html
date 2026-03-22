@@ -1,0 +1,8 @@
+<div [className]="this.portWrapperClasses" [title]="this.type">
+    <div #portCircle [className]="this.portCircleClasses" style="--port-color: {{this.portColor}}"
+         (pointerdown)="this.onPointerDown($event)"
+         (pointerenter)="this.onPointerEnter($event)"
+         (pointerleave)="this.onPointerLeave($event)">
+    </div>
+    <span class="port-label">{{this.name}}</span>
+</div>

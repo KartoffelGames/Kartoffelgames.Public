@@ -1,0 +1,8 @@
+<div class="tabs-header">
+    $for(tab of this.tabs; index = $index) {
+        <button [className]="this.getTabClass(this.index)" (click)="this.onTabClick(this.index)">{{this.tab}}</button>
+    }
+</div>
+<div class="tabs-content">
+    $slot
+</div>

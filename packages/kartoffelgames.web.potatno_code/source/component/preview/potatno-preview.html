@@ -1,0 +1,27 @@
+<div class="resize-handle" (pointerdown)="this.onResizePointerDown($event)"></div>
+<div class="preview-container" #PreviewContainer>
+    <div class="preview-header">
+        $if(this.hasErrors) {
+            <span class="preview-title error-title">Errors ({{this.errors.length}})</span>
+        }
+        $if(!this.hasErrors) {
+            <span class="preview-title">Preview</span>
+        }
+    </div>
+    $if(this.hasErrors) {
+        <div class="error-list">
+            $for(error of this.errors) {
+                <div class="error-item">
+                    <span class="error-icon">!</span>
+                    <div class="error-content">
+                        <div class="error-message">{{this.error.message}}</div>
+                        <div class="error-location">{{this.error.location}}</div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    $if(!this.hasErrors) {
+        <div class="preview-content" #PreviewContent></div>
+    }
+</div>

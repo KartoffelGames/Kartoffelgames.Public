@@ -1,0 +1,67 @@
+<div class="editor-layout">
+    <div #panelLeft class="panel-left">
+        <potatno-panel-left
+            [nodeDefinitions]="this.nodeDefinitionList"
+            [functions]="this.functionList"
+            [activeFunctionId]="this.activeFunctionId"
+            (node-drag-start)="this.onNodeDragFromLibrary($event)"
+            (function-select)="this.onFunctionSelect($event)"
+            (function-add)="this.onFunctionAdd()"
+            (function-delete)="this.onFunctionDelete($event)">
+        </potatno-panel-left>
+    </div>
+    <div #resizeLeft class="resize-handle-left"
+        (pointerdown)="this.onResizeLeftStart($event)">
+    </div>
+    <div class="center-area">
+        <div #canvasWrapper class="canvas-wrapper"
+            [style]="this.gridBackgroundStyle"
+            (pointerdown)="this.onCanvasPointerDown($event)"
+            (pointermove)="this.onCanvasPointerMove($event)"
+            (pointerup)="this.onCanvasPointerUp($event)"
+            (wheel)="this.onCanvasWheel($event)"
+            (contextmenu)="this.onContextMenu($event)">
+            <div #gridLayer class="grid-layer" [style]="this.gridTransformStyle">
+                <svg #svgLayer class="svg-layer" xmlns="http://www.w3.org/2000/svg"></svg>
+                <div class="node-layer">
+                    $for(nodeRender of this.visibleNodes) {
+                        <div class="node-position" style="left:{{this.nodeRender.pixelX}}px;top:{{this.nodeRender.pixelY}}px">
+                            <potatno-node
+                                [nodeData]="this.nodeRender"
+                                [selected]="this.nodeRender.selected"
+                                [gridSize]="this.interaction.gridSize"
+                                (pointerdown)="this.onNodePointerDown($event, this.nodeRender)"
+                                (port-drag-start)="this.onPortDragStart($event)"
+                                (port-hover)="this.onPortHover($event)"
+                                (port-leave)="this.onPortLeave($event)">
+                            </potatno-node>
+                        </div>
+                    }
+                </div>
+            </div>
+            $if(this.showSelectionBox) {
+                <div class="selection-box" [style]="this.selectionBoxStyle"></div>
+            }
+        </div>
+        $if(this.hasPreview) {
+            <div class="preview-wrapper">
+                <potatno-preview #previewEl [errors]="this.editorErrors"></potatno-preview>
+            </div>
+        }
+    </div>
+    <div #resizeRight class="resize-handle-right"
+        (pointerdown)="this.onResizeRightStart($event)">
+    </div>
+    <div #panelRight class="panel-right">
+        <potatno-panel-properties
+            [functionName]="this.activeFunctionName"
+            [functionInputs]="this.activeFunctionInputs"
+            [functionOutputs]="this.activeFunctionOutputs"
+            [functionImports]="this.activeFunctionImports"
+            [isSystem]="this.activeFunctionIsSystem"
+            [availableImports]="this.availableImportsList"
+            [availableTypes]="this.availableTypes"
+            (properties-change)="this.onPropertiesChange($event)">
+        </potatno-panel-properties>
+    </div>
+</div>

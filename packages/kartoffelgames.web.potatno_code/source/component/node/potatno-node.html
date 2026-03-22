@@ -1,0 +1,126 @@
+$if(this.nodeData) {
+    $if(this.isComment) {
+        <div class="node-comment {{this.selectedClass}}"
+             (pointerdown)="this.onNodePointerDown($event)">
+            <div class="comment-header">
+                <span class="node-icon">{{this.nodeData.categoryIcon}}</span>
+                <span class="node-label">{{this.nodeData.definitionName}}</span>
+            </div>
+            <div class="comment-body">
+                <textarea [value]="this.nodeData.commentText"
+                          (input)="this.onCommentInput($event)">
+                </textarea>
+            </div>
+            <div class="resize-handle"
+                 (pointerdown)="this.onResizeStart($event)">
+            </div>
+        </div>
+    }
+    $if(!this.isComment) {
+        <div class="node {{this.selectedClass}}"
+             (pointerdown)="this.onNodePointerDown($event)">
+            <div class="node-header" style="background: {{this.nodeData.categoryColor}}">
+                <div class="header-flow-inputs">
+                    $for(flowIn of this.flowInputPorts) {
+                        <potatno-port
+                            [name]="this.flowIn.name"
+                            [portId]="this.flowIn.id"
+                            [nodeId]="this.nodeId"
+                            [direction]="'input'"
+                            [portKind]="'flow'"
+                            [connected]="this.flowIn.connectedTo !== null"
+                            (port-drag-start)="this.onPortDragStart($event)"
+                            (port-hover)="this.onPortHover($event)"
+                            (port-leave)="this.onPortLeave($event)">
+                        </potatno-port>
+                    }
+                </div>
+                <span class="node-icon">{{this.nodeData.categoryIcon}}</span>
+                <span class="node-label">{{this.nodeData.definitionName}}</span>
+                $if(this.showOpenButton) {
+                    <button class="open-function-btn"
+                            (click)="this.onOpenFunction($event)">
+                        open
+                    </button>
+                }
+                <div class="header-flow-outputs">
+                    $for(flowOut of this.flowOutputPorts) {
+                        <potatno-port
+                            [name]="this.flowOut.name"
+                            [portId]="this.flowOut.id"
+                            [nodeId]="this.nodeId"
+                            [direction]="'output'"
+                            [portKind]="'flow'"
+                            [connected]="this.flowOut.connectedTo !== null"
+                            (port-drag-start)="this.onPortDragStart($event)"
+                            (port-hover)="this.onPortHover($event)"
+                            (port-leave)="this.onPortLeave($event)">
+                        </potatno-port>
+                    }
+                </div>
+            </div>
+            <div class="node-body">
+                $if(this.isValue) {
+                    <div class="node-value-row">
+                        <div class="node-value-input">
+                            <input type="text"
+                                   [value]="this.nodeData.valueText"
+                                   (input)="this.onValueInput($event)"
+                                   (pointerdown)="$event.stopPropagation()"/>
+                        </div>
+                        <div class="node-outputs">
+                            $for(outPort of this.outputPorts) {
+                                <potatno-port
+                                    [name]="this.outPort.name"
+                                    [type]="this.outPort.type"
+                                    [portId]="this.outPort.id"
+                                    [nodeId]="this.nodeId"
+                                    [direction]="'output'"
+                                    [portKind]="'data'"
+                                    [connected]="this.outPort.connectedTo !== null"
+                                    (port-drag-start)="this.onPortDragStart($event)"
+                                    (port-hover)="this.onPortHover($event)"
+                                    (port-leave)="this.onPortLeave($event)">
+                                </potatno-port>
+                            }
+                        </div>
+                    </div>
+                }
+                $if(!this.isValue) {
+                    <div class="node-inputs">
+                        $for(inPort of this.inputPorts) {
+                            <potatno-port
+                                [name]="this.inPort.name"
+                                [type]="this.inPort.type"
+                                [portId]="this.inPort.id"
+                                [nodeId]="this.nodeId"
+                                [direction]="'input'"
+                                [portKind]="'data'"
+                                [connected]="this.inPort.connectedTo !== null"
+                                (port-drag-start)="this.onPortDragStart($event)"
+                                (port-hover)="this.onPortHover($event)"
+                                (port-leave)="this.onPortLeave($event)">
+                            </potatno-port>
+                        }
+                    </div>
+                    <div class="node-outputs">
+                        $for(outPort of this.outputPorts) {
+                            <potatno-port
+                                [name]="this.outPort.name"
+                                [type]="this.outPort.type"
+                                [portId]="this.outPort.id"
+                                [nodeId]="this.nodeId"
+                                [direction]="'output'"
+                                [portKind]="'data'"
+                                [connected]="this.outPort.connectedTo !== null"
+                                (port-drag-start)="this.onPortDragStart($event)"
+                                (port-hover)="this.onPortHover($event)"
+                                (port-leave)="this.onPortLeave($event)">
+                            </potatno-port>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+}

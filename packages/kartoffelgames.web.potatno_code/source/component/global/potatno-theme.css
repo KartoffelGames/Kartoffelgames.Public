@@ -1,0 +1,66 @@
+:host {
+    /* Background */
+    --pn-bg-primary: #1e1e2e;
+    --pn-bg-secondary: #181825;
+    --pn-bg-surface: #252536;
+    --pn-bg-elevated: #2a2a3c;
+
+    /* Text */
+    --pn-text-primary: #cdd6f4;
+    --pn-text-secondary: #a6adc8;
+    --pn-text-muted: #6c7086;
+
+    /* Borders */
+    --pn-border-default: #45475a;
+    --pn-border-active: #89b4fa;
+
+    /* Accent */
+    --pn-accent-primary: #89b4fa;
+    --pn-accent-secondary: #74c7ec;
+    --pn-accent-danger: #f38ba8;
+    --pn-accent-warning: #fab387;
+    --pn-accent-success: #a6e3a1;
+
+    /* Node category colors */
+    --pn-cat-input: #a6e3a1;
+    --pn-cat-output: #f38ba8;
+    --pn-cat-value: #f9e2af;
+    --pn-cat-function: #89b4fa;
+    --pn-cat-flow: #cba6f7;
+    --pn-cat-comment: #6c7086;
+    --pn-cat-operator: #fab387;
+    --pn-cat-type-conversion: #74c7ec;
+
+    /* Canvas */
+    --pn-grid-color: #313244;
+    --pn-grid-size: 20px;
+    --pn-connection-width: 2px;
+    --pn-selection-color: rgba(137, 180, 250, 0.2);
+
+    /* Panel */
+    --pn-panel-width: 280px;
+    --pn-panel-min-width: 200px;
+    --pn-panel-max-width: 500px;
+
+    /* Scrollbar */
+    --pn-scrollbar-thumb: #45475a;
+    --pn-scrollbar-track: transparent;
+
+    /* Node */
+    --pn-node-bg: #1e1e2e;
+    --pn-node-border: #45475a;
+    --pn-node-border-selected: #89b4fa;
+    --pn-node-shadow: rgba(0, 0, 0, 0.3);
+    --pn-node-header-height: 28px;
+    --pn-node-port-size: 12px;
+    --pn-node-port-gap: 24px;
+    --pn-node-min-width: 160px;
+    --pn-node-border-radius: 6px;
+
+    /* Font */
+    --pn-font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    --pn-font-mono: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
+    --pn-font-size-sm: 11px;
+    --pn-font-size: 13px;
+    --pn-font-size-lg: 14px;
+}

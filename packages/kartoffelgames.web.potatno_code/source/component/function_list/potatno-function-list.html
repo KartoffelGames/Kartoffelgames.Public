@@ -1,0 +1,20 @@
+<div class="function-list-content">
+    $for(fn of this.functions) {
+        <div [className]="this.getEntryClass(this.fn.id)" (click)="this.onFunctionSelect(this.fn.id)">
+            <span class="function-icon">ƒ</span>
+            $if(this.fn.system) {
+                <span class="lock-icon">🔒</span>
+            }
+            <span class="function-name">{{this.fn.label}}</span>
+            $if(!this.fn.system) {
+                <button class="delete-button" (click)="this.onFunctionDelete($event, this.fn.id)">✕</button>
+            }
+        </div>
+    }
+</div>
+<div class="add-button-wrapper">
+    <button class="add-button" (click)="this.onFunctionAdd()">
+        <span class="add-icon">+</span>
+        <span>Add Function</span>
+    </button>
+</div>

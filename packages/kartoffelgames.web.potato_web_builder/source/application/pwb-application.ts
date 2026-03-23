@@ -31,7 +31,6 @@ export class PwbApplication {
     }
 
     private readonly mConfiguration: PwbApplicationConfiguration;
-    private readonly mContent: Array<Component>;
     private readonly mElement: HTMLElement;
     private readonly mInteractionZone: InteractionZone;
 
@@ -48,16 +47,13 @@ export class PwbApplication {
      * 
      * @param pName - Application name. 
      */
-    private constructor(pName: string, pConfiguration: PwbApplicationConfiguration) {
+    protected constructor(pName: string, pConfiguration: PwbApplicationConfiguration) {
         // Create interaction zone of app component and attach the configuration to it.
         this.mInteractionZone = InteractionZone.current.create(`App-${pName}`, { isolate: true });
         this.mInteractionZone.attachment(PwbApplication.CONFIGURATION_ATTACHMENT, pConfiguration);
 
         // Create new application configuration.
         this.mConfiguration = pConfiguration;
-
-        // Create list of all content.
-        this.mContent = new Array<Component>();
 
         // Create a own div with shadow root for this applications.
         this.mElement = document.createElement('div');
@@ -67,23 +63,24 @@ export class PwbApplication {
     /**
      * Append content to app.
      * Component is constructed asynchron after beeing append with {@link appendTo}.
-     * 
-     * @param pContentConstructor - Content constructor.
+     *
+     * @param pContentConstructor - Content constructor. // TODO: Make that more typesafe.
+     *
+     * @returns The HTML element of the added component.
      */
-    public addContent(pContentConstructor: typeof Processor): void {
+    public addContent(pContentConstructor: typeof Processor): HTMLElement {
         // Get component html constructor from class.
         const lComponentConstructor: CustomElementConstructor = ComponentRegister.ofConstructor(pContentConstructor).elementConstructor;
 
         // Create component inside applications interaction zone.
-        this.mInteractionZone.execute(() => {
+        return this.mInteractionZone.execute(() => {
             // Read component manager from component element.
             const lComponentInformation: ComponentInformationData = ComponentRegister.ofElement(new lComponentConstructor());
 
-            // Add component to content list.
-            this.mContent.push(lComponentInformation.component);
-
             // Append component to shadow root.
             this.mElement.shadowRoot!.appendChild(lComponentInformation.element);
+
+            return lComponentInformation.element;
         });
     }
 

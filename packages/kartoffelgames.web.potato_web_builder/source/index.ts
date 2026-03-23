@@ -1,5 +1,6 @@
 // Application
 export { PwbApplication } from './application/pwb-application.ts';
+export { PwbApplicationConfiguration } from "./application/pwb-application-configuration.ts";
 
 // Component
 export type { IComponentOnAttributeChange, IComponentOnConnect, IComponentOnDeconstruct, IComponentOnDisconnect, IComponentOnUpdate } from './core/component/component.ts';

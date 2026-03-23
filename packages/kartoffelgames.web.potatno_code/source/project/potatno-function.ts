@@ -1,0 +1,178 @@
+import type { PotatnoPortDefinition } from '../node/potatno-port-definition.ts';
+import { PotatnoGraph } from '../document/potatno-graph.ts';
+
+/**
+ * Represents a user-editable function containing a sub-graph.
+ */
+export class PotatnoFunction {
+    public readonly editableByUser: boolean;
+    public readonly graph: PotatnoGraph;
+    public readonly id: string;
+    public readonly system: boolean;
+
+    private mImports: Array<string>;
+    private mInputs: Array<PotatnoPortDefinition>;
+    private mLabel: string;
+    private mName: string;
+    private mOutputs: Array<PotatnoPortDefinition>;
+
+    /**
+     * Get the list of imports for this function.
+     */
+    public get imports(): ReadonlyArray<string> {
+        return this.mImports;
+    }
+
+    /**
+     * Get the list of input port definitions for this function.
+     */
+    public get inputs(): ReadonlyArray<PotatnoPortDefinition> {
+        return this.mInputs;
+    }
+
+    /**
+     * Get the display label of this function.
+     */
+    public get label(): string {
+        return this.mLabel;
+    }
+
+    /**
+     * Get the name of this function.
+     */
+    public get name(): string {
+        return this.mName;
+    }
+
+    /**
+     * Get the list of output port definitions for this function.
+     */
+    public get outputs(): ReadonlyArray<PotatnoPortDefinition> {
+        return this.mOutputs;
+    }
+
+    /**
+     * Create a new function instance.
+     *
+     * @param pId - Unique identifier for the function.
+     * @param pName - Internal name of the function.
+     * @param pLabel - Display label of the function.
+     * @param pSystem - Whether the function is a system-defined function.
+     * @param pEditableByUser - Whether the user can edit the function definition.
+     */
+    public constructor(pId: string, pName: string, pLabel: string, pSystem: boolean, pEditableByUser: boolean = false) {
+        this.id = pId;
+        this.mName = pName;
+        this.mLabel = pLabel;
+        this.system = pSystem;
+        this.editableByUser = pEditableByUser;
+        this.graph = new PotatnoGraph();
+        this.mInputs = new Array<PotatnoPortDefinition>();
+        this.mOutputs = new Array<PotatnoPortDefinition>();
+        this.mImports = new Array<string>();
+    }
+
+    /**
+     * Set the internal name of the function.
+     *
+     * @param pName - The new name.
+     */
+    public setName(pName: string): void {
+        this.mName = pName;
+    }
+
+    /**
+     * Set the display label of the function.
+     *
+     * @param pLabel - The new label.
+     */
+    public setLabel(pLabel: string): void {
+        this.mLabel = pLabel;
+    }
+
+    /**
+     * Replace all input port definitions.
+     *
+     * @param pInputs - The new list of input port definitions.
+     */
+    public setInputs(pInputs: Array<PotatnoPortDefinition>): void {
+        this.mInputs = [...pInputs];
+    }
+
+    /**
+     * Replace all output port definitions.
+     *
+     * @param pOutputs - The new list of output port definitions.
+     */
+    public setOutputs(pOutputs: Array<PotatnoPortDefinition>): void {
+        this.mOutputs = [...pOutputs];
+    }
+
+    /**
+     * Replace all imports for this function.
+     *
+     * @param pImports - The new list of import strings.
+     */
+    public setImports(pImports: Array<string>): void {
+        this.mImports = [...pImports];
+    }
+
+    /**
+     * Add an import to the function if it does not already exist.
+     *
+     * @param pImport - The import string to add.
+     */
+    public addImport(pImport: string): void {
+        if (!this.mImports.includes(pImport)) {
+            this.mImports.push(pImport);
+        }
+    }
+
+    /**
+     * Remove an import from the function.
+     *
+     * @param pImport - The import string to remove.
+     */
+    public removeImport(pImport: string): void {
+        const lIndex: number = this.mImports.indexOf(pImport);
+        if (lIndex !== -1) {
+            this.mImports.splice(lIndex, 1);
+        }
+    }
+
+    /**
+     * Add an input port definition to the function.
+     *
+     * @param pInput - The input port definition to add.
+     */
+    public addInput(pInput: PotatnoPortDefinition): void {
+        this.mInputs.push(pInput);
+    }
+
+    /**
+     * Remove an input port definition by index.
+     *
+     * @param pIndex - The index of the input to remove.
+     */
+    public removeInput(pIndex: number): void {
+        this.mInputs.splice(pIndex, 1);
+    }
+
+    /**
+     * Add an output port definition to the function.
+     *
+     * @param pOutput - The output port definition to add.
+     */
+    public addOutput(pOutput: PotatnoPortDefinition): void {
+        this.mOutputs.push(pOutput);
+    }
+
+    /**
+     * Remove an output port definition by index.
+     *
+     * @param pIndex - The index of the output to remove.
+     */
+    public removeOutput(pIndex: number): void {
+        this.mOutputs.splice(pIndex, 1);
+    }
+}

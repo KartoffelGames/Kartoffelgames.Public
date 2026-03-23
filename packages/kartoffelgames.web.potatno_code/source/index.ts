@@ -1,17 +1,40 @@
-// Public API
-export { PotatnoCodeEditor } from './component/editor/potatno-code-editor.ts';
+// Application
+export { PotatnoCodeApplication } from './potatno-code-application.ts';
 
-// Enums
-export { NodeCategory, NODE_CATEGORY_META } from './data_model/enum/node-category.enum.ts';
-export { PortDirection } from './data_model/enum/port-direction.enum.ts';
-export { PortKind } from './data_model/enum/port-kind.enum.ts';
+// Project
+export { PotatnoProject } from './project/potatno-project.ts';
+export { PotatnoCodeFunction } from './project/potatno-code-function.ts';
+export type { PotatnoMainFunctionDefinition } from './project/potatno-main-function-definition.ts';
+export type { PotatnoGlobalValueDefinition } from './project/potatno-global-value-definition.ts';
+export type { PotatnoEditorConfiguration } from './project/potatno-editor-configuration.ts';
+export { PotatnoFunction } from './project/potatno-function.ts';
 
-// Configuration Types
-export type { PotatnoNodeDefinition } from './data_model/configuration/potatno-node-definition.ts';
-export type { PotatnoPortDefinition } from './data_model/configuration/potatno-port-definition.ts';
-export type { PotatnoMainFunctionDefinition } from './data_model/configuration/potatno-main-function-definition.ts';
-export type { PotatnoGlobalValueDefinition } from './data_model/configuration/potatno-global-value-definition.ts';
+// Document
+export { PotatnoCodeFile } from './document/potatno-code-file.ts';
+export { PotatnoGraph } from './document/potatno-graph.ts';
+export { PotatnoNode } from './document/potatno-node.ts';
+export { PotatnoPort } from './document/potatno-port.ts';
+export { PotatnoFlowPort } from './document/potatno-flow-port.ts';
+export { PotatnoConnection } from './document/potatno-connection.ts';
 
-// Code Generation Types
-export { PotatnoCodeNode } from './data_model/code_generation/potatno-code-node.ts';
-export { PotatnoCodeFunction } from './data_model/code_generation/potatno-code-function.ts';
+// Node
+export { PotatnoCodeNode } from './node/potatno-code-node.ts';
+export { PotatnoCodeCommentNode } from './node/potatno-code-comment-node.ts';
+export { PotatnoCodeInputNode } from './node/potatno-code-input-node.ts';
+export { PotatnoCodeOutputNode } from './node/potatno-code-output-node.ts';
+export { PotatnoCodeTemplateNode } from './node/potatno-code-template-node.ts';
+export { PotatnoCodeValueNode } from './node/potatno-code-value-node.ts';
+export { PotatnoCodeFlowNode } from './node/potatno-code-flow-node.ts';
+export type { PotatnoNodeDefinition } from './node/potatno-node-definition.ts';
+export type { PotatnoPortDefinition } from './node/potatno-port-definition.ts';
+export { NodeCategory } from './node/node-category.enum.ts';
+export { PortDirection } from './node/port-direction.enum.ts';
+export { PortKind } from './node/port-kind.enum.ts';
+
+// Parser
+export { PotatnoSerializer } from './parser/potatno-serializer.ts';
+export { PotatnoDeserializer } from './parser/potatno-deserializer.ts';
+export { PotatnoCodeGenerator } from './parser/potatno-code-generator.ts';
+
+// UI (editor component)
+export { PotatnoCodeEditor } from './ui/component/potatno-code-editor.ts';

@@ -1,322 +1,250 @@
-import { PwbApplication } from '@kartoffelgames/web-potato-web-builder';
-import { NodeCategory, PotatnoCodeEditor } from '../../source/index.ts';
-import type { PotatnoNodeDefinition, PotatnoCodeNode, PotatnoCodeFunction } from '../../source/index.ts';
-import themeCss from '../../source/component/global/potatno-theme.css';
+import { PotatnoCodeApplication } from '../../source/potatno-code-application.ts';
+import { PotatnoProject } from '../../source/project/potatno-project.ts';
+import { PotatnoCodeFile } from '../../source/document/potatno-code-file.ts';
+import { NodeCategory } from '../../source/node/node-category.enum.ts';
+import type { PotatnoCodeFunction } from '../../source/project/potatno-code-function.ts';
 
-// Create the application and editor via PwbApplication.
-let lEditor: any;
-
-PwbApplication.new('potatno-code', (pApp: PwbApplication) => {
-    pApp.addStyle(themeCss);
-    pApp.addStyle(':host { display: block; width: 100%; height: 100%; } potatno-code-editor { display: block; width: 100%; height: 100%; }');
-    pApp.addContent(PotatnoCodeEditor);
-}, document.body);
-
-// Find the editor element inside the application shadow root.
-const lAppDiv: HTMLElement | null = document.body.lastElementChild as HTMLElement;
-lEditor = lAppDiv?.shadowRoot?.querySelector('potatno-code-editor');
+// --- Project configuration ---
+const lProject: PotatnoProject = new PotatnoProject();
 
 // --- Comment token ---
-lEditor.setCommentToken('//');
+lProject.setCommentToken('//');
 
 // --- Global values ---
-lEditor.defineGlobalValue({ name: 'Math_PI', type: 'number', label: 'Math.PI' });
-lEditor.defineGlobalValue({ name: 'Math_E', type: 'number', label: 'Math.E' });
+lProject.defineGlobalValue({ name: 'Math_PI', type: 'number', label: 'Math.PI' });
+lProject.defineGlobalValue({ name: 'Math_E', type: 'number', label: 'Math.E' });
 
 // --- Value Nodes ---
-lEditor.defineNode({
+lProject.defineNode({
     name: 'Number Literal',
     category: NodeCategory.Value,
     inputs: [],
     outputs: [{ name: 'value', type: 'number' }],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        const lVal: string = pNode.properties.get('value') ?? '0';
-        return `const ${pNode.outputs.get('value')!.valueId} = ${lVal};`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'const ${output:value} = ${property:value};'
+});
 
-lEditor.defineNode({
+lProject.defineNode({
     name: 'String Literal',
     category: NodeCategory.Value,
     inputs: [],
     outputs: [{ name: 'value', type: 'string' }],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        const lVal: string = pNode.properties.get('value') ?? '';
-        return `const ${pNode.outputs.get('value')!.valueId} = "${lVal}";`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'const ${output:value} = "${property:value}";'
+});
 
-lEditor.defineNode({
+lProject.defineNode({
     name: 'Boolean Literal',
     category: NodeCategory.Value,
     inputs: [],
     outputs: [{ name: 'value', type: 'boolean' }],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        const lVal: string = pNode.properties.get('value') ?? 'false';
-        return `const ${pNode.outputs.get('value')!.valueId} = ${lVal};`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'const ${output:value} = ${property:value};'
+});
 
 // --- Operator Nodes: Arithmetic ---
-lEditor.defineNode({
+lProject.defineNode({
     name: 'Add',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
     outputs: [{ name: 'result', type: 'number' }],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        return `const ${pNode.outputs.get('result')!.valueId} = ${pNode.inputs.get('a')!.valueId} + ${pNode.inputs.get('b')!.valueId};`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'const ${output:result} = ${input:a} + ${input:b};'
+});
 
-lEditor.defineNode({
+lProject.defineNode({
     name: 'Subtract',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
     outputs: [{ name: 'result', type: 'number' }],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        return `const ${pNode.outputs.get('result')!.valueId} = ${pNode.inputs.get('a')!.valueId} - ${pNode.inputs.get('b')!.valueId};`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'const ${output:result} = ${input:a} - ${input:b};'
+});
 
-lEditor.defineNode({
+lProject.defineNode({
     name: 'Multiply',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
     outputs: [{ name: 'result', type: 'number' }],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        return `const ${pNode.outputs.get('result')!.valueId} = ${pNode.inputs.get('a')!.valueId} * ${pNode.inputs.get('b')!.valueId};`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'const ${output:result} = ${input:a} * ${input:b};'
+});
 
-lEditor.defineNode({
+lProject.defineNode({
     name: 'Divide',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
     outputs: [{ name: 'result', type: 'number' }],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        return `const ${pNode.outputs.get('result')!.valueId} = ${pNode.inputs.get('a')!.valueId} / ${pNode.inputs.get('b')!.valueId};`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'const ${output:result} = ${input:a} / ${input:b};'
+});
 
-lEditor.defineNode({
+lProject.defineNode({
     name: 'Modulo',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
     outputs: [{ name: 'result', type: 'number' }],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        return `const ${pNode.outputs.get('result')!.valueId} = ${pNode.inputs.get('a')!.valueId} % ${pNode.inputs.get('b')!.valueId};`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'const ${output:result} = ${input:a} % ${input:b};'
+});
 
 // --- Operator Nodes: Comparison ---
-lEditor.defineNode({
+lProject.defineNode({
     name: 'Equal',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
     outputs: [{ name: 'result', type: 'boolean' }],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        return `const ${pNode.outputs.get('result')!.valueId} = ${pNode.inputs.get('a')!.valueId} === ${pNode.inputs.get('b')!.valueId};`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'const ${output:result} = ${input:a} === ${input:b};'
+});
 
-lEditor.defineNode({
+lProject.defineNode({
     name: 'Not Equal',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
     outputs: [{ name: 'result', type: 'boolean' }],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        return `const ${pNode.outputs.get('result')!.valueId} = ${pNode.inputs.get('a')!.valueId} !== ${pNode.inputs.get('b')!.valueId};`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'const ${output:result} = ${input:a} !== ${input:b};'
+});
 
-lEditor.defineNode({
+lProject.defineNode({
     name: 'Less Than',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
     outputs: [{ name: 'result', type: 'boolean' }],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        return `const ${pNode.outputs.get('result')!.valueId} = ${pNode.inputs.get('a')!.valueId} < ${pNode.inputs.get('b')!.valueId};`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'const ${output:result} = ${input:a} < ${input:b};'
+});
 
-lEditor.defineNode({
+lProject.defineNode({
     name: 'Greater Than',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
     outputs: [{ name: 'result', type: 'boolean' }],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        return `const ${pNode.outputs.get('result')!.valueId} = ${pNode.inputs.get('a')!.valueId} > ${pNode.inputs.get('b')!.valueId};`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'const ${output:result} = ${input:a} > ${input:b};'
+});
 
 // --- Operator Nodes: Logic ---
-lEditor.defineNode({
+lProject.defineNode({
     name: 'And',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'boolean' }, { name: 'b', type: 'boolean' }],
     outputs: [{ name: 'result', type: 'boolean' }],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        return `const ${pNode.outputs.get('result')!.valueId} = ${pNode.inputs.get('a')!.valueId} && ${pNode.inputs.get('b')!.valueId};`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'const ${output:result} = ${input:a} && ${input:b};'
+});
 
-lEditor.defineNode({
+lProject.defineNode({
     name: 'Or',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'boolean' }, { name: 'b', type: 'boolean' }],
     outputs: [{ name: 'result', type: 'boolean' }],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        return `const ${pNode.outputs.get('result')!.valueId} = ${pNode.inputs.get('a')!.valueId} || ${pNode.inputs.get('b')!.valueId};`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'const ${output:result} = ${input:a} || ${input:b};'
+});
 
-lEditor.defineNode({
+lProject.defineNode({
     name: 'Not',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'boolean' }],
     outputs: [{ name: 'result', type: 'boolean' }],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        return `const ${pNode.outputs.get('result')!.valueId} = !${pNode.inputs.get('a')!.valueId};`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'const ${output:result} = !${input:a};'
+});
 
 // --- Type Conversion Nodes ---
-lEditor.defineNode({
+lProject.defineNode({
     name: 'Number to String',
     category: NodeCategory.TypeConversion,
     inputs: [{ name: 'input', type: 'number' }],
     outputs: [{ name: 'output', type: 'string' }],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        return `const ${pNode.outputs.get('output')!.valueId} = String(${pNode.inputs.get('input')!.valueId});`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'const ${output:output} = String(${input:input});'
+});
 
-lEditor.defineNode({
+lProject.defineNode({
     name: 'String to Number',
     category: NodeCategory.TypeConversion,
     inputs: [{ name: 'input', type: 'string' }],
     outputs: [{ name: 'output', type: 'number' }],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        return `const ${pNode.outputs.get('output')!.valueId} = Number(${pNode.inputs.get('input')!.valueId});`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'const ${output:output} = Number(${input:input});'
+});
 
-lEditor.defineNode({
+lProject.defineNode({
     name: 'Boolean to String',
     category: NodeCategory.TypeConversion,
     inputs: [{ name: 'input', type: 'boolean' }],
     outputs: [{ name: 'output', type: 'string' }],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        return `const ${pNode.outputs.get('output')!.valueId} = String(${pNode.inputs.get('input')!.valueId});`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'const ${output:output} = String(${input:input});'
+});
 
 // --- Flow Nodes ---
-lEditor.defineNode({
+lProject.defineNode({
     name: 'If',
     category: NodeCategory.Flow,
     inputs: [{ name: 'condition', type: 'boolean' }],
     outputs: [],
     flowInputs: ['exec'],
     flowOutputs: ['then', 'else'],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        const lThenCode: string = pNode.body.get('then')?.code ?? '';
-        const lElseCode: string = pNode.body.get('else')?.code ?? '';
-        return `if (${pNode.inputs.get('condition')!.valueId}) {\n${lThenCode}\n} else {\n${lElseCode}\n}`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'if (${input:condition}) {\n${body:then}\n} else {\n${body:else}\n}'
+});
 
-lEditor.defineNode({
+lProject.defineNode({
     name: 'While',
     category: NodeCategory.Flow,
     inputs: [{ name: 'condition', type: 'boolean' }],
     outputs: [],
     flowInputs: ['exec'],
     flowOutputs: ['body'],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        const lBodyCode: string = pNode.body.get('body')?.code ?? '';
-        return `while (${pNode.inputs.get('condition')!.valueId}) {\n${lBodyCode}\n}`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'while (${input:condition}) {\n${body:body}\n}'
+});
 
-lEditor.defineNode({
+lProject.defineNode({
     name: 'For Loop',
     category: NodeCategory.Flow,
     inputs: [{ name: 'count', type: 'number' }],
     outputs: [{ name: 'index', type: 'number' }],
     flowInputs: ['exec'],
     flowOutputs: ['body'],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        const lIdx: string = pNode.outputs.get('index')!.valueId;
-        const lBodyCode: string = pNode.body.get('body')?.code ?? '';
-        return `for (let ${lIdx} = 0; ${lIdx} < ${pNode.inputs.get('count')!.valueId}; ${lIdx}++) {\n${lBodyCode}\n}`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'for (let ${output:index} = 0; ${output:index} < ${input:count}; ${output:index}++) {\n${body:body}\n}'
+});
 
 // --- Function Nodes ---
-lEditor.defineNode({
+lProject.defineNode({
     name: 'Console Log',
     category: NodeCategory.Function,
     inputs: [{ name: 'message', type: 'string' }],
     outputs: [],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        return `console.log(${pNode.inputs.get('message')!.valueId});`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'console.log(${input:message});'
+});
 
-lEditor.defineNode({
+lProject.defineNode({
     name: 'String Concat',
     category: NodeCategory.Function,
     inputs: [{ name: 'a', type: 'string' }, { name: 'b', type: 'string' }],
     outputs: [{ name: 'result', type: 'string' }],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        return `const ${pNode.outputs.get('result')!.valueId} = ${pNode.inputs.get('a')!.valueId} + ${pNode.inputs.get('b')!.valueId};`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'const ${output:result} = ${input:a} + ${input:b};'
+});
 
-lEditor.defineNode({
+lProject.defineNode({
     name: 'Math.abs',
     category: NodeCategory.Function,
     inputs: [{ name: 'value', type: 'number' }],
     outputs: [{ name: 'result', type: 'number' }],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        return `const ${pNode.outputs.get('result')!.valueId} = Math.abs(${pNode.inputs.get('value')!.valueId});`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'const ${output:result} = Math.abs(${input:value});'
+});
 
-lEditor.defineNode({
+lProject.defineNode({
     name: 'Math.floor',
     category: NodeCategory.Function,
     inputs: [{ name: 'value', type: 'number' }],
     outputs: [{ name: 'result', type: 'number' }],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        return `const ${pNode.outputs.get('result')!.valueId} = Math.floor(${pNode.inputs.get('value')!.valueId});`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'const ${output:result} = Math.floor(${input:value});'
+});
 
-lEditor.defineNode({
+lProject.defineNode({
     name: 'Math.random',
     category: NodeCategory.Function,
     inputs: [],
     outputs: [{ name: 'result', type: 'number' }],
-    codeGenerator: (pNode: PotatnoCodeNode) => {
-        return `const ${pNode.outputs.get('result')!.valueId} = Math.random();`;
-    }
-} satisfies PotatnoNodeDefinition);
+    codeTemplate: 'const ${output:result} = Math.random();'
+});
 
 // --- Comment Node ---
-lEditor.defineNode({
+lProject.defineNode({
     name: 'Comment',
     category: NodeCategory.Comment,
     inputs: [],
-    outputs: [],
-    codeGenerator: (_pNode: PotatnoCodeNode) => {
-        return ''; // Comments produce no code.
-    }
-} satisfies PotatnoNodeDefinition);
+    outputs: []
+});
 
 // --- Function Code Generator ---
-lEditor.setFunctionCodeGenerator((pFunc: PotatnoCodeFunction) => {
+lProject.setFunctionCodeGenerator((pFunc: PotatnoCodeFunction) => {
     const lParams: string = pFunc.inputs.map((i: { valueId: string }) => i.valueId).join(', ');
     const lReturnStmt: string = pFunc.outputs.length > 0
         ? `\n    return ${pFunc.outputs[0].valueId};`
@@ -325,23 +253,27 @@ lEditor.setFunctionCodeGenerator((pFunc: PotatnoCodeFunction) => {
 });
 
 // --- Main Functions ---
-lEditor.defineMainFunction({
+lProject.defineMainFunction({
     name: 'main',
     label: 'Main',
     editableByUser: true,
-    inputs: [
-
-    ],
-    outputs: [
-
-    ]
+    inputs: [],
+    outputs: []
 });
 
-// --- Preview Callback ---
-lEditor.setPreviewCallback((pCode: string) => {
-    const lFragment: DocumentFragment = document.createDocumentFragment();
-    const lPre: HTMLPreElement = document.createElement('pre');
-    lPre.style.cssText = 'color: #cdd6f4; margin: 0; padding: 8px; font-family: "Cascadia Code", "Fira Code", monospace; font-size: 13px; white-space: pre-wrap; word-break: break-all;';
+// --- Preview ---
+let lPreviewPre: HTMLPreElement;
+
+lProject.setCreatePreview((pContainer: HTMLElement) => {
+    lPreviewPre = document.createElement('pre');
+    lPreviewPre.style.cssText = 'color: #cdd6f4; margin: 0; padding: 8px; font-family: "Cascadia Code", "Fira Code", monospace; font-size: 13px; white-space: pre-wrap; word-break: break-all;';
+    pContainer.appendChild(lPreviewPre);
+});
+
+lProject.setUpdatePreview((pCode: string) => {
+    if (!lPreviewPre) {
+        return;
+    }
 
     try {
         const lWrappedCode: string = `
@@ -355,19 +287,19 @@ lEditor.setPreviewCallback((pCode: string) => {
         const lExecute: Function = new Function(lWrappedCode);
         const lResult: Array<string> = lExecute();
         if (lResult.length > 0) {
-            lPre.textContent = lResult.join('\n');
+            lPreviewPre.textContent = lResult.join('\n');
+            lPreviewPre.style.color = '#cdd6f4';
         } else {
-            lPre.textContent = '(no output)';
-            lPre.style.color = '#6c7086';
+            lPreviewPre.textContent = '(no output)';
+            lPreviewPre.style.color = '#6c7086';
         }
     } catch (pError: any) {
-        lPre.textContent = `Error: ${pError.message ?? pError}`;
-        lPre.style.color = '#f38ba8';
+        lPreviewPre.textContent = `Error: ${pError.message ?? pError}`;
+        lPreviewPre.style.color = '#f38ba8';
     }
-
-    lFragment.appendChild(lPre);
-    return lFragment;
 });
 
-// --- Initialize ---
-lEditor.initialize();
+// --- Create application and open an empty file ---
+const lApp: PotatnoCodeApplication = new PotatnoCodeApplication(lProject);
+lApp.appendTo(document.body);
+lApp.file = new PotatnoCodeFile();

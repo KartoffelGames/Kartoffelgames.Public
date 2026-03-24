@@ -1,8 +1,10 @@
 import { PotatnoCodeApplication } from '../../source/potatno-code-application.ts';
-import { NodeCodeContext, PotatnoProject } from '../../source/project/potatno-project.ts';
+import { PotatnoProject } from '../../source/project/potatno-project.ts';
 import { PotatnoCodeFile } from '../../source/document/potatno-code-file.ts';
 import { NodeCategory } from '../../source/node/node-category.enum.ts';
 import type { PotatnoCodeFunction } from '../../source/project/potatno-code-function.ts';
+import { PotatnoProjectNodeDefinition } from "../../source/project/potatno-node-definition.ts";
+import { exec } from "node:child_process";
 
 // --- Project configuration ---
 const lProject: PotatnoProject = new PotatnoProject();
@@ -19,35 +21,35 @@ lProject.addImport({
             category: NodeCategory.Value,
             inputs: {},
             outputs: [{ name: 'value', type: 'number' }],
-            codeGenerator: ({ outputs }: NodeCodeContext) => `const ${outputs.value} = Math.PI;`
+            codeGenerator: ({ outputs }) => `const ${outputs.value} = Math.PI;`
         },
         {
             name: 'Math.E',
             category: NodeCategory.Value,
             inputs: {},
             outputs: [{ name: 'value', type: 'number' }],
-            codeGenerator: ({ outputs }: NodeCodeContext) => `const ${outputs.value} = Math.E;`
+            codeGenerator: ({ outputs }) => `const ${outputs.value} = Math.E;`
         },
         {
             name: 'Math.abs',
             category: NodeCategory.Function,
             inputs: [{ name: 'value', type: 'number' }],
             outputs: [{ name: 'result', type: 'number' }],
-            codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = Math.abs(${inputs.value});`
+            codeGenerator: ({ inputs, outputs }) => `const ${outputs.result} = Math.abs(${inputs.value});`
         },
         {
             name: 'Math.floor',
             category: NodeCategory.Function,
             inputs: [{ name: 'value', type: 'number' }],
             outputs: [{ name: 'result', type: 'number' }],
-            codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = Math.floor(${inputs.value});`
+            codeGenerator: ({ inputs, outputs }) => `const ${outputs.result} = Math.floor(${inputs.value});`
         },
         {
             name: 'Math.random',
             category: NodeCategory.Function,
             inputs: {},
             outputs: [{ name: 'result', type: 'number' }],
-            codeGenerator: ({ outputs }: NodeCodeContext) => `const ${outputs.result} = Math.random();`
+            codeGenerator: ({ outputs }) => `const ${outputs.result} = Math.random();`
         }
     ]
 });
@@ -57,232 +59,300 @@ lProject.addGlobalInput({ name: 'time', type: 'number' });
 lProject.addGlobalOutput({ name: 'result', type: 'string' });
 
 // --- Value Nodes ---
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'Number Literal',
     category: NodeCategory.Value,
     inputs: {},
-    outputs: { value: { type: 'number' } },
+    outputs: {
+        value: { nodeType: 'value', dataType: 'number' }
+    },
     codeGenerator: ({ outputs, properties }) => `const ${outputs.value} = ${properties.value};`
-});
+}));
 
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'String Literal',
     category: NodeCategory.Value,
     inputs: {},
-    outputs: { value: { type: 'string' } },
-    codeGenerator: ({ outputs, properties }: NodeCodeContext) => `const ${outputs.value} = "${properties.value}";`
-});
+    outputs: { value: { nodeType: 'value', dataType: 'string' } },
+    codeGenerator: ({ outputs, properties }) => `const ${outputs.value} = "${properties.value}";`
+}));
 
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'Boolean Literal',
     category: NodeCategory.Value,
     inputs: {},
-    outputs: { value: { type: 'boolean' } },
-    codeGenerator: ({ outputs, properties }: NodeCodeContext) => `const ${outputs.value} = ${properties.value};`
-});
+    outputs: { value: { nodeType: 'value', dataType: 'boolean' } },
+    codeGenerator: ({ outputs, properties }) => `const ${outputs.value} = ${properties.value};`
+}));
 
 // --- Operator Nodes: Arithmetic ---
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'Add',
     category: NodeCategory.Operator,
-    inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
-    outputs: { result: { type: 'number' } },
-    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} + ${inputs.b};`
-});
+    inputs: { a: { nodeType: 'value', dataType: 'number' }, b: { nodeType: 'value', dataType: 'number' } },
+    outputs: { result: { nodeType: 'value', dataType: 'number' } },
+    codeGenerator: ({ inputs, outputs }) => `const ${outputs.result} = ${inputs.a} + ${inputs.b};`
+}));
 
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'Subtract',
     category: NodeCategory.Operator,
-    inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
-    outputs: { result: { type: 'number' } },
-    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} - ${inputs.b};`
-});
+    inputs: {
+        a: { nodeType: 'value', dataType: 'number' },
+        b: { nodeType: 'value', dataType: 'number' }
+    },
+    outputs: {
+        result: { nodeType: 'value', dataType: 'number' }
+    },
+    codeGenerator: ({ inputs, outputs }) => `const ${outputs.result} = ${inputs.a} - ${inputs.b};`
+}));
 
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'Multiply',
     category: NodeCategory.Operator,
-    inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
-    outputs: { result: { type: 'number' } },
-    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} * ${inputs.b};`
-});
+    inputs: {
+        a: { nodeType: 'value', dataType: 'number' },
+        b: { nodeType: 'value', dataType: 'number' }
+    },
+    outputs: {
+        result: { nodeType: 'value', dataType: 'number' }
+    },
+    codeGenerator: ({ inputs, outputs }) => `const ${outputs.result} = ${inputs.a} * ${inputs.b};`
+}));
 
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'Divide',
     category: NodeCategory.Operator,
-    inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
-    outputs: { result: { type: 'number' } },
-    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} / ${inputs.b};`
-});
+    inputs: {
+        a: { nodeType: 'value', dataType: 'number' },
+        b: { nodeType: 'value', dataType: 'number' }
+    },
+    outputs: {
+        result: { nodeType: 'value', dataType: 'number' }
+    },
+    codeGenerator: ({ inputs, outputs }) => `const ${outputs.result} = ${inputs.a} / ${inputs.b};`
+}));
 
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'Modulo',
     category: NodeCategory.Operator,
-    inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
-    outputs: { result: { type: 'number' } },
-    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} % ${inputs.b};`
-});
+    inputs: {
+        a: { nodeType: 'value', dataType: 'number' },
+        b: { nodeType: 'value', dataType: 'number' }
+    },
+    outputs: {
+        result: { nodeType: 'value', dataType: 'number' }
+    },
+    codeGenerator: ({ inputs, outputs }) => `const ${outputs.result} = ${inputs.a} % ${inputs.b};`
+}));
 
 // --- Operator Nodes: Comparison ---
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'Equal',
     category: NodeCategory.Operator,
-    inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
-    outputs: { result: { type: 'boolean' } },
-    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} === ${inputs.b};`
-});
+    inputs: {
+        a: { nodeType: 'value', dataType: 'number' },
+        b: { nodeType: 'value', dataType: 'number' }
+    },
+    outputs: {
+        result: { nodeType: 'value', dataType: 'boolean' }
+    },
+    codeGenerator: ({ inputs, outputs }) => `const ${outputs.result} = ${inputs.a} === ${inputs.b};`
+}));
 
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'Not Equal',
     category: NodeCategory.Operator,
-    inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
-    outputs: { result: { type: 'boolean' } },
-    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} !== ${inputs.b};`
-});
+    inputs: {
+        a: { nodeType: 'value', dataType: 'number' },
+        b: { nodeType: 'value', dataType: 'number' }
+    },
+    outputs: {
+        result: { nodeType: 'value', dataType: 'boolean' }
+    },
+    codeGenerator: ({ inputs, outputs }) => `const ${outputs.result} = ${inputs.a} !== ${inputs.b};`
+}));
 
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'Less Than',
     category: NodeCategory.Operator,
-    inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
-    outputs: { result: { type: 'boolean' } },
-    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} < ${inputs.b};`
-});
+    inputs: {
+        a: { nodeType: 'value', dataType: 'number' },
+        b: { nodeType: 'value', dataType: 'number' }
+    },
+    outputs: {
+        result: { nodeType: 'value', dataType: 'boolean' }
+    },
+    codeGenerator: ({ inputs, outputs }) => `const ${outputs.result} = ${inputs.a} < ${inputs.b};`
+}));
 
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'Greater Than',
     category: NodeCategory.Operator,
-    inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
-    outputs: { result: { type: 'boolean' } },
-    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} > ${inputs.b};`
-});
+    inputs: {
+        a: { nodeType: 'value', dataType: 'number' },
+        b: { nodeType: 'value', dataType: 'number' }
+    },
+    outputs: {
+        result: { nodeType: 'value', dataType: 'boolean' }
+    },
+    codeGenerator: ({ inputs, outputs }) => `const ${outputs.result} = ${inputs.a} > ${inputs.b};`
+}));
 
 // --- Operator Nodes: Logic ---
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'And',
     category: NodeCategory.Operator,
-    inputs: [{ name: 'a', type: 'boolean' }, { name: 'b', type: 'boolean' }],
-    outputs: { result: { type: 'boolean' } },
-    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} && ${inputs.b};`
-});
+    inputs: {
+        a: { nodeType: 'value', dataType: 'boolean' },
+        b: { nodeType: 'value', dataType: 'boolean' }
+    },
+    outputs: {
+        result: { nodeType: 'value', dataType: 'boolean' }
+    },
+    codeGenerator: ({ inputs, outputs }) => `const ${outputs.result} = ${inputs.a} && ${inputs.b};`
+}));
 
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'Or',
     category: NodeCategory.Operator,
-    inputs: [{ name: 'a', type: 'boolean' }, { name: 'b', type: 'boolean' }],
-    outputs: { result: { type: 'boolean' } },
-    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} || ${inputs.b};`
-});
+    inputs: {
+        a: { nodeType: 'value', dataType: 'boolean' },
+        b: { nodeType: 'value', dataType: 'boolean' }
+    },
+    outputs: {
+        result: { nodeType: 'value', dataType: 'boolean' }
+    },
+    codeGenerator: ({ inputs, outputs }) => `const ${outputs.result} = ${inputs.a} || ${inputs.b};`
+}));
 
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'Not',
     category: NodeCategory.Operator,
-    inputs: [{ name: 'a', type: 'boolean' }],
-    outputs: { result: { type: 'boolean' } },
-    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = !${inputs.a};`
-});
+    inputs: {
+        a: { nodeType: 'value', dataType: 'boolean' }
+    },
+    outputs: {
+        result: { nodeType: 'value', dataType: 'boolean' }
+    },
+    codeGenerator: ({ inputs, outputs }) => `const ${outputs.result} = !${inputs.a};`
+}));
 
 // --- Type Conversion Nodes ---
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'Number to String',
     category: NodeCategory.TypeConversion,
-    inputs: [{ name: 'input', type: 'number' }],
-    outputs: { output: { type: 'string' } },
-    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.output} = String(${inputs.input});`
-});
+    inputs: {
+        input: { nodeType: 'value', dataType: 'number' }
+    },
+    outputs: {
+        output: { nodeType: 'value', dataType: 'string' }
+    },
+    codeGenerator: ({ inputs, outputs }) => `const ${outputs.output} = String(${inputs.input});`
+}));
 
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'String to Number',
     category: NodeCategory.TypeConversion,
-    inputs: [{ name: 'input', type: 'string' }],
-    outputs: { output: { type: 'number' } },
-    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.output} = Number(${inputs.input});`
-});
+    inputs: {
+        input: { nodeType: 'value', dataType: 'string' }
+    },
+    outputs: {
+        output: { nodeType: 'value', dataType: 'number' }
+    },
+    codeGenerator: ({ inputs, outputs }) => `const ${outputs.output} = Number(${inputs.input});`
+}));
 
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'Boolean to String',
     category: NodeCategory.TypeConversion,
-    inputs: [{ name: 'input', type: 'boolean' }],
-    outputs: { output: { type: 'string' } },
-    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.output} = String(${inputs.input});`
-});
+    inputs: {
+        input: { nodeType: 'value', dataType: 'boolean' }
+    },
+    outputs: {
+        output: { nodeType: 'value', dataType: 'string' }
+    },
+    codeGenerator: ({ inputs, outputs }) => `const ${outputs.output} = String(${inputs.input});`
+}));
 
 // --- Flow Nodes ---
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'If',
     category: NodeCategory.Flow,
-    inputs: { 
-        condition: { type: 'boolean' } 
+    inputs: {
+        exec: { nodeType: 'flow' },
+        condition: { nodeType: 'value', dataType: 'boolean' }
     },
-    outputs: {},
-    flowInputs: ['exec'],
-    flowOutputs: ['then', 'else'],
+    outputs: {
+        then: { nodeType: 'flow' },
+        else: { nodeType: 'flow' }
+    },
     codeGenerator: ({ inputs, body }) => `if (${inputs.condition}) {\n${body.then}\n} else {\n${body.else}\n}`
-});
+}));
 
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'While',
     category: NodeCategory.Flow,
     inputs: {
-        condition: { type: 'boolean' }
+        exec: { nodeType: 'flow' },
+        condition: { nodeType: 'value', dataType: 'boolean' }
     },
-    outputs: {},
-    flowInputs: ['exec'],
-    flowOutputs: ['body'],
+    outputs: {
+        body: { nodeType: 'flow' }
+    },
     codeGenerator: ({ inputs, body }) => `while (${inputs.condition}) {\n${body.body}\n}`
-});
+}));
 
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'For Loop',
     category: NodeCategory.Flow,
-    inputs: { count: { type: 'number' } },
-    outputs: { index: { type: 'number' } },
-    flowInputs: ['exec'],
-    flowOutputs: ['body'],
+    inputs: {
+        exec: { nodeType: 'flow' },
+        count: { nodeType: 'value', dataType: 'number' }
+    },
+    outputs: {
+        exec: { nodeType: 'flow' },
+        index: { nodeType: 'value', dataType: 'number' }
+    },
     codeGenerator: ({ inputs, outputs, body }) => `for (let ${outputs.index} = 0; ${outputs.index} < ${inputs.count}; ${outputs.index}++) {\n${body.body}\n}`
-});
+}));
 
 // --- Function Nodes (now with auto exec pins) ---
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'Console Log',
     category: NodeCategory.Function,
-    inputs: {
-        message: { type: 'string' }
-    },
+    inputs: { message: { nodeType: 'value', dataType: 'string' } },
     outputs: {},
     codeGenerator: ({ inputs }) => `console.log(${inputs.message});`
-});
+}));
 
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'String Concat',
     category: NodeCategory.Function,
-    inputs: {
-        a: { name: '', type: 'string' },
-        b: { name: '', type: 'string' }
-    },
-    outputs: {
-        result: { type: 'string' }
-    },
+    inputs: { a: { nodeType: 'value', dataType: 'string' }, b: { nodeType: 'value', dataType: 'string' } },
+    outputs: { result: { nodeType: 'value', dataType: 'string' } },
     codeGenerator: ({ inputs, outputs }) => `const ${outputs.result} = ${inputs.a} + ${inputs.b};`
-});
+}));
 
 // --- Reroute Node ---
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'Reroute',
     category: NodeCategory.Reroute,
-    inputs: {
-        in: { name: '', type: 'any' }
-    },
-    outputs: {
-        out: { name: '', type: 'any' }
+    inputs: { 
+        in: { nodeType: 'value', dataType: 'any' }
+     },
+    outputs: { 
+        out: { nodeType: 'value', dataType: 'any' } 
     }
-});
+}));
 
 // --- Comment Node ---
-lProject.addNodeDefinition({
+lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     name: 'Comment',
     category: NodeCategory.Comment,
     inputs: {},
     outputs: {}
-});
+}));
 
 // --- Function Code Generator ---
 lProject.setFunctionCodeGenerator((pFunc: PotatnoCodeFunction) => {

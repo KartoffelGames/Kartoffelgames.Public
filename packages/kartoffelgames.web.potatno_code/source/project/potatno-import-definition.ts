@@ -1,4 +1,4 @@
-import { PotatnoProjectNodeDefinition } from "./potatno-project.ts";
+import { PotatnoProjectNodeDefinition } from "./potatno-node-definition.ts";
 
 
 /**

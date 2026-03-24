@@ -3,6 +3,7 @@ import type { PotatnoCodeFunction } from './potatno-code-function.ts';
 import type { PotatnoGlobalPortDefinition } from './potatno-global-port-definition.ts';
 import type { PotatnoImportDefinition } from './potatno-import-definition.ts';
 import type { PotatnoMainFunctionDefinition } from './potatno-main-function-definition.ts';
+import { PotatnoProjectNodeDefinition } from "./potatno-node-definition.ts";
 
 /**
  * Project-level configuration for a PotatnoCode editor instance.
@@ -19,6 +20,7 @@ export class PotatnoProject {
     private readonly mMainFunctions: Array<PotatnoMainFunctionDefinition>;
     private readonly mNodeDefinitions: Map<string, PotatnoProjectNodeDefinition>;
     private mUpdatePreview: ((code: string) => void) | null;
+    private mValidTypes: Set<string>;
 
     /**
      * Get the comment token used for metadata comments in generated code.
@@ -103,6 +105,7 @@ export class PotatnoProject {
         this.mCreatePreview = null;
         this.mUpdatePreview = null;
         this.mFunctionCodeGenerator = null;
+        this.mValidTypes = new Set<string>();
     }
 
     /**
@@ -136,7 +139,7 @@ export class PotatnoProject {
     /**
      * Register a node type definition.
      */
-    public addNodeDefinition<TInputs extends PotatnoProjectNodePorts, TOutputs extends PotatnoProjectNodePorts>(pDefinition: PotatnoProjectNodeDefinition<TInputs, TOutputs>): void {
+    public addNodeDefinition(pDefinition: PotatnoProjectNodeDefinition): void {
         this.mNodeDefinitions.set(pDefinition.name, pDefinition);
     }
 
@@ -161,51 +164,24 @@ export class PotatnoProject {
         this.mCreatePreview = pCreate;
         this.mUpdatePreview = pUpdate;
     }
+
+    /**
+     * Add a valid type identifier that can be used by node port definitions.
+     * 
+     * @param pTypeName - The unique string identifier of the type. 
+     */
+    public addType(pTypeName: string): void {
+        this.mValidTypes.add(pTypeName);
+    }
+
+    /**
+     * Check if a type identifier is registered as valid in the project.
+     * 
+     * @param pTypeName - The type identifier to check.
+     * 
+     * @returns True if the type is registered, false otherwise. 
+     */
+    public hasType(pTypeName: string): boolean {
+        return this.mValidTypes.has(pTypeName);
+    }
 }
-
-/**
- * Typed context passed to the node code generator callback.
- * All maps are plain JS objects for type safety and easy destructuring.
- */
-export interface NodeCodeContext<TInputs extends PotatnoProjectNodePorts, TOutputs extends PotatnoProjectNodePorts> {
-    /** Input port valueIds keyed by port name. */
-    readonly inputs: Readonly<Record<keyof TInputs, string>>;
-    /** Output port valueIds keyed by port name. */
-    readonly outputs: Readonly<Record<keyof TOutputs, string>>;
-    /** Property values keyed by property name. */
-    readonly properties: Readonly<Record<string, string>>;
-    /** Body code blocks keyed by flow output name (for flow nodes). */
-    readonly body: Readonly<Record<string, string>>;
-}
-
-/**
- * Definition of a node type that can be registered with the editor project.
- * Uses a {@link codeGenerator} callback that receives a typed {@link NodeCodeContext}.
- */
-export interface PotatnoProjectNodeDefinition<TInputs extends PotatnoProjectNodePorts, TOutputs extends PotatnoProjectNodePorts> {
-    /** Unique display name for this node type. */
-    readonly name: string;
-    /** Category classification determining which subclass is instantiated for code generation. */
-    readonly category: NodeCategory;
-    /** Data input port definitions. */
-    readonly inputs: TInputs;
-    /** Data output port definitions. */
-    readonly outputs: TOutputs;
-    /** Flow input port names. Only used by flow-category nodes. */
-    readonly flowInputs?: Array<string>;
-    /** Flow output port names. Only used by flow-category nodes. */
-    readonly flowOutputs?: Array<string>;
-    /** Code generator callback that produces the code string from a typed context. */
-    readonly codeGenerator?: (pContext: NodeCodeContext<TInputs, TOutputs>) => string;
-}
-
-/**
- * Definition of a port type used when registering node definitions.
- */
-export interface PotatnoPortType {
-    /** Data type identifier for the port. */
-    readonly type: string;
-}
-
-
-type PotatnoProjectNodePorts = { [portName: string]: PotatnoPortType };

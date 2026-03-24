@@ -1,38 +1,38 @@
 import { Processor, PwbChild, PwbComponent, PwbExport, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
-import { PotatnoCodeFile } from '../../document/potatno-code-file.ts';
-import type { PotatnoGraph } from '../../document/potatno-graph.ts';
-import type { PotatnoNode } from '../../document/potatno-node.ts';
-import { NodeCategory, NodeCategoryMeta } from '../../node/node-category.enum.ts';
-import { PortKind } from '../../node/port-kind.enum.ts';
-import type { PotatnoPortDefinition } from '../../node/potatno-port-definition.ts';
-import { PotatnoDeserializer } from '../../parser/potatno-deserializer.ts';
-import { PotatnoSerializer } from '../../parser/potatno-serializer.ts';
-import { PotatnoFunction } from '../../project/potatno-function.ts';
-import type { PotatnoImportDefinition } from '../../project/potatno-import-definition.ts';
-import type { PotatnoProject, PotatnoProjectNodeDefinition } from '../../project/potatno-project.ts';
-import { PotatnoCanvasInteraction } from '../potatno-canvas-interaction.ts';
-import { PotatnoCanvasRenderer } from '../potatno-canvas-renderer.ts';
-import { PotatnoClipboard } from '../potatno-clipboard.ts';
-import { CompositeAction } from '../potatno-composite-action.ts';
-import type { PotatnoHistoryAction } from '../potatno-history-action.ts';
-import { PotatnoHistory } from '../potatno-history.ts';
-import { NodeAddAction, NodeRemoveAction } from '../potatno-node-actions.ts';
-import { PropertyChangeAction } from '../potatno-property-change-action.ts';
+import { PotatnoCodeFile } from '../../../document/potatno-code-file.ts';
+import type { PotatnoGraph } from '../../../document/potatno-graph.ts';
+import type { PotatnoNode } from '../../../document/potatno-node.ts';
+import { NodeCategory, NodeCategoryMeta } from '../../../node/node-category.enum.ts';
+import { PortKind } from '../../../node/port-kind.enum.ts';
+import type { PotatnoPortDefinition } from '../../../node/potatno-port-definition.ts';
+import { PotatnoDeserializer } from '../../../parser/potatno-deserializer.ts';
+import { PotatnoSerializer } from '../../../parser/potatno-serializer.ts';
+import { PotatnoFunction } from '../../../project/potatno-function.ts';
+import type { PotatnoImportDefinition } from '../../../project/potatno-import-definition.ts';
+import type { PotatnoProject, PotatnoProjectNodeDefinition } from '../../../project/potatno-project.ts';
+import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
+import { PotatnoCanvasRenderer } from '../../potatno-canvas-renderer.ts';
+import { PotatnoClipboard } from '../../potatno-clipboard.ts';
+import { CompositeAction } from '../../potatno-composite-action.ts';
+import type { PotatnoHistoryAction } from '../../potatno-history-action.ts';
+import { PotatnoHistory } from '../../potatno-history.ts';
+import { NodeAddAction, NodeRemoveAction } from '../../potatno-node-actions.ts';
+import { PropertyChangeAction } from '../../potatno-property-change-action.ts';
 import editorCss from './potatno-code-editor.css';
 import editorTemplate from './potatno-code-editor.html';
 
 // Import child components to ensure they're registered.
-import './potatno-canvas.ts';
-import './potatno-function-list.ts';
-import './potatno-node-component.ts';
-import './potatno-node-library.ts';
-import './potatno-panel-left.ts';
-import './potatno-panel-properties.ts';
-import './potatno-port.ts';
-import './potatno-preview.ts';
-import './potatno-resize-handle.ts';
-import './potatno-search-input.ts';
-import './potatno-tabs.ts';
+import '../potatno_canvas/potatno-canvas.ts';
+import '../potatno_function_list/potatno-function-list.ts';
+import '../potatno_node_component/potatno-node-component.ts';
+import '../potatno_node_library/potatno-node-library.ts';
+import '../potatno_panel_left/potatno-panel-left.ts';
+import '../potatno_panel_properties/potatno-panel-properties.ts';
+import '../potatno_port/potatno-port.ts';
+import '../potatno_preview/potatno-preview.ts';
+import '../potatno_resize_handle/potatno-resize-handle.ts';
+import '../potatno_search_input/potatno-search-input.ts';
+import '../potatno_tabs/potatno-tabs.ts';
 
 /**
  * Interaction state for the canvas.

@@ -1,6 +1,6 @@
 import { PwbComponent, Processor, PwbExport, PwbComponentEvent, PwbChild, ComponentEventEmitter } from '@kartoffelgames/web-potato-web-builder';
-import { PotatnoCanvasInteraction } from '../potatno-canvas-interaction.ts';
-import { PotatnoCanvasRenderer, type ConnectionRenderData } from '../potatno-canvas-renderer.ts';
+import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
+import { PotatnoCanvasRenderer, type ConnectionRenderData } from '../../potatno-canvas-renderer.ts';
 import templateCss from './potatno-canvas.css';
 import canvasTemplate from './potatno-canvas.html';
 

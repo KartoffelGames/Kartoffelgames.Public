@@ -3,8 +3,8 @@ import templateCss from './potatno-panel-left.css';
 import panelLeftTemplate from './potatno-panel-left.html';
 
 // Import child components to ensure they are registered.
-import './potatno-node-library.ts';
-import './potatno-function-list.ts';
+import '../potatno_node_library/potatno-node-library.ts';
+import '../potatno_function_list/potatno-function-list.ts';
 
 /**
  * Node definition entry passed through to the node library.

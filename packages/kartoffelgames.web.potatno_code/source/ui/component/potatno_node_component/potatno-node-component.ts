@@ -1,11 +1,11 @@
 import { PwbComponent, Processor, PwbExport, PwbComponentEvent, ComponentEventEmitter } from '@kartoffelgames/web-potato-web-builder';
 import type { ComponentEvent } from '@kartoffelgames/web-potato-web-builder';
-import { NodeCategory } from '../../node/node-category.enum.ts';
+import { NodeCategory } from '../../../node/node-category.enum.ts';
 import nodeCss from './potatno-node-component.css';
 import nodeTemplate from './potatno-node-component.html';
 
 // Ensure the port component is registered before the node template is processed.
-import './potatno-port.ts';
+import '../potatno_port/potatno-port.ts';
 
 /**
  * Plain render data for a node, pre-computed by the parent editor.

@@ -40,5 +40,5 @@ export { PotatnoDeserializer } from './parser/potatno-deserializer.ts';
 export { PotatnoSerializer } from './parser/potatno-serializer.ts';
 
 // UI (editor component)
-export { PotatnoCodeEditor } from './ui/component/potatno-code-editor.ts';
+export { PotatnoCodeEditor } from './ui/component/potatno_code_editor/potatno-code-editor.ts';
 

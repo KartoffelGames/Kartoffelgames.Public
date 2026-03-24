@@ -19,7 +19,7 @@ import '../../source/module/export/export-extension.ts';
 import { PwbApplicationConfiguration } from '../../source/application/pwb-application-configuration.ts';
 import { ComponentRegister } from '../../source/core/component/component-register.ts';
 import { Component, type ComponentProcessor } from '../../source/core/component/component.ts';
-import type { Processor } from '../../source/core/core_entity/processor.ts';
+import type { Processor, ProcessorConstructor } from '../../source/core/core_entity/processor.ts';
 
 // Define update metrics.
 PwbApplicationConfiguration.DEFAULT.updating.frameTime = Number.MAX_SAFE_INTEGER;
@@ -30,7 +30,7 @@ export class TestUtil {
      * Create component from selector.
      * @param pSelector - component selector.
      */
-    public static async createComponent(pClass: typeof Processor): Promise<HTMLElement> {
+    public static async createComponent<T extends Processor>(pClass: ProcessorConstructor<T>): Promise<HTMLElement> {
         // Get component html constructor from class.
         const lComponentConstructor: CustomElementConstructor = ComponentRegister.ofConstructor(pClass).elementConstructor;
 

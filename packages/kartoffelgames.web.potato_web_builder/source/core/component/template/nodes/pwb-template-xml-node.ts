@@ -129,6 +129,17 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
     }
 
     /**
+     * Get attribute values of xml node.
+     * 
+     * @param pKey - Name of attribute.
+     * 
+     * @returns Attribute values or null if attribute does not exist.
+     */
+    public getAttribute(pKey: string): PwbTemplateTextNode | null {
+        return this.mAttributeDictionary.get(pKey)?.values ?? null;
+    }
+
+    /**
      * Removes attribute and return if attribute was removed/existed.
      * 
      * @param pKey - Key of attribute.

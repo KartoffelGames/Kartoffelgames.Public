@@ -2,7 +2,7 @@ import { Injection, type InjectionConstructor } from '@kartoffelgames/core-depen
 import { InteractionZone, type InteractionZoneGlobalDefinition } from '@kartoffelgames/web-interaction-zone';
 import { PwbApplicationConfiguration } from '../../application/pwb-application-configuration.ts';
 import { PwbApplication } from '../../index.ts';
-import type { Processor } from '../core_entity/processor.ts';
+import type { Processor, ProcessorConstructor } from '../core_entity/processor.ts';
 import { UpdateMode } from '../enum/update-mode.enum.ts';
 import type { IPwbAttributeModuleProcessorConstructor } from '../module/attribute_module/attribute-module.ts';
 import type { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module.ts';
@@ -16,12 +16,12 @@ import type { ClassDecorator } from '@kartoffelgames/core';
  * 
  * @param pParameter - Parameter defaults on creation.
  */
-export function PwbComponent(pParameter: HtmlComponentParameter): ClassDecorator<typeof Processor, void> {
+export function PwbComponent(pParameter: HtmlComponentParameter): ClassDecorator<ProcessorConstructor, void> {
     // Enable global tracing for the current context.
     InteractionZone.enableGlobalTracing(gGatherGlobalTracingTarget(globalThis));
 
     // Needs constructor without argument.
-    return (pComponentProcessorConstructor: typeof Processor, pContext: ClassDecoratorContext): void => {
+    return (pComponentProcessorConstructor: ProcessorConstructor, pContext: ClassDecoratorContext): void => {
         // Set component processor constructor to be injectable.
         Injection.registerInjectable(pComponentProcessorConstructor, pContext.metadata, 'instanced');
 

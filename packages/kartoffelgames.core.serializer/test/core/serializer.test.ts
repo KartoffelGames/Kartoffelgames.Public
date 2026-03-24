@@ -48,7 +48,7 @@ Deno.test('Serializer.class()', async (pContext) => {
         };
 
         // Evaluation.
-        expect(lIllegalInstruction).toThrow(`Serializer UUID "${lUuid}" is already registered.`);
+        expect(lIllegalInstruction).toThrow(`Serializer identifier "${lUuid}" is already registered.`);
     });
 
     await pContext.step('Throw when resolving unregistered UUID', () => {

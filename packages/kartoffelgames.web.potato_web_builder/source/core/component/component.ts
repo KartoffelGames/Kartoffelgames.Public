@@ -2,7 +2,7 @@ import { Dictionary } from '@kartoffelgames/core';
 import type { PwbApplicationConfiguration } from '../../application/pwb-application-configuration.ts';
 import { PwbApplicationDebugLoggingType } from '../../application/pwb-application-debug-logging-type.enum.ts';
 import { CoreEntityExtendable } from '../core_entity/core-entity-extendable.ts';
-import type { Processor } from '../core_entity/processor.ts';
+import type { Processor, ProcessorConstructor } from '../core_entity/processor.ts';
 import { ComponentDataLevel } from '../data/component-data-level.ts';
 import { DataLevel } from '../data/data-level.ts';
 import { UpdateMode } from '../enum/update-mode.enum.ts';
@@ -20,7 +20,7 @@ import { TemplateParser } from './template/template-parser.ts';
  * Handles initialisation of the component element and serves as a proxy between builder and the outside world.
  */
 export class Component extends CoreEntityExtendable<ComponentProcessor> {
-    private static readonly mTemplateCache: Dictionary<ComponentProcessorConstructor, PwbTemplate> = new Dictionary<ComponentProcessorConstructor, PwbTemplate>();
+    private static readonly mTemplateCache: Dictionary<ProcessorConstructor, PwbTemplate> = new Dictionary<ProcessorConstructor, PwbTemplate>();
     private static readonly mXmlParser: TemplateParser = new TemplateParser();
     private readonly mComponentElement: ComponentElement;
     private readonly mRootBuilder: StaticBuilder;
@@ -177,7 +177,7 @@ type ComponentConstructorParameter = {
     /**
      * Component processor constructor.
      */
-    processorConstructor: ComponentProcessorConstructor;
+    processorConstructor: ProcessorConstructor;
 
     /**
      * Template as xml string.
@@ -222,7 +222,3 @@ export interface IComponentOnDisconnect {
     onDisconnect(): void;
 }
 export interface ComponentProcessor extends Processor, Partial<IComponentOnDeconstruct>, Partial<IComponentOnUpdate>, Partial<IComponentOnAttributeChange>, Partial<IComponentOnConnect>, Partial<IComponentOnDisconnect> { }
-
-export type ComponentProcessorConstructor = {
-    new(...pParameter: Array<any>): ComponentProcessor;
-};

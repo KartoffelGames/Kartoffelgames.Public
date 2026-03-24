@@ -2,6 +2,7 @@
 import type { PwbApplicationConfiguration } from '../../../application/pwb-application-configuration.ts';
 import type { DataLevel } from '../../data/data-level.ts';
 import type { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node.ts';
+import { PwbTemplateTextNode } from "../template/nodes/pwb-template-text-node.ts";
 import type { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node.ts';
 import type { BaseBuilderData, Boundary } from './data/base-builder-data.ts';
 
@@ -147,8 +148,14 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
             }
         }
 
-        // Create new element .
-        return document.createElement(lTagname);
+        const lNamespaceObject: PwbTemplateTextNode | null = pXmlElement.getAttribute('xmlns');
+        if (lNamespaceObject && !lNamespaceObject.containsExpression) {
+            // Create new element with namespace.
+            return document.createElementNS(lNamespaceObject.values[0] as string, lTagname);
+        } else {
+            // Create new element without namespace.
+            return document.createElement(lTagname);
+        }
     }
 
     /**

@@ -1,7 +1,9 @@
 import { PwbApplication, PwbApplicationConfiguration } from '@kartoffelgames/web-potato-web-builder';
-import { PotatnoProject } from './project/potatno-project.ts';
 import { PotatnoCodeFile } from './document/potatno-code-file.ts';
+import { PotatnoProject } from './project/potatno-project.ts';
 import { PotatnoCodeEditor } from './ui/component/potatno-code-editor.ts';
+
+import applicationCss from './potatno-code-application.css';
 import themeCss from './ui/component/potatno-theme.css';
 
 /**
@@ -10,26 +12,16 @@ import themeCss from './ui/component/potatno-theme.css';
  * backed by a PotatnoProject (configuration) and a PotatnoCodeFile (document state).
  */
 export class PotatnoCodeApplication extends PwbApplication {
-    private mEditorElement: HTMLElement | null;
-    private mFile: PotatnoCodeFile | null;
+    private mCodeEditor: PotatnoCodeEditor;
     private readonly mProject: PotatnoProject;
 
     /**
      * Get the current code file (document state).
      */
     public get file(): PotatnoCodeFile | null {
-        return this.mFile;
-    }
-
-    /**
-     * Set the code file (document state) and push it into the editor component.
-     */
-    public set file(pFile: PotatnoCodeFile | null) {
-        this.mFile = pFile;
-
-        if (this.mEditorElement) {
-            (this.mEditorElement as any).file = pFile;
-        }
+        return this.mCodeEditor.file;
+    } set file(pFile: PotatnoCodeFile | null) {
+        this.mCodeEditor.file = pFile;
     }
 
     /**
@@ -49,17 +41,15 @@ export class PotatnoCodeApplication extends PwbApplication {
         super('potatno-code', new PwbApplicationConfiguration());
 
         this.mProject = pProject;
-        this.mFile = null;
-        this.mEditorElement = null;
 
         // Add the theme CSS as a global style.
         this.addStyle(themeCss);
-        this.addStyle(':host { display: block; width: 100%; height: 100%; } potatno-code-editor { display: block; width: 100%; height: 100%; }');
+        this.addStyle(applicationCss);
 
         // Add the editor component and store the element reference.
-        this.mEditorElement = this.addContent(PotatnoCodeEditor);
+        this.mCodeEditor = this.addContent(PotatnoCodeEditor);
 
         // Pass the project configuration into the editor.
-        (this.mEditorElement as any).project = pProject;
+        this.mCodeEditor.project = pProject;
     }
 }

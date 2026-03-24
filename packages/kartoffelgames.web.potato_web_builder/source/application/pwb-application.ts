@@ -1,7 +1,7 @@
 import { InteractionZone } from '@kartoffelgames/web-interaction-zone';
 import { type ComponentInformationData, ComponentRegister } from '../core/component/component-register.ts';
 import type { Component } from '../core/component/component.ts';
-import type { Processor } from '../core/core_entity/processor.ts';
+import type { Processor, ProcessorConstructor } from '../core/core_entity/processor.ts';
 import { PwbApplicationConfiguration } from './pwb-application-configuration.ts';
 
 export class PwbApplication {
@@ -68,7 +68,7 @@ export class PwbApplication {
      *
      * @returns The HTML element of the added component.
      */
-    public addContent(pContentConstructor: typeof Processor): HTMLElement {
+    public addContent<T extends Processor>(pContentConstructor: ProcessorConstructor<T>): T {
         // Get component html constructor from class.
         const lComponentConstructor: CustomElementConstructor = ComponentRegister.ofConstructor(pContentConstructor).elementConstructor;
 
@@ -80,7 +80,7 @@ export class PwbApplication {
             // Append component to shadow root.
             this.mElement.shadowRoot!.appendChild(lComponentInformation.element);
 
-            return lComponentInformation.element;
+            return lComponentInformation.component.processor as T;
         });
     }
 

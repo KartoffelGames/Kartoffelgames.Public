@@ -29,3 +29,5 @@ export class Processor {
         }
     }
 }
+
+export type ProcessorConstructor<T extends Processor = Processor> = new (...pArgs: any[]) => T;

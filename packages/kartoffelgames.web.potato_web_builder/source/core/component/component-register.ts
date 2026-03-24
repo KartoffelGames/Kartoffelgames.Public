@@ -1,6 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
-import type { Processor } from '../core_entity/processor.ts';
+import type { Processor, ProcessorConstructor } from '../core_entity/processor.ts';
 import type { Component, ComponentProcessor } from './component.ts';
 
 export class ComponentRegister {
@@ -43,8 +43,7 @@ export class ComponentRegister {
             selector: lSelector,
             constructor: lComponentConstructor,
             element: lElement,
-            component: pComponent,
-            processor: lProcessor
+            component: pComponent
         };
     }
 
@@ -58,7 +57,7 @@ export class ComponentRegister {
      * @throws {@link Exception}
      * When {@link pConstructor} is not a registered component processor.
      */
-    public static ofConstructor(pConstructor: typeof Processor): ComponentConstructorInformationData {
+    public static ofConstructor<T extends Processor>(pConstructor: ProcessorConstructor<T>): ComponentConstructorInformationData {
         // Get selector of constructor.
         const lSelector: string | undefined = ComponentRegister.mConstructorSelector.get(pConstructor);
         if (!lSelector) {
@@ -160,7 +159,6 @@ export type ComponentInformationData = {
     constructor: InjectionConstructor;
     element: HTMLElement;
     component: Component;
-    processor?: ComponentProcessor | undefined;
 };
 
 export type ComponentConstructorInformationData = {

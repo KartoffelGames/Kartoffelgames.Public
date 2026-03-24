@@ -1,9 +1,8 @@
-import { PotatnoEditorConfiguration } from './potatno-editor-configuration.ts';
+import { NodeCategory } from "../node/node-category.enum.ts";
 import type { PotatnoCodeFunction } from './potatno-code-function.ts';
+import type { PotatnoGlobalPortDefinition } from './potatno-global-port-definition.ts';
 import type { PotatnoImportDefinition } from './potatno-import-definition.ts';
 import type { PotatnoMainFunctionDefinition } from './potatno-main-function-definition.ts';
-import type { PotatnoGlobalPortDefinition } from './potatno-global-port-definition.ts';
-import type { PotatnoNodeDefinition } from '../node/potatno-node-definition.ts';
 
 /**
  * Project-level configuration for a PotatnoCode editor instance.
@@ -11,78 +10,202 @@ import type { PotatnoNodeDefinition } from '../node/potatno-node-definition.ts';
  * and callback configurations. Does not hold document state.
  */
 export class PotatnoProject {
-    private readonly mConfiguration: PotatnoEditorConfiguration;
+    private mCommentToken: string;
+    private mCreatePreview: ((container: HTMLElement) => void) | null;
+    private mFunctionCodeGenerator: ((func: PotatnoCodeFunction) => string) | null;
+    private readonly mGlobalInputs: Array<PotatnoGlobalPortDefinition>;
+    private readonly mGlobalOutputs: Array<PotatnoGlobalPortDefinition>;
+    private readonly mImports: Array<PotatnoImportDefinition>;
+    private readonly mMainFunctions: Array<PotatnoMainFunctionDefinition>;
+    private readonly mNodeDefinitions: Map<string, PotatnoProjectNodeDefinition>;
+    private mUpdatePreview: ((code: string) => void) | null;
 
     /**
-     * Get the underlying editor configuration.
+     * Get the comment token used for metadata comments in generated code.
      */
-    public get configuration(): PotatnoEditorConfiguration {
-        return this.mConfiguration;
+    public get commentToken(): string {
+        return this.mCommentToken;
     }
 
     /**
-     * Create a new project with a default editor configuration.
+     * Get the callback that creates the initial preview DOM structure.
+     */
+    public get createPreview(): ((container: HTMLElement) => void) | null {
+        return this.mCreatePreview;
+    }
+
+    /**
+     * Get the function code generator callback.
+     */
+    public get functionCodeGenerator(): ((func: PotatnoCodeFunction) => string) | null {
+        return this.mFunctionCodeGenerator;
+    }
+
+    /**
+     * Get the list of registered global input definitions.
+     */
+    public get globalInputs(): ReadonlyArray<PotatnoGlobalPortDefinition> {
+        return this.mGlobalInputs;
+    }
+
+    /**
+     * Get the list of registered global output definitions.
+     */
+    public get globalOutputs(): ReadonlyArray<PotatnoGlobalPortDefinition> {
+        return this.mGlobalOutputs;
+    }
+
+    /**
+     * Whether a preview creation callback has been configured.
+     */
+    public get hasPreview(): boolean {
+        return this.mCreatePreview !== null;
+    }
+
+    /**
+     * Get the list of registered import definitions.
+     */
+    public get imports(): ReadonlyArray<PotatnoImportDefinition> {
+        return this.mImports;
+    }
+
+    /**
+     * Get the list of registered main function definitions.
+     */
+    public get mainFunctions(): ReadonlyArray<PotatnoMainFunctionDefinition> {
+        return this.mMainFunctions;
+    }
+
+    /**
+     * Get the map of registered node definitions keyed by name.
+     */
+    public get nodeDefinitions(): ReadonlyMap<string, PotatnoProjectNodeDefinition> {
+        return this.mNodeDefinitions;
+    }
+
+    /**
+     * Get the callback that updates the preview with new generated code.
+     */
+    public get updatePreview(): ((code: string) => void) | null {
+        return this.mUpdatePreview;
+    }
+
+    /**
+     * Create a new editor configuration with default values.
      */
     public constructor() {
-        this.mConfiguration = new PotatnoEditorConfiguration();
+        this.mCommentToken = '//';
+        this.mNodeDefinitions = new Map<string, PotatnoProjectNodeDefinition>();
+        this.mMainFunctions = new Array<PotatnoMainFunctionDefinition>();
+        this.mImports = new Array<PotatnoImportDefinition>();
+        this.mGlobalInputs = new Array<PotatnoGlobalPortDefinition>();
+        this.mGlobalOutputs = new Array<PotatnoGlobalPortDefinition>();
+        this.mCreatePreview = null;
+        this.mUpdatePreview = null;
+        this.mFunctionCodeGenerator = null;
     }
 
     /**
-     * Register a global input port definition visible in every function.
+     * Register a global input port definition.
      */
-    public defineGlobalInput(pDefinition: PotatnoGlobalPortDefinition): void {
-        this.mConfiguration.addGlobalInput(pDefinition);
+    public addGlobalInput(pDefinition: PotatnoGlobalPortDefinition): void {
+        this.mGlobalInputs.push(pDefinition);
     }
 
     /**
-     * Register a global output port definition visible in every function.
+     * Register a global output port definition.
      */
-    public defineGlobalOutput(pDefinition: PotatnoGlobalPortDefinition): void {
-        this.mConfiguration.addGlobalOutput(pDefinition);
+    public addGlobalOutput(pDefinition: PotatnoGlobalPortDefinition): void {
+        this.mGlobalOutputs.push(pDefinition);
     }
 
     /**
-     * Register an import definition. When a function enables this import,
-     * the contained node definitions become available in that function's node library.
+     * Register an import definition.
      */
-    public defineImport(pDefinition: PotatnoImportDefinition): void {
-        this.mConfiguration.addImport(pDefinition);
+    public addImport(pDefinition: PotatnoImportDefinition): void {
+        this.mImports.push(pDefinition);
     }
 
     /**
-     * Register a main function definition with the project.
+     * Register a main function definition.
      */
-    public defineMainFunction(pDefinition: PotatnoMainFunctionDefinition): void {
-        this.mConfiguration.addMainFunction(pDefinition);
+    public addMainFunction(pDefinition: PotatnoMainFunctionDefinition): void {
+        this.mMainFunctions.push(pDefinition);
     }
 
     /**
-     * Register a node type definition with the project.
+     * Register a node type definition.
      */
-    public defineNode(pDefinition: PotatnoNodeDefinition): void {
-        this.mConfiguration.addNodeDefinition(pDefinition);
+    public addNodeDefinition<TInputs extends PotatnoProjectNodePorts, TOutputs extends PotatnoProjectNodePorts>(pDefinition: PotatnoProjectNodeDefinition<TInputs, TOutputs>): void {
+        this.mNodeDefinitions.set(pDefinition.name, pDefinition);
     }
 
     /**
      * Set the comment token used for metadata comments in generated code.
      */
     public setCommentToken(pToken: string): void {
-        this.mConfiguration.setCommentToken(pToken);
+        this.mCommentToken = pToken;
     }
 
     /**
-     * Set the function code generator callback that wraps function body code
-     * into a complete function declaration.
+     * Set the function code generator callback.
      */
-    public setFunctionCodeGenerator(pGenerator: (pFunc: PotatnoCodeFunction) => string): void {
-        this.mConfiguration.setFunctionCodeGenerator(pGenerator);
+    public setFunctionCodeGenerator(pGenerator: (func: PotatnoCodeFunction) => string): void {
+        this.mFunctionCodeGenerator = pGenerator;
     }
 
     /**
-     * Set the preview callbacks for creating the initial preview DOM and
-     * updating it with generated code.
+     * Set both preview callbacks: one for initial DOM creation and one for code updates.
      */
-    public setPreview(pCreate: (pContainer: HTMLElement) => void, pUpdate: (pCode: string) => void): void {
-        this.mConfiguration.setPreview(pCreate, pUpdate);
+    public setPreview(pCreate: (container: HTMLElement) => void, pUpdate: (code: string) => void): void {
+        this.mCreatePreview = pCreate;
+        this.mUpdatePreview = pUpdate;
     }
 }
+
+/**
+ * Typed context passed to the node code generator callback.
+ * All maps are plain JS objects for type safety and easy destructuring.
+ */
+export interface NodeCodeContext<TInputs extends PotatnoProjectNodePorts, TOutputs extends PotatnoProjectNodePorts> {
+    /** Input port valueIds keyed by port name. */
+    readonly inputs: Readonly<Record<keyof TInputs, string>>;
+    /** Output port valueIds keyed by port name. */
+    readonly outputs: Readonly<Record<keyof TOutputs, string>>;
+    /** Property values keyed by property name. */
+    readonly properties: Readonly<Record<string, string>>;
+    /** Body code blocks keyed by flow output name (for flow nodes). */
+    readonly body: Readonly<Record<string, string>>;
+}
+
+/**
+ * Definition of a node type that can be registered with the editor project.
+ * Uses a {@link codeGenerator} callback that receives a typed {@link NodeCodeContext}.
+ */
+export interface PotatnoProjectNodeDefinition<TInputs extends PotatnoProjectNodePorts, TOutputs extends PotatnoProjectNodePorts> {
+    /** Unique display name for this node type. */
+    readonly name: string;
+    /** Category classification determining which subclass is instantiated for code generation. */
+    readonly category: NodeCategory;
+    /** Data input port definitions. */
+    readonly inputs: TInputs;
+    /** Data output port definitions. */
+    readonly outputs: TOutputs;
+    /** Flow input port names. Only used by flow-category nodes. */
+    readonly flowInputs?: Array<string>;
+    /** Flow output port names. Only used by flow-category nodes. */
+    readonly flowOutputs?: Array<string>;
+    /** Code generator callback that produces the code string from a typed context. */
+    readonly codeGenerator?: (pContext: NodeCodeContext<TInputs, TOutputs>) => string;
+}
+
+/**
+ * Definition of a port type used when registering node definitions.
+ */
+export interface PotatnoPortType {
+    /** Data type identifier for the port. */
+    readonly type: string;
+}
+
+
+type PotatnoProjectNodePorts = { [portName: string]: PotatnoPortType };

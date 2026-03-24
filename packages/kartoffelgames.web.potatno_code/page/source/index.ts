@@ -1,9 +1,8 @@
 import { PotatnoCodeApplication } from '../../source/potatno-code-application.ts';
-import { PotatnoProject } from '../../source/project/potatno-project.ts';
+import { NodeCodeContext, PotatnoProject } from '../../source/project/potatno-project.ts';
 import { PotatnoCodeFile } from '../../source/document/potatno-code-file.ts';
 import { NodeCategory } from '../../source/node/node-category.enum.ts';
 import type { PotatnoCodeFunction } from '../../source/project/potatno-code-function.ts';
-import type { NodeCodeContext } from '../../source/node/potatno-node-definition.ts';
 
 // --- Project configuration ---
 const lProject: PotatnoProject = new PotatnoProject();
@@ -12,20 +11,20 @@ const lProject: PotatnoProject = new PotatnoProject();
 lProject.setCommentToken('//');
 
 // --- Imports (replaces defineGlobalValue) ---
-lProject.defineImport({
+lProject.addImport({
     name: 'Math',
     nodes: [
         {
             name: 'Math.PI',
             category: NodeCategory.Value,
-            inputs: [],
+            inputs: {},
             outputs: [{ name: 'value', type: 'number' }],
             codeGenerator: ({ outputs }: NodeCodeContext) => `const ${outputs.value} = Math.PI;`
         },
         {
             name: 'Math.E',
             category: NodeCategory.Value,
-            inputs: [],
+            inputs: {},
             outputs: [{ name: 'value', type: 'number' }],
             codeGenerator: ({ outputs }: NodeCodeContext) => `const ${outputs.value} = Math.E;`
         },
@@ -46,7 +45,7 @@ lProject.defineImport({
         {
             name: 'Math.random',
             category: NodeCategory.Function,
-            inputs: [],
+            inputs: {},
             outputs: [{ name: 'result', type: 'number' }],
             codeGenerator: ({ outputs }: NodeCodeContext) => `const ${outputs.result} = Math.random();`
         }
@@ -54,225 +53,240 @@ lProject.defineImport({
 });
 
 // --- Global inputs/outputs ---
-lProject.defineGlobalInput({ name: 'time', type: 'number' });
-lProject.defineGlobalOutput({ name: 'result', type: 'string' });
+lProject.addGlobalInput({ name: 'time', type: 'number' });
+lProject.addGlobalOutput({ name: 'result', type: 'string' });
 
 // --- Value Nodes ---
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'Number Literal',
     category: NodeCategory.Value,
-    inputs: [],
-    outputs: [{ name: 'value', type: 'number' }],
-    codeGenerator: ({ outputs, properties }: NodeCodeContext) => `const ${outputs.value} = ${properties.value};`
+    inputs: {},
+    outputs: { value: { type: 'number' } },
+    codeGenerator: ({ outputs, properties }) => `const ${outputs.value} = ${properties.value};`
 });
 
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'String Literal',
     category: NodeCategory.Value,
-    inputs: [],
-    outputs: [{ name: 'value', type: 'string' }],
+    inputs: {},
+    outputs: { value: { type: 'string' } },
     codeGenerator: ({ outputs, properties }: NodeCodeContext) => `const ${outputs.value} = "${properties.value}";`
 });
 
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'Boolean Literal',
     category: NodeCategory.Value,
-    inputs: [],
-    outputs: [{ name: 'value', type: 'boolean' }],
+    inputs: {},
+    outputs: { value: { type: 'boolean' } },
     codeGenerator: ({ outputs, properties }: NodeCodeContext) => `const ${outputs.value} = ${properties.value};`
 });
 
 // --- Operator Nodes: Arithmetic ---
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'Add',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
-    outputs: [{ name: 'result', type: 'number' }],
+    outputs: { result: { type: 'number' } },
     codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} + ${inputs.b};`
 });
 
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'Subtract',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
-    outputs: [{ name: 'result', type: 'number' }],
+    outputs: { result: { type: 'number' } },
     codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} - ${inputs.b};`
 });
 
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'Multiply',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
-    outputs: [{ name: 'result', type: 'number' }],
+    outputs: { result: { type: 'number' } },
     codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} * ${inputs.b};`
 });
 
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'Divide',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
-    outputs: [{ name: 'result', type: 'number' }],
+    outputs: { result: { type: 'number' } },
     codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} / ${inputs.b};`
 });
 
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'Modulo',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
-    outputs: [{ name: 'result', type: 'number' }],
+    outputs: { result: { type: 'number' } },
     codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} % ${inputs.b};`
 });
 
 // --- Operator Nodes: Comparison ---
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'Equal',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
-    outputs: [{ name: 'result', type: 'boolean' }],
+    outputs: { result: { type: 'boolean' } },
     codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} === ${inputs.b};`
 });
 
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'Not Equal',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
-    outputs: [{ name: 'result', type: 'boolean' }],
+    outputs: { result: { type: 'boolean' } },
     codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} !== ${inputs.b};`
 });
 
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'Less Than',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
-    outputs: [{ name: 'result', type: 'boolean' }],
+    outputs: { result: { type: 'boolean' } },
     codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} < ${inputs.b};`
 });
 
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'Greater Than',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
-    outputs: [{ name: 'result', type: 'boolean' }],
+    outputs: { result: { type: 'boolean' } },
     codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} > ${inputs.b};`
 });
 
 // --- Operator Nodes: Logic ---
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'And',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'boolean' }, { name: 'b', type: 'boolean' }],
-    outputs: [{ name: 'result', type: 'boolean' }],
+    outputs: { result: { type: 'boolean' } },
     codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} && ${inputs.b};`
 });
 
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'Or',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'boolean' }, { name: 'b', type: 'boolean' }],
-    outputs: [{ name: 'result', type: 'boolean' }],
+    outputs: { result: { type: 'boolean' } },
     codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} || ${inputs.b};`
 });
 
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'Not',
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'boolean' }],
-    outputs: [{ name: 'result', type: 'boolean' }],
+    outputs: { result: { type: 'boolean' } },
     codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = !${inputs.a};`
 });
 
 // --- Type Conversion Nodes ---
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'Number to String',
     category: NodeCategory.TypeConversion,
     inputs: [{ name: 'input', type: 'number' }],
-    outputs: [{ name: 'output', type: 'string' }],
+    outputs: { output: { type: 'string' } },
     codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.output} = String(${inputs.input});`
 });
 
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'String to Number',
     category: NodeCategory.TypeConversion,
     inputs: [{ name: 'input', type: 'string' }],
-    outputs: [{ name: 'output', type: 'number' }],
+    outputs: { output: { type: 'number' } },
     codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.output} = Number(${inputs.input});`
 });
 
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'Boolean to String',
     category: NodeCategory.TypeConversion,
     inputs: [{ name: 'input', type: 'boolean' }],
-    outputs: [{ name: 'output', type: 'string' }],
+    outputs: { output: { type: 'string' } },
     codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.output} = String(${inputs.input});`
 });
 
 // --- Flow Nodes ---
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'If',
     category: NodeCategory.Flow,
-    inputs: [{ name: 'condition', type: 'boolean' }],
-    outputs: [],
+    inputs: { 
+        condition: { type: 'boolean' } 
+    },
+    outputs: {},
     flowInputs: ['exec'],
     flowOutputs: ['then', 'else'],
-    codeGenerator: ({ inputs, body }: NodeCodeContext) => `if (${inputs.condition}) {\n${body.then}\n} else {\n${body.else}\n}`
+    codeGenerator: ({ inputs, body }) => `if (${inputs.condition}) {\n${body.then}\n} else {\n${body.else}\n}`
 });
 
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'While',
     category: NodeCategory.Flow,
-    inputs: [{ name: 'condition', type: 'boolean' }],
-    outputs: [],
+    inputs: {
+        condition: { type: 'boolean' }
+    },
+    outputs: {},
     flowInputs: ['exec'],
     flowOutputs: ['body'],
-    codeGenerator: ({ inputs, body }: NodeCodeContext) => `while (${inputs.condition}) {\n${body.body}\n}`
+    codeGenerator: ({ inputs, body }) => `while (${inputs.condition}) {\n${body.body}\n}`
 });
 
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'For Loop',
     category: NodeCategory.Flow,
-    inputs: [{ name: 'count', type: 'number' }],
-    outputs: [{ name: 'index', type: 'number' }],
+    inputs: { count: { type: 'number' } },
+    outputs: { index: { type: 'number' } },
     flowInputs: ['exec'],
     flowOutputs: ['body'],
-    codeGenerator: ({ inputs, outputs, body }: NodeCodeContext) => `for (let ${outputs.index} = 0; ${outputs.index} < ${inputs.count}; ${outputs.index}++) {\n${body.body}\n}`
+    codeGenerator: ({ inputs, outputs, body }) => `for (let ${outputs.index} = 0; ${outputs.index} < ${inputs.count}; ${outputs.index}++) {\n${body.body}\n}`
 });
 
 // --- Function Nodes (now with auto exec pins) ---
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'Console Log',
     category: NodeCategory.Function,
-    inputs: [{ name: 'message', type: 'string' }],
-    outputs: [],
-    codeGenerator: ({ inputs }: NodeCodeContext) => `console.log(${inputs.message});`
+    inputs: {
+        message: { type: 'string' }
+    },
+    outputs: {},
+    codeGenerator: ({ inputs }) => `console.log(${inputs.message});`
 });
 
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'String Concat',
     category: NodeCategory.Function,
-    inputs: [{ name: 'a', type: 'string' }, { name: 'b', type: 'string' }],
-    outputs: [{ name: 'result', type: 'string' }],
-    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} + ${inputs.b};`
+    inputs: {
+        a: { name: '', type: 'string' },
+        b: { name: '', type: 'string' }
+    },
+    outputs: {
+        result: { type: 'string' }
+    },
+    codeGenerator: ({ inputs, outputs }) => `const ${outputs.result} = ${inputs.a} + ${inputs.b};`
 });
 
 // --- Reroute Node ---
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'Reroute',
     category: NodeCategory.Reroute,
-    inputs: [{ name: 'in', type: 'any' }],
-    outputs: [{ name: 'out', type: 'any' }]
+    inputs: {
+        in: { name: '', type: 'any' }
+    },
+    outputs: {
+        out: { name: '', type: 'any' }
+    }
 });
 
 // --- Comment Node ---
-lProject.defineNode({
+lProject.addNodeDefinition({
     name: 'Comment',
     category: NodeCategory.Comment,
-    inputs: [],
-    outputs: []
+    inputs: {},
+    outputs: {}
 });
 
 // --- Function Code Generator ---
 lProject.setFunctionCodeGenerator((pFunc: PotatnoCodeFunction) => {
-    const lParams: string = pFunc.inputs.map((i: { valueId: string }) => i.valueId).join(', ');
+    const lParams: string = pFunc.inputs.map((i: { valueId: string; }) => i.valueId).join(', ');
     const lReturnStmt: string = pFunc.outputs.length > 0
         ? `\n    return ${pFunc.outputs[0].valueId};`
         : '';
@@ -280,7 +294,7 @@ lProject.setFunctionCodeGenerator((pFunc: PotatnoCodeFunction) => {
 });
 
 // --- Main Functions ---
-lProject.defineMainFunction({
+lProject.addMainFunction({
     name: 'main',
     label: 'Main',
     editableByUser: true,

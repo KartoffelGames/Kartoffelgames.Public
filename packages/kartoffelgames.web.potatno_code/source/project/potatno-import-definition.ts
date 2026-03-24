@@ -1,4 +1,5 @@
-import type { PotatnoNodeDefinition } from '../node/potatno-node-definition.ts';
+import { PotatnoProjectNodeDefinition } from "./potatno-project.ts";
+
 
 /**
  * Definition of an import group. When a function enables this import,
@@ -8,5 +9,5 @@ export interface PotatnoImportDefinition {
     /** Display name of the import group. */
     readonly name: string;
     /** Node definitions that become available when this import is enabled. */
-    readonly nodes: Array<PotatnoNodeDefinition>;
+    readonly nodes: Array<PotatnoProjectNodeDefinition>;
 }

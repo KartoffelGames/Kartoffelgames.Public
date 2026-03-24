@@ -1,5 +1,5 @@
 import type { PotatnoEditorConfiguration } from '../project/potatno-editor-configuration.ts';
-import type { PotatnoNodeDefinition, NodeCodeContext } from '../node/potatno-node-definition.ts';
+import type { PotatnoProjectNodeDefinition, NodeCodeContext } from '../node/potatno-node-definition.ts';
 import { NodeCategory } from '../node/node-category.enum.ts';
 import { PortKind } from '../node/port-kind.enum.ts';
 import type { PotatnoConnection } from '../document/potatno-connection.ts';
@@ -110,7 +110,7 @@ export class PotatnoCodeGenerator {
                 continue;
             }
 
-            const lDefinition: PotatnoNodeDefinition | undefined = this.mConfig.nodeDefinitions.get(lNode.definitionName);
+            const lDefinition: PotatnoProjectNodeDefinition | undefined = this.mConfig.nodeDefinitions.get(lNode.definitionName);
             if (!lDefinition) {
                 continue;
             }
@@ -154,7 +154,7 @@ export class PotatnoCodeGenerator {
                 break;
             }
 
-            const lDefinition: PotatnoNodeDefinition | undefined = this.mConfig.nodeDefinitions.get(lOwnerNode.definitionName);
+            const lDefinition: PotatnoProjectNodeDefinition | undefined = this.mConfig.nodeDefinitions.get(lOwnerNode.definitionName);
             if (!lDefinition) {
                 break;
             }
@@ -191,7 +191,7 @@ export class PotatnoCodeGenerator {
      * @returns The constructed code node with populated ports and properties.
      */
     private buildCodeNode(pGraph: PotatnoGraph, pNode: PotatnoNode): PotatnoCodeNode {
-        const lDefinition: PotatnoNodeDefinition | undefined = this.mConfig.nodeDefinitions.get(pNode.definitionName);
+        const lDefinition: PotatnoProjectNodeDefinition | undefined = this.mConfig.nodeDefinitions.get(pNode.definitionName);
         const lCodeGenerator = lDefinition?.codeGenerator ?? (() => '');
         const lCodeNode: PotatnoCodeNode = this.createNodeForCategory(pNode.category, lCodeGenerator);
 

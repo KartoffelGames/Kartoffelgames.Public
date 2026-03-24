@@ -1,6 +1,6 @@
 import type { NodeCategory } from '../node/node-category.enum.ts';
 import { PortDirection } from '../node/port-direction.enum.ts';
-import type { PotatnoNodeDefinition } from '../node/potatno-node-definition.ts';
+import type { PotatnoProjectNodeDefinition } from '../node/potatno-node-definition.ts';
 import { PotatnoFlowPort } from './potatno-flow-port.ts';
 import { PotatnoPort } from './potatno-port.ts';
 
@@ -43,7 +43,7 @@ export class PotatnoNode {
      * @param pPosition - Initial grid position of the node.
      * @param pSystem - Whether this is a system node that cannot be removed.
      */
-    public constructor(pId: string, pDefinition: PotatnoNodeDefinition, pPosition: { x: number; y: number }, pSystem: boolean) {
+    public constructor(pId: string, pDefinition: PotatnoProjectNodeDefinition, pPosition: { x: number; y: number }, pSystem: boolean) {
         this.id = pId;
         this.definitionName = pDefinition.name;
         this.category = pDefinition.category;

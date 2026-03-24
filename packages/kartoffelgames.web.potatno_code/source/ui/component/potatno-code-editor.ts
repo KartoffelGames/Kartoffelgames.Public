@@ -1,44 +1,38 @@
-import { PwbComponent, Processor, PwbExport, PwbChild, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
-import editorCss from './potatno-code-editor.css';
-import editorTemplate from './potatno-code-editor.html';
-import type { PotatnoProject } from '../../project/potatno-project.ts';
-import type { PotatnoEditorConfiguration } from '../../project/potatno-editor-configuration.ts';
-import type { PotatnoNodeDefinition } from '../../node/potatno-node-definition.ts';
-import type { PotatnoMainFunctionDefinition } from '../../project/potatno-main-function-definition.ts';
-import type { PotatnoImportDefinition } from '../../project/potatno-import-definition.ts';
-import type { PotatnoGlobalPortDefinition } from '../../project/potatno-global-port-definition.ts';
-import type { PotatnoPortDefinition } from '../../node/potatno-port-definition.ts';
-import type { PotatnoCodeFunction } from '../../project/potatno-code-function.ts';
+import { Processor, PwbChild, PwbComponent, PwbExport, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import { PotatnoCodeFile } from '../../document/potatno-code-file.ts';
-import { PotatnoFunction } from '../../project/potatno-function.ts';
 import type { PotatnoGraph } from '../../document/potatno-graph.ts';
 import type { PotatnoNode } from '../../document/potatno-node.ts';
-import { PotatnoHistory } from '../potatno-history.ts';
-import { PotatnoClipboard } from '../potatno-clipboard.ts';
-import { PotatnoCanvasInteraction } from '../potatno-canvas-interaction.ts';
-import { PotatnoCanvasRenderer } from '../potatno-canvas-renderer.ts';
-import { PotatnoSerializer } from '../../parser/potatno-serializer.ts';
-import { PotatnoDeserializer } from '../../parser/potatno-deserializer.ts';
 import { NodeCategory, NodeCategoryMeta } from '../../node/node-category.enum.ts';
 import { PortKind } from '../../node/port-kind.enum.ts';
-import { NodeAddAction } from '../potatno-node-actions.ts';
-import { NodeRemoveAction } from '../potatno-node-actions.ts';
-import { PropertyChangeAction } from '../potatno-property-change-action.ts';
+import type { PotatnoPortDefinition } from '../../node/potatno-port-definition.ts';
+import { PotatnoDeserializer } from '../../parser/potatno-deserializer.ts';
+import { PotatnoSerializer } from '../../parser/potatno-serializer.ts';
+import { PotatnoFunction } from '../../project/potatno-function.ts';
+import type { PotatnoImportDefinition } from '../../project/potatno-import-definition.ts';
+import type { PotatnoProject, PotatnoProjectNodeDefinition } from '../../project/potatno-project.ts';
+import { PotatnoCanvasInteraction } from '../potatno-canvas-interaction.ts';
+import { PotatnoCanvasRenderer } from '../potatno-canvas-renderer.ts';
+import { PotatnoClipboard } from '../potatno-clipboard.ts';
 import { CompositeAction } from '../potatno-composite-action.ts';
 import type { PotatnoHistoryAction } from '../potatno-history-action.ts';
+import { PotatnoHistory } from '../potatno-history.ts';
+import { NodeAddAction, NodeRemoveAction } from '../potatno-node-actions.ts';
+import { PropertyChangeAction } from '../potatno-property-change-action.ts';
+import editorCss from './potatno-code-editor.css';
+import editorTemplate from './potatno-code-editor.html';
 
 // Import child components to ensure they're registered.
-import './potatno-node-library.ts';
+import './potatno-canvas.ts';
 import './potatno-function-list.ts';
+import './potatno-node-component.ts';
+import './potatno-node-library.ts';
 import './potatno-panel-left.ts';
 import './potatno-panel-properties.ts';
-import './potatno-preview.ts';
-import './potatno-canvas.ts';
-import './potatno-node-component.ts';
 import './potatno-port.ts';
-import './potatno-tabs.ts';
+import './potatno-preview.ts';
 import './potatno-resize-handle.ts';
 import './potatno-search-input.ts';
+import './potatno-tabs.ts';
 
 /**
  * Interaction state for the canvas.
@@ -230,7 +224,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             // Auto-initialize main functions if the file is empty and project has main function definitions.
             const lProject: PotatnoProject | undefined = gStore.getProject(this.mInstanceKey);
             if (lProject && pFile.functions.size === 0) {
-                this.initializeMainFunctions(pFile, lProject.configuration);
+                this.initializeMainFunctions(pFile, lProject);
             }
         } else {
             gStore.deleteFile(this.mInstanceKey);
@@ -485,7 +479,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
     @PwbExport
     public loadCode(pCode: string): void {
         const lProject: PotatnoProject = this.getProject();
-        const lDeserializer: PotatnoDeserializer = new PotatnoDeserializer(lProject.configuration);
+        const lDeserializer: PotatnoDeserializer = new PotatnoDeserializer(lProject);
         const lNewFile: PotatnoCodeFile = lDeserializer.deserialize(pCode);
         gStore.setFile(this.mInstanceKey, lNewFile);
         this.getInternals().history.clear();
@@ -509,7 +503,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         if (!lFile) {
             return '';
         }
-        const lSerializer: PotatnoSerializer = new PotatnoSerializer(lProject.configuration);
+        const lSerializer: PotatnoSerializer = new PotatnoSerializer(lProject);
         return lSerializer.serialize(lFile);
     }
 
@@ -552,7 +546,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             return;
         }
 
-        let lDefinition: PotatnoNodeDefinition | undefined = lProject.configuration.nodeDefinitions.get(lDefName);
+        let lDefinition: PotatnoProjectNodeDefinition | undefined = lProject.nodeDefinitions.get(lDefName);
 
         // Check if it's a user-defined function rather than a built-in node definition.
         if (!lDefinition) {
@@ -574,7 +568,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             const lActiveFunc: PotatnoFunction | undefined = lFile.activeFunction;
             if (lActiveFunc) {
                 const lEnabledImports: Set<string> = new Set<string>(lActiveFunc.imports);
-                for (const lImport of lProject.configuration.imports) {
+                for (const lImport of lProject.imports) {
                     if (lEnabledImports.has(lImport.name)) {
                         for (const lNodeDef of lImport.nodes) {
                             if (lNodeDef.name === lDefName) {
@@ -592,7 +586,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
 
         // Check global input getter nodes.
         if (!lDefinition) {
-            for (const lGlobalInput of lProject.configuration.globalInputs) {
+            for (const lGlobalInput of lProject.globalInputs) {
                 if (lDefName === `Get ${lGlobalInput.name}`) {
                     lDefinition = {
                         name: lDefName,
@@ -607,7 +601,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
 
         // Check global output setter nodes.
         if (!lDefinition) {
-            for (const lGlobalOutput of lProject.configuration.globalOutputs) {
+            for (const lGlobalOutput of lProject.globalOutputs) {
                 if (lDefName === `Set ${lGlobalOutput.name}`) {
                     lDefinition = {
                         name: lDefName,
@@ -1341,9 +1335,9 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      * Initialize main functions from the project configuration into a file.
      *
      * @param pFile - The file to initialize.
-     * @param pConfig - The editor configuration providing main function definitions.
+     * @param pConfig - The project configuration providing main function definitions.
      */
-    private initializeMainFunctions(pFile: PotatnoCodeFile, pConfig: PotatnoEditorConfiguration): void {
+    private initializeMainFunctions(pFile: PotatnoCodeFile, pConfig: PotatnoProject): void {
         for (const lMainDef of pConfig.mainFunctions) {
             const lFunc: PotatnoFunction = new PotatnoFunction(
                 crypto.randomUUID(),
@@ -1367,7 +1361,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             // Create fixed input nodes for the function's inputs.
             for (let lIdx = 0; lIdx < lInputs.length; lIdx++) {
                 const lInput: PotatnoPortDefinition = lInputs[lIdx];
-                const lInputNodeDef: PotatnoNodeDefinition = {
+                const lInputNodeDef: PotatnoProjectNodeDefinition = {
                     name: lInput.name,
                     category: NodeCategory.Input,
                     inputs: [],
@@ -1379,7 +1373,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             // Create fixed output nodes for the function's outputs.
             for (let lIdx = 0; lIdx < lOutputs.length; lIdx++) {
                 const lOutput: PotatnoPortDefinition = lOutputs[lIdx];
-                const lOutputNodeDef: PotatnoNodeDefinition = {
+                const lOutputNodeDef: PotatnoProjectNodeDefinition = {
                     name: lOutput.name,
                     category: NodeCategory.Output,
                     inputs: [{ name: lOutput.name, type: lOutput.type }],
@@ -1392,7 +1386,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             if (lMainDef.events) {
                 for (let lIdx = 0; lIdx < lMainDef.events.length; lIdx++) {
                     const lEvent = lMainDef.events[lIdx];
-                    const lEventNodeDef: PotatnoNodeDefinition = {
+                    const lEventNodeDef: PotatnoProjectNodeDefinition = {
                         name: lEvent.name,
                         category: NodeCategory.Event,
                         inputs: [],
@@ -1453,7 +1447,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         const lActions: Array<PotatnoHistoryAction> = [];
         const lAddActions: Array<NodeAddAction> = [];
         for (const lNodeData of lData.nodes) {
-            const lDef: PotatnoNodeDefinition | undefined = lProject.configuration.nodeDefinitions.get(lNodeData.definitionName);
+            const lDef: PotatnoProjectNodeDefinition | undefined = lProject.nodeDefinitions.get(lNodeData.definitionName);
             if (lDef) {
                 const lAction: NodeAddAction = new NodeAddAction(
                     lGraph,
@@ -1668,7 +1662,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             return;
         }
 
-        const lCreateCallback = lProject.configuration.createPreview;
+        const lCreateCallback = lProject.createPreview;
         if (!lCreateCallback) {
             return;
         }
@@ -1696,7 +1690,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             return;
         }
 
-        const lUpdateCallback = lProject.configuration.updatePreview;
+        const lUpdateCallback = lProject.updatePreview;
         if (!lUpdateCallback) {
             return;
         }
@@ -1719,9 +1713,9 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         // Generate code.
         let lCleanCode: string;
         try {
-            const lSerializer: PotatnoSerializer = new PotatnoSerializer(lProject.configuration);
+            const lSerializer: PotatnoSerializer = new PotatnoSerializer(lProject);
             const lCode: string = lSerializer.serialize(lFile);
-            lCleanCode = this.stripMetadataComments(lCode, lProject.configuration.commentToken);
+            lCleanCode = this.stripMetadataComments(lCode, lProject.commentToken);
         } catch {
             return;
         }
@@ -1886,7 +1880,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         lCached.activeFunctionId = lFile?.activeFunctionId ?? '';
 
         // Preview availability.
-        lCached.hasPreview = lProject?.configuration.hasPreview ?? false;
+        lCached.hasPreview = lProject?.hasPreview ?? false;
 
         // Validate and cache errors.
         lCached.errors = this.validateProject();
@@ -1894,7 +1888,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         // Node definitions.
         const lNodeDefs: Array<{ name: string; category: string }> = [];
         if (lProject) {
-            for (const lDef of lProject.configuration.nodeDefinitions.values()) {
+            for (const lDef of lProject.nodeDefinitions.values()) {
                 lNodeDefs.push({ name: lDef.name, category: lDef.category });
             }
         }
@@ -1922,7 +1916,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             const lActiveFunc: PotatnoFunction | undefined = lFile.activeFunction;
             if (lActiveFunc) {
                 const lEnabledImports: Set<string> = new Set<string>(lActiveFunc.imports);
-                for (const lImport of lProject.configuration.imports) {
+                for (const lImport of lProject.imports) {
                     if (lEnabledImports.has(lImport.name)) {
                         for (const lNodeDef of lImport.nodes) {
                             lNodeDefs.push({ name: lNodeDef.name, category: lNodeDef.category });
@@ -1934,21 +1928,21 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
 
         // Add global input getter nodes and global output setter nodes.
         if (lProject) {
-            for (const lGlobalInput of lProject.configuration.globalInputs) {
+            for (const lGlobalInput of lProject.globalInputs) {
                 lNodeDefs.push({ name: `Get ${lGlobalInput.name}`, category: NodeCategory.Value });
             }
-            for (const lGlobalOutput of lProject.configuration.globalOutputs) {
+            for (const lGlobalOutput of lProject.globalOutputs) {
                 lNodeDefs.push({ name: `Set ${lGlobalOutput.name}`, category: NodeCategory.Value });
             }
         }
 
         // Available imports.
-        lCached.availableImports = lProject?.configuration.imports.map((lImport: PotatnoImportDefinition) => lImport.name) ?? [];
+        lCached.availableImports = lProject?.imports.map((lImport: PotatnoImportDefinition) => lImport.name) ?? [];
 
         // Available types.
         const lTypeSet: Set<string> = new Set<string>();
         if (lProject) {
-            for (const lDef of lProject.configuration.nodeDefinitions.values()) {
+            for (const lDef of lProject.nodeDefinitions.values()) {
                 for (const lInput of lDef.inputs) {
                     lTypeSet.add(lInput.type);
                 }
@@ -1980,7 +1974,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
 
             const lNodes: Array<any> = [];
             for (const lNode of lActiveFunc.graph.nodes.values()) {
-                const lDef = lProject?.configuration.nodeDefinitions.get(lNode.definitionName);
+                const lDef = lProject?.nodeDefinitions.get(lNode.definitionName);
                 const lCategoryMeta = NodeCategoryMeta.get(lNode.category);
                 const lInputs: Array<{ id: string; name: string; type: string; direction: string; connectedTo: string | null }> = [];
                 for (const lPort of lNode.inputs.values()) {

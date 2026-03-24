@@ -1,5 +1,5 @@
 import type { PotatnoEditorConfiguration } from '../project/potatno-editor-configuration.ts';
-import type { PotatnoNodeDefinition } from '../node/potatno-node-definition.ts';
+import type { PotatnoProjectNodeDefinition } from '../node/potatno-node-definition.ts';
 import { NodeCategory } from '../node/node-category.enum.ts';
 import { PortKind } from '../node/port-kind.enum.ts';
 import { PotatnoConnection } from '../document/potatno-connection.ts';
@@ -133,7 +133,7 @@ export class PotatnoDeserializer {
             const lCategory: string = lNodeData.category;
 
             // Get the node definition from the configuration.
-            const lDefinition: PotatnoNodeDefinition | undefined = this.mConfig.nodeDefinitions.get(lNodeData.type);
+            const lDefinition: PotatnoProjectNodeDefinition | undefined = this.mConfig.nodeDefinitions.get(lNodeData.type);
 
             if (lDefinition) {
                 // Reconstruct via definition.
@@ -161,7 +161,7 @@ export class PotatnoDeserializer {
                 // Input/output nodes -- create a minimal definition.
                 const lInputs = (lNodeData.inputs ?? []).map((p) => ({ name: p.name, type: p.type }));
                 const lOutputs = (lNodeData.outputs ?? []).map((p) => ({ name: p.name, type: p.type }));
-                const lMinDef: PotatnoNodeDefinition = {
+                const lMinDef: PotatnoProjectNodeDefinition = {
                     name: lNodeData.type,
                     category: lCategory as NodeCategory,
                     inputs: lInputs,

@@ -31,7 +31,7 @@
     padding: 0 8px;
     gap: 6px;
     border-radius: var(--pn-node-border-radius) var(--pn-node-border-radius) 0 0;
-    color: var(--pn-bg-primary);
+    color: #fff;
     font-weight: 600;
     font-size: var(--pn-font-size-sm);
     cursor: grab;
@@ -226,4 +226,39 @@
 
 .resize-handle:hover::after {
     opacity: 1;
+}
+
+/* ── Reroute node ── */
+
+.node-reroute {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    user-select: none;
+}
+
+.node-reroute.selected .reroute-dot {
+    box-shadow: 0 0 0 2px var(--pn-node-border-selected);
+}
+
+.reroute-dot {
+    width: 12px;
+    height: 12px;
+    background: var(--pn-text-muted);
+    border-radius: 2px;
+    transform: rotate(45deg);
+    cursor: grab;
+    flex-shrink: 0;
+}
+
+.reroute-dot:active {
+    cursor: grabbing;
+}
+
+.reroute-inputs {
+    margin-right: -4px;
+}
+
+.reroute-outputs {
+    margin-left: -4px;
 }

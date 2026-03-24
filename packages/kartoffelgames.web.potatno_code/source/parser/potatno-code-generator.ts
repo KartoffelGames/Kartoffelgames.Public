@@ -1,5 +1,5 @@
 import type { PotatnoEditorConfiguration } from '../project/potatno-editor-configuration.ts';
-import type { PotatnoNodeDefinition } from '../node/potatno-node-definition.ts';
+import type { PotatnoNodeDefinition, NodeCodeContext } from '../node/potatno-node-definition.ts';
 import { NodeCategory } from '../node/node-category.enum.ts';
 import { PortKind } from '../node/port-kind.enum.ts';
 import type { PotatnoConnection } from '../document/potatno-connection.ts';
@@ -14,9 +14,12 @@ import { PotatnoCodeOutputNode } from '../node/potatno-code-output-node.ts';
 import { PotatnoCodeTemplateNode } from '../node/potatno-code-template-node.ts';
 import { PotatnoCodeValueNode } from '../node/potatno-code-value-node.ts';
 import { PotatnoCodeFlowNode } from '../node/potatno-code-flow-node.ts';
+import { PotatnoCodeGetLocalNode } from '../node/potatno-code-get-local-node.ts';
+import { PotatnoCodeSetLocalNode } from '../node/potatno-code-set-local-node.ts';
+import { PotatnoCodeRerouteNode } from '../node/potatno-code-reroute-node.ts';
 
 /**
- * Walks the graph in topological order and generates code.
+ * Walks the graph in topological order and generates clean code without metadata markers.
  */
 export class PotatnoCodeGenerator {
     private readonly mConfig: PotatnoEditorConfiguration;
@@ -31,15 +34,24 @@ export class PotatnoCodeGenerator {
     }
 
     /**
-     * Generate code for a single function including metadata comments.
+     * Generate clean code for a single function.
      *
      * @param pFunction - The function to generate code for.
      *
-     * @returns The generated code string wrapped with metadata markers.
+     * @returns The generated code string without any metadata markers.
      */
     public generateFunctionCode(pFunction: PotatnoFunction): string {
         const lGraph: PotatnoGraph = pFunction.graph;
-        const lBodyCode: string = this.generateGraphCode(lGraph);
+        let lBodyCode: string = this.generateGraphCode(lGraph);
+
+        // Prepend local variable declarations.
+        const lVarDecls: Array<string> = [];
+        for (const lVar of pFunction.localVariables) {
+            lVarDecls.push(`    let ${lVar.name};`);
+        }
+        if (lVarDecls.length > 0) {
+            lBodyCode = lVarDecls.join('\n') + '\n' + lBodyCode;
+        }
 
         // Build PotatnoCodeFunction.
         const lCodeFunc: PotatnoCodeFunction = new PotatnoCodeFunction();
@@ -56,21 +68,20 @@ export class PotatnoCodeGenerator {
             lCodeFunc.outputs.push({ name: lOutput.name, type: lOutput.type, valueId: lValueId });
         }
 
-        // Wrap in function code generator.
+        // Wrap in function code generator callback if set.
         if (this.mConfig.functionCodeGenerator) {
-            const lFunctionCode: string = this.mConfig.functionCodeGenerator(lCodeFunc);
-            return this.wrapWithMetadata(pFunction, lFunctionCode);
+            return this.mConfig.functionCodeGenerator(lCodeFunc);
         }
 
-        return this.wrapWithMetadata(pFunction, lBodyCode);
+        return lBodyCode;
     }
 
     /**
-     * Generate code for all functions in the project.
+     * Generate clean code for all functions in the project.
      *
      * @param pFunctions - The map of functions to generate code for.
      *
-     * @returns The combined code string for all functions.
+     * @returns The combined clean code string for all functions.
      */
     public generateProjectCode(pFunctions: ReadonlyMap<string, PotatnoFunction>): string {
         const lParts: Array<string> = new Array<string>();
@@ -83,19 +94,19 @@ export class PotatnoCodeGenerator {
     }
 
     /**
-     * Generate the body code for a graph via topological sort.
+     * Generate the clean body code for a graph via topological sort.
      *
      * @param pGraph - The graph to generate code for.
      *
-     * @returns The generated body code string.
+     * @returns The generated body code string without metadata markers.
      */
     private generateGraphCode(pGraph: PotatnoGraph): string {
         const lNodes: Array<PotatnoNode> = this.topologicalSort(pGraph);
         const lCodeParts: Array<string> = new Array<string>();
 
         for (const lNode of lNodes) {
-            // Skip input/output nodes — they are handled by the function wrapper.
-            if (lNode.category === NodeCategory.Input || lNode.category === NodeCategory.Output) {
+            // Skip input/output/reroute/get-local nodes — they are handled by the function wrapper or passthrough resolution.
+            if (lNode.category === NodeCategory.Input || lNode.category === NodeCategory.Output || lNode.category === NodeCategory.Reroute || lNode.category === NodeCategory.GetLocal) {
                 continue;
             }
 
@@ -117,8 +128,7 @@ export class PotatnoCodeGenerator {
             }
 
             const lNodeCode: string = lCodeNode.generateCode();
-            const lWrapped: string = this.wrapNodeWithMetadata(lNode, lNodeCode);
-            lCodeParts.push(lWrapped);
+            lCodeParts.push(lNodeCode);
         }
 
         return lCodeParts.join('\n');
@@ -162,7 +172,7 @@ export class PotatnoCodeGenerator {
             }
 
             const lNodeCode: string = lCodeNode.generateCode();
-            lCodeParts.push(this.wrapNodeWithMetadata(lOwnerNode, lNodeCode));
+            lCodeParts.push(lNodeCode);
 
             // Follow the flow chain: look for a "next" flow output, or stop.
             lCurrentPortId = null;
@@ -180,13 +190,14 @@ export class PotatnoCodeGenerator {
      *
      * @returns The constructed code node with populated ports and properties.
      */
-    private buildCodeNode(_pGraph: PotatnoGraph, pNode: PotatnoNode): PotatnoCodeNode {
+    private buildCodeNode(pGraph: PotatnoGraph, pNode: PotatnoNode): PotatnoCodeNode {
         const lDefinition: PotatnoNodeDefinition | undefined = this.mConfig.nodeDefinitions.get(pNode.definitionName);
-        const lCodeNode: PotatnoCodeNode = this.createNodeForCategory(pNode.category, lDefinition?.codeTemplate ?? '');
+        const lCodeGenerator = lDefinition?.codeGenerator ?? (() => '');
+        const lCodeNode: PotatnoCodeNode = this.createNodeForCategory(pNode.category, lCodeGenerator);
 
         // Map inputs with resolved value IDs.
         for (const [lName, lPort] of pNode.inputs) {
-            const lValueId: string = lPort.connectedTo ?? lPort.valueId;
+            const lValueId: string = this.resolveRerouteChain(pGraph, lPort.connectedTo ?? lPort.valueId);
             lCodeNode.inputs.set(lName, { name: lName, type: lPort.type, valueId: lValueId });
         }
 
@@ -200,6 +211,15 @@ export class PotatnoCodeGenerator {
             lCodeNode.properties.set(lKey, lValue);
         }
 
+        // For GetLocal nodes, override the output valueId to the variable name.
+        if (pNode.category === NodeCategory.GetLocal) {
+            const lVarName = pNode.properties.get('variableName') ?? '';
+            const lFirst = lCodeNode.outputs.values().next().value;
+            if (lFirst && lVarName) {
+                lCodeNode.outputs.set(lFirst.name, { name: lFirst.name, type: lFirst.type, valueId: lVarName });
+            }
+        }
+
         return lCodeNode;
     }
 
@@ -207,11 +227,11 @@ export class PotatnoCodeGenerator {
      * Create the appropriate code node subclass based on the node category.
      *
      * @param pCategory - The node category.
-     * @param pCodeTemplate - The code template string for template-based nodes.
+     * @param pCodeGenerator - The code generator callback for template-based nodes.
      *
      * @returns The appropriate code node subclass instance.
      */
-    private createNodeForCategory(pCategory: NodeCategory, pCodeTemplate: string): PotatnoCodeNode {
+    private createNodeForCategory(pCategory: NodeCategory, pCodeGenerator: (pContext: NodeCodeContext) => string): PotatnoCodeNode {
         switch (pCategory) {
             case NodeCategory.Comment:
                 return new PotatnoCodeCommentNode();
@@ -220,11 +240,17 @@ export class PotatnoCodeGenerator {
             case NodeCategory.Output:
                 return new PotatnoCodeOutputNode();
             case NodeCategory.Value:
-                return new PotatnoCodeValueNode(pCodeTemplate);
+                return new PotatnoCodeValueNode(pCodeGenerator);
             case NodeCategory.Flow:
-                return new PotatnoCodeFlowNode(pCodeTemplate);
+                return new PotatnoCodeFlowNode(pCodeGenerator);
+            case NodeCategory.Reroute:
+                return new PotatnoCodeRerouteNode();
+            case NodeCategory.GetLocal:
+                return new PotatnoCodeGetLocalNode();
+            case NodeCategory.SetLocal:
+                return new PotatnoCodeSetLocalNode();
             default:
-                return new PotatnoCodeTemplateNode(pCodeTemplate);
+                return new PotatnoCodeTemplateNode(pCodeGenerator);
         }
     }
 
@@ -313,7 +339,7 @@ export class PotatnoCodeGenerator {
             if (lNode.category === NodeCategory.Output && lNode.definitionName === pName) {
                 const lFirstInput = lNode.inputs.values().next().value;
                 if (lFirstInput && lFirstInput.connectedTo) {
-                    return lFirstInput.connectedTo;
+                    return this.resolveRerouteChain(pGraph, lFirstInput.connectedTo);
                 }
                 return lFirstInput?.valueId ?? pName;
             }
@@ -322,7 +348,37 @@ export class PotatnoCodeGenerator {
     }
 
     /**
-     * Find a node that owns a flow port by the port's ID.
+     * Resolve a valueId through any reroute node chain. If the valueId
+     * belongs to a reroute node's output, follow its input's connectedTo
+     * recursively until a non-reroute source is found.
+     *
+     * @param pGraph - The graph to search.
+     * @param pValueId - The valueId to resolve.
+     *
+     * @returns The resolved valueId from the original non-reroute source.
+     */
+    private resolveRerouteChain(pGraph: PotatnoGraph, pValueId: string): string {
+        // Find the node whose output owns this valueId.
+        for (const lNode of pGraph.nodes.values()) {
+            for (const lPort of lNode.outputs.values()) {
+                if (lPort.valueId === pValueId && lNode.category === NodeCategory.Reroute) {
+                    // This valueId belongs to a reroute node's output.
+                    // Follow the reroute's input connectedTo upstream.
+                    const lFirstInput = lNode.inputs.values().next().value;
+                    if (lFirstInput && lFirstInput.connectedTo) {
+                        return this.resolveRerouteChain(pGraph, lFirstInput.connectedTo);
+                    }
+                    // Reroute input is not connected — return the reroute's input valueId as fallback.
+                    return lFirstInput?.valueId ?? pValueId;
+                }
+            }
+        }
+
+        // Not a reroute output — return as-is.
+        return pValueId;
+    }
+
+    /**
      *
      * @param pGraph - The graph to search.
      * @param pPortId - The flow port ID to find.
@@ -343,87 +399,5 @@ export class PotatnoCodeGenerator {
             }
         }
         return null;
-    }
-
-    /**
-     * Wrap a function's generated code with __POTATNO_START and __POTATNO_END metadata comments.
-     *
-     * @param pFunction - The function whose metadata should be included.
-     * @param pCode - The generated code to wrap.
-     *
-     * @returns The code wrapped with metadata markers.
-     */
-    private wrapWithMetadata(pFunction: PotatnoFunction, pCode: string): string {
-        const lToken: string = this.mConfig.commentToken;
-        const lMeta = {
-            type: 'function',
-            label: pFunction.label,
-            name: pFunction.name,
-            system: pFunction.system,
-            inputs: [...pFunction.inputs],
-            outputs: [...pFunction.outputs],
-            imports: [...pFunction.imports]
-        };
-
-        const lStart: string = `${lToken} __POTATNO_START: ${pFunction.id} ${JSON.stringify(lMeta)}`;
-        const lEnd: string = `${lToken} __POTATNO_END: ${pFunction.id}`;
-
-        return `${lStart}\n${pCode}\n${lEnd}`;
-    }
-
-    /**
-     * Wrap a node's generated code with metadata comments.
-     *
-     * @param pNode - The node whose metadata should be included.
-     * @param pCode - The generated code to wrap.
-     *
-     * @returns The code wrapped with metadata markers.
-     */
-    private wrapNodeWithMetadata(pNode: PotatnoNode, pCode: string): string {
-        const lToken: string = this.mConfig.commentToken;
-
-        // Serialize port data for reconstruction.
-        const lInputs: Array<object> = new Array<object>();
-        for (const [lName, lPort] of pNode.inputs) {
-            lInputs.push({ name: lName, type: lPort.type, id: lPort.id, valueId: lPort.valueId, connectedTo: lPort.connectedTo });
-        }
-
-        const lOutputs: Array<object> = new Array<object>();
-        for (const [lName, lPort] of pNode.outputs) {
-            lOutputs.push({ name: lName, type: lPort.type, id: lPort.id, valueId: lPort.valueId });
-        }
-
-        const lFlowInputs: Array<object> = new Array<object>();
-        for (const [lName, lPort] of pNode.flowInputs) {
-            lFlowInputs.push({ name: lName, id: lPort.id, connectedTo: lPort.connectedTo });
-        }
-
-        const lFlowOutputs: Array<object> = new Array<object>();
-        for (const [lName, lPort] of pNode.flowOutputs) {
-            lFlowOutputs.push({ name: lName, id: lPort.id, connectedTo: lPort.connectedTo });
-        }
-
-        const lProperties: Record<string, string> = {};
-        for (const [lKey, lValue] of pNode.properties) {
-            lProperties[lKey] = lValue;
-        }
-
-        const lMeta = {
-            type: pNode.definitionName,
-            category: pNode.category,
-            position: pNode.position,
-            size: pNode.size,
-            system: pNode.system,
-            inputs: lInputs,
-            outputs: lOutputs,
-            flowInputs: lFlowInputs,
-            flowOutputs: lFlowOutputs,
-            properties: lProperties
-        };
-
-        const lStart: string = `${lToken} __POTATNO_START: ${pNode.id} ${JSON.stringify(lMeta)}`;
-        const lEnd: string = `${lToken} __POTATNO_END: ${pNode.id}`;
-
-        return `${lStart}\n${pCode}\n${lEnd}`;
     }
 }

@@ -13,6 +13,7 @@ export class PotatnoFunction {
     private mImports: Array<string>;
     private mInputs: Array<PotatnoPortDefinition>;
     private mLabel: string;
+    private mLocalVariables: Array<{ name: string; type: string }>;
     private mName: string;
     private mOutputs: Array<PotatnoPortDefinition>;
 
@@ -28,6 +29,13 @@ export class PotatnoFunction {
      */
     public get inputs(): ReadonlyArray<PotatnoPortDefinition> {
         return this.mInputs;
+    }
+
+    /**
+     * Get the list of local variables for this function.
+     */
+    public get localVariables(): ReadonlyArray<{ name: string; type: string }> {
+        return this.mLocalVariables;
     }
 
     /**
@@ -70,6 +78,7 @@ export class PotatnoFunction {
         this.mInputs = new Array<PotatnoPortDefinition>();
         this.mOutputs = new Array<PotatnoPortDefinition>();
         this.mImports = new Array<string>();
+        this.mLocalVariables = new Array<{ name: string; type: string }>();
     }
 
     /**
@@ -174,5 +183,33 @@ export class PotatnoFunction {
      */
     public removeOutput(pIndex: number): void {
         this.mOutputs.splice(pIndex, 1);
+    }
+
+    /**
+     * Add a local variable to the function.
+     *
+     * @param pName - The variable name.
+     * @param pType - The variable type.
+     */
+    public addLocalVariable(pName: string, pType: string): void {
+        this.mLocalVariables.push({ name: pName, type: pType });
+    }
+
+    /**
+     * Remove a local variable by index.
+     *
+     * @param pIndex - The index of the local variable to remove.
+     */
+    public removeLocalVariable(pIndex: number): void {
+        this.mLocalVariables.splice(pIndex, 1);
+    }
+
+    /**
+     * Replace all local variables.
+     *
+     * @param pVars - The new list of local variables.
+     */
+    public setLocalVariables(pVars: Array<{ name: string; type: string }>): void {
+        this.mLocalVariables = [...pVars];
     }
 }

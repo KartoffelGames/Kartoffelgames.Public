@@ -1,11 +1,24 @@
-import type { PotatnoCodeNode } from './potatno-code-node.ts';
 import type { NodeCategory } from './node-category.enum.ts';
 import type { PotatnoPortDefinition } from './potatno-port-definition.ts';
 
 /**
+ * Typed context passed to the node code generator callback.
+ * All maps are plain JS objects for type safety and easy destructuring.
+ */
+export interface NodeCodeContext {
+    /** Input port valueIds keyed by port name. */
+    readonly inputs: Readonly<Record<string, string>>;
+    /** Output port valueIds keyed by port name. */
+    readonly outputs: Readonly<Record<string, string>>;
+    /** Property values keyed by property name. */
+    readonly properties: Readonly<Record<string, string>>;
+    /** Body code blocks keyed by flow output name (for flow nodes). */
+    readonly body: Readonly<Record<string, string>>;
+}
+
+/**
  * Definition of a node type that can be registered with the editor project.
- * The {@link codeTemplate} uses placeholder syntax: `${input:name}`, `${output:name}`,
- * `${property:name}`, and `${body:name}` for flow nodes.
+ * Uses a {@link codeGenerator} callback that receives a typed {@link NodeCodeContext}.
  */
 export interface PotatnoNodeDefinition {
     /** Unique display name for this node type. */
@@ -20,11 +33,6 @@ export interface PotatnoNodeDefinition {
     readonly flowInputs?: Array<string>;
     /** Flow output port names. Only used by flow-category nodes. */
     readonly flowOutputs?: Array<string>;
-    /**
-     * Code template with placeholders for code generation.
-     * Comment, Input, and Output nodes do not require a template.
-     */
-    readonly codeTemplate?: string;
-    /** Optional callback that produces a preview DocumentFragment for a node instance. */
-    readonly previewCallback?: (pNode: PotatnoCodeNode) => DocumentFragment;
+    /** Code generator callback that produces the code string from a typed context. */
+    readonly codeGenerator?: (pContext: NodeCodeContext) => string;
 }

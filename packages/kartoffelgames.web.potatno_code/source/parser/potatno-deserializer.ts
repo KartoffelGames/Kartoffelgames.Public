@@ -4,12 +4,12 @@ import { NodeCategory } from '../node/node-category.enum.ts';
 import { PortKind } from '../node/port-kind.enum.ts';
 import { PotatnoConnection } from '../document/potatno-connection.ts';
 import { PotatnoNode } from '../document/potatno-node.ts';
-import { PotatnoPort } from '../document/potatno-port.ts';
 import { PotatnoFunction } from '../project/potatno-function.ts';
 import { PotatnoCodeFile } from '../document/potatno-code-file.ts';
 
 /**
- * Parses a code string with __POTATNO_START / __POTATNO_END markers back into a PotatnoCodeFile.
+ * Parses a code string with a trailing `{commentToken} #potatno {json}` metadata comment
+ * back into a PotatnoCodeFile.
  */
 export class PotatnoDeserializer {
     private readonly mConfig: PotatnoEditorConfiguration;
@@ -25,26 +25,35 @@ export class PotatnoDeserializer {
 
     /**
      * Deserialize a code string into a PotatnoCodeFile.
+     * Scans for the last line matching `{commentToken} #potatno ` and parses the JSON payload.
      *
-     * @param pCode - The code string containing embedded metadata markers.
+     * @param pCode - The code string containing a trailing JSON metadata comment.
      *
      * @returns The reconstructed code file containing all deserialized functions.
      */
     public deserialize(pCode: string): PotatnoCodeFile {
         const lFile: PotatnoCodeFile = new PotatnoCodeFile();
 
-        // Parse markers.
-        const lMarkers: Array<MarkerData> = this.parseMarkers(pCode);
+        // Parse the metadata from the trailing comment line.
+        const lMetadata: PotatnoMetadata | null = this.parseMetadataComment(pCode);
+        if (!lMetadata) {
+            return lFile;
+        }
 
-        // Reconstruct functions from top-level markers.
-        for (const lMarker of lMarkers) {
-            if (lMarker.meta['type'] === 'function') {
-                const lFunc: PotatnoFunction = this.reconstructFunction(lMarker);
-                lFile.addFunction(lFunc);
+        // Reconstruct functions from metadata.
+        for (const lFuncData of lMetadata.functions) {
+            const lFunc: PotatnoFunction = this.reconstructFunction(lFuncData);
 
-                // Reconstruct nodes from children.
-                this.reconstructNodes(lFunc, lMarker.children);
-            }
+            // Reconstruct nodes.
+            this.reconstructNodes(lFunc, lFuncData.nodes);
+
+            // Restore port connections from serialized node data.
+            this.restoreAllPortData(lFunc, lFuncData.nodes);
+
+            // Reconstruct connections.
+            this.reconstructConnections(lFunc, lFuncData.connections);
+
+            lFile.addFunction(lFunc);
         }
 
         // Set first function as active.
@@ -57,283 +66,172 @@ export class PotatnoDeserializer {
     }
 
     /**
-     * Parse __POTATNO_START / __POTATNO_END markers into a tree structure.
+     * Parse the JSON metadata from the last matching comment line in the code.
      *
      * @param pCode - The raw code string to parse.
      *
-     * @returns An array of top-level marker data structures.
+     * @returns The parsed metadata structure, or null if no metadata comment was found.
      */
-    private parseMarkers(pCode: string): Array<MarkerData> {
+    private parseMetadataComment(pCode: string): PotatnoMetadata | null {
         const lToken: string = this.mConfig.commentToken;
-        const lStartPattern: string = `${this.escapeRegex(lToken)} __POTATNO_START: `;
-        const lEndPattern: string = `${this.escapeRegex(lToken)} __POTATNO_END: `;
+        const lPrefix: string = `${lToken} #potatno `;
         const lLines: Array<string> = pCode.split('\n');
-        const lStack: Array<{ marker: MarkerData; startLine: number }> = new Array();
-        const lTopLevel: Array<MarkerData> = new Array<MarkerData>();
 
-        for (let lI: number = 0; lI < lLines.length; lI++) {
+        // Scan from the end for the last matching line.
+        for (let lI: number = lLines.length - 1; lI >= 0; lI--) {
             const lTrimmed: string = lLines[lI].trim();
-
-            if (lTrimmed.startsWith(lStartPattern)) {
-                const lAfterStart: string = lTrimmed.substring(lStartPattern.length);
-                const lSpaceIdx: number = lAfterStart.indexOf(' ');
-                const lId: string = lSpaceIdx >= 0 ? lAfterStart.substring(0, lSpaceIdx) : lAfterStart;
-                const lJsonStr: string = lSpaceIdx >= 0 ? lAfterStart.substring(lSpaceIdx + 1) : '{}';
-
-                let lMeta: Record<string, any>;
+            if (lTrimmed.startsWith(lPrefix)) {
+                const lJsonStr: string = lTrimmed.substring(lPrefix.length);
                 try {
-                    lMeta = JSON.parse(lJsonStr);
+                    return JSON.parse(lJsonStr) as PotatnoMetadata;
                 } catch {
-                    lMeta = {};
-                }
-
-                const lMarker: MarkerData = { id: lId, meta: lMeta, innerCode: '', children: new Array<MarkerData>() };
-                lStack.push({ marker: lMarker, startLine: lI });
-            } else if (lTrimmed.startsWith(lEndPattern)) {
-                const lAfterEnd: string = lTrimmed.substring(lEndPattern.length).trim();
-                const lEndId: string = lAfterEnd;
-
-                // Find corresponding start.
-                for (let lJ: number = lStack.length - 1; lJ >= 0; lJ--) {
-                    if (lStack[lJ].marker.id === lEndId) {
-                        const lEntry = lStack.splice(lJ, 1)[0];
-
-                        // Collect inner code lines (between start and end, excluding children).
-                        const lInnerLines: Array<string> = new Array<string>();
-                        for (let lK: number = lEntry.startLine + 1; lK < lI; lK++) {
-                            lInnerLines.push(lLines[lK]);
-                        }
-                        lEntry.marker.innerCode = lInnerLines.join('\n');
-
-                        // Add to parent or top-level.
-                        if (lStack.length > 0) {
-                            lStack[lStack.length - 1].marker.children.push(lEntry.marker);
-                        } else {
-                            lTopLevel.push(lEntry.marker);
-                        }
-
-                        break;
-                    }
+                    return null;
                 }
             }
         }
 
-        return lTopLevel;
+        return null;
     }
 
     /**
-     * Reconstruct a function from a marker.
+     * Reconstruct a function from serialized data.
      *
-     * @param pMarker - The marker data containing function metadata.
+     * @param pData - The serialized function data.
      *
      * @returns The reconstructed function.
      */
-    private reconstructFunction(pMarker: MarkerData): PotatnoFunction {
+    private reconstructFunction(pData: SerializedFunction): PotatnoFunction {
         const lFunc: PotatnoFunction = new PotatnoFunction(
-            pMarker.id,
-            pMarker.meta['name'] ?? 'unnamed',
-            pMarker.meta['label'] ?? pMarker.meta['name'] ?? 'Unnamed',
-            pMarker.meta['system'] ?? false
+            pData.id,
+            pData.name,
+            pData.label,
+            pData.system,
+            pData.editableByUser
         );
 
-        if (Array.isArray(pMarker.meta['inputs'])) {
-            lFunc.setInputs(pMarker.meta['inputs']);
+        if (Array.isArray(pData.inputs)) {
+            lFunc.setInputs(pData.inputs);
         }
-        if (Array.isArray(pMarker.meta['outputs'])) {
-            lFunc.setOutputs(pMarker.meta['outputs']);
+        if (Array.isArray(pData.outputs)) {
+            lFunc.setOutputs(pData.outputs);
         }
-        if (Array.isArray(pMarker.meta['imports'])) {
-            lFunc.setImports(pMarker.meta['imports']);
+        if (Array.isArray(pData.imports)) {
+            lFunc.setImports(pData.imports);
         }
 
         return lFunc;
     }
 
     /**
-     * Reconstruct nodes from child markers and add them to a function's graph.
+     * Reconstruct nodes from serialized data and add them to a function's graph.
      *
      * @param pFunction - The function whose graph receives the reconstructed nodes.
-     * @param pChildren - The child marker data structures representing nodes.
+     * @param pNodes - The serialized node data.
      */
-    private reconstructNodes(pFunction: PotatnoFunction, pChildren: Array<MarkerData>): void {
-        for (const lChild of pChildren) {
-            const lMeta = lChild.meta;
-            const lCategory: NodeCategory = lMeta['category'] as NodeCategory;
+    private reconstructNodes(pFunction: PotatnoFunction, pNodes: Array<SerializedNode>): void {
+        for (const lNodeData of pNodes) {
+            const lCategory: string = lNodeData.category;
 
-            // Get the node definition.
-            const lDefinition: PotatnoNodeDefinition | undefined = this.mConfig.nodeDefinitions.get(lMeta['type']);
+            // Get the node definition from the configuration.
+            const lDefinition: PotatnoNodeDefinition | undefined = this.mConfig.nodeDefinitions.get(lNodeData.type);
 
             if (lDefinition) {
                 // Reconstruct via definition.
                 const lNode: PotatnoNode = new PotatnoNode(
-                    lChild.id,
+                    lNodeData.id,
                     lDefinition,
-                    lMeta['position'] ?? { x: 0, y: 0 },
-                    lMeta['system'] ?? false
+                    lNodeData.position ?? { x: 0, y: 0 },
+                    lNodeData.system ?? false
                 );
 
-                // Restore positions and sizes.
-                if (lMeta['size']) {
-                    lNode.resizeTo(lMeta['size'].w, lMeta['size'].h);
+                // Restore size.
+                if (lNodeData.size) {
+                    lNode.resizeTo(lNodeData.size.w, lNodeData.size.h);
                 }
 
                 // Restore properties.
-                if (lMeta['properties']) {
-                    for (const [lKey, lValue] of Object.entries(lMeta['properties'])) {
-                        lNode.properties.set(lKey, lValue as string);
+                if (lNodeData.properties) {
+                    for (const [lKey, lValue] of Object.entries(lNodeData.properties)) {
+                        lNode.properties.set(lKey, lValue);
                     }
                 }
 
-                // Restore port connections and value IDs from serialized data.
-                this.restorePortData(lNode, lMeta);
-
                 pFunction.graph.addExistingNode(lNode);
             } else if (lCategory === NodeCategory.Input || lCategory === NodeCategory.Output) {
-                // Input/output nodes — create a minimal definition.
-                const lInputs = (lMeta['inputs'] ?? []).map((p: any) => ({ name: p.name, type: p.type }));
-                const lOutputs = (lMeta['outputs'] ?? []).map((p: any) => ({ name: p.name, type: p.type }));
+                // Input/output nodes -- create a minimal definition.
+                const lInputs = (lNodeData.inputs ?? []).map((p) => ({ name: p.name, type: p.type }));
+                const lOutputs = (lNodeData.outputs ?? []).map((p) => ({ name: p.name, type: p.type }));
                 const lMinDef: PotatnoNodeDefinition = {
-                    name: lMeta['type'],
-                    category: lCategory,
+                    name: lNodeData.type,
+                    category: lCategory as NodeCategory,
                     inputs: lInputs,
                     outputs: lOutputs
                 };
 
                 const lNode: PotatnoNode = new PotatnoNode(
-                    lChild.id,
+                    lNodeData.id,
                     lMinDef,
-                    lMeta['position'] ?? { x: 0, y: 0 },
-                    lMeta['system'] ?? true
+                    lNodeData.position ?? { x: 0, y: 0 },
+                    lNodeData.system ?? true
                 );
 
-                this.restorePortData(lNode, lMeta);
+                // Restore size.
+                if (lNodeData.size) {
+                    lNode.resizeTo(lNodeData.size.w, lNodeData.size.h);
+                }
+
+                // Restore properties.
+                if (lNodeData.properties) {
+                    for (const [lKey, lValue] of Object.entries(lNodeData.properties)) {
+                        lNode.properties.set(lKey, lValue);
+                    }
+                }
+
                 pFunction.graph.addExistingNode(lNode);
             }
-
-            // Recurse for nested children (flow node bodies).
-            if (lChild.children.length > 0) {
-                this.reconstructNodes(pFunction, lChild.children);
-            }
-        }
-
-        // Reconstruct connections from port data.
-        this.reconstructConnections(pFunction);
-    }
-
-    /**
-     * Restore port connection data from serialized metadata.
-     *
-     * @param pNode - The node whose ports should be restored.
-     * @param pMeta - The metadata record containing serialized port data.
-     */
-    private restorePortData(pNode: PotatnoNode, pMeta: Record<string, any>): void {
-        // Restore input port connections.
-        if (Array.isArray(pMeta['inputs'])) {
-            for (const lInputData of pMeta['inputs']) {
-                const lPort: PotatnoPort | undefined = pNode.inputs.get(lInputData.name);
-                if (lPort && lInputData.connectedTo) {
-                    lPort.connectedTo = lInputData.connectedTo;
-                }
-            }
-        }
-
-        // Restore flow port connections.
-        if (Array.isArray(pMeta['flowInputs'])) {
-            for (const lFlowData of pMeta['flowInputs']) {
-                const lPort = pNode.flowInputs.get(lFlowData.name);
-                if (lPort && lFlowData.connectedTo) {
-                    lPort.connectedTo = lFlowData.connectedTo;
-                }
-            }
-        }
-
-        if (Array.isArray(pMeta['flowOutputs'])) {
-            for (const lFlowData of pMeta['flowOutputs']) {
-                const lPort = pNode.flowOutputs.get(lFlowData.name);
-                if (lPort && lFlowData.connectedTo) {
-                    lPort.connectedTo = lFlowData.connectedTo;
-                }
-            }
         }
     }
 
     /**
-     * Reconstruct connections by scanning port connectedTo fields.
+     * Restore port connection data on all nodes from the serialized node data.
+     * Must be called after all nodes are created so that ports exist.
      *
-     * @param pFunction - The function whose graph connections should be rebuilt.
+     * @param pFunction - The function whose nodes need port data restoration.
+     * @param pNodes - The serialized node data containing port connection info.
      */
-    private reconstructConnections(pFunction: PotatnoFunction): void {
-        const lGraph = pFunction.graph;
-
-        // Build a lookup: valueId -> { nodeId, portId }.
-        const lValueIdLookup: Map<string, { nodeId: string; portId: string }> = new Map();
-        for (const lNode of lGraph.nodes.values()) {
-            for (const lPort of lNode.outputs.values()) {
-                lValueIdLookup.set(lPort.valueId, { nodeId: lNode.id, portId: lPort.id });
+    private restoreAllPortData(pFunction: PotatnoFunction, pNodes: Array<SerializedNode>): void {
+        for (const lNodeData of pNodes) {
+            const lNode: PotatnoNode | undefined = pFunction.graph.getNode(lNodeData.id);
+            if (!lNode) {
+                continue;
             }
-        }
 
-        // Build data connections from input port connectedTo references.
-        for (const lNode of lGraph.nodes.values()) {
-            for (const lPort of lNode.inputs.values()) {
-                if (lPort.connectedTo) {
-                    const lSource = lValueIdLookup.get(lPort.connectedTo);
-                    if (lSource) {
-                        const lConnection: PotatnoConnection = new PotatnoConnection(
-                            crypto.randomUUID(),
-                            lSource.nodeId,
-                            lSource.portId,
-                            lNode.id,
-                            lPort.id,
-                            PortKind.Data
-                        );
-
-                        // Validate type match.
-                        const lSourceNode = lGraph.getNode(lSource.nodeId);
-                        if (lSourceNode) {
-                            let lSourcePort: PotatnoPort | undefined;
-                            for (const lP of lSourceNode.outputs.values()) {
-                                if (lP.id === lSource.portId) {
-                                    lSourcePort = lP;
-                                    break;
-                                }
-                            }
-                            if (lSourcePort) {
-                                lConnection.valid = lSourcePort.type === lPort.type;
-                            }
-                        }
-
-                        lGraph.addExistingConnection(lConnection);
+            // Restore input port connections.
+            if (Array.isArray(lNodeData.inputs)) {
+                for (const lInputData of lNodeData.inputs) {
+                    const lPort = lNode.inputs.get(lInputData.name);
+                    if (lPort && lInputData.connectedTo) {
+                        lPort.connectedTo = lInputData.connectedTo;
                     }
                 }
             }
-        }
 
-        // Build flow connections from flow port connectedTo references.
-        const lFlowPortLookup: Map<string, { nodeId: string; portId: string }> = new Map();
-        for (const lNode of lGraph.nodes.values()) {
-            for (const lPort of lNode.flowInputs.values()) {
-                lFlowPortLookup.set(lPort.id, { nodeId: lNode.id, portId: lPort.id });
+            // Restore flow input port connections.
+            if (Array.isArray(lNodeData.flowInputs)) {
+                for (const lFlowData of lNodeData.flowInputs) {
+                    const lPort = lNode.flowInputs.get(lFlowData.name);
+                    if (lPort && lFlowData.connectedTo) {
+                        lPort.connectedTo = lFlowData.connectedTo;
+                    }
+                }
             }
-            for (const lPort of lNode.flowOutputs.values()) {
-                lFlowPortLookup.set(lPort.id, { nodeId: lNode.id, portId: lPort.id });
-            }
-        }
 
-        for (const lNode of lGraph.nodes.values()) {
-            for (const lPort of lNode.flowOutputs.values()) {
-                if (lPort.connectedTo) {
-                    const lTarget = lFlowPortLookup.get(lPort.connectedTo);
-                    if (lTarget) {
-                        const lConnection: PotatnoConnection = new PotatnoConnection(
-                            crypto.randomUUID(),
-                            lNode.id,
-                            lPort.id,
-                            lTarget.nodeId,
-                            lTarget.portId,
-                            PortKind.Flow
-                        );
-                        lGraph.addExistingConnection(lConnection);
+            // Restore flow output port connections.
+            if (Array.isArray(lNodeData.flowOutputs)) {
+                for (const lFlowData of lNodeData.flowOutputs) {
+                    const lPort = lNode.flowOutputs.get(lFlowData.name);
+                    if (lPort && lFlowData.connectedTo) {
+                        lPort.connectedTo = lFlowData.connectedTo;
                     }
                 }
             }
@@ -341,23 +239,100 @@ export class PotatnoDeserializer {
     }
 
     /**
-     * Escape special regex characters in a string.
+     * Reconstruct connections from the serialized connection data and add them to the graph.
      *
-     * @param pStr - The string to escape.
-     *
-     * @returns The escaped string safe for use in a regular expression.
+     * @param pFunction - The function whose graph receives the reconstructed connections.
+     * @param pConnections - The serialized connection data.
      */
-    private escapeRegex(pStr: string): string {
-        return pStr.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    private reconstructConnections(pFunction: PotatnoFunction, pConnections: Array<SerializedConnection>): void {
+        for (const lConnData of pConnections) {
+            const lKind: PortKind = lConnData.kind === PortKind.Flow ? PortKind.Flow : PortKind.Data;
+
+            const lConnection: PotatnoConnection = new PotatnoConnection(
+                lConnData.id,
+                lConnData.sourceNodeId,
+                lConnData.sourcePortId,
+                lConnData.targetNodeId,
+                lConnData.targetPortId,
+                lKind
+            );
+
+            lConnection.valid = lConnData.valid ?? true;
+
+            pFunction.graph.addExistingConnection(lConnection);
+        }
     }
 }
 
 /**
- * Marker data extracted from a code string.
+ * Top-level metadata structure parsed from the JSON comment.
  */
-interface MarkerData {
+interface PotatnoMetadata {
+    functions: Array<SerializedFunction>;
+}
+
+/**
+ * Serialized representation of a function.
+ */
+interface SerializedFunction {
     id: string;
-    meta: Record<string, any>;
-    innerCode: string;
-    children: Array<MarkerData>;
+    name: string;
+    label: string;
+    system: boolean;
+    editableByUser: boolean;
+    inputs: Array<{ name: string; type: string }>;
+    outputs: Array<{ name: string; type: string }>;
+    imports: Array<string>;
+    nodes: Array<SerializedNode>;
+    connections: Array<SerializedConnection>;
+}
+
+/**
+ * Serialized representation of a node.
+ */
+interface SerializedNode {
+    id: string;
+    type: string;
+    category: string;
+    position: { x: number; y: number };
+    size: { w: number; h: number };
+    system: boolean;
+    properties: Record<string, string>;
+    inputs: Array<SerializedPort>;
+    outputs: Array<SerializedPort>;
+    flowInputs: Array<SerializedFlowPort>;
+    flowOutputs: Array<SerializedFlowPort>;
+}
+
+/**
+ * Serialized representation of a data port.
+ */
+interface SerializedPort {
+    name: string;
+    type: string;
+    id: string;
+    valueId: string;
+    connectedTo?: string | null;
+}
+
+/**
+ * Serialized representation of a flow port.
+ */
+interface SerializedFlowPort {
+    name: string;
+    id: string;
+    connectedTo?: string | null;
+}
+
+/**
+ * Serialized representation of a connection.
+ */
+interface SerializedConnection {
+    id: string;
+    kind: string;
+    sourceNodeId: string;
+    sourcePortId: string;
+    targetNodeId: string;
+    targetPortId: string;
+    valid: boolean;
 }

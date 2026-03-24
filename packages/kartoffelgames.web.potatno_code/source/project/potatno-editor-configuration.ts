@@ -1,6 +1,7 @@
 import type { PotatnoCodeFunction } from './potatno-code-function.ts';
-import type { PotatnoGlobalValueDefinition } from './potatno-global-value-definition.ts';
+import type { PotatnoImportDefinition } from './potatno-import-definition.ts';
 import type { PotatnoMainFunctionDefinition } from './potatno-main-function-definition.ts';
+import type { PotatnoGlobalPortDefinition } from './potatno-global-port-definition.ts';
 import type { PotatnoNodeDefinition } from '../node/potatno-node-definition.ts';
 
 /**
@@ -10,7 +11,9 @@ export class PotatnoEditorConfiguration {
     private mCommentToken: string;
     private mCreatePreview: ((container: HTMLElement) => void) | null;
     private mFunctionCodeGenerator: ((func: PotatnoCodeFunction) => string) | null;
-    private readonly mGlobalValues: Array<PotatnoGlobalValueDefinition>;
+    private readonly mGlobalInputs: Array<PotatnoGlobalPortDefinition>;
+    private readonly mGlobalOutputs: Array<PotatnoGlobalPortDefinition>;
+    private readonly mImports: Array<PotatnoImportDefinition>;
     private readonly mMainFunctions: Array<PotatnoMainFunctionDefinition>;
     private readonly mNodeDefinitions: Map<string, PotatnoNodeDefinition>;
     private mUpdatePreview: ((code: string) => void) | null;
@@ -30,13 +33,6 @@ export class PotatnoEditorConfiguration {
     }
 
     /**
-     * Set the callback that creates the initial preview DOM structure.
-     */
-    public set createPreview(pValue: ((container: HTMLElement) => void) | null) {
-        this.mCreatePreview = pValue;
-    }
-
-    /**
      * Get the function code generator callback.
      */
     public get functionCodeGenerator(): ((func: PotatnoCodeFunction) => string) | null {
@@ -44,10 +40,17 @@ export class PotatnoEditorConfiguration {
     }
 
     /**
-     * Get the list of registered global value definitions.
+     * Get the list of registered global input definitions.
      */
-    public get globalValues(): ReadonlyArray<PotatnoGlobalValueDefinition> {
-        return this.mGlobalValues;
+    public get globalInputs(): ReadonlyArray<PotatnoGlobalPortDefinition> {
+        return this.mGlobalInputs;
+    }
+
+    /**
+     * Get the list of registered global output definitions.
+     */
+    public get globalOutputs(): ReadonlyArray<PotatnoGlobalPortDefinition> {
+        return this.mGlobalOutputs;
     }
 
     /**
@@ -55,6 +58,13 @@ export class PotatnoEditorConfiguration {
      */
     public get hasPreview(): boolean {
         return this.mCreatePreview !== null;
+    }
+
+    /**
+     * Get the list of registered import definitions.
+     */
+    public get imports(): ReadonlyArray<PotatnoImportDefinition> {
+        return this.mImports;
     }
 
     /**
@@ -79,38 +89,43 @@ export class PotatnoEditorConfiguration {
     }
 
     /**
-     * Set the callback that updates the preview with new generated code.
-     */
-    public set updatePreview(pValue: ((code: string) => void) | null) {
-        this.mUpdatePreview = pValue;
-    }
-
-    /**
      * Create a new editor configuration with default values.
      */
     public constructor() {
         this.mCommentToken = '//';
         this.mNodeDefinitions = new Map<string, PotatnoNodeDefinition>();
         this.mMainFunctions = new Array<PotatnoMainFunctionDefinition>();
-        this.mGlobalValues = new Array<PotatnoGlobalValueDefinition>();
+        this.mImports = new Array<PotatnoImportDefinition>();
+        this.mGlobalInputs = new Array<PotatnoGlobalPortDefinition>();
+        this.mGlobalOutputs = new Array<PotatnoGlobalPortDefinition>();
         this.mCreatePreview = null;
         this.mUpdatePreview = null;
         this.mFunctionCodeGenerator = null;
     }
 
     /**
-     * Register a global value definition.
-     *
-     * @param pDefinition - The global value definition to add.
+     * Register a global input port definition.
      */
-    public addGlobalValue(pDefinition: PotatnoGlobalValueDefinition): void {
-        this.mGlobalValues.push(pDefinition);
+    public addGlobalInput(pDefinition: PotatnoGlobalPortDefinition): void {
+        this.mGlobalInputs.push(pDefinition);
+    }
+
+    /**
+     * Register a global output port definition.
+     */
+    public addGlobalOutput(pDefinition: PotatnoGlobalPortDefinition): void {
+        this.mGlobalOutputs.push(pDefinition);
+    }
+
+    /**
+     * Register an import definition.
+     */
+    public addImport(pDefinition: PotatnoImportDefinition): void {
+        this.mImports.push(pDefinition);
     }
 
     /**
      * Register a main function definition.
-     *
-     * @param pDefinition - The main function definition to add.
      */
     public addMainFunction(pDefinition: PotatnoMainFunctionDefinition): void {
         this.mMainFunctions.push(pDefinition);
@@ -118,8 +133,6 @@ export class PotatnoEditorConfiguration {
 
     /**
      * Register a node type definition.
-     *
-     * @param pDefinition - The node definition to add.
      */
     public addNodeDefinition(pDefinition: PotatnoNodeDefinition): void {
         this.mNodeDefinitions.set(pDefinition.name, pDefinition);
@@ -127,40 +140,23 @@ export class PotatnoEditorConfiguration {
 
     /**
      * Set the comment token used for metadata comments in generated code.
-     *
-     * @param pToken - The comment token string (e.g. '//').
      */
     public setCommentToken(pToken: string): void {
         this.mCommentToken = pToken;
     }
 
     /**
-     * Set the callback that creates the initial preview DOM structure.
-     * Called once when the preview is first initialized.
-     *
-     * @param pCallback - The preview creation callback receiving the container element.
-     */
-    public setCreatePreview(pCallback: (container: HTMLElement) => void): void {
-        this.mCreatePreview = pCallback;
-    }
-
-    /**
-     * Set the function code generator callback that wraps function body code
-     * into a complete function declaration.
-     *
-     * @param pGenerator - The function code generator callback.
+     * Set the function code generator callback.
      */
     public setFunctionCodeGenerator(pGenerator: (func: PotatnoCodeFunction) => string): void {
         this.mFunctionCodeGenerator = pGenerator;
     }
 
     /**
-     * Set the callback that updates the preview with new generated code.
-     * Called on every code change after the preview has been created.
-     *
-     * @param pCallback - The preview update callback receiving the generated code string.
+     * Set both preview callbacks: one for initial DOM creation and one for code updates.
      */
-    public setUpdatePreview(pCallback: (code: string) => void): void {
-        this.mUpdatePreview = pCallback;
+    public setPreview(pCreate: (container: HTMLElement) => void, pUpdate: (code: string) => void): void {
+        this.mCreatePreview = pCreate;
+        this.mUpdatePreview = pUpdate;
     }
 }

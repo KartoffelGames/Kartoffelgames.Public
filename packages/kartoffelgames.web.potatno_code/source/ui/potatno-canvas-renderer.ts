@@ -9,6 +9,11 @@ const SVG_NS: string = 'http://www.w3.org/2000/svg';
 const TEMP_CONNECTION_ATTR: string = 'data-temp-connection';
 
 /**
+ * Width of the invisible hit area behind each connection path for click detection.
+ */
+const HIT_AREA_STROKE_WIDTH: number = 12;
+
+/**
  * Pure logic class that renders SVG bezier connection paths onto an SVG element.
  */
 export class PotatnoCanvasRenderer {
@@ -65,6 +70,8 @@ export class PotatnoCanvasRenderer {
     /**
      * Render all connections onto the SVG element. Existing connection paths
      * (excluding temporary connections) are cleared and re-created.
+     * Each connection gets an invisible wider hit-area path for click detection
+     * placed behind the visible path.
      *
      * @param pSvg - The SVG element to render into.
      * @param pConnections - Array of connection render data objects.
@@ -76,19 +83,35 @@ export class PotatnoCanvasRenderer {
             lPath.remove();
         }
 
-        // Create a path for each connection.
+        // Create a hit-area path and a visible path for each connection.
         for (const lConnection of pConnections) {
-            const lPath: SVGPathElement = document.createElementNS(SVG_NS, 'path') as SVGPathElement;
-            lPath.setAttribute('d', this.generateBezierPath(
+            const lD: string = this.generateBezierPath(
                 lConnection.sourceX,
                 lConnection.sourceY,
                 lConnection.targetX,
                 lConnection.targetY
-            ));
+            );
+
+            // Invisible wide hit-area path (inserted first, so it's behind the visible path).
+            const lHitPath: SVGPathElement = document.createElementNS(SVG_NS, 'path') as SVGPathElement;
+            lHitPath.setAttribute('d', lD);
+            lHitPath.setAttribute('fill', 'none');
+            lHitPath.setAttribute('data-connection-id', lConnection.id);
+            lHitPath.setAttribute('data-hit-area', 'true');
+            lHitPath.style.stroke = 'transparent';
+            lHitPath.style.strokeWidth = `${HIT_AREA_STROKE_WIDTH}`;
+            lHitPath.style.pointerEvents = 'stroke';
+            lHitPath.style.cursor = 'pointer';
+            pSvg.appendChild(lHitPath);
+
+            // Visible path.
+            const lPath: SVGPathElement = document.createElementNS(SVG_NS, 'path') as SVGPathElement;
+            lPath.setAttribute('d', lD);
             lPath.setAttribute('fill', 'none');
             lPath.setAttribute('data-connection-id', lConnection.id);
             lPath.style.stroke = lConnection.valid ? '#a6adc8' : '#f38ba8';
             lPath.style.strokeWidth = '2';
+            lPath.style.pointerEvents = 'none';
 
             if (!lConnection.valid) {
                 lPath.setAttribute('stroke-dasharray', '6 3');
@@ -119,6 +142,7 @@ export class PotatnoCanvasRenderer {
         lPath.style.strokeWidth = '2';
         lPath.style.opacity = '0.6';
         lPath.style.strokeDasharray = '8 4';
+        lPath.style.pointerEvents = 'none';
 
         pSvg.appendChild(lPath);
     }

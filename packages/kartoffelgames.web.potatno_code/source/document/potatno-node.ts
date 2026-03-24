@@ -68,22 +68,23 @@ export class PotatnoNode {
             this.outputs.set(lPortDef.name, new PotatnoPort(lPortId, lPortDef.name, lPortDef.type, PortDirection.Output, lValueId));
         }
 
+        // Determine flow ports. Function nodes get automatic exec pins if none are defined.
+        // Event nodes get an automatic exec output.
+        const lFlowInputNames: Array<string> = pDefinition.flowInputs ?? PotatnoNode.getAutoFlowInputs(pDefinition.category);
+        const lFlowOutputNames: Array<string> = pDefinition.flowOutputs ?? PotatnoNode.getAutoFlowOutputs(pDefinition.category);
+
         // Create flow input ports.
         this.flowInputs = new Map<string, PotatnoFlowPort>();
-        if (pDefinition.flowInputs) {
-            for (const lFlowName of pDefinition.flowInputs) {
-                const lPortId: string = PotatnoNode.generatePortId();
-                this.flowInputs.set(lFlowName, new PotatnoFlowPort(lPortId, lFlowName, PortDirection.Input));
-            }
+        for (const lFlowName of lFlowInputNames) {
+            const lPortId: string = PotatnoNode.generatePortId();
+            this.flowInputs.set(lFlowName, new PotatnoFlowPort(lPortId, lFlowName, PortDirection.Input));
         }
 
         // Create flow output ports.
         this.flowOutputs = new Map<string, PotatnoFlowPort>();
-        if (pDefinition.flowOutputs) {
-            for (const lFlowName of pDefinition.flowOutputs) {
-                const lPortId: string = PotatnoNode.generatePortId();
-                this.flowOutputs.set(lFlowName, new PotatnoFlowPort(lPortId, lFlowName, PortDirection.Output));
-            }
+        for (const lFlowName of lFlowOutputNames) {
+            const lPortId: string = PotatnoNode.generatePortId();
+            this.flowOutputs.set(lFlowName, new PotatnoFlowPort(lPortId, lFlowName, PortDirection.Output));
         }
     }
 
@@ -99,6 +100,28 @@ export class PotatnoNode {
      */
     public resizeTo(pW: number, pH: number): void {
         this.mSize = { w: Math.max(4, pW), h: Math.max(2, pH) };
+    }
+
+    /**
+     * Get automatic flow input port names based on node category.
+     * Function nodes get an 'exec' input. Event nodes get none.
+     */
+    private static getAutoFlowInputs(pCategory: NodeCategory | string): Array<string> {
+        if (pCategory === 'function') {
+            return ['exec'];
+        }
+        return [];
+    }
+
+    /**
+     * Get automatic flow output port names based on node category.
+     * Function and Event nodes get an 'exec' output.
+     */
+    private static getAutoFlowOutputs(pCategory: NodeCategory | string): Array<string> {
+        if (pCategory === 'function' || pCategory === 'event') {
+            return ['exec'];
+        }
+        return [];
     }
 
     /**

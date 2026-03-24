@@ -221,6 +221,13 @@ export class PotatnoNodeComponent extends Processor {
     }
 
     /**
+     * Whether this is a reroute passthrough node.
+     */
+    public get isReroute(): boolean {
+        return this.nodeData?.category === NodeCategory.Reroute;
+    }
+
+    /**
      * Inline CSS style for comment node sizing (height is set from the node's grid size).
      */
     public get commentSizeStyle(): string {

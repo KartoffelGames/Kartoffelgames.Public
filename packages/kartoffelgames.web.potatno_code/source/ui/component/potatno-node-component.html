@@ -1,4 +1,43 @@
 $if(this.nodeData) {
+    $if(this.isReroute) {
+        <div class="node-reroute {{this.selectedClass}}"
+             (pointerdown)="this.onNodePointerDown($event)">
+            <div class="reroute-inputs">
+                $for(inPort of this.inputPorts) {
+                    <potatno-port
+                        [name]="this.inPort.name"
+                        [type]="this.inPort.type"
+                        [portId]="this.inPort.id"
+                        [nodeId]="this.nodeId"
+                        [direction]="'input'"
+                        [portKind]="'data'"
+                        [connected]="this.inPort.connectedTo !== null"
+                        (port-drag-start)="this.onPortDragStart($event)"
+                        (port-hover)="this.onPortHover($event)"
+                        (port-leave)="this.onPortLeave($event)">
+                    </potatno-port>
+                }
+            </div>
+            <div class="reroute-dot"></div>
+            <div class="reroute-outputs">
+                $for(outPort of this.outputPorts) {
+                    <potatno-port
+                        [name]="this.outPort.name"
+                        [type]="this.outPort.type"
+                        [portId]="this.outPort.id"
+                        [nodeId]="this.nodeId"
+                        [direction]="'output'"
+                        [portKind]="'data'"
+                        [connected]="this.outPort.connectedTo !== null"
+                        (port-drag-start)="this.onPortDragStart($event)"
+                        (port-hover)="this.onPortHover($event)"
+                        (port-leave)="this.onPortLeave($event)">
+                    </potatno-port>
+                }
+            </div>
+        </div>
+    }
+    $if(!this.isReroute) {
     $if(this.isComment) {
         <div class="node-comment {{this.selectedClass}}"
              [style]="this.commentSizeStyle"
@@ -123,5 +162,6 @@ $if(this.nodeData) {
                 }
             </div>
         </div>
+    }
     }
 }

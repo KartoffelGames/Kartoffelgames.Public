@@ -100,6 +100,10 @@
     overflow: visible;
 }
 
+.svg-layer path[data-hit-area] {
+    pointer-events: stroke;
+}
+
 .node-layer {
     position: absolute;
     top: 0;

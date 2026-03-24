@@ -3,6 +3,7 @@ import { PotatnoProject } from '../../source/project/potatno-project.ts';
 import { PotatnoCodeFile } from '../../source/document/potatno-code-file.ts';
 import { NodeCategory } from '../../source/node/node-category.enum.ts';
 import type { PotatnoCodeFunction } from '../../source/project/potatno-code-function.ts';
+import type { NodeCodeContext } from '../../source/node/potatno-node-definition.ts';
 
 // --- Project configuration ---
 const lProject: PotatnoProject = new PotatnoProject();
@@ -10,9 +11,51 @@ const lProject: PotatnoProject = new PotatnoProject();
 // --- Comment token ---
 lProject.setCommentToken('//');
 
-// --- Global values ---
-lProject.defineGlobalValue({ name: 'Math_PI', type: 'number', label: 'Math.PI' });
-lProject.defineGlobalValue({ name: 'Math_E', type: 'number', label: 'Math.E' });
+// --- Imports (replaces defineGlobalValue) ---
+lProject.defineImport({
+    name: 'Math',
+    nodes: [
+        {
+            name: 'Math.PI',
+            category: NodeCategory.Value,
+            inputs: [],
+            outputs: [{ name: 'value', type: 'number' }],
+            codeGenerator: ({ outputs }: NodeCodeContext) => `const ${outputs.value} = Math.PI;`
+        },
+        {
+            name: 'Math.E',
+            category: NodeCategory.Value,
+            inputs: [],
+            outputs: [{ name: 'value', type: 'number' }],
+            codeGenerator: ({ outputs }: NodeCodeContext) => `const ${outputs.value} = Math.E;`
+        },
+        {
+            name: 'Math.abs',
+            category: NodeCategory.Function,
+            inputs: [{ name: 'value', type: 'number' }],
+            outputs: [{ name: 'result', type: 'number' }],
+            codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = Math.abs(${inputs.value});`
+        },
+        {
+            name: 'Math.floor',
+            category: NodeCategory.Function,
+            inputs: [{ name: 'value', type: 'number' }],
+            outputs: [{ name: 'result', type: 'number' }],
+            codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = Math.floor(${inputs.value});`
+        },
+        {
+            name: 'Math.random',
+            category: NodeCategory.Function,
+            inputs: [],
+            outputs: [{ name: 'result', type: 'number' }],
+            codeGenerator: ({ outputs }: NodeCodeContext) => `const ${outputs.result} = Math.random();`
+        }
+    ]
+});
+
+// --- Global inputs/outputs ---
+lProject.defineGlobalInput({ name: 'time', type: 'number' });
+lProject.defineGlobalOutput({ name: 'result', type: 'string' });
 
 // --- Value Nodes ---
 lProject.defineNode({
@@ -20,7 +63,7 @@ lProject.defineNode({
     category: NodeCategory.Value,
     inputs: [],
     outputs: [{ name: 'value', type: 'number' }],
-    codeTemplate: 'const ${output:value} = ${property:value};'
+    codeGenerator: ({ outputs, properties }: NodeCodeContext) => `const ${outputs.value} = ${properties.value};`
 });
 
 lProject.defineNode({
@@ -28,7 +71,7 @@ lProject.defineNode({
     category: NodeCategory.Value,
     inputs: [],
     outputs: [{ name: 'value', type: 'string' }],
-    codeTemplate: 'const ${output:value} = "${property:value}";'
+    codeGenerator: ({ outputs, properties }: NodeCodeContext) => `const ${outputs.value} = "${properties.value}";`
 });
 
 lProject.defineNode({
@@ -36,7 +79,7 @@ lProject.defineNode({
     category: NodeCategory.Value,
     inputs: [],
     outputs: [{ name: 'value', type: 'boolean' }],
-    codeTemplate: 'const ${output:value} = ${property:value};'
+    codeGenerator: ({ outputs, properties }: NodeCodeContext) => `const ${outputs.value} = ${properties.value};`
 });
 
 // --- Operator Nodes: Arithmetic ---
@@ -45,7 +88,7 @@ lProject.defineNode({
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
     outputs: [{ name: 'result', type: 'number' }],
-    codeTemplate: 'const ${output:result} = ${input:a} + ${input:b};'
+    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} + ${inputs.b};`
 });
 
 lProject.defineNode({
@@ -53,7 +96,7 @@ lProject.defineNode({
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
     outputs: [{ name: 'result', type: 'number' }],
-    codeTemplate: 'const ${output:result} = ${input:a} - ${input:b};'
+    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} - ${inputs.b};`
 });
 
 lProject.defineNode({
@@ -61,7 +104,7 @@ lProject.defineNode({
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
     outputs: [{ name: 'result', type: 'number' }],
-    codeTemplate: 'const ${output:result} = ${input:a} * ${input:b};'
+    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} * ${inputs.b};`
 });
 
 lProject.defineNode({
@@ -69,7 +112,7 @@ lProject.defineNode({
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
     outputs: [{ name: 'result', type: 'number' }],
-    codeTemplate: 'const ${output:result} = ${input:a} / ${input:b};'
+    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} / ${inputs.b};`
 });
 
 lProject.defineNode({
@@ -77,7 +120,7 @@ lProject.defineNode({
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
     outputs: [{ name: 'result', type: 'number' }],
-    codeTemplate: 'const ${output:result} = ${input:a} % ${input:b};'
+    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} % ${inputs.b};`
 });
 
 // --- Operator Nodes: Comparison ---
@@ -86,7 +129,7 @@ lProject.defineNode({
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
     outputs: [{ name: 'result', type: 'boolean' }],
-    codeTemplate: 'const ${output:result} = ${input:a} === ${input:b};'
+    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} === ${inputs.b};`
 });
 
 lProject.defineNode({
@@ -94,7 +137,7 @@ lProject.defineNode({
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
     outputs: [{ name: 'result', type: 'boolean' }],
-    codeTemplate: 'const ${output:result} = ${input:a} !== ${input:b};'
+    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} !== ${inputs.b};`
 });
 
 lProject.defineNode({
@@ -102,7 +145,7 @@ lProject.defineNode({
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
     outputs: [{ name: 'result', type: 'boolean' }],
-    codeTemplate: 'const ${output:result} = ${input:a} < ${input:b};'
+    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} < ${inputs.b};`
 });
 
 lProject.defineNode({
@@ -110,7 +153,7 @@ lProject.defineNode({
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'number' }, { name: 'b', type: 'number' }],
     outputs: [{ name: 'result', type: 'boolean' }],
-    codeTemplate: 'const ${output:result} = ${input:a} > ${input:b};'
+    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} > ${inputs.b};`
 });
 
 // --- Operator Nodes: Logic ---
@@ -119,7 +162,7 @@ lProject.defineNode({
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'boolean' }, { name: 'b', type: 'boolean' }],
     outputs: [{ name: 'result', type: 'boolean' }],
-    codeTemplate: 'const ${output:result} = ${input:a} && ${input:b};'
+    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} && ${inputs.b};`
 });
 
 lProject.defineNode({
@@ -127,7 +170,7 @@ lProject.defineNode({
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'boolean' }, { name: 'b', type: 'boolean' }],
     outputs: [{ name: 'result', type: 'boolean' }],
-    codeTemplate: 'const ${output:result} = ${input:a} || ${input:b};'
+    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} || ${inputs.b};`
 });
 
 lProject.defineNode({
@@ -135,7 +178,7 @@ lProject.defineNode({
     category: NodeCategory.Operator,
     inputs: [{ name: 'a', type: 'boolean' }],
     outputs: [{ name: 'result', type: 'boolean' }],
-    codeTemplate: 'const ${output:result} = !${input:a};'
+    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = !${inputs.a};`
 });
 
 // --- Type Conversion Nodes ---
@@ -144,7 +187,7 @@ lProject.defineNode({
     category: NodeCategory.TypeConversion,
     inputs: [{ name: 'input', type: 'number' }],
     outputs: [{ name: 'output', type: 'string' }],
-    codeTemplate: 'const ${output:output} = String(${input:input});'
+    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.output} = String(${inputs.input});`
 });
 
 lProject.defineNode({
@@ -152,7 +195,7 @@ lProject.defineNode({
     category: NodeCategory.TypeConversion,
     inputs: [{ name: 'input', type: 'string' }],
     outputs: [{ name: 'output', type: 'number' }],
-    codeTemplate: 'const ${output:output} = Number(${input:input});'
+    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.output} = Number(${inputs.input});`
 });
 
 lProject.defineNode({
@@ -160,7 +203,7 @@ lProject.defineNode({
     category: NodeCategory.TypeConversion,
     inputs: [{ name: 'input', type: 'boolean' }],
     outputs: [{ name: 'output', type: 'string' }],
-    codeTemplate: 'const ${output:output} = String(${input:input});'
+    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.output} = String(${inputs.input});`
 });
 
 // --- Flow Nodes ---
@@ -171,7 +214,7 @@ lProject.defineNode({
     outputs: [],
     flowInputs: ['exec'],
     flowOutputs: ['then', 'else'],
-    codeTemplate: 'if (${input:condition}) {\n${body:then}\n} else {\n${body:else}\n}'
+    codeGenerator: ({ inputs, body }: NodeCodeContext) => `if (${inputs.condition}) {\n${body.then}\n} else {\n${body.else}\n}`
 });
 
 lProject.defineNode({
@@ -181,7 +224,7 @@ lProject.defineNode({
     outputs: [],
     flowInputs: ['exec'],
     flowOutputs: ['body'],
-    codeTemplate: 'while (${input:condition}) {\n${body:body}\n}'
+    codeGenerator: ({ inputs, body }: NodeCodeContext) => `while (${inputs.condition}) {\n${body.body}\n}`
 });
 
 lProject.defineNode({
@@ -191,16 +234,16 @@ lProject.defineNode({
     outputs: [{ name: 'index', type: 'number' }],
     flowInputs: ['exec'],
     flowOutputs: ['body'],
-    codeTemplate: 'for (let ${output:index} = 0; ${output:index} < ${input:count}; ${output:index}++) {\n${body:body}\n}'
+    codeGenerator: ({ inputs, outputs, body }: NodeCodeContext) => `for (let ${outputs.index} = 0; ${outputs.index} < ${inputs.count}; ${outputs.index}++) {\n${body.body}\n}`
 });
 
-// --- Function Nodes ---
+// --- Function Nodes (now with auto exec pins) ---
 lProject.defineNode({
     name: 'Console Log',
     category: NodeCategory.Function,
     inputs: [{ name: 'message', type: 'string' }],
     outputs: [],
-    codeTemplate: 'console.log(${input:message});'
+    codeGenerator: ({ inputs }: NodeCodeContext) => `console.log(${inputs.message});`
 });
 
 lProject.defineNode({
@@ -208,31 +251,15 @@ lProject.defineNode({
     category: NodeCategory.Function,
     inputs: [{ name: 'a', type: 'string' }, { name: 'b', type: 'string' }],
     outputs: [{ name: 'result', type: 'string' }],
-    codeTemplate: 'const ${output:result} = ${input:a} + ${input:b};'
+    codeGenerator: ({ inputs, outputs }: NodeCodeContext) => `const ${outputs.result} = ${inputs.a} + ${inputs.b};`
 });
 
+// --- Reroute Node ---
 lProject.defineNode({
-    name: 'Math.abs',
-    category: NodeCategory.Function,
-    inputs: [{ name: 'value', type: 'number' }],
-    outputs: [{ name: 'result', type: 'number' }],
-    codeTemplate: 'const ${output:result} = Math.abs(${input:value});'
-});
-
-lProject.defineNode({
-    name: 'Math.floor',
-    category: NodeCategory.Function,
-    inputs: [{ name: 'value', type: 'number' }],
-    outputs: [{ name: 'result', type: 'number' }],
-    codeTemplate: 'const ${output:result} = Math.floor(${input:value});'
-});
-
-lProject.defineNode({
-    name: 'Math.random',
-    category: NodeCategory.Function,
-    inputs: [],
-    outputs: [{ name: 'result', type: 'number' }],
-    codeTemplate: 'const ${output:result} = Math.random();'
+    name: 'Reroute',
+    category: NodeCategory.Reroute,
+    inputs: [{ name: 'in', type: 'any' }],
+    outputs: [{ name: 'out', type: 'any' }]
 });
 
 // --- Comment Node ---
@@ -257,47 +284,52 @@ lProject.defineMainFunction({
     name: 'main',
     label: 'Main',
     editableByUser: true,
-    inputs: [],
-    outputs: []
+    inputs: {},
+    outputs: {},
+    events: [
+        { name: 'OnStart', outputs: [] },
+        { name: 'OnTick', outputs: [{ name: 'deltaTime', type: 'number' }] }
+    ]
 });
 
-// --- Preview ---
+// --- Preview (merged into single call) ---
 let lPreviewPre: HTMLPreElement;
 
-lProject.setCreatePreview((pContainer: HTMLElement) => {
-    lPreviewPre = document.createElement('pre');
-    lPreviewPre.style.cssText = 'color: #cdd6f4; margin: 0; padding: 8px; font-family: "Cascadia Code", "Fira Code", monospace; font-size: 13px; white-space: pre-wrap; word-break: break-all;';
-    pContainer.appendChild(lPreviewPre);
-});
-
-lProject.setUpdatePreview((pCode: string) => {
-    if (!lPreviewPre) {
-        return;
-    }
-
-    try {
-        const lWrappedCode: string = `
-            const __logs = [];
-            const console = { log: function() { __logs.push(Array.prototype.slice.call(arguments).map(String).join(' ')); } };
-            ${pCode}
-            if (typeof main === 'function') { main(); }
-            return __logs;
-        `;
-
-        const lExecute: Function = new Function(lWrappedCode);
-        const lResult: Array<string> = lExecute();
-        if (lResult.length > 0) {
-            lPreviewPre.textContent = lResult.join('\n');
-            lPreviewPre.style.color = '#cdd6f4';
-        } else {
-            lPreviewPre.textContent = '(no output)';
-            lPreviewPre.style.color = '#6c7086';
+lProject.setPreview(
+    (pContainer: HTMLElement) => {
+        lPreviewPre = document.createElement('pre');
+        lPreviewPre.style.cssText = 'color: #cdd6f4; margin: 0; padding: 8px; font-family: "Cascadia Code", "Fira Code", monospace; font-size: 13px; white-space: pre-wrap; word-break: break-all;';
+        pContainer.appendChild(lPreviewPre);
+    },
+    (pCode: string) => {
+        if (!lPreviewPre) {
+            return;
         }
-    } catch (pError: any) {
-        lPreviewPre.textContent = `Error: ${pError.message ?? pError}`;
-        lPreviewPre.style.color = '#f38ba8';
+
+        try {
+            const lWrappedCode: string = `
+                const __logs = [];
+                const console = { log: function() { __logs.push(Array.prototype.slice.call(arguments).map(String).join(' ')); } };
+                ${pCode}
+                if (typeof main === 'function') { main(); }
+                return __logs;
+            `;
+
+            const lExecute: Function = new Function(lWrappedCode);
+            const lResult: Array<string> = lExecute();
+            if (lResult.length > 0) {
+                lPreviewPre.textContent = lResult.join('\n');
+                lPreviewPre.style.color = '#cdd6f4';
+            } else {
+                lPreviewPre.textContent = '(no output)';
+                lPreviewPre.style.color = '#6c7086';
+            }
+        } catch (pError: any) {
+            lPreviewPre.textContent = `Error: ${pError.message ?? pError}`;
+            lPreviewPre.style.color = '#f38ba8';
+        }
     }
-});
+);
 
 // --- Create application and open an empty file ---
 const lApp: PotatnoCodeApplication = new PotatnoCodeApplication(lProject);

@@ -1,3 +1,5 @@
+import type { NodeCodeContext } from './potatno-node-definition.ts';
+
 /**
  * Abstract base class for code generation nodes. Each concrete subclass
  * implements {@link generateCode} to produce the code string for its node type.
@@ -54,28 +56,32 @@ export abstract class PotatnoCodeNode {
     public abstract generateCode(): string;
 
     /**
-     * Expand a code template by replacing placeholder tokens with actual values.
-     * Supported placeholders: `${input:name}`, `${output:name}`, `${property:name}`, `${body:name}`.
+     * Build a typed {@link NodeCodeContext} from the internal maps.
      *
-     * @param pTemplate - The template string containing placeholders.
-     *
-     * @returns The expanded code string.
+     * @returns A plain-object context suitable for the code generator callback.
      */
-    protected expandTemplate(pTemplate: string): string {
-        return pTemplate.replace(/\$\{(input|output|property|body):([^}]+)\}/g, (_pMatch: string, pType: string, pName: string): string => {
-            switch (pType) {
-                case 'input':
-                    return this.mInputs.get(pName)?.valueId ?? '';
-                case 'output':
-                    return this.mOutputs.get(pName)?.valueId ?? '';
-                case 'property':
-                    return this.mProperties.get(pName) ?? '';
-                case 'body':
-                    return this.mBody.get(pName)?.code ?? '';
-                default:
-                    return '';
-            }
-        });
+    protected buildContext(): NodeCodeContext {
+        const lInputs: Record<string, string> = {};
+        for (const [lName, lPort] of this.mInputs) {
+            lInputs[lName] = lPort.valueId;
+        }
+
+        const lOutputs: Record<string, string> = {};
+        for (const [lName, lPort] of this.mOutputs) {
+            lOutputs[lName] = lPort.valueId;
+        }
+
+        const lProperties: Record<string, string> = {};
+        for (const [lKey, lValue] of this.mProperties) {
+            lProperties[lKey] = lValue || 'undefined';
+        }
+
+        const lBody: Record<string, string> = {};
+        for (const [lName, lBlock] of this.mBody) {
+            lBody[lName] = lBlock.code;
+        }
+
+        return { inputs: lInputs, outputs: lOutputs, properties: lProperties, body: lBody };
     }
 }
 

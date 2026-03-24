@@ -1,5 +1,5 @@
 import { PwbComponent, Processor, PwbExport, PwbComponentEvent, ComponentEventEmitter } from '@kartoffelgames/web-potato-web-builder';
-import { NodeCategory, NODE_CATEGORY_META } from '../../node/node-category.enum.ts';
+import { NodeCategory, NodeCategoryMeta } from '../../node/node-category.enum.ts';
 import templateCss from './potatno-node-library.css';
 import libraryTemplate from './potatno-node-library.html';
 
@@ -93,7 +93,7 @@ export class PotatnoNodeLibrary extends Processor {
         for (const lCategory of lCategoryOrder) {
             const lNodes: Array<NodeLibraryEntry> | undefined = lGroupMap.get(lCategory);
             if (lNodes && lNodes.length > 0) {
-                const lMeta = NODE_CATEGORY_META[lCategory];
+                const lMeta = NodeCategoryMeta.get(lCategory);
                 lResult.push({
                     category: lCategory,
                     icon: lMeta.icon,

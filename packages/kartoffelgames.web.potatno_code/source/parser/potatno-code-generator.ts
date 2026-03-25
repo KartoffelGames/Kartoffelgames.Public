@@ -1,22 +1,20 @@
-import type { PotatnoEditorConfiguration } from '../project/potatno-editor-configuration.ts';
-import type { PotatnoProjectNodeDefinition, NodeCodeContext } from '../node/potatno-node-definition.ts';
-import { NodeCategory } from '../node/node-category.enum.ts';
-import { PortKind } from '../node/port-kind.enum.ts';
-import type { PotatnoConnection } from '../document/potatno-connection.ts';
 import type { PotatnoGraph } from '../document/potatno-graph.ts';
 import type { PotatnoNode } from '../document/potatno-node.ts';
-import type { PotatnoFunction } from '../project/potatno-function.ts';
-import { PotatnoCodeFunction } from '../project/potatno-code-function.ts';
-import { PotatnoCodeNode } from '../node/potatno-code-node.ts';
+import { NodeCategory } from '../node/node-category.enum.ts';
+import { PortKind } from '../node/port-kind.enum.ts';
 import { PotatnoCodeCommentNode } from '../node/potatno-code-comment-node.ts';
-import { PotatnoCodeInputNode } from '../node/potatno-code-input-node.ts';
-import { PotatnoCodeOutputNode } from '../node/potatno-code-output-node.ts';
-import { PotatnoCodeTemplateNode } from '../node/potatno-code-template-node.ts';
-import { PotatnoCodeValueNode } from '../node/potatno-code-value-node.ts';
 import { PotatnoCodeFlowNode } from '../node/potatno-code-flow-node.ts';
 import { PotatnoCodeGetLocalNode } from '../node/potatno-code-get-local-node.ts';
-import { PotatnoCodeSetLocalNode } from '../node/potatno-code-set-local-node.ts';
+import { PotatnoCodeInputNode } from '../node/potatno-code-input-node.ts';
+import { PotatnoCodeNode } from '../node/potatno-code-node.ts';
+import { PotatnoCodeOutputNode } from '../node/potatno-code-output-node.ts';
 import { PotatnoCodeRerouteNode } from '../node/potatno-code-reroute-node.ts';
+import { PotatnoCodeSetLocalNode } from '../node/potatno-code-set-local-node.ts';
+import { PotatnoCodeTemplateNode } from '../node/potatno-code-template-node.ts';
+import { PotatnoCodeValueNode } from '../node/potatno-code-value-node.ts';
+import { PotatnoCodeFunction } from '../project/potatno-code-function.ts';
+import type { PotatnoFunction } from '../project/potatno-function.ts';
+import { PotatnoProjectNodeDefinition } from "../project/potatno-node-definition.ts";
 
 /**
  * Walks the graph in topological order and generates clean code without metadata markers.
@@ -110,7 +108,7 @@ export class PotatnoCodeGenerator {
                 continue;
             }
 
-            const lDefinition: PotatnoProjectNodeDefinition | undefined = this.mConfig.nodeDefinitions.get(lNode.definitionName);
+            const lDefinition: PotatnoProjectNodeDefinition<string, string> | undefined = this.mConfig.nodeDefinitions.get(lNode.definitionName);
             if (!lDefinition) {
                 continue;
             }
@@ -154,7 +152,7 @@ export class PotatnoCodeGenerator {
                 break;
             }
 
-            const lDefinition: PotatnoProjectNodeDefinition | undefined = this.mConfig.nodeDefinitions.get(lOwnerNode.definitionName);
+            const lDefinition: PotatnoProjectNodeDefinition<string, string> | undefined = this.mConfig.nodeDefinitions.get(lOwnerNode.definitionName);
             if (!lDefinition) {
                 break;
             }
@@ -191,7 +189,7 @@ export class PotatnoCodeGenerator {
      * @returns The constructed code node with populated ports and properties.
      */
     private buildCodeNode(pGraph: PotatnoGraph, pNode: PotatnoNode): PotatnoCodeNode {
-        const lDefinition: PotatnoProjectNodeDefinition | undefined = this.mConfig.nodeDefinitions.get(pNode.definitionName);
+        const lDefinition: PotatnoProjectNodeDefinition<string, string> | undefined = this.mConfig.nodeDefinitions.get(pNode.definitionName);
         const lCodeGenerator = lDefinition?.codeGenerator ?? (() => '');
         const lCodeNode: PotatnoCodeNode = this.createNodeForCategory(pNode.category, lCodeGenerator);
 

@@ -2,7 +2,7 @@ import { Exception } from "@kartoffelgames/core";
 import { NodeCategory } from "../node/node-category.enum.ts";
 import { PotatnoProject } from "./potatno-project.ts";
 
-export class PotatnoProjectNodeDefinition<TInputs extends PotatnoProjectNodeDefinitionPorts = {}, TOutputs extends PotatnoProjectNodeDefinitionPorts = {}> {
+export class PotatnoProjectNodeDefinition<TInputKeys extends string, TOutputKeys extends string, TInputs extends PotatnoProjectNodeDefinitionPorts<TInputKeys> = { [x in TInputKeys]: any }, TOutputs extends PotatnoProjectNodeDefinitionPorts<TOutputKeys> = { [x in TOutputKeys]: any }> {
     private readonly mName: string;
     private readonly mCategory: NodeCategory;
     private readonly mInputs: TInputs;
@@ -49,15 +49,15 @@ export class PotatnoProjectNodeDefinition<TInputs extends PotatnoProjectNodeDefi
      * 
      * @param params - Constructor parameters. 
      */
-    public constructor(pProject: PotatnoProject, params: PotatnoProjectNodeDefinitionConstructorParameter<TInputs, TOutputs>) {
+    public constructor(pProject: PotatnoProject, params: PotatnoProjectNodeDefinitionConstructorParameter<TInputKeys, TInputs, TOutputKeys, TOutputs>) {
         this.mName = params.name;
         this.mCategory = params.category;
         this.mInputs = params.inputs ?? {} as TInputs;
         this.mOutputs = params.outputs ?? {} as TOutputs;
         this.mCodeGenerator = params.codeGenerator;
 
-        // Validate input and output value ports types are defined in project.
-        for (const lPort of Object.values(this.mInputs)) {
+        // Validate input value ports types are defined in project.
+        for (const lPort of Object.values<PotatnoProjectNodeDefinitionPort>(this.mInputs)) {
             // Skip none value ports.
             if (lPort.nodeType !== 'value') {
                 continue;
@@ -68,10 +68,23 @@ export class PotatnoProjectNodeDefinition<TInputs extends PotatnoProjectNodeDefi
                 throw new Exception(`Type not registered in project for input port type '${lPort.dataType}' in node definition '${this.mName}'.`, this);
             }
         }
+
+        // Validate output value ports types are defined in project.
+        for (const lPort of Object.values<PotatnoProjectNodeDefinitionPort>(this.mOutputs)) {
+            // Skip none value ports.
+            if (lPort.nodeType !== 'value') {
+                continue;
+            }
+
+            // Throw if type is not registered in project.
+            if (!pProject.hasType(lPort.dataType)) {
+                throw new Exception(`Type not registered in project for output port type '${lPort.dataType}' in node definition '${this.mName}'.`, this);
+            }
+        }
     }
 }
 
-type PotatnoProjectNodeDefinitionConstructorParameter<TInputs extends PotatnoProjectNodeDefinitionPorts | undefined, TOutputs extends PotatnoProjectNodeDefinitionPorts | undefined> = {
+type PotatnoProjectNodeDefinitionConstructorParameter<TInputKeys extends string, TInputs extends PotatnoProjectNodeDefinitionPorts<TInputKeys> | undefined, TOutputKeys extends string, TOutputs extends PotatnoProjectNodeDefinitionPorts<TOutputKeys> | undefined> = {
     name: string;
     category: NodeCategory;
     inputs: TInputs;
@@ -83,7 +96,7 @@ type PotatnoProjectNodeDefinitionConstructorParameter<TInputs extends PotatnoPro
  * Typed context passed to the node code generator callback.
  * All maps are plain JS objects for type safety and easy destructuring.
  */
-export type PotatnoProjectNodeDefinitionGeneratorData<TInputs extends PotatnoProjectNodeDefinitionPorts | undefined, TOutputs extends PotatnoProjectNodeDefinitionPorts | undefined> = {
+export type PotatnoProjectNodeDefinitionGeneratorData<TInputs extends PotatnoProjectNodeDefinitionPorts<any> | undefined, TOutputs extends PotatnoProjectNodeDefinitionPorts<any> | undefined> = {
     /**
      *  Input port valueIds keyed by port name. 
      */
@@ -108,7 +121,7 @@ export type PotatnoProjectNodeDefinitionGeneratorData<TInputs extends PotatnoPro
 /**
  * Code generator callback type for node definitions, receiving a typed context with inputs, outputs, properties, and body code blocks.
  */
-type PotatnoProjectNodeDefinitionCodeGenerator<TInputs extends PotatnoProjectNodeDefinitionPorts | undefined, TOutputs extends PotatnoProjectNodeDefinitionPorts | undefined> = (pContext: PotatnoProjectNodeDefinitionGeneratorData<TInputs, TOutputs>) => string;
+type PotatnoProjectNodeDefinitionCodeGenerator<TInputs extends PotatnoProjectNodeDefinitionPorts<string> | undefined, TOutputs extends PotatnoProjectNodeDefinitionPorts<string> | undefined> = (pContext: PotatnoProjectNodeDefinitionGeneratorData<TInputs, TOutputs>) => string;
 
 /**
  * Definition of a port type used when registering node definitions.
@@ -130,4 +143,4 @@ type PotatnoProjectNodeDefinitionPort = {
     dataType: string;
 };;
 
-type PotatnoProjectNodeDefinitionPorts = { [portName: string]: PotatnoProjectNodeDefinitionPort; };
+export type PotatnoProjectNodeDefinitionPorts<TKey extends string> = { [portName in TKey]: PotatnoProjectNodeDefinitionPort; };

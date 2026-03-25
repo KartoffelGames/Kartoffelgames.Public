@@ -1,7 +1,7 @@
-import type { PotatnoProjectNodeDefinition } from '../node/potatno-node-definition.ts';
 import type { PotatnoConnection } from '../document/potatno-connection.ts';
 import type { PotatnoGraph } from '../document/potatno-graph.ts';
 import type { PotatnoNode } from '../document/potatno-node.ts';
+import { PotatnoProjectNodeDefinition } from "../project/potatno-node-definition.ts";
 import type { PotatnoHistoryAction } from './potatno-history-action.ts';
 
 /**
@@ -11,10 +11,10 @@ import type { PotatnoHistoryAction } from './potatno-history-action.ts';
 export class NodeAddAction implements PotatnoHistoryAction {
     public readonly description: string;
 
-    private readonly mDefinition: PotatnoProjectNodeDefinition;
+    private readonly mDefinition: PotatnoProjectNodeDefinition<string, string>;
     private readonly mGraph: PotatnoGraph;
     private mNode: PotatnoNode | null;
-    private readonly mPosition: { x: number; y: number };
+    private readonly mPosition: { x: number; y: number; };
     private readonly mSystem: boolean;
 
     /**
@@ -32,7 +32,7 @@ export class NodeAddAction implements PotatnoHistoryAction {
      * @param pPosition - The initial position for the node.
      * @param pSystem - Whether the node is a system node. Defaults to false.
      */
-    public constructor(pGraph: PotatnoGraph, pDefinition: PotatnoProjectNodeDefinition, pPosition: { x: number; y: number }, pSystem: boolean = false) {
+    public constructor(pGraph: PotatnoGraph, pDefinition: PotatnoProjectNodeDefinition<string, string>, pPosition: { x: number; y: number; }, pSystem: boolean = false) {
         this.description = `Add node: ${pDefinition.name}`;
         this.mGraph = pGraph;
         this.mDefinition = pDefinition;
@@ -117,9 +117,9 @@ export class NodeRemoveAction implements PotatnoHistoryAction {
 export class NodeMoveAction implements PotatnoHistoryAction {
     public readonly description: string;
 
-    private readonly mNewPosition: { x: number; y: number };
+    private readonly mNewPosition: { x: number; y: number; };
     private readonly mNode: PotatnoNode;
-    private mOldPosition: { x: number; y: number };
+    private mOldPosition: { x: number; y: number; };
 
     /**
      * Constructor.

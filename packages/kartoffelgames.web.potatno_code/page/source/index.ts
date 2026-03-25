@@ -1,10 +1,9 @@
-import { PotatnoCodeApplication } from '../../source/potatno-code-application.ts';
-import { PotatnoProject } from '../../source/project/potatno-project.ts';
 import { PotatnoCodeFile } from '../../source/document/potatno-code-file.ts';
 import { NodeCategory } from '../../source/node/node-category.enum.ts';
+import { PotatnoCodeApplication } from '../../source/potatno-code-application.ts';
 import type { PotatnoCodeFunction } from '../../source/project/potatno-code-function.ts';
 import { PotatnoProjectNodeDefinition } from "../../source/project/potatno-node-definition.ts";
-import { exec } from "node:child_process";
+import { PotatnoProject } from '../../source/project/potatno-project.ts';
 
 // --- Project configuration ---
 const lProject: PotatnoProject = new PotatnoProject();
@@ -16,41 +15,55 @@ lProject.setCommentToken('//');
 lProject.addImport({
     name: 'Math',
     nodes: [
-        {
+        new PotatnoProjectNodeDefinition(lProject, {
             name: 'Math.PI',
             category: NodeCategory.Value,
             inputs: {},
-            outputs: [{ name: 'value', type: 'number' }],
+            outputs: {
+                value: { nodeType: 'value', dataType: 'number' }
+            },
             codeGenerator: ({ outputs }) => `const ${outputs.value} = Math.PI;`
-        },
-        {
+        }),
+        new PotatnoProjectNodeDefinition(lProject, {
             name: 'Math.E',
             category: NodeCategory.Value,
             inputs: {},
-            outputs: [{ name: 'value', type: 'number' }],
+            outputs: {
+                value: { nodeType: 'value', dataType: 'number' }
+            },
             codeGenerator: ({ outputs }) => `const ${outputs.value} = Math.E;`
-        },
-        {
+        }),
+        new PotatnoProjectNodeDefinition(lProject, {
             name: 'Math.abs',
             category: NodeCategory.Function,
-            inputs: [{ name: 'value', type: 'number' }],
-            outputs: [{ name: 'result', type: 'number' }],
+            inputs: {
+                value: { nodeType: 'value', dataType: 'number' }
+            },
+            outputs: {
+                result: { nodeType: 'value', dataType: 'number' }
+            },
             codeGenerator: ({ inputs, outputs }) => `const ${outputs.result} = Math.abs(${inputs.value});`
-        },
-        {
+        }),
+        new PotatnoProjectNodeDefinition(lProject, {
             name: 'Math.floor',
             category: NodeCategory.Function,
-            inputs: [{ name: 'value', type: 'number' }],
-            outputs: [{ name: 'result', type: 'number' }],
+            inputs: {
+                value: { nodeType: 'value', dataType: 'number' }
+            },
+            outputs: {
+                result: { nodeType: 'value', dataType: 'number' }
+            },
             codeGenerator: ({ inputs, outputs }) => `const ${outputs.result} = Math.floor(${inputs.value});`
-        },
-        {
+        }),
+        new PotatnoProjectNodeDefinition(lProject, {
             name: 'Math.random',
             category: NodeCategory.Function,
             inputs: {},
-            outputs: [{ name: 'result', type: 'number' }],
+            outputs: {
+                result: { nodeType: 'value', dataType: 'number' }
+            },
             codeGenerator: ({ outputs }) => `const ${outputs.result} = Math.random();`
-        }
+        })
     ]
 });
 
@@ -332,26 +345,6 @@ lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
     inputs: { a: { nodeType: 'value', dataType: 'string' }, b: { nodeType: 'value', dataType: 'string' } },
     outputs: { result: { nodeType: 'value', dataType: 'string' } },
     codeGenerator: ({ inputs, outputs }) => `const ${outputs.result} = ${inputs.a} + ${inputs.b};`
-}));
-
-// --- Reroute Node ---
-lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'Reroute',
-    category: NodeCategory.Reroute,
-    inputs: { 
-        in: { nodeType: 'value', dataType: 'any' }
-     },
-    outputs: { 
-        out: { nodeType: 'value', dataType: 'any' } 
-    }
-}));
-
-// --- Comment Node ---
-lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'Comment',
-    category: NodeCategory.Comment,
-    inputs: {},
-    outputs: {}
 }));
 
 // --- Function Code Generator ---

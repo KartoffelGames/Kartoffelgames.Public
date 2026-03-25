@@ -4,12 +4,11 @@ import type { PotatnoGraph } from '../../../document/potatno-graph.ts';
 import type { PotatnoNode } from '../../../document/potatno-node.ts';
 import { NodeCategory, NodeCategoryMeta } from '../../../node/node-category.enum.ts';
 import { PortKind } from '../../../node/port-kind.enum.ts';
-import type { PotatnoPortDefinition } from '../../../node/potatno-port-definition.ts';
 import { PotatnoDeserializer } from '../../../parser/potatno-deserializer.ts';
 import { PotatnoSerializer } from '../../../parser/potatno-serializer.ts';
 import { PotatnoFunction } from '../../../project/potatno-function.ts';
-import type { PotatnoImportDefinition } from '../../../project/potatno-import-definition.ts';
-import type { PotatnoProject, PotatnoProjectNodeDefinition } from '../../../project/potatno-project.ts';
+import { PotatnoProjectNodeDefinition } from "../../../project/potatno-node-definition.ts";
+import type { PotatnoProject } from '../../../project/potatno-project.ts';
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import { PotatnoCanvasRenderer } from '../../potatno-canvas-renderer.ts';
 import { PotatnoClipboard } from '../../potatno-clipboard.ts';
@@ -38,12 +37,12 @@ import '../potatno_tabs/potatno-tabs.ts';
  * Interaction state for the canvas.
  */
 type InteractionState =
-    | { mode: 'idle' }
-    | { mode: 'panning'; startX: number; startY: number }
-    | { mode: 'dragging-node'; nodeId: string; startX: number; startY: number; origins: Array<{ nodeId: string; originX: number; originY: number }> }
-    | { mode: 'dragging-wire'; sourceNodeId: string; sourcePortId: string; portKind: string; direction: string; type: string; startX: number; startY: number }
-    | { mode: 'selecting'; startX: number; startY: number }
-    | { mode: 'resizing-comment'; nodeId: string; startX: number; startY: number; originalW: number; originalH: number };
+    | { mode: 'idle'; }
+    | { mode: 'panning'; startX: number; startY: number; }
+    | { mode: 'dragging-node'; nodeId: string; startX: number; startY: number; origins: Array<{ nodeId: string; originX: number; originY: number; }>; }
+    | { mode: 'dragging-wire'; sourceNodeId: string; sourcePortId: string; portKind: string; direction: string; type: string; startX: number; startY: number; }
+    | { mode: 'selecting'; startX: number; startY: number; }
+    | { mode: 'resizing-comment'; nodeId: string; startX: number; startY: number; originalW: number; originalH: number; };
 
 /**
  * All cached view data. Stored outside PWB's deep proxy to prevent
@@ -54,14 +53,14 @@ interface CachedViewData {
     activeFunctionName: string;
     activeFunctionIsSystem: boolean;
     activeFunctionEditableByUser: boolean;
-    errors: Array<{ message: string; location: string }>;
+    errors: Array<{ message: string; location: string; }>;
     hasPreview: boolean;
-    nodeDefinitionList: Array<{ name: string; category: string }>;
-    functionList: Array<{ id: string; name: string; label: string; system: boolean }>;
+    nodeDefinitionList: Array<{ name: string; category: string; }>;
+    functionList: Array<{ id: string; name: string; label: string; system: boolean; }>;
     availableImports: Array<string>;
     availableTypes: Array<string>;
-    activeFunctionInputs: Array<{ name: string; type: string }>;
-    activeFunctionOutputs: Array<{ name: string; type: string }>;
+    activeFunctionInputs: Array<{ name: string; type: string; }>;
+    activeFunctionOutputs: Array<{ name: string; type: string; }>;
     activeFunctionImports: Array<string>;
     visibleNodes: Array<any>;
 }
@@ -77,7 +76,7 @@ interface EditorInternals {
     clipboard: PotatnoClipboard;
     interaction: PotatnoCanvasInteraction;
     renderer: PotatnoCanvasRenderer;
-    hoveredPort: { nodeId: string; portId: string; portKind: string; direction: string; type: string } | null;
+    hoveredPort: { nodeId: string; portId: string; portKind: string; direction: string; type: string; } | null;
     interactionState: InteractionState;
     cachedData: CachedViewData;
     previewInitialized: boolean;
@@ -153,10 +152,10 @@ const gStore: EditorStateStore = new EditorStateStore();
 export class PotatnoCodeEditor extends Processor implements IComponentOnConnect, IComponentOnDeconstruct {
     private mInstanceKey: string;
     private mShowSelectionBox: boolean;
-    private mSelectionBoxScreen: { x1: number; y1: number; x2: number; y2: number };
+    private mSelectionBoxScreen: { x1: number; y1: number; x2: number; y2: number; };
     private mPreviewDebounceTimer: number;
     private mKeyboardHandler: ((e: KeyboardEvent) => void) | null;
-    private mResizeState: { panel: 'left' | 'right'; startX: number; startWidth: number } | null;
+    private mResizeState: { panel: 'left' | 'right'; startX: number; startWidth: number; } | null;
     private mResizeMoveHandler: ((e: PointerEvent) => void) | null;
     private mResizeUpHandler: ((e: PointerEvent) => void) | null;
 
@@ -272,7 +271,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
     /**
      * Get the current list of validation errors.
      */
-    public get editorErrors(): Array<{ message: string; location: string }> {
+    public get editorErrors(): Array<{ message: string; location: string; }> {
         void this.mCacheVersion;
         return this.getInternals().cachedData.errors;
     }
@@ -316,7 +315,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
     /**
      * Get the cached list of node definitions for the library panel.
      */
-    public get nodeDefinitionList(): Array<{ name: string; category: string }> {
+    public get nodeDefinitionList(): Array<{ name: string; category: string; }> {
         void this.mCacheVersion;
         return this.getInternals().cachedData.nodeDefinitionList;
     }
@@ -324,7 +323,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
     /**
      * Get the cached list of functions for the function list panel.
      */
-    public get functionList(): Array<{ id: string; name: string; label: string; system: boolean }> {
+    public get functionList(): Array<{ id: string; name: string; label: string; system: boolean; }> {
         void this.mCacheVersion;
         return this.getInternals().cachedData.functionList;
     }
@@ -340,7 +339,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
     /**
      * Get the active function's input port definitions.
      */
-    public get activeFunctionInputs(): Array<{ name: string; type: string }> {
+    public get activeFunctionInputs(): Array<{ name: string; type: string; }> {
         void this.mCacheVersion;
         return this.getInternals().cachedData.activeFunctionInputs;
     }
@@ -348,7 +347,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
     /**
      * Get the active function's output port definitions.
      */
-    public get activeFunctionOutputs(): Array<{ name: string; type: string }> {
+    public get activeFunctionOutputs(): Array<{ name: string; type: string; }> {
         void this.mCacheVersion;
         return this.getInternals().cachedData.activeFunctionOutputs;
     }
@@ -546,7 +545,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             return;
         }
 
-        let lDefinition: PotatnoProjectNodeDefinition | undefined = lProject.nodeDefinitions.get(lDefName);
+        let lDefinition: PotatnoProjectNodeDefinition<string, string> | undefined = lProject.nodeDefinitions.get(lDefName);
 
         // Check if it's a user-defined function rather than a built-in node definition.
         if (!lDefinition) {
@@ -1014,7 +1013,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         this.rebuildCachedData();
 
         // Start dragging all selected nodes.
-        const lOrigins: Array<{ nodeId: string; originX: number; originY: number }> = [];
+        const lOrigins: Array<{ nodeId: string; originX: number; originY: number; }> = [];
         const lGraph: PotatnoGraph | undefined = lFile.activeFunction?.graph;
 
         for (const lSelectedId of lSelectedIds) {
@@ -1361,7 +1360,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             // Create fixed input nodes for the function's inputs.
             for (let lIdx = 0; lIdx < lInputs.length; lIdx++) {
                 const lInput: PotatnoPortDefinition = lInputs[lIdx];
-                const lInputNodeDef: PotatnoProjectNodeDefinition = {
+                const lInputNodeDef: PotatnoProjectNodeDefinition<string, string> = {
                     name: lInput.name,
                     category: NodeCategory.Input,
                     inputs: [],
@@ -1373,7 +1372,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             // Create fixed output nodes for the function's outputs.
             for (let lIdx = 0; lIdx < lOutputs.length; lIdx++) {
                 const lOutput: PotatnoPortDefinition = lOutputs[lIdx];
-                const lOutputNodeDef: PotatnoProjectNodeDefinition = {
+                const lOutputNodeDef: PotatnoProjectNodeDefinition<string, string> = {
                     name: lOutput.name,
                     category: NodeCategory.Output,
                     inputs: [{ name: lOutput.name, type: lOutput.type }],
@@ -1386,7 +1385,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             if (lMainDef.events) {
                 for (let lIdx = 0; lIdx < lMainDef.events.length; lIdx++) {
                     const lEvent = lMainDef.events[lIdx];
-                    const lEventNodeDef: PotatnoProjectNodeDefinition = {
+                    const lEventNodeDef: PotatnoProjectNodeDefinition<string, string> = {
                         name: lEvent.name,
                         category: NodeCategory.Event,
                         inputs: [],
@@ -1447,7 +1446,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         const lActions: Array<PotatnoHistoryAction> = [];
         const lAddActions: Array<NodeAddAction> = [];
         for (const lNodeData of lData.nodes) {
-            const lDef: PotatnoProjectNodeDefinition | undefined = lProject.nodeDefinitions.get(lNodeData.definitionName);
+            const lDef: PotatnoProjectNodeDefinition<string, string> | undefined = lProject.nodeDefinitions.get(lNodeData.definitionName);
             if (lDef) {
                 const lAction: NodeAddAction = new NodeAddAction(
                     lGraph,
@@ -1704,7 +1703,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         // Note: unconnected input warnings are not blocking errors.
         const lCachedData: CachedViewData = this.getInternals().cachedData;
         const lHasBlockingErrors: boolean = lCachedData.errors.some(
-            (e: { message: string; location: string; blocking?: boolean }) => (e as any).blocking !== false
+            (e: { message: string; location: string; blocking?: boolean; }) => (e as any).blocking !== false
         );
         if (lHasBlockingErrors) {
             return;
@@ -1794,8 +1793,8 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      *
      * @returns An array of error objects with message and location.
      */
-    private validateProject(): Array<{ message: string; location: string }> {
-        const lErrors: Array<{ message: string; location: string }> = [];
+    private validateProject(): Array<{ message: string; location: string; }> {
+        const lErrors: Array<{ message: string; location: string; }> = [];
         const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
         if (!lFile) {
             return lErrors;
@@ -1886,7 +1885,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         lCached.errors = this.validateProject();
 
         // Node definitions.
-        const lNodeDefs: Array<{ name: string; category: string }> = [];
+        const lNodeDefs: Array<{ name: string; category: string; }> = [];
         if (lProject) {
             for (const lDef of lProject.nodeDefinitions.values()) {
                 lNodeDefs.push({ name: lDef.name, category: lDef.category });
@@ -1903,7 +1902,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         lCached.nodeDefinitionList = lNodeDefs;
 
         // Function list.
-        const lFuncs: Array<{ id: string; name: string; label: string; system: boolean }> = [];
+        const lFuncs: Array<{ id: string; name: string; label: string; system: boolean; }> = [];
         if (lFile) {
             for (const lFunc of lFile.functions.values()) {
                 lFuncs.push({ id: lFunc.id, name: lFunc.name, label: lFunc.label, system: lFunc.system });
@@ -1976,20 +1975,20 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             for (const lNode of lActiveFunc.graph.nodes.values()) {
                 const lDef = lProject?.nodeDefinitions.get(lNode.definitionName);
                 const lCategoryMeta = NodeCategoryMeta.get(lNode.category);
-                const lInputs: Array<{ id: string; name: string; type: string; direction: string; connectedTo: string | null }> = [];
+                const lInputs: Array<{ id: string; name: string; type: string; direction: string; connectedTo: string | null; }> = [];
                 for (const lPort of lNode.inputs.values()) {
                     lInputs.push({ id: lPort.id, name: lPort.name, type: lPort.type, direction: lPort.direction, connectedTo: lPort.connectedTo });
                 }
-                const lOutputs: Array<{ id: string; name: string; type: string; direction: string; connectedTo: string | null }> = [];
+                const lOutputs: Array<{ id: string; name: string; type: string; direction: string; connectedTo: string | null; }> = [];
                 for (const lPort of lNode.outputs.values()) {
                     const lIsConnected: boolean = lConnectedOutputPortIds.has(lPort.id);
                     lOutputs.push({ id: lPort.id, name: lPort.name, type: lPort.type, direction: lPort.direction, connectedTo: lIsConnected ? 'connected' : null });
                 }
-                const lFlowIns: Array<{ id: string; name: string; direction: string; connectedTo: string | null }> = [];
+                const lFlowIns: Array<{ id: string; name: string; direction: string; connectedTo: string | null; }> = [];
                 for (const lPort of lNode.flowInputs.values()) {
                     lFlowIns.push({ id: lPort.id, name: lPort.name, direction: lPort.direction, connectedTo: lConnectedFlowPortIds.has(lPort.id) ? 'connected' : null });
                 }
-                const lFlowOuts: Array<{ id: string; name: string; direction: string; connectedTo: string | null }> = [];
+                const lFlowOuts: Array<{ id: string; name: string; direction: string; connectedTo: string | null; }> = [];
                 for (const lPort of lNode.flowOutputs.values()) {
                     lFlowOuts.push({ id: lPort.id, name: lPort.name, direction: lPort.direction, connectedTo: lConnectedFlowPortIds.has(lPort.id) ? 'connected' : null });
                 }

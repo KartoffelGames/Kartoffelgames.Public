@@ -1,8 +1,9 @@
-import type { PotatnoEditorConfiguration } from '../project/potatno-editor-configuration.ts';
+import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { PotatnoCodeFile } from '../document/potatno-code-file.ts';
 import type { PotatnoFunction } from '../project/potatno-function.ts';
 import type { PotatnoNode } from '../document/potatno-node.ts';
 import type { PotatnoConnection } from '../document/potatno-connection.ts';
+import type { PotatnoProjectNodeDefinitionPorts } from '../project/potatno-node-definition.ts';
 import { PotatnoCodeGenerator } from './potatno-code-generator.ts';
 
 /**
@@ -16,14 +17,14 @@ import { PotatnoCodeGenerator } from './potatno-code-generator.ts';
  * ```
  */
 export class PotatnoSerializer {
-    private readonly mConfig: PotatnoEditorConfiguration;
+    private readonly mConfig: PotatnoProject;
 
     /**
      * Constructor.
      *
      * @param pConfig - The editor configuration used to initialize the code generator.
      */
-    public constructor(pConfig: PotatnoEditorConfiguration) {
+    public constructor(pConfig: PotatnoProject) {
         this.mConfig = pConfig;
     }
 
@@ -105,8 +106,8 @@ export class PotatnoSerializer {
             label: pFunction.label,
             system: pFunction.system,
             editableByUser: pFunction.editableByUser,
-            inputs: [...pFunction.inputs].map((p) => ({ name: p.name, type: p.type })),
-            outputs: [...pFunction.outputs].map((p) => ({ name: p.name, type: p.type })),
+            inputs: { ...pFunction.inputs },
+            outputs: { ...pFunction.outputs },
             imports: [...pFunction.imports],
             nodes: lNodes,
             connections: lConnections
@@ -221,8 +222,8 @@ interface SerializedFunction {
     label: string;
     system: boolean;
     editableByUser: boolean;
-    inputs: Array<{ name: string; type: string }>;
-    outputs: Array<{ name: string; type: string }>;
+    inputs: PotatnoProjectNodeDefinitionPorts;
+    outputs: PotatnoProjectNodeDefinitionPorts;
     imports: Array<string>;
     nodes: Array<SerializedNode>;
     connections: Array<SerializedConnection>;

@@ -1,19 +1,18 @@
-import { PotatnoCodeNode } from './potatno-code-node.ts';
-import type { NodeCodeContext } from './potatno-node-definition.ts';
+import { PotatnoCodeNode, type PotatnoCodeNodeContext } from './potatno-code-node.ts';
 
 /**
  * Code generation node that produces code by invoking a callback with a typed context.
  * Used for operator, function call, and type conversion nodes.
  */
 export class PotatnoCodeTemplateNode extends PotatnoCodeNode {
-    private readonly mCodeGenerator: (pContext: NodeCodeContext) => string;
+    private readonly mCodeGenerator: (pContext: PotatnoCodeNodeContext) => string;
 
     /**
      * Constructor.
      *
      * @param pCodeGenerator - The callback that generates code from a typed context.
      */
-    public constructor(pCodeGenerator: (pContext: NodeCodeContext) => string) {
+    public constructor(pCodeGenerator: (pContext: PotatnoCodeNodeContext) => string) {
         super();
         this.mCodeGenerator = pCodeGenerator;
     }

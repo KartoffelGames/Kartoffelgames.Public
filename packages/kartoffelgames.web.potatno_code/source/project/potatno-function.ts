@@ -1,4 +1,4 @@
-import type { PotatnoPortDefinition } from '../node/potatno-port-definition.ts';
+import type { PotatnoProjectNodeDefinitionPort, PotatnoProjectNodeDefinitionPorts } from './potatno-node-definition.ts';
 import { PotatnoGraph } from '../document/potatno-graph.ts';
 
 /**
@@ -11,11 +11,11 @@ export class PotatnoFunction {
     public readonly system: boolean;
 
     private mImports: Array<string>;
-    private mInputs: Array<PotatnoPortDefinition>;
+    private mInputs: PotatnoProjectNodeDefinitionPorts;
     private mLabel: string;
     private mLocalVariables: Array<{ name: string; type: string }>;
     private mName: string;
-    private mOutputs: Array<PotatnoPortDefinition>;
+    private mOutputs: PotatnoProjectNodeDefinitionPorts;
 
     /**
      * Get the list of imports for this function.
@@ -25,9 +25,9 @@ export class PotatnoFunction {
     }
 
     /**
-     * Get the list of input port definitions for this function.
+     * Get the input port definitions for this function.
      */
-    public get inputs(): ReadonlyArray<PotatnoPortDefinition> {
+    public get inputs(): Readonly<PotatnoProjectNodeDefinitionPorts> {
         return this.mInputs;
     }
 
@@ -53,9 +53,9 @@ export class PotatnoFunction {
     }
 
     /**
-     * Get the list of output port definitions for this function.
+     * Get the output port definitions for this function.
      */
-    public get outputs(): ReadonlyArray<PotatnoPortDefinition> {
+    public get outputs(): Readonly<PotatnoProjectNodeDefinitionPorts> {
         return this.mOutputs;
     }
 
@@ -75,8 +75,8 @@ export class PotatnoFunction {
         this.system = pSystem;
         this.editableByUser = pEditableByUser;
         this.graph = new PotatnoGraph();
-        this.mInputs = new Array<PotatnoPortDefinition>();
-        this.mOutputs = new Array<PotatnoPortDefinition>();
+        this.mInputs = {};
+        this.mOutputs = {};
         this.mImports = new Array<string>();
         this.mLocalVariables = new Array<{ name: string; type: string }>();
     }
@@ -102,19 +102,19 @@ export class PotatnoFunction {
     /**
      * Replace all input port definitions.
      *
-     * @param pInputs - The new list of input port definitions.
+     * @param pInputs - The new input port definitions.
      */
-    public setInputs(pInputs: Array<PotatnoPortDefinition>): void {
-        this.mInputs = [...pInputs];
+    public setInputs(pInputs: PotatnoProjectNodeDefinitionPorts): void {
+        this.mInputs = { ...pInputs };
     }
 
     /**
      * Replace all output port definitions.
      *
-     * @param pOutputs - The new list of output port definitions.
+     * @param pOutputs - The new output port definitions.
      */
-    public setOutputs(pOutputs: Array<PotatnoPortDefinition>): void {
-        this.mOutputs = [...pOutputs];
+    public setOutputs(pOutputs: PotatnoProjectNodeDefinitionPorts): void {
+        this.mOutputs = { ...pOutputs };
     }
 
     /**
@@ -152,37 +152,39 @@ export class PotatnoFunction {
     /**
      * Add an input port definition to the function.
      *
-     * @param pInput - The input port definition to add.
+     * @param pName - The port name.
+     * @param pPort - The port definition.
      */
-    public addInput(pInput: PotatnoPortDefinition): void {
-        this.mInputs.push(pInput);
+    public addInput(pName: string, pPort: PotatnoProjectNodeDefinitionPort): void {
+        this.mInputs[pName] = pPort;
     }
 
     /**
-     * Remove an input port definition by index.
+     * Remove an input port definition by name.
      *
-     * @param pIndex - The index of the input to remove.
+     * @param pName - The name of the input to remove.
      */
-    public removeInput(pIndex: number): void {
-        this.mInputs.splice(pIndex, 1);
+    public removeInput(pName: string): void {
+        delete this.mInputs[pName];
     }
 
     /**
      * Add an output port definition to the function.
      *
-     * @param pOutput - The output port definition to add.
+     * @param pName - The port name.
+     * @param pPort - The port definition.
      */
-    public addOutput(pOutput: PotatnoPortDefinition): void {
-        this.mOutputs.push(pOutput);
+    public addOutput(pName: string, pPort: PotatnoProjectNodeDefinitionPort): void {
+        this.mOutputs[pName] = pPort;
     }
 
     /**
-     * Remove an output port definition by index.
+     * Remove an output port definition by name.
      *
-     * @param pIndex - The index of the output to remove.
+     * @param pName - The name of the output to remove.
      */
-    public removeOutput(pIndex: number): void {
-        this.mOutputs.splice(pIndex, 1);
+    public removeOutput(pName: string): void {
+        delete this.mOutputs[pName];
     }
 
     /**

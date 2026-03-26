@@ -1,7 +1,7 @@
 import type { PotatnoCodeFunction } from './potatno-code-function.ts';
 import type { PotatnoGlobalPortDefinition } from './potatno-global-port-definition.ts';
 import type { PotatnoMainFunctionDefinition } from './potatno-main-function-definition.ts';
-import { PotatnoProjectNodeDefinition, PotatnoProjectNodeDefinitionPorts } from "./potatno-node-definition.ts";
+import { PotatnoProjectNodeDefinition, type PotatnoProjectNodeDefinitionPorts } from "./potatno-node-definition.ts";
 
 /**
  * Project-level configuration for a PotatnoCode editor instance.
@@ -14,7 +14,7 @@ export class PotatnoProject {
     private mFunctionCodeGenerator: ((func: PotatnoCodeFunction) => string) | null;
     private readonly mGlobalInputs: Array<PotatnoGlobalPortDefinition>;
     private readonly mGlobalOutputs: Array<PotatnoGlobalPortDefinition>;
-    private readonly mImports: Array<PotatnoImportDefinition<string, string>>;
+    private readonly mImports: Array<PotatnoImportDefinition>;
     private readonly mMainFunctions: Array<PotatnoMainFunctionDefinition>;
     private readonly mNodeDefinitions: Map<string, PotatnoProjectNodeDefinition>;
     private mUpdatePreview: ((code: string) => void) | null;
@@ -65,7 +65,7 @@ export class PotatnoProject {
     /**
      * Get the list of registered import definitions.
      */
-    public get imports(): ReadonlyArray<PotatnoImportDefinition<string, string>> {
+    public get imports(): ReadonlyArray<PotatnoImportDefinition> {
         return this.mImports;
     }
 
@@ -137,7 +137,7 @@ export class PotatnoProject {
     /**
      * Register a node type definition.
      */
-    public addNodeDefinition<TInputKeys extends string, TOutputKeys extends string, TInputs extends PotatnoProjectNodeDefinitionPorts<TInputKeys>, TOutputs extends PotatnoProjectNodeDefinitionPorts<TOutputKeys>>(pDefinition: PotatnoProjectNodeDefinition<TInputKeys, TInputs, TOutputKeys, TOutputs>): void {
+    public addNodeDefinition(pDefinition: PotatnoProjectNodeDefinition): void {
         this.mNodeDefinitions.set(pDefinition.name, pDefinition);
     }
 
@@ -165,8 +165,8 @@ export class PotatnoProject {
 
     /**
      * Add a valid type identifier that can be used by node port definitions.
-     * 
-     * @param pTypeName - The unique string identifier of the type. 
+     *
+     * @param pTypeName - The unique string identifier of the type.
      */
     public addType(pTypeName: string): void {
         this.mValidTypes.add(pTypeName);
@@ -174,10 +174,10 @@ export class PotatnoProject {
 
     /**
      * Check if a type identifier is registered as valid in the project.
-     * 
+     *
      * @param pTypeName - The type identifier to check.
-     * 
-     * @returns True if the type is registered, false otherwise. 
+     *
+     * @returns True if the type is registered, false otherwise.
      */
     public hasType(pTypeName: string): boolean {
         return this.mValidTypes.has(pTypeName);
@@ -188,9 +188,9 @@ export class PotatnoProject {
  * Definition of an import group. When a function enables this import,
  * the contained node definitions become available in that function's node library.
  */
-export interface PotatnoImportDefinition<TInputKeys extends string, TOutputKeys extends string> {
+export interface PotatnoImportDefinition {
     /** Display name of the import group. */
     readonly name: string;
     /** Node definitions that become available when this import is enabled. */
-    readonly nodes: Array<PotatnoProjectNodeDefinition<TInputKeys, TOutputKeys>>;
+    readonly nodes: Array<PotatnoProjectNodeDefinition>;
 }

@@ -4,21 +4,22 @@ import { PotatnoConnection } from '../document/potatno-connection.ts';
 import { PotatnoNode } from '../document/potatno-node.ts';
 import { PotatnoFunction } from '../project/potatno-function.ts';
 import { PotatnoCodeFile } from '../document/potatno-code-file.ts';
-import { PotatnoProjectNodeDefinition } from "../project/potatno-node-definition.ts";
+import type { PotatnoNodeDefinitionData, PotatnoProjectNodeDefinitionPorts } from "../project/potatno-node-definition.ts";
+import type { PotatnoProject } from '../project/potatno-project.ts';
 
 /**
  * Parses a code string with a trailing `{commentToken} #potatno {json}` metadata comment
  * back into a PotatnoCodeFile.
  */
 export class PotatnoDeserializer {
-    private readonly mConfig: PotatnoEditorConfiguration;
+    private readonly mConfig: PotatnoProject;
 
     /**
      * Constructor.
      *
-     * @param pConfig - The editor configuration providing node definitions and settings.
+     * @param pConfig - The project configuration providing node definitions and settings.
      */
-    public constructor(pConfig: PotatnoEditorConfiguration) {
+    public constructor(pConfig: PotatnoProject) {
         this.mConfig = pConfig;
     }
 
@@ -108,10 +109,10 @@ export class PotatnoDeserializer {
             pData.editableByUser
         );
 
-        if (Array.isArray(pData.inputs)) {
+        if (pData.inputs && typeof pData.inputs === 'object') {
             lFunc.setInputs(pData.inputs);
         }
-        if (Array.isArray(pData.outputs)) {
+        if (pData.outputs && typeof pData.outputs === 'object') {
             lFunc.setOutputs(pData.outputs);
         }
         if (Array.isArray(pData.imports)) {
@@ -132,7 +133,7 @@ export class PotatnoDeserializer {
             const lCategory: string = lNodeData.category;
 
             // Get the node definition from the configuration.
-            const lDefinition: PotatnoProjectNodeDefinition | undefined = this.mConfig.nodeDefinitions.get(lNodeData.type);
+            const lDefinition = this.mConfig.nodeDefinitions.get(lNodeData.type);
 
             if (lDefinition) {
                 // Reconstruct via definition.
@@ -157,14 +158,21 @@ export class PotatnoDeserializer {
 
                 pFunction.graph.addExistingNode(lNode);
             } else if (lCategory === NodeCategory.Input || lCategory === NodeCategory.Output) {
-                // Input/output nodes -- create a minimal definition.
-                const lInputs = (lNodeData.inputs ?? []).map((p) => ({ name: p.name, type: p.type }));
-                const lOutputs = (lNodeData.outputs ?? []).map((p) => ({ name: p.name, type: p.type }));
-                const lMinDef: PotatnoProjectNodeDefinition = {
+                // Input/output nodes -- create a minimal definition from serialized port data.
+                const lInputPorts: PotatnoProjectNodeDefinitionPorts = {};
+                for (const lPort of (lNodeData.inputs ?? [])) {
+                    lInputPorts[lPort.name] = { nodeType: 'value', dataType: lPort.type };
+                }
+                const lOutputPorts: PotatnoProjectNodeDefinitionPorts = {};
+                for (const lPort of (lNodeData.outputs ?? [])) {
+                    lOutputPorts[lPort.name] = { nodeType: 'value', dataType: lPort.type };
+                }
+
+                const lMinDef: PotatnoNodeDefinitionData = {
                     name: lNodeData.type,
                     category: lCategory as NodeCategory,
-                    inputs: lInputs,
-                    outputs: lOutputs
+                    inputs: lInputPorts,
+                    outputs: lOutputPorts
                 };
 
                 const lNode: PotatnoNode = new PotatnoNode(
@@ -279,8 +287,8 @@ interface SerializedFunction {
     label: string;
     system: boolean;
     editableByUser: boolean;
-    inputs: Array<{ name: string; type: string }>;
-    outputs: Array<{ name: string; type: string }>;
+    inputs: PotatnoProjectNodeDefinitionPorts;
+    outputs: PotatnoProjectNodeDefinitionPorts;
     imports: Array<string>;
     nodes: Array<SerializedNode>;
     connections: Array<SerializedConnection>;

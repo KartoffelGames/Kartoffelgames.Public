@@ -1,6 +1,6 @@
 import type { NodeCategory } from '../node/node-category.enum.ts';
 import { PortDirection } from '../node/port-direction.enum.ts';
-import { PotatnoProjectNodeDefinition } from "../project/potatno-node-definition.ts";
+import type { PotatnoNodeDefinitionData, PotatnoProjectNodeDefinitionPort } from "../project/potatno-node-definition.ts";
 import { PotatnoFlowPort } from './potatno-flow-port.ts';
 import { PotatnoPort } from './potatno-port.ts';
 
@@ -43,7 +43,7 @@ export class PotatnoNode {
      * @param pPosition - Initial grid position of the node.
      * @param pSystem - Whether this is a system node that cannot be removed.
      */
-    public constructor(pId: string, pDefinition: PotatnoProjectNodeDefinition, pPosition: { x: number; y: number }, pSystem: boolean) {
+    public constructor(pId: string, pDefinition: PotatnoNodeDefinitionData, pPosition: { x: number; y: number }, pSystem: boolean) {
         this.id = pId;
         this.definitionName = pDefinition.name;
         this.category = pDefinition.category;
@@ -52,39 +52,34 @@ export class PotatnoNode {
         this.mSize = { w: 8, h: 4 };
         this.properties = new Map<string, string>();
 
-        // Create data input ports.
+        // Create ports from input definitions, splitting by nodeType.
         this.inputs = new Map<string, PotatnoPort>();
-        for (const lPortDef of pDefinition.inputs) {
-            const lPortId: string = PotatnoNode.generatePortId();
-            const lValueId: string = PotatnoNode.generateValueId(pDefinition.category);
-            this.inputs.set(lPortDef.name, new PotatnoPort(lPortId, lPortDef.name, lPortDef.type, PortDirection.Input, lValueId));
-        }
-
-        // Create data output ports.
-        this.outputs = new Map<string, PotatnoPort>();
-        for (const lPortDef of pDefinition.outputs) {
-            const lPortId: string = PotatnoNode.generatePortId();
-            const lValueId: string = PotatnoNode.generateValueId(pDefinition.category);
-            this.outputs.set(lPortDef.name, new PotatnoPort(lPortId, lPortDef.name, lPortDef.type, PortDirection.Output, lValueId));
-        }
-
-        // Determine flow ports. Function nodes get automatic exec pins if none are defined.
-        // Event nodes get an automatic exec output.
-        const lFlowInputNames: Array<string> = pDefinition.flowInputs ?? PotatnoNode.getAutoFlowInputs(pDefinition.category);
-        const lFlowOutputNames: Array<string> = pDefinition.flowOutputs ?? PotatnoNode.getAutoFlowOutputs(pDefinition.category);
-
-        // Create flow input ports.
         this.flowInputs = new Map<string, PotatnoFlowPort>();
-        for (const lFlowName of lFlowInputNames) {
-            const lPortId: string = PotatnoNode.generatePortId();
-            this.flowInputs.set(lFlowName, new PotatnoFlowPort(lPortId, lFlowName, PortDirection.Input));
+        for (const [lName, lPortDef] of Object.entries(pDefinition.inputs)) {
+            if (lPortDef.nodeType === 'flow') {
+                const lPortId: string = PotatnoNode.generatePortId();
+                this.flowInputs.set(lName, new PotatnoFlowPort(lPortId, lName, PortDirection.Input));
+            } else {
+                const lPortId: string = PotatnoNode.generatePortId();
+                const lValueId: string = PotatnoNode.generateValueId(pDefinition.category);
+                const lDataType: string = PotatnoNode.getPortDataType(lPortDef);
+                this.inputs.set(lName, new PotatnoPort(lPortId, lName, lDataType, PortDirection.Input, lValueId));
+            }
         }
 
-        // Create flow output ports.
+        // Create ports from output definitions, splitting by nodeType.
+        this.outputs = new Map<string, PotatnoPort>();
         this.flowOutputs = new Map<string, PotatnoFlowPort>();
-        for (const lFlowName of lFlowOutputNames) {
-            const lPortId: string = PotatnoNode.generatePortId();
-            this.flowOutputs.set(lFlowName, new PotatnoFlowPort(lPortId, lFlowName, PortDirection.Output));
+        for (const [lName, lPortDef] of Object.entries(pDefinition.outputs)) {
+            if (lPortDef.nodeType === 'flow') {
+                const lPortId: string = PotatnoNode.generatePortId();
+                this.flowOutputs.set(lName, new PotatnoFlowPort(lPortId, lName, PortDirection.Output));
+            } else {
+                const lPortId: string = PotatnoNode.generatePortId();
+                const lValueId: string = PotatnoNode.generateValueId(pDefinition.category);
+                const lDataType: string = PotatnoNode.getPortDataType(lPortDef);
+                this.outputs.set(lName, new PotatnoPort(lPortId, lName, lDataType, PortDirection.Output, lValueId));
+            }
         }
     }
 
@@ -103,25 +98,13 @@ export class PotatnoNode {
     }
 
     /**
-     * Get automatic flow input port names based on node category.
-     * Function nodes get an 'exec' input. Event nodes get none.
+     * Extract the dataType from a non-flow port definition.
      */
-    private static getAutoFlowInputs(pCategory: NodeCategory | string): Array<string> {
-        if (pCategory === 'function') {
-            return ['exec'];
+    private static getPortDataType(pPortDef: PotatnoProjectNodeDefinitionPort): string {
+        if (pPortDef.nodeType === 'value' || pPortDef.nodeType === 'input') {
+            return pPortDef.dataType;
         }
-        return [];
-    }
-
-    /**
-     * Get automatic flow output port names based on node category.
-     * Function and Event nodes get an 'exec' output.
-     */
-    private static getAutoFlowOutputs(pCategory: NodeCategory | string): Array<string> {
-        if (pCategory === 'function' || pCategory === 'event') {
-            return ['exec'];
-        }
-        return [];
+        return '';
     }
 
     /**

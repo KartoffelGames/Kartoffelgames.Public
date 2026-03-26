@@ -1,4 +1,4 @@
-import type { PotatnoPortDefinition } from '../node/potatno-port-definition.ts';
+import type { PotatnoProjectNodeDefinitionPorts } from './potatno-node-definition.ts';
 
 /**
  * Definition of an event entry point within a main function.
@@ -8,5 +8,5 @@ export interface PotatnoEventDefinition {
     /** Display name of the event. */
     readonly name: string;
     /** Optional data output port definitions. */
-    readonly outputs: Array<PotatnoPortDefinition>;
+    readonly outputs: PotatnoProjectNodeDefinitionPorts;
 }

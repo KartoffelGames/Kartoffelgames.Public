@@ -6,7 +6,7 @@ import { PotatnoCodeCommentNode } from '../node/potatno-code-comment-node.ts';
 import { PotatnoCodeFlowNode } from '../node/potatno-code-flow-node.ts';
 import { PotatnoCodeGetLocalNode } from '../node/potatno-code-get-local-node.ts';
 import { PotatnoCodeInputNode } from '../node/potatno-code-input-node.ts';
-import { PotatnoCodeNode } from '../node/potatno-code-node.ts';
+import { PotatnoCodeNode, type PotatnoCodeNodeContext } from '../node/potatno-code-node.ts';
 import { PotatnoCodeOutputNode } from '../node/potatno-code-output-node.ts';
 import { PotatnoCodeRerouteNode } from '../node/potatno-code-reroute-node.ts';
 import { PotatnoCodeSetLocalNode } from '../node/potatno-code-set-local-node.ts';
@@ -14,20 +14,21 @@ import { PotatnoCodeTemplateNode } from '../node/potatno-code-template-node.ts';
 import { PotatnoCodeValueNode } from '../node/potatno-code-value-node.ts';
 import { PotatnoCodeFunction } from '../project/potatno-code-function.ts';
 import type { PotatnoFunction } from '../project/potatno-function.ts';
-import { PotatnoProjectNodeDefinition } from "../project/potatno-node-definition.ts";
+import type { PotatnoProjectNodeDefinitionPort } from "../project/potatno-node-definition.ts";
+import type { PotatnoProject } from '../project/potatno-project.ts';
 
 /**
  * Walks the graph in topological order and generates clean code without metadata markers.
  */
 export class PotatnoCodeGenerator {
-    private readonly mConfig: PotatnoEditorConfiguration;
+    private readonly mConfig: PotatnoProject;
 
     /**
      * Constructor.
      *
-     * @param pConfig - The editor configuration providing node definitions and code generation settings.
+     * @param pConfig - The project configuration providing node definitions and code generation settings.
      */
-    public constructor(pConfig: PotatnoEditorConfiguration) {
+    public constructor(pConfig: PotatnoProject) {
         this.mConfig = pConfig;
     }
 
@@ -56,14 +57,16 @@ export class PotatnoCodeGenerator {
         lCodeFunc.name = pFunction.name;
         lCodeFunc.bodyCode = lBodyCode;
 
-        for (const lInput of pFunction.inputs) {
-            const lValueId: string = this.findInputNodeValueId(lGraph, lInput.name);
-            lCodeFunc.inputs.push({ name: lInput.name, type: lInput.type, valueId: lValueId });
+        for (const [lName, lPortDef] of Object.entries(pFunction.inputs)) {
+            const lValueId: string = this.findInputNodeValueId(lGraph, lName);
+            const lType: string = PotatnoCodeGenerator.getPortDataType(lPortDef);
+            lCodeFunc.inputs.push({ name: lName, type: lType, valueId: lValueId });
         }
 
-        for (const lOutput of pFunction.outputs) {
-            const lValueId: string = this.findOutputNodeValueId(lGraph, lOutput.name);
-            lCodeFunc.outputs.push({ name: lOutput.name, type: lOutput.type, valueId: lValueId });
+        for (const [lName, lPortDef] of Object.entries(pFunction.outputs)) {
+            const lValueId: string = this.findOutputNodeValueId(lGraph, lName);
+            const lType: string = PotatnoCodeGenerator.getPortDataType(lPortDef);
+            lCodeFunc.outputs.push({ name: lName, type: lType, valueId: lValueId });
         }
 
         // Wrap in function code generator callback if set.
@@ -108,7 +111,7 @@ export class PotatnoCodeGenerator {
                 continue;
             }
 
-            const lDefinition: PotatnoProjectNodeDefinition | undefined = this.mConfig.nodeDefinitions.get(lNode.definitionName);
+            const lDefinition = this.mConfig.nodeDefinitions.get(lNode.definitionName);
             if (!lDefinition) {
                 continue;
             }
@@ -152,7 +155,7 @@ export class PotatnoCodeGenerator {
                 break;
             }
 
-            const lDefinition: PotatnoProjectNodeDefinition | undefined = this.mConfig.nodeDefinitions.get(lOwnerNode.definitionName);
+            const lDefinition = this.mConfig.nodeDefinitions.get(lOwnerNode.definitionName);
             if (!lDefinition) {
                 break;
             }
@@ -189,19 +192,35 @@ export class PotatnoCodeGenerator {
      * @returns The constructed code node with populated ports and properties.
      */
     private buildCodeNode(pGraph: PotatnoGraph, pNode: PotatnoNode): PotatnoCodeNode {
-        const lDefinition: PotatnoProjectNodeDefinition | undefined = this.mConfig.nodeDefinitions.get(pNode.definitionName);
+        const lDefinition = this.mConfig.nodeDefinitions.get(pNode.definitionName);
         const lCodeGenerator = lDefinition?.codeGenerator ?? (() => '');
         const lCodeNode: PotatnoCodeNode = this.createNodeForCategory(pNode.category, lCodeGenerator);
 
-        // Map inputs with resolved value IDs.
+        // Determine port nodeTypes from the definition's input/output records.
+        const lInputDefs: Record<string, PotatnoProjectNodeDefinitionPort> = lDefinition ? Object.fromEntries(Object.entries(lDefinition.inputs)) : {};
+        const lOutputDefs: Record<string, PotatnoProjectNodeDefinitionPort> = lDefinition ? Object.fromEntries(Object.entries(lDefinition.outputs)) : {};
+
+        // Map data inputs with resolved value IDs and port types.
         for (const [lName, lPort] of pNode.inputs) {
             const lValueId: string = this.resolveRerouteChain(pGraph, lPort.connectedTo ?? lPort.valueId);
-            lCodeNode.inputs.set(lName, { name: lName, type: lPort.type, valueId: lValueId });
+            const lNodeType = lInputDefs[lName]?.nodeType ?? 'value';
+            lCodeNode.inputs.set(lName, { name: lName, type: lPort.type, valueId: lValueId, nodeType: lNodeType });
         }
 
-        // Map outputs.
+        // Map flow inputs.
+        for (const [lFlowName] of pNode.flowInputs) {
+            lCodeNode.inputs.set(lFlowName, { name: lFlowName, type: '', valueId: '', nodeType: 'flow' });
+        }
+
+        // Map data outputs.
         for (const [lName, lPort] of pNode.outputs) {
-            lCodeNode.outputs.set(lName, { name: lName, type: lPort.type, valueId: lPort.valueId });
+            const lNodeType = lOutputDefs[lName]?.nodeType ?? 'value';
+            lCodeNode.outputs.set(lName, { name: lName, type: lPort.type, valueId: lPort.valueId, nodeType: lNodeType });
+        }
+
+        // Map flow outputs.
+        for (const [lFlowName] of pNode.flowOutputs) {
+            lCodeNode.outputs.set(lFlowName, { name: lFlowName, type: '', valueId: '', nodeType: 'flow' });
         }
 
         // Copy properties.
@@ -214,7 +233,7 @@ export class PotatnoCodeGenerator {
             const lVarName = pNode.properties.get('variableName') ?? '';
             const lFirst = lCodeNode.outputs.values().next().value;
             if (lFirst && lVarName) {
-                lCodeNode.outputs.set(lFirst.name, { name: lFirst.name, type: lFirst.type, valueId: lVarName });
+                lCodeNode.outputs.set(lFirst.name, { name: lFirst.name, type: lFirst.type, valueId: lVarName, nodeType: lFirst.nodeType });
             }
         }
 
@@ -229,7 +248,7 @@ export class PotatnoCodeGenerator {
      *
      * @returns The appropriate code node subclass instance.
      */
-    private createNodeForCategory(pCategory: NodeCategory, pCodeGenerator: (pContext: NodeCodeContext) => string): PotatnoCodeNode {
+    private createNodeForCategory(pCategory: NodeCategory, pCodeGenerator: (pContext: PotatnoCodeNodeContext) => string): PotatnoCodeNode {
         switch (pCategory) {
             case NodeCategory.Comment:
                 return new PotatnoCodeCommentNode();
@@ -397,5 +416,15 @@ export class PotatnoCodeGenerator {
             }
         }
         return null;
+    }
+
+    /**
+     * Extract the dataType from a port definition.
+     */
+    private static getPortDataType(pPortDef: PotatnoProjectNodeDefinitionPort): string {
+        if (pPortDef.nodeType === 'value' || pPortDef.nodeType === 'input') {
+            return pPortDef.dataType;
+        }
+        return '';
     }
 }

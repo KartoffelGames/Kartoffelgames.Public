@@ -7,7 +7,7 @@ import { PortKind } from '../../../node/port-kind.enum.ts';
 import { PotatnoDeserializer } from '../../../parser/potatno-deserializer.ts';
 import { PotatnoSerializer } from '../../../parser/potatno-serializer.ts';
 import { PotatnoFunction } from '../../../project/potatno-function.ts';
-import { PotatnoProjectNodeDefinition } from "../../../project/potatno-node-definition.ts";
+import type { PotatnoNodeDefinitionData, PotatnoProjectNodeDefinitionPorts } from "../../../project/potatno-node-definition.ts";
 import type { PotatnoProject } from '../../../project/potatno-project.ts';
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import { PotatnoCanvasRenderer } from '../../potatno-canvas-renderer.ts';
@@ -545,7 +545,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             return;
         }
 
-        let lDefinition: PotatnoProjectNodeDefinition | undefined = lProject.nodeDefinitions.get(lDefName);
+        let lDefinition: PotatnoNodeDefinitionData | undefined = lProject.nodeDefinitions.get(lDefName);
 
         // Check if it's a user-defined function rather than a built-in node definition.
         if (!lDefinition) {
@@ -554,8 +554,8 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
                     lDefinition = {
                         name: lFunc.name,
                         category: NodeCategory.Function,
-                        inputs: [...lFunc.inputs],
-                        outputs: [...lFunc.outputs]
+                        inputs: { ...lFunc.inputs },
+                        outputs: { ...lFunc.outputs }
                     };
                     break;
                 }
@@ -590,8 +590,8 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
                     lDefinition = {
                         name: lDefName,
                         category: NodeCategory.Value,
-                        inputs: [],
-                        outputs: [{ name: lGlobalInput.name, type: lGlobalInput.type }]
+                        inputs: {},
+                        outputs: { [lGlobalInput.name]: { nodeType: 'value', dataType: lGlobalInput.type } }
                     };
                     break;
                 }
@@ -605,8 +605,8 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
                     lDefinition = {
                         name: lDefName,
                         category: NodeCategory.Value,
-                        inputs: [{ name: lGlobalOutput.name, type: lGlobalOutput.type }],
-                        outputs: []
+                        inputs: { [lGlobalOutput.name]: { nodeType: 'value', dataType: lGlobalOutput.type } },
+                        outputs: {}
                     };
                     break;
                 }
@@ -1346,50 +1346,58 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
                 lMainDef.editableByUser ?? false
             );
 
-            // Convert Record<string, string> inputs/outputs to Array<PotatnoPortDefinition>.
-            const lInputs: Array<PotatnoPortDefinition> = lMainDef.inputs
-                ? Object.entries(lMainDef.inputs).map(([lName, lType]) => ({ name: lName, type: lType }))
-                : [];
-            const lOutputs: Array<PotatnoPortDefinition> = lMainDef.outputs
-                ? Object.entries(lMainDef.outputs).map(([lName, lType]) => ({ name: lName, type: lType }))
-                : [];
+            // Convert Record<string, string> inputs/outputs to PotatnoProjectNodeDefinitionPorts.
+            const lInputPorts: PotatnoProjectNodeDefinitionPorts = {};
+            if (lMainDef.inputs) {
+                for (const [lName, lType] of Object.entries(lMainDef.inputs)) {
+                    lInputPorts[lName] = { nodeType: 'value', dataType: lType };
+                }
+            }
+            const lOutputPorts: PotatnoProjectNodeDefinitionPorts = {};
+            if (lMainDef.outputs) {
+                for (const [lName, lType] of Object.entries(lMainDef.outputs)) {
+                    lOutputPorts[lName] = { nodeType: 'value', dataType: lType };
+                }
+            }
 
-            lFunc.setInputs(lInputs);
-            lFunc.setOutputs(lOutputs);
+            lFunc.setInputs(lInputPorts);
+            lFunc.setOutputs(lOutputPorts);
 
             // Create fixed input nodes for the function's inputs.
-            for (let lIdx = 0; lIdx < lInputs.length; lIdx++) {
-                const lInput: PotatnoPortDefinition = lInputs[lIdx];
-                const lInputNodeDef: PotatnoProjectNodeDefinition = {
-                    name: lInput.name,
+            let lInputIdx: number = 0;
+            for (const [lName, lPort] of Object.entries(lInputPorts)) {
+                const lInputNodeDef: PotatnoNodeDefinitionData = {
+                    name: lName,
                     category: NodeCategory.Input,
-                    inputs: [],
-                    outputs: [{ name: lInput.name, type: lInput.type }]
+                    inputs: {},
+                    outputs: { [lName]: lPort }
                 };
-                lFunc.graph.addNode(lInputNodeDef, { x: 2, y: 2 + lIdx * 3 }, true);
+                lFunc.graph.addNode(lInputNodeDef, { x: 2, y: 2 + lInputIdx * 3 }, true);
+                lInputIdx++;
             }
 
             // Create fixed output nodes for the function's outputs.
-            for (let lIdx = 0; lIdx < lOutputs.length; lIdx++) {
-                const lOutput: PotatnoPortDefinition = lOutputs[lIdx];
-                const lOutputNodeDef: PotatnoProjectNodeDefinition = {
-                    name: lOutput.name,
+            let lOutputIdx: number = 0;
+            for (const [lName, lPort] of Object.entries(lOutputPorts)) {
+                const lOutputNodeDef: PotatnoNodeDefinitionData = {
+                    name: lName,
                     category: NodeCategory.Output,
-                    inputs: [{ name: lOutput.name, type: lOutput.type }],
-                    outputs: []
+                    inputs: { [lName]: lPort },
+                    outputs: {}
                 };
-                lFunc.graph.addNode(lOutputNodeDef, { x: 30, y: 2 + lIdx * 3 }, true);
+                lFunc.graph.addNode(lOutputNodeDef, { x: 30, y: 2 + lOutputIdx * 3 }, true);
+                lOutputIdx++;
             }
 
             // Create fixed event nodes for the function's events.
             if (lMainDef.events) {
                 for (let lIdx = 0; lIdx < lMainDef.events.length; lIdx++) {
                     const lEvent = lMainDef.events[lIdx];
-                    const lEventNodeDef: PotatnoProjectNodeDefinition = {
+                    const lEventNodeDef: PotatnoNodeDefinitionData = {
                         name: lEvent.name,
                         category: NodeCategory.Event,
-                        inputs: [],
-                        outputs: [...lEvent.outputs]
+                        inputs: {},
+                        outputs: { ...lEvent.outputs }
                     };
                     lFunc.graph.addNode(lEventNodeDef, { x: 2 + lIdx * 10, y: -4 }, true);
                 }
@@ -1446,7 +1454,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         const lActions: Array<PotatnoHistoryAction> = [];
         const lAddActions: Array<NodeAddAction> = [];
         for (const lNodeData of lData.nodes) {
-            const lDef: PotatnoProjectNodeDefinition | undefined = lProject.nodeDefinitions.get(lNodeData.definitionName);
+            const lDef: PotatnoNodeDefinitionData | undefined = lProject.nodeDefinitions.get(lNodeData.definitionName);
             if (lDef) {
                 const lAction: NodeAddAction = new NodeAddAction(
                     lGraph,
@@ -1814,24 +1822,24 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             }
 
             const lPortNames: Set<string> = new Set<string>();
-            for (const lInput of lFunc.inputs) {
-                if (!lNameRegex.test(lInput.name)) {
-                    lErrors.push({ message: `Invalid input name "${lInput.name}".`, location: `Function "${lFunc.name}" > Inputs` });
+            for (const lInputName of Object.keys(lFunc.inputs)) {
+                if (!lNameRegex.test(lInputName)) {
+                    lErrors.push({ message: `Invalid input name "${lInputName}".`, location: `Function "${lFunc.name}" > Inputs` });
                 }
-                if (lPortNames.has(lInput.name)) {
-                    lErrors.push({ message: `Duplicate input/output name "${lInput.name}".`, location: `Function "${lFunc.name}" > Inputs` });
+                if (lPortNames.has(lInputName)) {
+                    lErrors.push({ message: `Duplicate input/output name "${lInputName}".`, location: `Function "${lFunc.name}" > Inputs` });
                 }
-                lPortNames.add(lInput.name);
+                lPortNames.add(lInputName);
             }
 
-            for (const lOutput of lFunc.outputs) {
-                if (!lNameRegex.test(lOutput.name)) {
-                    lErrors.push({ message: `Invalid output name "${lOutput.name}".`, location: `Function "${lFunc.name}" > Outputs` });
+            for (const lOutputName of Object.keys(lFunc.outputs)) {
+                if (!lNameRegex.test(lOutputName)) {
+                    lErrors.push({ message: `Invalid output name "${lOutputName}".`, location: `Function "${lFunc.name}" > Outputs` });
                 }
-                if (lPortNames.has(lOutput.name)) {
-                    lErrors.push({ message: `Duplicate input/output name "${lOutput.name}".`, location: `Function "${lFunc.name}" > Outputs` });
+                if (lPortNames.has(lOutputName)) {
+                    lErrors.push({ message: `Duplicate input/output name "${lOutputName}".`, location: `Function "${lFunc.name}" > Outputs` });
                 }
-                lPortNames.add(lOutput.name);
+                lPortNames.add(lOutputName);
             }
         }
 
@@ -1936,17 +1944,22 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         }
 
         // Available imports.
-        lCached.availableImports = lProject?.imports.map((lImport: PotatnoImportDefinition) => lImport.name) ?? [];
+        lCached.availableImports = lProject?.imports.map((lImport) => lImport.name) ?? [];
 
         // Available types.
         const lTypeSet: Set<string> = new Set<string>();
         if (lProject) {
             for (const lDef of lProject.nodeDefinitions.values()) {
-                for (const lInput of lDef.inputs) {
-                    lTypeSet.add(lInput.type);
+                const lDefData: PotatnoNodeDefinitionData = lDef;
+                for (const lInput of Object.values(lDefData.inputs)) {
+                    if (lInput.nodeType === 'value' || lInput.nodeType === 'input') {
+                        lTypeSet.add(lInput.dataType);
+                    }
                 }
-                for (const lOutput of lDef.outputs) {
-                    lTypeSet.add(lOutput.type);
+                for (const lOutput of Object.values(lDefData.outputs)) {
+                    if (lOutput.nodeType === 'value' || lOutput.nodeType === 'input') {
+                        lTypeSet.add(lOutput.dataType);
+                    }
                 }
             }
         }
@@ -1957,8 +1970,8 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         lCached.activeFunctionName = lActiveFunc?.name ?? '';
         lCached.activeFunctionIsSystem = lActiveFunc?.system ?? false;
         lCached.activeFunctionEditableByUser = lActiveFunc?.editableByUser ?? false;
-        lCached.activeFunctionInputs = [...(lActiveFunc?.inputs ?? [])];
-        lCached.activeFunctionOutputs = [...(lActiveFunc?.outputs ?? [])];
+        lCached.activeFunctionInputs = lActiveFunc ? Object.entries(lActiveFunc.inputs).map(([lName, lPort]) => ({ name: lName, type: lPort.nodeType === 'value' || lPort.nodeType === 'input' ? lPort.dataType : '' })) : [];
+        lCached.activeFunctionOutputs = lActiveFunc ? Object.entries(lActiveFunc.outputs).map(([lName, lPort]) => ({ name: lName, type: lPort.nodeType === 'value' || lPort.nodeType === 'input' ? lPort.dataType : '' })) : [];
         lCached.activeFunctionImports = [...(lActiveFunc?.imports ?? [])];
 
         // Visible nodes.

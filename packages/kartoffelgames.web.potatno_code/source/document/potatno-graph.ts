@@ -35,7 +35,7 @@ export class PotatnoGraph {
     /**
      * Add a new node to the graph.
      */
-    public addNode(pDefinition: PotatnoProjectNodeDefinition<string, string>, pPosition: { x: number; y: number }, pSystem: boolean = false): PotatnoNode {
+    public addNode(pDefinition: PotatnoProjectNodeDefinition, pPosition: { x: number; y: number }, pSystem: boolean = false): PotatnoNode {
         const lId: string = crypto.randomUUID();
         const lNode: PotatnoNode = new PotatnoNode(lId, pDefinition, pPosition, pSystem);
         this.mNodes.set(lId, lNode);

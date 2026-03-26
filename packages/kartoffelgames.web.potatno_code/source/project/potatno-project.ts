@@ -16,7 +16,7 @@ export class PotatnoProject {
     private readonly mGlobalOutputs: Array<PotatnoGlobalPortDefinition>;
     private readonly mImports: Array<PotatnoImportDefinition<string, string>>;
     private readonly mMainFunctions: Array<PotatnoMainFunctionDefinition>;
-    private readonly mNodeDefinitions: Map<string, PotatnoProjectNodeDefinition<string, string>>;
+    private readonly mNodeDefinitions: Map<string, PotatnoProjectNodeDefinition>;
     private mUpdatePreview: ((code: string) => void) | null;
     private mValidTypes: Set<string>;
 
@@ -79,7 +79,7 @@ export class PotatnoProject {
     /**
      * Get the map of registered node definitions keyed by name.
      */
-    public get nodeDefinitions(): ReadonlyMap<string, PotatnoProjectNodeDefinition<string, string>> {
+    public get nodeDefinitions(): ReadonlyMap<string, PotatnoProjectNodeDefinition> {
         return this.mNodeDefinitions;
     }
 
@@ -95,7 +95,7 @@ export class PotatnoProject {
      */
     public constructor() {
         this.mCommentToken = '//';
-        this.mNodeDefinitions = new Map<string, PotatnoProjectNodeDefinition<string, string>>();
+        this.mNodeDefinitions = new Map<string, PotatnoProjectNodeDefinition>();
         this.mMainFunctions = new Array<PotatnoMainFunctionDefinition>();
         this.mImports = new Array<PotatnoImportDefinition>();
         this.mGlobalInputs = new Array<PotatnoGlobalPortDefinition>();
@@ -137,7 +137,7 @@ export class PotatnoProject {
     /**
      * Register a node type definition.
      */
-    public addNodeDefinition<TInputKeys extends string, TOutputKeys extends string, TInputs extends PotatnoProjectNodeDefinitionPorts<TInputKeys>, TOutputs extends PotatnoProjectNodeDefinitionPorts<TOutputKeys>>(pDefinition: PotatnoProjectNodeDefinition<TInputKeys, TOutputKeys, TInputs, TOutputs>): void {
+    public addNodeDefinition<TInputKeys extends string, TOutputKeys extends string, TInputs extends PotatnoProjectNodeDefinitionPorts<TInputKeys>, TOutputs extends PotatnoProjectNodeDefinitionPorts<TOutputKeys>>(pDefinition: PotatnoProjectNodeDefinition<TInputKeys, TInputs, TOutputKeys, TOutputs>): void {
         this.mNodeDefinitions.set(pDefinition.name, pDefinition);
     }
 

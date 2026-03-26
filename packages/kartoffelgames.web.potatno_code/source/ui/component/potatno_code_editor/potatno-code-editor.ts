@@ -545,7 +545,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             return;
         }
 
-        let lDefinition: PotatnoProjectNodeDefinition<string, string> | undefined = lProject.nodeDefinitions.get(lDefName);
+        let lDefinition: PotatnoProjectNodeDefinition | undefined = lProject.nodeDefinitions.get(lDefName);
 
         // Check if it's a user-defined function rather than a built-in node definition.
         if (!lDefinition) {
@@ -1360,7 +1360,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             // Create fixed input nodes for the function's inputs.
             for (let lIdx = 0; lIdx < lInputs.length; lIdx++) {
                 const lInput: PotatnoPortDefinition = lInputs[lIdx];
-                const lInputNodeDef: PotatnoProjectNodeDefinition<string, string> = {
+                const lInputNodeDef: PotatnoProjectNodeDefinition = {
                     name: lInput.name,
                     category: NodeCategory.Input,
                     inputs: [],
@@ -1372,7 +1372,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             // Create fixed output nodes for the function's outputs.
             for (let lIdx = 0; lIdx < lOutputs.length; lIdx++) {
                 const lOutput: PotatnoPortDefinition = lOutputs[lIdx];
-                const lOutputNodeDef: PotatnoProjectNodeDefinition<string, string> = {
+                const lOutputNodeDef: PotatnoProjectNodeDefinition = {
                     name: lOutput.name,
                     category: NodeCategory.Output,
                     inputs: [{ name: lOutput.name, type: lOutput.type }],
@@ -1385,7 +1385,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             if (lMainDef.events) {
                 for (let lIdx = 0; lIdx < lMainDef.events.length; lIdx++) {
                     const lEvent = lMainDef.events[lIdx];
-                    const lEventNodeDef: PotatnoProjectNodeDefinition<string, string> = {
+                    const lEventNodeDef: PotatnoProjectNodeDefinition = {
                         name: lEvent.name,
                         category: NodeCategory.Event,
                         inputs: [],
@@ -1446,7 +1446,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         const lActions: Array<PotatnoHistoryAction> = [];
         const lAddActions: Array<NodeAddAction> = [];
         for (const lNodeData of lData.nodes) {
-            const lDef: PotatnoProjectNodeDefinition<string, string> | undefined = lProject.nodeDefinitions.get(lNodeData.definitionName);
+            const lDef: PotatnoProjectNodeDefinition | undefined = lProject.nodeDefinitions.get(lNodeData.definitionName);
             if (lDef) {
                 const lAction: NodeAddAction = new NodeAddAction(
                     lGraph,

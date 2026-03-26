@@ -43,7 +43,7 @@ export class PotatnoNode {
      * @param pPosition - Initial grid position of the node.
      * @param pSystem - Whether this is a system node that cannot be removed.
      */
-    public constructor(pId: string, pDefinition: PotatnoProjectNodeDefinition<string, string>, pPosition: { x: number; y: number }, pSystem: boolean) {
+    public constructor(pId: string, pDefinition: PotatnoProjectNodeDefinition, pPosition: { x: number; y: number }, pSystem: boolean) {
         this.id = pId;
         this.definitionName = pDefinition.name;
         this.category = pDefinition.category;

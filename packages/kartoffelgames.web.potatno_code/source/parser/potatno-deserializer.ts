@@ -132,7 +132,7 @@ export class PotatnoDeserializer {
             const lCategory: string = lNodeData.category;
 
             // Get the node definition from the configuration.
-            const lDefinition: PotatnoProjectNodeDefinition<string, string> | undefined = this.mConfig.nodeDefinitions.get(lNodeData.type);
+            const lDefinition: PotatnoProjectNodeDefinition | undefined = this.mConfig.nodeDefinitions.get(lNodeData.type);
 
             if (lDefinition) {
                 // Reconstruct via definition.
@@ -160,7 +160,7 @@ export class PotatnoDeserializer {
                 // Input/output nodes -- create a minimal definition.
                 const lInputs = (lNodeData.inputs ?? []).map((p) => ({ name: p.name, type: p.type }));
                 const lOutputs = (lNodeData.outputs ?? []).map((p) => ({ name: p.name, type: p.type }));
-                const lMinDef: PotatnoProjectNodeDefinition<string, string> = {
+                const lMinDef: PotatnoProjectNodeDefinition = {
                     name: lNodeData.type,
                     category: lCategory as NodeCategory,
                     inputs: lInputs,

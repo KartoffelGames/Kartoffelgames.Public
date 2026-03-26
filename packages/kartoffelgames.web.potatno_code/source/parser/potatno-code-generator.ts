@@ -108,7 +108,7 @@ export class PotatnoCodeGenerator {
                 continue;
             }
 
-            const lDefinition: PotatnoProjectNodeDefinition<string, string> | undefined = this.mConfig.nodeDefinitions.get(lNode.definitionName);
+            const lDefinition: PotatnoProjectNodeDefinition | undefined = this.mConfig.nodeDefinitions.get(lNode.definitionName);
             if (!lDefinition) {
                 continue;
             }
@@ -152,7 +152,7 @@ export class PotatnoCodeGenerator {
                 break;
             }
 
-            const lDefinition: PotatnoProjectNodeDefinition<string, string> | undefined = this.mConfig.nodeDefinitions.get(lOwnerNode.definitionName);
+            const lDefinition: PotatnoProjectNodeDefinition | undefined = this.mConfig.nodeDefinitions.get(lOwnerNode.definitionName);
             if (!lDefinition) {
                 break;
             }
@@ -189,7 +189,7 @@ export class PotatnoCodeGenerator {
      * @returns The constructed code node with populated ports and properties.
      */
     private buildCodeNode(pGraph: PotatnoGraph, pNode: PotatnoNode): PotatnoCodeNode {
-        const lDefinition: PotatnoProjectNodeDefinition<string, string> | undefined = this.mConfig.nodeDefinitions.get(pNode.definitionName);
+        const lDefinition: PotatnoProjectNodeDefinition | undefined = this.mConfig.nodeDefinitions.get(pNode.definitionName);
         const lCodeGenerator = lDefinition?.codeGenerator ?? (() => '');
         const lCodeNode: PotatnoCodeNode = this.createNodeForCategory(pNode.category, lCodeGenerator);
 

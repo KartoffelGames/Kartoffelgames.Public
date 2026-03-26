@@ -11,6 +11,11 @@ const lProject: PotatnoProject = new PotatnoProject();
 // --- Comment token ---
 lProject.setCommentToken('//');
 
+// -- Types ---
+lProject.addType('number');
+lProject.addType('string');
+lProject.addType('boolean');
+
 // --- Imports (replaces defineGlobalValue) ---
 lProject.addImport({
     name: 'Math',

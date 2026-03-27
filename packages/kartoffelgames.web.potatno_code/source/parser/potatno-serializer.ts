@@ -173,7 +173,7 @@ export class PotatnoSerializer {
 
         return {
             id: pNode.id,
-            type: pNode.definitionName,
+            type: pNode.definitionId,
             category: pNode.category,
             position: pNode.position,
             size: pNode.size,

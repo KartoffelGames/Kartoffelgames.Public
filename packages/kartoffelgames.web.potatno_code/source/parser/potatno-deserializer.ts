@@ -4,7 +4,7 @@ import { PotatnoConnection } from '../document/potatno-connection.ts';
 import { PotatnoNode } from '../document/potatno-node.ts';
 import { PotatnoFunction } from '../project/potatno-function.ts';
 import { PotatnoCodeFile } from '../document/potatno-code-file.ts';
-import type { PotatnoNodeDefinitionData, PotatnoProjectNodeDefinitionPorts } from "../project/potatno-node-definition.ts";
+import type { PotatnoProjectNodeDefinition, PotatnoProjectNodeDefinitionPorts } from "../project/potatno-node-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
 
 /**
@@ -12,7 +12,7 @@ import type { PotatnoProject } from '../project/potatno-project.ts';
  * back into a PotatnoCodeFile.
  */
 export class PotatnoDeserializer {
-    private readonly mConfig: PotatnoProject;
+    private readonly mProject: PotatnoProject;
 
     /**
      * Constructor.
@@ -20,7 +20,7 @@ export class PotatnoDeserializer {
      * @param pConfig - The project configuration providing node definitions and settings.
      */
     public constructor(pConfig: PotatnoProject) {
-        this.mConfig = pConfig;
+        this.mProject = pConfig;
     }
 
     /**
@@ -73,7 +73,7 @@ export class PotatnoDeserializer {
      * @returns The parsed metadata structure, or null if no metadata comment was found.
      */
     private parseMetadataComment(pCode: string): PotatnoMetadata | null {
-        const lToken: string = this.mConfig.commentToken;
+        const lToken: string = this.mProject.commentToken;
         const lPrefix: string = `${lToken} #potatno `;
         const lLines: Array<string> = pCode.split('\n');
 
@@ -133,7 +133,7 @@ export class PotatnoDeserializer {
             const lCategory: string = lNodeData.category;
 
             // Get the node definition from the configuration.
-            const lDefinition = this.mConfig.nodeDefinitions.get(lNodeData.type);
+            const lDefinition = this.mProject.nodeDefinitions.get(lNodeData.nodeDefinitionId);
 
             if (lDefinition) {
                 // Reconstruct via definition.
@@ -158,6 +158,8 @@ export class PotatnoDeserializer {
 
                 pFunction.graph.addExistingNode(lNode);
             } else if (lCategory === NodeCategory.Input || lCategory === NodeCategory.Output) {
+                // TODO: Create a node of type error if definition is missing instead of trying to reconstruct a minimal node.
+
                 // Input/output nodes -- create a minimal definition from serialized port data.
                 const lInputPorts: PotatnoProjectNodeDefinitionPorts = {};
                 for (const lPort of (lNodeData.inputs ?? [])) {
@@ -168,12 +170,7 @@ export class PotatnoDeserializer {
                     lOutputPorts[lPort.name] = { nodeType: 'value', dataType: lPort.type };
                 }
 
-                const lMinDef: PotatnoNodeDefinitionData = {
-                    name: lNodeData.type,
-                    category: lCategory as NodeCategory,
-                    inputs: lInputPorts,
-                    outputs: lOutputPorts
-                };
+                const lMinDef: PotatnoProjectNodeDefinition = this.mProject.nodeDefinitions.get(lNodeData.nodeDefinitionId)!;
 
                 const lNode: PotatnoNode = new PotatnoNode(
                     lNodeData.id,
@@ -299,7 +296,7 @@ interface SerializedFunction {
  */
 interface SerializedNode {
     id: string;
-    type: string;
+    nodeDefinitionId: string;
     category: string;
     position: { x: number; y: number };
     size: { w: number; h: number };

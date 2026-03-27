@@ -7,7 +7,7 @@ import { PortKind } from '../../../node/port-kind.enum.ts';
 import { PotatnoDeserializer } from '../../../parser/potatno-deserializer.ts';
 import { PotatnoSerializer } from '../../../parser/potatno-serializer.ts';
 import { PotatnoFunction } from '../../../project/potatno-function.ts';
-import type { PotatnoNodeDefinitionData, PotatnoProjectNodeDefinitionPorts } from "../../../project/potatno-node-definition.ts";
+import type { PotatnoProjectNodeDefinition, PotatnoProjectNodeDefinitionPort, PotatnoProjectNodeDefinitionPorts } from "../../../project/potatno-node-definition.ts";
 import type { PotatnoProject } from '../../../project/potatno-project.ts';
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import { PotatnoCanvasRenderer } from '../../potatno-canvas-renderer.ts';
@@ -545,7 +545,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             return;
         }
 
-        let lDefinition: PotatnoNodeDefinitionData | undefined = lProject.nodeDefinitions.get(lDefName);
+        let lDefinition: PotatnoProjectNodeDefinition | undefined = lProject.nodeDefinitions.get(lDefName);
 
         // Check if it's a user-defined function rather than a built-in node definition.
         if (!lDefinition) {
@@ -570,7 +570,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
                 for (const lImport of lProject.imports) {
                     if (lEnabledImports.has(lImport.name)) {
                         for (const lNodeDef of lImport.nodes) {
-                            if (lNodeDef.name === lDefName) {
+                            if (lNodeDef.id === lDefName) {
                                 lDefinition = lNodeDef;
                                 break;
                             }
@@ -1366,7 +1366,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             // Create fixed input nodes for the function's inputs.
             let lInputIdx: number = 0;
             for (const [lName, lPort] of Object.entries(lInputPorts)) {
-                const lInputNodeDef: PotatnoNodeDefinitionData = {
+                const lInputNodeDef: PotatnoProjectNodeDefinition = {
                     name: lName,
                     category: NodeCategory.Input,
                     inputs: {},
@@ -1379,7 +1379,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             // Create fixed output nodes for the function's outputs.
             let lOutputIdx: number = 0;
             for (const [lName, lPort] of Object.entries(lOutputPorts)) {
-                const lOutputNodeDef: PotatnoNodeDefinitionData = {
+                const lOutputNodeDef: PotatnoProjectNodeDefinition = {
                     name: lName,
                     category: NodeCategory.Output,
                     inputs: { [lName]: lPort },
@@ -1393,7 +1393,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             if (lMainDef.events) {
                 for (let lIdx = 0; lIdx < lMainDef.events.length; lIdx++) {
                     const lEvent = lMainDef.events[lIdx];
-                    const lEventNodeDef: PotatnoNodeDefinitionData = {
+                    const lEventNodeDef: PotatnoProjectNodeDefinition = {
                         name: lEvent.name,
                         category: NodeCategory.Event,
                         inputs: {},
@@ -1454,7 +1454,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         const lActions: Array<PotatnoHistoryAction> = [];
         const lAddActions: Array<NodeAddAction> = [];
         for (const lNodeData of lData.nodes) {
-            const lDef: PotatnoNodeDefinitionData | undefined = lProject.nodeDefinitions.get(lNodeData.definitionName);
+            const lDef: PotatnoProjectNodeDefinition | undefined = lProject.nodeDefinitions.get(lNodeData.definitionName);
             if (lDef) {
                 const lAction: NodeAddAction = new NodeAddAction(
                     lGraph,
@@ -1853,8 +1853,8 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             for (const lInput of lNode.inputs.values()) {
                 if (!lInput.connectedTo && !lNode.system) {
                     lErrors.push({
-                        message: `Input "${lInput.name}" on node "${lNode.definitionName}" is not connected.`,
-                        location: `Function "${lFunc.name}" > Node "${lNode.definitionName}"`,
+                        message: `Input "${lInput.name}" on node "${lNode.definitionId}" is not connected.`,
+                        location: `Function "${lFunc.name}" > Node "${lNode.definitionId}"`,
                         blocking: false
                     } as any);
                 }
@@ -1896,7 +1896,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         const lNodeDefs: Array<{ name: string; category: string; }> = [];
         if (lProject) {
             for (const lDef of lProject.nodeDefinitions.values()) {
-                lNodeDefs.push({ name: lDef.name, category: lDef.category });
+                lNodeDefs.push({ name: lDef.id, category: lDef.category });
             }
         }
         // Add user-defined (non-system) functions as callable nodes.
@@ -1926,7 +1926,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
                 for (const lImport of lProject.imports) {
                     if (lEnabledImports.has(lImport.name)) {
                         for (const lNodeDef of lImport.nodes) {
-                            lNodeDefs.push({ name: lNodeDef.name, category: lNodeDef.category });
+                            lNodeDefs.push({ name: lNodeDef.id, category: lNodeDef.category });
                         }
                     }
                 }
@@ -1950,13 +1950,13 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         const lTypeSet: Set<string> = new Set<string>();
         if (lProject) {
             for (const lDef of lProject.nodeDefinitions.values()) {
-                const lDefData: PotatnoNodeDefinitionData = lDef;
-                for (const lInput of Object.values(lDefData.inputs)) {
+                const lDefData: PotatnoProjectNodeDefinition = lDef;
+                for (const lInput of Object.values<PotatnoProjectNodeDefinitionPort>(lDefData.inputs)) {
                     if (lInput.nodeType === 'value' || lInput.nodeType === 'input') {
                         lTypeSet.add(lInput.dataType);
                     }
                 }
-                for (const lOutput of Object.values(lDefData.outputs)) {
+                for (const lOutput of Object.values<PotatnoProjectNodeDefinitionPort>(lDefData.outputs)) {
                     if (lOutput.nodeType === 'value' || lOutput.nodeType === 'input') {
                         lTypeSet.add(lOutput.dataType);
                     }
@@ -1986,7 +1986,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
 
             const lNodes: Array<any> = [];
             for (const lNode of lActiveFunc.graph.nodes.values()) {
-                const lDef = lProject?.nodeDefinitions.get(lNode.definitionName);
+                const lDef = lProject?.nodeDefinitions.get(lNode.definitionId);
                 const lCategoryMeta = NodeCategoryMeta.get(lNode.category);
                 const lInputs: Array<{ id: string; name: string; type: string; direction: string; connectedTo: string | null; }> = [];
                 for (const lPort of lNode.inputs.values()) {
@@ -2008,11 +2008,11 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
 
                 lNodes.push({
                     id: lNode.id,
-                    definitionName: lNode.definitionName,
+                    definitionName: lNode.definitionId,
                     category: lNode.category,
                     categoryColor: lCategoryMeta.cssColor,
                     categoryIcon: lCategoryMeta.icon,
-                    label: lNode.definitionName,
+                    label: lNode.definitionId,
                     position: { x: lNode.position.x, y: lNode.position.y },
                     size: { w: lNode.size.w, h: lNode.size.h },
                     system: lNode.system,

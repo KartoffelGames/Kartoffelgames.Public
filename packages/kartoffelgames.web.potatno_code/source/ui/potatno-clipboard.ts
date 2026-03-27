@@ -80,7 +80,7 @@ export class PotatnoClipboard {
             }
 
             return {
-                definitionName: lNode.definitionName,
+                definitionName: lNode.definitionId,
                 position: { ...lNode.position },
                 size: { ...lNode.size },
                 properties: lProperties,

@@ -1,6 +1,6 @@
 import type { NodeCategory } from '../node/node-category.enum.ts';
 import { PortDirection } from '../node/port-direction.enum.ts';
-import type { PotatnoNodeDefinitionData, PotatnoProjectNodeDefinitionPort } from "../project/potatno-node-definition.ts";
+import type { PotatnoProjectNodeDefinition, PotatnoProjectNodeDefinitionPort } from "../project/potatno-node-definition.ts";
 import { PotatnoFlowPort } from './potatno-flow-port.ts';
 import { PotatnoPort } from './potatno-port.ts';
 
@@ -9,7 +9,7 @@ import { PotatnoPort } from './potatno-port.ts';
  */
 export class PotatnoNode {
     public readonly category: NodeCategory;
-    public readonly definitionName: string;
+    public readonly definitionId: string;
     public readonly flowInputs: Map<string, PotatnoFlowPort>;
     public readonly flowOutputs: Map<string, PotatnoFlowPort>;
     public readonly id: string;
@@ -43,9 +43,9 @@ export class PotatnoNode {
      * @param pPosition - Initial grid position of the node.
      * @param pSystem - Whether this is a system node that cannot be removed.
      */
-    public constructor(pId: string, pDefinition: PotatnoNodeDefinitionData, pPosition: { x: number; y: number }, pSystem: boolean) {
+    public constructor(pId: string, pDefinition: PotatnoProjectNodeDefinition, pPosition: { x: number; y: number }, pSystem: boolean) {
         this.id = pId;
-        this.definitionName = pDefinition.name;
+        this.definitionId = pDefinition.id;
         this.category = pDefinition.category;
         this.system = pSystem;
         this.mPosition = { x: pPosition.x, y: pPosition.y };
@@ -55,7 +55,7 @@ export class PotatnoNode {
         // Create ports from input definitions, splitting by nodeType.
         this.inputs = new Map<string, PotatnoPort>();
         this.flowInputs = new Map<string, PotatnoFlowPort>();
-        for (const [lName, lPortDef] of Object.entries(pDefinition.inputs)) {
+        for (const [lName, lPortDef] of Object.entries<PotatnoProjectNodeDefinitionPort>(pDefinition.inputs)) {
             if (lPortDef.nodeType === 'flow') {
                 const lPortId: string = PotatnoNode.generatePortId();
                 this.flowInputs.set(lName, new PotatnoFlowPort(lPortId, lName, PortDirection.Input));
@@ -70,7 +70,7 @@ export class PotatnoNode {
         // Create ports from output definitions, splitting by nodeType.
         this.outputs = new Map<string, PotatnoPort>();
         this.flowOutputs = new Map<string, PotatnoFlowPort>();
-        for (const [lName, lPortDef] of Object.entries(pDefinition.outputs)) {
+        for (const [lName, lPortDef] of Object.entries<PotatnoProjectNodeDefinitionPort>(pDefinition.outputs)) {
             if (lPortDef.nodeType === 'flow') {
                 const lPortId: string = PotatnoNode.generatePortId();
                 this.flowOutputs.set(lName, new PotatnoFlowPort(lPortId, lName, PortDirection.Output));

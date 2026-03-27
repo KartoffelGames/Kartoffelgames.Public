@@ -77,7 +77,7 @@ export class PotatnoProject {
     }
 
     /**
-     * Get the map of registered node definitions keyed by name.
+     * Get the map of registered node definitions keyed by node definitions id.
      */
     public get nodeDefinitions(): ReadonlyMap<string, PotatnoProjectNodeDefinition> {
         return this.mNodeDefinitions;
@@ -138,7 +138,7 @@ export class PotatnoProject {
      * Register a node type definition.
      */
     public addNodeDefinition(pDefinition: PotatnoProjectNodeDefinition): void {
-        this.mNodeDefinitions.set(pDefinition.name, pDefinition);
+        this.mNodeDefinitions.set(pDefinition.id, pDefinition);
     }
 
     /**

@@ -12,17 +12,18 @@ import { PotatnoProject } from "./potatno-project.ts";
  * @template TOutputs - Object type mapping output port names to their definitions, constrained by TOutputKeys.
  */
 export class PotatnoProjectNodeDefinition<TInputs extends PotatnoProjectNodeDefinitionPorts = {}, TOutputs extends PotatnoProjectNodeDefinitionPorts = {}> {
-    private readonly mName: string;
+    private readonly mId: string;
     private readonly mCategory: NodeCategory;
     private readonly mInputs: TInputs;
+    private readonly mLabel: string;
     private readonly mOutputs: TOutputs;
     private readonly mCodeGenerator: PotatnoProjectNodeDefinitionCodeGenerator<TInputs, TOutputs>;
 
     /**
-     *  Unique display name for this node type. 
+     *  Unique id for this node definition. 
      */
-    public get name(): string {
-        return this.mName;
+    public get id(): string {
+        return this.mId;
     }
 
     /** 
@@ -37,6 +38,13 @@ export class PotatnoProjectNodeDefinition<TInputs extends PotatnoProjectNodeDefi
      */
     public get inputs(): TInputs {
         return this.mInputs;
+    }
+
+    /**
+     * Display label for this node type.
+     */
+    public get label(): string {
+        return this.mLabel;
     }
 
     /** 
@@ -59,7 +67,8 @@ export class PotatnoProjectNodeDefinition<TInputs extends PotatnoProjectNodeDefi
      * @param params - Constructor parameters. 
      */
     public constructor(pProject: PotatnoProject, params: PotatnoProjectNodeDefinitionConstructorParameter<TInputs, TOutputs>) {
-        this.mName = params.name;
+        this.mId = params.name;
+        this.mLabel = params.label ?? params.name;
         this.mCategory = params.category;
         this.mInputs = params.inputs ?? {} as TInputs;
         this.mOutputs = params.outputs ?? {} as TOutputs;
@@ -74,7 +83,7 @@ export class PotatnoProjectNodeDefinition<TInputs extends PotatnoProjectNodeDefi
 
             // Throw if type is not registered in project.
             if (!pProject.hasType(lPort.dataType)) {
-                throw new Exception(`Type not registered in project for input port type '${lPort.dataType}' in node definition '${this.mName}'.`, this);
+                throw new Exception(`Type not registered in project for input port type '${lPort.dataType}' in node definition '${this.mId}'.`, this);
             }
         }
 
@@ -87,13 +96,14 @@ export class PotatnoProjectNodeDefinition<TInputs extends PotatnoProjectNodeDefi
 
             // Throw if type is not registered in project.
             if (!pProject.hasType(lPort.dataType)) {
-                throw new Exception(`Type not registered in project for output port type '${lPort.dataType}' in node definition '${this.mName}'.`, this);
+                throw new Exception(`Type not registered in project for output port type '${lPort.dataType}' in node definition '${this.mId}'.`, this);
             }
         }
     }
 }
 
 type PotatnoProjectNodeDefinitionConstructorParameter<TInputs extends PotatnoProjectNodeDefinitionPorts, TOutputs extends PotatnoProjectNodeDefinitionPorts> = {
+    label?: string;
     name: string;
     category: NodeCategory;
     inputs: TInputs;
@@ -200,15 +210,4 @@ export type PotatnoProjectCodeGeneratorPorts<TPorts extends PotatnoProjectNodeDe
     [K in keyof TPorts]: TPorts[K] extends PotatnoProjectNodeDefinitionValuePort ? PotatnoProjectCodeGeneratorValuePort :
     TPorts[K] extends PotatnoProjectNodeDefinitionInputPort ? PotatnoProjectCodeGeneratorInputPort :
     TPorts[K] extends PotatnoProjectNodeDefinitionFlowPort ? PotatnoProjectCodeGeneratorFlowPort : never;
-};
-
-/**
- * Structural type describing the data needed to create a node instance.
- * Satisfied by both {@link PotatnoProjectNodeDefinition} instances and plain objects.
- */
-export type PotatnoNodeDefinitionData = {
-    readonly name: string;
-    readonly category: NodeCategory;
-    readonly inputs: PotatnoProjectNodeDefinitionPorts;
-    readonly outputs: PotatnoProjectNodeDefinitionPorts;
 };

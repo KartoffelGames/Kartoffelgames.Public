@@ -1,5 +1,5 @@
 import { PortKind } from '../node/port-kind.enum.ts';
-import type { PotatnoNodeDefinitionData } from "../project/potatno-node-definition.ts";
+import type { PotatnoProjectNodeDefinition } from "../project/potatno-node-definition.ts";
 import { PotatnoConnection } from './potatno-connection.ts';
 import { PotatnoNode } from './potatno-node.ts';
 
@@ -35,7 +35,7 @@ export class PotatnoGraph {
     /**
      * Add a new node to the graph.
      */
-    public addNode(pDefinition: PotatnoNodeDefinitionData, pPosition: { x: number; y: number }, pSystem: boolean = false): PotatnoNode {
+    public addNode(pDefinition: PotatnoProjectNodeDefinition, pPosition: { x: number; y: number }, pSystem: boolean = false): PotatnoNode {
         const lId: string = crypto.randomUUID();
         const lNode: PotatnoNode = new PotatnoNode(lId, pDefinition, pPosition, pSystem);
         this.mNodes.set(lId, lNode);

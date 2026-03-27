@@ -111,7 +111,7 @@ export class PotatnoCodeGenerator {
                 continue;
             }
 
-            const lDefinition = this.mConfig.nodeDefinitions.get(lNode.definitionName);
+            const lDefinition = this.mConfig.nodeDefinitions.get(lNode.definitionId);
             if (!lDefinition) {
                 continue;
             }
@@ -155,7 +155,7 @@ export class PotatnoCodeGenerator {
                 break;
             }
 
-            const lDefinition = this.mConfig.nodeDefinitions.get(lOwnerNode.definitionName);
+            const lDefinition = this.mConfig.nodeDefinitions.get(lOwnerNode.definitionId);
             if (!lDefinition) {
                 break;
             }
@@ -192,7 +192,7 @@ export class PotatnoCodeGenerator {
      * @returns The constructed code node with populated ports and properties.
      */
     private buildCodeNode(pGraph: PotatnoGraph, pNode: PotatnoNode): PotatnoCodeNode {
-        const lDefinition = this.mConfig.nodeDefinitions.get(pNode.definitionName);
+        const lDefinition = this.mConfig.nodeDefinitions.get(pNode.definitionId);
         const lCodeGenerator = lDefinition?.codeGenerator ?? (() => '');
         const lCodeNode: PotatnoCodeNode = this.createNodeForCategory(pNode.category, lCodeGenerator);
 
@@ -333,7 +333,7 @@ export class PotatnoCodeGenerator {
      */
     private findInputNodeValueId(pGraph: PotatnoGraph, pName: string): string {
         for (const lNode of pGraph.nodes.values()) {
-            if (lNode.category === NodeCategory.Input && lNode.definitionName === pName) {
+            if (lNode.category === NodeCategory.Input && lNode.definitionId === pName) {
                 const lFirstOutput = lNode.outputs.values().next().value;
                 if (lFirstOutput) {
                     return lFirstOutput.valueId;
@@ -353,7 +353,7 @@ export class PotatnoCodeGenerator {
      */
     private findOutputNodeValueId(pGraph: PotatnoGraph, pName: string): string {
         for (const lNode of pGraph.nodes.values()) {
-            if (lNode.category === NodeCategory.Output && lNode.definitionName === pName) {
+            if (lNode.category === NodeCategory.Output && lNode.definitionId === pName) {
                 const lFirstInput = lNode.inputs.values().next().value;
                 if (lFirstInput && lFirstInput.connectedTo) {
                     return this.resolveRerouteChain(pGraph, lFirstInput.connectedTo);

@@ -1,4 +1,4 @@
-import type { PotatnoProjectNodeDefinitionPort, PotatnoProjectNodeDefinitionPorts } from './potatno-node-definition.ts';
+import type { PotatnoNodeDefinitionPort, PotatnoNodeDefinitionPorts } from './potatno-node-definition.ts';
 import { PotatnoGraph } from '../document/potatno-graph.ts';
 
 /**
@@ -11,11 +11,11 @@ export class PotatnoFunction {
     public readonly system: boolean;
 
     private mImports: Array<string>;
-    private mInputs: PotatnoProjectNodeDefinitionPorts;
+    private mInputs: PotatnoNodeDefinitionPorts;
     private mLabel: string;
     private mLocalVariables: Array<{ name: string; type: string }>;
     private mName: string;
-    private mOutputs: PotatnoProjectNodeDefinitionPorts;
+    private mOutputs: PotatnoNodeDefinitionPorts;
 
     /**
      * Get the list of imports for this function.
@@ -27,7 +27,7 @@ export class PotatnoFunction {
     /**
      * Get the input port definitions for this function.
      */
-    public get inputs(): Readonly<PotatnoProjectNodeDefinitionPorts> {
+    public get inputs(): Readonly<PotatnoNodeDefinitionPorts> {
         return this.mInputs;
     }
 
@@ -55,7 +55,7 @@ export class PotatnoFunction {
     /**
      * Get the output port definitions for this function.
      */
-    public get outputs(): Readonly<PotatnoProjectNodeDefinitionPorts> {
+    public get outputs(): Readonly<PotatnoNodeDefinitionPorts> {
         return this.mOutputs;
     }
 
@@ -104,7 +104,7 @@ export class PotatnoFunction {
      *
      * @param pInputs - The new input port definitions.
      */
-    public setInputs(pInputs: PotatnoProjectNodeDefinitionPorts): void {
+    public setInputs(pInputs: PotatnoNodeDefinitionPorts): void {
         this.mInputs = { ...pInputs };
     }
 
@@ -113,7 +113,7 @@ export class PotatnoFunction {
      *
      * @param pOutputs - The new output port definitions.
      */
-    public setOutputs(pOutputs: PotatnoProjectNodeDefinitionPorts): void {
+    public setOutputs(pOutputs: PotatnoNodeDefinitionPorts): void {
         this.mOutputs = { ...pOutputs };
     }
 
@@ -155,7 +155,7 @@ export class PotatnoFunction {
      * @param pName - The port name.
      * @param pPort - The port definition.
      */
-    public addInput(pName: string, pPort: PotatnoProjectNodeDefinitionPort): void {
+    public addInput(pName: string, pPort: PotatnoNodeDefinitionPort): void {
         this.mInputs[pName] = pPort;
     }
 
@@ -174,7 +174,7 @@ export class PotatnoFunction {
      * @param pName - The port name.
      * @param pPort - The port definition.
      */
-    public addOutput(pName: string, pPort: PotatnoProjectNodeDefinitionPort): void {
+    public addOutput(pName: string, pPort: PotatnoNodeDefinitionPort): void {
         this.mOutputs[pName] = pPort;
     }
 

@@ -1,7 +1,7 @@
 import type { PotatnoConnection } from '../document/potatno-connection.ts';
 import type { PotatnoGraph } from '../document/potatno-graph.ts';
 import type { PotatnoNode } from '../document/potatno-node.ts';
-import type { PotatnoProjectNodeDefinition } from "../project/potatno-node-definition.ts";
+import type { PotatnoNodeDefinition } from "../project/potatno-node-definition.ts";
 import type { PotatnoHistoryAction } from './potatno-history-action.ts';
 
 /**
@@ -11,7 +11,7 @@ import type { PotatnoHistoryAction } from './potatno-history-action.ts';
 export class NodeAddAction implements PotatnoHistoryAction {
     public readonly description: string;
 
-    private readonly mDefinition: PotatnoProjectNodeDefinition;
+    private readonly mDefinition: PotatnoNodeDefinition;
     private readonly mGraph: PotatnoGraph;
     private mNode: PotatnoNode | null;
     private readonly mPosition: { x: number; y: number; };
@@ -32,7 +32,7 @@ export class NodeAddAction implements PotatnoHistoryAction {
      * @param pPosition - The initial position for the node.
      * @param pSystem - Whether the node is a system node. Defaults to false.
      */
-    public constructor(pGraph: PotatnoGraph, pDefinition: PotatnoProjectNodeDefinition, pPosition: { x: number; y: number; }, pSystem: boolean = false) {
+    public constructor(pGraph: PotatnoGraph, pDefinition: PotatnoNodeDefinition, pPosition: { x: number; y: number; }, pSystem: boolean = false) {
         this.description = `Add node: ${pDefinition.id}`;
         this.mGraph = pGraph;
         this.mDefinition = pDefinition;

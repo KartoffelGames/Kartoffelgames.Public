@@ -3,70 +3,71 @@ import { NodeCategory } from '../../source/node/node-category.enum.ts';
 import { PotatnoCodeApplication } from '../../source/potatno-code-application.ts';
 import type { PotatnoCodeFunction } from '../../source/project/potatno-code-function.ts';
 import { PotatnoEntryPointDefinition } from "../../source/project/potatno-entry-point-definition.ts";
-import { PotatnoProjectNodeDefinition } from "../../source/project/potatno-node-definition.ts";
+import { PotatnoNodeDefinition } from "../../source/project/potatno-node-definition.ts";
 import { PotatnoProject } from '../../source/project/potatno-project.ts';
 
 // --- Project configuration ---
-const lProject = new PotatnoProject([
-    'number',
-    'string',
-    'boolean'
-]);
-
-// --- Comment token ---
-lProject.setCommentToken('//');
+const lProject = new PotatnoProject({
+    commentToken: '//',
+    types: {
+        number: 0,
+        string: '',
+        boolean: false
+    },
+    
+});
 
 // --- Imports (replaces defineGlobalValue) ---
 lProject.addImport({
     name: 'Math',
     nodes: [
-        PotatnoProjectNodeDefinition.create(lProject, {
+        PotatnoNodeDefinition.create(lProject, {
             id: 'Math.PI',
             category: NodeCategory.Value,
             inputs: {},
             outputs: {
                 value: { nodeType: 'value', dataType: 'number' }
-            },
+            } as const,
             codeGenerator: (pContext) => `const ${pContext.outputs.value.valueId} = Math.PI;`
         }),
-        PotatnoProjectNodeDefinition.create(lProject, {
+        PotatnoNodeDefinition.create(lProject, {
             id: 'Math.E',
             category: NodeCategory.Value,
             inputs: {},
             outputs: {
                 value: { nodeType: 'value', dataType: 'number' }
-            },
+            } as const,
             codeGenerator: (pContext) => `const ${pContext.outputs.value.valueId} = Math.E;`
         }),
-        PotatnoProjectNodeDefinition.create(lProject, {
+        PotatnoNodeDefinition.create(lProject, {
             id: 'Math.abs',
             category: NodeCategory.Function,
             inputs: {
                 value: { nodeType: 'value', dataType: 'number' }
-            },
+            } as const,
             outputs: {
                 result: { nodeType: 'value', dataType: 'number' }
-            },
+            } as const,
             codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = Math.abs(${pContext.inputs.value.valueId});`
         }),
-        PotatnoProjectNodeDefinition.create(lProject, {
+        PotatnoNodeDefinition.create(lProject, {
             id: 'Math.floor',
             category: NodeCategory.Function,
             inputs: {
                 value: { nodeType: 'value', dataType: 'number' }
-            },
+            } as const,
             outputs: {
                 result: { nodeType: 'value', dataType: 'number' }
-            },
+            } as const,
             codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = Math.floor(${pContext.inputs.value.valueId});`
         }),
-        PotatnoProjectNodeDefinition.create(lProject, {
+        PotatnoNodeDefinition.create(lProject, {
             id: 'Math.random',
             category: NodeCategory.Function,
             inputs: {},
             outputs: {
                 result: { nodeType: 'value', dataType: 'number' }
-            },
+            } as const,
             codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = Math.random();`
         })
     ]
@@ -77,7 +78,7 @@ lProject.addGlobalInput({ name: 'time', type: 'number' });
 lProject.addGlobalOutput({ name: 'result', type: 'string' });
 
 // --- Value Nodes ---
-lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'Number Literal',
     category: NodeCategory.Value,
     inputs: {},
@@ -87,7 +88,7 @@ lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
     codeGenerator: (pContext) => `const ${pContext.outputs.value.valueId} = ${pContext.outputs.value.value};`
 }));
 
-lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'String Literal',
     category: NodeCategory.Value,
     inputs: {},
@@ -97,7 +98,7 @@ lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
     codeGenerator: (pContext) => `const ${pContext.outputs.value.valueId} = "${pContext.outputs.value.value}";`
 }));
 
-lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'Boolean Literal',
     category: NodeCategory.Value,
     inputs: {},
@@ -108,7 +109,7 @@ lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
 }));
 
 // --- Operator Nodes: Arithmetic ---
-lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'Add',
     category: NodeCategory.Operator,
     inputs: {
@@ -121,7 +122,7 @@ lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
     codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} + ${pContext.inputs.b.valueId};`
 }));
 
-lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'Subtract',
     category: NodeCategory.Operator,
     inputs: {
@@ -134,7 +135,7 @@ lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
     codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} - ${pContext.inputs.b.valueId};`
 }));
 
-lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'Multiply',
     category: NodeCategory.Operator,
     inputs: {
@@ -147,7 +148,7 @@ lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
     codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} * ${pContext.inputs.b.valueId};`
 }));
 
-lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'Divide',
     category: NodeCategory.Operator,
     inputs: {
@@ -160,7 +161,7 @@ lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
     codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} / ${pContext.inputs.b.valueId};`
 }));
 
-lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'Modulo',
     category: NodeCategory.Operator,
     inputs: {
@@ -174,7 +175,7 @@ lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
 }));
 
 // --- Operator Nodes: Comparison ---
-lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'Equal',
     category: NodeCategory.Operator,
     inputs: {
@@ -187,7 +188,7 @@ lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
     codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} === ${pContext.inputs.b.valueId};`
 }));
 
-lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'Not Equal',
     category: NodeCategory.Operator,
     inputs: {
@@ -200,7 +201,7 @@ lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
     codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} !== ${pContext.inputs.b.valueId};`
 }));
 
-lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'Less Than',
     category: NodeCategory.Operator,
     inputs: {
@@ -213,7 +214,7 @@ lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
     codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} < ${pContext.inputs.b.valueId};`
 }));
 
-lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'Greater Than',
     category: NodeCategory.Operator,
     inputs: {
@@ -227,7 +228,7 @@ lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
 }));
 
 // --- Operator Nodes: Logic ---
-lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'And',
     category: NodeCategory.Operator,
     inputs: {
@@ -240,7 +241,7 @@ lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
     codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} && ${pContext.inputs.b.valueId};`
 }));
 
-lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'Or',
     category: NodeCategory.Operator,
     inputs: {
@@ -253,7 +254,7 @@ lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
     codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} || ${pContext.inputs.b.valueId};`
 }));
 
-lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'Not',
     category: NodeCategory.Operator,
     inputs: {
@@ -266,7 +267,7 @@ lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
 }));
 
 // --- Type Conversion Nodes ---
-lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'Number to String',
     category: NodeCategory.TypeConversion,
     inputs: {
@@ -278,7 +279,7 @@ lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
     codeGenerator: (pContext) => `const ${pContext.outputs.output.valueId} = String(${pContext.inputs.input.valueId});`
 }));
 
-lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'String to Number',
     category: NodeCategory.TypeConversion,
     inputs: {
@@ -290,7 +291,7 @@ lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
     codeGenerator: (pContext) => `const ${pContext.outputs.output.valueId} = Number(${pContext.inputs.input.valueId});`
 }));
 
-lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'Boolean to String',
     category: NodeCategory.TypeConversion,
     inputs: {
@@ -303,7 +304,7 @@ lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
 }));
 
 // --- Flow Nodes ---
-lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'If',
     category: NodeCategory.Flow,
     inputs: {
@@ -317,7 +318,7 @@ lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
     codeGenerator: (pContext) => `if (${pContext.inputs.condition.valueId}) {\n${pContext.outputs.then.code}\n} else {\n${pContext.outputs.else.code}\n}`
 }));
 
-lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'While',
     category: NodeCategory.Flow,
     inputs: {
@@ -330,7 +331,7 @@ lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
     codeGenerator: (pContext) => `while (${pContext.inputs.condition.valueId}) {\n${pContext.outputs.body.code}\n}`
 }));
 
-lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'For Loop',
     category: NodeCategory.Flow,
     inputs: {
@@ -345,7 +346,7 @@ lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
 }));
 
 // --- Function Nodes (now with auto exec pins) ---
-lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'Console Log',
     category: NodeCategory.Function,
     inputs: { message: { nodeType: 'value', dataType: 'string' } },
@@ -353,7 +354,7 @@ lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
     codeGenerator: ({ inputs }) => `console.log(${inputs.message.valueId});`
 }));
 
-lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'String Concat',
     category: NodeCategory.Function,
     inputs: {
@@ -363,7 +364,16 @@ lProject.addNodeDefinition(PotatnoProjectNodeDefinition.create(lProject, {
     outputs: {
         result: { nodeType: 'value', dataType: 'string' }
     },
-    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} + ${pContext.inputs.b.valueId};`
+    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} + ${pContext.inputs.b.valueId};`,
+    preview: {
+        data: {
+            updatePreviewData: (pInputData) => {
+                return {
+                    result: pInputData.a + pInputData.b
+                };
+            }
+        }
+    }
 }));
 
 // --- Function Code Generator ---
@@ -376,7 +386,7 @@ lProject.setFunctionCodeGenerator((pFunc: PotatnoCodeFunction) => {
 });
 
 // --- Main Functions ---
-lProject.addEntryPoint(new PotatnoEntryPointDefinition(lProject, {
+lProject.setEntryPoint(new PotatnoEntryPointDefinition(lProject, {
     id: 'main',
     label: 'Main',
     statics: {
@@ -386,25 +396,25 @@ lProject.addEntryPoint(new PotatnoEntryPointDefinition(lProject, {
     },
     nodes: {
         static: [
-            PotatnoProjectNodeDefinition.create(lProject, {
+            PotatnoNodeDefinition.create(lProject, {
                 id: 'OnStart',
                 category: NodeCategory.Value,
                 inputs: {},
                 outputs: {
                     event: { nodeType: 'flow' }
-                },
+                } as const,
                 codeGenerator: (pContext) => {
                     return `onStart() {\n${pContext.outputs.event.code}\n}`;
                 }
             }),
-            PotatnoProjectNodeDefinition.create(lProject, {
+            PotatnoNodeDefinition.create(lProject, {
                 id: 'OnTick',
                 category: NodeCategory.Value,
                 inputs: {},
                 outputs: {
                     event: { nodeType: 'flow' },
                     deltaTime: { nodeType: 'value', dataType: 'number' }
-                },
+                } as const,
                 codeGenerator: (pContext) => {
                     return `onTick(${pContext.outputs.deltaTime.valueId}) {\n${pContext.outputs.event.code}\n}`;
                 }

@@ -1,9 +1,9 @@
-import type { PotatnoProjectCodeGeneratorFlowPort, PotatnoProjectCodeGeneratorInputPort, PotatnoProjectCodeGeneratorValuePort } from '../project/potatno-node-definition.ts';
+import type { PotatnoCodeGeneratorFlowPort, PotatnoCodeGeneratorInputPort, PotatnoCodeGeneratorValuePort } from '../project/potatno-node-definition.ts';
 
 /**
  * Generator port data union — represents the data available for a single port in code generation context.
  */
-export type PotatnoCodeNodeGeneratorPort = PotatnoProjectCodeGeneratorFlowPort | PotatnoProjectCodeGeneratorValuePort | PotatnoProjectCodeGeneratorInputPort;
+export type PotatnoCodeNodeGeneratorPort = PotatnoCodeGeneratorFlowPort | PotatnoCodeGeneratorValuePort | PotatnoCodeGeneratorInputPort;
 
 /**
  * Context passed to the node code generator callback, built from internal code node data.

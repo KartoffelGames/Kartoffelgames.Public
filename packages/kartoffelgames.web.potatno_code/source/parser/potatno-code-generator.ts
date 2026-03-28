@@ -14,7 +14,7 @@ import { PotatnoCodeTemplateNode } from '../node/potatno-code-template-node.ts';
 import { PotatnoCodeValueNode } from '../node/potatno-code-value-node.ts';
 import { PotatnoCodeFunction } from '../project/potatno-code-function.ts';
 import type { PotatnoFunction } from '../project/potatno-function.ts';
-import type { PotatnoProjectNodeDefinitionPort } from "../project/potatno-node-definition.ts";
+import type { PotatnoNodeDefinitionPort } from "../project/potatno-node-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
 
 /**
@@ -197,8 +197,8 @@ export class PotatnoCodeGenerator {
         const lCodeNode: PotatnoCodeNode = this.createNodeForCategory(pNode.category, lCodeGenerator);
 
         // Determine port nodeTypes from the definition's input/output records.
-        const lInputDefs: Record<string, PotatnoProjectNodeDefinitionPort> = lDefinition ? Object.fromEntries(Object.entries(lDefinition.inputs)) : {};
-        const lOutputDefs: Record<string, PotatnoProjectNodeDefinitionPort> = lDefinition ? Object.fromEntries(Object.entries(lDefinition.outputs)) : {};
+        const lInputDefs: Record<string, PotatnoNodeDefinitionPort> = lDefinition ? Object.fromEntries(Object.entries(lDefinition.inputs)) : {};
+        const lOutputDefs: Record<string, PotatnoNodeDefinitionPort> = lDefinition ? Object.fromEntries(Object.entries(lDefinition.outputs)) : {};
 
         // Map data inputs with resolved value IDs and port types.
         for (const [lName, lPort] of pNode.inputs) {
@@ -421,7 +421,7 @@ export class PotatnoCodeGenerator {
     /**
      * Extract the dataType from a port definition.
      */
-    private static getPortDataType(pPortDef: PotatnoProjectNodeDefinitionPort): string {
+    private static getPortDataType(pPortDef: PotatnoNodeDefinitionPort): string {
         if (pPortDef.nodeType === 'value' || pPortDef.nodeType === 'input') {
             return pPortDef.dataType;
         }

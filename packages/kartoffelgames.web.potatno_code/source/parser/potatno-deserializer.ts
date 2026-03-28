@@ -4,7 +4,7 @@ import { PotatnoConnection } from '../document/potatno-connection.ts';
 import { PotatnoNode } from '../document/potatno-node.ts';
 import { PotatnoFunction } from '../project/potatno-function.ts';
 import { PotatnoCodeFile } from '../document/potatno-code-file.ts';
-import type { PotatnoProjectNodeDefinition, PotatnoProjectNodeDefinitionPorts } from "../project/potatno-node-definition.ts";
+import type { PotatnoNodeDefinition, PotatnoNodeDefinitionPorts } from "../project/potatno-node-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
 
 /**
@@ -161,16 +161,16 @@ export class PotatnoDeserializer {
                 // TODO: Create a node of type error if definition is missing instead of trying to reconstruct a minimal node.
 
                 // Input/output nodes -- create a minimal definition from serialized port data.
-                const lInputPorts: PotatnoProjectNodeDefinitionPorts = {};
+                const lInputPorts: PotatnoNodeDefinitionPorts = {};
                 for (const lPort of (lNodeData.inputs ?? [])) {
                     lInputPorts[lPort.name] = { nodeType: 'value', dataType: lPort.type };
                 }
-                const lOutputPorts: PotatnoProjectNodeDefinitionPorts = {};
+                const lOutputPorts: PotatnoNodeDefinitionPorts = {};
                 for (const lPort of (lNodeData.outputs ?? [])) {
                     lOutputPorts[lPort.name] = { nodeType: 'value', dataType: lPort.type };
                 }
 
-                const lMinDef: PotatnoProjectNodeDefinition = this.mProject.nodeDefinitions.get(lNodeData.nodeDefinitionId)!;
+                const lMinDef: PotatnoNodeDefinition = this.mProject.nodeDefinitions.get(lNodeData.nodeDefinitionId)!;
 
                 const lNode: PotatnoNode = new PotatnoNode(
                     lNodeData.id,
@@ -284,8 +284,8 @@ interface SerializedFunction {
     label: string;
     system: boolean;
     editableByUser: boolean;
-    inputs: PotatnoProjectNodeDefinitionPorts;
-    outputs: PotatnoProjectNodeDefinitionPorts;
+    inputs: PotatnoNodeDefinitionPorts;
+    outputs: PotatnoNodeDefinitionPorts;
     imports: Array<string>;
     nodes: Array<SerializedNode>;
     connections: Array<SerializedConnection>;

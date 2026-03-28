@@ -3,7 +3,7 @@ import type { PotatnoCodeFile } from '../document/potatno-code-file.ts';
 import type { PotatnoFunction } from '../project/potatno-function.ts';
 import type { PotatnoNode } from '../document/potatno-node.ts';
 import type { PotatnoConnection } from '../document/potatno-connection.ts';
-import type { PotatnoProjectNodeDefinitionPorts } from '../project/potatno-node-definition.ts';
+import type { PotatnoNodeDefinitionPorts } from '../project/potatno-node-definition.ts';
 import { PotatnoCodeGenerator } from './potatno-code-generator.ts';
 
 /**
@@ -222,8 +222,8 @@ interface SerializedFunction {
     label: string;
     system: boolean;
     editableByUser: boolean;
-    inputs: PotatnoProjectNodeDefinitionPorts;
-    outputs: PotatnoProjectNodeDefinitionPorts;
+    inputs: PotatnoNodeDefinitionPorts;
+    outputs: PotatnoNodeDefinitionPorts;
     imports: Array<string>;
     nodes: Array<SerializedNode>;
     connections: Array<SerializedConnection>;

@@ -1,16 +1,16 @@
-import { PotatnoProjectNodeDefinition } from "./potatno-node-definition.ts";
-import { PotatnoProject } from "./potatno-project.ts";
+import { PotatnoNodeDefinition } from "./potatno-node-definition.ts";
+import { PotatnoProject, PotatnoProjectTypes } from "./potatno-project.ts";
 
 /**
  * Definition of a static module (fixed entry point) for the editor.
  * Inputs and outputs are defined as Record<name, type> for type safety.
  */
-export class PotatnoEntryPointDefinition<TTypes extends string> {
+export class PotatnoEntryPointDefinition<TTypes extends PotatnoProjectTypes> {
     private readonly mProject: PotatnoProject<TTypes>;
     private readonly mId: string;
     private readonly mLabel: string;
     private readonly mStatics: PotatnoModuleDefinitionStaticSettings;
-    private readonly mNodes: PotatnoModuleDefinitionNodes<TTypes> ;
+    private readonly mNodes: PotatnoModuleDefinitionNodes<TTypes>;
 
     /**
      * Unique id for this entry point definition.
@@ -75,16 +75,16 @@ export class PotatnoEntryPointDefinition<TTypes extends string> {
     }
 }
 
-type PotatnoModuleDefinitionConstructorParameter<TTypes extends string> = {
+type PotatnoModuleDefinitionConstructorParameter<TTypes extends PotatnoProjectTypes> = {
     label?: string;
     id: string;
     statics: Partial<PotatnoModuleDefinitionStaticSettings>;
     nodes?: Partial<PotatnoModuleDefinitionNodes<TTypes>>;
 };
 
-type PotatnoModuleDefinitionNodes<TTypes extends string> = {
-    static: Array<PotatnoProjectNodeDefinition<TTypes>>;
-    dynamic: Array<PotatnoProjectNodeDefinition<TTypes>>;
+type PotatnoModuleDefinitionNodes<TTypes extends PotatnoProjectTypes> = {
+    static: Array<PotatnoNodeDefinition<TTypes>>;
+    dynamic: Array<PotatnoNodeDefinition<TTypes>>;
 };
 
 export type PotatnoModuleDefinitionStaticSettings = {

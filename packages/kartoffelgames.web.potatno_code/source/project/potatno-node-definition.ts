@@ -13,6 +13,18 @@ import { PotatnoProject } from "./potatno-project.ts";
  * @template TOutputs - Object type mapping output port names to their definitions, constrained by TOutputKeys.
  */
 export class PotatnoProjectNodeDefinition<TTypes extends string = string, TInputs extends PotatnoProjectNodeDefinitionPorts<TTypes> = any, TOutputs extends PotatnoProjectNodeDefinitionPorts<TTypes> = any> {
+    /**
+     * Factory method to create a new node definition and register it at the project level.
+     * 
+     * @param pProject - Reference to the project this node definition belongs to.
+     * @param pParameters - Constructor parameters for the node definition, including id, label, category, input and output port definitions, and code generator callback.
+     * 
+     * @returns The created PotatnoProjectNodeDefinition instance. 
+     */
+    public static create<TTypes extends string, TInputKeys extends string, TInputs extends PotatnoProjectNodeDefinitionPorts<TTypes, TInputKeys>, TOutputKeys extends string, TOutputs extends PotatnoProjectNodeDefinitionPorts<TTypes, TOutputKeys>>(pProject: PotatnoProject<TTypes>, pParameters: PotatnoProjectNodeDefinitionConstructorParameter<TTypes, TInputs, TOutputs>): PotatnoProjectNodeDefinition<TTypes, TInputs, TOutputs> {
+        return new PotatnoProjectNodeDefinition(pProject, pParameters);
+    }
+
     private readonly mProject: PotatnoProject<TTypes>;
     private readonly mId: string;
     private readonly mCategory: NodeCategory;
@@ -82,7 +94,7 @@ export class PotatnoProjectNodeDefinition<TTypes extends string = string, TInput
         this.mId = pParameters.id;
         this.mLabel = pParameters.label ?? pParameters.id;
 
-
+        // Set category, inputs, outputs, and code generator callback.
         this.mCategory = pParameters.category;
         this.mInputs = pParameters.inputs ?? {} as TInputs;
         this.mOutputs = pParameters.outputs ?? {} as TOutputs;
@@ -188,7 +200,7 @@ export type PotatnoProjectNodeDefinitionValuePort<TTypes extends string> = {
     dataType: TTypes;
 };
 
-export type PotatnoProjectNodeDefinitionPorts<TTypes extends string = string, TKey extends string = string> = Record<TKey, PotatnoProjectNodeDefinitionPort<TTypes>>;
+export type PotatnoProjectNodeDefinitionPorts<TTypes extends string, TKey extends string = string> = Record<TKey, PotatnoProjectNodeDefinitionPort<TTypes>>;
 
 /**
  * Code generator node outputs.

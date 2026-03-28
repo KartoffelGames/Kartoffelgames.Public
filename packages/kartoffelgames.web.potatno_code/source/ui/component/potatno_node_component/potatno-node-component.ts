@@ -8,6 +8,23 @@ import nodeTemplate from './potatno-node-component.html';
 import '../potatno_port/potatno-port.ts';
 
 /**
+ * Module-level store for node preview elements, kept outside PWB's deep proxy
+ * to avoid wrapping HTMLElement instances (which breaks appendChild).
+ */
+const gNodePreviewElements: Map<string, HTMLElement> = new Map();
+
+/**
+ * Set a preview element for a node. Called by the editor when building render data.
+ */
+export function setNodePreviewElement(pNodeId: string, pElement: HTMLElement | null): void {
+    if (pElement) {
+        gNodePreviewElements.set(pNodeId, pElement);
+    } else {
+        gNodePreviewElements.delete(pNodeId);
+    }
+}
+
+/**
  * Plain render data for a node, pre-computed by the parent editor.
  * All arrays are already spread from Map.values() and all text fields
  * are pre-extracted, so no untrackable Map/Array calls occur in the
@@ -33,7 +50,6 @@ export interface NodeRenderData {
     commentText: string;
     pixelX: number;
     pixelY: number;
-    previewElement: HTMLElement | null;
 }
 
 /**
@@ -133,6 +149,7 @@ export class PotatnoNodeComponent extends Processor implements IComponentOnUpdat
 
     /**
      * Reference to the preview container element inside the node.
+     * Only available for standard nodes (not reroute or comment).
      */
     @PwbChild('NodePreview')
     private accessor mPreviewContainer!: HTMLDivElement;
@@ -298,7 +315,8 @@ export class PotatnoNodeComponent extends Processor implements IComponentOnUpdat
      * Whether this node has a preview element to display inline.
      */
     public get hasPreviewElement(): boolean {
-        return this.nodeData?.previewElement !== null && this.nodeData?.previewElement !== undefined;
+        const lNodeId: string | undefined = this.nodeData?.id;
+        return !!lNodeId && gNodePreviewElements.has(lNodeId);
     }
 
     // ── Lifecycle ───────────────────────────────────────────────────────
@@ -307,14 +325,28 @@ export class PotatnoNodeComponent extends Processor implements IComponentOnUpdat
      * After each update cycle, ensure the preview element is appended to the container.
      */
     public onUpdate(): void {
-        const lPreviewEl: HTMLElement | null | undefined = this.nodeData?.previewElement;
-        const lContainer: HTMLDivElement = this.mPreviewContainer;
-        if (lContainer && lPreviewEl) {
-            // Only append if not already a child.
-            if (lPreviewEl.parentElement !== lContainer) {
-                lContainer.innerHTML = '';
-                lContainer.appendChild(lPreviewEl);
-            }
+        const lNodeId: string | undefined = this.nodeData?.id;
+        if (!lNodeId) {
+            return;
+        }
+
+        const lPreviewEl: HTMLElement | undefined = gNodePreviewElements.get(lNodeId);
+        if (!lPreviewEl) {
+            return;
+        }
+
+        // mPreviewContainer throws for reroute/comment nodes that don't render #NodePreview.
+        let lContainer: HTMLDivElement;
+        try {
+            lContainer = this.mPreviewContainer;
+        } catch {
+            return;
+        }
+
+        // Only append if not already a child.
+        if (lPreviewEl.parentElement !== lContainer) {
+            lContainer.innerHTML = '';
+            lContainer.appendChild(lPreviewEl);
         }
     }
 

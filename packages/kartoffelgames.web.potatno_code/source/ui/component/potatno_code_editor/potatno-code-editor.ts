@@ -24,7 +24,7 @@ import editorTemplate from './potatno-code-editor.html';
 // Import child components to ensure they're registered.
 import '../potatno_canvas/potatno-canvas.ts';
 import '../potatno_function_list/potatno-function-list.ts';
-import '../potatno_node_component/potatno-node-component.ts';
+import { setNodePreviewElement } from '../potatno_node_component/potatno-node-component.ts';
 import '../potatno_node_library/potatno-node-library.ts';
 import '../potatno_panel_left/potatno-panel-left.ts';
 import '../potatno_panel_properties/potatno-panel-properties.ts';
@@ -2046,8 +2046,10 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
                     hasDefinition: !!lDef,
                     pixelX: lNode.position.x * this.getInternals().interaction.gridSize,
                     pixelY: lNode.position.y * this.getInternals().interaction.gridSize,
-                    previewElement: this.getOrCreatePreviewElement(lNode.id, lDef)
                 });
+
+                // Store preview element outside PWB proxy to avoid wrapping HTMLElement.
+                setNodePreviewElement(lNode.id, this.getOrCreatePreviewElement(lNode.id, lDef));
             }
             lCached.visibleNodes = lNodes;
         } else {

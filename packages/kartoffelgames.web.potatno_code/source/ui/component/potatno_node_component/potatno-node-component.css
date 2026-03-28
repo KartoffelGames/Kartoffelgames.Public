@@ -231,9 +231,16 @@
 /* ── Node inline preview ── */
 
 .node-preview {
+    overflow: hidden;
+}
+
+.node-preview:empty {
+    display: none;
+}
+
+.node-preview:not(:empty) {
     padding: 4px;
     border-top: 1px solid var(--pn-node-border);
-    overflow: hidden;
 }
 
 /* ── Reroute node ── */

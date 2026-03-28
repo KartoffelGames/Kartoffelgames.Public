@@ -45,6 +45,16 @@ export class PotatnoPreview extends Processor {
     private mStartHeight: number = 0;
 
     /**
+     * Get the content container element for external preview initialization.
+     *
+     * @returns The content container div element.
+     */
+    @PwbExport
+    public getContainer(): HTMLDivElement {
+        return this.contentElement;
+    }
+
+    /**
      * Set content of the preview window by replacing the current content with a DocumentFragment.
      *
      * @param pFragment - The document fragment to display.

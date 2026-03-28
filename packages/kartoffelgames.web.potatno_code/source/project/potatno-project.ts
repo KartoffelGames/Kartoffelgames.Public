@@ -8,7 +8,7 @@ import { PotatnoNodeDefinition, type PotatnoNodeDefinitionPorts } from "./potatn
  * Contains all registered node types, main function definitions, imports,
  * and callback configurations. Does not hold document state.
  */
-export class PotatnoProject<TTypes extends PotatnoProjectTypes> {
+export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectTypes> {
     private readonly mCommentToken: string;
     private mCreatePreview: ((container: HTMLElement) => void) | null;
     private mFunctionCodeGenerator: ((func: PotatnoCodeFunction) => string) | null;

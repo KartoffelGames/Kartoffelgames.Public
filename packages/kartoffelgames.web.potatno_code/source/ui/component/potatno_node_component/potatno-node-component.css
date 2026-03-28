@@ -228,6 +228,14 @@
     opacity: 1;
 }
 
+/* ── Node inline preview ── */
+
+.node-preview {
+    padding: 4px;
+    border-top: 1px solid var(--pn-node-border);
+    overflow: hidden;
+}
+
 /* ── Reroute node ── */
 
 .node-reroute {

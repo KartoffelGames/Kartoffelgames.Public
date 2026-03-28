@@ -2,6 +2,7 @@ import { PwbApplication, PwbApplicationConfiguration } from '@kartoffelgames/web
 import { PotatnoCodeFile } from './document/potatno-code-file.ts';
 import { PotatnoProject } from './project/potatno-project.ts';
 import { PotatnoCodeEditor } from './ui/component/potatno_code_editor/potatno-code-editor.ts';
+import type { NodePreviewData } from './project/potatno-preview-evaluator.ts';
 
 import applicationCss from './potatno-code-application.css';
 import themeCss from './ui/component/potatno-theme.css';
@@ -13,7 +14,7 @@ import themeCss from './ui/component/potatno-theme.css';
  */
 export class PotatnoCodeApplication extends PwbApplication {
     private mCodeEditor: PotatnoCodeEditor;
-    private readonly mProject: PotatnoProject;
+    private readonly mProject: PotatnoProject<any>;
 
     /**
      * Get the current code file (document state).
@@ -27,7 +28,7 @@ export class PotatnoCodeApplication extends PwbApplication {
     /**
      * Get the project configuration.
      */
-    public get project(): PotatnoProject {
+    public get project(): PotatnoProject<any> {
         return this.mProject;
     }
 
@@ -37,7 +38,7 @@ export class PotatnoCodeApplication extends PwbApplication {
      *
      * @param pProject - The project configuration containing node definitions, main functions, and preview callbacks.
      */
-    public constructor(pProject: PotatnoProject) {
+    public constructor(pProject: PotatnoProject<any>) {
         super('potatno-code', new PwbApplicationConfiguration());
 
         this.mProject = pProject;
@@ -51,5 +52,19 @@ export class PotatnoCodeApplication extends PwbApplication {
 
         // Pass the project configuration into the editor.
         this.mCodeEditor.project = pProject;
+    }
+
+    /**
+     * Evaluate preview data for all nodes in the active graph with the given entry data.
+     * Returns the preview data map which can be used to read computed values (e.g., pixel colors).
+     *
+     * @param pEntryData - Data for static entry nodes keyed by definition id.
+     * @param pUpdateElements - Whether to update inline preview elements (default true).
+     *                          Set to false during bulk iteration for performance.
+     *
+     * @returns The computed preview data map, or null if evaluation could not proceed.
+     */
+    public update(pEntryData: Record<string, Record<string, unknown>>, pUpdateElements: boolean = true): Map<string, NodePreviewData> | null {
+        return this.mCodeEditor.evaluatePreview(pEntryData, pUpdateElements);
     }
 }

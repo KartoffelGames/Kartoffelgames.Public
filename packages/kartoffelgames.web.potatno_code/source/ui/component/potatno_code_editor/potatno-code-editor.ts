@@ -7,8 +7,9 @@ import { PortKind } from '../../../node/port-kind.enum.ts';
 import { PotatnoDeserializer } from '../../../parser/potatno-deserializer.ts';
 import { PotatnoSerializer } from '../../../parser/potatno-serializer.ts';
 import { PotatnoFunction } from '../../../project/potatno-function.ts';
-import type { PotatnoNodeDefinition, PotatnoNodeDefinitionPort, PotatnoNodeDefinitionPorts } from "../../../project/potatno-node-definition.ts";
+import { PotatnoNodeDefinition, type PotatnoNodeDefinitionPort, type PotatnoNodeDefinitionPorts } from "../../../project/potatno-node-definition.ts";
 import type { PotatnoProject } from '../../../project/potatno-project.ts';
+import { PotatnoPreviewEvaluator, type NodePreviewData } from '../../../project/potatno-preview-evaluator.ts';
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import { PotatnoCanvasRenderer } from '../../potatno-canvas-renderer.ts';
 import { PotatnoClipboard } from '../../potatno-clipboard.ts';
@@ -80,6 +81,8 @@ interface EditorInternals {
     interactionState: InteractionState;
     cachedData: CachedViewData;
     previewInitialized: boolean;
+    previewElements: Map<string, HTMLElement>;
+    previewDataCache: Map<string, { inputs: Record<string, unknown>; outputs: Record<string, unknown>; }>;
 }
 
 /**
@@ -439,6 +442,8 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             hoveredPort: null,
             interactionState: { mode: 'idle' },
             previewInitialized: false,
+            previewElements: new Map(),
+            previewDataCache: new Map(),
             cachedData: {
                 activeFunctionId: '',
                 activeFunctionName: '',
@@ -551,12 +556,13 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         if (!lDefinition) {
             for (const lFunc of lFile.functions.values()) {
                 if (lFunc.name === lDefName && !lFunc.system) {
-                    lDefinition = {
+                    lDefinition = PotatnoNodeDefinition.create(lProject, {
                         id: lFunc.name,
                         category: NodeCategory.Function,
                         inputs: { ...lFunc.inputs },
-                        outputs: { ...lFunc.outputs }
-                    };
+                        outputs: { ...lFunc.outputs },
+                        codeGenerator: () => ''
+                    });
                     break;
                 }
             }
@@ -587,12 +593,13 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         if (!lDefinition) {
             for (const lGlobalInput of lProject.globalInputs) {
                 if (lDefName === `Get ${lGlobalInput.name}`) {
-                    lDefinition = {
+                    lDefinition = PotatnoNodeDefinition.create(lProject, {
                         id: lDefName,
                         category: NodeCategory.Value,
-                        inputs: {},
-                        outputs: { [lGlobalInput.name]: { nodeType: 'value', dataType: lGlobalInput.type } }
-                    };
+                        inputs: {} as Record<string, never>,
+                        outputs: { [lGlobalInput.name]: { nodeType: 'value' as const, dataType: lGlobalInput.type } },
+                        codeGenerator: () => ''
+                    });
                     break;
                 }
             }
@@ -602,12 +609,13 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         if (!lDefinition) {
             for (const lGlobalOutput of lProject.globalOutputs) {
                 if (lDefName === `Set ${lGlobalOutput.name}`) {
-                    lDefinition = {
+                    lDefinition = PotatnoNodeDefinition.create(lProject, {
                         id: lDefName,
                         category: NodeCategory.Value,
-                        inputs: { [lGlobalOutput.name]: { nodeType: 'value', dataType: lGlobalOutput.type } },
-                        outputs: {}
-                    };
+                        inputs: { [lGlobalOutput.name]: { nodeType: 'value' as const, dataType: lGlobalOutput.type } },
+                        outputs: {} as Record<string, never>,
+                        codeGenerator: () => ''
+                    });
                     break;
                 }
             }
@@ -1331,80 +1339,92 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
     // ============================================================
 
     /**
-     * Initialize main functions from the project configuration into a file.
+     * Initialize main functions from the project's entry point definition into a file.
      *
      * @param pFile - The file to initialize.
-     * @param pConfig - The project configuration providing main function definitions.
+     * @param pConfig - The project configuration providing the entry point definition.
      */
     private initializeMainFunctions(pFile: PotatnoCodeFile, pConfig: PotatnoProject): void {
-        for (const lMainDef of pConfig.mainFunctions) {
-            const lFunc: PotatnoFunction = new PotatnoFunction(
-                crypto.randomUUID(),
-                lMainDef.name,
-                lMainDef.label,
-                true,
-                lMainDef.editableByUser ?? false
-            );
+        const lEntryPoint = pConfig.entryPoint;
+        if (!lEntryPoint) {
+            return;
+        }
 
-            // Convert Record<string, string> inputs/outputs to PotatnoProjectNodeDefinitionPorts.
-            const lInputPorts: PotatnoNodeDefinitionPorts = {};
-            if (lMainDef.inputs) {
-                for (const [lName, lType] of Object.entries(lMainDef.inputs)) {
-                    lInputPorts[lName] = { nodeType: 'value', dataType: lType };
-                }
+        // Create the entry point function.
+        const lFunc: PotatnoFunction = new PotatnoFunction(
+            crypto.randomUUID(),
+            lEntryPoint.id,
+            lEntryPoint.label,
+            true,
+            lEntryPoint.statics.inputs || lEntryPoint.statics.outputs
+        );
+
+        // Add static nodes from the entry point definition to the graph.
+        const lStaticNodes = lEntryPoint.nodes.static;
+        for (let lIdx = 0; lIdx < lStaticNodes.length; lIdx++) {
+            const lStaticDef = lStaticNodes[lIdx];
+            lFunc.graph.addNode(lStaticDef, { x: 2 + lIdx * 12, y: 2 }, true);
+
+            // Register the static node definition in the project so it can be looked up by definitionId.
+            if (!pConfig.nodeDefinitions.has(lStaticDef.id)) {
+                pConfig.addNodeDefinition(lStaticDef);
             }
-            const lOutputPorts: PotatnoNodeDefinitionPorts = {};
-            if (lMainDef.outputs) {
-                for (const [lName, lType] of Object.entries(lMainDef.outputs)) {
-                    lOutputPorts[lName] = { nodeType: 'value', dataType: lType };
-                }
+        }
+
+        // Add dynamic nodes from the entry point as available node definitions.
+        const lDynamicNodes = lEntryPoint.nodes.dynamic;
+        for (const lDynamicDef of lDynamicNodes) {
+            if (!pConfig.nodeDefinitions.has(lDynamicDef.id)) {
+                pConfig.addNodeDefinition(lDynamicDef);
             }
+        }
 
-            lFunc.setInputs(lInputPorts);
-            lFunc.setOutputs(lOutputPorts);
+        // Auto-enable all project imports if the entry point requests static imports.
+        if (lEntryPoint.statics.imports) {
+            for (const lImport of pConfig.imports) {
+                lFunc.addImport(lImport.name);
+            }
+        }
 
-            // Create fixed input nodes for the function's inputs.
+        // Create global input getter nodes.
+        if (lEntryPoint.statics.inputs) {
             let lInputIdx: number = 0;
-            for (const [lName, lPort] of Object.entries(lInputPorts)) {
-                const lInputNodeDef: PotatnoNodeDefinition = {
-                    id: lName,
+            for (const lGlobalInput of pConfig.globalInputs) {
+                const lInputNodeDef = PotatnoNodeDefinition.create(pConfig, {
+                    id: `Get ${lGlobalInput.name}`,
                     category: NodeCategory.Input,
-                    inputs: {},
-                    outputs: { [lName]: lPort }
-                };
-                lFunc.graph.addNode(lInputNodeDef, { x: 2, y: 2 + lInputIdx * 3 }, true);
+                    inputs: {} as Record<string, never>,
+                    outputs: { [lGlobalInput.name]: { nodeType: 'value' as const, dataType: lGlobalInput.type } },
+                    codeGenerator: () => ''
+                });
+                lFunc.graph.addNode(lInputNodeDef, { x: 2, y: 16 + lInputIdx * 3 }, true);
+                if (!pConfig.nodeDefinitions.has(lInputNodeDef.id)) {
+                    pConfig.addNodeDefinition(lInputNodeDef);
+                }
                 lInputIdx++;
             }
+        }
 
-            // Create fixed output nodes for the function's outputs.
+        // Create global output setter nodes.
+        if (lEntryPoint.statics.outputs) {
             let lOutputIdx: number = 0;
-            for (const [lName, lPort] of Object.entries(lOutputPorts)) {
-                const lOutputNodeDef: PotatnoNodeDefinition = {
-                    id: lName,
+            for (const lGlobalOutput of pConfig.globalOutputs) {
+                const lOutputNodeDef = PotatnoNodeDefinition.create(pConfig, {
+                    id: `Set ${lGlobalOutput.name}`,
                     category: NodeCategory.Output,
-                    inputs: { [lName]: lPort },
-                    outputs: {}
-                };
-                lFunc.graph.addNode(lOutputNodeDef, { x: 30, y: 2 + lOutputIdx * 3 }, true);
+                    inputs: { [lGlobalOutput.name]: { nodeType: 'value' as const, dataType: lGlobalOutput.type } },
+                    outputs: {} as Record<string, never>,
+                    codeGenerator: () => ''
+                });
+                lFunc.graph.addNode(lOutputNodeDef, { x: 30, y: 16 + lOutputIdx * 3 }, true);
+                if (!pConfig.nodeDefinitions.has(lOutputNodeDef.id)) {
+                    pConfig.addNodeDefinition(lOutputNodeDef);
+                }
                 lOutputIdx++;
             }
-
-            // Create fixed event nodes for the function's events.
-            if (lMainDef.events) {
-                for (let lIdx = 0; lIdx < lMainDef.events.length; lIdx++) {
-                    const lEvent = lMainDef.events[lIdx];
-                    const lEventNodeDef: PotatnoNodeDefinition = {
-                        id: lEvent.name,
-                        category: NodeCategory.Event,
-                        inputs: {},
-                        outputs: { ...lEvent.outputs }
-                    };
-                    lFunc.graph.addNode(lEventNodeDef, { x: 2 + lIdx * 10, y: -4 }, true);
-                }
-            }
-
-            pFile.addFunction(lFunc);
         }
+
+        pFile.addFunction(lFunc);
     }
 
     /**
@@ -2025,7 +2045,8 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
                     commentText: lNode.properties.get('comment') ?? '',
                     hasDefinition: !!lDef,
                     pixelX: lNode.position.x * this.getInternals().interaction.gridSize,
-                    pixelY: lNode.position.y * this.getInternals().interaction.gridSize
+                    pixelY: lNode.position.y * this.getInternals().interaction.gridSize,
+                    previewElement: this.getOrCreatePreviewElement(lNode.id, lDef)
                 });
             }
             lCached.visibleNodes = lNodes;
@@ -2035,5 +2056,82 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
 
         // Trigger exactly ONE PWB update by incrementing the tracked counter.
         this.mCacheVersion++;
+    }
+
+    /**
+     * Get or create a preview element for a node. Returns null if the node
+     * definition does not define an element preview.
+     *
+     * @param pNodeId - The node's unique identifier.
+     * @param pDefinition - The node's definition (may be undefined).
+     *
+     * @returns The cached or newly created preview HTMLElement, or null.
+     */
+    private getOrCreatePreviewElement(pNodeId: string, pDefinition: PotatnoNodeDefinition | undefined): HTMLElement | null {
+        if (!pDefinition?.preview?.element) {
+            return null;
+        }
+
+        const lInternals: EditorInternals = this.getInternals();
+        const lExisting: HTMLElement | undefined = lInternals.previewElements.get(pNodeId);
+        if (lExisting) {
+            return lExisting;
+        }
+
+        const lElement: HTMLElement = pDefinition.preview.element.generatePreviewElement();
+        lInternals.previewElements.set(pNodeId, lElement);
+        return lElement;
+    }
+
+    /**
+     * Evaluate preview data for all nodes in the active graph.
+     * Triggers node element preview updates when pUpdateElements is true.
+     *
+     * @param pEntryData - Data for static entry nodes keyed by definition id.
+     * @param pUpdateElements - Whether to also update inline preview elements.
+     *
+     * @returns The computed preview data map, or null if evaluation could not proceed.
+     */
+    public evaluatePreview(pEntryData: Record<string, Record<string, unknown>>, pUpdateElements: boolean = true): Map<string, NodePreviewData> | null {
+        const lProject: PotatnoProject | undefined = gStore.getProject(this.mInstanceKey);
+        const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+        const lGraph = lFile?.activeFunction?.graph;
+
+        if (!lProject || !lGraph) {
+            return null;
+        }
+
+        // Evaluate preview data for all nodes.
+        const lPreviewData: Map<string, NodePreviewData> = PotatnoPreviewEvaluator.evaluate(lProject, lGraph, pEntryData);
+
+        // Store in cache.
+        const lInternals: EditorInternals = this.getInternals();
+        lInternals.previewDataCache = lPreviewData;
+
+        // Update inline preview elements if requested.
+        if (pUpdateElements) {
+            for (const [lNodeId, lData] of lPreviewData) {
+                const lElement: HTMLElement | undefined = lInternals.previewElements.get(lNodeId);
+                if (!lElement) {
+                    continue;
+                }
+
+                const lNode = lGraph.getNode(lNodeId);
+                if (!lNode) {
+                    continue;
+                }
+
+                const lDef: PotatnoNodeDefinition | undefined = lProject.nodeDefinitions.get(lNode.definitionId);
+                if (lDef?.preview?.element) {
+                    try {
+                        lDef.preview.element.updatePreviewElement(lElement, lData.inputs as any, lData.outputs as any);
+                    } catch {
+                        // Silently ignore preview element update errors.
+                    }
+                }
+            }
+        }
+
+        return lPreviewData;
     }
 }

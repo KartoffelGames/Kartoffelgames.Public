@@ -5,7 +5,7 @@ import { PotatnoProject, PotatnoProjectTypes } from "./potatno-project.ts";
  * Definition of a static module (fixed entry point) for the editor.
  * Inputs and outputs are defined as Record<name, type> for type safety.
  */
-export class PotatnoEntryPointDefinition<TTypes extends PotatnoProjectTypes> {
+export class PotatnoEntryPointDefinition<TTypes extends PotatnoProjectTypes = PotatnoProjectTypes> {
     private readonly mProject: PotatnoProject<TTypes>;
     private readonly mId: string;
     private readonly mLabel: string;

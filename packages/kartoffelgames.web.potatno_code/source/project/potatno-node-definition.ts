@@ -11,7 +11,7 @@ import { InjectionInstance } from "@kartoffelgames/core-dependency-injection";
  * @template TInputs - Object type mapping input port names to their definitions.
  * @template TOutputs - Object type mapping output port names to their definitions.
  */
-export class PotatnoNodeDefinition<TTypes extends PotatnoProjectTypes, TInputs extends PotatnoNodeDefinitionPorts<TTypes> = any, TOutputs extends PotatnoNodeDefinitionPorts<TTypes> = any> {
+export class PotatnoNodeDefinition<TTypes extends PotatnoProjectTypes = PotatnoProjectTypes, TInputs extends PotatnoNodeDefinitionPorts<TTypes> = any, TOutputs extends PotatnoNodeDefinitionPorts<TTypes> = any> {
     /**
      * Factory method to create a new node definition and register it at the project level.
      * 
@@ -31,6 +31,7 @@ export class PotatnoNodeDefinition<TTypes extends PotatnoProjectTypes, TInputs e
     private readonly mLabel: string;
     private readonly mOutputs: TOutputs;
     private readonly mCodeGenerator: PotatnoNodeDefinitionCodeGenerator<TTypes, TInputs, TOutputs>;
+    private readonly mPreview: PotatnoNodeDefinitionPreview<TTypes, HTMLElement, TInputs, TOutputs> | null;
 
     /**
      *  Unique id for this node definition. 
@@ -74,11 +75,18 @@ export class PotatnoNodeDefinition<TTypes extends PotatnoProjectTypes, TInputs e
         return this.mOutputs;
     }
 
-    /** 
-     * Code generator callback that produces the code string from a typed context. 
+    /**
+     * Code generator callback that produces the code string from a typed context.
      */
     public get codeGenerator(): PotatnoNodeDefinitionCodeGenerator<TTypes, TInputs, TOutputs> {
         return this.mCodeGenerator;
+    }
+
+    /**
+     * Preview configuration for this node type.
+     */
+    public get preview(): PotatnoNodeDefinitionPreview<TTypes, HTMLElement, TInputs, TOutputs> | null {
+        return this.mPreview;
     }
 
     /**
@@ -98,6 +106,7 @@ export class PotatnoNodeDefinition<TTypes extends PotatnoProjectTypes, TInputs e
         this.mInputs = pParameters.inputs ?? {} as TInputs;
         this.mOutputs = pParameters.outputs ?? {} as TOutputs;
         this.mCodeGenerator = pParameters.codeGenerator;
+        this.mPreview = pParameters.preview ?? null;
 
         // Validate input value ports types are defined in project.
         for (const lPort of Object.values<PotatnoNodeDefinitionPort<TTypes>>(this.mInputs)) {
@@ -134,7 +143,7 @@ type PotatnoNodeDefinitionConstructorParameter<TTypes extends PotatnoProjectType
     inputs: TInputs;
     outputs: TOutputs;
     codeGenerator: PotatnoNodeDefinitionCodeGenerator<TTypes, TInputs, TOutputs>;
-    preview: PotatnoNodeDefinitionPreview<TTypes, HTMLElement, TInputs, TOutputs>;
+    preview?: PotatnoNodeDefinitionPreview<TTypes, HTMLElement, TInputs, TOutputs>;
 };
 
 /**
@@ -242,7 +251,7 @@ export type PotatnoCodeGeneratorPorts<TTypes extends PotatnoProjectTypes, TPorts
  * Preview generation.
  */
 
-type PotatnoNodeDefinitionPreviewData<TTypes extends PotatnoProjectTypes, TPorts extends PotatnoNodeDefinitionPorts<TTypes>> = {
+export type PotatnoNodeDefinitionPreviewData<TTypes extends PotatnoProjectTypes, TPorts extends PotatnoNodeDefinitionPorts<TTypes>> = {
     [K in keyof TPorts]: TPorts[K] extends PotatnoNodeDefinitionValuePort<TTypes> ? TTypes[TPorts[K]['dataType']] :
     TPorts[K] extends PotatnoNodeDefinitionInputPort<TTypes> ? TTypes[TPorts[K]['dataType']] :
     TPorts[K] extends PotatnoNodeDefinitionFlowPort ? boolean : never;

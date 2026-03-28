@@ -14,10 +14,9 @@ const lProject = new PotatnoProject({
         string: '',
         boolean: false
     },
-    
 });
 
-// --- Imports (replaces defineGlobalValue) ---
+// --- Imports ---
 lProject.addImport({
     name: 'Math',
     nodes: [
@@ -28,7 +27,12 @@ lProject.addImport({
             outputs: {
                 value: { nodeType: 'value', dataType: 'number' }
             } as const,
-            codeGenerator: (pContext) => `const ${pContext.outputs.value.valueId} = Math.PI;`
+            codeGenerator: (pContext) => `const ${pContext.outputs.value.valueId} = Math.PI;`,
+            preview: {
+                data: {
+                    updatePreviewData: () => ({ value: Math.PI })
+                }
+            }
         }),
         PotatnoNodeDefinition.create(lProject, {
             id: 'Math.E',
@@ -37,7 +41,12 @@ lProject.addImport({
             outputs: {
                 value: { nodeType: 'value', dataType: 'number' }
             } as const,
-            codeGenerator: (pContext) => `const ${pContext.outputs.value.valueId} = Math.E;`
+            codeGenerator: (pContext) => `const ${pContext.outputs.value.valueId} = Math.E;`,
+            preview: {
+                data: {
+                    updatePreviewData: () => ({ value: Math.E })
+                }
+            }
         }),
         PotatnoNodeDefinition.create(lProject, {
             id: 'Math.abs',
@@ -48,7 +57,12 @@ lProject.addImport({
             outputs: {
                 result: { nodeType: 'value', dataType: 'number' }
             } as const,
-            codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = Math.abs(${pContext.inputs.value.valueId});`
+            codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = Math.abs(${pContext.inputs.value.valueId});`,
+            preview: {
+                data: {
+                    updatePreviewData: (pInputData) => ({ result: Math.abs(pInputData.value) })
+                }
+            }
         }),
         PotatnoNodeDefinition.create(lProject, {
             id: 'Math.floor',
@@ -59,7 +73,12 @@ lProject.addImport({
             outputs: {
                 result: { nodeType: 'value', dataType: 'number' }
             } as const,
-            codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = Math.floor(${pContext.inputs.value.valueId});`
+            codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = Math.floor(${pContext.inputs.value.valueId});`,
+            preview: {
+                data: {
+                    updatePreviewData: (pInputData) => ({ result: Math.floor(pInputData.value) })
+                }
+            }
         }),
         PotatnoNodeDefinition.create(lProject, {
             id: 'Math.random',
@@ -68,14 +87,15 @@ lProject.addImport({
             outputs: {
                 result: { nodeType: 'value', dataType: 'number' }
             } as const,
-            codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = Math.random();`
+            codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = Math.random();`,
+            preview: {
+                data: {
+                    updatePreviewData: () => ({ result: Math.random() })
+                }
+            }
         })
     ]
 });
-
-// --- Global inputs/outputs ---
-lProject.addGlobalInput({ name: 'time', type: 'number' });
-lProject.addGlobalOutput({ name: 'result', type: 'string' });
 
 // --- Value Nodes ---
 lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
@@ -85,7 +105,12 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     outputs: {
         value: { nodeType: 'input', inputType: 'number', dataType: 'number' }
     },
-    codeGenerator: (pContext) => `const ${pContext.outputs.value.valueId} = ${pContext.outputs.value.value};`
+    codeGenerator: (pContext) => `const ${pContext.outputs.value.valueId} = ${pContext.outputs.value.value};`,
+    preview: {
+        data: {
+            updatePreviewData: () => ({ value: 0 })
+        }
+    }
 }));
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
@@ -95,7 +120,12 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     outputs: {
         value: { nodeType: 'input', inputType: 'string', dataType: 'string' }
     },
-    codeGenerator: (pContext) => `const ${pContext.outputs.value.valueId} = "${pContext.outputs.value.value}";`
+    codeGenerator: (pContext) => `const ${pContext.outputs.value.valueId} = "${pContext.outputs.value.value}";`,
+    preview: {
+        data: {
+            updatePreviewData: () => ({ value: '' })
+        }
+    }
 }));
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
@@ -105,7 +135,12 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     outputs: {
         value: { nodeType: 'input', inputType: 'boolean', dataType: 'boolean' }
     },
-    codeGenerator: (pContext) => `const ${pContext.outputs.value.valueId} = ${pContext.outputs.value.value ? 'true' : 'false'};`
+    codeGenerator: (pContext) => `const ${pContext.outputs.value.valueId} = ${pContext.outputs.value.value ? 'true' : 'false'};`,
+    preview: {
+        data: {
+            updatePreviewData: () => ({ value: false })
+        }
+    }
 }));
 
 // --- Operator Nodes: Arithmetic ---
@@ -119,7 +154,12 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     outputs: {
         result: { nodeType: 'value', dataType: 'number' }
     },
-    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} + ${pContext.inputs.b.valueId};`
+    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} + ${pContext.inputs.b.valueId};`,
+    preview: {
+        data: {
+            updatePreviewData: (pInputData) => ({ result: pInputData.a + pInputData.b })
+        }
+    }
 }));
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
@@ -132,7 +172,12 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     outputs: {
         result: { nodeType: 'value', dataType: 'number' }
     },
-    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} - ${pContext.inputs.b.valueId};`
+    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} - ${pContext.inputs.b.valueId};`,
+    preview: {
+        data: {
+            updatePreviewData: (pInputData) => ({ result: pInputData.a - pInputData.b })
+        }
+    }
 }));
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
@@ -145,7 +190,30 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     outputs: {
         result: { nodeType: 'value', dataType: 'number' }
     },
-    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} * ${pContext.inputs.b.valueId};`
+    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} * ${pContext.inputs.b.valueId};`,
+    preview: {
+        element: {
+            generatePreviewElement: (): HTMLCanvasElement => {
+                const lCanvas: HTMLCanvasElement = document.createElement('canvas');
+                lCanvas.width = 50;
+                lCanvas.height = 50;
+                lCanvas.style.cssText = 'width: 50px; height: 50px; image-rendering: pixelated; border: 1px solid rgba(255,255,255,0.1); border-radius: 2px;';
+                return lCanvas;
+            },
+            updatePreviewElement: (pCanvas: HTMLElement, _pInputData, pOutputData) => {
+                const lCtx: CanvasRenderingContext2D | null = (pCanvas as HTMLCanvasElement).getContext('2d');
+                if (!lCtx) {
+                    return;
+                }
+                const lVal: number = Math.max(0, Math.min(255, Math.round((pOutputData.result as number) * 255)));
+                lCtx.fillStyle = `rgb(${lVal}, ${lVal}, ${lVal})`;
+                lCtx.fillRect(0, 0, 50, 50);
+            }
+        },
+        data: {
+            updatePreviewData: (pInputData) => ({ result: pInputData.a * pInputData.b })
+        }
+    }
 }));
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
@@ -158,7 +226,12 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     outputs: {
         result: { nodeType: 'value', dataType: 'number' }
     },
-    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} / ${pContext.inputs.b.valueId};`
+    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} / ${pContext.inputs.b.valueId};`,
+    preview: {
+        data: {
+            updatePreviewData: (pInputData) => ({ result: pInputData.b !== 0 ? pInputData.a / pInputData.b : 0 })
+        }
+    }
 }));
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
@@ -171,7 +244,12 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     outputs: {
         result: { nodeType: 'value', dataType: 'number' }
     },
-    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} % ${pContext.inputs.b.valueId};`
+    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} % ${pContext.inputs.b.valueId};`,
+    preview: {
+        data: {
+            updatePreviewData: (pInputData) => ({ result: pInputData.b !== 0 ? pInputData.a % pInputData.b : 0 })
+        }
+    }
 }));
 
 // --- Operator Nodes: Comparison ---
@@ -185,7 +263,12 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     outputs: {
         result: { nodeType: 'value', dataType: 'boolean' }
     },
-    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} === ${pContext.inputs.b.valueId};`
+    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} === ${pContext.inputs.b.valueId};`,
+    preview: {
+        data: {
+            updatePreviewData: (pInputData) => ({ result: pInputData.a === pInputData.b })
+        }
+    }
 }));
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
@@ -198,7 +281,12 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     outputs: {
         result: { nodeType: 'value', dataType: 'boolean' }
     },
-    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} !== ${pContext.inputs.b.valueId};`
+    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} !== ${pContext.inputs.b.valueId};`,
+    preview: {
+        data: {
+            updatePreviewData: (pInputData) => ({ result: pInputData.a !== pInputData.b })
+        }
+    }
 }));
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
@@ -211,7 +299,12 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     outputs: {
         result: { nodeType: 'value', dataType: 'boolean' }
     },
-    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} < ${pContext.inputs.b.valueId};`
+    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} < ${pContext.inputs.b.valueId};`,
+    preview: {
+        data: {
+            updatePreviewData: (pInputData) => ({ result: pInputData.a < pInputData.b })
+        }
+    }
 }));
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
@@ -224,7 +317,12 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     outputs: {
         result: { nodeType: 'value', dataType: 'boolean' }
     },
-    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} > ${pContext.inputs.b.valueId};`
+    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} > ${pContext.inputs.b.valueId};`,
+    preview: {
+        data: {
+            updatePreviewData: (pInputData) => ({ result: pInputData.a > pInputData.b })
+        }
+    }
 }));
 
 // --- Operator Nodes: Logic ---
@@ -238,7 +336,12 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     outputs: {
         result: { nodeType: 'value', dataType: 'boolean' }
     },
-    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} && ${pContext.inputs.b.valueId};`
+    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} && ${pContext.inputs.b.valueId};`,
+    preview: {
+        data: {
+            updatePreviewData: (pInputData) => ({ result: pInputData.a && pInputData.b })
+        }
+    }
 }));
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
@@ -251,7 +354,12 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     outputs: {
         result: { nodeType: 'value', dataType: 'boolean' }
     },
-    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} || ${pContext.inputs.b.valueId};`
+    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} || ${pContext.inputs.b.valueId};`,
+    preview: {
+        data: {
+            updatePreviewData: (pInputData) => ({ result: pInputData.a || pInputData.b })
+        }
+    }
 }));
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
@@ -263,7 +371,12 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     outputs: {
         result: { nodeType: 'value', dataType: 'boolean' }
     },
-    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = !${pContext.inputs.a.valueId};`
+    codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = !${pContext.inputs.a.valueId};`,
+    preview: {
+        data: {
+            updatePreviewData: (pInputData) => ({ result: !pInputData.a })
+        }
+    }
 }));
 
 // --- Type Conversion Nodes ---
@@ -276,7 +389,12 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     outputs: {
         output: { nodeType: 'value', dataType: 'string' }
     },
-    codeGenerator: (pContext) => `const ${pContext.outputs.output.valueId} = String(${pContext.inputs.input.valueId});`
+    codeGenerator: (pContext) => `const ${pContext.outputs.output.valueId} = String(${pContext.inputs.input.valueId});`,
+    preview: {
+        data: {
+            updatePreviewData: (pInputData) => ({ output: pInputData.input.toString() })
+        }
+    }
 }));
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
@@ -288,7 +406,12 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     outputs: {
         output: { nodeType: 'value', dataType: 'number' }
     },
-    codeGenerator: (pContext) => `const ${pContext.outputs.output.valueId} = Number(${pContext.inputs.input.valueId});`
+    codeGenerator: (pContext) => `const ${pContext.outputs.output.valueId} = Number(${pContext.inputs.input.valueId});`,
+    preview: {
+        data: {
+            updatePreviewData: (pInputData) => ({ output: parseFloat(pInputData.input) || 0 })
+        }
+    }
 }));
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
@@ -300,7 +423,12 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     outputs: {
         output: { nodeType: 'value', dataType: 'string' }
     },
-    codeGenerator: (pContext) => `const ${pContext.outputs.output.valueId} = String(${pContext.inputs.input.valueId});`
+    codeGenerator: (pContext) => `const ${pContext.outputs.output.valueId} = String(${pContext.inputs.input.valueId});`,
+    preview: {
+        data: {
+            updatePreviewData: (pInputData) => ({ output: pInputData.input.toString() })
+        }
+    }
 }));
 
 // --- Flow Nodes ---
@@ -315,7 +443,15 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
         then: { nodeType: 'flow' },
         else: { nodeType: 'flow' }
     },
-    codeGenerator: (pContext) => `if (${pContext.inputs.condition.valueId}) {\n${pContext.outputs.then.code}\n} else {\n${pContext.outputs.else.code}\n}`
+    codeGenerator: (pContext) => `if (${pContext.inputs.condition.valueId}) {\n${pContext.outputs.then.code}\n} else {\n${pContext.outputs.else.code}\n}`,
+    preview: {
+        data: {
+            updatePreviewData: (pInputData) => ({
+                then: pInputData.condition,
+                else: !(pInputData.condition)
+            })
+        }
+    }
 }));
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
@@ -328,7 +464,14 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     outputs: {
         body: { nodeType: 'flow' }
     },
-    codeGenerator: (pContext) => `while (${pContext.inputs.condition.valueId}) {\n${pContext.outputs.body.code}\n}`
+    codeGenerator: (pContext) => `while (${pContext.inputs.condition.valueId}) {\n${pContext.outputs.body.code}\n}`,
+    preview: {
+        data: {
+            updatePreviewData: (pInputData) => ({
+                body: pInputData.condition
+            })
+        }
+    }
 }));
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
@@ -342,16 +485,31 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
         exec: { nodeType: 'flow' },
         index: { nodeType: 'value', dataType: 'number' }
     },
-    codeGenerator: (pContext) => `for (let ${pContext.outputs.index.valueId} = 0; ${pContext.outputs.index.valueId} < ${pContext.inputs.count.valueId}; ${pContext.outputs.index.valueId}++) {\n${pContext.outputs.exec.code}\n}`
+    codeGenerator: (pContext) => `for (let ${pContext.outputs.index.valueId} = 0; ${pContext.outputs.index.valueId} < ${pContext.inputs.count.valueId}; ${pContext.outputs.index.valueId}++) {\n${pContext.outputs.exec.code}\n}`,
+    preview: {
+        data: {
+            updatePreviewData: () => {
+                return {
+                    exec: true,
+                    index: 0
+                };
+            }
+        }
+    }
 }));
 
-// --- Function Nodes (now with auto exec pins) ---
+// --- Function Nodes ---
 lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     id: 'Console Log',
     category: NodeCategory.Function,
     inputs: { message: { nodeType: 'value', dataType: 'string' } },
     outputs: {},
-    codeGenerator: ({ inputs }) => `console.log(${inputs.message.valueId});`
+    codeGenerator: ({ inputs }) => `console.log(${inputs.message.valueId});`,
+    preview: {
+        data: {
+            updatePreviewData: () => ({})
+        }
+    }
 }));
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
@@ -367,11 +525,9 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} + ${pContext.inputs.b.valueId};`,
     preview: {
         data: {
-            updatePreviewData: (pInputData) => {
-                return {
-                    result: pInputData.a + pInputData.b
-                };
-            }
+            updatePreviewData: (pInputData) => ({
+                result: pInputData.a + pInputData.b
+            })
         }
     }
 }));
@@ -385,80 +541,76 @@ lProject.setFunctionCodeGenerator((pFunc: PotatnoCodeFunction) => {
     return `function ${pFunc.name}(${lParams}) {\n${pFunc.bodyCode}${lReturnStmt}\n}`;
 });
 
-// --- Main Functions ---
+// --- Entry Point: Pixel Shader ---
 lProject.setEntryPoint(new PotatnoEntryPointDefinition(lProject, {
-    id: 'main',
-    label: 'Main',
+    id: 'pixelShader',
+    label: 'Pixel Shader',
     statics: {
         imports: true,
-        inputs: true,
-        outputs: true
+        inputs: false,
+        outputs: false
     },
     nodes: {
         static: [
+            // OnPixel: provides normalized x/y coordinates (0-1 range)
             PotatnoNodeDefinition.create(lProject, {
-                id: 'OnStart',
-                category: NodeCategory.Value,
+                id: 'OnPixel',
+                category: NodeCategory.Event,
                 inputs: {},
                 outputs: {
-                    event: { nodeType: 'flow' }
+                    x: { nodeType: 'value', dataType: 'number' },
+                    y: { nodeType: 'value', dataType: 'number' }
                 } as const,
                 codeGenerator: (pContext) => {
-                    return `onStart() {\n${pContext.outputs.event.code}\n}`;
+                    return `// Pixel coordinates\nconst ${pContext.outputs.x.valueId} = __pixel_x;\nconst ${pContext.outputs.y.valueId} = __pixel_y;`;
+                },
+                preview: {
+                    data: {
+                        updatePreviewData: (pInputData) => ({
+                            x: (pInputData as any).x ?? 0,
+                            y: (pInputData as any).y ?? 0
+                        })
+                    }
                 }
             }),
+            // PixelResult: receives RGB color values (0-1 range)
             PotatnoNodeDefinition.create(lProject, {
-                id: 'OnTick',
-                category: NodeCategory.Value,
-                inputs: {},
-                outputs: {
-                    event: { nodeType: 'flow' },
-                    deltaTime: { nodeType: 'value', dataType: 'number' }
+                id: 'PixelResult',
+                category: NodeCategory.Output,
+                inputs: {
+                    red: { nodeType: 'value', dataType: 'number' },
+                    green: { nodeType: 'value', dataType: 'number' },
+                    blue: { nodeType: 'value', dataType: 'number' }
                 } as const,
+                outputs: {},
                 codeGenerator: (pContext) => {
-                    return `onTick(${pContext.outputs.deltaTime.valueId}) {\n${pContext.outputs.event.code}\n}`;
+                    return `__pixel_r = ${pContext.inputs.red.valueId};\n__pixel_g = ${pContext.inputs.green.valueId};\n__pixel_b = ${pContext.inputs.blue.valueId};`;
+                },
+                preview: {
+                    data: {
+                        updatePreviewData: () => ({})
+                    }
                 }
             })
         ]
     }
 }));
 
-// --- Preview (merged into single call) ---
-let lPreviewPre: HTMLPreElement;
+// --- Preview (100x100 pixel canvas) ---
+let lPreviewCanvas: HTMLCanvasElement;
+let lPreviewCtx: CanvasRenderingContext2D;
 
 lProject.setPreview(
     (pContainer: HTMLElement) => {
-        lPreviewPre = document.createElement('pre');
-        lPreviewPre.style.cssText = 'color: #cdd6f4; margin: 0; padding: 8px; font-family: "Cascadia Code", "Fira Code", monospace; font-size: 13px; white-space: pre-wrap; word-break: break-all;';
-        pContainer.appendChild(lPreviewPre);
+        lPreviewCanvas = document.createElement('canvas');
+        lPreviewCanvas.width = 100;
+        lPreviewCanvas.height = 100;
+        lPreviewCanvas.style.cssText = 'width: 100px; height: 100px; image-rendering: pixelated; background: #000;';
+        pContainer.appendChild(lPreviewCanvas);
+        lPreviewCtx = lPreviewCanvas.getContext('2d')!;
     },
-    (pCode: string) => {
-        if (!lPreviewPre) {
-            return;
-        }
-
-        try {
-            const lWrappedCode: string = `
-                const __logs = [];
-                const console = { log: function() { __logs.push(Array.prototype.slice.call(arguments).map(String).join(' ')); } };
-                ${pCode}
-                if (typeof main === 'function') { main(); }
-                return __logs;
-            `;
-
-            const lExecute: Function = new Function(lWrappedCode);
-            const lResult: Array<string> = lExecute();
-            if (lResult.length > 0) {
-                lPreviewPre.textContent = lResult.join('\n');
-                lPreviewPre.style.color = '#cdd6f4';
-            } else {
-                lPreviewPre.textContent = '(no output)';
-                lPreviewPre.style.color = '#6c7086';
-            }
-        } catch (pError: any) {
-            lPreviewPre.textContent = `Error: ${pError.message ?? pError}`;
-            lPreviewPre.style.color = '#f38ba8';
-        }
+    (_pCode: string) => {
+        // The canvas update is driven by the render loop via update(), not by code generation.
     }
 );
 
@@ -466,3 +618,57 @@ lProject.setPreview(
 const lApp: PotatnoCodeApplication = new PotatnoCodeApplication(lProject);
 lApp.appendTo(document.body);
 lApp.file = new PotatnoCodeFile();
+
+// --- Pixel shader render loop ---
+function renderFrame(): void {
+    if (!lPreviewCtx) {
+        requestAnimationFrame(renderFrame);
+        return;
+    }
+
+    const lImageData: ImageData = lPreviewCtx.createImageData(100, 100);
+
+    for (let lY = 0; lY < 100; lY++) {
+        for (let lX = 0; lX < 100; lX++) {
+            // Evaluate the node graph with normalized pixel coordinates.
+            const lResult = lApp.update(
+                { 'OnPixel': { x: lX / 100, y: lY / 100 } },
+                false // Don't update element previews during bulk iteration.
+            );
+
+            // Read PixelResult node's input data (the RGB values connected to it).
+            let lRed = 0;
+            let lGreen = 0;
+            let lBlue = 0;
+
+            if (lResult) {
+                // Find the PixelResult node by its definition id.
+                for (const [, lData] of lResult) {
+                    // We check all nodes, but the PixelResult node's inputs contain the final color.
+                    // The node is identified by looking for red/green/blue inputs.
+                    if ('red' in lData.inputs && 'green' in lData.inputs && 'blue' in lData.inputs) {
+                        lRed = lData.inputs['red'] as number;
+                        lGreen = lData.inputs['green'] as number;
+                        lBlue = lData.inputs['blue'] as number;
+                        break;
+                    }
+                }
+            }
+
+            const lIdx: number = (lY * 100 + lX) * 4;
+            lImageData.data[lIdx] = Math.max(0, Math.min(255, Math.round(lRed * 255)));
+            lImageData.data[lIdx + 1] = Math.max(0, Math.min(255, Math.round(lGreen * 255)));
+            lImageData.data[lIdx + 2] = Math.max(0, Math.min(255, Math.round(lBlue * 255)));
+            lImageData.data[lIdx + 3] = 255;
+        }
+    }
+
+    lPreviewCtx.putImageData(lImageData, 0, 0);
+
+    // Update node element previews once per frame with center pixel data.
+    lApp.update({ 'OnPixel': { x: 0.5, y: 0.5 } }, true);
+
+    requestAnimationFrame(renderFrame);
+}
+
+renderFrame();

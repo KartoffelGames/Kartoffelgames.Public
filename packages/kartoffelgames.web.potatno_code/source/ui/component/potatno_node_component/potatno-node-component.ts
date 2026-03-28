@@ -1,5 +1,5 @@
-import { PwbComponent, Processor, PwbExport, PwbComponentEvent, ComponentEventEmitter } from '@kartoffelgames/web-potato-web-builder';
-import type { ComponentEvent } from '@kartoffelgames/web-potato-web-builder';
+import { PwbComponent, Processor, PwbExport, PwbComponentEvent, PwbChild, ComponentEventEmitter } from '@kartoffelgames/web-potato-web-builder';
+import type { ComponentEvent, IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import { NodeCategory } from '../../../node/node-category.enum.ts';
 import nodeCss from './potatno-node-component.css';
 import nodeTemplate from './potatno-node-component.html';
@@ -33,6 +33,7 @@ export interface NodeRenderData {
     commentText: string;
     pixelX: number;
     pixelY: number;
+    previewElement: HTMLElement | null;
 }
 
 /**
@@ -107,7 +108,7 @@ type ResizeStartDetail = {
     template: nodeTemplate,
     style: nodeCss,
 })
-export class PotatnoNodeComponent extends Processor {
+export class PotatnoNodeComponent extends Processor implements IComponentOnUpdate {
     // ── Exported properties ─────────────────────────────────────────────
 
     /**
@@ -129,6 +130,12 @@ export class PotatnoNodeComponent extends Processor {
      */
     @PwbExport
     public gridSize: number = 20;
+
+    /**
+     * Reference to the preview container element inside the node.
+     */
+    @PwbChild('NodePreview')
+    private accessor mPreviewContainer!: HTMLDivElement;
 
     // ── Event emitters ──────────────────────────────────────────────────
 
@@ -285,6 +292,30 @@ export class PotatnoNodeComponent extends Processor {
      */
     public get flowOutputPorts(): Array<any> {
         return this.nodeData?.flowOutputs ?? [];
+    }
+
+    /**
+     * Whether this node has a preview element to display inline.
+     */
+    public get hasPreviewElement(): boolean {
+        return this.nodeData?.previewElement !== null && this.nodeData?.previewElement !== undefined;
+    }
+
+    // ── Lifecycle ───────────────────────────────────────────────────────
+
+    /**
+     * After each update cycle, ensure the preview element is appended to the container.
+     */
+    public onUpdate(): void {
+        const lPreviewEl: HTMLElement | null | undefined = this.nodeData?.previewElement;
+        const lContainer: HTMLDivElement = this.mPreviewContainer;
+        if (lContainer && lPreviewEl) {
+            // Only append if not already a child.
+            if (lPreviewEl.parentElement !== lContainer) {
+                lContainer.innerHTML = '';
+                lContainer.appendChild(lPreviewEl);
+            }
+        }
     }
 
     // ── Event handlers ──────────────────────────────────────────────────

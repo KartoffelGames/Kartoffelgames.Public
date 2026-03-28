@@ -1,6 +1,6 @@
 import type { PotatnoCodeFunction } from './potatno-code-function.ts';
 import type { PotatnoGlobalPortDefinition } from './potatno-global-port-definition.ts';
-import type { PotatnoMainFunctionDefinition } from './potatno-main-function-definition.ts';
+import type { PotatnoEntryPointDefinition } from './potatno-entry-point-definition.ts';
 import { PotatnoProjectNodeDefinition, type PotatnoProjectNodeDefinitionPorts } from "./potatno-node-definition.ts";
 
 /**
@@ -8,17 +8,17 @@ import { PotatnoProjectNodeDefinition, type PotatnoProjectNodeDefinitionPorts } 
  * Contains all registered node types, main function definitions, imports,
  * and callback configurations. Does not hold document state.
  */
-export class PotatnoProject {
+export class PotatnoProject<TTypes extends string = string> {
     private mCommentToken: string;
     private mCreatePreview: ((container: HTMLElement) => void) | null;
     private mFunctionCodeGenerator: ((func: PotatnoCodeFunction) => string) | null;
     private readonly mGlobalInputs: Array<PotatnoGlobalPortDefinition>;
     private readonly mGlobalOutputs: Array<PotatnoGlobalPortDefinition>;
-    private readonly mImports: Array<PotatnoImportDefinition>;
-    private readonly mMainFunctions: Array<PotatnoMainFunctionDefinition>;
-    private readonly mNodeDefinitions: Map<string, PotatnoProjectNodeDefinition>;
+    private readonly mImports: Array<PotatnoImportDefinition<TTypes>>;
+    private readonly mMainFunctions: Array<PotatnoEntryPointDefinition<TTypes>>;
+    private readonly mNodeDefinitions: Map<string, PotatnoProjectNodeDefinition<TTypes, any, any>>;
     private mUpdatePreview: ((code: string) => void) | null;
-    private mValidTypes: Set<string>;
+    private mValidTypes: Set<TTypes>;
 
     /**
      * Get the comment token used for metadata comments in generated code.
@@ -65,21 +65,21 @@ export class PotatnoProject {
     /**
      * Get the list of registered import definitions.
      */
-    public get imports(): ReadonlyArray<PotatnoImportDefinition> {
+    public get imports(): ReadonlyArray<PotatnoImportDefinition<TTypes>> {
         return this.mImports;
     }
 
     /**
      * Get the list of registered main function definitions.
      */
-    public get mainFunctions(): ReadonlyArray<PotatnoMainFunctionDefinition> {
+    public get mainFunctions(): ReadonlyArray<PotatnoEntryPointDefinition<TTypes>> {
         return this.mMainFunctions;
     }
 
     /**
      * Get the map of registered node definitions keyed by node definitions id.
      */
-    public get nodeDefinitions(): ReadonlyMap<string, PotatnoProjectNodeDefinition> {
+    public get nodeDefinitions(): ReadonlyMap<string, PotatnoProjectNodeDefinition<TTypes>> {
         return this.mNodeDefinitions;
     }
 
@@ -93,17 +93,17 @@ export class PotatnoProject {
     /**
      * Create a new editor configuration with default values.
      */
-    public constructor() {
+    public constructor(pTypes: Array<TTypes>) {
         this.mCommentToken = '//';
-        this.mNodeDefinitions = new Map<string, PotatnoProjectNodeDefinition>();
-        this.mMainFunctions = new Array<PotatnoMainFunctionDefinition>();
-        this.mImports = new Array<PotatnoImportDefinition>();
+        this.mNodeDefinitions = new Map<string, PotatnoProjectNodeDefinition<TTypes>>();
+        this.mMainFunctions = new Array<PotatnoEntryPointDefinition<TTypes>>();
+        this.mImports = new Array<PotatnoImportDefinition<TTypes>>();
         this.mGlobalInputs = new Array<PotatnoGlobalPortDefinition>();
         this.mGlobalOutputs = new Array<PotatnoGlobalPortDefinition>();
         this.mCreatePreview = null;
         this.mUpdatePreview = null;
         this.mFunctionCodeGenerator = null;
-        this.mValidTypes = new Set<string>();
+        this.mValidTypes = new Set<TTypes>(pTypes);
     }
 
     /**
@@ -123,21 +123,21 @@ export class PotatnoProject {
     /**
      * Register an import definition.
      */
-    public addImport(pDefinition: PotatnoImportDefinition): void {
+    public addImport(pDefinition: PotatnoImportDefinition<TTypes>): void {
         this.mImports.push(pDefinition);
     }
 
     /**
-     * Register a main function definition.
+     * Register an entry point definition.
      */
-    public addMainFunction(pDefinition: PotatnoMainFunctionDefinition): void {
+    public addEntryPoint(pDefinition: PotatnoEntryPointDefinition<TTypes>): void {
         this.mMainFunctions.push(pDefinition);
     }
 
     /**
      * Register a node type definition.
      */
-    public addNodeDefinition(pDefinition: PotatnoProjectNodeDefinition): void {
+    public addNodeDefinition<TInputs extends PotatnoProjectNodeDefinitionPorts<TTypes>, TOutputs extends PotatnoProjectNodeDefinitionPorts<TTypes>>(pDefinition: PotatnoProjectNodeDefinition<TTypes, TInputs, TOutputs>): void {
         this.mNodeDefinitions.set(pDefinition.id, pDefinition);
     }
 
@@ -164,22 +164,13 @@ export class PotatnoProject {
     }
 
     /**
-     * Add a valid type identifier that can be used by node port definitions.
-     *
-     * @param pTypeName - The unique string identifier of the type.
-     */
-    public addType(pTypeName: string): void {
-        this.mValidTypes.add(pTypeName);
-    }
-
-    /**
      * Check if a type identifier is registered as valid in the project.
      *
      * @param pTypeName - The type identifier to check.
      *
      * @returns True if the type is registered, false otherwise.
      */
-    public hasType(pTypeName: string): boolean {
+    public hasType(pTypeName: TTypes): boolean {
         return this.mValidTypes.has(pTypeName);
     }
 }
@@ -188,9 +179,14 @@ export class PotatnoProject {
  * Definition of an import group. When a function enables this import,
  * the contained node definitions become available in that function's node library.
  */
-export interface PotatnoImportDefinition {
-    /** Display name of the import group. */
+export interface PotatnoImportDefinition<TTypes extends string> {
+    /** 
+     * Display name of the import group. 
+     */
     readonly name: string;
-    /** Node definitions that become available when this import is enabled. */
-    readonly nodes: Array<PotatnoProjectNodeDefinition>;
+
+    /**
+     * Node definitions that become available when this import is enabled. 
+     */
+    readonly nodes: Array<PotatnoProjectNodeDefinition<TTypes>>;
 }

@@ -2,26 +2,26 @@ import { PotatnoCodeFile } from '../../source/document/potatno-code-file.ts';
 import { NodeCategory } from '../../source/node/node-category.enum.ts';
 import { PotatnoCodeApplication } from '../../source/potatno-code-application.ts';
 import type { PotatnoCodeFunction } from '../../source/project/potatno-code-function.ts';
+import { PotatnoEntryPointDefinition } from "../../source/project/potatno-entry-point-definition.ts";
 import { PotatnoProjectNodeDefinition } from "../../source/project/potatno-node-definition.ts";
 import { PotatnoProject } from '../../source/project/potatno-project.ts';
 
 // --- Project configuration ---
-const lProject: PotatnoProject = new PotatnoProject();
+const lProject = new PotatnoProject([
+    'number',
+    'string',
+    'boolean'
+]);
 
 // --- Comment token ---
 lProject.setCommentToken('//');
-
-// -- Types ---
-lProject.addType('number');
-lProject.addType('string');
-lProject.addType('boolean');
 
 // --- Imports (replaces defineGlobalValue) ---
 lProject.addImport({
     name: 'Math',
     nodes: [
         new PotatnoProjectNodeDefinition(lProject, {
-            name: 'Math.PI',
+            id: 'Math.PI',
             category: NodeCategory.Value,
             inputs: {},
             outputs: {
@@ -30,7 +30,7 @@ lProject.addImport({
             codeGenerator: (pContext) => `const ${pContext.outputs.value.valueId} = Math.PI;`
         }),
         new PotatnoProjectNodeDefinition(lProject, {
-            name: 'Math.E',
+            id: 'Math.E',
             category: NodeCategory.Value,
             inputs: {},
             outputs: {
@@ -39,7 +39,7 @@ lProject.addImport({
             codeGenerator: (pContext) => `const ${pContext.outputs.value.valueId} = Math.E;`
         }),
         new PotatnoProjectNodeDefinition(lProject, {
-            name: 'Math.abs',
+            id: 'Math.abs',
             category: NodeCategory.Function,
             inputs: {
                 value: { nodeType: 'value', dataType: 'number' }
@@ -50,7 +50,7 @@ lProject.addImport({
             codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = Math.abs(${pContext.inputs.value.valueId});`
         }),
         new PotatnoProjectNodeDefinition(lProject, {
-            name: 'Math.floor',
+            id: 'Math.floor',
             category: NodeCategory.Function,
             inputs: {
                 value: { nodeType: 'value', dataType: 'number' }
@@ -61,7 +61,7 @@ lProject.addImport({
             codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = Math.floor(${pContext.inputs.value.valueId});`
         }),
         new PotatnoProjectNodeDefinition(lProject, {
-            name: 'Math.random',
+            id: 'Math.random',
             category: NodeCategory.Function,
             inputs: {},
             outputs: {
@@ -78,7 +78,7 @@ lProject.addGlobalOutput({ name: 'result', type: 'string' });
 
 // --- Value Nodes ---
 lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'Number Literal',
+    id: 'Number Literal',
     category: NodeCategory.Value,
     inputs: {},
     outputs: {
@@ -88,7 +88,7 @@ lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
 }));
 
 lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'String Literal',
+    id: 'String Literal',
     category: NodeCategory.Value,
     inputs: {},
     outputs: {
@@ -98,7 +98,7 @@ lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
 }));
 
 lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'Boolean Literal',
+    id: 'Boolean Literal',
     category: NodeCategory.Value,
     inputs: {},
     outputs: {
@@ -109,7 +109,7 @@ lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
 
 // --- Operator Nodes: Arithmetic ---
 lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'Add',
+    id: 'Add',
     category: NodeCategory.Operator,
     inputs: {
         a: { nodeType: 'value', dataType: 'number' },
@@ -122,7 +122,7 @@ lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
 }));
 
 lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'Subtract',
+    id: 'Subtract',
     category: NodeCategory.Operator,
     inputs: {
         a: { nodeType: 'value', dataType: 'number' },
@@ -135,7 +135,7 @@ lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
 }));
 
 lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'Multiply',
+    id: 'Multiply',
     category: NodeCategory.Operator,
     inputs: {
         a: { nodeType: 'value', dataType: 'number' },
@@ -148,7 +148,7 @@ lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
 }));
 
 lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'Divide',
+    id: 'Divide',
     category: NodeCategory.Operator,
     inputs: {
         a: { nodeType: 'value', dataType: 'number' },
@@ -161,7 +161,7 @@ lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
 }));
 
 lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'Modulo',
+    id: 'Modulo',
     category: NodeCategory.Operator,
     inputs: {
         a: { nodeType: 'value', dataType: 'number' },
@@ -175,7 +175,7 @@ lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
 
 // --- Operator Nodes: Comparison ---
 lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'Equal',
+    id: 'Equal',
     category: NodeCategory.Operator,
     inputs: {
         a: { nodeType: 'value', dataType: 'number' },
@@ -188,7 +188,7 @@ lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
 }));
 
 lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'Not Equal',
+    id: 'Not Equal',
     category: NodeCategory.Operator,
     inputs: {
         a: { nodeType: 'value', dataType: 'number' },
@@ -201,7 +201,7 @@ lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
 }));
 
 lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'Less Than',
+    id: 'Less Than',
     category: NodeCategory.Operator,
     inputs: {
         a: { nodeType: 'value', dataType: 'number' },
@@ -214,7 +214,7 @@ lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
 }));
 
 lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'Greater Than',
+    id: 'Greater Than',
     category: NodeCategory.Operator,
     inputs: {
         a: { nodeType: 'value', dataType: 'number' },
@@ -228,7 +228,7 @@ lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
 
 // --- Operator Nodes: Logic ---
 lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'And',
+    id: 'And',
     category: NodeCategory.Operator,
     inputs: {
         a: { nodeType: 'value', dataType: 'boolean' },
@@ -241,7 +241,7 @@ lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
 }));
 
 lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'Or',
+    id: 'Or',
     category: NodeCategory.Operator,
     inputs: {
         a: { nodeType: 'value', dataType: 'boolean' },
@@ -254,7 +254,7 @@ lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
 }));
 
 lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'Not',
+    id: 'Not',
     category: NodeCategory.Operator,
     inputs: {
         a: { nodeType: 'value', dataType: 'boolean' }
@@ -267,7 +267,7 @@ lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
 
 // --- Type Conversion Nodes ---
 lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'Number to String',
+    id: 'Number to String',
     category: NodeCategory.TypeConversion,
     inputs: {
         input: { nodeType: 'value', dataType: 'number' }
@@ -279,7 +279,7 @@ lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
 }));
 
 lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'String to Number',
+    id: 'String to Number',
     category: NodeCategory.TypeConversion,
     inputs: {
         input: { nodeType: 'value', dataType: 'string' }
@@ -291,7 +291,7 @@ lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
 }));
 
 lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'Boolean to String',
+    id: 'Boolean to String',
     category: NodeCategory.TypeConversion,
     inputs: {
         input: { nodeType: 'value', dataType: 'boolean' }
@@ -304,7 +304,7 @@ lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
 
 // --- Flow Nodes ---
 lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'If',
+    id: 'If',
     category: NodeCategory.Flow,
     inputs: {
         exec: { nodeType: 'flow' },
@@ -318,7 +318,7 @@ lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
 }));
 
 lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'While',
+    id: 'While',
     category: NodeCategory.Flow,
     inputs: {
         exec: { nodeType: 'flow' },
@@ -331,7 +331,7 @@ lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
 }));
 
 lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'For Loop',
+    id: 'For Loop',
     category: NodeCategory.Flow,
     inputs: {
         exec: { nodeType: 'flow' },
@@ -346,7 +346,7 @@ lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
 
 // --- Function Nodes (now with auto exec pins) ---
 lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'Console Log',
+    id: 'Console Log',
     category: NodeCategory.Function,
     inputs: { message: { nodeType: 'value', dataType: 'string' } },
     outputs: {},
@@ -354,7 +354,7 @@ lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
 }));
 
 lProject.addNodeDefinition(new PotatnoProjectNodeDefinition(lProject, {
-    name: 'String Concat',
+    id: 'String Concat',
     category: NodeCategory.Function,
     inputs: {
         a: { nodeType: 'value', dataType: 'string' },
@@ -376,17 +376,42 @@ lProject.setFunctionCodeGenerator((pFunc: PotatnoCodeFunction) => {
 });
 
 // --- Main Functions ---
-lProject.addMainFunction({
-    name: 'main',
+lProject.addEntryPoint(new PotatnoEntryPointDefinition(lProject, {
+    id: 'main',
     label: 'Main',
-    editableByUser: true,
-    inputs: {},
-    outputs: {},
-    events: [
-        { name: 'OnStart', outputs: [] },
-        { name: 'OnTick', outputs: [{ name: 'deltaTime', type: 'number' }] }
-    ]
-});
+    statics: {
+        imports: true,
+        inputs: true,
+        outputs: true
+    },
+    nodes: {
+        static: [
+            new PotatnoProjectNodeDefinition(lProject, {
+                id: 'OnStart',
+                category: NodeCategory.Value,
+                inputs: {},
+                outputs: {
+                    event: { nodeType: 'flow' }
+                } as const,
+                codeGenerator: (pContext) => {
+                    return `onStart() {\n${pContext.outputs.event.code}\n}`
+                }
+            }),
+            new PotatnoProjectNodeDefinition(lProject, {
+                id: 'OnTick',
+                category: NodeCategory.Value,
+                inputs: {},
+                outputs: {
+                    event: { nodeType: 'flow' },
+                    deltaTime: { nodeType: 'value', dataType: 'number' }
+                },
+                codeGenerator: (pContext) => {
+                    return `onTick(${pContext.outputs.deltaTime.valueId}) {\n${pContext.outputs.event.code}\n}`
+                }
+            })
+        ]
+    }
+}));
 
 // --- Preview (merged into single call) ---
 let lPreviewPre: HTMLPreElement;

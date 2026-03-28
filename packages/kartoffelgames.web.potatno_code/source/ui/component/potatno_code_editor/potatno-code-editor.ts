@@ -552,7 +552,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             for (const lFunc of lFile.functions.values()) {
                 if (lFunc.name === lDefName && !lFunc.system) {
                     lDefinition = {
-                        name: lFunc.name,
+                        id: lFunc.name,
                         category: NodeCategory.Function,
                         inputs: { ...lFunc.inputs },
                         outputs: { ...lFunc.outputs }
@@ -588,7 +588,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             for (const lGlobalInput of lProject.globalInputs) {
                 if (lDefName === `Get ${lGlobalInput.name}`) {
                     lDefinition = {
-                        name: lDefName,
+                        id: lDefName,
                         category: NodeCategory.Value,
                         inputs: {},
                         outputs: { [lGlobalInput.name]: { nodeType: 'value', dataType: lGlobalInput.type } }
@@ -603,7 +603,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             for (const lGlobalOutput of lProject.globalOutputs) {
                 if (lDefName === `Set ${lGlobalOutput.name}`) {
                     lDefinition = {
-                        name: lDefName,
+                        id: lDefName,
                         category: NodeCategory.Value,
                         inputs: { [lGlobalOutput.name]: { nodeType: 'value', dataType: lGlobalOutput.type } },
                         outputs: {}
@@ -1367,7 +1367,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             let lInputIdx: number = 0;
             for (const [lName, lPort] of Object.entries(lInputPorts)) {
                 const lInputNodeDef: PotatnoProjectNodeDefinition = {
-                    name: lName,
+                    id: lName,
                     category: NodeCategory.Input,
                     inputs: {},
                     outputs: { [lName]: lPort }
@@ -1380,7 +1380,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             let lOutputIdx: number = 0;
             for (const [lName, lPort] of Object.entries(lOutputPorts)) {
                 const lOutputNodeDef: PotatnoProjectNodeDefinition = {
-                    name: lName,
+                    id: lName,
                     category: NodeCategory.Output,
                     inputs: { [lName]: lPort },
                     outputs: {}
@@ -1394,7 +1394,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
                 for (let lIdx = 0; lIdx < lMainDef.events.length; lIdx++) {
                     const lEvent = lMainDef.events[lIdx];
                     const lEventNodeDef: PotatnoProjectNodeDefinition = {
-                        name: lEvent.name,
+                        id: lEvent.name,
                         category: NodeCategory.Event,
                         inputs: {},
                         outputs: { ...lEvent.outputs }

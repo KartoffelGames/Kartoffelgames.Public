@@ -6,24 +6,33 @@ import { PotatnoProject } from "./potatno-project.ts";
  * Definition of a node type that can be instantiated in the graph. Registered at the project level and referenced by nodes via the definitionName property.
  * Generics allow for strong typing of input and output port definitions, which are passed to the code generator callback for type-safe code generation.
  * 
+ * @template TTypes - String literal union type of valid data type identifiers for ports in this project.
  * @template TInputKeys - String literal union type of valid input port names for this node definition.
  * @template TInputs - Object type mapping input port names to their definitions, constrained by TInputKeys.
  * @template TOutputKeys - String literal union type of valid output port names for this node definition.
  * @template TOutputs - Object type mapping output port names to their definitions, constrained by TOutputKeys.
  */
-export class PotatnoProjectNodeDefinition<TInputs extends PotatnoProjectNodeDefinitionPorts = {}, TOutputs extends PotatnoProjectNodeDefinitionPorts = {}> {
+export class PotatnoProjectNodeDefinition<TTypes extends string = string, TInputs extends PotatnoProjectNodeDefinitionPorts<TTypes> = any, TOutputs extends PotatnoProjectNodeDefinitionPorts<TTypes> = any> {
+    private readonly mProject: PotatnoProject<TTypes>;
     private readonly mId: string;
     private readonly mCategory: NodeCategory;
     private readonly mInputs: TInputs;
     private readonly mLabel: string;
     private readonly mOutputs: TOutputs;
-    private readonly mCodeGenerator: PotatnoProjectNodeDefinitionCodeGenerator<TInputs, TOutputs>;
+    private readonly mCodeGenerator: PotatnoProjectNodeDefinitionCodeGenerator<TTypes, TInputs, TOutputs>;
 
     /**
      *  Unique id for this node definition. 
      */
     public get id(): string {
         return this.mId;
+    }
+
+    /**
+     * Reference to the project this node definition belongs to.
+     */
+    public get project(): PotatnoProject<TTypes> {
+        return this.mProject;
     }
 
     /** 
@@ -57,25 +66,30 @@ export class PotatnoProjectNodeDefinition<TInputs extends PotatnoProjectNodeDefi
     /** 
      * Code generator callback that produces the code string from a typed context. 
      */
-    public get codeGenerator(): PotatnoProjectNodeDefinitionCodeGenerator<TInputs, TOutputs> {
+    public get codeGenerator(): PotatnoProjectNodeDefinitionCodeGenerator<TTypes, TInputs, TOutputs> {
         return this.mCodeGenerator;
     }
 
     /**
      * Constructor.
      * 
-     * @param params - Constructor parameters. 
+     * @param pParameters - Constructor parameters. 
      */
-    public constructor(pProject: PotatnoProject, params: PotatnoProjectNodeDefinitionConstructorParameter<TInputs, TOutputs>) {
-        this.mId = params.name;
-        this.mLabel = params.label ?? params.name;
-        this.mCategory = params.category;
-        this.mInputs = params.inputs ?? {} as TInputs;
-        this.mOutputs = params.outputs ?? {} as TOutputs;
-        this.mCodeGenerator = params.codeGenerator;
+    public constructor(pProject: PotatnoProject<TTypes>, pParameters: PotatnoProjectNodeDefinitionConstructorParameter<TTypes, TInputs, TOutputs>) {
+        this.mProject = pProject;
+
+        // Set id and label. Label defaults to id if not provided.
+        this.mId = pParameters.id;
+        this.mLabel = pParameters.label ?? pParameters.id;
+
+
+        this.mCategory = pParameters.category;
+        this.mInputs = pParameters.inputs ?? {} as TInputs;
+        this.mOutputs = pParameters.outputs ?? {} as TOutputs;
+        this.mCodeGenerator = pParameters.codeGenerator;
 
         // Validate input value ports types are defined in project.
-        for (const lPort of Object.values<PotatnoProjectNodeDefinitionPort>(this.mInputs)) {
+        for (const lPort of Object.values<PotatnoProjectNodeDefinitionPort<TTypes>>(this.mInputs)) {
             // Skip none value ports.
             if (lPort.nodeType !== 'value') {
                 continue;
@@ -88,7 +102,7 @@ export class PotatnoProjectNodeDefinition<TInputs extends PotatnoProjectNodeDefi
         }
 
         // Validate output value ports types are defined in project.
-        for (const lPort of Object.values<PotatnoProjectNodeDefinitionPort>(this.mOutputs)) {
+        for (const lPort of Object.values<PotatnoProjectNodeDefinitionPort<TTypes>>(this.mOutputs)) {
             // Skip none value ports.
             if (lPort.nodeType !== 'value') {
                 continue;
@@ -102,41 +116,41 @@ export class PotatnoProjectNodeDefinition<TInputs extends PotatnoProjectNodeDefi
     }
 }
 
-type PotatnoProjectNodeDefinitionConstructorParameter<TInputs extends PotatnoProjectNodeDefinitionPorts, TOutputs extends PotatnoProjectNodeDefinitionPorts> = {
+type PotatnoProjectNodeDefinitionConstructorParameter<TTypes extends string, TInputs extends PotatnoProjectNodeDefinitionPorts<TTypes>, TOutputs extends PotatnoProjectNodeDefinitionPorts<TTypes>> = {
     label?: string;
-    name: string;
+    id: string;
     category: NodeCategory;
     inputs: TInputs;
     outputs: TOutputs;
-    codeGenerator: PotatnoProjectNodeDefinitionCodeGenerator<TInputs, TOutputs>;
+    codeGenerator: PotatnoProjectNodeDefinitionCodeGenerator<TTypes, TInputs, TOutputs>;
 };
 
 /**
  * Typed context passed to the node code generator callback.
  * All maps are plain JS objects for type safety and easy destructuring.
  */
-export type PotatnoProjectNodeDefinitionGeneratorData<TInput extends PotatnoProjectNodeDefinitionPorts, TOutput extends PotatnoProjectNodeDefinitionPorts> = {
+export type PotatnoProjectNodeDefinitionGeneratorData<TTypes extends string, TInput extends PotatnoProjectNodeDefinitionPorts<TTypes>, TOutput extends PotatnoProjectNodeDefinitionPorts<TTypes>> = {
     /**
      *  Input port valueIds keyed by port name. 
      */
-    readonly inputs: PotatnoProjectCodeGeneratorPorts<TInput>;
+    readonly inputs: PotatnoProjectCodeGeneratorPorts<TTypes, TInput>;
 
     /** 
      * Output port valueIds keyed by port name. 
      */
-    readonly outputs: PotatnoProjectCodeGeneratorPorts<TOutput>;
+    readonly outputs: PotatnoProjectCodeGeneratorPorts<TTypes, TOutput>;
 };
 
 /**
  * Code generator callback type for node definitions, receiving a typed context with inputs, outputs, properties, and body code blocks.
  */
-type PotatnoProjectNodeDefinitionCodeGenerator<TInput extends PotatnoProjectNodeDefinitionPorts, TOutput extends PotatnoProjectNodeDefinitionPorts> = (pContext: PotatnoProjectNodeDefinitionGeneratorData<TInput, TOutput>) => string;
+type PotatnoProjectNodeDefinitionCodeGenerator<TTypes extends string, TInput extends PotatnoProjectNodeDefinitionPorts<TTypes>, TOutput extends PotatnoProjectNodeDefinitionPorts<TTypes>> = (pContext: PotatnoProjectNodeDefinitionGeneratorData<TTypes, TInput, TOutput>) => string;
 
 /**
  * Definition of a port type used when registering node definitions.
  */
 
-export type PotatnoProjectNodeDefinitionPort = PotatnoProjectNodeDefinitionFlowPort | PotatnoProjectNodeDefinitionValuePort | PotatnoProjectNodeDefinitionInputPort;
+export type PotatnoProjectNodeDefinitionPort<TTypes extends string = string> = PotatnoProjectNodeDefinitionFlowPort | PotatnoProjectNodeDefinitionValuePort<TTypes> | PotatnoProjectNodeDefinitionInputPort<TTypes>;
 
 export type PotatnoProjectNodeDefinitionFlowPort = {
     /** 
@@ -145,7 +159,7 @@ export type PotatnoProjectNodeDefinitionFlowPort = {
     nodeType: 'flow';
 };
 
-export type PotatnoProjectNodeDefinitionInputPort = {
+export type PotatnoProjectNodeDefinitionInputPort<TTypes extends string> = {
     /**
      * Fixed type discriminator for input ports.
      */
@@ -154,7 +168,7 @@ export type PotatnoProjectNodeDefinitionInputPort = {
     /** 
      * Data type identifier for the port.
      */
-    dataType: string;
+    dataType: TTypes;
 
     /** 
      * Input type for UI rendering and validation.
@@ -162,7 +176,7 @@ export type PotatnoProjectNodeDefinitionInputPort = {
     inputType: 'string' | 'number' | 'boolean';
 };
 
-export type PotatnoProjectNodeDefinitionValuePort = {
+export type PotatnoProjectNodeDefinitionValuePort<TTypes extends string> = {
     /**
      * Fixed type discriminator for value ports.
      */
@@ -171,10 +185,10 @@ export type PotatnoProjectNodeDefinitionValuePort = {
     /** 
      * Data type identifier for the port.
      */
-    dataType: string;
+    dataType: TTypes;
 };
 
-export type PotatnoProjectNodeDefinitionPorts<TKey extends string = string> = Record<TKey, PotatnoProjectNodeDefinitionPort>;
+export type PotatnoProjectNodeDefinitionPorts<TTypes extends string = string, TKey extends string = string> = Record<TKey, PotatnoProjectNodeDefinitionPort<TTypes>>;
 
 /**
  * Code generator node outputs.
@@ -206,8 +220,8 @@ export type PotatnoProjectCodeGeneratorValuePort = {
     valueId: string;
 };
 
-export type PotatnoProjectCodeGeneratorPorts<TPorts extends PotatnoProjectNodeDefinitionPorts> = {
-    [K in keyof TPorts]: TPorts[K] extends PotatnoProjectNodeDefinitionValuePort ? PotatnoProjectCodeGeneratorValuePort :
-    TPorts[K] extends PotatnoProjectNodeDefinitionInputPort ? PotatnoProjectCodeGeneratorInputPort :
+export type PotatnoProjectCodeGeneratorPorts<TTypes extends string, TPorts extends PotatnoProjectNodeDefinitionPorts<TTypes>> = {
+    [K in keyof TPorts]: TPorts[K] extends PotatnoProjectNodeDefinitionValuePort<TTypes> ? PotatnoProjectCodeGeneratorValuePort :
+    TPorts[K] extends PotatnoProjectNodeDefinitionInputPort<TTypes> ? PotatnoProjectCodeGeneratorInputPort :
     TPorts[K] extends PotatnoProjectNodeDefinitionFlowPort ? PotatnoProjectCodeGeneratorFlowPort : never;
 };

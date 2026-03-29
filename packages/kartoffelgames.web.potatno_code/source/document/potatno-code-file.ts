@@ -1,4 +1,4 @@
-import type { PotatnoFunction } from '../project/potatno-function.ts';
+import type { PotatnoFunction } from './potatno-function.ts';
 
 /**
  * Represents the mutable document state of a PotatnoCode file.

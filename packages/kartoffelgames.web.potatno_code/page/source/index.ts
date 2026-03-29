@@ -1,7 +1,7 @@
 import { PotatnoCodeFile } from '../../source/document/potatno-code-file.ts';
 import { NodeCategory } from '../../source/node/node-category.enum.ts';
 import { PotatnoCodeApplication } from '../../source/potatno-code-application.ts';
-import type { PotatnoCodeFunction } from '../../source/document/potatno-code-function.ts';
+import type { PotatnoCodeFunction } from '../../source/parser/potatno-code-function.ts';
 import { PotatnoEntryPointDefinition } from "../../source/project/potatno-entry-point-definition.ts";
 import { PotatnoNodeDefinition } from "../../source/project/potatno-node-definition.ts";
 import { PotatnoProject } from '../../source/project/potatno-project.ts';
@@ -14,13 +14,85 @@ const lProject = new PotatnoProject({
         string: '',
         boolean: false
     },
+    entryPoint: PotatnoEntryPointDefinition.create({
+        id: 'pixelShader',
+        statics: {
+            imports: true,
+            inputs: false,
+            outputs: false
+        },
+        nodes: {
+            static: [
+                // OnPixel: provides normalized x/y coordinates (0-1 range)
+                PotatnoNodeDefinition.create({
+                    id: 'OnPixel',
+                    category: NodeCategory.Event,
+                    inputs: {},
+                    outputs: {
+                        x: { nodeType: 'value', dataType: 'number' },
+                        y: { nodeType: 'value', dataType: 'number' }
+                    } as const,
+                    codeGenerator: (pContext) => {
+                        return `// Pixel coordinates\nconst ${pContext.outputs.x.valueId} = __pixel_x;\nconst ${pContext.outputs.y.valueId} = __pixel_y;`;
+                    },
+                    preview: {
+                        data: {
+                            updatePreviewData: (pInputData) => ({
+                                x: (pInputData as any).x ?? 0,
+                                y: (pInputData as any).y ?? 0
+                            })
+                        }
+                    }
+                }),
+                // PixelResult: receives RGB color values (0-1 range)
+                PotatnoNodeDefinition.create({
+                    id: 'PixelResult',
+                    category: NodeCategory.Output,
+                    inputs: {
+                        red: { nodeType: 'value', dataType: 'number' },
+                        green: { nodeType: 'value', dataType: 'number' },
+                        blue: { nodeType: 'value', dataType: 'number' }
+                    } as const,
+                    outputs: {},
+                    codeGenerator: (pContext) => {
+                        return `__pixel_r = ${pContext.inputs.red.valueId};\n__pixel_g = ${pContext.inputs.green.valueId};\n__pixel_b = ${pContext.inputs.blue.valueId};`;
+                    },
+                    preview: {
+                        data: {
+                            updatePreviewData: () => ({})
+                        }
+                    }
+                })
+            ]
+        },
+        codeGenerator: (pFunc: PotatnoCodeFunction) => {
+            const lParams: string = pFunc.inputs.map((i: { valueId: string; }) => i.valueId).join(', ');
+            const lReturnStmt: string = pFunc.outputs.length > 0
+                ? `\n    return ${pFunc.outputs[0].valueId};`
+                : '';
+            return `function ${pFunc.name}(${lParams}) {\n${pFunc.bodyCode}${lReturnStmt}\n}`;
+        },
+        preview: {
+            generatePreview: (pContainer: HTMLElement) => {
+                lPreviewCanvas = document.createElement('canvas');
+                lPreviewCanvas.width = 100;
+                lPreviewCanvas.height = 100;
+                lPreviewCanvas.style.cssText = 'width: 100px; height: 100px; image-rendering: pixelated; background: #000;';
+                pContainer.appendChild(lPreviewCanvas);
+                lPreviewCtx = lPreviewCanvas.getContext('2d')!;
+            },
+            updatePreview: (_pCode: string) => {
+                // The canvas update is driven by the render loop via update(), not by code generation.
+            }
+        }
+    })
 });
 
 // --- Imports ---
 lProject.addImport({
     name: 'Math',
     nodes: [
-        PotatnoNodeDefinition.create( {
+        PotatnoNodeDefinition.create({
             id: 'Math.PI',
             category: NodeCategory.Value,
             inputs: {},
@@ -34,7 +106,7 @@ lProject.addImport({
                 }
             }
         }),
-        PotatnoNodeDefinition.create( {
+        PotatnoNodeDefinition.create({
             id: 'Math.E',
             category: NodeCategory.Value,
             inputs: {},
@@ -48,7 +120,7 @@ lProject.addImport({
                 }
             }
         }),
-        PotatnoNodeDefinition.create( {
+        PotatnoNodeDefinition.create({
             id: 'Math.abs',
             category: NodeCategory.Function,
             inputs: {
@@ -64,7 +136,7 @@ lProject.addImport({
                 }
             }
         }),
-        PotatnoNodeDefinition.create( {
+        PotatnoNodeDefinition.create({
             id: 'Math.floor',
             category: NodeCategory.Function,
             inputs: {
@@ -80,7 +152,7 @@ lProject.addImport({
                 }
             }
         }),
-        PotatnoNodeDefinition.create( {
+        PotatnoNodeDefinition.create({
             id: 'Math.random',
             category: NodeCategory.Function,
             inputs: {},
@@ -113,7 +185,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'String Literal',
     category: NodeCategory.Value,
     inputs: {},
@@ -128,7 +200,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Boolean Literal',
     category: NodeCategory.Value,
     inputs: {},
@@ -144,7 +216,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
 }));
 
 // --- Operator Nodes: Arithmetic ---
-lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Add',
     category: NodeCategory.Operator,
     inputs: {
@@ -162,7 +234,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Subtract',
     category: NodeCategory.Operator,
     inputs: {
@@ -180,7 +252,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Multiply',
     category: NodeCategory.Operator,
     inputs: {
@@ -216,7 +288,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Divide',
     category: NodeCategory.Operator,
     inputs: {
@@ -234,7 +306,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Modulo',
     category: NodeCategory.Operator,
     inputs: {
@@ -253,7 +325,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
 }));
 
 // --- Operator Nodes: Comparison ---
-lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Equal',
     category: NodeCategory.Operator,
     inputs: {
@@ -271,7 +343,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Not Equal',
     category: NodeCategory.Operator,
     inputs: {
@@ -289,7 +361,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Less Than',
     category: NodeCategory.Operator,
     inputs: {
@@ -307,7 +379,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Greater Than',
     category: NodeCategory.Operator,
     inputs: {
@@ -326,7 +398,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
 }));
 
 // --- Operator Nodes: Logic ---
-lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'And',
     category: NodeCategory.Operator,
     inputs: {
@@ -344,7 +416,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Or',
     category: NodeCategory.Operator,
     inputs: {
@@ -362,7 +434,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Not',
     category: NodeCategory.Operator,
     inputs: {
@@ -380,7 +452,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
 }));
 
 // --- Type Conversion Nodes ---
-lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Number to String',
     category: NodeCategory.TypeConversion,
     inputs: {
@@ -397,7 +469,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'String to Number',
     category: NodeCategory.TypeConversion,
     inputs: {
@@ -414,7 +486,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Boolean to String',
     category: NodeCategory.TypeConversion,
     inputs: {
@@ -432,7 +504,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
 }));
 
 // --- Flow Nodes ---
-lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'If',
     category: NodeCategory.Flow,
     inputs: {
@@ -454,7 +526,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'While',
     category: NodeCategory.Flow,
     inputs: {
@@ -474,7 +546,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'For Loop',
     category: NodeCategory.Flow,
     inputs: {
@@ -499,7 +571,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
 }));
 
 // --- Function Nodes ---
-lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Console Log',
     category: NodeCategory.Function,
     inputs: { message: { nodeType: 'value', dataType: 'string' } },
@@ -512,7 +584,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'String Concat',
     category: NodeCategory.Function,
     inputs: {
@@ -532,86 +604,10 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     }
 }));
 
-// --- Function Code Generator ---
-lProject.setFunctionCodeGenerator((pFunc: PotatnoCodeFunction) => {
-    const lParams: string = pFunc.inputs.map((i: { valueId: string; }) => i.valueId).join(', ');
-    const lReturnStmt: string = pFunc.outputs.length > 0
-        ? `\n    return ${pFunc.outputs[0].valueId};`
-        : '';
-    return `function ${pFunc.name}(${lParams}) {\n${pFunc.bodyCode}${lReturnStmt}\n}`;
-});
-
-// --- Entry Point: Pixel Shader ---
-lProject.setEntryPoint(PotatnoEntryPointDefinition.create({
-    id: 'pixelShader',
-    statics: {
-        imports: true,
-        inputs: false,
-        outputs: false
-    },
-    nodes: {
-        static: [
-            // OnPixel: provides normalized x/y coordinates (0-1 range)
-            PotatnoNodeDefinition.create( {
-                id: 'OnPixel',
-                category: NodeCategory.Event,
-                inputs: {},
-                outputs: {
-                    x: { nodeType: 'value', dataType: 'number' },
-                    y: { nodeType: 'value', dataType: 'number' }
-                } as const,
-                codeGenerator: (pContext) => {
-                    return `// Pixel coordinates\nconst ${pContext.outputs.x.valueId} = __pixel_x;\nconst ${pContext.outputs.y.valueId} = __pixel_y;`;
-                },
-                preview: {
-                    data: {
-                        updatePreviewData: (pInputData) => ({
-                            x: (pInputData as any).x ?? 0,
-                            y: (pInputData as any).y ?? 0
-                        })
-                    }
-                }
-            }),
-            // PixelResult: receives RGB color values (0-1 range)
-            PotatnoNodeDefinition.create( {
-                id: 'PixelResult',
-                category: NodeCategory.Output,
-                inputs: {
-                    red: { nodeType: 'value', dataType: 'number' },
-                    green: { nodeType: 'value', dataType: 'number' },
-                    blue: { nodeType: 'value', dataType: 'number' }
-                } as const,
-                outputs: {},
-                codeGenerator: (pContext) => {
-                    return `__pixel_r = ${pContext.inputs.red.valueId};\n__pixel_g = ${pContext.inputs.green.valueId};\n__pixel_b = ${pContext.inputs.blue.valueId};`;
-                },
-                preview: {
-                    data: {
-                        updatePreviewData: () => ({})
-                    }
-                }
-            })
-        ]
-    }
-}));
-
 // --- Preview (100x100 pixel canvas) ---
 let lPreviewCanvas: HTMLCanvasElement;
 let lPreviewCtx: CanvasRenderingContext2D;
 
-lProject.setPreview(
-    (pContainer: HTMLElement) => {
-        lPreviewCanvas = document.createElement('canvas');
-        lPreviewCanvas.width = 100;
-        lPreviewCanvas.height = 100;
-        lPreviewCanvas.style.cssText = 'width: 100px; height: 100px; image-rendering: pixelated; background: #000;';
-        pContainer.appendChild(lPreviewCanvas);
-        lPreviewCtx = lPreviewCanvas.getContext('2d')!;
-    },
-    (_pCode: string) => {
-        // The canvas update is driven by the render loop via update(), not by code generation.
-    }
-);
 
 // --- Create application and open an empty file ---
 const lApp: PotatnoCodeApplication = new PotatnoCodeApplication(lProject);

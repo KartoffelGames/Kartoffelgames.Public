@@ -1,4 +1,4 @@
-import type { PotatnoCodeFunction } from '../document/potatno-code-function.ts';
+import type { PotatnoCodeFunction } from '../parser/potatno-code-function.ts';
 import type { PotatnoEntryPointDefinition } from './potatno-entry-point-definition.ts';
 import { PotatnoNodeDefinition, type PotatnoNodeDefinitionPorts } from "./potatno-node-definition.ts";
 
@@ -9,12 +9,10 @@ import { PotatnoNodeDefinition, type PotatnoNodeDefinitionPorts } from "./potatn
  */
 export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectTypes> {
     private readonly mCommentToken: string;
-    private mCreatePreview: ((container: HTMLElement) => void) | null;
-    private mFunctionCodeGenerator: ((func: PotatnoCodeFunction) => string) | null;
+    
     private readonly mImports: Array<PotatnoProjectImportDefinition<TTypes>>;
-    private mEntryPoint: PotatnoEntryPointDefinition<TTypes> | null;
+    private readonly mEntryPoint: PotatnoEntryPointDefinition<TTypes>;
     private readonly mNodeDefinitions: Map<string, PotatnoNodeDefinition<TTypes, any, any>>;
-    private mUpdatePreview: ((code: string) => void) | null;
     private mValidTypes: Map<keyof TTypes, TTypes[keyof TTypes]>;
 
     /**
@@ -22,27 +20,6 @@ export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectT
      */
     public get commentToken(): string {
         return this.mCommentToken;
-    }
-
-    /**
-     * Get the callback that creates the initial preview DOM structure.
-     */
-    public get createPreview(): ((container: HTMLElement) => void) | null {
-        return this.mCreatePreview;
-    }
-
-    /**
-     * Get the function code generator callback.
-     */
-    public get functionCodeGenerator(): ((func: PotatnoCodeFunction) => string) | null {
-        return this.mFunctionCodeGenerator;
-    }
-
-    /**
-     * Whether a preview creation callback has been configured.
-     */
-    public get hasPreview(): boolean {
-        return this.mCreatePreview !== null;
     }
 
     /**
@@ -56,7 +33,7 @@ export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectT
      * Get the registered entry point definition.
      * The main entry point to start the code generation from.
      */
-    public get entryPoint(): PotatnoEntryPointDefinition<TTypes> | null {
+    public get entryPoint(): PotatnoEntryPointDefinition<TTypes> {
         return this.mEntryPoint;
     }
 
@@ -65,13 +42,6 @@ export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectT
      */
     public get nodeDefinitions(): ReadonlyMap<string, PotatnoNodeDefinition<TTypes>> {
         return this.mNodeDefinitions;
-    }
-
-    /**
-     * Get the callback that updates the preview with new generated code.
-     */
-    public get updatePreview(): ((code: string) => void) | null {
-        return this.mUpdatePreview;
     }
 
     /**
@@ -86,14 +56,10 @@ export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectT
             this.mValidTypes.set(lTypeName as keyof TTypes, lDefaultValue);
         }
 
-        this.mCreatePreview = null;
-        this.mUpdatePreview = null;
-        this.mFunctionCodeGenerator = null;
-        this.mEntryPoint = null;
-
         // Initialize empty arrays and maps for project definitions.
         this.mNodeDefinitions = new Map<string, PotatnoNodeDefinition<TTypes>>();
         this.mImports = new Array<PotatnoProjectImportDefinition<TTypes>>();
+        this.mEntryPoint = pParameter.entryPoint;
     }
 
     /**
@@ -104,32 +70,10 @@ export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectT
     }
 
     /**
-     * Register an entry point definition.
-     */
-    public setEntryPoint(pDefinition: PotatnoEntryPointDefinition<TTypes>): void {
-        this.mEntryPoint = pDefinition;
-    }
-
-    /**
      * Register a node type definition.
      */
     public addNodeDefinition<TInputs extends PotatnoNodeDefinitionPorts<TTypes>, TOutputs extends PotatnoNodeDefinitionPorts<TTypes>>(pDefinition: PotatnoNodeDefinition<TTypes, TInputs, TOutputs>): void {
         this.mNodeDefinitions.set(pDefinition.id, pDefinition);
-    }
-
-    /**
-     * Set the function code generator callback.
-     */
-    public setFunctionCodeGenerator(pGenerator: (func: PotatnoCodeFunction) => string): void {
-        this.mFunctionCodeGenerator = pGenerator;
-    }
-
-    /**
-     * Set both preview callbacks: one for initial DOM creation and one for code updates.
-     */
-    public setPreview(pCreate: (container: HTMLElement) => void, pUpdate: (code: string) => void): void {
-        this.mCreatePreview = pCreate;
-        this.mUpdatePreview = pUpdate;
     }
 
     /**
@@ -147,6 +91,7 @@ export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectT
 type PotatnoProjectConstructorParameter<TTypes extends PotatnoProjectTypes> = {
     types: TTypes;
     commentToken: string;
+    entryPoint: PotatnoEntryPointDefinition<TTypes>;
 };
 
 /**

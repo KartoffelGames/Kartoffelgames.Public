@@ -6,7 +6,7 @@ import { NodeCategory, NodeCategoryMeta } from '../../../node/node-category.enum
 import { PortKind } from '../../../node/port-kind.enum.ts';
 import { PotatnoDeserializer } from '../../../parser/potatno-deserializer.ts';
 import { PotatnoSerializer } from '../../../parser/potatno-serializer.ts';
-import { PotatnoFunction } from '../../../project/potatno-function.ts';
+import { PotatnoFunction } from '../../../document/potatno-function.ts';
 import { PotatnoNodeDefinition, type PotatnoNodeDefinitionPort, type PotatnoNodeDefinitionPorts } from "../../../project/potatno-node-definition.ts";
 import type { PotatnoProject } from '../../../project/potatno-project.ts';
 import { PotatnoPreviewEvaluator, type NodePreviewData } from '../../../project/potatno-preview-evaluator.ts';

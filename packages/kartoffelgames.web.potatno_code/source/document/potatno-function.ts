@@ -1,5 +1,5 @@
-import type { PotatnoNodeDefinitionPort, PotatnoNodeDefinitionPorts } from './potatno-node-definition.ts';
-import { PotatnoGraph } from '../document/potatno-graph.ts';
+import { PotatnoNodeDefinitionPort, PotatnoNodeDefinitionPorts } from "../project/potatno-node-definition.ts";
+import { PotatnoGraph } from './potatno-graph.ts';
 
 /**
  * Represents a user-editable function containing a sub-graph.

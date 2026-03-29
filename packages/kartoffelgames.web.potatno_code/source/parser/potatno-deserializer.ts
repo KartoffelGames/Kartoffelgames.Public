@@ -2,7 +2,7 @@ import { NodeCategory } from '../node/node-category.enum.ts';
 import { PortKind } from '../node/port-kind.enum.ts';
 import { PotatnoConnection } from '../document/potatno-connection.ts';
 import { PotatnoNode } from '../document/potatno-node.ts';
-import { PotatnoFunction } from '../project/potatno-function.ts';
+import { PotatnoFunction } from '../document/potatno-function.ts';
 import { PotatnoCodeFile } from '../document/potatno-code-file.ts';
 import type { PotatnoNodeDefinition, PotatnoNodeDefinitionPorts } from "../project/potatno-node-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';

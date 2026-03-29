@@ -1,6 +1,6 @@
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { PotatnoCodeFile } from '../document/potatno-code-file.ts';
-import type { PotatnoFunction } from '../project/potatno-function.ts';
+import type { PotatnoFunction } from '../document/potatno-function.ts';
 import type { PotatnoNode } from '../document/potatno-node.ts';
 import type { PotatnoConnection } from '../document/potatno-connection.ts';
 import type { PotatnoNodeDefinitionPorts } from '../project/potatno-node-definition.ts';

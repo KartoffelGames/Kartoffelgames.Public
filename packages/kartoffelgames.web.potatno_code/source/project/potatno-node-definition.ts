@@ -29,7 +29,7 @@ export class PotatnoNodeDefinition<TTypes extends PotatnoProjectTypes = PotatnoP
     private readonly mLabel: string;
     private readonly mOutputs: TOutputs;
     private readonly mCodeGenerator: PotatnoNodeDefinitionCodeGenerator<TTypes, TInputs, TOutputs>;
-    private readonly mPreview: PotatnoNodeDefinitionPreview<TTypes, HTMLElement, TInputs, TOutputs> | null;
+    private readonly mPreview: PotatnoNodeDefinitionPreview<HTMLElement> | null;
 
     /**
      *  Unique id for this node definition. 
@@ -76,7 +76,7 @@ export class PotatnoNodeDefinition<TTypes extends PotatnoProjectTypes = PotatnoP
     /**
      * Preview configuration for this node type.
      */
-    public get preview(): PotatnoNodeDefinitionPreview<TTypes, HTMLElement, TInputs, TOutputs> | null {
+    public get preview(): PotatnoNodeDefinitionPreview<HTMLElement> | null {
         return this.mPreview;
     }
 
@@ -106,7 +106,7 @@ type PotatnoNodeDefinitionConstructorParameter<TTypes extends PotatnoProjectType
     inputs: TInputs;
     outputs: TOutputs;
     codeGenerator: PotatnoNodeDefinitionCodeGenerator<TTypes, TInputs, TOutputs>;
-    preview?: PotatnoNodeDefinitionPreview<TTypes, HTMLElement, TInputs, TOutputs>;
+    preview?: PotatnoNodeDefinitionPreview<HTMLElement>;
 };
 
 /**
@@ -220,33 +220,21 @@ export type PotatnoNodeDefinitionPreviewData<TTypes extends PotatnoProjectTypes,
     TPorts[K] extends PotatnoNodeDefinitionFlowPort ? boolean : never;
 };
 
-export type PotatnoNodeDefinitionPreview<TTypes extends PotatnoProjectTypes, TElement extends HTMLElement, TInputPorts extends PotatnoNodeDefinitionPorts<TTypes>, TOutputPorts extends PotatnoNodeDefinitionPorts<TTypes>> = {
-    readonly element?: {
-        /**
-         * Generator function that produces an HTMLElement to be used as a live preview for a node instance.
-         * 
-         * @returns an element that the node gets append as preview.
-         */
-        readonly generatePreviewElement: () => TElement;
+export type PotatnoNodeDefinitionPreview<TElement extends HTMLElement> = {
+    /**
+     * Generator function that produces an HTMLElement to be used as a live preview for a node instance.
+     * 
+     * @returns an element that the node gets append as preview.
+     */
+    readonly generatePreview: () => TElement;
 
-        /**
-         * Update function that updates the preview element based on the current input values and output values of the node instance.
-         * This can be used to create live, data-driven previews that react to changes in the node's inputs and outputs.
-         * 
-         * @param pElement - The preview element to be updated.
-         * @param pInputData - The current input data of the node instance.
-         * @param pOutputData - The current output data of the node instance.
-         */
-        readonly updatePreviewElement: (pElement: TElement, pInputData: PotatnoNodeDefinitionPreviewData<TTypes, TInputPorts>, pOutputData: PotatnoNodeDefinitionPreviewData<TTypes, TOutputPorts>) => void;
-    };
-    readonly data: {
-        /**
-         * Update function that produces updated preview data based on the current input values of the node instance. This can be used to update the preview element or for other purposes.
-         * 
-         * @param pInputData - The current input data of the node instance.
-         * 
-         * @returns Updated preview data for the node instance.
-         */
-        readonly updatePreviewData: (pInputData: PotatnoNodeDefinitionPreviewData<TTypes, TInputPorts>) => PotatnoNodeDefinitionPreviewData<TTypes, TOutputPorts>;
-    };
+    /**
+     * Update function that updates the preview element based on the current input values and output values of the node instance.
+     * This can be used to create live, data-driven previews that react to changes in the node's inputs and outputs.
+     * 
+     * @param pElement - The preview element to be updated.
+     * @param pPreviewInputData - The example preview input data for the entry point, which can be used to run the intermediate code and update the preview element accordingly.
+     * @param pIntermediateCodeOutput - The output of the intermediate code execution, which can be used to update the preview element accordingly.
+     */
+    readonly updatePreview: (pElement: TElement, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
 };

@@ -1,5 +1,6 @@
+import { PotatnoCodeFunction } from "../parser/potatno-code-function.ts";
 import { PotatnoNodeDefinition } from "./potatno-node-definition.ts";
-import { PotatnoProject, PotatnoProjectTypes } from "./potatno-project.ts";
+import { PotatnoProjectTypes } from "./potatno-project.ts";
 
 /**
  * Definition of a entry point blueprint.
@@ -20,12 +21,20 @@ export class PotatnoEntryPointDefinition<TTypes extends PotatnoProjectTypes = Po
     private readonly mId: string;
     private readonly mStatics: PotatnoEntryPointDefinitionStaticSettings;
     private readonly mNodes: PotatnoEntryPointDefinitionNodes<TTypes>;
+    private mCodeGenerator: ((func: PotatnoCodeFunction) => string);
 
     /**
      * Unique id for this entry point definition.
      */
     public get id(): string {
         return this.mId;
+    }
+
+    /**
+     * Get the function code generator callback.
+     */
+    public get codeGenerator(): ((func: PotatnoCodeFunction) => string) {
+        return this.mCodeGenerator;
     }
 
     /**
@@ -62,6 +71,9 @@ export class PotatnoEntryPointDefinition<TTypes extends PotatnoProjectTypes = Po
             inputs: pParameters.statics.inputs ?? false,
             outputs: pParameters.statics.outputs ?? false,
         };
+
+        // Set the entry point code generator.
+        this.mCodeGenerator = pParameters.codeGenerator;
     }
 }
 
@@ -69,6 +81,8 @@ type PotatnoEntryPointDefinitionConstructorParameter<TTypes extends PotatnoProje
     id: string;
     statics: Partial<PotatnoEntryPointDefinitionStaticSettings>;
     nodes?: Partial<PotatnoEntryPointDefinitionNodes<TTypes>>;
+    preview?: PotatnoNodeEntryPointPreview<HTMLElement>;
+    codeGenerator: (func: PotatnoCodeFunction) => string;
 };
 
 type PotatnoEntryPointDefinitionNodes<TTypes extends PotatnoProjectTypes> = {
@@ -80,4 +94,23 @@ export type PotatnoEntryPointDefinitionStaticSettings = {
     imports: boolean;
     inputs: boolean;
     outputs: boolean;
+};
+
+export type PotatnoNodeEntryPointPreview<TElement extends HTMLElement> = {
+    /**
+     * Generator function that produces an HTMLElement to be used as a live preview for a node instance.
+     * 
+     * @returns an element that the node gets append as preview.
+     */
+    readonly generatePreview: () => TElement;
+
+    /**
+     * Update function that updates the preview element based on the current input values and output values of the node instance.
+     * This can be used to create live, data-driven previews that react to changes in the node's inputs and outputs.
+     * 
+     * @param pElement - The preview element to be updated.
+     * @param pPreviewInputData - The example preview input data for the entry point, which can be used to run the intermediate code and update the preview element accordingly.
+     * @param pIntermediateCodeOutput - The output of the intermediate code execution, which can be used to update the preview element accordingly.
+     */
+    readonly updatePreview: (pElement: TElement, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
 };

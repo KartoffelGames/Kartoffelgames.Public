@@ -12,8 +12,8 @@ import { PotatnoCodeRerouteNode } from '../node/potatno-code-reroute-node.ts';
 import { PotatnoCodeSetLocalNode } from '../node/potatno-code-set-local-node.ts';
 import { PotatnoCodeTemplateNode } from '../node/potatno-code-template-node.ts';
 import { PotatnoCodeValueNode } from '../node/potatno-code-value-node.ts';
-import { PotatnoCodeFunction } from '../document/potatno-code-function.ts';
-import type { PotatnoFunction } from '../project/potatno-function.ts';
+import { PotatnoCodeFunction } from './potatno-code-function.ts';
+import type { PotatnoFunction } from '../document/potatno-function.ts';
 import type { PotatnoNodeDefinitionPort } from "../project/potatno-node-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
 

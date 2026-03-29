@@ -1,7 +1,7 @@
 import { PotatnoCodeFile } from '../../source/document/potatno-code-file.ts';
 import { NodeCategory } from '../../source/node/node-category.enum.ts';
 import { PotatnoCodeApplication } from '../../source/potatno-code-application.ts';
-import type { PotatnoCodeFunction } from '../../source/project/potatno-code-function.ts';
+import type { PotatnoCodeFunction } from '../../source/document/potatno-code-function.ts';
 import { PotatnoEntryPointDefinition } from "../../source/project/potatno-entry-point-definition.ts";
 import { PotatnoNodeDefinition } from "../../source/project/potatno-node-definition.ts";
 import { PotatnoProject } from '../../source/project/potatno-project.ts';
@@ -20,7 +20,7 @@ const lProject = new PotatnoProject({
 lProject.addImport({
     name: 'Math',
     nodes: [
-        PotatnoNodeDefinition.create(lProject, {
+        PotatnoNodeDefinition.create( {
             id: 'Math.PI',
             category: NodeCategory.Value,
             inputs: {},
@@ -34,7 +34,7 @@ lProject.addImport({
                 }
             }
         }),
-        PotatnoNodeDefinition.create(lProject, {
+        PotatnoNodeDefinition.create( {
             id: 'Math.E',
             category: NodeCategory.Value,
             inputs: {},
@@ -48,7 +48,7 @@ lProject.addImport({
                 }
             }
         }),
-        PotatnoNodeDefinition.create(lProject, {
+        PotatnoNodeDefinition.create( {
             id: 'Math.abs',
             category: NodeCategory.Function,
             inputs: {
@@ -64,7 +64,7 @@ lProject.addImport({
                 }
             }
         }),
-        PotatnoNodeDefinition.create(lProject, {
+        PotatnoNodeDefinition.create( {
             id: 'Math.floor',
             category: NodeCategory.Function,
             inputs: {
@@ -80,7 +80,7 @@ lProject.addImport({
                 }
             }
         }),
-        PotatnoNodeDefinition.create(lProject, {
+        PotatnoNodeDefinition.create( {
             id: 'Math.random',
             category: NodeCategory.Function,
             inputs: {},
@@ -98,7 +98,7 @@ lProject.addImport({
 });
 
 // --- Value Nodes ---
-lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Number Literal',
     category: NodeCategory.Value,
     inputs: {},
@@ -113,7 +113,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     id: 'String Literal',
     category: NodeCategory.Value,
     inputs: {},
@@ -128,7 +128,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     id: 'Boolean Literal',
     category: NodeCategory.Value,
     inputs: {},
@@ -144,7 +144,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
 }));
 
 // --- Operator Nodes: Arithmetic ---
-lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     id: 'Add',
     category: NodeCategory.Operator,
     inputs: {
@@ -162,7 +162,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     id: 'Subtract',
     category: NodeCategory.Operator,
     inputs: {
@@ -180,7 +180,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     id: 'Multiply',
     category: NodeCategory.Operator,
     inputs: {
@@ -216,7 +216,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     id: 'Divide',
     category: NodeCategory.Operator,
     inputs: {
@@ -234,7 +234,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     id: 'Modulo',
     category: NodeCategory.Operator,
     inputs: {
@@ -253,7 +253,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
 }));
 
 // --- Operator Nodes: Comparison ---
-lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     id: 'Equal',
     category: NodeCategory.Operator,
     inputs: {
@@ -271,7 +271,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     id: 'Not Equal',
     category: NodeCategory.Operator,
     inputs: {
@@ -289,7 +289,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     id: 'Less Than',
     category: NodeCategory.Operator,
     inputs: {
@@ -307,7 +307,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     id: 'Greater Than',
     category: NodeCategory.Operator,
     inputs: {
@@ -326,7 +326,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
 }));
 
 // --- Operator Nodes: Logic ---
-lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     id: 'And',
     category: NodeCategory.Operator,
     inputs: {
@@ -344,7 +344,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     id: 'Or',
     category: NodeCategory.Operator,
     inputs: {
@@ -362,7 +362,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     id: 'Not',
     category: NodeCategory.Operator,
     inputs: {
@@ -380,7 +380,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
 }));
 
 // --- Type Conversion Nodes ---
-lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     id: 'Number to String',
     category: NodeCategory.TypeConversion,
     inputs: {
@@ -397,7 +397,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     id: 'String to Number',
     category: NodeCategory.TypeConversion,
     inputs: {
@@ -414,7 +414,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     id: 'Boolean to String',
     category: NodeCategory.TypeConversion,
     inputs: {
@@ -432,7 +432,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
 }));
 
 // --- Flow Nodes ---
-lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     id: 'If',
     category: NodeCategory.Flow,
     inputs: {
@@ -454,7 +454,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     id: 'While',
     category: NodeCategory.Flow,
     inputs: {
@@ -474,7 +474,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     id: 'For Loop',
     category: NodeCategory.Flow,
     inputs: {
@@ -499,7 +499,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
 }));
 
 // --- Function Nodes ---
-lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     id: 'Console Log',
     category: NodeCategory.Function,
     inputs: { message: { nodeType: 'value', dataType: 'string' } },
@@ -512,7 +512,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create(lProject, {
+lProject.addNodeDefinition(PotatnoNodeDefinition.create( {
     id: 'String Concat',
     category: NodeCategory.Function,
     inputs: {
@@ -542,9 +542,8 @@ lProject.setFunctionCodeGenerator((pFunc: PotatnoCodeFunction) => {
 });
 
 // --- Entry Point: Pixel Shader ---
-lProject.setEntryPoint(new PotatnoEntryPointDefinition(lProject, {
+lProject.setEntryPoint(PotatnoEntryPointDefinition.create({
     id: 'pixelShader',
-    label: 'Pixel Shader',
     statics: {
         imports: true,
         inputs: false,
@@ -553,7 +552,7 @@ lProject.setEntryPoint(new PotatnoEntryPointDefinition(lProject, {
     nodes: {
         static: [
             // OnPixel: provides normalized x/y coordinates (0-1 range)
-            PotatnoNodeDefinition.create(lProject, {
+            PotatnoNodeDefinition.create( {
                 id: 'OnPixel',
                 category: NodeCategory.Event,
                 inputs: {},
@@ -574,7 +573,7 @@ lProject.setEntryPoint(new PotatnoEntryPointDefinition(lProject, {
                 }
             }),
             // PixelResult: receives RGB color values (0-1 range)
-            PotatnoNodeDefinition.create(lProject, {
+            PotatnoNodeDefinition.create( {
                 id: 'PixelResult',
                 category: NodeCategory.Output,
                 inputs: {

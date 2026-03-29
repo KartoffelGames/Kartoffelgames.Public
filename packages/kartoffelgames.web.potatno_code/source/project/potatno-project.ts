@@ -1,5 +1,4 @@
-import type { PotatnoCodeFunction } from './potatno-code-function.ts';
-import type { PotatnoGlobalPortDefinition } from './potatno-global-port-definition.ts';
+import type { PotatnoCodeFunction } from '../document/potatno-code-function.ts';
 import type { PotatnoEntryPointDefinition } from './potatno-entry-point-definition.ts';
 import { PotatnoNodeDefinition, type PotatnoNodeDefinitionPorts } from "./potatno-node-definition.ts";
 
@@ -12,8 +11,6 @@ export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectT
     private readonly mCommentToken: string;
     private mCreatePreview: ((container: HTMLElement) => void) | null;
     private mFunctionCodeGenerator: ((func: PotatnoCodeFunction) => string) | null;
-    private readonly mGlobalInputs: Array<PotatnoGlobalPortDefinition>;
-    private readonly mGlobalOutputs: Array<PotatnoGlobalPortDefinition>;
     private readonly mImports: Array<PotatnoProjectImportDefinition<TTypes>>;
     private mEntryPoint: PotatnoEntryPointDefinition<TTypes> | null;
     private readonly mNodeDefinitions: Map<string, PotatnoNodeDefinition<TTypes, any, any>>;
@@ -39,20 +36,6 @@ export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectT
      */
     public get functionCodeGenerator(): ((func: PotatnoCodeFunction) => string) | null {
         return this.mFunctionCodeGenerator;
-    }
-
-    /**
-     * Get the list of registered global input definitions.
-     */
-    public get globalInputs(): ReadonlyArray<PotatnoGlobalPortDefinition> {
-        return this.mGlobalInputs;
-    }
-
-    /**
-     * Get the list of registered global output definitions.
-     */
-    public get globalOutputs(): ReadonlyArray<PotatnoGlobalPortDefinition> {
-        return this.mGlobalOutputs;
     }
 
     /**
@@ -111,22 +94,6 @@ export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectT
         // Initialize empty arrays and maps for project definitions.
         this.mNodeDefinitions = new Map<string, PotatnoNodeDefinition<TTypes>>();
         this.mImports = new Array<PotatnoProjectImportDefinition<TTypes>>();
-        this.mGlobalInputs = new Array<PotatnoGlobalPortDefinition>();
-        this.mGlobalOutputs = new Array<PotatnoGlobalPortDefinition>();
-    }
-
-    /**
-     * Register a global input port definition.
-     */
-    public addGlobalInput(pDefinition: PotatnoGlobalPortDefinition): void {
-        this.mGlobalInputs.push(pDefinition);
-    }
-
-    /**
-     * Register a global output port definition.
-     */
-    public addGlobalOutput(pDefinition: PotatnoGlobalPortDefinition): void {
-        this.mGlobalOutputs.push(pDefinition);
     }
 
     /**
@@ -149,7 +116,6 @@ export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectT
     public addNodeDefinition<TInputs extends PotatnoNodeDefinitionPorts<TTypes>, TOutputs extends PotatnoNodeDefinitionPorts<TTypes>>(pDefinition: PotatnoNodeDefinition<TTypes, TInputs, TOutputs>): void {
         this.mNodeDefinitions.set(pDefinition.id, pDefinition);
     }
-
 
     /**
      * Set the function code generator callback.

@@ -15,16 +15,14 @@ export class PotatnoNodeDefinition<TTypes extends PotatnoProjectTypes = PotatnoP
     /**
      * Factory method to create a new node definition and register it at the project level.
      * 
-     * @param pProject - Reference to the project this node definition belongs to.
      * @param pParameters - Constructor parameters for the node definition, including id, label, category, input and output port definitions, and code generator callback.
      * 
      * @returns The created PotatnoProjectNodeDefinition instance. 
      */
-    public static create<TTypes extends PotatnoProjectTypes, TInputKeys extends string, TInputs extends PotatnoNodeDefinitionPorts<TTypes, TInputKeys>, TOutputKeys extends string, TOutputs extends PotatnoNodeDefinitionPorts<TTypes, TOutputKeys>>(pProject: PotatnoProject<TTypes>, pParameters: PotatnoNodeDefinitionConstructorParameter<TTypes, TInputs, TOutputs>): PotatnoNodeDefinition<TTypes, TInputs, TOutputs> {
-        return new PotatnoNodeDefinition(pProject, pParameters);
+    public static create<TTypes extends PotatnoProjectTypes, TInputKeys extends string, TInputs extends PotatnoNodeDefinitionPorts<TTypes, TInputKeys>, TOutputKeys extends string, TOutputs extends PotatnoNodeDefinitionPorts<TTypes, TOutputKeys>>(pParameters: PotatnoNodeDefinitionConstructorParameter<TTypes, TInputs, TOutputs>): PotatnoNodeDefinition<TTypes, TInputs, TOutputs> {
+        return new PotatnoNodeDefinition(pParameters);
     }
 
-    private readonly mProject: PotatnoProject<TTypes>;
     private readonly mId: string;
     private readonly mCategory: NodeCategory;
     private readonly mInputs: TInputs;
@@ -38,13 +36,6 @@ export class PotatnoNodeDefinition<TTypes extends PotatnoProjectTypes = PotatnoP
      */
     public get id(): string {
         return this.mId;
-    }
-
-    /**
-     * Reference to the project this node definition belongs to.
-     */
-    public get project(): PotatnoProject<TTypes> {
-        return this.mProject;
     }
 
     /** 
@@ -94,9 +85,7 @@ export class PotatnoNodeDefinition<TTypes extends PotatnoProjectTypes = PotatnoP
      * 
      * @param pParameters - Constructor parameters. 
      */
-    public constructor(pProject: PotatnoProject<TTypes>, pParameters: PotatnoNodeDefinitionConstructorParameter<TTypes, TInputs, TOutputs>) {
-        this.mProject = pProject;
-
+    public constructor(pParameters: PotatnoNodeDefinitionConstructorParameter<TTypes, TInputs, TOutputs>) {
         // Set id and label. Label defaults to id if not provided.
         this.mId = pParameters.id;
         this.mLabel = pParameters.label ?? pParameters.id;
@@ -107,32 +96,6 @@ export class PotatnoNodeDefinition<TTypes extends PotatnoProjectTypes = PotatnoP
         this.mOutputs = pParameters.outputs ?? {} as TOutputs;
         this.mCodeGenerator = pParameters.codeGenerator;
         this.mPreview = pParameters.preview ?? null;
-
-        // Validate input value ports types are defined in project.
-        for (const lPort of Object.values<PotatnoNodeDefinitionPort<TTypes>>(this.mInputs)) {
-            // Skip none value ports.
-            if (lPort.nodeType !== 'value') {
-                continue;
-            }
-
-            // Throw if type is not registered in project.
-            if (!pProject.hasType(lPort.dataType)) {
-                throw new Exception(`Type not registered in project for input port type '${lPort.dataType.toString()}' in node definition '${this.mId}'.`, this);
-            }
-        }
-
-        // Validate output value ports types are defined in project.
-        for (const lPort of Object.values<PotatnoNodeDefinitionPort<TTypes>>(this.mOutputs)) {
-            // Skip none value ports.
-            if (lPort.nodeType !== 'value') {
-                continue;
-            }
-
-            // Throw if type is not registered in project.
-            if (!pProject.hasType(lPort.dataType)) {
-                throw new Exception(`Type not registered in project for output port type '${lPort.dataType.toString()}' in node definition '${this.mId}'.`, this);
-            }
-        }
     }
 }
 

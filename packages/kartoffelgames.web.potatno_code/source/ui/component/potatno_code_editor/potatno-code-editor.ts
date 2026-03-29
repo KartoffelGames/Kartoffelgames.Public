@@ -556,7 +556,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         if (!lDefinition) {
             for (const lFunc of lFile.functions.values()) {
                 if (lFunc.name === lDefName && !lFunc.system) {
-                    lDefinition = PotatnoNodeDefinition.create(lProject, {
+                    lDefinition = PotatnoNodeDefinition.create({
                         id: lFunc.name,
                         category: NodeCategory.Function,
                         inputs: { ...lFunc.inputs },
@@ -585,38 +585,6 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
                             break;
                         }
                     }
-                }
-            }
-        }
-
-        // Check global input getter nodes.
-        if (!lDefinition) {
-            for (const lGlobalInput of lProject.globalInputs) {
-                if (lDefName === `Get ${lGlobalInput.name}`) {
-                    lDefinition = PotatnoNodeDefinition.create(lProject, {
-                        id: lDefName,
-                        category: NodeCategory.Value,
-                        inputs: {} as Record<string, never>,
-                        outputs: { [lGlobalInput.name]: { nodeType: 'value' as const, dataType: lGlobalInput.type } },
-                        codeGenerator: () => ''
-                    });
-                    break;
-                }
-            }
-        }
-
-        // Check global output setter nodes.
-        if (!lDefinition) {
-            for (const lGlobalOutput of lProject.globalOutputs) {
-                if (lDefName === `Set ${lGlobalOutput.name}`) {
-                    lDefinition = PotatnoNodeDefinition.create(lProject, {
-                        id: lDefName,
-                        category: NodeCategory.Value,
-                        inputs: { [lGlobalOutput.name]: { nodeType: 'value' as const, dataType: lGlobalOutput.type } },
-                        outputs: {} as Record<string, never>,
-                        codeGenerator: () => ''
-                    });
-                    break;
                 }
             }
         }
@@ -1342,10 +1310,10 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      * Initialize main functions from the project's entry point definition into a file.
      *
      * @param pFile - The file to initialize.
-     * @param pConfig - The project configuration providing the entry point definition.
+     * @param pProject - The project configuration providing the entry point definition.
      */
-    private initializeMainFunctions(pFile: PotatnoCodeFile, pConfig: PotatnoProject): void {
-        const lEntryPoint = pConfig.entryPoint;
+    private initializeMainFunctions(pFile: PotatnoCodeFile, pProject: PotatnoProject): void {
+        const lEntryPoint = pProject.entryPoint;
         if (!lEntryPoint) {
             return;
         }
@@ -1354,7 +1322,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         const lFunc: PotatnoFunction = new PotatnoFunction(
             crypto.randomUUID(),
             lEntryPoint.id,
-            lEntryPoint.label,
+            'Main or something',
             true,
             lEntryPoint.statics.inputs || lEntryPoint.statics.outputs
         );
@@ -1366,61 +1334,23 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             lFunc.graph.addNode(lStaticDef, { x: 2 + lIdx * 12, y: 2 }, true);
 
             // Register the static node definition in the project so it can be looked up by definitionId.
-            if (!pConfig.nodeDefinitions.has(lStaticDef.id)) {
-                pConfig.addNodeDefinition(lStaticDef);
+            if (!pProject.nodeDefinitions.has(lStaticDef.id)) {
+                pProject.addNodeDefinition(lStaticDef);
             }
         }
 
         // Add dynamic nodes from the entry point as available node definitions.
         const lDynamicNodes = lEntryPoint.nodes.dynamic;
         for (const lDynamicDef of lDynamicNodes) {
-            if (!pConfig.nodeDefinitions.has(lDynamicDef.id)) {
-                pConfig.addNodeDefinition(lDynamicDef);
+            if (!pProject.nodeDefinitions.has(lDynamicDef.id)) {
+                pProject.addNodeDefinition(lDynamicDef);
             }
         }
 
         // Auto-enable all project imports if the entry point requests static imports.
         if (lEntryPoint.statics.imports) {
-            for (const lImport of pConfig.imports) {
+            for (const lImport of pProject.imports) {
                 lFunc.addImport(lImport.name);
-            }
-        }
-
-        // Create global input getter nodes.
-        if (lEntryPoint.statics.inputs) {
-            let lInputIdx: number = 0;
-            for (const lGlobalInput of pConfig.globalInputs) {
-                const lInputNodeDef = PotatnoNodeDefinition.create(pConfig, {
-                    id: `Get ${lGlobalInput.name}`,
-                    category: NodeCategory.Input,
-                    inputs: {} as Record<string, never>,
-                    outputs: { [lGlobalInput.name]: { nodeType: 'value' as const, dataType: lGlobalInput.type } },
-                    codeGenerator: () => ''
-                });
-                lFunc.graph.addNode(lInputNodeDef, { x: 2, y: 16 + lInputIdx * 3 }, true);
-                if (!pConfig.nodeDefinitions.has(lInputNodeDef.id)) {
-                    pConfig.addNodeDefinition(lInputNodeDef);
-                }
-                lInputIdx++;
-            }
-        }
-
-        // Create global output setter nodes.
-        if (lEntryPoint.statics.outputs) {
-            let lOutputIdx: number = 0;
-            for (const lGlobalOutput of pConfig.globalOutputs) {
-                const lOutputNodeDef = PotatnoNodeDefinition.create(pConfig, {
-                    id: `Set ${lGlobalOutput.name}`,
-                    category: NodeCategory.Output,
-                    inputs: { [lGlobalOutput.name]: { nodeType: 'value' as const, dataType: lGlobalOutput.type } },
-                    outputs: {} as Record<string, never>,
-                    codeGenerator: () => ''
-                });
-                lFunc.graph.addNode(lOutputNodeDef, { x: 30, y: 16 + lOutputIdx * 3 }, true);
-                if (!pConfig.nodeDefinitions.has(lOutputNodeDef.id)) {
-                    pConfig.addNodeDefinition(lOutputNodeDef);
-                }
-                lOutputIdx++;
             }
         }
 
@@ -1950,16 +1880,6 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
                         }
                     }
                 }
-            }
-        }
-
-        // Add global input getter nodes and global output setter nodes.
-        if (lProject) {
-            for (const lGlobalInput of lProject.globalInputs) {
-                lNodeDefs.push({ name: `Get ${lGlobalInput.name}`, category: NodeCategory.Value });
-            }
-            for (const lGlobalOutput of lProject.globalOutputs) {
-                lNodeDefs.push({ name: `Set ${lGlobalOutput.name}`, category: NodeCategory.Value });
             }
         }
 

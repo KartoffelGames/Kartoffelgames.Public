@@ -33,12 +33,6 @@ export class ComponentRegister {
             throw new Exception(`Component "${pComponent}" is not a registered component`, pComponent);
         }
 
-        // Only read processor when it is created.
-        let lProcessor: ComponentProcessor | undefined;
-        if (pComponent.isProcessorCreated) {
-            lProcessor = pComponent.processor;
-        }
-
         return {
             selector: lSelector,
             constructor: lComponentConstructor,

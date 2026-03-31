@@ -727,8 +727,8 @@ Deno.test('CoreEntityProcessorProxy--Functionality: Native JS-Objects', async (p
                 lProxy.pop();
             });
 
-            // Evaluation. // Deletes and sets length (PropertySet).
-            expect(lResponseType).toBe(UpdateTrigger.PropertyDelete | UpdateTrigger.PropertySet);
+            // Evaluation.
+            expect(lResponseType).toBe(UpdateTrigger.PropertyDelete);
         });
 
         await pContext.step('Splice - delete.', () => {
@@ -958,7 +958,7 @@ Deno.test('Functionality: ComponentInteractionEvent.source', async (pContext) =>
         });
 
         // Evaluation.
-        expect(lChangedSource).toBe(lProxy.myFunction);
+        expect(lChangedSource).toBe(lProxy);
     });
 
     await pContext.step('Set property ', () => {

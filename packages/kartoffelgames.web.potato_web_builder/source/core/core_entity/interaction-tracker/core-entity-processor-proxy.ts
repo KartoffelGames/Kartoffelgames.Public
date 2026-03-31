@@ -200,20 +200,15 @@ export class CoreEntityProcessorProxy<T extends object> {
      */
     private createProxyObject(pTarget: T): T {
         // Function to call with original object.
-        const lCallWithOriginalThisContext = (pCallableTarget: CallableObject, pThisArgument: any, pArgumentsList: Array<any>): any => {
+        const lCallWithOriginalThisContext = (pCallableTarget: CallableObject, pThisArgument: any, pArgumentsList: Array<any>, pUpdateTrigger: UpdateTrigger): any => {
             const lOriginalThisObject: object = CoreEntityProcessorProxy.getOriginal(pThisArgument);
             try {
                 // Call and convert potential object to a linked proxy.
                 const lResult = pCallableTarget.call(lOriginalThisObject, ...pArgumentsList);
                 return this.convertToProxy(lResult);
             } finally {
-                // Dispatch special InteractionResponseType.UntrackableFunctionCall.
-                if (!CoreEntityProcessorProxy.UNTRACEABLE_FUNCTION_UPDATE_TRIGGER.has(pCallableTarget)) {
-                    this.dispatch(UpdateTrigger.UntrackableFunctionCall, this.mProxyObject);
-                } else {
-                    // Dispatch mapped UpdateTrigger for some untraceable functions. 
-                    this.dispatch(CoreEntityProcessorProxy.UNTRACEABLE_FUNCTION_UPDATE_TRIGGER.get(pCallableTarget)!, pThisArgument);
-                }
+                // Dispatch mapped UpdateTrigger for some untraceable functions. 
+                this.dispatch(pUpdateTrigger!, pThisArgument);
             }
         };
 
@@ -233,6 +228,10 @@ export class CoreEntityProcessorProxy<T extends object> {
                 // Type convert to callable object.
                 const lCallableTarget: CallableObject = <CallableObject>pTargetObject;
 
+                if(CoreEntityProcessorProxy.UNTRACEABLE_FUNCTION_UPDATE_TRIGGER.has(lCallableTarget)) {
+                    return lCallWithOriginalThisContext(lCallableTarget, pThisArgument, pArgumentsList, CoreEntityProcessorProxy.UNTRACEABLE_FUNCTION_UPDATE_TRIGGER.get(lCallableTarget)!);
+                }
+
                 // Only on non native calls, try to use proxied this context.
                 try {
                     // Call function and convert potential object to a linked proxy.
@@ -245,7 +244,7 @@ export class CoreEntityProcessorProxy<T extends object> {
                     }
 
                     // Read original object.
-                    return lCallWithOriginalThisContext(lCallableTarget, pThisArgument, pArgumentsList);
+                    return lCallWithOriginalThisContext(lCallableTarget, pThisArgument, pArgumentsList, UpdateTrigger.UntrackableFunctionCall);
                 }
             },
 

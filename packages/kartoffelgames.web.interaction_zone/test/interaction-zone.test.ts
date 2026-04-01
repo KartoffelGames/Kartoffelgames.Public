@@ -178,7 +178,7 @@ Deno.test('InteractionZone.pushInteraction()', async (pContext) => {
         });
 
         // Evaluation.
-        expect(lReasonResult!.trigger).toBe(lInteractionTrigger);
+        expect(lReasonResult!.triggerType).toBe(lInteractionTrigger);
     });
 
     await pContext.step('Generated event has correct type', () => {
@@ -992,7 +992,7 @@ Deno.test('InteractionZone.addInteractionListener()', async (pContext) => {
     await pContext.step('Listener ignored restricted trigger', () => {
         // Setup.
         const lInteractionZone: InteractionZone = InteractionZone.current.create('Name');
-        lInteractionZone.addTriggerRestriction(TestTriggerEnum, TestTriggerEnum.Custom2);
+        lInteractionZone.setTriggerRestriction(TestTriggerEnum, TestTriggerEnum.Custom2);
 
         // Process. Add listener.
         let lListenerCalled: boolean = false;
@@ -1033,7 +1033,7 @@ Deno.test('InteractionZone.addInteractionListener()', async (pContext) => {
         // Setup.
         const lParentInteractionZone: InteractionZone = InteractionZone.current.create('Parent');
         const lChildInteractionZone: InteractionZone = lParentInteractionZone.create('Child');
-        lChildInteractionZone.addTriggerRestriction(TestTriggerEnum, TestTriggerEnum.Custom2);
+        lChildInteractionZone.setTriggerRestriction(TestTriggerEnum, TestTriggerEnum.Custom2);
 
         // Process. Add listener.
         let lListenerCalled: boolean = false;
@@ -1058,7 +1058,7 @@ Deno.test('InteractionZone.addInteractionListener()', async (pContext) => {
         const lZoneLevel4: InteractionZone = lZoneLevel3.create('Level1');
 
         // Setup. Add restriction to level 2.
-        lZoneLevel2.addTriggerRestriction(TestTriggerEnum, TestTriggerEnum.Custom2);
+        lZoneLevel2.setTriggerRestriction(TestTriggerEnum, TestTriggerEnum.Custom2);
 
         // Process. Add zone 1 listener.
         let lListenerLevel1: boolean = false;
@@ -1109,7 +1109,7 @@ Deno.test('InteractionZone.addTriggerRestriction()', async (pContext) => {
         });
 
         // Process.
-        lInteractionZone.addTriggerRestriction(TestTriggerEnum, TestTriggerEnum.Custom2);
+        lInteractionZone.setTriggerRestriction(TestTriggerEnum, TestTriggerEnum.Custom2);
 
         // Process. Call listener.
         lInteractionZone.execute(() => {
@@ -1131,7 +1131,7 @@ Deno.test('InteractionZone.addTriggerRestriction()', async (pContext) => {
         });
 
         // Process.
-        lInteractionZone.addTriggerRestriction(TestTriggerEnumOther, TestTriggerEnumOther.Custom2);
+        lInteractionZone.setTriggerRestriction(TestTriggerEnumOther, TestTriggerEnumOther.Custom2);
 
         // Process. Call listener.
         lInteractionZone.execute(() => {
@@ -1153,8 +1153,8 @@ Deno.test('InteractionZone.addTriggerRestriction()', async (pContext) => {
         });
 
         // Process.
-        lInteractionZone.addTriggerRestriction(TestTriggerEnum, TestTriggerEnum.Custom2);
-        lInteractionZone.addTriggerRestriction(TestTriggerEnum, ~0);
+        lInteractionZone.setTriggerRestriction(TestTriggerEnum, TestTriggerEnum.Custom2);
+        lInteractionZone.setTriggerRestriction(TestTriggerEnum, ~0);
 
         // Process. Call listener.
         lInteractionZone.execute(() => {

@@ -68,6 +68,8 @@ export class ConstructorMetadata extends BaseMetadata {
      * Creates new property metadata if it not already exists.
      * 
      * @param pPropertyKey - Key of property.
+     * 
+     * @returns property metadata of property with given key.
      */
     public getProperty(pPropertyKey: PropertyKey): PropertyMetadata {
         // Create new property mapping when no mapping is found.

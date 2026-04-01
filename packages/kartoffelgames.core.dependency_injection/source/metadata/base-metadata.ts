@@ -9,9 +9,6 @@ export class BaseMetadata {
     /**
      * Constructor.
      * Initialize lists.
-     * 
-     * @param pConstructor - Constructor where all metadata should be attached.
-     * @param pPropertyKey - Key of property where all metadata should be attached.
      */
     public constructor() {
         this.mCustomMetadata = new Dictionary<MetadataKey, any>();

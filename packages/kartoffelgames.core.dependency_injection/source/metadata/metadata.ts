@@ -90,10 +90,19 @@ export class Metadata {
 
     /**
      * AtScript.
-     * Init metadata to class, method, accessor or property
+     * Init metadata to class, method, accessor or property without adding any actual metadata.
      * 
      * @param _pOriginalTarget - Unused. original decorator target.
      * @param pContext - Decorator context
+     * 
+     * @returns Class decorator that initializes the metadata for the decorated class, method, accessor or property.
+     * 
+     * @example Initializing metadata for a class and a property.
+     * ```TypeScript
+     * @Injector.Metadata.init()
+     * class Foo {
+     * }
+     * ```
      */
     public static init(): ClassDecorator<any, void> {
         return (_pOriginalTarget: any, pContext: ClassDecoratorContext): void => {

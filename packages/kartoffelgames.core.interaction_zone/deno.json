@@ -1,5 +1,5 @@
 {
-    "name": "@kartoffelgames/web-interaction-zone",
+    "name": "@kartoffelgames/core-interaction-zone",
     "version": "1.0.1",
     "license": "LGPL-3.0-only",
     "tasks": {},
@@ -16,7 +16,7 @@
         ]
     },
     "kg": {
-        "name": "Kartoffelgames.Web.Interaction_Zone",
+        "name": "Kartoffelgames.Core.Interaction_Zone",
         "root": false,
         "config": {
             "package-blueprint": "kg-main",

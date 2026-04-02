@@ -1,5 +1,9 @@
-import { PwbApplicationDebugLoggingType } from './pwb-application-debug-logging-type.enum.ts';
+import { PwbApplicationDebugLoggingType } from "./pwb-application-debug-logging-type.enum.ts";
 
+/**
+ * Pwb applications configuration object.
+ * Used to configure the application behavior and settings.
+ */
 export class PwbApplicationConfiguration {
     /**
      * Get default application configuration.
@@ -8,13 +12,6 @@ export class PwbApplicationConfiguration {
         const lDefaultApplicationConfiguration: PwbApplicationConfiguration = new PwbApplicationConfiguration();
 
         // Set default configurations.
-        lDefaultApplicationConfiguration.mSpashscreenConfiguration.background = 'blue';
-        lDefaultApplicationConfiguration.mSpashscreenConfiguration.content = '';
-        lDefaultApplicationConfiguration.mSpashscreenConfiguration.manual = false;
-        lDefaultApplicationConfiguration.mSpashscreenConfiguration.animationTime = 1000;
-
-        lDefaultApplicationConfiguration.mErrorConfiguration.ignore = false;
-        lDefaultApplicationConfiguration.mErrorConfiguration.print = true;
 
         lDefaultApplicationConfiguration.mLoggingConfiguration.filter = PwbApplicationDebugLoggingType.All;
         lDefaultApplicationConfiguration.mLoggingConfiguration.updatePerformance = false;
@@ -27,30 +24,14 @@ export class PwbApplicationConfiguration {
         return lDefaultApplicationConfiguration;
     })();
 
-    private readonly mErrorConfiguration: PwbApplicationErrorConfiguration;
     private readonly mLoggingConfiguration: PwbApplicationLoggingConfiguration;
-    private readonly mSpashscreenConfiguration: PwbApplicationSplashscreenConfiguration;
     private readonly mUpdatingConfiguration: PwbApplicationUpdatingConfiguration;
-
-    /**
-     * Get application error configuration.
-     */
-    public get error(): PwbApplicationErrorConfiguration {
-        return this.mErrorConfiguration;
-    }
 
     /**
      * Get application logginh configuration.
      */
     public get logging(): PwbApplicationLoggingConfiguration {
         return this.mLoggingConfiguration;
-    }
-
-    /**
-     * Get application splashscreen configuration.
-     */
-    public get splashscreen(): PwbApplicationSplashscreenConfiguration {
-        return this.mSpashscreenConfiguration;
     }
 
     /**
@@ -64,18 +45,6 @@ export class PwbApplicationConfiguration {
      * Create a new application configuration.
      */
     public constructor() {
-        this.mSpashscreenConfiguration = {
-            background: PwbApplicationConfiguration.DEFAULT?.mSpashscreenConfiguration.background,
-            content: PwbApplicationConfiguration.DEFAULT?.mSpashscreenConfiguration.content,
-            manual: PwbApplicationConfiguration.DEFAULT?.mSpashscreenConfiguration.manual,
-            animationTime: PwbApplicationConfiguration.DEFAULT?.mSpashscreenConfiguration.animationTime
-        };
-
-        this.mErrorConfiguration = {
-            ignore: PwbApplicationConfiguration.DEFAULT?.mErrorConfiguration.ignore,
-            print: PwbApplicationConfiguration.DEFAULT?.mErrorConfiguration.print
-        };
-
         this.mLoggingConfiguration = {
             filter: PwbApplicationConfiguration.DEFAULT?.mLoggingConfiguration.filter,
             updatePerformance: PwbApplicationConfiguration.DEFAULT?.mLoggingConfiguration.updatePerformance,
@@ -103,18 +72,6 @@ export class PwbApplicationConfiguration {
         console.log(...pArguments);
     }
 }
-
-export type PwbApplicationSplashscreenConfiguration = {
-    background: string,
-    content: string;
-    manual: boolean;
-    animationTime: number;
-};
-
-export type PwbApplicationErrorConfiguration = {
-    ignore: boolean;
-    print: boolean;
-};
 
 export type PwbApplicationLoggingConfiguration = {
     filter: PwbApplicationDebugLoggingType;

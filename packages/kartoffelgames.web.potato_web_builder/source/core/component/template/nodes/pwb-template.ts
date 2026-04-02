@@ -10,8 +10,8 @@ export class PwbTemplate extends BasePwbTemplateNode {
     /**
      * Get all template nodes.
      */
-    public get body(): Array<BasePwbTemplateNode> {
-        return this.mBodyElementList.clone();
+    public get body(): ReadonlyArray<BasePwbTemplateNode> {
+        return this.mBodyElementList;
     }
 
     /**
@@ -70,13 +70,13 @@ export class PwbTemplate extends BasePwbTemplateNode {
         }
 
         // Same length
-        if (pBaseNode.body.length !== this.body.length) {
+        if (pBaseNode.body.length !== this.mBodyElementList.length) {
             return false;
         }
 
         // Compare each body element.
-        for (let lIndex: number = 0; lIndex < this.body.length; lIndex++) {
-            if (!this.body[lIndex].equals(pBaseNode.body[lIndex])) {
+        for (let lIndex: number = 0; lIndex < this.mBodyElementList.length; lIndex++) {
+            if (!this.mBodyElementList[lIndex].equals(pBaseNode.body[lIndex])) {
                 return false;
             }
         }
@@ -94,13 +94,12 @@ export class PwbTemplate extends BasePwbTemplateNode {
      */
     public removeChild(pNode: BasePwbTemplateNode): BasePwbTemplateNode | undefined {
         const lIndex: number = this.mBodyElementList.indexOf(pNode);
-        let lRemovedChild: BasePwbTemplateNode | undefined = undefined;
-
+        
         // If list contains node.
+        let lRemovedChild: BasePwbTemplateNode | undefined = undefined;
         if (lIndex !== -1) {
-            lRemovedChild = this.mBodyElementList.splice(lIndex, 1)[0];
-
             // If xml node remove parent connection.
+            lRemovedChild = this.mBodyElementList.splice(lIndex, 1)[0];
             lRemovedChild.parent = null;
         }
 

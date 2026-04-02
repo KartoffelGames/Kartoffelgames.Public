@@ -1,39 +1,36 @@
-import { BasePwbTemplateValue } from './base-pwb-template-value.ts';
+import { IPwbTemplateValue } from './i-pwb-template-value.interface.ts';
 
 /**
  * Pwb template expression.
- * Expects expressions to be between double brakets.
+ * 
+ * @remarks
+ * Expects expressions to be stripped of double brackets.
  * The string output is modified to expect this.
  */
-export class PwbTemplateExpression extends BasePwbTemplateValue {
-    public mExpression: string;
+export class PwbTemplateExpression implements IPwbTemplateValue {
+    public readonly mExpression: string;
 
     /**
      * Expression value.
      */
     public get value(): string {
         return this.mExpression;
-    } set value(pValue: string) {
-        this.mExpression = pValue;
     }
 
     /**
      * Constructor.
+     * 
+     * @param pExpression - Expression as string. Expression should be stripped of double brackets.
      */
-    public constructor() {
-        super();
-
-        this.mExpression = '';
+    public constructor(pExpression: string) {
+        this.mExpression = pExpression;
     }
 
     /**
      * Clone current node.
      */
     public clone(): PwbTemplateExpression {
-        const lExpressionNodeClone: PwbTemplateExpression = new PwbTemplateExpression();
-        lExpressionNodeClone.value = this.value;
-
-        return lExpressionNodeClone;
+        return new PwbTemplateExpression(this.mExpression);
     }
 
     /**
@@ -50,7 +47,7 @@ export class PwbTemplateExpression extends BasePwbTemplateValue {
      * 
      * @returns Expression as text. 
      */
-    public override toString(): string {
+    public toString(): string {
         return `{{ ${this.mExpression} }}`;
     }
 } 

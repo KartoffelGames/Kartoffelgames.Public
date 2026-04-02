@@ -1,5 +1,4 @@
-import { List } from '@kartoffelgames/core';
-import { BasePwbTemplateNode } from './base-pwb-template-node.ts';
+import { IPwbTemplateNode } from './i-pwb-template-node.interface.ts';
 
 /**
  * Multiplicator node.
@@ -19,16 +18,16 @@ import { BasePwbTemplateNode } from './base-pwb-template-node.ts';
  * }
  * ```
  */
-export class PwbTemplateInstructionNode extends BasePwbTemplateNode {
-    private readonly mChildList: Array<BasePwbTemplateNode>;
-    private mInstruction: string;
-    private mInstructionType: string;
+export class PwbTemplateInstructionNode implements IPwbTemplateNode {
+    private readonly mChildList: Array<IPwbTemplateNode>;
+    private readonly mInstruction: string;
+    private readonly mInstructionType: string;
 
     /**
      * Get childs of instruction node list.
      */
-    public get childList(): Array<BasePwbTemplateNode> {
-        return List.newListWith(...this.mChildList);
+    public get childList(): ReadonlyArray<IPwbTemplateNode> {
+        return this.mChildList;
     }
 
     /**
@@ -36,8 +35,6 @@ export class PwbTemplateInstructionNode extends BasePwbTemplateNode {
      */
     public get instruction(): string {
         return this.mInstruction;
-    } set instruction(pValue: string) {
-        this.mInstruction = pValue;
     }
 
     /**
@@ -45,19 +42,15 @@ export class PwbTemplateInstructionNode extends BasePwbTemplateNode {
      */
     public get instructionType(): string {
         return this.mInstructionType;
-    } set instructionType(pValue: string) {
-        this.mInstructionType = pValue;
     }
 
     /**
      * Constructor.
      */
-    public constructor() {
-        super();
-
-        this.mChildList = Array<BasePwbTemplateNode>();
-        this.mInstruction = '';
-        this.mInstructionType = '';
+    public constructor(pInstructionType: string, pInstruction: string) {
+        this.mChildList = Array<IPwbTemplateNode>();
+        this.mInstruction = pInstruction;
+        this.mInstructionType = pInstructionType;
     }
 
     /**
@@ -65,12 +58,7 @@ export class PwbTemplateInstructionNode extends BasePwbTemplateNode {
      * 
      * @param pNode - Base node.
      */
-    public appendChild(...pNode: Array<BasePwbTemplateNode>): void {
-        // Set parent for each child and remove child from previous parent.
-        for (const lChild of pNode) {
-            lChild.parent = this;
-        }
-
+    public appendChild(...pNode: Array<IPwbTemplateNode>): void {
         this.mChildList.push(...pNode);
     }
 
@@ -79,10 +67,8 @@ export class PwbTemplateInstructionNode extends BasePwbTemplateNode {
      * 
      * @returns new instance of current node with the same data.
      */
-    public override clone(): PwbTemplateInstructionNode {
-        const lClonedNode: PwbTemplateInstructionNode = new PwbTemplateInstructionNode();
-        lClonedNode.instruction = this.instruction;
-        lClonedNode.instructionType = this.instructionType;
+    public clone(): PwbTemplateInstructionNode {
+        const lClonedNode: PwbTemplateInstructionNode = new PwbTemplateInstructionNode(this.instructionType, this.instruction);
 
         // Deep clone every node.
         for (const lNode of this.mChildList) {
@@ -94,13 +80,14 @@ export class PwbTemplateInstructionNode extends BasePwbTemplateNode {
 
     /**
      * Compare current node with another one.
+     * 
      * @param pBaseNode - Base xml node.
      * 
      * @returns if the set node is equal to this node.
      */
-    override equals(pBaseNode: BasePwbTemplateNode): boolean {
+    public equals(pBaseNode: IPwbTemplateNode): boolean {
         // Check type, instruction value and type.
-        if (!(pBaseNode instanceof PwbTemplateInstructionNode) || pBaseNode.instruction !== this.instruction  || pBaseNode.instructionType !== this.instructionType) {
+        if (!(pBaseNode instanceof PwbTemplateInstructionNode) || pBaseNode.instruction !== this.instruction || pBaseNode.instructionType !== this.instructionType) {
             return false;
         }
 
@@ -125,18 +112,14 @@ export class PwbTemplateInstructionNode extends BasePwbTemplateNode {
      * 
      * @param pNode - Child to remove.
      */
-    public removeChild(pNode: BasePwbTemplateNode): BasePwbTemplateNode | undefined {
+    public removeChild(pNode: IPwbTemplateNode): IPwbTemplateNode | undefined {
+        // Search for node index and skip if node is not found.
         const lIndex: number = this.mChildList.indexOf(pNode);
-        let lRemovedChild: BasePwbTemplateNode | undefined = undefined;
-
-        // If list contains node.
-        if (lIndex !== -1) {
-            lRemovedChild = this.mChildList.splice(lIndex, 1)[0];
-
-            // If xml node remove parent connection.
-            lRemovedChild.parent = null;
+        if (lIndex === -1) {
+            return undefined;
         }
 
-        return lRemovedChild;
+        // Remove index from list and return removed child.
+        return this.mChildList.splice(lIndex, 1)[0];
     }
 }

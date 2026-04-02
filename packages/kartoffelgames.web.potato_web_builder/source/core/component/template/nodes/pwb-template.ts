@@ -1,32 +1,23 @@
-import { List } from '@kartoffelgames/core';
-import { BasePwbTemplateNode } from './base-pwb-template-node.ts';
+import { IPwbTemplateNode } from './i-pwb-template-node.interface.ts';
 
 /**
  * Pwb template document. Root object of every template.
  */
-export class PwbTemplate extends BasePwbTemplateNode {
-    private readonly mBodyElementList: List<BasePwbTemplateNode>;
+export class PwbTemplate implements IPwbTemplateNode {
+    private readonly mBodyElementList: Array<IPwbTemplateNode>;
 
     /**
      * Get all template nodes.
      */
-    public get body(): ReadonlyArray<BasePwbTemplateNode> {
+    public get body(): ReadonlyArray<IPwbTemplateNode> {
         return this.mBodyElementList;
-    }
-
-    /**
-     * Get template nodes document.
-     */
-    public override get template(): PwbTemplate {
-        return this;
     }
 
     /**
      * Constructor.
      */
     public constructor() {
-        super();
-        this.mBodyElementList = new List<BasePwbTemplateNode>();
+        this.mBodyElementList = new Array<IPwbTemplateNode>();
     }
 
     /**
@@ -34,12 +25,8 @@ export class PwbTemplate extends BasePwbTemplateNode {
      * 
      * @param pNodeList - Template nodes.
      */
-    public appendChild(...pNodeList: Array<BasePwbTemplateNode>): void {
+    public appendChild(...pNodeList: Array<IPwbTemplateNode>): void {
         this.mBodyElementList.push(...pNodeList);
-
-        for (const lChildNode of pNodeList) {
-            lChildNode.parent = this;
-        }
     }
 
     /**
@@ -63,7 +50,7 @@ export class PwbTemplate extends BasePwbTemplateNode {
      * 
      * @returns true on equality and false otherwise.
      */
-    public equals(pBaseNode: BasePwbTemplateNode): boolean {
+    public equals(pBaseNode: IPwbTemplateNode): boolean {
         // Check type, tagname, namespace and namespace prefix.
         if (!(pBaseNode instanceof PwbTemplate)) {
             return false;
@@ -92,17 +79,14 @@ export class PwbTemplate extends BasePwbTemplateNode {
      * 
      * @returns removed child. Undefined when nothing was removed.
      */
-    public removeChild(pNode: BasePwbTemplateNode): BasePwbTemplateNode | undefined {
+    public removeChild(pNode: IPwbTemplateNode): IPwbTemplateNode | undefined {
+        // Search for node index and skip if node is not found.
         const lIndex: number = this.mBodyElementList.indexOf(pNode);
-        
-        // If list contains node.
-        let lRemovedChild: BasePwbTemplateNode | undefined = undefined;
-        if (lIndex !== -1) {
-            // If xml node remove parent connection.
-            lRemovedChild = this.mBodyElementList.splice(lIndex, 1)[0];
-            lRemovedChild.parent = null;
+        if (lIndex === -1) {
+            return undefined
         }
 
-        return lRemovedChild;
+        // If xml node remove parent connection.
+        return this.mBodyElementList.splice(lIndex, 1)[0];
     }
 }

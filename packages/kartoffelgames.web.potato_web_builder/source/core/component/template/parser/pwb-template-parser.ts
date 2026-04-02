@@ -1,13 +1,13 @@
 import { Exception } from '@kartoffelgames/core';
-import { CodeParser, Graph, GraphNode, Lexer, type LexerPattern, type LexerPatternType } from '@kartoffelgames/core-parser';
-import type { BasePwbTemplateNode } from '../nodes/base-pwb-template-node.ts';
+import { CodeParser, Graph, GraphNode } from '@kartoffelgames/core-parser';
+import type { IPwbTemplateNode } from '../nodes/i-pwb-template-node.interface.ts';
 import { PwbTemplateInstructionNode } from '../nodes/pwb-template-instruction-node.ts';
 import { PwbTemplateTextNode } from '../nodes/pwb-template-text-node.ts';
 import { PwbTemplateXmlNode } from '../nodes/pwb-template-xml-node.ts';
 import { PwbTemplate } from '../nodes/pwb-template.ts';
 import { PwbTemplateExpression } from '../nodes/values/pwb-template-expression.ts';
-import { PwbTemplateToken } from "./pwb-template-token.enum.ts";
 import { PwbTemplateLexer } from "./pwb-template-lexer.ts";
+import { PwbTemplateToken } from "./pwb-template-token.enum.ts";
 
 /**
  * Parser for parsing pwb xml template strings.
@@ -35,10 +35,7 @@ export class PwbTemplateParser extends CodeParser<PwbTemplateToken, PwbTemplate>
         const lExpression = Graph.define(() => {
             return GraphNode.new<PwbTemplateToken>().required(PwbTemplateToken.ExpressionStart).optional('value', PwbTemplateToken.ExpressionValue).required(PwbTemplateToken.ExpressionEnd);
         }).converter((pData): PwbTemplateExpression => {
-            const lExpression: PwbTemplateExpression = new PwbTemplateExpression();
-            lExpression.value = pData.value ?? '';
-
-            return lExpression;
+            return new PwbTemplateExpression(pData.value ?? '');
         });
 
         // Attribute graph.
@@ -59,6 +56,7 @@ export class PwbTemplateParser extends CodeParser<PwbTemplateToken, PwbTemplate>
                 ])
             ).optional('data<-data', lSelfReference);
         });
+        
         const lXmlAttribute = Graph.define(() => {
             return GraphNode.new<PwbTemplateToken>().required('name', PwbTemplateToken.XmlIdentifier).optional('attributeValue',
                 GraphNode.new<PwbTemplateToken>().required(PwbTemplateToken.XmlAssignment).required(PwbTemplateToken.XmlExplicitValueIdentifier).optional('list<-data', lXmlAttributeValueList).required(PwbTemplateToken.XmlExplicitValueIdentifier)
@@ -82,6 +80,7 @@ export class PwbTemplateParser extends CodeParser<PwbTemplateToken, PwbTemplate>
                 values: lValues
             };
         });
+
         const lXmlAttributeList = Graph.define(() => {
             type Result = {
                 data: Array<AttributeInformation>;
@@ -110,6 +109,7 @@ export class PwbTemplateParser extends CodeParser<PwbTemplateToken, PwbTemplate>
                 ])
             ).optional('data<-data', lSelfReference);
         });
+
         const lXmlTextNode = Graph.define(() => {
             return GraphNode.new<PwbTemplateToken>().required('list<-data', lXmlTextNodeValueList);
         }).converter((pData): PwbTemplateTextNode => {
@@ -158,8 +158,7 @@ export class PwbTemplateParser extends CodeParser<PwbTemplateToken, PwbTemplate>
             }
 
             // Create xml element.
-            const lElement: PwbTemplateXmlNode = new PwbTemplateXmlNode();
-            lElement.tagName = pData.openingTagName;
+            const lElement: PwbTemplateXmlNode = new PwbTemplateXmlNode(pData.openingTagName);
 
             // Add attributes.
             if (pData.attributes) {
@@ -181,6 +180,7 @@ export class PwbTemplateParser extends CodeParser<PwbTemplateToken, PwbTemplate>
             const lSelfReference: Graph<PwbTemplateToken, any, { list: Array<string>; }> = lInstructionNodeValueList;
             return GraphNode.new<PwbTemplateToken>().required('list[]', PwbTemplateToken.InstructionInstructionValue).optional('list<-list', lSelfReference);
         });
+
         const lInstructionNode = Graph.define(() => {
             return GraphNode.new<PwbTemplateToken>()
                 .required('instructionName', PwbTemplateToken.InstructionStart)
@@ -190,12 +190,10 @@ export class PwbTemplateParser extends CodeParser<PwbTemplateToken, PwbTemplate>
                     GraphNode.new<PwbTemplateToken>().required(PwbTemplateToken.InstructionBodyStartBraket).required('value', lContentList).required(PwbTemplateToken.InstructionBodyCloseBraket)
                 );
         }).converter((pData): PwbTemplateInstructionNode => {
-            // Create instruction.
-            const lInstruction: PwbTemplateInstructionNode = new PwbTemplateInstructionNode();
-            lInstruction.instructionType = pData.instructionName.substring(1);
-
-            // Add instruction.
-            lInstruction.instruction = pData.instruction?.value.join('') ?? '';
+            // Create instruction
+            const lInstructionType: string = pData.instructionName.substring(1);
+            const lInstructionValue: string = pData.instruction?.value.join('') ?? '';
+            const lInstruction: PwbTemplateInstructionNode = new PwbTemplateInstructionNode(lInstructionType, lInstructionValue);
 
             // Add each body content.
             if (pData.body) {
@@ -215,12 +213,13 @@ export class PwbTemplateParser extends CodeParser<PwbTemplateToken, PwbTemplate>
                 lXmlTextNode,
             ]).optional('list<-list', lSelfReference);
         });
+
         const lContentList = Graph.define(() => {
-            const lContentReference: Graph<PwbTemplateToken, any, { list: Array<BasePwbTemplateNode | null>; }> = lContentValueList;
+            const lContentReference: Graph<PwbTemplateToken, any, { list: Array<IPwbTemplateNode | null>; }> = lContentValueList;
 
             return GraphNode.new<PwbTemplateToken>().optional('list<-list', lContentReference);
-        }).converter((pData): Array<BasePwbTemplateNode> => {
-            const lContentList: Array<BasePwbTemplateNode> = new Array<BasePwbTemplateNode>();
+        }).converter((pData): Array<IPwbTemplateNode> => {
+            const lContentList: Array<IPwbTemplateNode> = new Array<IPwbTemplateNode>();
 
             if (pData.list) {
                 for (const lItem of pData.list) {

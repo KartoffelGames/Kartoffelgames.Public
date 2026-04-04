@@ -25,21 +25,6 @@ export class InteractionZone {
         return new InteractionZone(pName);
     }
 
-    /**
-     * Dispatch interaction event in current zone.
-     * 
-     * @param pTrigger - Interaction trigger.
-     * @param pData - Data of event.
-     * 
-     * @returns false when any zone in the parent chain dont has trigger for {@link pTrigger}
-     */
-    public static pushInteraction<TData extends object>(pTrigger: number, pData: TData): boolean {
-        const lCurrentZone: InteractionZone = InteractionZone.mCurrentZone;
-
-        // Create reason and save current zone as reason origin and start dispatch to current zone.
-        return lCurrentZone.callInteractionListener(pTrigger, pData);
-    }
-
     private readonly mInteractionListener: Map<InteractionListener<object>, InteractionZone>;
     private readonly mName: string;
     private mTriggerFilterBitmap: number;
@@ -125,30 +110,6 @@ export class InteractionZone {
     }
 
     /**
-     * Remove listener for change events.
-     * When no listener is specified. All listener of the type are removed.
-     * 
-     * @param pListener - Listener.
-     * 
-     * @returns itself.
-     */
-    public removeInteractionListener(pListener?: InteractionListener<object>): this {
-        // Remove every listener of type.
-        if (!pListener) {
-            this.mInteractionListener.clear();
-
-            // Chainable.
-            return this;
-        }
-
-        // Remove single listener from type.
-        this.mInteractionListener.delete(pListener);
-
-        // Chainable.
-        return this;
-    }
-
-    /**
      * Call all interaction listener of this zone with event.
      * Returns false when event was blocked by trigger filter bitmap.
      * 
@@ -156,7 +117,7 @@ export class InteractionZone {
      * 
      * @returns false when event was blocked by trigger filter bitmap true otherwise.
      */
-    private callInteractionListener(pTrigger: number, pData: object): boolean {
+    public pushInteraction(pTrigger: number, pData: object): boolean {
         // Block dispatch of reason when it does not match the response type bitmap.
         // Send it when it was passthrough from child zones.
         if ((this.mTriggerFilterBitmap & pTrigger) === 0) {
@@ -178,6 +139,30 @@ export class InteractionZone {
         }
 
         return true;
+    }
+
+    /**
+     * Remove listener for change events.
+     * When no listener is specified. All listener of the type are removed.
+     * 
+     * @param pListener - Listener.
+     * 
+     * @returns itself.
+     */
+    public removeInteractionListener(pListener?: InteractionListener<object>): this {
+        // Remove every listener of type.
+        if (!pListener) {
+            this.mInteractionListener.clear();
+
+            // Chainable.
+            return this;
+        }
+
+        // Remove single listener from type.
+        this.mInteractionListener.delete(pListener);
+
+        // Chainable.
+        return this;
     }
 }
 

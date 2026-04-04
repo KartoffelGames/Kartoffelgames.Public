@@ -1,18 +1,18 @@
 import { Exception } from '@kartoffelgames/core';
 import type { AttributeModule } from '../../../module/attribute_module/attribute-module.ts';
 import type { ExpressionModule } from '../../../module/expression_module/expression-module.ts';
-import type { ComponentModules } from '../../component-modules.ts';
 import type { PwbTemplateAttribute } from '../../template/nodes/values/pwb-template-attribute.ts';
 import { BaseBuilderData } from './base-builder-data.ts';
 
+/**
+ * Extends the base builder data with linked attribute and expression modules.
+ */
 export class StaticBuilderData extends BaseBuilderData {
     private mAttributeModulesChangedOrder: boolean;
-    private readonly mLinkedAttributeElement: WeakMap<PwbTemplateAttribute, Element>;
+    private readonly mLinkedAttributeData: WeakMap<PwbTemplateAttribute, StaticBuilderLinkedAttributeData>;
     private readonly mLinkedAttributeExpressionModules: WeakMap<ExpressionModule, PwbTemplateAttribute>;
     private readonly mLinkedAttributeModuleList: Array<AttributeModule>;
-    private readonly mLinkedAttributeNodes: WeakMap<PwbTemplateAttribute, Array<Text>>;
     private readonly mLinkedExpressionModuleList: Array<ExpressionModule>;
-    
 
     /**
      * Get all linked attribute modules.
@@ -24,7 +24,10 @@ export class StaticBuilderData extends BaseBuilderData {
         if (this.mAttributeModulesChangedOrder) {
             this.mAttributeModulesChangedOrder = false;
 
-            this.orderAttributeModules();
+            // Sort by write->readwrite->read->expression and update.
+            this.mLinkedAttributeModuleList.sort((pModuleA, pModuleB): number => {
+                return pModuleA.accessMode - pModuleB.accessMode;
+            });
         }
 
         return this.mLinkedAttributeModuleList;
@@ -42,19 +45,17 @@ export class StaticBuilderData extends BaseBuilderData {
     /**
      * Constructor.
      * 
-     * @param pModules - Builder modules.
      * @param pAnchorName - Name of generated content anchor.
      */
-    public constructor(pModules: ComponentModules, pAnchorName: string) {
-        super(pModules, pAnchorName);
+    public constructor(pAnchorName: string) {
+        super(pAnchorName);
 
         this.mLinkedExpressionModuleList = new Array<ExpressionModule>();
         this.mLinkedAttributeModuleList = new Array<AttributeModule>();
 
         // Attribute expression maps.
         this.mLinkedAttributeExpressionModules = new WeakMap<ExpressionModule, PwbTemplateAttribute>();
-        this.mLinkedAttributeNodes = new WeakMap<PwbTemplateAttribute, Array<Text>>();
-        this.mLinkedAttributeElement = new WeakMap<PwbTemplateAttribute, Element>();
+        this.mLinkedAttributeData = new WeakMap<PwbTemplateAttribute, StaticBuilderLinkedAttributeData>();
 
         this.mAttributeModulesChangedOrder = false;
     }
@@ -83,17 +84,12 @@ export class StaticBuilderData extends BaseBuilderData {
      * When {@link pAttribute} has no linked data.
      */
     public getLinkedAttributeData(pAttribute: PwbTemplateAttribute): StaticBuilderLinkedAttributeData {
-        // Read linked attribute nodes. Throw when no are linked.
-        const lLinkedAttributeNodeList: Array<Text> | undefined = this.mLinkedAttributeNodes.get(pAttribute);
-        const lLinedAttributeElement: Element | undefined = this.mLinkedAttributeElement.get(pAttribute);
-        if (!lLinkedAttributeNodeList || !lLinedAttributeElement) {
+        // Throw when no are linked.
+        if (!this.mLinkedAttributeData.has(pAttribute)) {
             throw new Exception(`Attribute has no linked data.`, this);
         }
 
-        return {
-            values: lLinkedAttributeNodeList,
-            node: lLinedAttributeElement
-        };
+        return this.mLinkedAttributeData.get(pAttribute)!;
     }
 
     /**
@@ -128,8 +124,10 @@ export class StaticBuilderData extends BaseBuilderData {
      * @param pValues - Text node values, containing text nodes with linked expression modules.
      */
     public linkAttributeNodes(pAttribute: PwbTemplateAttribute, pElement: Element, pValues: Array<Text>): void {
-        this.mLinkedAttributeNodes.set(pAttribute, pValues);
-        this.mLinkedAttributeElement.set(pAttribute, pElement);
+        this.mLinkedAttributeData.set(pAttribute, {
+            values: pValues,
+            node: pElement
+        });
     }
 
     /**
@@ -158,20 +156,9 @@ export class StaticBuilderData extends BaseBuilderData {
             lModule.deconstruct();
         }
     }
-
-    /**
-     * Order attribute modules. Sorts {@link mLinkedAttributeModuleList} reference.
-     * Sort orders are: write - readwrite - read.
-     */
-    private orderAttributeModules(): void {
-        // Sort by write->readwrite->read->expression and update.
-        this.mLinkedAttributeModuleList.sort((pModuleA, pModuleB): number => {
-            return pModuleA.accessMode - pModuleB.accessMode;
-        });
-    }
 }
 
 export type StaticBuilderLinkedAttributeData = {
-    values: Array<Text>;
-    node: Element;
+    readonly values: Array<Text>;
+    readonly node: Element;
 };

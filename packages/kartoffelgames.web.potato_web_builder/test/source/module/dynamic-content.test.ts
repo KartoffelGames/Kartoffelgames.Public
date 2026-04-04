@@ -21,8 +21,7 @@ Deno.test('DynamicContent--Functionality: Initial', async (pContext) => {
                 const lTemlplate: PwbTemplate = new PwbTemplate();
 
                 // Inner div
-                const lDiv: PwbTemplateXmlNode = new PwbTemplateXmlNode();
-                lDiv.tagName = 'div';
+                const lDiv: PwbTemplateXmlNode = new PwbTemplateXmlNode('div');
 
                 lTemlplate.appendChild(lDiv);
 
@@ -61,8 +60,7 @@ Deno.test('DynamicContent--Functionality: Keep content', async (pContext) => {
                 const lTemlplate: PwbTemplate = new PwbTemplate();
 
                 // Inner div
-                const lDiv: PwbTemplateXmlNode = new PwbTemplateXmlNode();
-                lDiv.tagName = 'div';
+                const lDiv: PwbTemplateXmlNode = new PwbTemplateXmlNode('div');
 
                 // Inner text node.
                 const lTextNode: PwbTemplateTextNode = new PwbTemplateTextNode();

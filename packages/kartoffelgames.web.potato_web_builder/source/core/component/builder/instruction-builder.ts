@@ -7,7 +7,6 @@ import type { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-
 import { BaseBuilder } from './base-builder.ts';
 import { InstructionBuilderData } from './data/instruction-builder-data.ts';
 import { StaticBuilder } from './static-builder.ts';
-import type { PwbApplicationConfiguration } from '../../../application/pwb-application-configuration.ts';
 
 /**
  * Instruction builder. Only builds and handles instruction templates.
@@ -19,29 +18,24 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
     /**
      * Constructor.
      * 
-     * @param pApplicationContext - Application context.
      * @param pTemplate - Instruction template.
      * @param pModules - Modules of component scope.
      * @param pParentDataLevel - Data level of parent builder.
      */
-    public constructor(pApplicationContext: PwbApplicationConfiguration, pTemplate: PwbTemplateInstructionNode, pModules: ComponentModules, pParentDataLevel: DataLevel) {
-        super(pApplicationContext, pTemplate, pParentDataLevel, new InstructionBuilderData(pModules, `Instruction - {$${pTemplate.instructionType}}`));
+    public constructor(pTemplate: PwbTemplateInstructionNode, pModules: ComponentModules, pParentDataLevel: DataLevel) {
+        // Create instruction module for instruction builder.
+        const lInstructionModule: InstructionModule = pModules.createInstructionModule(pTemplate, pParentDataLevel);
+
+        // Call super constructor to create instruction builder content.
+        super(pTemplate, pModules, pParentDataLevel, new InstructionBuilderData(lInstructionModule, `Instruction - {$${pTemplate.instructionType}}`));
     }
 
     /**
      * Update content dependent on temporar value. 
      */
     protected onUpdate(): boolean {
-        // Create instruction module if is does not exist.
-        if (!this.content.instructionModule) {
-            // Create and link instruction module.
-            const lInstructionModule: InstructionModule = this.content.modules.createInstructionModule(this.applicationContext, this.template, this.values);
-            this.content.instructionModule = lInstructionModule;
-        }
-
         // Call module update.
-        const lInstructionUpdated: boolean = this.content.instructionModule.update();
-        if (lInstructionUpdated) {
+        if (this.content.instructionModule.update()) {
             // Get current StaticBuilder. Only content are static builder.
             const lOldStaticBuilderList: Array<StaticBuilder> = <Array<StaticBuilder>>this.content.body;
 
@@ -64,7 +58,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
      */
     private insertNewContent(pNewContent: InstructionResultElement, pContentCursor: StaticBuilder | null): StaticBuilder {
         // Create new static builder.
-        const lStaticBuilder: StaticBuilder = new StaticBuilder(this.applicationContext, pNewContent.template, this.content.modules, pNewContent.dataLevel, `Child - {$${this.template.instructionType}}`);
+        const lStaticBuilder: StaticBuilder = new StaticBuilder(pNewContent.template, this.modules, pNewContent.dataLevel, `Child - {$${this.template.instructionType}}`);
 
         // Prepend content if no content is before the new content. 
         if (pContentCursor === null) {

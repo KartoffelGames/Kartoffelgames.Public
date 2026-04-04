@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-declaration-merging */
 
 import { Exception } from '@kartoffelgames/core';
-import type { BasePwbTemplateNode } from '../../component/template/nodes/base-pwb-template-node.ts';
+import type { IPwbTemplateNode } from '../../component/template/nodes/i-pwb-template-node.interface.ts';
 
 /**
  * Template reference.
@@ -21,4 +21,4 @@ export class ModuleTemplate {
     }
 }
 
-export declare interface ModuleTemplate extends BasePwbTemplateNode { }
+export declare interface ModuleTemplate extends IPwbTemplateNode { }

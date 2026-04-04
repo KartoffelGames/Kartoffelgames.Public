@@ -364,4 +364,6 @@ export type CoreEntityConstructorParameter<TProcessor extends Processor> = {
      */
     trackConstructorChanges: boolean;
 };
-export type CoreEntityProcessorConstructor<TProcessor extends Processor = Processor> = new (...pParameter: Array<any>) => TProcessor;
+
+export type CoreEntityProcessorConstructor<TProcessor extends CoreEntityProcessor = CoreEntityProcessor> = new (...pParameter: Array<any>) => TProcessor;
+export type CoreEntityProcessor = object;

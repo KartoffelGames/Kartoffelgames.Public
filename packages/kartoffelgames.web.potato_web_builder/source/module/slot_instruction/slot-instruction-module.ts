@@ -46,8 +46,7 @@ export class SlotInstructionModule extends Processor implements IInstructionOnUp
         this.mIsSetup = true;
 
         // Create slot xml element.
-        const lSlotXmlElement: PwbTemplateXmlNode = new PwbTemplateXmlNode();
-        lSlotXmlElement.tagName = 'slot';
+        const lSlotXmlElement: PwbTemplateXmlNode = new PwbTemplateXmlNode('slot');
 
         // Set slot as default of name is $DEFAUKLT
         if (this.mSlotName !== '') {

@@ -1,6 +1,4 @@
-import { Dictionary } from '@kartoffelgames/core';
-import { CoreEntity, type CoreEntityProcessorConstructor } from './core-entity.ts';
-import type { Processor } from './processor.ts';
+import { CoreEntity, CoreEntityProcessor, type CoreEntityProcessorConstructor } from './core-entity.ts';
 
 /**
  * Createable core entity register. 
@@ -9,8 +7,8 @@ import type { Processor } from './processor.ts';
 class CoreEntityRegisterSingleton {
     private static mInstance: CoreEntityRegisterSingleton;
 
-    private readonly mCoreEntityConstructor!: Dictionary<CoreEntityConstructor, Set<CoreEntityProcessorConstructor>>;
-    private readonly mProcessorConstructorConfiguration!: Dictionary<CoreEntityProcessorConstructor, CoreEntityProcessorConstructorConfiguration>;
+    private readonly mCoreEntityConstructor!: Map<CoreEntityConstructor, Set<CoreEntityProcessorConstructor>>;
+    private readonly mProcessorConstructorConfiguration!: Map<CoreEntityProcessorConstructor, CoreEntityProcessorConstructorConfiguration>;
 
     /**
      * Constructor.
@@ -25,8 +23,8 @@ class CoreEntityRegisterSingleton {
         CoreEntityRegisterSingleton.mInstance = this;
 
         // Class storages.
-        this.mCoreEntityConstructor = new Dictionary<CoreEntityConstructor, Set<CoreEntityProcessorConstructor>>();
-        this.mProcessorConstructorConfiguration = new Dictionary<CoreEntityProcessorConstructor, CoreEntityProcessorConstructorConfiguration>();
+        this.mCoreEntityConstructor = new Map<CoreEntityConstructor, Set<CoreEntityProcessorConstructor>>();
+        this.mProcessorConstructorConfiguration = new Map<CoreEntityProcessorConstructor, CoreEntityProcessorConstructorConfiguration>();
     }
 
     /**
@@ -83,7 +81,7 @@ class CoreEntityRegisterSingleton {
     }
 }
 
-export type CoreEntityConstructor<TProcessor extends Processor = Processor> = new (...pParameter: Array<any>) => CoreEntity<TProcessor>;
+export type CoreEntityConstructor<TProcessor extends CoreEntityProcessor = CoreEntityProcessor> = new (...pParameter: Array<any>) => CoreEntity<TProcessor>;
 
 type CoreEntityProcessorConstructorConfiguration = { [key: string]: any; };
 export type CoreEntityProcessorConstructorSetup<TConfiguration extends CoreEntityProcessorConstructorConfiguration = CoreEntityProcessorConstructorConfiguration> = {

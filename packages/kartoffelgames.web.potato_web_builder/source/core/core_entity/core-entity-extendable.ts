@@ -1,31 +1,29 @@
 import type { IDeconstructable } from '@kartoffelgames/core';
 import { AccessMode } from '../enum/access-mode.enum.ts';
 import { ExtensionModule, type ExtensionModuleConfiguration } from '../extension/extension-module.ts';
-import { CoreEntity, type CoreEntityConstructorParameter, type CoreEntityProcessorConstructor } from './core-entity.ts';
-import { type CoreEntityProcessorConstructorSetup, CoreEntityRegister } from './core-entity-register.ts';
-import type { Processor } from './processor.ts';
+import { CoreEntityRegister, type CoreEntityProcessorConstructorSetup } from './core-entity-register.ts';
+import { CoreEntity, CoreEntityProcessor, type CoreEntityConstructorParameter, type CoreEntityProcessorConstructor } from './core-entity.ts';
 
-export abstract class CoreEntityExtendable<TProcessor extends Processor> extends CoreEntity<TProcessor> implements IDeconstructable {
+/**
+ * Core entity that initializes extensions.
+ */
+export abstract class CoreEntityExtendable<TProcessor extends CoreEntityProcessor> extends CoreEntity<TProcessor> implements IDeconstructable {
     private static readonly mExtensionCache: WeakMap<CoreEntityProcessorConstructor, ExtensionCache> = new WeakMap<CoreEntityProcessorConstructor, ExtensionCache>();
 
     private readonly mExtensionList: Array<ExtensionModule>;
 
     /**
      * Constructor.
-     * Takes over parent injections.
      * 
-     * @param pProcessorConstructor - Processor constructor of user entity.
-     * @param pParent - Parent of user entity.
+     * @param pParameter - Constructor parameter.
      */
     public constructor(pParameter: CoreEntityExtendableConstructorParameter<TProcessor>) {
         super(pParameter);
 
         this.mExtensionList = new Array<ExtensionModule>();
 
-        // Apply extensions on setup.
-        this.addSetupHook(() => {
-            this.executeExtensions();
-        });
+        // Apply extensions.
+        this.executeExtensions();
     }
 
     /**
@@ -46,37 +44,35 @@ export abstract class CoreEntityExtendable<TProcessor extends Processor> extends
     private executeExtensions(): void {
         // Read extensions from cache or build new extension information.
         const lExtensionSetupLists: ExtensionCache = (() => {
-            // Try to read cached information.
-            const lExtensionCache: ExtensionCache | undefined = CoreEntityExtendable.mExtensionCache.get(this.processorConstructor);
-            if (lExtensionCache) {
-                return lExtensionCache;
+            // Check and initialize cache for processor constructor when it doesn't exist.
+            if (!CoreEntityExtendable.mExtensionCache.has(this.processorConstructor)) {
+                // Filter extension list.
+                const lExtensionSetupList: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>> = CoreEntityRegister.get<ExtensionModuleConfiguration>(ExtensionModule);
+
+                // Filter extension list.
+                const lTargetExtensionSetupList: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>> = lExtensionSetupList.filter((pSetup: CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>) => {
+                    for (const lRestriction of pSetup.processorConfiguration.targetRestrictions) {
+                        if (this instanceof lRestriction || this.processorConstructor.prototype instanceof lRestriction || this.processorConstructor === lRestriction) {
+                            return true;
+                        }
+                    }
+
+                    return false;
+                });
+
+                // Filter setup list access types and create extension cache object.
+                const lNewExtensionList: ExtensionCache = {
+                    read: lTargetExtensionSetupList.filter((pSetup: CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>) => { return pSetup.processorConfiguration.access === AccessMode.Read; }),
+                    write: lTargetExtensionSetupList.filter((pSetup: CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>) => { return pSetup.processorConfiguration.access === AccessMode.Write; }),
+                    readWrite: lTargetExtensionSetupList.filter((pSetup: CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>) => { return pSetup.processorConfiguration.access === AccessMode.ReadWrite; })
+                };
+
+                // Cache new build extensionlist.
+                CoreEntityExtendable.mExtensionCache.set(this.processorConstructor, lNewExtensionList);
             }
 
-            // Filter extension list.
-            const lExtensionSetupList: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>> = CoreEntityRegister.get<ExtensionModuleConfiguration>(ExtensionModule);
-
-            // Filter extension list.
-            const lTargetExtensionSetupList: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>> = lExtensionSetupList.filter((pSetup: CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>) => {
-                for (const lRestriction of pSetup.processorConfiguration.targetRestrictions) {
-                    if (this instanceof lRestriction || this.processorConstructor.prototype instanceof lRestriction || this.processorConstructor === lRestriction) {
-                        return true;
-                    }
-                }
-
-                return false;
-            });
-
-            // Filter setup list access types and create extension cache object.
-            const lNewExtensionList: ExtensionCache = {
-                read: lTargetExtensionSetupList.filter((pSetup: CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>) => { return pSetup.processorConfiguration.access === AccessMode.Read; }),
-                write: lTargetExtensionSetupList.filter((pSetup: CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>) => { return pSetup.processorConfiguration.access === AccessMode.Write; }),
-                readWrite: lTargetExtensionSetupList.filter((pSetup: CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>) => { return pSetup.processorConfiguration.access === AccessMode.ReadWrite; })
-            };
-
-            // Cache new build extensionlist.
-            CoreEntityExtendable.mExtensionCache.set(this.processorConstructor, lNewExtensionList);
-
-            return lNewExtensionList;
+            // Read cached information.
+            return CoreEntityExtendable.mExtensionCache.get(this.processorConstructor)!;
         })();
 
         // Create extension execution order list. First write than readwrite than read.
@@ -84,10 +80,7 @@ export abstract class CoreEntityExtendable<TProcessor extends Processor> extends
 
         // Create every module extension.
         for (const lSetup of lOrderedExtensionList) {
-            const lModuleExtension: ExtensionModule = new ExtensionModule(this.applicationContext, lSetup.processorConstructor, <CoreEntity><any>this, lSetup.processorConfiguration.trigger);
-            lModuleExtension.setup();
-
-            this.mExtensionList.push(lModuleExtension);
+            this.mExtensionList.push(new ExtensionModule(lSetup.processorConstructor, <CoreEntity><any>this, lSetup.processorConfiguration.trigger));
         }
     }
 }
@@ -98,4 +91,4 @@ type ExtensionCache = {
     readWrite: Array<CoreEntityProcessorConstructorSetup<ExtensionModuleConfiguration>>;
 };
 
-export type CoreEntityExtendableConstructorParameter<TProcessor extends Processor> = CoreEntityConstructorParameter<TProcessor>;
+export type CoreEntityExtendableConstructorParameter<TProcessor extends CoreEntityProcessor> = CoreEntityConstructorParameter<TProcessor>;

@@ -1,4 +1,4 @@
-import { Dictionary, type ClassDecorator } from '@kartoffelgames/core';
+import { type ClassDecorator } from '@kartoffelgames/core';
 import type { InjectionConstructor, InjectionInstance } from '../type.ts';
 import { ConstructorMetadata } from './constructor-metadata.ts';
 
@@ -12,7 +12,7 @@ import { ConstructorMetadata } from './constructor-metadata.ts';
  * @public
  */
 export class Metadata {
-    private static readonly mMetadataMapping: Dictionary<DecoratorMetadataObject, ConstructorMetadata> = new Dictionary<DecoratorMetadataObject, ConstructorMetadata>();
+    private static readonly mMetadataMapping: Map<DecoratorMetadataObject, ConstructorMetadata> = new Map<DecoratorMetadataObject, ConstructorMetadata>();
 
     /**
      * AtScript.

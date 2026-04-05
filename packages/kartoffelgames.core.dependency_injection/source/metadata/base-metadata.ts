@@ -1,17 +1,15 @@
-import { Dictionary } from '@kartoffelgames/core';
-
 /**
  * Base metadata information for classes and properties.
  */
 export class BaseMetadata {
-    private readonly mCustomMetadata: Dictionary<MetadataKey, any>;
+    private readonly mCustomMetadata: Map<MetadataKey, any>;
 
     /**
      * Constructor.
      * Initialize lists.
      */
     public constructor() {
-        this.mCustomMetadata = new Dictionary<MetadataKey, any>();
+        this.mCustomMetadata = new Map<MetadataKey, any>();
     }
 
     /**

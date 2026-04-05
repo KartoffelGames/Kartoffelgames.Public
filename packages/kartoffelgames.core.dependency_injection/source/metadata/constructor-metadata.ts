@@ -1,4 +1,3 @@
-import { Dictionary } from '@kartoffelgames/core';
 import { BaseMetadata, type MetadataKey } from './base-metadata.ts';
 import { PropertyMetadata } from './property-metadata.ts';
 
@@ -9,7 +8,7 @@ export class ConstructorMetadata extends BaseMetadata {
     private static readonly mPrivateMetadataKey: symbol = Symbol('Metadata');
 
     private readonly mDecoratorMetadataObject: DecoratorMetadataObject;
-    private readonly mPropertyMetadata: Dictionary<PropertyKey, PropertyMetadata>;
+    private readonly mPropertyMetadata: Map<PropertyKey, PropertyMetadata>;
 
     /**
      * Constructor.
@@ -21,7 +20,7 @@ export class ConstructorMetadata extends BaseMetadata {
         super();
 
         this.mDecoratorMetadataObject = pDecoratorMetadataObject;
-        this.mPropertyMetadata = new Dictionary<PropertyKey, PropertyMetadata>();
+        this.mPropertyMetadata = new Map<PropertyKey, PropertyMetadata>();
 
         // Attach constructor metadata to decorator metadata object.
         pDecoratorMetadataObject[ConstructorMetadata.mPrivateMetadataKey] = this;
@@ -74,7 +73,7 @@ export class ConstructorMetadata extends BaseMetadata {
     public getProperty(pPropertyKey: PropertyKey): PropertyMetadata {
         // Create new property mapping when no mapping is found.
         if (!this.mPropertyMetadata.has(pPropertyKey)) {
-            this.mPropertyMetadata.add(pPropertyKey, new PropertyMetadata());
+            this.mPropertyMetadata.set(pPropertyKey, new PropertyMetadata());
         }
 
         return <PropertyMetadata>this.mPropertyMetadata.get(pPropertyKey);

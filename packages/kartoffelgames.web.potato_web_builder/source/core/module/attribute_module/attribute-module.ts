@@ -1,6 +1,5 @@
 import type { PwbTemplateAttribute } from '../../component/template/nodes/values/pwb-template-attribute.ts';
 import type { AccessMode } from '../../enum/access-mode.enum.ts';
-import type { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
 import { BaseModule, type BaseModuleConstructorParameter, type IPwbModuleProcessor, type IPwbModuleProcessorConstructor } from '../base-module.ts';
 import { ModuleAttribute } from '../injection_reference/module-attribute.ts';
 import { ModuleTargetNode } from '../injection_reference/module-target-node.ts';
@@ -22,10 +21,8 @@ export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
      */
     public constructor(pParameter: AttributeModuleConstructorParameter) {
         super({
-            applicationContext: pParameter.applicationContext,
             constructor: pParameter.constructor,
             parent: pParameter.parent,
-            trigger: pParameter.trigger,
             values: pParameter.values,
         });
 
@@ -33,17 +30,17 @@ export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
         this.mAccessMode = pParameter.accessMode;
 
         // Set processor attribute values from injection template.
-        this.setProcessorAttributes(AttributeModule, this);
-        this.setProcessorAttributes(ModuleTemplate, pParameter.targetTemplate.clone());
-        this.setProcessorAttributes(ModuleTargetNode, pParameter.targetNode);
-        this.setProcessorAttributes(ModuleAttribute, new ModuleAttribute(pParameter.targetTemplate.name, pParameter.targetTemplate.values.toString()));
+        this.setProcessorInjection(AttributeModule, this);
+        this.setProcessorInjection(ModuleTemplate, pParameter.targetTemplate.clone());
+        this.setProcessorInjection(ModuleTargetNode, pParameter.targetNode);
+        this.setProcessorInjection(ModuleAttribute, new ModuleAttribute(pParameter.targetTemplate.name, pParameter.targetTemplate.values.toString()));
     }
 
     /**
      * Update module.
      */
     public onUpdate(): boolean {
-        return this.call<IAttributeOnUpdate, 'onUpdate'>('onUpdate', true) ?? false;
+        return this.call<IAttributeOnUpdate, 'onUpdate'>('onUpdate') ?? false;
     }
 }
 
@@ -71,5 +68,4 @@ export interface IPwbAttributeModuleProcessorConstructor extends IPwbModuleProce
 export type AttributeModuleConfiguration = {
     access: AccessMode;
     selector: RegExp;
-    trigger: UpdateTrigger;
 };

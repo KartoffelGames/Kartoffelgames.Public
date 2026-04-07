@@ -1,8 +1,6 @@
 import type { IDeconstructable } from '@kartoffelgames/core';
-import { PwbApplicationDebugLoggingType } from '../../application/pwb-application-debug-logging-type.enum.ts';
 import { CoreEntityExtendable, type CoreEntityExtendableConstructorParameter } from '../core_entity/core-entity-extendable.ts';
-import type { CoreEntityProcessorConstructor } from '../core_entity/core-entity.ts';
-import type { Processor } from '../core_entity/processor.ts';
+import type { CoreEntityProcessor, CoreEntityProcessorConstructor } from '../core_entity/core-entity.ts';
 import type { DataLevel } from '../data/data-level.ts';
 import { ModuleDataLevel } from '../data/module-data-level.ts';
 
@@ -14,17 +12,12 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
      */
     constructor(pParameter: BaseModuleConstructorParameter<TModuleProcessor>) {
         super({
-            applicationContext: pParameter.applicationContext,
             constructor: pParameter.constructor,
-            loggingType: PwbApplicationDebugLoggingType.Module,
             parent: pParameter.parent,
-            isolate: false,
-            trigger: pParameter.trigger,
-            trackConstructorChanges: false
         });
 
         // Create module injection mapping.
-        this.setProcessorAttributes(ModuleDataLevel, new ModuleDataLevel(pParameter.values));
+        this.setProcessorInjection(ModuleDataLevel, new ModuleDataLevel(pParameter.values));
 
         this.addSetupHook(() => {
             // Forces auto create on setup.
@@ -39,7 +32,7 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
         // Deconstruct extensions.
         super.deconstruct();
 
-        this.call<IBaseModuleOnDeconstruct, 'onDeconstruct'>('onDeconstruct', false);
+        this.call<IBaseModuleOnDeconstruct, 'onDeconstruct'>('onDeconstruct');
     }
 }
 
@@ -53,5 +46,5 @@ export type BaseModuleConstructorParameter<TProcessor extends IPwbModuleProcesso
 export interface IBaseModuleOnDeconstruct {
     onDeconstruct(): void;
 }
-export interface IPwbModuleProcessor extends Processor, Partial<IBaseModuleOnDeconstruct> { }
+export interface IPwbModuleProcessor extends CoreEntityProcessor, Partial<IBaseModuleOnDeconstruct> { }
 export interface IPwbModuleProcessorConstructor<TModuleProcessor extends IPwbModuleProcessor> extends CoreEntityProcessorConstructor<TModuleProcessor> { }

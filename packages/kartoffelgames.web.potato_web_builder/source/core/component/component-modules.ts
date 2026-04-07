@@ -1,5 +1,4 @@
 import { Dictionary, Exception } from '@kartoffelgames/core';
-import type { PwbApplicationConfiguration } from '../../application/pwb-application-configuration.ts';
 import { MustacheExpressionModule } from '../../module/mustache_expression/mustache-expression-module.ts';
 import { type CoreEntityProcessorConstructorSetup, CoreEntityRegister } from '../core_entity/core-entity-register.ts';
 import type { DataLevel } from '../data/data-level.ts';
@@ -47,7 +46,7 @@ export class ComponentModules {
      * 
      * @returns Created static module when it was matched, otherwise null.
      */
-    public createAttributeModule(pApplicationContext: PwbApplicationConfiguration, pTemplate: PwbTemplateAttribute, pTargetNode: Element, pValues: DataLevel): AttributeModule | null {
+    public createAttributeModule(pTemplate: PwbTemplateAttribute, pTargetNode: Element, pValues: DataLevel): AttributeModule | null {
         // Read attribute setup of expression module.
         const lAttributeModuleSetup: CoreEntityProcessorConstructorSetup<AttributeModuleConfiguration> | null = (() => {
             // Try to read cached attribute module.
@@ -78,15 +77,13 @@ export class ComponentModules {
 
         // Create new module, setup and return.
         return new AttributeModule({
-            applicationContext: pApplicationContext,
             accessMode: lAttributeModuleSetup.processorConfiguration.access,
             constructor: lAttributeModuleSetup.processorConstructor,
             parent: this.mComponent,
             targetNode: pTargetNode,
             targetTemplate: pTemplate,
             values: pValues,
-            trigger: lAttributeModuleSetup.processorConfiguration.trigger
-        }).setup();
+        });
     }
 
     /**
@@ -98,7 +95,7 @@ export class ComponentModules {
      * @throws {@link Exception}
      * When no expression node could be found.
      */
-    public createExpressionModule(pApplicationContext: PwbApplicationConfiguration, pTemplate: PwbTemplateExpression, pTargetNode: Text, pValues: DataLevel): ExpressionModule {
+    public createExpressionModule(pTemplate: PwbTemplateExpression, pTargetNode: Text, pValues: DataLevel): ExpressionModule {
         // Read expression setup of expression module.
         const lExpressionSetup: CoreEntityProcessorConstructorSetup<ExpressionModuleConfiguration> = (() => {
             // Try to read cached information.
@@ -124,14 +121,12 @@ export class ComponentModules {
 
         // Build, setup and return new expression module.
         return new ExpressionModule({
-            applicationContext: pApplicationContext,
             constructor: lExpressionSetup.processorConstructor,
             parent: this.mComponent,
             targetNode: pTargetNode,
             targetTemplate: pTemplate,
             values: pValues,
-            trigger: lExpressionSetup.processorConfiguration.trigger
-        }).setup();
+        });
     }
 
     /**
@@ -142,7 +137,7 @@ export class ComponentModules {
      * @throws {@link Exception}
      * When no instruction node with type could be found.
      */
-    public createInstructionModule(pApplicationContext: PwbApplicationConfiguration, pTemplate: PwbTemplateInstructionNode, pValues: DataLevel): InstructionModule {
+    public createInstructionModule(pTemplate: PwbTemplateInstructionNode, pValues: DataLevel): InstructionModule {
         // Read instruction setup of expression module.
         const lInstructioneModuleSetup: CoreEntityProcessorConstructorSetup<InstructionModuleConfiguration> | null = (() => {
             // Try to read cached instruction module.
@@ -167,12 +162,10 @@ export class ComponentModules {
 
         // Build, setup and return new instruction module.
         return new InstructionModule({
-            applicationContext: pApplicationContext,
             constructor: lInstructioneModuleSetup.processorConstructor,
             parent: this.mComponent,
             targetTemplate: pTemplate,
-            values: pValues,
-            trigger: lInstructioneModuleSetup.processorConfiguration.trigger
-        }).setup();
+            values: pValues
+        });
     }
 }

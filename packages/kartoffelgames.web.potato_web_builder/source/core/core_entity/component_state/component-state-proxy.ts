@@ -24,25 +24,25 @@ export class ComponentStateProxy<T extends object> {
         const lUntraceableFunctionList = new WeakMap<Function, ComponentStateType>();
         
         // Array
-        lUntraceableFunctionList.set(Array.prototype.fill, ComponentStateType.Set);
-        lUntraceableFunctionList.set(Array.prototype.pop, ComponentStateType.Get);
-        lUntraceableFunctionList.set(Array.prototype.push, ComponentStateType.Set);
-        lUntraceableFunctionList.set(Array.prototype.shift, ComponentStateType.Get);
-        lUntraceableFunctionList.set(Array.prototype.unshift, ComponentStateType.Set);
-        lUntraceableFunctionList.set(Array.prototype.splice, ComponentStateType.Set);
-        lUntraceableFunctionList.set(Array.prototype.reverse, ComponentStateType.Set);
-        lUntraceableFunctionList.set(Array.prototype.sort, ComponentStateType.Set);
-        lUntraceableFunctionList.set(Array.prototype.concat, ComponentStateType.Set);
+        lUntraceableFunctionList.set(Array.prototype.fill, ComponentStateType.set);
+        lUntraceableFunctionList.set(Array.prototype.pop, ComponentStateType.get);
+        lUntraceableFunctionList.set(Array.prototype.push, ComponentStateType.set);
+        lUntraceableFunctionList.set(Array.prototype.shift, ComponentStateType.get);
+        lUntraceableFunctionList.set(Array.prototype.unshift, ComponentStateType.set);
+        lUntraceableFunctionList.set(Array.prototype.splice, ComponentStateType.set);
+        lUntraceableFunctionList.set(Array.prototype.reverse, ComponentStateType.set);
+        lUntraceableFunctionList.set(Array.prototype.sort, ComponentStateType.set);
+        lUntraceableFunctionList.set(Array.prototype.concat, ComponentStateType.set);
 
         // Map
-        lUntraceableFunctionList.set(Map.prototype.clear, ComponentStateType.Set);
-        lUntraceableFunctionList.set(Map.prototype.delete, ComponentStateType.Set);
-        lUntraceableFunctionList.set(Map.prototype.set, ComponentStateType.Set);
+        lUntraceableFunctionList.set(Map.prototype.clear, ComponentStateType.set);
+        lUntraceableFunctionList.set(Map.prototype.delete, ComponentStateType.set);
+        lUntraceableFunctionList.set(Map.prototype.set, ComponentStateType.set);
 
         // Set
-        lUntraceableFunctionList.set(Set.prototype.clear, ComponentStateType.Set);
-        lUntraceableFunctionList.set(Set.prototype.delete, ComponentStateType.Set);
-        lUntraceableFunctionList.set(Set.prototype.add, ComponentStateType.Set);
+        lUntraceableFunctionList.set(Set.prototype.clear, ComponentStateType.set);
+        lUntraceableFunctionList.set(Set.prototype.delete, ComponentStateType.set);
+        lUntraceableFunctionList.set(Set.prototype.add, ComponentStateType.set);
 
         return lUntraceableFunctionList;
     })();
@@ -191,7 +191,7 @@ export class ComponentStateProxy<T extends object> {
                     return Reflect.set(pTargetObject, pPropertyName, lPropertyValue);
                 } finally {
                     // Dispatches interaction end event before exception passthrough.
-                    this.dispatch(ComponentStateType.Set);
+                    this.dispatch(ComponentStateType.set);
                 }
             },
 
@@ -209,7 +209,7 @@ export class ComponentStateProxy<T extends object> {
                     return this.convertToProxy(Reflect.get(pTarget, pPropertyName));
                 } finally {
                     // Send state change to callback.
-                    this.dispatch(ComponentStateType.Get);
+                    this.dispatch(ComponentStateType.get);
                 }
             },
 
@@ -225,7 +225,7 @@ export class ComponentStateProxy<T extends object> {
                     return delete (<any>pTargetObject)[pPropertyName];
                 } finally {
                     // Dispatches interaction end event before exception passthrough.
-                    this.dispatch(ComponentStateType.Set);
+                    this.dispatch(ComponentStateType.set);
                 }
             }
         });

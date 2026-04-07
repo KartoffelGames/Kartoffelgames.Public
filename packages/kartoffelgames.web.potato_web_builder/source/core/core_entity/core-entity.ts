@@ -1,4 +1,4 @@
-import { Exception, type IDeconstructable, Stack } from '@kartoffelgames/core';
+import { Exception, type IDeconstructable } from '@kartoffelgames/core';
 import { Injection, type InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
 
 /**
@@ -48,7 +48,7 @@ export abstract class CoreEntity<TProcessor extends CoreEntityProcessor = CoreEn
         // Init lists and config.
         this.mInjections = new Map<InjectionConstructor, any>();
         this.mHooks = {
-            create: new Stack<CoreEntityProcessorCreationHook<TProcessor>>()
+            create: new Array<CoreEntityProcessorCreationHook<TProcessor>>()
         };
 
         // Passthrough parents entity injections.
@@ -122,7 +122,7 @@ export abstract class CoreEntity<TProcessor extends CoreEntityProcessor = CoreEn
      * 
      * @param pHook - Hook function.
      */
-    protected addCreationHook(pHook: CoreEntityProcessorCreationHook<TProcessor>): this {
+    protected addConstructionHook(pHook: CoreEntityProcessorCreationHook<TProcessor>): this {
         this.mHooks.create.push(pHook);
 
         return this;
@@ -152,7 +152,7 @@ export abstract class CoreEntity<TProcessor extends CoreEntityProcessor = CoreEn
 // Hooks
 type CoreEntityProcessorCreationHook<TProcessor> = (pProcessor: TProcessor) => TProcessor | void;
 type CoreEntityHooks<TProcessor> = {
-    create: Stack<CoreEntityProcessorCreationHook<TProcessor>>;
+    create: Array<CoreEntityProcessorCreationHook<TProcessor>>;
 };
 
 // Call types.

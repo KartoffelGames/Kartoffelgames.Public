@@ -1,7 +1,9 @@
 import type { Writeable } from '@kartoffelgames/core';
-import type { CoreEntityInteractionEvent } from '../interaction-tracker/core-entity-processor-proxy.ts';
 import type { CoreEntityUpdater } from './core-entity-updater.ts';
 
+/**
+ * Handles update cycles. An update cycle is a cycle of updates that can be resheduled and has a shared configuration.
+ */
 export class CoreEntityUpdateCycle {
     private static mCurrentUpdateCycle: UpdateCycle | null = null;
 
@@ -24,9 +26,9 @@ export class CoreEntityUpdateCycle {
             // Create new cycle.
             CoreEntityUpdateCycle.mCurrentUpdateCycle = {
                 initiator: pResheduledCycle.initiator,
-                timeStamp: lTimeStamp,
                 startTime: lTimeStamp,
                 forcedSync: pResheduledCycle.forcedSync,
+
                 // When the cycle is a reshedule of another one, keep the original runner.
                 runner: pResheduledCycle.runner
             };
@@ -67,13 +69,9 @@ export class CoreEntityUpdateCycle {
             // Create new cycle.
             CoreEntityUpdateCycle.mCurrentUpdateCycle = {
                 initiator: pConfig.updater,
-                timeStamp: lTimeStamp,
                 startTime: lTimeStamp,
                 forcedSync: pConfig.runSync,
-                runner: {
-                    id: Symbol('Runner ' + lTimeStamp),
-                    timestamp: lTimeStamp
-                }
+                runner: Symbol('Runner ' + lTimeStamp)
             };
 
             // Set created state.
@@ -105,10 +103,7 @@ export class CoreEntityUpdateCycle {
 
             // Retype cycle and update runner.
             const lWriteableCycle: Writeable<UpdateCycle> = pCycle;
-            lWriteableCycle.runner = {
-                id: Symbol('Runner ' + lTimeStamp),
-                timestamp: lTimeStamp
-            };
+            lWriteableCycle.runner = Symbol('Runner ' + lTimeStamp);
         }
     }
 
@@ -129,11 +124,6 @@ export type UpdateCycle = {
     readonly initiator: CoreEntityUpdater;
 
     /**
-     * Creation imestamp of cycle.
-     */
-    readonly timeStamp: number;
-
-    /**
      * Start time of cycle.
      */
     readonly startTime: number;
@@ -149,13 +139,9 @@ export type UpdateCycle = {
     readonly runner: UpdateCycleRunner;
 };
 
-export type UpdateCycleRunner = {
-    id: symbol;
-    timestamp: number;
-};
+export type UpdateCycleRunner = Symbol;
 
 export type CoreEntityUpdateCycleConfig = {
     updater: CoreEntityUpdater,
-    reason: CoreEntityInteractionEvent,
     runSync: boolean,
 };

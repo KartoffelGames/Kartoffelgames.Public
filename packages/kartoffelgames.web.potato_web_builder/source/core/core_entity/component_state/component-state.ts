@@ -7,7 +7,7 @@ import { ComponentStateProxy } from "./component-state-proxy.ts";
  * State of a component.
  * On value get links the interaction zones so they can be updated on set.
  */
-export class ComponentState<TValue> {
+export class ComponentState<TValue = unknown> {
     private mLinkedZones: Set<InteractionZone>;
     private mLinkedZonesArray: Array<InteractionZone>;
     private readonly mConfiguration: ComponentStateConfiguration;
@@ -34,8 +34,8 @@ export class ComponentState<TValue> {
             // Create proxy for value. The proxy will dispatch changes on set and link zones on get.
             this.mValue = new ComponentStateProxy(pValue, (pStateType: ComponentStateType) => {
                 switch (pStateType) {
-                    case ComponentStateType.Set: return this.dispatchChange();
-                    case ComponentStateType.Get: return this.linkCurrentZone();
+                    case ComponentStateType.set: return this.dispatchChange();
+                    case ComponentStateType.get: return this.linkCurrentZone();
                 }
             }).proxy;
         } else {
@@ -86,7 +86,7 @@ export class ComponentState<TValue> {
     private dispatchChange(): void {
         // Create interaction zone update event for each linked zone.
         for (const lZone of this.mLinkedZonesArray) {
-            lZone.pushInteraction(ComponentStateType.Set, this);
+            lZone.pushInteraction(ComponentStateType.set, this);
         }
     }
 

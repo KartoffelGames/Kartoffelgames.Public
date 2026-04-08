@@ -5,6 +5,10 @@ import { ModuleAttribute } from '../injection_reference/module-attribute.ts';
 import { ModuleTargetNode } from '../injection_reference/module-target-node.ts';
 import { ModuleTemplate } from '../injection_reference/module-template.ts';
 
+/**
+ * Module for attribute instructions.
+ * This module can react to changes in attributes but cant update or add any DOM elements.
+ */
 export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
     private readonly mAccessMode: AccessMode;
 
@@ -39,7 +43,7 @@ export class AttributeModule extends BaseModule<IPwbAttributeModuleProcessor> {
     /**
      * Update module.
      */
-    public onUpdate(): boolean {
+    protected override onUpdate(): boolean {
         return this.call<IAttributeOnUpdate, 'onUpdate'>('onUpdate') ?? false;
     }
 }

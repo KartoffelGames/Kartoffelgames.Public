@@ -1,9 +1,7 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Processor } from '../../core/core_entity/processor.ts';
 import type { LevelProcedure } from '../../core/data/level-procedure.ts';
 import { ModuleDataLevel } from '../../core/data/module-data-level.ts';
 import { AccessMode } from '../../core/enum/access-mode.enum.ts';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
 import type { IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module.ts';
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator.ts';
 import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute.ts';
@@ -15,10 +13,9 @@ import { ModuleTargetNode } from '../../core/module/injection_reference/module-t
  */
 @PwbAttributeModule({
     access: AccessMode.Read,
-    selector: /^\[[\w$]+\]$/,
-    trigger: UpdateTrigger.Any
+    selector: /^\[[\w$]+\]$/
 })
-export class OneWayBindingAttributeModule extends Processor implements IAttributeOnUpdate {
+export class OneWayBindingAttributeModule implements IAttributeOnUpdate {
     private mLastValue: any;
     private readonly mProcedure: LevelProcedure<any>;
     private readonly mTarget: Node;
@@ -31,8 +28,6 @@ export class OneWayBindingAttributeModule extends Processor implements IAttribut
      * @param pModuleAttribute - Attribute of module.
      */
     public constructor(pTargetNode = Injection.use(ModuleTargetNode), pModuleValues = Injection.use(ModuleDataLevel), pModuleAttribute = Injection.use(ModuleAttribute)) {
-        super();
-
         this.mTarget = pTargetNode;
 
         // Create expression procedure form attribute value.

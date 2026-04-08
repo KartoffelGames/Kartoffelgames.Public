@@ -20,7 +20,7 @@ export class CoreEntityUpdater {
      */
     public static get stackCap(): number {
         return CoreEntityUpdater.mStackCap;
-    } set stackCap(pValue: number) {
+    } static set stackCap(pValue: number) {
         CoreEntityUpdater.mStackCap = pValue;
     }
 
@@ -29,7 +29,7 @@ export class CoreEntityUpdater {
      */
     public static get frameTime(): number {
         return CoreEntityUpdater.mFrameTime;
-    } set frameTime(pValue: number) {
+    } static set frameTime(pValue: number) {
         CoreEntityUpdater.mFrameTime = pValue;
     }
 

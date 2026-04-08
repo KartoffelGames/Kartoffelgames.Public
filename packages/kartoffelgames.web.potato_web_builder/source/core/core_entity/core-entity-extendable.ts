@@ -80,7 +80,7 @@ export abstract class CoreEntityExtendable<TProcessor extends CoreEntityProcesso
 
         // Create every module extension.
         for (const lSetup of lOrderedExtensionList) {
-            this.mExtensionList.push(new ExtensionModule(lSetup.processorConstructor, <CoreEntity><any>this, lSetup.processorConfiguration.trigger));
+            this.mExtensionList.push(new ExtensionModule(lSetup.processorConstructor, <CoreEntity><any>this));
         }
     }
 }

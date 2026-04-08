@@ -27,7 +27,7 @@ export function PwbChild<TElement extends Element>(pIdChildName: string): ClassA
                 })();
 
                 // Get root value. This should be the child.
-                const lComponentRootValues: ComponentDataLevel = lComponent.getProcessorAttribute(ComponentDataLevel)!;
+                const lComponentRootValues: ComponentDataLevel = lComponent.getProcessorInjection(ComponentDataLevel)!;
                 const lIdChild: any = lComponentRootValues.data.store[pIdChildName];
 
                 if (lIdChild instanceof Element) {

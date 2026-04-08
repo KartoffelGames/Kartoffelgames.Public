@@ -16,21 +16,20 @@ import '../../source/module/component-event-listener/component-event-listener-co
 import '../../source/module/component-event-listener/component-event-listener-module-extension.ts';
 import '../../source/module/export/export-extension.ts';
 
-import { PwbApplicationConfiguration } from '../../source/application/pwb-application-configuration.ts';
 import { ComponentRegister } from '../../source/core/component/component-register.ts';
 import { Component, type ComponentProcessor } from '../../source/core/component/component.ts';
-import type { Processor } from '../../source/core/core_entity/processor.ts';
+import { CoreEntityProcessorConstructor } from "../../source/core/core_entity/core-entity.ts";
+import { CoreEntityUpdater } from "../../source/core/core_entity/updater/core-entity-updater.ts";
 
 // Define update metrics.
-PwbApplicationConfiguration.DEFAULT.updating.frameTime = Number.MAX_SAFE_INTEGER;
-PwbApplicationConfiguration.DEFAULT.error.print = false;
+CoreEntityUpdater.frameTime = Number.MAX_SAFE_INTEGER;
 
 export class TestUtil {
     /**
      * Create component from selector.
      * @param pSelector - component selector.
      */
-    public static async createComponent(pClass: typeof Processor): Promise<HTMLElement> {
+    public static async createComponent(pClass: CoreEntityProcessorConstructor): Promise<HTMLElement> {
         // Get component html constructor from class.
         const lComponentConstructor: CustomElementConstructor = ComponentRegister.ofConstructor(pClass).elementConstructor;
 
@@ -103,7 +102,7 @@ export class TestUtil {
      */
     public static manualUpdate(pComponent: HTMLElement): void {
         const lComponent: Component | undefined = TestUtil.getComponentManager(pComponent);
-        lComponent?.getProcessorAttribute<Component>(Component)!.update();
+        lComponent?.getProcessorInjection<Component>(Component)!.updater.update();
     }
 
     /**
@@ -125,7 +124,7 @@ export class TestUtil {
      */
     public static async waitForUpdate(pComponent: HTMLElement): Promise<void> {
         const lComponent: Component = TestUtil.getComponentManager(pComponent)!;
-        return lComponent.waitForUpdate().then();
+        return lComponent.updater.waitForUpdate().then();
     }
 }
 

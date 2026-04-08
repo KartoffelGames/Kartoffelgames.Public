@@ -18,11 +18,6 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
 
         // Create module injection mapping.
         this.setProcessorInjection(ModuleDataLevel, new ModuleDataLevel(pParameter.values));
-
-        this.addSetupHook(() => {
-            // Forces auto create on setup.
-            const _ = this.processor;
-        });
     }
 
     /**
@@ -34,6 +29,22 @@ export abstract class BaseModule<TModuleProcessor extends IPwbModuleProcessor> e
 
         this.call<IBaseModuleOnDeconstruct, 'onDeconstruct'>('onDeconstruct');
     }
+
+    /**
+     * Update module.
+     * 
+     * @returns whether anything was updated. 
+     */
+    public update(): boolean {
+        return this.onUpdate();
+    }
+
+    /**
+     * Update module. Override this to add update functionality to your module.
+     * 
+     * @returns whether anything was updated. 
+     */
+    protected abstract onUpdate(): boolean;
 }
 
 export type BaseModuleConstructorParameter<TProcessor extends IPwbModuleProcessor> = Omit<Omit<Omit<CoreEntityExtendableConstructorParameter<TProcessor>, 'trackConstructorChanges'>, 'loggingType'>, 'isolateInteraction'> & {

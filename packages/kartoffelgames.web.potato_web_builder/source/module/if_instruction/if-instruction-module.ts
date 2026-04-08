@@ -1,11 +1,9 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import type { PwbTemplateInstructionNode } from '../../core/component/template/nodes/pwb-template-instruction-node.ts';
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template.ts';
-import { Processor } from '../../core/core_entity/processor.ts';
 import { DataLevel } from '../../core/data/data-level.ts';
 import type { LevelProcedure } from '../../core/data/level-procedure.ts';
 import { ModuleDataLevel } from '../../core/data/module-data-level.ts';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
 import { ModuleExpression } from '../../core/module/injection_reference/module-expression.ts';
 import { ModuleTemplate } from '../../core/module/injection_reference/module-template.ts';
 import type { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module.ts';
@@ -17,10 +15,9 @@ import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-i
  * If the executed result of the attribute value is false, the element will not be append to view.
  */
 @PwbInstructionModule({
-    instructionType: 'if',
-    trigger: UpdateTrigger.Any & ~UpdateTrigger.UntrackableFunctionCall
+    instructionType: 'if'
 })
-export class IfInstructionModule extends Processor implements IInstructionOnUpdate {
+export class IfInstructionModule implements IInstructionOnUpdate {
     private mLastBoolean: boolean;
     private readonly mModuleValues: ModuleDataLevel;
     private readonly mProcedure: LevelProcedure<any>;
@@ -33,8 +30,6 @@ export class IfInstructionModule extends Processor implements IInstructionOnUpda
      * @param pModuleExpression - Expression of instruction module.
      */
     public constructor(pTemplate = Injection.use(ModuleTemplate), pModuleData = Injection.use(ModuleDataLevel), pModuleExpression = Injection.use(ModuleExpression)) {
-        super();
-
         this.mTemplateReference = <PwbTemplateInstructionNode>pTemplate;
         this.mModuleValues = pModuleData;
         this.mProcedure = this.mModuleValues.createExpressionProcedure(pModuleExpression.value);

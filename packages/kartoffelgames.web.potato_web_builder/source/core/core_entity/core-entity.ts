@@ -70,11 +70,6 @@ export abstract class CoreEntity<TProcessor extends CoreEntityProcessor = CoreEn
      * @returns function call result or null when processor is not created and {@link pForceCreate} is not set.
      */
     public call<TTargetInterface extends object, TProperty extends keyof TTargetInterface>(pProperyKey: TProperty, ...pParameter: PropertyFunctionParameter<TTargetInterface, TProperty>): PropertyFunctionResult<TTargetInterface, TProperty> | null {
-        // Do not create processor when not force created.
-        if (!this.mProcessor) {
-            return null;
-        }
-
         // Try to get property function.
         const lPropertyFunction: ((...pArgs: Array<any>) => any) | undefined = Reflect.get(this.processor, pProperyKey) as ((...pArgs: Array<any>) => any) | undefined;
         if (typeof lPropertyFunction !== 'function') {

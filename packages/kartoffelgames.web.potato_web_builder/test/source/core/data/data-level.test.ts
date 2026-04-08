@@ -6,14 +6,13 @@ import { expect } from '@kartoffelgames/core-test';
 import { ComponentRegister } from '../../../../source/core/component/component-register.ts';
 import { Component } from '../../../../source/core/component/component.ts';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
-import { Processor } from '../../../../source/core/core_entity/processor.ts';
 import { DataLevel } from '../../../../source/core/data/data-level.ts';
 
 const gComponent: Component = (() => {
     @PwbComponent({
         selector: TestUtil.randomSelector()
     })
-    class TestComponent extends Processor { }
+    class TestComponent { }
 
     // Get component html constructor from class.
     const lComponentConstructor: CustomElementConstructor = ComponentRegister.ofConstructor(TestComponent).elementConstructor;
@@ -22,7 +21,7 @@ const gComponent: Component = (() => {
     const lElement: HTMLElement = new lComponentConstructor() as any;
 
     // Get component reference of component.
-    return ComponentRegister.ofElement(lElement).component.getProcessorAttribute<Component>(Component)!;
+    return ComponentRegister.ofElement(lElement).component.getProcessorInjection<Component>(Component)!;
 })();
 
 Deno.test('DataLevel--Functionality: Get values', async (pContext) => {

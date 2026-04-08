@@ -1,6 +1,4 @@
-import { Processor } from '../../core/core_entity/processor.ts';
 import { AccessMode } from '../../core/enum/access-mode.enum.ts';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
 import { AttributeModule, type IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module.ts';
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator.ts';
 import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute.ts';
@@ -12,9 +10,8 @@ import { Injection } from '@kartoffelgames/core-dependency-injection';
 @PwbAttributeModule({
     access: AccessMode.ReadWrite,
     selector: /^\[\([[\w$]+\)\]$/,
-    trigger: UpdateTrigger.Any
 })
-export class TwoWayBindingAttributeModule extends Processor implements IAttributeOnUpdate {
+export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
     private readonly mAttributeKey: string;
     private mLastDataValue: any;
     private readonly mReadProcedure: LevelProcedure<any>;
@@ -29,9 +26,7 @@ export class TwoWayBindingAttributeModule extends Processor implements IAttribut
      * @param pModuleAttribute - Module attribute.
      * @param pAttributeModule - Attribute module.
      */
-    public constructor(pTargetNode = Injection.use(ModuleTargetNode), pModuleValues = Injection.use(ModuleDataLevel), pModuleAttribute = Injection.use(ModuleAttribute), pAttributeModule = Injection.use(AttributeModule)) {
-        super();
-        
+    public constructor(pTargetNode = Injection.use(ModuleTargetNode), pModuleValues = Injection.use(ModuleDataLevel), pModuleAttribute = Injection.use(ModuleAttribute)) {
         this.mTargetNode = pTargetNode;
 
         // Get property name.
@@ -43,9 +38,6 @@ export class TwoWayBindingAttributeModule extends Processor implements IAttribut
 
         // Set start compare values.
         this.mLastDataValue = Symbol('Uncomparable');
-
-        // Patch target. Do nothing with it.
-        pAttributeModule.registerObject(this.mTargetNode);
     }
 
     /**

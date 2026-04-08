@@ -22,18 +22,18 @@
             "package-blueprint": "kg-main",
             "bundle": {
                 "enabled": false,
-                "bundleSettingsFile": ""
+                "bundleSettingsFile": "../../bundle-environment/bundle-settings.ts"
             },
             "scratchpad": {
                 "mainBundleRequired": false,
                 "port": 8088,
-                "bundleSettingsFile": ""
+                "bundleSettingsFile": "../../bundle-environment/bundle-settings.ts"
             },
             "page": {
-                "enabled": false,
+                "enabled": true,
                 "mainBundleRequired": false,
                 "port": 8088,
-                "bundleSettingsFile": ""
+                "bundleSettingsFile": "../../bundle-environment/bundle-settings.ts"
             },
             "test": {
                 "directory": "./test",

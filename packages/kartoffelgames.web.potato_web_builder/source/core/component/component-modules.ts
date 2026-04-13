@@ -83,7 +83,7 @@ export class ComponentModules {
             targetNode: pTargetNode,
             targetTemplate: pTemplate,
             values: pValues,
-        });
+        }).setup();
     }
 
     /**
@@ -126,7 +126,7 @@ export class ComponentModules {
             targetNode: pTargetNode,
             targetTemplate: pTemplate,
             values: pValues,
-        });
+        }).setup();
     }
 
     /**
@@ -166,6 +166,6 @@ export class ComponentModules {
             parent: this.mComponent,
             targetTemplate: pTemplate,
             values: pValues
-        });
+        }).setup();
     }
 }

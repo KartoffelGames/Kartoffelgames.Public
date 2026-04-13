@@ -5,7 +5,7 @@ import { ComponentState } from "../../source/core/core_entity/component_state/co
     selector: 'test-component',
     template: `
         $for(item of this.list) {
-            '<input [(value)]="this.userValue"/>'
+            <input [(value)]="this.userValue"/>
         }
     `
 })

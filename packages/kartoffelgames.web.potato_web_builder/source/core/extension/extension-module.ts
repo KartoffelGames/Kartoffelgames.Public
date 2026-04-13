@@ -19,9 +19,6 @@ export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> im
         });
 
         this.setProcessorInjection(ExtensionModule, this);
-
-        // Call execution hook.
-        this.call<IExtensionOnExecute, 'onExecute'>('onExecute');
     }
 
     /**
@@ -32,6 +29,20 @@ export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> im
         this.call<IExtensionOnDeconstruct, 'onDeconstruct'>('onDeconstruct');
 
         super.deconstruct();
+    }
+
+    /**
+     * Override setup to trigger onExecute.
+     * 
+     * @returns this.
+     */
+    public override setup(): this {
+        super.setup();
+
+        // Call execution hook.
+        this.call<IExtensionOnExecute, 'onExecute'>('onExecute');
+
+        return this;
     }
 
     /**

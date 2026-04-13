@@ -19,7 +19,7 @@ export abstract class CoreEntity<TProcessor extends CoreEntityProcessor = CoreEn
     public get processor(): TProcessor {
         // Create processor when it is not created.
         if (!this.mProcessor) {
-            this.mProcessor = this.createProcessor();
+            throw new Exception('Processor is not created yet. Call setup to create processor.', this);
         }
 
         return this.mProcessor!;
@@ -69,7 +69,7 @@ export abstract class CoreEntity<TProcessor extends CoreEntityProcessor = CoreEn
      * 
      * @returns function call result or null when processor is not created and {@link pForceCreate} is not set.
      */
-    public call<TTargetInterface extends object, TProperty extends keyof TTargetInterface>(pProperyKey: TProperty, ...pParameter: PropertyFunctionParameter<TTargetInterface, TProperty>): PropertyFunctionResult<TTargetInterface, TProperty> | null {
+    protected call<TTargetInterface extends object, TProperty extends keyof TTargetInterface>(pProperyKey: TProperty, ...pParameter: PropertyFunctionParameter<TTargetInterface, TProperty>): PropertyFunctionResult<TTargetInterface, TProperty> | null {
         // Try to get property function.
         const lPropertyFunction: ((...pArgs: Array<any>) => any) | undefined = Reflect.get(this.processor, pProperyKey) as ((...pArgs: Array<any>) => any) | undefined;
         if (typeof lPropertyFunction !== 'function') {
@@ -112,10 +112,23 @@ export abstract class CoreEntity<TProcessor extends CoreEntityProcessor = CoreEn
     }
 
     /**
+     * Setup processor of entity. Call setup hooks and creation hooks.
+     * 
+     * @returns This for chaining. 
+     */
+    public setup(): this {
+        this.mProcessor = this.createProcessor();
+
+        return this;
+    }
+
+    /**
      * Add hook called on processor creation.
      * Can replace the current processor by returning a object.
      * 
      * @param pHook - Hook function.
+     * 
+     * @returns This for chaining. 
      */
     protected addConstructionHook(pHook: CoreEntityProcessorCreationHook<TProcessor>): this {
         this.mHooks.create.push(pHook);

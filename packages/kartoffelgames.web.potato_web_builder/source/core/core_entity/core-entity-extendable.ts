@@ -20,10 +20,7 @@ export abstract class CoreEntityExtendable<TProcessor extends CoreEntityProcesso
     public constructor(pParameter: CoreEntityExtendableConstructorParameter<TProcessor>) {
         super(pParameter);
 
-        this.mExtensionList = new Array<ExtensionModule>();
-
-        // Apply extensions.
-        this.executeExtensions();
+        this.mExtensionList = new Array<ExtensionModule>();   
     }
 
     /**
@@ -36,6 +33,20 @@ export abstract class CoreEntityExtendable<TProcessor extends CoreEntityProcesso
         }
 
         super.deconstruct();
+    }
+
+    /**
+     * Override setup to trigger extension execution.
+     * 
+     * @returns this. 
+     */
+    public override setup(): this {
+        super.setup();
+
+        // Apply extensions.
+        this.executeExtensions();
+
+        return this;
     }
 
     /**
@@ -80,7 +91,7 @@ export abstract class CoreEntityExtendable<TProcessor extends CoreEntityProcesso
 
         // Create every module extension.
         for (const lSetup of lOrderedExtensionList) {
-            this.mExtensionList.push(new ExtensionModule(lSetup.processorConstructor, <CoreEntity><any>this));
+            this.mExtensionList.push(new ExtensionModule(lSetup.processorConstructor, <CoreEntity><any>this).setup());
         }
     }
 }

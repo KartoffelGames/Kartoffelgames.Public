@@ -41,6 +41,7 @@ export class Component extends CoreEntityUpdateable<ComponentProcessor> {
 
         // Register component and element.
         ComponentRegister.registerComponent(this, pParameter.htmlElement);
+        this.setProcessorInjection(Component, this);
 
         // Register untracked processor, than track and register the tracked processor.
         this.addConstructionHook((pProcessor: ComponentProcessor) => {
@@ -63,7 +64,6 @@ export class Component extends CoreEntityUpdateable<ComponentProcessor> {
 
         // Initialize user object injections.
         this.setProcessorInjection(ComponentDataLevel, new ComponentDataLevel(this.mRootBuilder.values));
-        this.setProcessorInjection(Component, this);
     }
 
     /**

@@ -38,7 +38,7 @@ export function PwbComponent(pParameter: HtmlComponentParameter): ClassDecorator
                     templateString: pParameter.template ?? null,
                     expressionModule: pParameter.expressionmodule,
                     htmlElement: this
-                });
+                }).setup();
 
                 // Append style if specified. Styles are scoped on components shadow root.
                 if (pParameter.style) {

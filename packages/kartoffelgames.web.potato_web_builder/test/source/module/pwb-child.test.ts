@@ -4,8 +4,6 @@ import { TestUtil } from '../../utility/test-util.ts';
 // Functional imports after mock.
 import { expect } from '@kartoffelgames/core-test';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
-import { CoreEntityProcessorProxy } from '../../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy.ts';
-import { Processor } from '../../../source/core/core_entity/processor.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
 import { PwbChild } from '../../../source/module/pwb_child/pwb-child.decorator.ts';
 
@@ -19,7 +17,7 @@ Deno.test('PwbChild--Functionality: Read id child', async (pContext) => {
             selector: TestUtil.randomSelector(),
             template: `<div #${lIdName}/>`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
             @PwbChild(lIdName)
             public accessor idChild!: HTMLDivElement;
@@ -27,7 +25,7 @@ Deno.test('PwbChild--Functionality: Read id child', async (pContext) => {
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lComponentIdChild: HTMLDivElement = CoreEntityProcessorProxy.getOriginal(lComponent.idChild);
+        const lComponentIdChild: HTMLDivElement = lComponent.idChild;
         const lRealIdChild: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
@@ -46,14 +44,14 @@ Deno.test('PwbChild--Functionality: Forbidden static property use', async (pCont
                 selector: TestUtil.randomSelector()
             })
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            class TestComponent extends Processor {
+            class TestComponent {
                 @PwbChild('Name')
                 public static accessor idChild: HTMLDivElement;
             }
         };
 
         // Evaluation.
-        expect(lErrorFunction).toThrow('Event target is not for a static property.');
+        expect(lErrorFunction).toThrow('Child decorator is not for a static property.');
     });
 });
 
@@ -67,7 +65,7 @@ Deno.test('PwbChild--Functionality: Read with wrong id child name', async (pCont
             selector: TestUtil.randomSelector(),
             template: `<div #Name/>`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
             @PwbChild(lWrongName)
             public accessor idChild!: HTMLDivElement;
@@ -112,7 +110,7 @@ Deno.test('PwbChild--Functionality: Read inherited id child', async (pContext) =
         const lIdName: string = 'IdChildId';
 
         // Setup. Define parent class.
-        class ParentClass extends Processor {
+        class ParentClass {
             @PwbExport
             @PwbChild(lIdName)
             public accessor idChild!: HTMLDivElement;
@@ -127,7 +125,7 @@ Deno.test('PwbChild--Functionality: Read inherited id child', async (pContext) =
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lComponentIdChild: HTMLDivElement = CoreEntityProcessorProxy.getOriginal(lComponent.idChild);
+        const lComponentIdChild: HTMLDivElement = lComponent.idChild;
         const lRealIdChild: HTMLDivElement = TestUtil.getComponentNode(lComponent, 'div');
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.

@@ -4,7 +4,7 @@ import { TestUtil } from '../../utility/test-util.ts';
 // Functional imports after mock.
 import { expect } from '@kartoffelgames/core-test';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
-import { Processor } from '../../../source/core/core_entity/processor.ts';
+import { ComponentState } from '../../../source/core/core_entity/component_state/component-state.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
 
 Deno.test('OneWayBinding--Functionality: Initial value', async (pContext) => {
@@ -17,9 +17,10 @@ Deno.test('OneWayBinding--Functionality: Initial value', async (pContext) => {
             selector: TestUtil.randomSelector(),
             template: '<input [value]="this.userValue"/>'
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
-            public userValue: string = lInitialValue;
+            @ComponentState.State()
+            public accessor userValue: string = lInitialValue;
         }
 
         // Setup. Create element.
@@ -46,9 +47,10 @@ Deno.test('OneWayBinding--Functionality: Change component value', async (pContex
             selector: TestUtil.randomSelector(),
             template: '<input [value]="this.userValue"/>'
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
-            public userValue: string = 'INITIAL__VALUE';
+            @ComponentState.State()
+            public accessor userValue: string = 'INITIAL__VALUE';
         }
 
         // Setup. Create element.
@@ -77,7 +79,7 @@ Deno.test('OneWayBinding--Functionality: Exchange value to child component', asy
         @PwbComponent({
             selector: lChildComponentSelector
         })
-        class TestChildComponent extends Processor {
+        class TestChildComponent {
             @PwbExport
             public valueOne!: string;
         }
@@ -87,7 +89,7 @@ Deno.test('OneWayBinding--Functionality: Exchange value to child component', asy
             selector: TestUtil.randomSelector(),
             template: `<${lChildComponentSelector} [valueOne]="this.valueOneExternal"/>`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             public valueOneExternal: string = lValueOne;
         }
 
@@ -118,7 +120,7 @@ Deno.test('OneWayBinding--Functionality: Exchange two values to the same compone
         @PwbComponent({
             selector: lChildComponentSelector
         })
-        class TestChildComponent extends Processor {
+        class TestChildComponent {
             @PwbExport
             public valueOne!: string;
 
@@ -131,7 +133,7 @@ Deno.test('OneWayBinding--Functionality: Exchange two values to the same compone
             selector: TestUtil.randomSelector(),
             template: `<${lChildComponentSelector} [valueOne]="this.valueOneExternal" [valueTwo]="this.valueTwoExternal"/>`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             public valueOneExternal: string = lValueOne;
             public valueTwoExternal: string = lValueTwo;
         }

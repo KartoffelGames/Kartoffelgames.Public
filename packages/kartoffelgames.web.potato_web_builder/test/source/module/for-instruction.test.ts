@@ -4,7 +4,7 @@ import { TestUtil } from '../../utility/test-util.ts';
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
-import { Processor } from '../../../source/core/core_entity/processor.ts';
+import { ComponentState } from '../../../source/core/core_entity/component_state/component-state.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
 
 Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
@@ -16,7 +16,7 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
                 <div/>
             }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             public list: Array<string> = ['One', 'Two', 'Three'];
         }
 
@@ -47,9 +47,10 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
                 <div/>
             }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
-            public list: Array<string> = ['One'];
+            @ComponentState.State({ proxy: true })
+            public accessor list: Array<string> = ['One'];
         }
 
         // Setup. Create element.
@@ -79,9 +80,10 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
                 <div/>
             }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
-            public list: Array<string> = ['One', 'Two'];
+            @ComponentState.State({ proxy: true })
+            public accessor list: Array<string> = ['One', 'Two'];
         }
 
         // Setup. Create element.
@@ -109,9 +111,10 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
                 <div/>
             }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
-            public list: Array<string> = ['One', 'Three'];
+            @ComponentState.State({ proxy: true })
+            public accessor list: Array<string> = ['One', 'Three'];
         }
 
         // Setup. Create element.
@@ -143,9 +146,10 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
                 <div/>
             }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
-            public list: Array<string> = ['One', 'Two', 'Three'];
+            @ComponentState.State({ proxy: true })
+            public accessor list: Array<string> = ['One', 'Two', 'Three'];
         }
 
         // Setup. Create element.
@@ -175,7 +179,7 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
                 <div>{{this.index}}</div>
             }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             public list: Array<string> = ['One', 'Two'];
         }
 
@@ -213,7 +217,7 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
                 <div>{{this.item}}</div>
             }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             public list: Array<string> = [lTextContent];
         }
 
@@ -246,9 +250,10 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
                 <div>{{this.item}}</div>
             }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
-            public list: Array<string> = ['Some other values'];
+            @ComponentState.State({ proxy: true })
+            public accessor list: Array<string> = ['Some other values'];
         }
 
         // Setup. Create element.
@@ -279,9 +284,10 @@ Deno.test('ForInstruction--Functionality: Array', async (pContext) => {
                 <div/>
             }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
-            public list: Array<string> | null = null;
+            @ComponentState.State()
+            public accessor list: Array<string> | null = null;
         }
 
         // Setup. Create element.
@@ -307,7 +313,7 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
                 <div/>
             }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             public list: { [key: string]: number; } = { One: 1, Two: 2, Three: 3 };
         }
 
@@ -338,9 +344,10 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
                 <div/>
             }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
-            public list: { [key: string]: number; } = { One: 1 };
+            @ComponentState.State({ proxy: true })
+            public accessor list: { [key: string]: number; } = { One: 1 };
         }
 
         // Setup. Create element.
@@ -370,9 +377,10 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
                 <div/>
             }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
-            public list: { [key: string]: number; } = { One: 1, Two: 2 };
+            @ComponentState.State({ proxy: true })
+            public accessor list: { [key: string]: number; } = { One: 1, Two: 2 };
         }
 
         // Setup. Create element.
@@ -400,9 +408,10 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
                 <div/>
             }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
-            public list: { [key: string]: number; } = { One: 1, Two: 2, Three: 3 };
+            @ComponentState.State({ proxy: true })
+            public accessor list: { [key: string]: number; } = { One: 1, Two: 2, Three: 3 };
         }
 
         // Setup. Create element.
@@ -435,9 +444,10 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
                 <div>{{this.item}}</div>
             }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
-            public list: { [key: string]: number; } = { One: 99 };
+            @ComponentState.State({ proxy: true })
+            public accessor list: { [key: string]: number; } = { One: 99 };
         }
 
         // Setup. Create element.
@@ -469,7 +479,7 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
                 <div>{{this.index}}</div>
             }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             public list: { [key: string]: number; } = { One: 1, Two: 2 };
         }
 
@@ -507,7 +517,7 @@ Deno.test('ForInstruction--Functionality: Object', async (pContext) => {
                 <div>{{this.item}}</div>
             }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             public list: { [key: string]: number; } = { one: lTextContent };
         }
 
@@ -539,7 +549,7 @@ Deno.test('ForInstruction--Functionality: Generator', async (pContext) => {
                 <div/>
             }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             public * customIterator(pStart = 0, pEnd = 100) {
                 let lIterationCount = 0;
                 for (let lIndex = pStart; lIndex < pEnd; lIndex++) {
@@ -578,7 +588,7 @@ Deno.test('ForInstruction--Functionality: Generator', async (pContext) => {
                     <div/>
                 }`
             })
-            class TestComponent extends Processor { }
+            class TestComponent { }
 
             // Process. Create element.
             let lErrorMessage: string | null = null;
@@ -601,7 +611,7 @@ Deno.test('ForInstruction--Functionality: Generator', async (pContext) => {
                     <div>{{this.item}}</div>
                 }`
             })
-            class TestComponent extends Processor { }
+            class TestComponent { }
 
             // Setup. Create element.
             const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
@@ -643,7 +653,7 @@ Deno.test('ForInstruction--Functionality: Index calculation', async (pContext) =
                         <div>{{this.index}}</div>
                     }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             public list: Array<number> = [2, 4];
         }
 
@@ -681,7 +691,7 @@ Deno.test('ForInstruction--Functionality: Index calculation', async (pContext) =
                         <div>{{this.index}}</div>
                     }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             public list: Array<number> = lList;
         }
 
@@ -722,9 +732,10 @@ Deno.test('ForInstruction--Functionality: Context', async (pContext) => {
                         </div>
                     }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
-            public list: Array<number> = [1];
+            @ComponentState.State({ proxy: true })
+            public accessor list: Array<number> = [1];
         }
 
         // Setup. Create element.
@@ -775,7 +786,7 @@ Deno.test('ForInstruction--Functionality: Context', async (pContext) => {
                 }
                 <div/>`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             public list: Array<number> = [1];
         }
 
@@ -808,7 +819,7 @@ Deno.test('ForInstruction--Functionality: Context', async (pContext) => {
                     }
                 </div>`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             public list: Array<number> = [1];
         }
 
@@ -846,7 +857,7 @@ Deno.test('ForInstruction--Functionality: Deconstruct', async (pContext) => {
                         </div>
                     }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             public list: Array<number> = [1];
         }
 

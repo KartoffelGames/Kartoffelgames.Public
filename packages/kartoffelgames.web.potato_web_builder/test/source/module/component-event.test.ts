@@ -4,7 +4,6 @@ import { TestUtil } from '../../utility/test-util.ts';
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
-import { Processor } from '../../../source/core/core_entity/processor.ts';
 import type { ComponentEventEmitter } from '../../../source/module/component-event/component-event-emitter.ts';
 import { PwbComponentEvent } from '../../../source/module/component-event/pwb-component-event.decorator.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
@@ -20,7 +19,7 @@ Deno.test('ComponentEvent--Functionality: Correct event value', async (pContext)
         @PwbComponent({
             selector: TestUtil.randomSelector(),
         })
-        class EventComponent extends Processor {
+        class EventComponent {
             @PwbComponentEvent(lEventName)
             private accessor mEvent!: ComponentEventEmitter<string>;
 
@@ -59,7 +58,7 @@ Deno.test('ComponentEvent--Functionality: Forbidden static usage', async (pConte
                 selector: TestUtil.randomSelector()
             })
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            class EventComponent extends Processor {
+            class EventComponent {
                 @PwbComponentEvent('custom-event')
                 private static accessor mEvent: ComponentEventEmitter<string>;
             }
@@ -76,7 +75,7 @@ Deno.test('ComponentEvent--Functionality: Inherited and overridden event-emitter
         const lEventValue: string = 'EVENT-VALUE';
 
         // Process. Define parent class.
-        class ParentClass extends Processor {
+        class ParentClass {
             @PwbComponentEvent('custom-event')
             private accessor mEvent!: ComponentEventEmitter<string>;
         }
@@ -122,7 +121,7 @@ Deno.test('ComponentEvent--Functionality: Inherited event-emitter event', async 
         const lEventValue: string = 'EVENT-VALUE';
 
         // Process. Define parent class.
-        class ParentClass extends Processor {
+        class ParentClass {
             @PwbComponentEvent('custom-event')
             private accessor mEvent!: ComponentEventEmitter<string>;
 
@@ -166,7 +165,7 @@ Deno.test('ComponentEvent--Functionality: Override native events', async (pConte
         @PwbComponent({
             selector: TestUtil.randomSelector(),
         })
-        class EventComponent extends Processor {
+        class EventComponent {
             @PwbComponentEvent('click')
             private accessor mEvent!: ComponentEventEmitter<string>;
 
@@ -203,7 +202,7 @@ Deno.test('ComponentEvent--Functionality: Native and custom event parallel', asy
         @PwbComponent({
             selector: TestUtil.randomSelector(),
         })
-        class EventComponent extends Processor {
+        class EventComponent {
             @PwbComponentEvent('custom-event')
             private accessor mEvent!: ComponentEventEmitter<void>;
 
@@ -253,7 +252,7 @@ Deno.test('ComponentEvent--Functionality: Two parallel custom events correct val
         @PwbComponent({
             selector: TestUtil.randomSelector(),
         })
-        class EventComponent extends Processor {
+        class EventComponent {
             @PwbComponentEvent('custom-event-one')
             private accessor mEventOne!: ComponentEventEmitter<string>;
             @PwbComponentEvent('custom-event-two')

@@ -4,7 +4,7 @@ import { TestUtil } from '../../utility/test-util.ts';
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
-import { Processor } from '../../../source/core/core_entity/processor.ts';
+import { ComponentState } from '../../../source/core/core_entity/component_state/component-state.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
 
 Deno.test('MustacheExpression--Functionality: Initial text value', async (pContext) => {
@@ -17,7 +17,7 @@ Deno.test('MustacheExpression--Functionality: Initial text value', async (pConte
             selector: TestUtil.randomSelector(),
             template: `<div>{{this.text}}</div>`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             public readonly text: string = lTextContent;
         }
 
@@ -48,9 +48,10 @@ Deno.test('MustacheExpression--Functionality: Updated text value', async (pConte
             selector: TestUtil.randomSelector(),
             template: `<div>{{this.text}}</div>`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
-            public text: string | undefined;
+            @ComponentState.State()
+            public accessor text: string | undefined;
         }
 
         // Setup. Create element.
@@ -82,7 +83,7 @@ Deno.test('MustacheExpression--Functionality: Initial attribute value', async (p
             selector: TestUtil.randomSelector(),
             template: `<div attr="{{this.text}}"></div>`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             public readonly text: string = lTextContent;
         }
 
@@ -115,9 +116,10 @@ Deno.test('MustacheExpression--Functionality: Updated attribute value', async (p
             selector: TestUtil.randomSelector(),
             template: `<div attr="{{this.text}}"></div>`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
-            public text: string | undefined;
+            @ComponentState.State()
+            public accessor text: string | undefined;
         }
 
         // Setup. Create element.
@@ -151,7 +153,7 @@ Deno.test('MustacheExpression--Functionality: Only self-created values', async (
             selector: TestUtil.randomSelector(),
             template: `<div>{{ new Array(10).fill('a').join('') }}</div>`
         })
-        class TestComponent extends Processor { }
+        class TestComponent { }
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);

@@ -19,6 +19,33 @@ Deno.test('TwoWayBinding--Functionality: Initial value', async (pContext) => {
         })
         class TestComponent {
             @PwbExport
+            public userValue: string = lInitialValue;
+        }
+
+        // Setup. Create element.
+        const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
+
+        // Process. Get input value.
+        const lInputValue: string = TestUtil.getComponentNode<HTMLInputElement>(lComponent, 'input').value;
+
+        // Evaluation.
+        expect(lInputValue).toBe(lInitialValue);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+
+    await pContext.step('Initial value state', async () => {
+        // Setup. Define values.
+        const lInitialValue: string = 'INITIAL__VALUE';
+
+        // Setup. Define component.
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+            template: '<input [(value)]="this.userValue"/>'
+        })
+        class TestComponent {
+            @PwbExport
             @ComponentState.State()
             public accessor userValue: string = lInitialValue;
         }

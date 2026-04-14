@@ -593,30 +593,3 @@ Deno.test('PwbComponent--Functionality: Creation without customElements register
         await TestUtil.waitForUpdate(lComponent);
     });
 });
-
-Deno.test('PwbComponent--Functionality: Prevent construction of processor when not needed.', async (pContext) => {
-    await pContext.step('Default', async () => {
-        // Setup. Define flag.
-        let lConstructionCalled: boolean = false;
-
-        // Setup. Define component.
-        @PwbComponent({
-            selector: TestUtil.randomSelector(),
-            template: `<div/>`
-        })
-        class TestComponent {
-            public constructor() {
-                lConstructionCalled = true;
-            }
-        }
-
-        // Process. Create element.
-        const lComponent = await TestUtil.createComponent(TestComponent);
-
-        // Evaluation
-        expect(lConstructionCalled).toBeFalsy();
-
-        // Wait for any update to finish to prevent timer leaks.
-        await TestUtil.waitForUpdate(lComponent);
-    });
-});

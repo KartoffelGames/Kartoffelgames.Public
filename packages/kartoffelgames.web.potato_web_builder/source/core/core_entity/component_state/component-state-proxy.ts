@@ -1,3 +1,4 @@
+import { availableMemory } from "node:process";
 import { ComponentStateType } from "./component-state-type.enum.ts";
 
 /**
@@ -134,10 +135,19 @@ export class ComponentStateProxy<T extends object> {
                 const lResult = pCallableTarget.call(lOriginalThisObject, ...pArgumentsList);
                 return this.convertToProxy(lResult);
             } finally {
-                // Dispatch special set state type.
+                // TODO: Fucked up. Function gets a shared proxy so the dispatch is called for the first component that uses a class with this function...
+                aaa
+                // Dispatch special set state type through the this-argument's wrapper, not the function's wrapper.
+                // Function proxies (e.g. Array.prototype.splice) are singletons and may be cached with a stale callback.
                 if (ComponentStateProxy.UNTRACEABLE_FUNCTION_UPDATE_TRIGGER.has(pCallableTarget)) {
-                    // Dispatch mapped UpdateTrigger for some untraceable functions. 
-                    this.dispatch(ComponentStateProxy.UNTRACEABLE_FUNCTION_UPDATE_TRIGGER.get(pCallableTarget)!);
+                    // Get the wrapper of the this-argument to dispatch through the correct callback.
+                    //const lThisWrapper: ComponentStateProxy<any> | undefined = ComponentStateProxy.getWrapper(pThisArgument);
+                    //if (lThisWrapper) {
+                    //    lThisWrapper.dispatch(ComponentStateProxy.UNTRACEABLE_FUNCTION_UPDATE_TRIGGER.get(pCallableTarget)!);
+                    //} else {
+                        // Fallback to current wrapper dispatch.
+                        this.dispatch(ComponentStateProxy.UNTRACEABLE_FUNCTION_UPDATE_TRIGGER.get(pCallableTarget)!);
+                    //}
                 }
             }
         };
@@ -146,7 +156,7 @@ export class ComponentStateProxy<T extends object> {
         const lProxyObject: T = new Proxy(pTarget, {
             /**
              * Called on function call.
-             * 
+             *
              * @param pTargetObject - Function that was called.
              * @param pThisArgument - This argument of call.
              * @param pArgumentsList - All arguments of call.

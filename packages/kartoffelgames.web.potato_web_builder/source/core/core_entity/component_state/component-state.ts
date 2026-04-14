@@ -21,13 +21,18 @@ export class ComponentState<TValue = unknown> {
             }
 
             // Create internal component state.
-            let lComponentState: ComponentState<TValue | undefined>;
+            let lComponentState: ComponentState<TValue>;
             const lInitComponentState = (pValue: any) => {
                 lComponentState = new ComponentState<TValue>(pValue, pConfiguration);
             };
 
             // Define getter accessor that returns id child.
             return {
+                init(this: ComponentProcessor, pValue: TValue): TValue {
+                    // Initialize the component state with the field initializer value.
+                    lInitComponentState(pValue);
+                    return pValue;
+                },
                 set(this: ComponentProcessor, pValue: TValue) {
                     // When the state is not initialized, initialize it with the set value.
                     if (!lComponentState) {
@@ -42,7 +47,7 @@ export class ComponentState<TValue = unknown> {
                         lInitComponentState(undefined);
                     }
 
-                    return lComponentState.get()!;
+                    return lComponentState.get();
                 }
             };
         };

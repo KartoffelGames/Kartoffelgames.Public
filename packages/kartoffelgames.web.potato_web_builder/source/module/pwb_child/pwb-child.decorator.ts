@@ -11,7 +11,7 @@ export function PwbChild<TElement extends Element>(pIdChildName: string): ClassA
     return (_pTarget: ClassAccessorDecoratorTarget<any, TElement>, pContext: ClassAccessorDecoratorContext): ClassAccessorDecoratorResult<any, TElement> => {
         // Check if real decorator on static property.
         if (pContext.static) {
-            throw new Exception('Event target is not for a static property.', PwbChild);
+            throw new Exception('Child decorator is not for a static property.', PwbChild);
         }
 
         // Define getter accessor that returns id child.

@@ -4,27 +4,30 @@ import { ComponentState } from "../../source/core/core_entity/component_state/co
 @PwbComponent({
     selector: 'test-component',
     template: `
-        $for(item of this.list) {
-            <input [(value)]="this.userValue"/>
-        }
+        <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px;">
+            $for(item of this.list) {
+                <input [(value)]="this.userValue"/>
+            }
+        </div>
+        
         <button (click)="this.userValue = 'Clicked!'">Click me</button>
+        <button (click)="this.list.push('New item')">Add list item</button>
+        <button (click)="this.list.pop()">Remove list</button>
     `
 })
 class TestComponent {
-    public list: Array<string> = ['One', 'Two', 'Three'];
-    private mUserValue: ComponentState<string>;
+    @ComponentState.State({ proxy: true })
+    public accessor list: Array<string>;
 
-    public get userValue(): string {
-        return this.mUserValue.get();
-    } set userValue(pValue: string) {
-        this.mUserValue.set(pValue);
-    }
+    @ComponentState.State()
+    public accessor userValue: string;
 
     public constructor() {
-        this.mUserValue = new ComponentState<string>('Initial value');
+        this.userValue = 'Initial value';
+        this.list = new Array<string>(3000).fill('123');
     }
 }
 
-PwbApplication.new((pApplication)=>{
+PwbApplication.new((pApplication) => {
     pApplication.addContent(<any>TestComponent);
-}, document.body)
+}, document.body);

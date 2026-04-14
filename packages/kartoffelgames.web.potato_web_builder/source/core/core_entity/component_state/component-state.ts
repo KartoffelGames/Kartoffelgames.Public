@@ -1,13 +1,53 @@
-import { Exception } from "@kartoffelgames/core";
+import { ClassAccessorDecorator, Exception } from "@kartoffelgames/core";
 import { InteractionZone } from "@kartoffelgames/core-interaction-zone";
 import { ComponentStateType } from "./component-state-type.enum.ts";
 import { ComponentStateProxy } from "./component-state-proxy.ts";
+import { ComponentProcessor } from "../../component/component.ts";
 
 /**
  * State of a component.
  * On value get links the interaction zones so they can be updated on set.
  */
 export class ComponentState<TValue = unknown> {
+    /**
+     * AtScript. Creates a component state decorator for a property.
+     * @param pIdChildName - Name of id child.
+     */
+    public static State<TValue>(pConfiguration?: Partial<ComponentStateConfiguration>): ClassAccessorDecorator<any, TValue> {
+        return (_pTarget: ClassAccessorDecoratorTarget<any, TValue>, pContext: ClassAccessorDecoratorContext): ClassAccessorDecoratorResult<any, TValue> => {
+            // Check if real decorator on static property.
+            if (pContext.static) {
+                throw new Exception('Event target is not for a static property.', ComponentState);
+            }
+
+            // Create internal component state.
+            let lComponentState: ComponentState<TValue | undefined>;
+            const lInitComponentState = (pValue: any) => {
+                lComponentState = new ComponentState<TValue>(pValue, pConfiguration);
+            };
+
+            // Define getter accessor that returns id child.
+            return {
+                set(this: ComponentProcessor, pValue: TValue) {
+                    // When the state is not initialized, initialize it with the set value.
+                    if (!lComponentState) {
+                        lInitComponentState(pValue);
+                    } else {
+                        lComponentState.set(pValue);
+                    }
+                },
+                get(this: ComponentProcessor) {
+                    // When the state is not initialized, initialize it with undefined.
+                    if (!lComponentState) {
+                        lInitComponentState(undefined);
+                    }
+
+                    return lComponentState.get()!;
+                }
+            };
+        };
+    }
+
     private mLinkedZones: Set<InteractionZone>;
     private mLinkedZonesArray: Array<InteractionZone>;
     private readonly mConfiguration: ComponentStateConfiguration;

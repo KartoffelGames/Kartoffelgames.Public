@@ -7,6 +7,7 @@ import { ComponentState } from "../../source/core/core_entity/component_state/co
         $for(item of this.list) {
             <input [(value)]="this.userValue"/>
         }
+        <button (click)="this.userValue = 'Clicked!'">Click me</button>
     `
 })
 class TestComponent {

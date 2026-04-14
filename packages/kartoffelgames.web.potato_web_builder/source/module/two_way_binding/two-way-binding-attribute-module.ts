@@ -6,6 +6,7 @@ import { ModuleTargetNode } from '../../core/module/injection_reference/module-t
 import type { LevelProcedure } from '../../core/data/level-procedure.ts';
 import { ModuleDataLevel } from '../../core/data/module-data-level.ts';
 import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { Component } from "../../core/component/component.ts";
 
 @PwbAttributeModule({
     access: AccessMode.ReadWrite,
@@ -26,7 +27,7 @@ export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
      * @param pModuleAttribute - Module attribute.
      * @param pAttributeModule - Attribute module.
      */
-    public constructor(pTargetNode = Injection.use(ModuleTargetNode), pModuleValues = Injection.use(ModuleDataLevel), pModuleAttribute = Injection.use(ModuleAttribute)) {
+    public constructor(pComponent: Component = Injection.use(Component), pTargetNode = Injection.use(ModuleTargetNode), pModuleValues = Injection.use(ModuleDataLevel), pModuleAttribute = Injection.use(ModuleAttribute)) {
         this.mTargetNode = pTargetNode;
 
         // Get property name.
@@ -38,6 +39,23 @@ export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
 
         // Set start compare values.
         this.mLastDataValue = Symbol('Uncomparable');
+
+        // Create a listener for changes in the target node.
+        // That must be done with input and change listener, because some view objects do not trigger change event on value change.
+        const lUpdateListener = (pNewValue: any) => {
+            // Skip empty changes.
+            if(this.mLastDataValue === pNewValue) {
+                return;
+            }
+
+            pComponent.updater.updateAsync();
+        }
+        this.mTargetNode.addEventListener('input', (_pEvent: Event) => {
+            lUpdateListener(Reflect.get(this.mTargetNode, this.mAttributeKey));
+        });
+        this.mTargetNode.addEventListener('change', (_pEvent: Event) => {
+            lUpdateListener(Reflect.get(this.mTargetNode, this.mAttributeKey));
+        });
     }
 
     /**

@@ -16,10 +16,10 @@ import { ComponentState } from "../../source/core/core_entity/component_state/co
     `
 })
 class TestComponent {
-    @ComponentState.State({ proxy: true })
+    @ComponentState.state({ proxy: true })
     public accessor list: Array<string>;
 
-    @ComponentState.State()
+    @ComponentState.state()
     public accessor userValue: string;
 
     public constructor() {

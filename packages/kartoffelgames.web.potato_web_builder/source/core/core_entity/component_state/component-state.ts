@@ -1,5 +1,5 @@
 import { ClassAccessorDecorator, Exception } from "@kartoffelgames/core";
-import { InteractionZone } from "@kartoffelgames/core-interaction-zone";
+import { InteractionZone, InteractionZoneEvent } from "@kartoffelgames/core-interaction-zone";
 import { ComponentStateType } from "./component-state-type.enum.ts";
 import { ComponentStateProxy } from "./component-state-proxy.ts";
 import { ComponentProcessor } from "../../component/component.ts";
@@ -10,10 +10,36 @@ import { ComponentProcessor } from "../../component/component.ts";
  */
 export class ComponentState<TValue = unknown> {
     /**
+     * Creates a reaction that is called when a component state is set.
+     * The callback is called in an interaction zone, so it can link to the state and be updated when the state is set.
+     * 
+     * @param pReactionCallback - Callback that is called when a component state is set.
+     */
+    public static reaction(pReactionCallback: () => void): void {
+        // Create a new interaction zone for the reaction callback.
+        const lReactionZone = InteractionZone.create('ComponentState reaction');
+
+        // Add a listener to the zone that calls the reaction callback.
+        lReactionZone.addInteractionListener((pReason: InteractionZoneEvent) => {
+            // Only update on sets.
+            if ((pReason.triggerType & ComponentStateType.set) === 0) {
+                return;
+            }
+
+            pReactionCallback();
+        });
+
+        // Execute the reaction callback once to link the zone to the states.
+        lReactionZone.execute(() => {
+            pReactionCallback();
+        });
+    }
+
+    /**
      * AtScript. Creates a component state decorator for a property.
      * @param pIdChildName - Name of id child.
      */
-    public static State<TValue>(pConfiguration?: Partial<ComponentStateConfiguration>): ClassAccessorDecorator<any, TValue> {
+    public static state<TValue>(pConfiguration?: Partial<ComponentStateConfiguration>): ClassAccessorDecorator<any, TValue> {
         return (_pTarget: ClassAccessorDecoratorTarget<any, TValue>, pContext: ClassAccessorDecoratorContext): ClassAccessorDecoratorResult<any, TValue> => {
             // Check if real decorator on static property.
             if (pContext.static) {

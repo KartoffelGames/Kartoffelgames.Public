@@ -46,7 +46,7 @@ Deno.test('TwoWayBinding--Functionality: Initial value', async (pContext) => {
         })
         class TestComponent {
             @PwbExport
-            @ComponentState.State()
+            @ComponentState.state()
             public accessor userValue: string = lInitialValue;
         }
 
@@ -76,7 +76,7 @@ Deno.test('TwoWayBinding--Functionality: Change view value', async (pContext) =>
         })
         class TestComponent {
             @PwbExport
-            @ComponentState.State()
+            @ComponentState.state()
             public accessor userValue: string = 'INITIAL__VALUE';
         }
 
@@ -109,7 +109,7 @@ Deno.test('TwoWayBinding--Functionality: Change component value', async (pContex
         })
         class TestComponent {
             @PwbExport
-            @ComponentState.State()
+            @ComponentState.state()
             public accessor userValue: string = 'INITIAL__VALUE';
         }
 

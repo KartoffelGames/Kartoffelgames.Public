@@ -46,7 +46,7 @@ Deno.test('OneWayBinding--Functionality: Initial value', async (pContext) => {
         })
         class TestComponent {
             @PwbExport
-            @ComponentState.State()
+            @ComponentState.state()
             public accessor userValue: string = lInitialValue;
         }
 
@@ -76,7 +76,7 @@ Deno.test('OneWayBinding--Functionality: Change component value', async (pContex
         })
         class TestComponent {
             @PwbExport
-            @ComponentState.State()
+            @ComponentState.state()
             public accessor userValue: string = 'INITIAL__VALUE';
         }
 

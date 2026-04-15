@@ -50,7 +50,7 @@ Deno.test('MustacheExpression--Functionality: Updated text value', async (pConte
         })
         class TestComponent {
             @PwbExport
-            @ComponentState.State()
+            @ComponentState.state()
             public accessor text: string | undefined;
         }
 
@@ -118,7 +118,7 @@ Deno.test('MustacheExpression--Functionality: Updated attribute value', async (p
         })
         class TestComponent {
             @PwbExport
-            @ComponentState.State()
+            @ComponentState.state()
             public accessor text: string | undefined;
         }
 

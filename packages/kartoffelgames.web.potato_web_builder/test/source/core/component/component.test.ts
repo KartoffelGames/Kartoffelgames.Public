@@ -428,7 +428,7 @@ Deno.test('PwbComponent--Functionality: User callbacks', async (pContext) => {
         })
         class TestComponent implements IComponentOnUpdate, IComponentOnAttributeChange, IComponentOnDeconstruct {
             @PwbExport
-            @ComponentState.State()
+            @ComponentState.state()
             public accessor innerValue: string = 'DUMMY-VALUE';
 
             private mOnPwbUpdateCalled: boolean = false;
@@ -515,7 +515,7 @@ Deno.test('PwbComponent--Functionality: Loop detection', async (pContext) => {
             </div>`
         })
         class TestComponent implements IComponentOnUpdate {
-            @ComponentState.State()
+            @ComponentState.state()
             public accessor innerValue: number = 1;
 
             private readonly mComponent: Component;

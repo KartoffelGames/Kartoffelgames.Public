@@ -5,6 +5,9 @@ export { PwbApplication } from './application/pwb-application.ts';
 export type { IComponentOnAttributeChange, IComponentOnConnect, IComponentOnDeconstruct, IComponentOnDisconnect, IComponentOnUpdate } from './core/component/component.ts';
 export { PwbComponent } from './core/component/pwb-component.decorator.ts';
 
+// Component state
+export { ComponentState } from "./core/core_entity/component_state/component-state.ts";
+
 // Module Injections
 export { ModuleDataLevel as ModuleValues } from './core/data/module-data-level.ts';
 export { ExtensionModule } from './core/extension/extension-module.ts';

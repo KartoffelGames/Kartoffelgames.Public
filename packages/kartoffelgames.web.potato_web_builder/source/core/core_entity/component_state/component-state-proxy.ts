@@ -135,19 +135,15 @@ export class ComponentStateProxy<T extends object> {
                 const lResult = pCallableTarget.call(lOriginalThisObject, ...pArgumentsList);
                 return this.convertToProxy(lResult);
             } finally {
-                // TODO: Fucked up. Function gets a shared proxy so the dispatch is called for the first component that uses a class with this function...
-                aaa
-                // Dispatch special set state type through the this-argument's wrapper, not the function's wrapper.
-                // Function proxies (e.g. Array.prototype.splice) are singletons and may be cached with a stale callback.
+                // When the function is registered as untraceable, trigger the mapped interaction type.
                 if (ComponentStateProxy.UNTRACEABLE_FUNCTION_UPDATE_TRIGGER.has(pCallableTarget)) {
+                    // Function proxies (e.g. Array.prototype.splice) are proxied once for all arrays.
+                    // So calling this.dispatch would trigger the callback for the first proxied array, not the current one.
                     // Get the wrapper of the this-argument to dispatch through the correct callback.
-                    //const lThisWrapper: ComponentStateProxy<any> | undefined = ComponentStateProxy.getWrapper(pThisArgument);
-                    //if (lThisWrapper) {
-                    //    lThisWrapper.dispatch(ComponentStateProxy.UNTRACEABLE_FUNCTION_UPDATE_TRIGGER.get(pCallableTarget)!);
-                    //} else {
-                        // Fallback to current wrapper dispatch.
-                        this.dispatch(ComponentStateProxy.UNTRACEABLE_FUNCTION_UPDATE_TRIGGER.get(pCallableTarget)!);
-                    //}
+                    const lThisWrapper: ComponentStateProxy<any> | undefined = ComponentStateProxy.getWrapper(pThisArgument);
+                    if (lThisWrapper) {
+                        lThisWrapper.dispatch(ComponentStateProxy.UNTRACEABLE_FUNCTION_UPDATE_TRIGGER.get(pCallableTarget)!);
+                    }
                 }
             }
         };

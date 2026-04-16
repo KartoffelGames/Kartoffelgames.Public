@@ -105,7 +105,7 @@ PWB includes these attribute modules:
 ```typescript
 @PwbAttributeModule({
     access: AccessMode.Write,
-    selector: /^\(log\)$/
+    selector: /^log$/
 })
 class LogEventModule implements IAttributeOnDeconstruct {
     private readonly mTarget: Node;

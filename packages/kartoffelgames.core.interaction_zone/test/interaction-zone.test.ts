@@ -28,7 +28,7 @@ Deno.test('InteractionZone.current', async (pContext) => {
     });
 });
 
-Deno.test('InteractionZone.pushInteraction()', async (pContext) => {
+Deno.test('InteractionZone.current.pushInteraction()', async (pContext) => {
     await pContext.step('Push calls listener', () => {
         // Setup.
         const lInteractionZone: InteractionZone = InteractionZone.create('Name');
@@ -42,7 +42,7 @@ Deno.test('InteractionZone.pushInteraction()', async (pContext) => {
 
         // Process. Call listener.
         lInteractionZone.execute(() => {
-            InteractionZone.pushInteraction(lInteractionTrigger, {});
+            InteractionZone.current.pushInteraction(lInteractionTrigger, {});
         });
 
         // Evaluation.
@@ -62,7 +62,7 @@ Deno.test('InteractionZone.pushInteraction()', async (pContext) => {
 
         // Process. Call listener.
         lInteractionZone.execute(() => {
-            InteractionZone.pushInteraction(lInteractionTrigger, {});
+            InteractionZone.current.pushInteraction(lInteractionTrigger, {});
         });
 
         // Evaluation.
@@ -82,7 +82,7 @@ Deno.test('InteractionZone.pushInteraction()', async (pContext) => {
 
         // Process. Call listener.
         lInteractionZone.execute(() => {
-            InteractionZone.pushInteraction(lInteractionTrigger, {});
+            InteractionZone.current.pushInteraction(lInteractionTrigger, {});
         });
 
         // Evaluation.
@@ -103,7 +103,7 @@ Deno.test('InteractionZone.pushInteraction()', async (pContext) => {
 
         // Process. Call listener.
         lInteractionZone.execute(() => {
-            InteractionZone.pushInteraction(lInteractionTrigger, lInteractionData);
+            InteractionZone.current.pushInteraction(lInteractionTrigger, lInteractionData);
         });
 
         // Evaluation.
@@ -124,7 +124,7 @@ Deno.test('InteractionZone.pushInteraction()', async (pContext) => {
 
         // Process. Call listener.
         lCorrectInteractionZone.execute(() => {
-            InteractionZone.pushInteraction(lInteractionTrigger, {});
+            InteractionZone.current.pushInteraction(lInteractionTrigger, {});
         });
 
         // Evaluation.
@@ -159,7 +159,7 @@ Deno.test('InteractionZone.addInteractionListener()', async (pContext) => {
 
         // Process. Call listener.
         lInteractionZone.execute(() => {
-            InteractionZone.pushInteraction(TestTriggerEnum.Custom, new Object());
+            InteractionZone.current.pushInteraction(TestTriggerEnum.Custom, new Object());
         });
 
         // Evaluation.
@@ -180,7 +180,7 @@ Deno.test('InteractionZone.addInteractionListener()', async (pContext) => {
 
         // Process. Call listener.
         lInteractionZone.execute(() => {
-            InteractionZone.pushInteraction(TestTriggerEnum.Custom, new Object());
+            InteractionZone.current.pushInteraction(TestTriggerEnum.Custom, new Object());
         });
 
         // Evaluation.
@@ -200,7 +200,7 @@ Deno.test('InteractionZone.addInteractionListener()', async (pContext) => {
 
         // Process. Call listener.
         lCorrectInteractionZone.execute(() => {
-            InteractionZone.pushInteraction(TestTriggerEnum.Custom, new Object());
+            InteractionZone.current.pushInteraction(TestTriggerEnum.Custom, new Object());
         });
 
         // Evaluation.
@@ -220,7 +220,7 @@ Deno.test('InteractionZone.addInteractionListener()', async (pContext) => {
 
         // Process. Call listener.
         lInteractionZone.execute(() => {
-            InteractionZone.pushInteraction(TestTriggerEnum.Custom, new Object());
+            InteractionZone.current.pushInteraction(TestTriggerEnum.Custom, new Object());
         });
 
         // Evaluation.
@@ -244,7 +244,7 @@ Deno.test('InteractionZone.setTriggerRestriction()', async (pContext) => {
 
         // Process. Call listener.
         lInteractionZone.execute(() => {
-            InteractionZone.pushInteraction(TestTriggerEnum.Custom, new Object());
+            InteractionZone.current.pushInteraction(TestTriggerEnum.Custom, new Object());
         });
 
         // Evaluation.
@@ -267,7 +267,7 @@ Deno.test('InteractionZone.setTriggerRestriction()', async (pContext) => {
 
         // Process. Call listener.
         lInteractionZone.execute(() => {
-            InteractionZone.pushInteraction(TestTriggerEnum.Custom, new Object());
+            InteractionZone.current.pushInteraction(TestTriggerEnum.Custom, new Object());
         });
 
         // Evaluation.
@@ -378,7 +378,7 @@ Deno.test('InteractionZone.removeInteractionListener()', async (pContext) => {
 
         // Process. Call listener.
         lInteractionZone.execute(() => {
-            InteractionZone.pushInteraction(TestTriggerEnum.Custom, new Object());
+            InteractionZone.current.pushInteraction(TestTriggerEnum.Custom, new Object());
         });
 
         // Evaluation.
@@ -416,7 +416,7 @@ Deno.test('InteractionZone.removeInteractionListener()', async (pContext) => {
 
         // Process. Call listener.
         lInteractionZone.execute(() => {
-            InteractionZone.pushInteraction(TestTriggerEnum.Custom, new Object());
+            InteractionZone.current.pushInteraction(TestTriggerEnum.Custom, new Object());
         });
 
         // Evaluation.

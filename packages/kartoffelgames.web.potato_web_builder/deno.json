@@ -21,19 +21,18 @@
         "config": {
             "package-blueprint": "kg-main",
             "bundle": {
-                "enabled": false,
-                "bundleSettingsFile": "../../bundle-environment/bundle-settings.ts"
+                "files": {}
             },
             "scratchpad": {
                 "mainBundleRequired": false,
                 "port": 8088,
-                "bundleSettingsFile": "../../bundle-environment/bundle-settings.ts"
+                "mimeTypeMapping": {}
             },
             "page": {
                 "enabled": true,
                 "mainBundleRequired": false,
                 "port": 8088,
-                "bundleSettingsFile": "../../bundle-environment/bundle-settings.ts"
+                "mimeTypeMapping": {}
             },
             "test": {
                 "directory": "./test",

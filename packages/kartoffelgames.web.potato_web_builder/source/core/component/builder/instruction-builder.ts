@@ -37,7 +37,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
         // Call module update.
         if (this.content.instructionModule.update()) {
             // Get current StaticBuilder. Only content are static builder.
-            const lOldStaticBuilderList: Array<StaticBuilder> = <Array<StaticBuilder>>this.content.body;
+            const lOldStaticBuilderList: Array<StaticBuilder> = this.content.body as Array<StaticBuilder>;
 
             // Update content and save new added builder.
             this.updateStaticBuilder(lOldStaticBuilderList, this.content.instructionModule.instructionResult.elementList);
@@ -78,7 +78,7 @@ export class InstructionBuilder extends BaseBuilder<PwbTemplateInstructionNode, 
      * @param pOldContentList - Old content list.
      * @param pNewContentList - New content list.
      */
-    private updateStaticBuilder(pOldContentList: Array<StaticBuilder>, pNewContentList: Array<InstructionResultElement>): void {
+    private updateStaticBuilder(pOldContentList: ArrayLike<StaticBuilder>, pNewContentList: ArrayLike<InstructionResultElement>): void {
         // Define difference search.
         const lMyersDiff: MyersDiff<StaticBuilder, InstructionResultElement> = new MyersDiff<StaticBuilder, InstructionResultElement>((pA, pB) => {
             return pB.template.equals(pA.template);

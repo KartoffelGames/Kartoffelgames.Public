@@ -24,7 +24,7 @@ class TestComponent {
 
     public constructor() {
         this.userValue = 'Initial value';
-        this.list = new Array<string>(3000).fill('123');
+        this.list = new Array<string>(80000).fill('123');
     }
 }
 

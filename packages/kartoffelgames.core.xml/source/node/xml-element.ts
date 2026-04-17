@@ -15,14 +15,14 @@ export class XmlElement extends BaseXmlNode {
      * Get all attributes from xml node.
      */
     public get attributeList(): Array<XmlAttribute> {
-        return List.newListWith(...this.mAttributeDictionary.values());
+        return Array.from(this.mAttributeDictionary.values());
     }
 
     /**
      * Get childs of xml node list.
      */
     public get childList(): Array<BaseXmlNode> {
-        return List.newListWith(...this.mChildList);
+        return Array.from(this.mChildList);
     }
 
     /**

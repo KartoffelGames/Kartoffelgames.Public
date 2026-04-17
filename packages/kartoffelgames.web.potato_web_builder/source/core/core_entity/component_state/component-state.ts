@@ -55,6 +55,13 @@ export class ComponentState<TValue = unknown> {
             // Define getter accessor that returns id child.
             return {
                 init(this: ComponentProcessor, pValue: TValue): TValue {
+                    // Skip initialization when the value is undefined.
+                    // Initialization is even called when the field is not directly initialized, but is set later.
+                    // In this case the state should be initialized with the set value and not with undefined.
+                    if(typeof pValue === 'undefined') {
+                        return pValue;
+                    }
+
                     // Initialize the component state with the field initializer value.
                     lInitComponentState(pValue);
                     return pValue;

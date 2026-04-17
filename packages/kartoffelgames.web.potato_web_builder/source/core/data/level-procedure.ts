@@ -26,7 +26,7 @@ export class LevelProcedure<T> {
         }
 
         // Create expression.
-        this.mExpression = this.createEvaluationFunktion(pExpression, this.mTemporaryValues).bind(pValues.store);
+        this.mExpression = this.createEvaluationFunction(pExpression, this.mTemporaryValues).bind(pValues.store);
     }
 
     /**
@@ -58,7 +58,7 @@ export class LevelProcedure<T> {
      * @param pExtenedValue - Extended data that are only exist for this execution.
      * @returns 
      */
-    private createEvaluationFunktion(pExpression: string, pExtenedValue: Dictionary<string, any>): () => any {
+    private createEvaluationFunction(pExpression: string, pExtenedValue: Dictionary<string, any>): () => any {
         let lString: string;
 
         // Generate random name for internal extended value variable name.

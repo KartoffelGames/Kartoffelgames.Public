@@ -48,10 +48,8 @@ export class PwbApplication {
     /**
      * Append content to app.
      * Component is constructed asynchron after beeing append with {@link appendTo}.
-     *
-     * @param pContentConstructor - Content constructor. // TODO: Make that more typesafe.
-     *
-     * @returns The HTML element of the added component.
+     * 
+     * @param pContentConstructor - Content constructor.
      */
     public addContent<TComponent extends ComponentProcessor>(pContentConstructor: ComponentProcessorConstructor<TComponent>): TComponent {
         // Get component html constructor from class.

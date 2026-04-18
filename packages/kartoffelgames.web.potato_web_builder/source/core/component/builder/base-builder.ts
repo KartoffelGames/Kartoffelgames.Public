@@ -2,6 +2,7 @@
 import type { DataLevel } from '../../data/data-level.ts';
 import { ComponentModules } from "../component-modules.ts";
 import type { IPwbTemplateNode } from '../template/nodes/i-pwb-template-node.interface.ts';
+import { PwbTemplateTextNode } from "../template/nodes/pwb-template-text-node.ts";
 import type { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node.ts';
 import type { BaseBuilderData } from './data/base-builder-data.ts';
 
@@ -120,7 +121,7 @@ export abstract class BaseBuilder<TTemplates extends IPwbTemplateNode = IPwbTemp
      * 
      * @param pXmlElement - Xml content node.
      */
-    protected createHtmlElement(pXmlElement: PwbTemplateXmlNode): HTMLElement {
+    protected createHtmlElement(pXmlElement: PwbTemplateXmlNode): Element {
         const lTagname: string = pXmlElement.tagName;
 
         if (typeof lTagname !== 'string') {

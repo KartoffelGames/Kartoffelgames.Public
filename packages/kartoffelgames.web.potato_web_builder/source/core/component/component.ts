@@ -142,7 +142,7 @@ type ComponentConstructorParameter = {
     /**
      * Component processor constructor.
      */
-    processorConstructor: ProcessorConstructor;
+    processorConstructor: ComponentProcessorConstructor;
 
     /**
      * Template as xml string.

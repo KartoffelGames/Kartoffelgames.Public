@@ -1,4 +1,4 @@
-import { Processor, PwbChild, PwbComponent, PwbExport, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { PwbChild, PwbComponent, PwbExport, ComponentState, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import { PotatnoCodeFile } from '../../../document/potatno-code-file.ts';
 import type { PotatnoGraph } from '../../../document/potatno-graph.ts';
 import type { PotatnoNode } from '../../../document/potatno-node.ts';
@@ -18,13 +18,12 @@ import type { PotatnoHistoryAction } from '../../potatno-history-action.ts';
 import { PotatnoHistory } from '../../potatno-history.ts';
 import { NodeAddAction, NodeRemoveAction } from '../../potatno-node-actions.ts';
 import { PropertyChangeAction } from '../../potatno-property-change-action.ts';
-import editorCss from './potatno-code-editor.css';
-import editorTemplate from './potatno-code-editor.html';
+import editorCss from './potatno-code-editor.css' with { type: 'text' };
+import editorTemplate from './potatno-code-editor.html' with { type: 'text' };
 
 // Import child components to ensure they're registered.
-import '../potatno_canvas/potatno-canvas.ts';
 import '../potatno_function_list/potatno-function-list.ts';
-import { setNodePreviewElement } from '../potatno_node_component/potatno-node-component.ts';
+import '../potatno_node_component/potatno-node-component.ts';
 import '../potatno_node_library/potatno-node-library.ts';
 import '../potatno_panel_left/potatno-panel-left.ts';
 import '../potatno_panel_properties/potatno-panel-properties.ts';
@@ -67,10 +66,8 @@ interface CachedViewData {
 }
 
 /**
- * Module-level storage for all complex objects that must NEVER be
- * deep-proxied by PWB. This includes the history (which holds graph
- * references with Maps), the clipboard, the canvas interaction helper,
- * the SVG renderer, and all cached view data.
+ * Module-level storage for complex objects like history, clipboard,
+ * canvas interaction helper, SVG renderer, and cached view data.
  */
 interface EditorInternals {
     history: PotatnoHistory;
@@ -79,68 +76,10 @@ interface EditorInternals {
     renderer: PotatnoCanvasRenderer;
     hoveredPort: { nodeId: string; portId: string; portKind: string; direction: string; type: string; } | null;
     interactionState: InteractionState;
-    cachedData: CachedViewData;
     previewInitialized: boolean;
     previewElements: Map<string, HTMLElement>;
     previewDataCache: Map<string, { inputs: Record<string, unknown>; outputs: Record<string, unknown>; }>;
 }
-
-/**
- * Centralized store for editor state. Keeps all mutable data outside
- * PWB's deep proxy to ensure Map/Set operations work correctly.
- * Instantiated as a module-level singleton (class instances are acceptable).
- */
-class EditorStateStore {
-    private readonly mFiles: Map<string, PotatnoCodeFile> = new Map();
-    private readonly mInternals: Map<string, EditorInternals> = new Map();
-    private readonly mProjects: Map<string, PotatnoProject> = new Map();
-    private readonly mSelections: Map<string, Set<string>> = new Map();
-
-    public deleteAll(pKey: string): void {
-        this.mProjects.delete(pKey);
-        this.mFiles.delete(pKey);
-        this.mSelections.delete(pKey);
-        this.mInternals.delete(pKey);
-    }
-
-    public deleteFile(pKey: string): void {
-        this.mFiles.delete(pKey);
-    }
-
-    public getFile(pKey: string): PotatnoCodeFile | undefined {
-        return this.mFiles.get(pKey);
-    }
-
-    public getInternals(pKey: string): EditorInternals | undefined {
-        return this.mInternals.get(pKey);
-    }
-
-    public getProject(pKey: string): PotatnoProject | undefined {
-        return this.mProjects.get(pKey);
-    }
-
-    public getSelection(pKey: string): Set<string> | undefined {
-        return this.mSelections.get(pKey);
-    }
-
-    public setFile(pKey: string, pFile: PotatnoCodeFile): void {
-        this.mFiles.set(pKey, pFile);
-    }
-
-    public setInternals(pKey: string, pInternals: EditorInternals): void {
-        this.mInternals.set(pKey, pInternals);
-    }
-
-    public setProject(pKey: string, pProject: PotatnoProject): void {
-        this.mProjects.set(pKey, pProject);
-    }
-
-    public setSelection(pKey: string, pSelection: Set<string>): void {
-        this.mSelections.set(pKey, pSelection);
-    }
-}
-
-const gStore: EditorStateStore = new EditorStateStore();
 
 /**
  * Main editor component for the potatno-code visual programming environment.
@@ -152,9 +91,11 @@ const gStore: EditorStateStore = new EditorStateStore();
     template: editorTemplate,
     style: editorCss,
 })
-export class PotatnoCodeEditor extends Processor implements IComponentOnConnect, IComponentOnDeconstruct {
-    private mInstanceKey: string;
-    private mShowSelectionBox: boolean;
+export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDeconstruct {
+    private mProject: PotatnoProject | undefined;
+    private mFile: PotatnoCodeFile | undefined;
+    private mSelectedIds: Set<string> = new Set();
+    private mInternals!: EditorInternals;
     private mSelectionBoxScreen: { x1: number; y1: number; x2: number; y2: number; };
     private mPreviewDebounceTimer: number;
     private mKeyboardHandler: ((e: KeyboardEvent) => void) | null;
@@ -163,11 +104,22 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
     private mResizeUpHandler: ((e: PointerEvent) => void) | null;
 
     /**
-     * Single tracked property. Incrementing this triggers exactly ONE
-     * PWB update cycle. All actual data is read from the unproxied
-     * gStore internals cachedData.
+     * Cached view data used by the template. Changing this triggers a re-render.
      */
-    private mCacheVersion: number;
+    @ComponentState.state({ complexValue: true })
+    private accessor mCachedData: CachedViewData;
+
+    /**
+     * Whether the selection box is currently visible.
+     */
+    @ComponentState.state()
+    private accessor mShowSelectionBox: boolean = false;
+
+    /**
+     * Incremented after pan/zoom to trigger grid style re-evaluation.
+     */
+    @ComponentState.state()
+    private accessor mTransformVersion: number = 0;
 
     // --- DOM Refs ---
 
@@ -195,7 +147,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      * Get the project configuration.
      */
     public get project(): PotatnoProject {
-        return this.getProject();
+        return this.mProject!;
     }
 
     /**
@@ -203,7 +155,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      */
     @PwbExport
     public set project(pProject: PotatnoProject) {
-        gStore.setProject(this.mInstanceKey, pProject);
+        this.mProject = pProject;
         this.rebuildCachedData();
     }
 
@@ -211,7 +163,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      * Get the current code file (document state).
      */
     public get file(): PotatnoCodeFile | null {
-        return gStore.getFile(this.mInstanceKey) ?? null;
+        return this.mFile ?? null;
     }
 
     /**
@@ -221,20 +173,20 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
     @PwbExport
     public set file(pFile: PotatnoCodeFile | null) {
         if (pFile) {
-            gStore.setFile(this.mInstanceKey, pFile);
+            this.mFile = pFile;
 
             // Auto-initialize main functions if the file is empty and project has main function definitions.
-            const lProject: PotatnoProject | undefined = gStore.getProject(this.mInstanceKey);
+            const lProject: PotatnoProject | undefined = this.mProject;
             if (lProject && pFile.functions.size === 0) {
                 this.initializeMainFunctions(pFile, lProject);
             }
         } else {
-            gStore.deleteFile(this.mInstanceKey);
+            this.mFile = undefined;
         }
 
-        this.getSelectedIds().clear();
-        this.getInternals().history.clear();
-        this.getInternals().previewInitialized = false;
+        this.mSelectedIds.clear();
+        this.mInternals.history.clear();
+        this.mInternals.previewInitialized = false;
         this.rebuildCachedData();
         this.renderConnections();
         this.initializePreview();
@@ -245,15 +197,14 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      * Get the active function identifier.
      */
     public get activeFunctionId(): string {
-        void this.mCacheVersion;
-        return this.getInternals().cachedData.activeFunctionId;
+        return this.mCachedData.activeFunctionId;
     }
 
     /**
      * Get the canvas interaction helper.
      */
     public get interaction(): PotatnoCanvasInteraction {
-        return this.getInternals().interaction;
+        return this.mInternals.interaction;
     }
 
     /**
@@ -267,30 +218,30 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      * Whether preview is available.
      */
     public get hasPreview(): boolean {
-        void this.mCacheVersion;
-        return this.getInternals().cachedData.hasPreview;
+        return this.mCachedData.hasPreview;
     }
 
     /**
      * Get the current list of validation errors.
      */
     public get editorErrors(): Array<{ message: string; location: string; }> {
-        void this.mCacheVersion;
-        return this.getInternals().cachedData.errors;
+        return this.mCachedData.errors;
     }
 
     /**
      * Get the CSS for the grid background.
      */
     public get gridBackgroundStyle(): string {
-        return this.getInternals().interaction.getGridBackgroundCss();
+        void this.mTransformVersion;
+        return this.mInternals.interaction.getGridBackgroundCss();
     }
 
     /**
      * Get the CSS transform for the canvas content layer.
      */
     public get gridTransformStyle(): string {
-        return 'transform: ' + this.getInternals().interaction.getTransformCss();
+        void this.mTransformVersion;
+        return 'transform: ' + this.mInternals.interaction.getTransformCss();
     }
 
     /**
@@ -311,130 +262,91 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      * Get the cached list of visible nodes for the active function.
      */
     public get visibleNodes(): Array<any> {
-        void this.mCacheVersion;
-        return this.getInternals().cachedData.visibleNodes;
+        return this.mCachedData.visibleNodes;
     }
 
     /**
      * Get the cached list of node definitions for the library panel.
      */
     public get nodeDefinitionList(): Array<{ name: string; category: string; }> {
-        void this.mCacheVersion;
-        return this.getInternals().cachedData.nodeDefinitionList;
+        return this.mCachedData.nodeDefinitionList;
     }
 
     /**
      * Get the cached list of functions for the function list panel.
      */
     public get functionList(): Array<{ id: string; name: string; label: string; system: boolean; }> {
-        void this.mCacheVersion;
-        return this.getInternals().cachedData.functionList;
+        return this.mCachedData.functionList;
     }
 
     /**
      * Get the name of the active function.
      */
     public get activeFunctionName(): string {
-        void this.mCacheVersion;
-        return this.getInternals().cachedData.activeFunctionName;
+        return this.mCachedData.activeFunctionName;
     }
 
     /**
      * Get the active function's input port definitions.
      */
     public get activeFunctionInputs(): Array<{ name: string; type: string; }> {
-        void this.mCacheVersion;
-        return this.getInternals().cachedData.activeFunctionInputs;
+        return this.mCachedData.activeFunctionInputs;
     }
 
     /**
      * Get the active function's output port definitions.
      */
     public get activeFunctionOutputs(): Array<{ name: string; type: string; }> {
-        void this.mCacheVersion;
-        return this.getInternals().cachedData.activeFunctionOutputs;
+        return this.mCachedData.activeFunctionOutputs;
     }
 
     /**
      * Get the active function's import list.
      */
     public get activeFunctionImports(): Array<string> {
-        void this.mCacheVersion;
-        return this.getInternals().cachedData.activeFunctionImports;
+        return this.mCachedData.activeFunctionImports;
     }
 
     /**
      * Whether the active function is a system function.
      */
     public get activeFunctionIsSystem(): boolean {
-        void this.mCacheVersion;
-        return this.getInternals().cachedData.activeFunctionIsSystem;
+        return this.mCachedData.activeFunctionIsSystem;
     }
 
     /**
      * Whether the active function's definition is editable by the user.
      */
     public get activeFunctionEditableByUser(): boolean {
-        void this.mCacheVersion;
-        return this.getInternals().cachedData.activeFunctionEditableByUser;
+        return this.mCachedData.activeFunctionEditableByUser;
     }
 
     /**
      * Get the list of available import names.
      */
     public get availableImportsList(): Array<string> {
-        void this.mCacheVersion;
-        return this.getInternals().cachedData.availableImports;
+        return this.mCachedData.availableImports;
     }
 
     /**
      * Get the list of all available port types.
      */
     public get availableTypes(): Array<string> {
-        void this.mCacheVersion;
-        return this.getInternals().cachedData.availableTypes;
+        return this.mCachedData.availableTypes;
     }
 
-    // ============================================================
-    // Private Store Helpers
-    // ============================================================
-
     /**
-     * Get the raw (non-proxied) project instance from the module-level store.
+     * Get the preview element for a specific node (used by template binding).
      */
-    private getProject(): PotatnoProject {
-        return gStore.getProject(this.mInstanceKey)!;
+    public getPreviewElementForNode(pNodeId: string): HTMLElement | null {
+        return this.mInternals.previewElements.get(pNodeId) ?? null;
     }
 
     /**
-     * Get the raw (non-proxied) file instance from the module-level store.
-     */
-    private getFile(): PotatnoCodeFile {
-        return gStore.getFile(this.mInstanceKey)!;
-    }
-
-    /**
-     * Get the raw (non-proxied) selection set from the module-level store.
-     */
-    private getSelectedIds(): Set<string> {
-        return gStore.getSelection(this.mInstanceKey)!;
-    }
-
-    /**
-     * Get the raw (non-proxied) internals from the module-level store.
-     */
-    private getInternals(): EditorInternals {
-        return gStore.getInternals(this.mInstanceKey)!;
-    }
-
-    /**
-     * Constructor. Initializes internal stores and default state.
+     * Constructor. Initializes internal state.
      */
     public constructor() {
-        super();
-        this.mInstanceKey = crypto.randomUUID();
-        gStore.setSelection(this.mInstanceKey, new Set<string>());
-        gStore.setInternals(this.mInstanceKey, {
+        this.mInternals = {
             history: new PotatnoHistory(),
             clipboard: new PotatnoClipboard(),
             interaction: new PotatnoCanvasInteraction(20),
@@ -444,31 +356,29 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             previewInitialized: false,
             previewElements: new Map(),
             previewDataCache: new Map(),
-            cachedData: {
-                activeFunctionId: '',
-                activeFunctionName: '',
-                activeFunctionIsSystem: false,
-                activeFunctionEditableByUser: false,
-                errors: [],
-                hasPreview: false,
-                nodeDefinitionList: [],
-                functionList: [],
-                availableImports: [],
-                availableTypes: [],
-                activeFunctionInputs: [],
-                activeFunctionOutputs: [],
-                activeFunctionImports: [],
-                visibleNodes: []
-            }
-        });
-        this.mShowSelectionBox = false;
+        };
+        this.mCachedData = {
+            activeFunctionId: '',
+            activeFunctionName: '',
+            activeFunctionIsSystem: false,
+            activeFunctionEditableByUser: false,
+            errors: [],
+            hasPreview: false,
+            nodeDefinitionList: [],
+            functionList: [],
+            availableImports: [],
+            availableTypes: [],
+            activeFunctionInputs: [],
+            activeFunctionOutputs: [],
+            activeFunctionImports: [],
+            visibleNodes: []
+        };
         this.mSelectionBoxScreen = { x1: 0, y1: 0, x2: 0, y2: 0 };
         this.mPreviewDebounceTimer = 0;
         this.mKeyboardHandler = null;
         this.mResizeState = null;
         this.mResizeMoveHandler = null;
         this.mResizeUpHandler = null;
-        this.mCacheVersion = 0;
     }
 
     // ============================================================
@@ -482,13 +392,13 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      */
     @PwbExport
     public loadCode(pCode: string): void {
-        const lProject: PotatnoProject = this.getProject();
+        const lProject: PotatnoProject = this.mProject!;
         const lDeserializer: PotatnoDeserializer = new PotatnoDeserializer(lProject);
         const lNewFile: PotatnoCodeFile = lDeserializer.deserialize(pCode);
-        gStore.setFile(this.mInstanceKey, lNewFile);
-        this.getInternals().history.clear();
-        this.getSelectedIds().clear();
-        this.getInternals().previewInitialized = false;
+        this.mFile = lNewFile;
+        this.mInternals.history.clear();
+        this.mSelectedIds.clear();
+        this.mInternals.previewInitialized = false;
         this.rebuildCachedData();
         this.renderConnections();
         this.initializePreview();
@@ -502,8 +412,8 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      */
     @PwbExport
     public generateCode(): string {
-        const lProject: PotatnoProject = this.getProject();
-        const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+        const lProject: PotatnoProject = this.mProject!;
+        const lFile: PotatnoCodeFile | undefined = this.mFile;
         if (!lFile) {
             return '';
         }
@@ -530,7 +440,6 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         if (this.mKeyboardHandler) {
             document.removeEventListener('keydown', this.mKeyboardHandler);
         }
-        gStore.deleteAll(this.mInstanceKey);
     }
 
     // ============================================================
@@ -544,8 +453,8 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      */
     public onNodeDragFromLibrary(pEvent: any): void {
         const lDefName: string = pEvent.value ?? pEvent.detail?.value ?? pEvent;
-        const lProject: PotatnoProject = this.getProject();
-        const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+        const lProject: PotatnoProject = this.mProject!;
+        const lFile: PotatnoCodeFile | undefined = this.mFile;
         if (!lFile) {
             return;
         }
@@ -599,7 +508,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         }
 
         // Place at center of visible area.
-        const lInternals: EditorInternals = this.getInternals();
+        const lInternals: EditorInternals = this.mInternals;
         const lWrapper: HTMLElement = this.canvasWrapper;
         const lWidth: number = lWrapper ? lWrapper.clientWidth || 800 : 800;
         const lHeight: number = lWrapper ? lWrapper.clientHeight || 600 : 600;
@@ -620,12 +529,12 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      */
     public onFunctionSelect(pEvent: any): void {
         const lFuncId: string = pEvent.value ?? pEvent.detail?.value ?? pEvent;
-        const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+        const lFile: PotatnoCodeFile | undefined = this.mFile;
         if (!lFile) {
             return;
         }
         lFile.setActiveFunction(lFuncId);
-        this.getSelectedIds().clear();
+        this.mSelectedIds.clear();
         this.rebuildCachedData();
         this.renderConnections();
     }
@@ -634,11 +543,11 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      * Handle adding a new user function.
      */
     public onFunctionAdd(): void {
-        const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+        const lFile: PotatnoCodeFile | undefined = this.mFile;
         if (!lFile) {
             return;
         }
-        const lCount: number = this.getInternals().cachedData.functionList.length;
+        const lCount: number = this.mCachedData.functionList.length;
         const lFunc: PotatnoFunction = new PotatnoFunction(
             crypto.randomUUID(),
             `function_${lCount}`,
@@ -647,7 +556,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         );
         lFile.addFunction(lFunc);
         lFile.setActiveFunction(lFunc.id);
-        this.getSelectedIds().clear();
+        this.mSelectedIds.clear();
         this.rebuildCachedData();
         this.renderConnections();
     }
@@ -659,12 +568,12 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      */
     public onFunctionDelete(pEvent: any): void {
         const lFuncId: string = pEvent.value ?? pEvent.detail?.value ?? pEvent;
-        const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+        const lFile: PotatnoCodeFile | undefined = this.mFile;
         if (!lFile) {
             return;
         }
         lFile.removeFunction(lFuncId);
-        this.getSelectedIds().clear();
+        this.mSelectedIds.clear();
         this.rebuildCachedData();
         this.renderConnections();
         this.updatePreview();
@@ -680,7 +589,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      * @param pEvent - The event containing updated property data.
      */
     public onPropertiesChange(pEvent: any): void {
-        const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+        const lFile: PotatnoCodeFile | undefined = this.mFile;
         if (!lFile) {
             return;
         }
@@ -720,7 +629,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      * @param pEvent - The pointer event.
      */
     public onCanvasPointerDown(pEvent: PointerEvent): void {
-        const lInternals: EditorInternals = this.getInternals();
+        const lInternals: EditorInternals = this.mInternals;
 
         // Middle mouse: pan.
         if (pEvent.button === 1) {
@@ -733,7 +642,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         // Left mouse on background: start selection box.
         if (pEvent.button === 0) {
             if (!pEvent.ctrlKey) {
-                this.getSelectedIds().clear();
+                this.mSelectedIds.clear();
                 this.rebuildCachedData();
             }
             const lRect: DOMRect = this.canvasWrapper.getBoundingClientRect();
@@ -752,7 +661,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      * @param pEvent - The pointer event.
      */
     public onCanvasPointerMove(pEvent: PointerEvent): void {
-        const lInternals: EditorInternals = this.getInternals();
+        const lInternals: EditorInternals = this.mInternals;
         const lState: InteractionState = lInternals.interactionState;
 
         if (lState.mode === 'panning') {
@@ -761,12 +670,13 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             lInternals.interaction.pan(lDx, lDy);
             lState.startX = pEvent.clientX;
             lState.startY = pEvent.clientY;
+            this.mTransformVersion++;
             this.renderConnections();
             return;
         }
 
         if (lState.mode === 'dragging-node') {
-            const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+            const lFile: PotatnoCodeFile | undefined = this.mFile;
             if (!lFile) {
                 return;
             }
@@ -814,7 +724,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         }
 
         if (lState.mode === 'resizing-comment') {
-            const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+            const lFile: PotatnoCodeFile | undefined = this.mFile;
             if (!lFile) {
                 return;
             }
@@ -838,7 +748,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      * @param pEvent - The pointer event.
      */
     public onCanvasPointerUp(pEvent: PointerEvent): void {
-        const lInternals: EditorInternals = this.getInternals();
+        const lInternals: EditorInternals = this.mInternals;
 
         if (lInternals.interactionState.mode === 'dragging-node') {
             this.rebuildCachedData();
@@ -857,7 +767,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
                 if (lInternals.interactionState.direction !== lTarget.direction &&
                     lInternals.interactionState.portKind === lTarget.portKind) {
 
-                    const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+                    const lFile: PotatnoCodeFile | undefined = this.mFile;
                     const lGraph: PotatnoGraph | undefined = lFile?.activeFunction?.graph;
                     if (lGraph) {
                         const lKind: PortKind = lInternals.interactionState.portKind === 'data' ? PortKind.Data : PortKind.Flow;
@@ -911,7 +821,8 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         const lRect: DOMRect = this.canvasWrapper.getBoundingClientRect();
         const lMouseX: number = pEvent.clientX - lRect.left;
         const lMouseY: number = pEvent.clientY - lRect.top;
-        this.getInternals().interaction.zoomAt(lMouseX, lMouseY, pEvent.deltaY > 0 ? -0.1 : 0.1);
+        this.mInternals.interaction.zoomAt(lMouseX, lMouseY, pEvent.deltaY > 0 ? -0.1 : 0.1);
+        this.mTransformVersion++;
         this.renderConnections();
     }
 
@@ -929,7 +840,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         if (lTarget.hasAttribute?.('data-hit-area')) {
             const lConnectionId: string | null = lTarget.getAttribute('data-connection-id');
             if (lConnectionId) {
-                const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+                const lFile: PotatnoCodeFile | undefined = this.mFile;
                 const lGraph: PotatnoGraph | undefined = lFile?.activeFunction?.graph;
                 if (lGraph) {
                     lGraph.removeConnection(lConnectionId);
@@ -966,9 +877,9 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         }
 
         const lNodeId: string = pNodeRender.id;
-        const lInternals: EditorInternals = this.getInternals();
-        const lSelectedIds: Set<string> = this.getSelectedIds();
-        const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+        const lInternals: EditorInternals = this.mInternals;
+        const lSelectedIds: Set<string> = this.mSelectedIds;
+        const lFile: PotatnoCodeFile | undefined = this.mFile;
         if (!lFile) {
             return;
         }
@@ -1052,7 +963,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      */
     public onPortDragStart(pEvent: any): void {
         const lData = pEvent.value ?? pEvent.detail?.value ?? pEvent;
-        const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+        const lFile: PotatnoCodeFile | undefined = this.mFile;
         const lGraph: PotatnoGraph | undefined = lFile?.activeFunction?.graph;
         if (!lGraph) {
             return;
@@ -1063,7 +974,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             return;
         }
 
-        const lInternals: EditorInternals = this.getInternals();
+        const lInternals: EditorInternals = this.mInternals;
         const lGridSize: number = lInternals.interaction.gridSize;
         const lNodeX: number = lNode.position.x * lGridSize;
         const lNodeY: number = lNode.position.y * lGridSize;
@@ -1117,7 +1028,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      */
     public onPortHover(pEvent: any): void {
         const lData = pEvent.value ?? pEvent.detail?.value ?? pEvent;
-        this.getInternals().hoveredPort = {
+        this.mInternals.hoveredPort = {
             nodeId: lData.nodeId,
             portId: lData.portId,
             portKind: lData.portKind,
@@ -1130,7 +1041,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      * Clear the hovered port when the pointer leaves a port element.
      */
     public onPortLeave(): void {
-        this.getInternals().hoveredPort = null;
+        this.mInternals.hoveredPort = null;
     }
 
     /**
@@ -1141,13 +1052,13 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      */
     public onNodeResizeStart(pEvent: any, _pNodeRender: any): void {
         const lData = pEvent.value ?? pEvent.detail?.value ?? pEvent;
-        const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+        const lFile: PotatnoCodeFile | undefined = this.mFile;
         const lNode: PotatnoNode | undefined = lFile?.activeFunction?.graph.getNode(lData.nodeId);
         if (!lNode) {
             return;
         }
 
-        this.getInternals().interactionState = {
+        this.mInternals.interactionState = {
             mode: 'resizing-comment',
             nodeId: lData.nodeId,
             startX: lData.startX,
@@ -1165,11 +1076,11 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      */
     public onCommentChange(pEvent: any): void {
         const lData = pEvent.value ?? pEvent.detail?.value ?? pEvent;
-        const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+        const lFile: PotatnoCodeFile | undefined = this.mFile;
         const lNode: PotatnoNode | undefined = lFile?.activeFunction?.graph.getNode(lData.nodeId);
         if (lNode) {
             const lAction: PropertyChangeAction = new PropertyChangeAction(lNode, 'comment', lData.text);
-            this.getInternals().history.push(lAction);
+            this.mInternals.history.push(lAction);
             this.rebuildCachedData();
         }
     }
@@ -1181,11 +1092,11 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      */
     public onValueChange(pEvent: any): void {
         const lData = pEvent.value ?? pEvent.detail?.value ?? pEvent;
-        const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+        const lFile: PotatnoCodeFile | undefined = this.mFile;
         const lNode: PotatnoNode | undefined = lFile?.activeFunction?.graph.getNode(lData.nodeId);
         if (lNode) {
             const lAction: PropertyChangeAction = new PropertyChangeAction(lNode, lData.property, lData.value);
-            this.getInternals().history.push(lAction);
+            this.mInternals.history.push(lAction);
             this.rebuildCachedData();
             this.updatePreview();
         }
@@ -1208,7 +1119,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
 
         if (pEvent.ctrlKey && pEvent.key === 'z') {
             pEvent.preventDefault();
-            this.getInternals().history.undo();
+            this.mInternals.history.undo();
             this.rebuildCachedData();
             this.renderConnections();
             this.updatePreview();
@@ -1217,7 +1128,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
 
         if (pEvent.ctrlKey && (pEvent.key === 'y' || (pEvent.shiftKey && pEvent.key === 'z'))) {
             pEvent.preventDefault();
-            this.getInternals().history.redo();
+            this.mInternals.history.redo();
             this.rebuildCachedData();
             this.renderConnections();
             this.updatePreview();
@@ -1225,10 +1136,10 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         }
 
         if (pEvent.ctrlKey && pEvent.key === 'c') {
-            const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+            const lFile: PotatnoCodeFile | undefined = this.mFile;
             const lGraph: PotatnoGraph | undefined = lFile?.activeFunction?.graph;
             if (lGraph) {
-                this.getInternals().clipboard.copy(lGraph, this.getSelectedIds());
+                this.mInternals.clipboard.copy(lGraph, this.mSelectedIds);
             }
             return;
         }
@@ -1361,14 +1272,14 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      * Delete all currently selected nodes.
      */
     private deleteSelectedNodes(): void {
-        const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+        const lFile: PotatnoCodeFile | undefined = this.mFile;
         const lGraph: PotatnoGraph | undefined = lFile?.activeFunction?.graph;
         if (!lGraph) {
             return;
         }
 
         const lActions: Array<PotatnoHistoryAction> = [];
-        for (const lNodeId of this.getSelectedIds()) {
+        for (const lNodeId of this.mSelectedIds) {
             const lNode: PotatnoNode | undefined = lGraph.getNode(lNodeId);
             if (lNode && !lNode.system) {
                 lActions.push(new NodeRemoveAction(lGraph, lNodeId));
@@ -1376,8 +1287,8 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         }
 
         if (lActions.length > 0) {
-            this.getInternals().history.push(new CompositeAction('Delete nodes', lActions));
-            this.getSelectedIds().clear();
+            this.mInternals.history.push(new CompositeAction('Delete nodes', lActions));
+            this.mSelectedIds.clear();
             this.rebuildCachedData();
             this.renderConnections();
             this.updatePreview();
@@ -1388,14 +1299,14 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      * Paste nodes from the clipboard into the active function's graph.
      */
     private pasteFromClipboard(): void {
-        const lInternals: EditorInternals = this.getInternals();
+        const lInternals: EditorInternals = this.mInternals;
         const lData = lInternals.clipboard.getData();
         if (!lData) {
             return;
         }
 
-        const lProject: PotatnoProject = this.getProject();
-        const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+        const lProject: PotatnoProject = this.mProject!;
+        const lFile: PotatnoCodeFile | undefined = this.mFile;
         const lGraph: PotatnoGraph | undefined = lFile?.activeFunction?.graph;
         if (!lGraph) {
             return;
@@ -1474,10 +1385,10 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             }
 
             // Select pasted nodes.
-            this.getSelectedIds().clear();
+            this.mSelectedIds.clear();
             for (const lAction of lAddActions) {
                 if (lAction.node) {
-                    this.getSelectedIds().add(lAction.node.id);
+                    this.mSelectedIds.add(lAction.node.id);
                 }
             }
 
@@ -1491,13 +1402,13 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      * Select all nodes that fall within the current selection box.
      */
     private selectNodesInBox(): void {
-        const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+        const lFile: PotatnoCodeFile | undefined = this.mFile;
         const lGraph: PotatnoGraph | undefined = lFile?.activeFunction?.graph;
         if (!lGraph) {
             return;
         }
 
-        const lInternals: EditorInternals = this.getInternals();
+        const lInternals: EditorInternals = this.mInternals;
 
         const lTopLeft = lInternals.interaction.screenToWorld(
             Math.min(this.mSelectionBoxScreen.x1, this.mSelectionBoxScreen.x2),
@@ -1517,7 +1428,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             const lNodeBottom: number = lNodeY + lNode.size.h * lGridSize;
 
             if (lNodeX < lBottomRight.x && lNodeRight > lTopLeft.x && lNodeY < lBottomRight.y && lNodeBottom > lTopLeft.y) {
-                this.getSelectedIds().add(lNode.id);
+                this.mSelectedIds.add(lNode.id);
             }
         }
         this.rebuildCachedData();
@@ -1531,14 +1442,14 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             return;
         }
 
-        const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+        const lFile: PotatnoCodeFile | undefined = this.mFile;
         const lGraph: PotatnoGraph | undefined = lFile?.activeFunction?.graph;
         if (!lGraph) {
-            this.getInternals().renderer.clearAll(this.svgLayer);
+            this.mInternals.renderer.clearAll(this.svgLayer);
             return;
         }
 
-        const lInternals: EditorInternals = this.getInternals();
+        const lInternals: EditorInternals = this.mInternals;
         const lGridSize: number = lInternals.interaction.gridSize;
         const lHeaderHeight: number = 28;
         const lPortGap: number = 24;
@@ -1614,17 +1525,17 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      * and the project has a createPreview callback.
      */
     private initializePreview(): void {
-        const lProject: PotatnoProject | undefined = gStore.getProject(this.mInstanceKey);
+        const lProject: PotatnoProject | undefined = this.mProject;
         if (!lProject) {
             return;
         }
 
-        const lCreateCallback = lProject.createPreview;
+        const lCreateCallback = lProject.entryPoint.preview?.generatePreview;
         if (!lCreateCallback) {
             return;
         }
 
-        const lInternals: EditorInternals = this.getInternals();
+        const lInternals: EditorInternals = this.mInternals;
         if (lInternals.previewInitialized) {
             return;
         }
@@ -1642,24 +1553,24 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      * Uses the updatePreview callback from the project configuration.
      */
     private updatePreview(): void {
-        const lProject: PotatnoProject | undefined = gStore.getProject(this.mInstanceKey);
+        const lProject: PotatnoProject | undefined = this.mProject;
         if (!lProject) {
             return;
         }
 
-        const lUpdateCallback = lProject.updatePreview;
+        const lUpdateCallback = lProject.entryPoint.preview?.updatePreview;
         if (!lUpdateCallback) {
             return;
         }
 
-        const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+        const lFile: PotatnoCodeFile | undefined = this.mFile;
         if (!lFile) {
             return;
         }
 
         // Check if there are errors, don't generate code.
         // Note: unconnected input warnings are not blocking errors.
-        const lCachedData: CachedViewData = this.getInternals().cachedData;
+        const lCachedData: CachedViewData = this.mCachedData;
         const lHasBlockingErrors: boolean = lCachedData.errors.some(
             (e: { message: string; location: string; blocking?: boolean; }) => (e as any).blocking !== false
         );
@@ -1711,13 +1622,13 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      * @param pNodeId - The identifier of the node to update.
      */
     private updateNodePosition(pNodeId: string): void {
-        const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+        const lFile: PotatnoCodeFile | undefined = this.mFile;
         const lNode: PotatnoNode | undefined = lFile?.activeFunction?.graph.getNode(pNodeId);
         if (!lNode) {
             return;
         }
-        const lGridSize: number = this.getInternals().interaction.gridSize;
-        for (const lCachedNode of this.getInternals().cachedData.visibleNodes) {
+        const lGridSize: number = this.mInternals.interaction.gridSize;
+        for (const lCachedNode of this.mCachedData.visibleNodes) {
             if (lCachedNode.id === pNodeId) {
                 lCachedNode.position = { x: lNode.position.x, y: lNode.position.y };
                 lCachedNode.pixelX = lNode.position.x * lGridSize;
@@ -1725,6 +1636,8 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
                 break;
             }
         }
+        // Trigger re-render with updated node position.
+        this.mCachedData = this.mCachedData;
     }
 
     /**
@@ -1733,17 +1646,19 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      * @param pNodeId - The identifier of the node to update.
      */
     private updateNodeSize(pNodeId: string): void {
-        const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+        const lFile: PotatnoCodeFile | undefined = this.mFile;
         const lNode: PotatnoNode | undefined = lFile?.activeFunction?.graph.getNode(pNodeId);
         if (!lNode) {
             return;
         }
-        for (const lCachedNode of this.getInternals().cachedData.visibleNodes) {
+        for (const lCachedNode of this.mCachedData.visibleNodes) {
             if (lCachedNode.id === pNodeId) {
                 lCachedNode.size = { w: lNode.size.w, h: lNode.size.h };
                 break;
             }
         }
+        // Trigger re-render with updated node size.
+        this.mCachedData = this.mCachedData;
     }
 
     /**
@@ -1753,7 +1668,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      */
     private validateProject(): Array<{ message: string; location: string; }> {
         const lErrors: Array<{ message: string; location: string; }> = [];
-        const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+        const lFile: PotatnoCodeFile | undefined = this.mFile;
         if (!lFile) {
             return lErrors;
         }
@@ -1824,20 +1739,34 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
     }
 
     /**
-     * Rebuild all cached view data. Writes to the unproxied module-level
-     * store, then increments mCacheVersion ONCE to trigger exactly one
-     * PWB update cycle.
+     * Rebuild all cached view data and assign to the state property
+     * to trigger exactly one re-render.
      */
     private rebuildCachedData(): void {
-        const lProject: PotatnoProject | undefined = gStore.getProject(this.mInstanceKey);
-        const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
-        const lCached: CachedViewData = this.getInternals().cachedData;
+        const lProject: PotatnoProject | undefined = this.mProject;
+        const lFile: PotatnoCodeFile | undefined = this.mFile;
+        const lCached: CachedViewData = {
+            activeFunctionId: '',
+            activeFunctionName: '',
+            activeFunctionIsSystem: false,
+            activeFunctionEditableByUser: false,
+            errors: [],
+            hasPreview: false,
+            nodeDefinitionList: [],
+            functionList: [],
+            availableImports: [],
+            availableTypes: [],
+            activeFunctionInputs: [],
+            activeFunctionOutputs: [],
+            activeFunctionImports: [],
+            visibleNodes: []
+        };
 
         // Active function ID.
         lCached.activeFunctionId = lFile?.activeFunctionId ?? '';
 
         // Preview availability.
-        lCached.hasPreview = lProject?.hasPreview ?? false;
+        lCached.hasPreview = !!lProject?.entryPoint.preview;
 
         // Validate and cache errors.
         lCached.errors = this.validateProject();
@@ -1956,7 +1885,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
                     position: { x: lNode.position.x, y: lNode.position.y },
                     size: { w: lNode.size.w, h: lNode.size.h },
                     system: lNode.system,
-                    selected: this.getSelectedIds().has(lNode.id),
+                    selected: this.mSelectedIds.has(lNode.id),
                     inputs: lInputs,
                     outputs: lOutputs,
                     flowInputs: lFlowIns,
@@ -1964,20 +1893,18 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
                     valueText: lNode.properties.get('value') ?? '',
                     commentText: lNode.properties.get('comment') ?? '',
                     hasDefinition: !!lDef,
-                    pixelX: lNode.position.x * this.getInternals().interaction.gridSize,
-                    pixelY: lNode.position.y * this.getInternals().interaction.gridSize,
+                    pixelX: lNode.position.x * this.mInternals.interaction.gridSize,
+                    pixelY: lNode.position.y * this.mInternals.interaction.gridSize,
                 });
 
-                // Store preview element outside PWB proxy to avoid wrapping HTMLElement.
-                setNodePreviewElement(lNode.id, this.getOrCreatePreviewElement(lNode.id, lDef));
+                // Store preview element for the node component to pick up via template binding.
+                this.getOrCreatePreviewElement(lNode.id, lDef);
             }
             lCached.visibleNodes = lNodes;
-        } else {
-            lCached.visibleNodes = [];
         }
 
-        // Trigger exactly ONE PWB update by incrementing the tracked counter.
-        this.mCacheVersion++;
+        // Assign to state property to trigger re-render.
+        this.mCachedData = lCached;
     }
 
     /**
@@ -1994,7 +1921,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
             return null;
         }
 
-        const lInternals: EditorInternals = this.getInternals();
+        const lInternals: EditorInternals = this.mInternals;
         const lExisting: HTMLElement | undefined = lInternals.previewElements.get(pNodeId);
         if (lExisting) {
             return lExisting;
@@ -2015,8 +1942,8 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
      * @returns The computed preview data map, or null if evaluation could not proceed.
      */
     public evaluatePreview(pEntryData: Record<string, Record<string, unknown>>, pUpdateElements: boolean = true): Map<string, NodePreviewData> | null {
-        const lProject: PotatnoProject | undefined = gStore.getProject(this.mInstanceKey);
-        const lFile: PotatnoCodeFile | undefined = gStore.getFile(this.mInstanceKey);
+        const lProject: PotatnoProject | undefined = this.mProject;
+        const lFile: PotatnoCodeFile | undefined = this.mFile;
         const lGraph = lFile?.activeFunction?.graph;
 
         if (!lProject || !lGraph) {
@@ -2027,7 +1954,7 @@ export class PotatnoCodeEditor extends Processor implements IComponentOnConnect,
         const lPreviewData: Map<string, NodePreviewData> = PotatnoPreviewEvaluator.evaluate(lProject, lGraph, pEntryData);
 
         // Store in cache.
-        const lInternals: EditorInternals = this.getInternals();
+        const lInternals: EditorInternals = this.mInternals;
         lInternals.previewDataCache = lPreviewData;
 
         // Update inline preview elements if requested.

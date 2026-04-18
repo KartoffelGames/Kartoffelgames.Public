@@ -1,6 +1,6 @@
-import { PwbComponent, Processor, PwbExport, PwbComponentEvent, ComponentEventEmitter } from '@kartoffelgames/web-potato-web-builder';
-import templateCss from './potatno-resize-handle.css';
-import resizeTemplate from './potatno-resize-handle.html';
+import { PwbComponent, PwbExport, PwbComponentEvent, ComponentEventEmitter, ComponentState } from '@kartoffelgames/web-potato-web-builder';
+import templateCss from './potatno-resize-handle.css' with { type: 'text' };
+import resizeTemplate from './potatno-resize-handle.html' with { type: 'text' };
 
 /**
  * Resize handle component for the potatno-code visual editor.
@@ -11,14 +11,15 @@ import resizeTemplate from './potatno-resize-handle.html';
     template: resizeTemplate,
     style: templateCss,
 })
-export class PotatnoResizeHandle extends Processor {
+export class PotatnoResizeHandle {
     /**
      * Orientation of the resize handle.
      * "vertical" renders a thin vertical bar (for horizontal resizing).
      * "horizontal" renders a thin horizontal bar (for vertical resizing).
      */
     @PwbExport
-    public direction: 'vertical' | 'horizontal' = 'vertical';
+    @ComponentState.state()
+    public accessor direction: 'vertical' | 'horizontal' = 'vertical';
 
     @PwbComponentEvent('resize')
     private accessor mResize!: ComponentEventEmitter<{ delta: number }>;

@@ -1,28 +1,11 @@
-import { PwbComponent, Processor, PwbExport, PwbComponentEvent, PwbChild, ComponentEventEmitter } from '@kartoffelgames/web-potato-web-builder';
+import { PwbComponent, PwbExport, PwbComponentEvent, PwbChild, ComponentEventEmitter, ComponentState } from '@kartoffelgames/web-potato-web-builder';
 import type { ComponentEvent, IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import { NodeCategory } from '../../../node/node-category.enum.ts';
-import nodeCss from './potatno-node-component.css';
-import nodeTemplate from './potatno-node-component.html';
+import nodeCss from './potatno-node-component.css' with { type: 'text' };
+import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
 
 // Ensure the port component is registered before the node template is processed.
 import '../potatno_port/potatno-port.ts';
-
-/**
- * Module-level store for node preview elements, kept outside PWB's deep proxy
- * to avoid wrapping HTMLElement instances (which breaks appendChild).
- */
-const gNodePreviewElements: Map<string, HTMLElement> = new Map();
-
-/**
- * Set a preview element for a node. Called by the editor when building render data.
- */
-export function setNodePreviewElement(pNodeId: string, pElement: HTMLElement | null): void {
-    if (pElement) {
-        gNodePreviewElements.set(pNodeId, pElement);
-    } else {
-        gNodePreviewElements.delete(pNodeId);
-    }
-}
 
 /**
  * Plain render data for a node, pre-computed by the parent editor.
@@ -124,7 +107,7 @@ type ResizeStartDetail = {
     template: nodeTemplate,
     style: nodeCss,
 })
-export class PotatnoNodeComponent extends Processor implements IComponentOnUpdate {
+export class PotatnoNodeComponent implements IComponentOnUpdate {
     // ── Exported properties ─────────────────────────────────────────────
 
     /**
@@ -133,19 +116,28 @@ export class PotatnoNodeComponent extends Processor implements IComponentOnUpdat
      * component's getters.
      */
     @PwbExport
-    public nodeData: NodeRenderData | null = null;
+    @ComponentState.state()
+    public accessor nodeData: NodeRenderData | null = null;
 
     /**
      * Whether this node is currently selected.
      */
     @PwbExport
-    public selected: boolean = false;
+    @ComponentState.state()
+    public accessor selected: boolean = false;
 
     /**
      * Grid size in pixels. Used to convert grid-unit positions to pixel values.
      */
     @PwbExport
-    public gridSize: number = 20;
+    @ComponentState.state()
+    public accessor gridSize: number = 20;
+
+    /**
+     * Preview element to display inline. Set by the parent editor via template binding.
+     */
+    @PwbExport
+    public previewElement: HTMLElement | null = null;
 
     /**
      * Reference to the preview container element inside the node.
@@ -315,8 +307,7 @@ export class PotatnoNodeComponent extends Processor implements IComponentOnUpdat
      * Whether this node has a preview element to display inline.
      */
     public get hasPreviewElement(): boolean {
-        const lNodeId: string | undefined = this.nodeData?.id;
-        return !!lNodeId && gNodePreviewElements.has(lNodeId);
+        return !!this.previewElement;
     }
 
     // ── Lifecycle ───────────────────────────────────────────────────────
@@ -325,12 +316,7 @@ export class PotatnoNodeComponent extends Processor implements IComponentOnUpdat
      * After each update cycle, ensure the preview element is appended to the container.
      */
     public onUpdate(): void {
-        const lNodeId: string | undefined = this.nodeData?.id;
-        if (!lNodeId) {
-            return;
-        }
-
-        const lPreviewEl: HTMLElement | undefined = gNodePreviewElements.get(lNodeId);
+        const lPreviewEl: HTMLElement | null = this.previewElement;
         if (!lPreviewEl) {
             return;
         }

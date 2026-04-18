@@ -1,6 +1,6 @@
-import { PwbComponent, Processor, PwbExport, PwbComponentEvent, ComponentEventEmitter, PwbChild } from '@kartoffelgames/web-potato-web-builder';
-import portCss from './potatno-port.css';
-import portTemplate from './potatno-port.html';
+import { PwbComponent, PwbExport, PwbComponentEvent, ComponentEventEmitter, PwbChild, ComponentState } from '@kartoffelgames/web-potato-web-builder';
+import portCss from './potatno-port.css' with { type: 'text' };
+import portTemplate from './potatno-port.html' with { type: 'text' };
 
 /**
  * Detail payload emitted on port drag start.
@@ -24,54 +24,62 @@ type PortDragStartDetail = {
     template: portTemplate,
     style: portCss,
 })
-export class PotatnoPortComponent extends Processor {
+export class PotatnoPortComponent {
     /**
      * Display name of the port.
      */
     @PwbExport
-    public name: string = '';
+    @ComponentState.state()
+    public accessor name: string = '';
 
     /**
      * Data type of the port (empty for flow ports).
      */
     @PwbExport
-    public type: string = '';
+    @ComponentState.state()
+    public accessor type: string = '';
 
     /**
      * Unique identifier for this port instance.
      */
     @PwbExport
-    public portId: string = '';
+    @ComponentState.state()
+    public accessor portId: string = '';
 
     /**
      * Identifier of the node that owns this port.
      */
     @PwbExport
-    public nodeId: string = '';
+    @ComponentState.state()
+    public accessor nodeId: string = '';
 
     /**
      * Direction of the port: 'input' or 'output'.
      */
     @PwbExport
-    public direction: string = 'input';
+    @ComponentState.state()
+    public accessor direction: string = 'input';
 
     /**
      * Whether this port currently has a connection.
      */
     @PwbExport
-    public connected: boolean = false;
+    @ComponentState.state()
+    public accessor connected: boolean = false;
 
     /**
      * Whether this port is in an invalid state (type mismatch, etc.).
      */
     @PwbExport
-    public invalid: boolean = false;
+    @ComponentState.state()
+    public accessor invalid: boolean = false;
 
     /**
      * Kind of port: 'data' or 'flow'.
      */
     @PwbExport
-    public portKind: string = 'data';
+    @ComponentState.state()
+    public accessor portKind: string = 'data';
 
     @PwbComponentEvent('port-drag-start')
     private accessor mPortDragStart!: ComponentEventEmitter<PortDragStartDetail>;

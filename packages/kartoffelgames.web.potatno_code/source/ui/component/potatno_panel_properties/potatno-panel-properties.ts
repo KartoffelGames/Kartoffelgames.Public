@@ -1,6 +1,6 @@
-import { PwbComponent, Processor, PwbExport, PwbComponentEvent, ComponentEventEmitter } from '@kartoffelgames/web-potato-web-builder';
-import templateCss from './potatno-panel-properties.css';
-import propertiesTemplate from './potatno-panel-properties.html';
+import { PwbComponent, PwbExport, PwbComponentEvent, ComponentEventEmitter, ComponentState } from '@kartoffelgames/web-potato-web-builder';
+import templateCss from './potatno-panel-properties.css' with { type: 'text' };
+import propertiesTemplate from './potatno-panel-properties.html' with { type: 'text' };
 
 /**
  * Port definition for function inputs and outputs.
@@ -29,26 +29,30 @@ interface PropertiesChangePayload {
     template: propertiesTemplate,
     style: templateCss,
 })
-export class PotatnoPanelProperties extends Processor {
+export class PotatnoPanelProperties {
     /**
      * The name of the function being edited.
      */
     @PwbExport
-    public functionName: string = '';
+    @ComponentState.state()
+    public accessor functionName: string = '';
 
     /**
      * Input port definitions for the function.
      */
     @PwbExport
-    public functionInputs: Array<PortEntry> = [];
+    @ComponentState.state()
+    public accessor functionInputs: Array<PortEntry> = [];
 
     /**
      * Output port definitions for the function.
      */
     @PwbExport
-    public functionOutputs: Array<PortEntry> = [];
+    @ComponentState.state()
+    public accessor functionOutputs: Array<PortEntry> = [];
 
-    private mFunctionImports: Array<string> = [];
+    @ComponentState.state()
+    private accessor mFunctionImports: Array<string> = [];
 
     /**
      * Import names used by the function.
@@ -70,13 +74,15 @@ export class PotatnoPanelProperties extends Processor {
      * Whether the function is a system function (non-editable).
      */
     @PwbExport
-    public isSystem: boolean = false;
+    @ComponentState.state()
+    public accessor isSystem: boolean = false;
 
     /**
      * Whether the system function allows user editing of ports/imports.
      */
     @PwbExport
-    public editableByUser: boolean = false;
+    @ComponentState.state()
+    public accessor editableByUser: boolean = false;
 
     /**
      * Whether the function name input should be disabled.
@@ -94,7 +100,8 @@ export class PotatnoPanelProperties extends Processor {
         return this.isSystem && !this.editableByUser;
     }
 
-    private mAvailableImports: Array<string> = [];
+    @ComponentState.state()
+    private accessor mAvailableImports: Array<string> = [];
 
     /**
      * Available import names that can be added.
@@ -112,7 +119,8 @@ export class PotatnoPanelProperties extends Processor {
         return this.mAvailableImports;
     }
 
-    private mAvailableTypes: Array<string> = [];
+    @ComponentState.state()
+    private accessor mAvailableTypes: Array<string> = [];
 
     /**
      * Available port types that can be selected.
@@ -129,7 +137,8 @@ export class PotatnoPanelProperties extends Processor {
         return this.mAvailableTypes;
     }
 
-    private mCachedUnusedImports: Array<string> = [];
+    @ComponentState.state()
+    private accessor mCachedUnusedImports: Array<string> = [];
     private mSelectedImport: string = '';
 
     /**

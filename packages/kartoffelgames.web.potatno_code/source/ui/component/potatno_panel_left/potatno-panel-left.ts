@@ -1,6 +1,6 @@
-import { PwbComponent, Processor, PwbExport, PwbComponentEvent, ComponentEventEmitter, ComponentEvent } from '@kartoffelgames/web-potato-web-builder';
-import templateCss from './potatno-panel-left.css';
-import panelLeftTemplate from './potatno-panel-left.html';
+import { PwbComponent, PwbExport, PwbComponentEvent, ComponentEventEmitter, ComponentEvent, ComponentState } from '@kartoffelgames/web-potato-web-builder';
+import templateCss from './potatno-panel-left.css' with { type: 'text' };
+import panelLeftTemplate from './potatno-panel-left.html' with { type: 'text' };
 
 // Import child components to ensure they are registered.
 import '../potatno_node_library/potatno-node-library.ts';
@@ -33,24 +33,27 @@ interface FunctionEntry {
     template: panelLeftTemplate,
     style: templateCss,
 })
-export class PotatnoPanelLeft extends Processor {
+export class PotatnoPanelLeft {
     /**
      * Node definitions to display in the Nodes tab.
      */
     @PwbExport
-    public nodeDefinitions: Array<NodeDefinitionEntry> = [];
+    @ComponentState.state()
+    public accessor nodeDefinitions: Array<NodeDefinitionEntry> = [];
 
     /**
      * Function entries to display in the Functions tab.
      */
     @PwbExport
-    public functions: Array<FunctionEntry> = [];
+    @ComponentState.state()
+    public accessor functions: Array<FunctionEntry> = [];
 
     /**
      * ID of the currently active function (passed to function list).
      */
     @PwbExport
-    public activeFunctionId: string = '';
+    @ComponentState.state()
+    public accessor activeFunctionId: string = '';
 
     /**
      * Event emitted when a node drag starts from the library.
@@ -76,7 +79,8 @@ export class PotatnoPanelLeft extends Processor {
     @PwbComponentEvent('function-delete')
     private accessor mFunctionDelete!: ComponentEventEmitter<string>;
 
-    private mActiveTabIndex: number = 0;
+    @ComponentState.state()
+    private accessor mActiveTabIndex: number = 0;
 
     /**
      * Get the active tab index.

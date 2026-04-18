@@ -1,6 +1,6 @@
-import { PwbComponent, Processor, PwbExport, PwbComponentEvent, ComponentEventEmitter } from '@kartoffelgames/web-potato-web-builder';
-import templateCss from './potatno-function-list.css';
-import functionListTemplate from './potatno-function-list.html';
+import { PwbComponent, PwbExport, PwbComponentEvent, ComponentEventEmitter, ComponentState } from '@kartoffelgames/web-potato-web-builder';
+import templateCss from './potatno-function-list.css' with { type: 'text' };
+import functionListTemplate from './potatno-function-list.html' with { type: 'text' };
 
 /**
  * Function entry displayed in the function list.
@@ -21,18 +21,20 @@ interface FunctionListEntry {
     template: functionListTemplate,
     style: templateCss,
 })
-export class PotatnoFunctionList extends Processor {
+export class PotatnoFunctionList {
     /**
      * Array of function entries to display.
      */
     @PwbExport
-    public functions: Array<FunctionListEntry> = [];
+    @ComponentState.state()
+    public accessor functions: Array<FunctionListEntry> = [];
 
     /**
      * ID of the currently active (selected) function.
      */
     @PwbExport
-    public activeFunctionId: string = '';
+    @ComponentState.state()
+    public accessor activeFunctionId: string = '';
 
     /**
      * Event emitted when a function is selected.

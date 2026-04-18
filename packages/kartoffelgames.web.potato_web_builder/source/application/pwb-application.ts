@@ -36,7 +36,7 @@ export class PwbApplication {
      * 
      * @param pConfiguration - Application configuration.
      */
-    private constructor() {
+    protected constructor() {
         // Create list of all content.
         this.mContent = new Array<Component>();
 

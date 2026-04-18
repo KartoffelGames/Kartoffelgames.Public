@@ -1,6 +1,6 @@
-import { PwbComponent, Processor, PwbExport, PwbComponentEvent, ComponentEventEmitter } from '@kartoffelgames/web-potato-web-builder';
-import templateCss from './potatno-search-input.css';
-import searchInputTemplate from './potatno-search-input.html';
+import { PwbComponent, PwbExport, PwbComponentEvent, ComponentEventEmitter, ComponentState } from '@kartoffelgames/web-potato-web-builder';
+import templateCss from './potatno-search-input.css' with { type: 'text' };
+import searchInputTemplate from './potatno-search-input.html' with { type: 'text' };
 
 /**
  * Search input component for the potatno-code visual editor.
@@ -11,18 +11,20 @@ import searchInputTemplate from './potatno-search-input.html';
     template: searchInputTemplate,
     style: templateCss,
 })
-export class PotatnoSearchInput extends Processor {
+export class PotatnoSearchInput {
     /**
      * Placeholder text displayed when the input is empty.
      */
     @PwbExport
-    public placeholder: string = 'Search...';
+    @ComponentState.state()
+    public accessor placeholder: string = 'Search...';
 
     /**
      * Current value of the search input.
      */
     @PwbExport
-    public value: string = '';
+    @ComponentState.state()
+    public accessor value: string = '';
 
     @PwbComponentEvent('search-change')
     private accessor mSearchChange!: ComponentEventEmitter<string>;

@@ -1,6 +1,6 @@
-import { PwbComponent, Processor, PwbExport, PwbChild } from '@kartoffelgames/web-potato-web-builder';
-import templateCss from './potatno-preview.css';
-import previewTemplate from './potatno-preview.html';
+import { PwbComponent, PwbExport, PwbChild, ComponentState } from '@kartoffelgames/web-potato-web-builder';
+import templateCss from './potatno-preview.css' with { type: 'text' };
+import previewTemplate from './potatno-preview.html' with { type: 'text' };
 
 /**
  * Preview component for the potatno-code visual editor.
@@ -11,7 +11,7 @@ import previewTemplate from './potatno-preview.html';
     template: previewTemplate,
     style: templateCss,
 })
-export class PotatnoPreview extends Processor {
+export class PotatnoPreview {
     /**
      * Reference to the content container element.
      */
@@ -29,7 +29,8 @@ export class PotatnoPreview extends Processor {
      * List of validation errors to display instead of the code preview.
      */
     @PwbExport
-    public errors: Array<{ message: string; location: string }> = [];
+    @ComponentState.state()
+    public accessor errors: Array<{ message: string; location: string }> = [];
 
     /**
      * Whether there are any validation errors to display.

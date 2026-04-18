@@ -30,6 +30,7 @@
                                 [nodeData]="this.nodeRender"
                                 [selected]="this.nodeRender.selected"
                                 [gridSize]="this.interaction.gridSize"
+                                [previewElement]="this.getPreviewElementForNode(this.nodeRender.id)"
                                 (pointerdown)="this.onNodePointerDown($event, this.nodeRender)"
                                 (port-drag-start)="this.onPortDragStart($event)"
                                 (port-hover)="this.onPortHover($event)"

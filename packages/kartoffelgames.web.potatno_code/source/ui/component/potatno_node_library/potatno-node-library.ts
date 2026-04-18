@@ -1,7 +1,7 @@
-import { PwbComponent, Processor, PwbExport, PwbComponentEvent, ComponentEventEmitter } from '@kartoffelgames/web-potato-web-builder';
+import { PwbComponent, PwbExport, PwbComponentEvent, ComponentEventEmitter, ComponentState } from '@kartoffelgames/web-potato-web-builder';
 import { NodeCategory, NodeCategoryMeta } from '../../../node/node-category.enum.ts';
-import templateCss from './potatno-node-library.css';
-import libraryTemplate from './potatno-node-library.html';
+import templateCss from './potatno-node-library.css' with { type: 'text' };
+import libraryTemplate from './potatno-node-library.html' with { type: 'text' };
 
 /**
  * Node definition entry for the library display.
@@ -31,9 +31,11 @@ interface CategoryGroup {
     template: libraryTemplate,
     style: templateCss,
 })
-export class PotatnoNodeLibrary extends Processor {
+export class PotatnoNodeLibrary {
     private mNodeDefinitions: Array<NodeLibraryEntry> = [];
-    private mCachedFilteredGroups: Array<CategoryGroup> = [];
+
+    @ComponentState.state()
+    private accessor mCachedFilteredGroups: Array<CategoryGroup> = [];
 
     /**
      * Event emitted when a node entry is mousedown-ed for drag-to-canvas.

@@ -1,13 +1,12 @@
 import { PwbTemplateTextNode } from '../pwb-template-text-node.ts';
-import { BasePwbTemplateValue } from './base-pwb-template-value.ts';
-import type { PwbTemplateExpression } from './pwb-template-expression.ts';
+import { IPwbTemplateValue } from './i-pwb-template-value.interface.ts';
 
 /**
  * Pwb xml template attribute.
  * Saves name and value of a xml attribute. 
  */
-export class PwbTemplateAttribute extends BasePwbTemplateValue {
-    private mName: string;
+export class PwbTemplateAttribute implements IPwbTemplateValue {
+    private readonly mName: string;
     private readonly mValue: PwbTemplateTextNode;
 
     /**
@@ -15,10 +14,7 @@ export class PwbTemplateAttribute extends BasePwbTemplateValue {
      */
     public get name(): string {
         return this.mName;
-    } set name(pValue: string) {
-        this.mName = pValue;
     }
-
 
     /**
      * Attribute value.
@@ -30,24 +26,25 @@ export class PwbTemplateAttribute extends BasePwbTemplateValue {
     /**
      * Constructor.
      */
-    public constructor() {
-        super();
-
-        this.mName = '';
+    public constructor(pName: string) {
+        this.mName = pName;
         this.mValue = new PwbTemplateTextNode();
     }
 
     /**
      * Clone current node.
      */
-    public override clone(): PwbTemplateAttribute {
-        const lCloneNode = new PwbTemplateAttribute();
-        lCloneNode.name = this.name;
+    public clone(): PwbTemplateAttribute {
+        const lCloneNode = new PwbTemplateAttribute(this.name);
 
         // Deep clone attribute values.
         for (const lValue of this.values.values) {
-            const lClonedValue: string | PwbTemplateExpression = (typeof lValue === 'string') ? lValue : lValue.clone();
-            lCloneNode.values.addValue(lClonedValue);
+            // Either add value as string or clone expression node.
+            if (typeof lValue === 'string') {
+                lCloneNode.values.addValue(lValue);
+            } else {
+                lCloneNode.values.addValue(lValue.clone());
+            }
         }
 
         return lCloneNode;
@@ -58,7 +55,7 @@ export class PwbTemplateAttribute extends BasePwbTemplateValue {
      * 
      * @param pBaseNode - Base pwb template node.
      */
-    public override equals(pBaseNode: BasePwbTemplateValue): boolean {
+    public equals(pBaseNode: IPwbTemplateValue): boolean {
         // Check type and name.
         if (!(pBaseNode instanceof PwbTemplateAttribute) || pBaseNode.name !== this.name) {
             return false;

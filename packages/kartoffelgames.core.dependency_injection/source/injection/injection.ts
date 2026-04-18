@@ -1,4 +1,4 @@
-import { type ClassDecorator, Dictionary, Exception } from '@kartoffelgames/core';
+import { type ClassDecorator, Exception } from '@kartoffelgames/core';
 import type { ConstructorMetadata } from '../metadata/constructor-metadata.ts';
 import { Metadata } from '../metadata/metadata.ts';
 import type { InjectionConstructor } from '../type.ts';
@@ -11,11 +11,11 @@ import type { InjectionConstructor } from '../type.ts';
  */
 export class Injection {
     private static mCurrentInjectionContext: InjectionContext | null = null;
-    private static readonly mInjectMode: Dictionary<InjectionIdentification, InjectMode> = new Dictionary<InjectionIdentification, InjectMode>();
-    private static readonly mInjectableConstructor: Dictionary<InjectionIdentification, InjectionConstructor> = new Dictionary<InjectionIdentification, InjectionConstructor>();
-    private static readonly mInjectableReplacement: Dictionary<InjectionIdentification, InjectionConstructor> = new Dictionary<InjectionIdentification, InjectionConstructor>();
+    private static readonly mInjectMode: Map<InjectionIdentification, InjectMode> = new Map<InjectionIdentification, InjectMode>();
+    private static readonly mInjectableConstructor: Map<InjectionIdentification, InjectionConstructor> = new Map<InjectionIdentification, InjectionConstructor>();
+    private static readonly mInjectableReplacement: Map<InjectionIdentification, InjectionConstructor> = new Map<InjectionIdentification, InjectionConstructor>();
     private static readonly mInjectionConstructorIdentificationMetadataKey: symbol = Symbol('InjectionConstructorIdentification');
-    private static readonly mSingletonMapping: Dictionary<InjectionIdentification, object> = new Dictionary<InjectionIdentification, object>();
+    private static readonly mSingletonMapping: Map<InjectionIdentification, object> = new Map<InjectionIdentification, object>();
 
     /**
      * Create object and auto inject parameter. Replaces parameter set by {@link replaceInjectable}.
@@ -48,16 +48,16 @@ export class Injection {
      * @returns a singleton or new instance of {@link pConstructor} based on it set injection configuration.
      */
     public static createObject<T extends object>(pConstructor: InjectionConstructor<T>, pForceCreate?: boolean): T;
-    public static createObject<T extends object>(pConstructor: InjectionConstructor<T>, pLocalInjections?: Dictionary<InjectionConstructor, any>): T;
-    public static createObject<T extends object>(pConstructor: InjectionConstructor<T>, pForceCreate?: boolean, pLocalInjections?: Dictionary<InjectionConstructor, any>): T;
-    public static createObject<T extends object>(pConstructor: InjectionConstructor<T>, pForceCreateOrLocalInjections?: boolean | Dictionary<InjectionConstructor, any>, pLocalInjections?: Dictionary<InjectionConstructor, any>): T {
+    public static createObject<T extends object>(pConstructor: InjectionConstructor<T>, pLocalInjections?: Map<InjectionConstructor, any>): T;
+    public static createObject<T extends object>(pConstructor: InjectionConstructor<T>, pForceCreate?: boolean, pLocalInjections?: Map<InjectionConstructor, any>): T;
+    public static createObject<T extends object>(pConstructor: InjectionConstructor<T>, pForceCreateOrLocalInjections?: boolean | Map<InjectionConstructor, any>, pLocalInjections?: Map<InjectionConstructor, any>): T {
         // Decide between local injection or force creation parameter.
         const [lForceCreate, lLocalInjectionConstructors] = (() => {
             if (typeof pForceCreateOrLocalInjections === 'object' && pForceCreateOrLocalInjections !== null) {
                 return [false, pForceCreateOrLocalInjections];
             }
 
-            return [!!pForceCreateOrLocalInjections, pLocalInjections ?? new Dictionary<InjectionConstructor, any>()];
+            return [!!pForceCreateOrLocalInjections, pLocalInjections ?? new Map<InjectionConstructor, any>()];
         })();
 
         // Find identifier for constructor and check if it is registered.
@@ -70,16 +70,18 @@ export class Injection {
         const lInjectionMode: InjectMode = !lForceCreate ? Injection.mInjectMode.get(lConstructorIdentification)! : 'instanced';
 
         // Convert local injections from constructor to identification.
-        const lLocalInjections: Dictionary<InjectionIdentification, any> = new Dictionary<InjectionIdentification, any>(
+        const lLocalInjections: Map<InjectionIdentification, any> = new Map<InjectionIdentification, any>(
             // Convert [constructor, object] pair to an [identification, object] pair.
-            lLocalInjectionConstructors.map((pKey, pValue) => [Injection.getInjectionIdentification(pKey), pValue])
+            lLocalInjectionConstructors.entries().map(([pKey, pValue]) => {
+                return [Injection.getInjectionIdentification(pKey), pValue];
+            })
         );
 
         // Save old injection context.
         const lOldInjectionContext: InjectionContext | null = Injection.mCurrentInjectionContext;
 
         // Merge new local injection context with old one.
-        const lNewLocalInjection: Dictionary<InjectionIdentification, any> = new Dictionary<InjectionIdentification, any>([
+        const lNewLocalInjection: Map<InjectionIdentification, any> = new Map<InjectionIdentification, any>([
             ...(lOldInjectionContext?.localInjections.entries() ?? []),
             ...lLocalInjections.entries()
         ]);
@@ -101,7 +103,7 @@ export class Injection {
 
             // Cache singleton objects but only if not forced to create.
             if (lInjectionMode === 'singleton' && !Injection.mSingletonMapping.has(lConstructorIdentification)) {
-                Injection.mSingletonMapping.add(lConstructorIdentification, lCreatedObject);
+                Injection.mSingletonMapping.set(lConstructorIdentification, lCreatedObject);
             }
 
             // Return created object.
@@ -139,8 +141,8 @@ export class Injection {
         const lConstructorIdentification: InjectionIdentification = Injection.getInjectionIdentification(pConstructor, pMetaDataObject);
 
         // Map constructor.
-        Injection.mInjectableConstructor.add(lConstructorIdentification, pConstructor);
-        Injection.mInjectMode.add(lConstructorIdentification, pMode);
+        Injection.mInjectableConstructor.set(lConstructorIdentification, pConstructor);
+        Injection.mInjectMode.set(lConstructorIdentification, pMode);
     }
 
     /**
@@ -246,7 +248,7 @@ type InjectionIdentification = symbol;
 
 type InjectionContext = {
     injectionMode: InjectMode,
-    localInjections: Dictionary<InjectionIdentification, any>,
+    localInjections: Map<InjectionIdentification, any>,
 };
 
 export type InjectMode = 'singleton' | 'instanced';

@@ -5,8 +5,9 @@ export { PwbApplicationConfiguration } from "./application/pwb-application-confi
 // Component
 export type { IComponentOnAttributeChange, IComponentOnConnect, IComponentOnDeconstruct, IComponentOnDisconnect, IComponentOnUpdate } from './core/component/component.ts';
 export { PwbComponent } from './core/component/pwb-component.decorator.ts';
-export { PwbGlobalResource } from './core/core_entity/interaction-tracker/pwb-global-resource.decorator.ts';
-export { Processor } from './core/core_entity/processor.ts';
+
+// Component state
+export { ComponentState } from "./core/core_entity/component_state/component-state.ts";
 
 // Module Injections
 export { ModuleDataLevel as ModuleValues } from './core/data/module-data-level.ts';
@@ -52,7 +53,7 @@ export { PwbTemplateTextNode } from './core/component/template/nodes/pwb-templat
 export { PwbTemplateXmlNode } from './core/component/template/nodes/pwb-template-xml-node.ts';
 export { PwbTemplateAttribute } from './core/component/template/nodes/values/pwb-template-attribute.ts';
 export { PwbTemplateExpression } from './core/component/template/nodes/values/pwb-template-expression.ts';
-export { TemplateParser } from './core/component/template/template-parser.ts';
+export { PwbTemplateParser } from './core/component/template/parser/pwb-template-parser.ts';
 
 // Import default modules
 import './module/dynamic-content/dynamic-content-module.ts';

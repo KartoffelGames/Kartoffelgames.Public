@@ -1,30 +1,25 @@
 import { Dictionary } from '@kartoffelgames/core';
-import type { PwbApplicationConfiguration } from '../../application/pwb-application-configuration.ts';
-import { PwbApplicationDebugLoggingType } from '../../application/pwb-application-debug-logging-type.enum.ts';
-import { CoreEntityExtendable } from '../core_entity/core-entity-extendable.ts';
-import type { Processor, ProcessorConstructor } from '../core_entity/processor.ts';
+import { CoreEntityUpdateable } from "../core_entity/core-entity-updateable.ts";
+import { CoreEntityProcessor } from "../core_entity/core-entity.ts";
 import { ComponentDataLevel } from '../data/component-data-level.ts';
 import { DataLevel } from '../data/data-level.ts';
-import { UpdateMode } from '../enum/update-mode.enum.ts';
-import { UpdateTrigger } from '../enum/update-trigger.enum.ts';
 import type { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module.ts';
 import { StaticBuilder } from './builder/static-builder.ts';
 import { ComponentElement } from './component-element.ts';
 import { ComponentModules } from './component-modules.ts';
 import { ComponentRegister } from './component-register.ts';
 import type { PwbTemplate } from './template/nodes/pwb-template.ts';
-import { TemplateParser } from './template/template-parser.ts';
+import { PwbTemplateParser } from './template/parser/pwb-template-parser.ts';
 
 /**
  * Component manager. 
  * Handles initialisation of the component element and serves as a proxy between builder and the outside world.
  */
-export class Component extends CoreEntityExtendable<ComponentProcessor> {
-    private static readonly mTemplateCache: Dictionary<ProcessorConstructor, PwbTemplate> = new Dictionary<ProcessorConstructor, PwbTemplate>();
-    private static readonly mXmlParser: TemplateParser = new TemplateParser();
+export class Component extends CoreEntityUpdateable<ComponentProcessor> {
+    private static readonly mTemplateCache: Dictionary<ComponentProcessorConstructor, PwbTemplate> = new Dictionary<ComponentProcessorConstructor, PwbTemplate>();
+    private static readonly mXmlParser: PwbTemplateParser = new PwbTemplateParser();
     private readonly mComponentElement: ComponentElement;
     private readonly mRootBuilder: StaticBuilder;
-    private readonly mUpdateMode: UpdateMode;
 
     /**
      * Component html element.
@@ -34,66 +29,41 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
     }
 
     /**
-     * Component update mode.
-     */
-    public get updateMode(): UpdateMode {
-        return this.mUpdateMode;
-    }
-
-    /**
      * Constructor.
      * 
      * @param pParameter - Construction parameter.
      */
     public constructor(pParameter: ComponentConstructorParameter) {
         super({
-            applicationContext: pParameter.applicationContext,
             constructor: pParameter.processorConstructor,
-            loggingType: PwbApplicationDebugLoggingType.Component,
-            trigger: UpdateTrigger.Any,
-            isolate: (pParameter.updateMode & UpdateMode.Isolated) !== 0,
-            trackConstructorChanges: true
+            parent: null
         });
 
         // Register component and element.
         ComponentRegister.registerComponent(this, pParameter.htmlElement);
+        this.setProcessorInjection(Component, this);
 
         // Register untracked processor, than track and register the tracked processor.
-        this.addCreationHook((pProcessor: ComponentProcessor) => {
-            ComponentRegister.registerComponent(this, this.mComponentElement.htmlElement, pProcessor);
-        }).addCreationHook((pProcessor: ComponentProcessor) => {
-            return this.registerObject(pProcessor);
-        }).addCreationHook((pProcessor: ComponentProcessor) => {
+        this.addConstructionHook((pProcessor: ComponentProcessor) => {
             ComponentRegister.registerComponent(this, this.mComponentElement.htmlElement, pProcessor);
         });
 
         // Load cached or parse new template.
-        let lTemplate: PwbTemplate | undefined = Component.mTemplateCache.get(pParameter.processorConstructor);
-        if (!lTemplate) {
-            lTemplate = Component.mXmlParser.parse(pParameter.templateString ?? '');
-            Component.mTemplateCache.set(pParameter.processorConstructor, lTemplate);
-        } else {
-            lTemplate = lTemplate.clone();
+        if (!Component.mTemplateCache.has(pParameter.processorConstructor)) {
+            Component.mTemplateCache.set(pParameter.processorConstructor, Component.mXmlParser.parse(pParameter.templateString ?? ''));
         }
 
-        // Update initial disabled.
-        this.mUpdateMode = pParameter.updateMode;
+        const lTemplate: PwbTemplate = Component.mTemplateCache.get(pParameter.processorConstructor)!.clone();
 
         // Create component element.
         this.mComponentElement = new ComponentElement(pParameter.htmlElement);
 
         // Create component builder.
-        this.mRootBuilder = new StaticBuilder(this.applicationContext, lTemplate, new ComponentModules(this, pParameter.expressionModule), new DataLevel(this), 'ROOT');
+        this.mRootBuilder = new StaticBuilder(lTemplate, new ComponentModules(this, pParameter.expressionModule), new DataLevel(this), 'ROOT');
         this.mComponentElement.shadowRoot.appendChild(this.mRootBuilder.anchor);
 
         // Initialize user object injections.
-        this.setProcessorAttributes(ComponentDataLevel, new ComponentDataLevel(this.mRootBuilder.values));
-        this.setProcessorAttributes(Component, this);
-
-        // Setup auto update when not in manual update mode.
-        if ((pParameter.updateMode & UpdateMode.Manual) === 0) {
-            this.setAutoUpdate(UpdateTrigger.Any);
-        }
+        this.setProcessorInjection(ComponentDataLevel, new ComponentDataLevel(this.mRootBuilder.values));
     }
 
     /**
@@ -116,7 +86,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      */
     public attributeChanged(pAttributeName: string, pOldValue: string | null, pNewValue: string | null): void {
         // Call OnAttributeChange.
-        this.call<IComponentOnAttributeChange, 'onAttributeChange'>('onAttributeChange', false, pAttributeName, pOldValue, pNewValue);
+        this.call<IComponentOnAttributeChange, 'onAttributeChange'>('onAttributeChange', pAttributeName, pOldValue, pNewValue);
     }
 
     /**
@@ -124,7 +94,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      */
     public connected(): void {
         // Call processor event after updating.
-        this.call<IComponentOnConnect, 'onConnect'>('onConnect', false);
+        this.call<IComponentOnConnect, 'onConnect'>('onConnect');
     }
 
     /**
@@ -132,7 +102,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      */
     public override deconstruct(): void {
         // User callback.
-        this.call<IComponentOnDeconstruct, 'onDeconstruct'>('onDeconstruct', false);
+        this.call<IComponentOnDeconstruct, 'onDeconstruct'>('onDeconstruct');
 
         // Deconstruct all child element.
         this.mRootBuilder.deconstruct();
@@ -146,7 +116,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
      */
     public disconnected(): void {
         // Call processor event after disabling update event..
-        this.call<IComponentOnDisconnect, 'onDisconnect'>('onDisconnect', false);
+        this.call<IComponentOnDisconnect, 'onDisconnect'>('onDisconnect');
     }
 
     /**
@@ -158,7 +128,7 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
         // Update and callback after update.
         if (this.mRootBuilder.update()) {
             // Call component processor on update function.
-            this.call<IComponentOnUpdate, 'onUpdate'>('onUpdate', false);
+            this.call<IComponentOnUpdate, 'onUpdate'>('onUpdate');
 
             return true;
         }
@@ -169,11 +139,6 @@ export class Component extends CoreEntityExtendable<ComponentProcessor> {
 }
 
 type ComponentConstructorParameter = {
-    /**
-     * General application configuration.
-     */
-    applicationContext: PwbApplicationConfiguration;
-
     /**
      * Component processor constructor.
      */
@@ -193,11 +158,6 @@ type ComponentConstructorParameter = {
      * HTMLElement of component.
      */
     htmlElement: HTMLElement;
-
-    /**
-     * Update mode of component.
-     */
-    updateMode: UpdateMode;
 };
 
 /**
@@ -221,4 +181,8 @@ export interface IComponentOnConnect {
 export interface IComponentOnDisconnect {
     onDisconnect(): void;
 }
-export interface ComponentProcessor extends Processor, Partial<IComponentOnDeconstruct>, Partial<IComponentOnUpdate>, Partial<IComponentOnAttributeChange>, Partial<IComponentOnConnect>, Partial<IComponentOnDisconnect> { }
+export interface ComponentProcessor extends CoreEntityProcessor, Partial<IComponentOnDeconstruct>, Partial<IComponentOnUpdate>, Partial<IComponentOnAttributeChange>, Partial<IComponentOnConnect>, Partial<IComponentOnDisconnect> { }
+
+export type ComponentProcessorConstructor<T extends ComponentProcessor = ComponentProcessor> = {
+    new(...pParameter: Array<any>): T;
+};

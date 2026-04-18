@@ -1,32 +1,23 @@
-import { List } from '@kartoffelgames/core';
-import { BasePwbTemplateNode } from './base-pwb-template-node.ts';
+import { IPwbTemplateNode } from './i-pwb-template-node.interface.ts';
 
 /**
  * Pwb template document. Root object of every template.
  */
-export class PwbTemplate extends BasePwbTemplateNode {
-    private readonly mBodyElementList: List<BasePwbTemplateNode>;
+export class PwbTemplate implements IPwbTemplateNode {
+    private readonly mBodyElementList: Array<IPwbTemplateNode>;
 
     /**
      * Get all template nodes.
      */
-    public get body(): Array<BasePwbTemplateNode> {
-        return this.mBodyElementList.clone();
-    }
-
-    /**
-     * Get template nodes document.
-     */
-    public override get template(): PwbTemplate {
-        return this;
+    public get body(): ReadonlyArray<IPwbTemplateNode> {
+        return this.mBodyElementList;
     }
 
     /**
      * Constructor.
      */
     public constructor() {
-        super();
-        this.mBodyElementList = new List<BasePwbTemplateNode>();
+        this.mBodyElementList = new Array<IPwbTemplateNode>();
     }
 
     /**
@@ -34,12 +25,8 @@ export class PwbTemplate extends BasePwbTemplateNode {
      * 
      * @param pNodeList - Template nodes.
      */
-    public appendChild(...pNodeList: Array<BasePwbTemplateNode>): void {
+    public appendChild(...pNodeList: Array<IPwbTemplateNode>): void {
         this.mBodyElementList.push(...pNodeList);
-
-        for (const lChildNode of pNodeList) {
-            lChildNode.parent = this;
-        }
     }
 
     /**
@@ -63,20 +50,20 @@ export class PwbTemplate extends BasePwbTemplateNode {
      * 
      * @returns true on equality and false otherwise.
      */
-    public equals(pBaseNode: BasePwbTemplateNode): boolean {
+    public equals(pBaseNode: IPwbTemplateNode): boolean {
         // Check type, tagname, namespace and namespace prefix.
         if (!(pBaseNode instanceof PwbTemplate)) {
             return false;
         }
 
         // Same length
-        if (pBaseNode.body.length !== this.body.length) {
+        if (pBaseNode.body.length !== this.mBodyElementList.length) {
             return false;
         }
 
         // Compare each body element.
-        for (let lIndex: number = 0; lIndex < this.body.length; lIndex++) {
-            if (!this.body[lIndex].equals(pBaseNode.body[lIndex])) {
+        for (let lIndex: number = 0; lIndex < this.mBodyElementList.length; lIndex++) {
+            if (!this.mBodyElementList[lIndex].equals(pBaseNode.body[lIndex])) {
                 return false;
             }
         }
@@ -92,18 +79,14 @@ export class PwbTemplate extends BasePwbTemplateNode {
      * 
      * @returns removed child. Undefined when nothing was removed.
      */
-    public removeChild(pNode: BasePwbTemplateNode): BasePwbTemplateNode | undefined {
+    public removeChild(pNode: IPwbTemplateNode): IPwbTemplateNode | undefined {
+        // Search for node index and skip if node is not found.
         const lIndex: number = this.mBodyElementList.indexOf(pNode);
-        let lRemovedChild: BasePwbTemplateNode | undefined = undefined;
-
-        // If list contains node.
-        if (lIndex !== -1) {
-            lRemovedChild = this.mBodyElementList.splice(lIndex, 1)[0];
-
-            // If xml node remove parent connection.
-            lRemovedChild.parent = null;
+        if (lIndex === -1) {
+            return undefined
         }
 
-        return lRemovedChild;
+        // If xml node remove parent connection.
+        return this.mBodyElementList.splice(lIndex, 1)[0];
     }
 }

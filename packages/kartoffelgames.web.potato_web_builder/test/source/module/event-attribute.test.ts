@@ -4,7 +4,6 @@ import { TestUtil } from '../../utility/test-util.ts';
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
-import { Processor } from '../../../source/core/core_entity/processor.ts';
 
 Deno.test('EventAttribute--Functionality: Basic click event', async (pContext) => {
     await pContext.step('Default', async () => {
@@ -15,7 +14,7 @@ Deno.test('EventAttribute--Functionality: Basic click event', async (pContext) =
         @PwbComponent({
             selector: lEventComponentSelector,
         })
-        class EventComponent extends Processor { }
+        class EventComponent  { }
 
         // Process. Define component and wait for update.
         let lEventValueResult: string | null = null;
@@ -23,7 +22,7 @@ Deno.test('EventAttribute--Functionality: Basic click event', async (pContext) =
             selector: TestUtil.randomSelector(),
             template: `<${lEventComponentSelector} (click)="this.handler($event)"/>`
         })
-        class TestComponent extends Processor {
+        class TestComponent  {
             public handler(pEvent: MouseEvent): void {
                 lEventValueResult = pEvent.type;
             }
@@ -52,7 +51,7 @@ Deno.test('EventAttribute--Functionality: Clear listener events on deconstruct',
             selector: TestUtil.randomSelector(),
             template: `<div (click)="this.handler($event)"/>`
         })
-        class TestComponent extends Processor {
+        class TestComponent  {
             public handler(_pEvent: MouseEvent): void {
                 lClicked = true;
             }

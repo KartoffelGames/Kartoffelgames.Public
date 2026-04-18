@@ -7,11 +7,8 @@ import { expect } from '@kartoffelgames/core-test';
 import { ComponentRegister } from '../../../../source/core/component/component-register.ts';
 import { Component, type IComponentOnAttributeChange, type IComponentOnDeconstruct, type IComponentOnUpdate } from '../../../../source/core/component/component.ts';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
-import { CoreEntityProcessorProxy } from '../../../../source/core/core_entity/interaction-tracker/core-entity-processor-proxy.ts';
-import { Processor } from '../../../../source/core/core_entity/processor.ts';
+import { ComponentState } from '../../../../source/core/core_entity/component_state/component-state.ts';
 import { UpdateLoopError } from '../../../../source/core/core_entity/updater/update-loop-error.ts';
-import { UpdateMode } from '../../../../source/core/enum/update-mode.enum.ts';
-import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum.ts';
 import type { IExpressionOnUpdate } from '../../../../source/core/module/expression_module/expression-module.ts';
 import { PwbExpressionModule } from '../../../../source/core/module/expression_module/pwb-expression-module.decorator.ts';
 import { PwbExport } from '../../../../source/module/export/pwb-export.decorator.ts';
@@ -23,7 +20,7 @@ Deno.test('PwbComponent--Functionality: Single element', async (pContext) => {
             selector: TestUtil.randomSelector(),
             template: `<div/>`
         })
-        class TestComponent extends Processor { }
+        class TestComponent { }
 
         // Process. Create element.
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
@@ -48,7 +45,7 @@ Deno.test('PwbComponent--Functionality: Sibling element', async (pContext) => {
             selector: TestUtil.randomSelector(),
             template: '<div/><span/>'
         })
-        class TestComponent extends Processor { }
+        class TestComponent { }
 
         // Process. Create element.
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
@@ -74,7 +71,7 @@ Deno.test('PwbComponent--Functionality: Child element', async (pContext) => {
             selector: TestUtil.randomSelector(),
             template: '<div><span/></div>'
         })
-        class TestComponent extends Processor { }
+        class TestComponent { }
 
         // Process. Create element.
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
@@ -102,7 +99,7 @@ Deno.test('PwbComponent--Functionality: Ignore Comments', async (pContext) => {
             selector: TestUtil.randomSelector(),
             template: '<div><!-- Comment --></div>'
         })
-        class TestComponent extends Processor { }
+        class TestComponent { }
 
         // Process. Create element.
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
@@ -131,14 +128,14 @@ Deno.test('PwbComponent--Functionality: Same component childs', async (pContext)
             selector: lChildSelector
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class TestChildComponent extends Processor { }
+        class TestChildComponent { }
 
         // Setup. Define parent component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
             template: `<${lChildSelector}/><${lChildSelector}/>`
         })
-        class TestComponent extends Processor { }
+        class TestComponent { }
 
         // Process. Create element.
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
@@ -161,7 +158,7 @@ Deno.test('PwbComponent--Functionality: No template', async (pContext) => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent extends Processor { }
+        class TestComponent { }
 
         // Process. Create element.
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
@@ -185,7 +182,7 @@ Deno.test('PwbComponent--Functionality: Add local styles', async (pContext) => {
             selector: TestUtil.randomSelector(),
             style: lStyleContent
         })
-        class TestComponent extends Processor { }
+        class TestComponent { }
 
         // Process. Create element.
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
@@ -203,7 +200,7 @@ Deno.test('PwbComponent--Functionality: Add local styles', async (pContext) => {
     });
 });
 
-Deno.test('PwbComponent--Functionality: Manual update. Initial update', async (pContext) => {
+Deno.test('PwbComponent--Functionality: Initial update on creation', async (pContext) => {
     await pContext.step('Default', async () => {
         // Setup.
         const lInitialValue: string = 'Initial value';
@@ -211,15 +208,14 @@ Deno.test('PwbComponent--Functionality: Manual update. Initial update', async (p
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: '<div>{{ this.value }}</div>',
-            updateScope: UpdateMode.Manual
+            template: '<div>{{ this.value }}</div>'
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             public value: string = lInitialValue;
         }
 
         // Process. Create element.
-        const lComponentConstructor: CustomElementConstructor = ComponentRegister.ofConstructor(TestComponent).elementConstructor;
+        const lComponentConstructor: CustomElementConstructor = ComponentRegister.ofConstructor(TestComponent as any).elementConstructor;
         const lComponent: HTMLElement = new lComponentConstructor() as any;
 
         // Evaluation.
@@ -236,7 +232,7 @@ Deno.test('PwbComponent--Functionality: Manual update. Initial update', async (p
     });
 });
 
-Deno.test('PwbComponent--Functionality: Manual update. User triggered update', async (pContext) => {
+Deno.test('PwbComponent--Functionality: User triggered update', async (pContext) => {
     await pContext.step('Default', async () => {
         // Setup.
         const lInitialValue: string = 'Initial value';
@@ -245,24 +241,21 @@ Deno.test('PwbComponent--Functionality: Manual update. User triggered update', a
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
-            template: '<div>{{ this.value }}</div>',
-            updateScope: UpdateMode.Manual
+            template: '<div>{{ this.value }}</div>'
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
             public value: string = lInitialValue;
 
             private readonly mComponent: Component;
 
             public constructor(pComponent = Injection.use(Component)) {
-                super();
-
                 this.mComponent = pComponent;
             }
 
             @PwbExport
             public update(): void {
-                this.mComponent.update();
+                this.mComponent.updater.update();
             }
         }
 
@@ -297,79 +290,14 @@ Deno.test('PwbComponent--Functionality: Manual update. User triggered update', a
     });
 });
 
-Deno.test('PwbComponent--Functionality: Isolated update scope', async (pContext) => {
-    await pContext.step('Default', async () => {
-        // Setup.
-        const lIsolatedSelector: string = TestUtil.randomSelector();
-
-        // Setup. Define component.
-        let lIsolatedUpdated: boolean = false;
-        @PwbComponent({
-            selector: lIsolatedSelector,
-            template: '{{this.innerValue}}',
-            updateScope: UpdateMode.Isolated
-        })
-
-        class CapsuledTestComponent extends Processor implements IComponentOnUpdate {
-            @PwbExport
-            public innerValue: string = '';
-
-            onUpdate(): void {
-                lIsolatedUpdated = true;
-            }
-        }
-
-        // Process. Define component.
-        let lDefaultUpdated: boolean = false;
-        @PwbComponent({
-            selector: TestUtil.randomSelector(),
-            template: `<${lIsolatedSelector}/>`,
-            updateScope: UpdateMode.Default
-        })
-        class TestComponent extends Processor implements IComponentOnUpdate {
-            onUpdate(): void {
-                lDefaultUpdated = true;
-            }
-        }
-
-        // Process. Create and initialize element.
-        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        await TestUtil.waitForUpdate(lComponent);
-        const lCapsuledContent: HTMLElement & CapsuledTestComponent = TestUtil.getComponentNode(lComponent, lIsolatedSelector);
-
-        // Process. Wait for any update to finish.
-        await TestUtil.waitForUpdate(lComponent);
-        await TestUtil.waitForUpdate(lCapsuledContent);
-
-        // Reset update 
-        lIsolatedUpdated = false;
-        lDefaultUpdated = false;
-
-        // Proccess. Change Capsuled value.
-        lCapsuledContent.innerValue = '12';
-        await TestUtil.waitForUpdate(lComponent);
-        await TestUtil.waitForUpdate(lCapsuledContent);
-
-        // Evaluation.
-        expect(lDefaultUpdated, 'TestComponent').toBeFalsy();
-        expect(lIsolatedUpdated, 'CapsuledTestComponent').toBeTruthy();
-
-        // Wait for any update to finish to prevent timer leaks.
-        await TestUtil.waitForUpdate(lComponent);
-        await TestUtil.waitForUpdate(lCapsuledContent);
-    });
-});
-
 Deno.test('PwbComponent--Functionality: Custom expression module', async (pContext) => {
     await pContext.step('Default', async () => {
         // Setup.
         const lExpressionValue: string = 'EXPRESSION-VALUE';
 
         // Setup. Custom expression module.
-        @PwbExpressionModule({
-            trigger: UpdateTrigger.Any
-        })
-        class TestExpressionModule extends Processor implements IExpressionOnUpdate {
+        @PwbExpressionModule()
+        class TestExpressionModule implements IExpressionOnUpdate {
             public onUpdate(): string {
                 return lExpressionValue;
             }
@@ -381,7 +309,7 @@ Deno.test('PwbComponent--Functionality: Custom expression module', async (pConte
             template: '<div>{{Anything}}</div>',
             expressionmodule: TestExpressionModule
         })
-        class TestComponent extends Processor { }
+        class TestComponent { }
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
@@ -407,7 +335,7 @@ Deno.test('PwbComponent--Functionality: Create HTMLUnknownElement on unknown ele
             selector: TestUtil.randomSelector(),
             template: '<unknowncomponent/>'
         })
-        class TestComponent extends Processor { }
+        class TestComponent { }
 
         // Process. Create element.
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
@@ -432,7 +360,7 @@ Deno.test('PwbComponent--Functionality: Create HTMLElement on unknown component'
             selector: TestUtil.randomSelector(),
             template: '<unknown-component/>'
         })
-        class TestComponent extends Processor { }
+        class TestComponent { }
 
         // Process. Create element.
         const lComponent: HTMLElement = await TestUtil.createComponent(TestComponent);
@@ -456,11 +384,9 @@ Deno.test('PwbComponent--Functionality: Element reference', async (pContext) => 
         @PwbComponent({
             selector: TestUtil.randomSelector(),
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             private readonly mElementReference: Node;
             public constructor(pElementReference = Injection.use(Component)) {
-                super();
-
                 this.mElementReference = pElementReference.element;
             }
 
@@ -472,10 +398,9 @@ Deno.test('PwbComponent--Functionality: Element reference', async (pContext) => 
 
         // Process. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
-        const lComponentReference: Node = CoreEntityProcessorProxy.getOriginal(lComponent.element());
+        const lComponentReference: Node = lComponent.element();
 
         // Evaluation
-        // 2 => StaticAnchor, unknown-component.
         expect(lComponent).toBe(lComponentReference);
 
         // Wait for any update to finish to prevent timer leaks.
@@ -501,15 +426,14 @@ Deno.test('PwbComponent--Functionality: User callbacks', async (pContext) => {
             selector: TestUtil.randomSelector(),
             template: '<div>{{this.innerValue}}</div>'
         })
-        class TestComponent extends Processor implements IComponentOnUpdate, IComponentOnAttributeChange, IComponentOnDeconstruct {
+        class TestComponent implements IComponentOnUpdate, IComponentOnAttributeChange, IComponentOnDeconstruct {
             @PwbExport
-            public innerValue: string = 'DUMMY-VALUE';
+            @ComponentState.state()
+            public accessor innerValue: string = 'DUMMY-VALUE';
 
             private mOnPwbUpdateCalled: boolean = false;
 
             public constructor() {
-                super();
-
                 lExpectedCallOrder.push(lCallPosition.onPwbInitialize);
             }
 
@@ -554,15 +478,14 @@ Deno.test('PwbComponent--Functionality: User callbacks', async (pContext) => {
     });
 });
 
-Deno.test('PwbComponent--Functionality: Deconstruct Manual', async (pContext) => {
+Deno.test('PwbComponent--Functionality: Deconstruct', async (pContext) => {
     await pContext.step('Default', async () => {
         // Process. Define component.
         let lWasDeconstructed: boolean = false;
         @PwbComponent({
-            selector: TestUtil.randomSelector(),
-            updateScope: UpdateMode.Manual
+            selector: TestUtil.randomSelector()
         })
-        class TestComponent extends Processor implements IComponentOnDeconstruct {
+        class TestComponent implements IComponentOnDeconstruct {
             public onDeconstruct(): void {
                 lWasDeconstructed = true;
             }
@@ -591,15 +514,14 @@ Deno.test('PwbComponent--Functionality: Loop detection', async (pContext) => {
                 {{this.innerValue}}
             </div>`
         })
-        class TestComponent extends Processor implements IComponentOnUpdate {
-            public innerValue: number = 1;
-            
+        class TestComponent implements IComponentOnUpdate {
+            @ComponentState.state()
+            public accessor innerValue: number = 1;
+
             private readonly mComponent: Component;
             private mEnabled: boolean = false;
 
             public constructor(pComponent = Injection.use(Component)) {
-                super();
-
                 this.mComponent = pComponent;
                 this.innerValue = 1;
                 this.mEnabled = false;
@@ -614,13 +536,13 @@ Deno.test('PwbComponent--Functionality: Loop detection', async (pContext) => {
             public enable(): void {
                 this.mEnabled = true;
                 this.innerValue++;
-                this.mComponent.update();
+                this.mComponent.updater.update();
             }
 
             public onUpdate(): void {
                 if (this.mEnabled) {
                     this.innerValue++;
-                    this.mComponent.update();
+                    this.mComponent.updater.update();
                 }
             }
         }
@@ -658,7 +580,7 @@ Deno.test('PwbComponent--Functionality: Creation without customElements register
             selector: lSelector
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class TestComponent extends Processor { }
+        class TestComponent { }
 
         // Process. Create element.
         const lComponentConstructor: CustomElementConstructor = window.customElements.get(lSelector)!;
@@ -666,35 +588,6 @@ Deno.test('PwbComponent--Functionality: Creation without customElements register
 
         // Evaluation.
         expect(lComponent).toBeInstanceOf(HTMLElement);
-
-        // Wait for any update to finish to prevent timer leaks.
-        await TestUtil.waitForUpdate(lComponent);
-    });
-});
-
-Deno.test('PwbComponent--Functionality: Prevent construction of processor when not needed.', async (pContext) => {
-    await pContext.step('Default', async () => {
-        // Setup. Define flag.
-        let lConstructionCalled: boolean = false;
-
-        // Setup. Define component.
-        @PwbComponent({
-            selector: TestUtil.randomSelector(),
-            template: `<div/>`
-        })
-        class TestComponent extends Processor {
-            public constructor() {
-                super();
-
-                lConstructionCalled = true;
-            }
-        }
-
-        // Process. Create element.
-        const lComponent = await TestUtil.createComponent(TestComponent);
-
-        // Evaluation
-        expect(lConstructionCalled).toBeFalsy();
 
         // Wait for any update to finish to prevent timer leaks.
         await TestUtil.waitForUpdate(lComponent);

@@ -1,13 +1,9 @@
 import { Stack } from '@kartoffelgames/core';
-import { InteractionZone, InteractionZoneEvent } from '@kartoffelgames/web-interaction-zone';
-import type { PwbApplicationConfiguration } from '../../../application/pwb-application-configuration.ts';
-import { PwbApplicationDebugLoggingType } from '../../../application/pwb-application-debug-logging-type.enum.ts';
-import { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
-import { type CoreEntityInteractionData, type CoreEntityInteractionEvent, CoreEntityProcessorProxy } from '../interaction-tracker/core-entity-processor-proxy.ts';
-import { IgnoreInteractionTracking } from '../interaction-tracker/ignore-interaction-tracking.decorator.ts';
+import { InteractionZone, InteractionZoneEvent } from '@kartoffelgames/core-interaction-zone';
+import { ComponentStateType } from "../component_state/component-state-type.enum.ts";
+import { ComponentState } from "../component_state/component-state.ts";
 import { CoreEntityUpdateCycle, type UpdateCycle, type UpdateCycleRunner } from './core-entiy-update-cycle.ts';
 import { UpdateLoopError } from './update-loop-error.ts';
-import { UpdateResheduleError } from './update-reshedule-error.ts';
 
 /**
  * Base Updater of any core entity. Handles automatic and manual update detection.
@@ -15,15 +11,33 @@ import { UpdateResheduleError } from './update-reshedule-error.ts';
  * 
  * @internal
  */
-@IgnoreInteractionTracking()
 export class CoreEntityUpdater {
-    private readonly mApplicationContext: PwbApplicationConfiguration;
+    private static mStackCap: number = 100;
+    private static mFrameTime: number = 100;
+
+    /**
+     * Stack cap for update loop detection. When the update stack exceeds this value, an UpdateLoopError is thrown.
+     */
+    public static get stackCap(): number {
+        return CoreEntityUpdater.mStackCap;
+    } static set stackCap(pValue: number) {
+        CoreEntityUpdater.mStackCap = pValue;
+    }
+
+    /**
+     * Frame time for update reshedule. When a update takes longer than this value, it is resheduled to the next frame. Value in milliseconds.
+     */
+    public static get frameTime(): number {
+        return CoreEntityUpdater.mFrameTime;
+    } static set frameTime(pValue: number) {
+        CoreEntityUpdater.mFrameTime = pValue;
+    }
+
     private readonly mInteractionZone: InteractionZone;
-    private readonly mLoggingType: PwbApplicationDebugLoggingType;
-    private readonly mRegisteredObjects: WeakMap<object, CoreEntityProcessorProxy<object>>;
     private readonly mUpdateFunction: UpdateListener;
     private readonly mUpdateRunCache: WeakMap<UpdateCycleRunner, boolean>;
     private readonly mUpdateStates: UpdateInformation;
+    private readonly mManualComponentState: ComponentState<Symbol>;
 
     /**
      * Updater zone.
@@ -39,20 +53,13 @@ export class CoreEntityUpdater {
     public constructor(pParameter: BaseCoreEntityUpdateZoneConstructorParameter) {
         // Init lists.
         this.mUpdateRunCache = new WeakMap<UpdateCycleRunner, boolean>();
-        this.mRegisteredObjects = new WeakMap<object, CoreEntityProcessorProxy<object>>();
 
         // Init updater settings.
         this.mUpdateFunction = pParameter.onUpdate;
-        this.mApplicationContext = pParameter.applicationContext;
-        this.mLoggingType = pParameter.loggingType;
-
-        // Read parent zone from parent updater, when not set, use current zone.
-        const lParentInteractionZone: InteractionZone = pParameter.parent?.mInteractionZone ?? InteractionZone.current;
 
         // Create isolated or default zone from found parent interaction zone.
-        const lRandomLabelSuffix: string = Math.floor(Math.random() * 0xffffff).toString(16);
-        this.mInteractionZone = lParentInteractionZone.create(`${pParameter.label}-ProcessorZone (${lRandomLabelSuffix})`, { isolate: pParameter.isolate })
-            .addTriggerRestriction(UpdateTrigger, pParameter.trigger);
+        this.mInteractionZone = pParameter.zone;
+        this.mManualComponentState = new ComponentState<Symbol>(Symbol('Manual Update'));
 
         // Init loop detection values.
         this.mUpdateStates = {
@@ -69,19 +76,11 @@ export class CoreEntityUpdater {
                 chainedTask: null
             }
         };
-    }
 
-    /**
-     * Add update trigger to entity.
-     * Autmatic update is triggered when a interaction with the set triggers is pushed to the zone.
-     * 
-     * @param pUpdateTrigger - Triggers that should update trigger a update.
-     */
-    public addUpdateTrigger(pUpdateTrigger: UpdateTrigger): void {
         // Add listener for interactions. Shedules an update on interaction zone.
-        this.mInteractionZone.addInteractionListener(UpdateTrigger, (pReason: CoreEntityInteractionEvent) => {
-            // Only update
-            if ((pUpdateTrigger & pUpdateTrigger) === 0) {
+        this.mInteractionZone.addInteractionListener((pReason: InteractionZoneEvent<ComponentState>) => {
+            // Only update on sets.
+            if ((pReason.triggerType & ComponentStateType.set) === 0) {
                 return;
             }
 
@@ -94,42 +93,8 @@ export class CoreEntityUpdater {
      * Deconstruct update zone. 
      */
     public deconstruct(): void {
-        // Disconnect from change listener. Does nothing if listener is not defined.
-        this.mInteractionZone.removeInteractionListener(UpdateTrigger);
-    }
-
-    /**
-     * Register object and pass on update events.
-     * 
-     * @param pObject - Object.
-     */
-    public registerObject<T extends object>(pObject: T): T {
-        // Do not patch twice for the same zone.
-        if (this.mRegisteredObjects.has(pObject)) {
-            return this.mRegisteredObjects.get(pObject)!.proxy as T;
-        }
-
-        // Add all events without function.
-        if (pObject instanceof EventTarget) {
-            for (const lEventName of ['input', 'change']) {
-                // Add empty event to element. This should trigger an interaction every time the event and therefore the listener is called.
-                this.mInteractionZone.execute(() => {
-                    pObject.addEventListener(lEventName, () => {
-                        InteractionZone.pushInteraction<UpdateTrigger, CoreEntityInteractionData>(UpdateTrigger, UpdateTrigger.InputChange, CoreEntityProcessorProxy.createCoreEntityCreationData(pObject, lEventName));
-                    });
-                });
-            }
-        }
-
-        // Create proxy.
-        const lObjectProxy: CoreEntityProcessorProxy<T> = new CoreEntityProcessorProxy(pObject);
-
-        // Add element as patched entity. Both original and proxied version.
-        this.mRegisteredObjects.set(pObject, lObjectProxy);
-        this.mRegisteredObjects.set(lObjectProxy.proxy, lObjectProxy);
-
-        // Return proxied version.
-        return lObjectProxy.proxy;
+        // Disconnect all listener.
+        this.mInteractionZone.removeInteractionListener();
     }
 
     /**
@@ -138,7 +103,7 @@ export class CoreEntityUpdater {
      * 
      * @returns true when anything was updated.
      */
-    public async resolveAfterUpdate(): Promise<boolean> {
+    public async waitForUpdate(): Promise<boolean> {
         // When nothing is sheduled, nothing will be updated.
         if (!this.mUpdateStates.async.hasSheduledTask) {
             return false;
@@ -162,7 +127,7 @@ export class CoreEntityUpdater {
      * 
      * @param pFunction - Function.
      */
-    public switchToUpdateZone<T>(pFunction: () => T): T {
+    public executeInZone<T>(pFunction: () => T): T {
         return this.mInteractionZone.execute(pFunction);
     }
 
@@ -172,7 +137,7 @@ export class CoreEntityUpdater {
      */
     public update(): boolean {
         // Create independend interaction event for manual shedule.
-        const lManualUpdateEvent: CoreEntityInteractionEvent = new InteractionZoneEvent<UpdateTrigger, CoreEntityInteractionData>(UpdateTrigger, UpdateTrigger.Manual, this.mInteractionZone, CoreEntityProcessorProxy.createCoreEntityCreationData(this, Symbol('Manual Update')));
+        const lManualUpdateEvent: InteractionZoneEvent<ComponentState> = new InteractionZoneEvent<ComponentState>(ComponentStateType.manual, this.mInteractionZone, this.mManualComponentState);
 
         // Run synchron update.
         return this.runUpdateSynchron(lManualUpdateEvent);
@@ -183,7 +148,7 @@ export class CoreEntityUpdater {
      */
     public updateAsync(): void {
         // Create independend interaction event for manual shedule.
-        const lManualUpdateEvent: CoreEntityInteractionEvent = new InteractionZoneEvent<UpdateTrigger, CoreEntityInteractionData>(UpdateTrigger, UpdateTrigger.Manual, this.mInteractionZone, CoreEntityProcessorProxy.createCoreEntityCreationData(this, Symbol('Manual Update')));
+        const lManualUpdateEvent: InteractionZoneEvent<ComponentState> = new InteractionZoneEvent<ComponentState>(ComponentStateType.manual, this.mInteractionZone, this.mManualComponentState);
 
         // Run synchron update.
         this.runUpdateAsynchron(lManualUpdateEvent, null);
@@ -198,17 +163,17 @@ export class CoreEntityUpdater {
      * 
      * @returns Update task result.
      */
-    private executeTaskChain(pUpdateTask: CoreEntityInteractionEvent, pUpdateCycle: UpdateCycle, pUpdateState: boolean, pStack: Stack<CoreEntityInteractionEvent>): boolean {
+    private executeTaskChain(pUpdateTask: InteractionZoneEvent<ComponentState>, pUpdateCycle: UpdateCycle, pUpdateState: boolean, pStack: Array<InteractionZoneEvent<ComponentState>>): boolean {
         // Throw if too many calles were chained.
-        if (pStack.size > this.mApplicationContext.updating.stackCap) {
-            throw new UpdateLoopError('Call loop detected', pStack.toArray());
+        if (pStack.length > CoreEntityUpdater.stackCap) {
+            throw new UpdateLoopError('Call loop detected', pStack);
         }
 
         // Measure performance.
         const lStartPerformance = performance.now();
 
         // Reshedule task when frame time exceeds MAX_FRAME_TIME. Update called next frame.
-        if (!pUpdateCycle.forcedSync && lStartPerformance - pUpdateCycle.startTime > this.mApplicationContext.updating.frameTime) {
+        if (!pUpdateCycle.forcedSync && lStartPerformance - pUpdateCycle.startTime > CoreEntityUpdater.frameTime) {
             throw new UpdateResheduleError();
         }
 
@@ -217,22 +182,8 @@ export class CoreEntityUpdater {
 
         // Call task. If no other call was sheduled during this call, the length will be the same after. 
         const lUpdatedState: boolean = this.mInteractionZone.execute(() => {
-            return this.mUpdateFunction.call(this, pUpdateTask);
+            return this.mUpdateFunction.call(this);
         }) || pUpdateState;
-
-        // Log performance time.
-        if (this.mApplicationContext.logging.updatePerformance) {
-            const lCurrentTimestamp: number = performance.now();
-
-            this.mApplicationContext.print(this.mLoggingType, 'Update performance:', this.mInteractionZone.name,
-                '\n\t', 'Cycle:', lCurrentTimestamp - pUpdateCycle.timeStamp, 'ms',
-                '\n\t', 'Runner:', lCurrentTimestamp - pUpdateCycle.runner.timestamp, 'ms',
-                '\n\t', '  ', 'Id:', pUpdateCycle.runner.id.toString(),
-                '\n\t', 'Update:', lCurrentTimestamp - lStartPerformance, 'ms',
-                '\n\t', '  ', 'State:', lUpdatedState,
-                '\n\t', '  ', 'Chain: ', pStack.toArray().map((pReason) => { return pReason.toString(); }),
-            );
-        }
 
         // Set new runner id after run through.
         // When the update function has resheduled, the resheduled cycle runs with the same runner id, bc of the error that skips this call.
@@ -244,7 +195,7 @@ export class CoreEntityUpdater {
         }
 
         // Buffer next running task and remove it from queue.
-        const lNextTask: CoreEntityInteractionEvent = this.mUpdateStates.cycle.chainedTask;
+        const lNextTask: InteractionZoneEvent<ComponentState> = this.mUpdateStates.cycle.chainedTask;
         this.mUpdateStates.cycle.chainedTask = null;
 
         // Restart next task in a sub cycle.
@@ -276,7 +227,7 @@ export class CoreEntityUpdater {
      * 
      * @param pUpdateTask - Trigger information of update task.
      */
-    private runUpdateAsynchron(pUpdateTask: CoreEntityInteractionEvent, pResheduledCycle: UpdateCycle | null): void {
+    private runUpdateAsynchron(pUpdateTask: InteractionZoneEvent<ComponentState>, pResheduledCycle: UpdateCycle | null): void {
         // Save tasks that happens while a task is allready running or the current sheduled task is a incomplete resheduled one.
         if (this.mUpdateStates.async.hasRunningTask || this.mUpdateStates.async.sheduledTaskIsResheduled) {
             this.mUpdateStates.cycle.chainedTask = pUpdateTask;
@@ -306,14 +257,6 @@ export class CoreEntityUpdater {
             } catch (pError: unknown) {
                 // We know that we should reshedule this task when any of the synchronos tasks throws a UpdateResheduleError error.
                 if (pError instanceof UpdateResheduleError && pRunningCycle.initiator === this) {
-                    // Logable reshedules.
-                    if (this.mApplicationContext.logging.updateReshedule) {
-                        this.mApplicationContext.print(this.mLoggingType, 'Reshedule:', this.mInteractionZone.name,
-                            '\n\t', 'Cycle Performance', performance.now() - pRunningCycle.timeStamp,
-                            '\n\t', 'Runner Id:', pRunningCycle.runner.id.toString(),
-                        );
-                    }
-
                     lResheduleTask = true;
                 }
 
@@ -348,7 +291,7 @@ export class CoreEntityUpdater {
                 CoreEntityUpdateCycle.openResheduledCycle(pResheduledCycle, lCycleUpdate);
             } else {
                 // Open a async cylce in wich the sync update runs. So the sync cycle reshedules long running tasks. 
-                CoreEntityUpdateCycle.openUpdateCycle({ updater: this, reason: pUpdateTask, runSync: false }, lCycleUpdate);
+                CoreEntityUpdateCycle.openUpdateCycle({ updater: this, runSync: false }, lCycleUpdate);
             }
         });
     }
@@ -363,16 +306,7 @@ export class CoreEntityUpdater {
      * 
      * @returns true when the update task has updated any state.
      */
-    private runUpdateSynchron(pUpdateTask: CoreEntityInteractionEvent): boolean {
-        // Log update trigger time.
-        if (this.mApplicationContext.logging.updaterTrigger) {
-            this.mApplicationContext.print(this.mLoggingType, 'Update trigger:', this.mInteractionZone.name,
-                '\n\t', 'Trigger:', pUpdateTask.toString(),
-                '\n\t', 'Chained:', this.mUpdateStates.sync.running,
-                '\n\t', 'Omitted:', !!this.mUpdateStates.cycle.chainedTask
-            );
-        }
-
+    private runUpdateSynchron(pUpdateTask: InteractionZoneEvent<ComponentState>): boolean {
         // When the current update is running, save the most current update task as next update.
         if (this.mUpdateStates.sync.running) {
             this.mUpdateStates.cycle.chainedTask = pUpdateTask;
@@ -384,7 +318,7 @@ export class CoreEntityUpdater {
 
         // Try to request a sync update state.
         try {
-            const lUpdateResult: boolean = CoreEntityUpdateCycle.openUpdateCycle({ updater: this, reason: pUpdateTask, runSync: true }, (pUpdateCycle: UpdateCycle): boolean => {
+            const lUpdateResult: boolean = CoreEntityUpdateCycle.openUpdateCycle({ updater: this, runSync: true }, (pUpdateCycle: UpdateCycle): boolean => {
                 // Read from cache when the update was already run in a resheduled cycle.
                 if (this.mUpdateRunCache.has(pUpdateCycle.runner)) {
                     // Update cycles start time when any update is used.
@@ -397,7 +331,7 @@ export class CoreEntityUpdater {
                 }
 
                 // Execute task.
-                const lExecutionResult: boolean = this.executeTaskChain(pUpdateTask, pUpdateCycle, false, new Stack<CoreEntityInteractionEvent>());
+                const lExecutionResult: boolean = this.executeTaskChain(pUpdateTask, pUpdateCycle, false, new Array<InteractionZoneEvent<ComponentState>>());
 
                 // Save update result for this cycle. Only saved when no exception occurred.
                 this.mUpdateRunCache.set(pUpdateCycle.runner, lExecutionResult);
@@ -416,33 +350,12 @@ export class CoreEntityUpdater {
                 throw pError;
             }
 
-            // Overrideable error value to potential remove the error. 
-            let lError: any = pError;
-
-            // Print any error.
-            if (pError && this.mApplicationContext.error.print) {
-                this.mApplicationContext.print(PwbApplicationDebugLoggingType.All, pError);
-            }
-
-            // Handle errors.
-            if (this.mApplicationContext.error.ignore) {
-                // Print error.
-                this.mApplicationContext.print(this.mLoggingType, pError);
-
-                // But remove it.
-                lError = null;
-            }
-
             // Release chain complete hooks.
-            this.releaseUpdateChainCompleteHooks(false, lError);
+            this.releaseUpdateChainCompleteHooks(false, pError);
 
             // Rethrow error 
-            if (lError) {
-                throw pError;
-            }
+            throw pError;
 
-            // When an error is thrown but not used, no update has happened.
-            return false;
         } finally {
             // Set synchron update to finished running state.
             this.mUpdateStates.sync.running = false;
@@ -450,11 +363,20 @@ export class CoreEntityUpdater {
     }
 }
 
+class UpdateResheduleError extends Error {
+    /**
+     * Constructor.
+     */
+    public constructor() {
+        super(`Update resheduled`);
+    }
+}
+
 type UpdateChainCompleteHookRelease = (pUpdated: boolean, pError: any) => void;
 
 type UpdateInformation = {
     cycle: {
-        chainedTask: CoreEntityInteractionEvent | null;
+        chainedTask: InteractionZoneEvent<ComponentState> | null;
     },
     async: {
         hasSheduledTask: boolean;
@@ -467,45 +389,27 @@ type UpdateInformation = {
     chainCompleteHooks: Stack<UpdateChainCompleteHookRelease>;
 };
 
-
 /**
  * Construction parameter.
  */
-type UpdateListener = (pReason: CoreEntityInteractionEvent) => boolean;
+type UpdateListener = () => boolean;
 type BaseCoreEntityUpdateZoneConstructorParameter = {
-    /**
-     * General application configuration.
-     */
-    applicationContext: PwbApplicationConfiguration;
-
     /**
      * Debug label.
      */
     label: string;
 
     /**
-     * Debug message type for this entity.
-     */
-    loggingType: PwbApplicationDebugLoggingType;
-
-    /**
-     * Isolate trigger and dont send them to parent zones.
-     */
-    isolate: boolean;
-
-    /**
-     * Trigger that should be send to this and parent zones.
-     * When any zone added a updateTrigger, they can auto update with them.
-     */
-    trigger: UpdateTrigger;
-
-    /**
-     * Updater parent zone.
-     */
-    parent: CoreEntityUpdater | undefined;
-
-    /**
      * Function executed on update.
      */
     onUpdate: UpdateListener;
+
+    /**
+     * Interaction zone.
+     */
+    zone: InteractionZone;
+};
+
+export type CoreEntityUpdaterInteractionData = {
+    property: PropertyKey;
 };

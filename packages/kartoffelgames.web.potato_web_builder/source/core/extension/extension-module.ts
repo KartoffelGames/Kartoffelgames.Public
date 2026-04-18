@@ -1,11 +1,7 @@
 import type { IDeconstructable } from '@kartoffelgames/core';
 import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
-import type { PwbApplicationConfiguration } from '../../application/pwb-application-configuration.ts';
-import { PwbApplicationDebugLoggingType } from '../../application/pwb-application-debug-logging-type.enum.ts';
-import { CoreEntity, type CoreEntityProcessorConstructor } from '../core_entity/core-entity.ts';
-import type { Processor } from '../core_entity/processor.ts';
+import { CoreEntity, CoreEntityProcessor, type CoreEntityProcessorConstructor } from '../core_entity/core-entity.ts';
 import type { AccessMode } from '../enum/access-mode.enum.ts';
-import type { UpdateTrigger } from '../enum/update-trigger.enum.ts';
 
 export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> implements IDeconstructable {
     /**
@@ -16,26 +12,13 @@ export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> im
      * @param pParent - Parent entity.
      * @param pInteractionTrigger - Trigger for the extension module.
      */
-    public constructor(pApplicationContext: PwbApplicationConfiguration, pConstructor: IPwbExtensionModuleProcessorConstructor, pParent: CoreEntity, pInteractionTrigger: UpdateTrigger) {
+    public constructor(pConstructor: IPwbExtensionModuleProcessorConstructor, pParent: CoreEntity) {
         super({
-            applicationContext: pApplicationContext,
             constructor: pConstructor,
-            loggingType: PwbApplicationDebugLoggingType.Extention,
             parent: pParent,
-            isolate: false,
-            trigger: pInteractionTrigger,
-            trackConstructorChanges: false
         });
 
-        this.setProcessorAttributes(ExtensionModule, this);
-
-        // Call execution hook.
-        this.addSetupHook(() => {
-            this.call<IExtensionOnExecute, 'onExecute'>('onExecute', false);
-        }).addSetupHook(() => {
-            // Forces auto create on setup.
-            const _ = this.processor;
-        });
+        this.setProcessorInjection(ExtensionModule, this);
     }
 
     /**
@@ -43,9 +26,23 @@ export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> im
      */
     public override deconstruct(): void {
         // Call execution hook.
-        this.call<IExtensionOnDeconstruct, 'onDeconstruct'>('onDeconstruct', false);
+        this.call<IExtensionOnDeconstruct, 'onDeconstruct'>('onDeconstruct');
 
         super.deconstruct();
+    }
+
+    /**
+     * Override setup to trigger onExecute.
+     * 
+     * @returns this.
+     */
+    public override setup(): this {
+        super.setup();
+
+        // Call execution hook.
+        this.call<IExtensionOnExecute, 'onExecute'>('onExecute');
+
+        return this;
     }
 
     /**
@@ -53,7 +50,7 @@ export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> im
      * 
      * @returns false.
      */
-    public onUpdate(): boolean {
+    protected onUpdate(): boolean {
         // No update for you :(
         /* istanbul ignore next */
         return false;
@@ -69,7 +66,7 @@ export interface IExtensionOnDeconstruct {
 export interface IExtensionOnExecute {
     onExecute(): void;
 }
-export interface IPwbExtensionModuleProcessor extends Processor, Partial<IExtensionOnDeconstruct>, Partial<IExtensionOnExecute> { }
+export interface IPwbExtensionModuleProcessor extends CoreEntityProcessor, Partial<IExtensionOnDeconstruct>, Partial<IExtensionOnExecute> { }
 export interface IPwbExtensionModuleProcessorConstructor extends CoreEntityProcessorConstructor<IPwbExtensionModuleProcessor> { }
 
 /**
@@ -77,6 +74,5 @@ export interface IPwbExtensionModuleProcessorConstructor extends CoreEntityProce
  */
 export type ExtensionModuleConfiguration = {
     access: AccessMode;
-    trigger: UpdateTrigger;
     targetRestrictions: Array<InjectionConstructor>;
 };

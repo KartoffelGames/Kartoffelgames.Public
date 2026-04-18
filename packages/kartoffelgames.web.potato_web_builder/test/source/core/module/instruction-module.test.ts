@@ -7,9 +7,7 @@ import { expect } from '@kartoffelgames/core-test';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
 import { PwbTemplateXmlNode } from '../../../../source/core/component/template/nodes/pwb-template-xml-node.ts';
 import { PwbTemplate } from '../../../../source/core/component/template/nodes/pwb-template.ts';
-import { Processor } from '../../../../source/core/core_entity/processor.ts';
 import { ComponentDataLevel } from '../../../../source/core/data/component-data-level.ts';
-import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum.ts';
 import type { IInstructionOnUpdate } from '../../../../source/core/module/instruction_module/instruction-module.ts';
 import { InstructionResult } from '../../../../source/core/module/instruction_module/instruction-result.ts';
 import { PwbInstructionModule } from '../../../../source/core/module/instruction_module/pwb-instruction-module.decorator.ts';
@@ -18,16 +16,13 @@ Deno.test('PwbInstructionModule--Functionality: CustomModule - Same result, twic
     await pContext.step('Default', async () => {
         // Setup. Define module.
         @PwbInstructionModule({
-            instructionType: 'multiresult',
-            trigger: UpdateTrigger.Any
+            instructionType: 'multiresult'
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class WrongModule extends Processor implements IInstructionOnUpdate {
+        class WrongModule implements IInstructionOnUpdate {
             private readonly mDataLevel: ComponentDataLevel;
 
             public constructor(pValueReference = Injection.use(ComponentDataLevel)) {
-                super();
-
                 this.mDataLevel = pValueReference;
             }
 
@@ -36,10 +31,10 @@ Deno.test('PwbInstructionModule--Functionality: CustomModule - Same result, twic
                 const lModuleResult: InstructionResult = new InstructionResult();
 
                 const lTemplateOne: PwbTemplate = new PwbTemplate();
-                lTemplateOne.appendChild(new PwbTemplateXmlNode());
+                lTemplateOne.appendChild(new PwbTemplateXmlNode('div'));
 
                 const lTemplateTwo: PwbTemplate = new PwbTemplate();
-                lTemplateTwo.appendChild(new PwbTemplateXmlNode());
+                lTemplateTwo.appendChild(new PwbTemplateXmlNode('div'));
 
                 lModuleResult.addElement(lTemplateOne, this.mDataLevel.data);
                 lModuleResult.addElement(lTemplateTwo, this.mDataLevel.data);
@@ -53,7 +48,7 @@ Deno.test('PwbInstructionModule--Functionality: CustomModule - Same result, twic
             selector: TestUtil.randomSelector(),
             template: `$multiresult`
         })
-        class TestComponent extends Processor { }
+        class TestComponent { }
 
         // Process. Create element.
         let lErrorMessage: string | null = null;
@@ -73,18 +68,17 @@ Deno.test('PwbInstructionModule--Functionality: CustomModule - Manipulator witho
     await pContext.step('Default', async () => {
         // Setup. Define module.
         @PwbInstructionModule({
-            instructionType: 'noupdatemethod',
-            trigger: UpdateTrigger.Any
+            instructionType: 'noupdatemethod'
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class WrongModule extends Processor { }
+        class WrongModule { }
 
         // Setup. Define component.
         @PwbComponent({
             selector: TestUtil.randomSelector(),
             template: `$noupdatemethod`
         })
-        class TestComponent extends Processor { }
+        class TestComponent { }
 
         // Process. Create element.
         const lComponent = await <any>TestUtil.createComponent(TestComponent);

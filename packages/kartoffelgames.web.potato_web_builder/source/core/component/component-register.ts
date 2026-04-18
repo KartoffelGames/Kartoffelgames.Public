@@ -1,7 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
-import type { Processor, ProcessorConstructor } from '../core_entity/processor.ts';
-import type { Component, ComponentProcessor } from './component.ts';
+import type { Component, ComponentProcessor, ComponentProcessorConstructor } from './component.ts';
 
 export class ComponentRegister {
     private static readonly mComponents: WeakMap<HTMLElement | ComponentProcessor, Component> = new WeakMap<HTMLElement | ComponentProcessor, Component>();
@@ -37,7 +36,8 @@ export class ComponentRegister {
             selector: lSelector,
             constructor: lComponentConstructor,
             element: lElement,
-            component: pComponent
+            component: pComponent,
+            processor: pComponent.processor
         };
     }
 
@@ -51,7 +51,7 @@ export class ComponentRegister {
      * @throws {@link Exception}
      * When {@link pConstructor} is not a registered component processor.
      */
-    public static ofConstructor<T extends Processor>(pConstructor: ProcessorConstructor<T>): ComponentConstructorInformationData {
+    public static ofConstructor(pConstructor: ComponentProcessorConstructor): ComponentConstructorInformationData {
         // Get selector of constructor.
         const lSelector: string | undefined = ComponentRegister.mConstructorSelector.get(pConstructor);
         if (!lSelector) {
@@ -153,6 +153,7 @@ export type ComponentInformationData = {
     constructor: InjectionConstructor;
     element: HTMLElement;
     component: Component;
+    processor: ComponentProcessor | undefined;
 };
 
 export type ComponentConstructorInformationData = {

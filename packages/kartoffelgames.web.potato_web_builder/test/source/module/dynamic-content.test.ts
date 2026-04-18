@@ -7,7 +7,6 @@ import { PwbComponent } from '../../../source/core/component/pwb-component.decor
 import { PwbTemplateTextNode } from '../../../source/core/component/template/nodes/pwb-template-text-node.ts';
 import { PwbTemplateXmlNode } from '../../../source/core/component/template/nodes/pwb-template-xml-node.ts';
 import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template.ts';
-import { Processor } from '../../../source/core/core_entity/processor.ts';
 
 Deno.test('DynamicContent--Functionality: Initial', async (pContext) => {
     await pContext.step('Default', async () => {
@@ -16,13 +15,12 @@ Deno.test('DynamicContent--Functionality: Initial', async (pContext) => {
             selector: TestUtil.randomSelector(),
             template: `$dynamic-content(this.getContent())`
         })
-        class TestComponent extends Processor {
+        class TestComponent  {
             public getContent(): PwbTemplate {
                 const lTemlplate: PwbTemplate = new PwbTemplate();
 
                 // Inner div
-                const lDiv: PwbTemplateXmlNode = new PwbTemplateXmlNode();
-                lDiv.tagName = 'div';
+                const lDiv: PwbTemplateXmlNode = new PwbTemplateXmlNode('div');
 
                 lTemlplate.appendChild(lDiv);
 
@@ -56,13 +54,12 @@ Deno.test('DynamicContent--Functionality: Keep content', async (pContext) => {
             selector: TestUtil.randomSelector(),
             template: `$dynamic-content(this.getContent())`
         })
-        class TestComponent extends Processor {
+        class TestComponent  {
             public getContent(): PwbTemplate {
                 const lTemlplate: PwbTemplate = new PwbTemplate();
 
                 // Inner div
-                const lDiv: PwbTemplateXmlNode = new PwbTemplateXmlNode();
-                lDiv.tagName = 'div';
+                const lDiv: PwbTemplateXmlNode = new PwbTemplateXmlNode('div');
 
                 // Inner text node.
                 const lTextNode: PwbTemplateTextNode = new PwbTemplateTextNode();
@@ -102,7 +99,7 @@ Deno.test('DynamicContent--Functionality: Wrong result type', async (pContext) =
             selector: TestUtil.randomSelector(),
             template: `$dynamic-content(this.getContent())`
         })
-        class TestComponent extends Processor {
+        class TestComponent  {
             public getContent(): number {
                 return 111;
             }

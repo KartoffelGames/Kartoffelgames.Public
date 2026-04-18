@@ -1,9 +1,8 @@
-import type { PwbApplicationConfiguration } from '../../../application/pwb-application-configuration.ts';
 import { DataLevel } from '../../data/data-level.ts';
 import type { AttributeModule } from '../../module/attribute_module/attribute-module.ts';
 import type { ExpressionModule } from '../../module/expression_module/expression-module.ts';
 import type { ComponentModules } from '../component-modules.ts';
-import type { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node.ts';
+import type { IPwbTemplateNode } from '../template/nodes/i-pwb-template-node.interface.ts';
 import { PwbTemplateInstructionNode } from '../template/nodes/pwb-template-instruction-node.ts';
 import { PwbTemplateTextNode } from '../template/nodes/pwb-template-text-node.ts';
 import { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node.ts';
@@ -26,14 +25,13 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
     /**
      * Constructor.
      * 
-     * @param pApplicationContext - Application context.
      * @param pTemplate - Template.
      * @param pModules - Attribute modules.
      * @param pParentDataLevel - Data of parent builder.
      * @param pAnchorName - Name of builder content anchor.
      */
-    public constructor(pApplicationContext: PwbApplicationConfiguration, pTemplate: StaticPwbTemplate, pModules: ComponentModules, pParentDataLevel: DataLevel, pAnchorName: string) {
-        super(pApplicationContext, pTemplate, pParentDataLevel, new StaticBuilderData(pModules, `Static - {${pAnchorName}}`));
+    public constructor(pTemplate: StaticPwbTemplate, pModules: ComponentModules, pParentDataLevel: DataLevel, pAnchorName: string) {
+        super(pTemplate, pModules, pParentDataLevel, new StaticBuilderData(`Static - {${pAnchorName}}`));
 
         // Not initialized on start.
         this.mInitialized = false;
@@ -103,8 +101,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
      */
     private buildInstructionTemplate(pMultiplicatorTemplate: PwbTemplateInstructionNode, pParentContent: BuilderContent): void {
         // Create new instruction builder and add to bottom of parent content.
-        const lInstructionBuilder: InstructionBuilder = new InstructionBuilder(this.applicationContext, pMultiplicatorTemplate, this.content.modules, new DataLevel(this.values));
-        this.content.insert(lInstructionBuilder, 'BottomOf', pParentContent);
+        this.content.insert(new InstructionBuilder(pMultiplicatorTemplate, this.modules, new DataLevel(this.values)), 'BottomOf', pParentContent);
     }
 
     /**
@@ -116,13 +113,12 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
      */
     private buildStaticTemplate(pElementTemplate: PwbTemplateXmlNode, pParentContent: BuilderContent): void {
         // Build element and append to builder.
-        const lHtmlNode: Element = this.createZoneEnabledElement(pElementTemplate);
+        const lHtmlNode: Element = this.createHtmlElement(pElementTemplate);
         this.content.insert(lHtmlNode, 'BottomOf', pParentContent);
 
         for (const lAttributeTemplate of pElementTemplate.attributes) {
-
             // Read static module.
-            const lStaticModule: AttributeModule | null = this.content.modules.createAttributeModule(this.applicationContext, lAttributeTemplate, lHtmlNode, this.values);
+            const lStaticModule: AttributeModule | null = this.modules.createAttributeModule(lAttributeTemplate, lHtmlNode, this.values);
             if (lStaticModule) {
                 // Link modules.
                 this.content.linkAttributeModule(lStaticModule);
@@ -136,7 +132,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
                 // Create text nodes for each attribute value and link expressions to those textnodes.
                 for (const lValue of lAttributeTemplate.values.values) {
                     // Create text node for attribute value.
-                    const lAttributeTextNode: Text = this.createZoneEnabledText('');
+                    const lAttributeTextNode: Text = this.createTextNode('');
                     lAttributeTextNodeList.push(lAttributeTextNode);
 
                     // Add text value for non expressions.
@@ -146,7 +142,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
                     }
 
                     // Create expression module for attribute expression value and link it to builder.
-                    const lAttributeExpressionModule: ExpressionModule = this.content.modules.createExpressionModule(this.applicationContext, lValue, lAttributeTextNode, this.values);
+                    const lAttributeExpressionModule: ExpressionModule = this.modules.createExpressionModule(lValue, lAttributeTextNode, this.values);
                     this.content.linkExpressionModule(lAttributeExpressionModule);
 
                     // Link expression to attribute.
@@ -176,7 +172,7 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
      * @param pTemplateNodeList - Template node list.
      * @param pParentContent - Parent element of templates.
      */
-    private buildTemplate(pTemplateNodeList: Array<BasePwbTemplateNode>, pParentContent: BuilderContent): void {
+    private buildTemplate(pTemplateNodeList: Iterable<IPwbTemplateNode>, pParentContent: BuilderContent): void {
         // Create each template based on template node type.
         for (const lTemplateNode of pTemplateNodeList) {
             if (lTemplateNode instanceof PwbTemplate) {
@@ -204,16 +200,16 @@ export class StaticBuilder extends BaseBuilder<StaticPwbTemplate, StaticBuilderD
         for (const lValue of pTextTemplate.values) {
             // Create simple and static textnode for string values.
             if (typeof lValue === 'string') {
-                this.content.insert(this.createZoneEnabledText(lValue), 'BottomOf', pParentContent);
+                this.content.insert(this.createTextNode(lValue), 'BottomOf', pParentContent);
                 continue;
             }
 
             // Placeholder text node for expression and append it to builder.
-            const lExpressionTextNode: Text = this.createZoneEnabledText('');
+            const lExpressionTextNode: Text = this.createTextNode('');
             this.content.insert(lExpressionTextNode, 'BottomOf', pParentContent);
 
             // Create expression module and link it to builder.
-            const lExpressionModule: ExpressionModule = this.content.modules.createExpressionModule(this.applicationContext, lValue, lExpressionTextNode, this.values);
+            const lExpressionModule: ExpressionModule = this.modules.createExpressionModule(lValue, lExpressionTextNode, this.values);
             this.content.linkExpressionModule(lExpressionModule);
         }
     }

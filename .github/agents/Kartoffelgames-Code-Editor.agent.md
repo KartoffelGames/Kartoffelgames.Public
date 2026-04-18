@@ -516,20 +516,13 @@ export interface ProcessingOptions {
 /**
  * Defines the available text processing modes for different content types.
  */
-export enum TextProcessingMode {
-    /**
-     * Standard text processing with basic validation.
-     */
-    Standard = 'standard',
+export const PwbApplicationDebugLoggingType = {
+    None: 0,
+    Component: 1,
+    Module: 2,
+    Extention: 4,
+    All: 7
+} as const;
 
-    /**
-     * Strict processing with comprehensive validation.
-     */
-    Strict = 'strict',
-
-    /**
-     * Lenient processing with minimal validation.
-     */
-    Lenient = 'lenient'
-}
+export type PwbApplicationDebugLoggingType = typeof PwbApplicationDebugLoggingType[keyof typeof PwbApplicationDebugLoggingType];
 ```

@@ -1,6 +1,5 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { CoreEntityRegister } from '../../core_entity/core-entity-register.ts';
-import type { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
 import { type IPwbInstructionModuleProcessorConstructor, InstructionModule } from './instruction-module.ts';
 
 /**
@@ -16,13 +15,11 @@ export function PwbInstructionModule(pSettings: InstructionModuleSettings): any 
 
         // Register module.
         CoreEntityRegister.register(InstructionModule, pInstructionModuleConstructor, {
-            instructionType: pSettings.instructionType,
-            trigger: pSettings.trigger
+            instructionType: pSettings.instructionType
         });
     };
 }
 
 type InstructionModuleSettings = {
     instructionType: string;
-    trigger: UpdateTrigger;
 };

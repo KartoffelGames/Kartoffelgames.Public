@@ -4,7 +4,6 @@ import { TestUtil } from '../../utility/test-util.ts';
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
-import { Processor } from '../../../source/core/core_entity/processor.ts';
 
 Deno.test('SlotInstruction--Functionality: Default slot', async (pContext) => {
     await pContext.step('Default', async () => {
@@ -13,7 +12,7 @@ Deno.test('SlotInstruction--Functionality: Default slot', async (pContext) => {
             selector: TestUtil.randomSelector(),
             template: '$slot'
         })
-        class TestComponent extends Processor { }
+        class TestComponent  { }
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
@@ -43,7 +42,7 @@ Deno.test('SlotInstruction--Functionality: Named slot', async (pContext) => {
             selector: TestUtil.randomSelector(),
             template: `$slot(${lSlotName})`
         })
-        class TestComponent extends Processor { }
+        class TestComponent  { }
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
@@ -74,7 +73,7 @@ Deno.test('SlotInstruction--Functionality: Named slot after component update', a
             selector: TestUtil.randomSelector(),
             template: `$slot(${lSlotName})`
         })
-        class TestComponent extends Processor { }
+        class TestComponent  { }
 
         // Setup. Create element.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);

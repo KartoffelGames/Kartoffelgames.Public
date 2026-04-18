@@ -2,11 +2,9 @@ import { Exception } from '@kartoffelgames/core';
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import type { PwbTemplateInstructionNode } from '../../core/component/template/nodes/pwb-template-instruction-node.ts';
 import { PwbTemplate } from '../../core/component/template/nodes/pwb-template.ts';
-import { Processor } from '../../core/core_entity/processor.ts';
 import { DataLevel } from '../../core/data/data-level.ts';
 import type { LevelProcedure } from '../../core/data/level-procedure.ts';
 import { ModuleDataLevel } from '../../core/data/module-data-level.ts';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
 import { ModuleExpression } from '../../core/module/injection_reference/module-expression.ts';
 import { ModuleTemplate } from '../../core/module/injection_reference/module-template.ts';
 import type { IInstructionOnUpdate } from '../../core/module/instruction_module/instruction-module.ts';
@@ -19,10 +17,9 @@ import { PwbInstructionModule } from '../../core/module/instruction_module/pwb-i
  * Syntax: "[CustomName] of [List] (;[CustomIndexName] = $index)?"
  */
 @PwbInstructionModule({
-    instructionType: 'for',
-    trigger: UpdateTrigger.Any & ~UpdateTrigger.UntrackableFunctionCall
+    instructionType: 'for'
 })
-export class ForInstructionModule extends Processor implements IInstructionOnUpdate {
+export class ForInstructionModule implements IInstructionOnUpdate {
     private readonly mExpression: ForOfExpression;
     private mLastEntries: Array<[string, any]>;
     private readonly mModuleValues: ModuleDataLevel;
@@ -35,8 +32,6 @@ export class ForInstructionModule extends Processor implements IInstructionOnUpd
      * @param pModuleExpression - Expression of module.
      */
     public constructor(pTemplate = Injection.use(ModuleTemplate), pModuleData = Injection.use(ModuleDataLevel), pModuleExpression = Injection.use(ModuleExpression)) {
-        super();
-
         this.mTemplate = <PwbTemplateInstructionNode>pTemplate;
         this.mModuleValues = pModuleData;
         this.mLastEntries = new Array<[string, any]>();

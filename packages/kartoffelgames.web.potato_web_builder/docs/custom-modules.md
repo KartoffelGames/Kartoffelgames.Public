@@ -1,440 +1,446 @@
 # Custom Modules
 
-PWB's template processing is powered by a module system. The framework ships with built-in modules for data binding, events, control flow, and other features, but the system is designed to be extended with custom modules. There are three module types: attribute modules, expression modules, and instruction modules.
+PWB is designed to be extensible through custom modules. There are four types of modules you can create: attribute modules, expression modules, instruction modules, and extension modules.
 
-All modules extend `Processor` and receive their dependencies through constructor injection.
-
-## Module Types Overview
-
-| Module Type | Purpose | Template Syntax | Examples |
-|-------------|---------|-----------------|----------|
-| Attribute Module | Processes attributes on XML elements | `[attr]`, `[(attr)]`, `(event)`, `#id` | One-way binding, two-way binding, events, child refs |
-| Expression Module | Evaluates text expressions | `{{expr}}` | Mustache expressions |
-| Instruction Module | Controls DOM structure | `$name(expr) { ... }` | `$if`, `$for`, `$slot`, `$dynamic-content` |
+All module types use dependency injection to receive context about the template element or expression they are attached to.
 
 ## Attribute Modules
 
-Attribute modules process attributes on template elements. They are matched by a regex selector against the attribute name.
+Attribute modules react to custom attributes on HTML elements in component templates. They can read values, write to the DOM, or both.
 
-### @PwbAttributeModule Decorator
+### Creating an Attribute Module
 
-```typescript
-import {
-    PwbAttributeModule, Processor,
-    AccessMode, UpdateTrigger
-} from '@kartoffelgames/web-potato-web-builder';
-
-@PwbAttributeModule({
-    access: AccessMode,      // Read, ReadWrite, or Write
-    selector: RegExp,        // Regex to match attribute names
-    trigger: UpdateTrigger   // When to trigger updates
-})
-class MyModule extends Processor { }
-```
-
-#### Configuration Properties
-
-- **access** (`AccessMode`): Determines how the module interacts with the target element.
-  - `AccessMode.Read` -- The module reads from the component data and writes to the element.
-  - `AccessMode.Write` -- The module writes to the component data based on element state.
-  - `AccessMode.ReadWrite` -- Bidirectional interaction.
-
-- **selector** (`RegExp`): A regular expression matched against attribute names. If the regex matches, this module is instantiated for that attribute.
-
-- **trigger** (`UpdateTrigger`): A bitmask of conditions that trigger the module's `onUpdate` method. See [Update System](update-system.md).
-
-### Injectable Dependencies
-
-Inside an attribute module constructor, these dependencies are available:
-
-| Injection | Type | Description |
-|-----------|------|-------------|
-| `ModuleTargetNode` | `Element` / `Node` | The DOM element the attribute belongs to |
-| `ModuleDataLevel` | `ModuleDataLevel` | Data scope for creating expressions |
-| `ModuleAttribute` | `ModuleAttribute` | The matched attribute's name and value |
-| `AttributeModule` | `AttributeModule` | The module manager (for registering objects) |
-
-### Lifecycle Interfaces
-
-| Interface | Method | When Called |
-|-----------|--------|------------|
-| `IAttributeOnUpdate` | `onUpdate(): boolean` | On each update cycle (if trigger matches). Return `true` if the DOM was changed. |
-| `IAttributeOnDeconstruct` | `onDeconstruct(): void` | When the module is being destroyed. |
-
-### Example: Custom Tooltip Module
-
-This module reads a `tooltip` attribute and creates a tooltip on hover:
+Use the `@PwbAttributeModule` decorator on a class:
 
 ```typescript
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import {
-    PwbAttributeModule, Processor, ModuleTargetNode,
-    ModuleDataLevel, ModuleAttribute,
-    AccessMode, UpdateTrigger
-} from '@kartoffelgames/web-potato-web-builder';
+import { PwbAttributeModule } from '@kartoffelgames/web-potato-web-builder';
 import type { IAttributeOnUpdate, IAttributeOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { AccessMode, ModuleTargetNode, ModuleDataLevel, ModuleAttribute } from '@kartoffelgames/web-potato-web-builder';
 
 @PwbAttributeModule({
     access: AccessMode.Read,
-    selector: /^tooltip$/,
-    trigger: UpdateTrigger.Any
+    selector: /^tooltip$/
 })
-class TooltipModule extends Processor implements IAttributeOnUpdate, IAttributeOnDeconstruct {
-    private readonly mElement: HTMLElement;
-    private readonly mProcedure: LevelProcedure<string>;
-    private mTooltipElement: HTMLDivElement | null = null;
+class TooltipModule implements IAttributeOnUpdate, IAttributeOnDeconstruct {
+    private readonly mTarget: HTMLElement;
+    private readonly mProcedure: any;
 
     public constructor(
         pTarget = Injection.use(ModuleTargetNode),
-        pData = Injection.use(ModuleDataLevel),
-        pAttr = Injection.use(ModuleAttribute)
+        pModuleData = Injection.use(ModuleDataLevel),
+        pAttribute = Injection.use(ModuleAttribute)
     ) {
-        super();
-        this.mElement = pTarget as HTMLElement;
-        this.mProcedure = pData.createExpressionProcedure(pAttr.value);
+        this.mTarget = pTarget;
+        this.mProcedure = pModuleData.createExpressionProcedure(pAttribute.value);
     }
 
     public onUpdate(): boolean {
-        const text = this.mProcedure.execute();
-        this.mElement.title = text ?? '';
+        const lTooltipText = this.mProcedure.execute();
+        this.mTarget.setAttribute('title', lTooltipText?.toString() ?? '');
         return true;
     }
 
     public onDeconstruct(): void {
-        this.mElement.title = '';
+        this.mTarget.removeAttribute('title');
     }
 }
 ```
 
 Usage in a template:
 
+```html
+<div tooltip="this.tooltipMessage">Hover me</div>
+```
+
+### Configuration
+
+| Option | Type | Description |
+|---|---|---|
+| `access` | `AccessMode` | The access level: `Read`, `Write`, or `ReadWrite`. |
+| `selector` | `RegExp` | A regular expression that matches the attribute name. |
+
+### AccessMode
+
+The `AccessMode` enum defines what the module does with the target:
+
 ```typescript
-@PwbComponent({
-    selector: 'tooltip-demo',
-    template: '<button tooltip="this.helpText">Hover me</button>'
-})
-class TooltipDemo extends Processor {
-    public helpText: string = 'Click to submit';
+enum AccessMode {
+    Read = 1,      // Module reads from the target (e.g., reads attribute values)
+    ReadWrite = 2, // Module both reads and writes to the target
+    Write = 3      // Module writes to the target (e.g., sets properties)
 }
 ```
 
-### Example: Built-in One-Way Binding
+### Lifecycle Hooks
 
-The built-in one-way binding module demonstrates the attribute module pattern:
+| Hook | Return Type | Description |
+|---|---|---|
+| `onUpdate()` | `boolean` | Called on each component update cycle. Return `true` if the module made changes, `false` otherwise. |
+| `onDeconstruct()` | `void` | Called when the element is removed from the DOM. Use for cleanup. |
+
+### Injectable References
+
+| Reference | Description |
+|---|---|
+| `ModuleTargetNode` | The DOM element the attribute is on. |
+| `ModuleDataLevel` | The data level providing access to `createExpressionProcedure()` for evaluating expressions. |
+| `ModuleAttribute` | Provides the attribute `name` and `value` strings. |
+| `ModuleTemplate` | The template node clone of the attribute. |
+| `AttributeModule` | The attribute module manager instance. |
+
+### Built-in Attribute Modules
+
+PWB includes these attribute modules:
+
+| Module | Selector Pattern | Description |
+|---|---|---|
+| One-Way Binding | `[property]` | Binds component expression to DOM property. |
+| Two-Way Binding | `[(property)]` | Syncs value between component and DOM. |
+| Event Binding | `(event)` | Attaches event listener to DOM element. |
+| Child Reference | `#name` | Registers element reference in component data. |
+
+### Example: Custom Attribute with Write Access
 
 ```typescript
 @PwbAttributeModule({
-    access: AccessMode.Read,
-    selector: /^\[[\w$]+\]$/,     // Matches [propertyName]
-    trigger: UpdateTrigger.Any
+    access: AccessMode.Write,
+    selector: /^log$/
 })
-class OneWayBindingAttributeModule extends Processor implements IAttributeOnUpdate {
-    private mLastValue: any;
-    private readonly mProcedure: LevelProcedure<any>;
+class LogEventModule implements IAttributeOnDeconstruct {
     private readonly mTarget: Node;
-    private readonly mTargetProperty: string;
+    private readonly mListener: () => void;
 
     public constructor(
-        pTargetNode = Injection.use(ModuleTargetNode),
-        pModuleValues = Injection.use(ModuleDataLevel),
-        pModuleAttribute = Injection.use(ModuleAttribute)
+        pTarget = Injection.use(ModuleTargetNode),
+        pData = Injection.use(ModuleDataLevel),
+        pAttribute = Injection.use(ModuleAttribute)
     ) {
-        super();
-        this.mTarget = pTargetNode;
-        this.mProcedure = pModuleValues.createExpressionProcedure(pModuleAttribute.value);
-        // Extract property name: [value] -> value
-        this.mTargetProperty = pModuleAttribute.name.substring(1, pModuleAttribute.name.length - 1);
-        this.mLastValue = Symbol('Uncomparable');
+        this.mTarget = pTarget;
+        const lProcedure = pData.createExpressionProcedure(pAttribute.value, ['$event']);
+
+        this.mListener = (pEvent: any): void => {
+            lProcedure.setTemporaryValue('$event', pEvent);
+            lProcedure.execute();
+        };
+
+        this.mTarget.addEventListener('click', this.mListener);
     }
 
-    public onUpdate(): boolean {
-        const result = this.mProcedure.execute();
-        if (result === this.mLastValue) {
-            return false;
-        }
-        this.mLastValue = result;
-        Reflect.set(this.mTarget, this.mTargetProperty, result);
-        return true;
+    public onDeconstruct(): void {
+        this.mTarget.removeEventListener('click', this.mListener);
     }
 }
 ```
 
 ## Expression Modules
 
-Expression modules control how `{{ }}` expressions inside text content are evaluated. The default is the mustache expression module, which evaluates the expression in the component's data scope.
+Expression modules define how mustache expressions (`{{...}}`) are evaluated. PWB includes a default mustache expression module, but you can replace it with a custom one.
 
-### @PwbExpressionModule Decorator
-
-```typescript
-import {
-    PwbExpressionModule, Processor, UpdateTrigger
-} from '@kartoffelgames/web-potato-web-builder';
-
-@PwbExpressionModule({
-    trigger: UpdateTrigger   // When to trigger updates
-})
-class MyExpressionModule extends Processor { }
-```
-
-#### Configuration Properties
-
-- **trigger** (`UpdateTrigger`): When the expression should be re-evaluated.
-
-### Injectable Dependencies
-
-| Injection | Type | Description |
-|-----------|------|-------------|
-| `ModuleDataLevel` | `ModuleDataLevel` | Data scope for creating expressions |
-| `ModuleExpression` | `ModuleExpression` | The raw expression string inside `{{ }}` |
-
-### Lifecycle Interfaces
-
-| Interface | Method | When Called |
-|-----------|--------|------------|
-| `IExpressionOnUpdate` | `onUpdate(): string \| null` | On each update cycle. Return the new text value, or `null` if unchanged. |
-| `IExpressionOnDeconstruct` | `onDeconstruct(): void` | When the module is being destroyed. |
-
-### Example: Custom Expression Module
-
-A custom expression module that always returns a static value regardless of the expression content:
+### Creating an Expression Module
 
 ```typescript
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import {
-    PwbExpressionModule, Processor, UpdateTrigger
-} from '@kartoffelgames/web-potato-web-builder';
+import { PwbExpressionModule } from '@kartoffelgames/web-potato-web-builder';
 import type { IExpressionOnUpdate } from '@kartoffelgames/web-potato-web-builder';
+import { ModuleDataLevel, ModuleExpression } from '@kartoffelgames/web-potato-web-builder';
 
-@PwbExpressionModule({
-    trigger: UpdateTrigger.Any
-})
-class StaticExpressionModule extends Processor implements IExpressionOnUpdate {
-    public onUpdate(): string {
-        return 'STATIC-VALUE';
-    }
-}
-```
-
-To use a custom expression module, assign it to a component's `expressionmodule` option:
-
-```typescript
-@PwbComponent({
-    selector: 'custom-expr-demo',
-    template: '<div>{{anything here is ignored}}</div>',
-    expressionmodule: StaticExpressionModule
-})
-class CustomExprDemo extends Processor { }
-```
-
-All `{{ }}` expressions in this component will be handled by `StaticExpressionModule` instead of the default mustache module.
-
-### Built-in Mustache Expression Module
-
-The default module evaluates the expression string in the component's data scope:
-
-```typescript
-@PwbExpressionModule({
-    trigger: UpdateTrigger.Any & ~UpdateTrigger.UntrackableFunctionCall
-})
-class MustacheExpressionModule extends Processor implements IExpressionOnUpdate {
-    private readonly mProcedure: LevelProcedure<any>;
+@PwbExpressionModule()
+class UpperCaseExpressionModule implements IExpressionOnUpdate {
+    private readonly mProcedure: any;
 
     public constructor(
-        pModuleValues = Injection.use(ModuleDataLevel),
-        pModuleExpression = Injection.use(ModuleExpression)
+        pModuleData = Injection.use(ModuleDataLevel),
+        pExpression = Injection.use(ModuleExpression)
     ) {
-        super();
-        this.mProcedure = pModuleValues.createExpressionProcedure(pModuleExpression.value);
+        this.mProcedure = pModuleData.createExpressionProcedure(pExpression.value);
     }
 
     public onUpdate(): string | null {
-        const result = this.mProcedure.execute();
-        if (typeof result === 'undefined') {
+        const lResult = this.mProcedure.execute();
+        if (typeof lResult === 'undefined') {
             return null;
         }
-        return result?.toString();
+        return lResult?.toString().toUpperCase() ?? null;
     }
 }
 ```
 
+### Using a Custom Expression Module
+
+Pass it as the `expressionmodule` option in `@PwbComponent`:
+
+```typescript
+@PwbComponent({
+    selector: 'uppercase-component',
+    template: '<div>{{this.text}}</div>',
+    expressionmodule: UpperCaseExpressionModule
+})
+class UppercaseComponent {
+    public text: string = 'hello world';
+}
+```
+
+This renders: `<div>HELLO WORLD</div>`
+
+### Lifecycle Hooks
+
+| Hook | Return Type | Description |
+|---|---|---|
+| `onUpdate()` | `string \| null` | Called on each update. Returns the text to display, or `null` for empty. |
+| `onDeconstruct()` | `void` | Called on cleanup. |
+
+### Injectable References
+
+| Reference | Description |
+|---|---|
+| `ModuleDataLevel` | Data level for creating expression procedures. |
+| `ModuleExpression` | The raw expression string (the content between `{{` and `}}`). |
+| `ModuleTargetNode` | The text node where the expression result is rendered. |
+| `ExpressionModule` | The expression module manager instance. |
+
+### The Default Expression Module
+
+The built-in `MustacheExpressionModule` evaluates the expression as JavaScript in the component context and converts the result to a string. `undefined` results render as empty strings.
+
 ## Instruction Modules
 
-Instruction modules control DOM structure by conditionally creating, removing, or multiplying template fragments. They handle the `$instructionName(expression) { ... }` syntax.
+Instruction modules control structural aspects of the template. They can add, remove, or replace DOM elements. Instructions use the syntax `$instructionType(expression) { template }` or `$instructionType` for the shorthand form.
 
-### @PwbInstructionModule Decorator
-
-```typescript
-import {
-    PwbInstructionModule, Processor, UpdateTrigger
-} from '@kartoffelgames/web-potato-web-builder';
-
-@PwbInstructionModule({
-    instructionType: string,    // The instruction name (after $)
-    trigger: UpdateTrigger      // When to trigger updates
-})
-class MyInstructionModule extends Processor { }
-```
-
-#### Configuration Properties
-
-- **instructionType** (`string`): The instruction name that follows the `$` prefix. For example, `'if'` matches `$if(...)`.
-- **trigger** (`UpdateTrigger`): When the instruction should be re-evaluated.
-
-### Injectable Dependencies
-
-| Injection | Type | Description |
-|-----------|------|-------------|
-| `ModuleTemplate` | `PwbTemplateInstructionNode` | The instruction's template node (including child content) |
-| `ModuleDataLevel` | `ModuleDataLevel` | Data scope for creating expressions |
-| `ModuleExpression` | `ModuleExpression` | The expression inside the parentheses |
-| `ComponentDataLevel` | `ComponentDataLevel` | Component-level data access |
-
-### Lifecycle Interfaces
-
-| Interface | Method | When Called |
-|-----------|--------|------------|
-| `IInstructionOnUpdate` | `onUpdate(): InstructionResult \| null` | On each update cycle. Return an `InstructionResult` with elements to render, or `null` for no change. |
-| `IInstructionOnDeconstruct` | `onDeconstruct(): void` | When the module is being destroyed. |
-
-### InstructionResult
-
-The `InstructionResult` class is the return type for instruction module updates. It holds a list of template/data-level pairs that determine what gets rendered.
-
-```typescript
-import { InstructionResult, DataLevel } from '@kartoffelgames/web-potato-web-builder';
-
-const result = new InstructionResult();
-
-// Add a template element with its associated data scope
-result.addElement(template, dataLevel);
-
-// Access the element list
-const elements = result.elementList;
-// Each element: { template: PwbTemplate, dataLevel: DataLevel }
-```
-
-- Returning an `InstructionResult` with no elements removes all child content from the DOM.
-- Returning `null` signals that nothing has changed and no DOM update is needed.
-- Adding multiple elements renders each template with its own data scope (used by `$for` for iteration).
-
-### Example: Custom Repeat Instruction
-
-A custom instruction that repeats its content a specified number of times:
+### Creating an Instruction Module
 
 ```typescript
 import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { PwbInstructionModule } from '@kartoffelgames/web-potato-web-builder';
+import type { IInstructionOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import {
-    PwbInstructionModule, Processor, UpdateTrigger,
-    InstructionResult, DataLevel, ModuleDataLevel, ModuleExpression, ModuleTemplate
+    InstructionResult,
+    ModuleDataLevel,
+    ModuleExpression,
+    ModuleTemplate,
+    PwbTemplate,
+    DataLevel
 } from '@kartoffelgames/web-potato-web-builder';
-import type { IInstructionOnUpdate, PwbTemplateInstructionNode } from '@kartoffelgames/web-potato-web-builder';
+import type { PwbTemplateInstructionNode } from '@kartoffelgames/web-potato-web-builder';
 
 @PwbInstructionModule({
-    instructionType: 'repeat',
-    trigger: UpdateTrigger.Any
+    instructionType: 'repeat'
 })
-class RepeatInstruction extends Processor implements IInstructionOnUpdate {
-    private readonly mModuleValues: ModuleDataLevel;
-    private readonly mProcedure: LevelProcedure<number>;
+class RepeatInstructionModule implements IInstructionOnUpdate {
+    private readonly mModuleData: ModuleDataLevel;
+    private readonly mProcedure: any;
     private readonly mTemplate: PwbTemplateInstructionNode;
-    private mLastCount: number = -1;
+    private mLastCount: number;
 
     public constructor(
         pTemplate = Injection.use(ModuleTemplate),
         pModuleData = Injection.use(ModuleDataLevel),
         pExpression = Injection.use(ModuleExpression)
     ) {
-        super();
         this.mTemplate = pTemplate as PwbTemplateInstructionNode;
-        this.mModuleValues = pModuleData;
+        this.mModuleData = pModuleData;
         this.mProcedure = pModuleData.createExpressionProcedure(pExpression.value);
+        this.mLastCount = -1;
     }
 
     public onUpdate(): InstructionResult | null {
-        const count = this.mProcedure.execute();
+        const lCount: number = Number(this.mProcedure.execute());
 
-        if (count === this.mLastCount) {
-            return null; // No change
+        // Skip if count has not changed.
+        if (lCount === this.mLastCount) {
+            return null;
+        }
+        this.mLastCount = lCount;
+
+        const lResult = new InstructionResult();
+
+        for (let lIndex = 0; lIndex < lCount; lIndex++) {
+            const lTemplate = new PwbTemplate();
+            lTemplate.appendChild(...this.mTemplate.childList);
+
+            const lDataLevel = new DataLevel(this.mModuleData.data);
+            lDataLevel.setTemporaryValue('repeatIndex', lIndex);
+
+            lResult.addElement(lTemplate, lDataLevel);
         }
 
-        this.mLastCount = count;
-        const result = new InstructionResult();
-
-        for (let i = 0; i < count; i++) {
-            const dataLevel = new DataLevel(this.mModuleValues.data);
-            dataLevel.setTemporaryValue('$repeatIndex', i);
-
-            const template = new PwbTemplate();
-            template.appendChild(...this.mTemplate.childList);
-
-            result.addElement(template, dataLevel);
-        }
-
-        return result;
+        return lResult;
     }
 }
 ```
 
 Usage:
 
-```typescript
-@PwbComponent({
-    selector: 'repeat-demo',
-    template: `
-        $repeat(this.count) {
-            <div>Repeated item {{this.$repeatIndex}}</div>
-        }
-    `
-})
-class RepeatDemo extends Processor {
-    @PwbExport
-    public count: number = 3;
+```html
+$repeat(3) {
+    <div>Repeated element</div>
 }
 ```
 
-### Built-in Instruction Modules
+Or with an expression:
 
-| Instruction | Module | Description |
-|-------------|--------|-------------|
-| `$if` | `IfInstructionModule` | Conditionally renders content based on truthiness |
-| `$for` | `ForInstructionModule` | Iterates over arrays, objects, or generators |
-| `$slot` | `SlotInstructionModule` | Creates a `<slot>` element for content projection |
-| `$dynamic-content` | `DynamicContentInstructionModule` | Renders a programmatically created `PwbTemplate` |
-
-## Creating Expression Procedures
-
-The `ModuleDataLevel` class provides `createExpressionProcedure` for compiling expressions:
-
-```typescript
-const procedure = moduleDataLevel.createExpressionProcedure(
-    'this.items.length * 2',     // Expression string
-    ['$extraVar']                 // Optional: names of external variables
-);
-
-// Set external variable values
-procedure.setTemporaryValue('$extraVar', someValue);
-
-// Execute the expression
-const result = procedure.execute();
+```html
+$repeat(this.count) {
+    <div>Item {{this.repeatIndex}}</div>
+}
 ```
 
-The `LevelProcedure`:
-- Is compiled once via `new Function()` and reused on each update.
-- Executes with `this` bound to the data level's store proxy.
-- Can define external variables that are available in addition to the data scope.
-- Throws if you try to set a temporary value that was not declared in the extended values list.
+### Configuration
+
+| Option | Type | Description |
+|---|---|---|
+| `instructionType` | `string` | The instruction keyword used in templates (e.g., `repeat` for `$repeat(...)`). |
+
+### The InstructionResult
+
+`InstructionResult` is the return type of `onUpdate()`. It defines what templates should be rendered.
+
+```typescript
+const lResult = new InstructionResult();
+
+// Add a template with its own data level.
+const lTemplate = new PwbTemplate();
+lTemplate.appendChild(...someNodes);
+lResult.addElement(lTemplate, someDataLevel);
+
+return lResult;
+```
+
+Returning `null` from `onUpdate()` means no structural change is needed.
+
+### Lifecycle Hooks
+
+| Hook | Return Type | Description |
+|---|---|---|
+| `onUpdate()` | `InstructionResult \| null` | Called on each update. Returns an `InstructionResult` to change structure, or `null` to skip. |
+| `onDeconstruct()` | `void` | Called on cleanup. |
+
+### Injectable References
+
+| Reference | Description |
+|---|---|
+| `ModuleTemplate` | The instruction template node, including child nodes. Cast to `PwbTemplateInstructionNode` for access to `childList` and `instruction`. |
+| `ModuleDataLevel` | Data level for creating expression procedures and accessing the data store. |
+| `ModuleExpression` | The instruction expression string (the content in parentheses). |
+| `InstructionModule` | The instruction module manager instance. |
+
+### Built-in Instruction Modules
+
+| Module | Instruction Type | Description |
+|---|---|---|
+| If | `$if(expr)` | Conditional rendering based on truthy/falsy expression. |
+| For | `$for(item of expr)` | Loop rendering for iterables and objects. |
+| Slot | `$slot` / `$slot(name)` | Content projection via native `<slot>` elements. |
+| Dynamic Content | `$dynamic-content(expr)` | Renders a programmatically built `PwbTemplate`. |
+
+## Extension Modules
+
+Extension modules add cross-cutting functionality to components or other modules. They run once when the entity they are attached to is set up, and optionally clean up when it is deconstructed.
+
+### Creating an Extension Module
+
+```typescript
+import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { PwbExtensionModule } from '@kartoffelgames/web-potato-web-builder';
+import type { IExtensionOnExecute, IExtensionOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { AccessMode, Component } from '@kartoffelgames/web-potato-web-builder';
+
+@PwbExtensionModule({
+    access: AccessMode.Read,
+    targetRestrictions: [Component]
+})
+class LoggingExtension implements IExtensionOnExecute, IExtensionOnDeconstruct {
+    private readonly mComponent: Component;
+
+    public constructor(pComponent = Injection.use(Component)) {
+        this.mComponent = pComponent;
+    }
+
+    public onExecute(): void {
+        console.log('Component created:', this.mComponent.element.tagName);
+    }
+
+    public onDeconstruct(): void {
+        console.log('Component destroyed:', this.mComponent.element.tagName);
+    }
+}
+```
+
+### Configuration
+
+| Option | Type | Description |
+|---|---|---|
+| `access` | `AccessMode` | The access level of the extension. |
+| `targetRestrictions` | `Array<InjectionConstructor>` | Which entity types this extension applies to. Use `[Component]` for component-level extensions. |
+
+### Lifecycle Hooks
+
+| Hook | Description |
+|---|---|
+| `onExecute()` | Called once when the target entity is set up. |
+| `onDeconstruct()` | Called when the target entity is deconstructed. |
+
+### Built-in Extensions
+
+PWB includes these extension modules:
+
+| Extension | Target | Description |
+|---|---|---|
+| Export Extension | `Component` | Implements `@PwbExport` by bridging component properties to the HTML element. |
+| Component Event Listener (Component) | `Component` | Implements `@PwbComponentEventListener` for component-level event listeners. |
+| Component Event Listener (Module) | Attribute/Expression modules | Implements `@PwbComponentEventListener` for module-level event listeners. |
+
+### Example: Performance Monitoring Extension
+
+```typescript
+@PwbExtensionModule({
+    access: AccessMode.Read,
+    targetRestrictions: [Component]
+})
+class PerformanceExtension implements IExtensionOnExecute {
+    public constructor(private mComponent = Injection.use(Component)) { }
+
+    public onExecute(): void {
+        const lElement = this.mComponent.element;
+        const lStart = performance.now();
+
+        // Log render time after initial update.
+        requestAnimationFrame(() => {
+            const lDuration = performance.now() - lStart;
+            console.log(`${lElement.tagName} rendered in ${lDuration.toFixed(2)}ms`);
+        });
+    }
+}
+```
 
 ## Module Registration
 
-Modules are registered globally when their decorator executes. The framework's `CoreEntityRegister` maintains the registry. When a template is built, each attribute and expression is checked against registered module selectors.
+All module types are registered globally when their decorated class is loaded. This means importing the module file is sufficient to make it available to all components:
 
-- **Attribute modules** are matched by testing the attribute name against each module's `selector` regex.
-- **Expression modules** are used per-component (specified in `@PwbComponent`'s `expressionmodule` option or the default mustache module).
-- **Instruction modules** are matched by the instruction type string (the name after `$`).
+```typescript
+// In your application entry point:
+import './modules/tooltip-module.ts';
+import './modules/repeat-instruction.ts';
+import './extensions/logging-extension.ts';
+```
 
-## Related
+PWB does this internally for its built-in modules in the package `index.ts`.
 
-- [Template Syntax](template-syntax.md) -- How modules integrate with template parsing
-- [Extensions](extensions.md) -- Cross-cutting lifecycle hooks
-- [Update System](update-system.md) -- UpdateTrigger and update cycles
-- [Control Flow](control-flow.md) -- Built-in instruction modules in detail
+## Injectable Context Summary
+
+All module types receive context through dependency injection. Here is a summary of available injections by module type:
+
+| Injection | Attribute | Expression | Instruction | Extension |
+|---|---|---|---|---|
+| `ModuleTargetNode` | Target element | Text node | -- | -- |
+| `ModuleAttribute` | Attribute name/value | -- | -- | -- |
+| `ModuleExpression` | -- | Expression string | Expression string | -- |
+| `ModuleTemplate` | Template clone | Template clone | Template clone | -- |
+| `ModuleDataLevel` | Data level | Data level | Data level | -- |
+| `Component` | -- | -- | -- | Component instance |
+| `ExtensionModule` | -- | -- | -- | Extension instance |
+| `AttributeModule` | Module instance | -- | -- | -- |
+| `ExpressionModule` | -- | Module instance | -- | -- |
+| `InstructionModule` | -- | -- | Module instance | -- |
+
+The `ModuleDataLevel` provides the `createExpressionProcedure(expression, extendedValues?)` method for evaluating expressions within the component data context. The returned `LevelProcedure` object has an `execute()` method that runs the expression and returns the result, and a `setTemporaryValue(name, value)` method for injecting temporary variables into the expression scope.

@@ -1,7 +1,6 @@
-import { type InjectionConstructor, Injection } from '@kartoffelgames/core-dependency-injection';
+import { Injection, type InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
 import { CoreEntityRegister } from '../core_entity/core-entity-register.ts';
 import type { AccessMode } from '../enum/access-mode.enum.ts';
-import type { UpdateTrigger } from '../enum/update-trigger.enum.ts';
 import { ExtensionModule, type ExtensionModuleConfiguration, type IPwbExtensionModuleProcessorConstructor } from './extension-module.ts';
 
 /**
@@ -18,7 +17,6 @@ export function PwbExtensionModule(pSettings: ExtensionSettings): any {
         // Register module.
         CoreEntityRegister.register<ExtensionModuleConfiguration>(ExtensionModule, pExtensionProcessorConstructor, {
             access: pSettings.access,
-            trigger: pSettings.trigger,
             targetRestrictions: pSettings.targetRestrictions
         });
     };
@@ -26,6 +24,5 @@ export function PwbExtensionModule(pSettings: ExtensionSettings): any {
 
 type ExtensionSettings = {
     access: AccessMode;
-    trigger: UpdateTrigger;
     targetRestrictions: Array<InjectionConstructor>;
 };

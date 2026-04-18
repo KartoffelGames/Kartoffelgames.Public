@@ -1,312 +1,439 @@
 # Template Syntax
 
-PWB uses an XML-based template language for defining component DOM structures. Templates are parsed at component registration time into an internal node tree that the framework keeps in sync with the actual DOM.
-
-## Overview
-
-A template is a string passed to the `template` property of `@PwbComponent`. It supports:
-
-- Standard XML/HTML elements
-- Mustache expressions: `{{expression}}`
-- Attribute binding: `[property]="expression"`, `[(property)]="expression"`
-- Event binding: `(eventName)="expression"`
-- Instruction blocks: `$if(...)`, `$for(...)`, `$slot`, `$dynamic-content(...)`
-- ID references: `#ChildId`
-- HTML comments (ignored during rendering)
-
-## XML Elements
-
-Templates use XML syntax. All elements must be properly closed, either with a closing tag or as self-closing.
-
-```xml
-<!-- Closing tag -->
-<div>Content</div>
-
-<!-- Self-closing -->
-<br/>
-<input/>
-
-<!-- Nested elements -->
-<div>
-    <span>Text</span>
-</div>
-```
-
-Multiple root-level elements are allowed:
-
-```xml
-<h1>Title</h1>
-<p>First paragraph</p>
-<p>Second paragraph</p>
-```
+PWB templates are HTML strings that support expressions, data binding, event binding, and structural instructions. Templates are defined in the `template` option of `@PwbComponent`.
 
 ## Mustache Expressions
 
-Double curly braces `{{ }}` embed TypeScript expressions into text content or attribute values. Expressions are evaluated in the context of the component processor instance, where `this` refers to the processor.
+Mustache expressions render dynamic values as text content or within attribute values. They use double curly braces: `{{expression}}`.
 
-### In Text Content
+### Text Content
 
 ```typescript
 @PwbComponent({
-    selector: 'text-expr',
-    template: '<div>Hello, {{this.name}}!</div>'
+    selector: 'greeting-component',
+    template: '<p>Hello, {{this.name}}!</p>'
 })
-class TextExpr extends Processor {
+class GreetingComponent {
     public name: string = 'World';
 }
 ```
 
-Renders: `Hello, World!`
+Renders: `<p>Hello, World!</p>`
 
-### In Attribute Values
+### Attribute Values
 
-```typescript
-@PwbComponent({
-    selector: 'attr-expr',
-    template: '<div class="{{this.cssClass}}">Styled</div>'
-})
-class AttrExpr extends Processor {
-    public cssClass: string = 'highlight';
-}
-```
-
-### Complex Expressions
-
-Expressions can contain any valid JavaScript that can be evaluated as a return value:
+Expressions can be used inside attribute values:
 
 ```typescript
 @PwbComponent({
-    selector: 'complex-expr',
-    template: `
-        <div>{{this.items.length}}</div>
-        <div>{{this.firstName + ' ' + this.lastName}}</div>
-        <div>{{this.count > 0 ? 'Has items' : 'Empty'}}</div>
-        <div>{{new Array(3).fill('x').join('-')}}</div>
-    `
+    selector: 'dynamic-class',
+    template: '<div class="{{this.className}}">Content</div>'
 })
-class ComplexExpr extends Processor {
-    public items: Array<string> = ['a', 'b'];
-    public firstName: string = 'John';
-    public lastName: string = 'Doe';
-    public count: number = 5;
+class DynamicClass {
+    public className: string = 'highlight';
 }
 ```
+
+### Inline Expressions
+
+Expressions can contain arbitrary JavaScript that does not reference `this`:
+
+```typescript
+@PwbComponent({
+    selector: 'inline-expr',
+    template: `<div>{{ new Array(5).fill('x').join('-') }}</div>`
+})
+class InlineExpr { }
+```
+
+Renders: `<div>x-x-x-x-x</div>`
 
 ### Expression Context
 
-Inside expressions, `this` refers to the component processor's data scope. For instructions like `$for`, `this` also includes temporary variables defined by the instruction (such as the loop variable).
+All expressions are evaluated in the context of the component processor instance. Use `this` to reference component properties and methods. Expressions that return `undefined` render as an empty string.
+
+## One-Way Data Binding
+
+One-way binding pushes a component value to a DOM element property. The syntax uses square brackets around the property name: `[property]="expression"`.
 
 ```typescript
 @PwbComponent({
-    selector: 'scope-demo',
+    selector: 'input-demo',
+    template: '<input [value]="this.inputText"/>'
+})
+class InputDemo {
+    @ComponentState.state()
+    public accessor inputText: string = 'Default text';
+}
+```
+
+This sets the `value` property of the `<input>` element to the result of `this.inputText`. When `inputText` changes, the DOM property is updated automatically.
+
+### Binding to Child Components
+
+One-way binding works with child component exported properties:
+
+```typescript
+@PwbComponent({ selector: 'child-display' })
+class ChildDisplay {
+    @PwbExport
+    public message!: string;
+}
+
+@PwbComponent({
+    selector: 'parent-component',
+    template: '<child-display [message]="this.parentMessage"/>'
+})
+class ParentComponent {
+    public parentMessage: string = 'Hello from parent';
+}
+```
+
+The child component receives the value through its `@PwbExport` decorated property. See [Component Decorators](./component-decorators.md) for details on `@PwbExport`.
+
+## Two-Way Data Binding
+
+Two-way binding synchronizes values between the component and a DOM element in both directions. The syntax combines square and round brackets: `[(property)]="expression"`.
+
+```typescript
+@PwbComponent({
+    selector: 'form-input',
+    template: '<input [(value)]="this.userInput"/>'
+})
+class FormInput {
+    @ComponentState.state()
+    public accessor userInput: string = '';
+}
+```
+
+When the user types in the input, `this.userInput` is updated. When `this.userInput` is changed programmatically, the input value is updated.
+
+Two-way binding listens for both `input` and `change` events on the target element to detect view changes.
+
+## Event Binding
+
+Event binding attaches event listeners to DOM elements. The syntax uses round brackets around the event name: `(event)="expression"`.
+
+```typescript
+@PwbComponent({
+    selector: 'button-demo',
+    template: '<button (click)="this.handleClick($event)">Click me</button>'
+})
+class ButtonDemo {
+    public handleClick(pEvent: MouseEvent): void {
+        console.log('Button clicked at:', pEvent.clientX, pEvent.clientY);
+    }
+}
+```
+
+### The $event Variable
+
+Inside event binding expressions, the special `$event` variable holds the native DOM event object:
+
+```typescript
+@PwbComponent({
+    selector: 'key-handler',
+    template: '<input (keydown)="this.onKey($event)"/>'
+})
+class KeyHandler {
+    public onKey(pEvent: KeyboardEvent): void {
+        console.log('Key pressed:', pEvent.key);
+    }
+}
+```
+
+### Supported Events
+
+Any native DOM event can be bound using this syntax: `click`, `input`, `change`, `keydown`, `mouseover`, `submit`, and so on.
+
+### Cleanup
+
+Event listeners are automatically removed when the component or the element they are attached to is deconstructed.
+
+## Conditional Rendering ($if)
+
+The `$if` instruction conditionally renders its content based on a truthy/falsy expression.
+
+```typescript
+@PwbComponent({
+    selector: 'conditional-demo',
+    template: `
+        $if(this.showMessage) {
+            <p>This message is visible</p>
+        }
+    `
+})
+class ConditionalDemo {
+    @ComponentState.state()
+    public accessor showMessage: boolean = true;
+}
+```
+
+When `showMessage` is `true` (or any truthy value), the `<p>` element is rendered. When it is `false` (or any falsy value like `null`, `undefined`, `0`, `''`), the element is removed from the DOM.
+
+### Dynamic Toggling
+
+```typescript
+@PwbComponent({
+    selector: 'toggle-demo',
+    template: `
+        <button (click)="this.toggle()">Toggle</button>
+        $if(this.visible) {
+            <div>Now you see me</div>
+        }
+    `
+})
+class ToggleDemo {
+    @ComponentState.state()
+    public accessor visible: boolean = false;
+
+    public toggle(): void {
+        this.visible = !this.visible;
+    }
+}
+```
+
+## Loop Rendering ($for)
+
+The `$for` instruction renders its content once for each item in an iterable.
+
+### Basic Syntax
+
+```
+$for(itemName of expression) {
+    <template/>
+}
+```
+
+```typescript
+@PwbComponent({
+    selector: 'list-demo',
     template: `
         $for(item of this.items) {
             <div>{{this.item}}</div>
         }
     `
 })
-class ScopeDemo extends Processor {
+class ListDemo {
     public items: Array<string> = ['Alpha', 'Beta', 'Gamma'];
 }
 ```
 
-Inside the `$for` block, `this.item` resolves to the current iteration value. Property lookup traverses up through parent data levels until a match is found.
+The loop variable (`item`) is available as `this.item` inside the loop template.
 
-### Undefined Handling
+### With Index
 
-If an expression evaluates to `undefined`, the result is treated as an empty string and nothing is rendered for that expression.
-
-## Attributes
-
-### Static Attributes
-
-Plain string attributes work as in standard HTML:
-
-```xml
-<div class="container" id="main">Content</div>
-```
-
-### Boolean/Valueless Attributes
-
-Attributes without a value are supported:
-
-```xml
-<input disabled/>
-<div hidden/>
-```
-
-### Mixed Static and Expression Values
-
-Attribute values can mix static text with expressions:
-
-```xml
-<div class="base-class {{this.extraClass}}">Content</div>
-```
-
-## Instruction Syntax
-
-Instructions are template-level control structures prefixed with `$`. They are not HTML elements but control whether and how many times their child content is rendered.
-
-The general syntax is:
+An optional index variable can be declared after a semicolon:
 
 ```
-$instructionName(expression) {
-    <child content/>
+$for(itemName of expression; indexName = $index) {
+    <template/>
 }
 ```
 
-Or without a body:
-
-```
-$instructionName(expression)
-```
-
-Or without an expression:
-
-```
-$instructionName
-```
-
-See [Control Flow](control-flow.md) for `$if` and `$for` details, and [Slots and Dynamic Content](slots-and-dynamic-content.md) for `$slot` and `$dynamic-content`.
-
-## Comments
-
-HTML comments are parsed and discarded. They do not appear in the rendered DOM.
-
-```xml
-<!-- This comment is ignored -->
-<div>Visible content</div>
-```
-
-## Template Parser
-
-The `TemplateParser` class handles converting template strings into `PwbTemplate` node trees. It uses a lexer-based parser from `@kartoffelgames/core-parser` to tokenize and parse the XML-like syntax.
-
 ```typescript
-import { TemplateParser } from '@kartoffelgames/web-potato-web-builder';
-
-const parser = new TemplateParser();
-const template = parser.parse('<div>{{this.value}}</div>');
+@PwbComponent({
+    selector: 'indexed-list',
+    template: `
+        $for(item of this.items; index = $index) {
+            <div>{{this.index}}: {{this.item}}</div>
+        }
+    `
+})
+class IndexedList {
+    public items: Array<string> = ['First', 'Second', 'Third'];
+}
 ```
 
-The parser is typically not used directly -- it is called internally by the component system during registration.
-
-## Template Node Types
-
-The parsed template consists of these node types:
-
-### PwbTemplateXmlNode
-
-Represents an XML/HTML element with a tag name, attributes, and child nodes.
-
-```typescript
-import { PwbTemplateXmlNode } from '@kartoffelgames/web-potato-web-builder';
-
-const node = new PwbTemplateXmlNode();
-node.tagName = 'div';
-node.setAttribute('class').addValue('container');
+Renders:
+```
+0: First
+1: Second
+2: Third
 ```
 
-Properties:
-- `tagName` -- The element's tag name
-- `attributes` -- Array of `PwbTemplateAttribute` objects
-- `childList` -- Array of child `BasePwbTemplateNode` objects
-- `setAttribute(name)` -- Gets or creates an attribute, returns a `PwbTemplateTextNode` for setting values
-- `removeAttribute(name)` -- Removes an attribute
-- `appendChild(...nodes)` -- Adds child nodes
-- `removeChild(node)` -- Removes a child node
+### Index Expressions
 
-### PwbTemplateTextNode
-
-Represents a text node that can contain a mix of static strings and expressions.
-
-```typescript
-import { PwbTemplateTextNode, PwbTemplateExpression } from '@kartoffelgames/web-potato-web-builder';
-
-const textNode = new PwbTemplateTextNode();
-textNode.addValue('Hello, ');
-
-const expr = new PwbTemplateExpression();
-expr.value = 'this.name';
-textNode.addValue(expr);
-
-textNode.addValue('!');
-```
-
-Properties:
-- `values` -- Array of `string | PwbTemplateExpression` values
-- `containsExpression` -- Whether the text node contains any expressions
-- `addValue(...values)` -- Adds string or expression values
-
-### PwbTemplateInstructionNode
-
-Represents an instruction block (`$if`, `$for`, `$slot`, etc.).
-
-```typescript
-import { PwbTemplateInstructionNode } from '@kartoffelgames/web-potato-web-builder';
-
-const node = new PwbTemplateInstructionNode();
-node.instructionType = 'if';
-node.instruction = 'this.visible';
-```
-
-Properties:
-- `instructionType` -- The instruction name (e.g., `"if"`, `"for"`, `"slot"`)
-- `instruction` -- The expression string inside the parentheses
-- `childList` -- Array of child nodes (the body content)
-- `appendChild(...nodes)` -- Adds child nodes to the body
-
-### PwbTemplateExpression
-
-Represents a single expression value used within text nodes or attributes.
-
-```typescript
-import { PwbTemplateExpression } from '@kartoffelgames/web-potato-web-builder';
-
-const expr = new PwbTemplateExpression();
-expr.value = 'this.count * 2';
-```
-
-### PwbTemplateAttribute
-
-Represents an attribute on an XML node. Contains a name and a `PwbTemplateTextNode` for the value (which can include expressions).
-
-## Complete Template Example
+The index assignment supports expressions. The `$index` variable and the loop variable are available:
 
 ```typescript
 @PwbComponent({
-    selector: 'todo-list',
+    selector: 'custom-index',
     template: `
-        <h2>{{this.title}}</h2>
-        <ul>
-            $for(item of this.items; index = $index) {
-                $if(this.item.visible) {
-                    <li class="todo-item {{this.item.done ? 'done' : ''}}">
-                        <span>{{this.index + 1}}. {{this.item.text}}</span>
-                        <button (click)="this.remove(this.index)">Remove</button>
-                    </li>
-                }
-            }
-        </ul>
-        $if(this.items.length === 0) {
-            <p>No items yet.</p>
+        $for(item of this.items; position = $index + 1) {
+            <div>Item #{{this.position}}: {{this.item}}</div>
         }
-    `,
-    style: '.done { text-decoration: line-through; }'
+    `
 })
-class TodoList extends Processor {
-    public title: string = 'My Todos';
-    public items: Array<{ text: string; done: boolean; visible: boolean }> = [];
+class CustomIndex {
+    public items: Array<string> = ['Apple', 'Banana'];
+}
+```
 
-    public remove(index: number): void {
-        this.items.splice(index, 1);
+Renders:
+```
+Item #1: Apple
+Item #2: Banana
+```
+
+### Iterating Objects
+
+Objects are iterated by their entries. The loop variable receives the value, and `$index` receives the key:
+
+```typescript
+@PwbComponent({
+    selector: 'object-iter',
+    template: `
+        $for(value of this.data; key = $index) {
+            <div>{{this.key}}: {{this.value}}</div>
+        }
+    `
+})
+class ObjectIter {
+    public data: Record<string, number> = { width: 100, height: 200 };
+}
+```
+
+### Iterating Generators and Iterables
+
+Any object implementing `Symbol.iterator` can be iterated:
+
+```typescript
+@PwbComponent({
+    selector: 'generator-demo',
+    template: `
+        $for(value of this.generateItems()) {
+            <div>{{this.value}}</div>
+        }
+    `
+})
+class GeneratorDemo {
+    public *generateItems(): Generator<string> {
+        yield 'Generated A';
+        yield 'Generated B';
     }
 }
 ```
 
-## Related
+### Reactive Lists with Proxy
 
-- [Data Binding](data-binding.md) -- `[prop]` and `[(prop)]` attribute binding
-- [Control Flow](control-flow.md) -- `$if` and `$for` instruction blocks
-- [Events](events.md) -- `(event)` binding syntax
-- [Slots and Dynamic Content](slots-and-dynamic-content.md) -- `$slot` and `$dynamic-content`
+To automatically detect mutations on arrays (like `push`, `splice`), use `@ComponentState.state({ proxy: true })`:
+
+```typescript
+@PwbComponent({
+    selector: 'reactive-list',
+    template: `
+        <button (click)="this.addItem()">Add</button>
+        $for(item of this.items) {
+            <div>{{this.item}}</div>
+        }
+    `
+})
+class ReactiveList {
+    @ComponentState.state({ proxy: true })
+    public accessor items: Array<string> = ['Initial'];
+
+    public addItem(): void {
+        this.items.push('New item');
+        // No reassignment needed; the proxy detects the push.
+    }
+}
+```
+
+## Slot Instruction ($slot)
+
+The `$slot` instruction creates a `<slot>` element for content projection.
+
+### Default Slot
+
+```typescript
+@PwbComponent({
+    selector: 'card-component',
+    template: `
+        <div class="card">
+            $slot
+        </div>
+    `
+})
+class CardComponent { }
+```
+
+Usage:
+```html
+<card-component>
+    <p>This content goes into the default slot</p>
+</card-component>
+```
+
+### Named Slots
+
+```typescript
+@PwbComponent({
+    selector: 'layout-component',
+    template: `
+        <header>$slot(header)</header>
+        <main>$slot</main>
+        <footer>$slot(footer)</footer>
+    `
+})
+class LayoutComponent { }
+```
+
+Usage:
+```html
+<layout-component>
+    <h1 slot="header">Page Title</h1>
+    <p>Main content goes to the default slot</p>
+    <span slot="footer">Footer text</span>
+</layout-component>
+```
+
+## Dynamic Content ($dynamic-content)
+
+The `$dynamic-content` instruction renders a `PwbTemplate` returned by an expression. This allows fully programmatic template generation.
+
+```typescript
+import {
+    PwbComponent,
+    PwbTemplate,
+    PwbTemplateXmlNode,
+    PwbTemplateTextNode
+} from '@kartoffelgames/web-potato-web-builder';
+
+@PwbComponent({
+    selector: 'dynamic-demo',
+    template: '$dynamic-content(this.buildTemplate())'
+})
+class DynamicDemo {
+    public buildTemplate(): PwbTemplate {
+        const lTemplate = new PwbTemplate();
+
+        const lDiv = new PwbTemplateXmlNode('div');
+        const lText = new PwbTemplateTextNode();
+        lText.addValue('Dynamic content');
+        lDiv.appendChild(lText);
+        lTemplate.appendChild(lDiv);
+
+        return lTemplate;
+    }
+}
+```
+
+The expression must return a `PwbTemplate` instance. If the returned template is the same as the previous one (compared with `equals()`), no DOM update occurs.
+
+## Child References (#id)
+
+The `#name` syntax registers a DOM element reference by name, accessible through the `@PwbChild` decorator on the component class.
+
+```typescript
+@PwbComponent({
+    selector: 'ref-demo',
+    template: '<input #myInput/>'
+})
+class RefDemo {
+    @PwbChild('myInput')
+    public accessor myInput!: HTMLInputElement;
+}
+```
+
+See [Component Decorators](./component-decorators.md) for details on `@PwbChild`.

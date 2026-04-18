@@ -1,16 +1,14 @@
-import { Dictionary, Exception, List } from '@kartoffelgames/core';
-import type { ComponentModules } from '../../component-modules.ts';
+import { Exception } from '@kartoffelgames/core';
 import type { Component } from '../../component.ts';
 import { BaseBuilder } from '../base-builder.ts';
 
 export abstract class BaseBuilderData {
-    private readonly mChildBuilderList: List<BaseBuilder>;
-    private readonly mChildComponents: Dictionary<BuilderContent, Component>;
+    private readonly mChildBuilderList: Array<BaseBuilder>;
+    private readonly mChildComponents: Map<BuilderContent, Component>;
     private readonly mContentAnchor: Comment;
-    private readonly mContentBoundary: RawContentBoundary;
+    private readonly mContentBoundary: BaseBuilderDataBoundaryNodes;
     private readonly mLinkedContent: WeakSet<BuilderContent>;
-    private readonly mModules: ComponentModules;
-    private readonly mRootChildList: List<BuilderContent>;
+    private readonly mRootChildList: Array<BuilderContent>;
 
     /**
      * Get core content of builder content.
@@ -37,24 +35,15 @@ export abstract class BaseBuilderData {
     }
 
     /**
-     * Component modules of builder.
-     */
-    public get modules(): ComponentModules {
-        return this.mModules;
-    }
-
-    /**
      * Constructor.
-     * @param pModules - Available modules of builder-
+     * 
      * @param pAnchorName - Name of generated content anchor.
      */
-    public constructor(pModules: ComponentModules, pAnchorName: string) {
-        this.mModules = pModules;
-
+    public constructor(pAnchorName: string) {
         // Init quick access buffers.
-        this.mChildBuilderList = new List<BaseBuilder>();
-        this.mRootChildList = new List<BuilderContent>();
-        this.mChildComponents = new Dictionary<BuilderContent, Component>();
+        this.mChildBuilderList = new Array<BaseBuilder>();
+        this.mRootChildList = new Array<BuilderContent>();
+        this.mChildComponents = new Map<BuilderContent, Component>();
         this.mLinkedContent = new WeakSet<BuilderContent>();
 
         // Create anchor of content. Anchors marks the beginning of all content nodes.
@@ -108,37 +97,21 @@ export abstract class BaseBuilderData {
      * If the current last node of content is a builder, the last node of this builder is returned.
      * This recursion will take place until an node is found.
      */
-    public getBoundary(): Boundary {
-        // Top is always the anchor.
-        const lTopNode: Comment = this.mContentBoundary.start;
+    public getBoundary(): BaseBuilderDataBoundary {
+        // Get last element of builder if bottom element is a builder  or use node as bottom element.
+        const lBottomNode: Node = (() => {
+            if (this.mContentBoundary.end instanceof BaseBuilder) {
+                return this.mContentBoundary.end.content.getBoundary().end;
+            }
 
-        // Get last element of builder if bottom element is a builder 
-        // or use node as bottom element.
-        let lBottomNode: Node;
-        if (this.mContentBoundary.end instanceof BaseBuilder) {
-            lBottomNode = this.mContentBoundary.end.boundary.end;
-        } else {
-            lBottomNode = this.mContentBoundary.end;
-        }
+            return this.mContentBoundary.end;
+        })();
 
         return {
-            start: lTopNode,
+            // Top is always the anchor.
+            start: this.mContentBoundary.start,
             end: lBottomNode
         };
-    }
-
-    /**
-     * Validate if content is attached to this builder.
-     * Matches only when it is attached to this builder,
-     * when the content is nested into another builder, 
-     * this validation will be false.
-     * 
-     * @param pContent - Any Content.
-     * 
-     * @returns if content is attached to this builder. 
-     */
-    public hasContent(pContent: BuilderContent): boolean {
-        return this.mLinkedContent.has(pContent);
     }
 
     /**
@@ -152,9 +125,9 @@ export abstract class BaseBuilderData {
      * @throws {@link Exception}
      * When {@link pTarget} is not a direct content of this builder. Even when pTarget is a content of a nested builder.
      */
-    public insert(pSource: BuilderContent, pMode: InserMode, pTarget: BuilderContent): void {
+    public insert(pSource: BuilderContent, pMode: BaseBuilderDataInserMode, pTarget: BuilderContent): void {
         // Validate if target is part of builder.
-        if (!this.hasContent(pTarget)) {
+        if (!this.mLinkedContent.has(pTarget)) {
             throw new Exception(`Can't add content to builder. Target is not part of builder.`, this);
         }
 
@@ -189,24 +162,16 @@ export abstract class BaseBuilderData {
         const lSourceParentNode: Element | ShadowRoot = lSourceNode.parentElement ?? <ShadowRoot>lSourceNode.getRootNode();
         const lBuilderParentNode: Element | ShadowRoot = this.mContentAnchor.parentElement ?? <ShadowRoot>this.mContentAnchor.getRootNode();
 
-        // If parent of source node is the same as parent of builder, it is allways in root.
+        // If parent of source node is the same as parent of builder, it is in root.
         if (lSourceParentNode === lBuilderParentNode) {
             // "Calculate" new position index in root child list.
-            let lIndexInRootList: number;
-            switch (pMode) {
-                case 'After': {
-                    lIndexInRootList = this.mRootChildList.indexOf(pTarget) + 1;
-                    break;
+            const lIndexInRootList: number = (() => {
+                switch (pMode) {
+                    case 'After': return this.mRootChildList.indexOf(pTarget) + 1;
+                    case 'TopOf': return 0;
+                    case 'BottomOf': return this.mRootChildList.length;
                 }
-                case 'TopOf': {
-                    lIndexInRootList = 0;
-                    break;
-                }
-                case 'BottomOf': {
-                    lIndexInRootList = this.mRootChildList.length;
-                    break;
-                }
-            }
+            })();
 
             // Extend boundary if child is new last element.
             if (lIndexInRootList === this.mRootChildList.length) {
@@ -239,7 +204,10 @@ export abstract class BaseBuilderData {
         // Different removing strategies for builder and node content.
         if (pContent instanceof BaseBuilder) {
             // Remove from builder or component storage.
-            this.mChildBuilderList.remove(pContent);
+            const lIndex: number = this.mChildBuilderList.indexOf(pContent);
+            if (lIndex !== -1) {
+                this.mChildBuilderList.splice(lIndex, 1);
+            }
 
             // Deconstruct builder.
             pContent.deconstruct();
@@ -260,7 +228,9 @@ export abstract class BaseBuilderData {
 
         // Remove child from root list.
         // If was in the list, recalculate boundary.
-        if (this.mRootChildList.remove(pContent)) {
+        const lIndex: number = this.mRootChildList.indexOf(pContent);
+        if (lIndex !== -1) {
+            this.mRootChildList.splice(lIndex, 1);
             // Update boundary end with last content of root. 
             // When no content exists, the boundary end ist the content anchor.
             this.mContentBoundary.end = this.mRootChildList.at(-1) ?? this.mContentAnchor;
@@ -269,6 +239,8 @@ export abstract class BaseBuilderData {
 
     /**
      * Set core builder of this data.
+     * Function is required as the builder is not available when the builder data is constructed.
+     * 
      * @param pCoreBuilder - Core builder. Owning this data.
      */
     public setCoreBuilder(pCoreBuilder: BaseBuilder): void {
@@ -284,12 +256,13 @@ export abstract class BaseBuilderData {
     private insertAfter(pSourceNode: ChildNode, pTarget: BuilderContent): void {
         // Get node of target where source node can be attached after.
         // If target is a builder, get the end bound node of it.
-        let lTargetNode: Node;
-        if (pTarget instanceof BaseBuilder) {
-            lTargetNode = pTarget.boundary.end;
-        } else {
-            lTargetNode = pTarget;
-        }
+        let lTargetNode: Node = (() => {
+            if (pTarget instanceof BaseBuilder) {
+                return pTarget.content.getBoundary().end;
+            }
+
+            return pTarget;
+        })();
 
         // Get parent of target node.
         const lTargetParentNode: Element | ShadowRoot = lTargetNode.parentElement ?? <ShadowRoot>lTargetNode.getRootNode();
@@ -351,7 +324,6 @@ export abstract class BaseBuilderData {
 
         // Fails when node can't have child nodes.
         throw new Exception(`Source node does not support child nodes.`, this);
-
     }
 
     /**
@@ -364,23 +336,23 @@ export abstract class BaseBuilderData {
 /**
  * Raw content boundary. Can have builder as boundary.
  */
-type RawContentBoundary = {
+type BaseBuilderDataBoundaryNodes = {
     start: Comment;
     end: Node | BaseBuilder;
 };
 
 /**
+ * Content insert mode.
+ */
+type BaseBuilderDataInserMode = 'BottomOf' | 'After' | 'TopOf';
+
+/**
  * Calculated content boundary.
  * Calculated end node contains any nested builder end node.
  */
-export type Boundary = {
+export type BaseBuilderDataBoundary = {
     start: Comment;
     end: Node;
 };
 
 export type BuilderContent = ChildNode | BaseBuilder;
-
-/**
- * Content insert mode.
- */
-export type InserMode = 'BottomOf' | 'After' | 'TopOf';

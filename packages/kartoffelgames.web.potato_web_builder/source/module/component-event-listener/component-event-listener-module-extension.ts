@@ -1,7 +1,5 @@
 import { Injection, type InjectionConstructor, Metadata } from '@kartoffelgames/core-dependency-injection';
-import { Processor } from '../../core/core_entity/processor.ts';
 import { AccessMode } from '../../core/enum/access-mode.enum.ts';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
 import type { IExtensionOnDeconstruct } from '../../core/extension/extension-module.ts';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator.ts';
 import { AttributeModule } from '../../core/module/attribute_module/attribute-module.ts';
@@ -10,10 +8,9 @@ import { ComponentEventListenerComponentExtension } from './component-event-list
 
 @PwbExtensionModule({
     access: AccessMode.Read,
-    trigger: UpdateTrigger.Any,
     targetRestrictions: [AttributeModule]
 })
-export class ComponentEventListenerModuleExtension extends Processor implements IExtensionOnDeconstruct {
+export class ComponentEventListenerModuleExtension implements IExtensionOnDeconstruct {
     private readonly mEventListenerList: Array<[string, EventListener]>;
     private readonly mTargetElement: Node;
 
@@ -26,8 +23,6 @@ export class ComponentEventListenerModuleExtension extends Processor implements 
      * @param pModuleElementReference - Component html element.
      */
     public constructor(pExtensionTargetModule = Injection.use(AttributeModule), pModuleElementReference = Injection.use(ModuleTargetNode)) {
-        super();
-
         // Get event metadata.
         const lEventPropertyList: Array<[PropertyKey, string]> = new Array<[PropertyKey, string]>();
 

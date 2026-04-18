@@ -17,7 +17,30 @@ export class MyersDiff<TA, TB> {
      * @param pItemListA - Item list A.
      * @param pItemListB - Item list B.
      */
-    public differencesOf(pItemListA: Array<TA>, pItemListB: Array<TB>): Array<HistoryItem<TA, TB>> {
+    public differencesOf(pItemListA: ArrayLike<TA>, pItemListB: ArrayLike<TB>): Array<HistoryItem<TA, TB>> {
+        let lHistoryList: Array<HistoryItem<TA, TB>>;
+
+        // Optimization for empty lists. This is a common case and can be handled in linear time.
+        if (pItemListA.length === 0 || pItemListB.length === 0) {
+            lHistoryList = new Array<HistoryItem<TA, TB>>();
+
+            // Insert all items of list B if list A is empty.
+            if (pItemListA.length === 0) {
+                // eslint-disable-next-line @typescript-eslint/prefer-for-of
+                for (let lIndex: number = 0; lIndex < pItemListB.length; lIndex++) {
+                    lHistoryList.push({ changeState: ChangeState.Insert, item: pItemListB[lIndex] });
+                }
+            } else {
+                // Remove all items of list A if list B is empty.
+                // eslint-disable-next-line @typescript-eslint/prefer-for-of
+                for (let lIndex: number = 0; lIndex < pItemListA.length; lIndex++) {
+                    lHistoryList.push({ changeState: ChangeState.Remove, item: pItemListA[lIndex] });
+                }
+            }
+
+            return lHistoryList;
+        }
+
         // Save farthest-right points with it histories.
         const lFrontierList: { [index: number]: Frontier<TA, TB>; } = { 1: { x: 0, history: [] } };
 
@@ -27,7 +50,6 @@ export class MyersDiff<TA, TB> {
         const lLengthA: number = pItemListA.length;
         const lLengthB: number = pItemListB.length;
 
-        let lHistoryList: Array<HistoryItem<TA, TB>>;
         let lX: number;
 
         for (let lD = 0; lD < lLengthA + lLengthB + 1; lD++) {

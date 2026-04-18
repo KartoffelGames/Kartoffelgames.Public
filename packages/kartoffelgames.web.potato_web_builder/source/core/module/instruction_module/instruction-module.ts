@@ -1,5 +1,4 @@
 import type { PwbTemplateInstructionNode } from '../../component/template/nodes/pwb-template-instruction-node.ts';
-import type { UpdateTrigger } from '../../enum/update-trigger.enum.ts';
 import { BaseModule, type BaseModuleConstructorParameter, type IPwbModuleProcessor, type IPwbModuleProcessorConstructor } from '../base-module.ts';
 import { ModuleExpression } from '../injection_reference/module-expression.ts';
 import { ModuleTemplate } from '../injection_reference/module-template.ts';
@@ -21,17 +20,15 @@ export class InstructionModule extends BaseModule<IPwbInstructionModuleProcessor
      */
     public constructor(pParameter: MultiplicatorModuleConstructorParameter) {
         super({
-            applicationContext: pParameter.applicationContext,
             constructor: pParameter.constructor,
             parent: pParameter.parent,
-            trigger: pParameter.trigger,
             values: pParameter.values,
         });
 
         // Set processor attribute values from injection template.
-        this.setProcessorAttributes(InstructionModule, this);
-        this.setProcessorAttributes(ModuleTemplate, pParameter.targetTemplate.clone());
-        this.setProcessorAttributes(ModuleExpression, new ModuleExpression(pParameter.targetTemplate.instruction));
+        this.setProcessorInjection(InstructionModule, this);
+        this.setProcessorInjection(ModuleTemplate, pParameter.targetTemplate.clone());
+        this.setProcessorInjection(ModuleExpression, new ModuleExpression(pParameter.targetTemplate.instruction));
 
         // Set starting value of instruction => Empty.
         this.mLastResult = new InstructionResult();
@@ -42,7 +39,7 @@ export class InstructionModule extends BaseModule<IPwbInstructionModuleProcessor
      */
     public onUpdate(): boolean {
         // Try to update instruction when an onUpdate method is defined.
-        const lNewValue: InstructionResult | null = this.call<IInstructionOnUpdate, 'onUpdate'>('onUpdate', true);
+        const lNewValue: InstructionResult | null = this.call<IInstructionOnUpdate, 'onUpdate'>('onUpdate');
 
         // When no result is returned, no update needs to be done.
         if (!(lNewValue instanceof InstructionResult)) {
@@ -78,5 +75,4 @@ export interface IPwbInstructionModuleProcessorConstructor extends IPwbModulePro
  */
 export type InstructionModuleConfiguration = {
     instructionType: string;
-    trigger: UpdateTrigger;
 };

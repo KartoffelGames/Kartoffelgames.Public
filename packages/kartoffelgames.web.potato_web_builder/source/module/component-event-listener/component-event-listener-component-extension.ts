@@ -1,17 +1,14 @@
 import { Injection, type InjectionConstructor, Metadata } from '@kartoffelgames/core-dependency-injection';
 import { Component } from '../../core/component/component.ts';
-import { Processor } from '../../core/core_entity/processor.ts';
 import { AccessMode } from '../../core/enum/access-mode.enum.ts';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
 import type { IExtensionOnDeconstruct } from '../../core/extension/extension-module.ts';
 import { PwbExtensionModule } from '../../core/extension/pwb-extension-module.decorator.ts';
 
 @PwbExtensionModule({
     access: AccessMode.Read,
-    trigger: UpdateTrigger.Any,
     targetRestrictions: [Component]
 })
-export class ComponentEventListenerComponentExtension extends Processor implements IExtensionOnDeconstruct {
+export class ComponentEventListenerComponentExtension implements IExtensionOnDeconstruct {
     public static readonly METADATA_USER_EVENT_LISTENER_PROPERIES: string = 'pwb:user_event_listener_properties';
 
     private readonly mEventListenerList: Array<[string, EventListener]>;
@@ -24,7 +21,6 @@ export class ComponentEventListenerComponentExtension extends Processor implemen
      * @param pComponent - Component processor.
      */
     public constructor(pComponent = Injection.use(Component)) {
-        super();
         
         // Get event metadata.
         const lEventPropertyList: Array<[PropertyKey, string]> = new Array<[PropertyKey, string]>();

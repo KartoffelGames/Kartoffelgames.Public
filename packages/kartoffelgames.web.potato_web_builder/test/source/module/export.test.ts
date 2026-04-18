@@ -4,7 +4,6 @@ import { TestUtil } from '../../utility/test-util.ts';
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
-import { Processor } from '../../../source/core/core_entity/processor.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
 
 Deno.test('Export--Functionality: Default export get', async (pContext) => {
@@ -16,7 +15,7 @@ Deno.test('Export--Functionality: Default export get', async (pContext) => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
             public value: string = lTestValue;
         }
@@ -42,7 +41,7 @@ Deno.test('Export--Functionality: Default export set', async (pContext) => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
             public value: string = '';
         }
@@ -70,7 +69,7 @@ Deno.test('Export--Functionality: Two parallel exports get', async (pContext) =>
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
             public valueOne: string = lTestValueOne;
             @PwbExport
@@ -100,7 +99,7 @@ Deno.test('Export--Functionality: Forbidden static usage', async (pContext) => {
                 selector: TestUtil.randomSelector()
             })
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            class TestComponent extends Processor {
+            class TestComponent {
                 @PwbExport
                 public static value: string = '';
             }
@@ -120,7 +119,7 @@ Deno.test('Export--Functionality: Linked setAttribute', async (pContext) => {
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
             public value: string = '';
         }
@@ -146,7 +145,7 @@ Deno.test('Export--Functionality: Get unexported value with getAttribute', async
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             public value: string = 'TEST-VALUE';
         }
 
@@ -171,7 +170,7 @@ Deno.test('Export--Functionality: Preserve original getAttribute and setAttribut
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
             public value: string = '';
         }
@@ -198,7 +197,7 @@ Deno.test('Export--Functionality: Override native properties', async (pContext) 
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
             public children: string = lTestValue;
         }
@@ -221,7 +220,7 @@ Deno.test('Export--Functionality: Export parent class exported properties', asyn
         const lTestValue: string = 'TEST-VALUE';
 
         // Setup. Define parent class.
-        class ParentClass extends Processor {
+        class ParentClass {
             @PwbExport
             public children: string = lTestValue;
         }
@@ -253,7 +252,7 @@ Deno.test('Export--Functionality: Exported value with getAttribute', async (pCon
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
             public value: string = lTestValue;
         }
@@ -280,7 +279,7 @@ Deno.test('Export--Functionality: Set attribute values on export init', async (p
         @PwbComponent({
             selector: lSelector
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
             public justSomethingThatStartsUpdate: string = '';
 

@@ -4,7 +4,7 @@ import { TestUtil } from '../../utility/test-util.ts';
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
-import { Processor } from '../../../source/core/core_entity/processor.ts';
+import { ComponentState } from '../../../source/core/core_entity/component_state/component-state.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
 
 Deno.test('IfInstruction--Functionality: Initial false', async (pContext) => {
@@ -19,7 +19,7 @@ Deno.test('IfInstruction--Functionality: Initial false', async (pContext) => {
                 <div/>
             }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             public displayed: boolean = lDisplayed;
         }
 
@@ -49,7 +49,7 @@ Deno.test('IfInstruction--Functionality: Initial true', async (pContext) => {
                 <div/>
             }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             public displayed: boolean = lDisplayed;
         }
 
@@ -81,9 +81,10 @@ Deno.test('IfInstruction--Functionality: Updated false', async (pContext) => {
                 <div/>
             }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
-            public displayed: boolean = !lDisplayed;
+            @ComponentState.state()
+            public accessor displayed: boolean = !lDisplayed;
         }
 
         // Setup. Create element.
@@ -114,9 +115,10 @@ Deno.test('IfInstruction--Functionality: Updated true', async (pContext) => {
                 <div/>
             }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbExport
-            public displayed: boolean = !lDisplayed;
+            @ComponentState.state()
+            public accessor displayed: boolean = !lDisplayed;
         }
 
         // Setup. Create element.
@@ -149,7 +151,7 @@ Deno.test('IfInstruction--Functionality: None boolean false value', async (pCont
                 <div/>
             }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             public displayed: any = lDisplayed;
         }
 
@@ -179,7 +181,7 @@ Deno.test('IfInstruction--Functionality: None boolean true value', async (pConte
                 <div/>
             }`
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             public displayed: any = lDisplayed;
         }
 

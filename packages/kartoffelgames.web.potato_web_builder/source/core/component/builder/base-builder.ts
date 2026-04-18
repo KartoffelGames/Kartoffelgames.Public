@@ -1,19 +1,19 @@
 
-import type { PwbApplicationConfiguration } from '../../../application/pwb-application-configuration.ts';
 import type { DataLevel } from '../../data/data-level.ts';
-import type { BasePwbTemplateNode } from '../template/nodes/base-pwb-template-node.ts';
+import { ComponentModules } from "../component-modules.ts";
+import type { IPwbTemplateNode } from '../template/nodes/i-pwb-template-node.interface.ts';
 import type { PwbTemplateXmlNode } from '../template/nodes/pwb-template-xml-node.ts';
-import type { BaseBuilderData, Boundary } from './data/base-builder-data.ts';
+import type { BaseBuilderData } from './data/base-builder-data.ts';
 
 /**
  * Builder that builds and updates content of component.
  * 
  * @internal
  */
-export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BasePwbTemplateNode, TContent extends BaseBuilderData = BaseBuilderData> {
-    private readonly mApplicationContext: PwbApplicationConfiguration;
+export abstract class BaseBuilder<TTemplates extends IPwbTemplateNode = IPwbTemplateNode, TContent extends BaseBuilderData = BaseBuilderData> {
     private readonly mComponentValues: DataLevel;
     private readonly mContent: TContent;
+    private readonly mModules: ComponentModules;
     private readonly mTemplate: TTemplates;
 
     /**
@@ -24,17 +24,10 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
     }
 
     /**
-     * Get application context.
+     * Component modules of builder.
      */
-    public get applicationContext(): PwbApplicationConfiguration {
-        return this.mApplicationContext;
-    }
-
-    /**
-     * Get boundary of builder. Top and bottom element of builder.
-     */
-    public get boundary(): Boundary {
-        return this.mContent.getBoundary();
+    public get modules(): ComponentModules {
+        return this.mModules;
     }
 
     /**
@@ -54,29 +47,28 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
     /**
      * Get component content of builder.
      */
-    protected get content(): TContent {
+    public get content(): TContent {
         return this.mContent;
     }
 
     /**
      * Constructor.
      * 
-     * @param pApplicationContext - Application context.
      * @param pTemplate - Builder template.
+     * @param pModules - Available modules of builder.
      * @param pDataLevel - Data level of a this builder.
      * @param pContent - Content of this builder.
      */
-    public constructor(pApplicationContext: PwbApplicationConfiguration, pTemplate: TTemplates, pDataLevel: DataLevel, pContent: TContent) {
-        // Set application context.
-        this.mApplicationContext = pApplicationContext;
-
+    public constructor(pTemplate: TTemplates, pModules: ComponentModules, pDataLevel: DataLevel, pContent: TContent) {
         // Clone template.
         this.mTemplate = pTemplate;
-        this.mTemplate.parent = null; // Nodes doesn't need a real parent. Maidenless nodes.
 
         // Create new data level of values with inside parent level.
         this.mComponentValues = pDataLevel;
         this.mContent = pContent;
+
+        // Create modules for builder.
+        this.mModules = pModules;
 
         // Link this builder as content.
         pContent.setCoreBuilder(this);
@@ -128,7 +120,7 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
      * 
      * @param pXmlElement - Xml content node.
      */
-    protected createZoneEnabledElement(pXmlElement: PwbTemplateXmlNode): Element {
+    protected createHtmlElement(pXmlElement: PwbTemplateXmlNode): HTMLElement {
         const lTagname: string = pXmlElement.tagName;
 
         if (typeof lTagname !== 'string') {
@@ -158,7 +150,7 @@ export abstract class BaseBuilder<TTemplates extends BasePwbTemplateNode = BaseP
      * 
      * @returns text node with specified text.
      */
-    protected createZoneEnabledText(pText: string): Text {
+    protected createTextNode(pText: string): Text {
         // Create new text node.
         return document.createTextNode(pText);
     }

@@ -1,9 +1,7 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Processor } from '../../core/core_entity/processor.ts';
 import { ComponentDataLevel } from '../../core/data/component-data-level.ts';
 import { AccessMode } from '../../core/enum/access-mode.enum.ts';
-import { UpdateTrigger } from '../../core/enum/update-trigger.enum.ts';
-import { AttributeModule } from '../../core/module/attribute_module/attribute-module.ts';
+
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator.ts';
 import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute.ts';
 import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node.ts';
@@ -13,24 +11,17 @@ import { ModuleTargetNode } from '../../core/module/injection_reference/module-t
  */
 @PwbAttributeModule({
     access: AccessMode.Write,
-    selector: /^#[[\w$]+$/,
-    trigger: UpdateTrigger.Any
+    selector: /^#[[\w$]+$/
 })
-export class PwbChildAttributeModule extends Processor {
+export class PwbChildAttributeModule {
     /**
      * Constructor.
      * @param pTargetNode - Target element.
-     * @param pAttributeModule - Attribute module.
      * @param pModuleAttribute - Module attribute.
      * @param pComponentScopeValue - Root values of component.
      */
-    public constructor(pTargetNode = Injection.use(ModuleTargetNode), pAttributeModule = Injection.use(AttributeModule), pModuleAttribute = Injection.use(ModuleAttribute), pComponentScopeValue = Injection.use(ComponentDataLevel)) {
-        super();
-
-        const lTarget: Node = pTargetNode;
-        const lRegistedElement: Node = pAttributeModule.registerObject(lTarget);
-
+    public constructor(pTargetNode = Injection.use(ModuleTargetNode), pModuleAttribute = Injection.use(ModuleAttribute), pComponentScopeValue = Injection.use(ComponentDataLevel)) {
         // Add current html element to temporary root values. Delete starting #.
-        pComponentScopeValue.setTemporaryValue(pModuleAttribute.name.substring(1), lRegistedElement);
+        pComponentScopeValue.setTemporaryValue(pModuleAttribute.name.substring(1), pTargetNode);
     }
 }

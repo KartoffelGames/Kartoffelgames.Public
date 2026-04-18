@@ -1,29 +1,27 @@
-import { Dictionary, List } from '@kartoffelgames/core';
-import { BasePwbTemplateNode } from './base-pwb-template-node.ts';
-import { PwbTemplateAttribute } from './values/pwb-template-attribute.ts';
+import { IPwbTemplateNode } from './i-pwb-template-node.interface.ts';
 import type { PwbTemplateTextNode } from './pwb-template-text-node.ts';
-import type { PwbTemplateExpression } from './values/pwb-template-expression.ts';
+import { PwbTemplateAttribute } from './values/pwb-template-attribute.ts';
 
 /**
  * Pwb template xml node.
  */
-export class PwbTemplateXmlNode extends BasePwbTemplateNode {
-    private readonly mAttributeDictionary: Dictionary<string, PwbTemplateAttribute>;
-    private readonly mChildList: Array<BasePwbTemplateNode>;
-    private mTagName: string;
+export class PwbTemplateXmlNode implements IPwbTemplateNode {
+    private readonly mAttributeDictionary: Map<string, PwbTemplateAttribute>;
+    private readonly mChildList: Array<IPwbTemplateNode>;
+    private readonly mTagName: string;
 
     /**
      * Get all attributes from xml node.
      */
-    public get attributes(): Array<PwbTemplateAttribute> {
-        return List.newListWith(...this.mAttributeDictionary.values());
+    public get attributes(): ReadonlyArray<PwbTemplateAttribute> {
+        return [...this.mAttributeDictionary.values()];
     }
 
     /**
      * Get childs of xml node list.
      */
-    public get childList(): Array<BasePwbTemplateNode> {
-        return List.newListWith(...this.mChildList);
+    public get childList(): ReadonlyArray<IPwbTemplateNode> {
+        return this.mChildList;
     }
 
     /**
@@ -31,19 +29,16 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
      */
     public get tagName(): string {
         return this.mTagName;
-    } set tagName(pTagName: string) {
-        this.mTagName = pTagName;
     }
 
     /**
      * Constructor.
      */
-    public constructor() {
-        super();
-        this.mAttributeDictionary = new Dictionary<string, PwbTemplateAttribute>();
-        this.mChildList = Array<BasePwbTemplateNode>();
+    public constructor(pTagName: string) {
+        this.mAttributeDictionary = new Map<string, PwbTemplateAttribute>();
+        this.mChildList = Array<IPwbTemplateNode>();
 
-        this.mTagName = '';
+        this.mTagName = pTagName;
     }
 
     /**
@@ -51,12 +46,7 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
      * 
      * @param pNode - Base node.
      */
-    public appendChild(...pNode: Array<BasePwbTemplateNode>): void {
-        // Set parent for each child and remove child from previous parent.
-        for (const lChild of pNode) {
-            lChild.parent = this;
-        }
-
+    public appendChild(...pNode: Array<IPwbTemplateNode>): void {
         this.mChildList.push(...pNode);
     }
 
@@ -64,18 +54,21 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
      * Clone current node.
      */
     public clone(): PwbTemplateXmlNode {
-        const lClonedNode: PwbTemplateXmlNode = new PwbTemplateXmlNode();
-        lClonedNode.tagName = this.tagName;
+        const lClonedNode: PwbTemplateXmlNode = new PwbTemplateXmlNode(this.tagName);
 
         // Add attributes.
-        for (const lAttribute of this.attributes) {
+        for (const lAttribute of this.mAttributeDictionary.values()) {
             // Create attribute.
             const lClonedAttribute: PwbTemplateTextNode = lClonedNode.setAttribute(lAttribute.name);
 
             // Clone each value in new attribute.
             for (const lValue of lAttribute.values.values) {
-                const lClonedValue: string | PwbTemplateExpression = (typeof lValue === 'string') ? lValue : lValue.clone();
-                lClonedAttribute.addValue(lClonedValue);
+                // Eighter add attribute value directly as string or clone expression. 
+                if (typeof lValue === 'string') {
+                    lClonedAttribute.addValue(lValue);
+                } else {
+                    lClonedAttribute.addValue(lValue.clone());
+                }
             }
         }
 
@@ -92,19 +85,19 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
      * 
      * @param pBaseNode - Base pwb template node.
      */
-    public equals(pBaseNode: BasePwbTemplateNode): boolean {
+    public equals(pBaseNode: IPwbTemplateNode): boolean {
         // Check type, tagname.
         if (!(pBaseNode instanceof PwbTemplateXmlNode) || pBaseNode.tagName !== this.tagName) {
             return false;
         }
 
         // Check same count of attributes.
-        if (pBaseNode.attributes.length !== this.attributes.length) {
+        if (pBaseNode.attributes.length !== this.mAttributeDictionary.size) {
             return false;
         }
 
         // Check same count of childs.
-        if (pBaseNode.childList.length !== this.childList.length) {
+        if (pBaseNode.childList.length !== this.mChildList.length) {
             return false;
         }
 
@@ -120,7 +113,7 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
 
         // Deep check all childnodes
         for (let lIndex: number = 0; lIndex < pBaseNode.childList.length; lIndex++) {
-            if (!pBaseNode.childList[lIndex].equals(this.childList[lIndex])) {
+            if (!pBaseNode.childList[lIndex].equals(this.mChildList[lIndex])) {
                 return false;
             }
         }
@@ -134,12 +127,7 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
      * @param pKey - Key of attribute.
      */
     public removeAttribute(pKey: string): boolean {
-        if (this.mAttributeDictionary.has(pKey)) {
-            this.mAttributeDictionary.delete(pKey);
-            return true;
-        } else {
-            return false;
-        }
+        return this.mAttributeDictionary.delete(pKey);
     }
 
     /**
@@ -148,19 +136,15 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
      * 
      * @param pNode - Child to remove.
      */
-    public removeChild(pNode: BasePwbTemplateNode): BasePwbTemplateNode | undefined {
+    public removeChild(pNode: IPwbTemplateNode): IPwbTemplateNode | undefined {
+        // Search for node index and skip if node is not found.
         const lIndex: number = this.mChildList.indexOf(pNode);
-        let lRemovedChild: BasePwbTemplateNode | undefined = undefined;
-
-        // If list contains node.
-        if (lIndex !== -1) {
-            lRemovedChild = this.mChildList.splice(lIndex, 1)[0];
-
-            // If xml node remove parent connection.
-            lRemovedChild.parent = null;
+        if(lIndex === -1) {
+            return undefined
         }
 
-        return lRemovedChild;
+        // Remove index from list and return removed child.
+        return this.mChildList.splice(lIndex, 1)[0];
     }
 
     /**
@@ -171,16 +155,14 @@ export class PwbTemplateXmlNode extends BasePwbTemplateNode {
      */
     public setAttribute(pKey: string): PwbTemplateTextNode {
         // Read potential attribte.
-        let lAttribute: PwbTemplateAttribute | undefined = this.mAttributeDictionary.get(pKey);
+        if (this.mAttributeDictionary.has(pKey)) {
+            return this.mAttributeDictionary.get(pKey)!.values;
+        }
 
         // Create and register new attribute when it does not exists.
-        if (!lAttribute) {
-            lAttribute = new PwbTemplateAttribute();
-            lAttribute.name = pKey;
-            lAttribute.node = this;
+        const lAttribute: PwbTemplateAttribute = new PwbTemplateAttribute(pKey);
 
-            this.mAttributeDictionary.set(pKey, lAttribute);
-        }
+        this.mAttributeDictionary.set(pKey, lAttribute);
 
         return lAttribute.values;
     }

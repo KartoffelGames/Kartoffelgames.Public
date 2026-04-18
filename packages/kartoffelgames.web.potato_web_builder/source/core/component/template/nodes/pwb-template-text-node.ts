@@ -1,10 +1,10 @@
-import { BasePwbTemplateNode } from './base-pwb-template-node.ts';
+import { IPwbTemplateNode } from './i-pwb-template-node.interface.ts';
 import { PwbTemplateExpression } from './values/pwb-template-expression.ts';
 
 /**
  * Pwb template node only containing text.
  */
-export class PwbTemplateTextNode extends BasePwbTemplateNode {
+export class PwbTemplateTextNode implements IPwbTemplateNode {
     private mContainsExpression: boolean;
     private mTextValue: string;
     private readonly mValues: Array<string | PwbTemplateExpression>;
@@ -19,7 +19,7 @@ export class PwbTemplateTextNode extends BasePwbTemplateNode {
     /**
      * Attribute values.
      */
-    public get values(): Array<string | PwbTemplateExpression> {
+    public get values(): ReadonlyArray<string | PwbTemplateExpression> {
         return this.mValues;
     }
 
@@ -27,8 +27,6 @@ export class PwbTemplateTextNode extends BasePwbTemplateNode {
      * Constructor.
      */
     public constructor() {
-        super();
-
         this.mTextValue = '';
         this.mContainsExpression = false;
         this.mValues = [];
@@ -43,11 +41,8 @@ export class PwbTemplateTextNode extends BasePwbTemplateNode {
     public addValue(...pValues: Array<string | PwbTemplateExpression>): void {
         // Add each value.
         for (const lValue of pValues) {
-            // Link expression parent to this attribute. 
-            if (lValue instanceof PwbTemplateExpression) {
-                lValue.node = this;
-
-                // Set contains expression flag.
+            // When value is expression, set contains expression flag.
+            if (this.mContainsExpression === true || lValue instanceof PwbTemplateExpression) {
                 this.mContainsExpression = true;
             }
 
@@ -61,13 +56,17 @@ export class PwbTemplateTextNode extends BasePwbTemplateNode {
     /**
      * Clone current node.
      */
-    public override clone(): PwbTemplateTextNode {
+    public clone(): PwbTemplateTextNode {
         const lCloneNode = new PwbTemplateTextNode();
 
         // Deep clone attribute values.
         for (const lValue of this.values) {
-            const lClonedValue: string | PwbTemplateExpression = (typeof lValue === 'string') ? lValue : lValue.clone();
-            lCloneNode.addValue(lClonedValue);
+            // Either clone expression value or add as string value.
+            if (typeof lValue === 'string') {
+                lCloneNode.addValue(lValue);
+            } else {
+                lCloneNode.addValue(lValue.clone());
+            }
         }
 
         return lCloneNode;
@@ -78,7 +77,7 @@ export class PwbTemplateTextNode extends BasePwbTemplateNode {
      * 
      * @param pBaseNode - Base pwb template node.
      */
-    public override equals(pBaseNode: BasePwbTemplateNode): boolean {
+    public equals(pBaseNode: IPwbTemplateNode): boolean {
         // Check type.
         if (!(pBaseNode instanceof PwbTemplateTextNode)) {
             return false;
@@ -123,7 +122,7 @@ export class PwbTemplateTextNode extends BasePwbTemplateNode {
      * 
      * @returns text node template as text.
      */
-    public override toString(): string {
+    public toString(): string {
         return this.mTextValue;
     }
 }

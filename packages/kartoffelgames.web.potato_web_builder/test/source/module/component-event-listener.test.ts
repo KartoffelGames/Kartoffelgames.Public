@@ -7,11 +7,9 @@ import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
 import type { PwbTemplateInstructionNode } from '../../../source/core/component/template/nodes/pwb-template-instruction-node.ts';
 import { PwbTemplate } from '../../../source/core/component/template/nodes/pwb-template.ts';
-import { Processor } from '../../../source/core/core_entity/processor.ts';
 import { DataLevel } from '../../../source/core/data/data-level.ts';
 import { ModuleDataLevel } from '../../../source/core/data/module-data-level.ts';
 import { AccessMode } from '../../../source/core/enum/access-mode.enum.ts';
-import { UpdateTrigger } from '../../../source/core/enum/update-trigger.enum.ts';
 import { PwbAttributeModule } from '../../../source/core/module/attribute_module/pwb-attribute-module.decorator.ts';
 import { ModuleTemplate } from '../../../source/core/module/injection_reference/module-template.ts';
 import type { IInstructionOnUpdate } from '../../../source/core/module/instruction_module/instruction-module.ts';
@@ -31,7 +29,7 @@ Deno.test('ComponentEventListener--Functionality: Component click event', async 
         @PwbComponent({
             selector: TestUtil.randomSelector(),
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbComponentEventListener('click')
             public handler(pEvent: MouseEvent): void {
                 lCalledEvent = pEvent;
@@ -59,7 +57,7 @@ Deno.test('ComponentEventListener--Functionality: Native listener', async (pCont
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbComponentEventListener('click')
             private listener(_pEvent: MouseEvent) {
                 lEventCalled = true;
@@ -90,7 +88,7 @@ Deno.test('ComponentEventListener--Functionality: Custom event listener', async 
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbComponentEvent('custom-event')
             private accessor mCustomEvent!: ComponentEventEmitter<string>;
 
@@ -125,7 +123,7 @@ Deno.test('ComponentEventListener--Functionality: Error on static properties', a
                 selector: TestUtil.randomSelector()
             })
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            class TestComponent extends Processor {
+            class TestComponent {
                 @PwbComponentEventListener('click')
                 private static listener(_pEvent: MouseEvent) {/* Empty */ }
             }
@@ -146,7 +144,7 @@ Deno.test('ComponentEventListener--Functionality: Two parallel listener', async 
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbComponentEventListener('click')
             private listenerOne(_pEvent: MouseEvent) {
                 lEventOneCalled = true;
@@ -180,7 +178,7 @@ Deno.test('ComponentEventListener--Functionality: Remove listener on deconstruct
         @PwbComponent({
             selector: TestUtil.randomSelector()
         })
-        class TestComponent extends Processor {
+        class TestComponent {
             @PwbComponentEventListener('click')
             private listener(_pEvent: MouseEvent) {
                 lEventCalled = true;
@@ -207,11 +205,10 @@ Deno.test('ComponentEventListener--Functionality: Native listener on static modu
 
         @PwbAttributeModule({
             access: AccessMode.Read,
-            selector: /^listenerTestModuleOne$/,
-            trigger: UpdateTrigger.Any
+            selector: /^listenerTestModuleOne$/
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class MyModule extends Processor {
+        class MyModule {
             @PwbComponentEventListener('click')
             private listener(_pEvent: MouseEvent) {
                 lEventCalled = true;
@@ -223,7 +220,7 @@ Deno.test('ComponentEventListener--Functionality: Native listener on static modu
             selector: TestUtil.randomSelector(),
             template: '<div listenerTestModuleOne />'
         })
-        class TestComponent extends Processor { }
+        class TestComponent { }
 
         // Process. Create element and click div.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
@@ -245,11 +242,10 @@ Deno.test('ComponentEventListener--Functionality: Remove module listener on deco
 
         @PwbAttributeModule({
             access: AccessMode.Read,
-            selector: /^listenerTestModuleTwo$/,
-            trigger: UpdateTrigger.Any
+            selector: /^listenerTestModuleTwo$/
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class MyModule extends Processor {
+        class MyModule {
             @PwbComponentEventListener('click')
             private listener(_pEvent: MouseEvent) {
                 lEventCalled = true;
@@ -261,7 +257,7 @@ Deno.test('ComponentEventListener--Functionality: Remove module listener on deco
             selector: TestUtil.randomSelector(),
             template: '<div listenerTestModuleTwo />'
         })
-        class TestComponent extends Processor { }
+        class TestComponent { }
 
         // Process. Create element and click div.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
@@ -282,17 +278,14 @@ Deno.test('ComponentEventListener--Functionality: Dont call event listener for i
         let lEventCalled: boolean = false;
 
         @PwbInstructionModule({
-            instructionType: 'listenerTestModuleFour',
-            trigger: UpdateTrigger.Any
+            instructionType: 'listenerTestModuleFour'
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class MyModule extends Processor implements IInstructionOnUpdate {
+        class MyModule implements IInstructionOnUpdate {
             private readonly mTemplate: ModuleTemplate;
             private readonly mValue: ModuleDataLevel;
 
             public constructor(pTemplate = Injection.use(ModuleTemplate), pValue = Injection.use(ModuleDataLevel)) {
-                super();
-
                 this.mTemplate = pTemplate;
                 this.mValue = pValue;
             }
@@ -319,7 +312,7 @@ Deno.test('ComponentEventListener--Functionality: Dont call event listener for i
             selector: TestUtil.randomSelector(),
             template: '$listenerTestModuleFour{<div/>}'
         })
-        class TestComponent extends Processor { }
+        class TestComponent { }
 
         // Process. Create element and click div.
         const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
@@ -342,7 +335,7 @@ Deno.test('ComponentEventListener--Functionality: Native listener inherited from
         let lEventCalled: boolean = false;
 
         // Process. Define parent class.
-        class ParentClass extends Processor {
+        class ParentClass {
             @PwbComponentEventListener('click')
             private listener(_pEvent: MouseEvent) {
                 lEventCalled = true;

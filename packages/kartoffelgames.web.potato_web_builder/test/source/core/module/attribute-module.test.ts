@@ -4,10 +4,8 @@ import { TestUtil } from '../../../utility/test-util.ts';
 // Funcitonal imports after mock.
 import { expect } from '@kartoffelgames/core-test';
 import { PwbComponent } from '../../../../source/core/component/pwb-component.decorator.ts';
-import { Processor } from '../../../../source/core/core_entity/processor.ts';
 import { ModuleDataLevel } from '../../../../source/core/data/module-data-level.ts';
 import { AccessMode } from '../../../../source/core/enum/access-mode.enum.ts';
-import { UpdateTrigger } from '../../../../source/core/enum/update-trigger.enum.ts';
 import { PwbAttributeModule } from '../../../../source/core/module/attribute_module/pwb-attribute-module.decorator.ts';
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 
@@ -19,14 +17,11 @@ Deno.test('PwbAttributeModule--Functionality: CustomModule - Set non existing te
         // Setup. Define module.
         @PwbAttributeModule({
             access: AccessMode.Read,
-            selector: /^setnonexistingtemporaryvalue$/,
-            trigger: UpdateTrigger.Any
+            selector: /^setnonexistingtemporaryvalue$/
         })
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        class Module extends Processor {
+        class Module {
             public constructor(pData = Injection.use(ModuleDataLevel)) {
-                super();
-
                 const lExpression = pData.createExpressionProcedure('');
                 lExpression.setTemporaryValue(lTemporaryValueName, 0);
             }
@@ -37,7 +32,7 @@ Deno.test('PwbAttributeModule--Functionality: CustomModule - Set non existing te
             selector: TestUtil.randomSelector(),
             template: `<div setnonexistingtemporaryvalue/>`
         })
-        class TestComponent extends Processor { }
+        class TestComponent { }
 
         // Process. Create element.
         let lErrorMessage: string | null = null;

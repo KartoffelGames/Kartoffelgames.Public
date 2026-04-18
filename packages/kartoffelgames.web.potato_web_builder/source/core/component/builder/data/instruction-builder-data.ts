@@ -1,29 +1,31 @@
 import type { InstructionModule } from '../../../module/instruction_module/instruction-module.ts';
-import type { ComponentModules } from '../../component-modules.ts';
 import { BaseBuilderData } from './base-builder-data.ts';
 
+/**
+ * Instruction builder data. Contains instruction module of scope and content of instruction builder.
+ * 
+ * @internal
+ */
 export class InstructionBuilderData extends BaseBuilderData {
-    private mInstructionModule: InstructionModule | null;
+    private readonly mInstructionModule: InstructionModule;
 
     /**
      * Get instruction module of scope.
      */
-    public get instructionModule(): InstructionModule | null {
+    public get instructionModule(): InstructionModule {
         return this.mInstructionModule;
-    } set instructionModule(pModule: InstructionModule | null) {
-        this.mInstructionModule = pModule;
     }
-
+    
     /**
      * Constructor.
      * 
-     * @param pModules - Builder modules.
+     * @param pInstructionModule - Instruction module of scope.
      * @param pAnchorName - Name of generated content anchor.
      */
-    public constructor(pModules: ComponentModules, pAnchorName: string) {
-        super(pModules, pAnchorName);
+    public constructor(pInstructionModule: InstructionModule, pAnchorName: string) {
+        super(pAnchorName);
 
-        this.mInstructionModule = null;
+        this.mInstructionModule = pInstructionModule;
     }
 
     /**

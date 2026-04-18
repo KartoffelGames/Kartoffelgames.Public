@@ -9,12 +9,14 @@ import type { DataLevel } from '../../data/data-level.ts';
  */
 export class InstructionResult {
     private readonly mElementList: Array<InstructionResultElement>;
+    private readonly mTemplates: Set<PwbTemplate>;
+    private readonly mDataLevels: Set<DataLevel>;
 
     /**
      * Get list of created elements.
      */
-    public get elementList(): Array<InstructionResultElement> {
-        return List.newListWith(...this.mElementList);
+    public get elementList(): ReadonlyArray<InstructionResultElement> {
+        return this.mElementList;
     }
 
     /**
@@ -22,6 +24,10 @@ export class InstructionResult {
      */
     public constructor() {
         this.mElementList = new Array<InstructionResultElement>();
+
+        // Fast access to templates and data levels to check for double use.
+        this.mTemplates = new Set<PwbTemplate>();
+        this.mDataLevels = new Set<DataLevel>();
     }
 
     /**
@@ -36,16 +42,16 @@ export class InstructionResult {
      */
     public addElement(pTemplateElement: PwbTemplate, pLevelData: DataLevel): void {
         // Check if value or temple is used in another element.
-        const lDoubledIndex: number = this.mElementList.findIndex(pElement => {
-            return pElement.template === pTemplateElement || pElement.dataLevel === pLevelData;
-        });
-
-        // Do not allow double use of template or data level.
-        if (lDoubledIndex === -1) {
-            this.mElementList.push({ template: pTemplateElement, dataLevel: pLevelData });
-        } else {
+        if (this.mTemplates.has(pTemplateElement) || this.mDataLevels.has(pLevelData)) {
             throw new Exception(`Can't add same template or values for multiple Elements.`, this);
         }
+
+        // Add template and data level to sets to prevent future duplicates.
+        this.mTemplates.add(pTemplateElement);
+        this.mDataLevels.add(pLevelData);
+
+        // Add element to list.
+        this.mElementList.push({ template: pTemplateElement, dataLevel: pLevelData });
     }
 }
 

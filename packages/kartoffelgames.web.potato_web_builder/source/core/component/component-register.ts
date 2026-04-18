@@ -1,7 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
-import type { Processor } from '../core_entity/processor.ts';
-import type { Component, ComponentProcessor } from './component.ts';
+import type { Component, ComponentProcessor, ComponentProcessorConstructor } from './component.ts';
 
 export class ComponentRegister {
     private static readonly mComponents: WeakMap<HTMLElement | ComponentProcessor, Component> = new WeakMap<HTMLElement | ComponentProcessor, Component>();
@@ -33,18 +32,12 @@ export class ComponentRegister {
             throw new Exception(`Component "${pComponent}" is not a registered component`, pComponent);
         }
 
-        // Only read processor when it is created.
-        let lProcessor: ComponentProcessor | undefined;
-        if (pComponent.isProcessorCreated) {
-            lProcessor = pComponent.processor;
-        }
-
         return {
             selector: lSelector,
             constructor: lComponentConstructor,
             element: lElement,
             component: pComponent,
-            processor: lProcessor
+            processor: pComponent.processor
         };
     }
 
@@ -58,7 +51,7 @@ export class ComponentRegister {
      * @throws {@link Exception}
      * When {@link pConstructor} is not a registered component processor.
      */
-    public static ofConstructor(pConstructor: typeof Processor): ComponentConstructorInformationData {
+    public static ofConstructor(pConstructor: ComponentProcessorConstructor): ComponentConstructorInformationData {
         // Get selector of constructor.
         const lSelector: string | undefined = ComponentRegister.mConstructorSelector.get(pConstructor);
         if (!lSelector) {
@@ -160,7 +153,7 @@ export type ComponentInformationData = {
     constructor: InjectionConstructor;
     element: HTMLElement;
     component: Component;
-    processor?: ComponentProcessor | undefined;
+    processor: ComponentProcessor | undefined;
 };
 
 export type ComponentConstructorInformationData = {

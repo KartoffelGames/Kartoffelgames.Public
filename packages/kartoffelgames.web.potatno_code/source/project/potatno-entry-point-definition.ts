@@ -82,7 +82,7 @@ type PotatnoEntryPointDefinitionConstructorParameter<TTypes extends PotatnoProje
     statics: Partial<PotatnoEntryPointDefinitionStaticSettings>;
     nodes?: Partial<PotatnoEntryPointDefinitionNodes<TTypes>>;
     preview?: PotatnoNodeEntryPointPreview<HTMLElement>;
-    codeGenerator: (func: PotatnoCodeFunction) => string;
+    codeGenerator: (pFunction: PotatnoCodeFunction) => string;
 };
 
 type PotatnoEntryPointDefinitionNodes<TTypes extends PotatnoProjectTypes> = {
@@ -90,6 +90,9 @@ type PotatnoEntryPointDefinitionNodes<TTypes extends PotatnoProjectTypes> = {
     dynamic: Array<PotatnoNodeDefinition<TTypes>>;
 };
 
+/**
+ * Settings to set global configuration static, so it cant be changed by the user.
+ */
 export type PotatnoEntryPointDefinitionStaticSettings = {
     imports: boolean;
     inputs: boolean;
@@ -109,8 +112,9 @@ export type PotatnoNodeEntryPointPreview<TElement extends HTMLElement> = {
      * This can be used to create live, data-driven previews that react to changes in the node's inputs and outputs.
      * 
      * @param pElement - The preview element to be updated.
+     * @param pFunction - The complete function object containing the function body code, inputs, and outputs, which can be used to update the preview element accordingly.
      * @param pPreviewInputData - The example preview input data for the entry point, which can be used to run the intermediate code and update the preview element accordingly.
      * @param pIntermediateCodeOutput - The output of the intermediate code execution, which can be used to update the preview element accordingly.
      */
-    readonly updatePreview: (pElement: TElement, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
+    readonly updatePreview: (pElement: TElement, pFunction: PotatnoCodeFunction,pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
 };

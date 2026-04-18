@@ -1,7 +1,5 @@
-import { Exception } from "@kartoffelgames/core";
 import { NodeCategory } from "../node/node-category.enum.ts";
-import { PotatnoProject, PotatnoProjectTypes } from "./potatno-project.ts";
-import { InjectionInstance } from "@kartoffelgames/core-dependency-injection";
+import { PotatnoProjectTypes } from "./potatno-project.ts";
 
 /**
  * Definition of a node type that can be instantiated in the graph. Registered at the project level and referenced by nodes via the definitionName property.
@@ -11,7 +9,7 @@ import { InjectionInstance } from "@kartoffelgames/core-dependency-injection";
  * @template TInputs - Object type mapping input port names to their definitions.
  * @template TOutputs - Object type mapping output port names to their definitions.
  */
-export class PotatnoNodeDefinition<TTypes extends PotatnoProjectTypes = PotatnoProjectTypes, TInputs extends PotatnoNodeDefinitionPorts<TTypes> = any, TOutputs extends PotatnoNodeDefinitionPorts<TTypes> = any> {
+export class PotatnoNodeDefinition<TTypes extends PotatnoProjectTypes = PotatnoProjectTypes, TInputs extends PotatnoNodeDefinitionPorts<TTypes> = any, TOutputs extends PotatnoNodeDefinitionPorts<TTypes> = any, TPreviewElement extends Element = any> {
     /**
      * Factory method to create a new node definition and register it at the project level.
      * 
@@ -19,7 +17,7 @@ export class PotatnoNodeDefinition<TTypes extends PotatnoProjectTypes = PotatnoP
      * 
      * @returns The created PotatnoProjectNodeDefinition instance. 
      */
-    public static create<TTypes extends PotatnoProjectTypes, TInputKeys extends string, TInputs extends PotatnoNodeDefinitionPorts<TTypes, TInputKeys>, TOutputKeys extends string, TOutputs extends PotatnoNodeDefinitionPorts<TTypes, TOutputKeys>>(pParameters: PotatnoNodeDefinitionConstructorParameter<TTypes, TInputs, TOutputs>): PotatnoNodeDefinition<TTypes, TInputs, TOutputs> {
+    public static create<TTypes extends PotatnoProjectTypes, TInputKeys extends string, TInputs extends PotatnoNodeDefinitionPorts<TTypes, TInputKeys>, TOutputKeys extends string, TOutputs extends PotatnoNodeDefinitionPorts<TTypes, TOutputKeys>, TPreviewElement extends Element>(pParameters: PotatnoNodeDefinitionConstructorParameter<TTypes, TInputs, TOutputs, TPreviewElement>): PotatnoNodeDefinition<TTypes, TInputs, TOutputs, TPreviewElement> {
         return new PotatnoNodeDefinition(pParameters);
     }
 
@@ -29,7 +27,7 @@ export class PotatnoNodeDefinition<TTypes extends PotatnoProjectTypes = PotatnoP
     private readonly mLabel: string;
     private readonly mOutputs: TOutputs;
     private readonly mCodeGenerator: PotatnoNodeDefinitionCodeGenerator<TTypes, TInputs, TOutputs>;
-    private readonly mPreview: PotatnoNodeDefinitionPreview<HTMLElement> | null;
+    private readonly mPreview: PotatnoNodeDefinitionPreview<TTypes, TInputs, TOutputs, TPreviewElement> | null;
 
     /**
      *  Unique id for this node definition. 
@@ -76,7 +74,7 @@ export class PotatnoNodeDefinition<TTypes extends PotatnoProjectTypes = PotatnoP
     /**
      * Preview configuration for this node type.
      */
-    public get preview(): PotatnoNodeDefinitionPreview<HTMLElement> | null {
+    public get preview(): PotatnoNodeDefinitionPreview<TTypes, TInputs, TOutputs, TPreviewElement> | null {
         return this.mPreview;
     }
 
@@ -85,7 +83,7 @@ export class PotatnoNodeDefinition<TTypes extends PotatnoProjectTypes = PotatnoP
      * 
      * @param pParameters - Constructor parameters. 
      */
-    public constructor(pParameters: PotatnoNodeDefinitionConstructorParameter<TTypes, TInputs, TOutputs>) {
+    public constructor(pParameters: PotatnoNodeDefinitionConstructorParameter<TTypes, TInputs, TOutputs, TPreviewElement>) {
         // Set id and label. Label defaults to id if not provided.
         this.mId = pParameters.id;
         this.mLabel = pParameters.label ?? pParameters.id;
@@ -99,14 +97,14 @@ export class PotatnoNodeDefinition<TTypes extends PotatnoProjectTypes = PotatnoP
     }
 }
 
-type PotatnoNodeDefinitionConstructorParameter<TTypes extends PotatnoProjectTypes, TInputs extends PotatnoNodeDefinitionPorts<TTypes>, TOutputs extends PotatnoNodeDefinitionPorts<TTypes>> = {
+type PotatnoNodeDefinitionConstructorParameter<TTypes extends PotatnoProjectTypes, TInputs extends PotatnoNodeDefinitionPorts<TTypes>, TOutputs extends PotatnoNodeDefinitionPorts<TTypes>, TPreviewElement extends Element> = {
     label?: string;
     id: string;
     category: NodeCategory;
     inputs: TInputs;
     outputs: TOutputs;
     codeGenerator: PotatnoNodeDefinitionCodeGenerator<TTypes, TInputs, TOutputs>;
-    preview?: PotatnoNodeDefinitionPreview<HTMLElement>;
+    preview?: PotatnoNodeDefinitionPreview<TTypes, TInputs, TOutputs, TPreviewElement>;
 };
 
 /**
@@ -214,13 +212,7 @@ export type PotatnoCodeGeneratorPorts<TTypes extends PotatnoProjectTypes, TPorts
  * Preview generation.
  */
 
-export type PotatnoNodeDefinitionPreviewData<TTypes extends PotatnoProjectTypes, TPorts extends PotatnoNodeDefinitionPorts<TTypes>> = {
-    [K in keyof TPorts]: TPorts[K] extends PotatnoNodeDefinitionValuePort<TTypes> ? TTypes[TPorts[K]['dataType']] :
-    TPorts[K] extends PotatnoNodeDefinitionInputPort<TTypes> ? TTypes[TPorts[K]['dataType']] :
-    TPorts[K] extends PotatnoNodeDefinitionFlowPort ? boolean : never;
-};
-
-export type PotatnoNodeDefinitionPreview<TElement extends HTMLElement> = {
+export type PotatnoNodeDefinitionPreview<TTypes extends PotatnoProjectTypes, TInput extends PotatnoNodeDefinitionPorts<TTypes>, TOutput extends PotatnoNodeDefinitionPorts<TTypes>, TElement extends Element> = {
     /**
      * Generator function that produces an HTMLElement to be used as a live preview for a node instance.
      * 
@@ -236,5 +228,5 @@ export type PotatnoNodeDefinitionPreview<TElement extends HTMLElement> = {
      * @param pPreviewInputData - The example preview input data for the entry point, which can be used to run the intermediate code and update the preview element accordingly.
      * @param pIntermediateCodeOutput - The output of the intermediate code execution, which can be used to update the preview element accordingly.
      */
-    readonly updatePreview: (pElement: TElement, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
+    readonly updatePreview: (pElement: TElement, pContext: PotatnoNodeDefinitionGeneratorData<TTypes, TInput, TOutput>, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
 };

@@ -1941,7 +1941,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      *
      * @returns The computed preview data map, or null if evaluation could not proceed.
      */
-    public evaluatePreview(pEntryData: Record<string, Record<string, unknown>>, pUpdateElements: boolean = true): Map<string, NodePreviewData> | null {
+    public evaluatePreview(pEntryData: Record<string, Record<string, unknown>>): Map<string, NodePreviewData> | null {
         const lProject: PotatnoProject | undefined = this.mProject;
         const lFile: PotatnoCodeFile | undefined = this.mFile;
         const lGraph = lFile?.activeFunction?.graph;
@@ -1958,25 +1958,23 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
         lInternals.previewDataCache = lPreviewData;
 
         // Update inline preview elements if requested.
-        if (pUpdateElements) {
-            for (const [lNodeId, lData] of lPreviewData) {
-                const lElement: HTMLElement | undefined = lInternals.previewElements.get(lNodeId);
-                if (!lElement) {
-                    continue;
-                }
+        for (const [lNodeId, lData] of lPreviewData) {
+            const lElement: HTMLElement | undefined = lInternals.previewElements.get(lNodeId);
+            if (!lElement) {
+                continue;
+            }
 
-                const lNode = lGraph.getNode(lNodeId);
-                if (!lNode) {
-                    continue;
-                }
+            const lNode = lGraph.getNode(lNodeId);
+            if (!lNode) {
+                continue;
+            }
 
-                const lDef: PotatnoNodeDefinition | undefined = lProject.nodeDefinitions.get(lNode.definitionId);
-                if (lDef?.preview?.element) {
-                    try {
-                        lDef.preview.element.updatePreviewElement(lElement, lData.inputs as any, lData.outputs as any);
-                    } catch {
-                        // Silently ignore preview element update errors.
-                    }
+            const lDef: PotatnoNodeDefinition | undefined = lProject.nodeDefinitions.get(lNode.definitionId);
+            if (lDef?.preview?.element) {
+                try {
+                    lDef.preview.element.updatePreviewElement(lElement, lData.inputs as any, lData.outputs as any);
+                } catch {
+                    // Silently ignore preview element update errors.
                 }
             }
         }

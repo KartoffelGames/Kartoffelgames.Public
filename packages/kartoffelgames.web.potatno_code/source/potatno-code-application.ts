@@ -59,12 +59,10 @@ export class PotatnoCodeApplication extends PwbApplication {
      * Returns the preview data map which can be used to read computed values (e.g., pixel colors).
      *
      * @param pEntryData - Data for static entry nodes keyed by definition id.
-     * @param pUpdateElements - Whether to update inline preview elements (default true).
-     *                          Set to false during bulk iteration for performance.
      *
      * @returns The computed preview data map, or null if evaluation could not proceed.
      */
-    public update(pEntryData: Record<string, Record<string, unknown>>, pUpdateElements: boolean = true): Map<string, NodePreviewData> | null {
-        return this.mCodeEditor.evaluatePreview(pEntryData, pUpdateElements);
+    public update(pEntryData: Record<string, Record<string, unknown>>): Map<string, NodePreviewData> | null {
+        return this.mCodeEditor.evaluatePreview(pEntryData);
     }
 }

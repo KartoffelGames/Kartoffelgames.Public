@@ -1,4 +1,3 @@
-import type { PotatnoCodeFunction } from '../parser/potatno-code-function.ts';
 import type { PotatnoEntryPointDefinition } from './potatno-entry-point-definition.ts';
 import { PotatnoNodeDefinition, type PotatnoNodeDefinitionPorts } from "./potatno-node-definition.ts";
 
@@ -72,7 +71,7 @@ export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectT
     /**
      * Register a node type definition.
      */
-    public addNodeDefinition<TInputs extends PotatnoNodeDefinitionPorts<TTypes>, TOutputs extends PotatnoNodeDefinitionPorts<TTypes>>(pDefinition: PotatnoNodeDefinition<TTypes, TInputs, TOutputs>): void {
+    public addNodeDefinition<TInputs extends PotatnoNodeDefinitionPorts<TTypes>, TOutputs extends PotatnoNodeDefinitionPorts<TTypes>, TPreviewElement extends Element>(pDefinition: PotatnoNodeDefinition<TTypes, TInputs, TOutputs, TPreviewElement>): void {
         this.mNodeDefinitions.set(pDefinition.id, pDefinition);
     }
 

@@ -16,5 +16,5 @@ ${n}`),this.mChain=[...t]}};var We=class m{static mStackCap=100;static mFrameTim
         <button (click)="this.userValue = 'Clicked!'">Click me</button>
         <button (click)="this.list.push('New item')">Add list item</button>
         <button (click)="this.list.pop()">Remove list</button>
-    `}),sr=ge.state({proxy:!0}),ir=ge.state();var rr=class{static{({e:[kt,er,tr],c:[ar,Qt]}=or(this,[[sr,1,"list"],[ir,1,"userValue"]],[nr]))}constructor(){this.userValue="Initial value",this.list=new Array(8e4).fill("123")}#e=(tr(this),kt(this));get list(){return this.#e}set list(e){this.#e=e}#t=er(this);get userValue(){return this.#t}set userValue(e){this.#t=e}static{Qt()}};Oe.new(m=>{m.addContent(ar)},document.body);})();
+    `}),sr=ge.state({proxy:!0}),ir=ge.state();var rr=class{static{({e:[kt,er,tr],c:[ar,Qt]}=or(this,[[sr,1,"list"],[ir,1,"userValue"]],[nr]))}constructor(){this.userValue="Initial value",this.list=new Array(3e3).fill("123")}#e=(tr(this),kt(this));get list(){return this.#e}set list(e){this.#e=e}#t=er(this);get userValue(){return this.#t}set userValue(e){this.#t=e}static{Qt()}};Oe.new(m=>{m.addContent(ar)},document.body);})();
 //# sourceMappingURL=page.js.map

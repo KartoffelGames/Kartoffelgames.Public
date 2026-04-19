@@ -14,7 +14,6 @@ const lProjectTypes = {
 } satisfies PotatnoProjectTypes;
 
 const lProject = new PotatnoProject({
-    commentToken: '//',
     types: lProjectTypes,
     entryPoint: PotatnoFunctionDefinition.create({
         id: 'pixelShader',

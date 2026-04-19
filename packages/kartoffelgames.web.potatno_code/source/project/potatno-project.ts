@@ -7,26 +7,10 @@ import { PotatnoNodeDefinition, type PotatnoNodeDefinitionPorts } from "./potatn
  * and callback configurations. Does not hold document state.
  */
 export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectTypes> {
-    private readonly mCommentToken: string;
-    
-    private readonly mImports: Array<PotatnoProjectImportDefinition<TTypes>>;
     private readonly mEntryPoint: PotatnoFunctionDefinition<TTypes>;
+    private readonly mImports: Array<PotatnoProjectImportDefinition<TTypes>>;
     private readonly mNodeDefinitions: Map<string, PotatnoNodeDefinition<TTypes, any, any>>;
-    private mValidTypes: Map<keyof TTypes, TTypes[keyof TTypes]>;
-
-    /**
-     * Get the comment token used for metadata comments in generated code.
-     */
-    public get commentToken(): string {
-        return this.mCommentToken;
-    }
-
-    /**
-     * Get the list of registered import definitions.
-     */
-    public get imports(): ReadonlyArray<PotatnoProjectImportDefinition<TTypes>> {
-        return this.mImports;
-    }
+    private readonly mValidTypes: Map<keyof TTypes, TTypes[keyof TTypes]>;
 
     /**
      * Get the registered entry point definition.
@@ -34,6 +18,13 @@ export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectT
      */
     public get entryPoint(): PotatnoFunctionDefinition<TTypes> {
         return this.mEntryPoint;
+    }
+
+    /**
+     * Get the list of registered import definitions.
+     */
+    public get imports(): ReadonlyArray<PotatnoProjectImportDefinition<TTypes>> {
+        return this.mImports;
     }
 
     /**
@@ -47,8 +38,6 @@ export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectT
      * Create a new editor configuration with default values.
      */
     public constructor(pParameter: PotatnoProjectConstructorParameter<TTypes>) {
-        this.mCommentToken = pParameter.commentToken;
-
         // Create a map of valid type identifiers for quick lookup when validating node definitions and connections.
         this.mValidTypes = new Map<keyof TTypes, TTypes[keyof TTypes]>();
         for (const [lTypeName, lDefaultValue] of Object.entries(pParameter.types)) {
@@ -89,7 +78,6 @@ export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectT
 
 type PotatnoProjectConstructorParameter<TTypes extends PotatnoProjectTypes> = {
     types: TTypes;
-    commentToken: string;
     entryPoint: PotatnoFunctionDefinition<TTypes>;
 };
 

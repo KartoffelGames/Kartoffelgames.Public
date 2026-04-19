@@ -1,3 +1,4 @@
+import type { PotatnoFunction } from '../document/potatno-function.ts';
 import type { PotatnoGraph } from '../document/potatno-graph.ts';
 import type { PotatnoNode } from '../document/potatno-node.ts';
 import { NodeCategory } from '../node/node-category.enum.ts';
@@ -12,10 +13,9 @@ import { PotatnoCodeRerouteNode } from '../node/potatno-code-reroute-node.ts';
 import { PotatnoCodeSetLocalNode } from '../node/potatno-code-set-local-node.ts';
 import { PotatnoCodeTemplateNode } from '../node/potatno-code-template-node.ts';
 import { PotatnoCodeValueNode } from '../node/potatno-code-value-node.ts';
-import { PotatnoCodeFunction } from './potatno-code-function.ts';
-import type { PotatnoFunction } from '../document/potatno-function.ts';
 import type { PotatnoNodeDefinitionPort } from "../project/potatno-node-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
+import { PotatnoCodeFunction } from './potatno-code-function.ts';
 
 /**
  * Walks the graph in topological order and generates clean code without metadata markers.

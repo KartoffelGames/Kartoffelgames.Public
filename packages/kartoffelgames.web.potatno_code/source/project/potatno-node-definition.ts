@@ -1,4 +1,5 @@
 import { NodeCategory } from "../node/node-category.enum.ts";
+import { PotatnoCodeFunction } from "../parser/potatno-code-function.ts";
 import { PotatnoProjectTypes } from "./potatno-project.ts";
 
 /**
@@ -228,5 +229,5 @@ export type PotatnoNodeDefinitionPreview<TTypes extends PotatnoProjectTypes, TIn
      * @param pPreviewInputData - The example preview input data for the entry point, which can be used to run the intermediate code and update the preview element accordingly.
      * @param pIntermediateCodeOutput - The output of the intermediate code execution, which can be used to update the preview element accordingly.
      */
-    readonly updatePreview: (pElement: TElement, pContext: PotatnoNodeDefinitionGeneratorData<TTypes, TInput, TOutput>, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
+    readonly updatePreview: (pElement: TElement, pContext: PotatnoNodeDefinitionGeneratorData<TTypes, TInput, TOutput>, pFunction: PotatnoCodeFunction, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
 };

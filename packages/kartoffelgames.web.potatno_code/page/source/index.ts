@@ -4,22 +4,24 @@ import { PotatnoCodeApplication } from '../../source/potatno-code-application.ts
 import type { PotatnoCodeFunction } from '../../source/parser/potatno-code-function.ts';
 import { PotatnoEntryPointDefinition } from "../../source/project/potatno-entry-point-definition.ts";
 import { PotatnoNodeDefinition } from "../../source/project/potatno-node-definition.ts";
-import { PotatnoProject } from '../../source/project/potatno-project.ts';
+import { PotatnoProject, PotatnoProjectTypes } from '../../source/project/potatno-project.ts';
 
 // --- Project configuration ---
+const lProjectTypes = {
+    number: 0,
+    string: '',
+    boolean: false
+} satisfies PotatnoProjectTypes;
+
 const lProject = new PotatnoProject({
     commentToken: '//',
-    types: {
-        number: 0,
-        string: '',
-        boolean: false
-    },
+    types: lProjectTypes,
     entryPoint: PotatnoEntryPointDefinition.create({
         id: 'pixelShader',
         statics: {
             imports: true,
             inputs: true,
-            outputs: true
+            outputs: false
         },
         nodes: {
             static: [
@@ -54,11 +56,9 @@ const lProject = new PotatnoProject({
             ]
         },
         codeGenerator: (pFunction: PotatnoCodeFunction) => {
-            // TODO: Correct function output.
-            return `return (__pixel_x, __pixel_y) => {\n` +
-                pFunction.bodyCode +
-                `return [__pixel_r, __pixel_g, __pixel_b];\n` +
-                `\n}`;
+            const lInputParams: string = pFunction.inputs.map((i: { valueId: string; }) => i.valueId).join(', ');
+            const lParams: string = lInputParams ? `__pixel_x, __pixel_y, ${lInputParams}` : '__pixel_x, __pixel_y';
+            return `function ${pFunction.name}(${lParams}) {\nlet __pixel_r = 0, __pixel_g = 0, __pixel_b = 0;\n${pFunction.bodyCode}\nreturn [__pixel_r, __pixel_g, __pixel_b];\n}`;
         },
         preview: {
             generatePreview: (): HTMLCanvasElement => {
@@ -71,25 +71,20 @@ const lProject = new PotatnoProject({
             },
             updatePreview: (pCanvas: HTMLCanvasElement, pFunction: PotatnoCodeFunction, _pPreviewInputData: {}, pCodeOutput: string) => {
                 const lPreviewCtx: CanvasRenderingContext2D = pCanvas.getContext('2d')!;
-                const lImageData: ImageData = lPreviewCtx.createImageData(100, 100);
+                const lImageData: ImageData = lPreviewCtx.createImageData(pCanvas.width, pCanvas.height);
 
                 // Evaluate generated code to get the pixel shader function.
-                const lPixelShaderFunc = Function(pCodeOutput)();
+                const lPixelShaderFunc = Function(pCodeOutput + '\nreturn ' + pFunction.name + ';')();
 
-                for (let lY = 0; lY < 100; lY++) {
-                    for (let lX = 0; lX < 100; lX++) {
+                for (let lY = 0; lY < lImageData.height; lY++) {
+                    for (let lX = 0; lX < lImageData.width; lX++) {
                         // Evaluate the node graph with normalized pixel coordinates.
-                        const lResult: [red: number, green: number, blue: number] = lPixelShaderFunc(lX / 100, lY / 100);
+                        const lResult: [red: number, green: number, blue: number] = lPixelShaderFunc(lX / lImageData.width, lY / lImageData.height);
 
-                        // Read PixelResult node's input data (the RGB values connected to it).
-                        let lRed = lResult[0];
-                        let lGreen = lResult[1];
-                        let lBlue = lResult[2];
-
-                        const lIdx: number = (lY * 100 + lX) * 4;
-                        lImageData.data[lIdx] = Math.max(0, Math.min(255, Math.round(lRed * 255)));
-                        lImageData.data[lIdx + 1] = Math.max(0, Math.min(255, Math.round(lGreen * 255)));
-                        lImageData.data[lIdx + 2] = Math.max(0, Math.min(255, Math.round(lBlue * 255)));
+                        const lIdx: number = (lY * lImageData.width + lX) * 4;
+                        lImageData.data[lIdx] = Math.max(0, Math.min(255, Math.round(lResult[0] * 255)));
+                        lImageData.data[lIdx + 1] = Math.max(0, Math.min(255, Math.round(lResult[1] * 255)));
+                        lImageData.data[lIdx + 2] = Math.max(0, Math.min(255, Math.round(lResult[2] * 255)));
                         lImageData.data[lIdx + 3] = 255;
                     }
                 }
@@ -225,7 +220,8 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
         result: { nodeType: 'value', dataType: 'number' }
     },
     codeGenerator: (pContext) => {
-        return `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} * ${pContext.inputs.b.valueId};`;
+        return `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} * ${pContext.inputs.b.valueId};` +
+            `/*MULTIPLYHOOK_${pContext.outputs.result.valueId}*/`;
     },
     preview: {
         generatePreview: (): HTMLCanvasElement => {
@@ -235,14 +231,30 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
             lCanvas.style.cssText = 'width: 50px; height: 50px; image-rendering: pixelated; border: 1px solid rgba(255,255,255,0.1); border-radius: 2px;';
             return lCanvas;
         },
-        updatePreview: (pCanvas: HTMLCanvasElement, pContext, pPreviewInputData: any, pIntermediateCodeOutput: string) => {
-            const lCtx: CanvasRenderingContext2D | null = pCanvas.getContext('2d');
-            if (!lCtx) {
-                return;
+        updatePreview: (pCanvas: HTMLCanvasElement, pContext, pFunction: PotatnoCodeFunction, _pPreviewInputData: any, pIntermediateCodeOutput: string) => {
+            const lPreviewCtx: CanvasRenderingContext2D = pCanvas.getContext('2d')!;
+            const lImageData: ImageData = lPreviewCtx.createImageData(pCanvas.width, pCanvas.height);
+
+            // Replace the last comment-hook with a return statement to get the result of the multiplication.
+            const lCodeOutput: string = pIntermediateCodeOutput.replace(`/*MULTIPLYHOOK_${pContext.outputs.result.valueId}*/`, `return ${pContext.outputs.result.valueId};`);
+
+            // Evaluate generated code to get the pixel shader function.
+            const lPixelShaderFunc = Function(lCodeOutput + '\nreturn ' + pFunction.name + ';')();
+
+            for (let lY = 0; lY < lImageData.height; lY++) {
+                for (let lX = 0; lX < lImageData.width; lX++) {
+                    // Evaluate the node graph with normalized pixel coordinates — result is a single number.
+                    const lValue: number = lPixelShaderFunc(lX / lImageData.width, lY / lImageData.height);
+
+                    const lIdx: number = (lY * lImageData.width + lX) * 4;
+                    lImageData.data[lIdx] = Math.max(0, Math.min(255, Math.round(lValue * 255)));
+                    lImageData.data[lIdx + 1] = Math.max(0, Math.min(255, Math.round(lValue * 255)));
+                    lImageData.data[lIdx + 2] = Math.max(0, Math.min(255, Math.round(lValue * 255)));
+                    lImageData.data[lIdx + 3] = 255;
+                }
             }
-            const lVal: number = Math.max(0, Math.min(255, Math.round((pOutputData.result as number) * 255)));
-            lCtx.fillStyle = `rgb(${lVal}, ${lVal}, ${lVal})`;
-            lCtx.fillRect(0, 0, 50, 50);
+
+            lPreviewCtx.putImageData(lImageData, 0, 0);
         }
     }
 }));

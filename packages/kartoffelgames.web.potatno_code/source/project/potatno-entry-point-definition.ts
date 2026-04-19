@@ -6,7 +6,7 @@ import { PotatnoProjectTypes } from "./potatno-project.ts";
  * Definition of a entry point blueprint.
  * Of of these blueprints eighter the main entry point or secondary user created entry points can be instantiated in the editor.
  */
-export class PotatnoEntryPointDefinition<TTypes extends PotatnoProjectTypes = PotatnoProjectTypes> {
+export class PotatnoEntryPointDefinition<TTypes extends PotatnoProjectTypes = PotatnoProjectTypes, TPreviewElement extends Element = any> {
     /**
      * Factory method to create a new entry point definition.
      * 
@@ -14,11 +14,12 @@ export class PotatnoEntryPointDefinition<TTypes extends PotatnoProjectTypes = Po
      * 
      * @returns The created PotatnoEntryPointDefinition instance. 
      */
-    public static create<TTypes extends PotatnoProjectTypes = PotatnoProjectTypes>(pParameters: PotatnoEntryPointDefinitionConstructorParameter<TTypes>): PotatnoEntryPointDefinition<TTypes> {
+    public static create<TTypes extends PotatnoProjectTypes, TPreviewElement extends Element>(pParameters: PotatnoEntryPointDefinitionConstructorParameter<TTypes, TPreviewElement>): PotatnoEntryPointDefinition<TTypes, TPreviewElement> {
         return new PotatnoEntryPointDefinition(pParameters);
     }
 
     private readonly mId: string;
+    private readonly mPreview: PotatnoNodeEntryPointPreview<TPreviewElement> | null;
     private readonly mStatics: PotatnoEntryPointDefinitionStaticSettings;
     private readonly mNodes: PotatnoEntryPointDefinitionNodes<TTypes>;
     private mCodeGenerator: ((func: PotatnoCodeFunction) => string);
@@ -45,6 +46,14 @@ export class PotatnoEntryPointDefinition<TTypes extends PotatnoProjectTypes = Po
     }
 
     /**
+     * Get the preview configuration for this entry point, if provided. This can be used to generate and update a live preview element based on the entry point's function and example input data.
+     * If no preview configuration is provided, no preview will be available for this entry point.
+     */
+    public get preview(): PotatnoNodeEntryPointPreview<TPreviewElement> | null {
+        return this.mPreview;
+    }
+
+    /**
      * Static settings for this entry point definition, determining which static nodes are generated.
      */
     public get statics(): Readonly<PotatnoEntryPointDefinitionStaticSettings> {
@@ -56,7 +65,7 @@ export class PotatnoEntryPointDefinition<TTypes extends PotatnoProjectTypes = Po
      * 
      * @param pParameters - Parameters defining the entry point's id, label, static nodes, dynamic nodes, and static settings.
      */
-    private constructor(pParameters: PotatnoEntryPointDefinitionConstructorParameter<TTypes>) {
+    private constructor(pParameters: PotatnoEntryPointDefinitionConstructorParameter<TTypes, TPreviewElement>) {
         this.mId = pParameters.id;
 
         // Set exclusive nodes defined for this entry point that are preset in the editor.
@@ -64,6 +73,9 @@ export class PotatnoEntryPointDefinition<TTypes extends PotatnoProjectTypes = Po
             static: pParameters.nodes?.static ?? [],
             dynamic: pParameters.nodes?.dynamic ?? [],
         };
+
+        // Set the preview element for this entry point, if provided.
+        this.mPreview = pParameters.preview ?? null;
 
         // Set static settings, defaulting to false for all if not provided.
         this.mStatics = {
@@ -77,11 +89,11 @@ export class PotatnoEntryPointDefinition<TTypes extends PotatnoProjectTypes = Po
     }
 }
 
-type PotatnoEntryPointDefinitionConstructorParameter<TTypes extends PotatnoProjectTypes> = {
+type PotatnoEntryPointDefinitionConstructorParameter<TTypes extends PotatnoProjectTypes, TPreviewElement extends Element> = {
     id: string;
     statics: Partial<PotatnoEntryPointDefinitionStaticSettings>;
     nodes?: Partial<PotatnoEntryPointDefinitionNodes<TTypes>>;
-    preview?: PotatnoNodeEntryPointPreview<HTMLElement>;
+    preview?: PotatnoNodeEntryPointPreview<TPreviewElement>;
     codeGenerator: (pFunction: PotatnoCodeFunction) => string;
 };
 
@@ -99,7 +111,7 @@ export type PotatnoEntryPointDefinitionStaticSettings = {
     outputs: boolean;
 };
 
-export type PotatnoNodeEntryPointPreview<TElement extends HTMLElement> = {
+export type PotatnoNodeEntryPointPreview<TElement extends Element> = {
     /**
      * Generator function that produces an HTMLElement to be used as a live preview for a node instance.
      * 

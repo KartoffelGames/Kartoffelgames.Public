@@ -78,6 +78,129 @@ export class PotatnoCodeGenerator {
     }
 
     /**
+     * Generate clean code for a single function, along with intermediate code snapshots
+     * for nodes that have previews. Each intermediate snapshot contains the full function
+     * code up to and including that node, wrapped by the entry point's codeGenerator.
+     *
+     * @param pFunction - The function to generate code for.
+     * @param pPreviewNodeIds - Set of node IDs that have previews and need intermediate code.
+     *
+     * @returns The full code, the code function metadata, and a map of node intermediates.
+     */
+    public generateFunctionCodeWithIntermediates(pFunction: PotatnoFunction, pPreviewNodeIds: Set<string>): FunctionCodeWithIntermediates {
+        const lGraph: PotatnoGraph = pFunction.graph;
+        const lNodes: Array<PotatnoNode> = this.topologicalSort(lGraph);
+        const lCodeParts: Array<string> = new Array<string>();
+        const lNodeIntermediates: Map<string, NodeIntermediateData> = new Map();
+
+        // Build local variable declarations prefix.
+        let lVarPrefix: string = '';
+        const lVarDecls: Array<string> = [];
+        for (const lVar of pFunction.localVariables) {
+            lVarDecls.push(`    let ${lVar.name};`);
+        }
+        if (lVarDecls.length > 0) {
+            lVarPrefix = lVarDecls.join('\n') + '\n';
+        }
+
+        // Pre-compute function inputs/outputs for PotatnoCodeFunction construction.
+        const lFuncInputs: Array<{ name: string; type: string; valueId: string }> = [];
+        for (const [lName, lPortDef] of Object.entries(pFunction.inputs)) {
+            const lValueId: string = this.findInputNodeValueId(lGraph, lName);
+            const lType: string = PotatnoCodeGenerator.getPortDataType(lPortDef);
+            lFuncInputs.push({ name: lName, type: lType, valueId: lValueId });
+        }
+
+        const lFuncOutputs: Array<{ name: string; type: string; valueId: string }> = [];
+        for (const [lName, lPortDef] of Object.entries(pFunction.outputs)) {
+            const lValueId: string = this.findOutputNodeValueId(lGraph, lName);
+            const lType: string = PotatnoCodeGenerator.getPortDataType(lPortDef);
+            lFuncOutputs.push({ name: lName, type: lType, valueId: lValueId });
+        }
+
+        // Walk nodes in topological order, generating code and capturing intermediates.
+        for (const lNode of lNodes) {
+            if (lNode.category === NodeCategory.Input || lNode.category === NodeCategory.Output || lNode.category === NodeCategory.Reroute || lNode.category === NodeCategory.GetLocal) {
+                continue;
+            }
+
+            const lDefinition = this.mConfig.nodeDefinitions.get(lNode.definitionId);
+            if (!lDefinition) {
+                continue;
+            }
+
+            const lCodeNode: PotatnoCodeNode = this.buildCodeNode(lGraph, lNode);
+
+            for (const [lFlowName, lFlowPort] of lNode.flowOutputs) {
+                if (lFlowPort.connectedTo) {
+                    const lBodyCode: string = this.generateFlowBodyCode(lGraph, lFlowPort.connectedTo);
+                    lCodeNode.body.set(lFlowName, { code: lBodyCode });
+                } else {
+                    lCodeNode.body.set(lFlowName, { code: '' });
+                }
+            }
+
+            const lNodeCode: string = lCodeNode.generateCode();
+            lCodeParts.push(lNodeCode);
+
+            // Capture intermediate data for nodes that have previews.
+            if (pPreviewNodeIds.has(lNode.id)) {
+                const lIntermediateBody: string = lVarPrefix + lCodeParts.join('\n');
+
+                // Build an intermediate PotatnoCodeFunction with body up to this node.
+                const lIntermediateFunc: PotatnoCodeFunction = new PotatnoCodeFunction();
+                lIntermediateFunc.name = pFunction.name;
+                lIntermediateFunc.bodyCode = lIntermediateBody;
+                for (const lInput of lFuncInputs) {
+                    lIntermediateFunc.inputs.push({ ...lInput });
+                }
+                for (const lOutput of lFuncOutputs) {
+                    lIntermediateFunc.outputs.push({ ...lOutput });
+                }
+
+                // Wrap with entry point's codeGenerator.
+                let lIntermediateCode: string;
+                if (this.mConfig.entryPoint.codeGenerator) {
+                    lIntermediateCode = this.mConfig.entryPoint.codeGenerator(lIntermediateFunc);
+                } else {
+                    lIntermediateCode = lIntermediateBody;
+                }
+
+                lNodeIntermediates.set(lNode.id, {
+                    intermediateCode: lIntermediateCode,
+                    context: lCodeNode.buildContext(),
+                    codeFunction: lIntermediateFunc
+                });
+            }
+        }
+
+        // Build the full function.
+        const lFullBody: string = lVarPrefix + lCodeParts.join('\n');
+        const lCodeFunc: PotatnoCodeFunction = new PotatnoCodeFunction();
+        lCodeFunc.name = pFunction.name;
+        lCodeFunc.bodyCode = lFullBody;
+        for (const lInput of lFuncInputs) {
+            lCodeFunc.inputs.push({ ...lInput });
+        }
+        for (const lOutput of lFuncOutputs) {
+            lCodeFunc.outputs.push({ ...lOutput });
+        }
+
+        let lFullCode: string;
+        if (this.mConfig.entryPoint.codeGenerator) {
+            lFullCode = this.mConfig.entryPoint.codeGenerator(lCodeFunc);
+        } else {
+            lFullCode = lFullBody;
+        }
+
+        return {
+            fullCode: lFullCode,
+            codeFunction: lCodeFunc,
+            nodeIntermediates: lNodeIntermediates
+        };
+    }
+
+    /**
      * Generate clean code for all functions in the project.
      *
      * @param pFunctions - The map of functions to generate code for.
@@ -428,3 +551,27 @@ export class PotatnoCodeGenerator {
         return '';
     }
 }
+
+/**
+ * Result of generating function code with intermediate snapshots for node previews.
+ */
+export type FunctionCodeWithIntermediates = {
+    /** The full wrapped function code. */
+    fullCode: string;
+    /** The PotatnoCodeFunction metadata for the full function. */
+    codeFunction: PotatnoCodeFunction;
+    /** Per-node intermediate data, keyed by node ID. */
+    nodeIntermediates: Map<string, NodeIntermediateData>;
+};
+
+/**
+ * Intermediate code data for a single node with a preview.
+ */
+export type NodeIntermediateData = {
+    /** The full function code up to and including this node, wrapped by the entry point's codeGenerator. */
+    intermediateCode: string;
+    /** The node's code generation context (input/output valueIds). */
+    context: PotatnoCodeNodeContext;
+    /** The PotatnoCodeFunction with body code up to this node. */
+    codeFunction: PotatnoCodeFunction;
+};

@@ -5,11 +5,12 @@ import type { PotatnoNode } from '../../../document/potatno-node.ts';
 import { NodeCategory, NodeCategoryMeta } from '../../../node/node-category.enum.ts';
 import { PortKind } from '../../../node/port-kind.enum.ts';
 import { PotatnoDeserializer } from '../../../parser/potatno-deserializer.ts';
+import { PotatnoCodeGenerator, type FunctionCodeWithIntermediates } from '../../../parser/potatno-code-generator.ts';
 import { PotatnoSerializer } from '../../../parser/potatno-serializer.ts';
 import { PotatnoFunction } from '../../../document/potatno-function.ts';
-import { PotatnoNodeDefinition, type PotatnoNodeDefinitionPort, type PotatnoNodeDefinitionPorts } from "../../../project/potatno-node-definition.ts";
+import { PotatnoNodeDefinition, type PotatnoNodeDefinitionPort } from "../../../project/potatno-node-definition.ts";
 import type { PotatnoProject } from '../../../project/potatno-project.ts';
-import { PotatnoPreviewEvaluator, type NodePreviewData } from '../../../project/potatno-preview-evaluator.ts';
+import type { NodePreviewData } from '../../../project/potatno-preview-evaluator.ts';
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import { PotatnoCanvasRenderer } from '../../potatno-canvas-renderer.ts';
 import { PotatnoClipboard } from '../../potatno-clipboard.ts';
@@ -80,6 +81,9 @@ interface EditorInternals {
     previewInitialized: boolean;
     previewElements: Map<string, HTMLElement>;
     previewDataCache: Map<string, { inputs: Record<string, unknown>; outputs: Record<string, unknown>; }>;
+    entryPointPreviewElement: Element | null;
+    previewDirty: boolean;
+    cachedCodeResult: FunctionCodeWithIntermediates | null;
 }
 
 /**
@@ -357,6 +361,9 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
             previewInitialized: false,
             previewElements: new Map(),
             previewDataCache: new Map(),
+            entryPointPreviewElement: null,
+            previewDirty: true,
+            cachedCodeResult: null,
         };
         this.mCachedData = {
             activeFunctionId: '',
@@ -1531,8 +1538,8 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
             return;
         }
 
-        const lCreateCallback = lProject.entryPoint.preview?.generatePreview;
-        if (!lCreateCallback) {
+        const lPreviewConfig = lProject.entryPoint.preview;
+        if (!lPreviewConfig) {
             return;
         }
 
@@ -1541,26 +1548,26 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
             return;
         }
 
+        // Create the entry point preview element.
+        const lPreviewElement: Element = lPreviewConfig.generatePreview();
+        lInternals.entryPointPreviewElement = lPreviewElement;
+
+        // Append it to the preview container if available.
         const lPreviewEl: any = (this as any).previewEl;
         if (lPreviewEl && typeof lPreviewEl.getContainer === 'function') {
             const lContainer: HTMLElement = lPreviewEl.getContainer();
-            lCreateCallback(lContainer);
+            lContainer.appendChild(lPreviewElement);
             lInternals.previewInitialized = true;
         }
     }
 
     /**
      * Update the preview with newly generated code.
-     * Uses the updatePreview callback from the project configuration.
+     * Generates code with intermediate snapshots and calls entry point and node preview callbacks.
      */
     private updatePreview(): void {
         const lProject: PotatnoProject | undefined = this.mProject;
         if (!lProject) {
-            return;
-        }
-
-        const lUpdateCallback = lProject.entryPoint.preview?.updatePreview;
-        if (!lUpdateCallback) {
             return;
         }
 
@@ -1569,52 +1576,14 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
             return;
         }
 
-        // Check if there are errors, don't generate code.
-        // Note: unconnected input warnings are not blocking errors.
-        const lCachedData: CachedViewData = this.mCachedData;
-        const lHasBlockingErrors: boolean = lCachedData.errors.some(
-            (e: { message: string; location: string; blocking?: boolean; }) => (e as any).blocking !== false
-        );
-        if (lHasBlockingErrors) {
-            return;
-        }
-
-        // Generate code.
-        let lCleanCode: string;
-        try {
-            const lSerializer: PotatnoSerializer = new PotatnoSerializer(lProject);
-            const lCode: string = lSerializer.serialize(lFile);
-            lCleanCode = this.stripMetadataComments(lCode, lProject.commentToken);
-        } catch {
-            return;
-        }
+        // Mark preview as dirty so the next evaluatePreview call regenerates code.
+        this.mInternals.previewDirty = true;
 
         // Debounce the update.
         clearTimeout(this.mPreviewDebounceTimer);
         this.mPreviewDebounceTimer = setTimeout(() => {
-            try {
-                lUpdateCallback(lCleanCode);
-            } catch {
-                // Silently ignore preview errors.
-            }
+            this.evaluatePreview({});
         }, 300) as unknown as number;
-    }
-
-    /**
-     * Strip the trailing #potatno metadata comment from generated code.
-     *
-     * @param pCode - The code string to strip.
-     * @param pToken - The comment token.
-     *
-     * @returns The code string with the metadata comment removed.
-     */
-    private stripMetadataComments(pCode: string, pToken: string): string {
-        const lLines: Array<string> = pCode.split('\n');
-        const lPrefix: string = `${pToken} #potatno `;
-        const lFiltered: Array<string> = lLines.filter((lLine) => {
-            return !lLine.trim().startsWith(lPrefix);
-        });
-        return lFiltered.join('\n');
     }
 
     /**
@@ -2008,7 +1977,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
 
     /**
      * Get or create a preview element for a node. Returns null if the node
-     * definition does not define an element preview.
+     * definition does not define a preview.
      *
      * @param pNodeId - The node's unique identifier.
      * @param pDefinition - The node's definition (may be undefined).
@@ -2016,7 +1985,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      * @returns The cached or newly created preview HTMLElement, or null.
      */
     private getOrCreatePreviewElement(pNodeId: string, pDefinition: PotatnoNodeDefinition | undefined): HTMLElement | null {
-        if (!pDefinition?.preview?.element) {
+        if (!pDefinition?.preview) {
             return null;
         }
 
@@ -2026,38 +1995,98 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
             return lExisting;
         }
 
-        const lElement: HTMLElement = pDefinition.preview.element.generatePreviewElement();
-        lInternals.previewElements.set(pNodeId, lElement);
-        return lElement;
+        const lElement: Element = pDefinition.preview.generatePreview();
+        if (lElement instanceof HTMLElement) {
+            lInternals.previewElements.set(pNodeId, lElement);
+            return lElement;
+        }
+
+        return null;
     }
 
     /**
-     * Evaluate preview data for all nodes in the active graph.
-     * Triggers node element preview updates when pUpdateElements is true.
+     * Evaluate preview for all nodes in the active graph using code-based preview generation.
+     * Generates code with intermediate snapshots and calls entry point and node preview callbacks.
      *
-     * @param pEntryData - Data for static entry nodes keyed by definition id.
-     * @param pUpdateElements - Whether to also update inline preview elements.
+     * @param pPreviewInputData - Preview input data passed to preview callbacks.
      *
-     * @returns The computed preview data map, or null if evaluation could not proceed.
+     * @returns null (return type kept for API compatibility).
      */
-    public evaluatePreview(pEntryData: Record<string, Record<string, unknown>>): Map<string, NodePreviewData> | null {
+    public evaluatePreview(pPreviewInputData: Record<string, Record<string, unknown>>): Map<string, NodePreviewData> | null {
         const lProject: PotatnoProject | undefined = this.mProject;
         const lFile: PotatnoCodeFile | undefined = this.mFile;
-        const lGraph = lFile?.activeFunction?.graph;
+        const lInternals: EditorInternals = this.mInternals;
 
-        if (!lProject || !lGraph) {
+        if (!lProject || !lFile) {
             return null;
         }
 
-        // Evaluate preview data for all nodes.
-        const lPreviewData: Map<string, NodePreviewData> = PotatnoPreviewEvaluator.evaluate(lProject, lGraph, pEntryData);
+        // Only regenerate code when dirty.
+        if (!lInternals.previewDirty) {
+            return null;
+        }
+        lInternals.previewDirty = false;
 
-        // Store in cache.
-        const lInternals: EditorInternals = this.mInternals;
-        lInternals.previewDataCache = lPreviewData;
+        // Check if there are blocking errors.
+        const lCachedData: CachedViewData = this.mCachedData;
+        const lHasBlockingErrors: boolean = lCachedData.errors.some(
+            (e: { message: string; location: string; blocking?: boolean; }) => (e as any).blocking !== false
+        );
+        if (lHasBlockingErrors) {
+            return null;
+        }
 
-        // Update inline preview elements if requested.
-        for (const [lNodeId, lData] of lPreviewData) {
+        // Find the entry point function (system function).
+        let lEntryFunction: PotatnoFunction | undefined;
+        for (const lFunc of lFile.functions.values()) {
+            if (lFunc.system) {
+                lEntryFunction = lFunc;
+                break;
+            }
+        }
+
+        if (!lEntryFunction) {
+            return null;
+        }
+
+        // Collect node IDs that have previews.
+        const lPreviewNodeIds: Set<string> = new Set<string>();
+        const lGraph = lEntryFunction.graph;
+        for (const lNode of lGraph.nodes.values()) {
+            const lDef = lProject.nodeDefinitions.get(lNode.definitionId);
+            if (lDef?.preview) {
+                lPreviewNodeIds.add(lNode.id);
+            }
+        }
+
+        // Generate code with intermediate snapshots.
+        let lCodeResult: FunctionCodeWithIntermediates;
+        try {
+            const lGenerator: PotatnoCodeGenerator = new PotatnoCodeGenerator(lProject);
+            lCodeResult = lGenerator.generateFunctionCodeWithIntermediates(lEntryFunction, lPreviewNodeIds);
+        } catch {
+            return null;
+        }
+
+        lInternals.cachedCodeResult = lCodeResult;
+
+        // Call entry point preview callback.
+        const lEntryPointPreview = lProject.entryPoint.preview;
+        if (lEntryPointPreview && lInternals.entryPointPreviewElement) {
+            try {
+                lEntryPointPreview.updatePreview(
+                    lInternals.entryPointPreviewElement,
+                    lCodeResult.codeFunction,
+                    pPreviewInputData,
+                    lCodeResult.fullCode
+                );
+            } catch {
+                // Silently ignore entry point preview errors.
+            }
+        }
+
+        // Call node preview callbacks with intermediate code.
+        for (const [lNodeId, lIntermediateData] of lCodeResult.nodeIntermediates) {
             const lElement: HTMLElement | undefined = lInternals.previewElements.get(lNodeId);
             if (!lElement) {
                 continue;
@@ -2068,16 +2097,22 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
                 continue;
             }
 
-            const lDef: PotatnoNodeDefinition | undefined = lProject.nodeDefinitions.get(lNode.definitionId);
-            if (lDef?.preview?.element) {
+            const lDef = lProject.nodeDefinitions.get(lNode.definitionId);
+            if (lDef?.preview) {
                 try {
-                    lDef.preview.element.updatePreviewElement(lElement, lData.inputs as any, lData.outputs as any);
+                    lDef.preview.updatePreview(
+                        lElement,
+                        lIntermediateData.context as any,
+                        lIntermediateData.codeFunction,
+                        pPreviewInputData,
+                        lIntermediateData.intermediateCode
+                    );
                 } catch {
-                    // Silently ignore preview element update errors.
+                    // Silently ignore node preview errors.
                 }
             }
         }
 
-        return lPreviewData;
+        return null;
     }
 }

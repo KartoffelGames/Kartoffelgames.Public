@@ -74,7 +74,7 @@ export abstract class PotatnoCodeNode {
      *
      * @returns A plain-object context suitable for the code generator callback.
      */
-    protected buildContext(): PotatnoCodeNodeContext {
+    public buildContext(): PotatnoCodeNodeContext {
         const lInputs: Record<string, PotatnoCodeNodeGeneratorPort> = {};
         for (const [lName, lPort] of this.mInputs) {
             switch (lPort.nodeType) {

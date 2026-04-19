@@ -163,16 +163,8 @@ export class PotatnoPreviewEvaluator {
             if (lEntryDataForNode && Object.keys(lInputData).length === 0) {
                 // Static entry source node: use entry data as output values directly.
                 lOutputData = { ...lEntryDataForNode };
-            } else if (lDefinition?.preview) {
-                // Call the node's preview data update function.
-                try {
-                    lOutputData = lDefinition.preview.data.updatePreviewData(lInputData as any) as Record<string, unknown>;
-                } catch {
-                    // On error, produce default outputs.
-                    lOutputData = PotatnoPreviewEvaluator.buildDefaultOutputs(lNode);
-                }
             } else {
-                // No preview function defined: produce default outputs.
+                // No preview data function defined: produce default outputs.
                 lOutputData = PotatnoPreviewEvaluator.buildDefaultOutputs(lNode);
             }
 

@@ -37,57 +37,6 @@ import '../potatno_search_input/potatno-search-input.ts';
 import '../potatno_tabs/potatno-tabs.ts';
 
 /**
- * Interaction state for the canvas.
- */
-type InteractionState =
-    | { mode: 'idle'; }
-    | { mode: 'panning'; startX: number; startY: number; }
-    | { mode: 'dragging-node'; nodeId: string; startX: number; startY: number; origins: Array<{ nodeId: string; originX: number; originY: number; }>; }
-    | { mode: 'dragging-wire'; sourceNodeId: string; sourcePortId: string; portKind: string; direction: string; type: string; startX: number; startY: number; }
-    | { mode: 'selecting'; startX: number; startY: number; }
-    | { mode: 'resizing-comment'; nodeId: string; startX: number; startY: number; originalW: number; originalH: number; };
-
-/**
- * All cached view data. Stored outside PWB's deep proxy to prevent
- * cascading update loops when multiple properties change at once.
- */
-interface CachedViewData {
-    activeFunctionId: string;
-    activeFunctionName: string;
-    activeFunctionIsSystem: boolean;
-    activeFunctionEditableByUser: boolean;
-    errors: Array<{ message: string; location: string; }>;
-    hasPreview: boolean;
-    nodeDefinitionList: Array<{ name: string; category: string; }>;
-    functionList: Array<{ id: string; name: string; label: string; system: boolean; }>;
-    availableImports: Array<string>;
-    availableTypes: Array<string>;
-    activeFunctionInputs: Array<{ name: string; type: string; }>;
-    activeFunctionOutputs: Array<{ name: string; type: string; }>;
-    activeFunctionImports: Array<string>;
-    visibleNodes: Array<NodeRenderData>;
-}
-
-/**
- * Module-level storage for complex objects like history, clipboard,
- * canvas interaction helper, SVG renderer, and cached view data.
- */
-interface EditorInternals {
-    history: PotatnoHistory;
-    clipboard: PotatnoClipboard;
-    interaction: PotatnoCanvasInteraction;
-    renderer: PotatnoCanvasRenderer;
-    hoveredPort: { nodeId: string; portId: string; portKind: string; direction: string; type: string; } | null;
-    interactionState: InteractionState;
-    previewInitialized: boolean;
-    previewElements: Map<string, HTMLElement>;
-    previewDataCache: Map<string, { inputs: Record<string, unknown>; outputs: Record<string, unknown>; }>;
-    entryPointPreviewElement: Element | null;
-    previewDirty: boolean;
-    cachedCodeResult: FunctionCodeWithIntermediates | null;
-}
-
-/**
  * Main editor component for the potatno-code visual programming environment.
  * Receives a PotatnoProject (configuration) and a PotatnoCodeFile (document state)
  * and provides the full visual editing experience.
@@ -2117,4 +2066,55 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
 
         return null;
     }
+}
+
+/**
+ * Interaction state for the canvas.
+ */
+type InteractionState =
+    | { mode: 'idle'; }
+    | { mode: 'panning'; startX: number; startY: number; }
+    | { mode: 'dragging-node'; nodeId: string; startX: number; startY: number; origins: Array<{ nodeId: string; originX: number; originY: number; }>; }
+    | { mode: 'dragging-wire'; sourceNodeId: string; sourcePortId: string; portKind: string; direction: string; type: string; startX: number; startY: number; }
+    | { mode: 'selecting'; startX: number; startY: number; }
+    | { mode: 'resizing-comment'; nodeId: string; startX: number; startY: number; originalW: number; originalH: number; };
+
+/**
+ * All cached view data. Stored outside PWB's deep proxy to prevent
+ * cascading update loops when multiple properties change at once.
+ */
+interface CachedViewData {
+    activeFunctionId: string;
+    activeFunctionName: string;
+    activeFunctionIsSystem: boolean;
+    activeFunctionEditableByUser: boolean;
+    errors: Array<{ message: string; location: string; }>;
+    hasPreview: boolean;
+    nodeDefinitionList: Array<{ name: string; category: string; }>;
+    functionList: Array<{ id: string; name: string; label: string; system: boolean; }>;
+    availableImports: Array<string>;
+    availableTypes: Array<string>;
+    activeFunctionInputs: Array<{ name: string; type: string; }>;
+    activeFunctionOutputs: Array<{ name: string; type: string; }>;
+    activeFunctionImports: Array<string>;
+    visibleNodes: Array<NodeRenderData>;
+}
+
+/**
+ * Module-level storage for complex objects like history, clipboard,
+ * canvas interaction helper, SVG renderer, and cached view data.
+ */
+interface EditorInternals {
+    history: PotatnoHistory;
+    clipboard: PotatnoClipboard;
+    interaction: PotatnoCanvasInteraction;
+    renderer: PotatnoCanvasRenderer;
+    hoveredPort: { nodeId: string; portId: string; portKind: string; direction: string; type: string; } | null;
+    interactionState: InteractionState;
+    previewInitialized: boolean;
+    previewElements: Map<string, HTMLElement>;
+    previewDataCache: Map<string, { inputs: Record<string, unknown>; outputs: Record<string, unknown>; }>;
+    entryPointPreviewElement: Element | null;
+    previewDirty: boolean;
+    cachedCodeResult: FunctionCodeWithIntermediates | null;
 }

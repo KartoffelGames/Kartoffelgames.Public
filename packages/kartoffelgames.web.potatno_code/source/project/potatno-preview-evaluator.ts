@@ -5,14 +5,6 @@ import type { PotatnoNodeDefinition } from './potatno-node-definition.ts';
 import type { PotatnoProject } from './potatno-project.ts';
 
 /**
- * Result of evaluating preview data for a single node.
- */
-export type NodePreviewData = {
-    readonly inputs: Record<string, unknown>;
-    readonly outputs: Record<string, unknown>;
-};
-
-/**
  * Evaluates preview data for all nodes in a graph by walking the graph in topological order.
  * Each node's `updatePreviewData` callback is called with input data gathered from connected upstream nodes.
  */
@@ -140,7 +132,18 @@ export class PotatnoPreviewEvaluator {
                     const lDefPort = lDefinition ? (lDefinition.outputs as Record<string, any>)[lName] ?? (lDefinition.inputs as Record<string, any>)[lName] : undefined;
 
                     if (lDefPort?.nodeType === 'input' && lPropertyValue !== undefined) {
-                        lInputData[lName] = PotatnoPreviewEvaluator.parsePropertyValue(lPropertyValue, lDefPort.inputType);
+                        // Parse property value based on input type.
+                        switch (lDefPort.inputType) {
+                            case 'number':
+                                lInputData[lName] = parseFloat(lPropertyValue) || 0;
+                                break;
+                            case 'boolean':
+                                lInputData[lName] = lPropertyValue === 'true';
+                                break;
+                            default:
+                                lInputData[lName] = lPropertyValue;
+                                break;
+                        }
                     } else {
                         // Use type default: 0 for number, '' for string, false for boolean.
                         lInputData[lName] = PotatnoPreviewEvaluator.getTypeDefault(lPort.type);
@@ -175,21 +178,6 @@ export class PotatnoPreviewEvaluator {
     }
 
     /**
-     * Parse a string property value to the correct type.
-     */
-    private static parsePropertyValue(pValue: string, pInputType: string): unknown {
-        switch (pInputType) {
-            case 'number':
-                return parseFloat(pValue) || 0;
-            case 'boolean':
-                return pValue === 'true';
-            case 'string':
-            default:
-                return pValue;
-        }
-    }
-
-    /**
      * Get the default value for a given type string.
      */
     private static getTypeDefault(pType: string): unknown {
@@ -218,3 +206,11 @@ export class PotatnoPreviewEvaluator {
         return lOutputs;
     }
 }
+
+/**
+ * Result of evaluating preview data for a single node.
+ */
+export type NodePreviewData = {
+    readonly inputs: Record<string, unknown>;
+    readonly outputs: Record<string, unknown>;
+};

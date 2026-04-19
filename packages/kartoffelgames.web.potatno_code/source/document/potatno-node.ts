@@ -61,7 +61,7 @@ export class PotatnoNode {
             } else {
                 const lPortId: string = PotatnoNode.generatePortId();
                 const lValueId: string = PotatnoNode.generateValueId(pDefinition.category);
-                const lDataType: string = PotatnoNode.getPortDataType(lPortDef);
+                const lDataType: string = (lPortDef.nodeType === 'value' || lPortDef.nodeType === 'input') ? lPortDef.dataType : '';
                 this.inputs.set(lName, new PotatnoPort(lPortId, lName, lDataType, PortDirection.Input, lValueId));
             }
         }
@@ -76,7 +76,7 @@ export class PotatnoNode {
             } else {
                 const lPortId: string = PotatnoNode.generatePortId();
                 const lValueId: string = PotatnoNode.generateValueId(pDefinition.category);
-                const lDataType: string = PotatnoNode.getPortDataType(lPortDef);
+                const lDataType: string = (lPortDef.nodeType === 'value' || lPortDef.nodeType === 'input') ? lPortDef.dataType : '';
                 this.outputs.set(lName, new PotatnoPort(lPortId, lName, lDataType, PortDirection.Output, lValueId));
             }
         }
@@ -94,16 +94,6 @@ export class PotatnoNode {
      */
     public resizeTo(pW: number, pH: number): void {
         this.mSize = { w: Math.max(4, pW), h: Math.max(2, pH) };
-    }
-
-    /**
-     * Extract the dataType from a non-flow port definition.
-     */
-    private static getPortDataType(pPortDef: PotatnoNodeDefinitionPort): string {
-        if (pPortDef.nodeType === 'value' || pPortDef.nodeType === 'input') {
-            return pPortDef.dataType;
-        }
-        return '';
     }
 
     /**

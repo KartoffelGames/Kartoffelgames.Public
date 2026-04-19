@@ -3,16 +3,6 @@ import templateCss from './potatno-function-list.css' with { type: 'text' };
 import functionListTemplate from './potatno-function-list.html' with { type: 'text' };
 
 /**
- * Function entry displayed in the function list.
- */
-interface FunctionListEntry {
-    id: string;
-    name: string;
-    label: string;
-    system: boolean;
-}
-
-/**
  * Function list component for the potatno-code visual editor.
  * Displays a list of functions with selection, add, and delete capabilities.
  */
@@ -91,4 +81,14 @@ export class PotatnoFunctionList {
         pEvent.stopPropagation();
         this.mFunctionDelete.dispatchEvent(pId);
     }
+}
+
+/**
+ * Function entry displayed in the function list.
+ */
+interface FunctionListEntry {
+    id: string;
+    name: string;
+    label: string;
+    system: boolean;
 }

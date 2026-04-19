@@ -3,12 +3,7 @@ import type { PotatnoGraph } from '../document/potatno-graph.ts';
 import type { PotatnoNode } from '../document/potatno-node.ts';
 import { NodeCategory } from '../node/node-category.enum.ts';
 import { PortKind } from '../node/port-kind.enum.ts';
-import { PotatnoCodeCommentNode } from '../node/potatno-code-comment-node.ts';
-import { PotatnoCodeGetLocalNode } from '../node/potatno-code-get-local-node.ts';
-import { PotatnoCodeInputNode } from '../node/potatno-code-input-node.ts';
 import { PotatnoCodeNode, type PotatnoCodeNodeContext } from '../node/potatno-code-node.ts';
-import { PotatnoCodeOutputNode } from '../node/potatno-code-output-node.ts';
-import { PotatnoCodeRerouteNode } from '../node/potatno-code-reroute-node.ts';
 import { PotatnoCodeSetLocalNode } from '../node/potatno-code-set-local-node.ts';
 import { PotatnoCodeTemplateNode } from '../node/potatno-code-template-node.ts';
 import type { PotatnoNodeDefinitionPort } from "../project/potatno-node-definition.ts";
@@ -60,13 +55,13 @@ export class PotatnoCodeGenerator {
 
         for (const [lName, lPortDef] of Object.entries(pFunction.inputs)) {
             const lValueId: string = this.findInputNodeValueId(lGraph, lName);
-            const lType: string = PotatnoCodeGenerator.getPortDataType(lPortDef);
+            const lType: string = (lPortDef.nodeType === 'value' || lPortDef.nodeType === 'input') ? lPortDef.dataType : '';
             lCodeFunc.inputs.push({ name: lName, type: lType, valueId: lValueId });
         }
 
         for (const [lName, lPortDef] of Object.entries(pFunction.outputs)) {
             const lValueId: string = this.findOutputNodeValueId(lGraph, lName);
-            const lType: string = PotatnoCodeGenerator.getPortDataType(lPortDef);
+            const lType: string = (lPortDef.nodeType === 'value' || lPortDef.nodeType === 'input') ? lPortDef.dataType : '';
             lCodeFunc.outputs.push({ name: lName, type: lType, valueId: lValueId });
         }
 
@@ -108,14 +103,14 @@ export class PotatnoCodeGenerator {
         const lFuncInputs: Array<{ name: string; type: string; valueId: string }> = [];
         for (const [lName, lPortDef] of Object.entries(pFunction.inputs)) {
             const lValueId: string = this.findInputNodeValueId(lGraph, lName);
-            const lType: string = PotatnoCodeGenerator.getPortDataType(lPortDef);
+            const lType: string = (lPortDef.nodeType === 'value' || lPortDef.nodeType === 'input') ? lPortDef.dataType : '';
             lFuncInputs.push({ name: lName, type: lType, valueId: lValueId });
         }
 
         const lFuncOutputs: Array<{ name: string; type: string; valueId: string }> = [];
         for (const [lName, lPortDef] of Object.entries(pFunction.outputs)) {
             const lValueId: string = this.findOutputNodeValueId(lGraph, lName);
-            const lType: string = PotatnoCodeGenerator.getPortDataType(lPortDef);
+            const lType: string = (lPortDef.nodeType === 'value' || lPortDef.nodeType === 'input') ? lPortDef.dataType : '';
             lFuncOutputs.push({ name: lName, type: lType, valueId: lValueId });
         }
 
@@ -236,8 +231,8 @@ export class PotatnoCodeGenerator {
         const lCodeParts: Array<string> = new Array<string>();
 
         for (const lNode of lNodes) {
-            // Skip input/output/reroute/get-local nodes — they are handled by the function wrapper or passthrough resolution.
-            if (lNode.category === NodeCategory.Input || lNode.category === NodeCategory.Output || lNode.category === NodeCategory.Reroute || lNode.category === NodeCategory.GetLocal) {
+            // Skip nodes that produce no executable code — they are handled by the function wrapper, passthrough resolution, or are purely visual.
+            if (lNode.category === NodeCategory.Input || lNode.category === NodeCategory.Output || lNode.category === NodeCategory.Reroute || lNode.category === NodeCategory.GetLocal || lNode.category === NodeCategory.Comment) {
                 continue;
             }
 
@@ -380,18 +375,14 @@ export class PotatnoCodeGenerator {
      */
     private createNodeForCategory(pCategory: string, pCodeGenerator: (pContext: PotatnoCodeNodeContext) => string): PotatnoCodeNode {
         switch (pCategory) {
-            case NodeCategory.Comment:
-                return new PotatnoCodeCommentNode();
-            case NodeCategory.Input:
-                return new PotatnoCodeInputNode();
-            case NodeCategory.Output:
-                return new PotatnoCodeOutputNode();
-            case NodeCategory.Reroute:
-                return new PotatnoCodeRerouteNode();
-            case NodeCategory.GetLocal:
-                return new PotatnoCodeGetLocalNode();
             case NodeCategory.SetLocal:
                 return new PotatnoCodeSetLocalNode();
+            case NodeCategory.Comment:
+            case NodeCategory.Input:
+            case NodeCategory.Output:
+            case NodeCategory.Reroute:
+            case NodeCategory.GetLocal:
+                return new PotatnoCodeNode();
             default:
                 return new PotatnoCodeTemplateNode(pCodeGenerator);
         }
@@ -544,15 +535,6 @@ export class PotatnoCodeGenerator {
         return null;
     }
 
-    /**
-     * Extract the dataType from a port definition.
-     */
-    private static getPortDataType(pPortDef: PotatnoNodeDefinitionPort): string {
-        if (pPortDef.nodeType === 'value' || pPortDef.nodeType === 'input') {
-            return pPortDef.dataType;
-        }
-        return '';
-    }
 }
 
 /**

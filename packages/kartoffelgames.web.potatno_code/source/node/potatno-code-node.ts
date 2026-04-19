@@ -1,23 +1,12 @@
 import type { PotatnoCodeGeneratorFlowPort, PotatnoCodeGeneratorInputPort, PotatnoCodeGeneratorValuePort } from '../project/potatno-node-definition.ts';
 
 /**
- * Generator port data union — represents the data available for a single port in code generation context.
+ * Base class for code generation nodes. Subclasses override
+ * {@link generateCode} to produce the code string for their node type.
+ * The default implementation returns an empty string for nodes that
+ * produce no executable code (e.g. input, output, reroute, comment nodes).
  */
-export type PotatnoCodeNodeGeneratorPort = PotatnoCodeGeneratorFlowPort | PotatnoCodeGeneratorValuePort | PotatnoCodeGeneratorInputPort;
-
-/**
- * Context passed to the node code generator callback, built from internal code node data.
- */
-export type PotatnoCodeNodeContext = {
-    readonly inputs: Record<string, PotatnoCodeNodeGeneratorPort>;
-    readonly outputs: Record<string, PotatnoCodeNodeGeneratorPort>;
-};
-
-/**
- * Abstract base class for code generation nodes. Each concrete subclass
- * implements {@link generateCode} to produce the code string for its node type.
- */
-export abstract class PotatnoCodeNode {
+export class PotatnoCodeNode {
     private readonly mBody: Map<string, { code: string }>;
     private readonly mInputs: Map<string, PotatnoCodeNodePort>;
     private readonly mOutputs: Map<string, PotatnoCodeNodePort>;
@@ -63,10 +52,13 @@ export abstract class PotatnoCodeNode {
 
     /**
      * Generate the code string for this node.
+     * Returns empty string by default for nodes that produce no executable code.
      *
      * @returns The generated code string.
      */
-    public abstract generateCode(): string;
+    public generateCode(): string {
+        return '';
+    }
 
     /**
      * Build a typed context from the internal maps, producing the structure
@@ -119,4 +111,17 @@ export type PotatnoCodeNodePort = {
     readonly type: string;
     readonly valueId: string;
     readonly nodeType: 'flow' | 'value' | 'input';
+};
+
+/**
+ * Generator port data union — represents the data available for a single port in code generation context.
+ */
+export type PotatnoCodeNodeGeneratorPort = PotatnoCodeGeneratorFlowPort | PotatnoCodeGeneratorValuePort | PotatnoCodeGeneratorInputPort;
+
+/**
+ * Context passed to the node code generator callback, built from internal code node data.
+ */
+export type PotatnoCodeNodeContext = {
+    readonly inputs: Record<string, PotatnoCodeNodeGeneratorPort>;
+    readonly outputs: Record<string, PotatnoCodeNodeGeneratorPort>;
 };

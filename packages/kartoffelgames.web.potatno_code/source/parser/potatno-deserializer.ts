@@ -1,10 +1,8 @@
-import { NodeCategory } from '../node/node-category.enum.ts';
 import { PortKind } from '../node/port-kind.enum.ts';
 import { PotatnoConnection } from '../document/potatno-connection.ts';
 import { PotatnoNode } from '../document/potatno-node.ts';
 import { PotatnoFunction } from '../document/potatno-function.ts';
 import { PotatnoCodeFile } from '../document/potatno-code-file.ts';
-import type { PotatnoNodeDefinition, PotatnoNodeDefinitionPorts } from "../project/potatno-node-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { PotatnoMetadata, SerializedFunction, SerializedNode, SerializedConnection } from './potatno-serialization-types.ts';
 
@@ -95,8 +93,6 @@ export class PotatnoDeserializer {
      */
     private reconstructNodes(pFunction: PotatnoFunction, pNodes: Array<SerializedNode>): void {
         for (const lNodeData of pNodes) {
-            const lCategory: string = lNodeData.category;
-
             // Get the node definition from the configuration.
             const lDefinition = this.mProject.nodeDefinitions.get(lNodeData.type);
 
@@ -107,41 +103,6 @@ export class PotatnoDeserializer {
                     lDefinition,
                     lNodeData.position ?? { x: 0, y: 0 },
                     lNodeData.system ?? false
-                );
-
-                // Restore size.
-                if (lNodeData.size) {
-                    lNode.resizeTo(lNodeData.size.w, lNodeData.size.h);
-                }
-
-                // Restore properties.
-                if (lNodeData.properties) {
-                    for (const [lKey, lValue] of Object.entries(lNodeData.properties)) {
-                        lNode.properties.set(lKey, lValue);
-                    }
-                }
-
-                pFunction.graph.addExistingNode(lNode);
-            } else if (lCategory === NodeCategory.Input || lCategory === NodeCategory.Output) {
-                // TODO: Create a node of type error if definition is missing instead of trying to reconstruct a minimal node.
-
-                // Input/output nodes -- create a minimal definition from serialized port data.
-                const lInputPorts: PotatnoNodeDefinitionPorts = {};
-                for (const lPort of (lNodeData.inputs ?? [])) {
-                    lInputPorts[lPort.name] = { nodeType: 'value', dataType: lPort.type };
-                }
-                const lOutputPorts: PotatnoNodeDefinitionPorts = {};
-                for (const lPort of (lNodeData.outputs ?? [])) {
-                    lOutputPorts[lPort.name] = { nodeType: 'value', dataType: lPort.type };
-                }
-
-                const lMinDef: PotatnoNodeDefinition = this.mProject.nodeDefinitions.get(lNodeData.type)!;
-
-                const lNode: PotatnoNode = new PotatnoNode(
-                    lNodeData.id,
-                    lMinDef,
-                    lNodeData.position ?? { x: 0, y: 0 },
-                    lNodeData.system ?? true
                 );
 
                 // Restore size.

@@ -7,24 +7,6 @@ import '../potatno_node_library/potatno-node-library.ts';
 import '../potatno_function_list/potatno-function-list.ts';
 
 /**
- * Node definition entry passed through to the node library.
- */
-interface NodeDefinitionEntry {
-    name: string;
-    category: string;
-}
-
-/**
- * Function entry passed through to the function list.
- */
-interface FunctionEntry {
-    id: string;
-    name: string;
-    label: string;
-    system: boolean;
-}
-
-/**
  * Left panel component for the potatno-code visual editor.
  * Contains tabbed views for the node library and function list.
  */
@@ -143,4 +125,22 @@ export class PotatnoPanelLeft {
     public onFunctionDelete(pEvent: ComponentEvent<string>): void {
         this.mFunctionDelete.dispatchEvent(pEvent.value);
     }
+}
+
+/**
+ * Node definition entry passed through to the node library.
+ */
+interface NodeDefinitionEntry {
+    name: string;
+    category: string;
+}
+
+/**
+ * Function entry passed through to the function list.
+ */
+interface FunctionEntry {
+    id: string;
+    name: string;
+    label: string;
+    system: boolean;
 }

@@ -3,24 +3,6 @@ import templateCss from './potatno-panel-properties.css' with { type: 'text' };
 import propertiesTemplate from './potatno-panel-properties.html' with { type: 'text' };
 
 /**
- * Port definition for function inputs and outputs.
- */
-interface PortEntry {
-    name: string;
-    type: string;
-}
-
-/**
- * Change payload dispatched when any property is modified.
- */
-interface PropertiesChangePayload {
-    name?: string;
-    inputs?: Array<PortEntry>;
-    outputs?: Array<PortEntry>;
-    imports?: Array<string>;
-}
-
-/**
  * Properties panel component for the potatno-code visual editor.
  * Allows editing function name, input/output ports, and imports.
  */
@@ -362,4 +344,22 @@ export class PotatnoPanelProperties {
         const lUsed: Set<string> = new Set(this.mFunctionImports);
         this.mCachedUnusedImports = this.mAvailableImports.filter(i => !lUsed.has(i));
     }
+}
+
+/**
+ * Port definition for function inputs and outputs.
+ */
+interface PortEntry {
+    name: string;
+    type: string;
+}
+
+/**
+ * Change payload dispatched when any property is modified.
+ */
+interface PropertiesChangePayload {
+    name?: string;
+    inputs?: Array<PortEntry>;
+    outputs?: Array<PortEntry>;
+    imports?: Array<string>;
 }

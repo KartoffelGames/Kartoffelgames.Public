@@ -4,25 +4,6 @@ import templateCss from './potatno-node-library.css' with { type: 'text' };
 import libraryTemplate from './potatno-node-library.html' with { type: 'text' };
 
 /**
- * Node definition entry for the library display.
- */
-interface NodeLibraryEntry {
-    name: string;
-    category: string;
-}
-
-/**
- * Internal group representation: category key with its matching node entries.
- */
-interface CategoryGroup {
-    category: string;
-    icon: string;
-    label: string;
-    cssColor: string;
-    nodes: Array<NodeLibraryEntry>;
-}
-
-/**
  * Node library component for the potatno-code visual editor.
  * Displays available node definitions grouped by category with search filtering.
  */
@@ -158,4 +139,23 @@ export class PotatnoNodeLibrary {
     public onNodeMouseDown(pName: string): void {
         this.mNodeDragStart.dispatchEvent(pName);
     }
+}
+
+/**
+ * Node definition entry for the library display.
+ */
+interface NodeLibraryEntry {
+    name: string;
+    category: string;
+}
+
+/**
+ * Internal group representation: category key with its matching node entries.
+ */
+interface CategoryGroup {
+    category: string;
+    icon: string;
+    label: string;
+    cssColor: string;
+    nodes: Array<NodeLibraryEntry>;
 }

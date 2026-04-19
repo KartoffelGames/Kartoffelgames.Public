@@ -8,97 +8,6 @@ import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
 import '../potatno_port/potatno-port.ts';
 
 /**
- * Plain render data for a node, pre-computed by the parent editor.
- * All arrays are already spread from Map.values() and all text fields
- * are pre-extracted, so no untrackable Map/Array calls occur in the
- * component getters.
- */
-export interface NodeRenderData {
-    id: string;
-    definitionName: string;
-    category: string;
-    categoryColor: string;
-    categoryIcon: string;
-    label: string;
-    position: { x: number; y: number };
-    size: { w: number; h: number };
-    system: boolean;
-    selected: boolean;
-    inputs: Array<{ id: string; name: string; type: string; direction: string; connectedTo: string | null }>;
-    outputs: Array<{ id: string; name: string; type: string; direction: string; connectedTo: string | null }>;
-    flowInputs: Array<{ id: string; name: string; direction: string; connectedTo: string | null }>;
-    flowOutputs: Array<{ id: string; name: string; direction: string; connectedTo: string | null }>;
-    hasDefinition: boolean;
-    hasInlineInput: boolean;
-    valueText: string;
-    commentText: string;
-    pixelX: number;
-    pixelY: number;
-}
-
-/**
- * Detail payload for port drag start events, re-emitted from child ports.
- */
-type PortDragStartDetail = {
-    nodeId: string;
-    portId: string;
-    portKind: string;
-    direction: string;
-    type: string;
-    element: HTMLElement;
-};
-
-/**
- * Detail payload for node selection events.
- */
-type NodeSelectDetail = {
-    nodeId: string;
-    shiftKey: boolean;
-};
-
-/**
- * Detail payload for node drag start events.
- */
-type NodeDragStartDetail = {
-    nodeId: string;
-    startX: number;
-    startY: number;
-};
-
-/**
- * Detail payload for the open-function event.
- */
-type OpenFunctionDetail = {
-    definitionName: string;
-};
-
-/**
- * Detail payload for value change events on value nodes.
- */
-type ValueChangeDetail = {
-    nodeId: string;
-    property: string;
-    value: string;
-};
-
-/**
- * Detail payload for comment text change events.
- */
-type CommentChangeDetail = {
-    nodeId: string;
-    text: string;
-};
-
-/**
- * Detail payload for resize events on comment nodes.
- */
-type ResizeStartDetail = {
-    nodeId: string;
-    startX: number;
-    startY: number;
-};
-
-/**
  * Node component for the potatno-code visual editor.
  * Renders a visual node with a colored header, ports, and body content.
  * Supports standard nodes, value nodes (with text input), and comment nodes (resizable).
@@ -445,3 +354,73 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
         });
     }
 }
+
+/**
+ * Plain render data for a node, pre-computed by the parent editor.
+ * All arrays are already spread from Map.values() and all text fields
+ * are pre-extracted, so no untrackable Map/Array calls occur in the
+ * component getters.
+ */
+export interface NodeRenderData {
+    id: string;
+    definitionName: string;
+    category: string;
+    categoryColor: string;
+    categoryIcon: string;
+    label: string;
+    position: { x: number; y: number };
+    size: { w: number; h: number };
+    system: boolean;
+    selected: boolean;
+    inputs: Array<{ id: string; name: string; type: string; direction: string; connectedTo: string | null }>;
+    outputs: Array<{ id: string; name: string; type: string; direction: string; connectedTo: string | null }>;
+    flowInputs: Array<{ id: string; name: string; direction: string; connectedTo: string | null }>;
+    flowOutputs: Array<{ id: string; name: string; direction: string; connectedTo: string | null }>;
+    hasDefinition: boolean;
+    hasInlineInput: boolean;
+    valueText: string;
+    commentText: string;
+    pixelX: number;
+    pixelY: number;
+}
+
+type PortDragStartDetail = {
+    nodeId: string;
+    portId: string;
+    portKind: string;
+    direction: string;
+    type: string;
+    element: HTMLElement;
+};
+
+type NodeSelectDetail = {
+    nodeId: string;
+    shiftKey: boolean;
+};
+
+type NodeDragStartDetail = {
+    nodeId: string;
+    startX: number;
+    startY: number;
+};
+
+type OpenFunctionDetail = {
+    definitionName: string;
+};
+
+type ValueChangeDetail = {
+    nodeId: string;
+    property: string;
+    value: string;
+};
+
+type CommentChangeDetail = {
+    nodeId: string;
+    text: string;
+};
+
+type ResizeStartDetail = {
+    nodeId: string;
+    startX: number;
+    startY: number;
+};

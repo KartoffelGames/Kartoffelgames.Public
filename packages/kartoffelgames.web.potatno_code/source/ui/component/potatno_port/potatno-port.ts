@@ -3,18 +3,6 @@ import portCss from './potatno-port.css' with { type: 'text' };
 import portTemplate from './potatno-port.html' with { type: 'text' };
 
 /**
- * Detail payload emitted on port drag start.
- */
-type PortDragStartDetail = {
-    nodeId: string;
-    portId: string;
-    portKind: string;
-    direction: string;
-    type: string;
-    element: HTMLElement;
-};
-
-/**
  * Port component for the potatno-code visual editor.
  * Renders a small circle with a label. Input ports show label on the right,
  * output ports show label on the left (via CSS host direction).
@@ -194,3 +182,15 @@ export class PotatnoPortComponent {
         return `hsl(${lHue}, 70%, 60%)`;
     }
 }
+
+/**
+ * Detail payload emitted on port drag start.
+ */
+type PortDragStartDetail = {
+    nodeId: string;
+    portId: string;
+    portKind: string;
+    direction: string;
+    type: string;
+    element: HTMLElement;
+};

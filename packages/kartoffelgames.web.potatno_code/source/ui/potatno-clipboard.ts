@@ -3,26 +3,6 @@ import type { PotatnoGraph } from '../document/potatno-graph.ts';
 import type { PotatnoNode } from '../document/potatno-node.ts';
 
 /**
- * Clipboard data structure for copied nodes.
- */
-interface ClipboardData {
-    nodes: Array<{
-        definitionName: string;
-        position: { x: number; y: number };
-        size: { w: number; h: number };
-        properties: Record<string, string>;
-        inputConnections: Array<{ portName: string; connectedValueId: string }>;
-    }>;
-    internalConnections: Array<{
-        sourceNodeIndex: number;
-        sourcePortName: string;
-        targetNodeIndex: number;
-        targetPortName: string;
-        kind: 'data' | 'flow';
-    }>;
-}
-
-/**
  * Copy/paste logic for graph nodes. Manages serialization and deserialization
  * of selected nodes and their internal connections for clipboard operations.
  */
@@ -156,4 +136,24 @@ export class PotatnoClipboard {
     public getData(): ClipboardData | null {
         return this.mData;
     }
+}
+
+/**
+ * Clipboard data structure for copied nodes.
+ */
+interface ClipboardData {
+    nodes: Array<{
+        definitionName: string;
+        position: { x: number; y: number };
+        size: { w: number; h: number };
+        properties: Record<string, string>;
+        inputConnections: Array<{ portName: string; connectedValueId: string }>;
+    }>;
+    internalConnections: Array<{
+        sourceNodeIndex: number;
+        sourcePortName: string;
+        targetNodeIndex: number;
+        targetPortName: string;
+        kind: 'data' | 'flow';
+    }>;
 }

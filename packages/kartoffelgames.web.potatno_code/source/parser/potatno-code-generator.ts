@@ -70,8 +70,8 @@ export class PotatnoCodeGenerator {
         }
 
         // Wrap in function code generator callback if set.
-        if (this.mConfig.functionCodeGenerator) {
-            return this.mConfig.functionCodeGenerator(lCodeFunc);
+        if (this.mConfig.entryPoint.codeGenerator) {
+            return this.mConfig.entryPoint.codeGenerator(lCodeFunc);
         }
 
         return lBodyCode;

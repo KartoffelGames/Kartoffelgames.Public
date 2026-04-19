@@ -1,4 +1,4 @@
-import type { PotatnoEntryPointDefinition } from './potatno-entry-point-definition.ts';
+import type { PotatnoFunctionDefinition } from './potatno-function-definition.ts';
 import { PotatnoNodeDefinition, type PotatnoNodeDefinitionPorts } from "./potatno-node-definition.ts";
 
 /**
@@ -10,7 +10,7 @@ export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectT
     private readonly mCommentToken: string;
     
     private readonly mImports: Array<PotatnoProjectImportDefinition<TTypes>>;
-    private readonly mEntryPoint: PotatnoEntryPointDefinition<TTypes>;
+    private readonly mEntryPoint: PotatnoFunctionDefinition<TTypes>;
     private readonly mNodeDefinitions: Map<string, PotatnoNodeDefinition<TTypes, any, any>>;
     private mValidTypes: Map<keyof TTypes, TTypes[keyof TTypes]>;
 
@@ -32,7 +32,7 @@ export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectT
      * Get the registered entry point definition.
      * The main entry point to start the code generation from.
      */
-    public get entryPoint(): PotatnoEntryPointDefinition<TTypes> {
+    public get entryPoint(): PotatnoFunctionDefinition<TTypes> {
         return this.mEntryPoint;
     }
 
@@ -90,7 +90,7 @@ export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectT
 type PotatnoProjectConstructorParameter<TTypes extends PotatnoProjectTypes> = {
     types: TTypes;
     commentToken: string;
-    entryPoint: PotatnoEntryPointDefinition<TTypes>;
+    entryPoint: PotatnoFunctionDefinition<TTypes>;
 };
 
 /**

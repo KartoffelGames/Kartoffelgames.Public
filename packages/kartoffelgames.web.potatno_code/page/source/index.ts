@@ -2,7 +2,7 @@ import { PotatnoCodeFile } from '../../source/document/potatno-code-file.ts';
 import { NodeCategory } from '../../source/node/node-category.enum.ts';
 import { PotatnoCodeApplication } from '../../source/potatno-code-application.ts';
 import type { PotatnoCodeFunction } from '../../source/parser/potatno-code-function.ts';
-import { PotatnoEntryPointDefinition } from "../../source/project/potatno-entry-point-definition.ts";
+import { PotatnoFunctionDefinition } from "../../source/project/potatno-function-definition.ts";
 import { PotatnoNodeDefinition } from "../../source/project/potatno-node-definition.ts";
 import { PotatnoProject, PotatnoProjectTypes } from '../../source/project/potatno-project.ts';
 
@@ -16,7 +16,7 @@ const lProjectTypes = {
 const lProject = new PotatnoProject({
     commentToken: '//',
     types: lProjectTypes,
-    entryPoint: PotatnoEntryPointDefinition.create({
+    entryPoint: PotatnoFunctionDefinition.create({
         id: 'pixelShader',
         statics: {
             imports: true,

@@ -1,6 +1,5 @@
 import type { PotatnoGraph } from '../document/potatno-graph.ts';
 import type { PotatnoNode } from '../document/potatno-node.ts';
-import type { PotatnoConnection } from '../document/potatno-connection.ts';
 import { PortKind } from '../node/port-kind.enum.ts';
 import type { PotatnoNodeDefinition } from './potatno-node-definition.ts';
 import type { PotatnoProject } from './potatno-project.ts';
@@ -27,11 +26,7 @@ export class PotatnoPreviewEvaluator {
      *
      * @returns A map from node id to its computed input and output preview data.
      */
-    public static evaluate(
-        pProject: PotatnoProject,
-        pGraph: PotatnoGraph,
-        pEntryData: Record<string, Record<string, unknown>>
-    ): Map<string, NodePreviewData> {
+    public static evaluate(pProject: PotatnoProject, pGraph: PotatnoGraph, pEntryData: Record<string, Record<string, unknown>>): Map<string, NodePreviewData> {
         const lResult: Map<string, NodePreviewData> = new Map();
 
         // Build lookup: portId -> { nodeId, portName, direction }

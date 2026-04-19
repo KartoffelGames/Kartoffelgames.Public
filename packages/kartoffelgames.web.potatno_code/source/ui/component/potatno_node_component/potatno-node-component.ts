@@ -29,6 +29,7 @@ export interface NodeRenderData {
     flowInputs: Array<{ id: string; name: string; direction: string; connectedTo: string | null }>;
     flowOutputs: Array<{ id: string; name: string; direction: string; connectedTo: string | null }>;
     hasDefinition: boolean;
+    hasInlineInput: boolean;
     valueText: string;
     commentText: string;
     pixelX: number;
@@ -254,10 +255,10 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     }
 
     /**
-     * Whether this is a value-category node.
+     * Whether this node has inline input fields (compact value layout).
      */
     public get isValue(): boolean {
-        return this.nodeData?.category === NodeCategory.Value;
+        return this.nodeData?.hasInlineInput ?? false;
     }
 
     /**

@@ -6,10 +6,10 @@ import { PotatnoFunction } from '../document/potatno-function.ts';
 import { PotatnoCodeFile } from '../document/potatno-code-file.ts';
 import type { PotatnoNodeDefinition, PotatnoNodeDefinitionPorts } from "../project/potatno-node-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
+import type { PotatnoMetadata, SerializedFunction, SerializedNode, SerializedConnection } from './potatno-serialization-types.ts';
 
 /**
- * Parses a code string with a trailing `{commentToken} #potatno {json}` metadata comment
- * back into a PotatnoCodeFile.
+ * Reconstructs a PotatnoCodeFile from a PotatnoMetadata object.
  */
 export class PotatnoDeserializer {
     private readonly mProject: PotatnoProject;
@@ -24,24 +24,17 @@ export class PotatnoDeserializer {
     }
 
     /**
-     * Deserialize a code string into a PotatnoCodeFile.
-     * Scans for the last line matching `{commentToken} #potatno ` and parses the JSON payload.
+     * Deserialize a metadata object into a PotatnoCodeFile.
      *
-     * @param pCode - The code string containing a trailing JSON metadata comment.
+     * @param pData - The metadata object containing serialized functions, nodes, and connections.
      *
      * @returns The reconstructed code file containing all deserialized functions.
      */
-    public deserialize(pCode: string): PotatnoCodeFile {
+    public deserialize(pData: PotatnoMetadata): PotatnoCodeFile {
         const lFile: PotatnoCodeFile = new PotatnoCodeFile();
 
-        // Parse the metadata from the trailing comment line.
-        const lMetadata: PotatnoMetadata | null = this.parseMetadataComment(pCode);
-        if (!lMetadata) {
-            return lFile;
-        }
-
         // Reconstruct functions from metadata.
-        for (const lFuncData of lMetadata.functions) {
+        for (const lFuncData of pData.functions) {
             const lFunc: PotatnoFunction = this.reconstructFunction(lFuncData);
 
             // Reconstruct nodes.
@@ -63,34 +56,6 @@ export class PotatnoDeserializer {
         }
 
         return lFile;
-    }
-
-    /**
-     * Parse the JSON metadata from the last matching comment line in the code.
-     *
-     * @param pCode - The raw code string to parse.
-     *
-     * @returns The parsed metadata structure, or null if no metadata comment was found.
-     */
-    private parseMetadataComment(pCode: string): PotatnoMetadata | null {
-        const lToken: string = this.mProject.commentToken;
-        const lPrefix: string = `${lToken} #potatno `;
-        const lLines: Array<string> = pCode.split('\n');
-
-        // Scan from the end for the last matching line.
-        for (let lI: number = lLines.length - 1; lI >= 0; lI--) {
-            const lTrimmed: string = lLines[lI].trim();
-            if (lTrimmed.startsWith(lPrefix)) {
-                const lJsonStr: string = lTrimmed.substring(lPrefix.length);
-                try {
-                    return JSON.parse(lJsonStr) as PotatnoMetadata;
-                } catch {
-                    return null;
-                }
-            }
-        }
-
-        return null;
     }
 
     /**
@@ -133,7 +98,7 @@ export class PotatnoDeserializer {
             const lCategory: string = lNodeData.category;
 
             // Get the node definition from the configuration.
-            const lDefinition = this.mProject.nodeDefinitions.get(lNodeData.nodeDefinitionId);
+            const lDefinition = this.mProject.nodeDefinitions.get(lNodeData.type);
 
             if (lDefinition) {
                 // Reconstruct via definition.
@@ -170,7 +135,7 @@ export class PotatnoDeserializer {
                     lOutputPorts[lPort.name] = { nodeType: 'value', dataType: lPort.type };
                 }
 
-                const lMinDef: PotatnoNodeDefinition = this.mProject.nodeDefinitions.get(lNodeData.nodeDefinitionId)!;
+                const lMinDef: PotatnoNodeDefinition = this.mProject.nodeDefinitions.get(lNodeData.type)!;
 
                 const lNode: PotatnoNode = new PotatnoNode(
                     lNodeData.id,
@@ -266,77 +231,4 @@ export class PotatnoDeserializer {
             pFunction.graph.addExistingConnection(lConnection);
         }
     }
-}
-
-/**
- * Top-level metadata structure parsed from the JSON comment.
- */
-interface PotatnoMetadata {
-    functions: Array<SerializedFunction>;
-}
-
-/**
- * Serialized representation of a function.
- */
-interface SerializedFunction {
-    id: string;
-    name: string;
-    label: string;
-    system: boolean;
-    editableByUser: boolean;
-    inputs: PotatnoNodeDefinitionPorts;
-    outputs: PotatnoNodeDefinitionPorts;
-    imports: Array<string>;
-    nodes: Array<SerializedNode>;
-    connections: Array<SerializedConnection>;
-}
-
-/**
- * Serialized representation of a node.
- */
-interface SerializedNode {
-    id: string;
-    nodeDefinitionId: string;
-    category: string;
-    position: { x: number; y: number };
-    size: { w: number; h: number };
-    system: boolean;
-    properties: Record<string, string>;
-    inputs: Array<SerializedPort>;
-    outputs: Array<SerializedPort>;
-    flowInputs: Array<SerializedFlowPort>;
-    flowOutputs: Array<SerializedFlowPort>;
-}
-
-/**
- * Serialized representation of a data port.
- */
-interface SerializedPort {
-    name: string;
-    type: string;
-    id: string;
-    valueId: string;
-    connectedTo?: string | null;
-}
-
-/**
- * Serialized representation of a flow port.
- */
-interface SerializedFlowPort {
-    name: string;
-    id: string;
-    connectedTo?: string | null;
-}
-
-/**
- * Serialized representation of a connection.
- */
-interface SerializedConnection {
-    id: string;
-    kind: string;
-    sourceNodeId: string;
-    sourcePortId: string;
-    targetNodeId: string;
-    targetPortId: string;
-    valid: boolean;
 }

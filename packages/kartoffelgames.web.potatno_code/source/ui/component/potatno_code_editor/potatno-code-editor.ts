@@ -7,6 +7,7 @@ import { PortKind } from '../../../node/port-kind.enum.ts';
 import { PotatnoDeserializer } from '../../../parser/potatno-deserializer.ts';
 import { PotatnoCodeGenerator, type FunctionCodeWithIntermediates } from '../../../parser/potatno-code-generator.ts';
 import { PotatnoSerializer } from '../../../parser/potatno-serializer.ts';
+import type { PotatnoMetadata, PotatnoCodeFileSerializationResult } from '../../../parser/potatno-serialization-types.ts';
 import { PotatnoFunction } from '../../../document/potatno-function.ts';
 import { PotatnoNodeDefinition, type PotatnoNodeDefinitionPort } from "../../../project/potatno-node-definition.ts";
 import type { PotatnoProject } from '../../../project/potatno-project.ts';
@@ -394,15 +395,15 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
     // ============================================================
 
     /**
-     * Load code from a string, deserializing into a new PotatnoCodeFile.
+     * Load a code file from a metadata object, deserializing into a new PotatnoCodeFile.
      *
-     * @param pCode - The code string containing embedded metadata markers.
+     * @param pData - The metadata object containing serialized functions, nodes, and connections.
      */
     @PwbExport
-    public loadCode(pCode: string): void {
+    public loadCode(pData: PotatnoMetadata): void {
         const lProject: PotatnoProject = this.mProject!;
         const lDeserializer: PotatnoDeserializer = new PotatnoDeserializer(lProject);
-        const lNewFile: PotatnoCodeFile = lDeserializer.deserialize(pCode);
+        const lNewFile: PotatnoCodeFile = lDeserializer.deserialize(pData);
         this.mFile = lNewFile;
         this.mInternals.history.clear();
         this.mSelectedIds.clear();
@@ -414,16 +415,16 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
     }
 
     /**
-     * Generate the code string from the current file.
+     * Generate the serialization result from the current file.
      *
-     * @returns The serialized code string with embedded metadata.
+     * @returns The serialization result with separate code and JSON metadata.
      */
     @PwbExport
-    public generateCode(): string {
+    public generateCode(): PotatnoCodeFileSerializationResult | null {
         const lProject: PotatnoProject = this.mProject!;
         const lFile: PotatnoCodeFile | undefined = this.mFile;
         if (!lFile) {
-            return '';
+            return null;
         }
         const lSerializer: PotatnoSerializer = new PotatnoSerializer(lProject);
         return lSerializer.serialize(lFile);
@@ -1866,6 +1867,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
                     valueText: lNode.properties.get('value') ?? '',
                     commentText: lNode.properties.get('comment') ?? '',
                     hasDefinition: !!lDef,
+                    hasInlineInput: !!lDef && Object.values(lDef.inputs).some((pPort) => pPort.nodeType === 'input'),
                     pixelX: lNode.position.x * this.mInternals.interaction.gridSize,
                     pixelY: lNode.position.y * this.mInternals.interaction.gridSize,
                 };

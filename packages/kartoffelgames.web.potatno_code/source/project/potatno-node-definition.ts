@@ -1,4 +1,3 @@
-import { NodeCategory } from "../node/node-category.enum.ts";
 import { PotatnoCodeFunction } from "../parser/potatno-code-function.ts";
 import { PotatnoProjectTypes } from "./potatno-project.ts";
 
@@ -23,7 +22,7 @@ export class PotatnoNodeDefinition<TTypes extends PotatnoProjectTypes = PotatnoP
     }
 
     private readonly mId: string;
-    private readonly mCategory: NodeCategory;
+    private readonly mCategory: string;
     private readonly mInputs: TInputs;
     private readonly mLabel: string;
     private readonly mOutputs: TOutputs;
@@ -40,7 +39,7 @@ export class PotatnoNodeDefinition<TTypes extends PotatnoProjectTypes = PotatnoP
     /** 
      * Category classification determining which subclass is instantiated for code generation.
      */
-    public get category(): NodeCategory {
+    public get category(): string {
         return this.mCategory;
     }
 
@@ -101,7 +100,7 @@ export class PotatnoNodeDefinition<TTypes extends PotatnoProjectTypes = PotatnoP
 type PotatnoNodeDefinitionConstructorParameter<TTypes extends PotatnoProjectTypes, TInputs extends PotatnoNodeDefinitionPorts<TTypes>, TOutputs extends PotatnoNodeDefinitionPorts<TTypes>, TPreviewElement extends Element> = {
     label?: string;
     id: string;
-    category: NodeCategory;
+    category: string;
     inputs: TInputs;
     outputs: TOutputs;
     codeGenerator: PotatnoNodeDefinitionCodeGenerator<TTypes, TInputs, TOutputs>;

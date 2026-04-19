@@ -27,7 +27,7 @@ const lProject = new PotatnoProject({
                 // OnPixel: provides normalized x/y coordinates (0-1 range)
                 PotatnoNodeDefinition.create({
                     id: 'OnPixel',
-                    category: NodeCategory.Event,
+                    category: 'event',
                     inputs: {},
                     outputs: {
                         x: { nodeType: 'value', dataType: 'number' },
@@ -100,7 +100,7 @@ lProject.addImport({
     nodes: [
         PotatnoNodeDefinition.create({
             id: 'Math.PI',
-            category: NodeCategory.Value,
+            category: 'value',
             inputs: {},
             outputs: {
                 value: { nodeType: 'value', dataType: 'number' }
@@ -109,7 +109,7 @@ lProject.addImport({
         }),
         PotatnoNodeDefinition.create({
             id: 'Math.E',
-            category: NodeCategory.Value,
+            category: 'value',
             inputs: {},
             outputs: {
                 value: { nodeType: 'value', dataType: 'number' }
@@ -153,7 +153,7 @@ lProject.addImport({
 // --- Value Nodes ---
 lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Number Literal',
-    category: NodeCategory.Value,
+    category: 'value',
     inputs: {},
     outputs: {
         value: { nodeType: 'input', inputType: 'number', dataType: 'number' }
@@ -163,7 +163,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'String Literal',
-    category: NodeCategory.Value,
+    category: 'value',
     inputs: {},
     outputs: {
         value: { nodeType: 'input', inputType: 'string', dataType: 'string' }
@@ -173,7 +173,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Boolean Literal',
-    category: NodeCategory.Value,
+    category: 'value',
     inputs: {},
     outputs: {
         value: { nodeType: 'input', inputType: 'boolean', dataType: 'boolean' }
@@ -184,7 +184,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 // --- Operator Nodes: Arithmetic ---
 lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Add',
-    category: NodeCategory.Operator,
+    category: 'operator',
     inputs: {
         a: { nodeType: 'value', dataType: 'number' },
         b: { nodeType: 'value', dataType: 'number' }
@@ -197,7 +197,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Subtract',
-    category: NodeCategory.Operator,
+    category: 'operator',
     inputs: {
         a: { nodeType: 'value', dataType: 'number' },
         b: { nodeType: 'value', dataType: 'number' }
@@ -210,7 +210,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Multiply',
-    category: NodeCategory.Operator,
+    category: 'operator',
     inputs: {
         a: { nodeType: 'value', dataType: 'number' },
         b: { nodeType: 'value', dataType: 'number' }
@@ -260,7 +260,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Divide',
-    category: NodeCategory.Operator,
+    category: 'operator',
     inputs: {
         a: { nodeType: 'value', dataType: 'number' },
         b: { nodeType: 'value', dataType: 'number' }
@@ -275,7 +275,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Modulo',
-    category: NodeCategory.Operator,
+    category: 'operator',
     inputs: {
         a: { nodeType: 'value', dataType: 'number' },
         b: { nodeType: 'value', dataType: 'number' }
@@ -289,7 +289,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 // --- Operator Nodes: Comparison ---
 lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Equal',
-    category: NodeCategory.Operator,
+    category: 'operator',
     inputs: {
         a: { nodeType: 'value', dataType: 'number' },
         b: { nodeType: 'value', dataType: 'number' }
@@ -302,7 +302,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Not Equal',
-    category: NodeCategory.Operator,
+    category: 'operator',
     inputs: {
         a: { nodeType: 'value', dataType: 'number' },
         b: { nodeType: 'value', dataType: 'number' }
@@ -315,7 +315,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Less Than',
-    category: NodeCategory.Operator,
+    category: 'operator',
     inputs: {
         a: { nodeType: 'value', dataType: 'number' },
         b: { nodeType: 'value', dataType: 'number' }
@@ -328,7 +328,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Greater Than',
-    category: NodeCategory.Operator,
+    category: 'operator',
     inputs: {
         a: { nodeType: 'value', dataType: 'number' },
         b: { nodeType: 'value', dataType: 'number' }
@@ -342,7 +342,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 // --- Operator Nodes: Logic ---
 lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'And',
-    category: NodeCategory.Operator,
+    category: 'operator',
     inputs: {
         a: { nodeType: 'value', dataType: 'boolean' },
         b: { nodeType: 'value', dataType: 'boolean' }
@@ -355,7 +355,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Or',
-    category: NodeCategory.Operator,
+    category: 'operator',
     inputs: {
         a: { nodeType: 'value', dataType: 'boolean' },
         b: { nodeType: 'value', dataType: 'boolean' }
@@ -368,7 +368,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Not',
-    category: NodeCategory.Operator,
+    category: 'operator',
     inputs: {
         a: { nodeType: 'value', dataType: 'boolean' }
     },
@@ -381,7 +381,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 // --- Type Conversion Nodes ---
 lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Number to String',
-    category: NodeCategory.TypeConversion,
+    category: 'type-conversion',
     inputs: {
         input: { nodeType: 'value', dataType: 'number' }
     },
@@ -393,7 +393,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'String to Number',
-    category: NodeCategory.TypeConversion,
+    category: 'type-conversion',
     inputs: {
         input: { nodeType: 'value', dataType: 'string' }
     },
@@ -405,7 +405,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'Boolean to String',
-    category: NodeCategory.TypeConversion,
+    category: 'type-conversion',
     inputs: {
         input: { nodeType: 'value', dataType: 'boolean' }
     },
@@ -418,7 +418,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 // --- Flow Nodes ---
 lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'If',
-    category: NodeCategory.Flow,
+    category: 'flow',
     inputs: {
         exec: { nodeType: 'flow' },
         condition: { nodeType: 'value', dataType: 'boolean' }
@@ -432,7 +432,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'While',
-    category: NodeCategory.Flow,
+    category: 'flow',
     inputs: {
         exec: { nodeType: 'flow' },
         condition: { nodeType: 'value', dataType: 'boolean' }
@@ -445,7 +445,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 
 lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     id: 'For Loop',
-    category: NodeCategory.Flow,
+    category: 'flow',
     inputs: {
         exec: { nodeType: 'flow' },
         count: { nodeType: 'value', dataType: 'number' }

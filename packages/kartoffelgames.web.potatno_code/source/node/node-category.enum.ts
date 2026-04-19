@@ -1,53 +1,69 @@
 /**
- * Category classification for node types in the visual code editor.
+ * System-reserved node category constants.
+ * Users can define custom category strings for their node definitions.
  */
-export enum NodeCategory {
+// eslint-disable-next-line @typescript-eslint/no-namespace
+export namespace NodeCategory {
     /** Callable function node. */
-    Function = 'function',
-    /** Arithmetic or logical operator node. */
-    Operator = 'operator',
-    /** Constant or variable value node. */
-    Value = 'value',
-    /** Execution flow control node. */
-    Flow = 'flow',
+    export const Function: string = 'function';
     /** Non-functional comment annotation node. */
-    Comment = 'comment',
-    /** Node that converts between data types. */
-    TypeConversion = 'type-conversion',
+    export const Comment: string = 'comment';
     /** External input entry point node. */
-    Input = 'input',
+    export const Input: string = 'input';
     /** External output exit point node. */
-    Output = 'output',
-    /** Event entry point node. */
-    Event = 'event',
+    export const Output: string = 'output';
     /** Reroute passthrough node. */
-    Reroute = 'reroute',
+    export const Reroute: string = 'reroute';
     /** Get local variable node. */
-    GetLocal = 'getlocal',
+    export const GetLocal: string = 'getlocal';
     /** Set local variable node. */
-    SetLocal = 'setlocal'
+    export const SetLocal: string = 'setlocal';
 }
 
 /**
  * Provides display metadata for node categories.
+ * System categories have predefined metadata; user-defined categories
+ * get an auto-generated deterministic color based on the category string.
  */
 export class NodeCategoryMeta {
     private static readonly META: Record<string, { icon: string; cssColor: string; label: string }> = {
         [NodeCategory.Function]: { icon: 'f', cssColor: 'var(--pn-accent-blue)', label: 'Function' },
-        [NodeCategory.Operator]: { icon: '±', cssColor: 'var(--pn-accent-green)', label: 'Operator' },
-        [NodeCategory.Value]: { icon: '#', cssColor: 'var(--pn-accent-peach)', label: 'Value' },
-        [NodeCategory.Flow]: { icon: '⟳', cssColor: 'var(--pn-accent-mauve)', label: 'Flow' },
         [NodeCategory.Comment]: { icon: '💬', cssColor: 'var(--pn-accent-yellow)', label: 'Comment' },
-        [NodeCategory.TypeConversion]: { icon: '⇄', cssColor: 'var(--pn-accent-teal)', label: 'Type Conversion' },
         [NodeCategory.Input]: { icon: '→', cssColor: 'var(--pn-accent-green)', label: 'Input' },
         [NodeCategory.Output]: { icon: '←', cssColor: 'var(--pn-accent-red)', label: 'Output' },
-        [NodeCategory.Event]: { icon: '⚡', cssColor: 'var(--pn-accent-danger)', label: 'Event' },
         [NodeCategory.Reroute]: { icon: '◇', cssColor: 'var(--pn-text-muted)', label: 'Reroute' },
         [NodeCategory.GetLocal]: { icon: '↓', cssColor: 'var(--pn-accent-teal)', label: 'Get Local' },
         [NodeCategory.SetLocal]: { icon: '↑', cssColor: 'var(--pn-accent-teal)', label: 'Set Local' }
     };
 
+    /**
+     * Get display metadata for a category. System categories return predefined values;
+     * user-defined categories get an auto-generated deterministic HSL color.
+     */
     public static get(pCategory: string): { icon: string; cssColor: string; label: string } {
-        return NodeCategoryMeta.META[pCategory] ?? { icon: '?', cssColor: 'var(--pn-text-muted)', label: 'Unknown' };
+        const lMeta = NodeCategoryMeta.META[pCategory];
+        if (lMeta) {
+            return lMeta;
+        }
+
+        // Generate a deterministic HSL color from the category string hash.
+        const lHue: number = NodeCategoryMeta.hashStringToHue(pCategory);
+        return {
+            icon: '◆',
+            cssColor: `hsl(${lHue}, 60%, 55%)`,
+            label: pCategory.charAt(0).toUpperCase() + pCategory.slice(1)
+        };
+    }
+
+    /**
+     * Hash a string to a hue value (0-360) for deterministic color generation.
+     */
+    private static hashStringToHue(pStr: string): number {
+        let lHash: number = 0;
+        for (let lI: number = 0; lI < pStr.length; lI++) {
+            lHash = ((lHash << 5) - lHash) + pStr.charCodeAt(lI);
+            lHash = lHash & lHash; // Convert to 32-bit integer.
+        }
+        return Math.abs(lHash) % 360;
     }
 }

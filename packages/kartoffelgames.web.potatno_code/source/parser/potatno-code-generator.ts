@@ -4,7 +4,6 @@ import type { PotatnoNode } from '../document/potatno-node.ts';
 import { NodeCategory } from '../node/node-category.enum.ts';
 import { PortKind } from '../node/port-kind.enum.ts';
 import { PotatnoCodeCommentNode } from '../node/potatno-code-comment-node.ts';
-import { PotatnoCodeFlowNode } from '../node/potatno-code-flow-node.ts';
 import { PotatnoCodeGetLocalNode } from '../node/potatno-code-get-local-node.ts';
 import { PotatnoCodeInputNode } from '../node/potatno-code-input-node.ts';
 import { PotatnoCodeNode, type PotatnoCodeNodeContext } from '../node/potatno-code-node.ts';
@@ -12,7 +11,6 @@ import { PotatnoCodeOutputNode } from '../node/potatno-code-output-node.ts';
 import { PotatnoCodeRerouteNode } from '../node/potatno-code-reroute-node.ts';
 import { PotatnoCodeSetLocalNode } from '../node/potatno-code-set-local-node.ts';
 import { PotatnoCodeTemplateNode } from '../node/potatno-code-template-node.ts';
-import { PotatnoCodeValueNode } from '../node/potatno-code-value-node.ts';
 import type { PotatnoNodeDefinitionPort } from "../project/potatno-node-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import { PotatnoCodeFunction } from './potatno-code-function.ts';
@@ -56,6 +54,9 @@ export class PotatnoCodeGenerator {
         const lCodeFunc: PotatnoCodeFunction = new PotatnoCodeFunction();
         lCodeFunc.name = pFunction.name;
         lCodeFunc.bodyCode = lBodyCode;
+        for (const lImport of pFunction.imports) {
+            lCodeFunc.imports.push(lImport);
+        }
 
         for (const [lName, lPortDef] of Object.entries(pFunction.inputs)) {
             const lValueId: string = this.findInputNodeValueId(lGraph, lName);
@@ -151,6 +152,9 @@ export class PotatnoCodeGenerator {
                 const lIntermediateFunc: PotatnoCodeFunction = new PotatnoCodeFunction();
                 lIntermediateFunc.name = pFunction.name;
                 lIntermediateFunc.bodyCode = lIntermediateBody;
+                for (const lImport of pFunction.imports) {
+                    lIntermediateFunc.imports.push(lImport);
+                }
                 for (const lInput of lFuncInputs) {
                     lIntermediateFunc.inputs.push({ ...lInput });
                 }
@@ -179,6 +183,9 @@ export class PotatnoCodeGenerator {
         const lCodeFunc: PotatnoCodeFunction = new PotatnoCodeFunction();
         lCodeFunc.name = pFunction.name;
         lCodeFunc.bodyCode = lFullBody;
+        for (const lImport of pFunction.imports) {
+            lCodeFunc.imports.push(lImport);
+        }
         for (const lInput of lFuncInputs) {
             lCodeFunc.inputs.push({ ...lInput });
         }
@@ -371,7 +378,7 @@ export class PotatnoCodeGenerator {
      *
      * @returns The appropriate code node subclass instance.
      */
-    private createNodeForCategory(pCategory: NodeCategory, pCodeGenerator: (pContext: PotatnoCodeNodeContext) => string): PotatnoCodeNode {
+    private createNodeForCategory(pCategory: string, pCodeGenerator: (pContext: PotatnoCodeNodeContext) => string): PotatnoCodeNode {
         switch (pCategory) {
             case NodeCategory.Comment:
                 return new PotatnoCodeCommentNode();
@@ -379,10 +386,6 @@ export class PotatnoCodeGenerator {
                 return new PotatnoCodeInputNode();
             case NodeCategory.Output:
                 return new PotatnoCodeOutputNode();
-            case NodeCategory.Value:
-                return new PotatnoCodeValueNode(pCodeGenerator);
-            case NodeCategory.Flow:
-                return new PotatnoCodeFlowNode(pCodeGenerator);
             case NodeCategory.Reroute:
                 return new PotatnoCodeRerouteNode();
             case NodeCategory.GetLocal:

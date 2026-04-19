@@ -1,5 +1,5 @@
 import { PwbComponent, PwbExport, PwbComponentEvent, ComponentEventEmitter, ComponentState } from '@kartoffelgames/web-potato-web-builder';
-import { NodeCategory, NodeCategoryMeta } from '../../../node/node-category.enum.ts';
+import { NodeCategoryMeta } from '../../../node/node-category.enum.ts';
 import templateCss from './potatno-node-library.css' with { type: 'text' };
 import libraryTemplate from './potatno-node-library.html' with { type: 'text' };
 
@@ -8,14 +8,14 @@ import libraryTemplate from './potatno-node-library.html' with { type: 'text' };
  */
 interface NodeLibraryEntry {
     name: string;
-    category: NodeCategory;
+    category: string;
 }
 
 /**
  * Internal group representation: category key with its matching node entries.
  */
 interface CategoryGroup {
-    category: NodeCategory;
+    category: string;
     icon: string;
     label: string;
     cssColor: string;
@@ -74,7 +74,8 @@ export class PotatnoNodeLibrary {
      */
     private rebuildFilteredGroups(): void {
         const lQuery: string = this.mSearchQuery.toLowerCase();
-        const lGroupMap: Map<NodeCategory, Array<NodeLibraryEntry>> = new Map();
+        const lGroupMap: Map<string, Array<NodeLibraryEntry>> = new Map();
+        const lCategoryOrder: Array<string> = new Array<string>();
 
         for (const lEntry of this.mNodeDefinitions) {
             if (lQuery && !lEntry.name.toLowerCase().includes(lQuery)) {
@@ -85,12 +86,12 @@ export class PotatnoNodeLibrary {
             if (!lGroup) {
                 lGroup = [];
                 lGroupMap.set(lEntry.category, lGroup);
+                lCategoryOrder.push(lEntry.category);
             }
             lGroup.push(lEntry);
         }
 
         const lResult: Array<CategoryGroup> = [];
-        const lCategoryOrder: Array<NodeCategory> = Object.values(NodeCategory);
 
         for (const lCategory of lCategoryOrder) {
             const lNodes: Array<NodeLibraryEntry> | undefined = lGroupMap.get(lCategory);
@@ -124,7 +125,7 @@ export class PotatnoNodeLibrary {
      *
      * @param pCategory - The category to toggle.
      */
-    public toggleCategory(pCategory: NodeCategory): void {
+    public toggleCategory(pCategory: string): void {
         this.mCollapsedCategories[pCategory] = !this.mCollapsedCategories[pCategory];
         this.rebuildFilteredGroups();
     }
@@ -135,7 +136,7 @@ export class PotatnoNodeLibrary {
      * @param pCategory - The category to check.
      * @returns True if collapsed.
      */
-    public isCategoryCollapsed(pCategory: NodeCategory): boolean {
+    public isCategoryCollapsed(pCategory: string): boolean {
         return !!this.mCollapsedCategories[pCategory];
     }
 
@@ -145,7 +146,7 @@ export class PotatnoNodeLibrary {
      * @param pCategory - The category to check.
      * @returns CSS class string.
      */
-    public getToggleClass(pCategory: NodeCategory): string {
+    public getToggleClass(pCategory: string): string {
         return this.mCollapsedCategories[pCategory] ? 'category-toggle collapsed' : 'category-toggle';
     }
 

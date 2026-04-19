@@ -1,4 +1,3 @@
-import type { NodeCategory } from '../node/node-category.enum.ts';
 import { PortDirection } from '../node/port-direction.enum.ts';
 import type { PotatnoNodeDefinition, PotatnoNodeDefinitionPort } from "../project/potatno-node-definition.ts";
 import { PotatnoFlowPort } from './potatno-flow-port.ts';
@@ -8,7 +7,7 @@ import { PotatnoPort } from './potatno-port.ts';
  * A node instance in the graph.
  */
 export class PotatnoNode {
-    public readonly category: NodeCategory;
+    public readonly category: string;
     public readonly definitionId: string;
     public readonly flowInputs: Map<string, PotatnoFlowPort>;
     public readonly flowOutputs: Map<string, PotatnoFlowPort>;
@@ -117,7 +116,7 @@ export class PotatnoNode {
     /**
      * Generate a value ID from category + hex.
      */
-    private static generateValueId(pCategory: NodeCategory | string): string {
+    private static generateValueId(pCategory: string): string {
         const lHex: string = crypto.randomUUID().replace(/-/g, '').substring(0, 12);
         const lSanitized: string = String(pCategory).replace(/[^a-zA-Z0-9]/g, '');
         return `${lSanitized}_${lHex}`;

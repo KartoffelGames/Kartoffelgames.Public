@@ -3,18 +3,12 @@ import type { PotatnoCodeFile } from '../document/potatno-code-file.ts';
 import type { PotatnoFunction } from '../document/potatno-function.ts';
 import type { PotatnoNode } from '../document/potatno-node.ts';
 import type { PotatnoConnection } from '../document/potatno-connection.ts';
-import type { PotatnoNodeDefinitionPorts } from '../project/potatno-node-definition.ts';
 import { PotatnoCodeGenerator } from './potatno-code-generator.ts';
+import type { PotatnoCodeFileSerializationResult, PotatnoMetadata, SerializedFunction, SerializedNode, SerializedPort, SerializedFlowPort, SerializedConnection } from './potatno-serialization-types.ts';
 
 /**
- * Generates clean code with a single-line JSON comment at the end containing
+ * Generates clean code and a separate JSON metadata object containing
  * the full graph structure for deserialization.
- *
- * Output format:
- * ```
- * <generated code>
- * {commentToken} #potatno {json}
- * ```
  */
 export class PotatnoSerializer {
     private readonly mConfig: PotatnoProject;
@@ -29,37 +23,33 @@ export class PotatnoSerializer {
     }
 
     /**
-     * Serialize a code file to a clean code string with a trailing JSON metadata comment.
+     * Serialize a code file to a result containing the generated code and metadata object.
      *
      * @param pFile - The code file containing all functions to serialize.
      *
-     * @returns The serialized code string with a single JSON metadata comment at the end.
+     * @returns The serialization result with separate code and JSON metadata.
      */
-    public serialize(pFile: PotatnoCodeFile): string {
+    public serialize(pFile: PotatnoCodeFile): PotatnoCodeFileSerializationResult {
         const lGenerator: PotatnoCodeGenerator = new PotatnoCodeGenerator(this.mConfig);
         const lCleanCode: string = lGenerator.generateProjectCode(pFile.functions);
         const lMetadata: PotatnoMetadata = this.buildMetadata(pFile);
-        const lToken: string = this.mConfig.commentToken;
-        const lJsonLine: string = `${lToken} #potatno ${JSON.stringify(lMetadata)}`;
 
-        return `${lCleanCode}\n${lJsonLine}`;
+        return { code: lCleanCode, json: lMetadata };
     }
 
     /**
-     * Serialize a single function to a clean code string with a trailing JSON metadata comment.
+     * Serialize a single function to a result containing the generated code and metadata object.
      *
      * @param pFunction - The function to serialize.
      *
-     * @returns The serialized code string for the function with a single JSON metadata comment.
+     * @returns The serialization result for the function.
      */
-    public serializeFunction(pFunction: PotatnoFunction): string {
+    public serializeFunction(pFunction: PotatnoFunction): PotatnoCodeFileSerializationResult {
         const lGenerator: PotatnoCodeGenerator = new PotatnoCodeGenerator(this.mConfig);
         const lCleanCode: string = lGenerator.generateFunctionCode(pFunction);
         const lMetadata: PotatnoMetadata = { functions: [this.serializeFunctionData(pFunction)] };
-        const lToken: string = this.mConfig.commentToken;
-        const lJsonLine: string = `${lToken} #potatno ${JSON.stringify(lMetadata)}`;
 
-        return `${lCleanCode}\n${lJsonLine}`;
+        return { code: lCleanCode, json: lMetadata };
     }
 
     /**
@@ -204,77 +194,4 @@ export class PotatnoSerializer {
             valid: pConnection.valid
         };
     }
-}
-
-/**
- * Top-level metadata structure appended as a JSON comment.
- */
-interface PotatnoMetadata {
-    functions: Array<SerializedFunction>;
-}
-
-/**
- * Serialized representation of a function.
- */
-interface SerializedFunction {
-    id: string;
-    name: string;
-    label: string;
-    system: boolean;
-    editableByUser: boolean;
-    inputs: PotatnoNodeDefinitionPorts;
-    outputs: PotatnoNodeDefinitionPorts;
-    imports: Array<string>;
-    nodes: Array<SerializedNode>;
-    connections: Array<SerializedConnection>;
-}
-
-/**
- * Serialized representation of a node.
- */
-interface SerializedNode {
-    id: string;
-    type: string;
-    category: string;
-    position: { x: number; y: number };
-    size: { w: number; h: number };
-    system: boolean;
-    properties: Record<string, string>;
-    inputs: Array<SerializedPort>;
-    outputs: Array<SerializedPort>;
-    flowInputs: Array<SerializedFlowPort>;
-    flowOutputs: Array<SerializedFlowPort>;
-}
-
-/**
- * Serialized representation of a data port.
- */
-interface SerializedPort {
-    name: string;
-    type: string;
-    id: string;
-    valueId: string;
-    connectedTo?: string | null;
-}
-
-/**
- * Serialized representation of a flow port.
- */
-interface SerializedFlowPort {
-    name: string;
-    id: string;
-    connectedTo?: string | null;
-}
-
-/**
- * Serialized representation of a connection.
- */
-interface SerializedConnection {
-    id: string;
-    kind: string;
-    sourceNodeId: string;
-    sourcePortId: string;
-    targetNodeId: string;
-    targetPortId: string;
-    valid: boolean;
 }

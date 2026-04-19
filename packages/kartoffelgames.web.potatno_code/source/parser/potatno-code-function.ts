@@ -4,6 +4,7 @@
  */
 export class PotatnoCodeFunction {
     public bodyCode: string;
+    public readonly imports: Array<string>;
     public readonly inputs: Array<{ name: string; type: string; valueId: string }>;
     public name: string;
     public readonly outputs: Array<{ name: string; type: string; valueId: string }>;
@@ -14,6 +15,7 @@ export class PotatnoCodeFunction {
     public constructor() {
         this.name = '';
         this.bodyCode = '';
+        this.imports = new Array<string>();
         this.inputs = new Array<{ name: string; type: string; valueId: string }>();
         this.outputs = new Array<{ name: string; type: string; valueId: string }>();
     }

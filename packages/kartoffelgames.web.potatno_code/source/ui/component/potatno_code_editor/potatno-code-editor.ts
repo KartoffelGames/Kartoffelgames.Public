@@ -20,6 +20,7 @@ import { NodeAddAction, NodeRemoveAction } from '../../potatno-node-actions.ts';
 import { PropertyChangeAction } from '../../potatno-property-change-action.ts';
 import editorCss from './potatno-code-editor.css' with { type: 'text' };
 import editorTemplate from './potatno-code-editor.html' with { type: 'text' };
+import type { NodeRenderData } from '../potatno_node_component/potatno-node-component.ts';
 
 // Import child components to ensure they're registered.
 import '../potatno_function_list/potatno-function-list.ts';
@@ -62,7 +63,7 @@ interface CachedViewData {
     activeFunctionInputs: Array<{ name: string; type: string; }>;
     activeFunctionOutputs: Array<{ name: string; type: string; }>;
     activeFunctionImports: Array<string>;
-    visibleNodes: Array<any>;
+    visibleNodes: Array<NodeRenderData>;
 }
 
 /**
@@ -261,7 +262,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
     /**
      * Get the cached list of visible nodes for the active function.
      */
-    public get visibleNodes(): Array<any> {
+    public get visibleNodes(): Array<NodeRenderData> {
         return this.mCachedData.visibleNodes;
     }
 
@@ -1745,6 +1746,9 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
     private rebuildCachedData(): void {
         const lProject: PotatnoProject | undefined = this.mProject;
         const lFile: PotatnoCodeFile | undefined = this.mFile;
+        const lPreviousVisibleNodeMap: Map<string, NodeRenderData> = new Map<string, NodeRenderData>(
+            this.mCachedData.visibleNodes.map((pNode: NodeRenderData) => [pNode.id, pNode])
+        );
         const lCached: CachedViewData = {
             activeFunctionId: '',
             activeFunctionName: '',
@@ -1853,7 +1857,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
                 lConnectedFlowPortIds.add(lConn.targetPortId);
             }
 
-            const lNodes: Array<any> = [];
+            const lNodes: Array<NodeRenderData> = [];
             for (const lNode of lActiveFunc.graph.nodes.values()) {
                 const lDef = lProject?.nodeDefinitions.get(lNode.definitionId);
                 const lCategoryMeta = NodeCategoryMeta.get(lNode.category);
@@ -1875,7 +1879,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
                     lFlowOuts.push({ id: lPort.id, name: lPort.name, direction: lPort.direction, connectedTo: lConnectedFlowPortIds.has(lPort.id) ? 'connected' : null });
                 }
 
-                lNodes.push({
+                const lNextNodeRender: NodeRenderData = {
                     id: lNode.id,
                     definitionName: lNode.definitionId,
                     category: lNode.category,
@@ -1895,7 +1899,9 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
                     hasDefinition: !!lDef,
                     pixelX: lNode.position.x * this.mInternals.interaction.gridSize,
                     pixelY: lNode.position.y * this.mInternals.interaction.gridSize,
-                });
+                };
+
+                lNodes.push(this.reuseNodeRenderData(lPreviousVisibleNodeMap.get(lNode.id), lNextNodeRender));
 
                 // Store preview element for the node component to pick up via template binding.
                 this.getOrCreatePreviewElement(lNode.id, lDef);
@@ -1905,6 +1911,99 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
 
         // Assign to state property to trigger re-render.
         this.mCachedData = lCached;
+    }
+
+    /**
+     * Keep render object identities stable for nodes whose visible data did not change.
+     */
+    private reuseNodeRenderData(pPrevious: NodeRenderData | undefined, pNext: NodeRenderData): NodeRenderData {
+        if (!pPrevious) {
+            return pNext;
+        }
+
+        if (
+            pPrevious.definitionName !== pNext.definitionName ||
+            pPrevious.category !== pNext.category ||
+            pPrevious.categoryColor !== pNext.categoryColor ||
+            pPrevious.categoryIcon !== pNext.categoryIcon ||
+            pPrevious.label !== pNext.label ||
+            pPrevious.system !== pNext.system ||
+            pPrevious.selected !== pNext.selected ||
+            pPrevious.hasDefinition !== pNext.hasDefinition ||
+            pPrevious.valueText !== pNext.valueText ||
+            pPrevious.commentText !== pNext.commentText ||
+            pPrevious.pixelX !== pNext.pixelX ||
+            pPrevious.pixelY !== pNext.pixelY ||
+            pPrevious.position.x !== pNext.position.x ||
+            pPrevious.position.y !== pNext.position.y ||
+            pPrevious.size.w !== pNext.size.w ||
+            pPrevious.size.h !== pNext.size.h ||
+            !this.areDataPortsEqual(pPrevious.inputs, pNext.inputs) ||
+            !this.areDataPortsEqual(pPrevious.outputs, pNext.outputs) ||
+            !this.areFlowPortsEqual(pPrevious.flowInputs, pNext.flowInputs) ||
+            !this.areFlowPortsEqual(pPrevious.flowOutputs, pNext.flowOutputs)
+        ) {
+            return pNext;
+        }
+
+        return pPrevious;
+    }
+
+    /**
+     * Compare cached data-port arrays.
+     */
+    private areDataPortsEqual(
+        pLeft: NodeRenderData['inputs'] | NodeRenderData['outputs'],
+        pRight: NodeRenderData['inputs'] | NodeRenderData['outputs']
+    ): boolean {
+        if (pLeft.length !== pRight.length) {
+            return false;
+        }
+
+        for (let lIndex: number = 0; lIndex < pLeft.length; lIndex++) {
+            const lLeft = pLeft[lIndex];
+            const lRight = pRight[lIndex];
+
+            if (
+                lLeft.id !== lRight.id ||
+                lLeft.name !== lRight.name ||
+                lLeft.type !== lRight.type ||
+                lLeft.direction !== lRight.direction ||
+                lLeft.connectedTo !== lRight.connectedTo
+            ) {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /**
+     * Compare cached flow-port arrays.
+     */
+    private areFlowPortsEqual(
+        pLeft: NodeRenderData['flowInputs'] | NodeRenderData['flowOutputs'],
+        pRight: NodeRenderData['flowInputs'] | NodeRenderData['flowOutputs']
+    ): boolean {
+        if (pLeft.length !== pRight.length) {
+            return false;
+        }
+
+        for (let lIndex: number = 0; lIndex < pLeft.length; lIndex++) {
+            const lLeft = pLeft[lIndex];
+            const lRight = pRight[lIndex];
+
+            if (
+                lLeft.id !== lRight.id ||
+                lLeft.name !== lRight.name ||
+                lLeft.direction !== lRight.direction ||
+                lLeft.connectedTo !== lRight.connectedTo
+            ) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

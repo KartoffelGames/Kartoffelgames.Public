@@ -1,6 +1,7 @@
 import type { PotatnoFunction } from '../document/potatno-function.ts';
 import type { PotatnoGraph } from '../document/potatno-graph.ts';
 import type { PotatnoNode } from '../document/potatno-node.ts';
+import type { PotatnoFlowPort } from '../document/potatno-flow-port.ts';
 import { NodeCategory } from '../node/node-category.enum.ts';
 import { PortKind } from '../node/port-kind.enum.ts';
 import { PotatnoCodeNode, type PotatnoCodeNodeContext } from '../node/potatno-code-node.ts';
@@ -26,21 +27,6 @@ export class PotatnoCodeGenerator {
     }
 
     /**
-     * Find the function definition that a function was created from.
-     * Checks the entry point first, then searches user function definitions.
-     *
-     * @param pFunction - The function to find the definition for.
-     *
-     * @returns The function definition, or undefined if not found.
-     */
-    private findFunctionDefinition(pFunction: PotatnoFunction): PotatnoFunctionDefinition | undefined {
-        if (pFunction.definitionId === this.mConfig.entryPoint.id) {
-            return this.mConfig.entryPoint;
-        }
-        return this.mConfig.userFunctions.get(pFunction.definitionId);
-    }
-
-    /**
      * Generate clean code for a single function.
      *
      * @param pFunction - The function to generate code for.
@@ -48,7 +34,7 @@ export class PotatnoCodeGenerator {
      * @returns The generated code string without any metadata markers.
      */
     public generateFunctionCode(pFunction: PotatnoFunction): string {
-        const lFuncDef: PotatnoFunctionDefinition | undefined = this.findFunctionDefinition(pFunction);
+        const lFuncDef: PotatnoFunctionDefinition = pFunction.definition;
         const lGraph: PotatnoGraph = pFunction.graph;
         const lBodyCode: string = this.generateGraphCode(lGraph);
 
@@ -73,7 +59,7 @@ export class PotatnoCodeGenerator {
         }
 
         // Wrap in function code generator callback if set.
-        const lCodeGenerator = lFuncDef?.codeGenerator;
+        const lCodeGenerator = lFuncDef.codeGenerator;
         if (lCodeGenerator) {
             return lCodeGenerator(lCodeFunc);
         }
@@ -92,7 +78,7 @@ export class PotatnoCodeGenerator {
      * @returns The full code, the code function metadata, and a map of node intermediates.
      */
     public generateFunctionCodeWithIntermediates(pFunction: PotatnoFunction, pPreviewNodeIds: Set<string>): FunctionCodeWithIntermediates {
-        const lFuncDef: PotatnoFunctionDefinition | undefined = this.findFunctionDefinition(pFunction);
+        const lFuncDef: PotatnoFunctionDefinition = pFunction.definition;
         const lGraph: PotatnoGraph = pFunction.graph;
         const lNodes: Array<PotatnoNode> = this.topologicalSort(lGraph);
         const lCodeParts: Array<string> = new Array<string>();
@@ -119,7 +105,7 @@ export class PotatnoCodeGenerator {
                 continue;
             }
 
-            const lDefinition = this.mConfig.nodeDefinitions.get(lNode.definitionId);
+            const lDefinition = this.mConfig.nodeDefinitions.get(lNode.definition.id);
             if (!lDefinition) {
                 continue;
             }
@@ -158,7 +144,7 @@ export class PotatnoCodeGenerator {
 
                 // Wrap with the function definition's codeGenerator.
                 let lIntermediateCode: string;
-                const lCodeGeneratorFn = lFuncDef?.codeGenerator;
+                const lCodeGeneratorFn = lFuncDef.codeGenerator;
                 if (lCodeGeneratorFn) {
                     lIntermediateCode = lCodeGeneratorFn(lIntermediateFunc);
                 } else {
@@ -189,7 +175,7 @@ export class PotatnoCodeGenerator {
         }
 
         let lFullCode: string;
-        const lFinalCodeGenerator = lFuncDef?.codeGenerator;
+        const lFinalCodeGenerator = lFuncDef.codeGenerator;
         if (lFinalCodeGenerator) {
             lFullCode = lFinalCodeGenerator(lCodeFunc);
         } else {
@@ -237,7 +223,7 @@ export class PotatnoCodeGenerator {
                 continue;
             }
 
-            const lDefinition = this.mConfig.nodeDefinitions.get(lNode.definitionId);
+            const lDefinition = this.mConfig.nodeDefinitions.get(lNode.definition.id);
             if (!lDefinition) {
                 continue;
             }
@@ -262,50 +248,37 @@ export class PotatnoCodeGenerator {
     }
 
     /**
-     * Generate code for a flow body chain starting from a flow port ID.
+     * Generate code for a flow body starting from a connected flow port.
      *
      * @param pGraph - The graph containing the flow chain.
-     * @param pFlowPortId - The flow port ID to start from.
+     * @param pFlowPort - The flow port (input port of the next node) to start from.
      *
      * @returns The generated code for the flow chain.
      */
-    private generateFlowBodyCode(pGraph: PotatnoGraph, pFlowPortId: string): string {
-        const lCodeParts: Array<string> = new Array<string>();
-
-        // Find the node that owns this flow input port.
-        let lCurrentPortId: string | null = pFlowPortId;
-
-        while (lCurrentPortId) {
-            const lOwnerNode: PotatnoNode | null = this.findNodeByFlowPortId(pGraph, lCurrentPortId);
-            if (!lOwnerNode) {
-                break;
-            }
-
-            const lDefinition = this.mConfig.nodeDefinitions.get(lOwnerNode.definitionId);
-            if (!lDefinition) {
-                break;
-            }
-
-            const lCodeNode: PotatnoCodeNode = this.buildCodeNode(pGraph, lOwnerNode);
-
-            // Recursive: generate body code for flow outputs.
-            for (const [lFlowName, lFlowPort] of lOwnerNode.flowOutputs) {
-                if (lFlowPort.connectedTo) {
-                    const lBodyCode: string = this.generateFlowBodyCode(pGraph, lFlowPort.connectedTo);
-                    lCodeNode.body.set(lFlowName, { code: lBodyCode });
-                } else {
-                    lCodeNode.body.set(lFlowName, { code: '' });
-                }
-            }
-
-            const lNodeCode: string = lCodeNode.generateCode();
-            lCodeParts.push(lNodeCode);
-
-            // Follow the flow chain: look for a "next" flow output, or stop.
-            lCurrentPortId = null;
+    private generateFlowBodyCode(pGraph: PotatnoGraph, pFlowPort: PotatnoFlowPort): string {
+        const lOwnerNode: PotatnoNode | null = this.findNodeByFlowPort(pGraph, pFlowPort);
+        if (!lOwnerNode) {
+            return '';
         }
 
-        return lCodeParts.join('\n');
+        const lDefinition = this.mConfig.nodeDefinitions.get(lOwnerNode.definition.id);
+        if (!lDefinition) {
+            return '';
+        }
+
+        const lCodeNode: PotatnoCodeNode = this.buildCodeNode(pGraph, lOwnerNode);
+
+        // Recursive: generate body code for flow outputs.
+        for (const [lFlowName, lFlowPort] of lOwnerNode.flowOutputs) {
+            if (lFlowPort.connectedTo) {
+                const lBodyCode: string = this.generateFlowBodyCode(pGraph, lFlowPort.connectedTo);
+                lCodeNode.body.set(lFlowName, { code: lBodyCode });
+            } else {
+                lCodeNode.body.set(lFlowName, { code: '' });
+            }
+        }
+
+        return lCodeNode.generateCode();
     }
 
     /**
@@ -318,7 +291,7 @@ export class PotatnoCodeGenerator {
      * @returns The constructed code node with populated ports and properties.
      */
     private buildCodeNode(pGraph: PotatnoGraph, pNode: PotatnoNode): PotatnoCodeNode {
-        const lDefinition = this.mConfig.nodeDefinitions.get(pNode.definitionId);
+        const lDefinition = this.mConfig.nodeDefinitions.get(pNode.definition.id);
         const lCodeGenerator = lDefinition?.codeGenerator ?? (() => '');
         const lCodeNode: PotatnoCodeNode = this.createNodeForCategory(pNode.category, lCodeGenerator);
 
@@ -328,7 +301,7 @@ export class PotatnoCodeGenerator {
 
         // Map data inputs with resolved value IDs and port types.
         for (const [lName, lPort] of pNode.inputs) {
-            const lValueId: string = this.resolveRerouteChain(pGraph, lPort.connectedTo ?? lPort.valueId);
+            const lValueId: string = this.resolveRerouteChain(pGraph, lPort.connectedTo?.valueId ?? lPort.valueId);
             const lNodeType = lInputDefs[lName]?.nodeType ?? 'value';
             lCodeNode.inputs.set(lName, { name: lName, type: lPort.type, valueId: lValueId, nodeType: lNodeType });
         }
@@ -396,9 +369,9 @@ export class PotatnoCodeGenerator {
 
         for (const lConnection of pGraph.connections.values()) {
             if (lConnection.kind === PortKind.Data) {
-                const lDeps: Set<string> | undefined = lDependencies.get(lConnection.targetNodeId);
+                const lDeps: Set<string> | undefined = lDependencies.get(lConnection.targetNode.id);
                 if (lDeps) {
-                    lDeps.add(lConnection.sourceNodeId);
+                    lDeps.add(lConnection.sourceNode.id);
                 }
             }
         }
@@ -439,7 +412,7 @@ export class PotatnoCodeGenerator {
      */
     private findInputNodeValueId(pGraph: PotatnoGraph, pName: string): string {
         for (const lNode of pGraph.nodes.values()) {
-            if (lNode.category === NodeCategory.Input && lNode.definitionId === pName) {
+            if (lNode.category === NodeCategory.Input && lNode.definition.id === pName) {
                 const lFirstOutput = lNode.outputs.values().next().value;
                 if (lFirstOutput) {
                     return lFirstOutput.valueId;
@@ -459,10 +432,10 @@ export class PotatnoCodeGenerator {
      */
     private findOutputNodeValueId(pGraph: PotatnoGraph, pName: string): string {
         for (const lNode of pGraph.nodes.values()) {
-            if (lNode.category === NodeCategory.Output && lNode.definitionId === pName) {
+            if (lNode.category === NodeCategory.Output && lNode.definition.id === pName) {
                 const lFirstInput = lNode.inputs.values().next().value;
                 if (lFirstInput && lFirstInput.connectedTo) {
-                    return this.resolveRerouteChain(pGraph, lFirstInput.connectedTo);
+                    return this.resolveRerouteChain(pGraph, lFirstInput.connectedTo.valueId);
                 }
                 return lFirstInput?.valueId ?? pName;
             }
@@ -489,7 +462,7 @@ export class PotatnoCodeGenerator {
                     // Follow the reroute's input connectedTo upstream.
                     const lFirstInput = lNode.inputs.values().next().value;
                     if (lFirstInput && lFirstInput.connectedTo) {
-                        return this.resolveRerouteChain(pGraph, lFirstInput.connectedTo);
+                        return this.resolveRerouteChain(pGraph, lFirstInput.connectedTo.valueId);
                     }
                     // Reroute input is not connected — return the reroute's input valueId as fallback.
                     return lFirstInput?.valueId ?? pValueId;
@@ -502,21 +475,17 @@ export class PotatnoCodeGenerator {
     }
 
     /**
+     * Find the node that owns a given flow input port by object reference.
      *
      * @param pGraph - The graph to search.
-     * @param pPortId - The flow port ID to find.
+     * @param pFlowPort - The flow port to find the owner of.
      *
      * @returns The node that owns the port, or null if not found.
      */
-    private findNodeByFlowPortId(pGraph: PotatnoGraph, pPortId: string): PotatnoNode | null {
+    private findNodeByFlowPort(pGraph: PotatnoGraph, pFlowPort: PotatnoFlowPort): PotatnoNode | null {
         for (const lNode of pGraph.nodes.values()) {
             for (const lPort of lNode.flowInputs.values()) {
-                if (lPort.id === pPortId) {
-                    return lNode;
-                }
-            }
-            for (const lPort of lNode.flowOutputs.values()) {
-                if (lPort.id === pPortId) {
+                if (lPort === pFlowPort) {
                     return lNode;
                 }
             }

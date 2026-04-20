@@ -96,7 +96,7 @@ export class PotatnoSerializer {
             label: pFunction.label,
             system: pFunction.system,
             editableByUser: pFunction.editableByUser,
-            definitionId: pFunction.definitionId,
+            definitionId: pFunction.definition.id,
             inputs: { ...pFunction.inputs },
             outputs: { ...pFunction.outputs },
             imports: [...pFunction.imports],
@@ -121,7 +121,7 @@ export class PotatnoSerializer {
                 type: lPort.type,
                 id: lPort.id,
                 valueId: lPort.valueId,
-                connectedTo: lPort.connectedTo
+                connectedTo: lPort.connectedTo?.valueId ?? null
             });
         }
 
@@ -142,7 +142,7 @@ export class PotatnoSerializer {
             lFlowInputs.push({
                 name: lName,
                 id: lPort.id,
-                connectedTo: lPort.connectedTo
+                connectedTo: lPort.connectedTo?.id ?? null
             });
         }
 
@@ -152,7 +152,7 @@ export class PotatnoSerializer {
             lFlowOutputs.push({
                 name: lName,
                 id: lPort.id,
-                connectedTo: lPort.connectedTo
+                connectedTo: lPort.connectedTo?.id ?? null
             });
         }
 
@@ -164,7 +164,7 @@ export class PotatnoSerializer {
 
         return {
             id: pNode.id,
-            type: pNode.definitionId,
+            type: pNode.definition.id,
             category: pNode.category,
             position: pNode.position,
             size: pNode.size,
@@ -188,10 +188,10 @@ export class PotatnoSerializer {
         return {
             id: pConnection.id,
             kind: pConnection.kind,
-            sourceNodeId: pConnection.sourceNodeId,
-            sourcePortId: pConnection.sourcePortId,
-            targetNodeId: pConnection.targetNodeId,
-            targetPortId: pConnection.targetPortId,
+            sourceNodeId: pConnection.sourceNode.id,
+            sourcePortId: pConnection.sourcePort.id,
+            targetNodeId: pConnection.targetNode.id,
+            targetPortId: pConnection.targetPort.id,
             valid: pConnection.valid
         };
     }

@@ -55,12 +55,12 @@ export class PotatnoClipboard {
             const lInputConnections: Array<{ portName: string; connectedValueId: string }> = new Array();
             for (const [lName, lPort] of lNode.inputs) {
                 if (lPort.connectedTo) {
-                    lInputConnections.push({ portName: lName, connectedValueId: lPort.connectedTo });
+                    lInputConnections.push({ portName: lName, connectedValueId: lPort.connectedTo.valueId });
                 }
             }
 
             return {
-                definitionName: lNode.definitionId,
+                definitionName: lNode.definition.id,
                 position: { ...lNode.position },
                 size: { ...lNode.size },
                 properties: lProperties,
@@ -72,8 +72,8 @@ export class PotatnoClipboard {
         const lInternalConnections: ClipboardData['internalConnections'] = [];
 
         for (const lConnection of pGraph.connections.values()) {
-            const lSourceIdx: number | undefined = lNodeIndexMap.get(lConnection.sourceNodeId);
-            const lTargetIdx: number | undefined = lNodeIndexMap.get(lConnection.targetNodeId);
+            const lSourceIdx: number | undefined = lNodeIndexMap.get(lConnection.sourceNode.id);
+            const lTargetIdx: number | undefined = lNodeIndexMap.get(lConnection.targetNode.id);
 
             if (lSourceIdx !== undefined && lTargetIdx !== undefined) {
                 const lSourceNode: PotatnoNode = lSelectedNodes[lSourceIdx];
@@ -86,13 +86,13 @@ export class PotatnoClipboard {
                 if (lConnection.kind === PortKind.Data) {
                     lKind = 'data';
                     for (const [lName, lPort] of lSourceNode.outputs) {
-                        if (lPort.id === lConnection.sourcePortId) {
+                        if (lPort.id === lConnection.sourcePort.id) {
                             lSourcePortName = lName;
                             break;
                         }
                     }
                     for (const [lName, lPort] of lTargetNode.inputs) {
-                        if (lPort.id === lConnection.targetPortId) {
+                        if (lPort.id === lConnection.targetPort.id) {
                             lTargetPortName = lName;
                             break;
                         }
@@ -100,13 +100,13 @@ export class PotatnoClipboard {
                 } else {
                     lKind = 'flow';
                     for (const [lName, lPort] of lSourceNode.flowOutputs) {
-                        if (lPort.id === lConnection.sourcePortId) {
+                        if (lPort.id === lConnection.sourcePort.id) {
                             lSourcePortName = lName;
                             break;
                         }
                     }
                     for (const [lName, lPort] of lTargetNode.flowInputs) {
-                        if (lPort.id === lConnection.targetPortId) {
+                        if (lPort.id === lConnection.targetPort.id) {
                             lTargetPortName = lName;
                             break;
                         }

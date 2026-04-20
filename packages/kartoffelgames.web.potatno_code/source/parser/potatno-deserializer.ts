@@ -3,6 +3,9 @@ import { PotatnoConnection } from '../document/potatno-connection.ts';
 import { PotatnoNode } from '../document/potatno-node.ts';
 import { PotatnoFunction } from '../document/potatno-function.ts';
 import { PotatnoCodeFile } from '../document/potatno-code-file.ts';
+import type { PotatnoFlowPort } from '../document/potatno-flow-port.ts';
+import type { PotatnoPort } from '../document/potatno-port.ts';
+import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { PotatnoMetadata, SerializedFunction, SerializedNode, SerializedConnection } from './potatno-serialization-types.ts';
 
@@ -47,12 +50,6 @@ export class PotatnoDeserializer {
             lFile.addFunction(lFunc);
         }
 
-        // Set first function as active.
-        const lFirstId: string | undefined = lFile.functions.keys().next().value;
-        if (lFirstId) {
-            lFile.setActiveFunction(lFirstId);
-        }
-
         return lFile;
     }
 
@@ -64,13 +61,16 @@ export class PotatnoDeserializer {
      * @returns The reconstructed function.
      */
     private reconstructFunction(pData: SerializedFunction): PotatnoFunction {
+        // Look up the function definition from the project.
+        const lDefinition: PotatnoFunctionDefinition = this.findFunctionDefinition(pData.definitionId ?? '');
+
         const lFunc: PotatnoFunction = new PotatnoFunction(
             pData.id,
             pData.name,
             pData.label,
             pData.system,
             pData.editableByUser,
-            pData.definitionId ?? ''
+            lDefinition
         );
 
         if (pData.inputs && typeof pData.inputs === 'object') {
@@ -142,7 +142,10 @@ export class PotatnoDeserializer {
                 for (const lInputData of lNodeData.inputs) {
                     const lPort = lNode.inputs.get(lInputData.name);
                     if (lPort && lInputData.connectedTo) {
-                        lPort.connectedTo = lInputData.connectedTo;
+                        const lSourcePort: PotatnoPort | null = this.findOutputPortByValueId(pFunction, lInputData.connectedTo);
+                        if (lSourcePort) {
+                            lPort.connectedTo = lSourcePort;
+                        }
                     }
                 }
             }
@@ -152,7 +155,10 @@ export class PotatnoDeserializer {
                 for (const lFlowData of lNodeData.flowInputs) {
                     const lPort = lNode.flowInputs.get(lFlowData.name);
                     if (lPort && lFlowData.connectedTo) {
-                        lPort.connectedTo = lFlowData.connectedTo;
+                        const lConnected: PotatnoFlowPort | null = this.findFlowPortAcrossFunction(pFunction, lFlowData.connectedTo);
+                        if (lConnected) {
+                            lPort.connectedTo = lConnected;
+                        }
                     }
                 }
             }
@@ -162,11 +168,51 @@ export class PotatnoDeserializer {
                 for (const lFlowData of lNodeData.flowOutputs) {
                     const lPort = lNode.flowOutputs.get(lFlowData.name);
                     if (lPort && lFlowData.connectedTo) {
-                        lPort.connectedTo = lFlowData.connectedTo;
+                        const lConnected: PotatnoFlowPort | null = this.findFlowPortAcrossFunction(pFunction, lFlowData.connectedTo);
+                        if (lConnected) {
+                            lPort.connectedTo = lConnected;
+                        }
                     }
                 }
             }
         }
+    }
+
+    /**
+     * Find an output data port across all nodes in a function by its valueId.
+     *
+     * @param pFunction - The function to search.
+     * @param pValueId - The valueId to match.
+     *
+     * @returns The matching port, or null if not found.
+     */
+    private findOutputPortByValueId(pFunction: PotatnoFunction, pValueId: string): PotatnoPort | null {
+        for (const lNode of pFunction.graph.nodes.values()) {
+            for (const lPort of lNode.outputs.values()) {
+                if (lPort.valueId === pValueId) {
+                    return lPort;
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Find a flow port across all nodes in a function by its ID.
+     *
+     * @param pFunction - The function to search.
+     * @param pPortId - The port ID to match.
+     *
+     * @returns The matching flow port, or null if not found.
+     */
+    private findFlowPortAcrossFunction(pFunction: PotatnoFunction, pPortId: string): PotatnoFlowPort | null {
+        for (const lNode of pFunction.graph.nodes.values()) {
+            const lPort: PotatnoFlowPort | null = this.findFlowPortById(lNode, pPortId);
+            if (lPort) {
+                return lPort;
+            }
+        }
+        return null;
     }
 
     /**
@@ -179,12 +225,33 @@ export class PotatnoDeserializer {
         for (const lConnData of pConnections) {
             const lKind: PortKind = lConnData.kind === PortKind.Flow ? PortKind.Flow : PortKind.Data;
 
+            // Look up source and target nodes.
+            const lSourceNode: PotatnoNode | undefined = pFunction.graph.getNode(lConnData.sourceNodeId);
+            const lTargetNode: PotatnoNode | undefined = pFunction.graph.getNode(lConnData.targetNodeId);
+
+            if (!lSourceNode || !lTargetNode) {
+                continue;
+            }
+
+            // Look up source and target ports.
+            const lSourcePort: PotatnoPort | PotatnoFlowPort | null = lKind === PortKind.Data
+                ? this.findDataPortById(lSourceNode, lConnData.sourcePortId)
+                : this.findFlowPortById(lSourceNode, lConnData.sourcePortId);
+
+            const lTargetPort: PotatnoPort | PotatnoFlowPort | null = lKind === PortKind.Data
+                ? this.findDataPortById(lTargetNode, lConnData.targetPortId)
+                : this.findFlowPortById(lTargetNode, lConnData.targetPortId);
+
+            if (!lSourcePort || !lTargetPort) {
+                continue;
+            }
+
             const lConnection: PotatnoConnection = new PotatnoConnection(
                 lConnData.id,
-                lConnData.sourceNodeId,
-                lConnData.sourcePortId,
-                lConnData.targetNodeId,
-                lConnData.targetPortId,
+                lSourceNode,
+                lSourcePort,
+                lTargetNode,
+                lTargetPort,
                 lKind
             );
 
@@ -192,5 +259,71 @@ export class PotatnoDeserializer {
 
             pFunction.graph.addExistingConnection(lConnection);
         }
+    }
+
+    /**
+     * Find the function definition for a given definition ID.
+     * Checks the entry point first, then user functions.
+     *
+     * @param pDefinitionId - The definition ID to look up.
+     *
+     * @returns The matching function definition, or the entry point as fallback.
+     */
+    private findFunctionDefinition(pDefinitionId: string): PotatnoFunctionDefinition {
+        if (pDefinitionId === this.mProject.entryPoint.id) {
+            return this.mProject.entryPoint;
+        }
+
+        const lUserFunc: PotatnoFunctionDefinition | undefined = this.mProject.userFunctions.get(pDefinitionId);
+        if (lUserFunc) {
+            return lUserFunc;
+        }
+
+        // Fallback to entry point if definition is not found.
+        return this.mProject.entryPoint;
+    }
+
+    /**
+     * Find a data port by ID on a node.
+     *
+     * @param pNode - The node to search.
+     * @param pPortId - The port ID to find.
+     *
+     * @returns The matching port, or null if not found.
+     */
+    private findDataPortById(pNode: PotatnoNode, pPortId: string): PotatnoPort | null {
+        for (const lPort of pNode.inputs.values()) {
+            if (lPort.id === pPortId) {
+                return lPort;
+            }
+        }
+        for (const lPort of pNode.outputs.values()) {
+            if (lPort.id === pPortId) {
+                return lPort;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Find a flow port by ID on a node.
+     *
+     * @param pNode - The node to search.
+     * @param pPortId - The port ID to find.
+     *
+     * @returns The matching flow port, or null if not found.
+     */
+    private findFlowPortById(pNode: PotatnoNode, pPortId: string): PotatnoFlowPort | null {
+        for (const lPort of pNode.flowInputs.values()) {
+            if (lPort.id === pPortId) {
+                return lPort;
+            }
+        }
+        for (const lPort of pNode.flowOutputs.values()) {
+            if (lPort.id === pPortId) {
+                return lPort;
+            }
+        }
+        return null;
     }
 }

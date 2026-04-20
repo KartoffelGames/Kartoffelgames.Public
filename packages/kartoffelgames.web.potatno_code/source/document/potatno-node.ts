@@ -7,31 +7,93 @@ import { PotatnoPort } from './potatno-port.ts';
  * A node instance in the graph.
  */
 export class PotatnoNode {
-    public readonly category: string;
-    public readonly definitionId: string;
-    public readonly flowInputs: Map<string, PotatnoFlowPort>;
-    public readonly flowOutputs: Map<string, PotatnoFlowPort>;
-    public readonly id: string;
-    public readonly inputs: Map<string, PotatnoPort>;
-    public readonly outputs: Map<string, PotatnoPort>;
-    public readonly properties: Map<string, string>;
-    public readonly system: boolean;
+    private readonly mDefinition: PotatnoNodeDefinition;
+    private readonly mFlowInputs: Map<string, PotatnoFlowPort>;
+    private readonly mFlowOutputs: Map<string, PotatnoFlowPort>;
+    private readonly mId: string;
+    private readonly mInputs: Map<string, PotatnoPort>;
+    private readonly mOutputs: Map<string, PotatnoPort>;
+    private readonly mProperties: Map<string, string>;
+    private readonly mSystem: boolean;
 
     private mPosition: { x: number; y: number };
     private mSize: { w: number; h: number };
 
     /**
-     * The grid position of the node.
+     * Get the category of the node, derived from the node definition.
+     */
+    public get category(): string {
+        return this.mDefinition.category;
+    }
+
+    /**
+     * Get the node definition this node was created from.
+     */
+    public get definition(): PotatnoNodeDefinition {
+        return this.mDefinition;
+    }
+
+    /**
+     * Get the flow input ports of the node.
+     */
+    public get flowInputs(): Map<string, PotatnoFlowPort> {
+        return this.mFlowInputs;
+    }
+
+    /**
+     * Get the flow output ports of the node.
+     */
+    public get flowOutputs(): Map<string, PotatnoFlowPort> {
+        return this.mFlowOutputs;
+    }
+
+    /**
+     * Get the unique identifier for the node.
+     */
+    public get id(): string {
+        return this.mId;
+    }
+
+    /**
+     * Get the data input ports of the node.
+     */
+    public get inputs(): Map<string, PotatnoPort> {
+        return this.mInputs;
+    }
+
+    /**
+     * Get the data output ports of the node.
+     */
+    public get outputs(): Map<string, PotatnoPort> {
+        return this.mOutputs;
+    }
+
+    /**
+     * Get the grid position of the node.
      */
     public get position(): { x: number; y: number } {
         return this.mPosition;
     }
 
     /**
-     * The grid size of the node.
+     * Get the properties map of the node.
+     */
+    public get properties(): Map<string, string> {
+        return this.mProperties;
+    }
+
+    /**
+     * Get the grid size of the node.
      */
     public get size(): { w: number; h: number } {
         return this.mSize;
+    }
+
+    /**
+     * Get whether this is a system node that cannot be removed.
+     */
+    public get system(): boolean {
+        return this.mSystem;
     }
 
     /**
@@ -43,41 +105,40 @@ export class PotatnoNode {
      * @param pSystem - Whether this is a system node that cannot be removed.
      */
     public constructor(pId: string, pDefinition: PotatnoNodeDefinition, pPosition: { x: number; y: number }, pSystem: boolean) {
-        this.id = pId;
-        this.definitionId = pDefinition.id;
-        this.category = pDefinition.category;
-        this.system = pSystem;
+        this.mId = pId;
+        this.mDefinition = pDefinition;
+        this.mSystem = pSystem;
         this.mPosition = { x: pPosition.x, y: pPosition.y };
         this.mSize = { w: 8, h: 4 };
-        this.properties = new Map<string, string>();
+        this.mProperties = new Map<string, string>();
 
         // Create ports from input definitions, splitting by nodeType.
-        this.inputs = new Map<string, PotatnoPort>();
-        this.flowInputs = new Map<string, PotatnoFlowPort>();
+        this.mInputs = new Map<string, PotatnoPort>();
+        this.mFlowInputs = new Map<string, PotatnoFlowPort>();
         for (const [lName, lPortDef] of Object.entries<PotatnoNodeDefinitionPort>(pDefinition.inputs)) {
             if (lPortDef.nodeType === 'flow') {
                 const lPortId: string = PotatnoNode.generatePortId();
-                this.flowInputs.set(lName, new PotatnoFlowPort(lPortId, lName, PortDirection.Input));
+                this.mFlowInputs.set(lName, new PotatnoFlowPort(lPortId, lName, PortDirection.Input));
             } else {
                 const lPortId: string = PotatnoNode.generatePortId();
                 const lValueId: string = PotatnoNode.generateValueId(pDefinition.category);
                 const lDataType: string = (lPortDef.nodeType === 'value' || lPortDef.nodeType === 'input') ? lPortDef.dataType : '';
-                this.inputs.set(lName, new PotatnoPort(lPortId, lName, lDataType, PortDirection.Input, lValueId));
+                this.mInputs.set(lName, new PotatnoPort(lPortId, lName, lDataType, PortDirection.Input, lValueId));
             }
         }
 
         // Create ports from output definitions, splitting by nodeType.
-        this.outputs = new Map<string, PotatnoPort>();
-        this.flowOutputs = new Map<string, PotatnoFlowPort>();
+        this.mOutputs = new Map<string, PotatnoPort>();
+        this.mFlowOutputs = new Map<string, PotatnoFlowPort>();
         for (const [lName, lPortDef] of Object.entries<PotatnoNodeDefinitionPort>(pDefinition.outputs)) {
             if (lPortDef.nodeType === 'flow') {
                 const lPortId: string = PotatnoNode.generatePortId();
-                this.flowOutputs.set(lName, new PotatnoFlowPort(lPortId, lName, PortDirection.Output));
+                this.mFlowOutputs.set(lName, new PotatnoFlowPort(lPortId, lName, PortDirection.Output));
             } else {
                 const lPortId: string = PotatnoNode.generatePortId();
                 const lValueId: string = PotatnoNode.generateValueId(pDefinition.category);
                 const lDataType: string = (lPortDef.nodeType === 'value' || lPortDef.nodeType === 'input') ? lPortDef.dataType : '';
-                this.outputs.set(lName, new PotatnoPort(lPortId, lName, lDataType, PortDirection.Output, lValueId));
+                this.mOutputs.set(lName, new PotatnoPort(lPortId, lName, lDataType, PortDirection.Output, lValueId));
             }
         }
     }

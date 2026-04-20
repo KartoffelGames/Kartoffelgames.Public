@@ -4,24 +4,45 @@ import { PortDirection } from '../node/port-direction.enum.ts';
  * A flow port instance on a node. Carries execution order.
  */
 export class PotatnoFlowPort {
-    public readonly direction: PortDirection;
-    public readonly id: string;
-    public readonly name: string;
+    private readonly mDirection: PortDirection;
+    private readonly mId: string;
+    private readonly mName: string;
 
-    private mConnectedTo: string | null;
+    private mConnectedTo: PotatnoFlowPort | null;
 
     /**
-     * The id of the connected flow port, or null.
+     * The connected flow port, or null.
      */
-    public get connectedTo(): string | null {
+    public get connectedTo(): PotatnoFlowPort | null {
         return this.mConnectedTo;
     }
 
     /**
-     * Set the id of the connected flow port, or null to disconnect.
+     * Set the connected flow port, or null to disconnect.
      */
-    public set connectedTo(pValue: string | null) {
+    public set connectedTo(pValue: PotatnoFlowPort | null) {
         this.mConnectedTo = pValue;
+    }
+
+    /**
+     * Get the direction of the port.
+     */
+    public get direction(): PortDirection {
+        return this.mDirection;
+    }
+
+    /**
+     * Get the unique identifier for the port.
+     */
+    public get id(): string {
+        return this.mId;
+    }
+
+    /**
+     * Get the display name of the port.
+     */
+    public get name(): string {
+        return this.mName;
     }
 
     /**
@@ -32,9 +53,9 @@ export class PotatnoFlowPort {
      * @param pDirection - Whether the port is an input or output.
      */
     public constructor(pId: string, pName: string, pDirection: PortDirection) {
-        this.id = pId;
-        this.name = pName;
-        this.direction = pDirection;
+        this.mId = pId;
+        this.mName = pName;
+        this.mDirection = pDirection;
         this.mConnectedTo = null;
     }
 }

@@ -11,6 +11,7 @@ export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectT
     private readonly mImports: Array<PotatnoProjectImportDefinition<TTypes>>;
     private readonly mNodeDefinitions: Map<string, PotatnoNodeDefinition<TTypes, any, any>>;
     private readonly mValidTypes: Map<keyof TTypes, TTypes[keyof TTypes]>;
+    private readonly mUserFunctions: Map<string, PotatnoFunctionDefinition<TTypes>>;
 
     /**
      * Get the registered entry point definition.
@@ -48,10 +49,13 @@ export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectT
         this.mNodeDefinitions = new Map<string, PotatnoNodeDefinition<TTypes>>();
         this.mImports = new Array<PotatnoProjectImportDefinition<TTypes>>();
         this.mEntryPoint = pParameter.entryPoint;
+        this.mUserFunctions = new Map<string, PotatnoFunctionDefinition<TTypes>>();
     }
 
     /**
      * Register an import definition.
+     * 
+     * @param pDefinition - The import definition to register. Must have a unique name and contain valid node definitions.
      */
     public addImport(pDefinition: PotatnoProjectImportDefinition<TTypes>): void {
         this.mImports.push(pDefinition);
@@ -59,9 +63,20 @@ export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectT
 
     /**
      * Register a node type definition.
+     * 
+     * @param pDefinition - The node definition to register. Must have a unique id and use valid type identifiers for its ports.
      */
     public addNodeDefinition<TInputs extends PotatnoNodeDefinitionPorts<TTypes>, TOutputs extends PotatnoNodeDefinitionPorts<TTypes>, TPreviewElement extends Element>(pDefinition: PotatnoNodeDefinition<TTypes, TInputs, TOutputs, TPreviewElement>): void {
         this.mNodeDefinitions.set(pDefinition.id, pDefinition);
+    }
+
+    /**
+     * Register a user function definition. User functions are custom functions defined by the user that can be used as nodes in the editor.
+     * 
+     * @param pDefinition - The function definition to register. 
+     */
+    public addUserFunction(pDefinition: PotatnoFunctionDefinition<TTypes>): void {
+        this.mUserFunctions.set(pDefinition.id, pDefinition);
     }
 
     /**

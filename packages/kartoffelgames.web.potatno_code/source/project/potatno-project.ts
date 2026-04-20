@@ -36,6 +36,13 @@ export class PotatnoProject<TTypes extends PotatnoProjectTypes = PotatnoProjectT
     }
 
     /**
+     * Get the map of registered user function definitions.
+     */
+    public get userFunctions(): ReadonlyMap<string, PotatnoFunctionDefinition<TTypes>> {
+        return this.mUserFunctions;
+    }
+
+    /**
      * Create a new editor configuration with default values.
      */
     public constructor(pParameter: PotatnoProjectConstructorParameter<TTypes>) {

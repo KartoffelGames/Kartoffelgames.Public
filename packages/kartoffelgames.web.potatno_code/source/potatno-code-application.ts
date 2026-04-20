@@ -1,8 +1,7 @@
 import { PwbApplication } from '@kartoffelgames/web-potato-web-builder';
 import { PotatnoCodeFile } from './document/potatno-code-file.ts';
 import { PotatnoProject } from './project/potatno-project.ts';
-import { PotatnoCodeEditor } from './ui/component/potatno_code_editor/potatno-code-editor.ts';
-import type { NodePreviewData } from './project/potatno-preview-evaluator.ts';
+import { NodePreviewData, PotatnoCodeEditor } from './ui/component/potatno_code_editor/potatno-code-editor.ts';
 
 import applicationCss from './potatno-code-application.css' with { type: 'text' };
 import themeCss from './ui/component/potatno-theme.css' with { type: 'text' };

@@ -11,7 +11,6 @@ import type { PotatnoMetadata, PotatnoCodeFileSerializationResult } from '../../
 import { PotatnoFunction } from '../../../document/potatno-function.ts';
 import { PotatnoNodeDefinition, type PotatnoNodeDefinitionPort } from "../../../project/potatno-node-definition.ts";
 import type { PotatnoProject } from '../../../project/potatno-project.ts';
-import type { NodePreviewData } from '../../../project/potatno-preview-evaluator.ts';
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import { PotatnoCanvasRenderer } from '../../potatno-canvas-renderer.ts';
 import { PotatnoClipboard } from '../../potatno-clipboard.ts';
@@ -2118,3 +2117,11 @@ interface EditorInternals {
     previewDirty: boolean;
     cachedCodeResult: FunctionCodeWithIntermediates | null;
 }
+
+/**
+ * Result of evaluating preview data for a single node.
+ */
+export type NodePreviewData = {
+    readonly inputs: Record<string, unknown>;
+    readonly outputs: Record<string, unknown>;
+};

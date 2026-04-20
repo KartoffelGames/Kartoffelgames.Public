@@ -4,8 +4,8 @@ import type { PotatnoNode } from '../document/potatno-node.ts';
 import { NodeCategory } from '../node/node-category.enum.ts';
 import { PortKind } from '../node/port-kind.enum.ts';
 import { PotatnoCodeNode, type PotatnoCodeNodeContext } from '../node/potatno-code-node.ts';
-import { PotatnoCodeSetLocalNode } from '../node/potatno-code-set-local-node.ts';
 import { PotatnoCodeTemplateNode } from '../node/potatno-code-template-node.ts';
+import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
 import type { PotatnoNodeDefinitionPort } from "../project/potatno-node-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import { PotatnoCodeFunction } from './potatno-code-function.ts';
@@ -26,6 +26,21 @@ export class PotatnoCodeGenerator {
     }
 
     /**
+     * Find the function definition that a function was created from.
+     * Checks the entry point first, then searches user function definitions.
+     *
+     * @param pFunction - The function to find the definition for.
+     *
+     * @returns The function definition, or undefined if not found.
+     */
+    private findFunctionDefinition(pFunction: PotatnoFunction): PotatnoFunctionDefinition | undefined {
+        if (pFunction.definitionId === this.mConfig.entryPoint.id) {
+            return this.mConfig.entryPoint;
+        }
+        return this.mConfig.userFunctions.get(pFunction.definitionId);
+    }
+
+    /**
      * Generate clean code for a single function.
      *
      * @param pFunction - The function to generate code for.
@@ -33,17 +48,9 @@ export class PotatnoCodeGenerator {
      * @returns The generated code string without any metadata markers.
      */
     public generateFunctionCode(pFunction: PotatnoFunction): string {
+        const lFuncDef: PotatnoFunctionDefinition | undefined = this.findFunctionDefinition(pFunction);
         const lGraph: PotatnoGraph = pFunction.graph;
-        let lBodyCode: string = this.generateGraphCode(lGraph);
-
-        // Prepend local variable declarations.
-        const lVarDecls: Array<string> = [];
-        for (const lVar of pFunction.localVariables) {
-            lVarDecls.push(`    let ${lVar.name};`);
-        }
-        if (lVarDecls.length > 0) {
-            lBodyCode = lVarDecls.join('\n') + '\n' + lBodyCode;
-        }
+        const lBodyCode: string = this.generateGraphCode(lGraph);
 
         // Build PotatnoCodeFunction.
         const lCodeFunc: PotatnoCodeFunction = new PotatnoCodeFunction();
@@ -66,8 +73,9 @@ export class PotatnoCodeGenerator {
         }
 
         // Wrap in function code generator callback if set.
-        if (this.mConfig.entryPoint.codeGenerator) {
-            return this.mConfig.entryPoint.codeGenerator(lCodeFunc);
+        const lCodeGenerator = lFuncDef?.codeGenerator;
+        if (lCodeGenerator) {
+            return lCodeGenerator(lCodeFunc);
         }
 
         return lBodyCode;
@@ -84,20 +92,11 @@ export class PotatnoCodeGenerator {
      * @returns The full code, the code function metadata, and a map of node intermediates.
      */
     public generateFunctionCodeWithIntermediates(pFunction: PotatnoFunction, pPreviewNodeIds: Set<string>): FunctionCodeWithIntermediates {
+        const lFuncDef: PotatnoFunctionDefinition | undefined = this.findFunctionDefinition(pFunction);
         const lGraph: PotatnoGraph = pFunction.graph;
         const lNodes: Array<PotatnoNode> = this.topologicalSort(lGraph);
         const lCodeParts: Array<string> = new Array<string>();
         const lNodeIntermediates: Map<string, NodeIntermediateData> = new Map();
-
-        // Build local variable declarations prefix.
-        let lVarPrefix: string = '';
-        const lVarDecls: Array<string> = [];
-        for (const lVar of pFunction.localVariables) {
-            lVarDecls.push(`    let ${lVar.name};`);
-        }
-        if (lVarDecls.length > 0) {
-            lVarPrefix = lVarDecls.join('\n') + '\n';
-        }
 
         // Pre-compute function inputs/outputs for PotatnoCodeFunction construction.
         const lFuncInputs: Array<{ name: string; type: string; valueId: string }> = [];
@@ -116,7 +115,7 @@ export class PotatnoCodeGenerator {
 
         // Walk nodes in topological order, generating code and capturing intermediates.
         for (const lNode of lNodes) {
-            if (lNode.category === NodeCategory.Input || lNode.category === NodeCategory.Output || lNode.category === NodeCategory.Reroute || lNode.category === NodeCategory.GetLocal) {
+            if (lNode.category === NodeCategory.Input || lNode.category === NodeCategory.Output || lNode.category === NodeCategory.Reroute) {
                 continue;
             }
 
@@ -141,7 +140,7 @@ export class PotatnoCodeGenerator {
 
             // Capture intermediate data for nodes that have previews.
             if (pPreviewNodeIds.has(lNode.id)) {
-                const lIntermediateBody: string = lVarPrefix + lCodeParts.join('\n');
+                const lIntermediateBody: string = lCodeParts.join('\n');
 
                 // Build an intermediate PotatnoCodeFunction with body up to this node.
                 const lIntermediateFunc: PotatnoCodeFunction = new PotatnoCodeFunction();
@@ -157,10 +156,11 @@ export class PotatnoCodeGenerator {
                     lIntermediateFunc.outputs.push({ ...lOutput });
                 }
 
-                // Wrap with entry point's codeGenerator.
+                // Wrap with the function definition's codeGenerator.
                 let lIntermediateCode: string;
-                if (this.mConfig.entryPoint.codeGenerator) {
-                    lIntermediateCode = this.mConfig.entryPoint.codeGenerator(lIntermediateFunc);
+                const lCodeGeneratorFn = lFuncDef?.codeGenerator;
+                if (lCodeGeneratorFn) {
+                    lIntermediateCode = lCodeGeneratorFn(lIntermediateFunc);
                 } else {
                     lIntermediateCode = lIntermediateBody;
                 }
@@ -174,7 +174,7 @@ export class PotatnoCodeGenerator {
         }
 
         // Build the full function.
-        const lFullBody: string = lVarPrefix + lCodeParts.join('\n');
+        const lFullBody: string = lCodeParts.join('\n');
         const lCodeFunc: PotatnoCodeFunction = new PotatnoCodeFunction();
         lCodeFunc.name = pFunction.name;
         lCodeFunc.bodyCode = lFullBody;
@@ -189,8 +189,9 @@ export class PotatnoCodeGenerator {
         }
 
         let lFullCode: string;
-        if (this.mConfig.entryPoint.codeGenerator) {
-            lFullCode = this.mConfig.entryPoint.codeGenerator(lCodeFunc);
+        const lFinalCodeGenerator = lFuncDef?.codeGenerator;
+        if (lFinalCodeGenerator) {
+            lFullCode = lFinalCodeGenerator(lCodeFunc);
         } else {
             lFullCode = lFullBody;
         }
@@ -232,7 +233,7 @@ export class PotatnoCodeGenerator {
 
         for (const lNode of lNodes) {
             // Skip nodes that produce no executable code — they are handled by the function wrapper, passthrough resolution, or are purely visual.
-            if (lNode.category === NodeCategory.Input || lNode.category === NodeCategory.Output || lNode.category === NodeCategory.Reroute || lNode.category === NodeCategory.GetLocal || lNode.category === NodeCategory.Comment) {
+            if (lNode.category === NodeCategory.Input || lNode.category === NodeCategory.Output || lNode.category === NodeCategory.Reroute || lNode.category === NodeCategory.Comment) {
                 continue;
             }
 
@@ -353,15 +354,6 @@ export class PotatnoCodeGenerator {
             lCodeNode.properties.set(lKey, lValue);
         }
 
-        // For GetLocal nodes, override the output valueId to the variable name.
-        if (pNode.category === NodeCategory.GetLocal) {
-            const lVarName = pNode.properties.get('variableName') ?? '';
-            const lFirst = lCodeNode.outputs.values().next().value;
-            if (lFirst && lVarName) {
-                lCodeNode.outputs.set(lFirst.name, { name: lFirst.name, type: lFirst.type, valueId: lVarName, nodeType: lFirst.nodeType });
-            }
-        }
-
         return lCodeNode;
     }
 
@@ -375,13 +367,10 @@ export class PotatnoCodeGenerator {
      */
     private createNodeForCategory(pCategory: string, pCodeGenerator: (pContext: PotatnoCodeNodeContext) => string): PotatnoCodeNode {
         switch (pCategory) {
-            case NodeCategory.SetLocal:
-                return new PotatnoCodeSetLocalNode();
             case NodeCategory.Comment:
             case NodeCategory.Input:
             case NodeCategory.Output:
             case NodeCategory.Reroute:
-            case NodeCategory.GetLocal:
                 return new PotatnoCodeNode();
             default:
                 return new PotatnoCodeTemplateNode(pCodeGenerator);

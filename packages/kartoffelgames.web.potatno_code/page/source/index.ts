@@ -479,6 +479,25 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} + ${pContext.inputs.b.valueId};`
 }));
 
+// --- User Function Definitions ---
+lProject.addUserFunction(PotatnoFunctionDefinition.create({
+    id: 'Helper Function',
+    statics: {
+        imports: false,
+        inputs: false,
+        outputs: false
+    },
+    codeGenerator: (pFunction: PotatnoCodeFunction) => {
+        const lParams: string = pFunction.inputs.map((i: { name: string; valueId: string; }) => i.valueId).join(', ');
+        const lReturnValues: string = pFunction.outputs.map((o: { valueId: string; }) => o.valueId).join(', ');
+        let lBody: string = pFunction.bodyCode;
+        if (lReturnValues) {
+            lBody += `\nreturn ${pFunction.outputs.length > 1 ? `[${lReturnValues}]` : lReturnValues};`;
+        }
+        return `function ${pFunction.name}(${lParams}) {\n${lBody}\n}`;
+    }
+}));
+
 // --- Create application and open an empty file ---
 const lApp: PotatnoCodeApplication = new PotatnoCodeApplication(lProject);
 lApp.appendTo(document.body);

@@ -38,6 +38,13 @@ export class PotatnoPanelLeft {
     public accessor activeFunctionId: string = '';
 
     /**
+     * User function definitions available for creation (passed to function list).
+     */
+    @PwbExport
+    @ComponentState.state()
+    public accessor userFunctionDefinitions: Array<UserFunctionDefinitionEntry> = [];
+
+    /**
      * Event emitted when a node drag starts from the library.
      */
     @PwbComponentEvent('node-drag-start')
@@ -50,10 +57,10 @@ export class PotatnoPanelLeft {
     private accessor mFunctionSelect!: ComponentEventEmitter<string>;
 
     /**
-     * Event emitted when a new function is requested.
+     * Event emitted when a new function is requested with a definition ID.
      */
     @PwbComponentEvent('function-add')
-    private accessor mFunctionAdd!: ComponentEventEmitter<void>;
+    private accessor mFunctionAdd!: ComponentEventEmitter<string>;
 
     /**
      * Event emitted when a function deletion is requested.
@@ -111,10 +118,10 @@ export class PotatnoPanelLeft {
     /**
      * Bubble the function-add event from the function list.
      *
-     * @param _pEvent - Component event.
+     * @param pEvent - Component event containing the selected definition ID.
      */
-    public onFunctionAdd(_pEvent: ComponentEvent<void>): void {
-        this.mFunctionAdd.dispatchEvent(undefined as void);
+    public onFunctionAdd(pEvent: ComponentEvent<string>): void {
+        this.mFunctionAdd.dispatchEvent(pEvent.value);
     }
 
     /**
@@ -143,4 +150,11 @@ interface FunctionEntry {
     name: string;
     label: string;
     system: boolean;
+}
+
+/**
+ * User function definition entry passed through to the function list.
+ */
+interface UserFunctionDefinitionEntry {
+    id: string;
 }

@@ -102,6 +102,7 @@
     flex-shrink: 0;
     padding: 8px;
     border-top: 1px solid var(--pn-border-default);
+    position: relative;
 }
 
 .add-button {
@@ -130,4 +131,56 @@
 .add-icon {
     font-size: var(--pn-font-size-lg);
     font-weight: bold;
+}
+
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 99;
+}
+
+.popup {
+    position: absolute;
+    bottom: 100%;
+    left: 8px;
+    right: 8px;
+    margin-bottom: 4px;
+    background: var(--pn-bg-surface);
+    border: 1px solid var(--pn-border-default);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+    z-index: 100;
+    overflow: hidden;
+}
+
+.popup-header {
+    padding: 8px 12px;
+    font-family: var(--pn-font-family);
+    font-size: var(--pn-font-size-sm);
+    color: var(--pn-text-muted);
+    border-bottom: 1px solid var(--pn-border-default);
+    user-select: none;
+}
+
+.popup-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 12px;
+    background: transparent;
+    border: none;
+    color: var(--pn-text-primary);
+    font-family: var(--pn-font-family);
+    font-size: var(--pn-font-size);
+    cursor: pointer;
+    transition: background 0.1s;
+    text-align: left;
+}
+
+.popup-item:hover {
+    background: var(--pn-bg-elevated);
 }

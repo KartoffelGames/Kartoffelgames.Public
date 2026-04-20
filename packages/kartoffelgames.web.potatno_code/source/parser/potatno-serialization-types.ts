@@ -27,6 +27,7 @@ export type SerializedFunction = {
     label: string;
     system: boolean;
     editableByUser: boolean;
+    definitionId: string;
     inputs: PotatnoNodeDefinitionPorts;
     outputs: PotatnoNodeDefinitionPorts;
     imports: Array<string>;

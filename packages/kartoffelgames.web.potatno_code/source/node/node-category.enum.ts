@@ -14,10 +14,6 @@ export namespace NodeCategory {
     export const Output: string = 'output';
     /** Reroute passthrough node. */
     export const Reroute: string = 'reroute';
-    /** Get local variable node. */
-    export const GetLocal: string = 'getlocal';
-    /** Set local variable node. */
-    export const SetLocal: string = 'setlocal';
 }
 
 /**
@@ -31,9 +27,7 @@ export class NodeCategoryMeta {
         [NodeCategory.Comment]: { icon: '💬', cssColor: 'var(--pn-accent-yellow)', label: 'Comment' },
         [NodeCategory.Input]: { icon: '→', cssColor: 'var(--pn-accent-green)', label: 'Input' },
         [NodeCategory.Output]: { icon: '←', cssColor: 'var(--pn-accent-red)', label: 'Output' },
-        [NodeCategory.Reroute]: { icon: '◇', cssColor: 'var(--pn-text-muted)', label: 'Reroute' },
-        [NodeCategory.GetLocal]: { icon: '↓', cssColor: 'var(--pn-accent-teal)', label: 'Get Local' },
-        [NodeCategory.SetLocal]: { icon: '↑', cssColor: 'var(--pn-accent-teal)', label: 'Set Local' }
+        [NodeCategory.Reroute]: { icon: '◇', cssColor: 'var(--pn-text-muted)', label: 'Reroute' }
     };
 
     /**

@@ -234,6 +234,22 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
     }
 
     /**
+     * Get the list of user function definitions from the project.
+     * Used by the function list UI to show available function types for creation.
+     */
+    public get userFunctionDefinitions(): Array<{ id: string; }> {
+        const lProject: PotatnoProject | undefined = this.mProject;
+        if (!lProject) {
+            return [];
+        }
+        const lDefinitions: Array<{ id: string; }> = [];
+        for (const lDef of lProject.userFunctions.values()) {
+            lDefinitions.push({ id: lDef.id });
+        }
+        return lDefinitions;
+    }
+
+    /**
      * Get the name of the active function.
      */
     public get activeFunctionName(): string {
@@ -497,20 +513,60 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
     }
 
     /**
-     * Handle adding a new user function.
+     * Handle adding a new user function based on a selected user function definition.
+     *
+     * @param pEvent - The event containing the user function definition ID.
      */
-    public onFunctionAdd(): void {
+    public onFunctionAdd(pEvent: any): void {
+        const lDefinitionId: string = pEvent.value ?? pEvent.detail?.value ?? pEvent;
         const lFile: PotatnoCodeFile | undefined = this.mFile;
-        if (!lFile) {
+        const lProject: PotatnoProject | undefined = this.mProject;
+        if (!lFile || !lProject) {
             return;
         }
+
+        // Look up the user function definition.
+        const lFuncDef = lProject.userFunctions.get(lDefinitionId);
+        if (!lFuncDef) {
+            return;
+        }
+
         const lCount: number = this.mCachedData.functionList.length;
         const lFunc: PotatnoFunction = new PotatnoFunction(
             crypto.randomUUID(),
             `function_${lCount}`,
             `Function ${lCount}`,
-            false
+            false,
+            !lFuncDef.statics.inputs || !lFuncDef.statics.outputs,
+            lDefinitionId
         );
+
+        // Add static nodes from the user function definition to the graph.
+        const lStaticNodes = lFuncDef.nodes.static;
+        for (let lIdx = 0; lIdx < lStaticNodes.length; lIdx++) {
+            const lStaticDef = lStaticNodes[lIdx];
+            lFunc.graph.addNode(lStaticDef, { x: 2 + lIdx * 12, y: 2 }, true);
+
+            if (!lProject.nodeDefinitions.has(lStaticDef.id)) {
+                lProject.addNodeDefinition(lStaticDef);
+            }
+        }
+
+        // Add dynamic nodes from the user function definition as available node definitions.
+        const lDynamicNodes = lFuncDef.nodes.dynamic;
+        for (const lDynamicDef of lDynamicNodes) {
+            if (!lProject.nodeDefinitions.has(lDynamicDef.id)) {
+                lProject.addNodeDefinition(lDynamicDef);
+            }
+        }
+
+        // Auto-enable all project imports if the definition requests static imports.
+        if (lFuncDef.statics.imports) {
+            for (const lImport of lProject.imports) {
+                lFunc.addImport(lImport.name);
+            }
+        }
+
         lFile.addFunction(lFunc);
         lFile.setActiveFunction(lFunc.id);
         this.mSelectedIds.clear();
@@ -1192,7 +1248,8 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
             lEntryPoint.id,
             'Main or something',
             true,
-            lEntryPoint.statics.inputs || lEntryPoint.statics.outputs
+            lEntryPoint.statics.inputs || lEntryPoint.statics.outputs,
+            lEntryPoint.id
         );
 
         // Add static nodes from the entry point definition to the graph.
@@ -1815,7 +1872,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
                     valueText: lNode.properties.get('value') ?? '',
                     commentText: lNode.properties.get('comment') ?? '',
                     hasDefinition: !!lDef,
-                    hasInlineInput: !!lDef && Object.values(lDef.inputs).some((pPort) => pPort.nodeType === 'input'),
+                    hasInlineInput: !!lDef && Object.values(lDef.inputs).some((pPort: any) => pPort.nodeType === 'input'),
                     pixelX: lNode.position.x * this.mInternals.interaction.gridSize,
                     pixelY: lNode.position.y * this.mInternals.interaction.gridSize,
                 };

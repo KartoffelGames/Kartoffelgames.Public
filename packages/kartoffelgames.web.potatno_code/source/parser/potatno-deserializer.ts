@@ -69,7 +69,8 @@ export class PotatnoDeserializer {
             pData.name,
             pData.label,
             pData.system,
-            pData.editableByUser
+            pData.editableByUser,
+            pData.definitionId ?? ''
         );
 
         if (pData.inputs && typeof pData.inputs === 'object') {

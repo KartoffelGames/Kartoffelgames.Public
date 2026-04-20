@@ -1,20 +1,34 @@
 <div class="function-list-content">
     $for(fn of this.functions) {
         <div [className]="this.getEntryClass(this.fn.id)" (click)="this.onFunctionSelect(this.fn.id)">
-            <span class="function-icon">ƒ</span>
+            <span class="function-icon">f</span>
             $if(this.fn.system) {
-                <span class="lock-icon">🔒</span>
+                <span class="lock-icon">&#128274;</span>
             }
             <span class="function-name">{{this.fn.label}}</span>
             $if(!this.fn.system) {
-                <button class="delete-button" (click)="this.onFunctionDelete($event, this.fn.id)">✕</button>
+                <button class="delete-button" (click)="this.onFunctionDelete($event, this.fn.id)">&#10005;</button>
             }
         </div>
     }
 </div>
-<div class="add-button-wrapper">
-    <button class="add-button" (click)="this.onFunctionAdd()">
-        <span class="add-icon">+</span>
-        <span>Add Function</span>
-    </button>
-</div>
+$if(this.hasUserFunctionDefinitions) {
+    <div class="add-button-wrapper">
+        <button class="add-button" (click)="this.onAddButtonClick()">
+            <span class="add-icon">+</span>
+            <span>Add Function</span>
+        </button>
+        $if(this.showPopup) {
+            <div class="popup-overlay" (click)="this.closePopup()"></div>
+            <div class="popup">
+                <div class="popup-header">Select Function Type</div>
+                $for(def of this.userFunctionDefinitions) {
+                    <button class="popup-item" (click)="this.onDefinitionSelect(this.def.id)">
+                        <span class="function-icon">f</span>
+                        <span>{{this.def.id}}</span>
+                    </button>
+                }
+            </div>
+        }
+    </div>
+}

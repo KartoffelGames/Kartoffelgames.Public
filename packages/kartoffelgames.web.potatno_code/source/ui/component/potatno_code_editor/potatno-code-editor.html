@@ -4,9 +4,10 @@
             [nodeDefinitions]="this.nodeDefinitionList"
             [functions]="this.functionList"
             [activeFunctionId]="this.activeFunctionId"
+            [userFunctionDefinitions]="this.userFunctionDefinitions"
             (node-drag-start)="this.onNodeDragFromLibrary($event)"
             (function-select)="this.onFunctionSelect($event)"
-            (function-add)="this.onFunctionAdd()"
+            (function-add)="this.onFunctionAdd($event)"
             (function-delete)="this.onFunctionDelete($event)">
         </potatno-panel-left>
     </div>

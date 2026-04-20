@@ -96,6 +96,7 @@ export class PotatnoSerializer {
             label: pFunction.label,
             system: pFunction.system,
             editableByUser: pFunction.editableByUser,
+            definitionId: pFunction.definitionId,
             inputs: { ...pFunction.inputs },
             outputs: { ...pFunction.outputs },
             imports: [...pFunction.imports],

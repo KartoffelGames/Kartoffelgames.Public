@@ -3,7 +3,7 @@ import type { PotatnoNodeDefinition } from "../project/potatno-node-definition.t
 import { PotatnoConnection } from './potatno-connection.ts';
 import { PotatnoFlowPort } from './potatno-flow-port.ts';
 import { PotatnoNode } from './potatno-node.ts';
-import { PotatnoPort } from './potatno-port.ts';
+import { PotatnoDocumentPort } from './potatno-document-port.ts';
 
 /**
  * The core graph for a single function. Contains nodes and connections.
@@ -53,8 +53,8 @@ export class PotatnoGraph {
 
         // Validate port existence.
         if (pKind === PortKind.Data) {
-            const lSourcePort: PotatnoPort | null = this.findDataPortById(lSourceNode, pSourcePortId);
-            const lTargetPort: PotatnoPort | null = this.findDataPortById(lTargetNode, pTargetPortId);
+            const lSourcePort: PotatnoDocumentPort | null = this.findDataPortById(lSourceNode, pSourcePortId);
+            const lTargetPort: PotatnoDocumentPort | null = this.findDataPortById(lTargetNode, pTargetPortId);
             if (!lSourcePort || !lTargetPort) {
                 return null;
             }
@@ -166,7 +166,7 @@ export class PotatnoGraph {
 
         // Clear port references.
         if (lConnection.kind === PortKind.Data) {
-            const lTargetPort: PotatnoPort | null = this.findDataPortById(lConnection.targetNode, lConnection.targetPort.id);
+            const lTargetPort: PotatnoDocumentPort | null = this.findDataPortById(lConnection.targetNode, lConnection.targetPort.id);
             if (lTargetPort) {
                 lTargetPort.connectedTo = null;
             }
@@ -214,8 +214,8 @@ export class PotatnoGraph {
                 continue;
             }
 
-            const lSourcePort: PotatnoPort | null = this.findDataPortById(lConnection.sourceNode, lConnection.sourcePort.id);
-            const lTargetPort: PotatnoPort | null = this.findDataPortById(lConnection.targetNode, lConnection.targetPort.id);
+            const lSourcePort: PotatnoDocumentPort | null = this.findDataPortById(lConnection.sourceNode, lConnection.sourcePort.id);
+            const lTargetPort: PotatnoDocumentPort | null = this.findDataPortById(lConnection.targetNode, lConnection.targetPort.id);
 
             if (!lSourcePort || !lTargetPort) {
                 lConnection.valid = false;
@@ -236,7 +236,7 @@ export class PotatnoGraph {
     /**
      * Find a data port by its ID within a node.
      */
-    private findDataPortById(pNode: PotatnoNode, pPortId: string): PotatnoPort | null {
+    private findDataPortById(pNode: PotatnoNode, pPortId: string): PotatnoDocumentPort | null {
         for (const lPort of pNode.inputs.values()) {
             if (lPort.id === pPortId) {
                 return lPort;

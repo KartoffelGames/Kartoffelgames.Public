@@ -1,5 +1,5 @@
 import { PwbChild, PwbComponent, PwbExport, ComponentState, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
-import { PotatnoCodeFile } from '../../../document/potatno-code-file.ts';
+import { PotatnoDocument } from '../../../document/potatno-document.ts';
 import type { PotatnoGraph } from '../../../document/potatno-graph.ts';
 import type { PotatnoNode } from '../../../document/potatno-node.ts';
 import { NodeCategory, NodeCategoryMeta } from '../../../node/node-category.enum.ts';
@@ -47,7 +47,7 @@ import '../potatno_tabs/potatno-tabs.ts';
 })
 export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDeconstruct {
     private mProject: PotatnoProject | undefined;
-    private mFile: PotatnoCodeFile | undefined;
+    private mFile: PotatnoDocument | undefined;
     private mActiveFunctionId: string = '';
     private mSelectedIds: Set<string> = new Set();
     private mInternals!: EditorInternals;
@@ -117,7 +117,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
     /**
      * Get the current code file (document state).
      */
-    public get file(): PotatnoCodeFile | null {
+    public get file(): PotatnoDocument | null {
         return this.mFile ?? null;
     }
 
@@ -126,7 +126,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      * Automatically initializes main functions if the file has no functions.
      */
     @PwbExport
-    public set file(pFile: PotatnoCodeFile | null) {
+    public set file(pFile: PotatnoDocument | null) {
         if (pFile) {
             this.mFile = pFile;
 
@@ -375,7 +375,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
     public loadCode(pData: PotatnoMetadata): void {
         const lProject: PotatnoProject = this.mProject!;
         const lDeserializer: PotatnoDeserializer = new PotatnoDeserializer(lProject);
-        const lNewFile: PotatnoCodeFile = lDeserializer.deserialize(pData);
+        const lNewFile: PotatnoDocument = lDeserializer.deserialize(pData);
         this.mFile = lNewFile;
 
         // Set active function to the first available function.
@@ -401,7 +401,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
     @PwbExport
     public generateCode(): PotatnoCodeFileSerializationResult | null {
         const lProject: PotatnoProject = this.mProject!;
-        const lFile: PotatnoCodeFile | undefined = this.mFile;
+        const lFile: PotatnoDocument | undefined = this.mFile;
         if (!lFile) {
             return null;
         }
@@ -442,7 +442,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
     public onNodeDragFromLibrary(pEvent: any): void {
         const lDefName: string = pEvent.value ?? pEvent.detail?.value ?? pEvent;
         const lProject: PotatnoProject = this.mProject!;
-        const lFile: PotatnoCodeFile | undefined = this.mFile;
+        const lFile: PotatnoDocument | undefined = this.mFile;
         if (!lFile) {
             return;
         }
@@ -517,7 +517,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      */
     public onFunctionSelect(pEvent: any): void {
         const lFuncId: string = pEvent.value ?? pEvent.detail?.value ?? pEvent;
-        const lFile: PotatnoCodeFile | undefined = this.mFile;
+        const lFile: PotatnoDocument | undefined = this.mFile;
         if (!lFile) {
             return;
         }
@@ -534,7 +534,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      */
     public onFunctionAdd(pEvent: any): void {
         const lDefinitionId: string = pEvent.value ?? pEvent.detail?.value ?? pEvent;
-        const lFile: PotatnoCodeFile | undefined = this.mFile;
+        const lFile: PotatnoDocument | undefined = this.mFile;
         const lProject: PotatnoProject | undefined = this.mProject;
         if (!lFile || !lProject) {
             return;
@@ -596,7 +596,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      */
     public onFunctionDelete(pEvent: any): void {
         const lFuncId: string = pEvent.value ?? pEvent.detail?.value ?? pEvent;
-        const lFile: PotatnoCodeFile | undefined = this.mFile;
+        const lFile: PotatnoDocument | undefined = this.mFile;
         if (!lFile) {
             return;
         }
@@ -624,7 +624,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      * @param pEvent - The event containing updated property data.
      */
     public onPropertiesChange(pEvent: any): void {
-        const lFile: PotatnoCodeFile | undefined = this.mFile;
+        const lFile: PotatnoDocument | undefined = this.mFile;
         if (!lFile) {
             return;
         }
@@ -711,7 +711,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
         }
 
         if (lState.mode === 'dragging-node') {
-            const lFile: PotatnoCodeFile | undefined = this.mFile;
+            const lFile: PotatnoDocument | undefined = this.mFile;
             if (!lFile) {
                 return;
             }
@@ -759,7 +759,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
         }
 
         if (lState.mode === 'resizing-comment') {
-            const lFile: PotatnoCodeFile | undefined = this.mFile;
+            const lFile: PotatnoDocument | undefined = this.mFile;
             if (!lFile) {
                 return;
             }
@@ -802,7 +802,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
                 if (lInternals.interactionState.direction !== lTarget.direction &&
                     lInternals.interactionState.portKind === lTarget.portKind) {
 
-                    const lFile: PotatnoCodeFile | undefined = this.mFile;
+                    const lFile: PotatnoDocument | undefined = this.mFile;
                     const lGraph: PotatnoGraph | undefined = lFile?.getFunction(this.mActiveFunctionId)?.graph;
                     if (lGraph) {
                         const lKind: PortKind = lInternals.interactionState.portKind === 'data' ? PortKind.Data : PortKind.Flow;
@@ -875,7 +875,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
         if (lTarget.hasAttribute?.('data-hit-area')) {
             const lConnectionId: string | null = lTarget.getAttribute('data-connection-id');
             if (lConnectionId) {
-                const lFile: PotatnoCodeFile | undefined = this.mFile;
+                const lFile: PotatnoDocument | undefined = this.mFile;
                 const lGraph: PotatnoGraph | undefined = lFile?.getFunction(this.mActiveFunctionId)?.graph;
                 if (lGraph) {
                     lGraph.removeConnection(lConnectionId);
@@ -914,7 +914,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
         const lNodeId: string = pNodeRender.id;
         const lInternals: EditorInternals = this.mInternals;
         const lSelectedIds: Set<string> = this.mSelectedIds;
-        const lFile: PotatnoCodeFile | undefined = this.mFile;
+        const lFile: PotatnoDocument | undefined = this.mFile;
         if (!lFile) {
             return;
         }
@@ -998,7 +998,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      */
     public onPortDragStart(pEvent: any): void {
         const lData = pEvent.value ?? pEvent.detail?.value ?? pEvent;
-        const lFile: PotatnoCodeFile | undefined = this.mFile;
+        const lFile: PotatnoDocument | undefined = this.mFile;
         const lGraph: PotatnoGraph | undefined = lFile?.getFunction(this.mActiveFunctionId)?.graph;
         if (!lGraph) {
             return;
@@ -1087,7 +1087,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      */
     public onNodeResizeStart(pEvent: any, _pNodeRender: any): void {
         const lData = pEvent.value ?? pEvent.detail?.value ?? pEvent;
-        const lFile: PotatnoCodeFile | undefined = this.mFile;
+        const lFile: PotatnoDocument | undefined = this.mFile;
         const lNode: PotatnoNode | undefined = lFile?.getFunction(this.mActiveFunctionId)?.graph.getNode(lData.nodeId);
         if (!lNode) {
             return;
@@ -1111,7 +1111,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      */
     public onCommentChange(pEvent: any): void {
         const lData = pEvent.value ?? pEvent.detail?.value ?? pEvent;
-        const lFile: PotatnoCodeFile | undefined = this.mFile;
+        const lFile: PotatnoDocument | undefined = this.mFile;
         const lNode: PotatnoNode | undefined = lFile?.getFunction(this.mActiveFunctionId)?.graph.getNode(lData.nodeId);
         if (lNode) {
             const lAction: PropertyChangeAction = new PropertyChangeAction(lNode, 'comment', lData.text);
@@ -1127,7 +1127,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      */
     public onValueChange(pEvent: any): void {
         const lData = pEvent.value ?? pEvent.detail?.value ?? pEvent;
-        const lFile: PotatnoCodeFile | undefined = this.mFile;
+        const lFile: PotatnoDocument | undefined = this.mFile;
         const lNode: PotatnoNode | undefined = lFile?.getFunction(this.mActiveFunctionId)?.graph.getNode(lData.nodeId);
         if (lNode) {
             const lAction: PropertyChangeAction = new PropertyChangeAction(lNode, lData.property, lData.value);
@@ -1171,7 +1171,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
         }
 
         if (pEvent.ctrlKey && pEvent.key === 'c') {
-            const lFile: PotatnoCodeFile | undefined = this.mFile;
+            const lFile: PotatnoDocument | undefined = this.mFile;
             const lGraph: PotatnoGraph | undefined = lFile?.getFunction(this.mActiveFunctionId)?.graph;
             if (lGraph) {
                 this.mInternals.clipboard.copy(lGraph, this.mSelectedIds);
@@ -1258,7 +1258,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      * @param pFile - The file to initialize.
      * @param pProject - The project configuration providing the entry point definition.
      */
-    private initializeMainFunctions(pFile: PotatnoCodeFile, pProject: PotatnoProject): void {
+    private initializeMainFunctions(pFile: PotatnoDocument, pProject: PotatnoProject): void {
         const lEntryPoint = pProject.entryPoint;
         if (!lEntryPoint) {
             return;
@@ -1308,7 +1308,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      * Delete all currently selected nodes.
      */
     private deleteSelectedNodes(): void {
-        const lFile: PotatnoCodeFile | undefined = this.mFile;
+        const lFile: PotatnoDocument | undefined = this.mFile;
         const lGraph: PotatnoGraph | undefined = lFile?.getFunction(this.mActiveFunctionId)?.graph;
         if (!lGraph) {
             return;
@@ -1342,7 +1342,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
         }
 
         const lProject: PotatnoProject = this.mProject!;
-        const lFile: PotatnoCodeFile | undefined = this.mFile;
+        const lFile: PotatnoDocument | undefined = this.mFile;
         const lGraph: PotatnoGraph | undefined = lFile?.getFunction(this.mActiveFunctionId)?.graph;
         if (!lGraph) {
             return;
@@ -1438,7 +1438,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      * Select all nodes that fall within the current selection box.
      */
     private selectNodesInBox(): void {
-        const lFile: PotatnoCodeFile | undefined = this.mFile;
+        const lFile: PotatnoDocument | undefined = this.mFile;
         const lGraph: PotatnoGraph | undefined = lFile?.getFunction(this.mActiveFunctionId)?.graph;
         if (!lGraph) {
             return;
@@ -1478,7 +1478,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
             return;
         }
 
-        const lFile: PotatnoCodeFile | undefined = this.mFile;
+        const lFile: PotatnoDocument | undefined = this.mFile;
         const lGraph: PotatnoGraph | undefined = lFile?.getFunction(this.mActiveFunctionId)?.graph;
         if (!lGraph) {
             this.mInternals.renderer.clearAll(this.svgLayer);
@@ -1599,7 +1599,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
             return;
         }
 
-        const lFile: PotatnoCodeFile | undefined = this.mFile;
+        const lFile: PotatnoDocument | undefined = this.mFile;
         if (!lFile) {
             return;
         }
@@ -1620,7 +1620,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      * @param pNodeId - The identifier of the node to update.
      */
     private updateNodePosition(pNodeId: string): void {
-        const lFile: PotatnoCodeFile | undefined = this.mFile;
+        const lFile: PotatnoDocument | undefined = this.mFile;
         const lNode: PotatnoNode | undefined = lFile?.getFunction(this.mActiveFunctionId)?.graph.getNode(pNodeId);
         if (!lNode) {
             return;
@@ -1644,7 +1644,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      * @param pNodeId - The identifier of the node to update.
      */
     private updateNodeSize(pNodeId: string): void {
-        const lFile: PotatnoCodeFile | undefined = this.mFile;
+        const lFile: PotatnoDocument | undefined = this.mFile;
         const lNode: PotatnoNode | undefined = lFile?.getFunction(this.mActiveFunctionId)?.graph.getNode(pNodeId);
         if (!lNode) {
             return;
@@ -1666,7 +1666,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      */
     private validateProject(): Array<{ message: string; location: string; }> {
         const lErrors: Array<{ message: string; location: string; }> = [];
-        const lFile: PotatnoCodeFile | undefined = this.mFile;
+        const lFile: PotatnoDocument | undefined = this.mFile;
         if (!lFile) {
             return lErrors;
         }
@@ -1742,7 +1742,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      */
     private rebuildCachedData(): void {
         const lProject: PotatnoProject | undefined = this.mProject;
-        const lFile: PotatnoCodeFile | undefined = this.mFile;
+        const lFile: PotatnoDocument | undefined = this.mFile;
         const lPreviousVisibleNodeMap: Map<string, NodeRenderData> = new Map<string, NodeRenderData>(
             this.mCachedData.visibleNodes.map((pNode: NodeRenderData) => [pNode.id, pNode])
         );
@@ -2044,7 +2044,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      */
     public evaluatePreview(pPreviewInputData: Record<string, Record<string, unknown>>): Map<string, NodePreviewData> | null {
         const lProject: PotatnoProject | undefined = this.mProject;
-        const lFile: PotatnoCodeFile | undefined = this.mFile;
+        const lFile: PotatnoDocument | undefined = this.mFile;
         const lInternals: EditorInternals = this.mInternals;
 
         if (!lProject || !lFile) {

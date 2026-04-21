@@ -2,9 +2,9 @@ import { PortKind } from '../node/port-kind.enum.ts';
 import { PotatnoConnection } from '../document/potatno-connection.ts';
 import { PotatnoNode } from '../document/potatno-node.ts';
 import { PotatnoFunction } from '../document/potatno-function.ts';
-import { PotatnoCodeFile } from '../document/potatno-code-file.ts';
+import { PotatnoDocument } from '../document/potatno-document.ts';
 import type { PotatnoFlowPort } from '../document/potatno-flow-port.ts';
-import type { PotatnoPort } from '../document/potatno-port.ts';
+import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { PotatnoMetadata, SerializedFunction, SerializedNode, SerializedConnection } from './potatno-serialization-types.ts';
@@ -31,8 +31,8 @@ export class PotatnoDeserializer {
      *
      * @returns The reconstructed code file containing all deserialized functions.
      */
-    public deserialize(pData: PotatnoMetadata): PotatnoCodeFile {
-        const lFile: PotatnoCodeFile = new PotatnoCodeFile();
+    public deserialize(pData: PotatnoMetadata): PotatnoDocument {
+        const lFile: PotatnoDocument = new PotatnoDocument();
 
         // Reconstruct functions from metadata.
         for (const lFuncData of pData.functions) {
@@ -142,7 +142,7 @@ export class PotatnoDeserializer {
                 for (const lInputData of lNodeData.inputs) {
                     const lPort = lNode.inputs.get(lInputData.name);
                     if (lPort && lInputData.connectedTo) {
-                        const lSourcePort: PotatnoPort | null = this.findOutputPortByValueId(pFunction, lInputData.connectedTo);
+                        const lSourcePort: PotatnoDocumentPort | null = this.findOutputPortByValueId(pFunction, lInputData.connectedTo);
                         if (lSourcePort) {
                             lPort.connectedTo = lSourcePort;
                         }
@@ -186,7 +186,7 @@ export class PotatnoDeserializer {
      *
      * @returns The matching port, or null if not found.
      */
-    private findOutputPortByValueId(pFunction: PotatnoFunction, pValueId: string): PotatnoPort | null {
+    private findOutputPortByValueId(pFunction: PotatnoFunction, pValueId: string): PotatnoDocumentPort | null {
         for (const lNode of pFunction.graph.nodes.values()) {
             for (const lPort of lNode.outputs.values()) {
                 if (lPort.valueId === pValueId) {
@@ -234,11 +234,11 @@ export class PotatnoDeserializer {
             }
 
             // Look up source and target ports.
-            const lSourcePort: PotatnoPort | PotatnoFlowPort | null = lKind === PortKind.Data
+            const lSourcePort: PotatnoDocumentPort | PotatnoFlowPort | null = lKind === PortKind.Data
                 ? this.findDataPortById(lSourceNode, lConnData.sourcePortId)
                 : this.findFlowPortById(lSourceNode, lConnData.sourcePortId);
 
-            const lTargetPort: PotatnoPort | PotatnoFlowPort | null = lKind === PortKind.Data
+            const lTargetPort: PotatnoDocumentPort | PotatnoFlowPort | null = lKind === PortKind.Data
                 ? this.findDataPortById(lTargetNode, lConnData.targetPortId)
                 : this.findFlowPortById(lTargetNode, lConnData.targetPortId);
 
@@ -291,7 +291,7 @@ export class PotatnoDeserializer {
      *
      * @returns The matching port, or null if not found.
      */
-    private findDataPortById(pNode: PotatnoNode, pPortId: string): PotatnoPort | null {
+    private findDataPortById(pNode: PotatnoNode, pPortId: string): PotatnoDocumentPort | null {
         for (const lPort of pNode.inputs.values()) {
             if (lPort.id === pPortId) {
                 return lPort;

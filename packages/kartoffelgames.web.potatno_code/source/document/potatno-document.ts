@@ -1,10 +1,11 @@
+import { Exception } from "@kartoffelgames/core";
 import type { PotatnoFunction } from './potatno-function.ts';
 
 /**
  * Represents the mutable document state of a PotatnoCode file.
  * Contains all functions and their graphs.
  */
-export class PotatnoCodeFile {
+export class PotatnoDocument {
     private readonly mFunctions: Map<string, PotatnoFunction>;
 
     /**
@@ -49,13 +50,18 @@ export class PotatnoCodeFile {
      *
      * @returns True if the function was removed, false otherwise.
      */
-    public removeFunction(pFunctionId: string): boolean {
-        const lFunc: PotatnoFunction | undefined = this.mFunctions.get(pFunctionId);
-        if (!lFunc || lFunc.system) {
+    public removeFunction(pFunction: PotatnoFunction): boolean {
+        const lFunc: PotatnoFunction | undefined = this.mFunctions.get(pFunction.id);
+        if(!lFunc) {
             return false;
         }
 
-        this.mFunctions.delete(pFunctionId);
+        // Throw when function is a system function.
+        if (lFunc.system) {
+            throw new Exception(`Cannot remove system function with id ${pFunction.id}.`, this);
+        }
+
+        this.mFunctions.delete(pFunction.id);
         return true;
     }
 }

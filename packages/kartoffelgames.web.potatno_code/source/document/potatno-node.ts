@@ -1,7 +1,7 @@
 import { PortDirection } from '../node/port-direction.enum.ts';
 import type { PotatnoNodeDefinition, PotatnoNodeDefinitionPort } from "../project/potatno-node-definition.ts";
 import { PotatnoFlowPort } from './potatno-flow-port.ts';
-import { PotatnoPort } from './potatno-port.ts';
+import { PotatnoDocumentPort } from './potatno-document-port.ts';
 
 /**
  * A node instance in the graph.
@@ -11,8 +11,8 @@ export class PotatnoNode {
     private readonly mFlowInputs: Map<string, PotatnoFlowPort>;
     private readonly mFlowOutputs: Map<string, PotatnoFlowPort>;
     private readonly mId: string;
-    private readonly mInputs: Map<string, PotatnoPort>;
-    private readonly mOutputs: Map<string, PotatnoPort>;
+    private readonly mInputs: Map<string, PotatnoDocumentPort>;
+    private readonly mOutputs: Map<string, PotatnoDocumentPort>;
     private readonly mProperties: Map<string, string>;
     private readonly mSystem: boolean;
 
@@ -57,14 +57,14 @@ export class PotatnoNode {
     /**
      * Get the data input ports of the node.
      */
-    public get inputs(): Map<string, PotatnoPort> {
+    public get inputs(): Map<string, PotatnoDocumentPort> {
         return this.mInputs;
     }
 
     /**
      * Get the data output ports of the node.
      */
-    public get outputs(): Map<string, PotatnoPort> {
+    public get outputs(): Map<string, PotatnoDocumentPort> {
         return this.mOutputs;
     }
 
@@ -113,7 +113,7 @@ export class PotatnoNode {
         this.mProperties = new Map<string, string>();
 
         // Create ports from input definitions, splitting by nodeType.
-        this.mInputs = new Map<string, PotatnoPort>();
+        this.mInputs = new Map<string, PotatnoDocumentPort>();
         this.mFlowInputs = new Map<string, PotatnoFlowPort>();
         for (const [lName, lPortDef] of Object.entries<PotatnoNodeDefinitionPort>(pDefinition.inputs)) {
             if (lPortDef.nodeType === 'flow') {
@@ -123,12 +123,12 @@ export class PotatnoNode {
                 const lPortId: string = PotatnoNode.generatePortId();
                 const lValueId: string = PotatnoNode.generateValueId(pDefinition.category);
                 const lDataType: string = (lPortDef.nodeType === 'value' || lPortDef.nodeType === 'input') ? lPortDef.dataType : '';
-                this.mInputs.set(lName, new PotatnoPort(lPortId, lName, lDataType, PortDirection.Input, lValueId));
+                this.mInputs.set(lName, new PotatnoDocumentPort(lPortId, lName, lDataType, PortDirection.Input, lValueId));
             }
         }
 
         // Create ports from output definitions, splitting by nodeType.
-        this.mOutputs = new Map<string, PotatnoPort>();
+        this.mOutputs = new Map<string, PotatnoDocumentPort>();
         this.mFlowOutputs = new Map<string, PotatnoFlowPort>();
         for (const [lName, lPortDef] of Object.entries<PotatnoNodeDefinitionPort>(pDefinition.outputs)) {
             if (lPortDef.nodeType === 'flow') {
@@ -138,7 +138,7 @@ export class PotatnoNode {
                 const lPortId: string = PotatnoNode.generatePortId();
                 const lValueId: string = PotatnoNode.generateValueId(pDefinition.category);
                 const lDataType: string = (lPortDef.nodeType === 'value' || lPortDef.nodeType === 'input') ? lPortDef.dataType : '';
-                this.mOutputs.set(lName, new PotatnoPort(lPortId, lName, lDataType, PortDirection.Output, lValueId));
+                this.mOutputs.set(lName, new PotatnoDocumentPort(lPortId, lName, lDataType, PortDirection.Output, lValueId));
             }
         }
     }

@@ -1,4 +1,4 @@
-import { PotatnoCodeFile } from '../../source/document/potatno-code-file.ts';
+import { PotatnoDocument } from '../../source/document/potatno-document.ts';
 import { NodeCategory } from '../../source/node/node-category.enum.ts';
 import { PotatnoCodeApplication } from '../../source/potatno-code-application.ts';
 import type { PotatnoCodeFunction } from '../../source/parser/potatno-code-function.ts';
@@ -501,7 +501,7 @@ lProject.addUserFunction(PotatnoFunctionDefinition.create({
 // --- Create application and open an empty file ---
 const lApp: PotatnoCodeApplication = new PotatnoCodeApplication(lProject);
 lApp.appendTo(document.body);
-lApp.file = new PotatnoCodeFile();
+lApp.file = new PotatnoDocument();
 
 // --- Pixel shader render loop ---
 function renderFrame(): void {

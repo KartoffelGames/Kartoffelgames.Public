@@ -1,5 +1,5 @@
 import type { PotatnoProject } from '../project/potatno-project.ts';
-import type { PotatnoCodeFile } from '../document/potatno-code-file.ts';
+import type { PotatnoDocument } from '../document/potatno-document.ts';
 import type { PotatnoFunction } from '../document/potatno-function.ts';
 import type { PotatnoNode } from '../document/potatno-node.ts';
 import type { PotatnoConnection } from '../document/potatno-connection.ts';
@@ -29,7 +29,7 @@ export class PotatnoSerializer {
      *
      * @returns The serialization result with separate code and JSON metadata.
      */
-    public serialize(pFile: PotatnoCodeFile): PotatnoCodeFileSerializationResult {
+    public serialize(pFile: PotatnoDocument): PotatnoCodeFileSerializationResult {
         const lGenerator: PotatnoCodeGenerator = new PotatnoCodeGenerator(this.mConfig);
         const lCleanCode: string = lGenerator.generateProjectCode(pFile.functions);
         const lMetadata: PotatnoMetadata = this.buildMetadata(pFile);
@@ -59,7 +59,7 @@ export class PotatnoSerializer {
      *
      * @returns The metadata structure containing all functions, nodes, and connections.
      */
-    private buildMetadata(pFile: PotatnoCodeFile): PotatnoMetadata {
+    private buildMetadata(pFile: PotatnoDocument): PotatnoMetadata {
         const lFunctions: Array<SerializedFunction> = new Array<SerializedFunction>();
 
         for (const lFunc of pFile.functions.values()) {

@@ -1,5 +1,5 @@
 import { PwbApplication } from '@kartoffelgames/web-potato-web-builder';
-import { PotatnoCodeFile } from './document/potatno-code-file.ts';
+import { PotatnoDocument } from './document/potatno-document.ts';
 import { PotatnoProject } from './project/potatno-project.ts';
 import { NodePreviewData, PotatnoCodeEditor } from './ui/component/potatno_code_editor/potatno-code-editor.ts';
 
@@ -18,9 +18,9 @@ export class PotatnoCodeApplication extends PwbApplication {
     /**
      * Get the current code file (document state).
      */
-    public get file(): PotatnoCodeFile | null {
+    public get file(): PotatnoDocument | null {
         return this.mCodeEditor.file;
-    } set file(pFile: PotatnoCodeFile | null) {
+    } set file(pFile: PotatnoDocument | null) {
         this.mCodeEditor.file = pFile;
     }
 

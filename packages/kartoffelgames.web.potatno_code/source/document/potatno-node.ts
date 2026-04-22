@@ -1,5 +1,5 @@
 import { PortDirection } from '../node/port-direction.enum.ts';
-import type { PotatnoNodeDefinition, PotatnoNodeDefinitionPortDefinition } from "../project/potatno-node-definition.ts";
+import type { PotatnoNodeDefinition } from "../project/potatno-node-definition.ts";
 import { PotatnoDocumentPort } from './potatno-document-port.ts';
 
 /**

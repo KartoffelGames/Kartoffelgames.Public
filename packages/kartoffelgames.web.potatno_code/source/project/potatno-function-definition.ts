@@ -1,12 +1,12 @@
 import { PotatnoCodeFunction } from "../parser/potatno-code-function.ts";
 import { PotatnoNodeDefinition } from "./potatno-node-definition.ts";
-import { PotatnoProjectTypes } from "./potatno-project.ts";
+import { PotatnoProjectType } from "./potatno-project.ts";
 
 /**
  * Definition of a entry point blueprint.
  * Of of these blueprints eighter the main entry point or secondary user created entry points can be instantiated in the editor.
  */
-export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectTypes = PotatnoProjectTypes, TPreviewElement extends Element = any> {
+export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectType = PotatnoProjectType, TPreviewElement extends Element = any> {
     /**
      * Factory method to create a new entry point definition.
      * 
@@ -14,7 +14,7 @@ export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectTypes = Pota
      * 
      * @returns The created PotatnoFunctionDefinition instance. 
      */
-    public static create<TTypes extends PotatnoProjectTypes, TPreviewElement extends Element>(pParameters: PotatnoFunctionDefinitionConstructorParameter<TTypes, TPreviewElement>): PotatnoFunctionDefinition<TTypes, TPreviewElement> {
+    public static create<TTypes extends PotatnoProjectType, TPreviewElement extends Element>(pParameters: PotatnoFunctionDefinitionConstructorParameter<TTypes, TPreviewElement>): PotatnoFunctionDefinition<TTypes, TPreviewElement> {
         return new PotatnoFunctionDefinition(pParameters);
     }
 
@@ -89,7 +89,7 @@ export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectTypes = Pota
     }
 }
 
-type PotatnoFunctionDefinitionConstructorParameter<TTypes extends PotatnoProjectTypes, TPreviewElement extends Element> = {
+type PotatnoFunctionDefinitionConstructorParameter<TTypes extends PotatnoProjectType, TPreviewElement extends Element> = {
     id: string;
     statics: Partial<PotatnoFunctionDefinitionStaticSettings>;
     nodes?: Partial<PotatnoFunctionDefinitionNodes<TTypes>>;
@@ -97,7 +97,7 @@ type PotatnoFunctionDefinitionConstructorParameter<TTypes extends PotatnoProject
     codeGenerator: (pFunction: PotatnoCodeFunction) => string;
 };
 
-type PotatnoFunctionDefinitionNodes<TTypes extends PotatnoProjectTypes> = {
+type PotatnoFunctionDefinitionNodes<TTypes extends PotatnoProjectType> = {
     static: Array<PotatnoNodeDefinition<TTypes>>;
     dynamic: Array<PotatnoNodeDefinition<TTypes>>;
 };

@@ -4,14 +4,14 @@ import { PotatnoCodeApplication } from '../../source/potatno-code-application.ts
 import type { PotatnoCodeFunction } from '../../source/parser/potatno-code-function.ts';
 import { PotatnoFunctionDefinition } from "../../source/project/potatno-function-definition.ts";
 import { PotatnoNodeDefinition } from "../../source/project/potatno-node-definition.ts";
-import { PotatnoProject, PotatnoProjectTypes } from '../../source/project/potatno-project.ts';
+import { PotatnoProject } from '../../source/project/potatno-project.ts';
 
 // --- Project configuration ---
 const lProjectTypes = {
-    number: 0,
-    string: '',
-    boolean: false
-} satisfies PotatnoProjectTypes;
+    number: { defaultValue: 0 },
+    string: { defaultValue: '' },
+    boolean: { defaultValue: false }
+} as const;
 
 const lProject = new PotatnoProject({
     types: lProjectTypes,
@@ -149,37 +149,6 @@ lProject.addImport({
         })
     ]
 });
-
-// --- Value Nodes ---
-lProject.addNodeDefinition(PotatnoNodeDefinition.create({
-    id: 'Number Literal',
-    category: 'value',
-    inputs: {},
-    outputs: {
-        value: { portType: 'input', inputType: 'number', dataType: 'number' }
-    },
-    codeGenerator: (pContext) => `const ${pContext.outputs.value.valueId} = ${pContext.outputs.value.value};`
-}));
-
-lProject.addNodeDefinition(PotatnoNodeDefinition.create({
-    id: 'String Literal',
-    category: 'value',
-    inputs: {},
-    outputs: {
-        value: { portType: 'input', inputType: 'string', dataType: 'string' }
-    },
-    codeGenerator: (pContext) => `const ${pContext.outputs.value.valueId} = "${pContext.outputs.value.value}";`
-}));
-
-lProject.addNodeDefinition(PotatnoNodeDefinition.create({
-    id: 'Boolean Literal',
-    category: 'value',
-    inputs: {},
-    outputs: {
-        value: { portType: 'input', inputType: 'boolean', dataType: 'boolean' }
-    },
-    codeGenerator: (pContext) => `const ${pContext.outputs.value.valueId} = ${pContext.outputs.value.value ? 'true' : 'false'};`
-}));
 
 // --- Operator Nodes: Arithmetic ---
 lProject.addNodeDefinition(PotatnoNodeDefinition.create({

@@ -7,7 +7,7 @@ import { PortKind } from '../node/port-kind.enum.ts';
 import { PotatnoCodeNode, type PotatnoCodeNodeContext } from '../node/potatno-code-node.ts';
 import { PotatnoCodeTemplateNode } from '../node/potatno-code-template-node.ts';
 import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
-import type { PotatnoNodeDefinitionPort } from "../project/potatno-node-definition.ts";
+import type { PotatnoNodeDefinitionPortDefinition } from "../project/potatno-node-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import { PotatnoCodeFunction } from './potatno-code-function.ts';
 
@@ -48,13 +48,13 @@ export class PotatnoCodeGenerator {
 
         for (const [lName, lPortDef] of Object.entries(pFunction.inputs)) {
             const lValueId: string = this.findInputNodeValueId(lGraph, lName);
-            const lType: string = (lPortDef.nodeType === 'value' || lPortDef.nodeType === 'input') ? lPortDef.dataType : '';
+            const lType: string = (lPortDef.portType === 'value' || lPortDef.portType === 'input') ? lPortDef.dataType : '';
             lCodeFunc.inputs.push({ name: lName, type: lType, valueId: lValueId });
         }
 
         for (const [lName, lPortDef] of Object.entries(pFunction.outputs)) {
             const lValueId: string = this.findOutputNodeValueId(lGraph, lName);
-            const lType: string = (lPortDef.nodeType === 'value' || lPortDef.nodeType === 'input') ? lPortDef.dataType : '';
+            const lType: string = (lPortDef.portType === 'value' || lPortDef.portType === 'input') ? lPortDef.dataType : '';
             lCodeFunc.outputs.push({ name: lName, type: lType, valueId: lValueId });
         }
 
@@ -88,14 +88,14 @@ export class PotatnoCodeGenerator {
         const lFuncInputs: Array<{ name: string; type: string; valueId: string }> = [];
         for (const [lName, lPortDef] of Object.entries(pFunction.inputs)) {
             const lValueId: string = this.findInputNodeValueId(lGraph, lName);
-            const lType: string = (lPortDef.nodeType === 'value' || lPortDef.nodeType === 'input') ? lPortDef.dataType : '';
+            const lType: string = (lPortDef.portType === 'value' || lPortDef.portType === 'input') ? lPortDef.dataType : '';
             lFuncInputs.push({ name: lName, type: lType, valueId: lValueId });
         }
 
         const lFuncOutputs: Array<{ name: string; type: string; valueId: string }> = [];
         for (const [lName, lPortDef] of Object.entries(pFunction.outputs)) {
             const lValueId: string = this.findOutputNodeValueId(lGraph, lName);
-            const lType: string = (lPortDef.nodeType === 'value' || lPortDef.nodeType === 'input') ? lPortDef.dataType : '';
+            const lType: string = (lPortDef.portType === 'value' || lPortDef.portType === 'input') ? lPortDef.dataType : '';
             lFuncOutputs.push({ name: lName, type: lType, valueId: lValueId });
         }
 
@@ -296,13 +296,13 @@ export class PotatnoCodeGenerator {
         const lCodeNode: PotatnoCodeNode = this.createNodeForCategory(pNode.category, lCodeGenerator);
 
         // Determine port nodeTypes from the definition's input/output records.
-        const lInputDefs: Record<string, PotatnoNodeDefinitionPort> = lDefinition ? Object.fromEntries(Object.entries(lDefinition.inputs)) : {};
-        const lOutputDefs: Record<string, PotatnoNodeDefinitionPort> = lDefinition ? Object.fromEntries(Object.entries(lDefinition.outputs)) : {};
+        const lInputDefs: Record<string, PotatnoNodeDefinitionPortDefinition> = lDefinition ? Object.fromEntries(Object.entries(lDefinition.inputs)) : {};
+        const lOutputDefs: Record<string, PotatnoNodeDefinitionPortDefinition> = lDefinition ? Object.fromEntries(Object.entries(lDefinition.outputs)) : {};
 
         // Map data inputs with resolved value IDs and port types.
         for (const [lName, lPort] of pNode.inputs) {
             const lValueId: string = this.resolveRerouteChain(pGraph, lPort.connectedTo?.valueId ?? lPort.valueId);
-            const lNodeType = lInputDefs[lName]?.nodeType ?? 'value';
+            const lNodeType = lInputDefs[lName]?.portType ?? 'value';
             lCodeNode.inputs.set(lName, { name: lName, type: lPort.type, valueId: lValueId, nodeType: lNodeType });
         }
 
@@ -313,7 +313,7 @@ export class PotatnoCodeGenerator {
 
         // Map data outputs.
         for (const [lName, lPort] of pNode.outputs) {
-            const lNodeType = lOutputDefs[lName]?.nodeType ?? 'value';
+            const lNodeType = lOutputDefs[lName]?.portType ?? 'value';
             lCodeNode.outputs.set(lName, { name: lName, type: lPort.type, valueId: lPort.valueId, nodeType: lNodeType });
         }
 

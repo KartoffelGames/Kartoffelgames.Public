@@ -9,7 +9,7 @@ import { PotatnoCodeGenerator, type FunctionCodeWithIntermediates } from '../../
 import { PotatnoSerializer } from '../../../parser/potatno-serializer.ts';
 import type { PotatnoMetadata, PotatnoCodeFileSerializationResult } from '../../../parser/potatno-serialization-types.ts';
 import { PotatnoFunction } from '../../../document/potatno-function.ts';
-import { PotatnoNodeDefinition, type PotatnoNodeDefinitionPort } from "../../../project/potatno-node-definition.ts";
+import { PotatnoNodeDefinition, type PotatnoNodeDefinitionPortDefinition } from "../../../project/potatno-node-definition.ts";
 import type { PotatnoProject } from '../../../project/potatno-project.ts';
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import { PotatnoCanvasRenderer } from '../../potatno-canvas-renderer.ts';
@@ -1821,13 +1821,13 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
         if (lProject) {
             for (const lDef of lProject.nodeDefinitions.values()) {
                 const lDefData: PotatnoNodeDefinition = lDef;
-                for (const lInput of Object.values<PotatnoNodeDefinitionPort>(lDefData.inputs)) {
-                    if (lInput.nodeType === 'value' || lInput.nodeType === 'input') {
+                for (const lInput of Object.values<PotatnoNodeDefinitionPortDefinition>(lDefData.inputs)) {
+                    if (lInput.portType === 'value' || lInput.portType === 'input') {
                         lTypeSet.add(lInput.dataType);
                     }
                 }
-                for (const lOutput of Object.values<PotatnoNodeDefinitionPort>(lDefData.outputs)) {
-                    if (lOutput.nodeType === 'value' || lOutput.nodeType === 'input') {
+                for (const lOutput of Object.values<PotatnoNodeDefinitionPortDefinition>(lDefData.outputs)) {
+                    if (lOutput.portType === 'value' || lOutput.portType === 'input') {
                         lTypeSet.add(lOutput.dataType);
                     }
                 }
@@ -1840,8 +1840,8 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
         lCached.activeFunctionName = lActiveFunc?.name ?? '';
         lCached.activeFunctionIsSystem = lActiveFunc?.system ?? false;
         lCached.activeFunctionEditableByUser = lActiveFunc?.editableByUser ?? false;
-        lCached.activeFunctionInputs = lActiveFunc ? Object.entries(lActiveFunc.inputs).map(([lName, lPort]) => ({ name: lName, type: lPort.nodeType === 'value' || lPort.nodeType === 'input' ? lPort.dataType : '' })) : [];
-        lCached.activeFunctionOutputs = lActiveFunc ? Object.entries(lActiveFunc.outputs).map(([lName, lPort]) => ({ name: lName, type: lPort.nodeType === 'value' || lPort.nodeType === 'input' ? lPort.dataType : '' })) : [];
+        lCached.activeFunctionInputs = lActiveFunc ? Object.entries(lActiveFunc.inputs).map(([lName, lPort]) => ({ name: lName, type: lPort.portType === 'value' || lPort.portType === 'input' ? lPort.dataType : '' })) : [];
+        lCached.activeFunctionOutputs = lActiveFunc ? Object.entries(lActiveFunc.outputs).map(([lName, lPort]) => ({ name: lName, type: lPort.portType === 'value' || lPort.portType === 'input' ? lPort.dataType : '' })) : [];
         lCached.activeFunctionImports = [...(lActiveFunc?.imports ?? [])];
 
         // Visible nodes.

@@ -108,7 +108,7 @@ type PotatnoProjectConstructorParameter<TTypes extends PotatnoProjectTypes> = {
  * Defined by a type name and a default value of that type.
  */
 export type PotatnoProjectTypes<TTypeName extends string = string, TType = any> = {
-    [typeName in TTypeName]: TType;
+    [typeName in TTypeName]: TType; // TODO: Blow that up to a full type definition: Name, default value, input control, subproperties for complex types, etc.
 };
 
 /**

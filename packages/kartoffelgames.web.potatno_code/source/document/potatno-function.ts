@@ -1,4 +1,4 @@
-import { PotatnoNodeDefinitionPort, PotatnoNodeDefinitionPorts } from "../project/potatno-node-definition.ts";
+import { PotatnoNodeDefinitionPortDefinition, PotatnoNodeDefinitionPorts } from "../project/potatno-node-definition.ts";
 import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
 import { PotatnoGraph } from './potatno-graph.ts';
 
@@ -128,7 +128,7 @@ export class PotatnoFunction {
      * @param pName - The port name.
      * @param pPort - The port definition.
      */
-    public addInput(pName: string, pPort: PotatnoNodeDefinitionPort): void {
+    public addInput(pName: string, pPort: PotatnoNodeDefinitionPortDefinition): void {
         this.mInputs[pName] = pPort;
     }
 
@@ -138,7 +138,7 @@ export class PotatnoFunction {
      * @param pName - The port name.
      * @param pPort - The port definition.
      */
-    public addOutput(pName: string, pPort: PotatnoNodeDefinitionPort): void {
+    public addOutput(pName: string, pPort: PotatnoNodeDefinitionPortDefinition): void {
         this.mOutputs[pName] = pPort;
     }
 

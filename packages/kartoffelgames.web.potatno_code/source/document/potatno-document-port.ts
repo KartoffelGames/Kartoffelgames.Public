@@ -97,11 +97,15 @@ export class PotatnoDocumentPort {
             throw new Exception(`Cannot connect port ${this.mName} to port ${pPort.mName} due to incompatible value types.`, this);
         }
 
-        // When the port is an input port, disconnect any other connected ports to maintain a single connection.
-        if (this.mDirection === 'input') {
-            for (const connectedPort of this.mConnectedPorts) {
+        // Check if port allows multiple connections.
+        // Flow ports can only have a N-Import and 1-Export
+        // Value ports can only have a 1-Import and N-Export
+        const lAllowsMultipleConnections: boolean = (this.mPortType === 'flow' && this.mDirection === 'input') || (this.mPortType === 'value' && this.mDirection === 'output');
+
+        // Flow inputs and value outputs can fan out. The opposite sides are limited to one connection.
+        if (!lAllowsMultipleConnections) {
+            for (const connectedPort of Array.from(this.mConnectedPorts)) {
                 this.disconnect(connectedPort);
-                connectedPort.disconnect(this);
             }
         }
 

@@ -1,6 +1,6 @@
 import { PortKind } from '../node/port-kind.enum.ts';
 import type { PotatnoGraph } from '../document/potatno-graph.ts';
-import type { PotatnoNode } from '../document/potatno-node.ts';
+import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
 
 /**
  * Copy/paste logic for graph nodes. Manages serialization and deserialization
@@ -30,11 +30,11 @@ export class PotatnoClipboard {
      * @param pSelectedNodeIds - Set of node IDs that are currently selected.
      */
     public copy(pGraph: PotatnoGraph, pSelectedNodeIds: ReadonlySet<string>): void {
-        const lSelectedNodes: Array<PotatnoNode> = new Array<PotatnoNode>();
+        const lSelectedNodes: Array<PotatnoDocumentNode> = new Array<PotatnoDocumentNode>();
         const lNodeIndexMap: Map<string, number> = new Map<string, number>();
 
         for (const lNodeId of pSelectedNodeIds) {
-            const lNode: PotatnoNode | undefined = pGraph.getNode(lNodeId);
+            const lNode: PotatnoDocumentNode | undefined = pGraph.getNode(lNodeId);
             if (lNode && !lNode.system) {
                 lNodeIndexMap.set(lNode.id, lSelectedNodes.length);
                 lSelectedNodes.push(lNode);
@@ -76,8 +76,8 @@ export class PotatnoClipboard {
             const lTargetIdx: number | undefined = lNodeIndexMap.get(lConnection.targetNode.id);
 
             if (lSourceIdx !== undefined && lTargetIdx !== undefined) {
-                const lSourceNode: PotatnoNode = lSelectedNodes[lSourceIdx];
-                const lTargetNode: PotatnoNode = lSelectedNodes[lTargetIdx];
+                const lSourceNode: PotatnoDocumentNode = lSelectedNodes[lSourceIdx];
+                const lTargetNode: PotatnoDocumentNode = lSelectedNodes[lTargetIdx];
 
                 let lSourcePortName: string = '';
                 let lTargetPortName: string = '';

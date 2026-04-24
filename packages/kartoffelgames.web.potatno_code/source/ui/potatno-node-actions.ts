@@ -1,6 +1,6 @@
 import type { PotatnoConnection } from '../document/potatno-connection.ts';
 import type { PotatnoGraph } from '../document/potatno-graph.ts';
-import type { PotatnoNode } from '../document/potatno-node.ts';
+import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
 import type { PotatnoNodeDefinition } from "../project/potatno-node-definition.ts";
 import type { PotatnoHistoryAction } from './potatno-history-action.ts';
 
@@ -13,14 +13,14 @@ export class NodeAddAction implements PotatnoHistoryAction {
 
     private readonly mDefinition: PotatnoNodeDefinition;
     private readonly mGraph: PotatnoGraph;
-    private mNode: PotatnoNode | null;
+    private mNode: PotatnoDocumentNode | null;
     private readonly mPosition: { x: number; y: number; };
     private readonly mSystem: boolean;
 
     /**
      * The node that was created by this action, or null if the action has not been applied yet.
      */
-    public get node(): PotatnoNode | null {
+    public get node(): PotatnoDocumentNode | null {
         return this.mNode;
     }
 
@@ -73,7 +73,7 @@ export class NodeRemoveAction implements PotatnoHistoryAction {
     private readonly mGraph: PotatnoGraph;
     private readonly mNodeId: string;
     private mRemovedConnections: Array<PotatnoConnection>;
-    private mRemovedNode: PotatnoNode | null;
+    private mRemovedNode: PotatnoDocumentNode | null;
 
     /**
      * Constructor.
@@ -118,7 +118,7 @@ export class NodeMoveAction implements PotatnoHistoryAction {
     public readonly description: string;
 
     private readonly mNewPosition: { x: number; y: number; };
-    private readonly mNode: PotatnoNode;
+    private readonly mNode: PotatnoDocumentNode;
     private mOldPosition: { x: number; y: number; };
 
     /**
@@ -128,7 +128,7 @@ export class NodeMoveAction implements PotatnoHistoryAction {
      * @param pNewX - The target X coordinate.
      * @param pNewY - The target Y coordinate.
      */
-    public constructor(pNode: PotatnoNode, pNewX: number, pNewY: number) {
+    public constructor(pNode: PotatnoDocumentNode, pNewX: number, pNewY: number) {
         this.description = `Move node`;
         this.mNode = pNode;
         this.mNewPosition = { x: pNewX, y: pNewY };

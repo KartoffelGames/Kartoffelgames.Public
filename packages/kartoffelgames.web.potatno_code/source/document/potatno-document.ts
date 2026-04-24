@@ -1,17 +1,17 @@
 import { Exception } from "@kartoffelgames/core";
-import type { PotatnoFunction } from './potatno-function.ts';
+import type { PotatnoDocumentFunction } from './potatno-document-function.ts';
 
 /**
  * Represents the mutable document state of a PotatnoCode file.
  * Contains all functions and their graphs.
  */
 export class PotatnoDocument {
-    private readonly mFunctions: Map<string, PotatnoFunction>;
+    private readonly mFunctions: Map<string, PotatnoDocumentFunction>;
 
     /**
      * Get the read-only map of all functions in this file.
      */
-    public get functions(): ReadonlyMap<string, PotatnoFunction> {
+    public get functions(): ReadonlyMap<string, PotatnoDocumentFunction> {
         return this.mFunctions;
     }
 
@@ -19,7 +19,7 @@ export class PotatnoDocument {
      * Create an empty code file with no functions.
      */
     public constructor() {
-        this.mFunctions = new Map<string, PotatnoFunction>();
+        this.mFunctions = new Map<string, PotatnoDocumentFunction>();
     }
 
     /**
@@ -27,7 +27,7 @@ export class PotatnoDocument {
      *
      * @param pFunction - The function to add.
      */
-    public addFunction(pFunction: PotatnoFunction): void {
+    public addFunction(pFunction: PotatnoDocumentFunction): void {
         this.mFunctions.set(pFunction.id, pFunction);
     }
 
@@ -38,7 +38,7 @@ export class PotatnoDocument {
      *
      * @returns The function or undefined if not found.
      */
-    public getFunction(pFunctionId: string): PotatnoFunction | undefined {
+    public getFunction(pFunctionId: string): PotatnoDocumentFunction | undefined {
         return this.mFunctions.get(pFunctionId);
     }
 
@@ -50,8 +50,8 @@ export class PotatnoDocument {
      *
      * @returns True if the function was removed, false otherwise.
      */
-    public removeFunction(pFunction: PotatnoFunction): boolean {
-        const lFunc: PotatnoFunction | undefined = this.mFunctions.get(pFunction.id);
+    public removeFunction(pFunction: PotatnoDocumentFunction): boolean {
+        const lFunc: PotatnoDocumentFunction | undefined = this.mFunctions.get(pFunction.id);
         if(!lFunc) {
             return false;
         }

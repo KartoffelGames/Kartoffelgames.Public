@@ -1,7 +1,7 @@
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { PotatnoDocument } from '../document/potatno-document.ts';
-import type { PotatnoFunction } from '../document/potatno-function.ts';
-import type { PotatnoNode } from '../document/potatno-node.ts';
+import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
+import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
 import type { PotatnoConnection } from '../document/potatno-connection.ts';
 import { PotatnoCodeGenerator } from './potatno-code-generator.ts';
 import type { PotatnoCodeFileSerializationResult, PotatnoMetadata, SerializedFunction, SerializedNode, SerializedPort, SerializedFlowPort, SerializedConnection } from './potatno-serialization-types.ts';
@@ -44,7 +44,7 @@ export class PotatnoSerializer {
      *
      * @returns The serialization result for the function.
      */
-    public serializeFunction(pFunction: PotatnoFunction): PotatnoCodeFileSerializationResult {
+    public serializeFunction(pFunction: PotatnoDocumentFunction): PotatnoCodeFileSerializationResult {
         const lGenerator: PotatnoCodeGenerator = new PotatnoCodeGenerator(this.mConfig);
         const lCleanCode: string = lGenerator.generateFunctionCode(pFunction);
         const lMetadata: PotatnoMetadata = { functions: [this.serializeFunctionData(pFunction)] };
@@ -76,7 +76,7 @@ export class PotatnoSerializer {
      *
      * @returns The serialized function data.
      */
-    private serializeFunctionData(pFunction: PotatnoFunction): SerializedFunction {
+    private serializeFunctionData(pFunction: PotatnoDocumentFunction): SerializedFunction {
         const lNodes: Array<SerializedNode> = new Array<SerializedNode>();
         const lConnections: Array<SerializedConnection> = new Array<SerializedConnection>();
 
@@ -112,7 +112,7 @@ export class PotatnoSerializer {
      *
      * @returns The serialized node data.
      */
-    private serializeNode(pNode: PotatnoNode): SerializedNode {
+    private serializeNode(pNode: PotatnoDocumentNode): SerializedNode {
         // Serialize input ports.
         const lInputs: Array<SerializedPort> = new Array<SerializedPort>();
         for (const [lName, lPort] of pNode.inputs) {

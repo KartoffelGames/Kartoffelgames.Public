@@ -1,4 +1,4 @@
-import type { PotatnoNode } from '../document/potatno-node.ts';
+import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
 import type { PotatnoHistoryAction } from './potatno-history-action.ts';
 
 /**
@@ -9,7 +9,7 @@ export class PropertyChangeAction implements PotatnoHistoryAction {
     public readonly description: string;
 
     private readonly mNewValue: string;
-    private readonly mNode: PotatnoNode;
+    private readonly mNode: PotatnoDocumentNode;
     private mOldValue: string;
     private readonly mPropertyName: string;
 
@@ -20,7 +20,7 @@ export class PropertyChangeAction implements PotatnoHistoryAction {
      * @param pPropertyName - The name of the property to change.
      * @param pNewValue - The new value for the property.
      */
-    public constructor(pNode: PotatnoNode, pPropertyName: string, pNewValue: string) {
+    public constructor(pNode: PotatnoDocumentNode, pPropertyName: string, pNewValue: string) {
         this.description = `Change property: ${pPropertyName}`;
         this.mNode = pNode;
         this.mPropertyName = pPropertyName;

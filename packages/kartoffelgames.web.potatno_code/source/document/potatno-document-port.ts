@@ -7,7 +7,7 @@ export class PotatnoDocumentPort {
     private readonly mConnectedPorts: Set<PotatnoDocumentPort>;
     private readonly mDirection: PotatnoDocumentPortDirection;
     private readonly mName: string;
-    private readonly mValueType: string;
+    private readonly mValueType: string | null;
     private readonly mPortType: PotatnoDocumentPortType;
 
     /**
@@ -42,7 +42,7 @@ export class PotatnoDocumentPort {
      * Get the data type of the port.
      */
     public get type(): string {
-        return this.mValueType;
+        return this.mValueType ?? '';
     }
 
     /**
@@ -53,12 +53,12 @@ export class PotatnoDocumentPort {
      * @param pPortType - Whether the port is a flow port or a value port.
      * @param pValueType - Data type of the port. Should be empty for flow ports and must be set for value ports.
      */
-    public constructor(pName: string, pDirection: PotatnoDocumentPortDirection, pPortType: PotatnoDocumentPortType, pValueType: string = '') {
+    public constructor(pName: string, pDirection: PotatnoDocumentPortDirection, pPortType: PotatnoDocumentPortType, pValueType: string | null) {
         // Validate port type and value type consistency.
-        if (pPortType === 'flow' && pValueType !== '') {
+        if (pPortType === 'flow' && pValueType !== null) {
             throw new Exception(`Flow ports cannot have a value type.`, this);
         }
-        if (pPortType === 'value' && pValueType === '') {
+        if (pPortType === 'value' && pValueType === null) {
             throw new Exception(`Value ports must have a value type.`, this);
         }
 

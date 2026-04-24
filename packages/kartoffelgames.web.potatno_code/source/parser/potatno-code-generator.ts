@@ -1,6 +1,6 @@
-import type { PotatnoFunction } from '../document/potatno-function.ts';
+import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
 import type { PotatnoGraph } from '../document/potatno-graph.ts';
-import type { PotatnoNode } from '../document/potatno-node.ts';
+import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
 import type { PotatnoFlowPort } from '../document/potatno-flow-port.ts';
 import { NodeCategory } from '../node/node-category.enum.ts';
 import { PortKind } from '../node/port-kind.enum.ts';
@@ -33,7 +33,7 @@ export class PotatnoCodeGenerator {
      *
      * @returns The generated code string without any metadata markers.
      */
-    public generateFunctionCode(pFunction: PotatnoFunction): string {
+    public generateFunctionCode(pFunction: PotatnoDocumentFunction): string {
         const lFuncDef: PotatnoFunctionDefinition = pFunction.definition;
         const lGraph: PotatnoGraph = pFunction.graph;
         const lBodyCode: string = this.generateGraphCode(lGraph);
@@ -77,10 +77,10 @@ export class PotatnoCodeGenerator {
      *
      * @returns The full code, the code function metadata, and a map of node intermediates.
      */
-    public generateFunctionCodeWithIntermediates(pFunction: PotatnoFunction, pPreviewNodeIds: Set<string>): FunctionCodeWithIntermediates {
+    public generateFunctionCodeWithIntermediates(pFunction: PotatnoDocumentFunction, pPreviewNodeIds: Set<string>): FunctionCodeWithIntermediates {
         const lFuncDef: PotatnoFunctionDefinition = pFunction.definition;
         const lGraph: PotatnoGraph = pFunction.graph;
-        const lNodes: Array<PotatnoNode> = this.topologicalSort(lGraph);
+        const lNodes: Array<PotatnoDocumentNode> = this.topologicalSort(lGraph);
         const lCodeParts: Array<string> = new Array<string>();
         const lNodeIntermediates: Map<string, NodeIntermediateData> = new Map();
 
@@ -196,7 +196,7 @@ export class PotatnoCodeGenerator {
      *
      * @returns The combined clean code string for all functions.
      */
-    public generateProjectCode(pFunctions: ReadonlyMap<string, PotatnoFunction>): string {
+    public generateProjectCode(pFunctions: ReadonlyMap<string, PotatnoDocumentFunction>): string {
         const lParts: Array<string> = new Array<string>();
 
         for (const lFunc of pFunctions.values()) {
@@ -214,7 +214,7 @@ export class PotatnoCodeGenerator {
      * @returns The generated body code string without metadata markers.
      */
     private generateGraphCode(pGraph: PotatnoGraph): string {
-        const lNodes: Array<PotatnoNode> = this.topologicalSort(pGraph);
+        const lNodes: Array<PotatnoDocumentNode> = this.topologicalSort(pGraph);
         const lCodeParts: Array<string> = new Array<string>();
 
         for (const lNode of lNodes) {
@@ -256,7 +256,7 @@ export class PotatnoCodeGenerator {
      * @returns The generated code for the flow chain.
      */
     private generateFlowBodyCode(pGraph: PotatnoGraph, pFlowPort: PotatnoFlowPort): string {
-        const lOwnerNode: PotatnoNode | null = this.findNodeByFlowPort(pGraph, pFlowPort);
+        const lOwnerNode: PotatnoDocumentNode | null = this.findNodeByFlowPort(pGraph, pFlowPort);
         if (!lOwnerNode) {
             return '';
         }
@@ -290,7 +290,7 @@ export class PotatnoCodeGenerator {
      *
      * @returns The constructed code node with populated ports and properties.
      */
-    private buildCodeNode(pGraph: PotatnoGraph, pNode: PotatnoNode): PotatnoCodeNode {
+    private buildCodeNode(pGraph: PotatnoGraph, pNode: PotatnoDocumentNode): PotatnoCodeNode {
         const lDefinition = this.mConfig.nodeDefinitions.get(pNode.definition.id);
         const lCodeGenerator = lDefinition?.codeGenerator ?? (() => '');
         const lCodeNode: PotatnoCodeNode = this.createNodeForCategory(pNode.category, lCodeGenerator);
@@ -357,9 +357,9 @@ export class PotatnoCodeGenerator {
      *
      * @returns The nodes in topological order.
      */
-    private topologicalSort(pGraph: PotatnoGraph): Array<PotatnoNode> {
+    private topologicalSort(pGraph: PotatnoGraph): Array<PotatnoDocumentNode> {
         const lVisited: Set<string> = new Set<string>();
-        const lResult: Array<PotatnoNode> = new Array<PotatnoNode>();
+        const lResult: Array<PotatnoDocumentNode> = new Array<PotatnoDocumentNode>();
 
         // Build adjacency: for each node, which nodes must come before it.
         const lDependencies: Map<string, Set<string>> = new Map<string, Set<string>>();
@@ -389,7 +389,7 @@ export class PotatnoCodeGenerator {
                 }
             }
 
-            const lNode: PotatnoNode | undefined = pGraph.getNode(pNodeId);
+            const lNode: PotatnoDocumentNode | undefined = pGraph.getNode(pNodeId);
             if (lNode) {
                 lResult.push(lNode);
             }
@@ -482,7 +482,7 @@ export class PotatnoCodeGenerator {
      *
      * @returns The node that owns the port, or null if not found.
      */
-    private findNodeByFlowPort(pGraph: PotatnoGraph, pFlowPort: PotatnoFlowPort): PotatnoNode | null {
+    private findNodeByFlowPort(pGraph: PotatnoGraph, pFlowPort: PotatnoFlowPort): PotatnoDocumentNode | null {
         for (const lNode of pGraph.nodes.values()) {
             for (const lPort of lNode.flowInputs.values()) {
                 if (lPort === pFlowPort) {

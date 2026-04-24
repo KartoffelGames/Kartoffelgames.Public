@@ -2,7 +2,7 @@ import { PortKind } from '../node/port-kind.enum.ts';
 import type { PotatnoNodeDefinition } from "../project/potatno-node-definition.ts";
 import { PotatnoConnection } from './potatno-connection.ts';
 import { PotatnoFlowPort } from './potatno-flow-port.ts';
-import { PotatnoNode } from './potatno-node.ts';
+import { PotatnoDocumentNode } from './potatno-document-node.ts';
 import { PotatnoDocumentPort } from './potatno-document-port.ts';
 
 /**
@@ -10,7 +10,7 @@ import { PotatnoDocumentPort } from './potatno-document-port.ts';
  */
 export class PotatnoGraph {
     private readonly mConnections: Map<string, PotatnoConnection>;
-    private readonly mNodes: Map<string, PotatnoNode>;
+    private readonly mNodes: Map<string, PotatnoDocumentNode>;
 
     /**
      * Read-only map of all connections in the graph.
@@ -22,7 +22,7 @@ export class PotatnoGraph {
     /**
      * Read-only map of all nodes in the graph.
      */
-    public get nodes(): ReadonlyMap<string, PotatnoNode> {
+    public get nodes(): ReadonlyMap<string, PotatnoDocumentNode> {
         return this.mNodes;
     }
 
@@ -30,7 +30,7 @@ export class PotatnoGraph {
      * Create an empty graph.
      */
     public constructor() {
-        this.mNodes = new Map<string, PotatnoNode>();
+        this.mNodes = new Map<string, PotatnoDocumentNode>();
         this.mConnections = new Map<string, PotatnoConnection>();
     }
 
@@ -39,8 +39,8 @@ export class PotatnoGraph {
      * Returns the connection or null if validation fails.
      */
     public addConnection(pSourceNodeId: string, pSourcePortId: string, pTargetNodeId: string, pTargetPortId: string, pKind: PortKind): PotatnoConnection | null {
-        const lSourceNode: PotatnoNode | undefined = this.mNodes.get(pSourceNodeId);
-        const lTargetNode: PotatnoNode | undefined = this.mNodes.get(pTargetNodeId);
+        const lSourceNode: PotatnoDocumentNode | undefined = this.mNodes.get(pSourceNodeId);
+        const lTargetNode: PotatnoDocumentNode | undefined = this.mNodes.get(pTargetNodeId);
 
         if (!lSourceNode || !lTargetNode) {
             return null;
@@ -114,9 +114,9 @@ export class PotatnoGraph {
     /**
      * Add a new node to the graph.
      */
-    public addNode(pDefinition: PotatnoNodeDefinition, pPosition: { x: number; y: number }, pSystem: boolean = false): PotatnoNode {
+    public addNode(pDefinition: PotatnoNodeDefinition, pPosition: { x: number; y: number }, pSystem: boolean = false): PotatnoDocumentNode {
         const lId: string = crypto.randomUUID();
-        const lNode: PotatnoNode = new PotatnoNode(lId, pDefinition, pPosition, pSystem);
+        const lNode: PotatnoDocumentNode = new PotatnoDocumentNode(lId, pDefinition, pPosition, pSystem);
         this.mNodes.set(lId, lNode);
         return lNode;
     }
@@ -124,7 +124,7 @@ export class PotatnoGraph {
     /**
      * Add a pre-constructed node directly (used for deserialization and undo).
      */
-    public addExistingNode(pNode: PotatnoNode): void {
+    public addExistingNode(pNode: PotatnoDocumentNode): void {
         this.mNodes.set(pNode.id, pNode);
     }
 
@@ -151,7 +151,7 @@ export class PotatnoGraph {
     /**
      * Get a node by ID.
      */
-    public getNode(pNodeId: string): PotatnoNode | undefined {
+    public getNode(pNodeId: string): PotatnoDocumentNode | undefined {
         return this.mNodes.get(pNodeId);
     }
 
@@ -236,7 +236,7 @@ export class PotatnoGraph {
     /**
      * Find a data port by its ID within a node.
      */
-    private findDataPortById(pNode: PotatnoNode, pPortId: string): PotatnoDocumentPort | null {
+    private findDataPortById(pNode: PotatnoDocumentNode, pPortId: string): PotatnoDocumentPort | null {
         for (const lPort of pNode.inputs.values()) {
             if (lPort.id === pPortId) {
                 return lPort;
@@ -253,7 +253,7 @@ export class PotatnoGraph {
     /**
      * Find a flow port by its ID within a node.
      */
-    private findFlowPortById(pNode: PotatnoNode, pPortId: string): PotatnoFlowPort | null {
+    private findFlowPortById(pNode: PotatnoDocumentNode, pPortId: string): PotatnoFlowPort | null {
         for (const lPort of pNode.flowInputs.values()) {
             if (lPort.id === pPortId) {
                 return lPort;

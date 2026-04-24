@@ -2,7 +2,6 @@ import type { PotatnoFunctionDefinition } from '../project/potatno-function-defi
 import { PotatnoNodeDefinition } from "../project/potatno-node-definition.ts";
 import { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from "./potatno-document-node.ts";
 import { PotatnoDocumentPort } from "./potatno-document-port.ts";
-import { PotatnoGraph } from './potatno-graph.ts';
 
 /**
  * Represents a user-editable function containing a sub-graph.

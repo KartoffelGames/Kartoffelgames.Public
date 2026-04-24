@@ -1,7 +1,5 @@
-import type { PotatnoNodeDefinitionPorts } from '../project/potatno-node-definition.ts';
-
 /**
- * Result of serializing a PotatnoCodeFile.
+ * Result of serializing a PotatnoDocument.
  * Contains the generated code and the metadata JSON object separately.
  */
 export type PotatnoCodeFileSerializationResult = {
@@ -22,65 +20,77 @@ export type PotatnoMetadata = {
  * Serialized representation of a function.
  */
 export type SerializedFunction = {
-    id: string;
-    name: string;
+    /** Display label of the function. */
     label: string;
+    /** Whether the function is system-defined and cannot be removed. */
     system: boolean;
-    editableByUser: boolean;
+    /** The id of the PotatnoFunctionDefinition this function was created from. */
     definitionId: string;
-    inputs: PotatnoNodeDefinitionPorts;
-    outputs: PotatnoNodeDefinitionPorts;
+    /** Serialized input port definitions for the function signature. */
+    inputs: Array<SerializedPortDefinition>;
+    /** Serialized output port definitions for the function signature. */
+    outputs: Array<SerializedPortDefinition>;
+    /** Import strings active for this function. */
     imports: Array<string>;
+    /** All nodes contained in this function's graph. */
     nodes: Array<SerializedNode>;
-    connections: Array<SerializedConnection>;
 };
 
 /**
- * Serialized representation of a node.
+ * Serialized port definition used for function-level I/O signatures.
+ */
+export type SerializedPortDefinition = {
+    /** Port name. */
+    name: string;
+    /** Whether the port carries a value or controls execution flow. */
+    portType: 'value' | 'flow';
+    /** Data type for value ports; null for flow ports. */
+    dataType: string | null;
+};
+
+/**
+ * Serialized representation of a node instance.
  */
 export type SerializedNode = {
-    id: string;
-    type: string;
-    category: string;
-    position: { x: number; y: number };
-    size: { w: number; h: number };
+    /**
+     * Temporary stable id generated during serialization.
+     * Used to reference this node from port connection data within the same JSON.
+     */
+    nodeId: string;
+    /** The id of the PotatnoNodeDefinition this node was instantiated from. */
+    definitionId: string;
+    /** User-set display name of the node. */
+    name: string;
+    /** Whether this is a system node that cannot be removed. */
     system: boolean;
-    properties: Record<string, string>;
-    inputs: Array<SerializedPort>;
-    outputs: Array<SerializedPort>;
-    flowInputs: Array<SerializedFlowPort>;
-    flowOutputs: Array<SerializedFlowPort>;
+    /** Grid position and size of the node. */
+    transformation: { x: number; y: number; width: number; height: number };
+    /** All ports of this node including their connection data. */
+    ports: Array<SerializedNodePort>;
 };
 
 /**
- * Serialized representation of a data port.
+ * Serialized representation of a single port on a node.
+ * Connection data is only stored on value-input and flow-output ports
+ * because those sides have at most one connection, which avoids duplication.
  */
-export type SerializedPort = {
+export type SerializedNodePort = {
+    /** Port name as registered on the node definition. */
     name: string;
-    type: string;
-    id: string;
-    valueId: string;
-    connectedTo?: string | null;
-};
-
-/**
- * Serialized representation of a flow port.
- */
-export type SerializedFlowPort = {
-    name: string;
-    id: string;
-    connectedTo?: string | null;
-};
-
-/**
- * Serialized representation of a connection.
- */
-export type SerializedConnection = {
-    id: string;
-    kind: string;
-    sourceNodeId: string;
-    sourcePortId: string;
-    targetNodeId: string;
-    targetPortId: string;
-    valid: boolean;
+    /** Whether the port receives or emits data / flow. */
+    direction: 'input' | 'output';
+    /** Whether the port carries a value or controls execution flow. */
+    portType: 'value' | 'flow';
+    /** Data type for value ports; null for flow ports. */
+    dataType: string | null;
+    /**
+     * The nodeId of the connected node.
+     * Present only on value-input and flow-output ports when a connection exists.
+     */
+    connectedToNodeId?: string | null;
+    /**
+     * The port name on the connected node.
+     * Present only on value-input and flow-output ports when a connection exists.
+     */
+    connectedToPortName?: string | null;
 };

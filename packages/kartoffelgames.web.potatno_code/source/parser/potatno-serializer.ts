@@ -2,197 +2,177 @@ import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { PotatnoDocument } from '../document/potatno-document.ts';
 import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
-import type { PotatnoConnection } from '../document/potatno-connection.ts';
-import { PotatnoCodeGenerator } from './potatno-code-generator.ts';
-import type { PotatnoCodeFileSerializationResult, PotatnoMetadata, SerializedFunction, SerializedNode, SerializedPort, SerializedFlowPort, SerializedConnection } from './potatno-serialization-types.ts';
+import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
+import type {
+    PotatnoCodeFileSerializationResult,
+    PotatnoMetadata,
+    SerializedFunction,
+    SerializedNode,
+    SerializedNodePort,
+    SerializedPortDefinition
+} from './potatno-serialization-types.ts';
 
 /**
- * Generates clean code and a separate JSON metadata object containing
- * the full graph structure for deserialization.
+ * Serializes a PotatnoDocument to a plain JSON metadata object.
+ *
+ * Node identity is ephemeral: stable nodeIds are generated fresh during each
+ * serialization pass using a local Map<PotatnoDocumentNode, string> and stored
+ * in the JSON so the deserializer can reconstruct connections without requiring
+ * an id property on the node class itself.
+ *
+ * Connection strategy: only value-input ports and flow-output ports store a
+ * connectedTo reference because those sides are limited to exactly one connection
+ * each, which avoids duplicating connection data in the JSON.
  */
 export class PotatnoSerializer {
-    private readonly mConfig: PotatnoProject;
+    private readonly mProject: PotatnoProject<any>;
 
     /**
      * Constructor.
      *
-     * @param pConfig - The editor configuration used to initialize the code generator.
+     * @param pProject - The project configuration.
      */
-    public constructor(pConfig: PotatnoProject) {
-        this.mConfig = pConfig;
+    public constructor(pProject: PotatnoProject<any>) {
+        this.mProject = pProject;
     }
 
     /**
-     * Serialize a code file to a result containing the generated code and metadata object.
+     * Serialize a complete PotatnoDocument.
      *
-     * @param pFile - The code file containing all functions to serialize.
+     * @param pDocument - The document to serialize.
      *
-     * @returns The serialization result with separate code and JSON metadata.
+     * @returns Serialization result containing the metadata JSON.
+     *          The code field is reserved for a separate code-generation step.
      */
-    public serialize(pFile: PotatnoDocument): PotatnoCodeFileSerializationResult {
-        const lGenerator: PotatnoCodeGenerator = new PotatnoCodeGenerator(this.mConfig);
-        const lCleanCode: string = lGenerator.generateProjectCode(pFile.functions);
-        const lMetadata: PotatnoMetadata = this.buildMetadata(pFile);
-
-        return { code: lCleanCode, json: lMetadata };
+    public serialize(pDocument: PotatnoDocument): PotatnoCodeFileSerializationResult {
+        const lMetadata: PotatnoMetadata = this.buildMetadata(pDocument);
+        return { code: '', json: lMetadata };
     }
 
-    /**
-     * Serialize a single function to a result containing the generated code and metadata object.
-     *
-     * @param pFunction - The function to serialize.
-     *
-     * @returns The serialization result for the function.
-     */
-    public serializeFunction(pFunction: PotatnoDocumentFunction): PotatnoCodeFileSerializationResult {
-        const lGenerator: PotatnoCodeGenerator = new PotatnoCodeGenerator(this.mConfig);
-        const lCleanCode: string = lGenerator.generateFunctionCode(pFunction);
-        const lMetadata: PotatnoMetadata = { functions: [this.serializeFunctionData(pFunction)] };
-
-        return { code: lCleanCode, json: lMetadata };
-    }
+    // ── Private helpers ────────────────────────────────────────────────────────
 
     /**
-     * Build the complete metadata object for a code file.
-     *
-     * @param pFile - The code file to extract metadata from.
-     *
-     * @returns The metadata structure containing all functions, nodes, and connections.
+     * Build the top-level metadata object.
      */
-    private buildMetadata(pFile: PotatnoDocument): PotatnoMetadata {
-        const lFunctions: Array<SerializedFunction> = new Array<SerializedFunction>();
+    private buildMetadata(pDocument: PotatnoDocument): PotatnoMetadata {
+        const lFunctions: Array<SerializedFunction> = [];
 
-        for (const lFunc of pFile.functions.values()) {
-            lFunctions.push(this.serializeFunctionData(lFunc));
+        for (const lFunc of pDocument.functions) {
+            lFunctions.push(this.serializeFunction(lFunc));
         }
 
         return { functions: lFunctions };
     }
 
     /**
-     * Serialize a single function's complete graph structure.
-     *
-     * @param pFunction - The function to serialize.
-     *
-     * @returns The serialized function data.
+     * Serialize a single function including all its nodes and port connections.
      */
-    private serializeFunctionData(pFunction: PotatnoDocumentFunction): SerializedFunction {
-        const lNodes: Array<SerializedNode> = new Array<SerializedNode>();
-        const lConnections: Array<SerializedConnection> = new Array<SerializedConnection>();
+    private serializeFunction(pFunction: PotatnoDocumentFunction): SerializedFunction {
+        // Build a temporary node → id map for this serialization pass.
+        const lNodeIdMap = new Map<PotatnoDocumentNode, string>();
+        let lCounter = 0;
+        for (const lNode of pFunction.nodes) {
+            lNodeIdMap.set(lNode, `node_${lCounter++}`);
+        }
 
         // Serialize all nodes.
-        for (const lNode of pFunction.graph.nodes.values()) {
-            lNodes.push(this.serializeNode(lNode));
+        const lNodes: Array<SerializedNode> = [];
+        for (const lNode of pFunction.nodes) {
+            const lNodeId: string = lNodeIdMap.get(lNode)!;
+            lNodes.push(this.serializeNode(lNode, lNodeId, lNodeIdMap));
         }
 
-        // Serialize all connections.
-        for (const lConnection of pFunction.graph.connections.values()) {
-            lConnections.push(this.serializeConnection(lConnection));
-        }
+        // Serialize function-signature ports.
+        const lInputs: Array<SerializedPortDefinition> = pFunction.inputs.map((pPort) => ({
+            name: pPort.name,
+            portType: pPort.portType,
+            dataType: pPort.portType === 'value' ? pPort.type : null
+        }));
+
+        const lOutputs: Array<SerializedPortDefinition> = pFunction.outputs.map((pPort) => ({
+            name: pPort.name,
+            portType: pPort.portType,
+            dataType: pPort.portType === 'value' ? pPort.type : null
+        }));
 
         return {
-            id: pFunction.id,
-            name: pFunction.name,
             label: pFunction.label,
             system: pFunction.system,
-            editableByUser: pFunction.editableByUser,
             definitionId: pFunction.definition.id,
-            inputs: { ...pFunction.inputs },
-            outputs: { ...pFunction.outputs },
-            imports: [...pFunction.imports],
-            nodes: lNodes,
-            connections: lConnections
-        };
-    }
-
-    /**
-     * Serialize a single node with all its port data and properties.
-     *
-     * @param pNode - The node to serialize.
-     *
-     * @returns The serialized node data.
-     */
-    private serializeNode(pNode: PotatnoDocumentNode): SerializedNode {
-        // Serialize input ports.
-        const lInputs: Array<SerializedPort> = new Array<SerializedPort>();
-        for (const [lName, lPort] of pNode.inputs) {
-            lInputs.push({
-                name: lName,
-                type: lPort.type,
-                id: lPort.id,
-                valueId: lPort.valueId,
-                connectedTo: lPort.connectedTo?.valueId ?? null
-            });
-        }
-
-        // Serialize output ports.
-        const lOutputs: Array<SerializedPort> = new Array<SerializedPort>();
-        for (const [lName, lPort] of pNode.outputs) {
-            lOutputs.push({
-                name: lName,
-                type: lPort.type,
-                id: lPort.id,
-                valueId: lPort.valueId
-            });
-        }
-
-        // Serialize flow input ports.
-        const lFlowInputs: Array<SerializedFlowPort> = new Array<SerializedFlowPort>();
-        for (const [lName, lPort] of pNode.flowInputs) {
-            lFlowInputs.push({
-                name: lName,
-                id: lPort.id,
-                connectedTo: lPort.connectedTo?.id ?? null
-            });
-        }
-
-        // Serialize flow output ports.
-        const lFlowOutputs: Array<SerializedFlowPort> = new Array<SerializedFlowPort>();
-        for (const [lName, lPort] of pNode.flowOutputs) {
-            lFlowOutputs.push({
-                name: lName,
-                id: lPort.id,
-                connectedTo: lPort.connectedTo?.id ?? null
-            });
-        }
-
-        // Serialize properties.
-        const lProperties: Record<string, string> = {};
-        for (const [lKey, lValue] of pNode.properties) {
-            lProperties[lKey] = lValue;
-        }
-
-        return {
-            id: pNode.id,
-            type: pNode.definition.id,
-            category: pNode.category,
-            position: pNode.position,
-            size: pNode.size,
-            system: pNode.system,
-            properties: lProperties,
             inputs: lInputs,
             outputs: lOutputs,
-            flowInputs: lFlowInputs,
-            flowOutputs: lFlowOutputs
+            imports: [...pFunction.imports],
+            nodes: lNodes
         };
     }
 
     /**
-     * Serialize a single connection.
-     *
-     * @param pConnection - The connection to serialize.
-     *
-     * @returns The serialized connection data.
+     * Serialize a single node with all its ports.
      */
-    private serializeConnection(pConnection: PotatnoConnection): SerializedConnection {
+    private serializeNode(pNode: PotatnoDocumentNode, pNodeId: string, pNodeIdMap: Map<PotatnoDocumentNode, string>): SerializedNode {
+        const lPorts: Array<SerializedNodePort> = [];
+
+        for (const lPort of pNode.inputs.values()) {
+            lPorts.push(this.serializePort(lPort, pNodeIdMap));
+        }
+
+        for (const lPort of pNode.outputs.values()) {
+            lPorts.push(this.serializePort(lPort, pNodeIdMap));
+        }
+
         return {
-            id: pConnection.id,
-            kind: pConnection.kind,
-            sourceNodeId: pConnection.sourceNode.id,
-            sourcePortId: pConnection.sourcePort.id,
-            targetNodeId: pConnection.targetNode.id,
-            targetPortId: pConnection.targetPort.id,
-            valid: pConnection.valid
+            nodeId: pNodeId,
+            definitionId: pNode.definition.id,
+            name: pNode.name,
+            system: pNode.system,
+            transformation: { ...pNode.transformation },
+            ports: lPorts
         };
+    }
+
+    /**
+     * Serialize a single port.
+     *
+     * Connection data is written only for value-input and flow-output ports
+     * because those are the constrained sides (at most one connection each).
+     * The opposite sides (value-output / flow-input) fan out to many partners
+     * and will be restored implicitly when the constrained sides are reconnected.
+     */
+    private serializePort(pPort: PotatnoDocumentPort, pNodeIdMap: Map<PotatnoDocumentNode, string>): SerializedNodePort {
+        const lSerialized: SerializedNodePort = {
+            name: pPort.name,
+            direction: pPort.direction,
+            portType: pPort.portType,
+            dataType: pPort.portType === 'value' ? pPort.type : null
+        };
+
+        const lShouldStoreConnection: boolean =
+            (pPort.portType === 'value' && pPort.direction === 'input') ||
+            (pPort.portType === 'flow' && pPort.direction === 'output');
+
+        if (lShouldStoreConnection && pPort.connectedPorts.size > 0) {
+            const lConnectedPort: PotatnoDocumentPort = [...pPort.connectedPorts][0];
+            const lConnectedNodeId: string | null = this.findNodeIdForPort(lConnectedPort, pNodeIdMap);
+
+            lSerialized.connectedToNodeId = lConnectedNodeId;
+            lSerialized.connectedToPortName = lConnectedNodeId !== null ? lConnectedPort.name : null;
+        }
+
+        return lSerialized;
+    }
+
+    /**
+     * Find the serialized nodeId for the node that owns the given port.
+     */
+    private findNodeIdForPort(pPort: PotatnoDocumentPort, pNodeIdMap: Map<PotatnoDocumentNode, string>): string | null {
+        for (const [lNode, lId] of pNodeIdMap) {
+            for (const lNodePort of [...lNode.inputs.values(), ...lNode.outputs.values()]) {
+                if (lNodePort === pPort) {
+                    return lId;
+                }
+            }
+        }
+
+        return null;
     }
 }

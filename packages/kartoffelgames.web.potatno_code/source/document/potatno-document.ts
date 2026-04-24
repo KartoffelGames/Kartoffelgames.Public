@@ -6,12 +6,12 @@ import type { PotatnoDocumentFunction } from './potatno-document-function.ts';
  * Contains all functions and their graphs.
  */
 export class PotatnoDocument {
-    private readonly mFunctions: Map<string, PotatnoDocumentFunction>;
+    private readonly mFunctions: Set<PotatnoDocumentFunction>;
 
     /**
-     * Get the read-only map of all functions in this file.
+     * Get the read-only set of all functions in this file.
      */
-    public get functions(): ReadonlyMap<string, PotatnoDocumentFunction> {
+    public get functions(): ReadonlySet<PotatnoDocumentFunction> {
         return this.mFunctions;
     }
 
@@ -19,7 +19,7 @@ export class PotatnoDocument {
      * Create an empty code file with no functions.
      */
     public constructor() {
-        this.mFunctions = new Map<string, PotatnoDocumentFunction>();
+        this.mFunctions = new Set<PotatnoDocumentFunction>();
     }
 
     /**
@@ -28,40 +28,28 @@ export class PotatnoDocument {
      * @param pFunction - The function to add.
      */
     public addFunction(pFunction: PotatnoDocumentFunction): void {
-        this.mFunctions.set(pFunction.id, pFunction);
+        this.mFunctions.add(pFunction);
     }
 
     /**
-     * Get a function by its identifier.
-     *
-     * @param pFunctionId - The identifier of the function to retrieve.
-     *
-     * @returns The function or undefined if not found.
-     */
-    public getFunction(pFunctionId: string): PotatnoDocumentFunction | undefined {
-        return this.mFunctions.get(pFunctionId);
-    }
-
-    /**
-     * Remove a function from the file by its identifier.
+     * Remove a function from the file.
      * System functions cannot be removed.
      *
-     * @param pFunctionId - The identifier of the function to remove.
+     * @param pFunction - The function to remove.
      *
      * @returns True if the function was removed, false otherwise.
      */
     public removeFunction(pFunction: PotatnoDocumentFunction): boolean {
-        const lFunc: PotatnoDocumentFunction | undefined = this.mFunctions.get(pFunction.id);
-        if(!lFunc) {
+        if (!this.mFunctions.has(pFunction)) {
             return false;
         }
 
         // Throw when function is a system function.
-        if (lFunc.system) {
-            throw new Exception(`Cannot remove system function with id ${pFunction.id}.`, this);
+        if (pFunction.system) {
+            throw new Exception(`Cannot remove a system function.`, this);
         }
 
-        this.mFunctions.delete(pFunction.id);
+        this.mFunctions.delete(pFunction);
         return true;
     }
 }

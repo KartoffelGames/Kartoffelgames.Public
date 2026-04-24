@@ -1,14 +1,15 @@
 import { Exception } from "../../../kartoffelgames.core/source/exception/exception.ts";
+import { PotatnoPortDefinitionDirection, PotatnoPortDefinitionType } from "../project/potatno-port-definition.ts";
 
 /**
  * A data port instance on a node.
  */
 export class PotatnoDocumentPort {
     private readonly mConnectedPorts: Set<PotatnoDocumentPort>;
-    private readonly mDirection: PotatnoDocumentPortDirection;
+    private readonly mDirection: PotatnoPortDefinitionDirection;
     private readonly mName: string;
     private readonly mValueType: string | null;
-    private readonly mPortType: PotatnoDocumentPortType;
+    private readonly mPortType: PotatnoPortDefinitionType;
 
     /**
      * The connected port.
@@ -20,7 +21,7 @@ export class PotatnoDocumentPort {
     /**
      * Get the direction of the port.
      */
-    public get direction(): PotatnoDocumentPortDirection {
+    public get direction(): PotatnoPortDefinitionDirection {
         return this.mDirection;
     }
 
@@ -34,7 +35,7 @@ export class PotatnoDocumentPort {
     /**
      * Get the type of the port.
      */
-    public get portType(): PotatnoDocumentPortType {
+    public get portType(): PotatnoPortDefinitionType {
         return this.mPortType;
     }
 
@@ -53,7 +54,7 @@ export class PotatnoDocumentPort {
      * @param pPortType - Whether the port is a flow port or a value port.
      * @param pValueType - Data type of the port. Should be empty for flow ports and must be set for value ports.
      */
-    public constructor(pName: string, pDirection: PotatnoDocumentPortDirection, pPortType: PotatnoDocumentPortType, pValueType: string | null) {
+    public constructor(pName: string, pDirection: PotatnoPortDefinitionDirection, pPortType: PotatnoPortDefinitionType, pValueType: string | null) {
         // Validate port type and value type consistency.
         if (pPortType === 'flow' && pValueType !== null) {
             throw new Exception(`Flow ports cannot have a value type.`, this);
@@ -135,6 +136,3 @@ export class PotatnoDocumentPort {
         pPort.disconnect(this);
     }
 }
-
-export type PotatnoDocumentPortDirection = 'input' | 'output';
-export type PotatnoDocumentPortType = 'value' | 'flow';

@@ -55,3 +55,4 @@ export class PotatnoPortDefinition<TProjectType extends PotatnoProjectType = Pot
 }
 
 export type PotatnoPortDefinitionType = 'flow' | 'value';
+export type PotatnoPortDefinitionDirection = 'input' | 'output';

@@ -1,18 +1,9 @@
-/**
- * Result of serializing a PotatnoDocument.
- * Contains the generated code and the metadata JSON object separately.
- */
-export type PotatnoCodeFileSerializationResult = {
-    /** The generated code string. */
-    code: string;
-    /** The metadata JSON object containing all graph structure data. */
-    json: PotatnoMetadata;
-};
+import { PotatnoPortDefinitionType } from "../project/potatno-port-definition.ts";
 
 /**
  * Top-level metadata structure for serialization.
  */
-export type PotatnoMetadata = {
+export type PotatnoCodeFileSerializationResult = {
     functions: Array<SerializedFunction>;
 };
 
@@ -43,7 +34,7 @@ export type SerializedPortDefinition = {
     /** Port name. */
     name: string;
     /** Whether the port carries a value or controls execution flow. */
-    portType: 'value' | 'flow';
+    portType: PotatnoPortDefinitionType;
     /** Data type for value ports; null for flow ports. */
     dataType: string | null;
 };
@@ -56,7 +47,7 @@ export type SerializedNode = {
      * Temporary stable id generated during serialization.
      * Used to reference this node from port connection data within the same JSON.
      */
-    nodeId: string;
+    id: string;
     /** The id of the PotatnoNodeDefinition this node was instantiated from. */
     definitionId: string;
     /** User-set display name of the node. */
@@ -80,7 +71,7 @@ export type SerializedNodePort = {
     /** Whether the port receives or emits data / flow. */
     direction: 'input' | 'output';
     /** Whether the port carries a value or controls execution flow. */
-    portType: 'value' | 'flow';
+    portType: PotatnoPortDefinitionType;
     /** Data type for value ports; null for flow ports. */
     dataType: string | null;
     /**

@@ -4,7 +4,7 @@ import { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import { PotatnoDocument } from '../document/potatno-document.ts';
 import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
-import type { PotatnoMetadata, SerializedFunction, SerializedNode, SerializedPortDefinition } from './potatno-serialization-types.ts';
+import type { PotatnoCodeFileSerializationResult, SerializedFunction, SerializedNode, SerializedPortDefinition } from './potatno-serialization-types.ts';
 
 /**
  * Reconstructs a PotatnoDocument from a PotatnoMetadata object produced by PotatnoSerializer.
@@ -38,7 +38,7 @@ export class PotatnoDeserializer {
      *
      * @returns The fully reconstructed document.
      */
-    public deserialize(pData: PotatnoMetadata): PotatnoDocument {
+    public deserialize(pData: PotatnoCodeFileSerializationResult): PotatnoDocument {
         const lDocument: PotatnoDocument = new PotatnoDocument();
 
         for (const lFuncData of pData.functions) {
@@ -75,7 +75,7 @@ export class PotatnoDeserializer {
         const lNodeMap: Map<string, PotatnoDocumentNode> = new Map();
         for (const lNodeData of pData.nodes) {
             const lNode: PotatnoDocumentNode = this.deserializeNode(lNodeData);
-            lNodeMap.set(lNodeData.nodeId, lNode);
+            lNodeMap.set(lNodeData.id, lNode);
             lFunc.addNode(lNode);
         }
 
@@ -111,7 +111,7 @@ export class PotatnoDeserializer {
      */
     private restoreConnections(pNodes: Array<SerializedNode>, pNodeMap: Map<string, PotatnoDocumentNode>): void {
         for (const lNodeData of pNodes) {
-            const lSourceNode: PotatnoDocumentNode | undefined = pNodeMap.get(lNodeData.nodeId);
+            const lSourceNode: PotatnoDocumentNode | undefined = pNodeMap.get(lNodeData.id);
             if (!lSourceNode) {
                 continue;
             }

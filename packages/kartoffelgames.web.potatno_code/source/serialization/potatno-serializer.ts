@@ -1,16 +1,8 @@
-import type { PotatnoProject } from '../project/potatno-project.ts';
-import type { PotatnoDocument } from '../document/potatno-document.ts';
 import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
-import type {
-    PotatnoCodeFileSerializationResult,
-    PotatnoMetadata,
-    SerializedFunction,
-    SerializedNode,
-    SerializedNodePort,
-    SerializedPortDefinition
-} from './potatno-serialization-types.ts';
+import type { PotatnoDocument } from '../document/potatno-document.ts';
+import type { PotatnoCodeFileSerializationResult, SerializedFunction, SerializedNode, SerializedNodePort, SerializedPortDefinition } from '../serialization/potatno-serialization-types.ts';
 
 /**
  * Serializes a PotatnoDocument to a plain JSON metadata object.
@@ -25,16 +17,10 @@ import type {
  * each, which avoids duplicating connection data in the JSON.
  */
 export class PotatnoSerializer {
-    private readonly mProject: PotatnoProject<any>;
-
     /**
      * Constructor.
-     *
-     * @param pProject - The project configuration.
      */
-    public constructor(pProject: PotatnoProject<any>) {
-        this.mProject = pProject;
-    }
+    public constructor() { }
 
     /**
      * Serialize a complete PotatnoDocument.
@@ -45,20 +31,10 @@ export class PotatnoSerializer {
      *          The code field is reserved for a separate code-generation step.
      */
     public serialize(pDocument: PotatnoDocument): PotatnoCodeFileSerializationResult {
-        const lMetadata: PotatnoMetadata = this.buildMetadata(pDocument);
-        return { code: '', json: lMetadata };
-    }
-
-    // ── Private helpers ────────────────────────────────────────────────────────
-
-    /**
-     * Build the top-level metadata object.
-     */
-    private buildMetadata(pDocument: PotatnoDocument): PotatnoMetadata {
         const lFunctions: Array<SerializedFunction> = [];
 
-        for (const lFunc of pDocument.functions) {
-            lFunctions.push(this.serializeFunction(lFunc));
+        for (const lFunction of pDocument.functions) {
+            lFunctions.push(this.serializeFunction(lFunction));
         }
 
         return { functions: lFunctions };
@@ -68,11 +44,11 @@ export class PotatnoSerializer {
      * Serialize a single function including all its nodes and port connections.
      */
     private serializeFunction(pFunction: PotatnoDocumentFunction): SerializedFunction {
-        // Build a temporary node → id map for this serialization pass.
+        // Build a temporary node to id map for this serialization pass.
         const lNodeIdMap = new Map<PotatnoDocumentNode, string>();
         let lCounter = 0;
         for (const lNode of pFunction.nodes) {
-            lNodeIdMap.set(lNode, `node_${lCounter++}`);
+            lNodeIdMap.set(lNode, `n${lCounter++}`);
         }
 
         // Serialize all nodes.
@@ -110,18 +86,13 @@ export class PotatnoSerializer {
      * Serialize a single node with all its ports.
      */
     private serializeNode(pNode: PotatnoDocumentNode, pNodeId: string, pNodeIdMap: Map<PotatnoDocumentNode, string>): SerializedNode {
-        const lPorts: Array<SerializedNodePort> = [];
-
-        for (const lPort of pNode.inputs.values()) {
-            lPorts.push(this.serializePort(lPort, pNodeIdMap));
-        }
-
-        for (const lPort of pNode.outputs.values()) {
-            lPorts.push(this.serializePort(lPort, pNodeIdMap));
-        }
+        // Serialize all ports and their connection data.
+        const lPorts: Array<SerializedNodePort> = [...pNode.inputs.values(), ...pNode.outputs.values()].map((pPort) => {
+            return this.serializePort(pPort, pNodeIdMap);
+        });
 
         return {
-            nodeId: pNodeId,
+            id: pNodeId,
             definitionId: pNode.definition.id,
             name: pNode.name,
             system: pNode.system,

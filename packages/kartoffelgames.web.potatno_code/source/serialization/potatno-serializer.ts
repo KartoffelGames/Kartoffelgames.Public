@@ -2,19 +2,18 @@ import type { PotatnoDocumentFunction } from '../document/potatno-document-funct
 import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import type { PotatnoDocument } from '../document/potatno-document.ts';
-import type { PotatnoCodeFileSerializationResult, SerializedFunction, SerializedNode, SerializedNodePort, SerializedPortDefinition } from '../serialization/potatno-serialization-types.ts';
+import type { PotatnoCodeFileSerializationResult, SerializedConnection, SerializedFunction, SerializedNode, SerializedNodePort, SerializedPortDefinition } from '../serialization/potatno-serialization-types.ts';
 
 /**
  * Serializes a PotatnoDocument to a plain JSON metadata object.
  *
  * Node identity is ephemeral: stable nodeIds are generated fresh during each
  * serialization pass using a local Map<PotatnoDocumentNode, string> and stored
- * in the JSON so the deserializer can reconstruct connections without requiring
- * an id property on the node class itself.
+ * in the JSON so the deserializer can reconstruct connections.
  *
- * Connection strategy: only value-input ports and flow-output ports store a
- * connectedTo reference because those sides are limited to exactly one connection
- * each, which avoids duplicating connection data in the JSON.
+ * Connection strategy: all connections are stored as a flat list on the function
+ * using source (output) → target (input) references. Both endpoints are stored
+ * explicitly for stability.
  */
 export class PotatnoSerializer {
     /**
@@ -31,13 +30,12 @@ export class PotatnoSerializer {
      *          The code field is reserved for a separate code-generation step.
      */
     public serialize(pDocument: PotatnoDocument): PotatnoCodeFileSerializationResult {
-        const lFunctions: Array<SerializedFunction> = [];
-
-        for (const lFunction of pDocument.functions) {
-            lFunctions.push(this.serializeFunction(lFunction));
-        }
-
-        return { functions: lFunctions };
+        // Serialize all functions in the document.
+        return {
+            functions: [...pDocument.functions].map((pFunction) => {
+                return this.serializeFunction(pFunction);
+            })
+        };
     }
 
     /**
@@ -46,16 +44,39 @@ export class PotatnoSerializer {
     private serializeFunction(pFunction: PotatnoDocumentFunction): SerializedFunction {
         // Build a temporary node to id map for this serialization pass.
         const lNodeIdMap = new Map<PotatnoDocumentNode, string>();
-        let lCounter = 0;
-        for (const lNode of pFunction.nodes) {
-            lNodeIdMap.set(lNode, `n${lCounter++}`);
-        }
+
+        // Assign stable nodeIds based on the order of nodes in the function's graph.
+        [...pFunction.nodes].forEach((pNode, pIndex) => {
+            lNodeIdMap.set(pNode, `n${pIndex}`);
+        });
 
         // Serialize all nodes.
-        const lNodes: Array<SerializedNode> = [];
+        const lNodes: Array<SerializedNode> = [...pFunction.nodes].map((pNode) => {
+            return this.serializeNode(pNode, lNodeIdMap.get(pNode)!);
+        });
+
+        // Collect all connections by iterating output ports on every node.
+        // Each connection is stored once: source (output) → target (input).
+        const lConnections: Array<SerializedConnection> = [];
         for (const lNode of pFunction.nodes) {
-            const lNodeId: string = lNodeIdMap.get(lNode)!;
-            lNodes.push(this.serializeNode(lNode, lNodeId, lNodeIdMap));
+            // Get the source nodeId from the temporary map.
+            const lSourceNodeId: string = lNodeIdMap.get(lNode)!;
+
+            // Iterate all output ports and their connected ports to build connection data.
+            for (const lOutputPort of lNode.outputs.values()) {
+                // Each connected port is a target (input) port. Find the target nodeId from the temporary map.
+                for (const lConnectedPort of lOutputPort.connectedPorts) {
+                    // Find the target nodeId from the temporary map.
+                    const lTargetNodeId: string = lNodeIdMap.get(lConnectedPort.node)!;
+
+                    lConnections.push({
+                        sourceNodeId: lSourceNodeId,
+                        sourcePortName: lOutputPort.name,
+                        targetNodeId: lTargetNodeId,
+                        targetPortName: lConnectedPort.name
+                    });
+                }
+            }
         }
 
         // Serialize function-signature ports.
@@ -73,77 +94,34 @@ export class PotatnoSerializer {
 
         return {
             label: pFunction.label,
-            system: pFunction.system,
+            isSystem: pFunction.isSystem,
             definitionId: pFunction.definition.id,
             inputs: lInputs,
             outputs: lOutputs,
             imports: [...pFunction.imports],
-            nodes: lNodes
+            nodes: lNodes,
+            connections: lConnections
         };
     }
 
     /**
      * Serialize a single node with all its ports.
      */
-    private serializeNode(pNode: PotatnoDocumentNode, pNodeId: string, pNodeIdMap: Map<PotatnoDocumentNode, string>): SerializedNode {
-        // Serialize all ports and their connection data.
-        const lPorts: Array<SerializedNodePort> = [...pNode.inputs.values(), ...pNode.outputs.values()].map((pPort) => {
-            return this.serializePort(pPort, pNodeIdMap);
-        });
+    private serializeNode(pNode: PotatnoDocumentNode, pNodeId: string): SerializedNode {
+        const lPorts: Array<SerializedNodePort> = [...pNode.inputs.values(), ...pNode.outputs.values()].map((pPort) => ({
+            name: pPort.name,
+            direction: pPort.direction,
+            portType: pPort.portType,
+            dataType: pPort.portType === 'value' ? pPort.type : null
+        }));
 
         return {
             id: pNodeId,
             definitionId: pNode.definition.id,
             name: pNode.name,
-            system: pNode.system,
+            isSystem: pNode.isSystem,
             transformation: { ...pNode.transformation },
             ports: lPorts
         };
-    }
-
-    /**
-     * Serialize a single port.
-     *
-     * Connection data is written only for value-input and flow-output ports
-     * because those are the constrained sides (at most one connection each).
-     * The opposite sides (value-output / flow-input) fan out to many partners
-     * and will be restored implicitly when the constrained sides are reconnected.
-     */
-    private serializePort(pPort: PotatnoDocumentPort, pNodeIdMap: Map<PotatnoDocumentNode, string>): SerializedNodePort {
-        const lSerialized: SerializedNodePort = {
-            name: pPort.name,
-            direction: pPort.direction,
-            portType: pPort.portType,
-            dataType: pPort.portType === 'value' ? pPort.type : null
-        };
-
-        const lShouldStoreConnection: boolean =
-            (pPort.portType === 'value' && pPort.direction === 'input') ||
-            (pPort.portType === 'flow' && pPort.direction === 'output');
-
-        if (lShouldStoreConnection && pPort.connectedPorts.size > 0) {
-            const lConnectedPort: PotatnoDocumentPort = [...pPort.connectedPorts][0];
-            const lConnectedNodeId: string | null = this.findNodeIdForPort(lConnectedPort, pNodeIdMap);
-
-            lSerialized.connectedToNodeId = lConnectedNodeId;
-            lSerialized.connectedToPortName = lConnectedNodeId !== null ? lConnectedPort.name : null;
-        }
-
-        return lSerialized;
-    }
-
-    /**
-     * Find the serialized nodeId for the node that owns the given port.
-     */
-    private findNodeIdForPort(pPort: PotatnoDocumentPort, pNodeIdMap: Map<PotatnoDocumentNode, string>): string | null {
-        for (const [lNode, lId] of pNodeIdMap) {
-            for (const lNodePort of [...lNode.inputs.values(), ...lNode.outputs.values()]) {
-                if (lNodePort === pPort) {
-                    return lId;
-                }
-            }
-        }
-
-        return null;
     }
 }

@@ -35,7 +35,7 @@ export class PotatnoClipboard {
 
         for (const lNodeId of pSelectedNodeIds) {
             const lNode: PotatnoDocumentNode | undefined = pGraph.getNode(lNodeId);
-            if (lNode && !lNode.system) {
+            if (lNode && !lNode.isSystem) {
                 lNodeIndexMap.set(lNode.id, lSelectedNodes.length);
                 lSelectedNodes.push(lNode);
             }

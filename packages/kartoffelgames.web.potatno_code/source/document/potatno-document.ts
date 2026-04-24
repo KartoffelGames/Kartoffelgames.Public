@@ -45,7 +45,7 @@ export class PotatnoDocument {
         }
 
         // Throw when function is a system function.
-        if (pFunction.system) {
+        if (pFunction.isSystem) {
             throw new Exception(`Cannot remove a system function.`, this);
         }
 

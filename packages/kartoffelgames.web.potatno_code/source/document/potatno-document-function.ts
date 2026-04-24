@@ -8,7 +8,7 @@ import { PotatnoDocumentPort } from "./potatno-document-port.ts";
  */
 export class PotatnoDocumentFunction {
     private readonly mDefinition: PotatnoFunctionDefinition;
-    private readonly mSystem: boolean;
+    private readonly mIsSystem: boolean;
     private readonly mImports: Array<string>;
     private readonly mInputs: Array<PotatnoDocumentPort>;
     private mLabel: string;
@@ -62,8 +62,8 @@ export class PotatnoDocumentFunction {
     /**
      * Get whether the function is a system-defined function.
      */
-    public get system(): boolean {
-        return this.mSystem;
+    public get isSystem(): boolean {
+        return this.mIsSystem;
     }
 
     /**
@@ -71,11 +71,11 @@ export class PotatnoDocumentFunction {
      *
      * @param pDefinition - The function definition this function was created from.
      * @param pLabel - Display label of the function.
-     * @param pSystem - Whether the function is a system-defined function.
+     * @param pIsSystem - Whether the function is a system-defined function.
      */
-    public constructor(pDefinition: PotatnoFunctionDefinition, pLabel: string, pSystem: boolean) {
+    public constructor(pDefinition: PotatnoFunctionDefinition, pLabel: string, pIsSystem: boolean) {
         this.mLabel = pLabel;
-        this.mSystem = pSystem;
+        this.mIsSystem = pIsSystem;
         this.mDefinition = pDefinition;
         this.mNodes = new Set<PotatnoDocumentNode>();
         this.mInputs = new Array<PotatnoDocumentPort>();
@@ -97,7 +97,6 @@ export class PotatnoDocumentFunction {
     /**
      * Add an input port definition to the function.
      *
-     * @param pName - The port name.
      * @param pPort - The port definition.
      */
     public addInput(pPort: PotatnoDocumentPort): void {
@@ -112,7 +111,6 @@ export class PotatnoDocumentFunction {
     /**
      * Add an output port definition to the function.
      *
-     * @param pName - The port name.
      * @param pPort - The port definition.
      */
     public addOutput(pPort: PotatnoDocumentPort): void {
@@ -125,7 +123,9 @@ export class PotatnoDocumentFunction {
     }
 
     /**
-     * Add a pre-constructed node directly (used for deserialization and undo).
+     * Add a pre-constructed node directly.
+     * 
+     * @param pNode - The node to add.
      */
     public addNode(pNode: PotatnoDocumentNode): void {
         this.mNodes.add(pNode);

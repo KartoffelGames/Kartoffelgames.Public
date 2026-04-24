@@ -452,7 +452,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
         // Check if it's a user-defined function rather than a built-in node definition.
         if (!lDefinition) {
             for (const lFunc of lFile.functions.values()) {
-                if (lFunc.name === lDefName && !lFunc.system) {
+                if (lFunc.name === lDefName && !lFunc.isSystem) {
                     lDefinition = PotatnoNodeDefinition.create({
                         id: lFunc.name,
                         category: NodeCategory.Function,
@@ -1317,7 +1317,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
         const lActions: Array<PotatnoHistoryAction> = [];
         for (const lNodeId of this.mSelectedIds) {
             const lNode: PotatnoDocumentNode | undefined = lGraph.getNode(lNodeId);
-            if (lNode && !lNode.system) {
+            if (lNode && !lNode.isSystem) {
                 lActions.push(new NodeRemoveAction(lGraph, lNodeId));
             }
         }
@@ -1782,7 +1782,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
         // Add user-defined (non-system) functions as callable nodes.
         if (lFile) {
             for (const lFunc of lFile.functions.values()) {
-                if (!lFunc.system) {
+                if (!lFunc.isSystem) {
                     lNodeDefs.push({ name: lFunc.name, category: NodeCategory.Function });
                 }
             }
@@ -1793,7 +1793,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
         const lFuncs: Array<{ id: string; name: string; label: string; system: boolean; }> = [];
         if (lFile) {
             for (const lFunc of lFile.functions.values()) {
-                lFuncs.push({ id: lFunc.id, name: lFunc.name, label: lFunc.label, system: lFunc.system });
+                lFuncs.push({ id: lFunc.id, name: lFunc.name, label: lFunc.label, system: lFunc.isSystem });
             }
         }
         lCached.functionList = lFuncs;
@@ -1838,7 +1838,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
         // Active function data.
         const lActiveFunc: PotatnoDocumentFunction | undefined = lFile?.getFunction(this.mActiveFunctionId);
         lCached.activeFunctionName = lActiveFunc?.name ?? '';
-        lCached.activeFunctionIsSystem = lActiveFunc?.system ?? false;
+        lCached.activeFunctionIsSystem = lActiveFunc?.isSystem ?? false;
         lCached.activeFunctionEditableByUser = lActiveFunc?.editableByUser ?? false;
         lCached.activeFunctionInputs = lActiveFunc ? Object.entries(lActiveFunc.inputs).map(([lName, lPort]) => ({ name: lName, type: lPort.portType === 'value' || lPort.portType === 'input' ? lPort.dataType : '' })) : [];
         lCached.activeFunctionOutputs = lActiveFunc ? Object.entries(lActiveFunc.outputs).map(([lName, lPort]) => ({ name: lName, type: lPort.portType === 'value' || lPort.portType === 'input' ? lPort.dataType : '' })) : [];
@@ -2069,7 +2069,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
         // Find the entry point function (system function).
         let lEntryFunction: PotatnoDocumentFunction | undefined;
         for (const lFunc of lFile.functions.values()) {
-            if (lFunc.system) {
+            if (lFunc.isSystem) {
                 lEntryFunction = lFunc;
                 break;
             }

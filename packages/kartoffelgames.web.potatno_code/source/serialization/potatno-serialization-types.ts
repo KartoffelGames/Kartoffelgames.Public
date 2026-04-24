@@ -1,4 +1,4 @@
-import { PotatnoPortDefinitionType } from "../project/potatno-port-definition.ts";
+import { PotatnoPortDefinitionDirection, PotatnoPortDefinitionType } from "../project/potatno-port-definition.ts";
 
 /**
  * Top-level metadata structure for serialization.
@@ -11,31 +11,64 @@ export type PotatnoCodeFileSerializationResult = {
  * Serialized representation of a function.
  */
 export type SerializedFunction = {
-    /** Display label of the function. */
+    /** 
+     * Display label of the function. 
+     */
     label: string;
-    /** Whether the function is system-defined and cannot be removed. */
-    system: boolean;
-    /** The id of the PotatnoFunctionDefinition this function was created from. */
+
+    /** 
+     * Whether the function is system-defined and cannot be removed. 
+     */
+    isSystem: boolean;
+
+    /** 
+     * The id of the PotatnoFunctionDefinition this function was created from. 
+     */
     definitionId: string;
-    /** Serialized input port definitions for the function signature. */
+
+    /** 
+     * Serialized input port definitions for the function signature. 
+     */
     inputs: Array<SerializedPortDefinition>;
-    /** Serialized output port definitions for the function signature. */
+
+    /** 
+     * Serialized output port definitions for the function signature. 
+     */
     outputs: Array<SerializedPortDefinition>;
-    /** Import strings active for this function. */
+
+    /** 
+     * Import strings active for this function. 
+     */
     imports: Array<string>;
-    /** All nodes contained in this function's graph. */
+
+    /** 
+     * All nodes contained in this function's graph. 
+     */
     nodes: Array<SerializedNode>;
+
+    /** 
+     * All port connections within this function's graph. 
+     */
+    connections: Array<SerializedConnection>;
 };
 
 /**
  * Serialized port definition used for function-level I/O signatures.
  */
 export type SerializedPortDefinition = {
-    /** Port name. */
+    /**
+     *  Port name. 
+     */
     name: string;
-    /** Whether the port carries a value or controls execution flow. */
+
+    /** 
+     * Whether the port carries a value or controls execution flow. 
+     */
     portType: PotatnoPortDefinitionType;
-    /** Data type for value ports; null for flow ports. */
+
+    /** 
+     * Data type for value ports; null for flow ports.
+     */
     dataType: string | null;
 };
 
@@ -48,40 +81,80 @@ export type SerializedNode = {
      * Used to reference this node from port connection data within the same JSON.
      */
     id: string;
-    /** The id of the PotatnoNodeDefinition this node was instantiated from. */
+
+    /** 
+     * The id of the PotatnoNodeDefinition this node was instantiated from. 
+     */
     definitionId: string;
-    /** User-set display name of the node. */
+
+    /**
+     * User-set display name of the node.
+      */
     name: string;
-    /** Whether this is a system node that cannot be removed. */
-    system: boolean;
-    /** Grid position and size of the node. */
-    transformation: { x: number; y: number; width: number; height: number };
-    /** All ports of this node including their connection data. */
+
+    /**
+     * Whether this is a system node that cannot be removed. 
+     */
+    isSystem: boolean;
+
+    /**
+     * Grid position and size of the node. 
+     */
+    transformation: { x: number; y: number; width: number; height: number; };
+
+    /** 
+     * All ports of this node including their connection data.
+     */
     ports: Array<SerializedNodePort>;
 };
 
 /**
  * Serialized representation of a single port on a node.
- * Connection data is only stored on value-input and flow-output ports
- * because those sides have at most one connection, which avoids duplication.
  */
 export type SerializedNodePort = {
-    /** Port name as registered on the node definition. */
+    /** 
+     * Port name as registered on the node definition. 
+     */
     name: string;
-    /** Whether the port receives or emits data / flow. */
-    direction: 'input' | 'output';
-    /** Whether the port carries a value or controls execution flow. */
+
+    /** 
+     * Whether the port receives or emits data / flow. 
+     */
+    direction: PotatnoPortDefinitionDirection;
+
+    /** 
+     * Whether the port carries a value or controls execution flow. 
+     */
     portType: PotatnoPortDefinitionType;
-    /** Data type for value ports; null for flow ports. */
+
+    /** 
+     * Data type for value ports; null for flow ports. 
+     */
     dataType: string | null;
-    /**
-     * The nodeId of the connected node.
-     * Present only on value-input and flow-output ports when a connection exists.
+};
+
+/**
+ * A single connection between two ports within a function's graph.
+ * The source is always the output side, the target is always the input side.
+ */
+export type SerializedConnection = {
+    /** 
+     * NodeId of the node that owns the output port. 
      */
-    connectedToNodeId?: string | null;
-    /**
-     * The port name on the connected node.
-     * Present only on value-input and flow-output ports when a connection exists.
+    sourceNodeId: string;
+
+    /** 
+     * Port name on the source node. 
      */
-    connectedToPortName?: string | null;
+    sourcePortName: string;
+
+    /** 
+     * NodeId of the node that owns the input port. 
+     */
+    targetNodeId: string;
+
+    /** 
+     * Port name on the target node. 
+     */
+    targetPortName: string;
 };

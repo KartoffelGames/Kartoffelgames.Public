@@ -1,5 +1,6 @@
-import { Exception } from "../../../kartoffelgames.core/source/exception/exception.ts";
+import { Exception } from "@kartoffelgames/core";
 import { PotatnoPortDefinitionDirection, PotatnoPortDefinitionType } from "../project/potatno-port-definition.ts";
+import { PotatnoDocumentNode } from "./potatno-document-node.ts";
 
 /**
  * A data port instance on a node.
@@ -10,6 +11,7 @@ export class PotatnoDocumentPort {
     private readonly mName: string;
     private readonly mValueType: string | null;
     private readonly mPortType: PotatnoPortDefinitionType;
+    private readonly mNode: PotatnoDocumentNode;
 
     /**
      * The connected port.
@@ -30,6 +32,13 @@ export class PotatnoDocumentPort {
      */
     public get name(): string {
         return this.mName;
+    }
+
+    /**
+     * Get the node this port belongs to.
+     */
+    public get node(): PotatnoDocumentNode {
+        return this.mNode;
     }
 
     /**
@@ -54,7 +63,7 @@ export class PotatnoDocumentPort {
      * @param pPortType - Whether the port is a flow port or a value port.
      * @param pValueType - Data type of the port. Should be empty for flow ports and must be set for value ports.
      */
-    public constructor(pName: string, pDirection: PotatnoPortDefinitionDirection, pPortType: PotatnoPortDefinitionType, pValueType: string | null) {
+    public constructor(pNode: PotatnoDocumentNode, pName: string, pDirection: PotatnoPortDefinitionDirection, pPortType: PotatnoPortDefinitionType, pValueType: string | null) {
         // Validate port type and value type consistency.
         if (pPortType === 'flow' && pValueType !== null) {
             throw new Exception(`Flow ports cannot have a value type.`, this);
@@ -63,6 +72,7 @@ export class PotatnoDocumentPort {
             throw new Exception(`Value ports must have a value type.`, this);
         }
 
+        this.mNode = pNode;
         this.mName = pName;
         this.mValueType = pValueType;
         this.mDirection = pDirection;
@@ -85,17 +95,17 @@ export class PotatnoDocumentPort {
 
         // Validate that the ports can be connected by port type.
         if (this.mPortType !== pPort.portType) {
-            throw new Exception(`Cannot connect port ${this.mName} to port ${pPort.mName} due to incompatible port types.`, this);
+            throw new Exception(`Cannot connect port ${this.mName} of node ${this.mNode.name} to port ${pPort.mName} of node ${pPort.node.name} due to incompatible port types.`, this);
         }
 
         // Validate that the ports can be connected by direction.
         if (this.mDirection === pPort.direction) {
-            throw new Exception(`Cannot connect port ${this.mName} to port ${pPort.mName} due to incompatible directions.`, this);
+            throw new Exception(`Cannot connect port ${this.mName} of node ${this.mNode.name} to port ${pPort.mName} of node ${pPort.node.name} due to incompatible directions.`, this);
         }
 
         // Validate that the ports can be connected by value type if they are value ports.
         if (this.mPortType === 'value' && this.mValueType !== pPort.type) {
-            throw new Exception(`Cannot connect port ${this.mName} to port ${pPort.mName} due to incompatible value types.`, this);
+            throw new Exception(`Cannot connect port ${this.mName} of node ${this.mNode.name} to port ${pPort.mName} of node ${pPort.node.name} due to incompatible value types.`, this);
         }
 
         // Check if port allows multiple connections.

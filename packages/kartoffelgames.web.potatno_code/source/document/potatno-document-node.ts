@@ -9,7 +9,7 @@ export class PotatnoDocumentNode {
     private readonly mInputs: Map<string, PotatnoDocumentPort>;
     private mName: string;
     private readonly mOutputs: Map<string, PotatnoDocumentPort>;
-    private readonly mSystem: boolean;
+    private readonly mIsSystem: boolean;
     private readonly mTransformation: PotatnoDocumentNodeTransformation;
 
     /**
@@ -52,8 +52,8 @@ export class PotatnoDocumentNode {
     /**
      * Get whether this is a system node that cannot be removed.
      */
-    public get system(): boolean {
-        return this.mSystem;
+    public get isSystem(): boolean {
+        return this.mIsSystem;
     }
 
     /**
@@ -61,24 +61,24 @@ export class PotatnoDocumentNode {
      *
      * @param pDefinition - Node definition describing ports and category.
      * @param pTransformation - Initial grid position of the node.
-     * @param pSystem - Whether this is a system node that cannot be removed.
+     * @param pIsSystem - Whether this is a system node that cannot be removed.
      */
-    public constructor(pDefinition: PotatnoNodeDefinition, pTransformation: PotatnoDocumentNodeTransformation, pSystem: boolean) {
+    public constructor(pDefinition: PotatnoNodeDefinition, pTransformation: PotatnoDocumentNodeTransformation, pIsSystem: boolean) {
         this.mDefinition = pDefinition;
-        this.mSystem = pSystem;
+        this.mIsSystem = pIsSystem;
         this.mTransformation = pTransformation;
         this.mName = pDefinition.label;
 
         // Create ports from input definitions, splitting by nodeType.
         this.mInputs = new Map<string, PotatnoDocumentPort>();
         for (const lPort of pDefinition.inputs) {
-            this.mInputs.set(lPort.name, new PotatnoDocumentPort(lPort.name, 'input', lPort.portType, lPort.dataType));
+            this.mInputs.set(lPort.name, new PotatnoDocumentPort(this, lPort.name, 'input', lPort.portType, lPort.dataType));
         }
 
         // Create ports from output definitions, splitting by nodeType.
         this.mOutputs = new Map<string, PotatnoDocumentPort>();
         for (const lPort of pDefinition.outputs) {
-            this.mOutputs.set(lPort.name, new PotatnoDocumentPort(lPort.name, 'output', lPort.portType, lPort.dataType));
+            this.mOutputs.set(lPort.name, new PotatnoDocumentPort(this, lPort.name, 'output', lPort.portType, lPort.dataType));
         }
     }
 

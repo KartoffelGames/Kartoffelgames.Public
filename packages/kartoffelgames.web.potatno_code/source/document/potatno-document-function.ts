@@ -1,4 +1,6 @@
 import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
+import { PotatnoNodeDefinition } from "../project/potatno-node-definition.ts";
+import { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from "./potatno-document-node.ts";
 import { PotatnoDocumentPort } from "./potatno-document-port.ts";
 import { PotatnoGraph } from './potatno-graph.ts';
 
@@ -7,25 +9,25 @@ import { PotatnoGraph } from './potatno-graph.ts';
  */
 export class PotatnoDocumentFunction {
     private readonly mDefinition: PotatnoFunctionDefinition;
-    private readonly mGraph: PotatnoGraph;
     private readonly mSystem: boolean;
     private readonly mImports: Array<string>;
     private readonly mInputs: Array<PotatnoDocumentPort>;
     private mLabel: string;
     private readonly mOutputs: Array<PotatnoDocumentPort>;
+    private readonly mNodes: Set<PotatnoDocumentNode>;
+
+    /**
+     * Read-only set of all nodes in the graph.
+     */
+    public get nodes(): ReadonlySet<PotatnoDocumentNode> {
+        return this.mNodes;
+    }
 
     /**
      * Get the function definition this function was created from.
      */
     public get definition(): PotatnoFunctionDefinition {
         return this.mDefinition;
-    }
-
-    /**
-     * Get the graph of this function.
-     */
-    public get graph(): PotatnoGraph {
-        return this.mGraph;
     }
 
     /**
@@ -76,7 +78,7 @@ export class PotatnoDocumentFunction {
         this.mLabel = pLabel;
         this.mSystem = pSystem;
         this.mDefinition = pDefinition;
-        this.mGraph = new PotatnoGraph();
+        this.mNodes = new Set<PotatnoDocumentNode>();
         this.mInputs = new Array<PotatnoDocumentPort>();
         this.mOutputs = new Array<PotatnoDocumentPort>();
         this.mImports = new Array<string>();
@@ -121,6 +123,36 @@ export class PotatnoDocumentFunction {
         }
 
         this.mOutputs.push(pPort);
+    }
+
+    /**
+     * Add a pre-constructed node directly (used for deserialization and undo).
+     */
+    public addNode(pNode: PotatnoDocumentNode): void {
+        this.mNodes.add(pNode);
+    }
+
+    /**
+     * Add a new node to the graph.
+     */
+    public newNode(pDefinition: PotatnoNodeDefinition, pTransformation: PotatnoDocumentNodeTransformation, pSystem: boolean = false): PotatnoDocumentNode {
+        const lNode: PotatnoDocumentNode = new PotatnoDocumentNode(pDefinition, pTransformation, pSystem);
+        this.mNodes.add(lNode);
+        return lNode;
+    }
+
+    /**
+     * Remove a node and disconnect all its ports from the graph.
+     */
+    public removeNode(pNode: PotatnoDocumentNode): void {
+        // Disconnect all ports of the node.
+        for (const lPort of [...pNode.inputs.values(), ...pNode.outputs.values()]) {
+            for (const lConnectedPort of Array.from(lPort.connectedPorts)) {
+                lPort.disconnect(lConnectedPort);
+            }
+        }
+
+        this.mNodes.delete(pNode);
     }
 
     /**

@@ -560,7 +560,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
         const lStaticNodes = lFuncDef.nodes.static;
         for (let lIdx = 0; lIdx < lStaticNodes.length; lIdx++) {
             const lStaticDef = lStaticNodes[lIdx];
-            lFunc.graph.addNode(lStaticDef, { x: 2 + lIdx * 12, y: 2 }, true);
+            lFunc.graph.newNode(lStaticDef, { x: 2 + lIdx * 12, y: 2 }, true);
 
             if (!lProject.nodeDefinitions.has(lStaticDef.id)) {
                 lProject.addNodeDefinition(lStaticDef);
@@ -1278,7 +1278,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
         const lStaticNodes = lEntryPoint.nodes.static;
         for (let lIdx = 0; lIdx < lStaticNodes.length; lIdx++) {
             const lStaticDef = lStaticNodes[lIdx];
-            lFunc.graph.addNode(lStaticDef, { x: 2 + lIdx * 12, y: 2 }, true);
+            lFunc.graph.newNode(lStaticDef, { x: 2 + lIdx * 12, y: 2 }, true);
 
             // Register the static node definition in the project so it can be looked up by definitionId.
             if (!pProject.nodeDefinitions.has(lStaticDef.id)) {

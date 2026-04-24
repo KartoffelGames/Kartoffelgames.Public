@@ -118,7 +118,7 @@ export class PotatnoDeserializer {
                     }
                 }
 
-                pFunction.graph.addExistingNode(lNode);
+                pFunction.graph.addNode(lNode);
             }
         }
     }

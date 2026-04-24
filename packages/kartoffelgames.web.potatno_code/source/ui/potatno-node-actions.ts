@@ -47,9 +47,9 @@ export class NodeAddAction implements PotatnoHistoryAction {
      */
     public apply(): void {
         if (this.mNode) {
-            this.mGraph.addExistingNode(this.mNode);
+            this.mGraph.addNode(this.mNode);
         } else {
-            this.mNode = this.mGraph.addNode(this.mDefinition, this.mPosition, this.mSystem);
+            this.mNode = this.mGraph.newNode(this.mDefinition, this.mPosition, this.mSystem);
         }
     }
 
@@ -102,7 +102,7 @@ export class NodeRemoveAction implements PotatnoHistoryAction {
      */
     public revert(): void {
         if (this.mRemovedNode) {
-            this.mGraph.addExistingNode(this.mRemovedNode);
+            this.mGraph.addNode(this.mRemovedNode);
             for (const lConn of this.mRemovedConnections) {
                 this.mGraph.addExistingConnection(lConn);
             }

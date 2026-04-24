@@ -5,7 +5,7 @@ import type { PotatnoFlowPort } from '../document/potatno-flow-port.ts';
 import { NodeCategory } from '../node/node-category.enum.ts';
 import { PortKind } from '../node/port-kind.enum.ts';
 import { PotatnoCodeNode, type PotatnoCodeNodeContext } from '../node/potatno-code-node.ts';
-import { PotatnoCodeTemplateNode } from '../node/potatno-code-template-node.ts';
+import { PotatnoCodeTemplateNode } from './node/potatno-code-template-node.ts';
 import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
 import type { PotatnoNodeDefinitionPortDefinition } from "../project/potatno-node-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';

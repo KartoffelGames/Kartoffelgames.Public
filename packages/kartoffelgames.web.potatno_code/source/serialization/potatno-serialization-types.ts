@@ -29,12 +29,12 @@ export type SerializedFunction = {
     /** 
      * Serialized input port definitions for the function signature. 
      */
-    inputs: Array<SerializedPortDefinition>;
+    inputs: Array<SerializedFunctionPort>;
 
     /** 
      * Serialized output port definitions for the function signature. 
      */
-    outputs: Array<SerializedPortDefinition>;
+    outputs: Array<SerializedFunctionPort>;
 
     /** 
      * Import strings active for this function. 
@@ -53,23 +53,18 @@ export type SerializedFunction = {
 };
 
 /**
- * Serialized port definition used for function-level I/O signatures.
+ * Serialized function port used for function-level I/O signatures.
  */
-export type SerializedPortDefinition = {
+export type SerializedFunctionPort = {
     /**
-     *  Port name. 
+     * Port name. 
      */
     name: string;
 
     /** 
-     * Whether the port carries a value or controls execution flow. 
+     * Data type of the value port.
      */
-    portType: PotatnoPortDefinitionType;
-
-    /** 
-     * Data type for value ports; null for flow ports.
-     */
-    dataType: string | null;
+    dataType: string;
 };
 
 /**

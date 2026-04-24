@@ -1,7 +1,6 @@
 import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
 import { PotatnoNodeDefinition } from "../project/potatno-node-definition.ts";
 import { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from "./potatno-document-node.ts";
-import { PotatnoDocumentPort } from "./potatno-document-port.ts";
 
 /**
  * Represents a user-editable function containing a sub-graph.
@@ -10,9 +9,9 @@ export class PotatnoDocumentFunction {
     private readonly mDefinition: PotatnoFunctionDefinition;
     private readonly mIsSystem: boolean;
     private readonly mImports: Array<string>;
-    private readonly mInputs: Array<PotatnoDocumentPort>;
+    private readonly mInputs: Array<PotatnoDocumentFunctionPort>;
     private mLabel: string;
-    private readonly mOutputs: Array<PotatnoDocumentPort>;
+    private readonly mOutputs: Array<PotatnoDocumentFunctionPort>;
     private readonly mNodes: Set<PotatnoDocumentNode>;
 
     /**
@@ -39,7 +38,7 @@ export class PotatnoDocumentFunction {
     /**
      * Get the input port definitions for this function.
      */
-    public get inputs(): ReadonlyArray<PotatnoDocumentPort> {
+    public get inputs(): ReadonlyArray<PotatnoDocumentFunctionPort> {
         return this.mInputs;
     }
 
@@ -55,7 +54,7 @@ export class PotatnoDocumentFunction {
     /**
      * Get the output port definitions for this function.
      */
-    public get outputs(): ReadonlyArray<PotatnoDocumentPort> {
+    public get outputs(): ReadonlyArray<PotatnoDocumentFunctionPort> {
         return this.mOutputs;
     }
 
@@ -78,8 +77,8 @@ export class PotatnoDocumentFunction {
         this.mIsSystem = pIsSystem;
         this.mDefinition = pDefinition;
         this.mNodes = new Set<PotatnoDocumentNode>();
-        this.mInputs = new Array<PotatnoDocumentPort>();
-        this.mOutputs = new Array<PotatnoDocumentPort>();
+        this.mInputs = new Array<PotatnoDocumentFunctionPort>();
+        this.mOutputs = new Array<PotatnoDocumentFunctionPort>();
         this.mImports = new Array<string>();
     }
 
@@ -99,7 +98,7 @@ export class PotatnoDocumentFunction {
      *
      * @param pPort - The port definition.
      */
-    public addInput(pPort: PotatnoDocumentPort): void {
+    public addInput(pPort: PotatnoDocumentFunctionPort): void {
         // Skip if port name already exists.
         if (this.mInputs.some((existingPort) => existingPort.name === pPort.name)) {
             return;
@@ -113,7 +112,7 @@ export class PotatnoDocumentFunction {
      *
      * @param pPort - The port definition.
      */
-    public addOutput(pPort: PotatnoDocumentPort): void {
+    public addOutput(pPort: PotatnoDocumentFunctionPort): void {
         // Skip if port name already exists.
         if (this.mOutputs.some((existingPort) => existingPort.name === pPort.name)) {
             return;
@@ -171,7 +170,7 @@ export class PotatnoDocumentFunction {
      * 
      * @param pPort - The port definition to remove.
      */
-    public removeInput(pPort: PotatnoDocumentPort): void {
+    public removeInput(pPort: PotatnoDocumentFunctionPort): void {
         const index = this.mInputs.findIndex((existingPort) => existingPort.name === pPort.name);
         if (index !== -1) {
             this.mInputs.splice(index, 1);
@@ -183,10 +182,15 @@ export class PotatnoDocumentFunction {
      * 
      * @param pPort - The port definition to remove.
      */
-    public removeOutput(pPort: PotatnoDocumentPort): void {
+    public removeOutput(pPort: PotatnoDocumentFunctionPort): void {
         const index = this.mOutputs.findIndex((existingPort) => existingPort.name === pPort.name);
         if (index !== -1) {
             this.mOutputs.splice(index, 1);
         }
     }
 }
+
+export type PotatnoDocumentFunctionPort = {
+    name: string;
+    dataType: string;
+};

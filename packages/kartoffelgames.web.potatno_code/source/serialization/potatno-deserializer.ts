@@ -1,6 +1,5 @@
 import { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
 import { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
-import { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import { PotatnoDocument } from '../document/potatno-document.ts';
 import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
@@ -62,10 +61,10 @@ export class PotatnoDeserializer {
 
         // Restore function-signature I/O port definitions.
         for (const lPortDef of pData.inputs) {
-            lFunc.addInput(new PotatnoDocumentPort(lPortDef.name, 'input', lPortDef.portType, lPortDef.dataType));
+            lFunc.addInput({ name: lPortDef.name, dataType: lPortDef.dataType });
         }
         for (const lPortDef of pData.outputs) {
-            lFunc.addOutput(new PotatnoDocumentPort(lPortDef.name, 'output', lPortDef.portType, lPortDef.dataType));
+            lFunc.addOutput({ name: lPortDef.name, dataType: lPortDef.dataType });
         }
 
         // Create all nodes and build a nodeId → node lookup map.
@@ -84,8 +83,8 @@ export class PotatnoDeserializer {
                 continue;
             }
 
-            const lSourcePort: PotatnoDocumentPort | undefined = lSourceNode.outputs.get(lConn.sourcePortName);
-            const lTargetPort: PotatnoDocumentPort | undefined = lTargetNode.inputs.get(lConn.targetPortName);
+            const lSourcePort = lSourceNode.outputs.get(lConn.sourcePortName);
+            const lTargetPort = lTargetNode.inputs.get(lConn.targetPortName);
             if (!lSourcePort || !lTargetPort) {
                 continue;
             }

@@ -1,8 +1,7 @@
 import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
-import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import type { PotatnoDocument } from '../document/potatno-document.ts';
-import type { PotatnoCodeFileSerializationResult, SerializedConnection, SerializedFunction, SerializedNode, SerializedNodePort, SerializedPortDefinition } from '../serialization/potatno-serialization-types.ts';
+import type { PotatnoCodeFileSerializationResult, SerializedConnection, SerializedFunction, SerializedFunctionPort, SerializedNode, SerializedNodePort } from '../serialization/potatno-serialization-types.ts';
 
 /**
  * Serializes a PotatnoDocument to a plain JSON metadata object.
@@ -80,16 +79,14 @@ export class PotatnoSerializer {
         }
 
         // Serialize function-signature ports.
-        const lInputs: Array<SerializedPortDefinition> = pFunction.inputs.map((pPort) => ({
+        const lInputs: Array<SerializedFunctionPort> = pFunction.inputs.map((pPort) => ({
             name: pPort.name,
-            portType: pPort.portType,
-            dataType: pPort.portType === 'value' ? pPort.type : null
+            dataType: pPort.dataType
         }));
 
-        const lOutputs: Array<SerializedPortDefinition> = pFunction.outputs.map((pPort) => ({
+        const lOutputs: Array<SerializedFunctionPort> = pFunction.outputs.map((pPort) => ({
             name: pPort.name,
-            portType: pPort.portType,
-            dataType: pPort.portType === 'value' ? pPort.type : null
+            dataType: pPort.dataType
         }));
 
         return {

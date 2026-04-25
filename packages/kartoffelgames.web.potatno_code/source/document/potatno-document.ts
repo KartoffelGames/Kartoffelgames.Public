@@ -1,8 +1,8 @@
 import { Exception } from "@kartoffelgames/core";
 import { IPotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator } from "../project/i-potatno-node-definition.ts";
 import { PotatnoPortDefinition } from "../project/potatno-port-definition.ts";
-import { PotatnoProjectType } from "../project/potatno-project.ts";
 import type { PotatnoDocumentFunction } from './potatno-document-function.ts';
+import { PotatnoProjectType } from "../project/potatno-project-types-definition.ts";
 
 /**
  * Represents the mutable document state of a PotatnoCode file.

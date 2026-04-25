@@ -1,7 +1,7 @@
 import { PotatnoCodeFunction } from "../parser/potatno-code-function.ts";
-import { PotatnoNodeDefinition } from "./potatno-node-definition.ts";
-import { PotatnoProjectType } from "./potatno-project.ts";
 import type { PotatnoNodeDefinitionGeneratorData } from "./potatno-node-definition.ts";
+import { PotatnoNodeDefinition } from "./potatno-node-definition.ts";
+import { PotatnoProjectType } from "./potatno-project-types-definition.ts";
 
 /**
  * Definition of a entry point blueprint.

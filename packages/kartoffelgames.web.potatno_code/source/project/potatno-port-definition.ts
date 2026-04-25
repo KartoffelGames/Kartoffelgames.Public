@@ -1,5 +1,5 @@
 import { Exception } from "@kartoffelgames/core";
-import { PotatnoProjectType } from "./potatno-project.ts";
+import { PotatnoProjectType } from "./potatno-project-types-definition.ts";
 
 /**
  * Definition of a port on a node, used for type checking and code generation.

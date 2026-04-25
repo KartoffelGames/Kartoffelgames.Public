@@ -1,6 +1,6 @@
 import { IPotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeDefinitionPreview } from "./i-potatno-node-definition.ts";
 import { PotatnoPortDefinition } from "./potatno-port-definition.ts";
-import { PotatnoProjectType } from "./potatno-project.ts";
+import { PotatnoProjectType } from "./potatno-project-types-definition.ts";
 
 /**
  * Definition of a node type that can be instantiated in the graph. Registered at the project level and referenced by nodes via the definitionName property.

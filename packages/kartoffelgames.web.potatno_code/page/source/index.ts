@@ -1,17 +1,54 @@
 import { PotatnoDocument } from '../../source/document/potatno-document.ts';
-import { NodeCategory } from '../../source/node/node-category.enum.ts';
 import { PotatnoCodeApplication } from '../../source/potatno-code-application.ts';
 import type { PotatnoCodeFunction } from '../../source/parser/potatno-code-function.ts';
 import { PotatnoFunctionDefinition } from "../../source/project/potatno-function-definition.ts";
 import { PotatnoNodeDefinition } from "../../source/project/potatno-node-definition.ts";
 import { PotatnoProject } from '../../source/project/potatno-project.ts';
+import { NodeCategory } from "../../source/parser/node/node-category.enum.ts";
+import { PotatnoProjectTypesDefinition } from "../../source/project/potatno-project-types-definition.ts";
 
 // --- Project configuration ---
-const lProjectTypes = {
-    number: { defaultValue: 0 },
-    string: { defaultValue: '' },
-    boolean: { defaultValue: false }
-} as const;
+const lProjectTypes = new PotatnoProjectTypesDefinition({
+    number: {
+        defaultValue: 0,
+        convert: (pValues: Array<string>) => {
+            const lNumberString: string = pValues[0];
+            const lNumber: number = parseFloat(lNumberString);
+            if (isNaN(lNumber)) {
+                throw new Error(`Invalid number: "${lNumberString}"`);
+            }
+            return lNumber.toString();
+        },
+        inputs: [
+            { name: 'value', type: 'number' }
+        ]
+    },
+    string: {
+        defaultValue: '',
+        convert: (pValues: Array<string>) => {
+            return pValues[0];
+        },
+        inputs: [
+            { name: 'value', type: 'string' }
+        ]
+    },
+    boolean: {
+        defaultValue: false,
+        convert: (pValues: Array<string>) => {
+            const lBooleanString: string = pValues[0].toLowerCase();
+            if (lBooleanString === 'true') {
+                return 'true';
+            } else if (lBooleanString === 'false') {
+                return 'false';
+            } else {
+                throw new Error(`Invalid boolean: "${pValues[0]}"`);
+            }
+        },
+        inputs: [
+            { name: 'value', type: 'boolean' }
+        ]
+    }
+});
 
 const lProject = new PotatnoProject({
     types: lProjectTypes,

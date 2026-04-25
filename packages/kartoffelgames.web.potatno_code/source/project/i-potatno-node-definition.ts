@@ -1,7 +1,7 @@
 import { PotatnoCodeFunction } from "../parser/potatno-code-function.ts";
 import { PotatnoNodeDefinitionGeneratorData, PotatnoNodeDefinitionPorts } from "./potatno-node-definition.ts";
 import type { PotatnoPortDefinition } from './potatno-port-definition.ts';
-import { PotatnoProjectType } from "./potatno-project.ts";
+import { PotatnoProjectType } from "./potatno-project-types-definition.ts";
 
 /**
  * Common interface for all node definitions that can be placed in a graph.

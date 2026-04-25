@@ -1,5 +1,6 @@
 import type { PotatnoFunctionDefinition } from './potatno-function-definition.ts';
 import { PotatnoNodeDefinition, type PotatnoNodeDefinitionPorts } from "./potatno-node-definition.ts";
+import { PotatnoProjectType, PotatnoProjectTypesDefinition } from "./potatno-project-types-definition.ts";
 
 /**
  * Project-level configuration for a PotatnoCode editor instance.
@@ -10,7 +11,7 @@ export class PotatnoProject<TProjectType extends PotatnoProjectType> {
     private readonly mEntryPoint: PotatnoFunctionDefinition<TProjectType>;
     private readonly mImports: Array<PotatnoProjectImportDefinition<TProjectType>>;
     private readonly mNodeDefinitions: Map<string, PotatnoNodeDefinition<TProjectType, any, any>>;
-    private readonly mValidTypes: Map<TProjectType, PotatnoProjectTypeDefinition<TProjectType>>;
+    private readonly mTypes: PotatnoProjectTypesDefinition<TProjectType>;
     private readonly mUserFunctions: Map<string, PotatnoFunctionDefinition<TProjectType>>;
 
     /**
@@ -36,6 +37,13 @@ export class PotatnoProject<TProjectType extends PotatnoProjectType> {
     }
 
     /**
+     * Get the project type configuration, containing the valid type identifiers and their default values.
+     */
+    public get types(): PotatnoProjectTypesDefinition<TProjectType> {
+        return this.mTypes;
+    }
+
+    /**
      * Get the map of registered user function definitions.
      */
     public get userFunctions(): ReadonlyMap<string, PotatnoFunctionDefinition<TProjectType>> {
@@ -46,19 +54,13 @@ export class PotatnoProject<TProjectType extends PotatnoProjectType> {
      * Create a new editor configuration with default values.
      */
     public constructor(pParameter: PotatnoProjectConstructorParameter<TProjectType>) {
-        // Create a map of valid type identifiers for quick lookup when validating node definitions and connections.
-        this.mValidTypes = new Map<TProjectType, PotatnoProjectTypeDefinition<TProjectType>>();
-        for (const [lTypeName, lDefaultValue] of Object.entries(pParameter.types as PotatnoProjectTypeDefinitions<string>)) {
-            this.mValidTypes.set(lTypeName as TProjectType, {
-                name: lTypeName as TProjectType,
-                defaultValue: lDefaultValue.defaultValue
-            });
-        }
-
+        // Init parameter.
+        this.mEntryPoint = pParameter.entryPoint;
+        this.mTypes = pParameter.types;
+        
         // Initialize empty arrays and maps for project definitions.
         this.mNodeDefinitions = new Map<string, PotatnoNodeDefinition<TProjectType>>();
-        this.mImports = new Array<PotatnoProjectImportDefinition<TProjectType>>();
-        this.mEntryPoint = pParameter.entryPoint;
+        this.mImports = new Array<PotatnoProjectImportDefinition<TProjectType>>();   
         this.mUserFunctions = new Map<string, PotatnoFunctionDefinition<TProjectType>>();
     }
 
@@ -88,58 +90,12 @@ export class PotatnoProject<TProjectType extends PotatnoProjectType> {
     public addUserFunction(pDefinition: PotatnoFunctionDefinition<TProjectType>): void {
         this.mUserFunctions.set(pDefinition.id, pDefinition);
     }
-
-    /**
-     * Check if a type identifier is registered as valid in the project.
-     *
-     * @param pTypeName - The type identifier to check.
-     *
-     * @returns True if the type is registered, false otherwise.
-     */
-    public hasType(pTypeName: TProjectType): boolean {
-        return this.mValidTypes.has(pTypeName);
-    }
-
-    /**
-     * Get the project type definition for a given type identifier.
-     * 
-     * @param pTypeName - The type identifier to check.
-     * 
-     * @returns The project type definition for the given type identifier. 
-     * 
-     * @throws Error if the type identifier is not registered in the project.
-     */
-    public getType<TTypeName extends TProjectType>(pTypeName: TTypeName): PotatnoProjectTypeDefinition<TTypeName> {
-        if (!this.mValidTypes.has(pTypeName)) {
-            throw new Error(`Type '${pTypeName}' is not registered in the project.`);
-        }
-
-        return this.mValidTypes.get(pTypeName)! as PotatnoProjectTypeDefinition<TTypeName>;
-    }
 }
 
 type PotatnoProjectConstructorParameter<TTypes extends PotatnoProjectType> = {
-    types: PotatnoProjectTypeDefinitions<TTypes>;
+    types: PotatnoProjectTypesDefinition<TTypes>;
     entryPoint: PotatnoFunctionDefinition<TTypes>;
 };
-
-/**
- * Potatno project valid types.
- * Defined by a type name and a default value of that type.
- */
-export type PotatnoProjectTypeDefinitions<TTypeName extends PotatnoProjectType> = Record<TTypeName, {
-    defaultValue: any;
-    // TODO: A convert string to type.
-    // TODO. A input element definition for this type so the editor can generate input fields for it.
-    // TODO: A optional subtype definition for example for vector types.
-}>;
-
-export type PotatnoProjectTypeDefinition<TTypeName extends PotatnoProjectType> = {
-    name: TTypeName;
-    defaultValue: any;
-};
-
-export type PotatnoProjectType = string;
 
 /**
  * Definition of an import group. When a function enables this import,

@@ -524,7 +524,7 @@ lApp.file = new PotatnoDocument(lProject);
 // --- Pixel shader render loop ---
 function renderFrame(): void {
     // Update node element previews once per frame with center pixel data.
-    lApp.update({});
+    lApp.update();
 
     requestAnimationFrame(renderFrame);
 }

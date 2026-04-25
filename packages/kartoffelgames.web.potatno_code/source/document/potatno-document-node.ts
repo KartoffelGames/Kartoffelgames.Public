@@ -1,4 +1,4 @@
-import type { PotatnoNodeDefinition } from "../project/potatno-node-definition.ts";
+import type { IPotatnoNodeDefinition } from "../project/i-potatno-node-definition.ts";
 import { PotatnoDocumentPort, PotatnoDocumentPortValidationError } from './potatno-document-port.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { PotatnoProjectType } from '../project/potatno-project-types-definition.ts';
@@ -7,9 +7,9 @@ import type { PotatnoProjectType } from '../project/potatno-project-types-defini
  * A node instance in the graph.
  */
 export class PotatnoDocumentNode {
-    private readonly mDefinition: PotatnoNodeDefinition;
+    private readonly mDefinition: IPotatnoNodeDefinition<PotatnoProjectType>;
     private readonly mInputs: Map<string, PotatnoDocumentPort>;
-    private mName: string;
+    private mLabel: string;
     private readonly mOutputs: Map<string, PotatnoDocumentPort>;
     private readonly mIsSystem: boolean;
     private readonly mTransformation: PotatnoDocumentNodeTransformation;
@@ -18,7 +18,7 @@ export class PotatnoDocumentNode {
     /**
      * Get the node definition this node was created from.
      */
-    public get definition(): PotatnoNodeDefinition {
+    public get definition(): IPotatnoNodeDefinition<PotatnoProjectType> {
         return this.mDefinition;
     }
 
@@ -51,12 +51,19 @@ export class PotatnoDocumentNode {
     }
 
     /**
-     * Get or set the user set name of the node.
+     * Get the immutable name of the node from its definition.
      */
     public get name(): string {
-        return this.mName;
-    } set name(pName: string) {
-        this.mName = pName;
+        return this.mDefinition.label;
+    }
+
+    /**
+     * Get or set the user-overridable display label of the node.
+     */
+    public get label(): string {
+        return this.mLabel;
+    } set label(pLabel: string) {
+        this.mLabel = pLabel;
     }
 
     /**
@@ -73,12 +80,12 @@ export class PotatnoDocumentNode {
      * @param pTransformation - Initial grid position of the node.
      * @param pIsSystem - Whether this is a system node that cannot be removed.
      */
-    public constructor(pProject: PotatnoProject<PotatnoProjectType>, pDefinition: PotatnoNodeDefinition, pTransformation: PotatnoDocumentNodeTransformation, pIsSystem: boolean) {
+    public constructor(pProject: PotatnoProject<PotatnoProjectType>, pDefinition: IPotatnoNodeDefinition<PotatnoProjectType>, pTransformation: PotatnoDocumentNodeTransformation, pIsSystem: boolean) {
         this.mProject = pProject;
         this.mDefinition = pDefinition;
         this.mIsSystem = pIsSystem;
         this.mTransformation = pTransformation;
-        this.mName = pDefinition.label;
+        this.mLabel = pDefinition.label;
 
         // Create ports from input definitions, splitting by nodeType.
         this.mInputs = new Map<string, PotatnoDocumentPort>();

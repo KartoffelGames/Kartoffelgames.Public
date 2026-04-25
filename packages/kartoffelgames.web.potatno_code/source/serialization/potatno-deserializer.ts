@@ -39,7 +39,7 @@ export class PotatnoDeserializer {
         const lDocument: PotatnoDocument = new PotatnoDocument(this.mProject);
 
         for (const lFuncData of pData.functions) {
-            lDocument.addFunction(this.deserializeFunction(lFuncData));
+            lDocument.addFunction(this.deserializeFunction(lFuncData, lDocument));
         }
 
         return lDocument;
@@ -50,9 +50,9 @@ export class PotatnoDeserializer {
     /**
      * Reconstruct a single function from its serialized form.
      */
-    private deserializeFunction(pData: SerializedFunction): PotatnoDocumentFunction {
+    private deserializeFunction(pData: SerializedFunction, pDocument: PotatnoDocument): PotatnoDocumentFunction {
         const lDefinition: PotatnoFunctionDefinition = this.findFunctionDefinition(pData.definitionId);
-        const lFunc: PotatnoDocumentFunction = new PotatnoDocumentFunction(this.mProject, lDefinition, pData.id, pData.label, pData.isSystem);
+        const lFunc: PotatnoDocumentFunction = new PotatnoDocumentFunction(this.mProject, lDefinition, pData.id, pData.name, pData.isSystem);
 
         // Restore imports.
         for (const lImport of pData.imports) {
@@ -70,7 +70,7 @@ export class PotatnoDeserializer {
         // Create all nodes and build a nodeId → node lookup map.
         const lNodeMap: Map<string, PotatnoDocumentNode> = new Map();
         for (const lNodeData of pData.nodes) {
-            const lNode: PotatnoDocumentNode = this.deserializeNode(lNodeData);
+            const lNode: PotatnoDocumentNode = this.deserializeNode(lNodeData, pDocument);
             lNodeMap.set(lNodeData.id, lNode);
             lFunc.addNode(lNode);
         }
@@ -99,14 +99,16 @@ export class PotatnoDeserializer {
      * Reconstruct a single node from its serialized form.
      * Ports are created automatically by PotatnoDocumentNode from its definition.
      */
-    private deserializeNode(pData: SerializedNode): PotatnoDocumentNode {
-        const lDefinition = this.mProject.nodeDefinitions.get(pData.definitionId);
+    private deserializeNode(pData: SerializedNode, pDocument: PotatnoDocument): PotatnoDocumentNode {
+        // Check project node definitions first, then document function node definitions.
+        const lDefinition = this.mProject.nodeDefinitions.get(pData.definitionId)
+            ?? pDocument.functionNodeDefinitions.get(pData.definitionId);
         if (!lDefinition) {
             throw new Error(`Node definition not found: "${pData.definitionId}"`);
         }
 
         const lNode: PotatnoDocumentNode = new PotatnoDocumentNode(this.mProject, lDefinition, { ...pData.transformation }, pData.isSystem);
-        lNode.name = pData.name;
+        lNode.label = pData.label;
 
         // Restore direct values for value input ports.
         for (const lPortData of pData.ports) {

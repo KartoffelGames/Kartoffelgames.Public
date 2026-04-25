@@ -91,7 +91,7 @@ export class PotatnoSerializer {
 
         return {
             id: pFunction.id,
-            label: pFunction.label,
+            name: pFunction.label,
             isSystem: pFunction.isSystem,
             definitionId: pFunction.definition.id,
             inputs: lInputs,
@@ -117,7 +117,7 @@ export class PotatnoSerializer {
         return {
             id: pNodeId,
             definitionId: pNode.definition.id,
-            name: pNode.name,
+            label: pNode.label,
             isSystem: pNode.isSystem,
             transformation: { ...pNode.transformation },
             ports: lPorts

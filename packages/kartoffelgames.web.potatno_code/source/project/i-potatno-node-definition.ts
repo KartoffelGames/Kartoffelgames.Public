@@ -8,7 +8,7 @@ import { PotatnoProjectType } from "./potatno-project-types-definition.ts";
  * Implemented by both project-registered PotatnoNodeDefinition instances and
  * live PotatnoFunctionNodeDefinition instances derived from user functions.
  */
-export interface IPotatnoNodeDefinition<TTypes extends PotatnoProjectType, TInputs extends PotatnoNodeDefinitionPorts<TTypes>, TOutputs extends PotatnoNodeDefinitionPorts<TTypes>, TPreviewElement extends Element> {
+export interface IPotatnoNodeDefinition<TTypes extends PotatnoProjectType, TInputs extends PotatnoNodeDefinitionPorts<TTypes> = any, TOutputs extends PotatnoNodeDefinitionPorts<TTypes> = any, TPreviewElement extends Element = any> {
     /**
      * Unique identifier for this node definition.
      */
@@ -20,7 +20,7 @@ export interface IPotatnoNodeDefinition<TTypes extends PotatnoProjectType, TInpu
     readonly category: string;
 
     /**
-     * Human-readable display label.
+     * Display label for this node definition.
      */
     readonly label: string;
 

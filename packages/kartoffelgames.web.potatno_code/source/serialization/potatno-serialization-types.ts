@@ -18,9 +18,9 @@ export type SerializedFunction = {
     id: string;
 
     /**
-     * Display label of the function.
+     * Name of the function.
      */
-    label: string;
+    name: string;
 
     /** 
      * Whether the function is system-defined and cannot be removed. 
@@ -89,9 +89,9 @@ export type SerializedNode = {
     definitionId: string;
 
     /**
-     * User-set display name of the node.
+     * User-set label of the node.
       */
-    name: string;
+    label: string;
 
     /**
      * Whether this is a system node that cannot be removed. 

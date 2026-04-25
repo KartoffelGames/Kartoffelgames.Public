@@ -1,5 +1,5 @@
 import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
-import { PotatnoNodeDefinition } from "../project/potatno-node-definition.ts";
+import type { IPotatnoNodeDefinition } from "../project/i-potatno-node-definition.ts";
 import { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from "./potatno-document-node.ts";
 import type { PotatnoDocumentPortValidationError } from "./potatno-document-port.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
@@ -55,7 +55,7 @@ export class PotatnoDocumentFunction {
     }
 
     /**
-     * Get the display label of this function.
+     * Get the label of this function.
      */
     public get label(): string {
         return this.mLabel;
@@ -89,7 +89,7 @@ export class PotatnoDocumentFunction {
      *
      * @param pDefinition - The function definition this function was created from.
      * @param pId - The unique identifier of the function.
-     * @param pLabel - Display label of the function.
+     * @param pLabel - Label of the function.
      * @param pIsSystem - Whether the function is a system-defined function.
      */
     public constructor(pProject: PotatnoProject<PotatnoProjectType>, pDefinition: PotatnoFunctionDefinition, pId: string, pLabel: string, pIsSystem: boolean) {
@@ -155,7 +155,7 @@ export class PotatnoDocumentFunction {
     /**
      * Add a new node to the graph.
      */
-    public newNode(pDefinition: PotatnoNodeDefinition, pTransformation: PotatnoDocumentNodeTransformation, pSystem: boolean = false): PotatnoDocumentNode {
+    public newNode(pDefinition: IPotatnoNodeDefinition<PotatnoProjectType>, pTransformation: PotatnoDocumentNodeTransformation, pSystem: boolean = false): PotatnoDocumentNode {
         const lNode: PotatnoDocumentNode = new PotatnoDocumentNode(this.mProject, pDefinition, pTransformation, pSystem);
         this.mNodes.add(lNode);
         return lNode;

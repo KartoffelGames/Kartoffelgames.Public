@@ -1,6 +1,7 @@
 import { PotatnoCodeFunction } from "../parser/potatno-code-function.ts";
 import { PotatnoNodeDefinition } from "./potatno-node-definition.ts";
 import { PotatnoProjectType } from "./potatno-project.ts";
+import type { PotatnoNodeDefinitionGeneratorData } from "./potatno-node-definition.ts";
 
 /**
  * Definition of a entry point blueprint.
@@ -22,7 +23,7 @@ export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectType = Potat
     private readonly mPreview: PotatnoFunctionDefinitionPreview<TPreviewElement> | null;
     private readonly mStatics: PotatnoFunctionDefinitionStaticSettings;
     private readonly mNodes: PotatnoFunctionDefinitionNodes<TTypes>;
-    private mCodeGenerator: ((func: PotatnoCodeFunction) => string);
+    private readonly mGeneratorConfig: PotatnoFunctionDefinitionGenerator;
 
     /**
      * Unique id for this entry point definition.
@@ -32,10 +33,11 @@ export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectType = Potat
     }
 
     /**
-     * Get the function code generator callback.
+     * Get the code generator configuration for this function definition.
+     * Contains both the function-level code wrapper and the call-site value generator.
      */
-    public get codeGenerator(): ((func: PotatnoCodeFunction) => string) {
-        return this.mCodeGenerator;
+    public get codeGenerator(): Readonly<PotatnoFunctionDefinitionGenerator> {
+        return this.mGeneratorConfig;
     }
 
     /**
@@ -85,7 +87,7 @@ export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectType = Potat
         };
 
         // Set the entry point code generator.
-        this.mCodeGenerator = pParameters.codeGenerator;
+        this.mGeneratorConfig = pParameters.codeGenerator;
     }
 }
 
@@ -94,7 +96,24 @@ type PotatnoFunctionDefinitionConstructorParameter<TTypes extends PotatnoProject
     statics: Partial<PotatnoFunctionDefinitionStaticSettings>;
     nodes?: Partial<PotatnoFunctionDefinitionNodes<TTypes>>;
     preview?: PotatnoFunctionDefinitionPreview<TPreviewElement>;
+    codeGenerator: PotatnoFunctionDefinitionGenerator;
+};
+
+/**
+ * Generator configuration for a function definition.
+ * codeGenerator wraps all node output into a complete function.
+ * valueGenerator produces the call-site expression when this function is used as a node.
+ */
+export type PotatnoFunctionDefinitionGenerator = {
+    /** 
+     * Produces the complete function code from the function body and metadata. 
+     */
     codeGenerator: (pFunction: PotatnoCodeFunction) => string;
+
+    /**
+     * Produces the call-site code expression when this function is invoked as a node.
+     */
+    valueGenerator: (pContext: PotatnoNodeDefinitionGeneratorData<any, any, any>) => string;
 };
 
 type PotatnoFunctionDefinitionNodes<TTypes extends PotatnoProjectType> = {

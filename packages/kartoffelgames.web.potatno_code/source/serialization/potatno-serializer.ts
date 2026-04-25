@@ -90,6 +90,7 @@ export class PotatnoSerializer {
         }));
 
         return {
+            id: pFunction.id,
             label: pFunction.label,
             isSystem: pFunction.isSystem,
             definitionId: pFunction.definition.id,

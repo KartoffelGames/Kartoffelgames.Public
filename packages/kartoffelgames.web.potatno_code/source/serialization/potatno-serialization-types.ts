@@ -11,8 +11,14 @@ export type PotatnoCodeFileSerializationResult = {
  * Serialized representation of a function.
  */
 export type SerializedFunction = {
-    /** 
-     * Display label of the function. 
+    /**
+     * Stable hex identifier for this function instance. Preserved across sessions
+     * so the function can be referenced as a node in other graphs.
+     */
+    id: string;
+
+    /**
+     * Display label of the function.
      */
     label: string;
 

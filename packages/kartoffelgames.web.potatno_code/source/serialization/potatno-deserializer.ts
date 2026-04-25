@@ -52,7 +52,7 @@ export class PotatnoDeserializer {
      */
     private deserializeFunction(pData: SerializedFunction): PotatnoDocumentFunction {
         const lDefinition: PotatnoFunctionDefinition = this.findFunctionDefinition(pData.definitionId);
-        const lFunc: PotatnoDocumentFunction = new PotatnoDocumentFunction(lDefinition, pData.label, pData.isSystem);
+        const lFunc: PotatnoDocumentFunction = new PotatnoDocumentFunction(lDefinition, pData.id, pData.label, pData.isSystem);
 
         // Restore imports.
         for (const lImport of pData.imports) {

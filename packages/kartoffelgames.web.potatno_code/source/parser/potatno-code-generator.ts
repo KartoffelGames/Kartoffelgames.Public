@@ -40,7 +40,7 @@ export class PotatnoCodeGenerator {
         const lBodyCode: string = this.generateGraphCode(lNodes, lValueIdMap);
         const lCodeFunc: PotatnoCodeFunction = this.buildCodeFunction(pFunction, lNodes, lValueIdMap, lBodyCode);
 
-        const lCodeGenerator = lFuncDef.codeGenerator;
+        const lCodeGenerator = lFuncDef.codeGenerator.codeGenerator;
         if (lCodeGenerator) {
             return lCodeGenerator(lCodeFunc);
         }
@@ -73,10 +73,6 @@ export class PotatnoCodeGenerator {
                 continue;
             }
 
-            if (!this.mConfig.nodeDefinitions.get(lNode.definition.id)) {
-                continue;
-            }
-
             const lCodeNode: PotatnoCodeNode = this.buildCodeNode(lNode, lValueIdMap);
             this.attachFlowBodies(lNode, lCodeNode, lValueIdMap);
             lCodeParts.push(lCodeNode.generateCode());
@@ -96,8 +92,8 @@ export class PotatnoCodeGenerator {
                     lIntermediateFunc.outputs.push({ ...lOut });
                 }
 
-                const lIntermediateCode: string = lFuncDef.codeGenerator
-                    ? lFuncDef.codeGenerator(lIntermediateFunc)
+                const lIntermediateCode: string = lFuncDef.codeGenerator.codeGenerator
+                    ? lFuncDef.codeGenerator.codeGenerator(lIntermediateFunc)
                     : lIntermediateBody;
 
                 lNodeIntermediates.set(lNode, {
@@ -110,8 +106,8 @@ export class PotatnoCodeGenerator {
 
         const lFullBody: string = lCodeParts.join('\n');
         const lCodeFunc: PotatnoCodeFunction = this.buildCodeFunction(pFunction, lNodes, lValueIdMap, lFullBody);
-        const lFullCode: string = lFuncDef.codeGenerator
-            ? lFuncDef.codeGenerator(lCodeFunc)
+        const lFullCode: string = lFuncDef.codeGenerator.codeGenerator
+            ? lFuncDef.codeGenerator.codeGenerator(lCodeFunc)
             : lFullBody;
 
         return { fullCode: lFullCode, codeFunction: lCodeFunc, nodeIntermediates: lNodeIntermediates };
@@ -214,10 +210,6 @@ export class PotatnoCodeGenerator {
                 continue;
             }
 
-            if (!this.mConfig.nodeDefinitions.get(lNode.definition.id)) {
-                continue;
-            }
-
             const lCodeNode: PotatnoCodeNode = this.buildCodeNode(lNode, pValueIdMap);
             this.attachFlowBodies(lNode, lCodeNode, pValueIdMap);
             lCodeParts.push(lCodeNode.generateCode());
@@ -251,7 +243,7 @@ export class PotatnoCodeGenerator {
     private generateFlowBodyCode(pFlowInputPort: PotatnoDocumentPort, pValueIdMap: Map<PotatnoDocumentPort, string>): string {
         const lOwnerNode: PotatnoDocumentNode = pFlowInputPort.node;
 
-        if (!this.mConfig.nodeDefinitions.get(lOwnerNode.definition.id)) {
+        if (!this.mConfig.nodeDefinitions.get(lOwnerNode.definition.id) && lOwnerNode.definition.category !== 'function') {
             return '';
         }
 
@@ -265,8 +257,9 @@ export class PotatnoCodeGenerator {
      * subclass based on the node's category and populating ports from the value-id map.
      */
     private buildCodeNode(pNode: PotatnoDocumentNode, pValueIdMap: Map<PotatnoDocumentPort, string>): PotatnoCodeNode {
-        const lDefinition = this.mConfig.nodeDefinitions.get(pNode.definition.id);
-        const lCodeGenerator = lDefinition?.codeGenerator ?? (() => '');
+        // Use the node's own definition's codeGenerator directly — works for both
+        // project-registered nodes and PotatnoFunctionNodeDefinition instances.
+        const lCodeGenerator = pNode.definition.codeGenerator;
         const lCodeNode: PotatnoCodeNode = this.createNodeForCategory(pNode.definition.category, lCodeGenerator);
 
         for (const [lName, lPort] of pNode.inputs) {

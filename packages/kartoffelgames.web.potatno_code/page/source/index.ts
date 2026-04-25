@@ -54,10 +54,15 @@ const lProject = new PotatnoProject({
                 })
             ]
         },
-        codeGenerator: (pFunction: PotatnoCodeFunction) => {
-            const lInputParams: string = pFunction.inputs.map((i: { valueId: string; }) => i.valueId).join(', ');
-            const lParams: string = lInputParams ? `__pixel_x, __pixel_y, ${lInputParams}` : '__pixel_x, __pixel_y';
-            return `function ${pFunction.name}(${lParams}) {\nlet __pixel_r = 0, __pixel_g = 0, __pixel_b = 0;\n${pFunction.bodyCode}\nreturn [__pixel_r, __pixel_g, __pixel_b];\n}`;
+        codeGenerator: {
+            codeGenerator: (pFunction: PotatnoCodeFunction) => {
+                const lInputParams: string = pFunction.inputs.map((i: { valueId: string; }) => i.valueId).join(', ');
+                const lParams: string = lInputParams ? `__pixel_x, __pixel_y, ${lInputParams}` : '__pixel_x, __pixel_y';
+                return `function ${pFunction.name}(${lParams}) {\nlet __pixel_r = 0, __pixel_g = 0, __pixel_b = 0;\n${pFunction.bodyCode}\nreturn [__pixel_r, __pixel_g, __pixel_b];\n}`;
+            },
+            valueGenerator: (pContext) => {
+                return `${pContext.inputs}`;
+            }
         },
         preview: {
             generatePreview: (): HTMLCanvasElement => {
@@ -456,14 +461,21 @@ lProject.addUserFunction(PotatnoFunctionDefinition.create({
         inputs: false,
         outputs: false
     },
-    codeGenerator: (pFunction: PotatnoCodeFunction) => {
-        const lParams: string = pFunction.inputs.map((i: { name: string; valueId: string; }) => i.valueId).join(', ');
-        const lReturnValues: string = pFunction.outputs.map((o: { valueId: string; }) => o.valueId).join(', ');
-        let lBody: string = pFunction.bodyCode;
-        if (lReturnValues) {
-            lBody += `\nreturn ${pFunction.outputs.length > 1 ? `[${lReturnValues}]` : lReturnValues};`;
+    codeGenerator: {
+        codeGenerator: (pFunction: PotatnoCodeFunction) => {
+            const lParams: string = pFunction.inputs.map((i: { name: string; valueId: string; }) => i.valueId).join(', ');
+            const lReturnValues: string = pFunction.outputs.map((o: { valueId: string; }) => o.valueId).join(', ');
+            let lBody: string = pFunction.bodyCode;
+            if (lReturnValues) {
+                lBody += `\nreturn ${pFunction.outputs.length > 1 ? `[${lReturnValues}]` : lReturnValues};`;
+            }
+            return `function ${pFunction.name}(${lParams}) {\n${lBody}\n}`;
+        },
+        valueGenerator: (pContext) => {
+            const lArgs: string = Object.values(pContext.inputs).map((i: any) => i.valueId).join(', ');
+            const lResultId: string = Object.values(pContext.outputs).map((o: any) => o.valueId)[0] ?? '_unused';
+            return `const ${lResultId} = ${pContext.inputs}(${lArgs});`;
         }
-        return `function ${pFunction.name}(${lParams}) {\n${lBody}\n}`;
     }
 }));
 

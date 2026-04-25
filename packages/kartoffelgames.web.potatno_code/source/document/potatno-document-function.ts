@@ -7,12 +7,20 @@ import { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from "./potatn
  */
 export class PotatnoDocumentFunction {
     private readonly mDefinition: PotatnoFunctionDefinition;
+    private readonly mId: string;
     private readonly mIsSystem: boolean;
     private readonly mImports: Array<string>;
     private readonly mInputs: Array<PotatnoDocumentFunctionPort>;
     private mLabel: string;
     private readonly mOutputs: Array<PotatnoDocumentFunctionPort>;
     private readonly mNodes: Set<PotatnoDocumentNode>;
+
+    /**
+     * Unique identifier for this function instance. Stable across sessions so it can be referenced as a node in other graphs.
+     */
+    public get id(): string {
+        return this.mId;
+    }
 
     /**
      * Read-only set of all nodes in the graph.
@@ -69,13 +77,15 @@ export class PotatnoDocumentFunction {
      * Create a new function instance.
      *
      * @param pDefinition - The function definition this function was created from.
+     * @param pId - The unique identifier of the function.
      * @param pLabel - Display label of the function.
      * @param pIsSystem - Whether the function is a system-defined function.
      */
-    public constructor(pDefinition: PotatnoFunctionDefinition, pLabel: string, pIsSystem: boolean) {
+    public constructor(pDefinition: PotatnoFunctionDefinition, pId: string, pLabel: string, pIsSystem: boolean) {
         this.mLabel = pLabel;
         this.mIsSystem = pIsSystem;
         this.mDefinition = pDefinition;
+        this.mId = pId;
         this.mNodes = new Set<PotatnoDocumentNode>();
         this.mInputs = new Array<PotatnoDocumentFunctionPort>();
         this.mOutputs = new Array<PotatnoDocumentFunctionPort>();

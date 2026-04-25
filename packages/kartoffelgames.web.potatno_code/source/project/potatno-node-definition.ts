@@ -1,5 +1,5 @@
-import { PotatnoCodeFunction } from "../parser/potatno-code-function.ts";
-import { PotatnoPortDefinition, PotatnoPortDefinitionType } from "./potatno-port-definition.ts";
+import { IPotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeDefinitionPreview } from "./i-potatno-node-definition.ts";
+import { PotatnoPortDefinition } from "./potatno-port-definition.ts";
 import { PotatnoProjectType } from "./potatno-project.ts";
 
 /**
@@ -11,7 +11,7 @@ import { PotatnoProjectType } from "./potatno-project.ts";
  * @template TOutputs - Object type mapping output port names to their definitions.
  * @template TPreviewElement - The type of the HTMLElement used for node previews for this node definition.
  */
-export class PotatnoNodeDefinition<TTypes extends PotatnoProjectType = PotatnoProjectType, TInputs extends PotatnoNodeDefinitionPorts<TTypes> = any, TOutputs extends PotatnoNodeDefinitionPorts<TTypes> = any, TPreviewElement extends Element = any> {
+export class PotatnoNodeDefinition<TTypes extends PotatnoProjectType = PotatnoProjectType, TInputs extends PotatnoNodeDefinitionPorts<TTypes> = any, TOutputs extends PotatnoNodeDefinitionPorts<TTypes> = any, TPreviewElement extends Element = any> implements IPotatnoNodeDefinition<TTypes, TInputs, TOutputs, TPreviewElement> {
     /**
      * Factory method to create a new node definition and register it at the project level.
      * 
@@ -117,11 +117,6 @@ type PotatnoNodeDefinitionConstructorParameter<TTypes extends PotatnoProjectType
 };
 
 /**
- * Code generator callback type for node definitions, receiving a typed context with inputs, outputs, properties, and body code blocks.
- */
-type PotatnoNodeDefinitionCodeGenerator<TTypes extends PotatnoProjectType, TInput extends PotatnoNodeDefinitionPorts<TTypes>, TOutput extends PotatnoNodeDefinitionPorts<TTypes>> = (pContext: PotatnoNodeDefinitionGeneratorData<TTypes, TInput, TOutput>) => string;
-
-/**
  * Definition of a port type used when registering node definitions.
  */
 
@@ -187,24 +182,3 @@ export type PotatnoNodeDefinitionGeneratorData<TTypes extends PotatnoProjectType
     readonly outputs: PotatnoCodeGeneratorPorts<TTypes, TOutput>;
 };
 
-/**
- * Preview generation.
- */
-export type PotatnoNodeDefinitionPreview<TTypes extends PotatnoProjectType, TInput extends PotatnoNodeDefinitionPorts<TTypes>, TOutput extends PotatnoNodeDefinitionPorts<TTypes>, TElement extends Element> = {
-    /**
-     * Generator function that produces an HTMLElement to be used as a live preview for a node instance.
-     * 
-     * @returns an element that the node gets append as preview.
-     */
-    readonly generatePreview: () => TElement;
-
-    /**
-     * Update function that updates the preview element based on the current input values and output values of the node instance.
-     * This can be used to create live, data-driven previews that react to changes in the node's inputs and outputs.
-     * 
-     * @param pElement - The preview element to be updated.
-     * @param pPreviewInputData - The example preview input data for the entry point, which can be used to run the intermediate code and update the preview element accordingly.
-     * @param pIntermediateCodeOutput - The output of the intermediate code execution, which can be used to update the preview element accordingly.
-     */
-    readonly updatePreview: (pElement: TElement, pContext: PotatnoNodeDefinitionGeneratorData<TTypes, TInput, TOutput>, pFunction: PotatnoCodeFunction, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
-};

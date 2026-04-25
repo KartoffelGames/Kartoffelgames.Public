@@ -2,6 +2,7 @@ import { Exception } from "@kartoffelgames/core";
 import { IPotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator } from "../project/i-potatno-node-definition.ts";
 import { PotatnoPortDefinition } from "../project/potatno-port-definition.ts";
 import type { PotatnoDocumentFunction } from './potatno-document-function.ts';
+import type { PotatnoDocumentPortValidationError } from './potatno-document-port.ts';
 import { PotatnoProjectType } from "../project/potatno-project-types-definition.ts";
 
 /**
@@ -68,6 +69,19 @@ export class PotatnoDocument {
         this.mFunctions.delete(pFunction);
         this.mFunctionNodeDefinitions.delete(pFunction.id);
         return true;
+    }
+
+    /**
+     * Validate all functions in this document and return any errors found.
+     */
+    public validate(): Array<PotatnoDocumentPortValidationError> {
+        const lErrors: Array<PotatnoDocumentPortValidationError> = [];
+
+        for (const lFunction of this.mFunctions) {
+            lErrors.push(...lFunction.validate());
+        }
+
+        return lErrors;
     }
 }
 

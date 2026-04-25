@@ -103,11 +103,6 @@ export class PotatnoDocumentPort {
             throw new Exception(`Cannot connect port ${this.mName} of node ${this.mNode.name} to port ${pPort.mName} of node ${pPort.node.name} due to incompatible directions.`, this);
         }
 
-        // Validate that the ports can be connected by value type if they are value ports.
-        if (this.mPortType === 'value' && this.mValueType !== pPort.type) {
-            throw new Exception(`Cannot connect port ${this.mName} of node ${this.mNode.name} to port ${pPort.mName} of node ${pPort.node.name} due to incompatible value types.`, this);
-        }
-
         // Check if port allows multiple connections.
         // Flow ports can only have a N-Import and 1-Export
         // Value ports can only have a 1-Import and N-Export
@@ -130,8 +125,8 @@ export class PotatnoDocumentPort {
     /**
      * Disconnect this port from another.
      * It also updates the connected port's state to maintain consistency.
-     * 
-     * @param pPort - The port that should be disconnected. 
+     *
+     * @param pPort - The port that should be disconnected.
      */
     public disconnect(pPort: PotatnoDocumentPort): void {
         // Skip if not connected.
@@ -144,5 +139,84 @@ export class PotatnoDocumentPort {
 
         // Also disconnect the other port.
         pPort.disconnect(this);
+    }
+
+    /**
+     * Validate this port and return any errors found.
+     */
+    public validate(): Array<PotatnoDocumentPortValidationError> {
+        const lErrors: Array<PotatnoDocumentPortValidationError> = new Array<PotatnoDocumentPortValidationError>();
+
+        // Output ports.
+        if (this.mDirection === 'output') {
+            // Flow output ports.
+            if (this.mPortType === 'flow') {
+                // Flow output ports can have a single connection.
+                if (this.mConnectedPorts.size > 1) {
+                    lErrors.push(new PotatnoDocumentPortValidationError(`Flow output port "${this.mName}" on node "${this.mNode.name}" can only have one connection.`, this));
+                }
+            }
+
+            return lErrors;
+        }
+
+        // Input ports.
+        if (this.mDirection === 'input') {
+            // Flow input ports.
+            if (this.mPortType === 'flow') {
+                // Flow input ports must have at least one connection.
+                if (this.mConnectedPorts.size === 0) {
+                    lErrors.push(new PotatnoDocumentPortValidationError(`Flow input port "${this.mName}" on node "${this.mNode.name}" must have at least one connection.`, this));
+                }
+
+                return lErrors;
+            }
+
+            // Value input ports.
+            if (this.mPortType === 'value') {
+                // Only one connection allowed for value input ports.
+                if (this.mConnectedPorts.size > 1) {
+                    lErrors.push(new PotatnoDocumentPortValidationError(`Value input port "${this.mName}" on node "${this.mNode.name}" can only have one connection.`, this));
+                }
+
+                // Value input port must have the same type.
+                for (const lConnectedPort of this.mConnectedPorts) {
+                    if (lConnectedPort.type !== this.mValueType) {
+                        lErrors.push(new PotatnoDocumentPortValidationError(`Value input port "${this.mName}" on node "${this.mNode.name}" expects type "${this.mValueType}" but is connected to type "${lConnectedPort.type}".`, this));
+                    }
+                }
+
+                return lErrors;
+            }
+        }
+
+        return lErrors;
+    }
+}
+
+/**
+ * A validation error for a document port.
+ */
+export class PotatnoDocumentPortValidationError {
+    private readonly mMessage: string;
+    private readonly mPort: PotatnoDocumentPort;
+
+    /**
+     * Get the error message describing the validation error.
+     */
+    public get message(): string {
+        return this.mMessage;
+    }
+
+    /**
+     * Get the port that caused the validation error.
+     */
+    public get port(): PotatnoDocumentPort {
+        return this.mPort;
+    }
+
+    public constructor(pMessage: string, pPort: PotatnoDocumentPort) {
+        this.mMessage = pMessage;
+        this.mPort = pPort;
     }
 }

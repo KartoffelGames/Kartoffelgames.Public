@@ -1,6 +1,7 @@
 import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
 import { PotatnoNodeDefinition } from "../project/potatno-node-definition.ts";
 import { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from "./potatno-document-node.ts";
+import type { PotatnoDocumentPortValidationError } from "./potatno-document-port.ts";
 
 /**
  * Represents a user-editable function containing a sub-graph.
@@ -189,7 +190,7 @@ export class PotatnoDocumentFunction {
 
     /**
      * Remove an output port definition from the function.
-     * 
+     *
      * @param pPort - The port definition to remove.
      */
     public removeOutput(pPort: PotatnoDocumentFunctionPort): void {
@@ -197,6 +198,19 @@ export class PotatnoDocumentFunction {
         if (index !== -1) {
             this.mOutputs.splice(index, 1);
         }
+    }
+
+    /**
+     * Validate all nodes in this function and return any errors found.
+     */
+    public validate(): Array<PotatnoDocumentPortValidationError> {
+        const lErrors: Array<PotatnoDocumentPortValidationError> = [];
+
+        for (const lNode of this.mNodes) {
+            lErrors.push(...lNode.validate());
+        }
+
+        return lErrors;
     }
 }
 

@@ -1,5 +1,5 @@
 import type { PotatnoNodeDefinition } from "../project/potatno-node-definition.ts";
-import { PotatnoDocumentPort } from './potatno-document-port.ts';
+import { PotatnoDocumentPort, PotatnoDocumentPortValidationError } from './potatno-document-port.ts';
 
 /**
  * A node instance in the graph.
@@ -96,6 +96,19 @@ export class PotatnoDocumentNode {
     public resizeTo(pW: number, pH: number): void {
         this.mTransformation.width = Math.max(4, pW);
         this.mTransformation.height = Math.max(2, pH);
+    }
+
+    /**
+     * Validate all ports of this node and return any errors found.
+     */
+    public validate(): Array<PotatnoDocumentPortValidationError> {
+        const lErrors: Array<PotatnoDocumentPortValidationError> = [];
+
+        for (const lPort of [...this.mInputs.values(), ...this.mOutputs.values()]) {
+            lErrors.push(...lPort.validate());
+        }
+
+        return lErrors;
     }
 }
 

@@ -3,6 +3,7 @@ import { IPotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator } from "../p
 import { PotatnoPortDefinition } from "../project/potatno-port-definition.ts";
 import type { PotatnoDocumentFunction } from './potatno-document-function.ts';
 import type { PotatnoDocumentPortValidationError } from './potatno-document-port.ts';
+import { PotatnoProject } from "../project/potatno-project.ts";
 import { PotatnoProjectType } from "../project/potatno-project-types-definition.ts";
 
 /**
@@ -12,6 +13,7 @@ import { PotatnoProjectType } from "../project/potatno-project-types-definition.
 export class PotatnoDocument {
     private readonly mFunctions: Set<PotatnoDocumentFunction>;
     private readonly mFunctionNodeDefinitions: Map<string, PotatnoFunctionNodeDefinition>;
+    private readonly mProject: PotatnoProject<PotatnoProjectType>;
 
     /**
      * Get the read-only set of all functions in this file.
@@ -30,9 +32,17 @@ export class PotatnoDocument {
     }
 
     /**
+     * Get the project this document belongs to.
+     */
+    public get project(): PotatnoProject<PotatnoProjectType> {
+        return this.mProject;
+    }
+
+    /**
      * Create an empty code file with no functions.
      */
-    public constructor() {
+    public constructor(pProject: PotatnoProject<PotatnoProjectType>) {
+        this.mProject = pProject;
         this.mFunctions = new Set<PotatnoDocumentFunction>();
         this.mFunctionNodeDefinitions = new Map<string, PotatnoFunctionNodeDefinition>();
     }

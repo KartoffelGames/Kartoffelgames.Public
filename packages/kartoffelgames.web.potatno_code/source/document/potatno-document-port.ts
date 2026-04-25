@@ -1,6 +1,8 @@
 import { Exception } from "@kartoffelgames/core";
 import { PotatnoPortDefinitionDirection, PotatnoPortDefinitionType } from "../project/potatno-port-definition.ts";
 import { PotatnoDocumentNode } from "./potatno-document-node.ts";
+import { PotatnoProject } from "../project/potatno-project.ts";
+import { PotatnoProjectType } from "../project/potatno-project-types-definition.ts";
 
 /**
  * A data port instance on a node.
@@ -12,6 +14,8 @@ export class PotatnoDocumentPort {
     private readonly mValueType: string | null;
     private readonly mPortType: PotatnoPortDefinitionType;
     private readonly mNode: PotatnoDocumentNode;
+    private readonly mDirectValue: Array<string>;
+    private readonly mProject: PotatnoProject<PotatnoProjectType>;
 
     /**
      * The connected port.
@@ -25,6 +29,13 @@ export class PotatnoDocumentPort {
      */
     public get direction(): PotatnoPortDefinitionDirection {
         return this.mDirection;
+    }
+
+    /**
+     * Get the direct value of the port. Only applicable for value ports. This value is used when the port is not connected to any other port.
+     */
+    public get directValue(): ReadonlyArray<string> {
+        return this.mDirectValue;
     }
 
     /**
@@ -49,6 +60,13 @@ export class PotatnoDocumentPort {
     }
 
     /**
+     * Get the project this port belongs to.
+     */
+    public get project(): PotatnoProject<PotatnoProjectType> {
+        return this.mProject;
+    }
+
+    /**
      * Get the data type of the port.
      */
     public get type(): string {
@@ -63,7 +81,7 @@ export class PotatnoDocumentPort {
      * @param pPortType - Whether the port is a flow port or a value port.
      * @param pValueType - Data type of the port. Should be empty for flow ports and must be set for value ports.
      */
-    public constructor(pNode: PotatnoDocumentNode, pName: string, pDirection: PotatnoPortDefinitionDirection, pPortType: PotatnoPortDefinitionType, pValueType: string | null) {
+    public constructor(pProject: PotatnoProject<PotatnoProjectType>, pNode: PotatnoDocumentNode, pName: string, pDirection: PotatnoPortDefinitionDirection, pPortType: PotatnoPortDefinitionType, pValueType: string | null) {
         // Validate port type and value type consistency.
         if (pPortType === 'flow' && pValueType !== null) {
             throw new Exception(`Flow ports cannot have a value type.`, this);
@@ -72,12 +90,18 @@ export class PotatnoDocumentPort {
             throw new Exception(`Value ports must have a value type.`, this);
         }
 
+        this.mProject = pProject;
         this.mNode = pNode;
         this.mName = pName;
         this.mValueType = pValueType;
         this.mDirection = pDirection;
         this.mPortType = pPortType;
         this.mConnectedPorts = new Set<PotatnoDocumentPort>();
+
+        this.mDirectValue = new Array<string>();
+        if (pValueType) {
+            this.mDirectValue.push(...pProject.types.getType(pValueType).defaultValue);
+        }
     }
 
     /**
@@ -139,6 +163,27 @@ export class PotatnoDocumentPort {
 
         // Also disconnect the other port.
         pPort.disconnect(this);
+    }
+
+    /**
+     * Set a direct value for this port. Only applicable for value ports.
+     * This value is used when the port is not connected to any other port.
+     * 
+     * @param pValue - The value to set, represented as an array of strings. The format of the strings depends on the port's data type and is defined by the project's type configuration. 
+     */
+    public setDirectValue(pValue: Array<string>): void {
+        if (this.mPortType !== 'value') {
+            throw new Exception(`Only value ports can have a direct value.`, this);
+        }
+
+        // Check if the project type has the same default value length.
+        if (pValue.length !== this.mProject.types.getType(this.mValueType!).defaultValue.length) {
+            throw new Exception(`The provided value does not match the expected length of the default value for this port's type.`, this);
+        }
+
+        // Remove and update the direct value.
+        this.mDirectValue.slice(0, this.mDirectValue.length);
+        this.mDirectValue.push(...pValue);
     }
 
     /**

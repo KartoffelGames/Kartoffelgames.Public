@@ -36,7 +36,7 @@ export class PotatnoDeserializer {
      * @returns The fully reconstructed document.
      */
     public deserialize(pData: PotatnoCodeFileSerializationResult): PotatnoDocument {
-        const lDocument: PotatnoDocument = new PotatnoDocument();
+        const lDocument: PotatnoDocument = new PotatnoDocument(this.mProject);
 
         for (const lFuncData of pData.functions) {
             lDocument.addFunction(this.deserializeFunction(lFuncData));
@@ -52,7 +52,7 @@ export class PotatnoDeserializer {
      */
     private deserializeFunction(pData: SerializedFunction): PotatnoDocumentFunction {
         const lDefinition: PotatnoFunctionDefinition = this.findFunctionDefinition(pData.definitionId);
-        const lFunc: PotatnoDocumentFunction = new PotatnoDocumentFunction(lDefinition, pData.id, pData.label, pData.isSystem);
+        const lFunc: PotatnoDocumentFunction = new PotatnoDocumentFunction(this.mProject, lDefinition, pData.id, pData.label, pData.isSystem);
 
         // Restore imports.
         for (const lImport of pData.imports) {
@@ -105,8 +105,18 @@ export class PotatnoDeserializer {
             throw new Error(`Node definition not found: "${pData.definitionId}"`);
         }
 
-        const lNode: PotatnoDocumentNode = new PotatnoDocumentNode(lDefinition, { ...pData.transformation }, pData.isSystem);
+        const lNode: PotatnoDocumentNode = new PotatnoDocumentNode(this.mProject, lDefinition, { ...pData.transformation }, pData.isSystem);
         lNode.name = pData.name;
+
+        // Restore direct values for value input ports.
+        for (const lPortData of pData.ports) {
+            if (lPortData.portType === 'value' && lPortData.directValue.length > 0) {
+                const lPort = lNode.inputs.get(lPortData.name);
+                if (lPort) {
+                    lPort.setDirectValue(lPortData.directValue);
+                }
+            }
+        }
 
         return lNode;
     }

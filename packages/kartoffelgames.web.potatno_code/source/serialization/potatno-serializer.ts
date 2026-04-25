@@ -110,7 +110,8 @@ export class PotatnoSerializer {
             name: pPort.name,
             direction: pPort.direction,
             portType: pPort.portType,
-            dataType: pPort.portType === 'value' ? pPort.type : null
+            dataType: pPort.portType === 'value' ? pPort.type : null,
+            directValue: [...pPort.directValue]
         }));
 
         return {

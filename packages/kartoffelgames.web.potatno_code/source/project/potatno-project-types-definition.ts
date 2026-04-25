@@ -37,9 +37,10 @@ type PotatnoProjectTypeDefinitionConfiguration<TTypeName extends PotatnoProjectT
  */
 type PotatnoProjectTypesItem<TTypeName extends PotatnoProjectType> = {
     /**
-     * A default value for this type, used when creating new properties of this type in the editor.
+     * A default value for this type.
+     * The string represents the default string values for the types inputs.
      */
-    defaultValue: any;
+    defaultValue: Array<string>;
 
     /** 
      * Converts raw string input values to the type's code-ready string representation.

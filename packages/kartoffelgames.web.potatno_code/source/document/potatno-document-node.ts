@@ -1,5 +1,7 @@
 import type { PotatnoNodeDefinition } from "../project/potatno-node-definition.ts";
 import { PotatnoDocumentPort, PotatnoDocumentPortValidationError } from './potatno-document-port.ts';
+import type { PotatnoProject } from '../project/potatno-project.ts';
+import type { PotatnoProjectType } from '../project/potatno-project-types-definition.ts';
 
 /**
  * A node instance in the graph.
@@ -11,6 +13,7 @@ export class PotatnoDocumentNode {
     private readonly mOutputs: Map<string, PotatnoDocumentPort>;
     private readonly mIsSystem: boolean;
     private readonly mTransformation: PotatnoDocumentNodeTransformation;
+    private readonly mProject: PotatnoProject<PotatnoProjectType>;
 
     /**
      * Get the node definition this node was created from.
@@ -31,6 +34,13 @@ export class PotatnoDocumentNode {
      */
     public get outputs(): Map<string, PotatnoDocumentPort> {
         return this.mOutputs;
+    }
+
+    /**
+     * Get the project this node belongs to.
+     */
+    public get project(): PotatnoProject<PotatnoProjectType> {
+        return this.mProject;
     }
 
     /**
@@ -63,7 +73,8 @@ export class PotatnoDocumentNode {
      * @param pTransformation - Initial grid position of the node.
      * @param pIsSystem - Whether this is a system node that cannot be removed.
      */
-    public constructor(pDefinition: PotatnoNodeDefinition, pTransformation: PotatnoDocumentNodeTransformation, pIsSystem: boolean) {
+    public constructor(pProject: PotatnoProject<PotatnoProjectType>, pDefinition: PotatnoNodeDefinition, pTransformation: PotatnoDocumentNodeTransformation, pIsSystem: boolean) {
+        this.mProject = pProject;
         this.mDefinition = pDefinition;
         this.mIsSystem = pIsSystem;
         this.mTransformation = pTransformation;
@@ -72,13 +83,13 @@ export class PotatnoDocumentNode {
         // Create ports from input definitions, splitting by nodeType.
         this.mInputs = new Map<string, PotatnoDocumentPort>();
         for (const lPort of pDefinition.inputs) {
-            this.mInputs.set(lPort.name, new PotatnoDocumentPort(this, lPort.name, 'input', lPort.portType, lPort.dataType));
+            this.mInputs.set(lPort.name, new PotatnoDocumentPort(pProject, this, lPort.name, 'input', lPort.portType, lPort.dataType));
         }
 
         // Create ports from output definitions, splitting by nodeType.
         this.mOutputs = new Map<string, PotatnoDocumentPort>();
         for (const lPort of pDefinition.outputs) {
-            this.mOutputs.set(lPort.name, new PotatnoDocumentPort(this, lPort.name, 'output', lPort.portType, lPort.dataType));
+            this.mOutputs.set(lPort.name, new PotatnoDocumentPort(pProject, this, lPort.name, 'output', lPort.portType, lPort.dataType));
         }
     }
 

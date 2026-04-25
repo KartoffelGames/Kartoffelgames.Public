@@ -10,7 +10,7 @@ import { PotatnoProjectTypesDefinition } from "../../source/project/potatno-proj
 // --- Project configuration ---
 const lProjectTypes = new PotatnoProjectTypesDefinition({
     number: {
-        defaultValue: 0,
+        defaultValue: ['0'],
         convert: (pValues: Array<string>) => {
             const lNumberString: string = pValues[0];
             const lNumber: number = parseFloat(lNumberString);
@@ -24,7 +24,7 @@ const lProjectTypes = new PotatnoProjectTypesDefinition({
         ]
     },
     string: {
-        defaultValue: '',
+        defaultValue: [''],
         convert: (pValues: Array<string>) => {
             return pValues[0];
         },
@@ -33,7 +33,7 @@ const lProjectTypes = new PotatnoProjectTypesDefinition({
         ]
     },
     boolean: {
-        defaultValue: false,
+        defaultValue: ['false'],
         convert: (pValues: Array<string>) => {
             const lBooleanString: string = pValues[0].toLowerCase();
             if (lBooleanString === 'true') {
@@ -519,7 +519,7 @@ lProject.addUserFunction(PotatnoFunctionDefinition.create({
 // --- Create application and open an empty file ---
 const lApp: PotatnoCodeApplication = new PotatnoCodeApplication(lProject);
 lApp.appendTo(document.body);
-lApp.file = new PotatnoDocument();
+lApp.file = new PotatnoDocument(lProject);
 
 // --- Pixel shader render loop ---
 function renderFrame(): void {

@@ -2,6 +2,8 @@ import type { PotatnoFunctionDefinition } from '../project/potatno-function-defi
 import { PotatnoNodeDefinition } from "../project/potatno-node-definition.ts";
 import { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from "./potatno-document-node.ts";
 import type { PotatnoDocumentPortValidationError } from "./potatno-document-port.ts";
+import type { PotatnoProject } from '../project/potatno-project.ts';
+import type { PotatnoProjectType } from '../project/potatno-project-types-definition.ts';
 
 /**
  * Represents a user-editable function containing a sub-graph.
@@ -15,6 +17,7 @@ export class PotatnoDocumentFunction {
     private mLabel: string;
     private readonly mOutputs: Array<PotatnoDocumentFunctionPort>;
     private readonly mNodes: Set<PotatnoDocumentNode>;
+    private readonly mProject: PotatnoProject<PotatnoProjectType>;
 
     /**
      * Unique identifier for this function instance. Stable across sessions so it can be referenced as a node in other graphs.
@@ -75,6 +78,13 @@ export class PotatnoDocumentFunction {
     }
 
     /**
+     * Get the project this function belongs to.
+     */
+    public get project(): PotatnoProject<PotatnoProjectType> {
+        return this.mProject;
+    }
+
+    /**
      * Create a new function instance.
      *
      * @param pDefinition - The function definition this function was created from.
@@ -82,7 +92,8 @@ export class PotatnoDocumentFunction {
      * @param pLabel - Display label of the function.
      * @param pIsSystem - Whether the function is a system-defined function.
      */
-    public constructor(pDefinition: PotatnoFunctionDefinition, pId: string, pLabel: string, pIsSystem: boolean) {
+    public constructor(pProject: PotatnoProject<PotatnoProjectType>, pDefinition: PotatnoFunctionDefinition, pId: string, pLabel: string, pIsSystem: boolean) {
+        this.mProject = pProject;
         this.mLabel = pLabel;
         this.mIsSystem = pIsSystem;
         this.mDefinition = pDefinition;
@@ -145,7 +156,7 @@ export class PotatnoDocumentFunction {
      * Add a new node to the graph.
      */
     public newNode(pDefinition: PotatnoNodeDefinition, pTransformation: PotatnoDocumentNodeTransformation, pSystem: boolean = false): PotatnoDocumentNode {
-        const lNode: PotatnoDocumentNode = new PotatnoDocumentNode(pDefinition, pTransformation, pSystem);
+        const lNode: PotatnoDocumentNode = new PotatnoDocumentNode(this.mProject, pDefinition, pTransformation, pSystem);
         this.mNodes.add(lNode);
         return lNode;
     }

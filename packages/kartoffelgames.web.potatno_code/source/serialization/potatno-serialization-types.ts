@@ -128,10 +128,16 @@ export type SerializedNodePort = {
      */
     portType: PotatnoPortDefinitionType;
 
-    /** 
-     * Data type for value ports; null for flow ports. 
+    /**
+     * Data type for value ports; null for flow ports.
      */
     dataType: string | null;
+
+    /**
+     * Direct (literal) value for value input ports. Used when the port is not connected.
+     * Empty array for flow ports and output ports.
+     */
+    directValue: Array<string>;
 };
 
 /**

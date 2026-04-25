@@ -1,85 +1,89 @@
-import type { PotatnoHistoryAction } from './potatno-history-action.ts';
+import type { PotatnoCodeFileSerializationResult } from '../serialization/potatno-serialization-types.ts';
 
 /**
- * Undo/redo history manager using the command pattern.
- * Maintains separate undo and redo stacks with a configurable maximum size.
+ * Snapshot-based undo/redo history manager.
+ * Stores serialization snapshots and allows moving backwards/forwards through them.
  */
 export class PotatnoHistory {
     private readonly mMaxSize: number;
-    private readonly mRedoStack: Array<PotatnoHistoryAction>;
-    private readonly mUndoStack: Array<PotatnoHistoryAction>;
+    private mCurrentIndex: number;
+    private readonly mSnapshots: Array<PotatnoCodeFileSerializationResult>;
 
     /**
-     * Whether there are any actions available to redo.
+     * Whether there are any snapshots available to redo.
      */
     public get canRedo(): boolean {
-        return this.mRedoStack.length > 0;
+        return this.mCurrentIndex < this.mSnapshots.length - 1;
     }
 
     /**
-     * Whether there are any actions available to undo.
+     * Whether there are any snapshots available to undo.
      */
     public get canUndo(): boolean {
-        return this.mUndoStack.length > 0;
+        return this.mCurrentIndex > 0;
     }
 
     /**
      * Constructor.
      *
-     * @param pMaxSize - Maximum number of undo steps to retain. Defaults to 100.
+     * @param pMaxSize - Maximum number of snapshots to retain. Defaults to 100.
      */
     public constructor(pMaxSize: number = 100) {
-        this.mUndoStack = new Array<PotatnoHistoryAction>();
-        this.mRedoStack = new Array<PotatnoHistoryAction>();
+        this.mSnapshots = new Array<PotatnoCodeFileSerializationResult>();
+        this.mCurrentIndex = -1;
         this.mMaxSize = pMaxSize;
     }
 
     /**
-     * Execute an action and push it to the undo stack.
-     * Clears the redo stack and trims the undo stack if it exceeds the maximum size.
+     * Push a new snapshot onto the history stack.
+     * Discards any redo snapshots beyond the current index.
+     * Trims the oldest entries if the stack exceeds the maximum size.
      *
-     * @param pAction - The history action to execute and record.
+     * @param pSnapshot - The serialization snapshot to record.
      */
-    public push(pAction: PotatnoHistoryAction): void {
-        pAction.apply();
-        this.mUndoStack.push(pAction);
+    public push(pSnapshot: PotatnoCodeFileSerializationResult): void {
+        // Discard any redo history beyond current position.
+        this.mSnapshots.splice(this.mCurrentIndex + 1);
 
-        // Clear the redo stack on new action.
-        this.mRedoStack.length = 0;
+        this.mSnapshots.push(pSnapshot);
+        this.mCurrentIndex = this.mSnapshots.length - 1;
 
         // Trim if beyond max size.
-        if (this.mUndoStack.length > this.mMaxSize) {
-            this.mUndoStack.shift();
+        if (this.mSnapshots.length > this.mMaxSize) {
+            this.mSnapshots.shift();
+            this.mCurrentIndex = this.mSnapshots.length - 1;
         }
     }
 
     /**
-     * Undo the last action. Reverts it and moves it to the redo stack.
+     * Step back one snapshot. Returns the snapshot to restore, or null if none.
      */
-    public undo(): void {
-        const lAction: PotatnoHistoryAction | undefined = this.mUndoStack.pop();
-        if (lAction) {
-            lAction.revert();
-            this.mRedoStack.push(lAction);
+    public undo(): PotatnoCodeFileSerializationResult | null {
+        if (!this.canUndo) {
+            return null;
         }
+
+        this.mCurrentIndex--;
+        return this.mSnapshots[this.mCurrentIndex];
     }
 
     /**
-     * Redo the last undone action. Re-applies it and moves it back to the undo stack.
+     * Step forward one snapshot. Returns the snapshot to restore, or null if none.
      */
-    public redo(): void {
-        const lAction: PotatnoHistoryAction | undefined = this.mRedoStack.pop();
-        if (lAction) {
-            lAction.apply();
-            this.mUndoStack.push(lAction);
+    public redo(): PotatnoCodeFileSerializationResult | null {
+        if (!this.canRedo) {
+            return null;
         }
+
+        this.mCurrentIndex++;
+        return this.mSnapshots[this.mCurrentIndex];
     }
 
     /**
-     * Clear all history, emptying both the undo and redo stacks.
+     * Clear all history.
      */
     public clear(): void {
-        this.mUndoStack.length = 0;
-        this.mRedoStack.length = 0;
+        this.mSnapshots.length = 0;
+        this.mCurrentIndex = -1;
     }
 }

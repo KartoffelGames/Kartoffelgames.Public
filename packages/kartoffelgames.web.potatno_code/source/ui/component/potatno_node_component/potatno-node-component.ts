@@ -1,6 +1,9 @@
 import { PwbComponent, PwbExport, PwbComponentEvent, PwbChild, ComponentEventEmitter, ComponentState } from '@kartoffelgames/web-potato-web-builder';
 import type { ComponentEvent, IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
-import { NodeCategory } from '../../../node/node-category.enum.ts';
+import { NodeCategory, NodeCategoryMeta } from '../../../parser/node/node-category.enum.ts';
+import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
+import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
+import type { PortInteractionDetail } from '../potatno_port/potatno-port.ts';
 import nodeCss from './potatno-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
 
@@ -9,8 +12,7 @@ import '../potatno_port/potatno-port.ts';
 
 /**
  * Node component for the potatno-code visual editor.
- * Renders a visual node with a colored header, ports, and body content.
- * Supports standard nodes, value nodes (with text input), and comment nodes (resizable).
+ * Receives a PotatnoDocumentNode object reference and renders its state.
  */
 @PwbComponent({
     selector: 'potatno-node',
@@ -21,13 +23,11 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     // ── Exported properties ─────────────────────────────────────────────
 
     /**
-     * The node render data. Set by the parent editor. Contains pre-computed
-     * arrays and text fields so no Map/Array iteration happens inside this
-     * component's getters.
+     * The domain node object to render.
      */
     @PwbExport
     @ComponentState.state()
-    public accessor nodeData: NodeRenderData | null = null;
+    public accessor nodeData: PotatnoDocumentNode | null = null;
 
     /**
      * Whether this node is currently selected.
@@ -58,79 +58,34 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
 
     // ── Event emitters ──────────────────────────────────────────────────
 
-    /**
-     * Fired when the user clicks the node to select it.
-     */
     @PwbComponentEvent('node-select')
     private accessor mNodeSelect!: ComponentEventEmitter<NodeSelectDetail>;
 
-    /**
-     * Fired when the user starts dragging the node.
-     */
     @PwbComponentEvent('node-drag-start')
     private accessor mNodeDragStart!: ComponentEventEmitter<NodeDragStartDetail>;
 
-    /**
-     * Fired when a child port emits a drag start (re-emitted for the canvas).
-     */
     @PwbComponentEvent('port-drag-start')
-    private accessor mPortDragStart!: ComponentEventEmitter<PortDragStartDetail>;
+    private accessor mPortDragStart!: ComponentEventEmitter<PortInteractionDetail>;
 
-    /**
-     * Fired when the pointer enters a child port (re-emitted for the canvas).
-     */
     @PwbComponentEvent('port-hover')
-    private accessor mPortHover!: ComponentEventEmitter<PortDragStartDetail>;
+    private accessor mPortHover!: ComponentEventEmitter<PortInteractionDetail>;
 
-    /**
-     * Fired when the pointer leaves a child port (re-emitted for the canvas).
-     */
     @PwbComponentEvent('port-leave')
     private accessor mPortLeave!: ComponentEventEmitter<void>;
 
-    /**
-     * Fired when the open-function button is clicked on a function node.
-     */
     @PwbComponentEvent('open-function')
     private accessor mOpenFunction!: ComponentEventEmitter<OpenFunctionDetail>;
 
-    /**
-     * Fired when the value input on a value node changes.
-     */
-    @PwbComponentEvent('value-change')
-    private accessor mValueChange!: ComponentEventEmitter<ValueChangeDetail>;
-
-    /**
-     * Fired when the comment text on a comment node changes.
-     */
     @PwbComponentEvent('comment-change')
     private accessor mCommentChange!: ComponentEventEmitter<CommentChangeDetail>;
 
-    /**
-     * Fired when the user starts resizing a comment node.
-     */
     @PwbComponentEvent('resize-start')
     private accessor mResizeStart!: ComponentEventEmitter<ResizeStartDetail>;
 
+    @PwbComponentEvent('direct-value-change')
+    private accessor mDirectValueChange!: ComponentEventEmitter<DirectValueChangeDetail>;
+
     // ── Computed template properties ────────────────────────────────────
-
-    /**
-     * Inline CSS style string for positioning the node on the canvas.
-     * Converts grid-unit position and size to pixel values.
-     */
-    public get nodeStyle(): string {
-        if (!this.nodeData) {
-            return '';
-        }
-        return `left: ${this.nodeData.position.x * this.gridSize}px; top: ${this.nodeData.position.y * this.gridSize}px; width: ${this.nodeData.size.w * this.gridSize}px;`;
-    }
-
-    /**
-     * The unique node id from the render data.
-     */
-    public get nodeId(): string {
-        return this.nodeData?.id ?? '';
-    }
 
     /**
      * CSS class string for the selected state.
@@ -143,81 +98,116 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
      * Whether this is a comment-category node.
      */
     public get isComment(): boolean {
-        return this.nodeData?.category === NodeCategory.Comment;
+        return this.nodeData?.definition.category === NodeCategory.Comment;
     }
 
     /**
      * Whether this is a reroute passthrough node.
      */
     public get isReroute(): boolean {
-        return this.nodeData?.category === NodeCategory.Reroute;
+        return this.nodeData?.definition.category === NodeCategory.Reroute;
     }
 
     /**
-     * Inline CSS style for comment node sizing (height is set from the node's grid size).
+     * Whether this is a function-category node.
+     */
+    public get isFunction(): boolean {
+        return this.nodeData?.definition.category === NodeCategory.Function;
+    }
+
+    /**
+     * Whether the open-function button should be shown.
+     * Only for non-system function nodes.
+     */
+    public get showOpenButton(): boolean {
+        if (!this.nodeData) {
+            return false;
+        }
+        return this.isFunction && !this.nodeData.isSystem;
+    }
+
+    /**
+     * Category display color.
+     */
+    public get categoryColor(): string {
+        if (!this.nodeData) {
+            return '';
+        }
+        return NodeCategoryMeta.get(this.nodeData.definition.category).cssColor;
+    }
+
+    /**
+     * Category display icon.
+     */
+    public get categoryIcon(): string {
+        if (!this.nodeData) {
+            return '';
+        }
+        return NodeCategoryMeta.get(this.nodeData.definition.category).icon;
+    }
+
+    /**
+     * Node display label.
+     */
+    public get nodeLabel(): string {
+        return this.nodeData?.label ?? '';
+    }
+
+    /**
+     * Node definition name (shown as the node's title in the header).
+     */
+    public get nodeName(): string {
+        return this.nodeData?.name ?? '';
+    }
+
+    /**
+     * Inline CSS style for comment node sizing.
      */
     public get commentSizeStyle(): string {
         if (!this.nodeData) {
             return '';
         }
-        return `height: ${this.nodeData.size.h * this.gridSize}px;`;
+        return `height: ${this.nodeData.transformation.height * this.gridSize}px;`;
     }
 
     /**
-     * Whether this node has inline input fields (compact value layout).
+     * Value input ports (portType === 'value', direction === 'input').
      */
-    public get isValue(): boolean {
-        return this.nodeData?.hasInlineInput ?? false;
+    public get inputPorts(): Array<PotatnoDocumentPort> {
+        if (!this.nodeData) {
+            return [];
+        }
+        return [...this.nodeData.inputs.values()].filter(p => p.portType === 'value');
     }
 
     /**
-     * Whether this is a function-category node (shows the open button).
+     * Value output ports (portType === 'value', direction === 'output').
      */
-    public get isFunction(): boolean {
-        return this.nodeData?.category === NodeCategory.Function;
+    public get outputPorts(): Array<PotatnoDocumentPort> {
+        if (!this.nodeData) {
+            return [];
+        }
+        return [...this.nodeData.outputs.values()].filter(p => p.portType === 'value');
     }
 
     /**
-     * Whether the open-function button should be shown.
-     * Only for non-system function nodes that represent user-defined functions.
+     * Flow input ports (portType === 'flow', direction === 'input').
      */
-    public get showOpenButton(): boolean {
-        return false;
+    public get flowInputPorts(): Array<PotatnoDocumentPort> {
+        if (!this.nodeData) {
+            return [];
+        }
+        return [...this.nodeData.inputs.values()].filter(p => p.portType === 'flow');
     }
 
     /**
-     * Data input ports as a pre-spread array from the render data.
+     * Flow output ports (portType === 'flow', direction === 'output').
      */
-    public get inputPorts(): Array<any> {
-        return this.nodeData?.inputs ?? [];
-    }
-
-    /**
-     * Data output ports as a pre-spread array from the render data.
-     */
-    public get outputPorts(): Array<any> {
-        return this.nodeData?.outputs ?? [];
-    }
-
-    /**
-     * Flow input ports as a pre-spread array from the render data.
-     */
-    public get flowInputPorts(): Array<any> {
-        return this.nodeData?.flowInputs ?? [];
-    }
-
-    /**
-     * Flow output ports as a pre-spread array from the render data.
-     */
-    public get flowOutputPorts(): Array<any> {
-        return this.nodeData?.flowOutputs ?? [];
-    }
-
-    /**
-     * Whether this node has a preview element to display inline.
-     */
-    public get hasPreviewElement(): boolean {
-        return !!this.previewElement;
+    public get flowOutputPorts(): Array<PotatnoDocumentPort> {
+        if (!this.nodeData) {
+            return [];
+        }
+        return [...this.nodeData.outputs.values()].filter(p => p.portType === 'flow');
     }
 
     // ── Lifecycle ───────────────────────────────────────────────────────
@@ -231,7 +221,6 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
             return;
         }
 
-        // mPreviewContainer throws for reroute/comment nodes that don't render #NodePreview.
         let lContainer: HTMLDivElement;
         try {
             lContainer = this.mPreviewContainer;
@@ -239,7 +228,6 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
             return;
         }
 
-        // Only append if not already a child.
         if (lPreviewEl.parentElement !== lContainer) {
             lContainer.innerHTML = '';
             lContainer.appendChild(lPreviewEl);
@@ -250,177 +238,122 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
 
     /**
      * Handle pointer down on the node for selection and drag initiation.
-     *
-     * @param pEvent - Pointer event.
      */
     public onNodePointerDown(pEvent: PointerEvent): void {
-        // Ignore clicks that originated from port elements.
         if ((pEvent.target as HTMLElement).tagName?.toLowerCase() === 'potatno-port') {
             return;
         }
+        if (!this.nodeData) {
+            return;
+        }
 
-        // Emit selection event.
         this.mNodeSelect.dispatchEvent({
-            nodeId: this.nodeId,
+            node: this.nodeData,
             shiftKey: pEvent.shiftKey
         });
 
-        // Emit drag start event for the canvas to handle positioning.
         this.mNodeDragStart.dispatchEvent({
-            nodeId: this.nodeId,
+            node: this.nodeData,
             startX: pEvent.clientX,
             startY: pEvent.clientY
         });
     }
 
     /**
-     * Re-emit a port-drag-start event received from a child port component.
-     *
-     * @param pEvent - Component event from child port.
+     * Re-emit a port-drag-start event from a child port component.
      */
-    public onPortDragStart(pEvent: ComponentEvent<PortDragStartDetail>): void {
+    public onPortDragStart(pEvent: ComponentEvent<PortInteractionDetail>): void {
         this.mPortDragStart.dispatchEvent(pEvent.value);
     }
 
     /**
-     * Re-emit a port-hover event received from a child port component.
-     *
-     * @param pEvent - Component event from child port.
+     * Re-emit a port-hover event from a child port component.
      */
-    public onPortHover(pEvent: ComponentEvent<PortDragStartDetail>): void {
+    public onPortHover(pEvent: ComponentEvent<PortInteractionDetail>): void {
         this.mPortHover.dispatchEvent(pEvent.value);
     }
 
     /**
-     * Re-emit a port-leave event received from a child port component.
-     *
-     * @param _pEvent - Component event from child port.
+     * Re-emit a port-leave event from a child port component.
      */
     public onPortLeave(_pEvent: ComponentEvent<void>): void {
         this.mPortLeave.dispatchEvent(undefined as unknown as void);
     }
 
     /**
-     * Handle click on the open-function button.
-     *
-     * @param pEvent - Click event.
+     * Re-emit a direct-value-change event from a child port component.
      */
-    public onOpenFunction(pEvent: MouseEvent): void {
-        pEvent.stopPropagation();
-        this.mOpenFunction.dispatchEvent({
-            definitionName: this.nodeData?.definitionName ?? ''
-        });
+    public onDirectValueChange(pEvent: ComponentEvent<DirectValueChangeDetail>): void {
+        this.mDirectValueChange.dispatchEvent(pEvent.value);
     }
 
     /**
-     * Handle text input changes on value nodes.
-     *
-     * @param pEvent - Input event.
+     * Handle click on the open-function button.
      */
-    public onValueInput(pEvent: Event): void {
-        const lTarget: HTMLInputElement = pEvent.target as HTMLInputElement;
-        this.mValueChange.dispatchEvent({
-            nodeId: this.nodeId,
-            property: 'value',
-            value: lTarget.value
-        });
+    public onOpenFunction(pEvent: MouseEvent): void {
+        pEvent.stopPropagation();
+        if (!this.nodeData) {
+            return;
+        }
+        this.mOpenFunction.dispatchEvent({ node: this.nodeData });
     }
 
     /**
      * Handle text input changes on comment nodes.
-     *
-     * @param pEvent - Input event.
      */
     public onCommentInput(pEvent: Event): void {
         const lTarget: HTMLTextAreaElement = pEvent.target as HTMLTextAreaElement;
-        this.mCommentChange.dispatchEvent({
-            nodeId: this.nodeId,
-            text: lTarget.value
-        });
+        if (!this.nodeData) {
+            return;
+        }
+        this.nodeData.label = lTarget.value;
+        this.mCommentChange.dispatchEvent({ node: this.nodeData, text: lTarget.value });
     }
 
     /**
      * Handle pointer down on the resize handle of comment nodes.
-     *
-     * @param pEvent - Pointer event.
      */
     public onResizeStart(pEvent: PointerEvent): void {
         pEvent.stopPropagation();
         pEvent.preventDefault();
+        if (!this.nodeData) {
+            return;
+        }
         this.mResizeStart.dispatchEvent({
-            nodeId: this.nodeId,
+            node: this.nodeData,
             startX: pEvent.clientX,
             startY: pEvent.clientY
         });
     }
 }
 
-/**
- * Plain render data for a node, pre-computed by the parent editor.
- * All arrays are already spread from Map.values() and all text fields
- * are pre-extracted, so no untrackable Map/Array calls occur in the
- * component getters.
- */
-export interface NodeRenderData {
-    id: string;
-    definitionName: string;
-    category: string;
-    categoryColor: string;
-    categoryIcon: string;
-    label: string;
-    position: { x: number; y: number };
-    size: { w: number; h: number };
-    system: boolean;
-    selected: boolean;
-    inputs: Array<{ id: string; name: string; type: string; direction: string; connectedTo: string | null }>;
-    outputs: Array<{ id: string; name: string; type: string; direction: string; connectedTo: string | null }>;
-    flowInputs: Array<{ id: string; name: string; direction: string; connectedTo: string | null }>;
-    flowOutputs: Array<{ id: string; name: string; direction: string; connectedTo: string | null }>;
-    hasDefinition: boolean;
-    hasInlineInput: boolean;
-    valueText: string;
-    commentText: string;
-    pixelX: number;
-    pixelY: number;
-}
-
-type PortDragStartDetail = {
-    nodeId: string;
-    portId: string;
-    portKind: string;
-    direction: string;
-    type: string;
-    element: HTMLElement;
-};
-
-type NodeSelectDetail = {
-    nodeId: string;
+export type NodeSelectDetail = {
+    node: PotatnoDocumentNode;
     shiftKey: boolean;
 };
 
-type NodeDragStartDetail = {
-    nodeId: string;
+export type NodeDragStartDetail = {
+    node: PotatnoDocumentNode;
     startX: number;
     startY: number;
 };
 
-type OpenFunctionDetail = {
-    definitionName: string;
+export type OpenFunctionDetail = {
+    node: PotatnoDocumentNode;
 };
 
-type ValueChangeDetail = {
-    nodeId: string;
-    property: string;
-    value: string;
-};
-
-type CommentChangeDetail = {
-    nodeId: string;
+export type CommentChangeDetail = {
+    node: PotatnoDocumentNode;
     text: string;
 };
 
-type ResizeStartDetail = {
-    nodeId: string;
+export type ResizeStartDetail = {
+    node: PotatnoDocumentNode;
     startX: number;
     startY: number;
+};
+
+export type DirectValueChangeDetail = {
+    port: PotatnoDocumentPort;
+    values: Array<string>;
 };

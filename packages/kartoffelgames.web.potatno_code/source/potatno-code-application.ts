@@ -1,7 +1,7 @@
 import { PwbApplication } from '@kartoffelgames/web-potato-web-builder';
 import { PotatnoDocument } from './document/potatno-document.ts';
 import { PotatnoProject } from './project/potatno-project.ts';
-import { NodePreviewData, PotatnoCodeEditor } from './ui/component/potatno_code_editor/potatno-code-editor.ts';
+import { PotatnoCodeEditor } from './ui/component/potatno_code_editor/potatno-code-editor.ts';
 
 import applicationCss from './potatno-code-application.css' with { type: 'text' };
 import themeCss from './ui/component/potatno-theme.css' with { type: 'text' };
@@ -54,14 +54,10 @@ export class PotatnoCodeApplication extends PwbApplication {
     }
 
     /**
-     * Evaluate preview data for all nodes in the active graph with the given entry data.
-     * Returns the preview data map which can be used to read computed values (e.g., pixel colors).
-     *
-     * @param pEntryData - Data for static entry nodes keyed by definition id.
-     *
-     * @returns The computed preview data map, or null if evaluation could not proceed.
+     * Trigger a preview re-evaluation. Previews are updated asynchronously
+     * via the node definition's updatePreview callbacks.
      */
-    public update(pEntryData: Record<string, Record<string, unknown>>): Map<string, NodePreviewData> | null {
-        return this.mCodeEditor.evaluatePreview(pEntryData);
+    public update(): void {
+        this.mCodeEditor.triggerPreviewUpdate();
     }
 }

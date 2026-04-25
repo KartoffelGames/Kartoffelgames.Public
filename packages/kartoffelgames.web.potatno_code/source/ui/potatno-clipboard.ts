@@ -1,10 +1,11 @@
-import { PortKind } from '../node/port-kind.enum.ts';
-import type { PotatnoGraph } from '../document/potatno-graph.ts';
+import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
+import type { PotatnoDocument } from '../document/potatno-document.ts';
 import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
+import type { PotatnoDocumentNodeTransformation } from '../document/potatno-document-node.ts';
 
 /**
- * Copy/paste logic for graph nodes. Manages serialization and deserialization
- * of selected nodes and their internal connections for clipboard operations.
+ * Copy/paste logic for graph nodes.
+ * Stores a snapshot of selected nodes and their internal connections.
  */
 export class PotatnoClipboard {
     private mData: ClipboardData | null;
@@ -24,136 +25,139 @@ export class PotatnoClipboard {
     }
 
     /**
-     * Copy selected nodes and their internal connections (data + flow).
+     * Copy selected (non-system) nodes and their internal connections.
      *
-     * @param pGraph - The graph containing the nodes to copy.
-     * @param pSelectedNodeIds - Set of node IDs that are currently selected.
+     * @param pSelectedNodes - The nodes to copy.
      */
-    public copy(pGraph: PotatnoGraph, pSelectedNodeIds: ReadonlySet<string>): void {
-        const lSelectedNodes: Array<PotatnoDocumentNode> = new Array<PotatnoDocumentNode>();
-        const lNodeIndexMap: Map<string, number> = new Map<string, number>();
+    public copy(pSelectedNodes: ReadonlySet<PotatnoDocumentNode>): void {
+        const lNodes: Array<PotatnoDocumentNode> = [];
+        const lNodeIndexMap: Map<PotatnoDocumentNode, number> = new Map();
 
-        for (const lNodeId of pSelectedNodeIds) {
-            const lNode: PotatnoDocumentNode | undefined = pGraph.getNode(lNodeId);
-            if (lNode && !lNode.isSystem) {
-                lNodeIndexMap.set(lNode.id, lSelectedNodes.length);
-                lSelectedNodes.push(lNode);
+        for (const lNode of pSelectedNodes) {
+            if (!lNode.isSystem) {
+                lNodeIndexMap.set(lNode, lNodes.length);
+                lNodes.push(lNode);
             }
         }
 
-        if (lSelectedNodes.length === 0) {
+        if (lNodes.length === 0) {
             return;
         }
 
         // Serialize nodes.
-        const lNodes = lSelectedNodes.map((lNode) => {
-            const lProperties: Record<string, string> = {};
-            for (const [lK, lV] of lNode.properties) {
-                lProperties[lK] = lV;
-            }
-
-            const lInputConnections: Array<{ portName: string; connectedValueId: string }> = new Array();
-            for (const [lName, lPort] of lNode.inputs) {
-                if (lPort.connectedTo) {
-                    lInputConnections.push({ portName: lName, connectedValueId: lPort.connectedTo.valueId });
+        const lSerializedNodes: ClipboardData['nodes'] = lNodes.map((lNode) => {
+            const lInputDirectValues: Record<string, Array<string>> = {};
+            for (const [lPortName, lPort] of lNode.inputs) {
+                if (lPort.portType === 'value' && lPort.directValue.length > 0) {
+                    lInputDirectValues[lPortName] = [...lPort.directValue];
                 }
             }
 
             return {
-                definitionName: lNode.definition.id,
-                position: { ...lNode.position },
-                size: { ...lNode.size },
-                properties: lProperties,
-                inputConnections: lInputConnections
+                definitionId: lNode.definition.id,
+                transformation: { ...lNode.transformation },
+                label: lNode.label,
+                inputDirectValues: lInputDirectValues
             };
         });
 
-        // Find internal connections (both ends in selection) — data AND flow.
+        // Collect connections where both endpoints are within the selected set.
         const lInternalConnections: ClipboardData['internalConnections'] = [];
-
-        for (const lConnection of pGraph.connections.values()) {
-            const lSourceIdx: number | undefined = lNodeIndexMap.get(lConnection.sourceNode.id);
-            const lTargetIdx: number | undefined = lNodeIndexMap.get(lConnection.targetNode.id);
-
-            if (lSourceIdx !== undefined && lTargetIdx !== undefined) {
-                const lSourceNode: PotatnoDocumentNode = lSelectedNodes[lSourceIdx];
-                const lTargetNode: PotatnoDocumentNode = lSelectedNodes[lTargetIdx];
-
-                let lSourcePortName: string = '';
-                let lTargetPortName: string = '';
-                let lKind: 'data' | 'flow';
-
-                if (lConnection.kind === PortKind.Data) {
-                    lKind = 'data';
-                    for (const [lName, lPort] of lSourceNode.outputs) {
-                        if (lPort.id === lConnection.sourcePort.id) {
-                            lSourcePortName = lName;
-                            break;
-                        }
+        for (const lSourceNode of lNodes) {
+            const lSourceIdx = lNodeIndexMap.get(lSourceNode)!;
+            for (const [lPortName, lOutputPort] of lSourceNode.outputs) {
+                for (const lConnectedPort of lOutputPort.connectedPorts) {
+                    const lTargetIdx = lNodeIndexMap.get(lConnectedPort.node);
+                    if (lTargetIdx !== undefined) {
+                        lInternalConnections.push({
+                            sourceNodeIndex: lSourceIdx,
+                            sourcePortName: lPortName,
+                            targetNodeIndex: lTargetIdx,
+                            targetPortName: lConnectedPort.name
+                        });
                     }
-                    for (const [lName, lPort] of lTargetNode.inputs) {
-                        if (lPort.id === lConnection.targetPort.id) {
-                            lTargetPortName = lName;
-                            break;
-                        }
-                    }
-                } else {
-                    lKind = 'flow';
-                    for (const [lName, lPort] of lSourceNode.flowOutputs) {
-                        if (lPort.id === lConnection.sourcePort.id) {
-                            lSourcePortName = lName;
-                            break;
-                        }
-                    }
-                    for (const [lName, lPort] of lTargetNode.flowInputs) {
-                        if (lPort.id === lConnection.targetPort.id) {
-                            lTargetPortName = lName;
-                            break;
-                        }
-                    }
-                }
-
-                if (lSourcePortName && lTargetPortName) {
-                    lInternalConnections.push({
-                        sourceNodeIndex: lSourceIdx,
-                        sourcePortName: lSourcePortName,
-                        targetNodeIndex: lTargetIdx,
-                        targetPortName: lTargetPortName,
-                        kind: lKind
-                    });
                 }
             }
         }
 
-        this.mData = { nodes: lNodes, internalConnections: lInternalConnections };
+        this.mData = { nodes: lSerializedNodes, internalConnections: lInternalConnections };
     }
 
     /**
-     * Get the clipboard data for pasting.
+     * Paste copied nodes into a function, offset by the given delta.
+     * Returns the newly created nodes.
      *
-     * @returns The clipboard data, or null if the clipboard is empty.
+     * @param pFunction - The function to paste into.
+     * @param pDocument - The document, used to resolve user-function node definitions.
+     * @param pOffsetX - Horizontal offset applied to each pasted node's position.
+     * @param pOffsetY - Vertical offset applied to each pasted node's position.
+     *
+     * @returns Array of the newly created nodes, or an empty array if nothing was pasted.
      */
-    public getData(): ClipboardData | null {
-        return this.mData;
+    public paste(pFunction: PotatnoDocumentFunction, pDocument: PotatnoDocument, pOffsetX: number, pOffsetY: number): Array<PotatnoDocumentNode> {
+        if (!this.mData) {
+            return [];
+        }
+
+        const lCreated: Array<PotatnoDocumentNode> = [];
+
+        for (const lNodeData of this.mData.nodes) {
+            const lDefinition = pFunction.project.nodeDefinitions.get(lNodeData.definitionId)
+                ?? pDocument.functionNodeDefinitions.get(lNodeData.definitionId);
+            if (!lDefinition) {
+                continue;
+            }
+
+            const lTransformation: PotatnoDocumentNodeTransformation = {
+                x: lNodeData.transformation.x + pOffsetX,
+                y: lNodeData.transformation.y + pOffsetY,
+                width: lNodeData.transformation.width,
+                height: lNodeData.transformation.height
+            };
+
+            const lNode = pFunction.newNode(lDefinition, lTransformation, false);
+            lNode.label = lNodeData.label;
+
+            for (const [lPortName, lValues] of Object.entries(lNodeData.inputDirectValues)) {
+                const lPort = lNode.inputs.get(lPortName);
+                if (lPort) {
+                    lPort.setDirectValue(lValues);
+                }
+            }
+
+            lCreated.push(lNode);
+        }
+
+        // Restore internal connections.
+        for (const lConn of this.mData.internalConnections) {
+            const lSourceNode = lCreated[lConn.sourceNodeIndex];
+            const lTargetNode = lCreated[lConn.targetNodeIndex];
+            if (!lSourceNode || !lTargetNode) {
+                continue;
+            }
+
+            const lSourcePort = lSourceNode.outputs.get(lConn.sourcePortName);
+            const lTargetPort = lTargetNode.inputs.get(lConn.targetPortName);
+            if (lSourcePort && lTargetPort) {
+                lSourcePort.connect(lTargetPort);
+            }
+        }
+
+        return lCreated;
     }
 }
 
-/**
- * Clipboard data structure for copied nodes.
- */
-interface ClipboardData {
+type ClipboardData = {
     nodes: Array<{
-        definitionName: string;
-        position: { x: number; y: number };
-        size: { w: number; h: number };
-        properties: Record<string, string>;
-        inputConnections: Array<{ portName: string; connectedValueId: string }>;
+        definitionId: string;
+        transformation: { x: number; y: number; width: number; height: number; };
+        label: string;
+        inputDirectValues: Record<string, Array<string>>;
     }>;
     internalConnections: Array<{
         sourceNodeIndex: number;
         sourcePortName: string;
         targetNodeIndex: number;
         targetPortName: string;
-        kind: 'data' | 'flow';
     }>;
-}
+};

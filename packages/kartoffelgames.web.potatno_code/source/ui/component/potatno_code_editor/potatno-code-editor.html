@@ -25,20 +25,21 @@
             <div #gridLayer class="grid-layer" [style]="this.gridTransformStyle">
                 <svg #svgLayer class="svg-layer" xmlns="http://www.w3.org/2000/svg"></svg>
                 <div class="node-layer">
-                    $for(nodeRender of this.visibleNodes) {
-                        <div class="node-position" style="left:{{this.nodeRender.pixelX}}px;top:{{this.nodeRender.pixelY}}px;width:{{this.nodeRender.size.w * this.interaction.gridSize}}px">
+                    $for(nodeState of this.visibleNodes) {
+                        <div class="node-position" style="left:{{this.nodeState.pixelX}}px;top:{{this.nodeState.pixelY}}px;width:{{this.nodeState.pixelW}}px">
                             <potatno-node
-                                [nodeData]="this.nodeRender"
-                                [selected]="this.nodeRender.selected"
+                                [nodeData]="this.nodeState.node"
+                                [selected]="this.nodeState.selected"
                                 [gridSize]="this.interaction.gridSize"
-                                [previewElement]="this.getPreviewElementForNode(this.nodeRender.id)"
-                                (pointerdown)="this.onNodePointerDown($event, this.nodeRender)"
+                                [previewElement]="this.getPreviewElementForNode(this.nodeState.node)"
+                                (pointerdown)="this.onNodePointerDown($event, this.nodeState.node)"
                                 (port-drag-start)="this.onPortDragStart($event)"
                                 (port-hover)="this.onPortHover($event)"
                                 (port-leave)="this.onPortLeave($event)"
-                                (resize-start)="this.onNodeResizeStart($event, this.nodeRender)"
+                                (resize-start)="this.onNodeResizeStart($event)"
                                 (comment-change)="this.onCommentChange($event)"
-                                (value-change)="this.onValueChange($event)">
+                                (open-function)="this.onOpenFunction($event)"
+                                (direct-value-change)="this.onDirectValueChange($event)">
                             </potatno-node>
                         </div>
                     }

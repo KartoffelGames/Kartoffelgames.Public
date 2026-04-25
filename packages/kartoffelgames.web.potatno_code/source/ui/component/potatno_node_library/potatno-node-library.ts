@@ -1,5 +1,5 @@
 import { PwbComponent, PwbExport, PwbComponentEvent, ComponentEventEmitter, ComponentState } from '@kartoffelgames/web-potato-web-builder';
-import { NodeCategoryMeta } from '../../../node/node-category.enum.ts';
+import { NodeCategoryMeta } from '../../../parser/node/node-category.enum.ts';
 import templateCss from './potatno-node-library.css' with { type: 'text' };
 import libraryTemplate from './potatno-node-library.html' with { type: 'text' };
 

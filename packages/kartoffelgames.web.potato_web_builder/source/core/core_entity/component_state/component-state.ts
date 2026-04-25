@@ -46,10 +46,11 @@ export class ComponentState<TValue = unknown> {
                 throw new Exception('Event target is not for a static property.', ComponentState);
             }
 
-            // Create internal component state.
-            let lComponentState: ComponentState<TValue>;
-            const lInitComponentState = (pValue: any) => {
-                lComponentState = new ComponentState<TValue>(pValue, pConfiguration);
+            // Per-instance state storage. Using WeakMap so instances can be garbage collected.
+            const lStateMap = new WeakMap<object, ComponentState<TValue>>();
+
+            const lInitComponentState = (pInstance: object, pValue: any): void => {
+                lStateMap.set(pInstance, new ComponentState<TValue>(pValue, pConfiguration));
             };
 
             // Define getter accessor that returns id child.
@@ -63,24 +64,24 @@ export class ComponentState<TValue = unknown> {
                     }
 
                     // Initialize the component state with the field initializer value.
-                    lInitComponentState(pValue);
+                    lInitComponentState(this, pValue);
                     return pValue;
                 },
                 set(this: ComponentProcessor, pValue: TValue) {
                     // When the state is not initialized, initialize it with the set value.
-                    if (!lComponentState) {
-                        lInitComponentState(pValue);
+                    if (!lStateMap.has(this)) {
+                        lInitComponentState(this, pValue);
                     } else {
-                        lComponentState.set(pValue);
+                        lStateMap.get(this)!.set(pValue);
                     }
                 },
                 get(this: ComponentProcessor) {
                     // When the state is not initialized, initialize it with undefined.
-                    if (!lComponentState) {
-                        lInitComponentState(undefined);
+                    if (!lStateMap.has(this)) {
+                        lInitComponentState(this, undefined);
                     }
 
-                    return lComponentState.get();
+                    return lStateMap.get(this)!.get();
                 }
             };
         };

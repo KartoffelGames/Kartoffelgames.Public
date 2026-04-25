@@ -683,3 +683,47 @@ Deno.test('ComponentState - Proxy Untraceable Set Functions', async (pContext) =
         expect(lSetTriggered).toBeTruthy();
     });
 });
+
+Deno.test('ComponentState.state() decorator - Multi-instance isolation', async (pContext) => {
+    await pContext.step('Two instances have independent state', () => {
+        // Setup. Define a class with the state decorator.
+        class TestHolder {
+            @ComponentState.state()
+            public accessor value: string = 'initial';
+        }
+
+        // Create two separate instances.
+        const lInstance1 = new TestHolder();
+        const lInstance2 = new TestHolder();
+
+        // Process. Set different values on each instance.
+        lInstance1.value = 'ValueA';
+        lInstance2.value = 'ValueB';
+
+        // Evaluation. Each instance must retain its own value.
+        expect(lInstance1.value).toBe('ValueA');
+        expect(lInstance2.value).toBe('ValueB');
+    });
+
+    await pContext.step('Third instance does not overwrite earlier instances', () => {
+        // Setup.
+        class TestHolder {
+            @ComponentState.state()
+            public accessor value: string = 'initial';
+        }
+
+        const lInstance1 = new TestHolder();
+        const lInstance2 = new TestHolder();
+        const lInstance3 = new TestHolder();
+
+        // Process.
+        lInstance1.value = 'A';
+        lInstance2.value = 'B';
+        lInstance3.value = 'C';
+
+        // Evaluation.
+        expect(lInstance1.value).toBe('A');
+        expect(lInstance2.value).toBe('B');
+        expect(lInstance3.value).toBe('C');
+    });
+});

@@ -1,17 +1,21 @@
-<div [className]="this.portWrapperClasses" [title]="this.portTypeLabel">
-    <div #portCircle [className]="this.portCircleClasses" style="--port-color: {{this.portColor}}"
+<div [className]="this.portWrapperClasses" [title]="this.portTypeLabel" style="--port-color: {{this.portColor}}">
+    $if(this.showDirectValueInput) {
+        <div class="direct-value-inputs" (pointerdown)="$event.stopPropagation()">
+            $for(inputDef of this.directValueInputDefs) {
+                <div class="direct-value-field">
+                    <span class="direct-value-label">{{this.inputDef.name}}</span>
+                    <input [type]="this.inputDef.htmlType"
+                           class="direct-value-input"
+                           [value]="this.inputDef.value"
+                           (input)="this.onDirectValueInput($event, this.inputDef.index)"/>
+                </div>
+            }
+        </div>
+    }
+    <div #portCircle [className]="this.portCircleClasses"
          (pointerdown)="this.onPointerDown($event)"
          (pointerenter)="this.onPointerEnter($event)"
          (pointerleave)="this.onPointerLeave($event)">
     </div>
     <span class="port-label">{{this.portName}}</span>
-    $if(this.showDirectValueInput) {
-        <div class="direct-value-inputs" (pointerdown)="$event.stopPropagation()">
-            $for(inputDef of this.directValueInputDefs) {
-                <input [type]="this.inputDef.htmlType"
-                       [value]="this.inputDef.value"
-                       (input)="this.onDirectValueInput($event, this.inputDef.index)"/>
-            }
-        </div>
-    }
 </div>

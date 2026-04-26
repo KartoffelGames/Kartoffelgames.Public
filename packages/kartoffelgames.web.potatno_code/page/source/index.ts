@@ -521,7 +521,7 @@ lProject.addUserFunction(PotatnoFunctionDefinition.create({
 // --- Create application and open an empty file ---
 const lApp: PotatnoCodeApplication = new PotatnoCodeApplication(lProject);
 lApp.appendTo(document.body);
-lApp.file = new PotatnoDocument(lProject);
+lApp.document = new PotatnoDocument(lProject);
 
 // --- Pixel shader render loop ---
 function renderFrame(): void {

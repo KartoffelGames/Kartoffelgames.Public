@@ -2,8 +2,9 @@ import { PotatnoDocumentFunction } from '../document/potatno-document-function.t
 import { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
 import { PotatnoDocument } from '../document/potatno-document.ts';
 import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
+import { PotatnoProjectType } from "../project/potatno-project-types-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
-import type { PotatnoCodeFileSerializationResult, SerializedFunction, SerializedNode } from './potatno-serialization-types.ts';
+import type { PotatnoCodeFileSerializationResult, SerializedFunction, SerializedNode } from './potatno-serialization.type.ts';
 
 /**
  * Reconstructs a PotatnoDocument from a PotatnoMetadata object produced by PotatnoSerializer.
@@ -17,14 +18,14 @@ import type { PotatnoCodeFileSerializationResult, SerializedFunction, Serialized
  *      connect() is bidirectional, so calling it on the source port is sufficient.
  */
 export class PotatnoDeserializer {
-    private readonly mProject: PotatnoProject<any>;
+    private readonly mProject: PotatnoProject<PotatnoProjectType>;
 
     /**
      * Constructor.
      *
      * @param pProject - The project configuration used to look up definitions.
      */
-    public constructor(pProject: PotatnoProject<any>) {
+    public constructor(pProject: PotatnoProject<PotatnoProjectType>) {
         this.mProject = pProject;
     }
 
@@ -60,11 +61,11 @@ export class PotatnoDeserializer {
         }
 
         // Restore function-signature I/O port definitions.
-        for (const lPortDef of pData.inputs) {
-            lFunc.addInput({ name: lPortDef.name, dataType: lPortDef.dataType });
+        for (const lPortDefinition of pData.inputs) {
+            lFunc.addInput({ name: lPortDefinition.name, dataType: lPortDefinition.dataType });
         }
-        for (const lPortDef of pData.outputs) {
-            lFunc.addOutput({ name: lPortDef.name, dataType: lPortDef.dataType });
+        for (const lPortDefinition of pData.outputs) {
+            lFunc.addOutput({ name: lPortDefinition.name, dataType: lPortDefinition.dataType });
         }
 
         // Create all nodes and build a nodeId → node lookup map.
@@ -76,15 +77,15 @@ export class PotatnoDeserializer {
         }
 
         // Restore port connections from the flat connections list.
-        for (const lConn of pData.connections) {
-            const lSourceNode: PotatnoDocumentNode | undefined = lNodeMap.get(lConn.sourceNodeId);
-            const lTargetNode: PotatnoDocumentNode | undefined = lNodeMap.get(lConn.targetNodeId);
+        for (const lConnection of pData.connections) {
+            const lSourceNode: PotatnoDocumentNode | undefined = lNodeMap.get(lConnection.sourceNodeId);
+            const lTargetNode: PotatnoDocumentNode | undefined = lNodeMap.get(lConnection.targetNodeId);
             if (!lSourceNode || !lTargetNode) {
                 continue;
             }
 
-            const lSourcePort = lSourceNode.outputs.get(lConn.sourcePortName);
-            const lTargetPort = lTargetNode.inputs.get(lConn.targetPortName);
+            const lSourcePort = lSourceNode.outputs.get(lConnection.sourcePortName);
+            const lTargetPort = lTargetNode.inputs.get(lConnection.targetPortName);
             if (!lSourcePort || !lTargetPort) {
                 continue;
             }

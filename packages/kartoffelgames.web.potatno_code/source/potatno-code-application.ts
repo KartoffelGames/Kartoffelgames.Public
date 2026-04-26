@@ -2,6 +2,7 @@ import { PwbApplication } from '@kartoffelgames/web-potato-web-builder';
 import { PotatnoDocument } from './document/potatno-document.ts';
 import { PotatnoProject } from './project/potatno-project.ts';
 import { PotatnoCodeEditor } from './ui/component/potatno_code_editor/potatno-code-editor.ts';
+import { PotatnoProjectType } from "./project/potatno-project-types-definition.ts";
 
 import applicationCss from './potatno-code-application.css' with { type: 'text' };
 import themeCss from './ui/component/potatno-theme.css' with { type: 'text' };
@@ -13,21 +14,21 @@ import themeCss from './ui/component/potatno-theme.css' with { type: 'text' };
  */
 export class PotatnoCodeApplication extends PwbApplication {
     private mCodeEditor: PotatnoCodeEditor;
-    private readonly mProject: PotatnoProject<any>;
+    private readonly mProject: PotatnoProject<PotatnoProjectType>;
 
     /**
      * Get the current code file (document state).
      */
-    public get file(): PotatnoDocument | null {
+    public get document(): PotatnoDocument | null {
         return this.mCodeEditor.file;
-    } set file(pFile: PotatnoDocument | null) {
+    } set document(pFile: PotatnoDocument | null) {
         this.mCodeEditor.file = pFile;
     }
 
     /**
      * Get the project configuration.
      */
-    public get project(): PotatnoProject<any> {
+    public get project(): PotatnoProject<PotatnoProjectType> {
         return this.mProject;
     }
 
@@ -37,7 +38,7 @@ export class PotatnoCodeApplication extends PwbApplication {
      *
      * @param pProject - The project configuration containing node definitions, main functions, and preview callbacks.
      */
-    public constructor(pProject: PotatnoProject<any>) {
+    public constructor(pProject: PotatnoProject<PotatnoProjectType>) {
         super();
 
         this.mProject = pProject;

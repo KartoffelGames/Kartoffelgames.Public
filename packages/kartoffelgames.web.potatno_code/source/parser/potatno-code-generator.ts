@@ -7,6 +7,7 @@ import { PotatnoCodeTemplateNode } from './node/potatno-code-template-node.ts';
 import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import { PotatnoCodeFunction } from './potatno-code-function.ts';
+import { PotatnoProjectType } from "../project/potatno-project-types-definition.ts";
 
 /**
  * Walks the graph in topological order and generates code without metadata markers.
@@ -15,15 +16,15 @@ import { PotatnoCodeFunction } from './potatno-code-function.ts';
  * Map<PotatnoDocumentPort, string> — they are not stored on the port objects.
  */
 export class PotatnoCodeGenerator {
-    private readonly mConfig: PotatnoProject<any>;
+    private readonly mProject: PotatnoProject<PotatnoProjectType>;
 
     /**
      * Constructor.
      *
-     * @param pConfig - The project configuration providing node definitions and code generation settings.
+     * @param pProject - The project providing node definitions and code generation settings.
      */
-    public constructor(pConfig: PotatnoProject<any>) {
-        this.mConfig = pConfig;
+    public constructor(pProject: PotatnoProject<PotatnoProjectType>) {
+        this.mProject = pProject;
     }
 
     /**
@@ -145,12 +146,7 @@ export class PotatnoCodeGenerator {
     /**
      * Construct a PotatnoCodeFunction from a document function, its nodes, and the value-id map.
      */
-    private buildCodeFunction(
-        pFunction: PotatnoDocumentFunction,
-        pNodes: ReadonlySet<PotatnoDocumentNode>,
-        pValueIdMap: Map<PotatnoDocumentPort, string>,
-        pBodyCode: string
-    ): PotatnoCodeFunction {
+    private buildCodeFunction(pFunction: PotatnoDocumentFunction, pNodes: ReadonlySet<PotatnoDocumentNode>, pValueIdMap: Map<PotatnoDocumentPort, string>, pBodyCode: string): PotatnoCodeFunction {
         const lCodeFunc = new PotatnoCodeFunction();
         lCodeFunc.name = pFunction.label;
         lCodeFunc.bodyCode = pBodyCode;
@@ -170,11 +166,7 @@ export class PotatnoCodeGenerator {
      * Map function input port definitions to code function input descriptors,
      * resolving each input's valueId via the corresponding Input node in the graph.
      */
-    private collectFunctionInputs(
-        pFunction: PotatnoDocumentFunction,
-        pNodes: ReadonlySet<PotatnoDocumentNode>,
-        pValueIdMap: Map<PotatnoDocumentPort, string>
-    ): Array<{ name: string; type: string; valueId: string }> {
+    private collectFunctionInputs(pFunction: PotatnoDocumentFunction, pNodes: ReadonlySet<PotatnoDocumentNode>, pValueIdMap: Map<PotatnoDocumentPort, string>): Array<{ name: string; type: string; valueId: string; }> {
         return pFunction.inputs.map((pPortDef) => ({
             name: pPortDef.name,
             type: pPortDef.dataType,
@@ -186,11 +178,7 @@ export class PotatnoCodeGenerator {
      * Map function output port definitions to code function output descriptors,
      * resolving each output's valueId via the corresponding Output node in the graph.
      */
-    private collectFunctionOutputs(
-        pFunction: PotatnoDocumentFunction,
-        pNodes: ReadonlySet<PotatnoDocumentNode>,
-        pValueIdMap: Map<PotatnoDocumentPort, string>
-    ): Array<{ name: string; type: string; valueId: string }> {
+    private collectFunctionOutputs(pFunction: PotatnoDocumentFunction, pNodes: ReadonlySet<PotatnoDocumentNode>, pValueIdMap: Map<PotatnoDocumentPort, string>): Array<{ name: string; type: string; valueId: string; }> {
         return pFunction.outputs.map((pPortDef) => ({
             name: pPortDef.name,
             type: pPortDef.dataType,
@@ -243,7 +231,7 @@ export class PotatnoCodeGenerator {
     private generateFlowBodyCode(pFlowInputPort: PotatnoDocumentPort, pValueIdMap: Map<PotatnoDocumentPort, string>): string {
         const lOwnerNode: PotatnoDocumentNode = pFlowInputPort.node;
 
-        if (!this.mConfig.nodeDefinitions.get(lOwnerNode.definition.id) && lOwnerNode.definition.category !== 'function') {
+        if (!this.mProject.nodeDefinitions.get(lOwnerNode.definition.id) && lOwnerNode.definition.category !== 'function') {
             return '';
         }
 

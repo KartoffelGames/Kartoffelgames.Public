@@ -7,7 +7,7 @@ import { NodeCategory } from '../../../parser/node/node-category.enum.ts';
 import { PotatnoDeserializer } from '../../../serialization/potatno-deserializer.ts';
 import { PotatnoCodeGenerator, type FunctionCodeWithIntermediates } from '../../../parser/potatno-code-generator.ts';
 import { PotatnoSerializer } from '../../../serialization/potatno-serializer.ts';
-import type { PotatnoCodeFileSerializationResult } from '../../../serialization/potatno-serialization-types.ts';
+import type { PotatnoCodeFileSerializationResult } from '../../../serialization/potatno-serialization.type.ts';
 import { PotatnoDocumentFunction as PDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoProject } from '../../../project/potatno-project.ts';
 import type { PotatnoProjectType } from '../../../project/potatno-project-types-definition.ts';
@@ -854,7 +854,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
             return;
         }
 
-        const lFunc = new PDocumentFunction(pProject as PotatnoProject<any>, lEntryPoint, crypto.randomUUID(), 'Main', true);
+        const lFunc = new PDocumentFunction(pProject as PotatnoProject<PotatnoProjectType>, lEntryPoint, crypto.randomUUID(), 'Main', true);
 
         lEntryPoint.nodes.static.forEach((lStaticDef, lIdx) => {
             lFunc.newNode(lStaticDef, { x: 2 + lIdx * 12, y: 2, width: 10, height: 4 }, true);

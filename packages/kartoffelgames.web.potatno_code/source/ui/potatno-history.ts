@@ -1,4 +1,4 @@
-import type { PotatnoCodeFileSerializationResult } from '../serialization/potatno-serialization-types.ts';
+import type { PotatnoCodeFileSerializationResult } from '../serialization/potatno-serialization.type.ts';
 
 /**
  * Snapshot-based undo/redo history manager.

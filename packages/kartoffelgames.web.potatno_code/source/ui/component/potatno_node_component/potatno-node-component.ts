@@ -30,6 +30,14 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     public accessor nodeData: PotatnoDocumentNode | null = null;
 
     /**
+     * Version counter that increments whenever any connection in the document changes.
+     * Passed down to port components so they re-render and re-evaluate connection state.
+     */
+    @PwbExport
+    @ComponentState.state()
+    public accessor connectionVersion: number = 0;
+
+    /**
      * Whether this node is currently selected.
      */
     @PwbExport

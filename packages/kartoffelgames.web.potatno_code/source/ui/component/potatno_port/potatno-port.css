@@ -95,10 +95,19 @@
 /* ── Direct value inputs ──────────────────────────────────────────────── */
 
 .direct-value-inputs {
+    position: absolute;
+    /* Place the right edge of this element at the left edge of the port circle
+       so the inputs body does not overlap the port circle at all. */
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
     display: flex;
     flex-direction: column;
     gap: 2px;
     align-items: flex-end;
+    padding-right: 4px;
+    pointer-events: all;
+    z-index: 10;
 }
 
 .direct-value-field {
@@ -111,6 +120,7 @@
     border-right: none;
     padding: 2px 6px 2px 4px;
     position: relative;
+    white-space: nowrap;
 }
 
 /* Arrow tip pointing right toward the port circle */
@@ -125,6 +135,7 @@
     border-top: 7px solid transparent;
     border-bottom: 7px solid transparent;
     border-left: 7px solid color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 40%, transparent);
+    pointer-events: none;
 }
 
 .direct-value-label {

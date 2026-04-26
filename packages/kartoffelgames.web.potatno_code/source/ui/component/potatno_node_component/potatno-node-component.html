@@ -7,6 +7,7 @@ $if(this.nodeData) {
                     <potatno-port
                         [port]="this.inPort"
                         [ownerNode]="this.nodeData"
+                        [portVersion]="this.connectionVersion"
                         (port-drag-start)="this.onPortDragStart($event)"
                         (port-hover)="this.onPortHover($event)"
                         (port-leave)="this.onPortLeave($event)"
@@ -20,6 +21,7 @@ $if(this.nodeData) {
                     <potatno-port
                         [port]="this.outPort"
                         [ownerNode]="this.nodeData"
+                        [portVersion]="this.connectionVersion"
                         (port-drag-start)="this.onPortDragStart($event)"
                         (port-hover)="this.onPortHover($event)"
                         (port-leave)="this.onPortLeave($event)"
@@ -57,6 +59,7 @@ $if(this.nodeData) {
                         <potatno-port
                             [port]="this.flowIn"
                             [ownerNode]="this.nodeData"
+                            [portVersion]="this.connectionVersion"
                             (port-drag-start)="this.onPortDragStart($event)"
                             (port-hover)="this.onPortHover($event)"
                             (port-leave)="this.onPortLeave($event)"
@@ -77,6 +80,7 @@ $if(this.nodeData) {
                         <potatno-port
                             [port]="this.flowOut"
                             [ownerNode]="this.nodeData"
+                            [portVersion]="this.connectionVersion"
                             (port-drag-start)="this.onPortDragStart($event)"
                             (port-hover)="this.onPortHover($event)"
                             (port-leave)="this.onPortLeave($event)"
@@ -91,6 +95,7 @@ $if(this.nodeData) {
                         <potatno-port
                             [port]="this.inPort"
                             [ownerNode]="this.nodeData"
+                            [portVersion]="this.connectionVersion"
                             (port-drag-start)="this.onPortDragStart($event)"
                             (port-hover)="this.onPortHover($event)"
                             (port-leave)="this.onPortLeave($event)"
@@ -103,6 +108,7 @@ $if(this.nodeData) {
                         <potatno-port
                             [port]="this.outPort"
                             [ownerNode]="this.nodeData"
+                            [portVersion]="this.connectionVersion"
                             (port-drag-start)="this.onPortDragStart($event)"
                             (port-hover)="this.onPortHover($event)"
                             (port-leave)="this.onPortLeave($event)"

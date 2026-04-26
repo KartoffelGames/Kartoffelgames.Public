@@ -48,6 +48,8 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
     private mInternals!: EditorInternals;
     private mSelectionBoxScreen: { x1: number; y1: number; x2: number; y2: number; };
     private mHistoryDebounceTimer: number = 0;
+    private mPreviewDebounceTimer: number = 0;
+    private mConnectionVersion: number = 0;
     private mKeyboardHandler: ((e: KeyboardEvent) => void) | null;
     private mResizeState: { panel: 'left' | 'right'; startX: number; startWidth: number; } | null;
     private mResizeMoveHandler: ((e: PointerEvent) => void) | null;
@@ -62,6 +64,9 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
 
     @ComponentState.state()
     private accessor mTransformVersion: number = 0;
+
+    @ComponentState.state()
+    private accessor mEntryPointPreviewElement: Element | null = null;
 
     @PwbChild('svgLayer')
     public accessor svgLayer!: SVGSVGElement;
@@ -105,6 +110,10 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
 
     public get hasPreview(): boolean {
         return this.mCachedData.hasPreview;
+    }
+
+    public get entryPreviewElement(): Element | null {
+        return this.mEntryPointPreviewElement;
     }
 
     public get editorErrors(): Array<{ message: string; location: string; }> {
@@ -234,7 +243,11 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
         this.mInternals.history.clear();
         this.mInternals.previewElements.clear();
         this.rebuildCachedData();
-        this.renderConnections();
+        try {
+            this.renderConnections();
+        } catch (pError) {
+            console.warn('[Editor] renderConnections skipped (component not yet rendered):', pError);
+        }
         this.schedulePreviewUpdate();
     }
 
@@ -249,7 +262,11 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
         this.mSelectedNodes.clear();
         this.mInternals.previewElements.clear();
         this.rebuildCachedData();
-        this.renderConnections();
+        try {
+            this.renderConnections();
+        } catch (pError) {
+            console.warn('[Editor] renderConnections skipped (component not yet rendered):', pError);
+        }
         this.schedulePreviewUpdate();
     }
 
@@ -264,7 +281,10 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
 
     @PwbExport
     public triggerPreviewUpdate(): void {
-        this.schedulePreviewUpdate();
+        // Called every frame from the render loop — only refresh visuals from the
+        // cached code result. Full code regeneration is handled by schedulePreviewUpdate
+        // on graph changes.
+        this.updateNodePreviewsFromCache();
     }
 
     // ── Lifecycle ────────────────────────────────────────────────────────
@@ -580,12 +600,13 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
                 if (lSource.direction !== lTarget.direction && lSource.portType === lTarget.portType) {
                     try {
                         lSource.connect(lTarget);
+                        this.mConnectionVersion++;
                         this.scheduleHistorySnapshot();
                         this.rebuildCachedData();
                         this.renderConnections();
                         this.schedulePreviewUpdate();
-                    } catch {
-                        // Connection failed (type mismatch or other rule violation).
+                    } catch (pError) {
+                        console.error('[Editor] Connection failed:', pError);
                     }
                 }
             }
@@ -626,6 +647,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
                 const lConn = this.mConnectionRegistry.get(lConnectionId);
                 if (lConn) {
                     lConn.sourcePort.disconnect(lConn.targetPort);
+                    this.mConnectionVersion++;
                     this.scheduleHistorySnapshot();
                     this.rebuildCachedData();
                     this.renderConnections();
@@ -1040,8 +1062,8 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
 
     private schedulePreviewUpdate(): void {
         this.mInternals.previewDirty = true;
-        clearTimeout(this.mHistoryDebounceTimer);
-        setTimeout(() => this.evaluatePreview(), 300);
+        clearTimeout(this.mPreviewDebounceTimer);
+        this.mPreviewDebounceTimer = setTimeout(() => this.evaluatePreview(), 300) as unknown as number;
     }
 
     private evaluatePreview(): void {
@@ -1049,7 +1071,10 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
         const lFile = this.mFile;
         const lInternals = this.mInternals;
 
+        console.log('[Preview] evaluatePreview called', { hasProject: !!lProject, hasFile: !!lFile, dirty: lInternals.previewDirty });
+
         if (!lProject || !lFile || !lInternals.previewDirty) {
+            console.log('[Preview] early return - missing project/file or not dirty');
             return;
         }
         lInternals.previewDirty = false;
@@ -1063,6 +1088,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
             }
         }
         if (!lEntryFunc) {
+            console.log('[Preview] no system (entry) function found');
             return;
         }
 
@@ -1087,24 +1113,52 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
             }
         }
 
+        // Create the entry-point preview element early and hand it to the preview
+        // component so it is always attached — even when code generation fails.
+        const lEntryPreview = lProject.entryPoint.preview;
+        console.log('[Preview] entryPoint.preview:', lEntryPreview);
+        if (lEntryPreview) {
+            if (!lInternals.entryPointPreviewElement) {
+                lInternals.entryPointPreviewElement = lEntryPreview.generatePreview();
+                console.log('[Preview] generated entry preview element:', lInternals.entryPointPreviewElement);
+                // Publish to template so the [previewContent] binding fires (null → element).
+                this.mEntryPointPreviewElement = lInternals.entryPointPreviewElement;
+                console.log('[Preview] mEntryPointPreviewElement set');
+            }
+        }
+
         // Generate code with intermediates.
         let lCodeResult: FunctionCodeWithIntermediates;
         try {
             const lGenerator = new PotatnoCodeGenerator(lProject);
             lCodeResult = lGenerator.generateFunctionCodeWithIntermediates(lEntryFunc, lPreviewNodes);
-        } catch {
+        } catch (pError) {
+            console.error('[Preview] Code generation failed:', pError);
             return;
         }
 
         lInternals.cachedCodeResult = lCodeResult;
 
+        // Refresh all preview visuals from the new code result.
+        this.updateNodePreviewsFromCache();
+    }
+
+    /**
+     * Refresh all preview visuals using the cached code result.
+     * Safe to call every frame — never regenerates code.
+     */
+    private updateNodePreviewsFromCache(): void {
+        const lProject = this.mProject;
+        const lInternals = this.mInternals;
+        const lCodeResult = lInternals.cachedCodeResult;
+
+        if (!lProject || !lCodeResult) {
+            return;
+        }
+
         // Update entry point preview.
         const lEntryPreview = lProject.entryPoint.preview;
-        if (lEntryPreview) {
-            if (!lInternals.entryPointPreviewElement) {
-                const lEl = lEntryPreview.generatePreview();
-                lInternals.entryPointPreviewElement = lEl;
-            }
+        if (lEntryPreview && lInternals.entryPointPreviewElement) {
             try {
                 lEntryPreview.updatePreview(
                     lInternals.entryPointPreviewElement as any,
@@ -1112,8 +1166,8 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
                     {},
                     lCodeResult.fullCode
                 );
-            } catch {
-                // Silently ignore.
+            } catch (pError) {
+                console.error('[Preview] updatePreview (entry point) failed:', pError);
             }
         }
 
@@ -1133,8 +1187,8 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
                         {},
                         lIntermediateData.intermediateCode
                     );
-                } catch {
-                    // Silently ignore.
+                } catch (pError) {
+                    console.error('[Preview] updatePreview (node) failed:', pError);
                 }
             }
         }
@@ -1250,7 +1304,8 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
                     selected: this.mSelectedNodes.has(lNode),
                     pixelX: lNode.transformation.x * lGS,
                     pixelY: lNode.transformation.y * lGS,
-                    pixelW: lNode.transformation.width * lGS
+                    pixelW: lNode.transformation.width * lGS,
+                    connectionVersion: this.mConnectionVersion
                 });
             }
         }
@@ -1297,6 +1352,7 @@ export type NodeViewState = {
     pixelX: number;
     pixelY: number;
     pixelW: number;
+    connectionVersion: number;
 };
 
 type InteractionState =

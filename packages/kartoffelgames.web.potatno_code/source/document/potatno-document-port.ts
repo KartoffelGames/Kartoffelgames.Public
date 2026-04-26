@@ -182,7 +182,7 @@ export class PotatnoDocumentPort {
         }
 
         // Remove and update the direct value.
-        this.mDirectValue.slice(0, this.mDirectValue.length);
+        this.mDirectValue.splice(0, this.mDirectValue.length);
         this.mDirectValue.push(...pValue);
     }
 

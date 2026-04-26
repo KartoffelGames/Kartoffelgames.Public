@@ -1,4 +1,10 @@
 <div [className]="this.portWrapperClasses" [title]="this.portTypeLabel" style="--port-color: {{this.portColor}}">
+    <div #portCircle [className]="this.portCircleClasses"
+         (pointerdown)="this.onPointerDown($event)"
+         (pointerenter)="this.onPointerEnter($event)"
+         (pointerleave)="this.onPointerLeave($event)">
+    </div>
+    <span class="port-label">{{this.portName}}</span>
     $if(this.showDirectValueInput) {
         <div class="direct-value-inputs" (pointerdown)="$event.stopPropagation()">
             $for(inputDef of this.directValueInputDefs) {
@@ -12,10 +18,4 @@
             }
         </div>
     }
-    <div #portCircle [className]="this.portCircleClasses"
-         (pointerdown)="this.onPointerDown($event)"
-         (pointerenter)="this.onPointerEnter($event)"
-         (pointerleave)="this.onPointerLeave($event)">
-    </div>
-    <span class="port-label">{{this.portName}}</span>
 </div>

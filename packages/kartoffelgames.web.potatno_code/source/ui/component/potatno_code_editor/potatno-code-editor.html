@@ -31,6 +31,7 @@
                                 [nodeData]="this.nodeState.node"
                                 [selected]="this.nodeState.selected"
                                 [gridSize]="this.interaction.gridSize"
+                                [connectionVersion]="this.nodeState.connectionVersion"
                                 [previewElement]="this.getPreviewElementForNode(this.nodeState.node)"
                                 (pointerdown)="this.onNodePointerDown($event, this.nodeState.node)"
                                 (port-drag-start)="this.onPortDragStart($event)"
@@ -51,7 +52,7 @@
         </div>
         $if(this.hasPreview) {
             <div class="preview-wrapper">
-                <potatno-preview #previewEl [errors]="this.editorErrors"></potatno-preview>
+                <potatno-preview #previewEl [errors]="this.editorErrors" [previewContent]="this.entryPreviewElement"></potatno-preview>
             </div>
         }
     </div>

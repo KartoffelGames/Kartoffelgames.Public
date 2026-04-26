@@ -23,6 +23,15 @@ export class PotatnoPortComponent {
     public accessor port: PotatnoDocumentPort | null = null;
 
     /**
+     * Version counter forwarded from the editor via the node component whenever
+     * any connection in the document changes. Reading this in showDirectValueInput
+     * links the port component's zone so it re-renders on connection changes.
+     */
+    @PwbExport
+    @ComponentState.state()
+    public accessor portVersion: number = 0;
+
+    /**
      * The node that owns this port — included in all emitted events.
      */
     @PwbExport
@@ -98,6 +107,10 @@ export class PotatnoPortComponent {
      * Only for unconnected value input ports.
      */
     public get showDirectValueInput(): boolean {
+        // Reading portVersion links this getter's zone to portVersion state.
+        // When portVersion changes (connection made/removed), the port re-renders
+        // and re-reads the current connectedPorts.size.
+        void this.portVersion;
         if (!this.port) {
             return false;
         }

@@ -1,4 +1,4 @@
-import { PwbComponent, PwbExport, PwbChild, ComponentState } from '@kartoffelgames/web-potato-web-builder';
+import { PwbComponent, PwbExport, PwbChild, ComponentState, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import templateCss from './potatno-preview.css' with { type: 'text' };
 import previewTemplate from './potatno-preview.html' with { type: 'text' };
 
@@ -11,7 +11,7 @@ import previewTemplate from './potatno-preview.html' with { type: 'text' };
     template: previewTemplate,
     style: templateCss,
 })
-export class PotatnoPreview {
+export class PotatnoPreview implements IComponentOnUpdate {
     /**
      * Reference to the content container element.
      */
@@ -44,6 +44,51 @@ export class PotatnoPreview {
     private mStartY: number = 0;
     private mStartWidth: number = 0;
     private mStartHeight: number = 0;
+    private mStoredElement: Element | null = null;
+
+    /**
+     * Set the element to display in the preview area.
+     * Stored and re-appended after every component update via onUpdate().
+     */
+    @PwbExport
+    public set previewContent(pElement: Element | null) {
+        console.log('[Preview] previewContent setter called with:', pElement);
+        this.mStoredElement = pElement;
+        this.tryAppendStoredElement();
+    }
+
+    /**
+     * After each template update cycle, re-append the stored preview element
+     * in case the #PreviewContent div was recreated by a $if re-render.
+     */
+    public onUpdate(): void {
+        this.tryAppendStoredElement();
+    }
+
+    /**
+     * Append mStoredElement into #PreviewContent if it isn't already there.
+     * Silently does nothing when #PreviewContent is not in the DOM (hasErrors is true).
+     */
+    private tryAppendStoredElement(): void {
+        if (!this.mStoredElement) {
+            return;
+        }
+        let lContainer: HTMLDivElement;
+        try {
+            lContainer = this.contentElement;
+        } catch (pError) {
+            console.error('[Preview] contentElement not accessible:', pError);
+            return;
+        }
+        console.log('[Preview] tryAppendStoredElement - container:', lContainer, 'element:', this.mStoredElement, 'contains:', lContainer.contains(this.mStoredElement));
+        if (!lContainer.contains(this.mStoredElement)) {
+            while (lContainer.firstChild) {
+                lContainer.removeChild(lContainer.firstChild);
+            }
+            lContainer.appendChild(this.mStoredElement);
+            console.log('[Preview] element appended to container');
+        }
+    }
 
     /**
      * Get the content container element for external preview initialization.

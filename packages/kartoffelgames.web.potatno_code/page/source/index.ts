@@ -67,6 +67,7 @@ const lProject = new PotatnoProject({
                     category: 'event',
                     inputs: {},
                     outputs: {
+                        exec: { portType: 'flow' },
                         x: { portType: 'value', dataType: 'number' },
                         y: { portType: 'value', dataType: 'number' }
                     } as const,
@@ -80,6 +81,7 @@ const lProject = new PotatnoProject({
                     id: 'PixelResult',
                     category: NodeCategory.Output,
                     inputs: {
+                        exec: { portType: 'flow' },
                         red: { portType: 'value', dataType: 'number' },
                         green: { portType: 'value', dataType: 'number' },
                         blue: { portType: 'value', dataType: 'number' }

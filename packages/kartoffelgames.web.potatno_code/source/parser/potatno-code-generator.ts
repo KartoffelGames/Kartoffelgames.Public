@@ -8,6 +8,8 @@ import type { PotatnoFunctionDefinition } from '../project/potatno-function-defi
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import { PotatnoCodeFunction } from './potatno-code-function.ts';
 import { PotatnoProjectType } from "../project/potatno-project-types-definition.ts";
+import { PotatnoDocument } from "../document/potatno-document.ts";
+import { Exception } from "@kartoffelgames/core";
 
 /**
  * Walks the graph in topological order and generates code without metadata markers.
@@ -26,6 +28,98 @@ export class PotatnoCodeGenerator {
     public constructor(pProject: PotatnoProject<PotatnoProjectType>) {
         this.mProject = pProject;
     }
+
+    public generate(pDocument: PotatnoDocument): string {
+        // Get all used fuctions. System function (entry point) is always last.
+        const lUsedFunctions: Array<PotatnoDocumentFunction> = this.findUsedFunctions(pDocument);
+    }
+
+    /**
+     * Find all function that are reachable from the entry point function.
+     * The list is sorted so the entry point function is always last.
+     * 
+     * @param pDocument - The document containing the functions.
+     * 
+     * @returns An array of functions that are reachable from the entry point, with the entry point function last.
+     */
+    private findUsedFunctions(pDocument: PotatnoDocument): Array<PotatnoDocumentFunction> {
+        // Find the primary system function (entry point) to generate code for.
+        const lEntryPointFunction: PotatnoDocumentFunction | undefined = [...pDocument.functions].find((pFunction) => {
+            return pFunction.isSystem;
+        });
+
+        if (!lEntryPointFunction) {
+            throw new Exception('No entry point function found for code generation.', this);
+        }
+
+        // Create a map for resolving function ids to their instance.
+        const lFunctionMap: Map<string, PotatnoDocumentFunction> = new Map<string, PotatnoDocumentFunction>();
+        for (const lFunction of pDocument.functions) {
+            lFunctionMap.set(lFunction.id, lFunction);
+        }
+
+        // Create mapping for tracking which functions have been searched for reachability from the entry point.
+        const lSearchedFunctions: Set<PotatnoDocumentFunction> = new Set<PotatnoDocumentFunction>();
+        const lFunctionSearchStack: Array<PotatnoDocumentFunction> = new Array<PotatnoDocumentFunction>();
+
+        // Initialize with the entry point function.
+        lFunctionSearchStack.push(lEntryPointFunction);
+
+        // List of functions that are reachable from the entry point and should be included in code generation.
+        const lUsedFunctions: Set<PotatnoDocumentFunction> = new Set<PotatnoDocumentFunction>();
+        lUsedFunctions.add(lEntryPointFunction);
+
+        while (lFunctionSearchStack.length > 0) {
+            // Get the next function to search and mark it as searched.
+            const lCurrentFunction: PotatnoDocumentFunction = lFunctionSearchStack.pop()!;
+            lSearchedFunctions.add(lCurrentFunction);
+
+            for (const lNode of lCurrentFunction.nodes) {
+                // Try to find a function matching
+                if (lFunctionMap.has(lNode.definition.id)) {
+                    const lFoundFunction: PotatnoDocumentFunction = lFunctionMap.get(lNode.definition.id)!;
+
+                    // Add function to found list.
+                    lUsedFunctions.add(lFoundFunction);
+
+                    // And when the function was not searched before, add them to the search stack.
+                    if (!lSearchedFunctions.has(lFoundFunction)) {
+                        lFunctionSearchStack.push(lFoundFunction);
+                    }
+                }
+            }
+        }
+
+        // Return the list of used function and order by system flag so the entry point is always last.
+        return [...lUsedFunctions].sort((a, b) => {
+            return (a.isSystem === b.isSystem) ? 0 : a.isSystem ? 1 : -1;
+        });
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /////////////////////////// OLD wrong code ///////////////////////////////////
 
     /**
      * Generate code for a single function.

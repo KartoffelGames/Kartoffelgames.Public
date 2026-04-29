@@ -7,6 +7,18 @@ import { PotatnoProject } from '../../source/project/potatno-project.ts';
 import { NodeCategory } from "../../source/parser/node/node-category.enum.ts";
 import { PotatnoProjectTypesDefinition } from "../../source/project/potatno-project-types-definition.ts";
 
+/*
+ // TODO:
+ - Create node definition folder: add a new source folder for StaticNodeDefinition, DynamicNodeDefinition, and FunctionNodeDefinition.
+ - Add DynamicNodeDefinition: implement a dynamic node-definition base that computes ports from context and can be returned by providers.
+ - Add FunctionNodeDefinition: implement the function-derived node definition (live signature-based) as a subclass of DynamicNodeDefinition.
+ - Create NodeProvider API that replaces the PotatnoFunctionDefinitionNodes: function that returns available `IPotatnoNodeDefinition` instances based on the function inputs & outputs.
+ - Add functionality that allows for nodes resync to their definitions.
+ - Add a "undefined" type for nodes, so a old project can be loaded without crashing when node definitions are removed.
+ - Add SemanticValidation: A port should only be connected to a port that has the same starting node (execution regions).
+ - Introduce ExecutionRegion (startNodeRef): add execution-region concept derived from a start/root node reference to determine same-region restrictions.
+*/
+
 // --- Project configuration ---
 const lProjectTypes = new PotatnoProjectTypesDefinition({
     number: {

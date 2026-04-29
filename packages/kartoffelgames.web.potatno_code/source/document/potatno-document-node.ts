@@ -1,4 +1,4 @@
-import type { IPotatnoNodeDefinition } from "../project/i-potatno-node-definition.ts";
+import type { IPotatnoNodeDefinition } from "../project/node_definition/i-potatno-node-definition.ts";
 import { PotatnoDocumentPort, PotatnoDocumentPortValidationError } from './potatno-document-port.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { PotatnoProjectType } from '../project/potatno-project-types-definition.ts';

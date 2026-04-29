@@ -1,6 +1,6 @@
 import { PotatnoCodeFunction } from "../parser/potatno-code-function.ts";
-import type { PotatnoNodeDefinitionGeneratorData } from "./potatno-node-definition.ts";
-import { PotatnoNodeDefinition } from "./potatno-node-definition.ts";
+import type { PotatnoNodeDefinitionGeneratorData } from "./node_definition/potatno-static-node-definition.ts";
+import { PotatnoStaticNodeDefinition } from "./node_definition/potatno-static-node-definition.ts";
 import { PotatnoProjectType } from "./potatno-project-types-definition.ts";
 
 /**
@@ -117,8 +117,8 @@ export type PotatnoFunctionDefinitionGenerator = {
 };
 
 type PotatnoFunctionDefinitionNodes<TTypes extends PotatnoProjectType> = {
-    static: Array<PotatnoNodeDefinition<TTypes>>;
-    dynamic: Array<PotatnoNodeDefinition<TTypes>>;
+    static: Array<PotatnoStaticNodeDefinition<TTypes>>;
+    dynamic: Array<PotatnoStaticNodeDefinition<TTypes>>;
 };
 
 /**

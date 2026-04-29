@@ -1,6 +1,6 @@
 import { IPotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeDefinitionPreview } from "./i-potatno-node-definition.ts";
-import { PotatnoPortDefinition } from "./potatno-port-definition.ts";
-import { PotatnoProjectType } from "./potatno-project-types-definition.ts";
+import { PotatnoPortDefinition } from "../potatno-port-definition.ts";
+import { PotatnoProjectType } from "../potatno-project-types-definition.ts";
 
 /**
  * Definition of a node type that can be instantiated in the graph. Registered at the project level and referenced by nodes via the definitionName property.
@@ -11,16 +11,16 @@ import { PotatnoProjectType } from "./potatno-project-types-definition.ts";
  * @template TOutputs - Object type mapping output port names to their definitions.
  * @template TPreviewElement - The type of the HTMLElement used for node previews for this node definition.
  */
-export class PotatnoNodeDefinition<TTypes extends PotatnoProjectType = PotatnoProjectType, TInputs extends PotatnoNodeDefinitionPorts<TTypes> = any, TOutputs extends PotatnoNodeDefinitionPorts<TTypes> = any, TPreviewElement extends Element = any> implements IPotatnoNodeDefinition<TTypes, TInputs, TOutputs, TPreviewElement> {
+export class PotatnoStaticNodeDefinition<TTypes extends PotatnoProjectType = PotatnoProjectType, TInputs extends PotatnoNodeDefinitionPorts<TTypes> = any, TOutputs extends PotatnoNodeDefinitionPorts<TTypes> = any, TPreviewElement extends Element = any> implements IPotatnoNodeDefinition<TTypes, TInputs, TOutputs, TPreviewElement> {
     /**
      * Factory method to create a new node definition and register it at the project level.
      * 
      * @param pParameters - Constructor parameters for the node definition, including id, label, category, input and output port definitions, and code generator callback.
      * 
-     * @returns The created PotatnoNodeDefinition instance. 
+     * @returns The created PotatnoStaticNodeDefinition instance. 
      */
-    public static create<TTypes extends PotatnoProjectType, TInputKeys extends string, TInputs extends PotatnoNodeDefinitionPorts<TTypes, TInputKeys>, TOutputKeys extends string, TOutputs extends PotatnoNodeDefinitionPorts<TTypes, TOutputKeys>, TPreviewElement extends Element>(pParameters: PotatnoNodeDefinitionConstructorParameter<TTypes, TInputs, TOutputs, TPreviewElement>): PotatnoNodeDefinition<TTypes, TInputs, TOutputs, TPreviewElement> {
-        return new PotatnoNodeDefinition(pParameters);
+    public static create<TTypes extends PotatnoProjectType, TInputKeys extends string, TInputs extends PotatnoNodeDefinitionPorts<TTypes, TInputKeys>, TOutputKeys extends string, TOutputs extends PotatnoNodeDefinitionPorts<TTypes, TOutputKeys>, TPreviewElement extends Element>(pParameters: PotatnoNodeDefinitionConstructorParameter<TTypes, TInputs, TOutputs, TPreviewElement>): PotatnoStaticNodeDefinition<TTypes, TInputs, TOutputs, TPreviewElement> {
+        return new PotatnoStaticNodeDefinition(pParameters);
     }
 
     private readonly mId: string;

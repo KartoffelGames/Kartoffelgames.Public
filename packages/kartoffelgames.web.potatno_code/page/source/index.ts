@@ -2,16 +2,15 @@ import { PotatnoDocument } from '../../source/document/potatno-document.ts';
 import { PotatnoCodeApplication } from '../../source/potatno-code-application.ts';
 import type { PotatnoCodeFunction } from '../../source/parser/potatno-code-function.ts';
 import { PotatnoFunctionDefinition } from "../../source/project/potatno-function-definition.ts";
-import { PotatnoNodeDefinition } from "../../source/project/potatno-node-definition.ts";
+import { PotatnoStaticNodeDefinition } from "../../source/project/node_definition/potatno-static-node-definition.ts";
 import { PotatnoProject } from '../../source/project/potatno-project.ts';
 import { NodeCategory } from "../../source/parser/node/node-category.enum.ts";
 import { PotatnoProjectTypesDefinition } from "../../source/project/potatno-project-types-definition.ts";
 
 /*
  // TODO:
- - Create node definition folder: add a new source folder for StaticNodeDefinition, DynamicNodeDefinition, and FunctionNodeDefinition.
- - Add DynamicNodeDefinition: implement a dynamic node-definition base that computes ports from context and can be returned by providers.
- - Add FunctionNodeDefinition: implement the function-derived node definition (live signature-based) as a subclass of DynamicNodeDefinition.
+ - Add PotatnoDynamicNodeDefinition: implement a dynamic node-definition base that computes ports from context and can be returned by providers.
+ - Add PotatnoFunctionNodeDefinition: implement the function-derived node definition (live signature-based) as a subclass of PotatnoDynamicNodeDefinition.
  - Create NodeProvider API that replaces the PotatnoFunctionDefinitionNodes: function that returns available `IPotatnoNodeDefinition` instances based on the function inputs & outputs.
  - Add functionality that allows for nodes resync to their definitions.
  - Add a "undefined" type for nodes, so a old project can be loaded without crashing when node definitions are removed.
@@ -20,6 +19,7 @@ import { PotatnoProjectTypesDefinition } from "../../source/project/potatno-proj
  - Add node contexts with {add: Array<string>, requires: Array<string>} that can be used to force a endpoint node to only be connected to certain entry point nodes. (VertexData only connects to OnVertex and not to OnFragment)
  - [Advanced hehehe] Add a merge detection for flow ports that detects when a port with multiple connections oriented from the same node, so its code is not dublicated into the "if else" but can be added after it without dublication. 
    As example for a simple if else node its generated code would be: {if: string, else: string, next: string} where the next part is the code that both branches share.
+ - Add a port list to PotatnoDocumentFunction that has a position where other ports can be redirected to. So the graph connection can be restructured without moving the nodes around.
  */
 
 // --- Project configuration ---
@@ -77,7 +77,7 @@ const lProject = new PotatnoProject({
         nodes: {
             static: [
                 // OnPixel: provides normalized x/y coordinates (0-1 range)
-                PotatnoNodeDefinition.create({
+                PotatnoStaticNodeDefinition.create({
                     id: 'OnPixel',
                     category: 'event',
                     inputs: {},
@@ -92,7 +92,7 @@ const lProject = new PotatnoProject({
                     }
                 }),
                 // PixelResult: receives RGB color values (0-1 range)
-                PotatnoNodeDefinition.create({
+                PotatnoStaticNodeDefinition.create({
                     id: 'PixelResult',
                     category: NodeCategory.Output,
                     inputs: {
@@ -157,7 +157,7 @@ const lProject = new PotatnoProject({
 lProject.addImport({
     name: 'Math',
     nodes: [
-        PotatnoNodeDefinition.create({
+        PotatnoStaticNodeDefinition.create({
             id: 'Math.PI',
             category: 'value',
             inputs: {},
@@ -166,7 +166,7 @@ lProject.addImport({
             } as const,
             codeGenerator: (pContext) => `const ${pContext.outputs.value.valueId} = Math.PI;`
         }),
-        PotatnoNodeDefinition.create({
+        PotatnoStaticNodeDefinition.create({
             id: 'Math.E',
             category: 'value',
             inputs: {},
@@ -175,7 +175,7 @@ lProject.addImport({
             } as const,
             codeGenerator: (pContext) => `const ${pContext.outputs.value.valueId} = Math.E;`
         }),
-        PotatnoNodeDefinition.create({
+        PotatnoStaticNodeDefinition.create({
             id: 'Math.abs',
             category: NodeCategory.Function,
             inputs: {
@@ -186,7 +186,7 @@ lProject.addImport({
             } as const,
             codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = Math.abs(${pContext.inputs.value.valueId});`
         }),
-        PotatnoNodeDefinition.create({
+        PotatnoStaticNodeDefinition.create({
             id: 'Math.floor',
             category: NodeCategory.Function,
             inputs: {
@@ -197,7 +197,7 @@ lProject.addImport({
             } as const,
             codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = Math.floor(${pContext.inputs.value.valueId});`
         }),
-        PotatnoNodeDefinition.create({
+        PotatnoStaticNodeDefinition.create({
             id: 'Math.random',
             category: NodeCategory.Function,
             inputs: {},
@@ -210,7 +210,7 @@ lProject.addImport({
 });
 
 // --- Operator Nodes: Arithmetic ---
-lProject.addNodeDefinition(PotatnoNodeDefinition.create({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     id: 'Add',
     category: 'operator',
     inputs: {
@@ -223,7 +223,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} + ${pContext.inputs.b.valueId};`
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     id: 'Subtract',
     category: 'operator',
     inputs: {
@@ -236,7 +236,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} - ${pContext.inputs.b.valueId};`
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     id: 'Multiply',
     category: 'operator',
     inputs: {
@@ -286,7 +286,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     id: 'Divide',
     category: 'operator',
     inputs: {
@@ -301,7 +301,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     }
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     id: 'Modulo',
     category: 'operator',
     inputs: {
@@ -315,7 +315,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 }));
 
 // --- Operator Nodes: Comparison ---
-lProject.addNodeDefinition(PotatnoNodeDefinition.create({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     id: 'Equal',
     category: 'operator',
     inputs: {
@@ -328,7 +328,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} === ${pContext.inputs.b.valueId};`
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     id: 'Not Equal',
     category: 'operator',
     inputs: {
@@ -341,7 +341,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} !== ${pContext.inputs.b.valueId};`
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     id: 'Less Than',
     category: 'operator',
     inputs: {
@@ -354,7 +354,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} < ${pContext.inputs.b.valueId};`
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     id: 'Greater Than',
     category: 'operator',
     inputs: {
@@ -368,7 +368,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 }));
 
 // --- Operator Nodes: Logic ---
-lProject.addNodeDefinition(PotatnoNodeDefinition.create({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     id: 'And',
     category: 'operator',
     inputs: {
@@ -381,7 +381,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} && ${pContext.inputs.b.valueId};`
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     id: 'Or',
     category: 'operator',
     inputs: {
@@ -394,7 +394,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     codeGenerator: (pContext) => `const ${pContext.outputs.result.valueId} = ${pContext.inputs.a.valueId} || ${pContext.inputs.b.valueId};`
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     id: 'Not',
     category: 'operator',
     inputs: {
@@ -407,7 +407,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 }));
 
 // --- Type Conversion Nodes ---
-lProject.addNodeDefinition(PotatnoNodeDefinition.create({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     id: 'Number to String',
     category: 'type-conversion',
     inputs: {
@@ -419,7 +419,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     codeGenerator: (pContext) => `const ${pContext.outputs.output.valueId} = String(${pContext.inputs.input.valueId});`
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     id: 'String to Number',
     category: 'type-conversion',
     inputs: {
@@ -431,7 +431,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     codeGenerator: (pContext) => `const ${pContext.outputs.output.valueId} = Number(${pContext.inputs.input.valueId});`
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     id: 'Boolean to String',
     category: 'type-conversion',
     inputs: {
@@ -444,7 +444,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 }));
 
 // --- Flow Nodes ---
-lProject.addNodeDefinition(PotatnoNodeDefinition.create({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     id: 'If',
     category: 'flow',
     inputs: {
@@ -458,7 +458,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     codeGenerator: (pContext) => `if (${pContext.inputs.condition.valueId}) {\n${pContext.outputs.then.code}\n} else {\n${pContext.outputs.else.code}\n}`
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     id: 'While',
     category: 'flow',
     inputs: {
@@ -471,7 +471,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     codeGenerator: (pContext) => `while (${pContext.inputs.condition.valueId}) {\n${pContext.outputs.body.code}\n}`
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     id: 'For Loop',
     category: 'flow',
     inputs: {
@@ -486,7 +486,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
 }));
 
 // --- Function Nodes ---
-lProject.addNodeDefinition(PotatnoNodeDefinition.create({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     id: 'Console Log',
     category: NodeCategory.Function,
     inputs: { message: { portType: 'value', dataType: 'string' } },
@@ -494,7 +494,7 @@ lProject.addNodeDefinition(PotatnoNodeDefinition.create({
     codeGenerator: ({ inputs }) => `console.log(${inputs.message.valueId});`
 }));
 
-lProject.addNodeDefinition(PotatnoNodeDefinition.create({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     id: 'String Concat',
     category: NodeCategory.Function,
     inputs: {

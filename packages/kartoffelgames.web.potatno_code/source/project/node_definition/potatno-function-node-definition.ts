@@ -1,7 +1,7 @@
-import { PotatnoDocumentFunction } from "../document/potatno-document-function.ts";
+import { PotatnoDocumentFunction } from "../../document/potatno-document-function.ts";
 import { IPotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator } from "./i-potatno-node-definition.ts";
-import { PotatnoPortDefinition } from "./potatno-port-definition.ts";
-import { PotatnoProjectType } from "./potatno-project-types-definition.ts";
+import { PotatnoPortDefinition } from "../potatno-port-definition.ts";
+import { PotatnoProjectType } from "../potatno-project-types-definition.ts";
 /**
  * A live node definition derived from a PotatnoDocumentFunction.
  *
@@ -21,14 +21,14 @@ export class PotatnoFunctionNodeDefinition<TTypes extends PotatnoProjectType = P
      * Stable identifier derived from the source function's id.
      */
     public get id(): string {
-        return this.mFunction.id;
+        return `USERFUNCTION_${this.mFunction.id}`;
     }
 
     /**
      * Fixed category for all user-function call nodes.
      */
     public get category(): string {
-        return 'function'; // TODO: Dont know if that should be hardcoded or not?
+        return 'user function';
     }
 
     /**
@@ -49,7 +49,7 @@ export class PotatnoFunctionNodeDefinition<TTypes extends PotatnoProjectType = P
         });
 
         // Add an additional flow port for function call chaining.
-        lPorts.push(new PotatnoPortDefinition<TTypes>('Input', 'flow'));
+        lPorts.unshift(new PotatnoPortDefinition<TTypes>('Input', 'flow'));
 
         return lPorts;
     }
@@ -65,7 +65,7 @@ export class PotatnoFunctionNodeDefinition<TTypes extends PotatnoProjectType = P
         });
 
         // Add an additional flow port for function call chaining.
-        lPorts.push(new PotatnoPortDefinition<TTypes>('Output', 'flow'));
+        lPorts.unshift(new PotatnoPortDefinition<TTypes>('Output', 'flow'));
 
         return lPorts;
     }

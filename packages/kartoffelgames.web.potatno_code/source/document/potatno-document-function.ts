@@ -1,5 +1,5 @@
 import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
-import type { IPotatnoNodeDefinition } from "../project/i-potatno-node-definition.ts";
+import type { IPotatnoNodeDefinition } from "../project/node_definition/i-potatno-node-definition.ts";
 import { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from "./potatno-document-node.ts";
 import type { PotatnoDocumentPortValidationError } from "./potatno-document-port.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';

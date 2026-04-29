@@ -10,7 +10,7 @@ import { PotatnoProjectTypesDefinition } from "../../source/project/potatno-proj
 /*
  // TODO:
  - Add PotatnoDynamicNodeDefinition: implement a dynamic node-definition base that computes ports from context and can be returned by providers.
- - Add PotatnoFunctionNodeDefinition: implement the function-derived node definition (live signature-based) as a subclass of PotatnoDynamicNodeDefinition.
+ - Add PotatnoFunctionNodeDefinition: implement the function-derived node definition (live signature-based) as a subclass of PotatnoDynamicNodeDefinition. Basically the static node definition can inherit that as well. Maybe remove the interface all together.
  - Create NodeProvider API that replaces the PotatnoFunctionDefinitionNodes: function that returns available `IPotatnoNodeDefinition` instances based on the function inputs & outputs.
  - Add functionality that allows for nodes resync to their definitions.
  - Add a "undefined" type for nodes, so a old project can be loaded without crashing when node definitions are removed.
@@ -258,9 +258,10 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
             lCanvas.style.cssText = 'width: 50px; height: 50px; image-rendering: pixelated; border: 1px solid rgba(255,255,255,0.1); border-radius: 2px;';
             return lCanvas;
         },
-        updatePreview: (pCanvas: HTMLCanvasElement, pContext, pFunction: PotatnoCodeFunction, _pPreviewInputData: any, pIntermediateCodeOutput: string) => {
-            const lPreviewCtx: CanvasRenderingContext2D = pCanvas.getContext('2d')!;
-            const lImageData: ImageData = lPreviewCtx.createImageData(pCanvas.width, pCanvas.height);
+        updatePreview: (pPreviewElement: Element, pContext, pFunction: PotatnoCodeFunction, _pPreviewInputData: any, pIntermediateCodeOutput: string) => {
+            const lCanvas: HTMLCanvasElement = pPreviewElement as HTMLCanvasElement;
+            const lPreviewCtx: CanvasRenderingContext2D = lCanvas.getContext('2d')!;
+            const lImageData: ImageData = lPreviewCtx.createImageData(lCanvas.width, lCanvas.height);
 
             // Replace the last comment-hook with a return statement to get the result of the multiplication.
             const lCodeOutput: string = pIntermediateCodeOutput.replace(`/*MULTIPLYHOOK_${pContext.outputs.result.valueId}*/`, `return ${pContext.outputs.result.valueId};`);

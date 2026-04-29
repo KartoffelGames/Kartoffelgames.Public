@@ -1,5 +1,4 @@
 import { PotatnoCodeFunction } from "../../parser/potatno-code-function.ts";
-import { PotatnoNodeDefinitionGeneratorData, PotatnoNodeDefinitionPorts } from "./potatno-static-node-definition.ts";
 import type { PotatnoPortDefinition } from '../potatno-port-definition.ts';
 import { PotatnoProjectType } from "../potatno-project-types-definition.ts";
 
@@ -8,7 +7,7 @@ import { PotatnoProjectType } from "../potatno-project-types-definition.ts";
  * Implemented by both project-registered PotatnoNodeDefinition instances and
  * live PotatnoFunctionNodeDefinition instances derived from user functions.
  */
-export interface IPotatnoNodeDefinition<TTypes extends PotatnoProjectType, TInputs extends PotatnoNodeDefinitionPorts<TTypes> = any, TOutputs extends PotatnoNodeDefinitionPorts<TTypes> = any, TPreviewElement extends Element = any> {
+export interface IPotatnoNodeDefinition<TTypes extends PotatnoProjectType, TInputs extends PotatnoNodeDefinitionPorts<TTypes> = any, TOutputs extends PotatnoNodeDefinitionPorts<TTypes> = any> {
     /**
      * Unique identifier for this node definition.
      */
@@ -42,7 +41,7 @@ export interface IPotatnoNodeDefinition<TTypes extends PotatnoProjectType, TInpu
     /**
      * Optional preview configuration. Null when no preview is available for this node type.
      */
-    readonly preview: PotatnoNodeDefinitionPreview<TTypes, TInputs, TOutputs, TPreviewElement> | null;
+    readonly preview: PotatnoNodeDefinitionPreview<TTypes, TInputs, TOutputs> | null;
 }
 
 /**
@@ -53,13 +52,13 @@ export type PotatnoNodeDefinitionCodeGenerator<TTypes extends PotatnoProjectType
 /**
  * Preview generation.
  */
-export type PotatnoNodeDefinitionPreview<TTypes extends PotatnoProjectType, TInput extends PotatnoNodeDefinitionPorts<TTypes>, TOutput extends PotatnoNodeDefinitionPorts<TTypes>, TElement extends Element> = {
+export type PotatnoNodeDefinitionPreview<TTypes extends PotatnoProjectType, TInput extends PotatnoNodeDefinitionPorts<TTypes>, TOutput extends PotatnoNodeDefinitionPorts<TTypes>> = {
     /**
      * Generator function that produces an HTMLElement to be used as a live preview for a node instance.
      * 
      * @returns an element that the node gets append as preview.
      */
-    readonly generatePreview: () => TElement;
+    readonly generatePreview: () => Element;
 
     /**
      * Update function that updates the preview element based on the current input values and output values of the node instance.
@@ -69,5 +68,72 @@ export type PotatnoNodeDefinitionPreview<TTypes extends PotatnoProjectType, TInp
      * @param pPreviewInputData - The example preview input data for the entry point, which can be used to run the intermediate code and update the preview element accordingly.
      * @param pIntermediateCodeOutput - The output of the intermediate code execution, which can be used to update the preview element accordingly.
      */
-    readonly updatePreview: (pElement: TElement, pContext: PotatnoNodeDefinitionGeneratorData<TTypes, TInput, TOutput>, pFunction: PotatnoCodeFunction, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
+    readonly updatePreview: (pElement: Element, pContext: PotatnoNodeDefinitionGeneratorData<TTypes, TInput, TOutput>, pFunction: PotatnoCodeFunction, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
+};
+
+/**
+ * Typed context passed to the node code generator callback.
+ * All maps are plain JS objects for type safety and easy destructuring.
+ */
+export type PotatnoNodeDefinitionGeneratorData<TTypes extends PotatnoProjectType, TInput extends PotatnoNodeDefinitionPorts<TTypes>, TOutput extends PotatnoNodeDefinitionPorts<TTypes>> = {
+    /**
+     *  Input port valueIds keyed by port name. 
+     */
+    readonly inputs: PotatnoCodeGeneratorPorts<TTypes, TInput>;
+
+    /** 
+     * Output port valueIds keyed by port name. 
+     */
+    readonly outputs: PotatnoCodeGeneratorPorts<TTypes, TOutput>;
+};
+
+
+/**
+ * Definition of a port type used when registering node definitions.
+ */
+
+export type PotatnoNodeDefinitionPortDefinition<TTypes extends PotatnoProjectType = PotatnoProjectType> = PotatnoNodeDefinitionFlowPort | PotatnoNodeDefinitionValuePort<TTypes>;
+
+export type PotatnoNodeDefinitionFlowPort = {
+    /** 
+     * Fixed type discriminator for flow ports.
+     */
+    portType: 'flow';
+};
+
+export type PotatnoNodeDefinitionValuePort<TTypes extends PotatnoProjectType> = {
+    /**
+     * Fixed type discriminator for value ports.
+     */
+    portType: 'value';
+
+    /** 
+     * Data type identifier for the port.
+     */
+    dataType: TTypes;
+};
+
+export type PotatnoNodeDefinitionPorts<TTypes extends PotatnoProjectType = PotatnoProjectType, TKey extends string = string> = Record<TKey, PotatnoNodeDefinitionPortDefinition<TTypes>>;
+
+/**
+ * Code generator node outputs.
+ */
+
+export type PotatnoCodeGeneratorFlowPort = {
+    /** 
+     * Connected nodes code generator output.
+     */
+    code: string;
+};
+
+export type PotatnoCodeGeneratorValuePort = {
+    /**
+     * The valueId of the value. Autogenerated variable name can be derived from this for code generation purposes.
+     */
+    valueId: string;
+};
+
+export type PotatnoCodeGeneratorPorts<TTypes extends PotatnoProjectType, TPorts extends PotatnoNodeDefinitionPorts<TTypes>> = {
+    [K in keyof TPorts]: TPorts[K] extends PotatnoNodeDefinitionValuePort<TTypes> ? PotatnoCodeGeneratorValuePort :
+    TPorts[K] extends PotatnoNodeDefinitionFlowPort ? PotatnoCodeGeneratorFlowPort : never;
 };

@@ -1,7 +1,7 @@
 import { PotatnoDocumentFunction } from "../../document/potatno-document-function.ts";
-import { IPotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator } from "./i-potatno-node-definition.ts";
 import { PotatnoPortDefinition } from "../potatno-port-definition.ts";
 import { PotatnoProjectType } from "../potatno-project-types-definition.ts";
+import { IPotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator } from "./i-potatno-node-definition.ts";
 /**
  * A live node definition derived from a PotatnoDocumentFunction.
  *
@@ -14,7 +14,7 @@ import { PotatnoProjectType } from "../potatno-project-types-definition.ts";
  * The stable id comes from PotatnoDocumentFunction.id, ensuring that nodes
  * referencing this definition keep their identity across sessions.
  */
-export class PotatnoFunctionNodeDefinition<TTypes extends PotatnoProjectType = PotatnoProjectType> implements IPotatnoNodeDefinition<TTypes, any, any, any> {
+export class PotatnoFunctionNodeDefinition<TTypes extends PotatnoProjectType = PotatnoProjectType> implements IPotatnoNodeDefinition<TTypes, any, any> {
     private readonly mFunction: PotatnoDocumentFunction;
 
     /**

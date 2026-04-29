@@ -1,5 +1,5 @@
 import { PotatnoCodeFunction } from "../parser/potatno-code-function.ts";
-import type { PotatnoNodeDefinitionGeneratorData } from "./node_definition/potatno-static-node-definition.ts";
+import type { PotatnoNodeDefinitionGeneratorData } from "./node_definition/i-potatno-node-definition.ts";
 import { PotatnoStaticNodeDefinition } from "./node_definition/potatno-static-node-definition.ts";
 import { PotatnoProjectType } from "./potatno-project-types-definition.ts";
 

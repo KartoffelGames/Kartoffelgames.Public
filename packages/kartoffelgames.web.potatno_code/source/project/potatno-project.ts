@@ -1,6 +1,6 @@
-import { IPotatnoNodeDefinition } from "./node_definition/i-potatno-node-definition.ts";
+import { IPotatnoNodeDefinition, PotatnoNodeDefinitionPorts } from "./node_definition/i-potatno-node-definition.ts";
 import type { PotatnoFunctionDefinition } from './potatno-function-definition.ts';
-import { PotatnoStaticNodeDefinition, type PotatnoNodeDefinitionPorts } from "./node_definition/potatno-static-node-definition.ts";
+import { PotatnoStaticNodeDefinition } from "./node_definition/potatno-static-node-definition.ts";
 import { PotatnoProjectType, PotatnoProjectTypesDefinition } from "./potatno-project-types-definition.ts";
 
 /**
@@ -79,7 +79,7 @@ export class PotatnoProject<TProjectType extends PotatnoProjectType> {
      * 
      * @param pDefinition - The node definition to register. Must have a unique id and use valid type identifiers for its ports.
      */
-    public addNodeDefinition<TInputs extends PotatnoNodeDefinitionPorts<TProjectType>, TOutputs extends PotatnoNodeDefinitionPorts<TProjectType>, TPreviewElement extends Element>(pDefinition: PotatnoStaticNodeDefinition<TProjectType, TInputs, TOutputs, TPreviewElement>): void {
+    public addNodeDefinition<TInputs extends PotatnoNodeDefinitionPorts<TProjectType>, TOutputs extends PotatnoNodeDefinitionPorts<TProjectType>>(pDefinition: PotatnoStaticNodeDefinition<TProjectType, TInputs, TOutputs>): void {
         this.mNodeDefinitions.set(pDefinition.id, pDefinition);
     }
 

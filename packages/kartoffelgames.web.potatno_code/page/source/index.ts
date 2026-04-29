@@ -19,6 +19,7 @@ import { PotatnoProjectTypesDefinition } from "../../source/project/potatno-proj
  - Introduce ExecutionRegion (startNodeRef): add execution-region concept derived from a start/root node reference to determine same-region restrictions.
  - Add node contexts with {add: Array<string>, requires: Array<string>} that can be used to force a endpoint node to only be connected to certain entry point nodes. (VertexData only connects to OnVertex and not to OnFragment)
  - [Advanced hehehe] Add a merge detection for flow ports that detects when a port with multiple connections oriented from the same node, so its code is not dublicated into the "if else" but can be added after it without dublication. 
+   As example for a simple if else node its generated code would be: {if: string, else: string, next: string} where the next part is the code that both branches share.
  */
 
 // --- Project configuration ---

@@ -17,7 +17,9 @@ import { PotatnoProjectTypesDefinition } from "../../source/project/potatno-proj
  - Add a "undefined" type for nodes, so a old project can be loaded without crashing when node definitions are removed.
  - Add SemanticValidation: A port should only be connected to a port that has the same starting node (execution regions).
  - Introduce ExecutionRegion (startNodeRef): add execution-region concept derived from a start/root node reference to determine same-region restrictions.
-*/
+ - Add node contexts with {add: Array<string>, requires: Array<string>} that can be used to force a endpoint node to only be connected to certain entry point nodes. (VertexData only connects to OnVertex and not to OnFragment)
+ - [Advanced hehehe] Add a merge detection for flow ports that detects when a port with multiple connections oriented from the same node, so its code is not dublicated into the "if else" but can be added after it without dublication. 
+ */
 
 // --- Project configuration ---
 const lProjectTypes = new PotatnoProjectTypesDefinition({

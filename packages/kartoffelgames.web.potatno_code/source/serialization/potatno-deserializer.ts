@@ -18,7 +18,7 @@ import type { PotatnoCodeFileSerializationResult, SerializedFunction, Serialized
  *      connect() is bidirectional, so calling it on the source port is sufficient.
  */
 export class PotatnoDeserializer<TProjectType extends PotatnoProjectType> {
-    private readonly mProject: PotatnoProject<PotatnoProjectType>;
+    private readonly mProject: PotatnoProject<TProjectType>;
 
     /**
      * Constructor.
@@ -51,9 +51,9 @@ export class PotatnoDeserializer<TProjectType extends PotatnoProjectType> {
     /**
      * Reconstruct a single function from its serialized form.
      */
-    private deserializeFunction(pData: SerializedFunction, pDocument: PotatnoDocument<TProjectType>): PotatnoDocumentFunction {
-        const lDefinition: PotatnoFunctionDefinition = this.findFunctionDefinition(pData.definitionId);
-        const lFunc: PotatnoDocumentFunction = new PotatnoDocumentFunction(this.mProject, lDefinition, pData.id, pData.name, pData.isSystem);
+    private deserializeFunction(pData: SerializedFunction, pDocument: PotatnoDocument<TProjectType>): PotatnoDocumentFunction<TProjectType> {
+        const lDefinition: PotatnoFunctionDefinition<TProjectType> = this.findFunctionDefinition(pData.definitionId);
+        const lFunc: PotatnoDocumentFunction<TProjectType> = new PotatnoDocumentFunction(this.mProject, lDefinition, pData.id, pData.name, pData.isSystem);
 
         // Restore imports.
         for (const lImport of pData.imports) {
@@ -127,12 +127,12 @@ export class PotatnoDeserializer<TProjectType extends PotatnoProjectType> {
      * Look up a function definition by id from the project.
      * Falls back to the entry point if the definition is not found.
      */
-    private findFunctionDefinition(pDefinitionId: string): PotatnoFunctionDefinition {
+    private findFunctionDefinition(pDefinitionId: string): PotatnoFunctionDefinition<TProjectType> {
         if (this.mProject.entryPoint.id === pDefinitionId) {
             return this.mProject.entryPoint;
         }
 
-        const lUserFunc: PotatnoFunctionDefinition | undefined = this.mProject.userFunctions.get(pDefinitionId);
+        const lUserFunc: PotatnoFunctionDefinition<TProjectType> | undefined = this.mProject.userFunctions.get(pDefinitionId);
         if (lUserFunc) {
             return lUserFunc;
         }

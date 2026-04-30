@@ -45,7 +45,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
     private mFile: PotatnoDocument<TProjectType> | undefined;
     private mActiveFunctionId: string = '';
     private mSelectedNodes: Set<PotatnoDocumentNode> = new Set();
-    private mInternals!: EditorInternals;
+    private mInternals!: EditorInternals<TProjectType>;
     private mSelectionBoxScreen: { x1: number; y1: number; x2: number; y2: number; };
     private mHistoryDebounceTimer: number = 0;
     private mPreviewDebounceTimer: number = 0;
@@ -82,7 +82,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
 
     // ── Private computed property ────────────────────────────────────────
 
-    private get activeFunction(): PotatnoDocumentFunction | null {
+    private get activeFunction(): PotatnoDocumentFunction<TProjectType> | null {
         if (!this.mFile) {
             return null;
         }
@@ -1080,7 +1080,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
         lInternals.previewDirty = false;
 
         // Find the system function (entry point).
-        let lEntryFunc: PotatnoDocumentFunction | undefined;
+        let lEntryFunc: PotatnoDocumentFunction<TProjectType> | undefined;
         for (const lFunc of lFile.functions) {
             if (lFunc.isSystem) {
                 lEntryFunc = lFunc;
@@ -1380,9 +1380,9 @@ interface CachedViewData {
     visibleNodes: Array<NodeViewState>;
 }
 
-interface EditorInternals {
+interface EditorInternals<TProjectType extends PotatnoProjectType> {
     history: PotatnoHistory;
-    clipboard: PotatnoClipboard;
+    clipboard: PotatnoClipboard<TProjectType>;
     interaction: PotatnoCanvasInteraction;
     renderer: PotatnoCanvasRenderer;
     hoveredPort: { node: PotatnoDocumentNode; port: PotatnoDocumentPort; } | null;

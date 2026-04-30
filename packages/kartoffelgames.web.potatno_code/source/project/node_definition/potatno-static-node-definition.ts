@@ -12,17 +12,6 @@ import { IPotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNode
  * @template TPreviewElement - The type of the HTMLElement used for node previews for this node definition.
  */
 export class PotatnoStaticNodeDefinition<TTypes extends PotatnoProjectType> implements IPotatnoNodeDefinition<TTypes> {
-    /**
-     * Factory method to create a new node definition and register it at the project level.
-     * 
-     * @param pParameters - Constructor parameters for the node definition, including id, label, category, input and output port definitions, and code generator callback.
-     * 
-     * @returns The created PotatnoStaticNodeDefinition instance. 
-     */
-    public static create<TTypes extends PotatnoProjectType>(pParameters: PotatnoStaticNodeDefinitionConstructorParameter<TTypes>): PotatnoStaticNodeDefinition<TTypes> {
-        return new PotatnoStaticNodeDefinition(pParameters);
-    }
-
     private readonly mId: string;
     private readonly mCategory: string;
     private readonly mInputs: Array<PotatnoPortDefinition<TTypes>>;

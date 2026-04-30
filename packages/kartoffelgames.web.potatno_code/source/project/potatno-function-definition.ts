@@ -7,20 +7,9 @@ import { PotatnoProjectType } from "./potatno-project-types-definition.ts";
  * Definition of a entry point blueprint.
  * Of of these blueprints eighter the main entry point or secondary user created entry points can be instantiated in the editor.
  */
-export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectType = PotatnoProjectType, TPreviewElement extends Element = any> {
-    /**
-     * Factory method to create a new entry point definition.
-     * 
-     * @param pParameters - Constructor parameters for the entry point definition, including id, static node definitions, dynamic node definitions, and static settings.
-     * 
-     * @returns The created PotatnoFunctionDefinition instance. 
-     */
-    public static create<TTypes extends PotatnoProjectType, TPreviewElement extends Element>(pParameters: PotatnoFunctionDefinitionConstructorParameter<TTypes, TPreviewElement>): PotatnoFunctionDefinition<TTypes, TPreviewElement> {
-        return new PotatnoFunctionDefinition(pParameters);
-    }
-
+export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectType> {
     private readonly mId: string;
-    private readonly mPreview: PotatnoFunctionDefinitionPreview<TPreviewElement> | null;
+    private readonly mPreview: PotatnoFunctionDefinitionPreview | null;
     private readonly mStatics: PotatnoFunctionDefinitionStaticSettings;
     private readonly mNodes: PotatnoFunctionDefinitionNodes<TTypes>;
     private readonly mGeneratorConfig: PotatnoFunctionDefinitionGenerator;
@@ -51,7 +40,7 @@ export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectType = Potat
      * Get the preview configuration for this entry point, if provided. This can be used to generate and update a live preview element based on the entry point's function and example input data.
      * If no preview configuration is provided, no preview will be available for this entry point.
      */
-    public get preview(): PotatnoFunctionDefinitionPreview<TPreviewElement> | null {
+    public get preview(): PotatnoFunctionDefinitionPreview | null {
         return this.mPreview;
     }
 
@@ -67,7 +56,7 @@ export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectType = Potat
      * 
      * @param pParameters - Parameters defining the entry point's id, label, static nodes, dynamic nodes, and static settings.
      */
-    private constructor(pParameters: PotatnoFunctionDefinitionConstructorParameter<TTypes, TPreviewElement>) {
+    public constructor(pParameters: PotatnoFunctionDefinitionConstructorParameter<TTypes>) {
         this.mId = pParameters.id;
 
         // Set exclusive nodes defined for this entry point that are preset in the editor.
@@ -91,11 +80,11 @@ export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectType = Potat
     }
 }
 
-type PotatnoFunctionDefinitionConstructorParameter<TTypes extends PotatnoProjectType, TPreviewElement extends Element> = {
+type PotatnoFunctionDefinitionConstructorParameter<TTypes extends PotatnoProjectType> = {
     id: string;
     statics: Partial<PotatnoFunctionDefinitionStaticSettings>;
     nodes?: Partial<PotatnoFunctionDefinitionNodes<TTypes>>;
-    preview?: PotatnoFunctionDefinitionPreview<TPreviewElement>;
+    preview?: PotatnoFunctionDefinitionPreview;
     codeGenerator: PotatnoFunctionDefinitionGenerator;
 };
 
@@ -130,13 +119,13 @@ export type PotatnoFunctionDefinitionStaticSettings = {
     outputs: boolean;
 };
 
-export type PotatnoFunctionDefinitionPreview<TElement extends Element> = {
+export type PotatnoFunctionDefinitionPreview = {
     /**
      * Generator function that produces an HTMLElement to be used as a live preview for a node instance.
      * 
      * @returns an element that the node gets append as preview.
      */
-    readonly generatePreview: () => TElement;
+    readonly generatePreview: () => Element;
 
     /**
      * Update function that updates the preview element based on the current input values and output values of the node instance.
@@ -147,5 +136,5 @@ export type PotatnoFunctionDefinitionPreview<TElement extends Element> = {
      * @param pPreviewInputData - The example preview input data for the entry point, which can be used to run the intermediate code and update the preview element accordingly.
      * @param pIntermediateCodeOutput - The output of the intermediate code execution, which can be used to update the preview element accordingly.
      */
-    readonly updatePreview: (pElement: TElement, pFunction: PotatnoCodeFunction,pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
+    readonly updatePreview: (pElement: Element, pFunction: PotatnoCodeFunction, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
 };

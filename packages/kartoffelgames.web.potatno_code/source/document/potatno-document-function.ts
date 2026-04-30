@@ -8,8 +8,8 @@ import type { PotatnoProjectType } from '../project/potatno-project-types-defini
 /**
  * Represents a user-editable function containing a sub-graph.
  */
-export class PotatnoDocumentFunction {
-    private readonly mDefinition: PotatnoFunctionDefinition;
+export class PotatnoDocumentFunction<TProjectType extends PotatnoProjectType> {
+    private readonly mDefinition: PotatnoFunctionDefinition<TProjectType>;
     private readonly mId: string;
     private readonly mIsSystem: boolean;
     private readonly mImports: Array<string>;
@@ -17,7 +17,7 @@ export class PotatnoDocumentFunction {
     private mLabel: string;
     private readonly mOutputs: Array<PotatnoDocumentFunctionPort>;
     private readonly mNodes: Set<PotatnoDocumentNode>;
-    private readonly mProject: PotatnoProject<PotatnoProjectType>;
+    private readonly mProject: PotatnoProject<TProjectType>;
 
     /**
      * Unique identifier for this function instance. Stable across sessions so it can be referenced as a node in other graphs.
@@ -36,7 +36,7 @@ export class PotatnoDocumentFunction {
     /**
      * Get the function definition this function was created from.
      */
-    public get definition(): PotatnoFunctionDefinition {
+    public get definition(): PotatnoFunctionDefinition<TProjectType> {
         return this.mDefinition;
     }
 
@@ -92,7 +92,7 @@ export class PotatnoDocumentFunction {
      * @param pLabel - Label of the function.
      * @param pIsSystem - Whether the function is a system-defined function.
      */
-    public constructor(pProject: PotatnoProject<PotatnoProjectType>, pDefinition: PotatnoFunctionDefinition, pId: string, pLabel: string, pIsSystem: boolean) {
+    public constructor(pProject: PotatnoProject<TProjectType>, pDefinition: PotatnoFunctionDefinition<TProjectType>, pId: string, pLabel: string, pIsSystem: boolean) {
         this.mProject = pProject;
         this.mLabel = pLabel;
         this.mIsSystem = pIsSystem;

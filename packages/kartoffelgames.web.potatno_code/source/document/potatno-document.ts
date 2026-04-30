@@ -10,14 +10,14 @@ import type { PotatnoDocumentPortValidationError } from './potatno-document-port
  * Contains all functions and their graphs.
  */
 export class PotatnoDocument<TProjectType extends PotatnoProjectType> {
-    private readonly mFunctions: Set<PotatnoDocumentFunction>;
+    private readonly mFunctions: Set<PotatnoDocumentFunction<TProjectType>>;
     private readonly mFunctionNodeDefinitions: Map<string, PotatnoFunctionNodeDefinition<TProjectType>>;
-    private readonly mProject: PotatnoProject<PotatnoProjectType>;
+    private readonly mProject: PotatnoProject<TProjectType>;
 
     /**
      * Get the read-only set of all functions in this file.
      */
-    public get functions(): ReadonlySet<PotatnoDocumentFunction> {
+    public get functions(): ReadonlySet<PotatnoDocumentFunction<TProjectType>> {
         return this.mFunctions;
     }
 
@@ -33,16 +33,16 @@ export class PotatnoDocument<TProjectType extends PotatnoProjectType> {
     /**
      * Get the project this document belongs to.
      */
-    public get project(): PotatnoProject<PotatnoProjectType> {
+    public get project(): PotatnoProject<TProjectType> {
         return this.mProject;
     }
 
     /**
      * Create an empty code file with no functions.
      */
-    public constructor(pProject: PotatnoProject<PotatnoProjectType>) {
+    public constructor(pProject: PotatnoProject<TProjectType>) {
         this.mProject = pProject;
-        this.mFunctions = new Set<PotatnoDocumentFunction>();
+        this.mFunctions = new Set<PotatnoDocumentFunction<TProjectType>>();
         this.mFunctionNodeDefinitions = new Map<string, PotatnoFunctionNodeDefinition<TProjectType>>();
     }
 
@@ -53,7 +53,7 @@ export class PotatnoDocument<TProjectType extends PotatnoProjectType> {
      *
      * @param pFunction - The function to add.
      */
-    public addFunction(pFunction: PotatnoDocumentFunction): void {
+    public addFunction(pFunction: PotatnoDocumentFunction<TProjectType>): void {
         this.mFunctions.add(pFunction);
         this.mFunctionNodeDefinitions.set(pFunction.id, new PotatnoFunctionNodeDefinition(pFunction));
     }
@@ -66,7 +66,7 @@ export class PotatnoDocument<TProjectType extends PotatnoProjectType> {
      *
      * @returns True if the function was removed, false otherwise.
      */
-    public removeFunction(pFunction: PotatnoDocumentFunction): boolean {
+    public removeFunction(pFunction: PotatnoDocumentFunction<TProjectType>): boolean {
         if (!this.mFunctions.has(pFunction)) {
             return false;
         }

@@ -41,7 +41,7 @@ export class PotatnoSerializer<TProjectType extends PotatnoProjectType> {
     /**
      * Serialize a single function including all its nodes and port connections.
      */
-    private serializeFunction(pFunction: PotatnoDocumentFunction): SerializedFunction {
+    private serializeFunction(pFunction: PotatnoDocumentFunction<TProjectType>): SerializedFunction {
         // Build a temporary node to id map for this serialization pass.
         const lNodeIdMap = new Map<PotatnoDocumentNode, string>();
 

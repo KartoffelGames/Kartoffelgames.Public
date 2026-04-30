@@ -15,7 +15,7 @@ import { IPotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator } from "./i-
  * referencing this definition keep their identity across sessions.
  */
 export class PotatnoFunctionNodeDefinition<TTypes extends PotatnoProjectType> implements IPotatnoNodeDefinition<TTypes> {
-    private readonly mFunction: PotatnoDocumentFunction;
+    private readonly mFunction: PotatnoDocumentFunction<TTypes>;
 
     /**
      * Stable identifier derived from the source function's id.
@@ -90,7 +90,7 @@ export class PotatnoFunctionNodeDefinition<TTypes extends PotatnoProjectType> im
      *
      * @param pFunction - The document function this definition mirrors.
      */
-    public constructor(pFunction: PotatnoDocumentFunction) {
+    public constructor(pFunction: PotatnoDocumentFunction<TTypes>) {
         this.mFunction = pFunction;
     }
 }

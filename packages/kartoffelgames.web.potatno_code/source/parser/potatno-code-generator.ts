@@ -31,7 +31,7 @@ export class PotatnoCodeGenerator<TProjectType extends PotatnoProjectType> {
 
     public generate(pDocument: PotatnoDocument<TProjectType>): string {
         // Get all used fuctions. System function (entry point) is always last.
-        const lUsedFunctions: Array<PotatnoDocumentFunction> = this.findUsedFunctions(pDocument);
+        const lUsedFunctions: Array<PotatnoDocumentFunction<TProjectType>> = this.findUsedFunctions(pDocument);
 
         return ''; // TODO: 
     }
@@ -44,9 +44,9 @@ export class PotatnoCodeGenerator<TProjectType extends PotatnoProjectType> {
      * 
      * @returns An array of functions that are reachable from the entry point, with the entry point function last.
      */
-    private findUsedFunctions(pDocument: PotatnoDocument<TProjectType>): Array<PotatnoDocumentFunction> {
+    private findUsedFunctions(pDocument: PotatnoDocument<TProjectType>): Array<PotatnoDocumentFunction<TProjectType>> {
         // Find the primary system function (entry point) to generate code for.
-        const lEntryPointFunction: PotatnoDocumentFunction | undefined = [...pDocument.functions].find((pFunction) => {
+        const lEntryPointFunction: PotatnoDocumentFunction<TProjectType> | undefined = [...pDocument.functions].find((pFunction) => {
             return pFunction.isSystem;
         });
 
@@ -55,31 +55,31 @@ export class PotatnoCodeGenerator<TProjectType extends PotatnoProjectType> {
         }
 
         // Create a map for resolving function ids to their instance.
-        const lFunctionMap: Map<string, PotatnoDocumentFunction> = new Map<string, PotatnoDocumentFunction>();
+        const lFunctionMap: Map<string, PotatnoDocumentFunction<TProjectType>> = new Map<string, PotatnoDocumentFunction<TProjectType>>();
         for (const lFunction of pDocument.functions) {
             lFunctionMap.set(lFunction.id, lFunction);
         }
 
         // Create mapping for tracking which functions have been searched for reachability from the entry point.
-        const lSearchedFunctions: Set<PotatnoDocumentFunction> = new Set<PotatnoDocumentFunction>();
-        const lFunctionSearchStack: Array<PotatnoDocumentFunction> = new Array<PotatnoDocumentFunction>();
+        const lSearchedFunctions: Set<PotatnoDocumentFunction<TProjectType>> = new Set<PotatnoDocumentFunction<TProjectType>>();
+        const lFunctionSearchStack: Array<PotatnoDocumentFunction<TProjectType>> = new Array<PotatnoDocumentFunction<TProjectType>>();
 
         // Initialize with the entry point function.
         lFunctionSearchStack.push(lEntryPointFunction);
 
         // List of functions that are reachable from the entry point and should be included in code generation.
-        const lUsedFunctions: Set<PotatnoDocumentFunction> = new Set<PotatnoDocumentFunction>();
+        const lUsedFunctions: Set<PotatnoDocumentFunction<TProjectType>> = new Set<PotatnoDocumentFunction<TProjectType>>();
         lUsedFunctions.add(lEntryPointFunction);
 
         while (lFunctionSearchStack.length > 0) {
             // Get the next function to search and mark it as searched.
-            const lCurrentFunction: PotatnoDocumentFunction = lFunctionSearchStack.pop()!;
+            const lCurrentFunction: PotatnoDocumentFunction<TProjectType> = lFunctionSearchStack.pop()!;
             lSearchedFunctions.add(lCurrentFunction);
 
             for (const lNode of lCurrentFunction.nodes) {
                 // Try to find a function matching
                 if (lFunctionMap.has(lNode.definition.id)) {
-                    const lFoundFunction: PotatnoDocumentFunction = lFunctionMap.get(lNode.definition.id)!;
+                    const lFoundFunction: PotatnoDocumentFunction<TProjectType> = lFunctionMap.get(lNode.definition.id)!;
 
                     // Add function to found list.
                     lUsedFunctions.add(lFoundFunction);
@@ -130,8 +130,8 @@ export class PotatnoCodeGenerator<TProjectType extends PotatnoProjectType> {
      *
      * @returns The generated code string.
      */
-    public generateFunctionCode(pFunction: PotatnoDocumentFunction): string {
-        const lFuncDef: PotatnoFunctionDefinition = pFunction.definition;
+    public generateFunctionCode(pFunction: PotatnoDocumentFunction<TProjectType>): string {
+        const lFuncDef: PotatnoFunctionDefinition<TProjectType> = pFunction.definition;
         const lNodes: ReadonlySet<PotatnoDocumentNode> = pFunction.nodes;
         const lValueIdMap: Map<PotatnoDocumentPort, string> = this.buildValueIdMap(lNodes);
         const lBodyCode: string = this.generateGraphCode(lNodes, lValueIdMap);
@@ -153,8 +153,8 @@ export class PotatnoCodeGenerator<TProjectType extends PotatnoProjectType> {
      *
      * @returns The full code, code function metadata, and per-node intermediate data.
      */
-    public generateFunctionCodeWithIntermediates(pFunction: PotatnoDocumentFunction, pPreviewNodes: Set<PotatnoDocumentNode>): FunctionCodeWithIntermediates {
-        const lFuncDef: PotatnoFunctionDefinition = pFunction.definition;
+    public generateFunctionCodeWithIntermediates(pFunction: PotatnoDocumentFunction<TProjectType>, pPreviewNodes: Set<PotatnoDocumentNode>): FunctionCodeWithIntermediates {
+        const lFuncDef: PotatnoFunctionDefinition<TProjectType> = pFunction.definition;
         const lNodes: ReadonlySet<PotatnoDocumentNode> = pFunction.nodes;
         const lValueIdMap: Map<PotatnoDocumentPort, string> = this.buildValueIdMap(lNodes);
         const lSortedNodes: Array<PotatnoDocumentNode> = this.topologicalSort(lNodes);
@@ -217,7 +217,7 @@ export class PotatnoCodeGenerator<TProjectType extends PotatnoProjectType> {
      *
      * @returns The combined code string for all functions.
      */
-    public generateProjectCode(pFunctions: ReadonlyMap<string, PotatnoDocumentFunction>): string {
+    public generateProjectCode(pFunctions: ReadonlyMap<string, PotatnoDocumentFunction<TProjectType>>): string {
         return [...pFunctions.values()].map((pFunc) => this.generateFunctionCode(pFunc)).join('\n\n');
     }
 
@@ -242,7 +242,7 @@ export class PotatnoCodeGenerator<TProjectType extends PotatnoProjectType> {
     /**
      * Construct a PotatnoCodeFunction from a document function, its nodes, and the value-id map.
      */
-    private buildCodeFunction(pFunction: PotatnoDocumentFunction, pNodes: ReadonlySet<PotatnoDocumentNode>, pValueIdMap: Map<PotatnoDocumentPort, string>, pBodyCode: string): PotatnoCodeFunction {
+    private buildCodeFunction(pFunction: PotatnoDocumentFunction<TProjectType>, pNodes: ReadonlySet<PotatnoDocumentNode>, pValueIdMap: Map<PotatnoDocumentPort, string>, pBodyCode: string): PotatnoCodeFunction {
         const lCodeFunc = new PotatnoCodeFunction();
         lCodeFunc.name = pFunction.label;
         lCodeFunc.bodyCode = pBodyCode;
@@ -262,7 +262,7 @@ export class PotatnoCodeGenerator<TProjectType extends PotatnoProjectType> {
      * Map function input port definitions to code function input descriptors,
      * resolving each input's valueId via the corresponding Input node in the graph.
      */
-    private collectFunctionInputs(pFunction: PotatnoDocumentFunction, pNodes: ReadonlySet<PotatnoDocumentNode>, pValueIdMap: Map<PotatnoDocumentPort, string>): Array<{ name: string; type: string; valueId: string; }> {
+    private collectFunctionInputs(pFunction: PotatnoDocumentFunction<TProjectType>, pNodes: ReadonlySet<PotatnoDocumentNode>, pValueIdMap: Map<PotatnoDocumentPort, string>): Array<{ name: string; type: string; valueId: string; }> {
         return pFunction.inputs.map((pPortDef) => ({
             name: pPortDef.name,
             type: pPortDef.dataType,
@@ -274,7 +274,7 @@ export class PotatnoCodeGenerator<TProjectType extends PotatnoProjectType> {
      * Map function output port definitions to code function output descriptors,
      * resolving each output's valueId via the corresponding Output node in the graph.
      */
-    private collectFunctionOutputs(pFunction: PotatnoDocumentFunction, pNodes: ReadonlySet<PotatnoDocumentNode>, pValueIdMap: Map<PotatnoDocumentPort, string>): Array<{ name: string; type: string; valueId: string; }> {
+    private collectFunctionOutputs(pFunction: PotatnoDocumentFunction<TProjectType>, pNodes: ReadonlySet<PotatnoDocumentNode>, pValueIdMap: Map<PotatnoDocumentPort, string>): Array<{ name: string; type: string; valueId: string; }> {
         return pFunction.outputs.map((pPortDef) => ({
             name: pPortDef.name,
             type: pPortDef.dataType,

@@ -7,7 +7,7 @@ import { PotatnoProjectType } from "../project/potatno-project-types-definition.
  * Copy/paste logic for graph nodes.
  * Stores a snapshot of selected nodes and their internal connections.
  */
-export class PotatnoClipboard {
+export class PotatnoClipboard<TProjectType extends PotatnoProjectType> {
     private mData: ClipboardData | null;
 
     /**
@@ -94,7 +94,7 @@ export class PotatnoClipboard {
      *
      * @returns Array of the newly created nodes, or an empty array if nothing was pasted.
      */
-    public paste(pFunction: PotatnoDocumentFunction, pDocument: PotatnoDocument<PotatnoProjectType>, pOffsetX: number, pOffsetY: number): Array<PotatnoDocumentNode> {
+    public paste(pFunction: PotatnoDocumentFunction<TProjectType>, pDocument: PotatnoDocument<TProjectType>, pOffsetX: number, pOffsetY: number): Array<PotatnoDocumentNode> {
         if (!this.mData) {
             return [];
         }

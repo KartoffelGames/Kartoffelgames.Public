@@ -67,7 +67,7 @@ const lProjectTypes = new PotatnoProjectTypesDefinition({
 
 const lProject = new PotatnoProject({
     types: lProjectTypes,
-    entryPoint: PotatnoFunctionDefinition.create({
+    entryPoint: new PotatnoFunctionDefinition({
         id: 'pixelShader',
         statics: {
             imports: true,
@@ -77,7 +77,7 @@ const lProject = new PotatnoProject({
         nodes: {
             static: [
                 // OnPixel: provides normalized x/y coordinates (0-1 range)
-                PotatnoStaticNodeDefinition.create({
+                new PotatnoStaticNodeDefinition({
                     id: 'OnPixel',
                     category: 'event',
                     inputs: {},
@@ -92,7 +92,7 @@ const lProject = new PotatnoProject({
                     }
                 }),
                 // PixelResult: receives RGB color values (0-1 range)
-                PotatnoStaticNodeDefinition.create({
+                new PotatnoStaticNodeDefinition({
                     id: 'PixelResult',
                     category: NodeCategory.Output,
                     inputs: {
@@ -119,7 +119,7 @@ const lProject = new PotatnoProject({
             }
         },
         preview: {
-            generatePreview: (): HTMLCanvasElement => {
+            generatePreview: (): Element => {
                 const lPreviewCanvas: HTMLCanvasElement = document.createElement('canvas');
                 lPreviewCanvas.width = 100;
                 lPreviewCanvas.height = 100;
@@ -127,9 +127,10 @@ const lProject = new PotatnoProject({
 
                 return lPreviewCanvas;
             },
-            updatePreview: (pCanvas: HTMLCanvasElement, pFunction: PotatnoCodeFunction, _pPreviewInputData: {}, pCodeOutput: string) => {
-                const lPreviewCtx: CanvasRenderingContext2D = pCanvas.getContext('2d')!;
-                const lImageData: ImageData = lPreviewCtx.createImageData(pCanvas.width, pCanvas.height);
+            updatePreview: (pElement: Element, pFunction: PotatnoCodeFunction, _pPreviewInputData: {}, pCodeOutput: string) => {
+                const lCanvas: HTMLCanvasElement = pElement as HTMLCanvasElement;
+                const lPreviewCtx: CanvasRenderingContext2D = lCanvas.getContext('2d')!;
+                const lImageData: ImageData = lPreviewCtx.createImageData(lCanvas.width, lCanvas.height);
 
                 // Evaluate generated code to get the pixel shader function.
                 const lPixelShaderFunc = Function(pCodeOutput + '\nreturn ' + pFunction.name + ';')();
@@ -157,7 +158,7 @@ const lProject = new PotatnoProject({
 lProject.addImport({
     name: 'Math',
     nodes: [
-        PotatnoStaticNodeDefinition.create({
+        new PotatnoStaticNodeDefinition({
             id: 'Math.PI',
             category: 'value',
             inputs: {},
@@ -166,7 +167,7 @@ lProject.addImport({
             } as const,
             codeGenerator: (pContext) => `const ${pContext.outputs["value"].valueId} = Math.PI;`
         }),
-        PotatnoStaticNodeDefinition.create({
+        new PotatnoStaticNodeDefinition({
             id: 'Math.E',
             category: 'value',
             inputs: {},
@@ -175,7 +176,7 @@ lProject.addImport({
             } as const,
             codeGenerator: (pContext) => `const ${pContext.outputs["value"].valueId} = Math.E;`
         }),
-        PotatnoStaticNodeDefinition.create({
+        new PotatnoStaticNodeDefinition({
             id: 'Math.abs',
             category: NodeCategory.Function,
             inputs: {
@@ -186,7 +187,7 @@ lProject.addImport({
             } as const,
             codeGenerator: (pContext) => `const ${pContext.outputs["result"].valueId} = Math.abs(${pContext.inputs["value"].valueId});`
         }),
-        PotatnoStaticNodeDefinition.create({
+        new PotatnoStaticNodeDefinition({
             id: 'Math.floor',
             category: NodeCategory.Function,
             inputs: {
@@ -197,7 +198,7 @@ lProject.addImport({
             } as const,
             codeGenerator: (pContext) => `const ${pContext.outputs["result"].valueId} = Math.floor(${pContext.inputs["value"].valueId});`
         }),
-        PotatnoStaticNodeDefinition.create({
+        new PotatnoStaticNodeDefinition({
             id: 'Math.random',
             category: NodeCategory.Function,
             inputs: {},
@@ -210,7 +211,7 @@ lProject.addImport({
 });
 
 // --- Operator Nodes: Arithmetic ---
-lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
+lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Add',
     category: 'operator',
     inputs: {
@@ -223,7 +224,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     codeGenerator: (pContext) => `const ${pContext.outputs["result"].valueId} = ${pContext.inputs["a"].valueId} + ${pContext.inputs["b"].valueId};`
 }));
 
-lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
+lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Subtract',
     category: 'operator',
     inputs: {
@@ -236,7 +237,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     codeGenerator: (pContext) => `const ${pContext.outputs["result"].valueId} = ${pContext.inputs["a"].valueId} - ${pContext.inputs["b"].valueId};`
 }));
 
-lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
+lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Multiply',
     category: 'operator',
     inputs: {
@@ -287,7 +288,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     }
 }));
 
-lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
+lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Divide',
     category: 'operator',
     inputs: {
@@ -302,7 +303,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     }
 }));
 
-lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
+lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Modulo',
     category: 'operator',
     inputs: {
@@ -316,7 +317,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
 }));
 
 // --- Operator Nodes: Comparison ---
-lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
+lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Equal',
     category: 'operator',
     inputs: {
@@ -329,7 +330,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     codeGenerator: (pContext) => `const ${pContext.outputs["result"].valueId} = ${pContext.inputs["a"].valueId} === ${pContext.inputs["b"].valueId};`
 }));
 
-lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
+lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Not Equal',
     category: 'operator',
     inputs: {
@@ -342,7 +343,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     codeGenerator: (pContext) => `const ${pContext.outputs["result"].valueId} = ${pContext.inputs["a"].valueId} !== ${pContext.inputs["b"].valueId};`
 }));
 
-lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
+lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Less Than',
     category: 'operator',
     inputs: {
@@ -355,7 +356,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     codeGenerator: (pContext) => `const ${pContext.outputs["result"].valueId} = ${pContext.inputs["a"].valueId} < ${pContext.inputs["b"].valueId};`
 }));
 
-lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
+lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Greater Than',
     category: 'operator',
     inputs: {
@@ -369,7 +370,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
 }));
 
 // --- Operator Nodes: Logic ---
-lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
+lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'And',
     category: 'operator',
     inputs: {
@@ -382,7 +383,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     codeGenerator: (pContext) => `const ${pContext.outputs["result"].valueId} = ${pContext.inputs["a"].valueId} && ${pContext.inputs["b"].valueId};`
 }));
 
-lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
+lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Or',
     category: 'operator',
     inputs: {
@@ -395,7 +396,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     codeGenerator: (pContext) => `const ${pContext.outputs["result"].valueId} = ${pContext.inputs["a"].valueId} || ${pContext.inputs["b"].valueId};`
 }));
 
-lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
+lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Not',
     category: 'operator',
     inputs: {
@@ -408,7 +409,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
 }));
 
 // --- Type Conversion Nodes ---
-lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
+lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Number to String',
     category: 'type-conversion',
     inputs: {
@@ -420,7 +421,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     codeGenerator: (pContext) => `const ${pContext.outputs["output"].valueId} = String(${pContext.inputs["input"].valueId});`
 }));
 
-lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
+lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'String to Number',
     category: 'type-conversion',
     inputs: {
@@ -432,7 +433,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     codeGenerator: (pContext) => `const ${pContext.outputs["output"].valueId} = Number(${pContext.inputs["input"].valueId});`
 }));
 
-lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
+lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Boolean to String',
     category: 'type-conversion',
     inputs: {
@@ -445,7 +446,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
 }));
 
 // --- Flow Nodes ---
-lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
+lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'If',
     category: 'flow',
     inputs: {
@@ -459,7 +460,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     codeGenerator: (pContext) => `if (${pContext.inputs["condition"].valueId}) {\n${pContext.outputs["then"].code}\n} else {\n${pContext.outputs["else"].code}\n}`
 }));
 
-lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
+lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'While',
     category: 'flow',
     inputs: {
@@ -472,7 +473,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     codeGenerator: (pContext) => `while (${pContext.inputs["condition"].valueId}) {\n${pContext.outputs["body"].code}\n}`
 }));
 
-lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
+lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'For Loop',
     category: 'flow',
     inputs: {
@@ -487,7 +488,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
 }));
 
 // --- Function Nodes ---
-lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
+lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Console Log',
     category: NodeCategory.Function,
     inputs: { message: { portType: 'value', dataType: 'string' } },
@@ -495,7 +496,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
     codeGenerator: ({ inputs }) => `console.log(${inputs["message"].valueId});`
 }));
 
-lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
+lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'String Concat',
     category: NodeCategory.Function,
     inputs: {
@@ -509,7 +510,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.create({
 }));
 
 // --- User Function Definitions ---
-lProject.addUserFunction(PotatnoFunctionDefinition.create({
+lProject.addUserFunction(new PotatnoFunctionDefinition({
     id: 'Helper Function',
     statics: {
         imports: false,
@@ -535,7 +536,7 @@ lProject.addUserFunction(PotatnoFunctionDefinition.create({
 }));
 
 // --- Create application and open an empty file ---
-const lApp: PotatnoCodeApplication<any> = new PotatnoCodeApplication(lProject);
+const lApp = new PotatnoCodeApplication(lProject);
 lApp.appendTo(document.body);
 lApp.document = new PotatnoDocument(lProject);
 

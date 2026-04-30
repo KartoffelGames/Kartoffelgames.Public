@@ -1,6 +1,6 @@
-import { PotatnoPortDefinition } from "../potatno-port-definition.ts";
+import { PotatnoPortDefinitionConfiguration } from "../potatno-port-definition.ts";
 import { PotatnoProjectType } from "../potatno-project-types-definition.ts";
-import { IPotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeDefinitionPorts, PotatnoNodeDefinitionPreview } from "./i-potatno-node-definition.ts";
+import { PotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeDefinitionPreviewGenerator } from "./potatno-node-definition.ts";
 
 /**
  * Definition of a node type that can be instantiated in the graph. Registered at the project level and referenced by nodes via the definitionName property.
@@ -11,64 +11,7 @@ import { IPotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNode
  * @template TOutputs - Object type mapping output port names to their definitions.
  * @template TPreviewElement - The type of the HTMLElement used for node previews for this node definition.
  */
-export class PotatnoStaticNodeDefinition<TTypes extends PotatnoProjectType> implements IPotatnoNodeDefinition<TTypes> {
-    private readonly mId: string;
-    private readonly mCategory: string;
-    private readonly mInputs: Array<PotatnoPortDefinition<TTypes>>;
-    private readonly mLabel: string;
-    private readonly mOutputs: Array<PotatnoPortDefinition<TTypes>>;
-    private readonly mCodeGenerator: PotatnoNodeDefinitionCodeGenerator;
-    private readonly mPreview: PotatnoNodeDefinitionPreview | null;
-
-    /**
-     *  Unique id for this node definition. 
-     */
-    public get id(): string {
-        return this.mId;
-    }
-
-    /** 
-     * Category classification determining which subclass is instantiated for code generation.
-     */
-    public get category(): string {
-        return this.mCategory;
-    }
-
-    /** 
-     * Data input port definitions. 
-     */
-    public get inputs(): ReadonlyArray<PotatnoPortDefinition<TTypes>> {
-        return this.mInputs;
-    }
-
-    /**
-     * Display label for this node type.
-     */
-    public get label(): string {
-        return this.mLabel;
-    }
-
-    /** 
-     * Data output port definitions. 
-     */
-    public get outputs(): ReadonlyArray<PotatnoPortDefinition<TTypes>> {
-        return this.mOutputs;
-    }
-
-    /**
-     * Code generator callback that produces the code string from a typed context.
-     */
-    public get codeGenerator(): PotatnoNodeDefinitionCodeGenerator {
-        return this.mCodeGenerator;
-    }
-
-    /**
-     * Preview configuration for this node type.
-     */
-    public get preview(): PotatnoNodeDefinitionPreview | null {
-        return this.mPreview;
-    }
-
+export class PotatnoStaticNodeDefinition<TTypes extends PotatnoProjectType> extends PotatnoNodeDefinition<TTypes> {
     /**
      * Constructor.
      * 
@@ -76,31 +19,32 @@ export class PotatnoStaticNodeDefinition<TTypes extends PotatnoProjectType> impl
      */
     public constructor(pParameters: PotatnoStaticNodeDefinitionConstructorParameter<TTypes>) {
         // Set id and label. Label defaults to id if not provided.
-        this.mId = pParameters.id;
-        this.mLabel = pParameters.label ?? pParameters.id;
-
-        // Set category, inputs, outputs, and code generator callback.
-        this.mCategory = pParameters.category;
-        this.mCodeGenerator = pParameters.codeGenerator;
-        this.mPreview = pParameters.preview ?? null;
-
-        // Convert input and output port definitions to internal format for easy access during code generation and preview updates.
-        this.mInputs = Object.entries(pParameters.inputs ?? {}).map(([name, definition]) => {
-            return new PotatnoPortDefinition(name, definition.portType, 'dataType' in definition ? definition.dataType : undefined);
-        });
-
-        this.mOutputs = Object.entries(pParameters.outputs ?? {}).map(([name, definition]) => {
-            return new PotatnoPortDefinition(name, definition.portType, 'dataType' in definition ? definition.dataType : undefined);
+        super({
+            id: pParameters.id,
+            label: pParameters.label ?? pParameters.id,
+            category: pParameters.category,
+            generators: {
+                ports: {
+                    inputs: () => pParameters.ports.inputs ?? [],
+                    outputs: () => pParameters.ports.outputs ?? []
+                },
+                code: pParameters.generators.code,
+                preview: pParameters.generators.preview ?? null
+            }
         });
     }
 }
 
 type PotatnoStaticNodeDefinitionConstructorParameter<TTypes extends PotatnoProjectType> = {
-    label?: string;
     id: string;
+    label: string;
     category: string;
-    inputs: PotatnoNodeDefinitionPorts<TTypes>;
-    outputs: PotatnoNodeDefinitionPorts<TTypes>;
-    codeGenerator: PotatnoNodeDefinitionCodeGenerator;
-    preview?: PotatnoNodeDefinitionPreview;
+    ports: {
+        inputs: Array<PotatnoPortDefinitionConfiguration<TTypes>>;
+        outputs: Array<PotatnoPortDefinitionConfiguration<TTypes>>;
+    };
+    generators: {
+        code: PotatnoNodeDefinitionCodeGenerator;
+        preview?: PotatnoNodeDefinitionPreviewGenerator | null;
+    };
 };

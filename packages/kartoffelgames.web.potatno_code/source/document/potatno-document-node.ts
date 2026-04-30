@@ -1,13 +1,13 @@
-import type { IPotatnoNodeDefinition } from "../project/node_definition/i-potatno-node-definition.ts";
-import { PotatnoDocumentPort, PotatnoDocumentPortValidationError } from './potatno-document-port.ts';
-import type { PotatnoProject } from '../project/potatno-project.ts';
+import { PotatnoNodeDefinition } from "../project/node_definition/potatno-node-definition.ts";
 import type { PotatnoProjectType } from '../project/potatno-project-types-definition.ts';
+import type { PotatnoProject } from '../project/potatno-project.ts';
+import { PotatnoDocumentPort, PotatnoDocumentPortValidationError } from './potatno-document-port.ts';
 
 /**
  * A node instance in the graph.
  */
 export class PotatnoDocumentNode {
-    private readonly mDefinition: IPotatnoNodeDefinition<PotatnoProjectType>;
+    private readonly mDefinition: PotatnoNodeDefinition<PotatnoProjectType>;
     private readonly mInputs: Map<string, PotatnoDocumentPort>;
     private mLabel: string;
     private readonly mOutputs: Map<string, PotatnoDocumentPort>;
@@ -18,7 +18,7 @@ export class PotatnoDocumentNode {
     /**
      * Get the node definition this node was created from.
      */
-    public get definition(): IPotatnoNodeDefinition<PotatnoProjectType> {
+    public get definition(): PotatnoNodeDefinition<PotatnoProjectType> {
         return this.mDefinition;
     }
 
@@ -80,7 +80,7 @@ export class PotatnoDocumentNode {
      * @param pTransformation - Initial grid position of the node.
      * @param pIsSystem - Whether this is a system node that cannot be removed.
      */
-    public constructor(pProject: PotatnoProject<PotatnoProjectType>, pDefinition: IPotatnoNodeDefinition<PotatnoProjectType>, pTransformation: PotatnoDocumentNodeTransformation, pIsSystem: boolean) {
+    public constructor(pProject: PotatnoProject<PotatnoProjectType>, pDefinition: PotatnoNodeDefinition<PotatnoProjectType>, pTransformation: PotatnoDocumentNodeTransformation, pIsSystem: boolean) {
         this.mProject = pProject;
         this.mDefinition = pDefinition;
         this.mIsSystem = pIsSystem;

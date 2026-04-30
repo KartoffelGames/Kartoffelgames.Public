@@ -1,9 +1,9 @@
 import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
-import type { IPotatnoNodeDefinition } from "../project/node_definition/i-potatno-node-definition.ts";
 import { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from "./potatno-document-node.ts";
 import type { PotatnoDocumentPortValidationError } from "./potatno-document-port.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { PotatnoProjectType } from '../project/potatno-project-types-definition.ts';
+import { PotatnoNodeDefinition } from "../project/node_definition/potatno-node-definition.ts";
 
 /**
  * Represents a user-editable function containing a sub-graph.
@@ -155,7 +155,7 @@ export class PotatnoDocumentFunction<TProjectType extends PotatnoProjectType> {
     /**
      * Add a new node to the graph.
      */
-    public newNode(pDefinition: IPotatnoNodeDefinition<PotatnoProjectType>, pTransformation: PotatnoDocumentNodeTransformation, pSystem: boolean = false): PotatnoDocumentNode {
+    public newNode(pDefinition: PotatnoNodeDefinition<PotatnoProjectType>, pTransformation: PotatnoDocumentNodeTransformation, pSystem: boolean = false): PotatnoDocumentNode {
         const lNode: PotatnoDocumentNode = new PotatnoDocumentNode(this.mProject, pDefinition, pTransformation, pSystem);
         this.mNodes.add(lNode);
         return lNode;

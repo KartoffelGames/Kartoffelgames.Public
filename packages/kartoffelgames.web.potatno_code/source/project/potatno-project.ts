@@ -1,7 +1,7 @@
-import { IPotatnoNodeDefinition, PotatnoNodeDefinitionPorts } from "./node_definition/i-potatno-node-definition.ts";
 import type { PotatnoFunctionDefinition } from './potatno-function-definition.ts';
 import { PotatnoStaticNodeDefinition } from "./node_definition/potatno-static-node-definition.ts";
 import { PotatnoProjectType, PotatnoProjectTypesDefinition } from "./potatno-project-types-definition.ts";
+import { PotatnoNodeDefinition } from "./node_definition/potatno-node-definition.ts";
 
 /**
  * Project-level configuration for a PotatnoCode editor instance.
@@ -11,7 +11,7 @@ import { PotatnoProjectType, PotatnoProjectTypesDefinition } from "./potatno-pro
 export class PotatnoProject<TProjectType extends PotatnoProjectType> {
     private readonly mEntryPoint: PotatnoFunctionDefinition<TProjectType>;
     private readonly mImports: Array<PotatnoProjectImportDefinition<TProjectType>>;
-    private readonly mNodeDefinitions: Map<string, IPotatnoNodeDefinition<TProjectType>>;
+    private readonly mNodeDefinitions: Map<string, PotatnoNodeDefinition<TProjectType>>;
     private readonly mTypes: PotatnoProjectTypesDefinition<TProjectType>;
     private readonly mUserFunctions: Map<string, PotatnoFunctionDefinition<TProjectType>>;
 
@@ -33,7 +33,7 @@ export class PotatnoProject<TProjectType extends PotatnoProjectType> {
     /**
      * Get the map of registered node definitions keyed by node definitions id.
      */
-    public get nodeDefinitions(): ReadonlyMap<string, IPotatnoNodeDefinition<TProjectType>> {
+    public get nodeDefinitions(): ReadonlyMap<string, PotatnoNodeDefinition<TProjectType>> {
         return this.mNodeDefinitions;
     }
 

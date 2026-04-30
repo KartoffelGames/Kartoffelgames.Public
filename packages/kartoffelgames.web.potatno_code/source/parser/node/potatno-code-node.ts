@@ -1,4 +1,4 @@
-import { PotatnoCodeGeneratorPort } from "../../project/node_definition/i-potatno-node-definition.ts";
+import { PotatnoCodeGeneratorPort } from "../../project/node_definition/potatno-node-definition.ts";
 
 /**
  * Base class for code generation nodes. Subclasses override

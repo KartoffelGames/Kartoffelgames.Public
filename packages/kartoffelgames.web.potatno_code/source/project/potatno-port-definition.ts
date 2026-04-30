@@ -1,4 +1,3 @@
-import { Exception } from "@kartoffelgames/core";
 import { PotatnoProjectType } from "./potatno-project-types-definition.ts";
 
 /**
@@ -36,23 +35,49 @@ export class PotatnoPortDefinition<TProjectType extends PotatnoProjectType = Pot
 	 * @param pName - Registered port name.
 	 * @param pDefinition - Raw port definition data.
 	 */
-	public constructor(pName: string, pPortType: PotatnoPortDefinitionType, dataType?: TProjectType) {
-		this.mName = pName;
-		this.mPortType = pPortType;
+	public constructor(pPortDefinition: PotatnoPortDefinitionConfiguration<TProjectType>) {
+		this.mName = pPortDefinition.name;
+		this.mPortType = pPortDefinition.portType;
 
-        // Data type must be specified for value ports.
-        if (pPortType === 'value' && !dataType) {
-            throw new Exception(`Data type must be specified for value port '${pName}'.`, this);
-        }
-
-        // Data type must not be specified for flow ports.
-        if (pPortType === 'flow' && dataType) {
-            throw new Exception(`Data type must not be specified for flow port '${pName}'.`, this);
-        }
-
-		this.mDataType = dataType ?? null;
+		// Only value ports have a data type, flow ports do not.
+		if (pPortDefinition.portType === 'value') {
+			this.mDataType = pPortDefinition.dataType;
+		} else {
+			this.mDataType = null;
+		}
 	}
 }
 
 export type PotatnoPortDefinitionType = 'flow' | 'value';
 export type PotatnoPortDefinitionDirection = 'input' | 'output';
+
+/**
+ * Definition of a port type used when registering node definitions.
+ */
+
+export type PotatnoPortDefinitionConfiguration<TTypes extends PotatnoProjectType> = {
+	/**
+	 * Name of the port.
+	 */
+	name: string;
+
+	/** 
+	 * Fixed type discriminator for flow ports.
+	 */
+	portType: 'flow';
+} | {
+	/**
+	 * Name of the port.
+	 */
+	name: string;
+
+	/**
+	 * Fixed type discriminator for value ports.
+	 */
+	portType: 'value';
+
+	/** 
+	 * Data type identifier for the port.
+	 */
+	dataType: TTypes;
+};

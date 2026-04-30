@@ -17,7 +17,7 @@ import { Exception } from "@kartoffelgames/core";
  * Value identifiers (valueIds) are assigned freshly each generation pass using a
  * Map<PotatnoDocumentPort, string> — they are not stored on the port objects.
  */
-export class PotatnoCodeGenerator {
+export class PotatnoCodeGenerator<TProjectType extends PotatnoProjectType> {
     private readonly mProject: PotatnoProject<PotatnoProjectType>;
 
     /**
@@ -29,9 +29,11 @@ export class PotatnoCodeGenerator {
         this.mProject = pProject;
     }
 
-    public generate(pDocument: PotatnoDocument): string {
+    public generate(pDocument: PotatnoDocument<TProjectType>): string {
         // Get all used fuctions. System function (entry point) is always last.
         const lUsedFunctions: Array<PotatnoDocumentFunction> = this.findUsedFunctions(pDocument);
+
+        return ''; // TODO: 
     }
 
     /**
@@ -42,7 +44,7 @@ export class PotatnoCodeGenerator {
      * 
      * @returns An array of functions that are reachable from the entry point, with the entry point function last.
      */
-    private findUsedFunctions(pDocument: PotatnoDocument): Array<PotatnoDocumentFunction> {
+    private findUsedFunctions(pDocument: PotatnoDocument<TProjectType>): Array<PotatnoDocumentFunction> {
         // Find the primary system function (entry point) to generate code for.
         const lEntryPointFunction: PotatnoDocumentFunction | undefined = [...pDocument.functions].find((pFunction) => {
             return pFunction.isSystem;

@@ -79,7 +79,7 @@ export class PotatnoProject<TProjectType extends PotatnoProjectType> {
      * 
      * @param pDefinition - The node definition to register. Must have a unique id and use valid type identifiers for its ports.
      */
-    public addNodeDefinition<TInputs extends PotatnoNodeDefinitionPorts<TProjectType>, TOutputs extends PotatnoNodeDefinitionPorts<TProjectType>>(pDefinition: PotatnoStaticNodeDefinition<TProjectType, TInputs, TOutputs>): void {
+    public addNodeDefinition(pDefinition: PotatnoStaticNodeDefinition<TProjectType>): void {
         this.mNodeDefinitions.set(pDefinition.id, pDefinition);
     }
 

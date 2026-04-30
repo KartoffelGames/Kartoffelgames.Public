@@ -1,4 +1,4 @@
-import type { PotatnoCodeGeneratorFlowPort, PotatnoCodeGeneratorValuePort } from '../../project/node_definition/potatno-static-node-definition.ts';
+import { PotatnoCodeGeneratorPort } from "../../project/node_definition/i-potatno-node-definition.ts";
 
 /**
  * Base class for code generation nodes. Subclasses override
@@ -7,14 +7,14 @@ import type { PotatnoCodeGeneratorFlowPort, PotatnoCodeGeneratorValuePort } from
  * produce no executable code (e.g. input, output, reroute, comment nodes).
  */
 export class PotatnoCodeNode {
-    private readonly mBody: Map<string, { code: string }>;
+    private readonly mBody: Map<string, { code: string; }>;
     private readonly mInputs: Map<string, PotatnoCodeNodePort>;
     private readonly mOutputs: Map<string, PotatnoCodeNodePort>;
 
     /**
      * Map of named body code blocks for flow node outputs.
      */
-    public get body(): Map<string, { code: string }> {
+    public get body(): Map<string, { code: string; }> {
         return this.mBody;
     }
 
@@ -38,7 +38,7 @@ export class PotatnoCodeNode {
     public constructor() {
         this.mInputs = new Map<string, PotatnoCodeNodePort>();
         this.mOutputs = new Map<string, PotatnoCodeNodePort>();
-        this.mBody = new Map<string, { code: string }>();
+        this.mBody = new Map<string, { code: string; }>();
     }
 
     /**
@@ -58,22 +58,22 @@ export class PotatnoCodeNode {
      * @returns A plain-object context suitable for the code generator callback.
      */
     public buildContext(): PotatnoCodeNodeContext {
-        const lInputs: Record<string, PotatnoCodeNodeGeneratorPort> = {};
+        const lInputs: Record<string, PotatnoCodeGeneratorPort> = {};
         for (const [lName, lPort] of this.mInputs) {
             if (lPort.nodeType === 'flow') {
-                lInputs[lName] = { code: '' };
+                lInputs[lName] = { valueId: '', code: { inner: '', next: '' } };
             } else {
-                lInputs[lName] = { valueId: lPort.valueId };
+                lInputs[lName] = { valueId: lPort.valueId, code: { inner: '', next: '' } };
             }
         }
 
-        const lOutputs: Record<string, PotatnoCodeNodeGeneratorPort> = {};
+        const lOutputs: Record<string, PotatnoCodeGeneratorPort> = {};
         for (const [lName, lPort] of this.mOutputs) {
             if (lPort.nodeType === 'flow') {
                 const lBody = this.mBody.get(lName);
-                lOutputs[lName] = { code: lBody?.code ?? '' };
+                lOutputs[lName] = { valueId: '', code: { inner: lBody?.code ?? '', next: '' } };
             } else {
-                lOutputs[lName] = { valueId: lPort.valueId };
+                lOutputs[lName] = { valueId: lPort.valueId, code: { inner: '', next: '' } };
             }
         }
 
@@ -92,14 +92,9 @@ export type PotatnoCodeNodePort = {
 };
 
 /**
- * Generator port data union — represents the data available for a single port in code generation context.
- */
-export type PotatnoCodeNodeGeneratorPort = PotatnoCodeGeneratorFlowPort | PotatnoCodeGeneratorValuePort;
-
-/**
  * Context passed to the node code generator callback, built from internal code node data.
  */
 export type PotatnoCodeNodeContext = {
-    readonly inputs: Record<string, PotatnoCodeNodeGeneratorPort>;
-    readonly outputs: Record<string, PotatnoCodeNodeGeneratorPort>;
+    readonly inputs: Record<string, PotatnoCodeGeneratorPort>;
+    readonly outputs: Record<string, PotatnoCodeGeneratorPort>;
 };

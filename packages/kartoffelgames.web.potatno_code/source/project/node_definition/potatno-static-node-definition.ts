@@ -1,6 +1,6 @@
-import { IPotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeDefinitionPorts, PotatnoNodeDefinitionPreview } from "./i-potatno-node-definition.ts";
 import { PotatnoPortDefinition } from "../potatno-port-definition.ts";
 import { PotatnoProjectType } from "../potatno-project-types-definition.ts";
+import { IPotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeDefinitionPorts, PotatnoNodeDefinitionPreview } from "./i-potatno-node-definition.ts";
 
 /**
  * Definition of a node type that can be instantiated in the graph. Registered at the project level and referenced by nodes via the definitionName property.
@@ -11,7 +11,7 @@ import { PotatnoProjectType } from "../potatno-project-types-definition.ts";
  * @template TOutputs - Object type mapping output port names to their definitions.
  * @template TPreviewElement - The type of the HTMLElement used for node previews for this node definition.
  */
-export class PotatnoStaticNodeDefinition<TTypes extends PotatnoProjectType = PotatnoProjectType, TInputs extends PotatnoNodeDefinitionPorts<TTypes> = any, TOutputs extends PotatnoNodeDefinitionPorts<TTypes> = any> implements IPotatnoNodeDefinition<TTypes, TInputs, TOutputs> {
+export class PotatnoStaticNodeDefinition<TTypes extends PotatnoProjectType> implements IPotatnoNodeDefinition<TTypes> {
     /**
      * Factory method to create a new node definition and register it at the project level.
      * 
@@ -19,7 +19,7 @@ export class PotatnoStaticNodeDefinition<TTypes extends PotatnoProjectType = Pot
      * 
      * @returns The created PotatnoStaticNodeDefinition instance. 
      */
-    public static create<TTypes extends PotatnoProjectType, TInputKeys extends string, TInputs extends PotatnoNodeDefinitionPorts<TTypes, TInputKeys>, TOutputKeys extends string, TOutputs extends PotatnoNodeDefinitionPorts<TTypes, TOutputKeys>>(pParameters: PotatnoStaticNodeDefinitionConstructorParameter<TTypes, TInputs, TOutputs>): PotatnoStaticNodeDefinition<TTypes, TInputs, TOutputs> {
+    public static create<TTypes extends PotatnoProjectType>(pParameters: PotatnoStaticNodeDefinitionConstructorParameter<TTypes>): PotatnoStaticNodeDefinition<TTypes> {
         return new PotatnoStaticNodeDefinition(pParameters);
     }
 
@@ -28,8 +28,8 @@ export class PotatnoStaticNodeDefinition<TTypes extends PotatnoProjectType = Pot
     private readonly mInputs: Array<PotatnoPortDefinition<TTypes>>;
     private readonly mLabel: string;
     private readonly mOutputs: Array<PotatnoPortDefinition<TTypes>>;
-    private readonly mCodeGenerator: PotatnoNodeDefinitionCodeGenerator<TTypes, TInputs, TOutputs>;
-    private readonly mPreview: PotatnoNodeDefinitionPreview<TTypes, TInputs, TOutputs> | null;
+    private readonly mCodeGenerator: PotatnoNodeDefinitionCodeGenerator;
+    private readonly mPreview: PotatnoNodeDefinitionPreview | null;
 
     /**
      *  Unique id for this node definition. 
@@ -69,14 +69,14 @@ export class PotatnoStaticNodeDefinition<TTypes extends PotatnoProjectType = Pot
     /**
      * Code generator callback that produces the code string from a typed context.
      */
-    public get codeGenerator(): PotatnoNodeDefinitionCodeGenerator<TTypes, TInputs, TOutputs> {
+    public get codeGenerator(): PotatnoNodeDefinitionCodeGenerator {
         return this.mCodeGenerator;
     }
 
     /**
      * Preview configuration for this node type.
      */
-    public get preview(): PotatnoNodeDefinitionPreview<TTypes, TInputs, TOutputs> | null {
+    public get preview(): PotatnoNodeDefinitionPreview | null {
         return this.mPreview;
     }
 
@@ -85,7 +85,7 @@ export class PotatnoStaticNodeDefinition<TTypes extends PotatnoProjectType = Pot
      * 
      * @param pParameters - Constructor parameters. 
      */
-    public constructor(pParameters: PotatnoStaticNodeDefinitionConstructorParameter<TTypes, TInputs, TOutputs>) {
+    public constructor(pParameters: PotatnoStaticNodeDefinitionConstructorParameter<TTypes>) {
         // Set id and label. Label defaults to id if not provided.
         this.mId = pParameters.id;
         this.mLabel = pParameters.label ?? pParameters.id;
@@ -106,12 +106,12 @@ export class PotatnoStaticNodeDefinition<TTypes extends PotatnoProjectType = Pot
     }
 }
 
-type PotatnoStaticNodeDefinitionConstructorParameter<TTypes extends PotatnoProjectType, TInputs extends PotatnoNodeDefinitionPorts<TTypes>, TOutputs extends PotatnoNodeDefinitionPorts<TTypes>> = {
+type PotatnoStaticNodeDefinitionConstructorParameter<TTypes extends PotatnoProjectType> = {
     label?: string;
     id: string;
     category: string;
-    inputs: TInputs;
-    outputs: TOutputs;
-    codeGenerator: PotatnoNodeDefinitionCodeGenerator<TTypes, TInputs, TOutputs>;
-    preview?: PotatnoNodeDefinitionPreview<TTypes, TInputs, TOutputs>;
+    inputs: PotatnoNodeDefinitionPorts<TTypes>;
+    outputs: PotatnoNodeDefinitionPorts<TTypes>;
+    codeGenerator: PotatnoNodeDefinitionCodeGenerator;
+    preview?: PotatnoNodeDefinitionPreview;
 };

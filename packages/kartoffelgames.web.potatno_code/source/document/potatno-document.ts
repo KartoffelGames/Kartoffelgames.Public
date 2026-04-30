@@ -9,9 +9,9 @@ import type { PotatnoDocumentPortValidationError } from './potatno-document-port
  * Represents the mutable document state of a PotatnoCode file.
  * Contains all functions and their graphs.
  */
-export class PotatnoDocument {
+export class PotatnoDocument<TProjectType extends PotatnoProjectType> {
     private readonly mFunctions: Set<PotatnoDocumentFunction>;
-    private readonly mFunctionNodeDefinitions: Map<string, PotatnoFunctionNodeDefinition>;
+    private readonly mFunctionNodeDefinitions: Map<string, PotatnoFunctionNodeDefinition<TProjectType>>;
     private readonly mProject: PotatnoProject<PotatnoProjectType>;
 
     /**
@@ -26,7 +26,7 @@ export class PotatnoDocument {
      * Keyed by function id. Used by the code generator and editor to resolve
      * user-function call nodes at the document level.
      */
-    public get functionNodeDefinitions(): ReadonlyMap<string, PotatnoFunctionNodeDefinition> {
+    public get functionNodeDefinitions(): ReadonlyMap<string, PotatnoFunctionNodeDefinition<TProjectType>> {
         return this.mFunctionNodeDefinitions;
     }
 
@@ -43,7 +43,7 @@ export class PotatnoDocument {
     public constructor(pProject: PotatnoProject<PotatnoProjectType>) {
         this.mProject = pProject;
         this.mFunctions = new Set<PotatnoDocumentFunction>();
-        this.mFunctionNodeDefinitions = new Map<string, PotatnoFunctionNodeDefinition>();
+        this.mFunctionNodeDefinitions = new Map<string, PotatnoFunctionNodeDefinition<TProjectType>>();
     }
 
     /**

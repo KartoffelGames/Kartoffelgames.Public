@@ -113,7 +113,7 @@ export type PotatnoFunctionDefinitionGenerator = {
     /**
      * Produces the call-site code expression when this function is invoked as a node.
      */
-    valueGenerator: (pContext: PotatnoNodeDefinitionGeneratorData<any, any, any>) => string;
+    valueGenerator: (pContext: PotatnoNodeDefinitionGeneratorData) => string;
 };
 
 type PotatnoFunctionDefinitionNodes<TTypes extends PotatnoProjectType> = {

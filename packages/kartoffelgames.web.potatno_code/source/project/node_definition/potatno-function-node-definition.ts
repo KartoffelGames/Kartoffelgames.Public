@@ -14,7 +14,7 @@ import { IPotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator } from "./i-
  * The stable id comes from PotatnoDocumentFunction.id, ensuring that nodes
  * referencing this definition keep their identity across sessions.
  */
-export class PotatnoFunctionNodeDefinition<TTypes extends PotatnoProjectType = PotatnoProjectType> implements IPotatnoNodeDefinition<TTypes, any, any> {
+export class PotatnoFunctionNodeDefinition<TTypes extends PotatnoProjectType> implements IPotatnoNodeDefinition<TTypes> {
     private readonly mFunction: PotatnoDocumentFunction;
 
     /**
@@ -74,7 +74,7 @@ export class PotatnoFunctionNodeDefinition<TTypes extends PotatnoProjectType = P
      * Code generator for call-site code.
      * Delegates to the valueGenerator defined on the function's definition.
      */
-    public get codeGenerator(): PotatnoNodeDefinitionCodeGenerator<TTypes, any, any> {
+    public get codeGenerator(): PotatnoNodeDefinitionCodeGenerator {
         return this.mFunction.definition.codeGenerator.valueGenerator;
     }
 

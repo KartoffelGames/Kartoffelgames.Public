@@ -40,9 +40,9 @@ import '../potatno_tabs/potatno-tabs.ts';
     template: editorTemplate,
     style: editorCss,
 })
-export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDeconstruct {
-    private mProject: PotatnoProject<PotatnoProjectType> | undefined;
-    private mFile: PotatnoDocument | undefined;
+export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implements IComponentOnConnect, IComponentOnDeconstruct {
+    private mProject: PotatnoProject<TProjectType> | undefined;
+    private mFile: PotatnoDocument<TProjectType> | undefined;
     private mActiveFunctionId: string = '';
     private mSelectedNodes: Set<PotatnoDocumentNode> = new Set();
     private mInternals!: EditorInternals;
@@ -151,7 +151,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
     }
 
     public get userFunctionDefinitions(): Array<{ id: string; }> {
-        const lProject: PotatnoProject<PotatnoProjectType> | undefined = this.mProject;
+        const lProject: PotatnoProject<TProjectType> | undefined = this.mProject;
         if (!lProject) {
             return [];
         }
@@ -220,13 +220,13 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
     // ── Public API ───────────────────────────────────────────────────────
 
     @PwbExport
-    public set project(pProject: PotatnoProject<PotatnoProjectType>) {
+    public set project(pProject: PotatnoProject<TProjectType>) {
         this.mProject = pProject;
         this.rebuildCachedData();
     }
 
     @PwbExport
-    public set file(pFile: PotatnoDocument | null) {
+    public set file(pFile: PotatnoDocument<TProjectType> | null) {
         if (pFile) {
             this.mFile = pFile;
             const lProject = this.mProject;
@@ -848,13 +848,13 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
 
     // ── Private helpers ───────────────────────────────────────────────────
 
-    private initializeMainFunctions(pFile: PotatnoDocument, pProject: PotatnoProject<PotatnoProjectType>): void {
+    private initializeMainFunctions(pFile: PotatnoDocument<TProjectType>, pProject: PotatnoProject<TProjectType>): void {
         const lEntryPoint = pProject.entryPoint;
         if (!lEntryPoint) {
             return;
         }
 
-        const lFunc = new PDocumentFunction(pProject as PotatnoProject<PotatnoProjectType>, lEntryPoint, crypto.randomUUID(), 'Main', true);
+        const lFunc = new PDocumentFunction(pProject as PotatnoProject<TProjectType>, lEntryPoint, crypto.randomUUID(), 'Main', true);
 
         lEntryPoint.nodes.static.forEach((lStaticDef, lIdx) => {
             lFunc.newNode(lStaticDef, { x: 2 + lIdx * 12, y: 2, width: 10, height: 4 }, true);

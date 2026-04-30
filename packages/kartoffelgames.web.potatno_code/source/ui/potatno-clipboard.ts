@@ -1,7 +1,7 @@
 import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
+import type { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from '../document/potatno-document-node.ts';
 import type { PotatnoDocument } from '../document/potatno-document.ts';
-import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
-import type { PotatnoDocumentNodeTransformation } from '../document/potatno-document-node.ts';
+import { PotatnoProjectType } from "../project/potatno-project-types-definition.ts";
 
 /**
  * Copy/paste logic for graph nodes.
@@ -94,7 +94,7 @@ export class PotatnoClipboard {
      *
      * @returns Array of the newly created nodes, or an empty array if nothing was pasted.
      */
-    public paste(pFunction: PotatnoDocumentFunction, pDocument: PotatnoDocument, pOffsetX: number, pOffsetY: number): Array<PotatnoDocumentNode> {
+    public paste(pFunction: PotatnoDocumentFunction, pDocument: PotatnoDocument<PotatnoProjectType>, pOffsetX: number, pOffsetY: number): Array<PotatnoDocumentNode> {
         if (!this.mData) {
             return [];
         }

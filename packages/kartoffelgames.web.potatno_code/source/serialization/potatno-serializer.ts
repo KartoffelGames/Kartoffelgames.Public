@@ -1,6 +1,7 @@
 import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
 import type { PotatnoDocument } from '../document/potatno-document.ts';
+import { PotatnoProjectType } from "../project/potatno-project-types-definition.ts";
 import type { PotatnoCodeFileSerializationResult, SerializedConnection, SerializedFunction, SerializedFunctionPort, SerializedNode, SerializedNodePort } from './potatno-serialization.type.ts';
 
 /**
@@ -14,7 +15,7 @@ import type { PotatnoCodeFileSerializationResult, SerializedConnection, Serializ
  * using source (output) → target (input) references. Both endpoints are stored
  * explicitly for stability.
  */
-export class PotatnoSerializer {
+export class PotatnoSerializer<TProjectType extends PotatnoProjectType> {
     /**
      * Constructor.
      */
@@ -28,7 +29,7 @@ export class PotatnoSerializer {
      * @returns Serialization result containing the metadata JSON.
      *          The code field is reserved for a separate code-generation step.
      */
-    public serialize(pDocument: PotatnoDocument): PotatnoCodeFileSerializationResult {
+    public serialize(pDocument: PotatnoDocument<TProjectType>): PotatnoCodeFileSerializationResult {
         // Serialize all functions in the document.
         return {
             functions: [...pDocument.functions].map((pFunction) => {

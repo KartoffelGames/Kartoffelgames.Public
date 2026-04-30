@@ -10,7 +10,7 @@ import { PotatnoProject } from '../../source/project/potatno-project.ts';
 /*
  // TODO:
  - Create NodeProvider API that replaces the PotatnoFunctionDefinitionNodes: function that returns available `IPotatnoNodeDefinition` instances based on the function inputs & outputs[""]
- - Add functionality that allows for nodes resync to their definitions.
+ - Add functionality that allows for nodes resync to their definitions. Maybe on validate?. Remove ports when not connected otherwise add as validation error.
  - Add a "undefined" type for nodes, so a old project can be loaded without crashing when node definitions are removed.
  - Add SemanticValidation: A port should only be connected to a port that has the same starting node (execution regions).
  - Introduce ExecutionRegion (startNodeRef): add execution-region concept derived from a start/root node reference to determine same-region restrictions.

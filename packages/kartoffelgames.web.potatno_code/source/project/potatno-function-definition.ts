@@ -9,10 +9,10 @@ import { PotatnoProjectType } from "./potatno-project-types-definition.ts";
  */
 export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectType> {
     private readonly mId: string;
-    private readonly mPreview: PotatnoFunctionDefinitionPreview | null;
+    private readonly mPreviewGenerator: PotatnoFunctionDefinitionPreview | null;
     private readonly mStatics: PotatnoFunctionDefinitionStaticSettings;
     private readonly mNodes: PotatnoFunctionDefinitionNodes<TTypes>;
-    private readonly mGeneratorConfig: PotatnoFunctionDefinitionGenerator;
+    private readonly mCodeGenerator: PotatnoFunctionDefinitionGenerator;
 
     /**
      * Unique id for this entry point definition.
@@ -26,7 +26,7 @@ export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectType> {
      * Contains both the function-level code wrapper and the call-site value generator.
      */
     public get codeGenerator(): Readonly<PotatnoFunctionDefinitionGenerator> {
-        return this.mGeneratorConfig;
+        return this.mCodeGenerator;
     }
 
     /**
@@ -41,7 +41,7 @@ export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectType> {
      * If no preview configuration is provided, no preview will be available for this entry point.
      */
     public get preview(): PotatnoFunctionDefinitionPreview | null {
-        return this.mPreview;
+        return this.mPreviewGenerator;
     }
 
     /**
@@ -66,7 +66,7 @@ export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectType> {
         };
 
         // Set the preview element for this entry point, if provided.
-        this.mPreview = pParameters.preview ?? null;
+        this.mPreviewGenerator = pParameters.generator.preview ?? null;
 
         // Set static settings, defaulting to false for all if not provided.
         this.mStatics = {
@@ -76,7 +76,7 @@ export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectType> {
         };
 
         // Set the entry point code generator.
-        this.mGeneratorConfig = pParameters.codeGenerator;
+        this.mCodeGenerator = pParameters.generator.code;
     }
 }
 
@@ -84,8 +84,10 @@ type PotatnoFunctionDefinitionConstructorParameter<TTypes extends PotatnoProject
     id: string;
     statics: Partial<PotatnoFunctionDefinitionStaticSettings>;
     nodes?: Partial<PotatnoFunctionDefinitionNodes<TTypes>>;
-    preview?: PotatnoFunctionDefinitionPreview;
-    codeGenerator: PotatnoFunctionDefinitionGenerator;
+    generator: {
+        code: PotatnoFunctionDefinitionGenerator;
+        preview?: PotatnoFunctionDefinitionPreview;
+    }
 };
 
 /**
@@ -97,12 +99,12 @@ export type PotatnoFunctionDefinitionGenerator = {
     /** 
      * Produces the complete function code from the function body and metadata. 
      */
-    codeGenerator: (pFunction: PotatnoCodeFunction) => string;
+    body: (pFunction: PotatnoCodeFunction) => string;
 
     /**
      * Produces the call-site code expression when this function is invoked as a node.
      */
-    valueGenerator: (pContext: PotatnoNodeDefinitionGeneratorData) => string;
+    value: (pContext: PotatnoNodeDefinitionGeneratorData) => string;
 };
 
 type PotatnoFunctionDefinitionNodes<TTypes extends PotatnoProjectType> = {
@@ -125,7 +127,7 @@ export type PotatnoFunctionDefinitionPreview = {
      * 
      * @returns an element that the node gets append as preview.
      */
-    readonly generatePreview: () => Element;
+    readonly generate: () => Element;
 
     /**
      * Update function that updates the preview element based on the current input values and output values of the node instance.
@@ -136,5 +138,5 @@ export type PotatnoFunctionDefinitionPreview = {
      * @param pPreviewInputData - The example preview input data for the entry point, which can be used to run the intermediate code and update the preview element accordingly.
      * @param pIntermediateCodeOutput - The output of the intermediate code execution, which can be used to update the preview element accordingly.
      */
-    readonly updatePreview: (pElement: Element, pFunction: PotatnoCodeFunction, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
+    readonly update: (pElement: Element, pFunction: PotatnoCodeFunction, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
 };

@@ -70,7 +70,7 @@ export class PotatnoFunctionNodeDefinition<TTypes extends PotatnoProjectType> ex
                     inputs: lInputPortGenerator,
                     outputs: lOutputPortGenerator
                 },
-                code: pFunction.definition.codeGenerator.valueGenerator,
+                code: pFunction.definition.codeGenerator.value,
                 preview: null
             }
         });

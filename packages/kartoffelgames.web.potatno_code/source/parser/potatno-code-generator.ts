@@ -137,7 +137,7 @@ export class PotatnoCodeGenerator<TProjectType extends PotatnoProjectType> {
         const lBodyCode: string = this.generateGraphCode(lNodes, lValueIdMap);
         const lCodeFunc: PotatnoCodeFunction = this.buildCodeFunction(pFunction, lNodes, lValueIdMap, lBodyCode);
 
-        const lCodeGenerator = lFuncDef.codeGenerator.codeGenerator;
+        const lCodeGenerator = lFuncDef.codeGenerator.body;
         if (lCodeGenerator) {
             return lCodeGenerator(lCodeFunc);
         }
@@ -189,8 +189,8 @@ export class PotatnoCodeGenerator<TProjectType extends PotatnoProjectType> {
                     lIntermediateFunc.outputs.push({ ...lOut });
                 }
 
-                const lIntermediateCode: string = lFuncDef.codeGenerator.codeGenerator
-                    ? lFuncDef.codeGenerator.codeGenerator(lIntermediateFunc)
+                const lIntermediateCode: string = lFuncDef.codeGenerator.body
+                    ? lFuncDef.codeGenerator.body(lIntermediateFunc)
                     : lIntermediateBody;
 
                 lNodeIntermediates.set(lNode, {
@@ -203,8 +203,8 @@ export class PotatnoCodeGenerator<TProjectType extends PotatnoProjectType> {
 
         const lFullBody: string = lCodeParts.join('\n');
         const lCodeFunc: PotatnoCodeFunction = this.buildCodeFunction(pFunction, lNodes, lValueIdMap, lFullBody);
-        const lFullCode: string = lFuncDef.codeGenerator.codeGenerator
-            ? lFuncDef.codeGenerator.codeGenerator(lCodeFunc)
+        const lFullCode: string = lFuncDef.codeGenerator.body
+            ? lFuncDef.codeGenerator.body(lCodeFunc)
             : lFullBody;
 
         return { fullCode: lFullCode, codeFunction: lCodeFunc, nodeIntermediates: lNodeIntermediates };

@@ -145,7 +145,7 @@ export type PotatnoNodeDefinitionPreviewGenerator = {
      * 
      * @returns an element that the node gets append as preview.
      */
-    readonly generatePreview: () => Element;
+    readonly generate: () => Element;
 
     /**
      * Update function that updates the preview element based on the current input values and output values of the node instance.
@@ -155,5 +155,5 @@ export type PotatnoNodeDefinitionPreviewGenerator = {
      * @param pPreviewInputData - The example preview input data for the entry point, which can be used to run the intermediate code and update the preview element accordingly.
      * @param pIntermediateCodeOutput - The output of the intermediate code execution, which can be used to update the preview element accordingly.
      */
-    readonly updatePreview: (pElement: Element, pContext: PotatnoNodeDefinitionGeneratorData, pFunction: PotatnoCodeFunction, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
+    readonly update: (pElement: Element, pContext: PotatnoNodeDefinitionGeneratorData, pFunction: PotatnoCodeFunction, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
 };

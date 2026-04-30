@@ -1,16 +1,14 @@
 import { PotatnoDocument } from '../../source/document/potatno-document.ts';
-import { PotatnoCodeApplication } from '../../source/potatno-code-application.ts';
-import type { PotatnoCodeFunction } from '../../source/parser/potatno-code-function.ts';
-import { PotatnoFunctionDefinition } from "../../source/project/potatno-function-definition.ts";
-import { PotatnoStaticNodeDefinition } from "../../source/project/node_definition/potatno-static-node-definition.ts";
-import { PotatnoProject } from '../../source/project/potatno-project.ts';
 import { NodeCategory } from "../../source/parser/node/node-category.enum.ts";
+import type { PotatnoCodeFunction } from '../../source/parser/potatno-code-function.ts';
+import { PotatnoCodeApplication } from '../../source/potatno-code-application.ts';
+import { PotatnoStaticNodeDefinition } from "../../source/project/node_definition/potatno-static-node-definition.ts";
+import { PotatnoFunctionDefinition } from "../../source/project/potatno-function-definition.ts";
 import { PotatnoProjectTypesDefinition } from "../../source/project/potatno-project-types-definition.ts";
+import { PotatnoProject } from '../../source/project/potatno-project.ts';
 
 /*
  // TODO:
- - Add PotatnoDynamicNodeDefinition: implement a dynamic node-definition base that computes ports from context and can be returned by providers.
- - Add PotatnoFunctionNodeDefinition: implement the function-derived node definition (live signature-based) as a subclass of PotatnoDynamicNodeDefinition. Basically the static node definition can inherit that as well. Maybe remove the interface all together.
  - Create NodeProvider API that replaces the PotatnoFunctionDefinitionNodes: function that returns available `IPotatnoNodeDefinition` instances based on the function inputs & outputs[""]
  - Add functionality that allows for nodes resync to their definitions.
  - Add a "undefined" type for nodes, so a old project can be loaded without crashing when node definitions are removed.
@@ -118,49 +116,51 @@ const lProject = new PotatnoProject({
                 })
             ]
         },
-        codeGenerator: {
-            codeGenerator: (pFunction: PotatnoCodeFunction) => {
-                const lInputParams: string = pFunction.inputs["map"]((i: { valueId: string; }) => i.valueId).join(', ');
-                const lParams: string = lInputParams ? `__pixel_x, __pixel_y, ${lInputParams}` : '__pixel_x, __pixel_y';
-                return `function ${pFunction.name}(${lParams}) {\nlet __pixel_r = 0, __pixel_g = 0, __pixel_b = 0;\n${pFunction.bodyCode}\nreturn [__pixel_r, __pixel_g, __pixel_b];\n}`;
+        generator: {
+            code: {
+                body: (pFunction: PotatnoCodeFunction) => {
+                    const lInputParams: string = pFunction.inputs["map"]((i: { valueId: string; }) => i.valueId).join(', ');
+                    const lParams: string = lInputParams ? `__pixel_x, __pixel_y, ${lInputParams}` : '__pixel_x, __pixel_y';
+                    return `function ${pFunction.name}(${lParams}) {\nlet __pixel_r = 0, __pixel_g = 0, __pixel_b = 0;\n${pFunction.bodyCode}\nreturn [__pixel_r, __pixel_g, __pixel_b];\n}`;
+                },
+                value: (pContext) => {
+                    return `${pContext.inputs}`;
+                }
             },
-            valueGenerator: (pContext) => {
-                return `${pContext.inputs}`;
+            preview: {
+                generate: (): Element => {
+                    const lPreviewCanvas: HTMLCanvasElement = document.createElement('canvas');
+                    lPreviewCanvas.width = 100;
+                    lPreviewCanvas.height = 100;
+                    lPreviewCanvas.style.cssText = 'width: 100px; height: 100px; image-rendering: pixelated; background: #000;';
+
+                    return lPreviewCanvas;
+                },
+                update: (pElement: Element, pFunction: PotatnoCodeFunction, _pPreviewInputData: {}, pCodeOutput: string) => {
+                    const lCanvas: HTMLCanvasElement = pElement as HTMLCanvasElement;
+                    const lPreviewCtx: CanvasRenderingContext2D = lCanvas.getContext('2d')!;
+                    const lImageData: ImageData = lPreviewCtx.createImageData(lCanvas.width, lCanvas.height);
+
+                    // Evaluate generated code to get the pixel shader function.
+                    const lPixelShaderFunc = Function(pCodeOutput + '\nreturn ' + pFunction.name + ';')();
+
+                    for (let lY = 0; lY < lImageData.height; lY++) {
+                        for (let lX = 0; lX < lImageData.width; lX++) {
+                            // Evaluate the node graph with normalized pixel coordinates.
+                            const lResult: [red: number, green: number, blue: number] = lPixelShaderFunc(lX / lImageData.width, lY / lImageData.height);
+
+                            const lIdx: number = (lY * lImageData.width + lX) * 4;
+                            lImageData.data[lIdx] = Math.max(0, Math.min(255, Math.round(lResult[0] * 255)));
+                            lImageData.data[lIdx + 1] = Math.max(0, Math.min(255, Math.round(lResult[1] * 255)));
+                            lImageData.data[lIdx + 2] = Math.max(0, Math.min(255, Math.round(lResult[2] * 255)));
+                            lImageData.data[lIdx + 3] = 255;
+                        }
+                    }
+
+                    lPreviewCtx.putImageData(lImageData, 0, 0);
+                }
             }
         },
-        preview: {
-            generatePreview: (): Element => {
-                const lPreviewCanvas: HTMLCanvasElement = document.createElement('canvas');
-                lPreviewCanvas.width = 100;
-                lPreviewCanvas.height = 100;
-                lPreviewCanvas.style.cssText = 'width: 100px; height: 100px; image-rendering: pixelated; background: #000;';
-
-                return lPreviewCanvas;
-            },
-            updatePreview: (pElement: Element, pFunction: PotatnoCodeFunction, _pPreviewInputData: {}, pCodeOutput: string) => {
-                const lCanvas: HTMLCanvasElement = pElement as HTMLCanvasElement;
-                const lPreviewCtx: CanvasRenderingContext2D = lCanvas.getContext('2d')!;
-                const lImageData: ImageData = lPreviewCtx.createImageData(lCanvas.width, lCanvas.height);
-
-                // Evaluate generated code to get the pixel shader function.
-                const lPixelShaderFunc = Function(pCodeOutput + '\nreturn ' + pFunction.name + ';')();
-
-                for (let lY = 0; lY < lImageData.height; lY++) {
-                    for (let lX = 0; lX < lImageData.width; lX++) {
-                        // Evaluate the node graph with normalized pixel coordinates.
-                        const lResult: [red: number, green: number, blue: number] = lPixelShaderFunc(lX / lImageData.width, lY / lImageData.height);
-
-                        const lIdx: number = (lY * lImageData.width + lX) * 4;
-                        lImageData.data[lIdx] = Math.max(0, Math.min(255, Math.round(lResult[0] * 255)));
-                        lImageData.data[lIdx + 1] = Math.max(0, Math.min(255, Math.round(lResult[1] * 255)));
-                        lImageData.data[lIdx + 2] = Math.max(0, Math.min(255, Math.round(lResult[2] * 255)));
-                        lImageData.data[lIdx + 3] = 255;
-                    }
-                }
-
-                lPreviewCtx.putImageData(lImageData, 0, 0);
-            }
-        }
     })
 });
 
@@ -301,14 +301,14 @@ lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
                 `/*MULTIPLYHOOK_${pContext.outputs["result"].valueId}*/`;
         },
         preview: {
-            generatePreview: (): HTMLCanvasElement => {
+            generate: (): HTMLCanvasElement => {
                 const lCanvas: HTMLCanvasElement = document.createElement('canvas');
                 lCanvas.width = 50;
                 lCanvas.height = 50;
                 lCanvas.style.cssText = 'width: 50px; height: 50px; image-rendering: pixelated; border: 1px solid rgba(255,255,255,0.1); border-radius: 2px;';
                 return lCanvas;
             },
-            updatePreview: (pPreviewElement: Element, pContext, pFunction: PotatnoCodeFunction, _pPreviewInputData: any, pIntermediateCodeOutput: string) => {
+            update: (pPreviewElement: Element, pContext, pFunction: PotatnoCodeFunction, _pPreviewInputData: any, pIntermediateCodeOutput: string) => {
                 const lCanvas: HTMLCanvasElement = pPreviewElement as HTMLCanvasElement;
                 const lPreviewCtx: CanvasRenderingContext2D = lCanvas.getContext('2d')!;
                 const lImageData: ImageData = lPreviewCtx.createImageData(lCanvas.width, lCanvas.height);
@@ -652,20 +652,22 @@ lProject.addUserFunction(new PotatnoFunctionDefinition({
         inputs: false,
         outputs: false
     },
-    codeGenerator: {
-        codeGenerator: (pFunction: PotatnoCodeFunction) => {
-            const lParams: string = pFunction.inputs["map"]((i: { name: string; valueId: string; }) => i.valueId).join(', ');
-            const lReturnValues: string = pFunction.outputs["map"]((o: { valueId: string; }) => o.valueId).join(', ');
-            let lBody: string = pFunction.bodyCode;
-            if (lReturnValues) {
-                lBody += `\nreturn ${pFunction.outputs["length"] > 1 ? `[${lReturnValues}]` : lReturnValues};`;
+    generator: {
+        code: {
+            body: (pFunction: PotatnoCodeFunction) => {
+                const lParams: string = pFunction.inputs["map"]((i: { name: string; valueId: string; }) => i.valueId).join(', ');
+                const lReturnValues: string = pFunction.outputs["map"]((o: { valueId: string; }) => o.valueId).join(', ');
+                let lBody: string = pFunction.bodyCode;
+                if (lReturnValues) {
+                    lBody += `\nreturn ${pFunction.outputs["length"] > 1 ? `[${lReturnValues}]` : lReturnValues};`;
+                }
+                return `function ${pFunction.name}(${lParams}) {\n${lBody}\n}`;
+            },
+            value: (pContext) => {
+                const lArgs: string = Object.values(pContext.inputs).map((i: any) => i.valueId).join(', ');
+                const lResultId: string = Object.values(pContext.outputs).map((o: any) => o.valueId)[0] ?? '_unused';
+                return `const ${lResultId} = ${pContext.inputs}(${lArgs});`;
             }
-            return `function ${pFunction.name}(${lParams}) {\n${lBody}\n}`;
-        },
-        valueGenerator: (pContext) => {
-            const lArgs: string = Object.values(pContext.inputs).map((i: any) => i.valueId).join(', ');
-            const lResultId: string = Object.values(pContext.outputs).map((o: any) => o.valueId)[0] ?? '_unused';
-            return `const ${lResultId} = ${pContext.inputs}(${lArgs});`;
         }
     }
 }));

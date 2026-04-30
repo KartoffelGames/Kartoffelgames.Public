@@ -1105,7 +1105,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
             if (!lInternals.previewElements.has(lNode)) {
                 const lDef = lProject.nodeDefinitions.get(lNode.definition.id);
                 if (lDef?.preview) {
-                    const lEl = lDef.preview.generatePreview();
+                    const lEl = lDef.preview.generate();
                     if (lEl instanceof HTMLElement) {
                         lInternals.previewElements.set(lNode, lEl);
                     }
@@ -1119,7 +1119,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
         console.log('[Preview] entryPoint.preview:', lEntryPreview);
         if (lEntryPreview) {
             if (!lInternals.entryPointPreviewElement) {
-                lInternals.entryPointPreviewElement = lEntryPreview.generatePreview();
+                lInternals.entryPointPreviewElement = lEntryPreview.generate();
                 console.log('[Preview] generated entry preview element:', lInternals.entryPointPreviewElement);
                 // Publish to template so the [previewContent] binding fires (null → element).
                 this.mEntryPointPreviewElement = lInternals.entryPointPreviewElement;
@@ -1160,7 +1160,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
         const lEntryPreview = lProject.entryPoint.preview;
         if (lEntryPreview && lInternals.entryPointPreviewElement) {
             try {
-                lEntryPreview.updatePreview(
+                lEntryPreview.update(
                     lInternals.entryPointPreviewElement as any,
                     lCodeResult.codeFunction,
                     {},
@@ -1180,7 +1180,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
             const lDef = lProject.nodeDefinitions.get(lNode.definition.id);
             if (lDef?.preview) {
                 try {
-                    lDef.preview.updatePreview(
+                    lDef.preview.update(
                         lElement as any,
                         lIntermediateData.context,
                         lIntermediateData.codeFunction,
@@ -1292,7 +1292,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
                 if (lProject) {
                     const lDef = lProject.nodeDefinitions.get(lNode.definition.id);
                     if (lDef?.preview && !this.mInternals.previewElements.has(lNode)) {
-                        const lEl = lDef.preview.generatePreview();
+                        const lEl = lDef.preview.generate();
                         if (lEl instanceof HTMLElement) {
                             this.mInternals.previewElements.set(lNode, lEl);
                         }

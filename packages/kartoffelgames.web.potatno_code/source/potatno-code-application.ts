@@ -28,7 +28,7 @@ import themeCss from './ui/component/potatno-theme.css' with { type: 'text' };
  */
 export class PotatnoCodeApplication<TProjectType extends PotatnoProjectType> extends PwbApplication {
     private mCodeEditor: PotatnoCodeEditor<TProjectType>;
-    private readonly mProject: PotatnoProject<PotatnoProjectType>;
+    private readonly mProject: PotatnoProject<TProjectType>;
 
     /**
      * Get the current code file (document state).
@@ -42,7 +42,7 @@ export class PotatnoCodeApplication<TProjectType extends PotatnoProjectType> ext
     /**
      * Get the project configuration.
      */
-    public get project(): PotatnoProject<PotatnoProjectType> {
+    public get project(): PotatnoProject<TProjectType> {
         return this.mProject;
     }
 
@@ -62,7 +62,7 @@ export class PotatnoCodeApplication<TProjectType extends PotatnoProjectType> ext
         this.addStyle(applicationCss);
 
         // Add the editor component and store the element reference.
-        this.mCodeEditor = this.addContent(PotatnoCodeEditor) as PotatnoCodeEditor<TProjectType>;
+        this.mCodeEditor = this.addContent(PotatnoCodeEditor) as unknown as PotatnoCodeEditor<TProjectType>;
 
         // Pass the project configuration into the editor.
         this.mCodeEditor.project = pProject;

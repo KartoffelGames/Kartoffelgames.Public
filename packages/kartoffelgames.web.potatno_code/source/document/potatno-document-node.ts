@@ -6,40 +6,40 @@ import { PotatnoDocumentPort, PotatnoDocumentPortValidationError } from './potat
 /**
  * A node instance in the graph.
  */
-export class PotatnoDocumentNode {
-    private readonly mDefinition: PotatnoNodeDefinition<PotatnoProjectType>;
-    private readonly mInputs: Map<string, PotatnoDocumentPort>;
+export class PotatnoDocumentNode<TProjectType extends PotatnoProjectType> {
+    private readonly mDefinition: PotatnoNodeDefinition<TProjectType>;
+    private readonly mInputs: Map<string, PotatnoDocumentPort<TProjectType>>;
     private mLabel: string;
-    private readonly mOutputs: Map<string, PotatnoDocumentPort>;
+    private readonly mOutputs: Map<string, PotatnoDocumentPort<TProjectType>>;
     private readonly mIsSystem: boolean;
     private readonly mTransformation: PotatnoDocumentNodeTransformation;
-    private readonly mProject: PotatnoProject<PotatnoProjectType>;
+    private readonly mProject: PotatnoProject<TProjectType>;
 
     /**
      * Get the node definition this node was created from.
      */
-    public get definition(): PotatnoNodeDefinition<PotatnoProjectType> {
+    public get definition(): PotatnoNodeDefinition<TProjectType> {
         return this.mDefinition;
     }
 
     /**
      * Get the data input ports of the node.
      */
-    public get inputs(): Map<string, PotatnoDocumentPort> {
+    public get inputs(): Map<string, PotatnoDocumentPort<TProjectType>> {
         return this.mInputs;
     }
 
     /**
      * Get the data output ports of the node.
      */
-    public get outputs(): Map<string, PotatnoDocumentPort> {
+    public get outputs(): Map<string, PotatnoDocumentPort<TProjectType>> {
         return this.mOutputs;
     }
 
     /**
      * Get the project this node belongs to.
      */
-    public get project(): PotatnoProject<PotatnoProjectType> {
+    public get project(): PotatnoProject<TProjectType> {
         return this.mProject;
     }
 
@@ -80,7 +80,7 @@ export class PotatnoDocumentNode {
      * @param pTransformation - Initial grid position of the node.
      * @param pIsSystem - Whether this is a system node that cannot be removed.
      */
-    public constructor(pProject: PotatnoProject<PotatnoProjectType>, pDefinition: PotatnoNodeDefinition<PotatnoProjectType>, pTransformation: PotatnoDocumentNodeTransformation, pIsSystem: boolean) {
+    public constructor(pProject: PotatnoProject<TProjectType>, pDefinition: PotatnoNodeDefinition<TProjectType>, pTransformation: PotatnoDocumentNodeTransformation, pIsSystem: boolean) {
         this.mProject = pProject;
         this.mDefinition = pDefinition;
         this.mIsSystem = pIsSystem;
@@ -88,13 +88,13 @@ export class PotatnoDocumentNode {
         this.mLabel = pDefinition.label;
 
         // Create ports from input definitions, splitting by nodeType.
-        this.mInputs = new Map<string, PotatnoDocumentPort>();
+        this.mInputs = new Map<string, PotatnoDocumentPort<TProjectType>>();
         for (const lPort of pDefinition.inputs) {
             this.mInputs.set(lPort.name, new PotatnoDocumentPort(pProject, this, lPort.name, 'input', lPort.portType, lPort.dataType));
         }
 
         // Create ports from output definitions, splitting by nodeType.
-        this.mOutputs = new Map<string, PotatnoDocumentPort>();
+        this.mOutputs = new Map<string, PotatnoDocumentPort<TProjectType>>();
         for (const lPort of pDefinition.outputs) {
             this.mOutputs.set(lPort.name, new PotatnoDocumentPort(pProject, this, lPort.name, 'output', lPort.portType, lPort.dataType));
         }
@@ -119,8 +119,8 @@ export class PotatnoDocumentNode {
     /**
      * Validate all ports of this node and return any errors found.
      */
-    public validate(): Array<PotatnoDocumentPortValidationError> {
-        const lErrors: Array<PotatnoDocumentPortValidationError> = [];
+    public validate(): Array<PotatnoDocumentPortValidationError<TProjectType>> {
+        const lErrors: Array<PotatnoDocumentPortValidationError<TProjectType>> = new Array<PotatnoDocumentPortValidationError<TProjectType>>();
 
         for (const lPort of [...this.mInputs.values(), ...this.mOutputs.values()]) {
             lErrors.push(...lPort.validate());

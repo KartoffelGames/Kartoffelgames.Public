@@ -31,6 +31,7 @@ import '../potatno_preview/potatno-preview.ts';
 import '../potatno_resize_handle/potatno-resize-handle.ts';
 import '../potatno_search_input/potatno-search-input.ts';
 import '../potatno_tabs/potatno-tabs.ts';
+import { PotatnoFunctionDefinitionStatics } from "../../../project/potatno-function-definition.ts";
 
 /**
  * Main editor component for the potatno-code visual programming environment.
@@ -44,7 +45,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
     private mProject: PotatnoProject<TProjectType> | undefined;
     private mFile: PotatnoDocument<TProjectType> | undefined;
     private mActiveFunctionId: string = '';
-    private mSelectedNodes: Set<PotatnoDocumentNode> = new Set();
+    private mSelectedNodes: Set<PotatnoDocumentNode<TProjectType>> = new Set();
     private mInternals!: EditorInternals<TProjectType>;
     private mSelectionBoxScreen: { x1: number; y1: number; x2: number; y2: number; };
     private mHistoryDebounceTimer: number = 0;
@@ -54,7 +55,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
     private mResizeState: { panel: 'left' | 'right'; startX: number; startWidth: number; } | null;
     private mResizeMoveHandler: ((e: PointerEvent) => void) | null;
     private mResizeUpHandler: ((e: PointerEvent) => void) | null;
-    private mConnectionRegistry: Map<string, { sourcePort: PotatnoDocumentPort; targetPort: PotatnoDocumentPort; }> = new Map();
+    private mConnectionRegistry: Map<string, { sourcePort: PotatnoDocumentPort<TProjectType>; targetPort: PotatnoDocumentPort<TProjectType>; }> = new Map();
 
     @ComponentState.state({ complexValue: true })
     private accessor mCachedData: CachedViewData;
@@ -190,7 +191,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
         return this.mCachedData.availableTypes;
     }
 
-    public getPreviewElementForNode(pNode: PotatnoDocumentNode): HTMLElement | null {
+    public getPreviewElementForNode(pNode: PotatnoDocumentNode<TProjectType>): HTMLElement | null {
         return this.mInternals.previewElements.get(pNode) ?? null;
     }
 
@@ -275,7 +276,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
         if (!this.mFile) {
             return null;
         }
-        const lSerializer = new PotatnoSerializer();
+        const lSerializer = new PotatnoSerializer<TProjectType>();
         return lSerializer.serialize(this.mFile);
     }
 
@@ -362,7 +363,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
         const lFunc = new PDocumentFunction(lProject, lFuncDef, crypto.randomUUID(), `Function ${lCount}`, false);
 
         // Add static nodes from the function definition.
-        lFuncDef.nodes.static.forEach((lStaticDef, lIdx) => {
+        lFuncDef.prefilledNodes.forEach((lStaticDef, lIdx) => {
             lFunc.newNode(lStaticDef, { x: 2 + lIdx * 12, y: 2, width: 10, height: 4 }, true);
             if (!lProject.nodeDefinitions.has(lStaticDef.id)) {
                 lProject.addNodeDefinition(lStaticDef);
@@ -370,14 +371,14 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
         });
 
         // Register dynamic node definitions.
-        for (const lDynamicDef of lFuncDef.nodes.dynamic) {
+        for (const lDynamicDef of lFuncDef.nodes) {
             if (!lProject.nodeDefinitions.has(lDynamicDef.id)) {
                 lProject.addNodeDefinition(lDynamicDef);
             }
         }
 
         // Auto-enable all imports if the definition requests static imports.
-        if (lFuncDef.statics.imports) {
+        if ((lFuncDef.statics & PotatnoFunctionDefinitionStatics.imports) !== 0) {
             for (const lImport of lProject.imports) {
                 lFunc.addImport(lImport.name);
             }
@@ -659,7 +660,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
 
     // ── Node Events ──────────────────────────────────────────────────────
 
-    public onNodePointerDown(pEvent: PointerEvent, pNode: PotatnoDocumentNode): void {
+    public onNodePointerDown(pEvent: PointerEvent, pNode: PotatnoDocumentNode<TProjectType>): void {
         // Skip if a port element is in the composed path.
         for (const lEl of pEvent.composedPath()) {
             if ((lEl as HTMLElement).tagName?.toLowerCase() === 'potatno-port') {
@@ -688,7 +689,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
 
         // Build origins for all selected nodes.
         const lGS = this.mInternals.interaction.gridSize;
-        const lOrigins = new Map<PotatnoDocumentNode, { originX: number; originY: number; }>();
+        const lOrigins = new Map<PotatnoDocumentNode<TProjectType>, { originX: number; originY: number; }>();
 
         for (const lNode of this.mSelectedNodes) {
             lOrigins.set(lNode, {
@@ -856,20 +857,20 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
 
         const lFunc = new PDocumentFunction(pProject as PotatnoProject<TProjectType>, lEntryPoint, crypto.randomUUID(), 'Main', true);
 
-        lEntryPoint.nodes.static.forEach((lStaticDef, lIdx) => {
+        lEntryPoint.prefilledNodes.forEach((lStaticDef, lIdx) => {
             lFunc.newNode(lStaticDef, { x: 2 + lIdx * 12, y: 2, width: 10, height: 4 }, true);
             if (!pProject.nodeDefinitions.has(lStaticDef.id)) {
                 pProject.addNodeDefinition(lStaticDef);
             }
         });
 
-        for (const lDynamicDef of lEntryPoint.nodes.dynamic) {
+        for (const lDynamicDef of lEntryPoint.nodes) {
             if (!pProject.nodeDefinitions.has(lDynamicDef.id)) {
                 pProject.addNodeDefinition(lDynamicDef);
             }
         }
 
-        if (lEntryPoint.statics.imports) {
+        if ((lEntryPoint.statics & PotatnoFunctionDefinitionStatics.imports) !== 0) {
             for (const lImport of pProject.imports) {
                 lFunc.addImport(lImport.name);
             }
@@ -991,7 +992,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
         this.mInternals.renderer.renderConnections(this.svgLayer, lConnectionData);
     }
 
-    private getPortPosition(pPort: PotatnoDocumentPort): { x: number; y: number; } {
+    private getPortPosition(pPort: PotatnoDocumentPort<TProjectType>): { x: number; y: number; } {
         const lNode = pPort.node;
         const lGS = this.mInternals.interaction.gridSize;
         const lNodeX = lNode.transformation.x * lGS;
@@ -1035,7 +1036,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
         if (!this.mFile) {
             return;
         }
-        const lSerializer = new PotatnoSerializer();
+        const lSerializer = new PotatnoSerializer<TProjectType>();
         const lSnapshot = lSerializer.serialize(this.mFile);
         this.mInternals.history.push(lSnapshot);
     }
@@ -1093,7 +1094,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
         }
 
         // Collect preview nodes.
-        const lPreviewNodes = new Set<PotatnoDocumentNode>();
+        const lPreviewNodes = new Set<PotatnoDocumentNode<TProjectType>>();
         for (const lNode of lEntryFunc.nodes) {
             if (lProject.nodeDefinitions.get(lNode.definition.id)?.preview) {
                 lPreviewNodes.add(lNode);
@@ -1130,7 +1131,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
         // Generate code with intermediates.
         let lCodeResult: FunctionCodeWithIntermediates;
         try {
-            const lGenerator = new PotatnoCodeGenerator(lProject);
+            const lGenerator = new PotatnoCodeGenerator<TProjectType>(lProject);
             lCodeResult = lGenerator.generateFunctionCodeWithIntermediates(lEntryFunc, lPreviewNodes);
         } catch (pError) {
             console.error('[Preview] Code generation failed:', pError);
@@ -1347,7 +1348,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
 // ── Types ─────────────────────────────────────────────────────────────────
 
 export type NodeViewState = {
-    node: PotatnoDocumentNode;
+    node: PotatnoDocumentNode<any>;
     selected: boolean;
     pixelX: number;
     pixelY: number;
@@ -1358,10 +1359,10 @@ export type NodeViewState = {
 type InteractionState =
     | { mode: 'idle'; }
     | { mode: 'panning'; startX: number; startY: number; }
-    | { mode: 'dragging-node'; draggedNode: PotatnoDocumentNode; startX: number; startY: number; origins: Map<PotatnoDocumentNode, { originX: number; originY: number; }>; }
-    | { mode: 'dragging-wire'; sourcePort: PotatnoDocumentPort; startX: number; startY: number; }
+    | { mode: 'dragging-node'; draggedNode: PotatnoDocumentNode<any>; startX: number; startY: number; origins: Map<PotatnoDocumentNode<any>, { originX: number; originY: number; }>; }
+    | { mode: 'dragging-wire'; sourcePort: PotatnoDocumentPort<any>; startX: number; startY: number; }
     | { mode: 'selecting'; startX: number; startY: number; }
-    | { mode: 'resizing-comment'; node: PotatnoDocumentNode; startX: number; startY: number; originalW: number; originalH: number; };
+    | { mode: 'resizing-comment'; node: PotatnoDocumentNode<any>; startX: number; startY: number; originalW: number; originalH: number; };
 
 interface CachedViewData {
     activeFunctionId: string;
@@ -1385,9 +1386,9 @@ interface EditorInternals<TProjectType extends PotatnoProjectType> {
     clipboard: PotatnoClipboard<TProjectType>;
     interaction: PotatnoCanvasInteraction;
     renderer: PotatnoCanvasRenderer;
-    hoveredPort: { node: PotatnoDocumentNode; port: PotatnoDocumentPort; } | null;
+    hoveredPort: { node: PotatnoDocumentNode<any>; port: PotatnoDocumentPort<any>; } | null;
     interactionState: InteractionState;
-    previewElements: Map<PotatnoDocumentNode, HTMLElement>;
+    previewElements: Map<PotatnoDocumentNode<any>, HTMLElement>;
     entryPointPreviewElement: Element | null;
     previewDirty: boolean;
     cachedCodeResult: FunctionCodeWithIntermediates | null;

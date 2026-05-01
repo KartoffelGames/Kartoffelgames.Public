@@ -1,6 +1,5 @@
 import { PotatnoCodeFunction } from "../parser/potatno-code-function.ts";
-import { PotatnoNodeDefinitionGeneratorData } from "./node_definition/potatno-node-definition.ts";
-import { PotatnoStaticNodeDefinition } from "./node_definition/potatno-static-node-definition.ts";
+import { PotatnoNodeDefinition, PotatnoNodeDefinitionGeneratorData } from "./node_definition/potatno-node-definition.ts";
 import { PotatnoProjectType } from "./potatno-project-types-definition.ts";
 
 /**
@@ -10,8 +9,8 @@ import { PotatnoProjectType } from "./potatno-project-types-definition.ts";
 export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectType> {
     private readonly mId: string;
     private readonly mPreviewGenerator: PotatnoFunctionDefinitionPreview | null;
-    private readonly mStatics: PotatnoFunctionDefinitionStaticSettings;
-    private readonly mNodes: PotatnoFunctionDefinitionNodes<TTypes>;
+    private readonly mStatics: PotatnoFunctionDefinitionStatics;
+    private readonly mNodesProvider: PotatnoFunctionDefinitionNodeProvider<TTypes>;
     private readonly mCodeGenerator: PotatnoFunctionDefinitionGenerator;
 
     /**
@@ -32,8 +31,35 @@ export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectType> {
     /**
      * List of entry-point-exclusive nodes.
      */
-    public get nodes(): Readonly<PotatnoFunctionDefinitionNodes<TTypes>> {
-        return this.mNodes;
+    public get nodes(): ReadonlyArray<PotatnoNodeDefinition<TTypes>> {
+        if (this.mNodesProvider.dynamic) {
+            // Create a temporary array to collect the dynamic nodes provided by the function definition.
+            const lDynamicNodes: Array<PotatnoNodeDefinition<TTypes>> = new Array<PotatnoNodeDefinition<TTypes>>();
+            this.mNodesProvider.dynamic((node: PotatnoNodeDefinition<TTypes>) => {
+                lDynamicNodes.push(node);
+            }, this);
+
+            return lDynamicNodes;
+        }
+
+        return new Array<PotatnoNodeDefinition<TTypes>>();
+    }
+
+    /**
+     * List of prefilled nodes that are generated for this entry point and cannot be deleted by the user.
+     */
+    public get prefilledNodes(): ReadonlyArray<PotatnoNodeDefinition<TTypes>> {
+        if (this.mNodesProvider.prefilled) {
+            // Create a temporary array to collect the prefilled nodes provided by the function definition.
+            const lPrefilledNodes: Array<PotatnoNodeDefinition<TTypes>> = new Array<PotatnoNodeDefinition<TTypes>>();
+            this.mNodesProvider.prefilled((node: PotatnoNodeDefinition<TTypes>) => {
+                lPrefilledNodes.push(node);
+            }, this);
+
+            return lPrefilledNodes;
+        }
+
+        return new Array<PotatnoNodeDefinition<TTypes>>();
     }
 
     /**
@@ -47,7 +73,7 @@ export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectType> {
     /**
      * Static settings for this entry point definition, determining which static nodes are generated.
      */
-    public get statics(): Readonly<PotatnoFunctionDefinitionStaticSettings> {
+    public get statics(): PotatnoFunctionDefinitionStatics {
         return this.mStatics;
     }
 
@@ -60,20 +86,13 @@ export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectType> {
         this.mId = pParameters.id;
 
         // Set exclusive nodes defined for this entry point that are preset in the editor.
-        this.mNodes = {
-            static: pParameters.nodes?.static ?? [],
-            dynamic: pParameters.nodes?.dynamic ?? [],
-        };
+        this.mNodesProvider = pParameters.nodes;
 
         // Set the preview element for this entry point, if provided.
         this.mPreviewGenerator = pParameters.generator.preview ?? null;
 
         // Set static settings, defaulting to false for all if not provided.
-        this.mStatics = {
-            imports: pParameters.statics.imports ?? false,
-            inputs: pParameters.statics.inputs ?? false,
-            outputs: pParameters.statics.outputs ?? false,
-        };
+        this.mStatics = pParameters.statics as PotatnoFunctionDefinitionStatics;
 
         // Set the entry point code generator.
         this.mCodeGenerator = pParameters.generator.code;
@@ -82,12 +101,12 @@ export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectType> {
 
 type PotatnoFunctionDefinitionConstructorParameter<TTypes extends PotatnoProjectType> = {
     id: string;
-    statics: Partial<PotatnoFunctionDefinitionStaticSettings>;
-    nodes?: Partial<PotatnoFunctionDefinitionNodes<TTypes>>;
+    statics: PotatnoFunctionDefinitionStatics | number;
+    nodes: PotatnoFunctionDefinitionNodeProvider<TTypes>;
     generator: {
         code: PotatnoFunctionDefinitionGenerator;
         preview?: PotatnoFunctionDefinitionPreview;
-    }
+    };
 };
 
 /**
@@ -107,19 +126,31 @@ export type PotatnoFunctionDefinitionGenerator = {
     value: (pContext: PotatnoNodeDefinitionGeneratorData) => string;
 };
 
-type PotatnoFunctionDefinitionNodes<TTypes extends PotatnoProjectType> = {
-    static: Array<PotatnoStaticNodeDefinition<TTypes>>;
-    dynamic: Array<PotatnoStaticNodeDefinition<TTypes>>;
+/**
+ * Node provider for a function definition, providing a dynamic set of nodes.
+ */
+export type PotatnoFunctionDefinitionNodeProvider<TTypes extends PotatnoProjectType> = {
+    /**
+     * Nodes that are fixed for this entry point, meaning they are always generated and cannot be deleted by the user.
+     */
+    prefilled?: (pAddNode: (node: PotatnoNodeDefinition<TTypes>) => void, pFunction: PotatnoFunctionDefinition<TTypes>) => void;
+
+    /**
+     * Nodes that the user can create and delete on its own N times. 
+     */
+    dynamic?: (pAddNode: (node: PotatnoNodeDefinition<TTypes>) => void, pFunction: PotatnoFunctionDefinition<TTypes>) => void;
 };
 
 /**
  * Settings to set global configuration static, so it cant be changed by the user.
  */
-export type PotatnoFunctionDefinitionStaticSettings = {
-    imports: boolean;
-    inputs: boolean;
-    outputs: boolean;
-};
+export const PotatnoFunctionDefinitionStatics = {
+    none: 0,
+    imports: 1,
+    inputs: 2,
+    outputs: 4,
+} as const;
+export type PotatnoFunctionDefinitionStatics = typeof PotatnoFunctionDefinitionStatics[keyof typeof PotatnoFunctionDefinitionStatics];
 
 export type PotatnoFunctionDefinitionPreview = {
     /**

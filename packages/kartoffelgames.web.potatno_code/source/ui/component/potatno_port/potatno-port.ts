@@ -20,7 +20,7 @@ export class PotatnoPortComponent {
      */
     @PwbExport
     @ComponentState.state()
-    public accessor port: PotatnoDocumentPort | null = null;
+    public accessor port: PotatnoDocumentPort<any> | null = null;
 
     /**
      * Version counter forwarded from the editor via the node component whenever
@@ -36,7 +36,7 @@ export class PotatnoPortComponent {
      */
     @PwbExport
     @ComponentState.state()
-    public accessor ownerNode: PotatnoDocumentNode | null = null;
+    public accessor ownerNode: PotatnoDocumentNode<any> | null = null;
 
     @PwbComponentEvent('port-drag-start')
     private accessor mPortDragStart!: ComponentEventEmitter<PortInteractionDetail>;
@@ -203,13 +203,13 @@ export class PotatnoPortComponent {
 }
 
 export type PortInteractionDetail = {
-    node: PotatnoDocumentNode;
-    port: PotatnoDocumentPort;
+    node: PotatnoDocumentNode<any>;
+    port: PotatnoDocumentPort<any>;
     element: HTMLElement;
 };
 
 type DirectValueChangeDetail = {
-    port: PotatnoDocumentPort;
+    port: PotatnoDocumentPort<any>;
     values: Array<string>;
 };
 

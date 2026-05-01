@@ -27,7 +27,7 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
      */
     @PwbExport
     @ComponentState.state()
-    public accessor nodeData: PotatnoDocumentNode | null = null;
+    public accessor nodeData: PotatnoDocumentNode<any> | null = null;
 
     /**
      * Version counter that increments whenever any connection in the document changes.
@@ -181,7 +181,7 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     /**
      * Value input ports (portType === 'value', direction === 'input').
      */
-    public get inputPorts(): Array<PotatnoDocumentPort> {
+    public get inputPorts(): Array<PotatnoDocumentPort<any>> {
         if (!this.nodeData) {
             return [];
         }
@@ -191,7 +191,7 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     /**
      * Value output ports (portType === 'value', direction === 'output').
      */
-    public get outputPorts(): Array<PotatnoDocumentPort> {
+    public get outputPorts(): Array<PotatnoDocumentPort<any>> {
         if (!this.nodeData) {
             return [];
         }
@@ -201,7 +201,7 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     /**
      * Flow input ports (portType === 'flow', direction === 'input').
      */
-    public get flowInputPorts(): Array<PotatnoDocumentPort> {
+    public get flowInputPorts(): Array<PotatnoDocumentPort<any>> {
         if (!this.nodeData) {
             return [];
         }
@@ -211,7 +211,7 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     /**
      * Flow output ports (portType === 'flow', direction === 'output').
      */
-    public get flowOutputPorts(): Array<PotatnoDocumentPort> {
+    public get flowOutputPorts(): Array<PotatnoDocumentPort<any>> {
         if (!this.nodeData) {
             return [];
         }
@@ -336,32 +336,32 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
 }
 
 export type NodeSelectDetail = {
-    node: PotatnoDocumentNode;
+    node: PotatnoDocumentNode<any>;
     shiftKey: boolean;
 };
 
 export type NodeDragStartDetail = {
-    node: PotatnoDocumentNode;
+    node: PotatnoDocumentNode<any>;
     startX: number;
     startY: number;
 };
 
 export type OpenFunctionDetail = {
-    node: PotatnoDocumentNode;
+    node: PotatnoDocumentNode<any>;
 };
 
 export type CommentChangeDetail = {
-    node: PotatnoDocumentNode;
+    node: PotatnoDocumentNode<any>;
     text: string;
 };
 
 export type ResizeStartDetail = {
-    node: PotatnoDocumentNode;
+    node: PotatnoDocumentNode<any>;
     startX: number;
     startY: number;
 };
 
 export type DirectValueChangeDetail = {
-    port: PotatnoDocumentPort;
+    port: PotatnoDocumentPort<any>;
     values: Array<string>;
 };

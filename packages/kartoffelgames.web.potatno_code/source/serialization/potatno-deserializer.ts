@@ -69,17 +69,17 @@ export class PotatnoDeserializer<TProjectType extends PotatnoProjectType> {
         }
 
         // Create all nodes and build a nodeId → node lookup map.
-        const lNodeMap: Map<string, PotatnoDocumentNode> = new Map();
+        const lNodeMap: Map<string, PotatnoDocumentNode<TProjectType>> = new Map();
         for (const lNodeData of pData.nodes) {
-            const lNode: PotatnoDocumentNode = this.deserializeNode(lNodeData, pDocument);
+            const lNode: PotatnoDocumentNode<TProjectType> = this.deserializeNode(lNodeData, pDocument);
             lNodeMap.set(lNodeData.id, lNode);
             lFunc.addNode(lNode);
         }
 
         // Restore port connections from the flat connections list.
         for (const lConnection of pData.connections) {
-            const lSourceNode: PotatnoDocumentNode | undefined = lNodeMap.get(lConnection.sourceNodeId);
-            const lTargetNode: PotatnoDocumentNode | undefined = lNodeMap.get(lConnection.targetNodeId);
+            const lSourceNode: PotatnoDocumentNode<TProjectType> | undefined = lNodeMap.get(lConnection.sourceNodeId);
+            const lTargetNode: PotatnoDocumentNode<TProjectType> | undefined = lNodeMap.get(lConnection.targetNodeId);
             if (!lSourceNode || !lTargetNode) {
                 continue;
             }
@@ -100,14 +100,14 @@ export class PotatnoDeserializer<TProjectType extends PotatnoProjectType> {
      * Reconstruct a single node from its serialized form.
      * Ports are created automatically by PotatnoDocumentNode from its definition.
      */
-    private deserializeNode(pData: SerializedNode, pDocument: PotatnoDocument<TProjectType>): PotatnoDocumentNode {
+    private deserializeNode(pData: SerializedNode, pDocument: PotatnoDocument<TProjectType>): PotatnoDocumentNode<TProjectType> {
         // Check project node definitions first, then document function node definitions.
         const lDefinition = this.mProject.nodeDefinitions.get(pData.definitionId) ?? pDocument.functionNodeDefinitions.get(pData.definitionId);
         if (!lDefinition) {
             throw new Error(`Node definition not found: "${pData.definitionId}"`);
         }
 
-        const lNode: PotatnoDocumentNode = new PotatnoDocumentNode(this.mProject, lDefinition, { ...pData.transformation }, pData.isSystem);
+        const lNode: PotatnoDocumentNode<TProjectType> = new PotatnoDocumentNode(this.mProject, lDefinition, { ...pData.transformation }, pData.isSystem);
         lNode.label = pData.label;
 
         // Restore direct values for value input ports.

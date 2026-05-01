@@ -3,14 +3,14 @@ import { NodeCategory } from "../../source/parser/node/node-category.enum.ts";
 import type { PotatnoCodeFunction } from '../../source/parser/potatno-code-function.ts';
 import { PotatnoCodeApplication } from '../../source/potatno-code-application.ts';
 import { PotatnoStaticNodeDefinition } from "../../source/project/node_definition/potatno-static-node-definition.ts";
-import { PotatnoFunctionDefinition } from "../../source/project/potatno-function-definition.ts";
+import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from "../../source/project/potatno-function-definition.ts";
 import { PotatnoProjectTypesDefinition } from "../../source/project/potatno-project-types-definition.ts";
 import { PotatnoProject } from '../../source/project/potatno-project.ts';
 
 /*
  // TODO:
- - Create NodeProvider API that replaces the PotatnoFunctionDefinitionNodes: function that returns available `IPotatnoNodeDefinition` instances based on the function inputs & outputs[""]
- - Add functionality that allows for nodes resync to their definitions. Maybe on validate?. Remove ports when not connected otherwise add as validation error.
+ - Instead of ProjectTypes, use the project as TypeParam to anything.
+ - Add functionality that allows for nodes resync to their definitions. Maybe on validate?. Remove ports when not connected otherwise add as validation error. Nodes and function should be referenced by id instead of reference.
  - Add a "undefined" type for nodes, so a old project can be loaded without crashing when node definitions are removed.
  - Add SemanticValidation: A port should only be connected to a port that has the same starting node (execution regions).
  - Introduce ExecutionRegion (startNodeRef): add execution-region concept derived from a start/root node reference to determine same-region restrictions.
@@ -67,15 +67,11 @@ const lProject = new PotatnoProject({
     types: lProjectTypes,
     entryPoint: new PotatnoFunctionDefinition({
         id: 'pixelShader',
-        statics: {
-            imports: true,
-            inputs: true,
-            outputs: false
-        },
+        statics: PotatnoFunctionDefinitionStatics.imports | PotatnoFunctionDefinitionStatics.inputs,
         nodes: {
-            static: [
+            prefilled: (pAddNode) => {
                 // OnPixel: provides normalized x/y coordinates (0-1 range)
-                new PotatnoStaticNodeDefinition({
+                pAddNode(new PotatnoStaticNodeDefinition({
                     id: 'OnPixel',
                     label: 'OnPixel',
                     category: 'event',
@@ -93,9 +89,10 @@ const lProject = new PotatnoProject({
                             return `const ${pContext.outputs["x"].valueId} = __pixel_x;\nconst ${pContext.outputs["y"].valueId} = __pixel_y;`;
                         }
                     }
-                }),
+                }));
+
                 // PixelResult: receives RGB color values (0-1 range)
-                new PotatnoStaticNodeDefinition({
+                pAddNode(new PotatnoStaticNodeDefinition({
                     id: 'PixelResult',
                     label: 'PixelResult',
                     category: NodeCategory.Output,
@@ -113,8 +110,8 @@ const lProject = new PotatnoProject({
                             return `__pixel_r = ${pContext.inputs["red"].valueId};\n__pixel_g = ${pContext.inputs["green"].valueId};\n__pixel_b = ${pContext.inputs["blue"].valueId};`;
                         }
                     }
-                })
-            ]
+                }));
+            }
         },
         generator: {
             code: {
@@ -647,11 +644,8 @@ lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
 // --- User Function Definitions ---
 lProject.addUserFunction(new PotatnoFunctionDefinition({
     id: 'Helper Function',
-    statics: {
-        imports: false,
-        inputs: false,
-        outputs: false
-    },
+    statics: PotatnoFunctionDefinitionStatics.none,
+    nodes: {},
     generator: {
         code: {
             body: (pFunction: PotatnoCodeFunction) => {

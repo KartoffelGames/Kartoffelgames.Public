@@ -83,8 +83,8 @@ export class PotatnoDocument<TProjectType extends PotatnoProjectType> {
     /**
      * Validate all functions in this document and return any errors found.
      */
-    public validate(): Array<PotatnoDocumentPortValidationError> {
-        const lErrors: Array<PotatnoDocumentPortValidationError> = [];
+    public validate(): Array<PotatnoDocumentPortValidationError<TProjectType>> {
+        const lErrors: Array<PotatnoDocumentPortValidationError<TProjectType>> = [];
 
         for (const lFunction of this.mFunctions) {
             lErrors.push(...lFunction.validate());

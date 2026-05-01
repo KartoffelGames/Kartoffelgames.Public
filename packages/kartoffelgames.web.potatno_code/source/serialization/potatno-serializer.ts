@@ -43,7 +43,7 @@ export class PotatnoSerializer<TProjectType extends PotatnoProjectType> {
      */
     private serializeFunction(pFunction: PotatnoDocumentFunction<TProjectType>): SerializedFunction {
         // Build a temporary node to id map for this serialization pass.
-        const lNodeIdMap = new Map<PotatnoDocumentNode, string>();
+        const lNodeIdMap = new Map<PotatnoDocumentNode<TProjectType>, string>();
 
         // Assign stable nodeIds based on the order of nodes in the function's graph.
         [...pFunction.nodes].forEach((pNode, pIndex) => {
@@ -106,7 +106,7 @@ export class PotatnoSerializer<TProjectType extends PotatnoProjectType> {
     /**
      * Serialize a single node with all its ports.
      */
-    private serializeNode(pNode: PotatnoDocumentNode, pNodeId: string): SerializedNode {
+    private serializeNode(pNode: PotatnoDocumentNode<TProjectType>, pNodeId: string): SerializedNode {
         const lPorts: Array<SerializedNodePort> = [...pNode.inputs.values(), ...pNode.outputs.values()].map((pPort) => ({
             name: pPort.name,
             direction: pPort.direction,

@@ -16,7 +16,7 @@ export class PotatnoDocumentFunction<TProjectType extends PotatnoProjectType> {
     private readonly mInputs: Array<PotatnoDocumentFunctionPort>;
     private mLabel: string;
     private readonly mOutputs: Array<PotatnoDocumentFunctionPort>;
-    private readonly mNodes: Set<PotatnoDocumentNode>;
+    private readonly mNodes: Set<PotatnoDocumentNode<TProjectType>>;
     private readonly mProject: PotatnoProject<TProjectType>;
 
     /**
@@ -29,7 +29,7 @@ export class PotatnoDocumentFunction<TProjectType extends PotatnoProjectType> {
     /**
      * Read-only set of all nodes in the graph.
      */
-    public get nodes(): ReadonlySet<PotatnoDocumentNode> {
+    public get nodes(): ReadonlySet<PotatnoDocumentNode<TProjectType>> {
         return this.mNodes;
     }
 
@@ -80,7 +80,7 @@ export class PotatnoDocumentFunction<TProjectType extends PotatnoProjectType> {
     /**
      * Get the project this function belongs to.
      */
-    public get project(): PotatnoProject<PotatnoProjectType> {
+    public get project(): PotatnoProject<TProjectType> {
         return this.mProject;
     }
 
@@ -98,7 +98,7 @@ export class PotatnoDocumentFunction<TProjectType extends PotatnoProjectType> {
         this.mIsSystem = pIsSystem;
         this.mDefinition = pDefinition;
         this.mId = pId;
-        this.mNodes = new Set<PotatnoDocumentNode>();
+        this.mNodes = new Set<PotatnoDocumentNode<TProjectType>>();
         this.mInputs = new Array<PotatnoDocumentFunctionPort>();
         this.mOutputs = new Array<PotatnoDocumentFunctionPort>();
         this.mImports = new Array<string>();
@@ -148,15 +148,15 @@ export class PotatnoDocumentFunction<TProjectType extends PotatnoProjectType> {
      * 
      * @param pNode - The node to add.
      */
-    public addNode(pNode: PotatnoDocumentNode): void {
+    public addNode(pNode: PotatnoDocumentNode<TProjectType>): void {
         this.mNodes.add(pNode);
     }
 
     /**
      * Add a new node to the graph.
      */
-    public newNode(pDefinition: PotatnoNodeDefinition<PotatnoProjectType>, pTransformation: PotatnoDocumentNodeTransformation, pSystem: boolean = false): PotatnoDocumentNode {
-        const lNode: PotatnoDocumentNode = new PotatnoDocumentNode(this.mProject, pDefinition, pTransformation, pSystem);
+    public newNode(pDefinition: PotatnoNodeDefinition<TProjectType>, pTransformation: PotatnoDocumentNodeTransformation, pSystem: boolean = false): PotatnoDocumentNode<TProjectType> {
+        const lNode: PotatnoDocumentNode<TProjectType> = new PotatnoDocumentNode(this.mProject, pDefinition, pTransformation, pSystem);
         this.mNodes.add(lNode);
         return lNode;
     }
@@ -164,7 +164,7 @@ export class PotatnoDocumentFunction<TProjectType extends PotatnoProjectType> {
     /**
      * Remove a node and disconnect all its ports from the graph.
      */
-    public removeNode(pNode: PotatnoDocumentNode): void {
+    public removeNode(pNode: PotatnoDocumentNode<TProjectType>): void {
         // Disconnect all ports of the node.
         for (const lPort of [...pNode.inputs.values(), ...pNode.outputs.values()]) {
             for (const lConnectedPort of Array.from(lPort.connectedPorts)) {
@@ -214,8 +214,8 @@ export class PotatnoDocumentFunction<TProjectType extends PotatnoProjectType> {
     /**
      * Validate all nodes in this function and return any errors found.
      */
-    public validate(): Array<PotatnoDocumentPortValidationError> {
-        const lErrors: Array<PotatnoDocumentPortValidationError> = [];
+    public validate(): Array<PotatnoDocumentPortValidationError<TProjectType>> {
+        const lErrors: Array<PotatnoDocumentPortValidationError<TProjectType>> = [];
 
         for (const lNode of this.mNodes) {
             lErrors.push(...lNode.validate());

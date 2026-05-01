@@ -29,9 +29,9 @@ export class PotatnoClipboard<TProjectType extends PotatnoProjectType> {
      *
      * @param pSelectedNodes - The nodes to copy.
      */
-    public copy(pSelectedNodes: ReadonlySet<PotatnoDocumentNode>): void {
-        const lNodes: Array<PotatnoDocumentNode> = [];
-        const lNodeIndexMap: Map<PotatnoDocumentNode, number> = new Map();
+    public copy(pSelectedNodes: ReadonlySet<PotatnoDocumentNode<TProjectType>>): void {
+        const lNodes: Array<PotatnoDocumentNode<TProjectType>> = [];
+        const lNodeIndexMap: Map<PotatnoDocumentNode<TProjectType>, number> = new Map();
 
         for (const lNode of pSelectedNodes) {
             if (!lNode.isSystem) {
@@ -94,12 +94,12 @@ export class PotatnoClipboard<TProjectType extends PotatnoProjectType> {
      *
      * @returns Array of the newly created nodes, or an empty array if nothing was pasted.
      */
-    public paste(pFunction: PotatnoDocumentFunction<TProjectType>, pDocument: PotatnoDocument<TProjectType>, pOffsetX: number, pOffsetY: number): Array<PotatnoDocumentNode> {
+    public paste(pFunction: PotatnoDocumentFunction<TProjectType>, pDocument: PotatnoDocument<TProjectType>, pOffsetX: number, pOffsetY: number): Array<PotatnoDocumentNode<TProjectType>> {
         if (!this.mData) {
             return [];
         }
 
-        const lCreated: Array<PotatnoDocumentNode> = [];
+        const lCreated: Array<PotatnoDocumentNode<TProjectType>> = [];
 
         for (const lNodeData of this.mData.nodes) {
             const lDefinition = pFunction.project.nodeDefinitions.get(lNodeData.definitionId)

@@ -1,12 +1,25 @@
 import { PotatnoCodeFunction } from "../parser/potatno-code-function.ts";
 import { PotatnoNodeDefinition, PotatnoNodeDefinitionGeneratorData } from "./node_definition/potatno-node-definition.ts";
 import { PotatnoProject } from "./potatno-project.ts";
+import { PotatnoProjectTypesDefinition } from "./potatno-project-types-definition.ts";
 
 /**
  * Definition of a entry point blueprint.
  * Of of these blueprints eighter the main entry point or secondary user created entry points can be instantiated in the editor.
  */
 export class PotatnoFunctionDefinition<TProject extends PotatnoProject<any>> {
+    /**
+     * Create a new PotatnoFunctionDefinition.
+     *
+     * Prefer {@link PotatnoFunctionDefinition.forTypes} when type inference for
+     * `pAddNode` callbacks is required.
+     *
+     * @param pParameters - Parameters defining the entry point's id, static nodes, dynamic nodes, and static settings.
+     */
+    public static new<TTypes extends PotatnoProjectTypesDefinition<string>, TProject extends PotatnoProject<TTypes>>(_pTypes: TTypes, pParameters: PotatnoFunctionDefinitionConstructorParameter<TProject>): PotatnoFunctionDefinition<TProject> {
+        return new PotatnoFunctionDefinition(pParameters);
+    }
+
     private readonly mId: string;
     private readonly mPreviewGenerator: PotatnoFunctionDefinitionPreview | null;
     private readonly mStatics: PotatnoFunctionDefinitionStatics;
@@ -82,7 +95,7 @@ export class PotatnoFunctionDefinition<TProject extends PotatnoProject<any>> {
      * 
      * @param pParameters - Parameters defining the entry point's id, label, static nodes, dynamic nodes, and static settings.
      */
-    public constructor(pParameters: PotatnoFunctionDefinitionConstructorParameter<TProject>) {
+    protected constructor(pParameters: PotatnoFunctionDefinitionConstructorParameter<TProject>) {
         this.mId = pParameters.id;
 
         // Set exclusive nodes defined for this entry point that are preset in the editor.
@@ -102,7 +115,7 @@ export class PotatnoFunctionDefinition<TProject extends PotatnoProject<any>> {
 type PotatnoFunctionDefinitionConstructorParameter<TProject extends PotatnoProject<any>> = {
     id: string;
     statics: PotatnoFunctionDefinitionStatics | number;
-    nodes: PotatnoFunctionDefinitionNodeProvider<TProject>;
+    nodes: PotatnoFunctionDefinitionNodeProvider<NoInfer<TProject>>;
     generator: {
         code: PotatnoFunctionDefinitionGenerator;
         preview?: PotatnoFunctionDefinitionPreview;

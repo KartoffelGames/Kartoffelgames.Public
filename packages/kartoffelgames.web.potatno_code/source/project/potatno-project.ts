@@ -9,6 +9,15 @@ import { PotatnoProjectTypesDefinition } from "./potatno-project-types-definitio
  * and callback configurations. Does not hold document state.
  */
 export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<string>> {
+    /**
+     * Create a new PotatnoProject with the given configuration.
+     *
+     * @param pParameter - Project configuration including type definitions and entry point.
+     */
+    public static new<TProjectType extends PotatnoProjectTypesDefinition<string>>(pParameter: PotatnoProjectConstructorParameter<TProjectType>): PotatnoProject<TProjectType> {
+        return new PotatnoProject(pParameter);
+    }
+
     private readonly mEntryPoint: PotatnoFunctionDefinition<this>;
     private readonly mImports: Array<PotatnoProjectImportDefinition<this>>;
     private readonly mNodeDefinitions: Map<string, PotatnoNodeDefinition<this>>;
@@ -54,7 +63,7 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
     /**
      * Create a new editor configuration with default values.
      */
-    public constructor(pParameter: PotatnoProjectConstructorParameter<TProjectType>) {
+    protected constructor(pParameter: PotatnoProjectConstructorParameter<TProjectType>) {
         // Init parameter.
         this.mEntryPoint = pParameter.entryPoint as unknown as PotatnoFunctionDefinition<this>;
         this.mTypes = pParameter.types;

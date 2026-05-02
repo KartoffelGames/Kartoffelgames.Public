@@ -18,11 +18,20 @@ import { PotatnoNodeDefinition } from "./potatno-node-definition.ts";
  */
 export class PotatnoFunctionNodeDefinition<TProject extends PotatnoProject<any>> extends PotatnoNodeDefinition<TProject> {
     /**
+     * Create a new PotatnoFunctionNodeDefinition mirroring the given document function.
+     *
+     * @param pFunction - The document function this definition reflects.
+     */
+    public static new<TProject extends PotatnoProject<any>>(pFunction: PotatnoDocumentFunction<TProject>): PotatnoFunctionNodeDefinition<TProject> {
+        return new PotatnoFunctionNodeDefinition(pFunction);
+    }
+
+    /**
      * Constructor.
      *
      * @param pFunction - The document function this definition mirrors.
      */
-    public constructor(pFunction: PotatnoDocumentFunction<TProject>) {
+    protected constructor(pFunction: PotatnoDocumentFunction<TProject>) {
         const lInputPortGenerator = (): Array<PotatnoPortDefinitionConfiguration<TProject>> => {
             // Generate ports definitions based on the function inputs.
             const lPorts: Array<PotatnoPortDefinitionConfiguration<TProject>> = pFunction.inputs.map((pPort) => {

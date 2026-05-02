@@ -1,6 +1,15 @@
 import { PotatnoProject } from "./potatno-project.ts";
 
 export class PotatnoProjectTypesDefinition<TTypeName extends string> {
+    /**
+     * Create a new PotatnoProjectTypesDefinition from the given type configurations.
+     *
+     * @param pParameters - Record mapping each type name to its definition.
+     */
+    public static new<TTypeName extends string>(pParameters: PotatnoProjectTypeDefinitionConfiguration<TTypeName>): PotatnoProjectTypesDefinition<TTypeName> {
+        return new PotatnoProjectTypesDefinition(pParameters);
+    }
+
     private readonly mTypes: Map<TTypeName, PotatnoProjectTypeDefinition<TTypeName>>;
 
     /**
@@ -17,7 +26,7 @@ export class PotatnoProjectTypesDefinition<TTypeName extends string> {
         return Array.from(this.mTypes.keys());
     }
 
-    public constructor(pParameters: PotatnoProjectTypeDefinitionConfiguration<TTypeName>) {
+    protected constructor(pParameters: PotatnoProjectTypeDefinitionConfiguration<TTypeName>) {
         this.mTypes = new Map<TTypeName, PotatnoProjectTypeDefinition<TTypeName>>();
 
         // Convert all types

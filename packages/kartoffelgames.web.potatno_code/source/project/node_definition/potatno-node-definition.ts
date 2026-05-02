@@ -5,7 +5,7 @@ import { PotatnoProject } from "../potatno-project.ts";
 /**
  * Potatno node definition that changes dynamically based on the provided context.
  */
-export class PotatnoNodeDefinition<TProject extends PotatnoProject<any>> {
+export abstract class PotatnoNodeDefinition<TProject extends PotatnoProject<any>> {
     private readonly mId: string;
     private readonly mCategory: string;
     private readonly mLabel: string;
@@ -33,7 +33,7 @@ export class PotatnoNodeDefinition<TProject extends PotatnoProject<any>> {
     public get inputs(): ReadonlyArray<PotatnoPortDefinition<TProject>> {
         // Reads port configuration and converts it into PotatnoPortDefinition.
         return this.mPortProvider.inputs().map((pConfiguration) => {
-            return new PotatnoPortDefinition<TProject>(pConfiguration);
+            return PotatnoPortDefinition.new<TProject>(pConfiguration);
         });
     }
 
@@ -44,13 +44,13 @@ export class PotatnoNodeDefinition<TProject extends PotatnoProject<any>> {
         return this.mLabel;
     }
 
-    /** 
-     * Data output port definitions. 
+    /**
+     * Data output port definitions.
      */
     public get outputs(): ReadonlyArray<PotatnoPortDefinition<TProject>> {
         // Reads port configuration and converts it into PotatnoPortDefinition.
         return this.mPortProvider.outputs().map((pConfiguration) => {
-            return new PotatnoPortDefinition<TProject>(pConfiguration);
+            return PotatnoPortDefinition.new<TProject>(pConfiguration);
         });
     }
 
@@ -70,10 +70,10 @@ export class PotatnoNodeDefinition<TProject extends PotatnoProject<any>> {
 
     /**
      * Constructor.
-     * 
-     * @param pParameters - Constructor parameters. 
+     *
+     * @param pParameters - Constructor parameters.
      */
-    public constructor(pParameters: PotatnoNodeDefinitionConstructorParameter<TProject>) {
+    protected constructor(pParameters: PotatnoNodeDefinitionConstructorParameter<TProject>) {
         // Set id and label.
         this.mId = pParameters.id;
         this.mLabel = pParameters.label;

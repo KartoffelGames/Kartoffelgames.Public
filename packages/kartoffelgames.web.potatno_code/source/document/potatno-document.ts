@@ -54,7 +54,7 @@ export class PotatnoDocument<TProject extends PotatnoProject<any>> {
      */
     public addFunction(pFunction: PotatnoDocumentFunction<TProject>): void {
         this.mFunctions.add(pFunction);
-        this.mFunctionNodeDefinitions.set(pFunction.id, new PotatnoFunctionNodeDefinition(pFunction));
+        this.mFunctionNodeDefinitions.set(pFunction.id, PotatnoFunctionNodeDefinition.new(pFunction));
     }
 
     /**

@@ -9,7 +9,6 @@ import { PotatnoProject } from '../../source/project/potatno-project.ts';
 
 /*
  // TODO:
- - Instead of ProjectTypes, use the project as TypeParam to anything.
  - Add functionality that allows for nodes resync to their definitions. Maybe on validate?. Remove ports when not connected otherwise add as validation error. Nodes and function should be referenced by id instead of reference.
  - Add a "undefined" type for nodes, so a old project can be loaded without crashing when node definitions are removed. (Can be achived by validating on the referenced id instead of requiring a reference to the definition)
  - Add SemanticValidation: A port should only be connected to a port that has the same starting node (execution regions).
@@ -21,7 +20,7 @@ import { PotatnoProject } from '../../source/project/potatno-project.ts';
  */
 
 // --- Project configuration ---
-const lProjectTypes = new PotatnoProjectTypesDefinition({
+const lProjectTypes = PotatnoProjectTypesDefinition.new({
     number: {
         defaultValue: ['0'],
         convert: (pValues: Array<string>) => {
@@ -63,15 +62,15 @@ const lProjectTypes = new PotatnoProjectTypesDefinition({
     }
 });
 
-const lProject = new PotatnoProject({
+const lProject = PotatnoProject.new({
     types: lProjectTypes,
-    entryPoint: new PotatnoFunctionDefinition({
+    entryPoint: PotatnoFunctionDefinition.new(lProjectTypes, {
         id: 'pixelShader',
         statics: PotatnoFunctionDefinitionStatics.imports | PotatnoFunctionDefinitionStatics.inputs,
         nodes: {
             prefilled: (pAddNode) => {
                 // OnPixel: provides normalized x/y coordinates (0-1 range)
-                pAddNode(new PotatnoStaticNodeDefinition({
+                pAddNode(PotatnoStaticNodeDefinition.new({
                     id: 'OnPixel',
                     label: 'OnPixel',
                     category: 'event',
@@ -92,7 +91,7 @@ const lProject = new PotatnoProject({
                 }));
 
                 // PixelResult: receives RGB color values (0-1 range)
-                pAddNode(new PotatnoStaticNodeDefinition({
+                pAddNode(PotatnoStaticNodeDefinition.new({
                     id: 'PixelResult',
                     label: 'PixelResult',
                     category: NodeCategory.Output,
@@ -165,7 +164,7 @@ const lProject = new PotatnoProject({
 lProject.addImport({
     name: 'Math',
     nodes: [
-        new PotatnoStaticNodeDefinition({
+        PotatnoStaticNodeDefinition.new({
             id: 'Math.PI',
             label: 'Math.PI',
             category: 'value',
@@ -179,7 +178,7 @@ lProject.addImport({
                 code: (pContext) => `const ${pContext.outputs["value"].valueId} = Math.PI;`
             }
         }),
-        new PotatnoStaticNodeDefinition({
+        PotatnoStaticNodeDefinition.new({
             id: 'Math.E',
             label: 'Math.E',
             category: 'value',
@@ -193,7 +192,7 @@ lProject.addImport({
                 code: (pContext) => `const ${pContext.outputs["value"].valueId} = Math.E;`
             }
         }),
-        new PotatnoStaticNodeDefinition({
+        PotatnoStaticNodeDefinition.new({
             id: 'Math.abs',
             label: 'Math.abs',
             category: NodeCategory.Function,
@@ -209,7 +208,7 @@ lProject.addImport({
                 code: (pContext) => `const ${pContext.outputs["result"].valueId} = Math.abs(${pContext.inputs["value"].valueId});`
             }
         }),
-        new PotatnoStaticNodeDefinition({
+        PotatnoStaticNodeDefinition.new({
             id: 'Math.floor',
             label: 'Math.floor',
             category: NodeCategory.Function,
@@ -225,7 +224,7 @@ lProject.addImport({
                 code: (pContext) => `const ${pContext.outputs["result"].valueId} = Math.floor(${pContext.inputs["value"].valueId});`
             }
         }),
-        new PotatnoStaticNodeDefinition({
+        PotatnoStaticNodeDefinition.new({
             id: 'Math.random',
             label: 'Math.random',
             category: NodeCategory.Function,
@@ -243,7 +242,7 @@ lProject.addImport({
 });
 
 // --- Operator Nodes: Arithmetic ---
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     id: 'Add',
     label: 'Add',
     category: 'operator',
@@ -261,7 +260,7 @@ lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     }
 }));
 
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     id: 'Subtract',
     label: 'Subtract',
     category: 'operator',
@@ -279,7 +278,7 @@ lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     }
 }));
 
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     id: 'Multiply',
     label: 'Multiply',
     category: 'operator',
@@ -335,7 +334,7 @@ lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     }
 }));
 
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     id: 'Divide',
     label: 'Divide',
     category: 'operator',
@@ -355,7 +354,7 @@ lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     }
 }));
 
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     id: 'Modulo',
     label: 'Modulo',
     category: 'operator',
@@ -374,7 +373,7 @@ lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
 }));
 
 // --- Operator Nodes: Comparison ---
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     id: 'Equal',
     label: 'Equal',
     category: 'operator',
@@ -392,7 +391,7 @@ lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     }
 }));
 
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     id: 'Not Equal',
     label: 'Not Equal',
     category: 'operator',
@@ -410,7 +409,7 @@ lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     }
 }));
 
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     id: 'Less Than',
     label: 'Less Than',
     category: 'operator',
@@ -428,7 +427,7 @@ lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     }
 }));
 
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     id: 'Greater Than',
     label: 'Greater Than',
     category: 'operator',
@@ -447,7 +446,7 @@ lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
 }));
 
 // --- Operator Nodes: Logic ---
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     id: 'And',
     label: 'And',
     category: 'operator',
@@ -465,7 +464,7 @@ lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     }
 }));
 
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     id: 'Or',
     label: 'Or',
     category: 'operator',
@@ -483,7 +482,7 @@ lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     }
 }));
 
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     id: 'Not',
     label: 'Not',
     category: 'operator',
@@ -501,7 +500,7 @@ lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
 }));
 
 // --- Type Conversion Nodes ---
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     id: 'Number to String',
     label: 'Number to String',
     category: 'type-conversion',
@@ -518,7 +517,7 @@ lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     }
 }));
 
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     id: 'String to Number',
     label: 'String to Number',
     category: 'type-conversion',
@@ -535,7 +534,7 @@ lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     }
 }));
 
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     id: 'Boolean to String',
     label: 'Boolean to String',
     category: 'type-conversion',
@@ -553,7 +552,7 @@ lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
 }));
 
 // --- Flow Nodes ---
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     id: 'If',
     label: 'If',
     category: 'flow',
@@ -572,7 +571,7 @@ lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     }
 }));
 
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     id: 'While',
     label: 'While',
     category: 'flow',
@@ -590,7 +589,7 @@ lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     }
 }));
 
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     id: 'For Loop',
     label: 'For Loop',
     category: 'flow',
@@ -610,7 +609,7 @@ lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
 }));
 
 // --- Function Nodes ---
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     id: 'Console Log',
     label: 'Console Log',
     category: NodeCategory.Function,
@@ -623,7 +622,7 @@ lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     }
 }));
 
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     id: 'String Concat',
     label: 'String Concat',
     category: NodeCategory.Function,
@@ -642,7 +641,7 @@ lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
 }));
 
 // --- User Function Definitions ---
-lProject.addUserFunction(new PotatnoFunctionDefinition({
+lProject.addUserFunction(PotatnoFunctionDefinition.new(lProjectTypes, {
     id: 'Helper Function',
     statics: PotatnoFunctionDefinitionStatics.none,
     nodes: {},

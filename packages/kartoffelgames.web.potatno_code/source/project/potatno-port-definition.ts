@@ -5,6 +5,15 @@ import { PotatnoProject } from "./potatno-project.ts";
  * Definition of a port on a node, used for type checking and code generation.
  */
 export class PotatnoPortDefinition<TProject extends PotatnoProject<any>> {
+	/**
+	 * Create a new PotatnoPortDefinition from the given port configuration.
+	 *
+	 * @param pPortDefinition - Raw port configuration object.
+	 */
+	public static new<TProject extends PotatnoProject<any>>(pPortDefinition: PotatnoPortDefinitionConfiguration<TProject>): PotatnoPortDefinition<TProject> {
+		return new PotatnoPortDefinition(pPortDefinition);
+	}
+
 	private readonly mName: string;
 	private readonly mPortType: PotatnoPortDefinitionType;
 	private readonly mDataType: PotatnoProjectType<TProject> | null;
@@ -36,7 +45,7 @@ export class PotatnoPortDefinition<TProject extends PotatnoProject<any>> {
 	 * @param pName - Registered port name.
 	 * @param pDefinition - Raw port definition data.
 	 */
-	public constructor(pPortDefinition: PotatnoPortDefinitionConfiguration<TProject>) {
+	protected constructor(pPortDefinition: PotatnoPortDefinitionConfiguration<TProject>) {
 		this.mName = pPortDefinition.name;
 		this.mPortType = pPortDefinition.portType;
 

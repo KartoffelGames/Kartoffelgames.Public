@@ -1,5 +1,6 @@
 import { PotatnoPortDefinitionConfiguration } from "../potatno-port-definition.ts";
 import { PotatnoProjectType } from "../potatno-project-types-definition.ts";
+import { PotatnoProject } from "../potatno-project.ts";
 import { PotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeDefinitionPreviewGenerator } from "./potatno-node-definition.ts";
 
 /**
@@ -11,13 +12,13 @@ import { PotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeD
  * @template TOutputs - Object type mapping output port names to their definitions.
  * @template TPreviewElement - The type of the HTMLElement used for node previews for this node definition.
  */
-export class PotatnoStaticNodeDefinition<TTypes extends PotatnoProjectType> extends PotatnoNodeDefinition<TTypes> {
+export class PotatnoStaticNodeDefinition<TProject extends PotatnoProject<any>> extends PotatnoNodeDefinition<TProject> {
     /**
      * Constructor.
      * 
      * @param pParameters - Constructor parameters. 
      */
-    public constructor(pParameters: PotatnoStaticNodeDefinitionConstructorParameter<TTypes>) {
+    public constructor(pParameters: PotatnoStaticNodeDefinitionConstructorParameter<TProject>) {
         // Set id and label. Label defaults to id if not provided.
         super({
             id: pParameters.id,
@@ -35,13 +36,13 @@ export class PotatnoStaticNodeDefinition<TTypes extends PotatnoProjectType> exte
     }
 }
 
-type PotatnoStaticNodeDefinitionConstructorParameter<TTypes extends PotatnoProjectType> = {
+type PotatnoStaticNodeDefinitionConstructorParameter<TProject extends PotatnoProject<any>> = {
     id: string;
     label: string;
     category: string;
     ports: {
-        inputs: Array<PotatnoPortDefinitionConfiguration<TTypes>>;
-        outputs: Array<PotatnoPortDefinitionConfiguration<TTypes>>;
+        inputs: Array<PotatnoPortDefinitionConfiguration<TProject>>;
+        outputs: Array<PotatnoPortDefinitionConfiguration<TProject>>;
     };
     generators: {
         code: PotatnoNodeDefinitionCodeGenerator;

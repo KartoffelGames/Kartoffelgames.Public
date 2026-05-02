@@ -11,7 +11,7 @@ import { PotatnoProject } from '../../source/project/potatno-project.ts';
  // TODO:
  - Instead of ProjectTypes, use the project as TypeParam to anything.
  - Add functionality that allows for nodes resync to their definitions. Maybe on validate?. Remove ports when not connected otherwise add as validation error. Nodes and function should be referenced by id instead of reference.
- - Add a "undefined" type for nodes, so a old project can be loaded without crashing when node definitions are removed.
+ - Add a "undefined" type for nodes, so a old project can be loaded without crashing when node definitions are removed. (Can be achived by validating on the referenced id instead of requiring a reference to the definition)
  - Add SemanticValidation: A port should only be connected to a port that has the same starting node (execution regions).
  - Introduce ExecutionRegion (startNodeRef): add execution-region concept derived from a start/root node reference to determine same-region restrictions.
  - Add node contexts with {add: Array<string>, requires: Array<string>} that can be used to force a endpoint node to only be connected to certain entry point nodes. (VertexData only connects to OnVertex and not to OnFragment)

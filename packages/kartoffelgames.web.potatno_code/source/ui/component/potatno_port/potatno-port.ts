@@ -1,6 +1,7 @@
-import { PwbComponent, PwbExport, PwbComponentEvent, ComponentEventEmitter, PwbChild, ComponentState } from '@kartoffelgames/web-potato-web-builder';
+import { ComponentEventEmitter, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
+import { PotatnoProjectTypeDefinition } from "../../../project/potatno-project-types-definition.ts";
 import portCss from './potatno-port.css' with { type: 'text' };
 import portTemplate from './potatno-port.html' with { type: 'text' };
 
@@ -126,7 +127,7 @@ export class PotatnoPortComponent {
         if (!this.port || this.port.portType !== 'value') {
             return [];
         }
-        const lTypeDef = this.port.project.types.getType(this.port.type);
+        const lTypeDef: PotatnoProjectTypeDefinition<string> = this.port.project.types.getType(this.port.type);
         return lTypeDef.inputs.map((lInput, lIndex) => ({
             htmlType: lInput.type === 'number' ? 'number' : lInput.type === 'boolean' ? 'checkbox' : 'text',
             index: lIndex,

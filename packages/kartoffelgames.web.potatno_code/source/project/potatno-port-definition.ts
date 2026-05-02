@@ -1,12 +1,13 @@
 import { PotatnoProjectType } from "./potatno-project-types-definition.ts";
+import { PotatnoProject } from "./potatno-project.ts";
 
 /**
  * Definition of a port on a node, used for type checking and code generation.
  */
-export class PotatnoPortDefinition<TProjectType extends PotatnoProjectType = PotatnoProjectType> {
+export class PotatnoPortDefinition<TProject extends PotatnoProject<any>> {
 	private readonly mName: string;
 	private readonly mPortType: PotatnoPortDefinitionType;
-	private readonly mDataType: TProjectType | null;
+	private readonly mDataType: PotatnoProjectType<TProject> | null;
 
 	/**
 	 * Port name as registered on the node definition.
@@ -25,7 +26,7 @@ export class PotatnoPortDefinition<TProjectType extends PotatnoProjectType = Pot
 	/**
 	 * Data type identifier when the port carries a typed value.
 	 */
-	public get dataType(): TProjectType | null {
+	public get dataType(): PotatnoProjectType<TProject> | null {
 		return this.mDataType;
 	}
 
@@ -35,7 +36,7 @@ export class PotatnoPortDefinition<TProjectType extends PotatnoProjectType = Pot
 	 * @param pName - Registered port name.
 	 * @param pDefinition - Raw port definition data.
 	 */
-	public constructor(pPortDefinition: PotatnoPortDefinitionConfiguration<TProjectType>) {
+	public constructor(pPortDefinition: PotatnoPortDefinitionConfiguration<TProject>) {
 		this.mName = pPortDefinition.name;
 		this.mPortType = pPortDefinition.portType;
 
@@ -55,7 +56,7 @@ export type PotatnoPortDefinitionDirection = 'input' | 'output';
  * Definition of a port type used when registering node definitions.
  */
 
-export type PotatnoPortDefinitionConfiguration<TTypes extends PotatnoProjectType> = {
+export type PotatnoPortDefinitionConfiguration<TProject extends PotatnoProject<any>> = {
 	/**
 	 * Name of the port.
 	 */
@@ -79,5 +80,5 @@ export type PotatnoPortDefinitionConfiguration<TTypes extends PotatnoProjectType
 	/** 
 	 * Data type identifier for the port.
 	 */
-	dataType: TTypes;
+	dataType: PotatnoProjectType<TProject>;
 };

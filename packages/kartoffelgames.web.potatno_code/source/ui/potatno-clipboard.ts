@@ -1,13 +1,13 @@
 import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from '../document/potatno-document-node.ts';
 import type { PotatnoDocument } from '../document/potatno-document.ts';
-import { PotatnoProjectType } from "../project/potatno-project-types-definition.ts";
+import { PotatnoProject } from "../project/potatno-project.ts";
 
 /**
  * Copy/paste logic for graph nodes.
  * Stores a snapshot of selected nodes and their internal connections.
  */
-export class PotatnoClipboard<TProjectType extends PotatnoProjectType> {
+export class PotatnoClipboard<TProject extends PotatnoProject<any>> {
     private mData: ClipboardData | null;
 
     /**
@@ -29,9 +29,9 @@ export class PotatnoClipboard<TProjectType extends PotatnoProjectType> {
      *
      * @param pSelectedNodes - The nodes to copy.
      */
-    public copy(pSelectedNodes: ReadonlySet<PotatnoDocumentNode<TProjectType>>): void {
-        const lNodes: Array<PotatnoDocumentNode<TProjectType>> = [];
-        const lNodeIndexMap: Map<PotatnoDocumentNode<TProjectType>, number> = new Map();
+    public copy(pSelectedNodes: ReadonlySet<PotatnoDocumentNode<TProject>>): void {
+        const lNodes: Array<PotatnoDocumentNode<TProject>> = [];
+        const lNodeIndexMap: Map<PotatnoDocumentNode<TProject>, number> = new Map();
 
         for (const lNode of pSelectedNodes) {
             if (!lNode.isSystem) {
@@ -94,12 +94,12 @@ export class PotatnoClipboard<TProjectType extends PotatnoProjectType> {
      *
      * @returns Array of the newly created nodes, or an empty array if nothing was pasted.
      */
-    public paste(pFunction: PotatnoDocumentFunction<TProjectType>, pDocument: PotatnoDocument<TProjectType>, pOffsetX: number, pOffsetY: number): Array<PotatnoDocumentNode<TProjectType>> {
+    public paste(pFunction: PotatnoDocumentFunction<TProject>, pDocument: PotatnoDocument<TProject>, pOffsetX: number, pOffsetY: number): Array<PotatnoDocumentNode<TProject>> {
         if (!this.mData) {
             return [];
         }
 
-        const lCreated: Array<PotatnoDocumentNode<TProjectType>> = [];
+        const lCreated: Array<PotatnoDocumentNode<TProject>> = [];
 
         for (const lNodeData of this.mData.nodes) {
             const lDefinition = pFunction.project.nodeDefinitions.get(lNodeData.definitionId)

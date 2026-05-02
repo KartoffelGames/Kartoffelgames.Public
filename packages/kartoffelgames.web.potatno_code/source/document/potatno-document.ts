@@ -1,6 +1,5 @@
 import { Exception } from "@kartoffelgames/core";
 import { PotatnoFunctionNodeDefinition } from "../project/node_definition/potatno-function-node-definition.ts";
-import { PotatnoProjectType } from "../project/potatno-project-types-definition.ts";
 import { PotatnoProject } from "../project/potatno-project.ts";
 import type { PotatnoDocumentFunction } from './potatno-document-function.ts';
 import type { PotatnoDocumentPortValidationError } from './potatno-document-port.ts';
@@ -9,15 +8,15 @@ import type { PotatnoDocumentPortValidationError } from './potatno-document-port
  * Represents the mutable document state of a PotatnoCode file.
  * Contains all functions and their graphs.
  */
-export class PotatnoDocument<TProjectType extends PotatnoProjectType> {
-    private readonly mFunctions: Set<PotatnoDocumentFunction<TProjectType>>;
-    private readonly mFunctionNodeDefinitions: Map<string, PotatnoFunctionNodeDefinition<TProjectType>>;
-    private readonly mProject: PotatnoProject<TProjectType>;
+export class PotatnoDocument<TProject extends PotatnoProject<any>> {
+    private readonly mFunctions: Set<PotatnoDocumentFunction<TProject>>;
+    private readonly mFunctionNodeDefinitions: Map<string, PotatnoFunctionNodeDefinition<TProject>>;
+    private readonly mProject: TProject;
 
     /**
      * Get the read-only set of all functions in this file.
      */
-    public get functions(): ReadonlySet<PotatnoDocumentFunction<TProjectType>> {
+    public get functions(): ReadonlySet<PotatnoDocumentFunction<TProject>> {
         return this.mFunctions;
     }
 
@@ -26,24 +25,24 @@ export class PotatnoDocument<TProjectType extends PotatnoProjectType> {
      * Keyed by function id. Used by the code generator and editor to resolve
      * user-function call nodes at the document level.
      */
-    public get functionNodeDefinitions(): ReadonlyMap<string, PotatnoFunctionNodeDefinition<TProjectType>> {
+    public get functionNodeDefinitions(): ReadonlyMap<string, PotatnoFunctionNodeDefinition<TProject>> {
         return this.mFunctionNodeDefinitions;
     }
 
     /**
      * Get the project this document belongs to.
      */
-    public get project(): PotatnoProject<TProjectType> {
+    public get project(): TProject {
         return this.mProject;
     }
 
     /**
      * Create an empty code file with no functions.
      */
-    public constructor(pProject: PotatnoProject<TProjectType>) {
+    public constructor(pProject: TProject) {
         this.mProject = pProject;
-        this.mFunctions = new Set<PotatnoDocumentFunction<TProjectType>>();
-        this.mFunctionNodeDefinitions = new Map<string, PotatnoFunctionNodeDefinition<TProjectType>>();
+        this.mFunctions = new Set<PotatnoDocumentFunction<TProject>>();
+        this.mFunctionNodeDefinitions = new Map<string, PotatnoFunctionNodeDefinition<TProject>>();
     }
 
     /**
@@ -53,7 +52,7 @@ export class PotatnoDocument<TProjectType extends PotatnoProjectType> {
      *
      * @param pFunction - The function to add.
      */
-    public addFunction(pFunction: PotatnoDocumentFunction<TProjectType>): void {
+    public addFunction(pFunction: PotatnoDocumentFunction<TProject>): void {
         this.mFunctions.add(pFunction);
         this.mFunctionNodeDefinitions.set(pFunction.id, new PotatnoFunctionNodeDefinition(pFunction));
     }
@@ -66,7 +65,7 @@ export class PotatnoDocument<TProjectType extends PotatnoProjectType> {
      *
      * @returns True if the function was removed, false otherwise.
      */
-    public removeFunction(pFunction: PotatnoDocumentFunction<TProjectType>): boolean {
+    public removeFunction(pFunction: PotatnoDocumentFunction<TProject>): boolean {
         if (!this.mFunctions.has(pFunction)) {
             return false;
         }
@@ -83,8 +82,8 @@ export class PotatnoDocument<TProjectType extends PotatnoProjectType> {
     /**
      * Validate all functions in this document and return any errors found.
      */
-    public validate(): Array<PotatnoDocumentPortValidationError<TProjectType>> {
-        const lErrors: Array<PotatnoDocumentPortValidationError<TProjectType>> = [];
+    public validate(): Array<PotatnoDocumentPortValidationError<TProject>> {
+        const lErrors: Array<PotatnoDocumentPortValidationError<TProject>> = [];
 
         for (const lFunction of this.mFunctions) {
             lErrors.push(...lFunction.validate());

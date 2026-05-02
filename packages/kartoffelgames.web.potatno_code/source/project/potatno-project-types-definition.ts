@@ -1,4 +1,6 @@
-export class PotatnoProjectTypesDefinition<TTypeName extends PotatnoProjectType> {
+import { PotatnoProject } from "./potatno-project.ts";
+
+export class PotatnoProjectTypesDefinition<TTypeName extends string> {
     private readonly mTypes: Map<TTypeName, PotatnoProjectTypeDefinition<TTypeName>>;
 
     /**
@@ -6,6 +8,13 @@ export class PotatnoProjectTypesDefinition<TTypeName extends PotatnoProjectType>
      */
     public get types(): ReadonlyMap<TTypeName, PotatnoProjectTypeDefinition<TTypeName>> {
         return this.mTypes;
+    }
+
+    /**
+     * Get all registered type names as a readonly array.
+     */
+    public get typeNames(): ReadonlyArray<TTypeName> {
+        return Array.from(this.mTypes.keys());
     }
 
     public constructor(pParameters: PotatnoProjectTypeDefinitionConfiguration<TTypeName>) {
@@ -29,13 +38,13 @@ export class PotatnoProjectTypesDefinition<TTypeName extends PotatnoProjectType>
     }
 }
 
-type PotatnoProjectTypeDefinitionConfiguration<TTypeName extends PotatnoProjectType> = Record<TTypeName, PotatnoProjectTypesItem<TTypeName>>;
+type PotatnoProjectTypeDefinitionConfiguration<TTypeName extends string> = Record<TTypeName, PotatnoProjectTypesItem<TTypeName>>;
 
 /**
  * Potatno project valid types.
  * Defined by a type name and a default value of that type.
  */
-type PotatnoProjectTypesItem<TTypeName extends PotatnoProjectType> = {
+type PotatnoProjectTypesItem<TTypeName extends string> = {
     /**
      * A default value for this type.
      * The string represents the default string values for the types inputs.
@@ -64,11 +73,8 @@ type PotatnoProjectTypeInputElement = {
     type: 'string' | 'number' | 'boolean';
 };
 
-export type PotatnoProjectTypeDefinition<TTypeName extends PotatnoProjectType> = {
+export type PotatnoProjectTypeDefinition<TTypeName extends string> = {
     name: TTypeName;
 } & PotatnoProjectTypesItem<TTypeName>;
 
-/**
- * The union type for all project type names.
- */
-export type PotatnoProjectType = string;
+export type PotatnoProjectType<TProject extends PotatnoProject<any>> = TProject['types']['typeNames'][number];

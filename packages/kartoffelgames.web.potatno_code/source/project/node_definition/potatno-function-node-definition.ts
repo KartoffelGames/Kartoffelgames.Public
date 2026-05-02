@@ -1,6 +1,7 @@
 import { PotatnoDocumentFunction } from "../../document/potatno-document-function.ts";
 import { PotatnoPortDefinitionConfiguration } from "../potatno-port-definition.ts";
 import { PotatnoProjectType } from "../potatno-project-types-definition.ts";
+import { PotatnoProject } from "../potatno-project.ts";
 import { PotatnoNodeDefinition } from "./potatno-node-definition.ts";
 
 /**
@@ -15,20 +16,20 @@ import { PotatnoNodeDefinition } from "./potatno-node-definition.ts";
  * The stable id comes from PotatnoDocumentFunction.id, ensuring that nodes
  * referencing this definition keep their identity across sessions.
  */
-export class PotatnoFunctionNodeDefinition<TTypes extends PotatnoProjectType> extends PotatnoNodeDefinition<TTypes> {
+export class PotatnoFunctionNodeDefinition<TProject extends PotatnoProject<any>> extends PotatnoNodeDefinition<TProject> {
     /**
      * Constructor.
      *
      * @param pFunction - The document function this definition mirrors.
      */
-    public constructor(pFunction: PotatnoDocumentFunction<TTypes>) {
-        const lInputPortGenerator = (): Array<PotatnoPortDefinitionConfiguration<TTypes>> => {
+    public constructor(pFunction: PotatnoDocumentFunction<TProject>) {
+        const lInputPortGenerator = (): Array<PotatnoPortDefinitionConfiguration<TProject>> => {
             // Generate ports definitions based on the function inputs.
-            const lPorts: Array<PotatnoPortDefinitionConfiguration<TTypes>> = pFunction.inputs.map((pPort) => {
+            const lPorts: Array<PotatnoPortDefinitionConfiguration<TProject>> = pFunction.inputs.map((pPort) => {
                 return {
                     name: pPort.name,
                     portType: 'value',
-                    dataType: pPort.dataType as TTypes
+                    dataType: pPort.dataType as PotatnoProjectType<TProject>
                 };
             });
 
@@ -41,13 +42,13 @@ export class PotatnoFunctionNodeDefinition<TTypes extends PotatnoProjectType> ex
             return lPorts;
         };
 
-        const lOutputPortGenerator = (): Array<PotatnoPortDefinitionConfiguration<TTypes>> => {
+        const lOutputPortGenerator = (): Array<PotatnoPortDefinitionConfiguration<TProject>> => {
             // Generate ports definitions based on the function outputs.
-            const lPorts: Array<PotatnoPortDefinitionConfiguration<TTypes>> = pFunction.outputs.map((pPort) => {
+            const lPorts: Array<PotatnoPortDefinitionConfiguration<TProject>> = pFunction.outputs.map((pPort) => {
                 return {
                     name: pPort.name,
                     portType: 'value',
-                    dataType: pPort.dataType as TTypes
+                    dataType: pPort.dataType as PotatnoProjectType<TProject>
                 };
             });
 

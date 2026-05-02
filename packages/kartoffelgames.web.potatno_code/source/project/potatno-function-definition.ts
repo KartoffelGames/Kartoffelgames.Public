@@ -1,16 +1,16 @@
 import { PotatnoCodeFunction } from "../parser/potatno-code-function.ts";
 import { PotatnoNodeDefinition, PotatnoNodeDefinitionGeneratorData } from "./node_definition/potatno-node-definition.ts";
-import { PotatnoProjectType } from "./potatno-project-types-definition.ts";
+import { PotatnoProject } from "./potatno-project.ts";
 
 /**
  * Definition of a entry point blueprint.
  * Of of these blueprints eighter the main entry point or secondary user created entry points can be instantiated in the editor.
  */
-export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectType> {
+export class PotatnoFunctionDefinition<TProject extends PotatnoProject<any>> {
     private readonly mId: string;
     private readonly mPreviewGenerator: PotatnoFunctionDefinitionPreview | null;
     private readonly mStatics: PotatnoFunctionDefinitionStatics;
-    private readonly mNodesProvider: PotatnoFunctionDefinitionNodeProvider<TTypes>;
+    private readonly mNodesProvider: PotatnoFunctionDefinitionNodeProvider<TProject>;
     private readonly mCodeGenerator: PotatnoFunctionDefinitionGenerator;
 
     /**
@@ -31,35 +31,35 @@ export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectType> {
     /**
      * List of entry-point-exclusive nodes.
      */
-    public get nodes(): ReadonlyArray<PotatnoNodeDefinition<TTypes>> {
+    public get nodes(): ReadonlyArray<PotatnoNodeDefinition<TProject>> {
         if (this.mNodesProvider.dynamic) {
             // Create a temporary array to collect the dynamic nodes provided by the function definition.
-            const lDynamicNodes: Array<PotatnoNodeDefinition<TTypes>> = new Array<PotatnoNodeDefinition<TTypes>>();
-            this.mNodesProvider.dynamic((node: PotatnoNodeDefinition<TTypes>) => {
+            const lDynamicNodes: Array<PotatnoNodeDefinition<TProject>> = new Array<PotatnoNodeDefinition<TProject>>();
+            this.mNodesProvider.dynamic((node: PotatnoNodeDefinition<TProject>) => {
                 lDynamicNodes.push(node);
             }, this);
 
             return lDynamicNodes;
         }
 
-        return new Array<PotatnoNodeDefinition<TTypes>>();
+        return new Array<PotatnoNodeDefinition<TProject>>();
     }
 
     /**
      * List of prefilled nodes that are generated for this entry point and cannot be deleted by the user.
      */
-    public get prefilledNodes(): ReadonlyArray<PotatnoNodeDefinition<TTypes>> {
+    public get prefilledNodes(): ReadonlyArray<PotatnoNodeDefinition<TProject>> {
         if (this.mNodesProvider.prefilled) {
             // Create a temporary array to collect the prefilled nodes provided by the function definition.
-            const lPrefilledNodes: Array<PotatnoNodeDefinition<TTypes>> = new Array<PotatnoNodeDefinition<TTypes>>();
-            this.mNodesProvider.prefilled((node: PotatnoNodeDefinition<TTypes>) => {
+            const lPrefilledNodes: Array<PotatnoNodeDefinition<TProject>> = new Array<PotatnoNodeDefinition<TProject>>();
+            this.mNodesProvider.prefilled((node: PotatnoNodeDefinition<TProject>) => {
                 lPrefilledNodes.push(node);
             }, this);
 
             return lPrefilledNodes;
         }
 
-        return new Array<PotatnoNodeDefinition<TTypes>>();
+        return new Array<PotatnoNodeDefinition<TProject>>();
     }
 
     /**
@@ -82,7 +82,7 @@ export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectType> {
      * 
      * @param pParameters - Parameters defining the entry point's id, label, static nodes, dynamic nodes, and static settings.
      */
-    public constructor(pParameters: PotatnoFunctionDefinitionConstructorParameter<TTypes>) {
+    public constructor(pParameters: PotatnoFunctionDefinitionConstructorParameter<TProject>) {
         this.mId = pParameters.id;
 
         // Set exclusive nodes defined for this entry point that are preset in the editor.
@@ -99,10 +99,10 @@ export class PotatnoFunctionDefinition<TTypes extends PotatnoProjectType> {
     }
 }
 
-type PotatnoFunctionDefinitionConstructorParameter<TTypes extends PotatnoProjectType> = {
+type PotatnoFunctionDefinitionConstructorParameter<TProject extends PotatnoProject<any>> = {
     id: string;
     statics: PotatnoFunctionDefinitionStatics | number;
-    nodes: PotatnoFunctionDefinitionNodeProvider<TTypes>;
+    nodes: PotatnoFunctionDefinitionNodeProvider<TProject>;
     generator: {
         code: PotatnoFunctionDefinitionGenerator;
         preview?: PotatnoFunctionDefinitionPreview;
@@ -129,16 +129,16 @@ export type PotatnoFunctionDefinitionGenerator = {
 /**
  * Node provider for a function definition, providing a dynamic set of nodes.
  */
-export type PotatnoFunctionDefinitionNodeProvider<TTypes extends PotatnoProjectType> = {
+export type PotatnoFunctionDefinitionNodeProvider<TProject extends PotatnoProject<any>> = {
     /**
      * Nodes that are fixed for this entry point, meaning they are always generated and cannot be deleted by the user.
      */
-    prefilled?: (pAddNode: (node: PotatnoNodeDefinition<TTypes>) => void, pFunction: PotatnoFunctionDefinition<TTypes>) => void;
+    prefilled?: (pAddNode: (node: PotatnoNodeDefinition<TProject>) => void, pFunction: PotatnoFunctionDefinition<TProject>) => void;
 
     /**
      * Nodes that the user can create and delete on its own N times. 
      */
-    dynamic?: (pAddNode: (node: PotatnoNodeDefinition<TTypes>) => void, pFunction: PotatnoFunctionDefinition<TTypes>) => void;
+    dynamic?: (pAddNode: (node: PotatnoNodeDefinition<TProject>) => void, pFunction: PotatnoFunctionDefinition<TProject>) => void;
 };
 
 /**

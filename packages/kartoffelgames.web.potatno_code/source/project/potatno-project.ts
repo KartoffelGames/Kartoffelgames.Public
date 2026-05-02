@@ -1,53 +1,53 @@
-import type { PotatnoFunctionDefinition } from './potatno-function-definition.ts';
-import { PotatnoStaticNodeDefinition } from "./node_definition/potatno-static-node-definition.ts";
-import { PotatnoProjectType, PotatnoProjectTypesDefinition } from "./potatno-project-types-definition.ts";
 import { PotatnoNodeDefinition } from "./node_definition/potatno-node-definition.ts";
+import { PotatnoStaticNodeDefinition } from "./node_definition/potatno-static-node-definition.ts";
+import type { PotatnoFunctionDefinition } from './potatno-function-definition.ts';
+import { PotatnoProjectTypesDefinition } from "./potatno-project-types-definition.ts";
 
 /**
  * Project-level configuration for a PotatnoCode editor instance.
  * Contains all registered node types, main function definitions, imports,
  * and callback configurations. Does not hold document state.
  */
-export class PotatnoProject<TProjectType extends PotatnoProjectType> {
-    private readonly mEntryPoint: PotatnoFunctionDefinition<TProjectType>;
-    private readonly mImports: Array<PotatnoProjectImportDefinition<TProjectType>>;
-    private readonly mNodeDefinitions: Map<string, PotatnoNodeDefinition<TProjectType>>;
-    private readonly mTypes: PotatnoProjectTypesDefinition<TProjectType>;
-    private readonly mUserFunctions: Map<string, PotatnoFunctionDefinition<TProjectType>>;
+export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<string>> {
+    private readonly mEntryPoint: PotatnoFunctionDefinition<this>;
+    private readonly mImports: Array<PotatnoProjectImportDefinition<this>>;
+    private readonly mNodeDefinitions: Map<string, PotatnoNodeDefinition<this>>;
+    private readonly mTypes: TProjectType;
+    private readonly mUserFunctions: Map<string, PotatnoFunctionDefinition<this>>;
 
     /**
      * Get the registered entry point definition.
      * The main entry point to start the code generation from.
      */
-    public get entryPoint(): PotatnoFunctionDefinition<TProjectType> {
+    public get entryPoint(): PotatnoFunctionDefinition<this> {
         return this.mEntryPoint;
     }
 
     /**
      * Get the list of registered import definitions.
      */
-    public get imports(): ReadonlyArray<PotatnoProjectImportDefinition<TProjectType>> {
+    public get imports(): ReadonlyArray<PotatnoProjectImportDefinition<this>> {
         return this.mImports;
     }
 
     /**
      * Get the map of registered node definitions keyed by node definitions id.
      */
-    public get nodeDefinitions(): ReadonlyMap<string, PotatnoNodeDefinition<TProjectType>> {
+    public get nodeDefinitions(): ReadonlyMap<string, PotatnoNodeDefinition<this>> {
         return this.mNodeDefinitions;
     }
 
     /**
      * Get the project type configuration, containing the valid type identifiers and their default values.
      */
-    public get types(): PotatnoProjectTypesDefinition<TProjectType> {
+    public get types(): TProjectType {
         return this.mTypes;
     }
 
     /**
      * Get the map of registered user function definitions.
      */
-    public get userFunctions(): ReadonlyMap<string, PotatnoFunctionDefinition<TProjectType>> {
+    public get userFunctions(): ReadonlyMap<string, PotatnoFunctionDefinition<this>> {
         return this.mUserFunctions;
     }
 
@@ -56,13 +56,13 @@ export class PotatnoProject<TProjectType extends PotatnoProjectType> {
      */
     public constructor(pParameter: PotatnoProjectConstructorParameter<TProjectType>) {
         // Init parameter.
-        this.mEntryPoint = pParameter.entryPoint;
+        this.mEntryPoint = pParameter.entryPoint as unknown as PotatnoFunctionDefinition<this>;
         this.mTypes = pParameter.types;
         
         // Initialize empty arrays and maps for project definitions.
-        this.mNodeDefinitions = new Map<string, PotatnoStaticNodeDefinition<TProjectType>>();
-        this.mImports = new Array<PotatnoProjectImportDefinition<TProjectType>>();   
-        this.mUserFunctions = new Map<string, PotatnoFunctionDefinition<TProjectType>>();
+        this.mNodeDefinitions = new Map<string, PotatnoStaticNodeDefinition<this>>();
+        this.mImports = new Array<PotatnoProjectImportDefinition<this>>();   
+        this.mUserFunctions = new Map<string, PotatnoFunctionDefinition<this>>();
     }
 
     /**
@@ -70,7 +70,7 @@ export class PotatnoProject<TProjectType extends PotatnoProjectType> {
      * 
      * @param pDefinition - The import definition to register. Must have a unique name and contain valid node definitions.
      */
-    public addImport(pDefinition: PotatnoProjectImportDefinition<TProjectType>): void {
+    public addImport(pDefinition: PotatnoProjectImportDefinition<this>): void {
         this.mImports.push(pDefinition);
     }
 
@@ -79,7 +79,7 @@ export class PotatnoProject<TProjectType extends PotatnoProjectType> {
      * 
      * @param pDefinition - The node definition to register. Must have a unique id and use valid type identifiers for its ports.
      */
-    public addNodeDefinition(pDefinition: PotatnoStaticNodeDefinition<TProjectType>): void {
+    public addNodeDefinition(pDefinition: PotatnoStaticNodeDefinition<this>): void {
         this.mNodeDefinitions.set(pDefinition.id, pDefinition);
     }
 
@@ -88,21 +88,21 @@ export class PotatnoProject<TProjectType extends PotatnoProjectType> {
      * 
      * @param pDefinition - The function definition to register. 
      */
-    public addUserFunction(pDefinition: PotatnoFunctionDefinition<TProjectType>): void {
+    public addUserFunction(pDefinition: PotatnoFunctionDefinition<this>): void {
         this.mUserFunctions.set(pDefinition.id, pDefinition);
     }
 }
 
-type PotatnoProjectConstructorParameter<TTypes extends PotatnoProjectType> = {
-    types: PotatnoProjectTypesDefinition<TTypes>;
-    entryPoint: PotatnoFunctionDefinition<TTypes>;
+type PotatnoProjectConstructorParameter<TProjectType extends PotatnoProjectTypesDefinition<string>> = {
+    types: TProjectType;
+    entryPoint: PotatnoFunctionDefinition<PotatnoProject<TProjectType>>;
 };
 
 /**
  * Definition of an import group. When a function enables this import,
  * the contained node definitions become available in that function's node library.
  */
-export type PotatnoProjectImportDefinition<TType extends PotatnoProjectType> = {
+export type PotatnoProjectImportDefinition<TProject extends PotatnoProject<any>> = {
     /** 
      * Display name of the import group. 
      */
@@ -111,5 +111,5 @@ export type PotatnoProjectImportDefinition<TType extends PotatnoProjectType> = {
     /**
      * Node definitions that become available when this import is enabled. 
      */
-    readonly nodes: Array<PotatnoStaticNodeDefinition<TType>>;
+    readonly nodes: Array<PotatnoStaticNodeDefinition<TProject>>;
 };

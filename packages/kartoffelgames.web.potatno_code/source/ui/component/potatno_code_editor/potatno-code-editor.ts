@@ -1,26 +1,26 @@
-import { PwbChild, PwbComponent, PwbExport, ComponentState, type ComponentEvent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
-import { PotatnoDocument } from '../../../document/potatno-document.ts';
+import { ComponentState, PwbChild, PwbComponent, PwbExport, type ComponentEvent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
+import { PotatnoDocumentFunction as PDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
+import { PotatnoDocument } from '../../../document/potatno-document.ts';
 import { NodeCategory } from '../../../parser/node/node-category.enum.ts';
-import { PotatnoDeserializer } from '../../../serialization/potatno-deserializer.ts';
 import { PotatnoCodeGenerator, type FunctionCodeWithIntermediates } from '../../../parser/potatno-code-generator.ts';
-import { PotatnoSerializer } from '../../../serialization/potatno-serializer.ts';
-import type { PotatnoCodeFileSerializationResult } from '../../../serialization/potatno-serialization.type.ts';
-import { PotatnoDocumentFunction as PDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoProject } from '../../../project/potatno-project.ts';
-import type { PotatnoProjectType } from '../../../project/potatno-project-types-definition.ts';
+import { PotatnoDeserializer } from '../../../serialization/potatno-deserializer.ts';
+import type { PotatnoCodeFileSerializationResult } from '../../../serialization/potatno-serialization.type.ts';
+import { PotatnoSerializer } from '../../../serialization/potatno-serializer.ts';
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import { PotatnoCanvasRenderer } from '../../potatno-canvas-renderer.ts';
 import { PotatnoClipboard } from '../../potatno-clipboard.ts';
 import { PotatnoHistory } from '../../potatno-history.ts';
+import type { CommentChangeDetail, DirectValueChangeDetail, OpenFunctionDetail, ResizeStartDetail } from '../potatno_node_component/potatno-node-component.ts';
 import type { PortInteractionDetail } from '../potatno_port/potatno-port.ts';
-import type { CommentChangeDetail, DirectValueChangeDetail, NodeDragStartDetail, OpenFunctionDetail, ResizeStartDetail } from '../potatno_node_component/potatno-node-component.ts';
 import editorCss from './potatno-code-editor.css' with { type: 'text' };
 import editorTemplate from './potatno-code-editor.html' with { type: 'text' };
 
 // Import child components to ensure they're registered.
+import { PotatnoFunctionDefinitionStatics } from "../../../project/potatno-function-definition.ts";
 import '../potatno_function_list/potatno-function-list.ts';
 import '../potatno_node_component/potatno-node-component.ts';
 import '../potatno_node_library/potatno-node-library.ts';
@@ -31,7 +31,6 @@ import '../potatno_preview/potatno-preview.ts';
 import '../potatno_resize_handle/potatno-resize-handle.ts';
 import '../potatno_search_input/potatno-search-input.ts';
 import '../potatno_tabs/potatno-tabs.ts';
-import { PotatnoFunctionDefinitionStatics } from "../../../project/potatno-function-definition.ts";
 
 /**
  * Main editor component for the potatno-code visual programming environment.
@@ -41,12 +40,12 @@ import { PotatnoFunctionDefinitionStatics } from "../../../project/potatno-funct
     template: editorTemplate,
     style: editorCss,
 })
-export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implements IComponentOnConnect, IComponentOnDeconstruct {
-    private mProject: PotatnoProject<TProjectType> | undefined;
-    private mFile: PotatnoDocument<TProjectType> | undefined;
+export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements IComponentOnConnect, IComponentOnDeconstruct {
+    private mProject: TProject | undefined;
+    private mFile: PotatnoDocument<TProject> | undefined;
     private mActiveFunctionId: string = '';
-    private mSelectedNodes: Set<PotatnoDocumentNode<TProjectType>> = new Set();
-    private mInternals!: EditorInternals<TProjectType>;
+    private mSelectedNodes: Set<PotatnoDocumentNode<TProject>> = new Set();
+    private mInternals!: EditorInternals<TProject>;
     private mSelectionBoxScreen: { x1: number; y1: number; x2: number; y2: number; };
     private mHistoryDebounceTimer: number = 0;
     private mPreviewDebounceTimer: number = 0;
@@ -55,7 +54,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
     private mResizeState: { panel: 'left' | 'right'; startX: number; startWidth: number; } | null;
     private mResizeMoveHandler: ((e: PointerEvent) => void) | null;
     private mResizeUpHandler: ((e: PointerEvent) => void) | null;
-    private mConnectionRegistry: Map<string, { sourcePort: PotatnoDocumentPort<TProjectType>; targetPort: PotatnoDocumentPort<TProjectType>; }> = new Map();
+    private mConnectionRegistry: Map<string, { sourcePort: PotatnoDocumentPort<TProject>; targetPort: PotatnoDocumentPort<TProject>; }> = new Map();
 
     @ComponentState.state({ complexValue: true })
     private accessor mCachedData: CachedViewData;
@@ -83,7 +82,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
 
     // ── Private computed property ────────────────────────────────────────
 
-    private get activeFunction(): PotatnoDocumentFunction<TProjectType> | null {
+    private get activeFunction(): PotatnoDocumentFunction<TProject> | null {
         if (!this.mFile) {
             return null;
         }
@@ -152,7 +151,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
     }
 
     public get userFunctionDefinitions(): Array<{ id: string; }> {
-        const lProject: PotatnoProject<TProjectType> | undefined = this.mProject;
+        const lProject: TProject | undefined = this.mProject;
         if (!lProject) {
             return [];
         }
@@ -191,7 +190,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
         return this.mCachedData.availableTypes;
     }
 
-    public getPreviewElementForNode(pNode: PotatnoDocumentNode<TProjectType>): HTMLElement | null {
+    public getPreviewElementForNode(pNode: PotatnoDocumentNode<TProject>): HTMLElement | null {
         return this.mInternals.previewElements.get(pNode) ?? null;
     }
 
@@ -221,13 +220,13 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
     // ── Public API ───────────────────────────────────────────────────────
 
     @PwbExport
-    public set project(pProject: PotatnoProject<TProjectType>) {
+    public set project(pProject: TProject) {
         this.mProject = pProject;
         this.rebuildCachedData();
     }
 
     @PwbExport
-    public set file(pFile: PotatnoDocument<TProjectType> | null) {
+    public set file(pFile: PotatnoDocument<TProject> | null) {
         if (pFile) {
             this.mFile = pFile;
             const lProject = this.mProject;
@@ -276,7 +275,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
         if (!this.mFile) {
             return null;
         }
-        const lSerializer = new PotatnoSerializer<TProjectType>();
+        const lSerializer = new PotatnoSerializer<TProject>();
         return lSerializer.serialize(this.mFile);
     }
 
@@ -660,7 +659,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
 
     // ── Node Events ──────────────────────────────────────────────────────
 
-    public onNodePointerDown(pEvent: PointerEvent, pNode: PotatnoDocumentNode<TProjectType>): void {
+    public onNodePointerDown(pEvent: PointerEvent, pNode: PotatnoDocumentNode<TProject>): void {
         // Skip if a port element is in the composed path.
         for (const lEl of pEvent.composedPath()) {
             if ((lEl as HTMLElement).tagName?.toLowerCase() === 'potatno-port') {
@@ -689,7 +688,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
 
         // Build origins for all selected nodes.
         const lGS = this.mInternals.interaction.gridSize;
-        const lOrigins = new Map<PotatnoDocumentNode<TProjectType>, { originX: number; originY: number; }>();
+        const lOrigins = new Map<PotatnoDocumentNode<TProject>, { originX: number; originY: number; }>();
 
         for (const lNode of this.mSelectedNodes) {
             lOrigins.set(lNode, {
@@ -849,13 +848,13 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
 
     // ── Private helpers ───────────────────────────────────────────────────
 
-    private initializeMainFunctions(pFile: PotatnoDocument<TProjectType>, pProject: PotatnoProject<TProjectType>): void {
+    private initializeMainFunctions(pFile: PotatnoDocument<TProject>, pProject: TProject): void {
         const lEntryPoint = pProject.entryPoint;
         if (!lEntryPoint) {
             return;
         }
 
-        const lFunc = new PDocumentFunction(pProject as PotatnoProject<TProjectType>, lEntryPoint, crypto.randomUUID(), 'Main', true);
+        const lFunc = new PDocumentFunction(pProject as TProject, lEntryPoint, crypto.randomUUID(), 'Main', true);
 
         lEntryPoint.prefilledNodes.forEach((lStaticDef, lIdx) => {
             lFunc.newNode(lStaticDef, { x: 2 + lIdx * 12, y: 2, width: 10, height: 4 }, true);
@@ -992,7 +991,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
         this.mInternals.renderer.renderConnections(this.svgLayer, lConnectionData);
     }
 
-    private getPortPosition(pPort: PotatnoDocumentPort<TProjectType>): { x: number; y: number; } {
+    private getPortPosition(pPort: PotatnoDocumentPort<TProject>): { x: number; y: number; } {
         const lNode = pPort.node;
         const lGS = this.mInternals.interaction.gridSize;
         const lNodeX = lNode.transformation.x * lGS;
@@ -1036,7 +1035,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
         if (!this.mFile) {
             return;
         }
-        const lSerializer = new PotatnoSerializer<TProjectType>();
+        const lSerializer = new PotatnoSerializer<TProject>();
         const lSnapshot = lSerializer.serialize(this.mFile);
         this.mInternals.history.push(lSnapshot);
     }
@@ -1081,7 +1080,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
         lInternals.previewDirty = false;
 
         // Find the system function (entry point).
-        let lEntryFunc: PotatnoDocumentFunction<TProjectType> | undefined;
+        let lEntryFunc: PotatnoDocumentFunction<TProject> | undefined;
         for (const lFunc of lFile.functions) {
             if (lFunc.isSystem) {
                 lEntryFunc = lFunc;
@@ -1094,7 +1093,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
         }
 
         // Collect preview nodes.
-        const lPreviewNodes = new Set<PotatnoDocumentNode<TProjectType>>();
+        const lPreviewNodes = new Set<PotatnoDocumentNode<TProject>>();
         for (const lNode of lEntryFunc.nodes) {
             if (lProject.nodeDefinitions.get(lNode.definition.id)?.preview) {
                 lPreviewNodes.add(lNode);
@@ -1131,7 +1130,7 @@ export class PotatnoCodeEditor<TProjectType extends PotatnoProjectType> implemen
         // Generate code with intermediates.
         let lCodeResult: FunctionCodeWithIntermediates;
         try {
-            const lGenerator = new PotatnoCodeGenerator<TProjectType>(lProject);
+            const lGenerator = new PotatnoCodeGenerator<TProject>(lProject);
             lCodeResult = lGenerator.generateFunctionCodeWithIntermediates(lEntryFunc, lPreviewNodes);
         } catch (pError) {
             console.error('[Preview] Code generation failed:', pError);
@@ -1381,9 +1380,9 @@ interface CachedViewData {
     visibleNodes: Array<NodeViewState>;
 }
 
-interface EditorInternals<TProjectType extends PotatnoProjectType> {
+interface EditorInternals<TProject extends PotatnoProject<any>> {
     history: PotatnoHistory;
-    clipboard: PotatnoClipboard<TProjectType>;
+    clipboard: PotatnoClipboard<TProject>;
     interaction: PotatnoCanvasInteraction;
     renderer: PotatnoCanvasRenderer;
     hoveredPort: { node: PotatnoDocumentNode<any>; port: PotatnoDocumentPort<any>; } | null;

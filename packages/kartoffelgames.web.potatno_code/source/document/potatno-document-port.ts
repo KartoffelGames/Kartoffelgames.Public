@@ -1,26 +1,26 @@
 import { Exception } from "@kartoffelgames/core";
 import { PotatnoPortDefinitionDirection, PotatnoPortDefinitionType } from "../project/potatno-port-definition.ts";
-import { PotatnoDocumentNode } from "./potatno-document-node.ts";
-import { PotatnoProject } from "../project/potatno-project.ts";
 import { PotatnoProjectType } from "../project/potatno-project-types-definition.ts";
+import { PotatnoProject } from "../project/potatno-project.ts";
+import { PotatnoDocumentNode } from "./potatno-document-node.ts";
 
 /**
  * A data port instance on a node.
  */
-export class PotatnoDocumentPort<TProjectType extends PotatnoProjectType> {
-    private readonly mConnectedPorts: Set<PotatnoDocumentPort<TProjectType>>;
+export class PotatnoDocumentPort<TProject extends PotatnoProject<any>> {
+    private readonly mConnectedPorts: Set<PotatnoDocumentPort<TProject>>;
     private readonly mDirection: PotatnoPortDefinitionDirection;
     private readonly mName: string;
-    private readonly mValueType: TProjectType | null;
+    private readonly mValueType: PotatnoProjectType<TProject> | null;
     private readonly mPortType: PotatnoPortDefinitionType;
-    private readonly mNode: PotatnoDocumentNode<TProjectType>;
+    private readonly mNode: PotatnoDocumentNode<TProject>;
     private readonly mDirectValue: Array<string>;
-    private readonly mProject: PotatnoProject<TProjectType>;
+    private readonly mProject: TProject;
 
     /**
      * The connected port.
      */
-    public get connectedPorts(): Set<PotatnoDocumentPort<TProjectType>> {
+    public get connectedPorts(): Set<PotatnoDocumentPort<TProject>> {
         return this.mConnectedPorts;
     }
 
@@ -48,7 +48,7 @@ export class PotatnoDocumentPort<TProjectType extends PotatnoProjectType> {
     /**
      * Get the node this port belongs to.
      */
-    public get node(): PotatnoDocumentNode<TProjectType> {
+    public get node(): PotatnoDocumentNode<TProject> {
         return this.mNode;
     }
 
@@ -62,14 +62,14 @@ export class PotatnoDocumentPort<TProjectType extends PotatnoProjectType> {
     /**
      * Get the project this port belongs to.
      */
-    public get project(): PotatnoProject<TProjectType> {
+    public get project(): TProject {
         return this.mProject;
     }
 
     /**
      * Get the data type of the port.
      */
-    public get type(): string {
+    public get type(): PotatnoProjectType<TProject> {
         return this.mValueType ?? '';
     }
 
@@ -81,7 +81,7 @@ export class PotatnoDocumentPort<TProjectType extends PotatnoProjectType> {
      * @param pPortType - Whether the port is a flow port or a value port.
      * @param pValueType - Data type of the port. Should be empty for flow ports and must be set for value ports.
      */
-    public constructor(pProject: PotatnoProject<TProjectType>, pNode: PotatnoDocumentNode<TProjectType>, pName: string, pDirection: PotatnoPortDefinitionDirection, pPortType: PotatnoPortDefinitionType, pValueType: TProjectType | null) {
+    public constructor(pProject: TProject, pNode: PotatnoDocumentNode<TProject>, pName: string, pDirection: PotatnoPortDefinitionDirection, pPortType: PotatnoPortDefinitionType, pValueType: PotatnoProjectType<TProject> | null) {
         // Validate port type and value type consistency.
         if (pPortType === 'flow' && pValueType !== null) {
             throw new Exception(`Flow ports cannot have a value type.`, this);
@@ -96,7 +96,7 @@ export class PotatnoDocumentPort<TProjectType extends PotatnoProjectType> {
         this.mValueType = pValueType;
         this.mDirection = pDirection;
         this.mPortType = pPortType;
-        this.mConnectedPorts = new Set<PotatnoDocumentPort<TProjectType>>();
+        this.mConnectedPorts = new Set<PotatnoDocumentPort<TProject>>();
 
         this.mDirectValue = new Array<string>();
         if (pValueType) {
@@ -111,7 +111,7 @@ export class PotatnoDocumentPort<TProjectType extends PotatnoProjectType> {
      * 
      * @param pPort - The port to connect to. 
      */
-    public connect(pPort: PotatnoDocumentPort<TProjectType>): void {
+    public connect(pPort: PotatnoDocumentPort<TProject>): void {
         // Skip if already connected.
         if (this.mConnectedPorts.has(pPort)) {
             return;
@@ -152,7 +152,7 @@ export class PotatnoDocumentPort<TProjectType extends PotatnoProjectType> {
      *
      * @param pPort - The port that should be disconnected.
      */
-    public disconnect(pPort: PotatnoDocumentPort<TProjectType>): void {
+    public disconnect(pPort: PotatnoDocumentPort<TProject>): void {
         // Skip if not connected.
         if (!this.mConnectedPorts.has(pPort)) {
             return;
@@ -189,8 +189,8 @@ export class PotatnoDocumentPort<TProjectType extends PotatnoProjectType> {
     /**
      * Validate this port and return any errors found.
      */
-    public validate(): Array<PotatnoDocumentPortValidationError<TProjectType>> {
-        const lErrors: Array<PotatnoDocumentPortValidationError<TProjectType>> = new Array<PotatnoDocumentPortValidationError<TProjectType>>();
+    public validate(): Array<PotatnoDocumentPortValidationError<TProject>> {
+        const lErrors: Array<PotatnoDocumentPortValidationError<TProject>> = new Array<PotatnoDocumentPortValidationError<TProject>>();
 
         // Output ports.
         if (this.mDirection === 'output') {
@@ -242,9 +242,9 @@ export class PotatnoDocumentPort<TProjectType extends PotatnoProjectType> {
 /**
  * A validation error for a document port.
  */
-export class PotatnoDocumentPortValidationError<TProjectType extends PotatnoProjectType> {
+export class PotatnoDocumentPortValidationError<TProject extends PotatnoProject<any>> {
     private readonly mMessage: string;
-    private readonly mPort: PotatnoDocumentPort<TProjectType>;
+    private readonly mPort: PotatnoDocumentPort<TProject>;
 
     /**
      * Get the error message describing the validation error.
@@ -256,11 +256,11 @@ export class PotatnoDocumentPortValidationError<TProjectType extends PotatnoProj
     /**
      * Get the port that caused the validation error.
      */
-    public get port(): PotatnoDocumentPort<TProjectType> {
+    public get port(): PotatnoDocumentPort<TProject> {
         return this.mPort;
     }
 
-    public constructor(pMessage: string, pPort: PotatnoDocumentPort<TProjectType>) {
+    public constructor(pMessage: string, pPort: PotatnoDocumentPort<TProject>) {
         this.mMessage = pMessage;
         this.mPort = pPort;
     }

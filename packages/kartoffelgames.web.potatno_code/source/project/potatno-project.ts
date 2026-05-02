@@ -95,7 +95,7 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
 
 type PotatnoProjectConstructorParameter<TProjectType extends PotatnoProjectTypesDefinition<string>> = {
     types: TProjectType;
-    entryPoint: PotatnoFunctionDefinition<PotatnoProject<TProjectType>>;
+    entryPoint: PotatnoFunctionDefinition<PotatnoProject<NoInfer<TProjectType>>>;
 };
 
 /**

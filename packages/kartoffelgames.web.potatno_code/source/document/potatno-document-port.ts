@@ -4,6 +4,7 @@ import { PotatnoProjectType } from "../project/potatno-project-types-definition.
 import { PotatnoProject } from "../project/potatno-project.ts";
 import { PotatnoDocumentNode } from "./potatno-document-node.ts";
 import { IPotatnoDocumentItem } from "./i-potatno-document-item.ts";
+import { PotatnoDocumentPortValidationError } from "./potatno-document.ts";
 
 /**
  * A data port instance on a node.
@@ -260,36 +261,3 @@ type PotatnoDocumentPortConstructorParameter<TProject extends PotatnoProject<any
     project: TProject,
     dataType: PotatnoProjectType<TProject> | null;
 };
-
-/**
- * A validation error for a document port.
- */
-export class PotatnoDocumentPortValidationError<TProject extends PotatnoProject<any>> {
-    private readonly mMessage: string;
-    private readonly mPort: PotatnoDocumentPort<TProject>;
-
-    /**
-     * Get the error message describing the validation error.
-     */
-    public get message(): string {
-        return this.mMessage;
-    }
-
-    /**
-     * Get the port that caused the validation error.
-     */
-    public get port(): PotatnoDocumentPort<TProject> {
-        return this.mPort;
-    }
-
-    /**
-     * Create a new validation error for a document port.
-     * 
-     * @param pMessage - The error message describing the validation error.
-     * @param pPort - The port that caused the validation error.
-     */
-    public constructor(pMessage: string, pPort: PotatnoDocumentPort<TProject>) {
-        this.mMessage = pMessage;
-        this.mPort = pPort;
-    }
-}

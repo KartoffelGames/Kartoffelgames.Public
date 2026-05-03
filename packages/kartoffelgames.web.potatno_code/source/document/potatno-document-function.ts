@@ -3,7 +3,7 @@ import { PotatnoPortDefinition } from "../project/potatno-port-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { IPotatnoDocumentItem } from './i-potatno-document-item.ts';
 import { PotatnoDocumentNode, PotatnoDocumentNodePortConfiguration, PotatnoDocumentNodeTransformation } from "./potatno-document-node.ts";
-import type { PotatnoDocumentPortValidationError } from "./potatno-document-port.ts";
+import { PotatnoDocumentPortValidationError } from "./potatno-document.ts";
 
 /**
  * Represents a user-editable function containing a sub-graph.

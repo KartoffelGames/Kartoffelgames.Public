@@ -2,7 +2,8 @@ import { PotatnoPortDefinitionType } from "../project/potatno-port-definition.ts
 import { PotatnoProjectType } from "../project/potatno-project-types-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { IPotatnoDocumentItem } from './i-potatno-document-item.ts';
-import { PotatnoDocumentPort, PotatnoDocumentPortValidationError } from './potatno-document-port.ts';
+import { PotatnoDocumentPort } from './potatno-document-port.ts';
+import { PotatnoDocumentPortValidationError } from "./potatno-document.ts";
 
 /**
  * A node instance in the graph.

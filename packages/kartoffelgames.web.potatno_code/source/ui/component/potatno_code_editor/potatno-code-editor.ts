@@ -2,7 +2,7 @@ import { ComponentState, PwbChild, PwbComponent, PwbExport, type ComponentEvent,
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import { PotatnoDocumentFunction as PDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
-import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
+import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoDocument } from '../../../document/potatno-document.ts';
 import { NodeCategory } from '../../../parser/node/node-category.enum.ts';
 import { PotatnoCodeGenerator, type FunctionCodeWithIntermediates } from '../../../parser/potatno-code-generator.ts';
@@ -1231,7 +1231,9 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
         // Validate.
         if (lFile) {
             for (const lError of lFile.validate()) {
-                lCached.errors.push({ message: lError.message, location: `Node "${lError.port.node.label}"` });
+                if (lError.item instanceof PotatnoDocumentPort) {
+                    lCached.errors.push({ message: lError.message, location: `Node "${lError.item.node.label}"` });
+                }
             }
         }
 

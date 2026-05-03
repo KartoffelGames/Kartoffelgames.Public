@@ -3,7 +3,7 @@ import { PotatnoFunctionNodeDefinition } from "../project/node_definition/potatn
 import { PotatnoNodeDefinition } from "../project/node_definition/potatno-node-definition.ts";
 import { PotatnoProject } from "../project/potatno-project.ts";
 import type { PotatnoDocumentFunction } from './potatno-document-function.ts';
-import type { PotatnoDocumentPortValidationError } from './potatno-document-port.ts';
+import { IPotatnoDocumentItem } from "./i-potatno-document-item.ts";
 
 /**
  * Represents the mutable document state of a PotatnoCode file.
@@ -105,5 +105,38 @@ export class PotatnoDocument<TProject extends PotatnoProject<any>> {
         }
 
         return lErrors;
+    }
+}
+
+/**
+ * A validation error for a document port.
+ */
+export class PotatnoDocumentPortValidationError<TProject extends PotatnoProject<any>> {
+    private readonly mMessage: string;
+    private readonly mItem: IPotatnoDocumentItem<TProject>;
+
+    /**
+     * Get the error message describing the validation error.
+     */
+    public get message(): string {
+        return this.mMessage;
+    }
+
+    /**
+     * Get the item that caused the validation error.
+     */
+    public get item(): IPotatnoDocumentItem<TProject> {
+        return this.mItem;
+    }
+
+    /**
+     * Create a new validation error for a document item.
+     * 
+     * @param pMessage - The error message describing the validation error.
+     * @param pItem - The item that caused the validation error.
+     */
+    public constructor(pMessage: string, pItem: IPotatnoDocumentItem<TProject>) {
+        this.mMessage = pMessage;
+        this.mItem = pItem;
     }
 }

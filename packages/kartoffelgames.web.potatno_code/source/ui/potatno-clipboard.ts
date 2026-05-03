@@ -54,7 +54,7 @@ export class PotatnoClipboard<TProject extends PotatnoProject<any>> {
             }
 
             return {
-                definitionId: lNode.definition.id,
+                definitionId: lNode.definitionId,
                 transformation: { ...lNode.transformation },
                 label: lNode.label,
                 inputDirectValues: lInputDirectValues
@@ -103,7 +103,7 @@ export class PotatnoClipboard<TProject extends PotatnoProject<any>> {
 
         for (const lNodeData of this.mData.nodes) {
             const lDefinition = pFunction.project.nodeDefinitions.get(lNodeData.definitionId)
-                ?? pDocument.functionNodeDefinitions.get(lNodeData.definitionId);
+                ?? pDocument.nodeDefinitions.get(lNodeData.definitionId);
             if (!lDefinition) {
                 continue;
             }

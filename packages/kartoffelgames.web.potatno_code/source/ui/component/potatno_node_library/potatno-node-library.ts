@@ -134,10 +134,10 @@ export class PotatnoNodeLibrary {
     /**
      * Handle mousedown on a node entry to start drag operation.
      *
-     * @param pName - The node definition name.
+     * @param pId - The node definition id.
      */
-    public onNodeMouseDown(pName: string): void {
-        this.mNodeDragStart.dispatchEvent(pName);
+    public onNodeMouseDown(pId: string): void {
+        this.mNodeDragStart.dispatchEvent(pId);
     }
 }
 
@@ -145,6 +145,7 @@ export class PotatnoNodeLibrary {
  * Node definition entry for the library display.
  */
 interface NodeLibraryEntry {
+    id: string;
     name: string;
     category: string;
 }

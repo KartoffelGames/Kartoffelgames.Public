@@ -3,7 +3,6 @@ import type { PotatnoDocumentFunction } from '../document/potatno-document-funct
 import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import { PotatnoDocument } from "../document/potatno-document.ts";
-import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import { NodeCategory } from './node/node-category.enum.ts';
 import { PotatnoCodeNode, type PotatnoCodeNodeContext } from './node/potatno-code-node.ts';
@@ -77,8 +76,8 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject<any>> {
 
             for (const lNode of lCurrentFunction.nodes) {
                 // Try to find a function matching
-                if (lFunctionMap.has(lNode.definition.id)) {
-                    const lFoundFunction: PotatnoDocumentFunction<TProject> = lFunctionMap.get(lNode.definition.id)!;
+                if (lFunctionMap.has(lNode.definitionId)) {
+                    const lFoundFunction: PotatnoDocumentFunction<TProject> = lFunctionMap.get(lNode.definitionId)!;
 
                     // Add function to found list.
                     lUsedFunctions.add(lFoundFunction);
@@ -130,13 +129,13 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject<any>> {
      * @returns The generated code string.
      */
     public generateFunctionCode(pFunction: PotatnoDocumentFunction<TProject>): string {
-        const lFuncDef: PotatnoFunctionDefinition<TProject> = pFunction.definition;
+        const lFuncDef = this.mProject.getFunction(pFunction.definitionId);
         const lNodes: ReadonlySet<PotatnoDocumentNode<TProject>> = pFunction.nodes;
         const lValueIdMap: Map<PotatnoDocumentPort<TProject>, string> = this.buildValueIdMap(lNodes);
         const lBodyCode: string = this.generateGraphCode(lNodes, lValueIdMap);
         const lCodeFunc: PotatnoCodeFunction = this.buildCodeFunction(pFunction, lNodes, lValueIdMap, lBodyCode);
 
-        const lCodeGenerator = lFuncDef.codeGenerator.body;
+        const lCodeGenerator = lFuncDef?.codeGenerator.body;
         if (lCodeGenerator) {
             return lCodeGenerator(lCodeFunc);
         }
@@ -153,7 +152,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject<any>> {
      * @returns The full code, code function metadata, and per-node intermediate data.
      */
     public generateFunctionCodeWithIntermediates(pFunction: PotatnoDocumentFunction<TProject>, pPreviewNodes: Set<PotatnoDocumentNode<TProject>>): FunctionCodeWithIntermediates {
-        const lFuncDef: PotatnoFunctionDefinition<TProject> = pFunction.definition;
+        const lFuncDef = this.mProject.getFunction(pFunction.definitionId);
         const lNodes: ReadonlySet<PotatnoDocumentNode<TProject>> = pFunction.nodes;
         const lValueIdMap: Map<PotatnoDocumentPort<TProject>, string> = this.buildValueIdMap(lNodes);
         const lSortedNodes: Array<PotatnoDocumentNode<TProject>> = this.topologicalSort(lNodes);
@@ -164,7 +163,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject<any>> {
         const lFuncOutputs = this.collectFunctionOutputs(pFunction, lNodes, lValueIdMap);
 
         for (const lNode of lSortedNodes) {
-            const lCategory: string = lNode.definition.category;
+            const lCategory: string = lNode.category;
             if (lCategory === NodeCategory.Input || lCategory === NodeCategory.Output || lCategory === NodeCategory.Reroute || lCategory === NodeCategory.Comment) {
                 continue;
             }
@@ -188,7 +187,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject<any>> {
                     lIntermediateFunc.outputs.push({ ...lOut });
                 }
 
-                const lIntermediateCode: string = lFuncDef.codeGenerator.body
+                const lIntermediateCode: string = lFuncDef?.codeGenerator.body
                     ? lFuncDef.codeGenerator.body(lIntermediateFunc)
                     : lIntermediateBody;
 
@@ -202,7 +201,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject<any>> {
 
         const lFullBody: string = lCodeParts.join('\n');
         const lCodeFunc: PotatnoCodeFunction = this.buildCodeFunction(pFunction, lNodes, lValueIdMap, lFullBody);
-        const lFullCode: string = lFuncDef.codeGenerator.body
+        const lFullCode: string = lFuncDef?.codeGenerator.body
             ? lFuncDef.codeGenerator.body(lCodeFunc)
             : lFullBody;
 
@@ -263,9 +262,9 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject<any>> {
      */
     private collectFunctionInputs(pFunction: PotatnoDocumentFunction<TProject>, pNodes: ReadonlySet<PotatnoDocumentNode<TProject>>, pValueIdMap: Map<PotatnoDocumentPort<TProject>, string>): Array<{ name: string; type: string; valueId: string; }> {
         return pFunction.inputs.map((pPortDef) => ({
-            name: pPortDef.name,
+            name: pPortDef.label,
             type: pPortDef.dataType,
-            valueId: this.findInputNodeValueId(pNodes, pPortDef.name, pValueIdMap)
+            valueId: this.findInputNodeValueId(pNodes, pPortDef.label, pValueIdMap)
         }));
     }
 
@@ -275,9 +274,9 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject<any>> {
      */
     private collectFunctionOutputs(pFunction: PotatnoDocumentFunction<TProject>, pNodes: ReadonlySet<PotatnoDocumentNode<TProject>>, pValueIdMap: Map<PotatnoDocumentPort<TProject>, string>): Array<{ name: string; type: string; valueId: string; }> {
         return pFunction.outputs.map((pPortDef) => ({
-            name: pPortDef.name,
+            name: pPortDef.label,
             type: pPortDef.dataType,
-            valueId: this.findOutputNodeValueId(pNodes, pPortDef.name, pValueIdMap)
+            valueId: this.findOutputNodeValueId(pNodes, pPortDef.label, pValueIdMap)
         }));
     }
 
@@ -288,7 +287,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject<any>> {
         const lCodeParts: Array<string> = [];
 
         for (const lNode of this.topologicalSort(pNodes)) {
-            const lCategory: string = lNode.definition.category;
+            const lCategory: string = lNode.category;
             if (lCategory === NodeCategory.Input || lCategory === NodeCategory.Output || lCategory === NodeCategory.Reroute || lCategory === NodeCategory.Comment) {
                 continue;
             }
@@ -326,7 +325,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject<any>> {
     private generateFlowBodyCode(pFlowInputPort: PotatnoDocumentPort<TProject>, pValueIdMap: Map<PotatnoDocumentPort<TProject>, string>): string {
         const lOwnerNode: PotatnoDocumentNode<TProject> = pFlowInputPort.node;
 
-        if (!this.mProject.nodeDefinitions.get(lOwnerNode.definition.id) && lOwnerNode.definition.category !== 'function') {
+        if (!this.mProject.nodeDefinitions.get(lOwnerNode.definitionId) && lOwnerNode.category !== 'function') {
             return '';
         }
 
@@ -342,8 +341,9 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject<any>> {
     private buildCodeNode(pNode: PotatnoDocumentNode<TProject>, pValueIdMap: Map<PotatnoDocumentPort<TProject>, string>): PotatnoCodeNode {
         // Use the node's own definition's codeGenerator directly — works for both
         // project-registered nodes and PotatnoFunctionNodeDefinition instances.
-        const lCodeGenerator = pNode.definition.codeGenerator;
-        const lCodeNode: PotatnoCodeNode = this.createNodeForCategory(pNode.definition.category, lCodeGenerator);
+        const lDefinition = this.mProject.nodeDefinitions.get(pNode.definitionId);
+        const lCodeGenerator = lDefinition?.codeGenerator ?? (() => '');
+        const lCodeNode: PotatnoCodeNode = this.createNodeForCategory(pNode.category, lCodeGenerator);
 
         for (const [lName, lPort] of pNode.inputs) {
             if (lPort.portType === 'value') {
@@ -351,7 +351,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject<any>> {
                 const lValueId: string = lSourcePort
                     ? this.resolveRerouteChain(lSourcePort, pValueIdMap)
                     : (pValueIdMap.get(lPort) ?? lName);
-                lCodeNode.inputs.set(lName, { name: lName, type: lPort.type, valueId: lValueId, nodeType: 'value' });
+                lCodeNode.inputs.set(lName, { name: lName, type: lPort.dataType, valueId: lValueId, nodeType: 'value' });
             } else {
                 lCodeNode.inputs.set(lName, { name: lName, type: '', valueId: '', nodeType: 'flow' });
             }
@@ -359,7 +359,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject<any>> {
 
         for (const [lName, lPort] of pNode.outputs) {
             if (lPort.portType === 'value') {
-                lCodeNode.outputs.set(lName, { name: lName, type: lPort.type, valueId: pValueIdMap.get(lPort) ?? lName, nodeType: 'value' });
+                lCodeNode.outputs.set(lName, { name: lName, type: lPort.dataType, valueId: pValueIdMap.get(lPort) ?? lName, nodeType: 'value' });
             } else {
                 lCodeNode.outputs.set(lName, { name: lName, type: '', valueId: '', nodeType: 'flow' });
             }
@@ -429,7 +429,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject<any>> {
      */
     private findInputNodeValueId(pNodes: ReadonlySet<PotatnoDocumentNode<TProject>>, pName: string, pValueIdMap: Map<PotatnoDocumentPort<TProject>, string>): string {
         for (const lNode of pNodes) {
-            if (lNode.definition.category === NodeCategory.Input && lNode.definition.id === pName) {
+            if (lNode.category === NodeCategory.Input && lNode.definitionId === pName) {
                 for (const lPort of lNode.outputs.values()) {
                     if (lPort.portType === 'value') {
                         return pValueIdMap.get(lPort) ?? pName;
@@ -445,7 +445,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject<any>> {
      */
     private findOutputNodeValueId(pNodes: ReadonlySet<PotatnoDocumentNode<TProject>>, pName: string, pValueIdMap: Map<PotatnoDocumentPort<TProject>, string>): string {
         for (const lNode of pNodes) {
-            if (lNode.definition.category === NodeCategory.Output && lNode.definition.id === pName) {
+            if (lNode.category === NodeCategory.Output && lNode.definitionId === pName) {
                 for (const lPort of lNode.inputs.values()) {
                     if (lPort.portType === 'value') {
                         const lConnected: PotatnoDocumentPort<TProject> | undefined = [...lPort.connectedPorts][0];
@@ -465,7 +465,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject<any>> {
      * original non-reroute source port.
      */
     private resolveRerouteChain(pPort: PotatnoDocumentPort<TProject>, pValueIdMap: Map<PotatnoDocumentPort<TProject>, string>): string {
-        if (pPort.node.definition.category === NodeCategory.Reroute) {
+        if (pPort.node.category === NodeCategory.Reroute) {
             for (const lInputPort of pPort.node.inputs.values()) {
                 if (lInputPort.portType === 'value') {
                     const lConnected: PotatnoDocumentPort<TProject> | undefined = [...lInputPort.connectedPorts][0];

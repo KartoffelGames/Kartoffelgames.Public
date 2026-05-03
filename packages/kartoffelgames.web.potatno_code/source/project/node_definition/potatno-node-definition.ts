@@ -69,6 +69,15 @@ export abstract class PotatnoNodeDefinition<TProject extends PotatnoProject<any>
     }
 
     /**
+     * Get a port definition by its name. Searches both input and output ports.
+     *
+     * @param pName - The port name to look up.
+     */
+    public getPort(pName: string): PotatnoPortDefinition<TProject> | undefined {
+        return [...this.inputs, ...this.outputs].find((pPort) => pPort.id === pName);
+    }
+
+    /**
      * Constructor.
      *
      * @param pParameters - Constructor parameters.

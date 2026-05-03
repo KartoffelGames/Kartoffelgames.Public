@@ -142,7 +142,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
         return this.mCachedData.visibleNodes;
     }
 
-    public get nodeDefinitionList(): Array<{ name: string; category: string; }> {
+    public get nodeDefinitionList(): Array<{ id: string; name: string; category: string; }> {
         return this.mCachedData.nodeDefinitionList;
     }
 
@@ -313,7 +313,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
 
         // Look up definition: project nodes first, then user-function nodes from document.
         const lDefinition = lProject.nodeDefinitions.get(lDefId)
-            ?? lFile.functionNodeDefinitions.get(lDefId);
+            ?? lFile.nodeDefinitions.get(lDefId);
         if (!lDefinition) {
             return;
         }
@@ -359,7 +359,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
         }
 
         const lCount = lFile.functions.size;
-        const lFunc = new PDocumentFunction(lProject, lFuncDef, crypto.randomUUID(), `Function ${lCount}`, false);
+        const lFunc = new PDocumentFunction(lProject, lFuncDef.id, crypto.randomUUID(), `Function ${lCount}`, false);
 
         // Add static nodes from the function definition.
         lFuncDef.prefilledNodes.forEach((lStaticDef, lIdx) => {
@@ -379,7 +379,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
         // Auto-enable all imports if the definition requests static imports.
         if ((lFuncDef.statics & PotatnoFunctionDefinitionStatics.imports) !== 0) {
             for (const lImport of lProject.imports) {
-                lFunc.addImport(lImport.name);
+                lFunc.addImport(lImport.label);
             }
         }
 
@@ -698,7 +698,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
         }
 
         // If dragging a comment, also include non-comment nodes inside its bounds.
-        if (pNode.definition.category === NodeCategory.Comment) {
+        if (pNode.category === NodeCategory.Comment) {
             const lActiveFunc = this.activeFunction;
             if (lActiveFunc) {
                 const lCL = pNode.transformation.x * lGS;
@@ -710,7 +710,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
                     if (lOther === pNode || this.mSelectedNodes.has(lOther)) {
                         continue;
                     }
-                    if (lOther.definition.category === NodeCategory.Comment) {
+                    if (lOther.category === NodeCategory.Comment) {
                         continue;
                     }
                     const lNx = lOther.transformation.x * lGS;
@@ -782,7 +782,8 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
     }
 
     public onOpenFunction(pEvent: ComponentEvent<OpenFunctionDetail>): void {
-        const lFunctionId = pEvent.value.node.definition.id;
+        const lDefinitionId = pEvent.value.node.definitionId;
+        const lFunctionId = lDefinitionId.startsWith('USERFUNCTION_') ? lDefinitionId.slice('USERFUNCTION_'.length) : lDefinitionId;
         if (!this.mFile) {
             return;
         }
@@ -854,7 +855,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
             return;
         }
 
-        const lFunc = new PDocumentFunction(pProject as TProject, lEntryPoint, crypto.randomUUID(), 'Main', true);
+        const lFunc = new PDocumentFunction(pProject as TProject, lEntryPoint.id, crypto.randomUUID(), 'Main', true);
 
         lEntryPoint.prefilledNodes.forEach((lStaticDef, lIdx) => {
             lFunc.newNode(lStaticDef, { x: 2 + lIdx * 12, y: 2, width: 10, height: 4 }, true);
@@ -871,7 +872,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
 
         if ((lEntryPoint.statics & PotatnoFunctionDefinitionStatics.imports) !== 0) {
             for (const lImport of pProject.imports) {
-                lFunc.addImport(lImport.name);
+                lFunc.addImport(lImport.label);
             }
         }
 
@@ -1095,7 +1096,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
         // Collect preview nodes.
         const lPreviewNodes = new Set<PotatnoDocumentNode<TProject>>();
         for (const lNode of lEntryFunc.nodes) {
-            if (lProject.nodeDefinitions.get(lNode.definition.id)?.preview) {
+            if (lProject.nodeDefinitions.get(lNode.definitionId)?.preview) {
                 lPreviewNodes.add(lNode);
             }
         }
@@ -1103,7 +1104,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
         // Generate preview elements for nodes that need them.
         for (const lNode of lPreviewNodes) {
             if (!lInternals.previewElements.has(lNode)) {
-                const lDef = lProject.nodeDefinitions.get(lNode.definition.id);
+                const lDef = lProject.nodeDefinitions.get(lNode.definitionId);
                 if (lDef?.preview) {
                     const lEl = lDef.preview.generate();
                     if (lEl instanceof HTMLElement) {
@@ -1177,7 +1178,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
             if (!lElement) {
                 continue;
             }
-            const lDef = lProject.nodeDefinitions.get(lNode.definition.id);
+            const lDef = lProject.nodeDefinitions.get(lNode.definitionId);
             if (lDef?.preview) {
                 try {
                     lDef.preview.update(
@@ -1237,21 +1238,21 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
         // Node definition list.
         if (lProject) {
             for (const lDef of lProject.nodeDefinitions.values()) {
-                lCached.nodeDefinitionList.push({ name: lDef.id, category: lDef.category });
+                lCached.nodeDefinitionList.push({ id: lDef.id, name: lDef.label, category: lDef.category });
             }
         }
         if (lFile) {
-            for (const lDef of lFile.functionNodeDefinitions.values()) {
-                lCached.nodeDefinitionList.push({ name: lDef.id, category: lDef.category });
+            for (const lDef of lFile.nodeDefinitions.values()) {
+                lCached.nodeDefinitionList.push({ id: lDef.id, name: lDef.label, category: lDef.category });
             }
         }
         // Add import-scoped nodes based on active function imports.
         if (lProject && lActiveFunc) {
             const lEnabledImports = new Set(lActiveFunc.imports);
             for (const lImport of lProject.imports) {
-                if (lEnabledImports.has(lImport.name)) {
+                if (lEnabledImports.has(lImport.label)) {
                     for (const lNodeDef of lImport.nodes) {
-                        lCached.nodeDefinitionList.push({ name: lNodeDef.id, category: lNodeDef.category });
+                        lCached.nodeDefinitionList.push({ id: lNodeDef.id, name: lNodeDef.label, category: lNodeDef.category });
                     }
                 }
             }
@@ -1265,7 +1266,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
         }
 
         // Available imports.
-        lCached.availableImports = lProject?.imports.map(i => i.name) ?? [];
+        lCached.availableImports = lProject?.imports.map(i => i.label) ?? [];
 
         // Available types.
         if (lProject) {
@@ -1290,7 +1291,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
             for (const lNode of lActiveFunc.nodes) {
                 // Create or reuse preview element.
                 if (lProject) {
-                    const lDef = lProject.nodeDefinitions.get(lNode.definition.id);
+                    const lDef = lProject.nodeDefinitions.get(lNode.definitionId);
                     if (lDef?.preview && !this.mInternals.previewElements.has(lNode)) {
                         const lEl = lDef.preview.generate();
                         if (lEl instanceof HTMLElement) {
@@ -1370,7 +1371,7 @@ interface CachedViewData {
     activeFunctionEditableByUser: boolean;
     errors: Array<{ message: string; location: string; }>;
     hasPreview: boolean;
-    nodeDefinitionList: Array<{ name: string; category: string; }>;
+    nodeDefinitionList: Array<{ id: string; name: string; category: string; }>;
     functionList: Array<{ id: string; name: string; label: string; system: boolean; }>;
     availableImports: Array<string>;
     availableTypes: Array<string>;

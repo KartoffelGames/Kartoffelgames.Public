@@ -9,8 +9,8 @@ import { PotatnoProject } from '../../source/project/potatno-project.ts';
 
 /*
  // TODO:
- - Add functionality that allows for nodes resync to their definitions. Maybe on validate?. Remove ports when not connected otherwise add as validation error. Nodes and function should be referenced by id instead of reference.
  - Add a "undefined" type for nodes, so a old project can be loaded without crashing when node definitions are removed. (Can be achived by validating on the referenced id instead of requiring a reference to the definition)
+ - Add functionality that allows for nodes resync to their definitions. Maybe on validate?. Remove ports when not connected otherwise add as validation error. Nodes and function should be referenced by id instead of reference.
  - Add SemanticValidation: A port should only be connected to a port that has the same starting node (execution regions).
  - Introduce ExecutionRegion (startNodeRef): add execution-region concept derived from a start/root node reference to determine same-region restrictions.
  - Add node contexts with {add: Array<string>, requires: Array<string>} that can be used to force a endpoint node to only be connected to certain entry point nodes. (VertexData only connects to OnVertex and not to OnFragment)
@@ -66,6 +66,7 @@ const lProject = PotatnoProject.new({
     types: lProjectTypes,
     entryPoint: PotatnoFunctionDefinition.new(lProjectTypes, {
         id: 'pixelShader',
+        label: 'Pixel Shader',
         statics: PotatnoFunctionDefinitionStatics.imports | PotatnoFunctionDefinitionStatics.inputs,
         nodes: {
             prefilled: (pAddNode) => {
@@ -77,9 +78,9 @@ const lProject = PotatnoProject.new({
                     ports: {
                         inputs: [],
                         outputs: [
-                            { name: 'exec', portType: 'flow' },
-                            { name: 'x', portType: 'value', dataType: 'number' },
-                            { name: 'y', portType: 'value', dataType: 'number' }
+                            { label: 'exec', id: 'exec', portType: 'flow' },
+                            { label: 'x', id: 'x', portType: 'value', dataType: 'number' },
+                            { label: 'y', id: 'y', portType: 'value', dataType: 'number' }
                         ]
                     },
                     generators: {
@@ -97,10 +98,10 @@ const lProject = PotatnoProject.new({
                     category: NodeCategory.Output,
                     ports: {
                         inputs: [
-                            { name: 'exec', portType: 'flow' },
-                            { name: 'red', portType: 'value', dataType: 'number' },
-                            { name: 'green', portType: 'value', dataType: 'number' },
-                            { name: 'blue', portType: 'value', dataType: 'number' }
+                            { label: 'exec', id: 'exec', portType: 'flow' },
+                            { label: 'red', id: 'red', portType: 'value', dataType: 'number' },
+                            { label: 'green', id: 'green', portType: 'value', dataType: 'number' },
+                            { label: 'blue', id: 'blue', portType: 'value', dataType: 'number' }
                         ],
                         outputs: []
                     },
@@ -162,7 +163,8 @@ const lProject = PotatnoProject.new({
 
 // --- Imports ---
 lProject.addImport({
-    name: 'Math',
+    id: 'Math',
+    label: 'Math',
     nodes: [
         PotatnoStaticNodeDefinition.new({
             id: 'Math.PI',
@@ -171,7 +173,7 @@ lProject.addImport({
             ports: {
                 inputs: [],
                 outputs: [
-                    { name: 'value', portType: 'value', dataType: 'number' }
+                    { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
                 ]
             },
             generators: {
@@ -185,7 +187,7 @@ lProject.addImport({
             ports: {
                 inputs: [],
                 outputs: [
-                    { name: 'value', portType: 'value', dataType: 'number' }
+                    { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
                 ]
             },
             generators: {
@@ -198,10 +200,10 @@ lProject.addImport({
             category: NodeCategory.Function,
             ports: {
                 inputs: [
-                    { name: 'value', portType: 'value', dataType: 'number' }
+                    { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
                 ],
                 outputs: [
-                    { name: 'result', portType: 'value', dataType: 'number' }
+                    { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
                 ]
             },
             generators: {
@@ -214,10 +216,10 @@ lProject.addImport({
             category: NodeCategory.Function,
             ports: {
                 inputs: [
-                    { name: 'value', portType: 'value', dataType: 'number' }
+                    { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
                 ],
                 outputs: [
-                    { name: 'result', portType: 'value', dataType: 'number' }
+                    { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
                 ]
             },
             generators: {
@@ -231,7 +233,7 @@ lProject.addImport({
             ports: {
                 inputs: [],
                 outputs: [
-                    { name: 'result', portType: 'value', dataType: 'number' }
+                    { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
                 ]
             },
             generators: {
@@ -248,11 +250,11 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     category: 'operator',
     ports: {
         inputs: [
-            { name: 'a', portType: 'value', dataType: 'number' },
-            { name: 'b', portType: 'value', dataType: 'number' }
+            { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
+            { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
         ],
         outputs: [
-            { name: 'result', portType: 'value', dataType: 'number' }
+            { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
         ]
     },
     generators: {
@@ -266,11 +268,11 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     category: 'operator',
     ports: {
         inputs: [
-            { name: 'a', portType: 'value', dataType: 'number' },
-            { name: 'b', portType: 'value', dataType: 'number' }
+            { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
+            { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
         ],
         outputs: [
-            { name: 'result', portType: 'value', dataType: 'number' }
+            { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
         ]
     },
     generators: {
@@ -284,11 +286,11 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     category: 'operator',
     ports: {
         inputs: [
-            { name: 'a', portType: 'value', dataType: 'number' },
-            { name: 'b', portType: 'value', dataType: 'number' }
+            { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
+            { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
         ],
         outputs: [
-            { name: 'result', portType: 'value', dataType: 'number' }
+            { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
         ]
     },
     generators: {
@@ -340,11 +342,11 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     category: 'operator',
     ports: {
         inputs: [
-            { name: 'a', portType: 'value', dataType: 'number' },
-            { name: 'b', portType: 'value', dataType: 'number' }
+            { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
+            { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
         ],
         outputs: [
-            { name: 'result', portType: 'value', dataType: 'number' }
+            { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
         ]
     },
     generators: {
@@ -360,11 +362,11 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     category: 'operator',
     ports: {
         inputs: [
-            { name: 'a', portType: 'value', dataType: 'number' },
-            { name: 'b', portType: 'value', dataType: 'number' }
+            { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
+            { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
         ],
         outputs: [
-            { name: 'result', portType: 'value', dataType: 'number' }
+            { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
         ]
     },
     generators: {
@@ -379,11 +381,11 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     category: 'operator',
     ports: {
         inputs: [
-            { name: 'a', portType: 'value', dataType: 'number' },
-            { name: 'b', portType: 'value', dataType: 'number' }
+            { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
+            { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
         ],
         outputs: [
-            { name: 'result', portType: 'value', dataType: 'boolean' }
+            { label: 'result', id: 'result', portType: 'value', dataType: 'boolean' }
         ]
     },
     generators: {
@@ -397,11 +399,11 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     category: 'operator',
     ports: {
         inputs: [
-            { name: 'a', portType: 'value', dataType: 'number' },
-            { name: 'b', portType: 'value', dataType: 'number' }
+            { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
+            { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
         ],
         outputs: [
-            { name: 'result', portType: 'value', dataType: 'boolean' }
+            { label: 'result', id: 'result', portType: 'value', dataType: 'boolean' }
         ]
     },
     generators: {
@@ -415,11 +417,11 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     category: 'operator',
     ports: {
         inputs: [
-            { name: 'a', portType: 'value', dataType: 'number' },
-            { name: 'b', portType: 'value', dataType: 'number' }
+            { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
+            { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
         ],
         outputs: [
-            { name: 'result', portType: 'value', dataType: 'boolean' }
+            { label: 'result', id: 'result', portType: 'value', dataType: 'boolean' }
         ]
     },
     generators: {
@@ -433,11 +435,11 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     category: 'operator',
     ports: {
         inputs: [
-            { name: 'a', portType: 'value', dataType: 'number' },
-            { name: 'b', portType: 'value', dataType: 'number' }
+            { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
+            { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
         ],
         outputs: [
-            { name: 'result', portType: 'value', dataType: 'boolean' }
+            { label: 'result', id: 'result', portType: 'value', dataType: 'boolean' }
         ]
     },
     generators: {
@@ -452,11 +454,11 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     category: 'operator',
     ports: {
         inputs: [
-            { name: 'a', portType: 'value', dataType: 'boolean' },
-            { name: 'b', portType: 'value', dataType: 'boolean' }
+            { label: 'a', id: 'a', portType: 'value', dataType: 'boolean' },
+            { label: 'b', id: 'b', portType: 'value', dataType: 'boolean' }
         ],
         outputs: [
-            { name: 'result', portType: 'value', dataType: 'boolean' }
+            { label: 'result', id: 'result', portType: 'value', dataType: 'boolean' }
         ]
     },
     generators: {
@@ -470,11 +472,11 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     category: 'operator',
     ports: {
         inputs: [
-            { name: 'a', portType: 'value', dataType: 'boolean' },
-            { name: 'b', portType: 'value', dataType: 'boolean' }
+            { label: 'a', id: 'a', portType: 'value', dataType: 'boolean' },
+            { label: 'b', id: 'b', portType: 'value', dataType: 'boolean' }
         ],
         outputs: [
-            { name: 'result', portType: 'value', dataType: 'boolean' }
+            { label: 'result', id: 'result', portType: 'value', dataType: 'boolean' }
         ]
     },
     generators: {
@@ -488,10 +490,10 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     category: 'operator',
     ports: {
         inputs: [
-            { name: 'a', portType: 'value', dataType: 'boolean' }
+            { label: 'a', id: 'a', portType: 'value', dataType: 'boolean' }
         ],
         outputs: [
-            { name: 'result', portType: 'value', dataType: 'boolean' }
+            { label: 'result', id: 'result', portType: 'value', dataType: 'boolean' }
         ]
     },
     generators: {
@@ -506,10 +508,10 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     category: 'type-conversion',
     ports: {
         inputs: [
-            { name: 'input', portType: 'value', dataType: 'number' }
+            { label: 'input', id: 'input', portType: 'value', dataType: 'number' }
         ],
         outputs: [
-            { name: 'output', portType: 'value', dataType: 'string' }
+            { label: 'output', id: 'output', portType: 'value', dataType: 'string' }
         ]
     },
     generators: {
@@ -523,10 +525,10 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     category: 'type-conversion',
     ports: {
         inputs: [
-            { name: 'input', portType: 'value', dataType: 'string' }
+            { label: 'input', id: 'input', portType: 'value', dataType: 'string' }
         ],
         outputs: [
-            { name: 'output', portType: 'value', dataType: 'number' }
+            { label: 'output', id: 'output', portType: 'value', dataType: 'number' }
         ]
     },
     generators: {
@@ -540,10 +542,10 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     category: 'type-conversion',
     ports: {
         inputs: [
-            { name: 'input', portType: 'value', dataType: 'boolean' }
+            { label: 'input', id: 'input', portType: 'value', dataType: 'boolean' }
         ],
         outputs: [
-            { name: 'output', portType: 'value', dataType: 'string' }
+            { label: 'output', id: 'output', portType: 'value', dataType: 'string' }
         ]
     },
     generators: {
@@ -558,12 +560,12 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     category: 'flow',
     ports: {
         inputs: [
-            { name: 'exec', portType: 'flow' },
-            { name: 'condition', portType: 'value', dataType: 'boolean' }
+            { label: 'exec', id: 'exec', portType: 'flow' },
+            { label: 'condition', id: 'condition', portType: 'value', dataType: 'boolean' }
         ],
         outputs: [
-            { name: 'then', portType: 'flow' },
-            { name: 'else', portType: 'flow' }
+            { label: 'then', id: 'then', portType: 'flow' },
+            { label: 'else', id: 'else', portType: 'flow' }
         ]
     },
     generators: {
@@ -577,11 +579,11 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     category: 'flow',
     ports: {
         inputs: [
-            { name: 'exec', portType: 'flow' },
-            { name: 'condition', portType: 'value', dataType: 'boolean' }
+            { label: 'exec', id: 'exec', portType: 'flow' },
+            { label: 'condition', id: 'condition', portType: 'value', dataType: 'boolean' }
         ],
         outputs: [
-            { name: 'body', portType: 'flow' }
+            { label: 'body', id: 'body', portType: 'flow' }
         ]
     },
     generators: {
@@ -595,12 +597,12 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     category: 'flow',
     ports: {
         inputs: [
-            { name: 'exec', portType: 'flow' },
-            { name: 'count', portType: 'value', dataType: 'number' }
+            { label: 'exec', id: 'exec', portType: 'flow' },
+            { label: 'count', id: 'count', portType: 'value', dataType: 'number' }
         ],
         outputs: [
-            { name: 'exec', portType: 'flow' },
-            { name: 'index', portType: 'value', dataType: 'number' }
+            { label: 'exec', id: 'exec', portType: 'flow' },
+            { label: 'index', id: 'index', portType: 'value', dataType: 'number' }
         ]
     },
     generators: {
@@ -614,7 +616,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     label: 'Console Log',
     category: NodeCategory.Function,
     ports: {
-        inputs: [{ name: 'message', portType: 'value', dataType: 'string' }],
+        inputs: [{ label: 'message', id: 'message', portType: 'value', dataType: 'string' }],
         outputs: []
     },
     generators: {
@@ -628,11 +630,11 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
     category: NodeCategory.Function,
     ports: {
         inputs: [
-            { name: 'a', portType: 'value', dataType: 'string' },
-            { name: 'b', portType: 'value', dataType: 'string' }
+            { label: 'a', id: 'a', portType: 'value', dataType: 'string' },
+            { label: 'b', id: 'b', portType: 'value', dataType: 'string' }
         ],
         outputs: [
-            { name: 'result', portType: 'value', dataType: 'string' }
+            { label: 'result', id: 'result', portType: 'value', dataType: 'string' }
         ]
     },
     generators: {
@@ -643,6 +645,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.new({
 // --- User Function Definitions ---
 lProject.addUserFunction(PotatnoFunctionDefinition.new(lProjectTypes, {
     id: 'Helper Function',
+    label: 'Helper Function',
     statics: PotatnoFunctionDefinitionStatics.none,
     nodes: {},
     generator: {

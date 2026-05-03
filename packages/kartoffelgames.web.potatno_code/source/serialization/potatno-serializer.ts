@@ -1,7 +1,6 @@
 import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
 import type { PotatnoDocument } from '../document/potatno-document.ts';
-import { PotatnoProjectType } from "../project/potatno-project-types-definition.ts";
 import { PotatnoProject } from "../project/potatno-project.ts";
 import type { PotatnoCodeFileSerializationResult, SerializedConnection, SerializedFunction, SerializedFunctionPort, SerializedNode, SerializedNodePort } from './potatno-serialization.type.ts';
 
@@ -47,7 +46,7 @@ export class PotatnoSerializer<TProject extends PotatnoProject<any>> {
         const lNodeIdMap = new Map<PotatnoDocumentNode<TProject>, string>();
 
         // Assign stable nodeIds based on the order of nodes in the function's graph.
-        [...pFunction.nodes].forEach((pNode, pIndex) => {
+        pFunction.nodes.forEach((pNode, pIndex) => {
             lNodeIdMap.set(pNode, `n${pIndex}`);
         });
 
@@ -72,9 +71,9 @@ export class PotatnoSerializer<TProject extends PotatnoProject<any>> {
 
                     lConnections.push({
                         sourceNodeId: lSourceNodeId,
-                        sourcePortName: lOutputPort.name,
+                        sourcePortId: lOutputPort.definitionId,
                         targetNodeId: lTargetNodeId,
-                        targetPortName: lConnectedPort.name
+                        targetPortId: lConnectedPort.definitionId
                     });
                 }
             }
@@ -82,20 +81,20 @@ export class PotatnoSerializer<TProject extends PotatnoProject<any>> {
 
         // Serialize function-signature ports.
         const lInputs: Array<SerializedFunctionPort> = pFunction.inputs.map((pPort) => ({
-            name: pPort.name,
+            label: pPort.label,
             dataType: pPort.dataType
         }));
 
         const lOutputs: Array<SerializedFunctionPort> = pFunction.outputs.map((pPort) => ({
-            name: pPort.name,
+            label: pPort.label,
             dataType: pPort.dataType
         }));
 
         return {
             id: pFunction.id,
-            name: pFunction.label,
+            label: pFunction.label,
             isSystem: pFunction.isSystem,
-            definitionId: pFunction.definition.id,
+            definitionId: pFunction.definitionId,
             inputs: lInputs,
             outputs: lOutputs,
             imports: [...pFunction.imports],
@@ -108,17 +107,21 @@ export class PotatnoSerializer<TProject extends PotatnoProject<any>> {
      * Serialize a single node with all its ports.
      */
     private serializeNode(pNode: PotatnoDocumentNode<TProject>, pNodeId: string): SerializedNode {
-        const lPorts: Array<SerializedNodePort> = [...pNode.inputs.values(), ...pNode.outputs.values()].map((pPort) => ({
-            name: pPort.name,
-            direction: pPort.direction,
-            portType: pPort.portType,
-            dataType: pPort.portType === 'value' ? pPort.type : null,
-            directValue: [...pPort.directValue]
-        }));
+        const lPorts: Array<SerializedNodePort> = [...pNode.inputs.values(), ...pNode.outputs.values()].map((pPort) => {
+            return {
+                definitionId: pPort.definitionId,
+                label: pPort.label,
+                direction: pPort.direction,
+                portType: pPort.portType,
+                dataType: pPort.portType === 'value' ? pPort.dataType : null,
+                directValue: [...pPort.directValue]
+            } satisfies SerializedNodePort;
+        });
 
         return {
             id: pNodeId,
-            definitionId: pNode.definition.id,
+            definitionId: pNode.definitionId,
+            category: pNode.category,
             label: pNode.label,
             isSystem: pNode.isSystem,
             transformation: { ...pNode.transformation },

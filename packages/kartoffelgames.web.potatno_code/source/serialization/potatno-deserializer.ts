@@ -1,7 +1,6 @@
 import { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
-import { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
+import { PotatnoDocumentNode, PotatnoDocumentNodePortConfiguration } from '../document/potatno-document-node.ts';
 import { PotatnoDocument } from '../document/potatno-document.ts';
-import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
 import { PotatnoProjectType } from "../project/potatno-project-types-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { PotatnoCodeFileSerializationResult, SerializedFunction, SerializedNode } from './potatno-serialization.type.ts';
@@ -10,7 +9,7 @@ import type { PotatnoCodeFileSerializationResult, SerializedFunction, Serialized
  * Reconstructs a PotatnoDocument from a PotatnoMetadata object produced by PotatnoSerializer.
  *
  * Deserialization order within each function:
- *   1. Create the PotatnoDocumentFunction from its definition.
+ *   1. Create the PotatnoDocumentFunction from its definition id.
  *   2. Restore the function-signature I/O port definitions.
  *   3. Create all PotatnoDocumentNode instances and record them in a
  *      temporary Map<nodeId, PotatnoDocumentNode>.
@@ -52,8 +51,7 @@ export class PotatnoDeserializer<TProject extends PotatnoProject<any>> {
      * Reconstruct a single function from its serialized form.
      */
     private deserializeFunction(pData: SerializedFunction, pDocument: PotatnoDocument<TProject>): PotatnoDocumentFunction<TProject> {
-        const lDefinition: PotatnoFunctionDefinition<TProject> = this.findFunctionDefinition(pData.definitionId);
-        const lFunc: PotatnoDocumentFunction<TProject> = new PotatnoDocumentFunction(this.mProject, lDefinition, pData.id, pData.name, pData.isSystem);
+        const lFunc: PotatnoDocumentFunction<TProject> = new PotatnoDocumentFunction(this.mProject, pData.definitionId, pData.id, pData.label, pData.isSystem);
 
         // Restore imports.
         for (const lImport of pData.imports) {
@@ -62,18 +60,17 @@ export class PotatnoDeserializer<TProject extends PotatnoProject<any>> {
 
         // Restore function-signature I/O port definitions.
         for (const lPortDefinition of pData.inputs) {
-            lFunc.addInput({ name: lPortDefinition.name, dataType: lPortDefinition.dataType });
+            lFunc.addInput({ label: lPortDefinition.label, dataType: lPortDefinition.dataType });
         }
         for (const lPortDefinition of pData.outputs) {
-            lFunc.addOutput({ name: lPortDefinition.name, dataType: lPortDefinition.dataType });
+            lFunc.addOutput({ label: lPortDefinition.label, dataType: lPortDefinition.dataType });
         }
 
         // Create all nodes and build a nodeId → node lookup map.
         const lNodeMap: Map<string, PotatnoDocumentNode<TProject>> = new Map();
         for (const lNodeData of pData.nodes) {
-            const lNode: PotatnoDocumentNode<TProject> = this.deserializeNode(lNodeData, pDocument);
+            const lNode: PotatnoDocumentNode<TProject> = this.deserializeNode(lNodeData, lFunc, pDocument);
             lNodeMap.set(lNodeData.id, lNode);
-            lFunc.addNode(lNode);
         }
 
         // Restore port connections from the flat connections list.
@@ -84,8 +81,8 @@ export class PotatnoDeserializer<TProject extends PotatnoProject<any>> {
                 continue;
             }
 
-            const lSourcePort = lSourceNode.outputs.get(lConnection.sourcePortName);
-            const lTargetPort = lTargetNode.inputs.get(lConnection.targetPortName);
+            const lSourcePort = lSourceNode.outputs.get(lConnection.sourcePortId);
+            const lTargetPort = lTargetNode.inputs.get(lConnection.targetPortId);
             if (!lSourcePort || !lTargetPort) {
                 continue;
             }
@@ -98,22 +95,62 @@ export class PotatnoDeserializer<TProject extends PotatnoProject<any>> {
 
     /**
      * Reconstruct a single node from its serialized form.
-     * Ports are created automatically by PotatnoDocumentNode from its definition.
+     * When the definition is still present in the project or document, newNodeByDefinition is used.
+     * When the definition is gone, newNode reconstructs the node from the serialized port snapshot.
      */
-    private deserializeNode(pData: SerializedNode, pDocument: PotatnoDocument<TProject>): PotatnoDocumentNode<TProject> {
-        // Check project node definitions first, then document function node definitions.
-        const lDefinition = this.mProject.nodeDefinitions.get(pData.definitionId) ?? pDocument.functionNodeDefinitions.get(pData.definitionId);
-        if (!lDefinition) {
-            throw new Error(`Node definition not found: "${pData.definitionId}"`);
+    private deserializeNode(pData: SerializedNode, pFunction: PotatnoDocumentFunction<TProject>, pDocument: PotatnoDocument<TProject>): PotatnoDocumentNode<TProject> {
+        // Try to find definition in project node definitions first, then document function node definitions.
+        const lDefinition = this.mProject.nodeDefinitions.get(pData.definitionId) ?? pDocument.nodeDefinitions.get(pData.definitionId);
+
+        let lNode: PotatnoDocumentNode<TProject>;
+
+        if (lDefinition) {
+            lNode = pFunction.newNode(lDefinition, { ...pData.transformation }, pData.isSystem);
+        } else {
+            // Definition is gone — reconstruct from the serialized port snapshot.
+            const lInputPorts: Array<PotatnoDocumentNodePortConfiguration<TProject>> = pData.ports.filter((pPort) => pPort.direction === 'input')
+                .map((pPort) => {
+                    return {
+                        dataType: pPort.dataType as PotatnoProjectType<TProject> | null,
+                        definitionId: pPort.definitionId,
+                        label: pPort.label,
+                        portType: pPort.portType
+                    } satisfies PotatnoDocumentNodePortConfiguration<TProject>;
+                });
+
+            const lOutputPorts: Array<PotatnoDocumentNodePortConfiguration<TProject>> = pData.ports.filter((pPort) => pPort.direction === 'output')
+                .map((pPort) => {
+                    return {
+                        dataType: pPort.dataType as PotatnoProjectType<TProject> | null,
+                        definitionId: pPort.definitionId,
+                        label: pPort.label,
+                        portType: pPort.portType
+                    } satisfies PotatnoDocumentNodePortConfiguration<TProject>;
+                });
+
+            // Create a new node.
+            lNode = new PotatnoDocumentNode<TProject>({
+                category: pData.category,
+                definitionId: pData.definitionId,
+                ports: {
+                    input: lInputPorts,
+                    output: lOutputPorts
+                },
+                isSystem: pData.isSystem,
+                label: pData.label,
+                project: this.mProject,
+                transformation: { ...pData.transformation }
+            });
+
+            pFunction.addNode(lNode);
         }
 
-        const lNode: PotatnoDocumentNode<TProject> = new PotatnoDocumentNode(this.mProject, lDefinition, { ...pData.transformation }, pData.isSystem);
         lNode.label = pData.label;
 
         // Restore direct values for value input ports.
         for (const lPortData of pData.ports) {
             if (lPortData.portType === 'value' && lPortData.directValue.length > 0) {
-                const lPort = lNode.inputs.get(lPortData.name);
+                const lPort = lNode.inputs.get(lPortData.definitionId);
                 if (lPort) {
                     lPort.setDirectValue(lPortData.directValue);
                 }
@@ -121,23 +158,5 @@ export class PotatnoDeserializer<TProject extends PotatnoProject<any>> {
         }
 
         return lNode;
-    }
-
-    /**
-     * Look up a function definition by id from the project.
-     * Falls back to the entry point if the definition is not found.
-     */
-    private findFunctionDefinition(pDefinitionId: string): PotatnoFunctionDefinition<TProject> {
-        if (this.mProject.entryPoint.id === pDefinitionId) {
-            return this.mProject.entryPoint;
-        }
-
-        const lUserFunc: PotatnoFunctionDefinition<TProject> | undefined = this.mProject.userFunctions.get(pDefinitionId);
-        if (lUserFunc) {
-            return lUserFunc;
-        }
-
-        // Fallback to the entry point if the definition is not found.
-        return this.mProject.entryPoint;
     }
 }

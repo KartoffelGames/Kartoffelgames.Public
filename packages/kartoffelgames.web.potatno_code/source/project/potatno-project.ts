@@ -67,17 +67,17 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
         // Init parameter.
         this.mEntryPoint = pParameter.entryPoint as unknown as PotatnoFunctionDefinition<this>;
         this.mTypes = pParameter.types;
-        
+
         // Initialize empty arrays and maps for project definitions.
         this.mNodeDefinitions = new Map<string, PotatnoStaticNodeDefinition<this>>();
-        this.mImports = new Array<PotatnoProjectImportDefinition<this>>();   
+        this.mImports = new Array<PotatnoProjectImportDefinition<this>>();
         this.mUserFunctions = new Map<string, PotatnoFunctionDefinition<this>>();
     }
 
     /**
      * Register an import definition.
-     * 
-     * @param pDefinition - The import definition to register. Must have a unique name and contain valid node definitions.
+     *
+     * @param pDefinition - The import definition to register. Must have a unique label and contain valid node definitions.
      */
     public addImport(pDefinition: PotatnoProjectImportDefinition<this>): void {
         this.mImports.push(pDefinition);
@@ -85,7 +85,7 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
 
     /**
      * Register a node type definition.
-     * 
+     *
      * @param pDefinition - The node definition to register. Must have a unique id and use valid type identifiers for its ports.
      */
     public addNodeDefinition(pDefinition: PotatnoStaticNodeDefinition<this>): void {
@@ -94,11 +94,24 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
 
     /**
      * Register a user function definition. User functions are custom functions defined by the user that can be used as nodes in the editor.
-     * 
-     * @param pDefinition - The function definition to register. 
+     *
+     * @param pDefinition - The function definition to register.
      */
     public addUserFunction(pDefinition: PotatnoFunctionDefinition<this>): void {
         this.mUserFunctions.set(pDefinition.id, pDefinition);
+    }
+
+    /**
+     * Get a function definition by its id. Checks both the entry point and user functions.
+     *
+     * @param pId - The function definition id to look up.
+     */
+    public getFunction(pId: string): PotatnoFunctionDefinition<this> | undefined {
+        if (this.mEntryPoint.id === pId) {
+            return this.mEntryPoint;
+        }
+
+        return this.mUserFunctions.get(pId);
     }
 }
 
@@ -112,13 +125,18 @@ type PotatnoProjectConstructorParameter<TProjectType extends PotatnoProjectTypes
  * the contained node definitions become available in that function's node library.
  */
 export type PotatnoProjectImportDefinition<TProject extends PotatnoProject<any>> = {
-    /** 
-     * Display name of the import group. 
+    /**
+     * Unique identifier of the import group.
      */
-    readonly name: string;
+    readonly id: string;
 
     /**
-     * Node definitions that become available when this import is enabled. 
+     * Display label of the import group.
+     */
+    readonly label: string;
+
+    /**
+     * Node definitions that become available when this import is enabled.
      */
     readonly nodes: Array<PotatnoStaticNodeDefinition<TProject>>;
 };

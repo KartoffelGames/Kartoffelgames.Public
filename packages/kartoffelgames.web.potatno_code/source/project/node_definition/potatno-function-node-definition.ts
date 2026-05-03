@@ -1,4 +1,5 @@
 import { PotatnoDocumentFunction } from "../../document/potatno-document-function.ts";
+import { PotatnoFunctionDefinition } from "../potatno-function-definition.ts";
 import { PotatnoPortDefinitionConfiguration } from "../potatno-port-definition.ts";
 import { PotatnoProjectType } from "../potatno-project-types-definition.ts";
 import { PotatnoProject } from "../potatno-project.ts";
@@ -26,6 +27,15 @@ export class PotatnoFunctionNodeDefinition<TProject extends PotatnoProject<any>>
         return new PotatnoFunctionNodeDefinition(pFunction);
     }
 
+    private readonly mFunction: PotatnoDocumentFunction<TProject>;
+
+    /**
+     * Get the document function this definition mirrors.
+     */
+    public get function(): PotatnoDocumentFunction<TProject> {
+        return this.mFunction;
+    }
+
     /**
      * Constructor.
      *
@@ -36,15 +46,17 @@ export class PotatnoFunctionNodeDefinition<TProject extends PotatnoProject<any>>
             // Generate ports definitions based on the function inputs.
             const lPorts: Array<PotatnoPortDefinitionConfiguration<TProject>> = pFunction.inputs.map((pPort) => {
                 return {
-                    name: pPort.name,
+                    label: pPort.label,
+                    id: pPort.label,
                     portType: 'value',
                     dataType: pPort.dataType as PotatnoProjectType<TProject>
-                };
+                } satisfies PotatnoPortDefinitionConfiguration<TProject>;
             });
 
             // Add an additional flow port for function call chaining.
             lPorts.unshift({
-                name: 'Input',
+                label: 'Input',
+                id: 'Input',
                 portType: 'flow'
             });
 
@@ -55,20 +67,25 @@ export class PotatnoFunctionNodeDefinition<TProject extends PotatnoProject<any>>
             // Generate ports definitions based on the function outputs.
             const lPorts: Array<PotatnoPortDefinitionConfiguration<TProject>> = pFunction.outputs.map((pPort) => {
                 return {
-                    name: pPort.name,
+                    label: pPort.label,
+                    id: pPort.label,
                     portType: 'value',
                     dataType: pPort.dataType as PotatnoProjectType<TProject>
-                };
+                } satisfies PotatnoPortDefinitionConfiguration<TProject>;
             });
 
             // Add an additional flow port for function call chaining.
             lPorts.unshift({
-                name: 'Output',
+                label: 'Output',
+                id: 'Output',
                 portType: 'flow'
             });
 
             return lPorts;
         };
+
+        // Get the function definition from the document function.
+        const lFunctionDefinition: PotatnoFunctionDefinition<TProject> | undefined = pFunction.project.getFunction(pFunction.definitionId);
 
         // Set id and label. Label defaults to id if not provided.
         super({
@@ -80,9 +97,12 @@ export class PotatnoFunctionNodeDefinition<TProject extends PotatnoProject<any>>
                     inputs: lInputPortGenerator,
                     outputs: lOutputPortGenerator
                 },
-                code: pFunction.definition.codeGenerator.value,
+                code: lFunctionDefinition?.codeGenerator.value ?? (() => ''),
                 preview: null
             }
         });
+
+        // Save reference to the source function for later use in code generation and editor features.
+        this.mFunction = pFunction;
     }
 }

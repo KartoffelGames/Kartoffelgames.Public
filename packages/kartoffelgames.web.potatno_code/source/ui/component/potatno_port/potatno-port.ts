@@ -68,7 +68,7 @@ export class PotatnoPortComponent {
      * Port type label (shown as tooltip).
      */
     public get portTypeLabel(): string {
-        return this.port?.type ?? '';
+        return this.port?.dataType ?? '';
     }
 
     /**
@@ -100,7 +100,7 @@ export class PotatnoPortComponent {
         if (!this.port || this.port.portType === 'flow') {
             return 'var(--pn-text-primary)';
         }
-        return this.getTypeColor(this.port.type);
+        return this.getTypeColor(this.port.dataType);
     }
 
     /**
@@ -127,7 +127,7 @@ export class PotatnoPortComponent {
         if (!this.port || this.port.portType !== 'value') {
             return [];
         }
-        const lTypeDef: PotatnoProjectTypeDefinition<string> = this.port.project.types.getType(this.port.type);
+        const lTypeDef: PotatnoProjectTypeDefinition<string> = this.port.project.types.getType(this.port.dataType);
         return lTypeDef.inputs.map((lInput, lIndex) => ({
             htmlType: lInput.type === 'number' ? 'number' : lInput.type === 'boolean' ? 'checkbox' : 'text',
             index: lIndex,

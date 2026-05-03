@@ -21,6 +21,7 @@ export class PotatnoFunctionDefinition<TProject extends PotatnoProject<any>> {
     }
 
     private readonly mId: string;
+    private readonly mLabel: string;
     private readonly mPreviewGenerator: PotatnoFunctionDefinitionPreview | null;
     private readonly mStatics: PotatnoFunctionDefinitionStatics;
     private readonly mNodesProvider: PotatnoFunctionDefinitionNodeProvider<TProject>;
@@ -31,6 +32,13 @@ export class PotatnoFunctionDefinition<TProject extends PotatnoProject<any>> {
      */
     public get id(): string {
         return this.mId;
+    }
+
+    /**
+     * Display label for this function definition.
+     */
+    public get label(): string {
+        return this.mLabel;
     }
 
     /**
@@ -92,11 +100,12 @@ export class PotatnoFunctionDefinition<TProject extends PotatnoProject<any>> {
 
     /**
      * Constructor for a new entry point definition.
-     * 
+     *
      * @param pParameters - Parameters defining the entry point's id, label, static nodes, dynamic nodes, and static settings.
      */
     protected constructor(pParameters: PotatnoFunctionDefinitionConstructorParameter<TProject>) {
         this.mId = pParameters.id;
+        this.mLabel = pParameters.label;
 
         // Set exclusive nodes defined for this entry point that are preset in the editor.
         this.mNodesProvider = pParameters.nodes;
@@ -110,10 +119,32 @@ export class PotatnoFunctionDefinition<TProject extends PotatnoProject<any>> {
         // Set the entry point code generator.
         this.mCodeGenerator = pParameters.generator.code;
     }
+
+    /**
+     * Get a node definition by its id. Searches both prefilled and dynamic node providers.
+     *
+     * @param pId - The node definition id to look up.
+     */
+    public getNode(pId: string): PotatnoNodeDefinition<TProject> | undefined {
+        // Try to get from dynamic nodes first.
+        const lDynamicNode: PotatnoNodeDefinition<TProject> | undefined = this.nodes.find((pNode) => pNode.id === pId);
+        if (lDynamicNode) {
+            return lDynamicNode;
+        }
+
+        // If not found in dynamic nodes, try prefilled nodes. 
+        const lPrefilledNode: PotatnoNodeDefinition<TProject> | undefined = this.prefilledNodes.find((pNode) => pNode.id === pId);
+        if (lPrefilledNode) {
+            return lPrefilledNode;
+        }
+
+        return undefined;
+    }
 }
 
 type PotatnoFunctionDefinitionConstructorParameter<TProject extends PotatnoProject<any>> = {
     id: string;
+    label: string;
     statics: PotatnoFunctionDefinitionStatics | number;
     nodes: PotatnoFunctionDefinitionNodeProvider<NoInfer<TProject>>;
     generator: {
@@ -128,8 +159,8 @@ type PotatnoFunctionDefinitionConstructorParameter<TProject extends PotatnoProje
  * valueGenerator produces the call-site expression when this function is used as a node.
  */
 export type PotatnoFunctionDefinitionGenerator = {
-    /** 
-     * Produces the complete function code from the function body and metadata. 
+    /**
+     * Produces the complete function code from the function body and metadata.
      */
     body: (pFunction: PotatnoCodeFunction) => string;
 
@@ -149,7 +180,7 @@ export type PotatnoFunctionDefinitionNodeProvider<TProject extends PotatnoProjec
     prefilled?: (pAddNode: (node: PotatnoNodeDefinition<TProject>) => void, pFunction: PotatnoFunctionDefinition<TProject>) => void;
 
     /**
-     * Nodes that the user can create and delete on its own N times. 
+     * Nodes that the user can create and delete on its own N times.
      */
     dynamic?: (pAddNode: (node: PotatnoNodeDefinition<TProject>) => void, pFunction: PotatnoFunctionDefinition<TProject>) => void;
 };
@@ -168,7 +199,7 @@ export type PotatnoFunctionDefinitionStatics = typeof PotatnoFunctionDefinitionS
 export type PotatnoFunctionDefinitionPreview = {
     /**
      * Generator function that produces an HTMLElement to be used as a live preview for a node instance.
-     * 
+     *
      * @returns an element that the node gets append as preview.
      */
     readonly generate: () => Element;
@@ -176,7 +207,7 @@ export type PotatnoFunctionDefinitionPreview = {
     /**
      * Update function that updates the preview element based on the current input values and output values of the node instance.
      * This can be used to create live, data-driven previews that react to changes in the node's inputs and outputs.
-     * 
+     *
      * @param pElement - The preview element to be updated.
      * @param pFunction - The complete function object containing the function body code, inputs, and outputs, which can be used to update the preview element accordingly.
      * @param pPreviewInputData - The example preview input data for the entry point, which can be used to run the intermediate code and update the preview element accordingly.

@@ -1,5 +1,6 @@
 import { Exception } from "@kartoffelgames/core";
 import { PotatnoFunctionNodeDefinition } from "../project/node_definition/potatno-function-node-definition.ts";
+import { PotatnoNodeDefinition } from "../project/node_definition/potatno-node-definition.ts";
 import { PotatnoProject } from "../project/potatno-project.ts";
 import type { PotatnoDocumentFunction } from './potatno-document-function.ts';
 import type { PotatnoDocumentPortValidationError } from './potatno-document-port.ts';
@@ -21,12 +22,13 @@ export class PotatnoDocument<TProject extends PotatnoProject<any>> {
     }
 
     /**
-     * Get the map of live node definitions generated from this document's functions.
-     * Keyed by function id. Used by the code generator and editor to resolve
-     * user-function call nodes at the document level.
+     * Get all available node definitions for this document, including both project-level and function node definitions.
      */
-    public get functionNodeDefinitions(): ReadonlyMap<string, PotatnoFunctionNodeDefinition<TProject>> {
-        return this.mFunctionNodeDefinitions;
+    public get nodeDefinitions(): ReadonlyMap<string, PotatnoNodeDefinition<TProject>> {
+        return new Map<string, PotatnoNodeDefinition<TProject>>([
+            ...this.mFunctionNodeDefinitions.entries(),
+            ...this.mProject.nodeDefinitions.entries()
+        ]);
     }
 
     /**
@@ -54,7 +56,10 @@ export class PotatnoDocument<TProject extends PotatnoProject<any>> {
      */
     public addFunction(pFunction: PotatnoDocumentFunction<TProject>): void {
         this.mFunctions.add(pFunction);
-        this.mFunctionNodeDefinitions.set(pFunction.id, PotatnoFunctionNodeDefinition.new(pFunction));
+
+        // Create and register a corresponding node definition for this function.
+        const lNodeDefinition: PotatnoFunctionNodeDefinition<TProject> = PotatnoFunctionNodeDefinition.new(pFunction);
+        this.mFunctionNodeDefinitions.set(lNodeDefinition.id, lNodeDefinition);
     }
 
     /**
@@ -75,7 +80,17 @@ export class PotatnoDocument<TProject extends PotatnoProject<any>> {
         }
 
         this.mFunctions.delete(pFunction);
-        this.mFunctionNodeDefinitions.delete(pFunction.id);
+
+        // Find the corresponding node definition.
+        const lFunctionNodeDefinition: PotatnoFunctionNodeDefinition<TProject> | undefined = this.mFunctionNodeDefinitions.values().find((nodeDef) => {
+            return nodeDef.function === pFunction;
+        });
+
+        // When the function has a node definition, remove it.
+        if (lFunctionNodeDefinition) {
+            this.mFunctionNodeDefinitions.delete(lFunctionNodeDefinition.id);
+        }
+
         return true;
     }
 

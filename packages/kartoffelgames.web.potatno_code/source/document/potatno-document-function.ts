@@ -1,21 +1,22 @@
-import { PotatnoNodeDefinition } from "../project/node_definition/potatno-node-definition.ts";
-import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
+import type { PotatnoNodeDefinition } from "../project/node_definition/potatno-node-definition.ts";
+import { PotatnoPortDefinition } from "../project/potatno-port-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
-import { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from "./potatno-document-node.ts";
+import type { IPotatnoDocumentItem } from './i-potatno-document-item.ts';
+import { PotatnoDocumentNode, PotatnoDocumentNodePortConfiguration, PotatnoDocumentNodeTransformation } from "./potatno-document-node.ts";
 import type { PotatnoDocumentPortValidationError } from "./potatno-document-port.ts";
 
 /**
  * Represents a user-editable function containing a sub-graph.
  */
-export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> {
-    private readonly mDefinition: PotatnoFunctionDefinition<TProject>;
+export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> implements IPotatnoDocumentItem<TProject> {
+    private mLabel: string;
+    private readonly mDefinitionId: string;
     private readonly mId: string;
-    private readonly mIsSystem: boolean;
     private readonly mImports: Array<string>;
     private readonly mInputs: Array<PotatnoDocumentFunctionPort>;
-    private mLabel: string;
-    private readonly mOutputs: Array<PotatnoDocumentFunctionPort>;
+    private readonly mIsSystem: boolean;
     private readonly mNodes: Set<PotatnoDocumentNode<TProject>>;
+    private readonly mOutputs: Array<PotatnoDocumentFunctionPort>;
     private readonly mProject: TProject;
 
     /**
@@ -26,17 +27,17 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> {
     }
 
     /**
+     * The stable id of the function definition this function was created from.
+     */
+    public get definitionId(): string {
+        return this.mDefinitionId;
+    }
+
+    /**
      * Read-only set of all nodes in the graph.
      */
     public get nodes(): ReadonlySet<PotatnoDocumentNode<TProject>> {
         return this.mNodes;
-    }
-
-    /**
-     * Get the function definition this function was created from.
-     */
-    public get definition(): PotatnoFunctionDefinition<TProject> {
-        return this.mDefinition;
     }
 
     /**
@@ -86,16 +87,17 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> {
     /**
      * Create a new function instance.
      *
-     * @param pDefinition - The function definition this function was created from.
+     * @param pProject - The project this function belongs to.
+     * @param pDefinitionId - The stable id of the function definition this function was created from.
      * @param pId - The unique identifier of the function.
      * @param pLabel - Label of the function.
      * @param pIsSystem - Whether the function is a system-defined function.
      */
-    public constructor(pProject: TProject, pDefinition: PotatnoFunctionDefinition<TProject>, pId: string, pLabel: string, pIsSystem: boolean) {
+    public constructor(pProject: TProject, pDefinitionId: string, pId: string, pLabel: string, pIsSystem: boolean) {
         this.mProject = pProject;
         this.mLabel = pLabel;
         this.mIsSystem = pIsSystem;
-        this.mDefinition = pDefinition;
+        this.mDefinitionId = pDefinitionId;
         this.mId = pId;
         this.mNodes = new Set<PotatnoDocumentNode<TProject>>();
         this.mInputs = new Array<PotatnoDocumentFunctionPort>();
@@ -120,8 +122,8 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> {
      * @param pPort - The port definition.
      */
     public addInput(pPort: PotatnoDocumentFunctionPort): void {
-        // Skip if port name already exists.
-        if (this.mInputs.some((existingPort) => existingPort.name === pPort.name)) {
+        // Skip if port label already exists.
+        if (this.mInputs.some((existingPort) => existingPort.label === pPort.label)) {
             return;
         }
 
@@ -134,8 +136,8 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> {
      * @param pPort - The port definition.
      */
     public addOutput(pPort: PotatnoDocumentFunctionPort): void {
-        // Skip if port name already exists.
-        if (this.mOutputs.some((existingPort) => existingPort.name === pPort.name)) {
+        // Skip if port label already exists.
+        if (this.mOutputs.some((existingPort) => existingPort.label === pPort.label)) {
             return;
         }
 
@@ -144,7 +146,7 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> {
 
     /**
      * Add a pre-constructed node directly.
-     * 
+     *
      * @param pNode - The node to add.
      */
     public addNode(pNode: PotatnoDocumentNode<TProject>): void {
@@ -152,11 +154,39 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> {
     }
 
     /**
-     * Add a new node to the graph.
+     * Create a new node from a definition instance. Used by the editor when the user places a node.
+     * The definition's ports and metadata are used to populate the node.
+     *
+     * @param pDefinition - The node definition to create the node from.
+     * @param pTransformation - Initial grid position of the node.
+     * @param pSystem - Whether this is a system node.
      */
     public newNode(pDefinition: PotatnoNodeDefinition<TProject>, pTransformation: PotatnoDocumentNodeTransformation, pSystem: boolean = false): PotatnoDocumentNode<TProject> {
-        const lNode: PotatnoDocumentNode<TProject> = new PotatnoDocumentNode(this.mProject, pDefinition, pTransformation, pSystem);
+        // Node definition to configuration converter.
+        const lNodeConverter = (pPort: PotatnoPortDefinition<TProject>): PotatnoDocumentNodePortConfiguration<TProject> => {
+            return {
+                definitionId: pPort.id,
+                label: pPort.label,
+                portType: pPort.portType,
+                dataType: pPort.dataType
+            };
+        };
+
+        const lNode = new PotatnoDocumentNode<TProject>({
+            category: pDefinition.category,
+            definitionId: pDefinition.id,
+            ports: {
+                input: pDefinition.inputs.map(lNodeConverter),
+                output: pDefinition.outputs.map(lNodeConverter)
+            },
+            isSystem: pSystem,
+            label: pDefinition.label,
+            project: this.mProject,
+            transformation: pTransformation,
+        });
+
         this.mNodes.add(lNode);
+
         return lNode;
     }
 
@@ -176,7 +206,7 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> {
 
     /**
      * Remove an import from the function.
-     * 
+     *
      * @param pImport - The import string to remove.
      */
     public removeImport(pImport: string): void {
@@ -188,11 +218,11 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> {
 
     /**
      * Remove an input port definition from the function.
-     * 
+     *
      * @param pPort - The port definition to remove.
      */
     public removeInput(pPort: PotatnoDocumentFunctionPort): void {
-        const index = this.mInputs.findIndex((existingPort) => existingPort.name === pPort.name);
+        const index = this.mInputs.findIndex((existingPort) => existingPort.label === pPort.label);
         if (index !== -1) {
             this.mInputs.splice(index, 1);
         }
@@ -204,7 +234,7 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> {
      * @param pPort - The port definition to remove.
      */
     public removeOutput(pPort: PotatnoDocumentFunctionPort): void {
-        const index = this.mOutputs.findIndex((existingPort) => existingPort.name === pPort.name);
+        const index = this.mOutputs.findIndex((existingPort) => existingPort.label === pPort.label);
         if (index !== -1) {
             this.mOutputs.splice(index, 1);
         }
@@ -225,6 +255,6 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> {
 }
 
 export type PotatnoDocumentFunctionPort = {
-    name: string;
+    label: string;
     dataType: string;
 };

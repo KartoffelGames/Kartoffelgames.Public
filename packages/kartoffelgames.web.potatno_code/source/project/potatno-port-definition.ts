@@ -14,15 +14,23 @@ export class PotatnoPortDefinition<TProject extends PotatnoProject<any>> {
 		return new PotatnoPortDefinition(pPortDefinition);
 	}
 
-	private readonly mName: string;
+	private readonly mLabel: string;
+	private readonly mId: string;
 	private readonly mPortType: PotatnoPortDefinitionType;
 	private readonly mDataType: PotatnoProjectType<TProject> | null;
 
 	/**
-	 * Port name as registered on the node definition.
+	 * Display label for this port.
 	 */
-	public get name(): string {
-		return this.mName;
+	public get label(): string {
+		return this.mLabel;
+	}
+
+	/**
+	 * Port identifier as registered on the node definition.
+	 */
+	public get id(): string {
+		return this.mId;
 	}
 
 	/**
@@ -42,11 +50,11 @@ export class PotatnoPortDefinition<TProject extends PotatnoProject<any>> {
 	/**
 	 * Constructor.
 	 *
-	 * @param pName - Registered port name.
-	 * @param pDefinition - Raw port definition data.
+	 * @param pPortDefinition - Raw port definition data.
 	 */
 	protected constructor(pPortDefinition: PotatnoPortDefinitionConfiguration<TProject>) {
-		this.mName = pPortDefinition.name;
+		this.mLabel = pPortDefinition.label;
+		this.mId = pPortDefinition.id;
 		this.mPortType = pPortDefinition.portType;
 
 		// Only value ports have a data type, flow ports do not.
@@ -67,26 +75,36 @@ export type PotatnoPortDefinitionDirection = 'input' | 'output';
 
 export type PotatnoPortDefinitionConfiguration<TProject extends PotatnoProject<any>> = {
 	/**
-	 * Name of the port.
+	 * Display label for the port.
 	 */
-	name: string;
+	label: string;
 
-	/** 
+	/**
+	 * Id of the port (used as the code-gen key, e.g. pContext.outputs["x"]).
+	 */
+	id: string;
+
+	/**
 	 * Fixed type discriminator for flow ports.
 	 */
 	portType: 'flow';
 } | {
 	/**
-	 * Name of the port.
+	 * Display label for the port.
 	 */
-	name: string;
+	label: string;
+
+	/**
+	 * Id of the port (used as the code-gen key, e.g. pContext.outputs["x"]).
+	 */
+	id: string;
 
 	/**
 	 * Fixed type discriminator for value ports.
 	 */
 	portType: 'value';
 
-	/** 
+	/**
 	 * Data type identifier for the port.
 	 */
 	dataType: PotatnoProjectType<TProject>;

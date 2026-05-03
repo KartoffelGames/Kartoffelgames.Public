@@ -106,21 +106,21 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
      * Whether this is a comment-category node.
      */
     public get isComment(): boolean {
-        return this.nodeData?.definition.category === NodeCategory.Comment;
+        return this.nodeData?.category === NodeCategory.Comment;
     }
 
     /**
      * Whether this is a reroute passthrough node.
      */
     public get isReroute(): boolean {
-        return this.nodeData?.definition.category === NodeCategory.Reroute;
+        return this.nodeData?.category === NodeCategory.Reroute;
     }
 
     /**
      * Whether this is a function-category node.
      */
     public get isFunction(): boolean {
-        return this.nodeData?.definition.category === NodeCategory.Function;
+        return this.nodeData?.category === NodeCategory.Function;
     }
 
     /**
@@ -141,7 +141,7 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
         if (!this.nodeData) {
             return '';
         }
-        return NodeCategoryMeta.get(this.nodeData.definition.category).cssColor;
+        return NodeCategoryMeta.get(this.nodeData.category).cssColor;
     }
 
     /**
@@ -151,7 +151,7 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
         if (!this.nodeData) {
             return '';
         }
-        return NodeCategoryMeta.get(this.nodeData.definition.category).icon;
+        return NodeCategoryMeta.get(this.nodeData.category).icon;
     }
 
     /**

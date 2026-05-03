@@ -73,7 +73,7 @@ export class PotatnoClipboard<TProject extends PotatnoProject<any>> {
                             sourceNodeIndex: lSourceIdx,
                             sourcePortName: lPortName,
                             targetNodeIndex: lTargetIdx,
-                            targetPortName: lConnectedPort.name
+                            targetPortName: lConnectedPort.label
                         });
                     }
                 }

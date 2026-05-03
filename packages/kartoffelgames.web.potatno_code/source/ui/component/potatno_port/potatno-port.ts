@@ -61,7 +61,7 @@ export class PotatnoPortComponent {
      * Port display name.
      */
     public get portName(): string {
-        return this.port?.name ?? '';
+        return this.port?.label ?? '';
     }
 
     /**

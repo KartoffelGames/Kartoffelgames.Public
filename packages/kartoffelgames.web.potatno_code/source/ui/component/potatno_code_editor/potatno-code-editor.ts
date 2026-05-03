@@ -430,31 +430,31 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
         }
 
         if (lData.inputs !== undefined) {
-            const lExistingNames = new Set(lActiveFunc.inputs.map(p => p.name));
+            const lExistingNames = new Set(lActiveFunc.inputs.map(p => p.label));
             const lNewNames = new Set(lData.inputs.map(p => p.name));
             for (const lPort of [...lActiveFunc.inputs]) {
-                if (!lNewNames.has(lPort.name)) {
+                if (!lNewNames.has(lPort.label)) {
                     lActiveFunc.removeInput(lPort);
                 }
             }
             for (const lPortData of lData.inputs) {
                 if (!lExistingNames.has(lPortData.name)) {
-                    lActiveFunc.addInput({ name: lPortData.name, dataType: lPortData.type });
+                    lActiveFunc.addInput({ label: lPortData.name, dataType: lPortData.type });
                 }
             }
         }
 
         if (lData.outputs !== undefined) {
-            const lExistingNames = new Set(lActiveFunc.outputs.map(p => p.name));
+            const lExistingNames = new Set(lActiveFunc.outputs.map(p => p.label));
             const lNewNames = new Set(lData.outputs.map(p => p.name));
             for (const lPort of [...lActiveFunc.outputs]) {
-                if (!lNewNames.has(lPort.name)) {
+                if (!lNewNames.has(lPort.label)) {
                     lActiveFunc.removeOutput(lPort);
                 }
             }
             for (const lPortData of lData.outputs) {
                 if (!lExistingNames.has(lPortData.name)) {
-                    lActiveFunc.addOutput({ name: lPortData.name, dataType: lPortData.type });
+                    lActiveFunc.addOutput({ label: lPortData.name, dataType: lPortData.type });
                 }
             }
         }
@@ -1231,7 +1231,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
         // Validate.
         if (lFile) {
             for (const lError of lFile.validate()) {
-                lCached.errors.push({ message: lError.message, location: `Node "${lError.port.node.name}"` });
+                lCached.errors.push({ message: lError.message, location: `Node "${lError.port.node.label}"` });
             }
         }
 
@@ -1282,8 +1282,8 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
             lCached.activeFunctionName = lActiveFunc.label;
             lCached.activeFunctionIsSystem = lActiveFunc.isSystem;
             lCached.activeFunctionEditableByUser = !lActiveFunc.isSystem;
-            lCached.activeFunctionInputs = lActiveFunc.inputs.map(p => ({ name: p.name, type: p.dataType }));
-            lCached.activeFunctionOutputs = lActiveFunc.outputs.map(p => ({ name: p.name, type: p.dataType }));
+            lCached.activeFunctionInputs = lActiveFunc.inputs.map(p => ({ name: p.label, type: p.dataType }));
+            lCached.activeFunctionOutputs = lActiveFunc.outputs.map(p => ({ name: p.label, type: p.dataType }));
             lCached.activeFunctionImports = [...lActiveFunc.imports];
 
             // Visible nodes.

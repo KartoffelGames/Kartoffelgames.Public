@@ -165,7 +165,11 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
      * Node definition name (shown as the node's title in the header).
      */
     public get nodeName(): string {
-        return this.nodeData?.name ?? '';
+        if (!this.nodeData) {
+            return '';
+        }
+        const lDef = this.nodeData.project.nodeDefinitions.get(this.nodeData.definitionId);
+        return lDef?.label ?? this.nodeData.label;
     }
 
     /**

@@ -52,18 +52,19 @@ export class PotatnoFunctionDefinition<TProject extends PotatnoProject<any>> {
     /**
      * List of entry-point-exclusive nodes.
      */
-    public get nodes(): ReadonlyArray<PotatnoNodeDefinition<TProject>> {
-        if (this.mNodesProvider.dynamic) {
-            // Create a temporary array to collect the dynamic nodes provided by the function definition.
-            const lDynamicNodes: Array<PotatnoNodeDefinition<TProject>> = new Array<PotatnoNodeDefinition<TProject>>();
-            this.mNodesProvider.dynamic((node: PotatnoNodeDefinition<TProject>) => {
-                lDynamicNodes.push(node);
-            }, this);
-
-            return lDynamicNodes;
+    public get nodeDefinitions(): ReadonlyArray<PotatnoNodeDefinition<TProject>> {
+        // Cant have node definitions if no dynamic node provider is set.
+        if (!this.mNodesProvider.dynamic) {
+            return new Array<PotatnoNodeDefinition<TProject>>();
         }
 
-        return new Array<PotatnoNodeDefinition<TProject>>();
+        // Create a temporary array to collect the dynamic nodes provided by the function definition.
+        const lDynamicNodes: Array<PotatnoNodeDefinition<TProject>> = new Array<PotatnoNodeDefinition<TProject>>();
+        this.mNodesProvider.dynamic((node: PotatnoNodeDefinition<TProject>) => {
+            lDynamicNodes.push(node);
+        }, this);
+
+        return lDynamicNodes;
     }
 
     /**
@@ -127,7 +128,7 @@ export class PotatnoFunctionDefinition<TProject extends PotatnoProject<any>> {
      */
     public getNode(pId: string): PotatnoNodeDefinition<TProject> | undefined {
         // Try to get from dynamic nodes first.
-        const lDynamicNode: PotatnoNodeDefinition<TProject> | undefined = this.nodes.find((pNode) => pNode.id === pId);
+        const lDynamicNode: PotatnoNodeDefinition<TProject> | undefined = this.nodeDefinitions.find((pNode) => pNode.id === pId);
         if (lDynamicNode) {
             return lDynamicNode;
         }

@@ -370,7 +370,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
         });
 
         // Register dynamic node definitions.
-        for (const lDynamicDef of lFuncDef.nodes) {
+        for (const lDynamicDef of lFuncDef.nodeDefinitions) {
             if (!lProject.nodeDefinitions.has(lDynamicDef.id)) {
                 lProject.addNodeDefinition(lDynamicDef);
             }
@@ -864,7 +864,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
             }
         });
 
-        for (const lDynamicDef of lEntryPoint.nodes) {
+        for (const lDynamicDef of lEntryPoint.nodeDefinitions) {
             if (!pProject.nodeDefinitions.has(lDynamicDef.id)) {
                 pProject.addNodeDefinition(lDynamicDef);
             }

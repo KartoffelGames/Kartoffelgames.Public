@@ -1,4 +1,5 @@
 import type { PotatnoNodeDefinition } from "../project/node_definition/potatno-node-definition.ts";
+import { PotatnoFunctionDefinition } from "../project/potatno-function-definition.ts";
 import { PotatnoPortDefinition } from "../project/potatno-port-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { IPotatnoDocumentItem } from './i-potatno-document-item.ts';
@@ -46,6 +47,29 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> imple
      */
     public get nodes(): ReadonlySet<PotatnoDocumentNode<TProject>> {
         return this.mNodes;
+    }
+
+    /**
+     * Get all available node definitions for this document, including both project-level and function node definitions.
+     */
+    public get nodeDefinitions(): ReadonlyArray<PotatnoNodeDefinition<TProject>> {
+        // Read the function definition from project.
+        const lFunctionDefinition: PotatnoFunctionDefinition<TProject> | undefined = this.mProject.getFunction(this.definitionId);
+
+        // When no definition is set, the result is empty.
+        const lFunctionNodes: ReadonlyArray<PotatnoNodeDefinition<TProject>> = (() => {
+            if (!lFunctionDefinition) {
+                return new Array<PotatnoNodeDefinition<TProject>>();
+            }
+
+            // Create node definitions for all nodes provided by the function definition.
+            return lFunctionDefinition.nodeDefinitions;
+        })();
+
+        return [
+            ...lFunctionNodes,
+            ...this.mDocument.nodeDefinitions
+        ];
     }
 
     /**
@@ -161,7 +185,7 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> imple
     public addNode(pNode: PotatnoDocumentNode<TProject>): void {
         this.mNodes.add(pNode);
     }
-    
+
     /**
      * Create a new node from a definition instance. Used by the editor when the user places a node.
      * The definition's ports and metadata are used to populate the node.

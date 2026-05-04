@@ -24,11 +24,11 @@ export class PotatnoDocument<TProject extends PotatnoProject<any>> {
     /**
      * Get all available node definitions for this document, including both project-level and function node definitions.
      */
-    public get nodeDefinitions(): ReadonlyMap<string, PotatnoNodeDefinition<TProject>> {
-        return new Map<string, PotatnoNodeDefinition<TProject>>([
-            ...this.mFunctionNodeDefinitions.entries(),
-            ...this.mProject.nodeDefinitions.entries()
-        ]);
+    public get nodeDefinitions(): ReadonlyArray<PotatnoNodeDefinition<TProject>> {
+        return [
+            ...this.mFunctionNodeDefinitions.values(),
+            ...this.mProject.nodeDefinitions.values()
+        ];
     }
 
     /**

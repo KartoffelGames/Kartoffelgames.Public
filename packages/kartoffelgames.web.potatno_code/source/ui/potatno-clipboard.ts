@@ -102,8 +102,8 @@ export class PotatnoClipboard<TProject extends PotatnoProject<any>> {
         const lCreated: Array<PotatnoDocumentNode<TProject>> = [];
 
         for (const lNodeData of this.mData.nodes) {
-            const lDefinition = pFunction.project.nodeDefinitions.get(lNodeData.definitionId)
-                ?? pDocument.nodeDefinitions.get(lNodeData.definitionId);
+            const lDefinition = pFunction.project.nodeDefinitions.find((pDefinition) => pDefinition.id === lNodeData.definitionId)
+                ?? pDocument.nodeDefinitions.find((pDefinition) => pDefinition.id === lNodeData.definitionId);
             if (!lDefinition) {
                 continue;
             }

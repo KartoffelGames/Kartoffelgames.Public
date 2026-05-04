@@ -168,8 +168,9 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
         if (!this.nodeData) {
             return '';
         }
-        const lDef = this.nodeData.project.nodeDefinitions.get(this.nodeData.definitionId);
-        return lDef?.label ?? this.nodeData.label;
+        const lNodeData = this.nodeData;
+        const lDef = lNodeData.project.nodeDefinitions.find((lNodeDef: { id: string }) => lNodeDef.id === lNodeData.definitionId);
+        return lDef?.label ?? lNodeData.label;
     }
 
     /**

@@ -105,7 +105,7 @@ export class PotatnoDeserializer<TProject extends PotatnoProject<any>> {
      */
     private deserializeNode(pData: SerializedNode, pFunction: PotatnoDocumentFunction<TProject>, pDocument: PotatnoDocument<TProject>): PotatnoDocumentNode<TProject> {
         // Try to find definition in project node definitions first, then document function node definitions.
-        const lDefinition = this.mProject.nodeDefinitions.get(pData.definitionId) ?? pDocument.nodeDefinitions.get(pData.definitionId);
+        const lDefinition = this.mProject.nodeDefinitions.find((pDefinition) => pDefinition.id === pData.definitionId) ?? pDocument.nodeDefinitions.find((pDefinition) => pDefinition.id === pData.definitionId);
 
         let lNode: PotatnoDocumentNode<TProject>;
 

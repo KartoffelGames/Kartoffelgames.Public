@@ -325,7 +325,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject<any>> {
     private generateFlowBodyCode(pFlowInputPort: PotatnoDocumentPort<TProject>, pValueIdMap: Map<PotatnoDocumentPort<TProject>, string>): string {
         const lOwnerNode: PotatnoDocumentNode<TProject> = pFlowInputPort.node;
 
-        if (!this.mProject.nodeDefinitions.get(lOwnerNode.definitionId) && lOwnerNode.category !== 'function') {
+        if (!this.mProject.nodeDefinitions.find((pDefinition) => pDefinition.id === lOwnerNode.definitionId) && lOwnerNode.category !== 'function') {
             return '';
         }
 
@@ -341,7 +341,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject<any>> {
     private buildCodeNode(pNode: PotatnoDocumentNode<TProject>, pValueIdMap: Map<PotatnoDocumentPort<TProject>, string>): PotatnoCodeNode {
         // Use the node's own definition's codeGenerator directly — works for both
         // project-registered nodes and PotatnoFunctionNodeDefinition instances.
-        const lDefinition = this.mProject.nodeDefinitions.get(pNode.definitionId);
+        const lDefinition = this.mProject.nodeDefinitions.find((pDefinition) => pDefinition.id === pNode.definitionId);
         const lCodeGenerator = lDefinition?.codeGenerator ?? (() => '');
         const lCodeNode: PotatnoCodeNode = this.createNodeForCategory(pNode.category, lCodeGenerator);
 

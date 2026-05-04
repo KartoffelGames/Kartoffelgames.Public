@@ -311,8 +311,8 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
         }
 
         // Look up definition: project nodes first, then user-function nodes from document.
-        const lDefinition = lProject.nodeDefinitions.get(lDefId)
-            ?? lFile.nodeDefinitions.get(lDefId);
+        const lDefinition = lProject.nodeDefinitions.find((lDef) => lDef.id === lDefId)
+            ?? lFile.nodeDefinitions.find((lDef) => lDef.id === lDefId);
         if (!lDefinition) {
             return;
         }
@@ -368,14 +368,14 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
         // Add static nodes from the function definition.
         lFuncDef.prefilledNodes.forEach((lStaticDef, lIdx) => {
             lFunc.newNode(lStaticDef, { x: 2 + lIdx * 12, y: 2, width: 10, height: 4 }, true);
-            if (!lProject.nodeDefinitions.has(lStaticDef.id)) {
+            if (!lProject.nodeDefinitions.some((lDef) => lDef.id === lStaticDef.id)) {
                 lProject.addNodeDefinition(lStaticDef);
             }
         });
 
         // Register dynamic node definitions.
         for (const lDynamicDef of lFuncDef.nodeDefinitions) {
-            if (!lProject.nodeDefinitions.has(lDynamicDef.id)) {
+            if (!lProject.nodeDefinitions.some((lDef) => lDef.id === lDynamicDef.id)) {
                 lProject.addNodeDefinition(lDynamicDef);
             }
         }
@@ -868,13 +868,13 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
 
         lEntryPoint.prefilledNodes.forEach((lStaticDef, lIdx) => {
             lFunc.newNode(lStaticDef, { x: 2 + lIdx * 12, y: 2, width: 10, height: 4 }, true);
-            if (!pProject.nodeDefinitions.has(lStaticDef.id)) {
+            if (!pProject.nodeDefinitions.some((lDef) => lDef.id === lStaticDef.id)) {
                 pProject.addNodeDefinition(lStaticDef);
             }
         });
 
         for (const lDynamicDef of lEntryPoint.nodeDefinitions) {
-            if (!pProject.nodeDefinitions.has(lDynamicDef.id)) {
+            if (!pProject.nodeDefinitions.some((lDef) => lDef.id === lDynamicDef.id)) {
                 pProject.addNodeDefinition(lDynamicDef);
             }
         }
@@ -1105,7 +1105,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
         // Collect preview nodes.
         const lPreviewNodes = new Set<PotatnoDocumentNode<TProject>>();
         for (const lNode of lEntryFunc.nodes) {
-            if (lProject.nodeDefinitions.get(lNode.definitionId)?.preview) {
+            if (lProject.nodeDefinitions.find((lDef) => lDef.id === lNode.definitionId)?.preview) {
                 lPreviewNodes.add(lNode);
             }
         }
@@ -1113,7 +1113,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
         // Generate preview elements for nodes that need them.
         for (const lNode of lPreviewNodes) {
             if (!lInternals.previewElements.has(lNode)) {
-                const lDef = lProject.nodeDefinitions.get(lNode.definitionId);
+                const lDef = lProject.nodeDefinitions.find((lNodeDef) => lNodeDef.id === lNode.definitionId);
                 if (lDef?.preview) {
                     const lEl = lDef.preview.generate();
                     if (lEl instanceof HTMLElement) {
@@ -1187,7 +1187,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
             if (!lElement) {
                 continue;
             }
-            const lDef = lProject.nodeDefinitions.get(lNode.definitionId);
+            const lDef = lProject.nodeDefinitions.find((lNodeDef) => lNodeDef.id === lNode.definitionId);
             if (lDef?.preview) {
                 try {
                     lDef.preview.update(
@@ -1302,7 +1302,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
             for (const lNode of lActiveFunc.nodes) {
                 // Create or reuse preview element.
                 if (lProject) {
-                    const lDef = lProject.nodeDefinitions.get(lNode.definitionId);
+                    const lDef = lProject.nodeDefinitions.find((lNodeDef) => lNodeDef.id === lNode.definitionId);
                     if (lDef?.preview && !this.mInternals.previewElements.has(lNode)) {
                         const lEl = lDef.preview.generate();
                         if (lEl instanceof HTMLElement) {

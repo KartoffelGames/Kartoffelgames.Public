@@ -56,19 +56,11 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> imple
         // Read the function definition from project.
         const lFunctionDefinition: PotatnoFunctionDefinition<TProject> | undefined = this.mProject.getFunction(this.definitionId);
 
-        // When no definition is set, the result is empty.
-        const lFunctionNodes: ReadonlyArray<PotatnoNodeDefinition<TProject>> = (() => {
-            if (!lFunctionDefinition) {
-                return new Array<PotatnoNodeDefinition<TProject>>();
-            }
-
-            // Create node definitions for all nodes provided by the function definition.
-            return lFunctionDefinition.nodeDefinitions;
-        })();
-
         return [
-            ...lFunctionNodes,
-            ...this.mDocument.nodeDefinitions
+            ...this.mDocument.nodeDefinitions,
+
+            // When no definition is set, the result is empty.
+            ...lFunctionDefinition?.nodeDefinitions ?? new Array<PotatnoNodeDefinition<TProject>>()
         ];
     }
 

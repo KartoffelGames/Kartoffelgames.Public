@@ -9,7 +9,6 @@ import { PotatnoProject } from '../../source/project/potatno-project.ts';
 
 /*
  // TODO:
- - Add document property to IPotatnoDocumentItem so it items have a reference to the current document.
  - Add functionality that allows for nodes resync to their definitions. Maybe on validate?. Remove ports when not connected otherwise add as validation error. Nodes and function should be referenced by id instead of reference.
  - Add SemanticValidation: A port should only be connected to a port that has the same starting node (execution regions).
  - Introduce ExecutionRegion (startNodeRef): add execution-region concept derived from a start/root node reference to determine same-region restrictions.

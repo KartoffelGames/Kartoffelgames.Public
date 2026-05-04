@@ -51,7 +51,12 @@ export class PotatnoDeserializer<TProject extends PotatnoProject<any>> {
      * Reconstruct a single function from its serialized form.
      */
     private deserializeFunction(pData: SerializedFunction, pDocument: PotatnoDocument<TProject>): PotatnoDocumentFunction<TProject> {
-        const lFunc: PotatnoDocumentFunction<TProject> = new PotatnoDocumentFunction(this.mProject, pData.definitionId, pData.id, pData.label, pData.isSystem);
+        const lFunc: PotatnoDocumentFunction<TProject> = new PotatnoDocumentFunction(this.mProject, pDocument, {
+            definitionId: pData.definitionId,
+            id: pData.id,
+            label: pData.label,
+            isSystem: pData.isSystem
+        });
 
         // Restore imports.
         for (const lImport of pData.imports) {
@@ -129,7 +134,7 @@ export class PotatnoDeserializer<TProject extends PotatnoProject<any>> {
                 });
 
             // Create a new node.
-            lNode = new PotatnoDocumentNode<TProject>({
+            lNode = new PotatnoDocumentNode<TProject>(this.mProject, pDocument, {
                 category: pData.category,
                 definitionId: pData.definitionId,
                 ports: {
@@ -138,7 +143,6 @@ export class PotatnoDeserializer<TProject extends PotatnoProject<any>> {
                 },
                 isSystem: pData.isSystem,
                 label: pData.label,
-                project: this.mProject,
                 transformation: { ...pData.transformation }
             });
 

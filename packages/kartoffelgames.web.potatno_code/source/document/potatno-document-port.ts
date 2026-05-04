@@ -4,7 +4,7 @@ import { PotatnoProjectType } from "../project/potatno-project-types-definition.
 import { PotatnoProject } from "../project/potatno-project.ts";
 import { PotatnoDocumentNode } from "./potatno-document-node.ts";
 import { IPotatnoDocumentItem } from "./i-potatno-document-item.ts";
-import { PotatnoDocumentPortValidationError } from "./potatno-document.ts";
+import { PotatnoDocument, PotatnoDocumentPortValidationError } from "./potatno-document.ts";
 
 /**
  * A data port instance on a node.
@@ -15,6 +15,7 @@ export class PotatnoDocumentPort<TProject extends PotatnoProject<any>> implement
     private readonly mDefinitionId: string;
     private readonly mDirection: PotatnoPortDefinitionDirection;
     private readonly mDirectValue: Array<string>;
+    private readonly mDocument: PotatnoDocument<TProject>;
     private readonly mNode: PotatnoDocumentNode<TProject>;
     private readonly mPortType: PotatnoPortDefinitionType;
     private readonly mProject: TProject;
@@ -46,6 +47,13 @@ export class PotatnoDocumentPort<TProject extends PotatnoProject<any>> implement
      */
     public get definitionId(): string {
         return this.mDefinitionId;
+    }
+
+    /**
+     * The document this function belongs to.
+     */
+    public get document(): PotatnoDocument<TProject> {
+        return this.mDocument;
     }
 
     /**
@@ -93,7 +101,7 @@ export class PotatnoDocumentPort<TProject extends PotatnoProject<any>> implement
      * @param pPortType - Whether the port is a flow port or a value port.
      * @param pValueType - Data type of the port. Should be empty for flow ports and must be set for value ports.
      */
-    public constructor(pParameter: PotatnoDocumentPortConstructorParameter<TProject>) {
+    public constructor(pProject: TProject, pDocument: PotatnoDocument<TProject>, pParameter: PotatnoDocumentPortConstructorParameter<TProject>) {
         // Validate port type and value type consistency.
         if (pParameter.portType === 'flow' && pParameter.dataType !== null) {
             throw new Exception(`Flow ports cannot have a value type.`, this);
@@ -102,7 +110,8 @@ export class PotatnoDocumentPort<TProject extends PotatnoProject<any>> implement
             throw new Exception(`Value ports must have a value type.`, this);
         }
 
-        this.mProject = pParameter.project;
+        this.mProject = pProject;
+        this.mDocument = pDocument;
         this.mNode = pParameter.node;
         this.mDefinitionId = pParameter.definitionId;
         this.mLabel = pParameter.label;
@@ -113,7 +122,7 @@ export class PotatnoDocumentPort<TProject extends PotatnoProject<any>> implement
 
         this.mDirectValue = new Array<string>();
         if (pParameter.dataType) {
-            this.mDirectValue.push(...pParameter.project.types.getType(pParameter.dataType).defaultValue);
+            this.mDirectValue.push(...pProject.types.getType(pParameter.dataType).defaultValue);
         }
     }
 
@@ -258,6 +267,5 @@ type PotatnoDocumentPortConstructorParameter<TProject extends PotatnoProject<any
     label: string,
     node: PotatnoDocumentNode<TProject>,
     portType: PotatnoPortDefinitionType,
-    project: TProject,
     dataType: PotatnoProjectType<TProject> | null;
 };

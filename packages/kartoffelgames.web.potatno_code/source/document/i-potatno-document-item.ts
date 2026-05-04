@@ -1,4 +1,5 @@
 import type { PotatnoProject } from '../project/potatno-project.ts';
+import { PotatnoDocument } from "./potatno-document.ts";
 
 export interface IPotatnoDocumentItem<TProject extends PotatnoProject<any>> {
     /**
@@ -17,4 +18,9 @@ export interface IPotatnoDocumentItem<TProject extends PotatnoProject<any>> {
      * The project this item belongs to, used for resolving definitions and types.
      */
     readonly project: TProject;
+
+    /**
+     * The document this item belongs to, used for resolving other items and definitions within the same document.
+     */
+    readonly document: PotatnoDocument<TProject>;
 }

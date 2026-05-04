@@ -2,8 +2,8 @@ import type { PotatnoNodeDefinition } from "../project/node_definition/potatno-n
 import { PotatnoPortDefinition } from "../project/potatno-port-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { IPotatnoDocumentItem } from './i-potatno-document-item.ts';
-import { PotatnoDocumentNode, PotatnoDocumentNodePortConfiguration, PotatnoDocumentNodeTransformation } from "./potatno-document-node.ts";
-import { PotatnoDocumentPortValidationError } from "./potatno-document.ts";
+import { PotatnoDocumentNode, PotatnoDocumentNodeConstructorParameter, PotatnoDocumentNodePortConfiguration, PotatnoDocumentNodeTransformation } from "./potatno-document-node.ts";
+import { PotatnoDocument, PotatnoDocumentPortValidationError } from "./potatno-document.ts";
 
 /**
  * Represents a user-editable function containing a sub-graph.
@@ -11,6 +11,7 @@ import { PotatnoDocumentPortValidationError } from "./potatno-document.ts";
 export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> implements IPotatnoDocumentItem<TProject> {
     private mLabel: string;
     private readonly mDefinitionId: string;
+    private readonly mDocument: PotatnoDocument<TProject>;
     private readonly mId: string;
     private readonly mImports: Array<string>;
     private readonly mInputs: Array<PotatnoDocumentFunctionPort>;
@@ -31,6 +32,13 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> imple
      */
     public get definitionId(): string {
         return this.mDefinitionId;
+    }
+
+    /**
+     * The document this function belongs to.
+     */
+    public get document(): PotatnoDocument<TProject> {
+        return this.mDocument;
     }
 
     /**
@@ -93,12 +101,13 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> imple
      * @param pLabel - Label of the function.
      * @param pIsSystem - Whether the function is a system-defined function.
      */
-    public constructor(pProject: TProject, pDefinitionId: string, pId: string, pLabel: string, pIsSystem: boolean) {
+    public constructor(pProject: TProject, pDocument: PotatnoDocument<TProject>, pParameter: PotatnoDocumentFunctionConstructorParameter) {
         this.mProject = pProject;
-        this.mLabel = pLabel;
-        this.mIsSystem = pIsSystem;
-        this.mDefinitionId = pDefinitionId;
-        this.mId = pId;
+        this.mDocument = pDocument;
+        this.mLabel = pParameter.label;
+        this.mIsSystem = pParameter.isSystem;
+        this.mDefinitionId = pParameter.definitionId;
+        this.mId = pParameter.id;
         this.mNodes = new Set<PotatnoDocumentNode<TProject>>();
         this.mInputs = new Array<PotatnoDocumentFunctionPort>();
         this.mOutputs = new Array<PotatnoDocumentFunctionPort>();
@@ -152,7 +161,7 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> imple
     public addNode(pNode: PotatnoDocumentNode<TProject>): void {
         this.mNodes.add(pNode);
     }
-
+    
     /**
      * Create a new node from a definition instance. Used by the editor when the user places a node.
      * The definition's ports and metadata are used to populate the node.
@@ -172,7 +181,7 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> imple
             };
         };
 
-        const lNode = new PotatnoDocumentNode<TProject>({
+        const lNode = new PotatnoDocumentNode<TProject>(this.mProject, this.mDocument, {
             category: pDefinition.category,
             definitionId: pDefinition.id,
             ports: {
@@ -181,7 +190,6 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> imple
             },
             isSystem: pSystem,
             label: pDefinition.label,
-            project: this.mProject,
             transformation: pTransformation,
         });
 
@@ -253,6 +261,13 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> imple
         return lErrors;
     }
 }
+
+export type PotatnoDocumentFunctionConstructorParameter = {
+    definitionId: string;
+    id: string;
+    label: string;
+    isSystem: boolean;
+};
 
 export type PotatnoDocumentFunctionPort = {
     label: string;

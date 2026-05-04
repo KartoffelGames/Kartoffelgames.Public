@@ -1,6 +1,5 @@
 import { ComponentState, PwbChild, PwbComponent, PwbExport, type ComponentEvent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
-import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
-import { PotatnoDocumentFunction as PDocumentFunction } from '../../../document/potatno-document-function.ts';
+import { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoDocument } from '../../../document/potatno-document.ts';
@@ -359,7 +358,12 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
         }
 
         const lCount = lFile.functions.size;
-        const lFunc = new PDocumentFunction(lProject, lFuncDef.id, crypto.randomUUID(), `Function ${lCount}`, false);
+        const lFunc = new PotatnoDocumentFunction(lProject, this.mFile!, {
+            definitionId: lFuncDef.id,
+            id: crypto.randomUUID(),
+            label: `Function ${lCount}`,
+            isSystem: false
+        });
 
         // Add static nodes from the function definition.
         lFuncDef.prefilledNodes.forEach((lStaticDef, lIdx) => {
@@ -855,7 +859,12 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
             return;
         }
 
-        const lFunc = new PDocumentFunction(pProject as TProject, lEntryPoint.id, crypto.randomUUID(), 'Main', true);
+        const lFunc = new PotatnoDocumentFunction(pProject as TProject, this.mFile!, {
+            definitionId: lEntryPoint.id,
+            id: crypto.randomUUID(),
+            label: 'Main',
+            isSystem: true
+        });
 
         lEntryPoint.prefilledNodes.forEach((lStaticDef, lIdx) => {
             lFunc.newNode(lStaticDef, { x: 2 + lIdx * 12, y: 2, width: 10, height: 4 }, true);

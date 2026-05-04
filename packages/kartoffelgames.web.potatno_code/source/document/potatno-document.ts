@@ -2,7 +2,7 @@ import { Exception } from "@kartoffelgames/core";
 import { PotatnoFunctionNodeDefinition } from "../project/node_definition/potatno-function-node-definition.ts";
 import { PotatnoNodeDefinition } from "../project/node_definition/potatno-node-definition.ts";
 import { PotatnoProject } from "../project/potatno-project.ts";
-import type { PotatnoDocumentFunction } from './potatno-document-function.ts';
+import { PotatnoDocumentFunction, PotatnoDocumentFunctionConstructorParameter } from './potatno-document-function.ts';
 import { IPotatnoDocumentItem } from "./i-potatno-document-item.ts";
 
 /**
@@ -48,7 +48,7 @@ export class PotatnoDocument<TProject extends PotatnoProject<any>> {
     }
 
     /**
-     * Add a new function to the file.
+     * Add an existing function to the file.
      * A corresponding PotatnoFunctionNodeDefinition is created and registered
      * so the function can be placed as a node in other graphs.
      *
@@ -60,6 +60,26 @@ export class PotatnoDocument<TProject extends PotatnoProject<any>> {
         // Create and register a corresponding node definition for this function.
         const lNodeDefinition: PotatnoFunctionNodeDefinition<TProject> = PotatnoFunctionNodeDefinition.new(pFunction);
         this.mFunctionNodeDefinitions.set(lNodeDefinition.id, lNodeDefinition);
+    }
+
+    /**
+     * Add a new function to the file.
+     * A corresponding PotatnoFunctionNodeDefinition is created and registered
+     * so the function can be placed as a node in other graphs.
+     *
+     * @param pConstructionParameter - The parameters to construct the function.
+     */
+    public newFunction(pConstructionParameter: PotatnoDocumentFunctionConstructorParameter): PotatnoDocumentFunction<TProject> {
+        // Create the function instance.
+        const lFunction: PotatnoDocumentFunction<TProject> = new PotatnoDocumentFunction(this.mProject, this, pConstructionParameter);
+
+        this.mFunctions.add(lFunction);
+
+        // Create and register a corresponding node definition for this function.
+        const lNodeDefinition: PotatnoFunctionNodeDefinition<TProject> = PotatnoFunctionNodeDefinition.new(lFunction);
+        this.mFunctionNodeDefinitions.set(lNodeDefinition.id, lNodeDefinition);
+
+        return lFunction;
     }
 
     /**

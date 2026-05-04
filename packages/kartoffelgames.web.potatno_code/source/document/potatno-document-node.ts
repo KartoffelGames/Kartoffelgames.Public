@@ -3,7 +3,7 @@ import { PotatnoProjectType } from "../project/potatno-project-types-definition.
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { IPotatnoDocumentItem } from './i-potatno-document-item.ts';
 import { PotatnoDocumentPort } from './potatno-document-port.ts';
-import { PotatnoDocumentPortValidationError } from "./potatno-document.ts";
+import { PotatnoDocument, PotatnoDocumentPortValidationError } from "./potatno-document.ts";
 
 /**
  * A node instance in the graph.
@@ -11,6 +11,7 @@ import { PotatnoDocumentPortValidationError } from "./potatno-document.ts";
 export class PotatnoDocumentNode<TProject extends PotatnoProject<any>> implements IPotatnoDocumentItem<TProject> {
     private readonly mCategory: string;
     private readonly mDefinitionId: string;
+    private readonly mDocument: PotatnoDocument<TProject>;
     private readonly mInputs: Map<string, PotatnoDocumentPort<TProject>>;
     private mLabel: string;
     private readonly mOutputs: Map<string, PotatnoDocumentPort<TProject>>;
@@ -23,6 +24,13 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject<any>> implement
      */
     public get definitionId(): string {
         return this.mDefinitionId;
+    }
+
+    /**
+     * The document this function belongs to.
+     */
+    public get document(): PotatnoDocument<TProject> {
+        return this.mDocument;
     }
 
     /**
@@ -81,26 +89,28 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject<any>> implement
      * nodes without requiring a live definition instance, enabling loading of documents
      * with changed or removed definitions.
      *
+     * @param pProject - The project this node belongs to.
+     * @param pDocument - The document this node belongs to.
      * @param pParameter - Constructor parameters.
      */
-    public constructor(pParameter: PotatnoDocumentNodeConstructorParameter<TProject>) {
+    public constructor(pProject: TProject, pDocument: PotatnoDocument<TProject>, pParameter: PotatnoDocumentNodeConstructorParameter<TProject>) {
         this.mCategory = pParameter.category;
+        this.mDocument = pDocument;
         this.mDefinitionId = pParameter.definitionId;
         this.mIsSystem = pParameter.isSystem;
         this.mLabel = pParameter.label;
-        this.mProject = pParameter.project;
+        this.mProject = pProject;
         this.mTransformation = pParameter.transformation;
 
         // Create ports from input configurations.
         this.mInputs = new Map<string, PotatnoDocumentPort<TProject>>();
         for (const lPort of pParameter.ports.input) {
-            this.mInputs.set(lPort.definitionId, new PotatnoDocumentPort({
+            this.mInputs.set(lPort.definitionId, new PotatnoDocumentPort(this.mProject, this.mDocument, {
                 definitionId: lPort.definitionId,
                 direction: 'input',
                 label: lPort.label,
                 node: this,
                 portType: lPort.portType,
-                project: pParameter.project,
                 dataType: lPort.dataType
             }));
         }
@@ -108,13 +118,12 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject<any>> implement
         // Create ports from output configurations.
         this.mOutputs = new Map<string, PotatnoDocumentPort<TProject>>();
         for (const lPort of pParameter.ports.output) {
-            this.mOutputs.set(lPort.definitionId, new PotatnoDocumentPort({
+            this.mOutputs.set(lPort.definitionId, new PotatnoDocumentPort(this.mProject, this.mDocument, {
                 definitionId: lPort.definitionId,
                 direction: 'output',
                 label: lPort.label,
                 node: this,
                 portType: lPort.portType,
-                project: pParameter.project,
                 dataType: lPort.dataType
             }));
         }
@@ -155,7 +164,6 @@ export type PotatnoDocumentNodeConstructorParameter<TProject extends PotatnoProj
     definitionId: string,
     isSystem: boolean,
     label: string,
-    project: TProject,
     ports: {
         input: Array<PotatnoDocumentNodePortConfiguration<TProject>>,
         output: Array<PotatnoDocumentNodePortConfiguration<TProject>>;

@@ -206,7 +206,7 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> imple
             },
             isSystem: pSystem,
             label: pDefinition.label,
-            transformation: pTransformation,
+            transformation: pTransformation
         });
 
         this.mNodes.add(lNode);

@@ -107,6 +107,22 @@ type PotatnoNodeDefinitionConstructorParameter<TProject extends PotatnoProject<a
 };
 
 /*
+ * Node regions.
+ */
+export type PotatnoNodeDefinitionRegions = {
+    /**
+     * Regions the node adds to the graph.
+     */
+    add: Array<string>;
+
+    /**
+     * Regions other nodes requires to connect to this node.
+     * Exactly the regions must be present. More or less regions will result in a validation error.
+     */
+    requires: Array<string>;
+};
+
+/*
  * Port generator.
  */
 

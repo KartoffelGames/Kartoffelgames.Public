@@ -366,7 +366,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
         });
 
         // Add static nodes from the function definition.
-        lFuncDef.prefilledNodes.forEach((lStaticDef, lIdx) => {
+        lFuncDef.getPrefilledNodes(lFunc).forEach((lStaticDef, lIdx) => {
             lFunc.newNode(lStaticDef, { x: 2 + lIdx * 12, y: 2, width: 10, height: 4 }, true);
             if (!lProject.nodeDefinitions.some((lDef) => lDef.id === lStaticDef.id)) {
                 lProject.addNodeDefinition(lStaticDef);
@@ -374,7 +374,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
         });
 
         // Register dynamic node definitions.
-        for (const lDynamicDef of lFuncDef.nodeDefinitions) {
+        for (const lDynamicDef of lFuncDef.getNodeDefinitions(lFunc)) {
             if (!lProject.nodeDefinitions.some((lDef) => lDef.id === lDynamicDef.id)) {
                 lProject.addNodeDefinition(lDynamicDef);
             }
@@ -866,14 +866,14 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
             isSystem: true
         });
 
-        lEntryPoint.prefilledNodes.forEach((lStaticDef, lIdx) => {
+        lEntryPoint.getPrefilledNodes(lFunc).forEach((lStaticDef, lIdx) => {
             lFunc.newNode(lStaticDef, { x: 2 + lIdx * 12, y: 2, width: 10, height: 4 }, true);
             if (!pProject.nodeDefinitions.some((lDef) => lDef.id === lStaticDef.id)) {
                 pProject.addNodeDefinition(lStaticDef);
             }
         });
 
-        for (const lDynamicDef of lEntryPoint.nodeDefinitions) {
+        for (const lDynamicDef of lEntryPoint.getNodeDefinitions(lFunc)) {
             if (!pProject.nodeDefinitions.some((lDef) => lDef.id === lDynamicDef.id)) {
                 pProject.addNodeDefinition(lDynamicDef);
             }

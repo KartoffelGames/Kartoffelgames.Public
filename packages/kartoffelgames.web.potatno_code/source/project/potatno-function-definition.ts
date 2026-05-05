@@ -2,6 +2,7 @@ import { PotatnoCodeFunction } from "../parser/potatno-code-function.ts";
 import { PotatnoNodeDefinition, PotatnoNodeDefinitionGeneratorData } from "./node_definition/potatno-node-definition.ts";
 import { PotatnoProject } from "./potatno-project.ts";
 import { PotatnoProjectTypesDefinition } from "./potatno-project-types-definition.ts";
+import { PotatnoDocumentFunction } from "../document/potatno-document-function.ts";
 
 /**
  * Definition of a entry point blueprint.
@@ -50,41 +51,6 @@ export class PotatnoFunctionDefinition<TProject extends PotatnoProject<any>> {
     }
 
     /**
-     * List of entry-point-exclusive nodes.
-     */
-    public get nodeDefinitions(): ReadonlyArray<PotatnoNodeDefinition<TProject>> {
-        // Cant have node definitions if no dynamic node provider is set.
-        if (!this.mNodesProvider.dynamic) {
-            return new Array<PotatnoNodeDefinition<TProject>>();
-        }
-
-        // Create a temporary array to collect the dynamic nodes provided by the function definition.
-        const lDynamicNodes: Array<PotatnoNodeDefinition<TProject>> = new Array<PotatnoNodeDefinition<TProject>>();
-        this.mNodesProvider.dynamic((node: PotatnoNodeDefinition<TProject>) => {
-            lDynamicNodes.push(node);
-        }, this);
-
-        return lDynamicNodes;
-    }
-
-    /**
-     * List of prefilled nodes that are generated for this entry point and cannot be deleted by the user.
-     */
-    public get prefilledNodes(): ReadonlyArray<PotatnoNodeDefinition<TProject>> {
-        if (this.mNodesProvider.prefilled) {
-            // Create a temporary array to collect the prefilled nodes provided by the function definition.
-            const lPrefilledNodes: Array<PotatnoNodeDefinition<TProject>> = new Array<PotatnoNodeDefinition<TProject>>();
-            this.mNodesProvider.prefilled((node: PotatnoNodeDefinition<TProject>) => {
-                lPrefilledNodes.push(node);
-            }, this);
-
-            return lPrefilledNodes;
-        }
-
-        return new Array<PotatnoNodeDefinition<TProject>>();
-    }
-
-    /**
      * Get the preview configuration for this entry point, if provided. This can be used to generate and update a live preview element based on the entry point's function and example input data.
      * If no preview configuration is provided, no preview will be available for this entry point.
      */
@@ -122,24 +88,46 @@ export class PotatnoFunctionDefinition<TProject extends PotatnoProject<any>> {
     }
 
     /**
-     * Get a node definition by its id. Searches both prefilled and dynamic node providers.
-     *
-     * @param pId - The node definition id to look up.
+     * List of entry-point-exclusive nodes.
+     * 
+     * @param pDocumentFunction - A document function for this definition.
+     * 
+     * @return A list of entry-point-exclusive nodes.
      */
-    public getNode(pId: string): PotatnoNodeDefinition<TProject> | undefined {
-        // Try to get from dynamic nodes first.
-        const lDynamicNode: PotatnoNodeDefinition<TProject> | undefined = this.nodeDefinitions.find((pNode) => pNode.id === pId);
-        if (lDynamicNode) {
-            return lDynamicNode;
+    public getNodeDefinitions(pDocumentFunction: PotatnoDocumentFunction<TProject>): ReadonlyArray<PotatnoNodeDefinition<TProject>> {
+        // Cant have node definitions if no dynamic node provider is set.
+        if (!this.mNodesProvider.dynamic) {
+            return new Array<PotatnoNodeDefinition<TProject>>();
         }
 
-        // If not found in dynamic nodes, try prefilled nodes. 
-        const lPrefilledNode: PotatnoNodeDefinition<TProject> | undefined = this.prefilledNodes.find((pNode) => pNode.id === pId);
-        if (lPrefilledNode) {
-            return lPrefilledNode;
+        // Create a temporary array to collect the dynamic nodes provided by the function definition.
+        const lDynamicNodes: Array<PotatnoNodeDefinition<TProject>> = new Array<PotatnoNodeDefinition<TProject>>();
+        this.mNodesProvider.dynamic((node: PotatnoNodeDefinition<TProject>) => {
+            lDynamicNodes.push(node);
+        }, pDocumentFunction);
+
+        return lDynamicNodes;
+    }
+
+    /**
+     * List of prefilled nodes that are generated for this entry point and cannot be deleted by the user.
+     * 
+     * @param pDocumentFunction - A document function for this definition.
+     * 
+     * @return A list of prefilled nodes that are generated for this entry point and cannot be deleted by the user.
+     */
+    public getPrefilledNodes(pDocumentFunction: PotatnoDocumentFunction<TProject>): ReadonlyArray<PotatnoNodeDefinition<TProject>> {
+        if (this.mNodesProvider.prefilled) {
+            // Create a temporary array to collect the prefilled nodes provided by the function definition.
+            const lPrefilledNodes: Array<PotatnoNodeDefinition<TProject>> = new Array<PotatnoNodeDefinition<TProject>>();
+            this.mNodesProvider.prefilled((node: PotatnoNodeDefinition<TProject>) => {
+                lPrefilledNodes.push(node);
+            }, pDocumentFunction);
+
+            return lPrefilledNodes;
         }
 
-        return undefined;
+        return new Array<PotatnoNodeDefinition<TProject>>();
     }
 }
 
@@ -178,12 +166,12 @@ export type PotatnoFunctionDefinitionNodeProvider<TProject extends PotatnoProjec
     /**
      * Nodes that are fixed for this entry point, meaning they are always generated and cannot be deleted by the user.
      */
-    prefilled?: (pAddNode: (node: PotatnoNodeDefinition<TProject>) => void, pFunction: PotatnoFunctionDefinition<TProject>) => void;
+    prefilled?: (pAddNode: (node: PotatnoNodeDefinition<TProject>) => void, pFunction: PotatnoDocumentFunction<TProject>) => void;
 
     /**
      * Nodes that the user can create and delete on its own N times.
      */
-    dynamic?: (pAddNode: (node: PotatnoNodeDefinition<TProject>) => void, pFunction: PotatnoFunctionDefinition<TProject>) => void;
+    dynamic?: (pAddNode: (node: PotatnoNodeDefinition<TProject>) => void, pFunction: PotatnoDocumentFunction<TProject>) => void;
 };
 
 /**

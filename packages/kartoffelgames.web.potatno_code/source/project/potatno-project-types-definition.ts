@@ -26,6 +26,11 @@ export class PotatnoProjectTypesDefinition<TTypeName extends string> {
         return Array.from(this.mTypes.keys());
     }
 
+    /**
+     * Constructor.
+     *
+     * @param pParameters - Record mapping each type name to its definition.
+     */
     protected constructor(pParameters: PotatnoProjectTypeDefinitionConfiguration<TTypeName>) {
         this.mTypes = new Map<TTypeName, PotatnoProjectTypeDefinition<TTypeName>>();
 
@@ -38,6 +43,13 @@ export class PotatnoProjectTypesDefinition<TTypeName extends string> {
         }
     }
 
+    /**
+     * Get type definition for the given type name.
+     * 
+     * @param pTypeName - The name of the type to get the definition for.
+     * 
+     * @returns The type definition for the given type name. 
+     */
     public getType(pTypeName: TTypeName): PotatnoProjectTypeDefinition<TTypeName> {
         if (!this.mTypes.has(pTypeName)) {
             throw new Error(`Type "${pTypeName}" is not defined in the project types definition.`);

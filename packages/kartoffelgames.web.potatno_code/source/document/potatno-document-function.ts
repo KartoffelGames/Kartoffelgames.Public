@@ -60,7 +60,7 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> imple
             ...this.mDocument.nodeDefinitions,
 
             // When no definition is set, the result is empty.
-            ...lFunctionDefinition?.nodeDefinitions ?? new Array<PotatnoNodeDefinition<TProject>>()
+            ...lFunctionDefinition?.getNodeDefinitions(this) ?? new Array<PotatnoNodeDefinition<TProject>>()
         ];
     }
 

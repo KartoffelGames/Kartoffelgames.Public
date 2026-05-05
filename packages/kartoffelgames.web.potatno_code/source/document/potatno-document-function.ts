@@ -197,7 +197,7 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> imple
             };
         };
 
-        const lNode = new PotatnoDocumentNode<TProject>(this.mProject, this.mDocument, {
+        const lNode = new PotatnoDocumentNode<TProject>(this.mProject, this.mDocument, this, {
             category: pDefinition.category,
             definitionId: pDefinition.id,
             ports: {
@@ -266,9 +266,16 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> imple
 
     /**
      * Validate all nodes in this function and return any errors found.
+     * Also checks whether this function's own definition can still be found in the project.
      */
     public validate(): Array<PotatnoDocumentPortValidationError<TProject>> {
         const lErrors: Array<PotatnoDocumentPortValidationError<TProject>> = [];
+
+        // Check if this function's definition can still be found.
+        const lDefinition = this.mProject.getFunction(this.mDefinitionId);
+        if (!lDefinition) {
+            lErrors.push(new PotatnoDocumentPortValidationError(`Function "${this.mLabel}" definition "${this.mDefinitionId}" could not be found.`, this));
+        }
 
         for (const lNode of this.mNodes) {
             lErrors.push(...lNode.validate());

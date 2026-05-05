@@ -134,7 +134,7 @@ export class PotatnoDeserializer<TProject extends PotatnoProject<any>> {
                 });
 
             // Create a new node.
-            lNode = new PotatnoDocumentNode<TProject>(this.mProject, pDocument, {
+            lNode = new PotatnoDocumentNode<TProject>(this.mProject, pDocument, pFunction, {
                 category: pData.category,
                 definitionId: pData.definitionId,
                 ports: {

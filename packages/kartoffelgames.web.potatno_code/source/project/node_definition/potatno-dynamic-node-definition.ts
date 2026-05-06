@@ -1,5 +1,5 @@
 import { PotatnoProject } from "../potatno-project.ts";
-import { PotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeDefinitionPortGenerator, PotatnoNodeDefinitionPreviewGenerator } from "./potatno-node-definition.ts";
+import { PotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeDefinitionPortGenerator, PotatnoNodeDefinitionPreviewGenerator, PotatnoNodeDefinitionRegions } from "./potatno-node-definition.ts";
 
 /**
  * Potatno node definition that changes dynamically based on the provided context.
@@ -24,6 +24,7 @@ export class PotatnoDynamicNodeDefinition<TProject extends PotatnoProject<any>> 
             id: pParameters.id,
             label: pParameters.label,
             category: pParameters.category,
+            regions: pParameters.regions ?? null,
             generators: {
                 ports: {
                     inputs: pParameters.generators.ports.inputs,
@@ -40,6 +41,7 @@ type PotatnoDynamicNodeDefinitionConstructorParameter<TProject extends PotatnoPr
     id: string;
     label: string;
     category: string;
+    regions?: Partial<PotatnoNodeDefinitionRegions> | null;
     generators: {
         ports: PotatnoNodeDefinitionPortGenerator<TProject>;
         code: PotatnoNodeDefinitionCodeGenerator;

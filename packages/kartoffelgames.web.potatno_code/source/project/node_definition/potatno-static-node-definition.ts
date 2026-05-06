@@ -1,7 +1,7 @@
 import { PotatnoPortDefinitionConfiguration } from "../potatno-port-definition.ts";
 import { PotatnoProjectType } from "../potatno-project-types-definition.ts";
 import { PotatnoProject } from "../potatno-project.ts";
-import { PotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeDefinitionPreviewGenerator } from "./potatno-node-definition.ts";
+import { PotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeDefinitionPreviewGenerator, PotatnoNodeDefinitionRegions } from "./potatno-node-definition.ts";
 
 /**
  * Definition of a node type that can be instantiated in the graph. Registered at the project level and referenced by nodes via the definitionName property.
@@ -31,8 +31,9 @@ export class PotatnoStaticNodeDefinition<TProject extends PotatnoProject<any>> e
         // Set id and label. Label defaults to id if not provided.
         super({
             id: pParameters.id,
-            label: pParameters.label ?? pParameters.id,
+            label: pParameters.label,
             category: pParameters.category,
+            regions: pParameters.regions ?? null,
             generators: {
                 ports: {
                     inputs: () => pParameters.ports.inputs ?? [],
@@ -49,6 +50,7 @@ type PotatnoStaticNodeDefinitionConstructorParameter<TProject extends PotatnoPro
     id: string;
     label: string;
     category: string;
+    regions?: Partial<PotatnoNodeDefinitionRegions> | null;
     ports: {
         inputs: Array<PotatnoPortDefinitionConfiguration<TProject>>;
         outputs: Array<PotatnoPortDefinitionConfiguration<TProject>>;

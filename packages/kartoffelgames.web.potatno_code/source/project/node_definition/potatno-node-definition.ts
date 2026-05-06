@@ -9,6 +9,7 @@ export abstract class PotatnoNodeDefinition<TProject extends PotatnoProject<any>
     private readonly mId: string;
     private readonly mCategory: string;
     private readonly mLabel: string;
+    private readonly mRegions: PotatnoNodeDefinitionRegions;
     private readonly mCodeGenerator: PotatnoNodeDefinitionCodeGenerator;
     private readonly mPortProvider: PotatnoNodeDefinitionPortGenerator<TProject>;
     private readonly mPreviewGenerator: PotatnoNodeDefinitionPreviewGenerator | null;
@@ -55,6 +56,13 @@ export abstract class PotatnoNodeDefinition<TProject extends PotatnoProject<any>
     }
 
     /**
+     * Regions this node adds, allows, and requires.
+     */
+    public get regions(): PotatnoNodeDefinitionRegions {
+        return this.mRegions;
+    }
+
+    /**
      * Code generator callback that produces the code string from a typed context.
      */
     public get codeGenerator(): PotatnoNodeDefinitionCodeGenerator {
@@ -92,6 +100,13 @@ export abstract class PotatnoNodeDefinition<TProject extends PotatnoProject<any>
         this.mCodeGenerator = pParameters.generators.code;
         this.mPortProvider = pParameters.generators.ports;
         this.mPreviewGenerator = pParameters.generators.preview ?? null;
+
+        // Set regions with default empty arrays if not provided.
+        this.mRegions = {
+            add: pParameters.regions?.add ?? new Array<string>(),
+            allows: pParameters.regions?.allows ?? new Array<string>(),
+            requires: pParameters.regions?.requires ?? new Array<string>(),
+        };
     }
 }
 
@@ -99,6 +114,7 @@ type PotatnoNodeDefinitionConstructorParameter<TProject extends PotatnoProject<a
     id: string;
     label: string;
     category: string;
+    regions?: Partial<PotatnoNodeDefinitionRegions> | null;
     generators: {
         ports: PotatnoNodeDefinitionPortGenerator<TProject>;
         code: PotatnoNodeDefinitionCodeGenerator;
@@ -113,13 +129,18 @@ export type PotatnoNodeDefinitionRegions = {
     /**
      * Regions the node adds to the graph.
      */
-    add: Array<string>;
+    add: ReadonlyArray<string>;
+
+    /**
+     * Regions other nodes are allowed to connect but are not mandatory for this node.
+     */
+    allows: ReadonlyArray<string>;
 
     /**
      * Regions other nodes requires to connect to this node.
      * Exactly the regions must be present. More or less regions will result in a validation error.
      */
-    requires: Array<string>;
+    requires: ReadonlyArray<string>;
 };
 
 /*
@@ -174,7 +195,6 @@ export type PotatnoNodeDefinitionPreviewGenerator = {
 
     /**
      * Update function that updates the preview element based on the current input values and output values of the node instance.
-     * This can be used to create live, data-driven previews that react to changes in the node's inputs and outputs.
      * 
      * @param pElement - The preview element to be updated.
      * @param pPreviewInputData - The example preview input data for the entry point, which can be used to run the intermediate code and update the preview element accordingly.

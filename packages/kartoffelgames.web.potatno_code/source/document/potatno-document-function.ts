@@ -282,10 +282,11 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> imple
         }
 
         // First pass: compute incoming region set for every node via memoized backward recursion.
+        // Each top-level call receives a fresh visited set so cycle detection tracks only the current path.
         const lNodeRegionBuffer: Map<PotatnoDocumentNode<TProject>, Set<string>> = new Map<PotatnoDocumentNode<TProject>, Set<string>>();
         const lNodeRegions: Map<PotatnoDocumentNode<TProject>, Set<string>> = new Map<PotatnoDocumentNode<TProject>, Set<string>>();
         for (const lNode of this.mNodes) {
-            lNodeRegions.set(lNode, this.accumulateRegions(lNodeRegionBuffer, lNode));
+            lNodeRegions.set(lNode, this.accumulateRegions(lNode, lNodeRegionBuffer, new Set<PotatnoDocumentNode<TProject>>(), lErrors));
         }
 
         // Second pass: validate every node with its computed incoming regions.
@@ -304,21 +305,34 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> imple
      * plus the regions each predecessor adds. Results are memoized in pBuffer so each
      * node is resolved at most once regardless of how many downstream nodes reference it.
      *
-     * Cycles are broken by seeding the buffer with an empty set before recursing,
-     * so a revisited node returns its (possibly partial) set instead of looping.
+     * pVisitedNodes tracks the current recursion path (DFS stack). When a node is encountered
+     * that is already on the current path, a cycle is detected, an error is reported, and
+     * recursion stops for that branch. The node is added before recursing and removed on
+     * the way back up so sibling branches are not falsely flagged.
      *
-     * @param pBuffer - Memoization map shared across the entire validation pass.
      * @param pNode - The node whose incoming regions should be computed.
+     * @param pBuffer - Memoization map shared across the entire validation pass.
+     * @param pVisitedNodes - Current DFS path, used for cycle detection.
+     * @param pErrors - Error list to append cycle validation errors to.
      *
      * @returns The accumulated incoming region set for pNode.
      */
-    private accumulateRegions(pBuffer: Map<PotatnoDocumentNode<TProject>, Set<string>>, pNode: PotatnoDocumentNode<TProject>): Set<string> {
+    private accumulateRegions(pNode: PotatnoDocumentNode<TProject>, pBuffer: Map<PotatnoDocumentNode<TProject>, Set<string>>, pVisitedNodes: Set<PotatnoDocumentNode<TProject>>, pErrors: Array<PotatnoDocumentPortValidationError<TProject>>): Set<string> {
         // Return cached result if this node was already resolved.
+        // This also serves for terminating before recursion check, as buffered nodes are added after recursion has finished.
         if (pBuffer.has(pNode)) {
             return pBuffer.get(pNode)!;
         }
 
-        // Seed with an empty set before recursing so cycles terminate.
+        // Cycle detected: this node is already on the current recursion path.
+        if (pVisitedNodes.has(pNode)) {
+            pErrors.push(new PotatnoDocumentPortValidationError(`Node "${pNode.label}" is part of a connection cycle.`, pNode));
+            return new Set<string>();
+        }
+
+        // Mark this node as part of the current path before recursing.
+        pVisitedNodes.add(pNode);
+
         const lNodeRegions = new Set<string>();
 
         // Walk all incoming connections (flow inputs and value inputs).
@@ -327,7 +341,7 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> imple
                 const lPredecessor = lConnectedPort.node;
 
                 // Resolve the predecessor first, then inherit its accumulated regions.
-                const lPredecessorRegions = this.accumulateRegions(pBuffer, lPredecessor);
+                const lPredecessorRegions = this.accumulateRegions(lPredecessor, pBuffer, pVisitedNodes, pErrors);
                 for (const lRegion of lPredecessorRegions) {
                     lNodeRegions.add(lRegion);
                 }

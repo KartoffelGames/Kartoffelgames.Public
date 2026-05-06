@@ -267,6 +267,10 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> imple
     /**
      * Validate all nodes in this function and return any errors found.
      * Also checks whether this function's own definition can still be found in the project.
+     *
+     * Region validation uses a two-pass approach:
+     * 1. Fill a region map for every node via memoized backward recursion over all incoming connections.
+     * 2. Validate each node with its computed incoming region set.
      */
     public validate(): Array<PotatnoDocumentPortValidationError<TProject>> {
         const lErrors: Array<PotatnoDocumentPortValidationError<TProject>> = [];
@@ -277,11 +281,71 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> imple
             lErrors.push(new PotatnoDocumentPortValidationError(`Function "${this.mLabel}" definition "${this.mDefinitionId}" could not be found.`, this));
         }
 
+        // First pass: compute incoming region set for every node via memoized backward recursion.
+        const lNodeRegionBuffer: Map<PotatnoDocumentNode<TProject>, Set<string>> = new Map<PotatnoDocumentNode<TProject>, Set<string>>();
+        const lNodeRegions: Map<PotatnoDocumentNode<TProject>, Set<string>> = new Map<PotatnoDocumentNode<TProject>, Set<string>>();
         for (const lNode of this.mNodes) {
-            lErrors.push(...lNode.validate());
+            lNodeRegions.set(lNode, this.accumulateRegions(lNodeRegionBuffer, lNode));
+        }
+
+        // Second pass: validate every node with its computed incoming regions.
+        for (const lNode of this.mNodes) {
+            lErrors.push(...lNode.validate(lNodeRegions.get(lNode)!));
         }
 
         return lErrors;
+    }
+
+    /**
+     * Recursively accumulate the incoming region set for a node by walking backwards
+     * through all incoming connections (both flow and value inputs).
+     *
+     * A node's incoming regions are the union of every predecessor's accumulated regions
+     * plus the regions each predecessor adds. Results are memoized in pBuffer so each
+     * node is resolved at most once regardless of how many downstream nodes reference it.
+     *
+     * Cycles are broken by seeding the buffer with an empty set before recursing,
+     * so a revisited node returns its (possibly partial) set instead of looping.
+     *
+     * @param pBuffer - Memoization map shared across the entire validation pass.
+     * @param pNode - The node whose incoming regions should be computed.
+     *
+     * @returns The accumulated incoming region set for pNode.
+     */
+    private accumulateRegions(pBuffer: Map<PotatnoDocumentNode<TProject>, Set<string>>, pNode: PotatnoDocumentNode<TProject>): Set<string> {
+        // Return cached result if this node was already resolved.
+        if (pBuffer.has(pNode)) {
+            return pBuffer.get(pNode)!;
+        }
+
+        // Seed with an empty set before recursing so cycles terminate.
+        const lNodeRegions = new Set<string>();
+
+        // Walk all incoming connections (flow inputs and value inputs).
+        for (const lInputPort of pNode.inputs.values()) {
+            for (const lConnectedPort of lInputPort.connectedPorts) {
+                const lPredecessor = lConnectedPort.node;
+
+                // Resolve the predecessor first, then inherit its accumulated regions.
+                const lPredecessorRegions = this.accumulateRegions(pBuffer, lPredecessor);
+                for (const lRegion of lPredecessorRegions) {
+                    lNodeRegions.add(lRegion);
+                }
+
+                // Also apply the regions the predecessor itself adds.
+                const lPredecessorDefinition = this.nodeDefinitions.find((pDef) => pDef.id === lPredecessor.definitionId);
+                if (lPredecessorDefinition) {
+                    for (const lRegion of lPredecessorDefinition.regions.add) {
+                        lNodeRegions.add(lRegion);
+                    }
+                }
+            }
+        }
+
+        // Save the computed regions in the buffer after anything is resolved to future iterations only take valid computed results.
+        pBuffer.set(pNode, lNodeRegions);
+
+        return lNodeRegions;
     }
 }
 

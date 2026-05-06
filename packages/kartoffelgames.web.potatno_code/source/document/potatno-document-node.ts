@@ -152,10 +152,15 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject<any>> implement
      * Validate all ports of this node and return any errors found.
      * Also resyncs ports against the current definition: adds new ports, removes obsolete
      * unconnected ports, and replaces changed ports when safe to do so.
-     * 
+     *
+     * Region validation is performed against the provided incoming region set.
+     * Regions in `requires` must all be present; regions not in `requires` or `allows` are rejected.
+     *
+     * @param pIncomingRegions - The set of regions active at this node's position in the flow graph.
+     *
      * @return An array of validation errors found on this node's ports.
      */
-    public validate(): Array<PotatnoDocumentPortValidationError<TProject>> {
+    public validate(pIncomingRegions: ReadonlySet<string>): Array<PotatnoDocumentPortValidationError<TProject>> {
         const lErrors: Array<PotatnoDocumentPortValidationError<TProject>> = new Array<PotatnoDocumentPortValidationError<TProject>>();
 
         // Find the definition in the function's available node definitions.
@@ -166,6 +171,27 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject<any>> implement
             // Resync inputs and outputs against the current definition.
             lErrors.push(...this.resyncPorts(this.mInputs, lNodeDefinition.inputs, 'input'));
             lErrors.push(...this.resyncPorts(this.mOutputs, lNodeDefinition.outputs, 'output'));
+
+            // Validate region constraints.
+            const lAllowedRegions = new Set<string>([...lNodeDefinition.regions.requires, ...lNodeDefinition.regions.allows]);
+
+            // Every region that is active but not allowed by this node is an error.
+            if (lAllowedRegions.size > 0) {
+                for (const lRegion of pIncomingRegions) {
+                    if (!lAllowedRegions.has(lRegion)) {
+                        lErrors.push(new PotatnoDocumentPortValidationError(`Node "${this.mLabel}" does not allow region "${lRegion}".`, this));
+                    }
+                }
+            }
+
+            // Every required region must be present in the incoming set.
+            if (lNodeDefinition.regions.requires.length > 0) {
+                for (const lRequiredRegion of lNodeDefinition.regions.requires) {
+                    if (!pIncomingRegions.has(lRequiredRegion)) {
+                        lErrors.push(new PotatnoDocumentPortValidationError(`Node "${this.mLabel}" requires region "${lRequiredRegion}" but it is not active.`, this));
+                    }
+                }
+            }
         }
 
         // Run port-level validation.

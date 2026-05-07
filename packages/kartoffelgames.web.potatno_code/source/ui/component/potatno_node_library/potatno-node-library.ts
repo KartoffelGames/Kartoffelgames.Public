@@ -1,11 +1,13 @@
-import { PwbComponent, PwbExport, PwbComponentEvent, ComponentEventEmitter, ComponentState } from '@kartoffelgames/web-potato-web-builder';
+import { ComponentState, PwbComponent, PwbExport } from '@kartoffelgames/web-potato-web-builder';
+import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import { NodeCategoryMeta } from '../../../parser/node/node-category.enum.ts';
+import { PotatnoNodeLibraryDragBus } from '../../potatno-node-library-drag.ts';
+import { buildAvailableNodeDefinitionEntries, type PotatnoNodeDefinitionListEntry, type PotatnoUiProject } from '../../potatno-node-definition-list.ts';
 import templateCss from './potatno-node-library.css' with { type: 'text' };
 import libraryTemplate from './potatno-node-library.html' with { type: 'text' };
 
 /**
  * Node library component for the potatno-code visual editor.
- * Displays available node definitions grouped by category with search filtering.
  */
 @PwbComponent({
     selector: 'potatno-node-library',
@@ -13,34 +15,56 @@ import libraryTemplate from './potatno-node-library.html' with { type: 'text' };
     style: templateCss,
 })
 export class PotatnoNodeLibrary {
+    private mActiveFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = null;
+    private mCollapsedCategories: Record<string, boolean> = {};
     private mNodeDefinitions: Array<NodeLibraryEntry> = [];
+    private mRefreshVersion: number = 0;
+    private mSearchQuery: string = '';
 
+    /**
+     * Cached category groups rendered by the template.
+     */
     @ComponentState.state()
     private accessor mCachedFilteredGroups: Array<CategoryGroup> = [];
 
     /**
-     * Event emitted when a node entry is mousedown-ed for drag-to-canvas.
-     */
-    @PwbComponentEvent('node-drag-start')
-    private accessor mNodeDragStart!: ComponentEventEmitter<string>;
-
-    private mSearchQuery: string = '';
-    private mCollapsedCategories: Record<string, boolean> = {};
-
-    /**
-     * Array of node definitions to display in the library.
+     * Active function that determines which node definitions are available.
      */
     @PwbExport
-    public set nodeDefinitions(pValue: Array<NodeLibraryEntry>) {
-        this.mNodeDefinitions = pValue;
-        this.rebuildFilteredGroups();
+    public set activeFunction(pValue: PotatnoDocumentFunction<PotatnoUiProject> | null) {
+        if (this.mActiveFunction === pValue) {
+            return;
+        }
+
+        this.mActiveFunction = pValue;
+        this.refreshNodeDefinitions();
     }
 
     /**
-     * Get the array of node definitions.
+     * Get the active function that backs the library.
      */
-    public get nodeDefinitions(): Array<NodeLibraryEntry> {
-        return this.mNodeDefinitions;
+    public get activeFunction(): PotatnoDocumentFunction<PotatnoUiProject> | null {
+        return this.mActiveFunction;
+    }
+
+    /**
+     * Explicit refresh token from owning UI actions.
+     */
+    @PwbExport
+    public set refreshVersion(pValue: number) {
+        if (this.mRefreshVersion === pValue) {
+            return;
+        }
+
+        this.mRefreshVersion = pValue;
+        this.refreshNodeDefinitions();
+    }
+
+    /**
+     * Get the current explicit refresh token.
+     */
+    public get refreshVersion(): number {
+        return this.mRefreshVersion;
     }
 
     /**
@@ -51,11 +75,98 @@ export class PotatnoNodeLibrary {
     }
 
     /**
+     * Handle search input changes.
+     *
+     * @param pEvent - Input event from the search field.
+     */
+    public onSearchInput(pEvent: Event): void {
+        if (!(pEvent.target instanceof HTMLInputElement)) {
+            return;
+        }
+
+        this.mSearchQuery = pEvent.target.value;
+        this.rebuildFilteredGroups();
+    }
+
+    /**
+     * Toggle the collapsed state of a category group.
+     *
+     * @param pCategory - The category to toggle.
+     */
+    public toggleCategory(pCategory: string): void {
+        this.mCollapsedCategories[pCategory] = !this.mCollapsedCategories[pCategory];
+        this.rebuildFilteredGroups();
+    }
+
+    /**
+     * Check if a category is currently collapsed.
+     *
+     * @param pCategory - The category to check.
+     *
+     * @returns True if collapsed.
+     */
+    public isCategoryCollapsed(pCategory: string): boolean {
+        return this.mCollapsedCategories[pCategory] === true;
+    }
+
+    /**
+     * Get the CSS class for the toggle arrow indicator.
+     *
+     * @param pCategory - The category to check.
+     *
+     * @returns CSS class string.
+     */
+    public getToggleClass(pCategory: string): string {
+        return this.mCollapsedCategories[pCategory] ? 'category-toggle collapsed' : 'category-toggle';
+    }
+
+    /**
+     * Start a library drag for a node entry.
+     *
+     * @param pEvent - Pointer event that starts the drag.
+     * @param pEntry - Node entry being dragged.
+     */
+    public onNodePointerDown(pEvent: PointerEvent, pEntry: NodeLibraryEntry): void {
+        if (pEvent.button !== 0) {
+            return;
+        }
+
+        PotatnoNodeLibraryDragBus.startDrag({
+            clientX: pEvent.clientX,
+            clientY: pEvent.clientY,
+            definitionId: pEntry.id,
+            label: pEntry.name
+        });
+    }
+
+    /**
+     * Request insertion of a node entry by clicking it.
+     *
+     * @param pEvent - Click event from the node entry.
+     * @param pEntry - Node entry being inserted.
+     */
+    public onNodeClick(pEvent: MouseEvent, pEntry: NodeLibraryEntry): void {
+        pEvent.preventDefault();
+        PotatnoNodeLibraryDragBus.requestInsert({
+            definitionId: pEntry.id,
+            label: pEntry.name
+        });
+    }
+
+    /**
+     * Refresh the raw node definition entries from the active function.
+     */
+    private refreshNodeDefinitions(): void {
+        this.mNodeDefinitions = buildAvailableNodeDefinitionEntries(this.mActiveFunction);
+        this.rebuildFilteredGroups();
+    }
+
+    /**
      * Rebuild the cached filtered groups based on current node definitions and search query.
      */
     private rebuildFilteredGroups(): void {
         const lQuery: string = this.mSearchQuery.toLowerCase();
-        const lGroupMap: Map<string, Array<NodeLibraryEntry>> = new Map();
+        const lGroupMap: Map<string, Array<NodeLibraryEntry>> = new Map<string, Array<NodeLibraryEntry>>();
         const lCategoryOrder: Array<string> = new Array<string>();
 
         for (const lEntry of this.mNodeDefinitions) {
@@ -80,9 +191,9 @@ export class PotatnoNodeLibrary {
                 const lMeta = NodeCategoryMeta.get(lCategory);
                 lResult.push({
                     category: lCategory,
+                    cssColor: lMeta.cssColor,
                     icon: lMeta.icon,
                     label: lMeta.label,
-                    cssColor: lMeta.cssColor,
                     nodes: lNodes
                 });
             }
@@ -90,73 +201,17 @@ export class PotatnoNodeLibrary {
 
         this.mCachedFilteredGroups = lResult;
     }
-
-    /**
-     * Handle search input changes.
-     *
-     * @param pEvent - Input event from the search field.
-     */
-    public onSearchInput(pEvent: Event): void {
-        this.mSearchQuery = (pEvent.target as HTMLInputElement).value;
-        this.rebuildFilteredGroups();
-    }
-
-    /**
-     * Toggle the collapsed state of a category group.
-     *
-     * @param pCategory - The category to toggle.
-     */
-    public toggleCategory(pCategory: string): void {
-        this.mCollapsedCategories[pCategory] = !this.mCollapsedCategories[pCategory];
-        this.rebuildFilteredGroups();
-    }
-
-    /**
-     * Check if a category is currently collapsed.
-     *
-     * @param pCategory - The category to check.
-     * @returns True if collapsed.
-     */
-    public isCategoryCollapsed(pCategory: string): boolean {
-        return !!this.mCollapsedCategories[pCategory];
-    }
-
-    /**
-     * Get the CSS class for the toggle arrow indicator.
-     *
-     * @param pCategory - The category to check.
-     * @returns CSS class string.
-     */
-    public getToggleClass(pCategory: string): string {
-        return this.mCollapsedCategories[pCategory] ? 'category-toggle collapsed' : 'category-toggle';
-    }
-
-    /**
-     * Handle mousedown on a node entry to start drag operation.
-     *
-     * @param pId - The node definition id.
-     */
-    public onNodeMouseDown(pId: string): void {
-        this.mNodeDragStart.dispatchEvent(pId);
-    }
 }
 
-/**
- * Node definition entry for the library display.
- */
-interface NodeLibraryEntry {
-    id: string;
-    name: string;
-    category: string;
-}
+type NodeLibraryEntry = PotatnoNodeDefinitionListEntry<PotatnoUiProject>;
 
 /**
- * Internal group representation: category key with its matching node entries.
+ * Internal group representation for category headings and matching entries.
  */
 interface CategoryGroup {
     category: string;
+    cssColor: string;
     icon: string;
     label: string;
-    cssColor: string;
     nodes: Array<NodeLibraryEntry>;
 }

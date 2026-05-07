@@ -1,11 +1,11 @@
 <div class="editor-layout">
     <div #panelLeft class="panel-left">
         <potatno-panel-left
-            [nodeDefinitions]="this.nodeDefinitionList"
+            [activeFunction]="this.activeFunction"
             [functions]="this.functionList"
             [activeFunctionId]="this.activeFunctionId"
             [userFunctionDefinitions]="this.userFunctionDefinitions"
-            (node-drag-start)="this.onNodeDragFromLibrary($event)"
+            [nodeLibraryRefreshVersion]="this.nodeLibraryRefreshVersion"
             (function-select)="this.onFunctionSelect($event)"
             (function-add)="this.onFunctionAdd($event)"
             (function-delete)="this.onFunctionDelete($event)">
@@ -15,41 +15,16 @@
         (pointerdown)="this.onResizeLeftStart($event)">
     </div>
     <div class="center-area">
-        <div #canvasWrapper class="canvas-wrapper"
-            [style]="this.gridBackgroundStyle"
-            (pointerdown)="this.onCanvasPointerDown($event)"
-            (pointermove)="this.onCanvasPointerMove($event)"
-            (pointerup)="this.onCanvasPointerUp($event)"
-            (wheel)="this.onCanvasWheel($event)"
-            (contextmenu)="this.onContextMenu($event)">
-            <div #gridLayer class="grid-layer" [style]="this.gridTransformStyle">
-                <svg #svgLayer class="svg-layer" xmlns="http://www.w3.org/2000/svg"></svg>
-                <div class="node-layer">
-                    $for(nodeState of this.visibleNodes) {
-                        <div class="node-position" style="left:{{this.nodeState.pixelX}}px;top:{{this.nodeState.pixelY}}px;width:{{this.nodeState.pixelW}}px">
-                            <potatno-node
-                                [nodeData]="this.nodeState.node"
-                                [selected]="this.nodeState.selected"
-                                [gridSize]="this.interaction.gridSize"
-                                [connectionVersion]="this.nodeState.connectionVersion"
-                                [previewElement]="this.getPreviewElementForNode(this.nodeState.node)"
-                                (pointerdown)="this.onNodePointerDown($event, this.nodeState.node)"
-                                (port-drag-start)="this.onPortDragStart($event)"
-                                (port-hover)="this.onPortHover($event)"
-                                (port-leave)="this.onPortLeave($event)"
-                                (resize-start)="this.onNodeResizeStart($event)"
-                                (comment-change)="this.onCommentChange($event)"
-                                (open-function)="this.onOpenFunction($event)"
-                                (direct-value-change)="this.onDirectValueChange($event)">
-                            </potatno-node>
-                        </div>
-                    }
-                </div>
-            </div>
-            $if(this.showSelectionBox) {
-                <div class="selection-box" [style]="this.selectionBoxStyle"></div>
-            }
-        </div>
+        <potatno-node-graph
+            [activeFunction]="this.activeFunction"
+            [refreshVersion]="this.graphRefreshVersion"
+            [previewResult]="this.graphPreviewResult"
+            [previewUpdateVersion]="this.previewUpdateVersion"
+            (graph-change)="this.onGraphChange($event)"
+            (open-function)="this.onGraphOpenFunction($event)"
+            (undo-request)="this.onGraphUndoRequest($event)"
+            (redo-request)="this.onGraphRedoRequest($event)">
+        </potatno-node-graph>
         $if(this.hasPreview) {
             <div class="preview-wrapper">
                 <potatno-preview #previewEl [errors]="this.editorErrors" [previewContent]="this.entryPreviewElement"></potatno-preview>

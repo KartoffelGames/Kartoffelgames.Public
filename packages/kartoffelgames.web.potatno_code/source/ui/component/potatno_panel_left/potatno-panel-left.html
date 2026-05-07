@@ -4,7 +4,7 @@
 </div>
 <div class="tab-content">
     $if(this.activeTabIndex === 0) {
-        <potatno-node-library [nodeDefinitions]="this.nodeDefinitions" (node-drag-start)="this.onNodeDragStart($event)"></potatno-node-library>
+        <potatno-node-library [activeFunction]="this.activeFunction" [refreshVersion]="this.libraryRefreshVersion"></potatno-node-library>
     }
     $if(this.activeTabIndex === 1) {
         <potatno-function-list [functions]="this.functions" [activeFunctionId]="this.activeFunctionId" [userFunctionDefinitions]="this.userFunctionDefinitions" (function-select)="this.onFunctionSelect($event)" (function-add)="this.onFunctionAdd($event)" (function-delete)="this.onFunctionDelete($event)"></potatno-function-list>

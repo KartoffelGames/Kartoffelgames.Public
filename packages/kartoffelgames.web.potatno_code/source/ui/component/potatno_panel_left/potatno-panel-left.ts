@@ -1,14 +1,15 @@
-import { PwbComponent, PwbExport, PwbComponentEvent, ComponentEventEmitter, ComponentEvent, ComponentState } from '@kartoffelgames/web-potato-web-builder';
+import { ComponentEvent, ComponentEventEmitter, ComponentState, PwbComponent, PwbComponentEvent, PwbExport } from '@kartoffelgames/web-potato-web-builder';
+import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
+import type { PotatnoUiProject } from '../../potatno-node-definition-list.ts';
 import templateCss from './potatno-panel-left.css' with { type: 'text' };
 import panelLeftTemplate from './potatno-panel-left.html' with { type: 'text' };
 
 // Import child components to ensure they are registered.
-import '../potatno_node_library/potatno-node-library.ts';
 import '../potatno_function_list/potatno-function-list.ts';
+import '../potatno_node_library/potatno-node-library.ts';
 
 /**
  * Left panel component for the potatno-code visual editor.
- * Contains tabbed views for the node library and function list.
  */
 @PwbComponent({
     selector: 'potatno-panel-left',
@@ -16,12 +17,7 @@ import '../potatno_function_list/potatno-function-list.ts';
     style: templateCss,
 })
 export class PotatnoPanelLeft {
-    /**
-     * Node definitions to display in the Nodes tab.
-     */
-    @PwbExport
-    @ComponentState.state()
-    public accessor nodeDefinitions: Array<NodeDefinitionEntry> = [];
+    private mActiveFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = null;
 
     /**
      * Function entries to display in the Functions tab.
@@ -31,24 +27,37 @@ export class PotatnoPanelLeft {
     public accessor functions: Array<FunctionEntry> = [];
 
     /**
-     * ID of the currently active function (passed to function list).
+     * ID of the currently active function.
      */
     @PwbExport
     @ComponentState.state()
     public accessor activeFunctionId: string = '';
 
     /**
-     * User function definitions available for creation (passed to function list).
+     * User function definitions available for creation.
      */
     @PwbExport
     @ComponentState.state()
     public accessor userFunctionDefinitions: Array<UserFunctionDefinitionEntry> = [];
 
     /**
-     * Event emitted when a node drag starts from the library.
+     * Explicit refresh token for the node library.
      */
-    @PwbComponentEvent('node-drag-start')
-    private accessor mNodeDragStart!: ComponentEventEmitter<string>;
+    @PwbExport
+    @ComponentState.state()
+    public accessor nodeLibraryRefreshVersion: number = 0;
+
+    /**
+     * Active tab index rendered by the panel.
+     */
+    @ComponentState.state()
+    private accessor mActiveTabIndex: number = 0;
+
+    /**
+     * Refresh token incremented whenever the library tab is shown again.
+     */
+    @ComponentState.state()
+    private accessor mLibraryShownRefreshVersion: number = 0;
 
     /**
      * Event emitted when a function is selected.
@@ -68,8 +77,25 @@ export class PotatnoPanelLeft {
     @PwbComponentEvent('function-delete')
     private accessor mFunctionDelete!: ComponentEventEmitter<string>;
 
-    @ComponentState.state()
-    private accessor mActiveTabIndex: number = 0;
+    /**
+     * Active function passed to the node library.
+     */
+    @PwbExport
+    public set activeFunction(pValue: PotatnoDocumentFunction<PotatnoUiProject> | null) {
+        if (this.mActiveFunction === pValue) {
+            return;
+        }
+
+        this.mActiveFunction = pValue;
+        this.mLibraryShownRefreshVersion++;
+    }
+
+    /**
+     * Get the active function passed to the node library.
+     */
+    public get activeFunction(): PotatnoDocumentFunction<PotatnoUiProject> | null {
+        return this.mActiveFunction;
+    }
 
     /**
      * Get the active tab index.
@@ -79,9 +105,17 @@ export class PotatnoPanelLeft {
     }
 
     /**
+     * Combined refresh token for the node library.
+     */
+    public get libraryRefreshVersion(): number {
+        return this.nodeLibraryRefreshVersion + this.mLibraryShownRefreshVersion;
+    }
+
+    /**
      * Get the CSS class for a tab button based on active state.
      *
      * @param pIndex - Tab index.
+     *
      * @returns CSS class string.
      */
     public getTabClass(pIndex: number): string {
@@ -94,16 +128,12 @@ export class PotatnoPanelLeft {
      * @param pIndex - Clicked tab index.
      */
     public onTabClick(pIndex: number): void {
+        const lWasLibraryHidden: boolean = this.mActiveTabIndex !== 0;
         this.mActiveTabIndex = pIndex;
-    }
 
-    /**
-     * Bubble the node-drag-start event from the node library.
-     *
-     * @param pEvent - Component event containing the node name.
-     */
-    public onNodeDragStart(pEvent: ComponentEvent<string>): void {
-        this.mNodeDragStart.dispatchEvent(pEvent.value);
+        if (pIndex === 0 && lWasLibraryHidden) {
+            this.mLibraryShownRefreshVersion++;
+        }
     }
 
     /**
@@ -135,20 +165,12 @@ export class PotatnoPanelLeft {
 }
 
 /**
- * Node definition entry passed through to the node library.
- */
-interface NodeDefinitionEntry {
-    name: string;
-    category: string;
-}
-
-/**
  * Function entry passed through to the function list.
  */
 interface FunctionEntry {
     id: string;
-    name: string;
     label: string;
+    name: string;
     system: boolean;
 }
 

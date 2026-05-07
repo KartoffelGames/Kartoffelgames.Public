@@ -1,0 +1,53 @@
+<div #canvasWrapper class="canvas-wrapper"
+    [style]="this.gridBackgroundStyle"
+    (pointerdown)="this.onCanvasPointerDown($event)"
+    (wheel)="this.onCanvasWheel($event)"
+    (contextmenu)="this.onContextMenu($event)">
+    <div #gridLayer class="grid-layer" [style]="this.gridTransformStyle">
+        <svg #svgLayer class="svg-layer" xmlns="http://www.w3.org/2000/svg"></svg>
+        <div class="node-layer">
+            $for(nodeState of this.visibleNodes) {
+                <div class="node-position" style="left:{{this.nodeState.pixelX}}px;top:{{this.nodeState.pixelY}}px;width:{{this.nodeState.pixelW}}px">
+                    <potatno-node
+                        [nodeData]="this.nodeState.node"
+                        [selected]="this.nodeState.selected"
+                        [gridSize]="this.gridSize"
+                        [connectionVersion]="this.nodeState.connectionVersion"
+                        [previewElement]="this.getPreviewElementForNode(this.nodeState.node)"
+                        (pointerdown)="this.onNodePointerDown($event, this.nodeState.node)"
+                        (port-drag-start)="this.onPortDragStart($event)"
+                        (port-hover)="this.onPortHover($event)"
+                        (port-leave)="this.onPortLeave()"
+                        (resize-start)="this.onNodeResizeStart($event)"
+                        (comment-change)="this.onCommentChange($event)"
+                        (open-function)="this.onOpenFunction($event)"
+                        (direct-value-change)="this.onDirectValueChange($event)">
+                    </potatno-node>
+                </div>
+            }
+        </div>
+    </div>
+    $if(this.showSelectionBox) {
+        <div class="selection-box" [style]="this.selectionBoxStyle"></div>
+    }
+    $if(this.showAddNodePopup) {
+        <div class="add-node-popup" [style]="this.addNodePopupStyle" (pointerdown)="this.onAddNodePopupPointerDown($event)">
+            <input class="add-node-search" type="text" placeholder="Search nodes..." [value]="this.addNodeSearchValue" (input)="this.onAddNodeSearchInput($event)" (keydown)="this.onAddNodeSearchKeyDown($event)" />
+            <div class="add-node-results">
+                $for(entry of this.addNodeResults) {
+                    <button [className]="this.getAddNodeEntryClass(this.entry)" (pointerdown)="this.onAddNodeEntryPointerDown($event, this.entry)">
+                        <span>{{this.entry.name}}</span>
+                    </button>
+                }
+                $if(this.addNodeResults.length === 0) {
+                    <div class="add-node-empty">No matching nodes found.</div>
+                }
+            </div>
+        </div>
+    }
+</div>
+$if(this.hasLibraryDragIndicator) {
+    <div class="library-drag-indicator" [style]="this.libraryDragIndicatorStyle">
+        {{this.libraryDragLabel}}
+    </div>
+}

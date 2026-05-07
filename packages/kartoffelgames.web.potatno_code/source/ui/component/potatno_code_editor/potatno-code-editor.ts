@@ -1,234 +1,287 @@
-import { ComponentState, PwbChild, PwbComponent, PwbExport, type ComponentEvent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { ComponentState, PwbChild, PwbComponent, PwbExport, type ComponentEvent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoDocument } from '../../../document/potatno-document.ts';
-import { NodeCategory } from '../../../parser/node/node-category.enum.ts';
 import { PotatnoCodeGenerator, type FunctionCodeWithIntermediates } from '../../../parser/potatno-code-generator.ts';
-import type { PotatnoProject } from '../../../project/potatno-project.ts';
+import { PotatnoFunctionDefinitionStatics } from '../../../project/potatno-function-definition.ts';
+import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import { PotatnoDeserializer } from '../../../serialization/potatno-deserializer.ts';
 import type { PotatnoCodeFileSerializationResult } from '../../../serialization/potatno-serialization.type.ts';
 import { PotatnoSerializer } from '../../../serialization/potatno-serializer.ts';
-import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
-import { PotatnoCanvasRenderer } from '../../potatno-canvas-renderer.ts';
-import { PotatnoClipboard } from '../../potatno-clipboard.ts';
 import { PotatnoHistory } from '../../potatno-history.ts';
-import type { CommentChangeDetail, DirectValueChangeDetail, OpenFunctionDetail, ResizeStartDetail } from '../potatno_node_component/potatno-node-component.ts';
-import type { PortInteractionDetail } from '../potatno_port/potatno-port.ts';
+import type { PotatnoUiProject } from '../../potatno-node-definition-list.ts';
+import type { GraphChangeDetail, OpenFunctionRequestDetail } from '../potatno_node_graph/potatno-node-graph.ts';
 import editorCss from './potatno-code-editor.css' with { type: 'text' };
 import editorTemplate from './potatno-code-editor.html' with { type: 'text' };
 
-// Import child components to ensure they're registered.
-import { PotatnoFunctionDefinitionStatics } from "../../../project/potatno-function-definition.ts";
+// Import child components to ensure they are registered.
 import '../potatno_function_list/potatno-function-list.ts';
-import '../potatno_node_component/potatno-node-component.ts';
+import '../potatno_node_graph/potatno-node-graph.ts';
 import '../potatno_node_library/potatno-node-library.ts';
 import '../potatno_panel_left/potatno-panel-left.ts';
 import '../potatno_panel_properties/potatno-panel-properties.ts';
-import '../potatno_port/potatno-port.ts';
 import '../potatno_preview/potatno-preview.ts';
 import '../potatno_resize_handle/potatno-resize-handle.ts';
 import '../potatno_search_input/potatno-search-input.ts';
 import '../potatno_tabs/potatno-tabs.ts';
 
 /**
- * Main editor component for the potatno-code visual programming environment.
+ * Top-level UI orchestrator for the potatno-code visual programming environment.
  */
 @PwbComponent({
     selector: 'potatno-code-editor',
     template: editorTemplate,
     style: editorCss,
 })
-export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements IComponentOnConnect, IComponentOnDeconstruct {
-    private mProject: TProject | undefined;
-    private mFile: PotatnoDocument<TProject> | undefined;
+export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements IComponentOnDeconstruct {
+    private readonly mHistory: PotatnoHistory;
     private mActiveFunctionId: string = '';
-    private mSelectedNodes: Set<PotatnoDocumentNode<TProject>> = new Set();
-    private mInternals!: EditorInternals<TProject>;
-    private mSelectionBoxScreen: { x1: number; y1: number; x2: number; y2: number; };
-    private mHistoryDebounceTimer: number = 0;
-    private mPreviewDebounceTimer: number = 0;
-    private mConnectionVersion: number = 0;
-    private mKeyboardHandler: ((e: KeyboardEvent) => void) | null;
+    private mFile: PotatnoDocument<TProject> | undefined;
+    private mHistoryDebounceTimer: number | null;
+    private mPreviewDebounceTimer: number | null;
+    private mPreviewDirty: boolean;
+    private mProject: TProject | undefined;
+    private mResizeMoveHandler: ((pEvent: PointerEvent) => void) | null;
     private mResizeState: { panel: 'left' | 'right'; startX: number; startWidth: number; } | null;
-    private mResizeMoveHandler: ((e: PointerEvent) => void) | null;
-    private mResizeUpHandler: ((e: PointerEvent) => void) | null;
-    private mConnectionRegistry: Map<string, { sourcePort: PotatnoDocumentPort<TProject>; targetPort: PotatnoDocumentPort<TProject>; }> = new Map();
+    private mResizeUpHandler: (() => void) | null;
 
+    /**
+     * Cached data for panels and preview chrome.
+     */
     @ComponentState.state({ complexValue: true })
     private accessor mCachedData: CachedViewData;
 
-    @ComponentState.state()
-    private accessor mShowSelectionBox: boolean = false;
-
-    @ComponentState.state()
-    private accessor mTransformVersion: number = 0;
-
+    /**
+     * Entry-point preview element passed into the preview panel.
+     */
     @ComponentState.state()
     private accessor mEntryPointPreviewElement: Element | null = null;
 
-    @PwbChild('svgLayer')
-    public accessor svgLayer!: SVGSVGElement;
+    /**
+     * Latest generated preview result passed to the node graph.
+     */
+    @ComponentState.state({ complexValue: true })
+    private accessor mGraphPreviewResult: FunctionCodeWithIntermediates | null = null;
 
-    @PwbChild('canvasWrapper')
-    public accessor canvasWrapper!: HTMLElement;
+    /**
+     * Explicit graph refresh token for non-graph document edits.
+     */
+    @ComponentState.state()
+    private accessor mGraphRefreshVersion: number = 0;
 
+    /**
+     * Explicit node-library refresh token.
+     */
+    @ComponentState.state()
+    private accessor mNodeLibraryRefreshVersion: number = 0;
+
+    /**
+     * Explicit preview visual refresh token.
+     */
+    @ComponentState.state()
+    private accessor mPreviewUpdateVersion: number = 0;
+
+    /**
+     * Left panel DOM element used for resizing.
+     */
     @PwbChild('panelLeft')
     public accessor panelLeft!: HTMLElement;
 
+    /**
+     * Right panel DOM element used for resizing.
+     */
     @PwbChild('panelRight')
     public accessor panelRight!: HTMLElement;
 
-    // ── Private computed property ────────────────────────────────────────
-
-    private get activeFunction(): PotatnoDocumentFunction<TProject> | null {
-        if (!this.mFile) {
+    /**
+     * Resolve the currently active document function by id.
+     */
+    public get activeFunction(): PotatnoDocumentFunction<TProject> | null {
+        const lFile: PotatnoDocument<TProject> | undefined = this.mFile;
+        if (!lFile) {
             return null;
         }
-        for (const lFunc of this.mFile.functions) {
-            if (lFunc.id === this.mActiveFunctionId) {
-                return lFunc;
+
+        for (const lFunction of lFile.functions) {
+            if (lFunction.id === this.mActiveFunctionId) {
+                return lFunction;
             }
         }
+
         return null;
     }
 
-    // ── Template getters ─────────────────────────────────────────────────
-
+    /**
+     * Active function id used by the function list.
+     */
     public get activeFunctionId(): string {
         return this.mActiveFunctionId;
     }
 
-    public get interaction(): PotatnoCanvasInteraction {
-        return this.mInternals.interaction;
+    /**
+     * Current function name shown in the right panel.
+     */
+    public get activeFunctionName(): string {
+        return this.mCachedData.activeFunctionName;
     }
 
-    public get showSelectionBox(): boolean {
-        return this.mShowSelectionBox;
+    /**
+     * Current function inputs shown in the right panel.
+     */
+    public get activeFunctionInputs(): Array<{ name: string; type: string; }> {
+        return this.mCachedData.activeFunctionInputs;
     }
 
-    public get hasPreview(): boolean {
-        return this.mCachedData.hasPreview;
+    /**
+     * Current function outputs shown in the right panel.
+     */
+    public get activeFunctionOutputs(): Array<{ name: string; type: string; }> {
+        return this.mCachedData.activeFunctionOutputs;
     }
 
-    public get entryPreviewElement(): Element | null {
-        return this.mEntryPointPreviewElement;
+    /**
+     * Current enabled imports shown in the right panel.
+     */
+    public get activeFunctionImports(): Array<string> {
+        return this.mCachedData.activeFunctionImports;
     }
 
+    /**
+     * Whether the active function is system-owned.
+     */
+    public get activeFunctionIsSystem(): boolean {
+        return this.mCachedData.activeFunctionIsSystem;
+    }
+
+    /**
+     * Whether active function structure can be edited by the user.
+     */
+    public get activeFunctionEditableByUser(): boolean {
+        return this.mCachedData.activeFunctionEditableByUser;
+    }
+
+    /**
+     * Available import names for the right panel.
+     */
+    public get availableImportsList(): Array<string> {
+        return this.mCachedData.availableImports;
+    }
+
+    /**
+     * Available type names for the right panel.
+     */
+    public get availableTypes(): Array<string> {
+        return this.mCachedData.availableTypes;
+    }
+
+    /**
+     * Current validation errors for the preview panel.
+     */
     public get editorErrors(): Array<{ message: string; location: string; }> {
         return this.mCachedData.errors;
     }
 
-    public get gridBackgroundStyle(): string {
-        void this.mTransformVersion;
-        return this.mInternals.interaction.getGridBackgroundCss();
+    /**
+     * Entry preview element rendered by the preview panel.
+     */
+    public get entryPreviewElement(): Element | null {
+        return this.mEntryPointPreviewElement;
     }
 
-    public get gridTransformStyle(): string {
-        void this.mTransformVersion;
-        return 'transform: ' + this.mInternals.interaction.getTransformCss();
-    }
-
-    public get selectionBoxStyle(): string {
-        const lX: number = Math.min(this.mSelectionBoxScreen.x1, this.mSelectionBoxScreen.x2);
-        const lY: number = Math.min(this.mSelectionBoxScreen.y1, this.mSelectionBoxScreen.y2);
-        const lW: number = Math.abs(this.mSelectionBoxScreen.x2 - this.mSelectionBoxScreen.x1);
-        const lH: number = Math.abs(this.mSelectionBoxScreen.y2 - this.mSelectionBoxScreen.y1);
-        return `left: ${lX}px; top: ${lY}px; width: ${lW}px; height: ${lH}px`;
-    }
-
-    public get visibleNodes(): Array<NodeViewState> {
-        return this.mCachedData.visibleNodes;
-    }
-
-    public get nodeDefinitionList(): Array<{ id: string; name: string; category: string; }> {
-        return this.mCachedData.nodeDefinitionList;
-    }
-
+    /**
+     * Function entries shown in the left panel.
+     */
     public get functionList(): Array<{ id: string; name: string; label: string; system: boolean; }> {
         return this.mCachedData.functionList;
     }
 
+    /**
+     * Current graph preview result passed into the graph component.
+     */
+    public get graphPreviewResult(): FunctionCodeWithIntermediates | null {
+        return this.mGraphPreviewResult;
+    }
+
+    /**
+     * Graph refresh token passed into the graph component.
+     */
+    public get graphRefreshVersion(): number {
+        return this.mGraphRefreshVersion;
+    }
+
+    /**
+     * Whether the preview panel should be shown.
+     */
+    public get hasPreview(): boolean {
+        return this.mCachedData.hasPreview;
+    }
+
+    /**
+     * Node library refresh token passed into the left panel.
+     */
+    public get nodeLibraryRefreshVersion(): number {
+        return this.mNodeLibraryRefreshVersion;
+    }
+
+    /**
+     * Preview visual refresh token passed into the graph component.
+     */
+    public get previewUpdateVersion(): number {
+        return this.mPreviewUpdateVersion;
+    }
+
+    /**
+     * User function definitions available for creation.
+     */
     public get userFunctionDefinitions(): Array<{ id: string; }> {
         const lProject: TProject | undefined = this.mProject;
         if (!lProject) {
             return [];
         }
-        return [...lProject.userFunctions.values()].map(lDef => ({ id: lDef.id }));
+
+        return [...lProject.userFunctions.values()].map((pDefinition) => ({ id: pDefinition.id }));
     }
 
-    public get activeFunctionName(): string {
-        return this.mCachedData.activeFunctionName;
+    /**
+     * Current document state.
+     */
+    public get file(): PotatnoDocument<TProject> | null {
+        return this.mFile ?? null;
     }
 
-    public get activeFunctionInputs(): Array<{ name: string; type: string; }> {
-        return this.mCachedData.activeFunctionInputs;
-    }
-
-    public get activeFunctionOutputs(): Array<{ name: string; type: string; }> {
-        return this.mCachedData.activeFunctionOutputs;
-    }
-
-    public get activeFunctionImports(): Array<string> {
-        return this.mCachedData.activeFunctionImports;
-    }
-
-    public get activeFunctionIsSystem(): boolean {
-        return this.mCachedData.activeFunctionIsSystem;
-    }
-
-    public get activeFunctionEditableByUser(): boolean {
-        return this.mCachedData.activeFunctionEditableByUser;
-    }
-
-    public get availableImportsList(): Array<string> {
-        return this.mCachedData.availableImports;
-    }
-
-    public get availableTypes(): Array<string> {
-        return this.mCachedData.availableTypes;
-    }
-
-    public getPreviewElementForNode(pNode: PotatnoDocumentNode<TProject>): HTMLElement | null {
-        return this.mInternals.previewElements.get(pNode) ?? null;
-    }
-
-    // ── Constructor ──────────────────────────────────────────────────────
-
+    /**
+     * Create a new editor orchestrator.
+     */
     public constructor() {
-        this.mInternals = {
-            history: new PotatnoHistory(),
-            clipboard: new PotatnoClipboard(),
-            interaction: new PotatnoCanvasInteraction(20),
-            renderer: new PotatnoCanvasRenderer(),
-            hoveredPort: null,
-            interactionState: { mode: 'idle' },
-            previewElements: new Map(),
-            entryPointPreviewElement: null,
-            previewDirty: true,
-            cachedCodeResult: null,
-        };
         this.mCachedData = this.createEmptyCachedData();
-        this.mSelectionBoxScreen = { x1: 0, y1: 0, x2: 0, y2: 0 };
-        this.mKeyboardHandler = null;
-        this.mResizeState = null;
+        this.mHistory = new PotatnoHistory();
+        this.mHistoryDebounceTimer = null;
+        this.mPreviewDebounceTimer = null;
+        this.mPreviewDirty = true;
         this.mResizeMoveHandler = null;
+        this.mResizeState = null;
         this.mResizeUpHandler = null;
     }
 
-    // ── Public API ───────────────────────────────────────────────────────
-
+    /**
+     * Project configuration backing the editor.
+     */
     @PwbExport
     public set project(pProject: TProject) {
         this.mProject = pProject;
         this.rebuildCachedData();
+        this.refreshNodeLibrary();
     }
 
+    /**
+     * Document state backing the editor.
+     */
     @PwbExport
     public set file(pFile: PotatnoDocument<TProject> | null) {
         if (pFile) {
             this.mFile = pFile;
-            const lProject = this.mProject;
+            const lProject: TProject | undefined = this.mProject;
             if (lProject && pFile.functions.size === 0) {
                 this.initializeMainFunctions(pFile, lProject);
             }
@@ -238,1181 +291,732 @@ export class PotatnoCodeEditor<TProject extends PotatnoProject<any>> implements 
             this.mActiveFunctionId = '';
         }
 
-        this.mSelectedNodes.clear();
-        this.mInternals.history.clear();
-        this.mInternals.previewElements.clear();
+        this.mHistory.clear();
+        this.mGraphPreviewResult = null;
+        this.mEntryPointPreviewElement = null;
         this.rebuildCachedData();
-        try {
-            this.renderConnections();
-        } catch (pError) {
-            console.warn('[Editor] renderConnections skipped (component not yet rendered):', pError);
-        }
+        this.refreshGraph();
+        this.refreshNodeLibrary();
         this.schedulePreviewUpdate();
     }
 
+    /**
+     * Load serialized code into a new document.
+     *
+     * @param pData - Serialized Potatno document data.
+     */
     @PwbExport
     public loadCode(pData: PotatnoCodeFileSerializationResult): void {
-        const lProject = this.mProject!;
-        const lDeserializer = new PotatnoDeserializer(lProject);
-        const lNewFile = lDeserializer.deserialize(pData);
+        const lProject: TProject | undefined = this.mProject;
+        if (!lProject) {
+            return;
+        }
+
+        const lDeserializer: PotatnoDeserializer<TProject> = new PotatnoDeserializer(lProject);
+        const lNewFile: PotatnoDocument<TProject> = lDeserializer.deserialize(pData);
         this.mFile = lNewFile;
         this.mActiveFunctionId = [...lNewFile.functions][0]?.id ?? '';
-        this.mInternals.history.clear();
-        this.mSelectedNodes.clear();
-        this.mInternals.previewElements.clear();
+        this.mHistory.clear();
+        this.mGraphPreviewResult = null;
+        this.mEntryPointPreviewElement = null;
         this.rebuildCachedData();
-        try {
-            this.renderConnections();
-        } catch (pError) {
-            console.warn('[Editor] renderConnections skipped (component not yet rendered):', pError);
-        }
+        this.refreshGraph();
+        this.refreshNodeLibrary();
         this.schedulePreviewUpdate();
     }
 
+    /**
+     * Generate serializable code from the current document.
+     *
+     * @returns Serialized Potatno document data, or null without a document.
+     */
     @PwbExport
     public generateCode(): PotatnoCodeFileSerializationResult | null {
-        if (!this.mFile) {
+        const lFile: PotatnoDocument<TProject> | undefined = this.mFile;
+        if (!lFile) {
             return null;
         }
-        const lSerializer = new PotatnoSerializer<TProject>();
-        return lSerializer.serialize(this.mFile);
+
+        const lSerializer: PotatnoSerializer<TProject> = new PotatnoSerializer<TProject>();
+        return lSerializer.serialize(lFile);
     }
 
+    /**
+     * Refresh preview visuals from cached generated code.
+     */
     @PwbExport
     public triggerPreviewUpdate(): void {
-        // Called every frame from the render loop — only refresh visuals from the
-        // cached code result. Full code regeneration is handled by schedulePreviewUpdate
-        // on graph changes.
-        this.updateNodePreviewsFromCache();
+        this.updatePreviewsFromCache();
     }
 
-    // ── Lifecycle ────────────────────────────────────────────────────────
-
-    public onConnect(): void {
-        this.mKeyboardHandler = (pEvent: KeyboardEvent) => this.onKeyDown(pEvent);
-        document.addEventListener('keydown', this.mKeyboardHandler);
-    }
-
+    /**
+     * Clear timers and panel resize listeners.
+     */
     public onDeconstruct(): void {
-        if (this.mKeyboardHandler) {
-            document.removeEventListener('keydown', this.mKeyboardHandler);
+        if (this.mHistoryDebounceTimer !== null) {
+            clearTimeout(this.mHistoryDebounceTimer);
+            this.mHistoryDebounceTimer = null;
         }
+
+        if (this.mPreviewDebounceTimer !== null) {
+            clearTimeout(this.mPreviewDebounceTimer);
+            this.mPreviewDebounceTimer = null;
+        }
+
+        this.stopPanelResize();
     }
 
-    // ── Left Panel Events ────────────────────────────────────────────────
-
-    public onNodeDragFromLibrary(pEvent: ComponentEvent<string>): void {
-        const lDefId: string = pEvent.value;
-        const lFile = this.mFile;
-        const lProject = this.mProject;
-        const lActiveFunc = this.activeFunction;
-        if (!lFile || !lProject || !lActiveFunc) {
-            return;
-        }
-
-        // Look up definition: project nodes first, then user-function nodes from document.
-        const lDefinition = lProject.nodeDefinitions.find((lDef) => lDef.id === lDefId)
-            ?? lFile.nodeDefinitions.find((lDef) => lDef.id === lDefId);
-        if (!lDefinition) {
-            return;
-        }
-
-        // Place at center of visible canvas area.
-        const lWrapper = this.canvasWrapper;
-        const lW = lWrapper?.clientWidth ?? 800;
-        const lH = lWrapper?.clientHeight ?? 600;
-        const lCenter = this.mInternals.interaction.screenToWorld(lW / 2, lH / 2);
-        const lSnapped = this.mInternals.interaction.snapToGrid(lCenter.x, lCenter.y);
-        const lGS = this.mInternals.interaction.gridSize;
-
-        lActiveFunc.newNode(lDefinition, {
-            x: Math.round(lSnapped.x / lGS),
-            y: Math.round(lSnapped.y / lGS),
-            width: 10,
-            height: 4
-        });
-
-        this.scheduleHistorySnapshot();
-        this.rebuildCachedData();
-        this.renderConnections();
-        this.schedulePreviewUpdate();
-    }
-
+    /**
+     * Select an active function from the left function list.
+     *
+     * @param pEvent - Component event containing the function id.
+     */
     public onFunctionSelect(pEvent: ComponentEvent<string>): void {
-        this.mActiveFunctionId = pEvent.value;
-        this.mSelectedNodes.clear();
-        this.rebuildCachedData();
-        this.renderConnections();
+        this.activateFunction(pEvent.value);
     }
 
+    /**
+     * Add a new function from a user function definition.
+     *
+     * @param pEvent - Component event containing the function definition id.
+     */
     public onFunctionAdd(pEvent: ComponentEvent<string>): void {
         const lDefinitionId: string = pEvent.value;
-        const lFile = this.mFile;
-        const lProject = this.mProject;
+        const lFile: PotatnoDocument<TProject> | undefined = this.mFile;
+        const lProject: TProject | undefined = this.mProject;
         if (!lFile || !lProject) {
             return;
         }
-        const lFuncDef = lProject.userFunctions.get(lDefinitionId);
-        if (!lFuncDef) {
+
+        const lFunctionDefinition = lProject.userFunctions.get(lDefinitionId);
+        if (!lFunctionDefinition) {
             return;
         }
 
-        const lCount = lFile.functions.size;
-        const lFunc = new PotatnoDocumentFunction(lProject, this.mFile!, {
-            definitionId: lFuncDef.id,
+        const lFunction: PotatnoDocumentFunction<TProject> = new PotatnoDocumentFunction(lProject, lFile, {
+            definitionId: lFunctionDefinition.id,
             id: crypto.randomUUID(),
-            label: `Function ${lCount}`,
-            isSystem: false
+            isSystem: false,
+            label: `Function ${lFile.functions.size}`
         });
 
-        // Add static nodes from the function definition.
-        lFuncDef.getPrefilledNodes(lFunc).forEach((lStaticDef, lIdx) => {
-            lFunc.newNode(lStaticDef, { x: 2 + lIdx * 12, y: 2, width: 10, height: 4 }, true);
-            if (!lProject.nodeDefinitions.some((lDef) => lDef.id === lStaticDef.id)) {
-                lProject.addNodeDefinition(lStaticDef);
+        lFunctionDefinition.getPrefilledNodes(lFunction).forEach((pStaticDefinition, pIndex) => {
+            lFunction.newNode(pStaticDefinition, { height: 4, width: 10, x: 2 + pIndex * 12, y: 2 }, true);
+            if (!lProject.nodeDefinitions.some((pDefinition) => pDefinition.id === pStaticDefinition.id)) {
+                lProject.addNodeDefinition(pStaticDefinition);
             }
         });
 
-        // Register dynamic node definitions.
-        for (const lDynamicDef of lFuncDef.getNodeDefinitions(lFunc)) {
-            if (!lProject.nodeDefinitions.some((lDef) => lDef.id === lDynamicDef.id)) {
-                lProject.addNodeDefinition(lDynamicDef);
+        for (const lDynamicDefinition of lFunctionDefinition.getNodeDefinitions(lFunction)) {
+            if (!lProject.nodeDefinitions.some((pDefinition) => pDefinition.id === lDynamicDefinition.id)) {
+                lProject.addNodeDefinition(lDynamicDefinition);
             }
         }
 
-        // Auto-enable all imports if the definition requests static imports.
-        if ((lFuncDef.statics & PotatnoFunctionDefinitionStatics.imports) !== 0) {
+        if ((lFunctionDefinition.statics & PotatnoFunctionDefinitionStatics.imports) !== 0) {
             for (const lImport of lProject.imports) {
-                lFunc.addImport(lImport.label);
+                lFunction.addImport(lImport.label);
             }
         }
 
-        lFile.addFunction(lFunc);
-        this.mActiveFunctionId = lFunc.id;
-        this.mSelectedNodes.clear();
+        lFile.addFunction(lFunction);
+        this.mActiveFunctionId = lFunction.id;
         this.scheduleHistorySnapshot();
         this.rebuildCachedData();
-        this.renderConnections();
+        this.refreshGraph();
+        this.refreshNodeLibrary();
     }
 
+    /**
+     * Delete a function from the document.
+     *
+     * @param pEvent - Component event containing the function id.
+     */
     public onFunctionDelete(pEvent: ComponentEvent<string>): void {
-        const lFuncId: string = pEvent.value;
-        const lFile = this.mFile;
+        const lFunctionId: string = pEvent.value;
+        const lFile: PotatnoDocument<TProject> | undefined = this.mFile;
         if (!lFile) {
             return;
         }
 
-        for (const lFunc of lFile.functions) {
-            if (lFunc.id === lFuncId) {
-                lFile.removeFunction(lFunc);
+        for (const lFunction of lFile.functions) {
+            if (lFunction.id === lFunctionId) {
+                lFile.removeFunction(lFunction);
                 break;
             }
         }
 
-        if (this.mActiveFunctionId === lFuncId) {
+        if (this.mActiveFunctionId === lFunctionId) {
             this.mActiveFunctionId = [...lFile.functions][0]?.id ?? '';
         }
 
-        this.mSelectedNodes.clear();
         this.scheduleHistorySnapshot();
         this.rebuildCachedData();
-        this.renderConnections();
+        this.refreshGraph();
+        this.refreshNodeLibrary();
         this.schedulePreviewUpdate();
     }
 
-    // ── Properties Panel ─────────────────────────────────────────────────
-
+    /**
+     * Apply right-panel function property changes.
+     *
+     * @param pEvent - Component event containing changed function data.
+     */
     public onPropertiesChange(pEvent: ComponentEvent<PropertiesChangeData>): void {
-        const lActiveFunc = this.activeFunction;
-        if (!lActiveFunc) {
+        const lActiveFunction: PotatnoDocumentFunction<TProject> | null = this.activeFunction;
+        if (!lActiveFunction) {
             return;
         }
-        const lData = pEvent.value;
+
+        const lData: PropertiesChangeData = pEvent.value;
+        let lLibraryChanged: boolean = false;
 
         if (lData.name !== undefined) {
-            lActiveFunc.label = lData.name;
+            lActiveFunction.label = lData.name;
         }
 
         if (lData.inputs !== undefined) {
-            const lExistingNames = new Set(lActiveFunc.inputs.map(p => p.label));
-            const lNewNames = new Set(lData.inputs.map(p => p.name));
-            for (const lPort of [...lActiveFunc.inputs]) {
+            const lExistingNames: Set<string> = new Set<string>(lActiveFunction.inputs.map((pPort) => pPort.label));
+            const lNewNames: Set<string> = new Set<string>(lData.inputs.map((pPort) => pPort.name));
+            for (const lPort of [...lActiveFunction.inputs]) {
                 if (!lNewNames.has(lPort.label)) {
-                    lActiveFunc.removeInput(lPort);
+                    lActiveFunction.removeInput(lPort);
                 }
             }
+
             for (const lPortData of lData.inputs) {
                 if (!lExistingNames.has(lPortData.name)) {
-                    lActiveFunc.addInput({ label: lPortData.name, dataType: lPortData.type });
+                    lActiveFunction.addInput({ dataType: lPortData.type, label: lPortData.name });
                 }
             }
+            lLibraryChanged = true;
         }
 
         if (lData.outputs !== undefined) {
-            const lExistingNames = new Set(lActiveFunc.outputs.map(p => p.label));
-            const lNewNames = new Set(lData.outputs.map(p => p.name));
-            for (const lPort of [...lActiveFunc.outputs]) {
+            const lExistingNames: Set<string> = new Set<string>(lActiveFunction.outputs.map((pPort) => pPort.label));
+            const lNewNames: Set<string> = new Set<string>(lData.outputs.map((pPort) => pPort.name));
+            for (const lPort of [...lActiveFunction.outputs]) {
                 if (!lNewNames.has(lPort.label)) {
-                    lActiveFunc.removeOutput(lPort);
+                    lActiveFunction.removeOutput(lPort);
                 }
             }
+
             for (const lPortData of lData.outputs) {
                 if (!lExistingNames.has(lPortData.name)) {
-                    lActiveFunc.addOutput({ label: lPortData.name, dataType: lPortData.type });
+                    lActiveFunction.addOutput({ dataType: lPortData.type, label: lPortData.name });
                 }
             }
+            lLibraryChanged = true;
         }
 
         if (lData.imports !== undefined) {
-            const lExistingImports = new Set(lActiveFunc.imports);
-            const lNewImports = new Set(lData.imports);
-            for (const lImport of [...lActiveFunc.imports]) {
+            const lExistingImports: Set<string> = new Set<string>(lActiveFunction.imports);
+            const lNewImports: Set<string> = new Set<string>(lData.imports);
+            for (const lImport of [...lActiveFunction.imports]) {
                 if (!lNewImports.has(lImport)) {
-                    lActiveFunc.removeImport(lImport);
+                    lActiveFunction.removeImport(lImport);
                 }
             }
+
             for (const lImport of lData.imports) {
                 if (!lExistingImports.has(lImport)) {
-                    lActiveFunc.addImport(lImport);
+                    lActiveFunction.addImport(lImport);
                 }
             }
+            lLibraryChanged = true;
         }
 
         this.scheduleHistorySnapshot();
         this.rebuildCachedData();
-        this.renderConnections();
+        this.refreshGraph();
+        if (lLibraryChanged) {
+            this.refreshNodeLibrary();
+        }
         this.schedulePreviewUpdate();
     }
 
-    // ── Canvas Events ────────────────────────────────────────────────────
+    /**
+     * React to mutations owned by the node graph component.
+     *
+     * @param pEvent - Graph change event.
+     */
+    public onGraphChange(pEvent: ComponentEvent<GraphChangeDetail>): void {
+        this.scheduleHistorySnapshot();
+        this.rebuildCachedData();
 
-    public onCanvasPointerDown(pEvent: PointerEvent): void {
-        const lInternals = this.mInternals;
-
-        if (pEvent.button === 1) {
-            pEvent.preventDefault();
-            lInternals.interactionState = { mode: 'panning', startX: pEvent.clientX, startY: pEvent.clientY };
-            (pEvent.currentTarget as HTMLElement).setPointerCapture(pEvent.pointerId);
-            return;
+        if (pEvent.value.affectsLibrary) {
+            this.refreshNodeLibrary();
         }
 
-        if (pEvent.button === 0) {
-            if (!pEvent.ctrlKey) {
-                this.mSelectedNodes.clear();
-                this.rebuildCachedData();
-            }
-            const lRect = this.canvasWrapper.getBoundingClientRect();
-            const lX = pEvent.clientX - lRect.left;
-            const lY = pEvent.clientY - lRect.top;
-            lInternals.interactionState = { mode: 'selecting', startX: lX, startY: lY };
-            this.mSelectionBoxScreen = { x1: lX, y1: lY, x2: lX, y2: lY };
-            this.mShowSelectionBox = false;
-            (pEvent.currentTarget as HTMLElement).setPointerCapture(pEvent.pointerId);
-        }
-    }
-
-    public onCanvasPointerMove(pEvent: PointerEvent): void {
-        const lInternals = this.mInternals;
-        const lState = lInternals.interactionState;
-
-        if (lState.mode === 'panning') {
-            const lDx = pEvent.clientX - lState.startX;
-            const lDy = pEvent.clientY - lState.startY;
-            lInternals.interaction.pan(lDx, lDy);
-            lState.startX = pEvent.clientX;
-            lState.startY = pEvent.clientY;
-            this.mTransformVersion++;
-            this.renderConnections();
-            return;
-        }
-
-        if (lState.mode === 'dragging-node') {
-            const lActiveFunc = this.activeFunction;
-            if (!lActiveFunc) {
-                return;
-            }
-            const lZoom = lInternals.interaction.zoom;
-            const lGS = lInternals.interaction.gridSize;
-            const lDx = (pEvent.clientX - lState.startX) / lZoom;
-            const lDy = (pEvent.clientY - lState.startY) / lZoom;
-
-            for (const [lNode, lOrigin] of lState.origins) {
-                const lSnapped = lInternals.interaction.snapToGrid(lOrigin.originX + lDx, lOrigin.originY + lDy);
-                lNode.moveTo(Math.round(lSnapped.x / lGS), Math.round(lSnapped.y / lGS));
-            }
-
-            this.rebuildVisibleNodePositions();
-            this.renderConnections();
-            return;
-        }
-
-        if (lState.mode === 'dragging-wire') {
-            const lRect = this.canvasWrapper.getBoundingClientRect();
-            const lEndX = (pEvent.clientX - lRect.left - lInternals.interaction.panX) / lInternals.interaction.zoom;
-            const lEndY = (pEvent.clientY - lRect.top - lInternals.interaction.panY) / lInternals.interaction.zoom;
-            lInternals.renderer.renderTempConnection(
-                this.svgLayer,
-                { x: lState.startX, y: lState.startY },
-                { x: lEndX, y: lEndY },
-                '#bac2de'
-            );
-            return;
-        }
-
-        if (lState.mode === 'selecting') {
-            const lRect = this.canvasWrapper.getBoundingClientRect();
-            this.mSelectionBoxScreen.x2 = pEvent.clientX - lRect.left;
-            this.mSelectionBoxScreen.y2 = pEvent.clientY - lRect.top;
-            const lDx = Math.abs(this.mSelectionBoxScreen.x2 - this.mSelectionBoxScreen.x1);
-            const lDy = Math.abs(this.mSelectionBoxScreen.y2 - this.mSelectionBoxScreen.y1);
-            if (lDx > 5 || lDy > 5) {
-                this.mShowSelectionBox = true;
-            }
-            return;
-        }
-
-        if (lState.mode === 'resizing-comment') {
-            const lGS = lInternals.interaction.gridSize;
-            const lDx = (pEvent.clientX - lState.startX) / lInternals.interaction.zoom;
-            const lDy = (pEvent.clientY - lState.startY) / lInternals.interaction.zoom;
-            const lNewW = lState.originalW + Math.round(lDx / lGS);
-            const lNewH = lState.originalH + Math.round(lDy / lGS);
-            lState.node.resizeTo(lNewW, lNewH);
-            this.rebuildVisibleNodePositions();
-            return;
-        }
-    }
-
-    public onCanvasPointerUp(pEvent: PointerEvent): void {
-        const lInternals = this.mInternals;
-
-        if (lInternals.interactionState.mode === 'dragging-node') {
-            this.scheduleHistorySnapshot();
-            this.rebuildCachedData();
-            this.renderConnections();
+        if (pEvent.value.affectsPreview) {
             this.schedulePreviewUpdate();
         }
-
-        if (lInternals.interactionState.mode === 'dragging-wire') {
-            lInternals.renderer.clearTempConnection(this.svgLayer);
-
-            const lSource = lInternals.interactionState.sourcePort;
-            const lTarget = lInternals.hoveredPort?.port ?? null;
-
-            if (lSource && lTarget && lSource !== lTarget) {
-                // Validate: opposite directions, same port type.
-                if (lSource.direction !== lTarget.direction && lSource.portType === lTarget.portType) {
-                    try {
-                        lSource.connect(lTarget);
-                        this.mConnectionVersion++;
-                        this.scheduleHistorySnapshot();
-                        this.rebuildCachedData();
-                        this.renderConnections();
-                        this.schedulePreviewUpdate();
-                    } catch (pError) {
-                        console.error('[Editor] Connection failed:', pError);
-                    }
-                }
-            }
-        }
-
-        if (lInternals.interactionState.mode === 'selecting') {
-            this.mShowSelectionBox = false;
-            this.selectNodesInBox();
-        }
-
-        if (lInternals.interactionState.mode === 'resizing-comment') {
-            this.scheduleHistorySnapshot();
-            this.rebuildCachedData();
-        }
-
-        lInternals.interactionState = { mode: 'idle' };
-        (pEvent.currentTarget as HTMLElement).releasePointerCapture(pEvent.pointerId);
     }
 
-    public onCanvasWheel(pEvent: WheelEvent): void {
-        pEvent.preventDefault();
-        const lRect = this.canvasWrapper.getBoundingClientRect();
-        this.mInternals.interaction.zoomAt(
-            pEvent.clientX - lRect.left,
-            pEvent.clientY - lRect.top,
-            pEvent.deltaY > 0 ? -0.1 : 0.1
-        );
-        this.mTransformVersion++;
-        this.renderConnections();
+    /**
+     * Open a function requested by the node graph.
+     *
+     * @param pEvent - Graph open-function request event.
+     */
+    public onGraphOpenFunction(pEvent: ComponentEvent<OpenFunctionRequestDetail>): void {
+        this.activateFunction(pEvent.value.functionId);
     }
 
-    public onContextMenu(pEvent: Event): void {
-        pEvent.preventDefault();
-        const lTarget = pEvent.target as Element;
-        if (lTarget.hasAttribute?.('data-hit-area')) {
-            const lConnectionId = lTarget.getAttribute('data-connection-id');
-            if (lConnectionId) {
-                const lConn = this.mConnectionRegistry.get(lConnectionId);
-                if (lConn) {
-                    lConn.sourcePort.disconnect(lConn.targetPort);
-                    this.mConnectionVersion++;
-                    this.scheduleHistorySnapshot();
-                    this.rebuildCachedData();
-                    this.renderConnections();
-                    this.schedulePreviewUpdate();
-                }
-            }
+    /**
+     * Restore the previous document snapshot.
+     *
+     * @param _pEvent - Unused graph undo event.
+     */
+    public onGraphUndoRequest(_pEvent: ComponentEvent<void>): void {
+        const lSnapshot: PotatnoCodeFileSerializationResult | null = this.mHistory.undo();
+        if (lSnapshot) {
+            this.restoreSnapshot(lSnapshot);
         }
     }
 
-    // ── Node Events ──────────────────────────────────────────────────────
-
-    public onNodePointerDown(pEvent: PointerEvent, pNode: PotatnoDocumentNode<TProject>): void {
-        // Skip if a port element is in the composed path.
-        for (const lEl of pEvent.composedPath()) {
-            if ((lEl as HTMLElement).tagName?.toLowerCase() === 'potatno-port') {
-                return;
-            }
-        }
-        pEvent.stopPropagation();
-        if (pEvent.button !== 0) {
-            return;
-        }
-
-        // Selection.
-        if (pEvent.ctrlKey) {
-            if (this.mSelectedNodes.has(pNode)) {
-                this.mSelectedNodes.delete(pNode);
-            } else {
-                this.mSelectedNodes.add(pNode);
-            }
-        } else {
-            if (!this.mSelectedNodes.has(pNode)) {
-                this.mSelectedNodes.clear();
-                this.mSelectedNodes.add(pNode);
-            }
-        }
-        this.rebuildCachedData();
-
-        // Build origins for all selected nodes.
-        const lGS = this.mInternals.interaction.gridSize;
-        const lOrigins = new Map<PotatnoDocumentNode<TProject>, { originX: number; originY: number; }>();
-
-        for (const lNode of this.mSelectedNodes) {
-            lOrigins.set(lNode, {
-                originX: lNode.transformation.x * lGS,
-                originY: lNode.transformation.y * lGS
-            });
-        }
-
-        // If dragging a comment, also include non-comment nodes inside its bounds.
-        if (pNode.category === NodeCategory.Comment) {
-            const lActiveFunc = this.activeFunction;
-            if (lActiveFunc) {
-                const lCL = pNode.transformation.x * lGS;
-                const lCT = pNode.transformation.y * lGS;
-                const lCR = lCL + pNode.transformation.width * lGS;
-                const lCB = lCT + pNode.transformation.height * lGS;
-
-                for (const lOther of lActiveFunc.nodes) {
-                    if (lOther === pNode || this.mSelectedNodes.has(lOther)) {
-                        continue;
-                    }
-                    if (lOther.category === NodeCategory.Comment) {
-                        continue;
-                    }
-                    const lNx = lOther.transformation.x * lGS;
-                    const lNy = lOther.transformation.y * lGS;
-                    if (lNx >= lCL && lNx <= lCR && lNy >= lCT && lNy <= lCB) {
-                        lOrigins.set(lOther, { originX: lNx, originY: lNy });
-                    }
-                }
-            }
-        }
-
-        this.mInternals.interactionState = {
-            mode: 'dragging-node',
-            draggedNode: pNode,
-            startX: pEvent.clientX,
-            startY: pEvent.clientY,
-            origins: lOrigins
-        };
-        this.canvasWrapper.setPointerCapture(pEvent.pointerId);
-    }
-
-    public onPortDragStart(pEvent: ComponentEvent<PortInteractionDetail>): void {
-        const lData = pEvent.value;
-        const lRect = this.canvasWrapper.getBoundingClientRect();
-        const lCircleRect = lData.element.getBoundingClientRect();
-        const lStartX = (lCircleRect.left + lCircleRect.width / 2 - lRect.left - this.mInternals.interaction.panX) / this.mInternals.interaction.zoom;
-        const lStartY = (lCircleRect.top + lCircleRect.height / 2 - lRect.top - this.mInternals.interaction.panY) / this.mInternals.interaction.zoom;
-
-        this.mInternals.interactionState = {
-            mode: 'dragging-wire',
-            sourcePort: lData.port,
-            startX: lStartX,
-            startY: lStartY
-        };
-    }
-
-    public onPortHover(pEvent: ComponentEvent<PortInteractionDetail>): void {
-        this.mInternals.hoveredPort = { node: pEvent.value.node, port: pEvent.value.port };
-    }
-
-    public onPortLeave(): void {
-        this.mInternals.hoveredPort = null;
-    }
-
-    public onNodeResizeStart(pEvent: ComponentEvent<ResizeStartDetail>): void {
-        const lData = pEvent.value;
-        const lGS = this.mInternals.interaction.gridSize;
-        this.mInternals.interactionState = {
-            mode: 'resizing-comment',
-            node: lData.node,
-            startX: lData.startX,
-            startY: lData.startY,
-            originalW: lData.node.transformation.width,
-            originalH: lData.node.transformation.height
-        };
-        this.canvasWrapper.setPointerCapture(lGS);
-    }
-
-    public onCommentChange(pEvent: ComponentEvent<CommentChangeDetail>): void {
-        // Node label was already updated by the node component. Just take snapshot.
-        void pEvent;
-        this.scheduleHistorySnapshot();
-    }
-
-    public onDirectValueChange(pEvent: ComponentEvent<DirectValueChangeDetail>): void {
-        void pEvent;
-        this.scheduleHistorySnapshot();
-        this.schedulePreviewUpdate();
-    }
-
-    public onOpenFunction(pEvent: ComponentEvent<OpenFunctionDetail>): void {
-        const lDefinitionId = pEvent.value.node.definitionId;
-        const lFunctionId = lDefinitionId.startsWith('USERFUNCTION_') ? lDefinitionId.slice('USERFUNCTION_'.length) : lDefinitionId;
-        if (!this.mFile) {
-            return;
-        }
-        for (const lFunc of this.mFile.functions) {
-            if (lFunc.id === lFunctionId) {
-                this.mActiveFunctionId = lFunctionId;
-                this.mSelectedNodes.clear();
-                this.rebuildCachedData();
-                this.renderConnections();
-                return;
-            }
+    /**
+     * Restore the next document snapshot.
+     *
+     * @param _pEvent - Unused graph redo event.
+     */
+    public onGraphRedoRequest(_pEvent: ComponentEvent<void>): void {
+        const lSnapshot: PotatnoCodeFileSerializationResult | null = this.mHistory.redo();
+        if (lSnapshot) {
+            this.restoreSnapshot(lSnapshot);
         }
     }
 
-    // ── Panel Resize ──────────────────────────────────────────────────────
-
+    /**
+     * Start resizing the left panel.
+     *
+     * @param pEvent - Pointer event from the resize handle.
+     */
     public onResizeLeftStart(pEvent: PointerEvent): void {
         pEvent.preventDefault();
         this.startPanelResize('left', pEvent);
     }
 
+    /**
+     * Start resizing the right panel.
+     *
+     * @param pEvent - Pointer event from the resize handle.
+     */
     public onResizeRightStart(pEvent: PointerEvent): void {
         pEvent.preventDefault();
         this.startPanelResize('right', pEvent);
     }
 
-    // ── Keyboard ─────────────────────────────────────────────────────────
-
-    private onKeyDown(pEvent: KeyboardEvent): void {
-        if (pEvent.key === 'Delete') {
-            this.deleteSelectedNodes();
+    /**
+     * Activate a function by id and refresh function-owned UI slices.
+     *
+     * @param pFunctionId - Function id to activate.
+     */
+    private activateFunction(pFunctionId: string): void {
+        const lFile: PotatnoDocument<TProject> | undefined = this.mFile;
+        if (!lFile) {
             return;
         }
 
-        if (pEvent.ctrlKey && pEvent.key === 'z') {
-            pEvent.preventDefault();
-            const lSnapshot = this.mInternals.history.undo();
-            if (lSnapshot) {
-                this.restoreSnapshot(lSnapshot);
+        for (const lFunction of lFile.functions) {
+            if (lFunction.id === pFunctionId) {
+                this.mActiveFunctionId = pFunctionId;
+                this.rebuildCachedData();
+                this.refreshGraph();
+                this.refreshNodeLibrary();
+                return;
             }
-            return;
-        }
-
-        if (pEvent.ctrlKey && (pEvent.key === 'y' || (pEvent.shiftKey && pEvent.key === 'z'))) {
-            pEvent.preventDefault();
-            const lSnapshot = this.mInternals.history.redo();
-            if (lSnapshot) {
-                this.restoreSnapshot(lSnapshot);
-            }
-            return;
-        }
-
-        if (pEvent.ctrlKey && pEvent.key === 'c') {
-            this.mInternals.clipboard.copy(this.mSelectedNodes);
-            return;
-        }
-
-        if (pEvent.ctrlKey && pEvent.key === 'v') {
-            this.pasteFromClipboard();
-            return;
         }
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────
+    /**
+     * Create an empty cached data object.
+     *
+     * @returns Empty cached view data.
+     */
+    private createEmptyCachedData(): CachedViewData {
+        return {
+            activeFunctionEditableByUser: false,
+            activeFunctionId: '',
+            activeFunctionImports: [],
+            activeFunctionInputs: [],
+            activeFunctionIsSystem: false,
+            activeFunctionName: '',
+            activeFunctionOutputs: [],
+            availableImports: [],
+            availableTypes: [],
+            errors: [],
+            functionList: [],
+            hasPreview: false
+        };
+    }
 
+    /**
+     * Generate preview code when the preview is marked dirty.
+     */
+    private evaluatePreview(): void {
+        const lProject: TProject | undefined = this.mProject;
+        const lFile: PotatnoDocument<TProject> | undefined = this.mFile;
+        if (!lProject || !lFile || !this.mPreviewDirty) {
+            return;
+        }
+
+        this.mPreviewDirty = false;
+
+        let lEntryFunction: PotatnoDocumentFunction<TProject> | undefined;
+        for (const lFunction of lFile.functions) {
+            if (lFunction.isSystem) {
+                lEntryFunction = lFunction;
+                break;
+            }
+        }
+
+        if (!lEntryFunction) {
+            return;
+        }
+
+        const lPreviewDefinitionIds: Set<string> = new Set<string>();
+        for (const lDefinition of this.getAvailableDefinitionsForFunction(lEntryFunction)) {
+            if (lDefinition.preview) {
+                lPreviewDefinitionIds.add(lDefinition.id);
+            }
+        }
+
+        const lPreviewNodes: Set<PotatnoDocumentNode<TProject>> = new Set<PotatnoDocumentNode<TProject>>();
+        for (const lNode of lEntryFunction.nodes) {
+            if (lPreviewDefinitionIds.has(lNode.definitionId)) {
+                lPreviewNodes.add(lNode);
+            }
+        }
+
+        const lEntryPreview = lProject.entryPoint.preview;
+        if (lEntryPreview && !this.mEntryPointPreviewElement) {
+            this.mEntryPointPreviewElement = lEntryPreview.generate();
+        }
+
+        try {
+            const lGenerator: PotatnoCodeGenerator<TProject> = new PotatnoCodeGenerator<TProject>(lProject);
+            this.mGraphPreviewResult = lGenerator.generateFunctionCodeWithIntermediates(lEntryFunction, lPreviewNodes);
+            this.updatePreviewsFromCache();
+        } catch (pError) {
+            console.error('[Editor] Preview code generation failed:', pError);
+        }
+    }
+
+    /**
+     * Get all node definitions available to a function.
+     *
+     * @param pFunction - Function whose available definitions should be read.
+     *
+     * @returns Available node definitions in display order.
+     */
+    private getAvailableDefinitionsForFunction(pFunction: PotatnoDocumentFunction<TProject>): Array<PotatnoNodeDefinition<TProject>> {
+        const lDefinitions: Array<PotatnoNodeDefinition<TProject>> = [];
+        const lAddedIds: Set<string> = new Set<string>();
+
+        const addDefinition = (pDefinition: PotatnoNodeDefinition<TProject>): void => {
+            if (lAddedIds.has(pDefinition.id)) {
+                return;
+            }
+
+            lAddedIds.add(pDefinition.id);
+            lDefinitions.push(pDefinition);
+        };
+
+        for (const lDefinition of pFunction.project.nodeDefinitions) {
+            addDefinition(lDefinition);
+        }
+
+        for (const lDefinition of pFunction.nodeDefinitions) {
+            addDefinition(lDefinition);
+        }
+
+        const lEnabledImports: Set<string> = new Set<string>(pFunction.imports);
+        for (const lImport of pFunction.project.imports) {
+            if (!lEnabledImports.has(lImport.label)) {
+                continue;
+            }
+
+            for (const lDefinition of lImport.nodes) {
+                addDefinition(lDefinition);
+            }
+        }
+
+        return lDefinitions;
+    }
+
+    /**
+     * Create the system entry function for a new empty document.
+     *
+     * @param pFile - Document receiving the entry function.
+     * @param pProject - Project that owns the entry point definition.
+     */
     private initializeMainFunctions(pFile: PotatnoDocument<TProject>, pProject: TProject): void {
         const lEntryPoint = pProject.entryPoint;
         if (!lEntryPoint) {
             return;
         }
 
-        const lFunc = new PotatnoDocumentFunction(pProject as TProject, this.mFile!, {
+        const lFunction: PotatnoDocumentFunction<TProject> = new PotatnoDocumentFunction(pProject, pFile, {
             definitionId: lEntryPoint.id,
             id: crypto.randomUUID(),
-            label: 'Main',
-            isSystem: true
+            isSystem: true,
+            label: 'Main'
         });
 
-        lEntryPoint.getPrefilledNodes(lFunc).forEach((lStaticDef, lIdx) => {
-            lFunc.newNode(lStaticDef, { x: 2 + lIdx * 12, y: 2, width: 10, height: 4 }, true);
-            if (!pProject.nodeDefinitions.some((lDef) => lDef.id === lStaticDef.id)) {
-                pProject.addNodeDefinition(lStaticDef);
+        lEntryPoint.getPrefilledNodes(lFunction).forEach((pStaticDefinition, pIndex) => {
+            lFunction.newNode(pStaticDefinition, { height: 4, width: 10, x: 2 + pIndex * 12, y: 2 }, true);
+            if (!pProject.nodeDefinitions.some((pDefinition) => pDefinition.id === pStaticDefinition.id)) {
+                pProject.addNodeDefinition(pStaticDefinition);
             }
         });
 
-        for (const lDynamicDef of lEntryPoint.getNodeDefinitions(lFunc)) {
-            if (!pProject.nodeDefinitions.some((lDef) => lDef.id === lDynamicDef.id)) {
-                pProject.addNodeDefinition(lDynamicDef);
+        for (const lDynamicDefinition of lEntryPoint.getNodeDefinitions(lFunction)) {
+            if (!pProject.nodeDefinitions.some((pDefinition) => pDefinition.id === lDynamicDefinition.id)) {
+                pProject.addNodeDefinition(lDynamicDefinition);
             }
         }
 
         if ((lEntryPoint.statics & PotatnoFunctionDefinitionStatics.imports) !== 0) {
             for (const lImport of pProject.imports) {
-                lFunc.addImport(lImport.label);
+                lFunction.addImport(lImport.label);
             }
         }
 
-        pFile.addFunction(lFunc);
-    }
-
-    private deleteSelectedNodes(): void {
-        const lActiveFunc = this.activeFunction;
-        if (!lActiveFunc) {
-            return;
-        }
-
-        let lDeleted = false;
-        for (const lNode of [...this.mSelectedNodes]) {
-            if (!lNode.isSystem) {
-                lActiveFunc.removeNode(lNode);
-                this.mSelectedNodes.delete(lNode);
-                lDeleted = true;
-            }
-        }
-
-        if (lDeleted) {
-            this.scheduleHistorySnapshot();
-            this.rebuildCachedData();
-            this.renderConnections();
-            this.schedulePreviewUpdate();
-        }
-    }
-
-    private pasteFromClipboard(): void {
-        const lActiveFunc = this.activeFunction;
-        const lFile = this.mFile;
-        if (!lActiveFunc || !lFile) {
-            return;
-        }
-
-        const lNewNodes = this.mInternals.clipboard.paste(lActiveFunc, lFile, 2, 2);
-        if (lNewNodes.length > 0) {
-            this.mSelectedNodes.clear();
-            for (const lNode of lNewNodes) {
-                this.mSelectedNodes.add(lNode);
-            }
-            this.scheduleHistorySnapshot();
-            this.rebuildCachedData();
-            this.renderConnections();
-            this.schedulePreviewUpdate();
-        }
-    }
-
-    private selectNodesInBox(): void {
-        const lActiveFunc = this.activeFunction;
-        if (!lActiveFunc) {
-            return;
-        }
-
-        const lInternals = this.mInternals;
-        const lTopLeft = lInternals.interaction.screenToWorld(
-            Math.min(this.mSelectionBoxScreen.x1, this.mSelectionBoxScreen.x2),
-            Math.min(this.mSelectionBoxScreen.y1, this.mSelectionBoxScreen.y2)
-        );
-        const lBottomRight = lInternals.interaction.screenToWorld(
-            Math.max(this.mSelectionBoxScreen.x1, this.mSelectionBoxScreen.x2),
-            Math.max(this.mSelectionBoxScreen.y1, this.mSelectionBoxScreen.y2)
-        );
-        const lGS = lInternals.interaction.gridSize;
-
-        for (const lNode of lActiveFunc.nodes) {
-            const lNx = lNode.transformation.x * lGS;
-            const lNy = lNode.transformation.y * lGS;
-            const lNr = lNx + lNode.transformation.width * lGS;
-            const lNb = lNy + lNode.transformation.height * lGS;
-            if (lNx < lBottomRight.x && lNr > lTopLeft.x && lNy < lBottomRight.y && lNb > lTopLeft.y) {
-                this.mSelectedNodes.add(lNode);
-            }
-        }
-        this.rebuildCachedData();
-    }
-
-    private renderConnections(): void {
-        if (!this.svgLayer) {
-            return;
-        }
-
-        const lActiveFunc = this.activeFunction;
-        if (!lActiveFunc) {
-            this.mInternals.renderer.clearAll(this.svgLayer);
-            this.mConnectionRegistry.clear();
-            return;
-        }
-
-        this.mConnectionRegistry.clear();
-        const lConnectionData = [];
-        let lConnIdx = 0;
-
-        for (const lNode of lActiveFunc.nodes) {
-            for (const lOutputPort of lNode.outputs.values()) {
-                for (const lConnectedPort of lOutputPort.connectedPorts) {
-                    const lId = `c${lConnIdx++}`;
-                    this.mConnectionRegistry.set(lId, { sourcePort: lOutputPort, targetPort: lConnectedPort });
-
-                    const lSourcePos = this.getPortPosition(lOutputPort);
-                    const lTargetPos = this.getPortPosition(lConnectedPort);
-
-                    lConnectionData.push({
-                        id: lId,
-                        sourceX: lSourcePos.x,
-                        sourceY: lSourcePos.y,
-                        targetX: lTargetPos.x,
-                        targetY: lTargetPos.y,
-                        color: 'var(--pn-text-secondary)',
-                        valid: true
-                    });
-                }
-            }
-        }
-
-        this.mInternals.renderer.renderConnections(this.svgLayer, lConnectionData);
-    }
-
-    private getPortPosition(pPort: PotatnoDocumentPort<TProject>): { x: number; y: number; } {
-        const lNode = pPort.node;
-        const lGS = this.mInternals.interaction.gridSize;
-        const lNodeX = lNode.transformation.x * lGS;
-        const lNodeY = lNode.transformation.y * lGS;
-        const lNodeW = lNode.transformation.width * lGS;
-        const lHeaderH = 28;
-        const lPortGap = 24;
-        const lBodyPad = 4;
-
-        if (pPort.portType === 'flow') {
-            const lX = pPort.direction === 'output' ? lNodeX + lNodeW : lNodeX;
-            return { x: lX, y: lNodeY + lHeaderH / 2 };
-        }
-
-        // Value port: find index among value ports of same direction.
-        const lPortMap = pPort.direction === 'output' ? lNode.outputs : lNode.inputs;
-        let lIdx = 0;
-        let lCount = 0;
-        for (const lP of lPortMap.values()) {
-            if (lP.portType === 'value') {
-                if (lP === pPort) {
-                    lIdx = lCount;
-                    break;
-                }
-                lCount++;
-            }
-        }
-
-        const lX = pPort.direction === 'output' ? lNodeX + lNodeW : lNodeX;
-        return { x: lX, y: lNodeY + lHeaderH + lBodyPad + (lIdx + 0.5) * lPortGap };
-    }
-
-    private scheduleHistorySnapshot(): void {
-        clearTimeout(this.mHistoryDebounceTimer);
-        this.mHistoryDebounceTimer = setTimeout(() => {
-            this.pushHistorySnapshot();
-        }, 500) as unknown as number;
-    }
-
-    private pushHistorySnapshot(): void {
-        if (!this.mFile) {
-            return;
-        }
-        const lSerializer = new PotatnoSerializer<TProject>();
-        const lSnapshot = lSerializer.serialize(this.mFile);
-        this.mInternals.history.push(lSnapshot);
-    }
-
-    private restoreSnapshot(pSnapshot: PotatnoCodeFileSerializationResult): void {
-        if (!this.mProject) {
-            return;
-        }
-        const lDeserializer = new PotatnoDeserializer(this.mProject);
-        this.mFile = lDeserializer.deserialize(pSnapshot);
-
-        // Try to keep the same active function by ID; fall back to first.
-        const lFound = [...this.mFile.functions].find(f => f.id === this.mActiveFunctionId);
-        if (!lFound) {
-            this.mActiveFunctionId = [...this.mFile.functions][0]?.id ?? '';
-        }
-
-        this.mSelectedNodes.clear();
-        this.mInternals.previewElements.clear();
-        this.rebuildCachedData();
-        this.renderConnections();
-        this.schedulePreviewUpdate();
-    }
-
-    private schedulePreviewUpdate(): void {
-        this.mInternals.previewDirty = true;
-        clearTimeout(this.mPreviewDebounceTimer);
-        this.mPreviewDebounceTimer = setTimeout(() => this.evaluatePreview(), 300) as unknown as number;
-    }
-
-    private evaluatePreview(): void {
-        const lProject = this.mProject;
-        const lFile = this.mFile;
-        const lInternals = this.mInternals;
-
-        console.log('[Preview] evaluatePreview called', { hasProject: !!lProject, hasFile: !!lFile, dirty: lInternals.previewDirty });
-
-        if (!lProject || !lFile || !lInternals.previewDirty) {
-            console.log('[Preview] early return - missing project/file or not dirty');
-            return;
-        }
-        lInternals.previewDirty = false;
-
-        // Find the system function (entry point).
-        let lEntryFunc: PotatnoDocumentFunction<TProject> | undefined;
-        for (const lFunc of lFile.functions) {
-            if (lFunc.isSystem) {
-                lEntryFunc = lFunc;
-                break;
-            }
-        }
-        if (!lEntryFunc) {
-            console.log('[Preview] no system (entry) function found');
-            return;
-        }
-
-        // Collect preview nodes.
-        const lPreviewNodes = new Set<PotatnoDocumentNode<TProject>>();
-        for (const lNode of lEntryFunc.nodes) {
-            if (lProject.nodeDefinitions.find((lDef) => lDef.id === lNode.definitionId)?.preview) {
-                lPreviewNodes.add(lNode);
-            }
-        }
-
-        // Generate preview elements for nodes that need them.
-        for (const lNode of lPreviewNodes) {
-            if (!lInternals.previewElements.has(lNode)) {
-                const lDef = lProject.nodeDefinitions.find((lNodeDef) => lNodeDef.id === lNode.definitionId);
-                if (lDef?.preview) {
-                    const lEl = lDef.preview.generate();
-                    if (lEl instanceof HTMLElement) {
-                        lInternals.previewElements.set(lNode, lEl);
-                    }
-                }
-            }
-        }
-
-        // Create the entry-point preview element early and hand it to the preview
-        // component so it is always attached — even when code generation fails.
-        const lEntryPreview = lProject.entryPoint.preview;
-        console.log('[Preview] entryPoint.preview:', lEntryPreview);
-        if (lEntryPreview) {
-            if (!lInternals.entryPointPreviewElement) {
-                lInternals.entryPointPreviewElement = lEntryPreview.generate();
-                console.log('[Preview] generated entry preview element:', lInternals.entryPointPreviewElement);
-                // Publish to template so the [previewContent] binding fires (null → element).
-                this.mEntryPointPreviewElement = lInternals.entryPointPreviewElement;
-                console.log('[Preview] mEntryPointPreviewElement set');
-            }
-        }
-
-        // Generate code with intermediates.
-        let lCodeResult: FunctionCodeWithIntermediates;
-        try {
-            const lGenerator = new PotatnoCodeGenerator<TProject>(lProject);
-            lCodeResult = lGenerator.generateFunctionCodeWithIntermediates(lEntryFunc, lPreviewNodes);
-        } catch (pError) {
-            console.error('[Preview] Code generation failed:', pError);
-            return;
-        }
-
-        lInternals.cachedCodeResult = lCodeResult;
-
-        // Refresh all preview visuals from the new code result.
-        this.updateNodePreviewsFromCache();
+        pFile.addFunction(lFunction);
     }
 
     /**
-     * Refresh all preview visuals using the cached code result.
-     * Safe to call every frame — never regenerates code.
+     * Push the current document snapshot into history.
      */
-    private updateNodePreviewsFromCache(): void {
-        const lProject = this.mProject;
-        const lInternals = this.mInternals;
-        const lCodeResult = lInternals.cachedCodeResult;
-
-        if (!lProject || !lCodeResult) {
+    private pushHistorySnapshot(): void {
+        const lFile: PotatnoDocument<TProject> | undefined = this.mFile;
+        if (!lFile) {
             return;
         }
 
-        // Update entry point preview.
-        const lEntryPreview = lProject.entryPoint.preview;
-        if (lEntryPreview && lInternals.entryPointPreviewElement) {
-            try {
-                lEntryPreview.update(
-                    lInternals.entryPointPreviewElement as any,
-                    lCodeResult.codeFunction,
-                    {},
-                    lCodeResult.fullCode
-                );
-            } catch (pError) {
-                console.error('[Preview] updatePreview (entry point) failed:', pError);
-            }
-        }
-
-        // Update per-node previews.
-        for (const [lNode, lIntermediateData] of lCodeResult.nodeIntermediates) {
-            const lElement = lInternals.previewElements.get(lNode);
-            if (!lElement) {
-                continue;
-            }
-            const lDef = lProject.nodeDefinitions.find((lNodeDef) => lNodeDef.id === lNode.definitionId);
-            if (lDef?.preview) {
-                try {
-                    lDef.preview.update(
-                        lElement as any,
-                        lIntermediateData.context,
-                        lIntermediateData.codeFunction,
-                        {},
-                        lIntermediateData.intermediateCode
-                    );
-                } catch (pError) {
-                    console.error('[Preview] updatePreview (node) failed:', pError);
-                }
-            }
-        }
+        const lSerializer: PotatnoSerializer<TProject> = new PotatnoSerializer<TProject>();
+        this.mHistory.push(lSerializer.serialize(lFile));
     }
 
-    private startPanelResize(pPanel: 'left' | 'right', pEvent: PointerEvent): void {
-        const lPanelEl = pPanel === 'left' ? this.panelLeft : this.panelRight;
-        this.mResizeState = { panel: pPanel, startX: pEvent.clientX, startWidth: lPanelEl.offsetWidth };
-
-        this.mResizeMoveHandler = (e: PointerEvent) => {
-            if (!this.mResizeState) {
-                return;
-            }
-            const lDelta = pPanel === 'left'
-                ? e.clientX - this.mResizeState.startX
-                : this.mResizeState.startX - e.clientX;
-            lPanelEl.style.width = `${Math.max(200, Math.min(500, this.mResizeState.startWidth + lDelta))}px`;
-        };
-
-        this.mResizeUpHandler = () => {
-            document.removeEventListener('pointermove', this.mResizeMoveHandler!);
-            document.removeEventListener('pointerup', this.mResizeUpHandler!);
-            this.mResizeState = null;
-        };
-
-        document.addEventListener('pointermove', this.mResizeMoveHandler);
-        document.addEventListener('pointerup', this.mResizeUpHandler);
-    }
-
+    /**
+     * Rebuild cached panel and preview data from the current project and document.
+     */
     private rebuildCachedData(): void {
-        const lProject = this.mProject;
-        const lFile = this.mFile;
-        const lActiveFunc = this.activeFunction;
-        const lCached = this.createEmptyCachedData();
+        const lProject: TProject | undefined = this.mProject;
+        const lFile: PotatnoDocument<TProject> | undefined = this.mFile;
+        const lActiveFunction: PotatnoDocumentFunction<TProject> | null = this.activeFunction;
+        const lCached: CachedViewData = this.createEmptyCachedData();
 
         lCached.activeFunctionId = this.mActiveFunctionId;
-        lCached.hasPreview = !!lProject?.entryPoint.preview;
+        lCached.hasPreview = lProject?.entryPoint.preview !== null && lProject?.entryPoint.preview !== undefined;
 
-        // Validate.
         if (lFile) {
             for (const lError of lFile.validate()) {
                 if (lError.item instanceof PotatnoDocumentPort) {
-                    lCached.errors.push({ message: lError.message, location: `Node "${lError.item.node.label}"` });
+                    lCached.errors.push({ location: `Node "${lError.item.node.label}"`, message: lError.message });
                 }
             }
+
+            for (const lFunction of lFile.functions) {
+                lCached.functionList.push({
+                    id: lFunction.id,
+                    label: lFunction.label,
+                    name: lFunction.label,
+                    system: lFunction.isSystem
+                });
+            }
         }
 
-        // Node definition list.
+        lCached.availableImports = lProject?.imports.map((pImport) => pImport.label) ?? [];
+
         if (lProject) {
-            for (const lDef of lProject.nodeDefinitions.values()) {
-                lCached.nodeDefinitionList.push({ id: lDef.id, name: lDef.label, category: lDef.category });
-            }
-        }
-        if (lFile) {
-            for (const lDef of lFile.nodeDefinitions.values()) {
-                lCached.nodeDefinitionList.push({ id: lDef.id, name: lDef.label, category: lDef.category });
-            }
-        }
-        // Add import-scoped nodes based on active function imports.
-        if (lProject && lActiveFunc) {
-            const lEnabledImports = new Set(lActiveFunc.imports);
-            for (const lImport of lProject.imports) {
-                if (lEnabledImports.has(lImport.label)) {
-                    for (const lNodeDef of lImport.nodes) {
-                        lCached.nodeDefinitionList.push({ id: lNodeDef.id, name: lNodeDef.label, category: lNodeDef.category });
-                    }
-                }
-            }
-        }
-
-        // Function list.
-        if (lFile) {
-            for (const lFunc of lFile.functions) {
-                lCached.functionList.push({ id: lFunc.id, name: lFunc.label, label: lFunc.label, system: lFunc.isSystem });
-            }
-        }
-
-        // Available imports.
-        lCached.availableImports = lProject?.imports.map(i => i.label) ?? [];
-
-        // Available types.
-        if (lProject) {
-            const lTypeSet = new Set<string>();
+            const lTypeSet: Set<string> = new Set<string>();
             for (const [lTypeName] of lProject.types.types) {
                 lTypeSet.add(lTypeName);
             }
             lCached.availableTypes = [...lTypeSet].sort();
         }
 
-        // Active function data.
-        if (lActiveFunc) {
-            lCached.activeFunctionName = lActiveFunc.label;
-            lCached.activeFunctionIsSystem = lActiveFunc.isSystem;
-            lCached.activeFunctionEditableByUser = !lActiveFunc.isSystem;
-            lCached.activeFunctionInputs = lActiveFunc.inputs.map(p => ({ name: p.label, type: p.dataType }));
-            lCached.activeFunctionOutputs = lActiveFunc.outputs.map(p => ({ name: p.label, type: p.dataType }));
-            lCached.activeFunctionImports = [...lActiveFunc.imports];
-
-            // Visible nodes.
-            const lGS = this.mInternals.interaction.gridSize;
-            for (const lNode of lActiveFunc.nodes) {
-                // Create or reuse preview element.
-                if (lProject) {
-                    const lDef = lProject.nodeDefinitions.find((lNodeDef) => lNodeDef.id === lNode.definitionId);
-                    if (lDef?.preview && !this.mInternals.previewElements.has(lNode)) {
-                        const lEl = lDef.preview.generate();
-                        if (lEl instanceof HTMLElement) {
-                            this.mInternals.previewElements.set(lNode, lEl);
-                        }
-                    }
-                }
-
-                lCached.visibleNodes.push({
-                    node: lNode,
-                    selected: this.mSelectedNodes.has(lNode),
-                    pixelX: lNode.transformation.x * lGS,
-                    pixelY: lNode.transformation.y * lGS,
-                    pixelW: lNode.transformation.width * lGS,
-                    connectionVersion: this.mConnectionVersion
-                });
-            }
+        if (lActiveFunction) {
+            lCached.activeFunctionEditableByUser = !lActiveFunction.isSystem;
+            lCached.activeFunctionImports = [...lActiveFunction.imports];
+            lCached.activeFunctionInputs = lActiveFunction.inputs.map((pPort) => ({ name: pPort.label, type: pPort.dataType }));
+            lCached.activeFunctionIsSystem = lActiveFunction.isSystem;
+            lCached.activeFunctionName = lActiveFunction.label;
+            lCached.activeFunctionOutputs = lActiveFunction.outputs.map((pPort) => ({ name: pPort.label, type: pPort.dataType }));
         }
 
         this.mCachedData = lCached;
     }
 
-    private rebuildVisibleNodePositions(): void {
-        const lGS = this.mInternals.interaction.gridSize;
-        for (const lState of this.mCachedData.visibleNodes) {
-            lState.pixelX = lState.node.transformation.x * lGS;
-            lState.pixelY = lState.node.transformation.y * lGS;
-            lState.pixelW = lState.node.transformation.width * lGS;
-        }
-        // Trigger re-render by reassigning state.
-        this.mCachedData = this.mCachedData;
+    /**
+     * Increment the graph refresh token.
+     */
+    private refreshGraph(): void {
+        this.mGraphRefreshVersion++;
     }
 
-    private createEmptyCachedData(): CachedViewData {
-        return {
-            activeFunctionId: '',
-            activeFunctionName: '',
-            activeFunctionIsSystem: false,
-            activeFunctionEditableByUser: false,
-            errors: [],
-            hasPreview: false,
-            nodeDefinitionList: [],
-            functionList: [],
-            availableImports: [],
-            availableTypes: [],
-            activeFunctionInputs: [],
-            activeFunctionOutputs: [],
-            activeFunctionImports: [],
-            visibleNodes: []
+    /**
+     * Increment the node library refresh token.
+     */
+    private refreshNodeLibrary(): void {
+        this.mNodeLibraryRefreshVersion++;
+    }
+
+    /**
+     * Restore a serialized snapshot into the editor.
+     *
+     * @param pSnapshot - Snapshot to deserialize and display.
+     */
+    private restoreSnapshot(pSnapshot: PotatnoCodeFileSerializationResult): void {
+        const lProject: TProject | undefined = this.mProject;
+        if (!lProject) {
+            return;
+        }
+
+        const lDeserializer: PotatnoDeserializer<TProject> = new PotatnoDeserializer(lProject);
+        this.mFile = lDeserializer.deserialize(pSnapshot);
+
+        if (![...this.mFile.functions].some((pFunction) => pFunction.id === this.mActiveFunctionId)) {
+            this.mActiveFunctionId = [...this.mFile.functions][0]?.id ?? '';
+        }
+
+        this.mGraphPreviewResult = null;
+        this.mEntryPointPreviewElement = null;
+        this.rebuildCachedData();
+        this.refreshGraph();
+        this.refreshNodeLibrary();
+        this.schedulePreviewUpdate();
+    }
+
+    /**
+     * Schedule a debounced history snapshot.
+     */
+    private scheduleHistorySnapshot(): void {
+        if (this.mHistoryDebounceTimer !== null) {
+            clearTimeout(this.mHistoryDebounceTimer);
+        }
+
+        this.mHistoryDebounceTimer = setTimeout(() => {
+            this.mHistoryDebounceTimer = null;
+            this.pushHistorySnapshot();
+        }, 500);
+    }
+
+    /**
+     * Schedule a debounced preview regeneration.
+     */
+    private schedulePreviewUpdate(): void {
+        this.mPreviewDirty = true;
+        if (this.mPreviewDebounceTimer !== null) {
+            clearTimeout(this.mPreviewDebounceTimer);
+        }
+
+        this.mPreviewDebounceTimer = setTimeout(() => {
+            this.mPreviewDebounceTimer = null;
+            this.evaluatePreview();
+        }, 300);
+    }
+
+    /**
+     * Start panel resizing for one side.
+     *
+     * @param pPanel - Panel side being resized.
+     * @param pEvent - Pointer event that started resizing.
+     */
+    private startPanelResize(pPanel: 'left' | 'right', pEvent: PointerEvent): void {
+        const lPanelElement: HTMLElement = pPanel === 'left' ? this.panelLeft : this.panelRight;
+        this.mResizeState = { panel: pPanel, startWidth: lPanelElement.offsetWidth, startX: pEvent.clientX };
+
+        const lMoveHandler = (pMoveEvent: PointerEvent): void => {
+            if (!this.mResizeState) {
+                return;
+            }
+
+            const lDelta: number = pPanel === 'left'
+                ? pMoveEvent.clientX - this.mResizeState.startX
+                : this.mResizeState.startX - pMoveEvent.clientX;
+            lPanelElement.style.width = `${Math.max(200, Math.min(500, this.mResizeState.startWidth + lDelta))}px`;
         };
+
+        const lUpHandler = (): void => {
+            document.removeEventListener('pointermove', lMoveHandler);
+            document.removeEventListener('pointerup', lUpHandler);
+            this.mResizeMoveHandler = null;
+            this.mResizeState = null;
+            this.mResizeUpHandler = null;
+        };
+
+        this.stopPanelResize();
+        this.mResizeMoveHandler = lMoveHandler;
+        this.mResizeUpHandler = lUpHandler;
+        document.addEventListener('pointermove', lMoveHandler);
+        document.addEventListener('pointerup', lUpHandler);
+    }
+
+    /**
+     * Stop panel resizing if it is active.
+     */
+    private stopPanelResize(): void {
+        if (this.mResizeMoveHandler) {
+            document.removeEventListener('pointermove', this.mResizeMoveHandler);
+            this.mResizeMoveHandler = null;
+        }
+
+        if (this.mResizeUpHandler) {
+            document.removeEventListener('pointerup', this.mResizeUpHandler);
+            this.mResizeUpHandler = null;
+        }
+
+        this.mResizeState = null;
+    }
+
+    /**
+     * Update preview elements from cached generated code.
+     */
+    private updatePreviewsFromCache(): void {
+        const lProject: TProject | undefined = this.mProject;
+        const lCodeResult: FunctionCodeWithIntermediates | null = this.mGraphPreviewResult;
+        if (!lProject || !lCodeResult) {
+            return;
+        }
+
+        const lEntryPreview = lProject.entryPoint.preview;
+        if (lEntryPreview && this.mEntryPointPreviewElement) {
+            try {
+                lEntryPreview.update(
+                    this.mEntryPointPreviewElement,
+                    lCodeResult.codeFunction,
+                    {},
+                    lCodeResult.fullCode
+                );
+            } catch (pError) {
+                console.error('[Editor] Entry preview update failed:', pError);
+            }
+        }
+
+        this.mPreviewUpdateVersion++;
     }
 }
-
-// ── Types ─────────────────────────────────────────────────────────────────
-
-export type NodeViewState = {
-    node: PotatnoDocumentNode<any>;
-    selected: boolean;
-    pixelX: number;
-    pixelY: number;
-    pixelW: number;
-    connectionVersion: number;
-};
-
-type InteractionState =
-    | { mode: 'idle'; }
-    | { mode: 'panning'; startX: number; startY: number; }
-    | { mode: 'dragging-node'; draggedNode: PotatnoDocumentNode<any>; startX: number; startY: number; origins: Map<PotatnoDocumentNode<any>, { originX: number; originY: number; }>; }
-    | { mode: 'dragging-wire'; sourcePort: PotatnoDocumentPort<any>; startX: number; startY: number; }
-    | { mode: 'selecting'; startX: number; startY: number; }
-    | { mode: 'resizing-comment'; node: PotatnoDocumentNode<any>; startX: number; startY: number; originalW: number; originalH: number; };
 
 interface CachedViewData {
-    activeFunctionId: string;
-    activeFunctionName: string;
-    activeFunctionIsSystem: boolean;
     activeFunctionEditableByUser: boolean;
-    errors: Array<{ message: string; location: string; }>;
-    hasPreview: boolean;
-    nodeDefinitionList: Array<{ id: string; name: string; category: string; }>;
-    functionList: Array<{ id: string; name: string; label: string; system: boolean; }>;
+    activeFunctionId: string;
+    activeFunctionImports: Array<string>;
+    activeFunctionInputs: Array<{ name: string; type: string; }>;
+    activeFunctionIsSystem: boolean;
+    activeFunctionName: string;
+    activeFunctionOutputs: Array<{ name: string; type: string; }>;
     availableImports: Array<string>;
     availableTypes: Array<string>;
-    activeFunctionInputs: Array<{ name: string; type: string; }>;
-    activeFunctionOutputs: Array<{ name: string; type: string; }>;
-    activeFunctionImports: Array<string>;
-    visibleNodes: Array<NodeViewState>;
-}
-
-interface EditorInternals<TProject extends PotatnoProject<any>> {
-    history: PotatnoHistory;
-    clipboard: PotatnoClipboard<TProject>;
-    interaction: PotatnoCanvasInteraction;
-    renderer: PotatnoCanvasRenderer;
-    hoveredPort: { node: PotatnoDocumentNode<any>; port: PotatnoDocumentPort<any>; } | null;
-    interactionState: InteractionState;
-    previewElements: Map<PotatnoDocumentNode<any>, HTMLElement>;
-    entryPointPreviewElement: Element | null;
-    previewDirty: boolean;
-    cachedCodeResult: FunctionCodeWithIntermediates | null;
+    errors: Array<{ message: string; location: string; }>;
+    functionList: Array<{ id: string; name: string; label: string; system: boolean; }>;
+    hasPreview: boolean;
 }
 
 type PropertiesChangeData = {
-    name?: string;
-    inputs?: Array<{ name: string; type: string; }>;
-    outputs?: Array<{ name: string; type: string; }>;
     imports?: Array<string>;
-};
-
-export type NodePreviewData = {
-    readonly inputs: Record<string, unknown>;
-    readonly outputs: Record<string, unknown>;
+    inputs?: Array<{ name: string; type: string; }>;
+    name?: string;
+    outputs?: Array<{ name: string; type: string; }>;
 };

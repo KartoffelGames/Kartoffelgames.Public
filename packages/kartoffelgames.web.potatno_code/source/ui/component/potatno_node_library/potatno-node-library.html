@@ -14,7 +14,7 @@
             $if(!this.isCategoryCollapsed(this.group.category)) {
                 <div class="category-items">
                     $for(node of this.group.nodes) {
-                        <div class="node-entry" (mousedown)="this.onNodeMouseDown(this.node.id)">{{this.node.name}}</div>
+                        <div class="node-entry" (pointerdown)="this.onNodePointerDown($event, this.node)" (click)="this.onNodeClick($event, this.node)">{{this.node.name}}</div>
                     }
                 </div>
             }

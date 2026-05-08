@@ -10,7 +10,8 @@ import { PotatnoProject } from '../../source/project/potatno-project.ts';
 /*
  // TODO:
  - Add a port list to PotatnoDocumentFunction that has a position where other ports can be redirected to. So the graph connection can be restructured without moving the nodes around.
-   Maybe create a special node with two "any" type ports. 
+   Maybe create a special node with two "any" type ports.
+   
  - Add the regions to the code generation context.
  - [Advanced hehehe] Add a merge detection for flow ports that detects when a port with multiple connections oriented from the same node, so its code is not dublicated into the "if else" but can be added after it without dublication.
    As example for a simple if else node its generated code would be: {if: string, else: string, next: string} where the next part is the code that both branches share.

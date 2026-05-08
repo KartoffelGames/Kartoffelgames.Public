@@ -352,6 +352,14 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject<any>> imple
                     for (const lRegion of lPredecessorDefinition.regions.add) {
                         lNodeRegions.add(lRegion);
                     }
+
+                    // Also apply the regions the connected output port adds.
+                    const lOutputPortDefinition = lPredecessorDefinition.getPort(lConnectedPort.definitionId);
+                    if (lOutputPortDefinition) {
+                        for (const lRegion of lOutputPortDefinition.regions.add) {
+                            lNodeRegions.add(lRegion);
+                        }
+                    }
                 }
             }
         }

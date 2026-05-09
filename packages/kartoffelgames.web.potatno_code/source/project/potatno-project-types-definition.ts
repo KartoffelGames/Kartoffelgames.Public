@@ -57,6 +57,13 @@ export class PotatnoProjectTypesDefinition<TTypeName extends string> {
 
         return this.mTypes.get(pTypeName)!;
     }
+
+    /**
+     * Returns true when the given string is a generic type parameter (e.g. `<T>`, `<TValue>`).
+     */
+    public isGenericType(pType: string): pType is PotatnoProjectGenericType {
+        return /^<[^>]+>$/.test(pType);
+    }
 }
 
 type PotatnoProjectTypeDefinitionConfiguration<TTypeName extends string> = Record<TTypeName, PotatnoProjectTypesItem<TTypeName>>;
@@ -97,5 +104,7 @@ type PotatnoProjectTypeInputElement = {
 export type PotatnoProjectTypeDefinition<TTypeName extends string> = {
     name: TTypeName;
 } & PotatnoProjectTypesItem<TTypeName>;
+
+export type PotatnoProjectGenericType = `<${string}>`;
 
 export type PotatnoProjectType<TProject extends PotatnoProject<any>> = TProject['types']['typeNames'][number];

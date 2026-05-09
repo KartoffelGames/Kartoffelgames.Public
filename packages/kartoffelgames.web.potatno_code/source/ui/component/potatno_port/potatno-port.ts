@@ -1,9 +1,10 @@
 import { ComponentEventEmitter, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoProjectTypeDefinition } from "../../../project/potatno-project-types-definition.ts";
+import { PotatnoProjectTypeDefinition, PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
 import portCss from './potatno-port.css' with { type: 'text' };
 import portTemplate from './potatno-port.html' with { type: 'text' };
+import { PotatnoProject } from "../../../project/potatno-project.ts";
 
 /**
  * Port component for the potatno-code visual editor.
@@ -21,7 +22,7 @@ export class PotatnoPortComponent {
      */
     @PwbExport
     @ComponentState.state()
-    public accessor port: PotatnoDocumentPort<any> | null = null;
+    public accessor port: PotatnoDocumentPort<PotatnoProject> | null = null;
 
     /**
      * Version counter forwarded from the editor via the node component whenever
@@ -95,17 +96,25 @@ export class PotatnoPortComponent {
     /**
      * Computed color for the port circle.
      * Flow ports use the primary text color; value ports use a type-derived hue.
+     * Generic value ports use the connected port's resolved type color, or muted when unconnected.
      */
     public get portColor(): string {
         if (!this.port || this.port.portType === 'flow') {
             return 'var(--pn-text-primary)';
+        }
+        if (this.port.node.project.types.isGenericType(this.port.dataType)) {
+            if (this.port.connectedPorts.size > 0) {
+                const lConnected = [...this.port.connectedPorts][0];
+                return this.getTypeColor(lConnected.dataType);
+            }
+            return 'var(--pn-text-muted)';
         }
         return this.getTypeColor(this.port.dataType);
     }
 
     /**
      * Whether to show the direct-value input fields.
-     * Only for unconnected value input ports.
+     * Only for unconnected, non-generic value input ports.
      */
     public get showDirectValueInput(): boolean {
         // Reading portVersion links this getter's zone to portVersion state.
@@ -117,7 +126,8 @@ export class PotatnoPortComponent {
         }
         return this.port.portType === 'value'
             && this.port.direction === 'input'
-            && this.port.connectedPorts.size === 0;
+            && this.port.connectedPorts.size === 0
+            && !this.port.node.project.types.isGenericType(this.port.dataType);
     }
 
     /**
@@ -125,6 +135,9 @@ export class PotatnoPortComponent {
      */
     public get directValueInputDefs(): Array<DirectValueInputDef> {
         if (!this.port || this.port.portType !== 'value') {
+            return [];
+        }
+        if (this.port.node.project.types.isGenericType(this.port.dataType)) {
             return [];
         }
         const lTypeDef: PotatnoProjectTypeDefinition<string> = this.port.project.types.getType(this.port.dataType);

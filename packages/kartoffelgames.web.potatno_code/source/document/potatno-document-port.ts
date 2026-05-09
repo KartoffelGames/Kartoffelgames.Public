@@ -1,15 +1,15 @@
 import { Exception } from "@kartoffelgames/core";
 import { PotatnoPortDefinitionDirection, PotatnoPortDefinitionType } from "../project/potatno-port-definition.ts";
-import { PotatnoProjectType } from "../project/potatno-project-types-definition.ts";
+import { PotatnoProjectGenericType, PotatnoProjectType, PotatnoProjectTypesDefinition } from "../project/potatno-project-types-definition.ts";
 import { PotatnoProject } from "../project/potatno-project.ts";
-import { PotatnoDocumentNode } from "./potatno-document-node.ts";
 import { IPotatnoDocumentItem } from "./i-potatno-document-item.ts";
+import { PotatnoDocumentNode } from "./potatno-document-node.ts";
 import { PotatnoDocument, PotatnoDocumentPortValidationError } from "./potatno-document.ts";
 
 /**
  * A data port instance on a node.
  */
-export class PotatnoDocumentPort<TProject extends PotatnoProject<any>> implements IPotatnoDocumentItem<TProject> {
+export class PotatnoDocumentPort<TProject extends PotatnoProject<PotatnoProjectTypesDefinition<string>>> implements IPotatnoDocumentItem<TProject> {
     private mLabel: string;
     private readonly mConnectedPorts: Set<PotatnoDocumentPort<TProject>>;
     private readonly mDefinitionId: string;
@@ -19,7 +19,7 @@ export class PotatnoDocumentPort<TProject extends PotatnoProject<any>> implement
     private readonly mNode: PotatnoDocumentNode<TProject>;
     private readonly mPortType: PotatnoPortDefinitionType;
     private readonly mProject: TProject;
-    private readonly mValueType: PotatnoProjectType<TProject> | null;
+    private readonly mValueType: PotatnoProjectType<TProject> | PotatnoProjectGenericType | null;
 
     /**
      * The connected port.
@@ -88,9 +88,49 @@ export class PotatnoDocumentPort<TProject extends PotatnoProject<any>> implement
 
     /**
      * Get the data type of the port.
+     * For generic output ports, resolves the generic by finding a connected input port on this node with the same generic type.
      */
-    public get dataType(): PotatnoProjectType<TProject> {
+    public get dataType(): PotatnoProjectType<TProject> | PotatnoProjectGenericType {
         return this.mValueType ?? '';
+    }
+
+    /**
+     * Get the resolved data type of the port. 
+     * For generic ports, this is the type of the connected port on the opposite side of the generic.
+     */
+    public get resolvedDataType(): PotatnoProjectType<TProject> | PotatnoProjectGenericType {
+        // For none value ports, resolved type is always empty string.
+        if (this.mPortType !== 'value') {
+            return this.dataType;
+        }
+
+        // Resolved type is the same as dataType for non-generic ports.
+        if (!this.mProject.types.isGenericType(this.mValueType ?? '')) {
+            return this.dataType;
+        }
+
+        // When it is a output generic port, use the type of the connected input port with the same generic to resolve the generic type.
+        if (this.mDirection === 'output') {
+            const lResolvingInputPort = this.mNode.inputs.values().find((pInputPort) => pInputPort.dataType === this.mValueType);
+            if (!lResolvingInputPort) {
+                return this.dataType;
+            }
+
+            return lResolvingInputPort.resolvedDataType;
+        }
+
+        // When it is a input generic port, use the type of the connected output port to resolve the generic type.
+        if (this.mDirection === 'input') {
+            // No connections, no type.
+            if (this.mConnectedPorts.size === 0) {
+                return this.dataType;
+            }
+
+            const lConnectedPort: PotatnoDocumentPort<TProject> = this.mConnectedPorts.values().next().value!;
+            return lConnectedPort.resolvedDataType;
+        }
+
+        return this.dataType;
     }
 
     /**
@@ -121,7 +161,7 @@ export class PotatnoDocumentPort<TProject extends PotatnoProject<any>> implement
         this.mConnectedPorts = new Set<PotatnoDocumentPort<TProject>>();
 
         this.mDirectValue = new Array<string>();
-        if (pParameter.dataType) {
+        if (pParameter.dataType && !this.mProject.types.isGenericType(pParameter.dataType)) {
             this.mDirectValue.push(...pProject.types.getType(pParameter.dataType).defaultValue);
         }
     }
@@ -198,6 +238,11 @@ export class PotatnoDocumentPort<TProject extends PotatnoProject<any>> implement
             throw new Exception(`Only value ports can have a direct value.`, this);
         }
 
+        // Check value type is not generic, as generic ports cannot have a direct value.
+        if (this.mProject.types.isGenericType(this.mValueType!)) {
+            throw new Exception(`Generic value ports cannot have a direct value.`, this);
+        }
+
         // Check if the project type has the same default value length.
         if (pValue.length !== this.mProject.types.getType(this.mValueType!).defaultValue.length) {
             throw new Exception(`The provided value does not match the expected length of the default value for this port's type.`, this);
@@ -224,6 +269,21 @@ export class PotatnoDocumentPort<TProject extends PotatnoProject<any>> implement
                 }
             }
 
+            // Generic value output: all input ports on this node sharing the same generic must be connected.
+            if (this.mPortType === 'value' && this.mProject.types.isGenericType(this.mValueType ?? '')) {
+                // Find all input ports on this node with the same generic type.
+                const lGenericInputPorts: IteratorObject<PotatnoDocumentPort<TProject>> = this.mNode.inputs.values().filter((pInputPort) => {
+                    return pInputPort.dataType === this.mValueType;
+                });
+
+                // Check that all these ports are connected, otherwise the generic type cannot be resolved.
+                for (const lGenericInputPort of lGenericInputPorts) {
+                    if (lGenericInputPort.connectedPorts.size === 0) {
+                        lErrors.push(new PotatnoDocumentPortValidationError(`Generic output port "${this.mDefinitionId}" on node "${this.mNode.label}" cannot resolve generic type "${this.mValueType}" because its input port "${lGenericInputPort.definitionId}" is not connected.`, this));
+                    }
+                }
+            }
+
             return lErrors;
         }
 
@@ -246,10 +306,10 @@ export class PotatnoDocumentPort<TProject extends PotatnoProject<any>> implement
                     lErrors.push(new PotatnoDocumentPortValidationError(`Value input port "${this.mDefinitionId}" on node "${this.mNode.label}" can only have one connection.`, this));
                 }
 
-                // Value input port must have the same type.
+                // Value input port must have the same type. Skip when either side is a generic.
                 for (const lConnectedPort of this.mConnectedPorts) {
-                    if (lConnectedPort.dataType !== this.mValueType) {
-                        lErrors.push(new PotatnoDocumentPortValidationError(`Value input port "${this.mDefinitionId}" on node "${this.mNode.label}" expects type "${this.mValueType}" but is connected to type "${lConnectedPort.dataType}".`, this));
+                    if (lConnectedPort.resolvedDataType !== this.resolvedDataType) {
+                        lErrors.push(new PotatnoDocumentPortValidationError(`Value input port "${this.mDefinitionId}" on node "${this.mNode.label}" expects type "${this.resolvedDataType}" but is connected to type "${lConnectedPort.resolvedDataType}".`, this));
                     }
                 }
 

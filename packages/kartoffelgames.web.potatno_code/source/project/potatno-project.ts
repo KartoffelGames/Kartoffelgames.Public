@@ -1,5 +1,7 @@
 import { PotatnoNodeDefinition } from "./node_definition/potatno-node-definition.ts";
 import { PotatnoStaticNodeDefinition } from "./node_definition/potatno-static-node-definition.ts";
+import { FlowConjunctionNodeDefinition } from "./node_definition/potatno-flow-conjunction-node-definition.ts";
+import { ValueConjunctionNodeDefinition } from "./node_definition/potatno-value-conjunction-node-definition.ts";
 import type { PotatnoFunctionDefinition } from './potatno-function-definition.ts';
 import { PotatnoProjectTypesDefinition } from "./potatno-project-types-definition.ts";
 
@@ -8,7 +10,7 @@ import { PotatnoProjectTypesDefinition } from "./potatno-project-types-definitio
  * Contains all registered node types, main function definitions, imports,
  * and callback configurations. Does not hold document state.
  */
-export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<string>> {
+export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<string> = PotatnoProjectTypesDefinition<string>> {
     /**
      * Create a new PotatnoProject with the given configuration.
      *
@@ -72,6 +74,10 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
         this.mNodeDefinitions = new Map<string, PotatnoStaticNodeDefinition<this>>();
         this.mImports = new Array<PotatnoProjectImportDefinition<this>>();
         this.mUserFunctions = new Map<string, PotatnoFunctionDefinition<this>>();
+
+        // Built-in conjunction pass-through nodes are always available in every project.
+        this.addNodeDefinition(FlowConjunctionNodeDefinition.new());
+        this.addNodeDefinition(ValueConjunctionNodeDefinition.new());
     }
 
     /**

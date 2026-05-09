@@ -1,5 +1,5 @@
 import { PotatnoPortDefinition, PotatnoPortDefinitionDirection, PotatnoPortDefinitionType } from "../project/potatno-port-definition.ts";
-import { PotatnoProjectType } from "../project/potatno-project-types-definition.ts";
+import { PotatnoProjectGenericType, PotatnoProjectType } from "../project/potatno-project-types-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { IPotatnoDocumentItem } from './i-potatno-document-item.ts';
 import type { PotatnoDocumentFunction } from './potatno-document-function.ts';
@@ -333,7 +333,7 @@ export type PotatnoDocumentNodeConstructorParameter<TProject extends PotatnoProj
 };
 
 export type PotatnoDocumentNodePortConfiguration<TProject extends PotatnoProject<any>> = {
-    dataType: PotatnoProjectType<TProject> | null;
+    dataType: PotatnoProjectType<TProject> | PotatnoProjectGenericType | null;
     definitionId: string;
     label: string;
     portType: PotatnoPortDefinitionType;

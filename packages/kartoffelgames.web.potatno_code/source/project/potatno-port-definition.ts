@@ -1,4 +1,4 @@
-import { PotatnoProjectType } from "./potatno-project-types-definition.ts";
+import { PotatnoProjectGenericType, PotatnoProjectType } from "./potatno-project-types-definition.ts";
 import { PotatnoProject } from "./potatno-project.ts";
 
 /**
@@ -17,7 +17,7 @@ export class PotatnoPortDefinition<TProject extends PotatnoProject<any>> {
 	private readonly mLabel: string;
 	private readonly mId: string;
 	private readonly mPortType: PotatnoPortDefinitionType;
-	private readonly mDataType: PotatnoProjectType<TProject> | null;
+	private readonly mDataType: PotatnoProjectType<TProject> | PotatnoProjectGenericType | null;
 	private readonly mRegions: PotatnoPortDefinitionRegions;
 
 	/**
@@ -44,7 +44,7 @@ export class PotatnoPortDefinition<TProject extends PotatnoProject<any>> {
 	/**
 	 * Data type identifier when the port carries a typed value.
 	 */
-	public get dataType(): PotatnoProjectType<TProject> | null {
+	public get dataType(): PotatnoProjectType<TProject> | PotatnoProjectGenericType | null {
 		return this.mDataType;
 	}
 
@@ -125,5 +125,5 @@ export type PotatnoPortDefinitionConfiguration<TProject extends PotatnoProject<a
 	/**
 	 * Data type identifier for the port.
 	 */
-	dataType: PotatnoProjectType<TProject>;
+	dataType: PotatnoProjectType<TProject> | PotatnoProjectGenericType;
 });

@@ -11,7 +11,8 @@ $if(this.nodeData) {
                         (port-drag-start)="this.onPortDragStart($event)"
                         (port-hover)="this.onPortHover($event)"
                         (port-leave)="this.onPortLeave($event)"
-                        (direct-value-change)="this.onDirectValueChange($event)">
+                        (direct-value-change)="this.onDirectValueChange($event)"
+                        (port-element-ready)="this.onPortElementReady($event)">
                     </potatno-port>
                 }
             </div>
@@ -25,7 +26,8 @@ $if(this.nodeData) {
                         (port-drag-start)="this.onPortDragStart($event)"
                         (port-hover)="this.onPortHover($event)"
                         (port-leave)="this.onPortLeave($event)"
-                        (direct-value-change)="this.onDirectValueChange($event)">
+                        (direct-value-change)="this.onDirectValueChange($event)"
+                        (port-element-ready)="this.onPortElementReady($event)">
                     </potatno-port>
                 }
             </div>
@@ -54,19 +56,6 @@ $if(this.nodeData) {
         <div class="node {{this.selectedClass}}"
              (pointerdown)="this.onNodePointerDown($event)">
             <div class="node-header" style="background: {{this.categoryColor}}">
-                <div class="header-flow-inputs">
-                    $for(flowIn of this.flowInputPorts) {
-                        <potatno-port
-                            [port]="this.flowIn"
-                            [ownerNode]="this.nodeData"
-                            [portVersion]="this.connectionVersion"
-                            (port-drag-start)="this.onPortDragStart($event)"
-                            (port-hover)="this.onPortHover($event)"
-                            (port-leave)="this.onPortLeave($event)"
-                            (direct-value-change)="this.onDirectValueChange($event)">
-                        </potatno-port>
-                    }
-                </div>
                 <span class="node-icon">{{this.categoryIcon}}</span>
                 <span class="node-label">{{this.nodeName}}</span>
                 $if(this.showOpenButton) {
@@ -75,19 +64,6 @@ $if(this.nodeData) {
                         open
                     </button>
                 }
-                <div class="header-flow-outputs">
-                    $for(flowOut of this.flowOutputPorts) {
-                        <potatno-port
-                            [port]="this.flowOut"
-                            [ownerNode]="this.nodeData"
-                            [portVersion]="this.connectionVersion"
-                            (port-drag-start)="this.onPortDragStart($event)"
-                            (port-hover)="this.onPortHover($event)"
-                            (port-leave)="this.onPortLeave($event)"
-                            (direct-value-change)="this.onDirectValueChange($event)">
-                        </potatno-port>
-                    }
-                </div>
             </div>
             <div class="node-body">
                 <div class="node-inputs">
@@ -99,7 +75,8 @@ $if(this.nodeData) {
                             (port-drag-start)="this.onPortDragStart($event)"
                             (port-hover)="this.onPortHover($event)"
                             (port-leave)="this.onPortLeave($event)"
-                            (direct-value-change)="this.onDirectValueChange($event)">
+                            (direct-value-change)="this.onDirectValueChange($event)"
+                            (port-element-ready)="this.onPortElementReady($event)">
                         </potatno-port>
                     }
                 </div>
@@ -112,7 +89,8 @@ $if(this.nodeData) {
                             (port-drag-start)="this.onPortDragStart($event)"
                             (port-hover)="this.onPortHover($event)"
                             (port-leave)="this.onPortLeave($event)"
-                            (direct-value-change)="this.onDirectValueChange($event)">
+                            (direct-value-change)="this.onDirectValueChange($event)"
+                            (port-element-ready)="this.onPortElementReady($event)">
                         </potatno-port>
                     }
                 </div>

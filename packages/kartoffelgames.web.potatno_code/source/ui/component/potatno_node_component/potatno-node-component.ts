@@ -93,6 +93,9 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     @PwbComponentEvent('direct-value-change')
     private accessor mDirectValueChange!: ComponentEventEmitter<DirectValueChangeDetail>;
 
+    @PwbComponentEvent('port-element-ready')
+    private accessor mPortElementReady!: ComponentEventEmitter<PortInteractionDetail>;
+
     // ── Computed template properties ────────────────────────────────────
 
     /**
@@ -184,43 +187,23 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     }
 
     /**
-     * Value input ports (portType === 'value', direction === 'input').
+     * All input ports in definition order (flow and value).
      */
     public get inputPorts(): Array<PotatnoDocumentPort<any>> {
         if (!this.nodeData) {
             return [];
         }
-        return [...this.nodeData.inputs.values()].filter(p => p.portType === 'value');
+        return [...this.nodeData.inputs.values()];
     }
 
     /**
-     * Value output ports (portType === 'value', direction === 'output').
+     * All output ports in definition order (flow and value).
      */
     public get outputPorts(): Array<PotatnoDocumentPort<any>> {
         if (!this.nodeData) {
             return [];
         }
-        return [...this.nodeData.outputs.values()].filter(p => p.portType === 'value');
-    }
-
-    /**
-     * Flow input ports (portType === 'flow', direction === 'input').
-     */
-    public get flowInputPorts(): Array<PotatnoDocumentPort<any>> {
-        if (!this.nodeData) {
-            return [];
-        }
-        return [...this.nodeData.inputs.values()].filter(p => p.portType === 'flow');
-    }
-
-    /**
-     * Flow output ports (portType === 'flow', direction === 'output').
-     */
-    public get flowOutputPorts(): Array<PotatnoDocumentPort<any>> {
-        if (!this.nodeData) {
-            return [];
-        }
-        return [...this.nodeData.outputs.values()].filter(p => p.portType === 'flow');
+        return [...this.nodeData.outputs.values()];
     }
 
     // ── Lifecycle ───────────────────────────────────────────────────────
@@ -298,6 +281,13 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
      */
     public onDirectValueChange(pEvent: ComponentEvent<DirectValueChangeDetail>): void {
         this.mDirectValueChange.dispatchEvent(pEvent.value);
+    }
+
+    /**
+     * Re-emit a port-element-ready event from a child port component.
+     */
+    public onPortElementReady(pEvent: ComponentEvent<PortInteractionDetail>): void {
+        this.mPortElementReady.dispatchEvent(pEvent.value);
     }
 
     /**

@@ -31,6 +31,7 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
     private readonly mClipboard: PotatnoClipboard<TProject>;
     private readonly mConnectionRegistry: Map<string, ConnectionRecord<TProject>>;
     private readonly mInteraction: PotatnoCanvasInteraction;
+    private readonly mPortElementRegistry: Map<PotatnoDocumentPort<TProject>, HTMLElement>;
     private readonly mPreviewElements: Map<object, HTMLElement>;
     private readonly mRenderer: PotatnoCanvasRenderer;
     private readonly mSelectedNodes: Set<PotatnoDocumentNode<TProject>>;
@@ -143,6 +144,7 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
         this.mLibraryDragUnsubscribe = null;
         this.mLibraryInsertUnsubscribe = null;
         this.mPendingConnectionRenderFrame = 0;
+        this.mPortElementRegistry = new Map<PotatnoDocumentPort<TProject>, HTMLElement>();
         this.mPreviewElements = new Map<object, HTMLElement>();
         this.mPreviewResult = null;
         this.mPreviewUpdateVersion = 0;
@@ -165,6 +167,7 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
         this.mHoveredPort = null;
         this.mInteractionState = { mode: 'idle' };
         this.mLibraryDragIndicator = null;
+        this.mPortElementRegistry.clear();
         this.mPreviewElements.clear();
         this.mSelectedNodes.clear();
         this.stopDocumentPointerTracking();
@@ -579,6 +582,15 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
      */
     public onPortLeave(): void {
         this.mHoveredPort = null;
+    }
+
+    /**
+     * Register a port's circle element for DOM-based position lookups during connection rendering.
+     *
+     * @param pEvent - Component event with port interaction data.
+     */
+    public onPortElementReady(pEvent: ComponentEvent<PortInteractionDetail>): void {
+        this.mPortElementRegistry.set(pEvent.value.port as PotatnoDocumentPort<TProject>, pEvent.value.element);
     }
 
     /**
@@ -1083,12 +1095,27 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
 
     /**
      * Calculate the rendered port anchor position in world coordinates.
+     * Uses the actual DOM position of the port circle element when available,
+     * falling back to an estimated position based on node layout constants.
      *
      * @param pPort - Port whose anchor should be located.
      *
      * @returns World position for the port.
      */
     private getPortPosition(pPort: PotatnoDocumentPort<TProject>): Point {
+        const lCircleEl: HTMLElement | undefined = this.mPortElementRegistry.get(pPort);
+        const lWrapper: HTMLElement | null = this.getCanvasWrapperOrNull();
+
+        if (lCircleEl && lWrapper) {
+            const lCanvasRect: DOMRect = lWrapper.getBoundingClientRect();
+            const lCircleRect: DOMRect = lCircleEl.getBoundingClientRect();
+            return {
+                x: (lCircleRect.left + lCircleRect.width / 2 - lCanvasRect.left - this.mInteraction.panX) / this.mInteraction.zoom,
+                y: (lCircleRect.top + lCircleRect.height / 2 - lCanvasRect.top - this.mInteraction.panY) / this.mInteraction.zoom
+            };
+        }
+
+        // Fallback: estimated position based on layout constants (all ports in body area).
         const lNode: PotatnoDocumentNode<TProject> = pPort.node;
         const lGridSize: number = this.mInteraction.gridSize;
         const lNodeX: number = lNode.transformation.x * lGridSize;
@@ -1098,27 +1125,15 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
         const lPortGap: number = 24;
         const lBodyPad: number = 4;
 
-        if (pPort.portType === 'flow') {
-            return {
-                x: pPort.direction === 'output' ? lNodeX + lNodeW : lNodeX,
-                y: lNodeY + lHeaderH / 2
-            };
-        }
-
         const lPortMap: Map<string, PotatnoDocumentPort<TProject>> = pPort.direction === 'output' ? lNode.outputs : lNode.inputs;
         let lIdx: number = 0;
         let lCount: number = 0;
 
         for (const lCandidatePort of lPortMap.values()) {
-            if (lCandidatePort.portType !== 'value') {
-                continue;
-            }
-
             if (lCandidatePort === pPort) {
                 lIdx = lCount;
                 break;
             }
-
             lCount++;
         }
 

@@ -54,24 +54,6 @@
     text-overflow: ellipsis;
 }
 
-/* ── Flow ports in header ── */
-
-.header-flow-inputs,
-.header-flow-outputs {
-    display: flex;
-    align-items: center;
-    gap: 2px;
-    flex-shrink: 0;
-}
-
-.header-flow-inputs {
-    margin-left: -8px;
-}
-
-.header-flow-outputs {
-    margin-right: -8px;
-}
-
 /* ── Body with data ports ── */
 
 .node-body {

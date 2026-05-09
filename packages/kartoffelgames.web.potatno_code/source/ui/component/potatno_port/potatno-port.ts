@@ -1,4 +1,5 @@
 import { ComponentEventEmitter, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport } from '@kartoffelgames/web-potato-web-builder';
+import type { IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoProjectTypeDefinition, PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
@@ -16,7 +17,7 @@ import { PotatnoProject } from "../../../project/potatno-project.ts";
     template: portTemplate,
     style: portCss,
 })
-export class PotatnoPortComponent {
+export class PotatnoPortComponent implements IComponentOnUpdate {
     /**
      * The domain port object to render.
      */
@@ -52,11 +53,16 @@ export class PotatnoPortComponent {
     @PwbComponentEvent('direct-value-change')
     private accessor mDirectValueChange!: ComponentEventEmitter<DirectValueChangeDetail>;
 
+    @PwbComponentEvent('port-element-ready')
+    private accessor mPortElementReady!: ComponentEventEmitter<PortInteractionDetail>;
+
     /**
      * Reference to the port circle DOM element for position calculations.
      */
     @PwbChild('portCircle')
     public accessor portCircleElement!: HTMLElement;
+
+    private mLastRegisteredPort: PotatnoDocumentPort<any> | null = null;
 
     /**
      * Port display name.
@@ -147,6 +153,30 @@ export class PotatnoPortComponent {
             name: lInput.name,
             value: this.port!.directValue[lIndex] ?? ''
         }));
+    }
+
+    /**
+     * After each update, register this port's circle element with the parent graph via event.
+     * Only emits when the port reference changes to avoid redundant events on every portVersion tick.
+     */
+    public onUpdate(): void {
+        if (!this.port || !this.ownerNode || this.port === this.mLastRegisteredPort) {
+            return;
+        }
+
+        let lCircleEl: HTMLElement;
+        try {
+            lCircleEl = this.portCircleElement;
+        } catch {
+            return;
+        }
+
+        this.mLastRegisteredPort = this.port;
+        this.mPortElementReady.dispatchEvent({
+            node: this.ownerNode,
+            port: this.port,
+            element: lCircleEl
+        });
     }
 
     /**

@@ -282,6 +282,9 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject> implements
             lErrors.push(new PotatnoDocumentPortValidationError(`Function "${this.mLabel}" definition "${this.mDefinitionId}" could not be found.`, this));
         }
 
+        // Get all definition ids of entry nodes defined by the function definition.
+        const lEntryNodeDefinitionIds = new Set(lDefinition?.getNodeDefinitions(this).entry.map((pDef) => pDef.id) ?? new Array<string>());
+
         // First pass: compute incoming region set for every node via memoized backward recursion.
         // Each top-level call receives a fresh visited set so cycle detection tracks only the current path.
         const lNodeRegionBuffer: Map<PotatnoDocumentNode<TProject>, Set<string>> = new Map<PotatnoDocumentNode<TProject>, Set<string>>();
@@ -290,9 +293,14 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject> implements
             lNodeRegions.set(lNode, this.accumulateRegions(lNode, lNodeRegionBuffer, new Set<PotatnoDocumentNode<TProject>>(), lErrors));
         }
 
-        // Second pass: validate every node with its computed incoming regions.
+        // Second pass: validate every node with its computed incoming regions and entry domains.
+        const lEntryNodeDomainBuffer: Map<PotatnoDocumentNode<TProject>, Set<PotatnoDocumentNode<TProject>>> = new Map<PotatnoDocumentNode<TProject>, Set<PotatnoDocumentNode<TProject>>>();
         for (const lNode of this.mNodes) {
             lErrors.push(...lNode.validate(lNodeRegions.get(lNode)!));
+
+            if (this.accumulateEntryDomains(lNode, lEntryNodeDefinitionIds, lEntryNodeDomainBuffer).size > 1) {
+                lErrors.push(new PotatnoDocumentPortValidationError(`Node "${lNode.label}" is reachable from multiple entry nodes.`, lNode));
+            }
         }
 
         return lErrors;
@@ -320,7 +328,6 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject> implements
      */
     private accumulateRegions(pNode: PotatnoDocumentNode<TProject>, pBuffer: Map<PotatnoDocumentNode<TProject>, Set<string>>, pVisitedNodes: Set<PotatnoDocumentNode<TProject>>, pErrors: Array<PotatnoDocumentPortValidationError<TProject>>): Set<string> {
         // Return cached result if this node was already resolved.
-        // This also serves for terminating before recursion check, as buffered nodes are added after recursion has finished.
         if (pBuffer.has(pNode)) {
             return pBuffer.get(pNode)!;
         }
@@ -370,6 +377,46 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject> implements
 
         return lNodeRegions;
     }
+
+    /**
+     * Recursively accumulate the set of entry node ids that can reach pNode by walking backwards
+     * through all incoming connections. Memoized; cycles are silently skipped (already caught by accumulateRegions).
+     * 
+     * @param pNode - The node whose entry domains should be computed.
+     * @param pEntryNodesDefinitionIds - Set of definition ids that are considered entry nodes.
+     * @param pBuffer - Memoization map shared across the entire validation pass.
+     */
+    private accumulateEntryDomains(pNode: PotatnoDocumentNode<TProject>, pEntryNodesDefinitionIds: Set<string>, pBuffer: Map<PotatnoDocumentNode<TProject>, Set<PotatnoDocumentNode<TProject>>>): Set<PotatnoDocumentNode<TProject>> {
+        // Return cached result if this node was already resolved.
+        // This also serves for terminating before recursion check, as buffered nodes are added after recursion has finished.
+        if (pBuffer.has(pNode)) {
+            return pBuffer.get(pNode)!;
+        }
+
+        const lDomains = new Set<PotatnoDocumentNode<TProject>>();
+
+        // Set the node into buffer before recursing so that that cycles are exited and dont run endlessly.
+        pBuffer.set(pNode, lDomains);
+
+        // Walk all incoming connections (flow inputs and value inputs).
+        for (const lInputPort of pNode.inputs.values()) {
+            for (const lConnectedPort of lInputPort.connectedPorts) {
+                const lPredecessor = lConnectedPort.node;
+
+                // If the predecessor is an entry node, register its domain.
+                if (pEntryNodesDefinitionIds.has(lPredecessor.definitionId)) {
+                    lDomains.add(lPredecessor);
+                }
+
+                // Inherit all entry node domains accumulated by the predecessor.
+                for (const lEntryDomainNode of this.accumulateEntryDomains(lPredecessor, pEntryNodesDefinitionIds, pBuffer,)) {
+                    lDomains.add(lEntryDomainNode);
+                }
+            }
+        }
+
+        return lDomains;
+    }
 }
 
 export type PotatnoDocumentFunctionConstructorParameter = {
@@ -379,7 +426,7 @@ export type PotatnoDocumentFunctionConstructorParameter = {
     isSystem: boolean;
 };
 
-export type PotatnoDocumentFunctionPort<TProject extends PotatnoProject>  = {
+export type PotatnoDocumentFunctionPort<TProject extends PotatnoProject> = {
     label: string;
     dataType: PotatnoProjectType<TProject> | PotatnoProjectGenericType;
 };

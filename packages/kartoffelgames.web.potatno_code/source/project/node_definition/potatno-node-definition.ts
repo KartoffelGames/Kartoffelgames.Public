@@ -1,3 +1,4 @@
+import { Exception } from "@kartoffelgames/core";
 import { PotatnoCodeFunction } from "../../parser/potatno-code-function.ts";
 import { PotatnoPortDefinition, PotatnoPortDefinitionConfiguration } from "../potatno-port-definition.ts";
 import { PotatnoProject } from "../potatno-project.ts";
@@ -41,10 +42,22 @@ export class PotatnoNodeDefinition<TProject extends PotatnoProject<any>> {
      * Data input port definitions. 
      */
     public get inputs(): ReadonlyArray<PotatnoPortDefinition<TProject>> {
+        // Flag to check that a node can only have a single input flow port.
+        let lHasFlowPort: boolean = false;
+
         // Reads port configuration and converts it into PotatnoPortDefinition.
         const lPorts: Array<PotatnoPortDefinition<TProject>> = [];
         this.mPortProvider.inputs((pConfiguration) => {
             lPorts.push(PotatnoPortDefinition.new<TProject>(pConfiguration));
+
+            // Check that there is only a single flow port.
+            if (pConfiguration.portType === 'flow') {
+                if (lHasFlowPort) {
+                    throw new Exception(`Node definition ${this.id} has multiple input flow ports, which is not allowed.`, this);
+                }
+
+                lHasFlowPort = true;
+            }
         });
 
         return lPorts;

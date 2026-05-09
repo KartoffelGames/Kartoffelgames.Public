@@ -13,6 +13,8 @@
                         [selected]="this.nodeState.selected"
                         [gridSize]="this.gridSize"
                         [connectionVersion]="this.nodeState.connectionVersion"
+                        [hasError]="this.nodeState.hasError"
+                        [errorPorts]="this.nodeState.errorPorts"
                         [previewElement]="this.getPreviewElementForNode(this.nodeState.node)"
                         (pointerdown)="this.onNodePointerDown($event, this.nodeState.node)"
                         (port-drag-start)="this.onPortDragStart($event)"

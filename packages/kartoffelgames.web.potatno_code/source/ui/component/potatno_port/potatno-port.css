@@ -85,6 +85,12 @@
 .port-circle.invalid.direction-input::after { border-right-color: var(--pn-accent-danger); }
 .port-circle.invalid { filter: drop-shadow(0 0 4px var(--pn-accent-danger)); }
 
+/* Has-error: red glow (validation error from graph) */
+.port-circle.has-error::before { background: var(--pn-accent-danger, #f38ba8); }
+.port-circle.has-error.direction-output::after { border-left-color: var(--pn-accent-danger, #f38ba8); }
+.port-circle.has-error.direction-input::after { border-right-color: var(--pn-accent-danger, #f38ba8); }
+.port-circle.has-error { filter: drop-shadow(0 0 4px var(--pn-accent-danger, #f38ba8)); }
+
 .port-label {
     color: var(--port-label-color, var(--pn-text-secondary));
     font-size: var(--pn-font-size-sm);

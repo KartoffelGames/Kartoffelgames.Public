@@ -1,6 +1,6 @@
 import { ComponentState, PwbChild, PwbComponent, PwbExport, type ComponentEvent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
-import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
+import { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoDocument } from '../../../document/potatno-document.ts';
 import { PotatnoCodeGenerator, type FunctionCodeWithIntermediates } from '../../../parser/potatno-code-generator.ts';
@@ -180,6 +180,20 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      */
     public get editorErrors(): Array<{ message: string; location: string; }> {
         return this.mCachedData.errors;
+    }
+
+    /**
+     * Node error set derived from document validation, passed to the graph for highlighting.
+     */
+    public get graphErrorNodes(): ReadonlySet<PotatnoDocumentNode<any>> {
+        return this.mCachedData.graphErrorNodes;
+    }
+
+    /**
+     * Port error set derived from document validation, passed to the graph for highlighting.
+     */
+    public get graphErrorPorts(): ReadonlySet<PotatnoDocumentPort<any>> {
+        return this.mCachedData.graphErrorPorts;
     }
 
     /**
@@ -646,6 +660,8 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
             availableTypes: [],
             errors: [],
             functionList: [],
+            graphErrorNodes: new Set<PotatnoDocumentNode<any>>(),
+            graphErrorPorts: new Set<PotatnoDocumentPort<any>>(),
             hasPreview: false
         };
     }
@@ -811,11 +827,21 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
         lCached.hasPreview = lProject?.entryPoint.preview !== null && lProject?.entryPoint.preview !== undefined;
 
         if (lFile) {
+            const lErrorNodes: Set<PotatnoDocumentNode<TProject>> = new Set<PotatnoDocumentNode<TProject>>();
+            const lErrorPorts: Set<PotatnoDocumentPort<TProject>> = new Set<PotatnoDocumentPort<TProject>>();
+
             for (const lError of lFile.validate()) {
                 if (lError.item instanceof PotatnoDocumentPort) {
                     lCached.errors.push({ location: `Node "${lError.item.node.label}"`, message: lError.message });
+                    lErrorPorts.add(lError.item);
+                    lErrorNodes.add(lError.item.node);
+                } else if (lError.item instanceof PotatnoDocumentNode) {
+                    lErrorNodes.add(lError.item);
                 }
             }
+
+            lCached.graphErrorNodes = lErrorNodes;
+            lCached.graphErrorPorts = lErrorPorts;
 
             for (const lFunction of lFile.functions) {
                 lCached.functionList.push({
@@ -1011,6 +1037,8 @@ interface CachedViewData {
     availableTypes: Array<string>;
     errors: Array<{ message: string; location: string; }>;
     functionList: Array<{ id: string; name: string; label: string; system: boolean; }>;
+    graphErrorNodes: ReadonlySet<PotatnoDocumentNode<any>>;
+    graphErrorPorts: ReadonlySet<PotatnoDocumentPort<any>>;
     hasPreview: boolean;
 }
 

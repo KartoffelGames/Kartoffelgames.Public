@@ -36,6 +36,8 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
     private readonly mRenderer: PotatnoCanvasRenderer;
     private readonly mSelectedNodes: Set<PotatnoDocumentNode<TProject>>;
     private mActiveFunction: PotatnoDocumentFunction<TProject> | null;
+    private mErrorNodes: ReadonlySet<PotatnoDocumentNode<TProject>>;
+    private mErrorPorts: ReadonlySet<PotatnoDocumentPort<TProject>>;
     private mAddNodeSearchQuery: string;
     private mAddNodeSelectedDefinitionId: string | null;
     private mConnectionVersion: number;
@@ -137,6 +139,8 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
         this.mConnectionVersion = 0;
         this.mDocumentPointerMoveHandler = null;
         this.mDocumentPointerUpHandler = null;
+        this.mErrorNodes = new Set<PotatnoDocumentNode<TProject>>();
+        this.mErrorPorts = new Set<PotatnoDocumentPort<TProject>>();
         this.mHoveredPort = null;
         this.mInteraction = new PotatnoCanvasInteraction(20);
         this.mInteractionState = { mode: 'idle' };
@@ -164,6 +168,8 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
         }
 
         this.mActiveFunction = pValue;
+        this.mErrorNodes = new Set<PotatnoDocumentNode<TProject>>();
+        this.mErrorPorts = new Set<PotatnoDocumentPort<TProject>>();
         this.mHoveredPort = null;
         this.mInteractionState = { mode: 'idle' };
         this.mLibraryDragIndicator = null;
@@ -246,6 +252,24 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
      */
     public get previewUpdateVersion(): number {
         return this.mPreviewUpdateVersion;
+    }
+
+    /**
+     * Set of nodes that have validation errors — triggers red outline highlighting.
+     */
+    @PwbExport
+    public set errorNodes(pValue: ReadonlySet<PotatnoDocumentNode<TProject>>) {
+        this.mErrorNodes = pValue ?? new Set<PotatnoDocumentNode<TProject>>();
+        this.invalidateGraphContent();
+    }
+
+    /**
+     * Set of ports that have validation errors — triggers red port and connection highlighting.
+     */
+    @PwbExport
+    public set errorPorts(pValue: ReadonlySet<PotatnoDocumentPort<TProject>>) {
+        this.mErrorPorts = pValue ?? new Set<PotatnoDocumentPort<TProject>>();
+        this.invalidateGraphContent();
     }
 
     /**
@@ -1386,6 +1410,8 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
                 this.ensurePreviewElementForNode(lNode);
                 lVisibleNodes.push({
                     connectionVersion: this.mConnectionVersion,
+                    errorPorts: this.mErrorPorts,
+                    hasError: this.mErrorNodes.has(lNode),
                     node: lNode,
                     pixelW: lNode.transformation.width * lGridSize,
                     pixelX: lNode.transformation.x * lGridSize,
@@ -1406,6 +1432,8 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
         this.mCachedGraphData = {
             visibleNodes: this.mCachedGraphData.visibleNodes.map((pState: NodeViewState<TProject>) => ({
                 connectionVersion: pState.connectionVersion,
+                errorPorts: pState.errorPorts,
+                hasError: pState.hasError,
                 node: pState.node,
                 pixelW: pState.node.transformation.width * lGridSize,
                 pixelX: pState.node.transformation.x * lGridSize,
@@ -1441,6 +1469,7 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
                     const lId: string = `c${lConnectionIndex++}`;
                     const lSourcePosition: Point = this.getPortPosition(lOutputPort);
                     const lTargetPosition: Point = this.getPortPosition(lConnectedPort);
+                    const lHasError: boolean = this.mErrorPorts.has(lOutputPort) || this.mErrorPorts.has(lConnectedPort);
 
                     this.mConnectionRegistry.set(lId, {
                         sourcePort: lOutputPort,
@@ -1454,7 +1483,7 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
                         sourceY: lSourcePosition.y,
                         targetX: lTargetPosition.x,
                         targetY: lTargetPosition.y,
-                        valid: true
+                        valid: !lHasError
                     });
                 }
             }
@@ -1651,6 +1680,8 @@ export type OpenFunctionRequestDetail = {
 
 export type NodeViewState<TProject extends PotatnoUiProject> = {
     connectionVersion: number;
+    errorPorts: ReadonlySet<PotatnoDocumentPort<TProject>>;
+    hasError: boolean;
     node: PotatnoDocumentNode<TProject>;
     pixelW: number;
     pixelX: number;

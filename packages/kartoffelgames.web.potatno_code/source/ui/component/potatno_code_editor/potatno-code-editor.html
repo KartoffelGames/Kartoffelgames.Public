@@ -20,6 +20,8 @@
             [refreshVersion]="this.graphRefreshVersion"
             [previewResult]="this.graphPreviewResult"
             [previewUpdateVersion]="this.previewUpdateVersion"
+            [errorNodes]="this.graphErrorNodes"
+            [errorPorts]="this.graphErrorPorts"
             (graph-change)="this.onGraphChange($event)"
             (open-function)="this.onGraphOpenFunction($event)"
             (undo-request)="this.onGraphUndoRequest($event)"

@@ -41,6 +41,13 @@ export class PotatnoPortComponent implements IComponentOnUpdate {
     @ComponentState.state()
     public accessor ownerNode: PotatnoDocumentNode<any> | null = null;
 
+    /**
+     * Whether this port has a validation error.
+     */
+    @PwbExport
+    @ComponentState.state()
+    public accessor hasError: boolean = false;
+
     @PwbComponentEvent('port-drag-start')
     private accessor mPortDragStart!: ComponentEventEmitter<PortInteractionDetail>;
 
@@ -96,6 +103,9 @@ export class PotatnoPortComponent implements IComponentOnUpdate {
         const lClasses: Array<string> = ['port-circle'];
         lClasses.push(this.port.connectedPorts.size > 0 ? 'connected' : 'disconnected');
         lClasses.push(this.port.direction === 'output' ? 'direction-output' : 'direction-input');
+        if (this.hasError) {
+            lClasses.push('has-error');
+        }
         return lClasses.join(' ');
     }
 

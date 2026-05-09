@@ -1,6 +1,6 @@
 $if(this.nodeData) {
     $if(this.isReroute) {
-        <div class="node-reroute {{this.selectedClass}}"
+        <div class="node-reroute {{this.selectedClass}} {{this.hasErrorClass}}"
              (pointerdown)="this.onNodePointerDown($event)">
             <div class="reroute-inputs">
                 $for(inPort of this.inputPorts) {
@@ -8,6 +8,7 @@ $if(this.nodeData) {
                         [port]="this.inPort"
                         [ownerNode]="this.nodeData"
                         [portVersion]="this.connectionVersion"
+                        [hasError]="this.isPortError(this.inPort)"
                         (port-drag-start)="this.onPortDragStart($event)"
                         (port-hover)="this.onPortHover($event)"
                         (port-leave)="this.onPortLeave($event)"
@@ -23,6 +24,7 @@ $if(this.nodeData) {
                         [port]="this.outPort"
                         [ownerNode]="this.nodeData"
                         [portVersion]="this.connectionVersion"
+                        [hasError]="this.isPortError(this.outPort)"
                         (port-drag-start)="this.onPortDragStart($event)"
                         (port-hover)="this.onPortHover($event)"
                         (port-leave)="this.onPortLeave($event)"
@@ -35,7 +37,7 @@ $if(this.nodeData) {
     }
     $if(!this.isReroute) {
     $if(this.isComment) {
-        <div class="node-comment {{this.selectedClass}}"
+        <div class="node-comment {{this.selectedClass}} {{this.hasErrorClass}}"
              [style]="this.commentSizeStyle"
              (pointerdown)="this.onNodePointerDown($event)">
             <div class="comment-header">
@@ -53,7 +55,7 @@ $if(this.nodeData) {
         </div>
     }
     $if(!this.isComment) {
-        <div class="node {{this.selectedClass}}"
+        <div class="node {{this.selectedClass}} {{this.hasErrorClass}}"
              (pointerdown)="this.onNodePointerDown($event)">
             <div class="node-header" style="background: {{this.categoryColor}}">
                 <span class="node-icon">{{this.categoryIcon}}</span>
@@ -72,6 +74,7 @@ $if(this.nodeData) {
                             [port]="this.inPort"
                             [ownerNode]="this.nodeData"
                             [portVersion]="this.connectionVersion"
+                            [hasError]="this.isPortError(this.inPort)"
                             (port-drag-start)="this.onPortDragStart($event)"
                             (port-hover)="this.onPortHover($event)"
                             (port-leave)="this.onPortLeave($event)"
@@ -86,6 +89,7 @@ $if(this.nodeData) {
                             [port]="this.outPort"
                             [ownerNode]="this.nodeData"
                             [portVersion]="this.connectionVersion"
+                            [hasError]="this.isPortError(this.outPort)"
                             (port-drag-start)="this.onPortDragStart($event)"
                             (port-hover)="this.onPortHover($event)"
                             (port-leave)="this.onPortLeave($event)"

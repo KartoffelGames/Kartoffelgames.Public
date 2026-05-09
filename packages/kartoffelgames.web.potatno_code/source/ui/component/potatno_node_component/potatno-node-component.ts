@@ -45,6 +45,21 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     public accessor selected: boolean = false;
 
     /**
+     * Whether this node has a validation error (triggers red outline).
+     */
+    @PwbExport
+    @ComponentState.state()
+    public accessor hasError: boolean = false;
+
+    /**
+     * Set of ports on this node that have validation errors.
+     * Shared read-only reference from the graph — checked per-port in the template.
+     */
+    @PwbExport
+    @ComponentState.state({ complexValue: true })
+    public accessor errorPorts: ReadonlySet<PotatnoDocumentPort<any>> = new Set();
+
+    /**
      * Grid size in pixels. Used to convert grid-unit positions to pixel values.
      */
     @PwbExport
@@ -103,6 +118,22 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
      */
     public get selectedClass(): string {
         return this.selected ? 'selected' : '';
+    }
+
+    /**
+     * CSS class string for the error state.
+     */
+    public get hasErrorClass(): string {
+        return this.hasError ? 'has-error' : '';
+    }
+
+    /**
+     * Return whether the given port has a validation error.
+     *
+     * @param pPort - Port to check.
+     */
+    public isPortError(pPort: PotatnoDocumentPort<any>): boolean {
+        return this.errorPorts.has(pPort);
     }
 
     /**

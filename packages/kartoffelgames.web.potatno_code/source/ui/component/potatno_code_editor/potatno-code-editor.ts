@@ -4,7 +4,7 @@ import { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts'
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoDocument } from '../../../document/potatno-document.ts';
 import { PotatnoCodeGenerator, type FunctionCodeWithIntermediates } from '../../../parser/potatno-code-generator.ts';
-import { PotatnoFunctionDefinitionStatics } from '../../../project/potatno-function-definition.ts';
+import { PotatnoFunctionDefinitionNodes, PotatnoFunctionDefinitionStatics } from '../../../project/potatno-function-definition.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import { PotatnoDeserializer } from '../../../serialization/potatno-deserializer.ts';
 import type { PotatnoCodeFileSerializationResult } from '../../../serialization/potatno-serialization.type.ts';
@@ -414,19 +414,6 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
             label: `Function ${lFile.functions.size}`
         });
 
-        lFunctionDefinition.getPrefilledNodes(lFunction).forEach((pStaticDefinition, pIndex) => {
-            lFunction.newNode(pStaticDefinition, { height: 4, width: 10, x: 2 + pIndex * 12, y: 2 }, true);
-            if (!lProject.nodeDefinitions.some((pDefinition) => pDefinition.id === pStaticDefinition.id)) {
-                lProject.addNodeDefinition(pStaticDefinition);
-            }
-        });
-
-        for (const lDynamicDefinition of lFunctionDefinition.getNodeDefinitions(lFunction)) {
-            if (!lProject.nodeDefinitions.some((pDefinition) => pDefinition.id === lDynamicDefinition.id)) {
-                lProject.addNodeDefinition(lDynamicDefinition);
-            }
-        }
-
         if ((lFunctionDefinition.statics & PotatnoFunctionDefinitionStatics.imports) !== 0) {
             for (const lImport of lProject.imports) {
                 lFunction.addImport(lImport.label);
@@ -779,18 +766,17 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
             label: 'Main'
         });
 
-        lEntryPoint.getPrefilledNodes(lFunction).forEach((pStaticDefinition, pIndex) => {
-            lFunction.newNode(pStaticDefinition, { height: 4, width: 10, x: 2 + pIndex * 12, y: 2 }, true);
-            if (!pProject.nodeDefinitions.some((pDefinition) => pDefinition.id === pStaticDefinition.id)) {
-                pProject.addNodeDefinition(pStaticDefinition);
-            }
+        const lFunctionNodes: PotatnoFunctionDefinitionNodes<TProject> = lEntryPoint.getNodeDefinitions(lFunction);
+
+        // Create entry nodes. Stack them vertically staring at 0,0 position with with 20 height units between them. 
+        lFunctionNodes.entry.forEach((pStaticDefinition, pIndex) => {
+            lFunction.newNode(pStaticDefinition, { height: 4, width: 10, x: 0, y: pIndex * 20 }, true);
         });
 
-        for (const lDynamicDefinition of lEntryPoint.getNodeDefinitions(lFunction)) {
-            if (!pProject.nodeDefinitions.some((pDefinition) => pDefinition.id === lDynamicDefinition.id)) {
-                pProject.addNodeDefinition(lDynamicDefinition);
-            }
-        }
+        // Create exit nodes. Stack them vertically starting at 40,0 position with with 20 height units between them.
+        lFunctionNodes.exit.forEach((pStaticDefinition, pIndex) => {
+            lFunction.newNode(pStaticDefinition, { height: 4, width: 10, x: 40, y: pIndex * 20 }, true);
+        });
 
         if ((lEntryPoint.statics & PotatnoFunctionDefinitionStatics.imports) !== 0) {
             for (const lImport of pProject.imports) {

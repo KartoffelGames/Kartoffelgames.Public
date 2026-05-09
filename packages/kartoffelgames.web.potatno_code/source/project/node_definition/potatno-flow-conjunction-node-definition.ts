@@ -7,7 +7,7 @@ export class FlowConjunctionNodeDefinition<TProject extends PotatnoProject<any>>
     /**
      * Create a new FlowConjunctionNodeDefinition.
      */
-    public static new<TProject extends PotatnoProject<any>>(): FlowConjunctionNodeDefinition<TProject> {
+    public static newConjunctionNode<TProject extends PotatnoProject<any>>(): FlowConjunctionNodeDefinition<TProject> {
         return new FlowConjunctionNodeDefinition<TProject>();
     }
 
@@ -16,16 +16,16 @@ export class FlowConjunctionNodeDefinition<TProject extends PotatnoProject<any>>
      */
     protected constructor() {
         super({
-            id: '3f7c1a2b-5d4e-4890-b6f8-9a0c3e7d2f1b',
+            id: '23e9319b-3b62-4dd8-858a-17d97ddee94e',
             label: 'Flow Conjunction',
             category: NodeCategory.Reroute,
             generators: {
                 ports: {
-                    inputs: () => {
-                        return [{ label: 'in', id: 'in', portType: 'flow' }];
+                    inputs: (pAddPort) => {
+                        pAddPort({ label: 'in', id: 'in', portType: 'flow' });
                     },
-                    outputs: () => {
-                        return [{ label: 'out', id: 'out', portType: 'flow' }];
+                    outputs: (pAddPort) => {
+                        pAddPort({ label: 'out', id: 'out', portType: 'flow' });
                     }
                 },
                 code: () => { throw new Exception('Conjunction node code generators should never be called.', FlowConjunctionNodeDefinition); }

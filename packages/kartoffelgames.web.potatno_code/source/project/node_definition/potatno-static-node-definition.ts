@@ -18,7 +18,7 @@ export class PotatnoStaticNodeDefinition<TProject extends PotatnoProject<any>> e
      *
      * @param pParameters - Static node definition configuration including id, label, category, ports, and generators.
      */
-    public static new<TProject extends PotatnoProject<any>>(pParameters: PotatnoStaticNodeDefinitionConstructorParameter<TProject>): PotatnoStaticNodeDefinition<TProject> {
+    public static newStaticNode<TProject extends PotatnoProject<any>>(pParameters: PotatnoStaticNodeDefinitionConstructorParameter<TProject>): PotatnoStaticNodeDefinition<TProject> {
         return new PotatnoStaticNodeDefinition(pParameters);
     }
 
@@ -36,8 +36,16 @@ export class PotatnoStaticNodeDefinition<TProject extends PotatnoProject<any>> e
             regions: pParameters.regions ?? null,
             generators: {
                 ports: {
-                    inputs: () => pParameters.ports.inputs ?? [],
-                    outputs: () => pParameters.ports.outputs ?? []
+                    inputs: (pAddPort) => {
+                        for (const lPort of pParameters.ports.inputs) {
+                            pAddPort(lPort);
+                        }
+                    },
+                    outputs: (pAddPort) => {
+                        for (const lPort of pParameters.ports.outputs) {
+                            pAddPort(lPort);
+                        }
+                    }
                 },
                 code: pParameters.generators.code,
                 preview: pParameters.generators.preview ?? null

@@ -7,7 +7,7 @@ export class ValueConjunctionNodeDefinition<TProject extends PotatnoProject<any>
     /**
      * Create a new ValueConjunctionNodeDefinition.
      */
-    public static new<TProject extends PotatnoProject<any>>(): ValueConjunctionNodeDefinition<TProject> {
+    public static newConjunctionNode<TProject extends PotatnoProject<any>>(): ValueConjunctionNodeDefinition<TProject> {
         return new ValueConjunctionNodeDefinition<TProject>();
     }
 
@@ -16,16 +16,16 @@ export class ValueConjunctionNodeDefinition<TProject extends PotatnoProject<any>
      */
     protected constructor() {
         super({
-            id: '8b2e4a6c-1f3d-4750-a9e2-7c5b0d8f3e4a',
+            id: 'a579584d-5d35-42b5-b2ba-3daddee488e0',
             label: 'Value Conjunction',
             category: NodeCategory.Reroute,
             generators: {
                 ports: {
-                    inputs: () => {
-                        return [{ label: 'in', id: 'in', portType: 'value', dataType: '<T>' }];
+                    inputs: (pAddPort) => {
+                        pAddPort({ label: 'in', id: 'in', portType: 'value', dataType: '<T>' });
                     },
-                    outputs: () => {
-                        return [{ label: 'out', id: 'out', portType: 'value', dataType: '<T>' }];
+                    outputs: (pAddPort) => {
+                        pAddPort({ label: 'out', id: 'out', portType: 'value', dataType: '<T>' });
                     }
                 },
                 code: () => { throw new Exception('Conjunction node code generators should never be called.', ValueConjunctionNodeDefinition); }

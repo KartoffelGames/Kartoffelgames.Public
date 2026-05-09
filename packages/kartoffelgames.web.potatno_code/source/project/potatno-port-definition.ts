@@ -95,7 +95,7 @@ export type PotatnoPortDefinitionRegions = {
  * Definition of a port type used when registering node definitions.
  */
 
-export type PotatnoPortDefinitionConfiguration<TProject extends PotatnoProject<any>> = {
+export type PotatnoPortDefinitionConfiguration<TProject extends PotatnoProject> = {
 	/**
 	 * Display label for the port.
 	 */

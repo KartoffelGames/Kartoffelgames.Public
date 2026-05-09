@@ -76,8 +76,8 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
         this.mUserFunctions = new Map<string, PotatnoFunctionDefinition<this>>();
 
         // Built-in conjunction pass-through nodes are always available in every project.
-        this.addNodeDefinition(FlowConjunctionNodeDefinition.new());
-        this.addNodeDefinition(ValueConjunctionNodeDefinition.new());
+        this.addNodeDefinition(FlowConjunctionNodeDefinition.newConjunctionNode());
+        this.addNodeDefinition(ValueConjunctionNodeDefinition.newConjunctionNode());
     }
 
     /**

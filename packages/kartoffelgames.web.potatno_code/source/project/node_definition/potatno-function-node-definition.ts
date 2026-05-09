@@ -3,7 +3,7 @@ import { PotatnoFunctionDefinition } from "../potatno-function-definition.ts";
 import { PotatnoPortDefinitionConfiguration } from "../potatno-port-definition.ts";
 import { PotatnoProjectType } from "../potatno-project-types-definition.ts";
 import { PotatnoProject } from "../potatno-project.ts";
-import { PotatnoNodeDefinition } from "./potatno-node-definition.ts";
+import { PotatnoNodeDefinition, PotatnoNodeDefinitionPortGeneratorFunction } from "./potatno-node-definition.ts";
 
 /**
  * A live node definition derived from a PotatnoDocumentFunction.
@@ -23,7 +23,7 @@ export class PotatnoFunctionNodeDefinition<TProject extends PotatnoProject<any>>
      *
      * @param pFunction - The document function this definition reflects.
      */
-    public static new<TProject extends PotatnoProject<any>>(pFunction: PotatnoDocumentFunction<TProject>): PotatnoFunctionNodeDefinition<TProject> {
+    public static newFunctionNode<TProject extends PotatnoProject<any>>(pFunction: PotatnoDocumentFunction<TProject>): PotatnoFunctionNodeDefinition<TProject> {
         return new PotatnoFunctionNodeDefinition(pFunction);
     }
 
@@ -42,46 +42,34 @@ export class PotatnoFunctionNodeDefinition<TProject extends PotatnoProject<any>>
      * @param pFunction - The document function this definition mirrors.
      */
     protected constructor(pFunction: PotatnoDocumentFunction<TProject>) {
-        const lInputPortGenerator = (): Array<PotatnoPortDefinitionConfiguration<TProject>> => {
-            // Generate ports definitions based on the function inputs.
-            const lPorts: Array<PotatnoPortDefinitionConfiguration<TProject>> = pFunction.inputs.map((pPort) => {
-                return {
-                    label: pPort.label,
-                    id: pPort.label,
-                    portType: 'value',
-                    dataType: pPort.dataType as PotatnoProjectType<TProject>
-                } satisfies PotatnoPortDefinitionConfiguration<TProject>;
-            });
-
+        const lInputPortGenerator: PotatnoNodeDefinitionPortGeneratorFunction<TProject> = (pAddPort): void => {
             // Add an additional flow port for function call chaining.
-            lPorts.unshift({
-                label: 'Input',
-                id: 'Input',
-                portType: 'flow'
-            });
+            pAddPort({ label: 'Input', id: 'Input', portType: 'flow' });
 
-            return lPorts;
+            // Generate ports definitions based on the function inputs.
+            for (const lPort of pFunction.inputs) {
+                pAddPort({
+                    label: lPort.label,
+                    id: lPort.label,
+                    portType: 'value',
+                    dataType: lPort.dataType as PotatnoProjectType<TProject>
+                });
+            }
         };
 
-        const lOutputPortGenerator = (): Array<PotatnoPortDefinitionConfiguration<TProject>> => {
-            // Generate ports definitions based on the function outputs.
-            const lPorts: Array<PotatnoPortDefinitionConfiguration<TProject>> = pFunction.outputs.map((pPort) => {
-                return {
-                    label: pPort.label,
-                    id: pPort.label,
-                    portType: 'value',
-                    dataType: pPort.dataType as PotatnoProjectType<TProject>
-                } satisfies PotatnoPortDefinitionConfiguration<TProject>;
-            });
-
+        const lOutputPortGenerator: PotatnoNodeDefinitionPortGeneratorFunction<TProject> = (pAddPort): void => {
             // Add an additional flow port for function call chaining.
-            lPorts.unshift({
-                label: 'Output',
-                id: 'Output',
-                portType: 'flow'
-            });
+            pAddPort({ label: 'Output', id: 'Output', portType: 'flow' });
 
-            return lPorts;
+            // Generate ports definitions based on the function outputs.
+            for (const lPort of pFunction.outputs) {
+                pAddPort({
+                    label: lPort.label,
+                    id: lPort.label,
+                    portType: 'value',
+                    dataType: lPort.dataType as PotatnoProjectType<TProject>
+                });
+            }
         };
 
         // Get the function definition from the document function.

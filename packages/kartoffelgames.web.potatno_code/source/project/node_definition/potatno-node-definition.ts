@@ -5,7 +5,16 @@ import { PotatnoProject } from "../potatno-project.ts";
 /**
  * Potatno node definition that changes dynamically based on the provided context.
  */
-export abstract class PotatnoNodeDefinition<TProject extends PotatnoProject<any>> {
+export class PotatnoNodeDefinition<TProject extends PotatnoProject<any>> {
+    /**
+     * Create a new PotatnoNodeDefinition.
+     *
+     * @param pParameters - Static node definition configuration including id, label, category, ports, and generators.
+     */
+    public static newNode<TProject extends PotatnoProject<any>>(pParameters: PotatnoNodeDefinitionConstructorParameter<TProject>): PotatnoNodeDefinition<TProject> {
+        return new PotatnoNodeDefinition<TProject>(pParameters);
+    }
+
     private readonly mId: string;
     private readonly mCategory: string;
     private readonly mLabel: string;
@@ -33,9 +42,12 @@ export abstract class PotatnoNodeDefinition<TProject extends PotatnoProject<any>
      */
     public get inputs(): ReadonlyArray<PotatnoPortDefinition<TProject>> {
         // Reads port configuration and converts it into PotatnoPortDefinition.
-        return this.mPortProvider.inputs().map((pConfiguration) => {
-            return PotatnoPortDefinition.new<TProject>(pConfiguration);
+        const lPorts: Array<PotatnoPortDefinition<TProject>> = [];
+        this.mPortProvider.inputs((pConfiguration) => {
+            lPorts.push(PotatnoPortDefinition.new<TProject>(pConfiguration));
         });
+
+        return lPorts;
     }
 
     /**
@@ -50,9 +62,12 @@ export abstract class PotatnoNodeDefinition<TProject extends PotatnoProject<any>
      */
     public get outputs(): ReadonlyArray<PotatnoPortDefinition<TProject>> {
         // Reads port configuration and converts it into PotatnoPortDefinition.
-        return this.mPortProvider.outputs().map((pConfiguration) => {
-            return PotatnoPortDefinition.new<TProject>(pConfiguration);
+        const lPorts: Array<PotatnoPortDefinition<TProject>> = [];
+        this.mPortProvider.outputs((pConfiguration) => {
+            lPorts.push(PotatnoPortDefinition.new<TProject>(pConfiguration));
         });
+
+        return lPorts;
     }
 
     /**
@@ -148,9 +163,11 @@ export type PotatnoNodeDefinitionRegions = {
  */
 
 export type PotatnoNodeDefinitionPortGenerator<TProject extends PotatnoProject<any>> = {
-    inputs: () => Array<PotatnoPortDefinitionConfiguration<TProject>>;
-    outputs: () => Array<PotatnoPortDefinitionConfiguration<TProject>>;
+    inputs: PotatnoNodeDefinitionPortGeneratorFunction<TProject>;
+    outputs: PotatnoNodeDefinitionPortGeneratorFunction<TProject>;
 };
+
+export type PotatnoNodeDefinitionPortGeneratorFunction<TProject extends PotatnoProject<any>> = (pAddPort: (pConfiguration: PotatnoPortDefinitionConfiguration<TProject>) => void) => void;
 
 /*
  * Code generator ports.

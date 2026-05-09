@@ -36,6 +36,13 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject<any>> implement
     }
 
     /**
+     * The function this node belongs to.
+     */
+    public get function(): PotatnoDocumentFunction<TProject> {
+        return this.mFunction;
+    }
+
+    /**
      * Get the data input ports of the node.
      */
     public get inputs(): Map<string, PotatnoDocumentPort<TProject>> {

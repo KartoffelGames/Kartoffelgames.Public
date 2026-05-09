@@ -94,40 +94,45 @@ export class PotatnoFunctionDefinition<TProject extends PotatnoProject<any>> {
      * 
      * @return A list of entry-point-exclusive nodes.
      */
-    public getNodeDefinitions(pDocumentFunction: PotatnoDocumentFunction<TProject>): ReadonlyArray<PotatnoNodeDefinition<TProject>> {
-        // Cant have node definitions if no dynamic node provider is set.
-        if (!this.mNodesProvider.dynamic) {
-            return new Array<PotatnoNodeDefinition<TProject>>();
-        }
+    public getNodeDefinitions(pDocumentFunction: PotatnoDocumentFunction<TProject>): PotatnoFunctionDefinitionNodes<TProject> {
+        // Universal provider for entry, exit, and dynamic nodes. The provider callbacks will be called when the corresponding properties are accessed, allowing for lazy generation of nodes.
+        const lNodeProvider = (pProviderFunction: PotatnoFunctionDefinitionNodeProviderFunction<TProject> | undefined) => {
+            // Cant have node definitions if no dynamic node provider is set.
+            if (!pProviderFunction) {
+                return new Array<PotatnoNodeDefinition<TProject>>();
+            }
 
-        // Create a temporary array to collect the dynamic nodes provided by the function definition.
-        const lDynamicNodes: Array<PotatnoNodeDefinition<TProject>> = new Array<PotatnoNodeDefinition<TProject>>();
-        this.mNodesProvider.dynamic((node: PotatnoNodeDefinition<TProject>) => {
-            lDynamicNodes.push(node);
-        }, pDocumentFunction);
-
-        return lDynamicNodes;
-    }
-
-    /**
-     * List of prefilled nodes that are generated for this entry point and cannot be deleted by the user.
-     * 
-     * @param pDocumentFunction - A document function for this definition.
-     * 
-     * @return A list of prefilled nodes that are generated for this entry point and cannot be deleted by the user.
-     */
-    public getPrefilledNodes(pDocumentFunction: PotatnoDocumentFunction<TProject>): ReadonlyArray<PotatnoNodeDefinition<TProject>> {
-        if (this.mNodesProvider.prefilled) {
-            // Create a temporary array to collect the prefilled nodes provided by the function definition.
-            const lPrefilledNodes: Array<PotatnoNodeDefinition<TProject>> = new Array<PotatnoNodeDefinition<TProject>>();
-            this.mNodesProvider.prefilled((node: PotatnoNodeDefinition<TProject>) => {
-                lPrefilledNodes.push(node);
+            // Create a temporary array to collect the dynamic nodes provided by the function definition.
+            const lNodes: Array<PotatnoNodeDefinition<TProject>> = new Array<PotatnoNodeDefinition<TProject>>();
+            pProviderFunction((node: PotatnoNodeDefinition<TProject>) => {
+                lNodes.push(node);
             }, pDocumentFunction);
 
-            return lPrefilledNodes;
-        }
+            return lNodes;
+        };
+        
+        // Create a object with dynamic accessor properties for entry, exit, and dynamic nodes, which calls the corresponding provider callbacks when accessed.
+        const lNodes: PotatnoFunctionDefinitionNodes<TProject> = {} as PotatnoFunctionDefinitionNodes<TProject>;
 
-        return new Array<PotatnoNodeDefinition<TProject>>();
+        Object.defineProperty(lNodes, 'entry', {
+            get: () => {
+                return lNodeProvider(this.mNodesProvider.entry);
+            }
+        });
+
+        Object.defineProperty(lNodes, 'exit', {
+            get: () => {
+                return lNodeProvider(this.mNodesProvider.exit);
+            }
+        });
+
+        Object.defineProperty(lNodes, 'dynamic', {
+            get: () => {
+                return lNodeProvider(this.mNodesProvider.dynamic);
+            }
+        });
+
+        return lNodes;
     }
 }
 
@@ -162,16 +167,44 @@ export type PotatnoFunctionDefinitionGenerator = {
 /**
  * Node provider for a function definition, providing a dynamic set of nodes.
  */
-export type PotatnoFunctionDefinitionNodeProvider<TProject extends PotatnoProject<any>> = {
+export type PotatnoFunctionDefinitionNodeProvider<TProject extends PotatnoProject> = {
     /**
-     * Nodes that are fixed for this entry point, meaning they are always generated and cannot be deleted by the user.
+     * These nodes are used as an entry point for function subgraphs.
+     * Nodes that are fixed on the function graph and cannot be deleted by the user.
      */
-    prefilled?: (pAddNode: (node: PotatnoNodeDefinition<TProject>) => void, pFunction: PotatnoDocumentFunction<TProject>) => void;
+    entry?: PotatnoFunctionDefinitionNodeProviderFunction<TProject>;
+
+    /**
+     * These nodes are used as exit points for function subgraphs.
+     * Nodes that are fixed on the function graph but can be deleted by the user.
+     */
+    exit?: PotatnoFunctionDefinitionNodeProviderFunction<TProject>;
 
     /**
      * Nodes that the user can create and delete on its own N times.
      */
-    dynamic?: (pAddNode: (node: PotatnoNodeDefinition<TProject>) => void, pFunction: PotatnoDocumentFunction<TProject>) => void;
+    dynamic?: PotatnoFunctionDefinitionNodeProviderFunction<TProject>;
+};
+
+type PotatnoFunctionDefinitionNodeProviderFunction<TProject extends PotatnoProject> = (pAddNode: (node: PotatnoNodeDefinition<TProject>) => void, pFunction: PotatnoDocumentFunction<TProject>) => void;
+
+export type PotatnoFunctionDefinitionNodes<TProject extends PotatnoProject<any>> = {
+    /**
+     * These nodes are used as an entry point for function subgraphs.
+     * Nodes that are fixed on the function graph and cannot be deleted by the user.
+     */
+    entry: ReadonlyArray<PotatnoNodeDefinition<TProject>>;
+
+    /**
+     * These nodes are used as exit points for function subgraphs.
+     * Nodes that are fixed on the function graph but can be deleted by the user.
+     */
+    exit: ReadonlyArray<PotatnoNodeDefinition<TProject>>;
+
+    /**
+     * Nodes that the user can create and delete on its own N times.
+     */
+    dynamic: ReadonlyArray<PotatnoNodeDefinition<TProject>>;
 };
 
 /**

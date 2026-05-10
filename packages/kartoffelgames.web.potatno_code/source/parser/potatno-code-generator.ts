@@ -8,6 +8,7 @@ import { NodeCategory } from './node/node-category.enum.ts';
 import { PotatnoCodeNode, type PotatnoCodeNodeContext } from './node/potatno-code-node.ts';
 import { PotatnoCodeTemplateNode } from './node/potatno-code-template-node.ts';
 import { PotatnoCodeFunction } from './potatno-code-function.ts';
+import { PotatnoFunctionDefinition } from "../project/potatno-function-definition.ts";
 
 /**
  * Walks the graph in topological order and generates code without metadata markers.
@@ -15,7 +16,7 @@ import { PotatnoCodeFunction } from './potatno-code-function.ts';
  * Value identifiers (valueIds) are assigned freshly each generation pass using a
  * Map<PotatnoDocumentPort, string> — they are not stored on the port objects.
  */
-export class PotatnoCodeGenerator<TProject extends PotatnoProject<any>> {
+export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
     private readonly mProject: TProject;
 
     /**
@@ -27,23 +28,16 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject<any>> {
         this.mProject = pProject;
     }
 
-    public generate(pDocument: PotatnoDocument<TProject>): string {
-        // Get all used fuctions. System function (entry point) is always last.
-        const lUsedFunctions: Array<PotatnoDocumentFunction<TProject>> = this.findUsedFunctions(pDocument);
-
-        return ''; // TODO: 
-    }
-
     /**
-     * Find all function that are reachable from the entry point function.
-     * The list is sorted so the entry point function is always last.
+     * Generate code for a document.
+     * Generates code for all functions reachable from the documents entry point.
      * 
-     * @param pDocument - The document containing the functions.
+     * @param pDocument - The document to generate code for.
      * 
-     * @returns An array of functions that are reachable from the entry point, with the entry point function last.
+     * @returns The generated code as a string.
      */
-    private findUsedFunctions(pDocument: PotatnoDocument<TProject>): Array<PotatnoDocumentFunction<TProject>> {
-        // Find the primary system function (entry point) to generate code for.
+    public generateDocumentCode(pDocument: PotatnoDocument<TProject>): PotatnoCodeGeneratorResult<TProject> {
+        // Find the primary function (entry point) to generate code for.
         const lEntryPointFunction: PotatnoDocumentFunction<TProject> | undefined = [...pDocument.functions].find((pFunction) => {
             return pFunction.isSystem;
         });
@@ -52,48 +46,67 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject<any>> {
             throw new Exception('No entry point function found for code generation.', this);
         }
 
+        // Generate code for the entry point function and all functions reachable from it.
+        return this.generateFunctionCode(lEntryPointFunction);
+    }
+
+    /**
+     * Generate code for a function.
+     * Generates code for the given function and all functions reachable from it, ensuring the entry point function is always last in the output.
+     * 
+     * @param pFunction - The function to generate code for.
+     * 
+     * @returns the generated function code along with any dependent function code generations.
+     */
+    public generateFunctionCode(pFunction: PotatnoDocumentFunction<TProject>): PotatnoCodeGeneratorResult<TProject> {
+        // Get the function definition.
+        const lFunctionDefinition: PotatnoFunctionDefinition<TProject> | undefined = this.mProject.getFunction(pFunction.definitionId);
+        if (!lFunctionDefinition) {
+            throw new Exception(`Function definition not found for function "${pFunction.label}".`, this);
+        }
+
+        // Get all definition ids of entry nodes defined by the function definition.
+        const lExitNodeDefinitionIds = new Set(lFunctionDefinition.getNodeDefinitions(pFunction).exit.map((pNodeDefinition) => {
+            return pNodeDefinition.id;
+        }) ?? new Array<string>());
+
+        // Find all ending nodes of the graph.
+        const lExitNodes: Array<PotatnoDocumentNode<TProject>> = [...pFunction.nodes].filter((pNode) => {
+            return lExitNodeDefinitionIds.has(pNode.definitionId);
+        });
+
+        // Generate code for each ending node while buffering dependent function code generations.
+        const lDependentFunctionCodes: Array<PotatnoCodeGeneratorResultDependency<TProject>> = new Array<PotatnoCodeGeneratorResultDependency<TProject>>();
+        const lFunctionCodeResult: string = lExitNodes.map((pExitNode) => {
+            return this.generateNodeCodeWithDependencies(pExitNode, lDependentFunctionCodes);
+        }).join('\n');
+
+        // Return the generated code for the entry point function along with all dependent function code generations.
+        return {
+            code: lFunctionCodeResult,
+            dependencies: lDependentFunctionCodes
+        };
+    }
+
+    /**
+     * Generate code for a single node, along with any dependent function code generations.
+     * 
+     * @param pNode - The node to generate code for.
+     * 
+     * @returns The result of the code generation for the node.
+     */
+    public generateNodeCode(pNode: PotatnoDocumentNode<TProject>): PotatnoCodeGeneratorResult<TProject> {
+        return this.generateNodeCodeWithDependencies(pNode, new Array<PotatnoCodeGeneratorResultDependency<TProject>>());
+    }
+
+    private generateNodeCodeWithDependencies(pNode: PotatnoDocumentNode<TProject>, pFunctionDependencies: Array<PotatnoCodeGeneratorResultDependency<TProject>>): PotatnoCodeGeneratorResult<TProject> {
         // Create a map for resolving function ids to their instance.
         const lFunctionMap: Map<string, PotatnoDocumentFunction<TProject>> = new Map<string, PotatnoDocumentFunction<TProject>>();
-        for (const lFunction of pDocument.functions) {
+        for (const lFunction of pNode.document.functions) {
             lFunctionMap.set(lFunction.id, lFunction);
         }
-
-        // Create mapping for tracking which functions have been searched for reachability from the entry point.
-        const lSearchedFunctions: Set<PotatnoDocumentFunction<TProject>> = new Set<PotatnoDocumentFunction<TProject>>();
-        const lFunctionSearchStack: Array<PotatnoDocumentFunction<TProject>> = new Array<PotatnoDocumentFunction<TProject>>();
-
-        // Initialize with the entry point function.
-        lFunctionSearchStack.push(lEntryPointFunction);
-
-        // List of functions that are reachable from the entry point and should be included in code generation.
-        const lUsedFunctions: Set<PotatnoDocumentFunction<TProject>> = new Set<PotatnoDocumentFunction<TProject>>();
-        lUsedFunctions.add(lEntryPointFunction);
-
-        while (lFunctionSearchStack.length > 0) {
-            // Get the next function to search and mark it as searched.
-            const lCurrentFunction: PotatnoDocumentFunction<TProject> = lFunctionSearchStack.pop()!;
-            lSearchedFunctions.add(lCurrentFunction);
-
-            for (const lNode of lCurrentFunction.nodes) {
-                // Try to find a function matching
-                if (lFunctionMap.has(lNode.definitionId)) {
-                    const lFoundFunction: PotatnoDocumentFunction<TProject> = lFunctionMap.get(lNode.definitionId)!;
-
-                    // Add function to found list.
-                    lUsedFunctions.add(lFoundFunction);
-
-                    // And when the function was not searched before, add them to the search stack.
-                    if (!lSearchedFunctions.has(lFoundFunction)) {
-                        lFunctionSearchStack.push(lFoundFunction);
-                    }
-                }
-            }
-        }
-
-        // Return the list of used function and order by system flag so the entry point is always last.
-        return [...lUsedFunctions].sort((a, b) => {
-            return (a.isSystem === b.isSystem) ? 0 : a.isSystem ? 1 : -1;
-        });
+        
+        // TODO: Implement logic :)
     }
 
 
@@ -112,394 +125,34 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject<any>> {
 
 
 
-
-
-
-
-
-
-
-    /////////////////////////// OLD wrong code ///////////////////////////////////
-
-    /**
-     * Generate code for a single function.
-     *
-     * @param pFunction - The function to generate code for.
-     *
-     * @returns The generated code string.
-     */
-    public generateFunctionCode(pFunction: PotatnoDocumentFunction<TProject>): string {
-        const lFuncDef = this.mProject.getFunction(pFunction.definitionId);
-        const lNodes: ReadonlySet<PotatnoDocumentNode<TProject>> = pFunction.nodes;
-        const lValueIdMap: Map<PotatnoDocumentPort<TProject>, string> = this.buildValueIdMap(lNodes);
-        const lBodyCode: string = this.generateGraphCode(lNodes, lValueIdMap);
-        const lCodeFunc: PotatnoCodeFunction = this.buildCodeFunction(pFunction, lNodes, lValueIdMap, lBodyCode);
-
-        const lCodeGenerator = lFuncDef?.codeGenerator.body;
-        if (lCodeGenerator) {
-            return lCodeGenerator(lCodeFunc);
-        }
-
-        return lBodyCode;
-    }
-
-    /**
-     * Generate code for a function along with intermediate snapshots for nodes that have previews.
-     *
-     * @param pFunction - The function to generate code for.
-     * @param pPreviewNodes - Set of node instances that need intermediate code snapshots.
-     *
-     * @returns The full code, code function metadata, and per-node intermediate data.
-     */
-    public generateFunctionCodeWithIntermediates(pFunction: PotatnoDocumentFunction<TProject>, pPreviewNodes: Set<PotatnoDocumentNode<TProject>>): FunctionCodeWithIntermediates {
-        const lFuncDef = this.mProject.getFunction(pFunction.definitionId);
-        const lNodes: ReadonlySet<PotatnoDocumentNode<TProject>> = pFunction.nodes;
-        const lValueIdMap: Map<PotatnoDocumentPort<TProject>, string> = this.buildValueIdMap(lNodes);
-        const lSortedNodes: Array<PotatnoDocumentNode<TProject>> = this.topologicalSort(lNodes);
-        const lCodeParts: Array<string> = [];
-        const lNodeIntermediates: Map<PotatnoDocumentNode<TProject>, NodeIntermediateData> = new Map();
-
-        const lFuncInputs = this.collectFunctionInputs(pFunction, lNodes, lValueIdMap);
-        const lFuncOutputs = this.collectFunctionOutputs(pFunction, lNodes, lValueIdMap);
-
-        for (const lNode of lSortedNodes) {
-            const lCategory: string = lNode.category;
-            if (lCategory === NodeCategory.Input || lCategory === NodeCategory.Output || lCategory === NodeCategory.Reroute || lCategory === NodeCategory.Comment) {
-                continue;
-            }
-
-            const lCodeNode: PotatnoCodeNode = this.buildCodeNode(lNode, lValueIdMap);
-            this.attachFlowBodies(lNode, lCodeNode, lValueIdMap);
-            lCodeParts.push(lCodeNode.generateCode());
-
-            if (pPreviewNodes.has(lNode)) {
-                const lIntermediateBody: string = lCodeParts.join('\n');
-                const lIntermediateFunc: PotatnoCodeFunction = new PotatnoCodeFunction();
-                lIntermediateFunc.name = pFunction.label;
-                lIntermediateFunc.bodyCode = lIntermediateBody;
-                for (const lImport of pFunction.imports) {
-                    lIntermediateFunc.imports.push(lImport);
-                }
-                for (const lIn of lFuncInputs) {
-                    lIntermediateFunc.inputs.push({ ...lIn });
-                }
-                for (const lOut of lFuncOutputs) {
-                    lIntermediateFunc.outputs.push({ ...lOut });
-                }
-
-                const lIntermediateCode: string = lFuncDef?.codeGenerator.body
-                    ? lFuncDef.codeGenerator.body(lIntermediateFunc)
-                    : lIntermediateBody;
-
-                lNodeIntermediates.set(lNode, {
-                    intermediateCode: lIntermediateCode,
-                    context: lCodeNode.buildContext(),
-                    codeFunction: lIntermediateFunc
-                });
-            }
-        }
-
-        const lFullBody: string = lCodeParts.join('\n');
-        const lCodeFunc: PotatnoCodeFunction = this.buildCodeFunction(pFunction, lNodes, lValueIdMap, lFullBody);
-        const lFullCode: string = lFuncDef?.codeGenerator.body
-            ? lFuncDef.codeGenerator.body(lCodeFunc)
-            : lFullBody;
-
-        return { fullCode: lFullCode, codeFunction: lCodeFunc, nodeIntermediates: lNodeIntermediates };
-    }
-
-    /**
-     * Generate code for all functions in the project.
-     *
-     * @param pFunctions - The map of functions to generate code for.
-     *
-     * @returns The combined code string for all functions.
-     */
-    public generateProjectCode(pFunctions: ReadonlyMap<string, PotatnoDocumentFunction<TProject>>): string {
-        return [...pFunctions.values()].map((pFunc) => this.generateFunctionCode(pFunc)).join('\n\n');
-    }
-
-    // ── Private helpers ────────────────────────────────────────────────────────
-
-    /**
-     * Assign a unique value identifier to every port in the node set.
-     * Identifiers are simple counters prefixed with an underscore to avoid
-     * conflicts with language keywords regardless of the target language.
-     */
-    private buildValueIdMap(pNodes: ReadonlySet<PotatnoDocumentNode<TProject>>): Map<PotatnoDocumentPort<TProject>, string> {
-        const lMap = new Map<PotatnoDocumentPort<TProject>, string>();
-        let lCounter = 0;
-        for (const lNode of pNodes) {
-            for (const lPort of [...lNode.inputs.values(), ...lNode.outputs.values()]) {
-                lMap.set(lPort, `_v${lCounter++}`);
-            }
-        }
-        return lMap;
-    }
-
-    /**
-     * Construct a PotatnoCodeFunction from a document function, its nodes, and the value-id map.
-     */
-    private buildCodeFunction(pFunction: PotatnoDocumentFunction<TProject>, pNodes: ReadonlySet<PotatnoDocumentNode<TProject>>, pValueIdMap: Map<PotatnoDocumentPort<TProject>, string>, pBodyCode: string): PotatnoCodeFunction {
-        const lCodeFunc = new PotatnoCodeFunction();
-        lCodeFunc.name = pFunction.label;
-        lCodeFunc.bodyCode = pBodyCode;
-        for (const lImport of pFunction.imports) {
-            lCodeFunc.imports.push(lImport);
-        }
-        for (const lIn of this.collectFunctionInputs(pFunction, pNodes, pValueIdMap)) {
-            lCodeFunc.inputs.push(lIn);
-        }
-        for (const lOut of this.collectFunctionOutputs(pFunction, pNodes, pValueIdMap)) {
-            lCodeFunc.outputs.push(lOut);
-        }
-        return lCodeFunc;
-    }
-
-    /**
-     * Map function input port definitions to code function input descriptors,
-     * resolving each input's valueId via the corresponding Input node in the graph.
-     */
-    private collectFunctionInputs(pFunction: PotatnoDocumentFunction<TProject>, pNodes: ReadonlySet<PotatnoDocumentNode<TProject>>, pValueIdMap: Map<PotatnoDocumentPort<TProject>, string>): Array<{ name: string; type: string; valueId: string; }> {
-        return pFunction.inputs.map((pPortDef) => ({
-            name: pPortDef.label,
-            type: pPortDef.dataType,
-            valueId: this.findInputNodeValueId(pNodes, pPortDef.label, pValueIdMap)
-        }));
-    }
-
-    /**
-     * Map function output port definitions to code function output descriptors,
-     * resolving each output's valueId via the corresponding Output node in the graph.
-     */
-    private collectFunctionOutputs(pFunction: PotatnoDocumentFunction<TProject>, pNodes: ReadonlySet<PotatnoDocumentNode<TProject>>, pValueIdMap: Map<PotatnoDocumentPort<TProject>, string>): Array<{ name: string; type: string; valueId: string; }> {
-        return pFunction.outputs.map((pPortDef) => ({
-            name: pPortDef.label,
-            type: pPortDef.dataType,
-            valueId: this.findOutputNodeValueId(pNodes, pPortDef.label, pValueIdMap)
-        }));
-    }
-
-    /**
-     * Generate body code for a node set by walking nodes in topological order.
-     */
-    private generateGraphCode(pNodes: ReadonlySet<PotatnoDocumentNode<TProject>>, pValueIdMap: Map<PotatnoDocumentPort<TProject>, string>): string {
-        const lCodeParts: Array<string> = [];
-
-        for (const lNode of this.topologicalSort(pNodes)) {
-            const lCategory: string = lNode.category;
-            if (lCategory === NodeCategory.Input || lCategory === NodeCategory.Output || lCategory === NodeCategory.Reroute || lCategory === NodeCategory.Comment) {
-                continue;
-            }
-
-            const lCodeNode: PotatnoCodeNode = this.buildCodeNode(lNode, pValueIdMap);
-            this.attachFlowBodies(lNode, lCodeNode, pValueIdMap);
-            lCodeParts.push(lCodeNode.generateCode());
-        }
-
-        return lCodeParts.join('\n');
-    }
-
-    /**
-     * Populate each flow output port of a code node with its generated body code.
-     */
-    private attachFlowBodies(pNode: PotatnoDocumentNode<TProject>, pCodeNode: PotatnoCodeNode, pValueIdMap: Map<PotatnoDocumentPort<TProject>, string>): void {
-        for (const [lName, lPort] of pNode.outputs) {
-            if (lPort.portType !== 'flow') {
-                continue;
-            }
-
-            const lConnectedPort: PotatnoDocumentPort<TProject> | undefined = [...lPort.connectedPorts][0];
-            pCodeNode.body.set(lName, {
-                code: lConnectedPort ? this.generateFlowBodyCode(lConnectedPort, pValueIdMap) : ''
-            });
-        }
-    }
-
-    /**
-     * Recursively generate code for a flow chain starting from a flow input port.
-     *
-     * @param pFlowInputPort - The flow input port that receives flow from an upstream node.
-     * @param pValueIdMap - The value identifier map for the current generation pass.
-     */
-    private generateFlowBodyCode(pFlowInputPort: PotatnoDocumentPort<TProject>, pValueIdMap: Map<PotatnoDocumentPort<TProject>, string>): string {
-        const lOwnerNode: PotatnoDocumentNode<TProject> = pFlowInputPort.node;
-
-        if (!this.mProject.nodeDefinitions.find((pDefinition) => pDefinition.id === lOwnerNode.definitionId) && lOwnerNode.category !== 'function') {
-            return '';
-        }
-
-        const lCodeNode: PotatnoCodeNode = this.buildCodeNode(lOwnerNode, pValueIdMap);
-        this.attachFlowBodies(lOwnerNode, lCodeNode, pValueIdMap);
-        return lCodeNode.generateCode();
-    }
-
-    /**
-     * Build a PotatnoCodeNode from a graph node, selecting the appropriate
-     * subclass based on the node's category and populating ports from the value-id map.
-     */
-    private buildCodeNode(pNode: PotatnoDocumentNode<TProject>, pValueIdMap: Map<PotatnoDocumentPort<TProject>, string>): PotatnoCodeNode {
-        // Use the node's own definition's codeGenerator directly — works for both
-        // project-registered nodes and PotatnoFunctionNodeDefinition instances.
-        const lDefinition = this.mProject.nodeDefinitions.find((pDefinition) => pDefinition.id === pNode.definitionId);
-        const lCodeGenerator = lDefinition?.codeGenerator ?? (() => '');
-        const lCodeNode: PotatnoCodeNode = this.createNodeForCategory(pNode.category, lCodeGenerator);
-
-        for (const [lName, lPort] of pNode.inputs) {
-            if (lPort.portType === 'value') {
-                const lSourcePort: PotatnoDocumentPort<TProject> | undefined = [...lPort.connectedPorts][0];
-                const lValueId: string = lSourcePort
-                    ? this.resolveRerouteChain(lSourcePort, pValueIdMap)
-                    : (pValueIdMap.get(lPort) ?? lName);
-                lCodeNode.inputs.set(lName, { name: lName, type: lPort.dataType, valueId: lValueId, nodeType: 'value' });
-            } else {
-                lCodeNode.inputs.set(lName, { name: lName, type: '', valueId: '', nodeType: 'flow' });
-            }
-        }
-
-        for (const [lName, lPort] of pNode.outputs) {
-            if (lPort.portType === 'value') {
-                lCodeNode.outputs.set(lName, { name: lName, type: lPort.dataType, valueId: pValueIdMap.get(lPort) ?? lName, nodeType: 'value' });
-            } else {
-                lCodeNode.outputs.set(lName, { name: lName, type: '', valueId: '', nodeType: 'flow' });
-            }
-        }
-
-        return lCodeNode;
-    }
-
-    /**
-     * Create the appropriate PotatnoCodeNode subclass based on the node category.
-     */
-    private createNodeForCategory(pCategory: string, pCodeGenerator: (pContext: PotatnoCodeNodeContext) => string): PotatnoCodeNode {
-        switch (pCategory) {
-            case NodeCategory.Comment:
-            case NodeCategory.Input:
-            case NodeCategory.Output:
-            case NodeCategory.Reroute:
-                return new PotatnoCodeNode();
-            default:
-                return new PotatnoCodeTemplateNode(pCodeGenerator);
-        }
-    }
-
-    /**
-     * Topological sort of nodes based on value-port data dependencies.
-     * Uses node object references as keys — no string IDs required.
-     */
-    private topologicalSort(pNodes: ReadonlySet<PotatnoDocumentNode<TProject>>): Array<PotatnoDocumentNode<TProject>> {
-        const lVisited = new Set<PotatnoDocumentNode<TProject>>();
-        const lResult: Array<PotatnoDocumentNode<TProject>> = [];
-
-        // Build dependency map: for each node, which nodes must be emitted before it.
-        const lDependencies = new Map<PotatnoDocumentNode<TProject>, Set<PotatnoDocumentNode<TProject>>>();
-        for (const lNode of pNodes) {
-            lDependencies.set(lNode, new Set<PotatnoDocumentNode<TProject>>());
-        }
-        for (const lNode of pNodes) {
-            for (const lPort of lNode.inputs.values()) {
-                if (lPort.portType === 'value') {
-                    for (const lConnected of lPort.connectedPorts) {
-                        lDependencies.get(lNode)?.add(lConnected.node);
-                    }
-                }
-            }
-        }
-
-        const lVisit = (pNode: PotatnoDocumentNode<TProject>): void => {
-            if (lVisited.has(pNode)) {
-                return;
-            }
-            lVisited.add(pNode);
-            for (const lDep of lDependencies.get(pNode) ?? []) {
-                lVisit(lDep);
-            }
-            lResult.push(pNode);
-        };
-
-        for (const lNode of pNodes) {
-            lVisit(lNode);
-        }
-
-        return lResult;
-    }
-
-    /**
-     * Find the valueId of the output port on the Input node for a given function input name.
-     */
-    private findInputNodeValueId(pNodes: ReadonlySet<PotatnoDocumentNode<TProject>>, pName: string, pValueIdMap: Map<PotatnoDocumentPort<TProject>, string>): string {
-        for (const lNode of pNodes) {
-            if (lNode.category === NodeCategory.Input && lNode.definitionId === pName) {
-                for (const lPort of lNode.outputs.values()) {
-                    if (lPort.portType === 'value') {
-                        return pValueIdMap.get(lPort) ?? pName;
-                    }
-                }
-            }
-        }
-        return pName;
-    }
-
-    /**
-     * Find the valueId of the connected source for the Output node matching a given function output name.
-     */
-    private findOutputNodeValueId(pNodes: ReadonlySet<PotatnoDocumentNode<TProject>>, pName: string, pValueIdMap: Map<PotatnoDocumentPort<TProject>, string>): string {
-        for (const lNode of pNodes) {
-            if (lNode.category === NodeCategory.Output && lNode.definitionId === pName) {
-                for (const lPort of lNode.inputs.values()) {
-                    if (lPort.portType === 'value') {
-                        const lConnected: PotatnoDocumentPort<TProject> | undefined = [...lPort.connectedPorts][0];
-                        if (lConnected) {
-                            return this.resolveRerouteChain(lConnected, pValueIdMap);
-                        }
-                        return pValueIdMap.get(lPort) ?? pName;
-                    }
-                }
-            }
-        }
-        return pName;
-    }
-
-    /**
-     * Follow a reroute node chain upstream and return the effective valueId of the
-     * original non-reroute source port.
-     */
-    private resolveRerouteChain(pPort: PotatnoDocumentPort<TProject>, pValueIdMap: Map<PotatnoDocumentPort<TProject>, string>): string {
-        if (pPort.node.category === NodeCategory.Reroute) {
-            for (const lInputPort of pPort.node.inputs.values()) {
-                if (lInputPort.portType === 'value') {
-                    const lConnected: PotatnoDocumentPort<TProject> | undefined = [...lInputPort.connectedPorts][0];
-                    if (lConnected) {
-                        return this.resolveRerouteChain(lConnected, pValueIdMap);
-                    }
-                    return pValueIdMap.get(lInputPort) ?? '';
-                }
-            }
-        }
-        return pValueIdMap.get(pPort) ?? '';
-    }
 }
 
 /**
- * Result of generating function code with intermediate snapshots for node previews.
+ * Result of generating code for a single item, including any dependent function code generations.
  */
-export type FunctionCodeWithIntermediates = {
-    /** The full wrapped function code. */
-    fullCode: string;
-    /** The PotatnoCodeFunction metadata for the full function. */
-    codeFunction: PotatnoCodeFunction;
-    /** Per-node intermediate data, keyed by node instance. */
-    nodeIntermediates: Map<PotatnoDocumentNode<any>, NodeIntermediateData>;
+type PotatnoCodeGeneratorResult<TProject extends PotatnoProject> = {
+    /**
+     * Generated code.
+     */
+    code: string;
+
+    /**
+     * List of function code generations that the node depends on.
+     */
+    dependencies: Array<PotatnoCodeGeneratorResultDependency<TProject>>;
 };
 
 /**
- * Intermediate code data for a single node with a preview.
+ * Represents a single function code generation that is a dependency of a code generation, including the generated code and the function it corresponds to.
  */
-export type NodeIntermediateData = {
-    /** The full function code up to and including this node, wrapped by the entry point's codeGenerator. */
-    intermediateCode: string;
-    /** The node's code generation context (input/output valueIds). */
-    context: PotatnoCodeNodeContext;
-    /** The PotatnoCodeFunction with body code up to this node. */
-    codeFunction: PotatnoCodeFunction;
+type PotatnoCodeGeneratorResultDependency<TProject extends PotatnoProject> = {
+    /**
+     * The generated code for the dependent function.
+     */
+    code: string;
+
+    /**
+     * The function that was generated to produce the code.
+     */
+    function: PotatnoDocumentFunction<TProject>;
 };

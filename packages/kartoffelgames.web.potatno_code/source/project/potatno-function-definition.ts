@@ -1,5 +1,5 @@
 import { PotatnoCodeFunction } from "../parser/potatno-code-function.ts";
-import { PotatnoNodeDefinition, PotatnoNodeDefinitionGeneratorData } from "./node_definition/potatno-node-definition.ts";
+import { PotatnoNodeDefinition, PotatnoNodeDefinitionGeneratorContext } from "./node_definition/potatno-node-definition.ts";
 import { PotatnoProject } from "./potatno-project.ts";
 import { PotatnoProjectTypesDefinition } from "./potatno-project-types-definition.ts";
 import { PotatnoDocumentFunction } from "../document/potatno-document-function.ts";
@@ -161,7 +161,7 @@ export type PotatnoFunctionDefinitionGenerator = {
     /**
      * Produces the call-site code expression when this function is invoked as a node.
      */
-    value: (pContext: PotatnoNodeDefinitionGeneratorData) => string;
+    value: (pContext: PotatnoNodeDefinitionGeneratorContext) => string;
 };
 
 /**

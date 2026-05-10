@@ -197,9 +197,9 @@ export type PotatnoCodeGeneratorPort = {
  * Code generator
  */
 
-export type PotatnoNodeDefinitionCodeGenerator = (pContext: PotatnoNodeDefinitionGeneratorData) => string;
+export type PotatnoNodeDefinitionCodeGenerator = (pContext: PotatnoNodeDefinitionGeneratorContext) => string;
 
-export type PotatnoNodeDefinitionGeneratorData = {
+export type PotatnoNodeDefinitionGeneratorContext = {
     /**
      *  Input port valueIds keyed by port name. 
      */
@@ -230,5 +230,5 @@ export type PotatnoNodeDefinitionPreviewGenerator = {
      * @param pPreviewInputData - The example preview input data for the entry point, which can be used to run the intermediate code and update the preview element accordingly.
      * @param pIntermediateCodeOutput - The output of the intermediate code execution, which can be used to update the preview element accordingly.
      */
-    readonly update: (pElement: Element, pContext: PotatnoNodeDefinitionGeneratorData, pFunction: PotatnoCodeFunction, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
+    readonly update: (pElement: Element, pContext: PotatnoNodeDefinitionGeneratorContext, pFunction: PotatnoCodeFunction, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
 };

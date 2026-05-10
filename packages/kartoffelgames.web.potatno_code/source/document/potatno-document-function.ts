@@ -283,7 +283,9 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject> implements
         }
 
         // Get all definition ids of entry nodes defined by the function definition.
-        const lEntryNodeDefinitionIds = new Set(lDefinition?.getNodeDefinitions(this).entry.map((pDef) => pDef.id) ?? new Array<string>());
+        const lEntryNodeDefinitionIds = new Set(lDefinition?.getNodeDefinitions(this).entry.map((pNodeDefinition) => {
+            return pNodeDefinition.id;
+        }) ?? new Array<string>());
 
         // First pass: compute incoming region set for every node via memoized backward recursion.
         // Each top-level call receives a fresh visited set so cycle detection tracks only the current path.

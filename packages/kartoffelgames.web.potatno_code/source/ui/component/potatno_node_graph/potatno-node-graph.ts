@@ -3,7 +3,7 @@ import type { PotatnoDocumentFunction } from '../../../document/potatno-document
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { NodeCategory } from '../../../parser/node/node-category.enum.ts';
-import type { FunctionCodeWithIntermediates } from '../../../parser/potatno-code-generator.ts';
+import type { PotatnoCodeGeneratorResult } from '../../../parser/potatno-code-generator.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import { PotatnoCanvasRenderer, type ConnectionRenderData } from '../../potatno-canvas-renderer.ts';
@@ -49,7 +49,7 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
     private mLibraryDragUnsubscribe: (() => void) | null;
     private mLibraryInsertUnsubscribe: (() => void) | null;
     private mPendingConnectionRenderFrame: number;
-    private mPreviewResult: FunctionCodeWithIntermediates | null;
+    private mPreviewResult: PotatnoCodeGeneratorResult<TProject> | null;
     private mPreviewUpdateVersion: number;
     private mRefreshVersion: number;
     private mSelectionBoxScreen: SelectionBoxScreen;
@@ -218,7 +218,7 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
      * Latest generated preview result to apply to node preview elements.
      */
     @PwbExport
-    public set previewResult(pValue: FunctionCodeWithIntermediates | null) {
+    public set previewResult(pValue: PotatnoCodeGeneratorResult<TProject> | null) {
         if (this.mPreviewResult === pValue) {
             return;
         }
@@ -230,7 +230,7 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
     /**
      * Get the latest generated preview result.
      */
-    public get previewResult(): FunctionCodeWithIntermediates | null {
+    public get previewResult(): PotatnoCodeGeneratorResult<TProject> | null {
         return this.mPreviewResult;
     }
 
@@ -1635,13 +1635,13 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
      * Update all node preview elements from the latest generated code result.
      */
     private updatePreviewElementsFromResult(): void {
-        const lPreviewResult: FunctionCodeWithIntermediates | null = this.mPreviewResult;
+        const lPreviewResult: PotatnoCodeGeneratorResult<TProject> | null = this.mPreviewResult;
         const lActiveFunction: PotatnoDocumentFunction<TProject> | null = this.mActiveFunction;
         if (!lPreviewResult || !lActiveFunction) {
             return;
         }
 
-        for (const [lNode, lIntermediateData] of lPreviewResult.nodeIntermediates) {
+        for (const [lNode, lIntermediateData] of lPreviewResult.nodeResults ?? []) {
             const lElement: HTMLElement | undefined = this.mPreviewElements.get(lNode);
             if (!lElement) {
                 continue;

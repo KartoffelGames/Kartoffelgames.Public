@@ -3,7 +3,7 @@ import { PotatnoDocumentFunction } from '../../../document/potatno-document-func
 import { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoDocument } from '../../../document/potatno-document.ts';
-import { PotatnoCodeGenerator, type FunctionCodeWithIntermediates } from '../../../parser/potatno-code-generator.ts';
+import { PotatnoCodeGenerator, type PotatnoCodeGeneratorResult } from '../../../parser/potatno-code-generator.ts';
 import { PotatnoFunctionDefinitionNodes, PotatnoFunctionDefinitionStatics } from '../../../project/potatno-function-definition.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import { PotatnoDeserializer } from '../../../serialization/potatno-deserializer.ts';
@@ -62,7 +62,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      * Latest generated preview result passed to the node graph.
      */
     @ComponentState.state({ complexValue: true })
-    private accessor mGraphPreviewResult: FunctionCodeWithIntermediates | null = null;
+    private accessor mGraphPreviewResult: PotatnoCodeGeneratorResult<TProject> | null = null;
 
     /**
      * Explicit graph refresh token for non-graph document edits.
@@ -213,7 +213,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
     /**
      * Current graph preview result passed into the graph component.
      */
-    public get graphPreviewResult(): FunctionCodeWithIntermediates | null {
+    public get graphPreviewResult(): PotatnoCodeGeneratorResult<TProject> | null {
         return this.mGraphPreviewResult;
     }
 
@@ -677,20 +677,6 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
             return;
         }
 
-        const lPreviewDefinitionIds: Set<string> = new Set<string>();
-        for (const lDefinition of this.getAvailableDefinitionsForFunction(lEntryFunction)) {
-            if (lDefinition.preview) {
-                lPreviewDefinitionIds.add(lDefinition.id);
-            }
-        }
-
-        const lPreviewNodes: Set<PotatnoDocumentNode<TProject>> = new Set<PotatnoDocumentNode<TProject>>();
-        for (const lNode of lEntryFunction.nodes) {
-            if (lPreviewDefinitionIds.has(lNode.definitionId)) {
-                lPreviewNodes.add(lNode);
-            }
-        }
-
         const lEntryPreview = lProject.entryPoint.preview;
         if (lEntryPreview && !this.mEntryPointPreviewElement) {
             this.mEntryPointPreviewElement = lEntryPreview.generate();
@@ -698,7 +684,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
 
         try {
             const lGenerator: PotatnoCodeGenerator<TProject> = new PotatnoCodeGenerator<TProject>(lProject);
-            this.mGraphPreviewResult = lGenerator.generateFunctionCodeWithIntermediates(lEntryFunction, lPreviewNodes);
+            this.mGraphPreviewResult = lGenerator.generateFunctionCode(lEntryFunction);
             this.updatePreviewsFromCache();
         } catch (pError) {
             console.error('[Editor] Preview code generation failed:', pError);
@@ -988,7 +974,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      */
     private updatePreviewsFromCache(): void {
         const lProject: TProject | undefined = this.mProject;
-        const lCodeResult: FunctionCodeWithIntermediates | null = this.mGraphPreviewResult;
+        const lCodeResult: PotatnoCodeGeneratorResult<TProject> | null = this.mGraphPreviewResult;
         if (!lProject || !lCodeResult) {
             return;
         }
@@ -1000,7 +986,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
                     this.mEntryPointPreviewElement,
                     lCodeResult.codeFunction,
                     {},
-                    lCodeResult.fullCode
+                    lCodeResult.code
                 );
             } catch (pError) {
                 console.error('[Editor] Entry preview update failed:', pError);

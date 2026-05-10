@@ -130,7 +130,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
 /**
  * Result of generating code for a single item, including any dependent function code generations.
  */
-type PotatnoCodeGeneratorResult<TProject extends PotatnoProject> = {
+export type PotatnoCodeGeneratorResult<TProject extends PotatnoProject> = {
     /**
      * Generated code.
      */
@@ -145,7 +145,7 @@ type PotatnoCodeGeneratorResult<TProject extends PotatnoProject> = {
 /**
  * Represents a single function code generation that is a dependency of a code generation, including the generated code and the function it corresponds to.
  */
-type PotatnoCodeGeneratorResultDependency<TProject extends PotatnoProject> = {
+export type PotatnoCodeGeneratorResultDependency<TProject extends PotatnoProject> = {
     /**
      * The generated code for the dependent function.
      */

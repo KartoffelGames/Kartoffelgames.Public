@@ -10,7 +10,7 @@ import { PotatnoProjectTypesDefinition } from "./potatno-project-types-definitio
  * Contains all registered node types, main function definitions, imports,
  * and callback configurations. Does not hold document state.
  */
-export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<string> = PotatnoProjectTypesDefinition<string>> {
+export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<string> = any> {
     /**
      * Create a new PotatnoProject with the given configuration.
      *
@@ -130,7 +130,7 @@ type PotatnoProjectConstructorParameter<TProjectType extends PotatnoProjectTypes
  * Definition of an import group. When a function enables this import,
  * the contained node definitions become available in that function's node library.
  */
-export type PotatnoProjectImportDefinition<TProject extends PotatnoProject<any>> = {
+export type PotatnoProjectImportDefinition<TProject extends PotatnoProject> = {
     /**
      * Unique identifier of the import group.
      */

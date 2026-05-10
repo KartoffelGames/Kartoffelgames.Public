@@ -17,13 +17,13 @@ import { PotatnoNodeDefinition, PotatnoNodeDefinitionPortGeneratorFunction } fro
  * The stable id comes from PotatnoDocumentFunction.id, ensuring that nodes
  * referencing this definition keep their identity across sessions.
  */
-export class PotatnoFunctionNodeDefinition<TProject extends PotatnoProject<any>> extends PotatnoNodeDefinition<TProject> {
+export class PotatnoFunctionNodeDefinition<TProject extends PotatnoProject> extends PotatnoNodeDefinition<TProject> {
     /**
      * Create a new PotatnoFunctionNodeDefinition mirroring the given document function.
      *
      * @param pFunction - The document function this definition reflects.
      */
-    public static newFunctionNode<TProject extends PotatnoProject<any>>(pFunction: PotatnoDocumentFunction<TProject>): PotatnoFunctionNodeDefinition<TProject> {
+    public static newFunctionNode<TProject extends PotatnoProject>(pFunction: PotatnoDocumentFunction<TProject>): PotatnoFunctionNodeDefinition<TProject> {
         return new PotatnoFunctionNodeDefinition(pFunction);
     }
 

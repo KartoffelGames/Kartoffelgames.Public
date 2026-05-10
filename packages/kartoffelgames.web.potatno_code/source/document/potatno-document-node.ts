@@ -9,7 +9,7 @@ import { PotatnoDocument, PotatnoDocumentPortValidationError } from "./potatno-d
 /**
  * A node instance in the graph.
  */
-export class PotatnoDocumentNode<TProject extends PotatnoProject<any>> implements IPotatnoDocumentItem<TProject> {
+export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPotatnoDocumentItem<TProject> {
     private readonly mCategory: string;
     private readonly mDefinitionId: string;
     private readonly mDocument: PotatnoDocument<TProject>;
@@ -327,7 +327,7 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject<any>> implement
     }
 }
 
-export type PotatnoDocumentNodeConstructorParameter<TProject extends PotatnoProject<any>> = {
+export type PotatnoDocumentNodeConstructorParameter<TProject extends PotatnoProject> = {
     category: string,
     definitionId: string,
     isSystem: boolean,
@@ -339,7 +339,7 @@ export type PotatnoDocumentNodeConstructorParameter<TProject extends PotatnoProj
     transformation: PotatnoDocumentNodeTransformation,
 };
 
-export type PotatnoDocumentNodePortConfiguration<TProject extends PotatnoProject<any>> = {
+export type PotatnoDocumentNodePortConfiguration<TProject extends PotatnoProject> = {
     dataType: PotatnoProjectType<TProject> | PotatnoProjectGenericType | null;
     definitionId: string;
     label: string;

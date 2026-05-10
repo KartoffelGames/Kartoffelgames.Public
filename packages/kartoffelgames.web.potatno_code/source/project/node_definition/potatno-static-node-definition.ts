@@ -12,13 +12,13 @@ import { PotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeD
  * @template TOutputs - Object type mapping output port names to their definitions.
  * @template TPreviewElement - The type of the HTMLElement used for node previews for this node definition.
  */
-export class PotatnoStaticNodeDefinition<TProject extends PotatnoProject<any>> extends PotatnoNodeDefinition<TProject> {
+export class PotatnoStaticNodeDefinition<TProject extends PotatnoProject> extends PotatnoNodeDefinition<TProject> {
     /**
      * Create a new PotatnoStaticNodeDefinition.
      *
      * @param pParameters - Static node definition configuration including id, label, category, ports, and generators.
      */
-    public static newStaticNode<TProject extends PotatnoProject<any>>(pParameters: PotatnoStaticNodeDefinitionConstructorParameter<TProject>): PotatnoStaticNodeDefinition<TProject> {
+    public static newStaticNode<TProject extends PotatnoProject>(pParameters: PotatnoStaticNodeDefinitionConstructorParameter<TProject>): PotatnoStaticNodeDefinition<TProject> {
         return new PotatnoStaticNodeDefinition(pParameters);
     }
 
@@ -54,7 +54,7 @@ export class PotatnoStaticNodeDefinition<TProject extends PotatnoProject<any>> e
     }
 }
 
-type PotatnoStaticNodeDefinitionConstructorParameter<TProject extends PotatnoProject<any>> = {
+type PotatnoStaticNodeDefinitionConstructorParameter<TProject extends PotatnoProject> = {
     id: string;
     label: string;
     category: string;
@@ -65,6 +65,6 @@ type PotatnoStaticNodeDefinitionConstructorParameter<TProject extends PotatnoPro
     };
     generators: {
         code: PotatnoNodeDefinitionCodeGenerator;
-        preview?: PotatnoNodeDefinitionPreviewGenerator | null;
+        preview?: PotatnoNodeDefinitionPreviewGenerator<TProject> | null;
     };
 };

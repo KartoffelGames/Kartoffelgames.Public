@@ -3,11 +3,11 @@ import { NodeCategory } from '../../parser/node/node-category.enum.ts';
 import { PotatnoProject } from '../potatno-project.ts';
 import { PotatnoNodeDefinition } from './potatno-node-definition.ts';
 
-export class FlowConjunctionNodeDefinition<TProject extends PotatnoProject<any>> extends PotatnoNodeDefinition<TProject> {
+export class FlowConjunctionNodeDefinition<TProject extends PotatnoProject> extends PotatnoNodeDefinition<TProject> {
     /**
      * Create a new FlowConjunctionNodeDefinition.
      */
-    public static newConjunctionNode<TProject extends PotatnoProject<any>>(): FlowConjunctionNodeDefinition<TProject> {
+    public static newConjunctionNode<TProject extends PotatnoProject>(): FlowConjunctionNodeDefinition<TProject> {
         return new FlowConjunctionNodeDefinition<TProject>();
     }
 

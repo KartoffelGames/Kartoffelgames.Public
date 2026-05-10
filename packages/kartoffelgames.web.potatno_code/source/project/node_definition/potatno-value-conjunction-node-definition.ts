@@ -3,11 +3,11 @@ import { NodeCategory } from '../../parser/node/node-category.enum.ts';
 import { PotatnoProject } from '../potatno-project.ts';
 import { PotatnoNodeDefinition } from './potatno-node-definition.ts';
 
-export class ValueConjunctionNodeDefinition<TProject extends PotatnoProject<any>> extends PotatnoNodeDefinition<TProject> {
+export class ValueConjunctionNodeDefinition<TProject extends PotatnoProject> extends PotatnoNodeDefinition<TProject> {
     /**
      * Create a new ValueConjunctionNodeDefinition.
      */
-    public static newConjunctionNode<TProject extends PotatnoProject<any>>(): ValueConjunctionNodeDefinition<TProject> {
+    public static newConjunctionNode<TProject extends PotatnoProject>(): ValueConjunctionNodeDefinition<TProject> {
         return new ValueConjunctionNodeDefinition<TProject>();
     }
 

@@ -321,7 +321,7 @@ export class PotatnoDocumentPort<TProject extends PotatnoProject<PotatnoProjectT
     }
 }
 
-type PotatnoDocumentPortConstructorParameter<TProject extends PotatnoProject<any>> = {
+type PotatnoDocumentPortConstructorParameter<TProject extends PotatnoProject> = {
     definitionId: string,
     direction: PotatnoPortDefinitionDirection,
     label: string,

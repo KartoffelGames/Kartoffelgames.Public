@@ -16,7 +16,7 @@ import type { PotatnoCodeFileSerializationResult, SerializedFunction, Serialized
  *   4. Restore port connections from the flat connections list.
  *      connect() is bidirectional, so calling it on the source port is sufficient.
  */
-export class PotatnoDeserializer<TProject extends PotatnoProject<any>> {
+export class PotatnoDeserializer<TProject extends PotatnoProject> {
     private readonly mProject: TProject;
 
     /**

@@ -107,4 +107,4 @@ export type PotatnoProjectTypeDefinition<TTypeName extends string> = {
 
 export type PotatnoProjectGenericType = `<${string}>`;
 
-export type PotatnoProjectType<TProject extends PotatnoProject<any>> = TProject['types']['typeNames'][number];
+export type PotatnoProjectType<TProject extends PotatnoProject> = TProject['types']['typeNames'][number];

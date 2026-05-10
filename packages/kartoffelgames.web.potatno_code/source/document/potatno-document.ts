@@ -9,7 +9,7 @@ import { IPotatnoDocumentItem } from "./i-potatno-document-item.ts";
  * Represents the mutable document state of a PotatnoCode file.
  * Contains all functions and their graphs.
  */
-export class PotatnoDocument<TProject extends PotatnoProject<any>> {
+export class PotatnoDocument<TProject extends PotatnoProject> {
     private readonly mFunctions: Set<PotatnoDocumentFunction<TProject>>;
     private readonly mFunctionNodeDefinitions: Map<string, PotatnoFunctionNodeDefinition<TProject>>;
     private readonly mProject: TProject;
@@ -131,7 +131,7 @@ export class PotatnoDocument<TProject extends PotatnoProject<any>> {
 /**
  * A validation error for a document port.
  */
-export class PotatnoDocumentPortValidationError<TProject extends PotatnoProject<any>> {
+export class PotatnoDocumentPortValidationError<TProject extends PotatnoProject> {
     private readonly mMessage: string;
     private readonly mItem: IPotatnoDocumentItem<TProject>;
 

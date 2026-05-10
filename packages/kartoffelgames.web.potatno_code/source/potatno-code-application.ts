@@ -25,7 +25,7 @@ import themeCss from './ui/component/potatno-theme.css' with { type: 'text' };
  * Extends PwbApplication to provide a pre-configured editor component
  * backed by a PotatnoProject (configuration) and a PotatnoCodeFile (document state).
  */
-export class PotatnoCodeApplication<TProject extends PotatnoProject<any>> extends PwbApplication {
+export class PotatnoCodeApplication<TProject extends PotatnoProject> extends PwbApplication {
     private mCodeEditor: PotatnoCodeEditor<TProject>;
     private readonly mProject: TProject;
 

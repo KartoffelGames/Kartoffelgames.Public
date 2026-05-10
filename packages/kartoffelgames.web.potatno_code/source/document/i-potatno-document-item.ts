@@ -1,7 +1,7 @@
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import { PotatnoDocument } from "./potatno-document.ts";
 
-export interface IPotatnoDocumentItem<TProject extends PotatnoProject<any>> {
+export interface IPotatnoDocumentItem<TProject extends PotatnoProject> {
     /**
      * Unique identifier of the node definition this item was created from.
      * Used to resolve the definition.

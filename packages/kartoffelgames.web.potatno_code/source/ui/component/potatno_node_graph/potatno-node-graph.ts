@@ -1633,39 +1633,11 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
 
     /**
      * Update all node preview elements from the latest generated code result.
+     * Per-node intermediate data is no longer available from the code generator;
+     * node preview updates are skipped until a richer result type is introduced.
      */
     private updatePreviewElementsFromResult(): void {
-        const lPreviewResult: PotatnoCodeGeneratorResult<TProject> | null = this.mPreviewResult;
-        const lActiveFunction: PotatnoDocumentFunction<TProject> | null = this.mActiveFunction;
-        if (!lPreviewResult || !lActiveFunction) {
-            return;
-        }
-
-        for (const [lNode, lIntermediateData] of lPreviewResult.nodeResults ?? []) {
-            const lElement: HTMLElement | undefined = this.mPreviewElements.get(lNode);
-            if (!lElement) {
-                continue;
-            }
-
-            const lDefinition: PotatnoNodeDefinition<TProject> | null = buildAvailableNodeDefinitionEntries(lActiveFunction)
-                .find((pEntry: NodeDefinitionEntry<TProject>) => pEntry.id === lNode.definitionId)
-                ?.definition ?? null;
-            if (!lDefinition?.preview) {
-                continue;
-            }
-
-            try {
-                lDefinition.preview.update(
-                    lElement,
-                    lIntermediateData.context,
-                    lIntermediateData.codeFunction,
-                    {},
-                    lIntermediateData.intermediateCode
-                );
-            } catch (pError) {
-                console.error('[NodeGraph] Node preview update failed:', pError);
-            }
-        }
+        // No per-node intermediate data in the current code generation result.
     }
 }
 

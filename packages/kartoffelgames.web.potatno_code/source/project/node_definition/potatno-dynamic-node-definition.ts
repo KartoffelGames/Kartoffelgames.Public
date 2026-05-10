@@ -4,13 +4,13 @@ import { PotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeD
 /**
  * Potatno node definition that changes dynamically based on the provided context.
  */
-export class PotatnoDynamicNodeDefinition<TProject extends PotatnoProject<any>> extends PotatnoNodeDefinition<TProject> {
+export class PotatnoDynamicNodeDefinition<TProject extends PotatnoProject> extends PotatnoNodeDefinition<TProject> {
     /**
      * Create a new PotatnoNodeDefinition.
      *
      * @param pParameters - Node definition configuration including id, label, category, and generators.
      */
-    public static new<TProject extends PotatnoProject<any>>(pParameters: PotatnoDynamicNodeDefinitionConstructorParameter<TProject>): PotatnoDynamicNodeDefinition<TProject> {
+    public static new<TProject extends PotatnoProject>(pParameters: PotatnoDynamicNodeDefinitionConstructorParameter<TProject>): PotatnoDynamicNodeDefinition<TProject> {
         return new PotatnoDynamicNodeDefinition(pParameters);
     }
 
@@ -37,7 +37,7 @@ export class PotatnoDynamicNodeDefinition<TProject extends PotatnoProject<any>> 
     }
 }
 
-type PotatnoDynamicNodeDefinitionConstructorParameter<TProject extends PotatnoProject<any>> = {
+type PotatnoDynamicNodeDefinitionConstructorParameter<TProject extends PotatnoProject> = {
     id: string;
     label: string;
     category: string;
@@ -45,6 +45,6 @@ type PotatnoDynamicNodeDefinitionConstructorParameter<TProject extends PotatnoPr
     generators: {
         ports: PotatnoNodeDefinitionPortGenerator<TProject>;
         code: PotatnoNodeDefinitionCodeGenerator;
-        preview?: PotatnoNodeDefinitionPreviewGenerator | null;
+        preview?: PotatnoNodeDefinitionPreviewGenerator<TProject> | null;
     };
 };

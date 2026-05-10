@@ -4,13 +4,13 @@ import { PotatnoProject } from "./potatno-project.ts";
 /**
  * Definition of a port on a node, used for type checking and code generation.
  */
-export class PotatnoPortDefinition<TProject extends PotatnoProject<any>> {
+export class PotatnoPortDefinition<TProject extends PotatnoProject> {
 	/**
 	 * Create a new PotatnoPortDefinition from the given port configuration.
 	 *
 	 * @param pPortDefinition - Raw port configuration object.
 	 */
-	public static new<TProject extends PotatnoProject<any>>(pPortDefinition: PotatnoPortDefinitionConfiguration<TProject>): PotatnoPortDefinition<TProject> {
+	public static new<TProject extends PotatnoProject>(pPortDefinition: PotatnoPortDefinitionConfiguration<TProject>): PotatnoPortDefinition<TProject> {
 		return new PotatnoPortDefinition(pPortDefinition);
 	}
 

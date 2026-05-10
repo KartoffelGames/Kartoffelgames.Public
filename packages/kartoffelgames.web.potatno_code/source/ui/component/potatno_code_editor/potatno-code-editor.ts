@@ -4,6 +4,7 @@ import { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts'
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoDocument } from '../../../document/potatno-document.ts';
 import { PotatnoCodeGenerator, type PotatnoCodeGeneratorResult } from '../../../parser/potatno-code-generator.ts';
+import { PotatnoCodeGeneratorFunctionContext } from '../../../parser/potatno-code-generator-function-context.ts';
 import { PotatnoFunctionDefinitionNodes, PotatnoFunctionDefinitionStatics } from '../../../project/potatno-function-definition.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import { PotatnoDeserializer } from '../../../serialization/potatno-deserializer.ts';
@@ -982,9 +983,11 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
         const lEntryPreview = lProject.entryPoint.preview;
         if (lEntryPreview && this.mEntryPointPreviewElement) {
             try {
+                const lCodeFunction: PotatnoCodeGeneratorFunctionContext = new PotatnoCodeGeneratorFunctionContext();
+                lCodeFunction.bodyCode = lCodeResult.code;
                 lEntryPreview.update(
                     this.mEntryPointPreviewElement,
-                    lCodeResult.codeFunction,
+                    lCodeFunction,
                     {},
                     lCodeResult.code
                 );

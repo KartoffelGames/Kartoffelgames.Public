@@ -1,18 +1,18 @@
 import { Exception } from "@kartoffelgames/core";
-import { PotatnoCodeFunction } from "../../parser/potatno-code-function.ts";
+import { PotatnoCodeGeneratorFunctionContext } from "../../parser/potatno-code-generator-function-context.ts";
 import { PotatnoPortDefinition, PotatnoPortDefinitionConfiguration } from "../potatno-port-definition.ts";
 import { PotatnoProject } from "../potatno-project.ts";
 
 /**
  * Potatno node definition that changes dynamically based on the provided context.
  */
-export class PotatnoNodeDefinition<TProject extends PotatnoProject<any>> {
+export class PotatnoNodeDefinition<TProject extends PotatnoProject> {
     /**
      * Create a new PotatnoNodeDefinition.
      *
      * @param pParameters - Static node definition configuration including id, label, category, ports, and generators.
      */
-    public static newNode<TProject extends PotatnoProject<any>>(pParameters: PotatnoNodeDefinitionConstructorParameter<TProject>): PotatnoNodeDefinition<TProject> {
+    public static newNode<TProject extends PotatnoProject>(pParameters: PotatnoNodeDefinitionConstructorParameter<TProject>): PotatnoNodeDefinition<TProject> {
         return new PotatnoNodeDefinition<TProject>(pParameters);
     }
 
@@ -22,7 +22,7 @@ export class PotatnoNodeDefinition<TProject extends PotatnoProject<any>> {
     private readonly mRegions: PotatnoNodeDefinitionRegions;
     private readonly mCodeGenerator: PotatnoNodeDefinitionCodeGenerator;
     private readonly mPortProvider: PotatnoNodeDefinitionPortGenerator<TProject>;
-    private readonly mPreviewGenerator: PotatnoNodeDefinitionPreviewGenerator | null;
+    private readonly mPreviewGenerator: PotatnoNodeDefinitionPreviewGenerator<TProject> | null;
 
     /**
      *  Unique id for this node definition. 
@@ -100,7 +100,7 @@ export class PotatnoNodeDefinition<TProject extends PotatnoProject<any>> {
     /**
      * Preview configuration for this node type.
      */
-    public get preview(): PotatnoNodeDefinitionPreviewGenerator | null {
+    public get preview(): PotatnoNodeDefinitionPreviewGenerator<TProject> | null {
         return this.mPreviewGenerator;
     }
 
@@ -138,7 +138,7 @@ export class PotatnoNodeDefinition<TProject extends PotatnoProject<any>> {
     }
 }
 
-type PotatnoNodeDefinitionConstructorParameter<TProject extends PotatnoProject<any>> = {
+type PotatnoNodeDefinitionConstructorParameter<TProject extends PotatnoProject> = {
     id: string;
     label: string;
     category: string;
@@ -146,7 +146,7 @@ type PotatnoNodeDefinitionConstructorParameter<TProject extends PotatnoProject<a
     generators: {
         ports: PotatnoNodeDefinitionPortGenerator<TProject>;
         code: PotatnoNodeDefinitionCodeGenerator;
-        preview?: PotatnoNodeDefinitionPreviewGenerator | null;
+        preview?: PotatnoNodeDefinitionPreviewGenerator<TProject> | null;
     };
 };
 
@@ -175,12 +175,12 @@ export type PotatnoNodeDefinitionRegions = {
  * Port generator.
  */
 
-export type PotatnoNodeDefinitionPortGenerator<TProject extends PotatnoProject<any>> = {
+export type PotatnoNodeDefinitionPortGenerator<TProject extends PotatnoProject> = {
     inputs: PotatnoNodeDefinitionPortGeneratorFunction<TProject>;
     outputs: PotatnoNodeDefinitionPortGeneratorFunction<TProject>;
 };
 
-export type PotatnoNodeDefinitionPortGeneratorFunction<TProject extends PotatnoProject<any>> = (pAddPort: (pConfiguration: PotatnoPortDefinitionConfiguration<TProject>) => void) => void;
+export type PotatnoNodeDefinitionPortGeneratorFunction<TProject extends PotatnoProject> = (pAddPort: (pConfiguration: PotatnoPortDefinitionConfiguration<TProject>) => void) => void;
 
 /*
  * Code generator ports.
@@ -215,7 +215,7 @@ export type PotatnoNodeDefinitionGeneratorContext = {
  * Preview generator.
  */
 
-export type PotatnoNodeDefinitionPreviewGenerator = {
+export type PotatnoNodeDefinitionPreviewGenerator<TProject extends PotatnoProject> = {
     /**
      * Generator function that produces an HTMLElement to be used as a live preview for a node instance.
      * 
@@ -230,5 +230,5 @@ export type PotatnoNodeDefinitionPreviewGenerator = {
      * @param pPreviewInputData - The example preview input data for the entry point, which can be used to run the intermediate code and update the preview element accordingly.
      * @param pIntermediateCodeOutput - The output of the intermediate code execution, which can be used to update the preview element accordingly.
      */
-    readonly update: (pElement: Element, pContext: PotatnoNodeDefinitionGeneratorContext, pFunction: PotatnoCodeFunction, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
+    readonly update: (pElement: Element, pContext: PotatnoNodeDefinitionGeneratorContext, pFunction: PotatnoCodeGeneratorFunctionContext<TProject>, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
 };

@@ -7,7 +7,7 @@ import { PotatnoProject } from "../project/potatno-project.ts";
  * Copy/paste logic for graph nodes.
  * Stores a snapshot of selected nodes and their internal connections.
  */
-export class PotatnoClipboard<TProject extends PotatnoProject<any>> {
+export class PotatnoClipboard<TProject extends PotatnoProject> {
     private mData: ClipboardData | null;
 
     /**

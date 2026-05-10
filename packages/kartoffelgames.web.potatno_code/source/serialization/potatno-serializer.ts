@@ -15,7 +15,7 @@ import type { PotatnoCodeFileSerializationResult, SerializedConnection, Serializ
  * using source (output) → target (input) references. Both endpoints are stored
  * explicitly for stability.
  */
-export class PotatnoSerializer<TProject extends PotatnoProject<any>> {
+export class PotatnoSerializer<TProject extends PotatnoProject> {
     /**
      * Constructor.
      */

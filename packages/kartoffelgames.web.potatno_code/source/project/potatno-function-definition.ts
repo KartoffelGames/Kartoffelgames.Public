@@ -1,4 +1,4 @@
-import { PotatnoCodeGeneratorFunctionContext } from "../parser/potatno-code-generator-function-context.ts";
+import { PotatnoCodeGeneratorFunctionResult } from "../parser/potatno-code-generator-function-result.ts";
 import { PotatnoNodeDefinition, PotatnoNodeDefinitionGeneratorContext } from "./node_definition/potatno-node-definition.ts";
 import { PotatnoProject } from "./potatno-project.ts";
 import { PotatnoProjectTypesDefinition } from "./potatno-project-types-definition.ts";
@@ -156,7 +156,7 @@ export type PotatnoFunctionDefinitionGenerator<TProject extends PotatnoProject> 
     /**
      * Produces the complete function code from the function body and metadata.
      */
-    body: (pFunction: PotatnoCodeGeneratorFunctionContext<TProject>) => string;
+    body: (pFunction: PotatnoCodeGeneratorFunctionResult<TProject>) => string;
 
     /**
      * Produces the call-site code expression when this function is invoked as a node.
@@ -235,5 +235,5 @@ export type PotatnoFunctionDefinitionPreview<TProject extends PotatnoProject> = 
      * @param pPreviewInputData - The example preview input data for the entry point, which can be used to run the intermediate code and update the preview element accordingly.
      * @param pIntermediateCodeOutput - The output of the intermediate code execution, which can be used to update the preview element accordingly.
      */
-    readonly update: (pElement: Element, pFunction: PotatnoCodeGeneratorFunctionContext<TProject>, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
+    readonly update: (pElement: Element, pFunction: PotatnoCodeGeneratorFunctionResult<TProject>, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
 };

@@ -1,5 +1,5 @@
 import { Exception } from "@kartoffelgames/core";
-import { PotatnoCodeGeneratorFunctionContext } from "../../parser/potatno-code-generator-function-context.ts";
+import { PotatnoCodeGeneratorFunctionResult } from "../../parser/potatno-code-generator-function-result.ts";
 import { PotatnoPortDefinition, PotatnoPortDefinitionConfiguration } from "../potatno-port-definition.ts";
 import { PotatnoProject } from "../potatno-project.ts";
 
@@ -230,5 +230,5 @@ export type PotatnoNodeDefinitionPreviewGenerator<TProject extends PotatnoProjec
      * @param pPreviewInputData - The example preview input data for the entry point, which can be used to run the intermediate code and update the preview element accordingly.
      * @param pIntermediateCodeOutput - The output of the intermediate code execution, which can be used to update the preview element accordingly.
      */
-    readonly update: (pElement: Element, pContext: PotatnoNodeDefinitionGeneratorContext, pFunction: PotatnoCodeGeneratorFunctionContext<TProject>, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
+    readonly update: (pElement: Element, pContext: PotatnoNodeDefinitionGeneratorContext, pFunction: PotatnoCodeGeneratorFunctionResult<TProject>, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
 };

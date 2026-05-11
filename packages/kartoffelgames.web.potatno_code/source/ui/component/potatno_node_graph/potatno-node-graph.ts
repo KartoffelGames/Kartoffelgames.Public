@@ -3,7 +3,7 @@ import type { PotatnoDocumentFunction } from '../../../document/potatno-document
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { NodeCategory } from '../../../parser/node/node-category.enum.ts';
-import type { PotatnoCodeGeneratorResult } from '../../../parser/potatno-code-generator.ts';
+import type { PotatnoCodeGeneratorFunctionResult } from '../../../parser/potatno-code-generator-function-result.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import { PotatnoCanvasRenderer, type ConnectionRenderData } from '../../potatno-canvas-renderer.ts';
@@ -49,7 +49,7 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
     private mLibraryDragUnsubscribe: (() => void) | null;
     private mLibraryInsertUnsubscribe: (() => void) | null;
     private mPendingConnectionRenderFrame: number;
-    private mPreviewResult: PotatnoCodeGeneratorResult<TProject> | null;
+    private mPreviewResult: PotatnoCodeGeneratorFunctionResult<TProject> | null;
     private mPreviewUpdateVersion: number;
     private mRefreshVersion: number;
     private mSelectionBoxScreen: SelectionBoxScreen;
@@ -218,7 +218,7 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
      * Latest generated preview result to apply to node preview elements.
      */
     @PwbExport
-    public set previewResult(pValue: PotatnoCodeGeneratorResult<TProject> | null) {
+    public set previewResult(pValue: PotatnoCodeGeneratorFunctionResult<TProject> | null) {
         if (this.mPreviewResult === pValue) {
             return;
         }
@@ -230,7 +230,7 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
     /**
      * Get the latest generated preview result.
      */
-    public get previewResult(): PotatnoCodeGeneratorResult<TProject> | null {
+    public get previewResult(): PotatnoCodeGeneratorFunctionResult<TProject> | null {
         return this.mPreviewResult;
     }
 

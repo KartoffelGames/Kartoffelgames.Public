@@ -3,7 +3,8 @@ import { PotatnoDocumentFunction } from '../../../document/potatno-document-func
 import { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoDocument } from '../../../document/potatno-document.ts';
-import { PotatnoCodeGenerator, type PotatnoCodeGeneratorResult } from '../../../parser/potatno-code-generator.ts';
+import { PotatnoCodeGenerator } from '../../../parser/potatno-code-generator.ts';
+import { PotatnoCodeGeneratorFunctionResult } from '../../../parser/potatno-code-generator-function-result.ts';
 import { PotatnoFunctionDefinitionNodes, PotatnoFunctionDefinitionStatics } from '../../../project/potatno-function-definition.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import { PotatnoDeserializer } from '../../../serialization/potatno-deserializer.ts';
@@ -59,10 +60,16 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
     private accessor mEntryPointPreviewElement: Element | null = null;
 
     /**
-     * Latest generated preview result passed to the node graph.
+     * Latest generated preview function result passed to the node graph.
      */
     @ComponentState.state({ complexValue: true })
-    private accessor mGraphPreviewResult: PotatnoCodeGeneratorResult<TProject> | null = null;
+    private accessor mGraphPreviewResult: PotatnoCodeGeneratorFunctionResult<TProject> | null = null;
+
+    /**
+     * Latest generated document code string used to drive preview evaluation.
+     */
+    @ComponentState.state()
+    private accessor mGraphPreviewCode: string = '';
 
     /**
      * Explicit graph refresh token for non-graph document edits.
@@ -213,7 +220,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
     /**
      * Current graph preview result passed into the graph component.
      */
-    public get graphPreviewResult(): PotatnoCodeGeneratorResult<TProject> | null {
+    public get graphPreviewResult(): PotatnoCodeGeneratorFunctionResult<TProject> | null {
         return this.mGraphPreviewResult;
     }
 
@@ -685,6 +692,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
         try {
             const lGenerator: PotatnoCodeGenerator<TProject> = new PotatnoCodeGenerator<TProject>(lProject);
             this.mGraphPreviewResult = lGenerator.generateFunctionCode(lEntryFunction);
+            this.mGraphPreviewCode = lGenerator.generateDocumentCode(lFile);
             this.updatePreviewsFromCache();
         } catch (pError) {
             console.error('[Editor] Preview code generation failed:', pError);
@@ -974,19 +982,19 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      */
     private updatePreviewsFromCache(): void {
         const lProject: TProject | undefined = this.mProject;
-        const lCodeResult: PotatnoCodeGeneratorResult<TProject> | null = this.mGraphPreviewResult;
-        if (!lProject || !lCodeResult) {
+        const lFunctionResult: PotatnoCodeGeneratorFunctionResult<TProject> | null = this.mGraphPreviewResult;
+        if (!lProject || !lFunctionResult) {
             return;
         }
 
         const lEntryPreview = lProject.entryPoint.preview;
-        if (lEntryPreview && this.mEntryPointPreviewElement && lCodeResult.functionContext) {
+        if (lEntryPreview && this.mEntryPointPreviewElement) {
             try {
                 lEntryPreview.update(
                     this.mEntryPointPreviewElement,
-                    lCodeResult.functionContext,
+                    lFunctionResult,
                     {},
-                    lCodeResult.code
+                    this.mGraphPreviewCode
                 );
             } catch (pError) {
                 console.error('[Editor] Entry preview update failed:', pError);

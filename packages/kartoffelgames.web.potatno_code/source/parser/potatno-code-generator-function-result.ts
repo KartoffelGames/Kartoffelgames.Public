@@ -18,6 +18,13 @@ export class PotatnoCodeGeneratorFunctionResult<TProject extends PotatnoProject>
     }
 
     /**
+     * The document function this result represents.
+     */
+    public get function(): PotatnoDocumentFunction<TProject> {
+        return this.mFunction;
+    }
+
+    /**
      * The imports required by the function, as defined in the document function.
      */
     public get imports(): ReadonlyArray<string> {

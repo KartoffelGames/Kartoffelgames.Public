@@ -22,7 +22,6 @@ export class PotatnoNodeDefinition<TProject extends PotatnoProject> {
     private readonly mRegions: PotatnoNodeDefinitionRegions;
     private readonly mCodeGenerator: PotatnoNodeDefinitionCodeGenerator;
     private readonly mPortProvider: PotatnoNodeDefinitionPortGenerator<TProject>;
-    private readonly mPreviewGenerator: PotatnoNodeDefinitionPreviewGenerator<TProject> | null;
 
     /**
      *  Unique id for this node definition. 
@@ -98,13 +97,6 @@ export class PotatnoNodeDefinition<TProject extends PotatnoProject> {
     }
 
     /**
-     * Preview configuration for this node type.
-     */
-    public get preview(): PotatnoNodeDefinitionPreviewGenerator<TProject> | null {
-        return this.mPreviewGenerator;
-    }
-
-    /**
      * Get a port definition by its name. Searches both input and output ports.
      *
      * @param pName - The port name to look up.
@@ -127,7 +119,6 @@ export class PotatnoNodeDefinition<TProject extends PotatnoProject> {
         this.mCategory = pParameters.category;
         this.mCodeGenerator = pParameters.generators.code;
         this.mPortProvider = pParameters.generators.ports;
-        this.mPreviewGenerator = pParameters.generators.preview ?? null;
 
         // Set regions with default empty arrays if not provided.
         this.mRegions = {
@@ -146,7 +137,6 @@ type PotatnoNodeDefinitionConstructorParameter<TProject extends PotatnoProject> 
     generators: {
         ports: PotatnoNodeDefinitionPortGenerator<TProject>;
         code: PotatnoNodeDefinitionCodeGenerator;
-        preview?: PotatnoNodeDefinitionPreviewGenerator<TProject> | null;
     };
 };
 
@@ -209,26 +199,4 @@ export type PotatnoNodeDefinitionGeneratorContext = {
      * Output port valueIds keyed by port name. 
      */
     readonly outputs: Record<string, PotatnoCodeGeneratorPort>;
-};
-
-/*
- * Preview generator.
- */
-
-export type PotatnoNodeDefinitionPreviewGenerator<TProject extends PotatnoProject> = {
-    /**
-     * Generator function that produces an HTMLElement to be used as a live preview for a node instance.
-     * 
-     * @returns an element that the node gets append as preview.
-     */
-    readonly generate: () => Element;
-
-    /**
-     * Update function that updates the preview element based on the current input values and output values of the node instance.
-     * 
-     * @param pElement - The preview element to be updated.
-     * @param pPreviewInputData - The example preview input data for the entry point, which can be used to run the intermediate code and update the preview element accordingly.
-     * @param pIntermediateCodeOutput - The output of the intermediate code execution, which can be used to update the preview element accordingly.
-     */
-    readonly update: (pElement: Element, pContext: PotatnoNodeDefinitionGeneratorContext, pFunction: PotatnoCodeGeneratorFunctionResult<TProject>, pPreviewInputData: any, pIntermediateCodeOutput: string) => void;
 };

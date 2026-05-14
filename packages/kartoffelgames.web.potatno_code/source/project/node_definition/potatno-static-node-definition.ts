@@ -1,7 +1,6 @@
 import { PotatnoPortDefinitionConfiguration } from "../potatno-port-definition.ts";
-import { PotatnoProjectType } from "../potatno-project-types-definition.ts";
 import { PotatnoProject } from "../potatno-project.ts";
-import { PotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeDefinitionPreviewGenerator, PotatnoNodeDefinitionRegions } from "./potatno-node-definition.ts";
+import { PotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeDefinitionRegions } from "./potatno-node-definition.ts";
 
 /**
  * Definition of a node type that can be instantiated in the graph. Registered at the project level and referenced by nodes via the definitionName property.
@@ -48,7 +47,6 @@ export class PotatnoStaticNodeDefinition<TProject extends PotatnoProject> extend
                     }
                 },
                 code: pParameters.generators.code,
-                preview: pParameters.generators.preview ?? null
             }
         });
     }
@@ -65,6 +63,5 @@ type PotatnoStaticNodeDefinitionConstructorParameter<TProject extends PotatnoPro
     };
     generators: {
         code: PotatnoNodeDefinitionCodeGenerator;
-        preview?: PotatnoNodeDefinitionPreviewGenerator<TProject> | null;
     };
 };

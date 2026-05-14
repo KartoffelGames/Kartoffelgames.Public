@@ -1,6 +1,5 @@
 import { PotatnoDocumentFunction } from "../../document/potatno-document-function.ts";
 import { PotatnoFunctionDefinition } from "../potatno-function-definition.ts";
-import { PotatnoPortDefinitionConfiguration } from "../potatno-port-definition.ts";
 import { PotatnoProjectType } from "../potatno-project-types-definition.ts";
 import { PotatnoProject } from "../potatno-project.ts";
 import { PotatnoNodeDefinition, PotatnoNodeDefinitionPortGeneratorFunction } from "./potatno-node-definition.ts";
@@ -85,8 +84,7 @@ export class PotatnoFunctionNodeDefinition<TProject extends PotatnoProject> exte
                     inputs: lInputPortGenerator,
                     outputs: lOutputPortGenerator
                 },
-                code: lFunctionDefinition?.codeGenerator.value ?? (() => ''),
-                preview: null
+                code: lFunctionDefinition?.codeGenerator.value ?? (() => '')
             }
         });
 

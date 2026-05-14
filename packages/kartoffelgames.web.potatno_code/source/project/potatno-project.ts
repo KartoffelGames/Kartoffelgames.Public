@@ -67,13 +67,22 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
      */
     protected constructor(pParameter: PotatnoProjectConstructorParameter<TProjectType>) {
         // Init parameter.
-        this.mEntryPoint = pParameter.entryPoint as unknown as PotatnoFunctionDefinition<this>;
         this.mTypes = pParameter.types;
 
         // Initialize empty arrays and maps for project definitions.
         this.mNodeDefinitions = new Map<string, PotatnoStaticNodeDefinition<this>>();
         this.mImports = new Array<PotatnoProjectImportDefinition<this>>();
         this.mUserFunctions = new Map<string, PotatnoFunctionDefinition<this>>();
+
+        // Add endpoint function definition.
+        this.mEntryPoint = pParameter.functions.entry as unknown as PotatnoFunctionDefinition<this>;
+
+        // Add user functions if provided.
+        if (pParameter.functions.dynamic) {
+            for (const lFunctionDefinition of pParameter.functions.dynamic) {
+                this.mUserFunctions.set(lFunctionDefinition.id, lFunctionDefinition as unknown as PotatnoFunctionDefinition<this>);
+            }
+        }
 
         // Built-in conjunction pass-through nodes are always available in every project.
         this.addNodeDefinition(FlowConjunctionNodeDefinition.newConjunctionNode());
@@ -99,15 +108,6 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
     }
 
     /**
-     * Register a user function definition. User functions are custom functions defined by the user that can be used as nodes in the editor.
-     *
-     * @param pDefinition - The function definition to register.
-     */
-    public addUserFunction(pDefinition: PotatnoFunctionDefinition<this>): void {
-        this.mUserFunctions.set(pDefinition.id, pDefinition);
-    }
-
-    /**
      * Get a function definition by its id. Checks both the entry point and user functions.
      *
      * @param pId - The function definition id to look up.
@@ -123,7 +123,10 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
 
 type PotatnoProjectConstructorParameter<TProjectType extends PotatnoProjectTypesDefinition<string>> = {
     types: TProjectType;
-    entryPoint: PotatnoFunctionDefinition<PotatnoProject<NoInfer<TProjectType>>>;
+    functions: {
+        entry: PotatnoFunctionDefinition<PotatnoProject<NoInfer<TProjectType>>>,
+        dynamic?: Array<PotatnoFunctionDefinition<PotatnoProject<NoInfer<TProjectType>>>>;
+    }
 };
 
 /**

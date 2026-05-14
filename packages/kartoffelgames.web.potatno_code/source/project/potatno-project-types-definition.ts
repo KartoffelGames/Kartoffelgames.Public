@@ -66,18 +66,28 @@ export class PotatnoProjectTypesDefinition<TTypeName extends string> {
     }
 }
 
-type PotatnoProjectTypeDefinitionConfiguration<TTypeName extends string> = Record<TTypeName, PotatnoProjectTypesItem<TTypeName>>;
+type PotatnoProjectTypeDefinitionConfiguration<TTypeName extends string> = Record<TTypeName, PotatnoProjectTypesItem<TTypeName, unknown>>;
 
 /**
  * Potatno project valid types.
  * Defined by a type name and a default value of that type.
  */
-type PotatnoProjectTypesItem<TTypeName extends string> = {
+type PotatnoProjectTypesItem<TTypeName extends string, TRepresentativeValue> = {
     /**
      * A default value for this type.
-     * The string represents the default string values for the types inputs.
+     * 
      */
-    defaultValue: Array<string>;
+    default: {
+        /**
+         * Represents the default string values for the types inputs.
+         */
+        string: Array<string>;
+
+        /**
+         * javascript value represenation for defining preview value types.
+         */
+        value: TRepresentativeValue;
+    };
 
     /** 
      * Converts raw string input values to the type's code-ready string representation.
@@ -103,7 +113,7 @@ type PotatnoProjectTypeInputElement = {
 
 export type PotatnoProjectTypeDefinition<TTypeName extends string> = {
     name: TTypeName;
-} & PotatnoProjectTypesItem<TTypeName>;
+} & PotatnoProjectTypesItem<TTypeName, unknown>;
 
 export type PotatnoProjectGenericType = `<${string}>`;
 

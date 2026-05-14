@@ -1,5 +1,5 @@
 import { PotatnoProject } from "../potatno-project.ts";
-import { PotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeDefinitionPortGenerator, PotatnoNodeDefinitionPreviewGenerator, PotatnoNodeDefinitionRegions } from "./potatno-node-definition.ts";
+import { PotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeDefinitionPortGenerator, PotatnoNodeDefinitionRegions } from "./potatno-node-definition.ts";
 
 /**
  * Potatno node definition that changes dynamically based on the provided context.
@@ -30,8 +30,7 @@ export class PotatnoDynamicNodeDefinition<TProject extends PotatnoProject> exten
                     inputs: pParameters.generators.ports.inputs,
                     outputs: pParameters.generators.ports.outputs
                 },
-                code: pParameters.generators.code,
-                preview: pParameters.generators.preview ?? null
+                code: pParameters.generators.code
             }
         });
     }
@@ -45,6 +44,5 @@ type PotatnoDynamicNodeDefinitionConstructorParameter<TProject extends PotatnoPr
     generators: {
         ports: PotatnoNodeDefinitionPortGenerator<TProject>;
         code: PotatnoNodeDefinitionCodeGenerator;
-        preview?: PotatnoNodeDefinitionPreviewGenerator<TProject> | null;
     };
 };

@@ -162,7 +162,7 @@ export class PotatnoDocumentPort<TProject extends PotatnoProject<PotatnoProjectT
 
         this.mDirectValue = new Array<string>();
         if (pParameter.dataType && !this.mProject.types.isGenericType(pParameter.dataType)) {
-            this.mDirectValue.push(...pProject.types.getType(pParameter.dataType).defaultValue);
+            this.mDirectValue.push(...pProject.types.getType(pParameter.dataType).default.string);
         }
     }
 
@@ -244,7 +244,7 @@ export class PotatnoDocumentPort<TProject extends PotatnoProject<PotatnoProjectT
         }
 
         // Check if the project type has the same default value length.
-        if (pValue.length !== this.mProject.types.getType(this.mValueType!).defaultValue.length) {
+        if (pValue.length !== this.mProject.types.getType(this.mValueType!).default.string.length) {
             throw new Exception(`The provided value does not match the expected length of the default value for this port's type.`, this);
         }
 

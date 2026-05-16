@@ -354,54 +354,59 @@ pass. Generator can then assume an acyclic function-call graph.
 
 -- source/parser/potatno-code-generator.ts
 Close the three method TODOs. Build a PotatnoCodeGeneratorPassCursor,
-run the backward walk, fold dependencies up. Private helpers added:
+run the backward walk, fold dependencies up. Buffer mutation is
+concentrated in walkBackward; emit* helpers return code strings the
+caller appends. preCountConsumers returns its map instead of writing
+through the cursor. Private helpers:
 
   private walkBackward(
       pStartNode: PotatnoDocumentNode<TProject>,
       pStopBefore: PotatnoDocumentNode<TProject> | null,
       pCursor: PotatnoCodeGeneratorPassCursor<TProject>
   ): void;
-      // Iterative cursor loop. Mutates pCursor.scope.buffer.
+      // Iterative cursor loop. Owns pCursor.scope.buffer for its frame;
+      // appends what emit* helpers return.
 
   private findBranchPoint(
       pMergeNode: PotatnoDocumentNode<TProject>
   ): PotatnoDocumentNode<TProject>;
-      // Tagged backward BFS returning the branch point of the merge.
+      // Pure. Tagged backward BFS returning the branch point of the merge.
 
   private preCountConsumers(
       pStartNode: PotatnoDocumentNode<TProject>,
-      pStopBefore: PotatnoDocumentNode<TProject> | null,
-      pCursor: PotatnoCodeGeneratorPassCursor<TProject>
-  ): void;
-      // Pre-pass that fills pCursor.scope.remaining for this scope's reach.
+      pStopBefore: PotatnoDocumentNode<TProject> | null
+  ): Map<PotatnoDocumentNode<TProject>, number>;
+      // Pure. Caller assigns the result into the scope's `remaining`.
 
   private resolveValueInput(
       pInputPort: PotatnoDocumentPort<TProject>,
       pCursor: PotatnoCodeGeneratorPassCursor<TProject>
   ): string;
       // Returns a valueId or an inline literal. Triggers lazy producer
-      // emission when its refcount hits zero.
+      // emission when its refcount hits zero (delegates to
+      // emitValueProducer and appends the returned code itself).
 
   private emitValueProducer(
       pProducer: PotatnoDocumentNode<TProject>,
       pCursor: PotatnoCodeGeneratorPassCursor<TProject>
-  ): void;
-      // Appends `const v_N = ...;` to pCursor.scope.buffer; recurses for
-      // the producer's own value inputs.
+  ): string;
+      // Returns the producer's code (e.g. `const v_N = ...;`). Caller
+      // is responsible for appending it to scope.buffer. Recursive
+      // value-input resolution still threads through the cursor.
 
   private emitFlowNode(
       pNode: PotatnoDocumentNode<TProject>,
       pCursor: PotatnoCodeGeneratorPassCursor<TProject>
-  ): void;
-      // Builds the node's PotatnoNodeDefinitionGeneratorContext, calls its
-      // code generator, appends the result to pCursor.scope.buffer.
+  ): string;
+      // Builds the node's PotatnoNodeDefinitionGeneratorContext, calls
+      // its code generator, returns the result. Caller appends.
 
   private skipFlowConjunctions(
       pNode: PotatnoDocumentNode<TProject>
   ): PotatnoDocumentNode<TProject>;
-      // Threads through chains of flow conjunction nodes.
+      // Pure. Threads through chains of flow conjunction nodes.
 
   private skipValueConjunctions(
       pPort: PotatnoDocumentPort<TProject>
   ): PotatnoDocumentPort<TProject>;
-      // Threads through chains of value conjunction nodes.
+      // Pure. Threads through chains of value conjunction nodes.

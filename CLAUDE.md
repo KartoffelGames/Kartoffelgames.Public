@@ -122,6 +122,16 @@ export const PwbApplicationDebugLoggingType = {
 export type PwbApplicationDebugLoggingType = typeof PwbApplicationDebugLoggingType[keyof typeof PwbApplicationDebugLoggingType];
 ```
 
+### Type naming relative to class
+
+Types that belong to a class are named after the class: the class name is always the prefix. For a class `MyOwnList`, its item type is `MyOwnListItem`. A type that does not begin with its owning class's name is an error — rename it.
+
+This rule holds even when names grow long. For `class PotatnoNodeDefinition`, an associated generator function type is `type PotatnoNodeDefinitionPortGeneratorFunction` — the prefix is not abbreviated for brevity.
+
+Types are usually colocated in the class file where they are primarily used. Do not create a separate file for a type that belongs to a single class.
+
+Exception: types that describe an external contract — e.g. the JSON shape shared by a `Serializer` and `Deserializer` pair — have no single primary user and can live in their own file rather than being arbitrarily attached to one class.
+
 ### Member ordering
 
 Alphabetical within visibility-grouped sections: static fields → static accessors → static methods → instance fields (decorated first) → instance accessors → constructors → instance methods → abstract methods. The full ordering is in [eslint.config.js:102](eslint.config.js#L102) — follow it; do not reorder ad hoc.

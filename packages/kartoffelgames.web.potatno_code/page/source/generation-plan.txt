@@ -45,24 +45,29 @@ branches is the branch point. O(V+E) over the merge's backward reach.
 
 Cursor object
 -------------
-One typed object threaded through the walk. Two layers in one struct:
+One typed object threaded through the walk. Declared inline in
+potatno-code-generator.ts (private type; never exported). Two layers
+in one struct:
 
-  PassCursor:
+  PotatnoCodeGeneratorPassCursor:
     // GLOBAL — shared across all scopes in the top-level pass
-    idCounter      : { value: number }    // ref so scopes see updates
-    functionCache  : Map<DocumentFunction, FunctionResult>
-    dependencies   : Array<FunctionResult>
-    debug          : boolean
-    project        : PotatnoProject
+    counter                  : { id: number }    // ref so scopes see updates
+    functionGenerationCache  : Map<DocumentFunction, FunctionResult>
+    dependencies             : Array<FunctionResult>
+    debug                    : boolean           // surfaced on pContext.debug
 
     // SCOPE — swapped per backward walk
-    scope:
-      valueIds     : Map<DocumentPort, string>
-      remaining    : Map<DocumentNode, number>
-      buffer       : Array<string>
+    scope: PotatnoCodeGeneratorPassCursorScope
 
-Entering a sub-walk swaps in a fresh `scope`; leaving restores the
-parent. Same cursor instance, only the scope slot changes.
+  PotatnoCodeGeneratorPassCursorScope:
+    valueIds                 : Map<DocumentPort, string>
+    remaining                : Map<DocumentNode, number>
+    buffer                   : Array<string>
+
+The project reference is NOT on the cursor — generator methods reach it
+via `this.mProject`. Entering a sub-walk swaps in a fresh `scope`;
+leaving restores the parent. Same cursor instance, only the scope slot
+changes.
 
 
 Value emission — scope-local lazy
@@ -86,14 +91,14 @@ Value input resolution (called inside walkBackward per flow node)
 -----------------------------------------------------------------
   resolveValueInput(inputPort, cursor):
     if !inputPort.connected:
-      return project.types[type].convert(inputPort.directValue)
+      return this.mProject.types[type].convert(inputPort.directValue)
           // inline literal — no valueId allocated
 
     sourcePort = skipValueConjunctions(inputPort.connection)
     producer   = sourcePort.node
 
     if !cursor.scope.valueIds.has(sourcePort):
-      cursor.scope.valueIds.set(sourcePort, `v_${cursor.idCounter.value++}`)
+      cursor.scope.valueIds.set(sourcePort, `v_${cursor.counter.id++}`)
 
     if isPureValue(producer):  // no flow input AND no flow output
       cursor.scope.remaining[producer]--
@@ -121,30 +126,54 @@ appear in the buffer and never receive a valueId.
 
 Result types
 ------------
-PotatnoCodeGeneratorGraphResult — one per exit. Returned by
-generateNodeCodeWithDependencies. Fields: bodyCode, entryNode,
-exitNode, entryPorts, exitPorts, dependencies.
+Two layers, plus a per-graph class for the bits the generator actually
+produces. Body callbacks see a uniform retrieval surface regardless of
+which Result subclass they receive.
 
-PotatnoCodeGeneratorFunctionResult — aggregates one GraphResult per
-exit. Returned by generateFunctionCode. New helper:
+PotatnoCodeGeneratorGraph — class in its own file. Holds the per-graph
+generation output:
+  - entryNode, generatedNode
+  - bodyCode
+  - entryPorts, exitPorts
+  - imports
+  - dependencies
+Class (not a type alias) so helper methods can land here later without
+a refactor — graph-level queries, transformations, etc.
 
-  graphResultOf(pEntryDefinitionId: string)
-      : PotatnoCodeGeneratorGraphResult<TProject> | undefined
+PotatnoCodeGeneratorResult — abstract base. Marked `abstract` to
+prevent direct instantiation even though no methods are abstract. Owns
+the list of Graphs and the standard surface:
+  - function, functionName
+  - graphs (the contained Graphs)
+  - imports — computed dynamically: flatten graphs' imports + dedup,
+    first-occurrence order.
+  - graphResultOf(pEntryDefinitionId): PotatnoCodeGeneratorGraph | undefined
+    Scans graphs for matching entryNode.definitionId.
+  - addGraph(graph): void
 
-Scans nodes for `entryNode.definitionId === pEntryDefinitionId`. Lets
-function definition `body` callbacks find a specific graph and stub
-out missing ones for intermediate / preview builds (e.g., GPU shader
-preview where only one stage is generated).
+PotatnoCodeGeneratorFunctionResult extends PotatnoCodeGeneratorResult:
+  Marker class for full-function builds — no additions. Returned by
+  generateFunctionCode.
 
-Both extends from PotatnoCodeGeneratorResult so the function definition
-body can detect if its a node or function result by checking the instance type.
+PotatnoCodeGeneratorGraphResult extends PotatnoCodeGeneratorResult:
+  Single-graph / intermediate-build flavor. Carries the generation
+  restraints that don't apply to a full build:
+  - generatedNode — the node that was passed in to trigger this result.
+  - (room for further restraint metadata as needed.)
+  Returned by generateNodeCodeWithDependencies.
+
+Body callbacks can be handed either subclass and call graphResultOf
+the same way. Body parameter type widens to the base class so
+intermediate builds flow through the same callback without an adapter.
 
 
 Hooks and debug mode
 --------------------
-cursor.debug is forwarded via pContext. Node authors emit hook comments
-themselves — comment syntax is language-specific, no framework auto-
-injection.
+Node authors emit hook comments themselves — comment syntax is
+language-specific, no framework auto-injection. cursor.debug surfaces
+on the node context as pContext.debug so the author can decide whether
+to include hook comments. This is a node-output concern; function-body
+callbacks don't need it and don't see it.
 
 
 valueId format
@@ -208,3 +237,171 @@ runnable and verifiable against the playground.
    walk; close their TODOs.
 7. Close generateDocumentCode TODO: topological concat (entry function
    last) and ordered-dedup import aggregation.
+
+
+============================================================================
+FILE CHANGES
+============================================================================
+
+Naming follows CLAUDE.md: kebab-case filenames, StrictPascalCase types,
+strictCamelCase methods, p-prefixed parameters, m-prefixed private
+fields. Type names start with the owning class's name. New files use
+the `.ts` extension with no enum/interface suffix unless applicable.
+
+
+-- source/parser/potatno-code-generator-graph.ts   (NEW)
+Class holding one graph's generation output. Own file because multiple
+result classes consume it. Class (not a type) so per-graph helper
+methods can land here later without a refactor.
+
+  export class PotatnoCodeGeneratorGraph<TProject extends PotatnoProject> {
+      public static new<TProject extends PotatnoProject>(pParameter: PotatnoCodeGeneratorGraphConstructorParameter<TProject>): PotatnoCodeGeneratorGraph<TProject>;
+
+      public get entryNode(): PotatnoDocumentNode<TProject>;
+      public get generatedNode(): PotatnoDocumentNode<TProject>;
+      public get bodyCode(): string;
+      public get entryPorts(): ReadonlyArray<PotatnoCodeGeneratorGraphPort>;
+      public get exitPorts(): ReadonlyArray<PotatnoCodeGeneratorGraphPort>;
+      public get imports(): ReadonlyArray<string>;
+      public get dependencies(): ReadonlyArray<PotatnoCodeGeneratorFunctionResult<TProject>>;
+
+      protected constructor(pParameter: PotatnoCodeGeneratorGraphConstructorParameter<TProject>);
+  }
+
+  type PotatnoCodeGeneratorGraphConstructorParameter<TProject extends PotatnoProject> = {
+      entryNode: PotatnoDocumentNode<TProject>;
+      generatedNode: PotatnoDocumentNode<TProject>;
+      bodyCode: string;
+      entryPorts: ReadonlyArray<PotatnoCodeGeneratorGraphPort>;
+      exitPorts: ReadonlyArray<PotatnoCodeGeneratorGraphPort>;
+      imports: ReadonlyArray<string>;
+      dependencies: ReadonlyArray<PotatnoCodeGeneratorFunctionResult<TProject>>;
+  };
+
+
+-- source/parser/potatno-code-generator-result.ts   (NEW)
+Abstract base owning the list of Graphs and the standard surface.
+Marked `abstract` to block direct instantiation; callers use either
+PotatnoCodeGeneratorFunctionResult or PotatnoCodeGeneratorGraphResult.
+
+  export abstract class PotatnoCodeGeneratorResult<TProject extends PotatnoProject> {
+      public get function(): PotatnoDocumentFunction<TProject>;
+      public get functionName(): string;
+      public get graphs(): ReadonlyArray<PotatnoCodeGeneratorGraph<TProject>>;
+      public get imports(): ReadonlyArray<string>;
+          // flatten graphs' imports + first-occurrence dedup.
+      public graphResultOf(pEntryDefinitionId: string): PotatnoCodeGeneratorGraph<TProject> | undefined;
+          // scans graphs for matching entryNode.definitionId.
+      public addGraph(pGraph: PotatnoCodeGeneratorGraph<TProject>): void;
+  }
+
+
+-- source/parser/potatno-code-generator-function-result.ts
+Marker subclass for full-function builds. No additions; the base does
+all the work.
+
+  export class PotatnoCodeGeneratorFunctionResult<TProject extends PotatnoProject>
+      extends PotatnoCodeGeneratorResult<TProject> { }
+
+
+-- source/parser/potatno-code-generator-graph-result.ts
+Single-graph / intermediate-build subclass. Adds generation restraint
+metadata on top of the base.
+
+  export class PotatnoCodeGeneratorGraphResult<TProject extends PotatnoProject>
+      extends PotatnoCodeGeneratorResult<TProject> {
+      public get generatedNode(): PotatnoDocumentNode<TProject>;
+          // = this.graphs[0].generatedNode
+  }
+
+
+-- source/project/node_definition/potatno-node-definition.ts
+Move `next` off the per-port type to the context. Split the port type
+into input and output variants — only output ports carry code. Output
+fields are required strings with empty-string defaults (no optionals):
+the node author defined the port's kind, so accessing the wrong field
+is a node-author bug — empty strings keep the body generator slim
+without forcing undefined-checks at every call site. Re-add `debug`
+to the context for node-author-driven hook emission.
+
+  export type PotatnoCodeGeneratorInputPort = {
+      valueId: string;
+  };
+
+  export type PotatnoCodeGeneratorOutputPort = {
+      valueId: string;                  // '' on flow outputs
+      code: { inner: string };          // inner '' on value outputs
+  };
+
+  export type PotatnoNodeDefinitionGeneratorContext = {
+      readonly inputs: Record<string, PotatnoCodeGeneratorInputPort>;
+      readonly outputs: Record<string, PotatnoCodeGeneratorOutputPort>;
+      readonly debug: boolean;
+      readonly code: { next: string };
+  };
+
+
+-- source/document/potatno-document.ts
+Reject cross-function recursion (A → B → A) in the existing validate
+pass. Generator can then assume an acyclic function-call graph.
+
+  public validate(): Array<PotatnoDocumentPortValidationError<TProject>>;
+      // Existing per-function validation stays. Adds: build the
+      // function-call dependency graph from PotatnoFunctionNodeDefinition
+      // node instances; emit a PotatnoDocumentPortValidationError on each
+      // detected cycle.
+
+
+-- source/parser/potatno-code-generator.ts
+Close the three method TODOs. Build a PotatnoCodeGeneratorPassCursor,
+run the backward walk, fold dependencies up. Private helpers added:
+
+  private walkBackward(
+      pStartNode: PotatnoDocumentNode<TProject>,
+      pStopBefore: PotatnoDocumentNode<TProject> | null,
+      pCursor: PotatnoCodeGeneratorPassCursor<TProject>
+  ): void;
+      // Iterative cursor loop. Mutates pCursor.scope.buffer.
+
+  private findBranchPoint(
+      pMergeNode: PotatnoDocumentNode<TProject>
+  ): PotatnoDocumentNode<TProject>;
+      // Tagged backward BFS returning the branch point of the merge.
+
+  private preCountConsumers(
+      pStartNode: PotatnoDocumentNode<TProject>,
+      pStopBefore: PotatnoDocumentNode<TProject> | null,
+      pCursor: PotatnoCodeGeneratorPassCursor<TProject>
+  ): void;
+      // Pre-pass that fills pCursor.scope.remaining for this scope's reach.
+
+  private resolveValueInput(
+      pInputPort: PotatnoDocumentPort<TProject>,
+      pCursor: PotatnoCodeGeneratorPassCursor<TProject>
+  ): string;
+      // Returns a valueId or an inline literal. Triggers lazy producer
+      // emission when its refcount hits zero.
+
+  private emitValueProducer(
+      pProducer: PotatnoDocumentNode<TProject>,
+      pCursor: PotatnoCodeGeneratorPassCursor<TProject>
+  ): void;
+      // Appends `const v_N = ...;` to pCursor.scope.buffer; recurses for
+      // the producer's own value inputs.
+
+  private emitFlowNode(
+      pNode: PotatnoDocumentNode<TProject>,
+      pCursor: PotatnoCodeGeneratorPassCursor<TProject>
+  ): void;
+      // Builds the node's PotatnoNodeDefinitionGeneratorContext, calls its
+      // code generator, appends the result to pCursor.scope.buffer.
+
+  private skipFlowConjunctions(
+      pNode: PotatnoDocumentNode<TProject>
+  ): PotatnoDocumentNode<TProject>;
+      // Threads through chains of flow conjunction nodes.
+
+  private skipValueConjunctions(
+      pPort: PotatnoDocumentPort<TProject>
+  ): PotatnoDocumentPort<TProject>;
+      // Threads through chains of value conjunction nodes.

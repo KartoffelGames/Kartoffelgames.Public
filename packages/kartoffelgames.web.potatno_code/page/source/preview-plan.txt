@@ -362,10 +362,18 @@
  playground for the project. It already uses the target API shapes from
  the user's perspective (PotatnoProjectTypesDefinition.new,
  PotatnoFunctionDefinition.new, PotatnoPreview.new, PotatnoPreviewDisplay.new,
- PotatnoProject.new) even though some pieces are not yet implemented. Use
- it as the source of truth for what callers expect from this API — if a
- type doesn't infer correctly there, the API shape needs to change, not
- index.ts.
+ PotatnoProject.new) even though some pieces are not yet implemented.
+
+ The LAYOUT in index.ts is binding — what's modelled as a function stays
+ a function, what's modelled as a class stays a class, what's modelled
+ as an object literal stays an object literal. The structural shape of
+ each call site is the contract.
+
+ Parameter NAMES and TYPES are NOT binding. They can — and in many
+ places will — change as the implementation forces type inference into
+ a workable shape. If a parameter shape in index.ts doesn't infer
+ correctly, change the index.ts site (and the API) to whatever does
+ infer; don't bend the API just to keep the literal text identical.
 
 
  ============================================================================

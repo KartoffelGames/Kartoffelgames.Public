@@ -282,7 +282,7 @@ const lCanvas2dPreviewDisplay = PotatnoPreviewDisplay.new({
  */
 
 const lProjectPreviews = PotatnoPreview.new(lProjectTypes);
-lProjectPreviews.addDisplay(lCanvas2dPreviewDisplay, lEntryFunctionExecutor); // TODO: What does (/* PARAMS */) => {/* CODE */ } do as a third parameter?
+lProjectPreviews.addDisplay(lCanvas2dPreviewDisplay, lEntryFunctionExecutor);
 
 
 /*

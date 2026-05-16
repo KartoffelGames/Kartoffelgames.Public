@@ -1,0 +1,210 @@
+============================================================================
+CODE GENERATION — PLAN
+============================================================================
+
+GOAL
+----
+Implement PotatnoCodeGenerator.generateNodeCodeWithDependencies. Takes
+an exit node, returns a PotatnoCodeGeneratorGraphResult for that
+subgraph. The generator must stay language-agnostic — it only chains
+node-emitted strings, never emits syntax of its own.
+
+The two outer methods (generateDocumentCode, generateFunctionCode) are
+already roughly sketched and shape what the inner walk must return.
+
+
+============================================================================
+FINAL PLAN
+============================================================================
+
+Walk strategy
+-------------
+Backward from exit to entry along flow connections. Code accumulates
+bottom-up; each branching node's `inner` and `next` strings are already
+in the buffer when the node is emitted, so they thread straight into
+its pContext.
+
+walkBackward(startNode, stopBefore?, cursor) — iterative inside one
+scope, recursive across scopes (one sub-walk per fan-in branch).
+
+Per cursor step:
+  - 0 flow-input predecessors  → emit, return (entry / dead-end).
+  - 1 flow-input predecessor   → emit, advance.
+  - ≥2 flow-input predecessors → MERGE. Find branch point B via tagged
+                                  BFS. Spawn one sub-walk per fan-in
+                                  with stopBefore=B; each sub-walk's
+                                  buffer becomes that flow output's
+                                  `inner` on B. Code already accumulated
+                                  since the merge becomes `next`. Emit
+                                  B, then continue from B's predecessor.
+
+findBranchPoint — backward BFS from each fan-in predecessor, each
+carrying a tag. First node whose accumulated tag set covers all
+branches is the branch point. O(V+E) over the merge's backward reach.
+
+
+Cursor object
+-------------
+One typed object threaded through the walk. Two layers in one struct:
+
+  PassCursor:
+    // GLOBAL — shared across all scopes in the top-level pass
+    idCounter      : { value: number }    // ref so scopes see updates
+    functionCache  : Map<DocumentFunction, FunctionResult>
+    dependencies   : Array<FunctionResult>
+    debug          : boolean
+    project        : PotatnoProject
+
+    // SCOPE — swapped per backward walk
+    scope:
+      valueIds     : Map<DocumentPort, string>
+      remaining    : Map<DocumentNode, number>
+      buffer       : Array<string>
+
+Entering a sub-walk swaps in a fresh `scope`; leaving restores the
+parent. Same cursor instance, only the scope slot changes.
+
+
+Value emission — scope-local lazy
+---------------------------------
+Pre-pass per scope: count distinct flow-node consumers of each pure-
+value producer reachable in this scope's flow chain. Store in
+scope.remaining.
+
+Allocate valueId the first time any consumer in THIS scope touches a
+producer's output port (fresh from idCounter).
+
+Decrement scope.remaining[producer] at every consumer encounter. When
+the count hits zero, emit `const v_N = ...;` into scope.buffer at that
+moment. Producer's own value inputs follow the same rule recursively.
+
+Same producer used in two scopes → two emissions, two valueIds. No
+cross-scope lookup in v1.
+
+
+Value input resolution (called inside walkBackward per flow node)
+-----------------------------------------------------------------
+  resolveValueInput(inputPort, cursor):
+    if !inputPort.connected:
+      return project.types[type].convert(inputPort.directValue)
+          // inline literal — no valueId allocated
+
+    sourcePort = skipValueConjunctions(inputPort.connection)
+    producer   = sourcePort.node
+
+    if !cursor.scope.valueIds.has(sourcePort):
+      cursor.scope.valueIds.set(sourcePort, `v_${cursor.idCounter.value++}`)
+
+    if isPureValue(producer):  // no flow input AND no flow output
+      cursor.scope.remaining[producer]--
+      if cursor.scope.remaining[producer] === 0:
+        emitValueProducer(producer, cursor)
+
+    return cursor.scope.valueIds.get(sourcePort)
+
+
+Function-call nodes (PotatnoFunctionNodeDefinition)
+---------------------------------------------------
+Emit as a regular flow node — its code generator is the target function
+definition's `value` callback. Also trigger generateFunctionCode for
+the target function via cursor.functionCache (dedup), and append the
+resulting FunctionResult to cursor.dependencies.
+
+
+Conjunctions
+------------
+Flow- and value-conjunction nodes are pure pass-through. Their
+codeGenerator throws and must never be called. The walk skips them via
+skipThroughFlowConjunctions / skipThroughValueConjunctions. They never
+appear in the buffer and never receive a valueId.
+
+
+Result types
+------------
+PotatnoCodeGeneratorGraphResult — one per exit. Returned by
+generateNodeCodeWithDependencies. Fields: bodyCode, entryNode,
+exitNode, entryPorts, exitPorts, dependencies.
+
+PotatnoCodeGeneratorFunctionResult — aggregates one GraphResult per
+exit. Returned by generateFunctionCode. New helper:
+
+  graphResultOf(pEntryDefinitionId: string)
+      : PotatnoCodeGeneratorGraphResult<TProject> | undefined
+
+Scans nodes for `entryNode.definitionId === pEntryDefinitionId`. Lets
+function definition `body` callbacks find a specific graph and stub
+out missing ones for intermediate / preview builds (e.g., GPU shader
+preview where only one stage is generated).
+
+Both extends from PotatnoCodeGeneratorResult so the function definition
+body can detect if its a node or function result by checking the instance type.
+
+
+Hooks and debug mode
+--------------------
+cursor.debug is forwarded via pContext. Node authors emit hook comments
+themselves — comment syntax is language-specific, no framework auto-
+injection.
+
+
+valueId format
+--------------
+`v_${counter}`. Monotonic across the whole pass. No other constraints.
+
+
+Branching `next`
+----------------
+`next` exists only on branching nodes (≥2 flow outputs). Single-flow-
+output nodes treat `inner` as the whole forward chain.
+
+`next` lives at the pContext (parent) level, NOT on individual flow
+output ports. One branching node has exactly one merged tail; putting
+it per-port would duplicate the same string across every output. Shape
+the type as:
+  pContext.outputs["then"].code.inner
+  pContext.outputs["else"].code.inner
+  pContext.code.next     // single shared tail
+
+The existing PotatnoCodeGeneratorPort type (with `next` per port) needs
+to be updated to reflect this — the original modelling was wrong.
+
+
+Imports
+-------
+Each function's imports are an `Array<string>` (already on
+DocumentFunction). Strings are opaque to the generator — the function
+definition's `body` callback decides what an import string means and
+how it's rendered. The generator's only contract:
+  - Preserve declaration order.
+  - Dedupe across all generated functions when concatenating at the
+    document level.
+Array (not Set) because order matters.
+
+
+Validation assumptions
+----------------------
+Generator can assume the document was validated. That validation
+already rejects cycles in the flow/value graph; it must also reject
+cross-function recursion (A → B → A) — added to document/function
+validation, NOT detected by the generator. Hitting a recursion case
+here would mean validation has a bug.
+
+
+============================================================================
+IMPLEMENTATION ORDER
+============================================================================
+
+Sequence to write the generator code in. Each step leaves something
+runnable and verifiable against the playground.
+
+1. PassCursor type + scope swap helper.
+2. Pre-pass: build scope.remaining for a given exit node's subgraph.
+3. Linear backward walk (no branching). Emit a straight flow chain
+   including lazy value-producer emission via refcount.
+4. Function-call dedup via cursor.functionCache.
+5. Branching: findBranchPoint (tagged BFS) + sub-walk recursion +
+   inner/next assembly.
+6. Wire generateNodeGraphCode + generateFunctionCode to call the inner
+   walk; close their TODOs.
+7. Close generateDocumentCode TODO: topological concat (entry function
+   last) and ordered-dedup import aggregation.

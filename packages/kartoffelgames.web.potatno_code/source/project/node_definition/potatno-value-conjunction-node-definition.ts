@@ -5,6 +5,12 @@ import { PotatnoNodeDefinition } from './potatno-node-definition.ts';
 
 export class ValueConjunctionNodeDefinition<TProject extends PotatnoProject> extends PotatnoNodeDefinition<TProject> {
     /**
+     * Stable definition id for this built-in node. Exposed so the code
+     * generator can detect conjunction nodes and skip them during walks.
+     */
+    public static readonly DEFINITION_ID: string = 'a579584d-5d35-42b5-b2ba-3daddee488e0';
+
+    /**
      * Create a new ValueConjunctionNodeDefinition.
      */
     public static newConjunctionNode<TProject extends PotatnoProject>(): ValueConjunctionNodeDefinition<TProject> {
@@ -16,7 +22,7 @@ export class ValueConjunctionNodeDefinition<TProject extends PotatnoProject> ext
      */
     protected constructor() {
         super({
-            id: 'a579584d-5d35-42b5-b2ba-3daddee488e0',
+            id: ValueConjunctionNodeDefinition.DEFINITION_ID,
             label: 'Value Conjunction',
             category: NodeCategory.Reroute,
             generators: {

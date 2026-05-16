@@ -5,6 +5,12 @@ import { PotatnoNodeDefinition } from './potatno-node-definition.ts';
 
 export class FlowConjunctionNodeDefinition<TProject extends PotatnoProject> extends PotatnoNodeDefinition<TProject> {
     /**
+     * Stable definition id for this built-in node. Exposed so the code
+     * generator can detect conjunction nodes and skip them during walks.
+     */
+    public static readonly DEFINITION_ID: string = '23e9319b-3b62-4dd8-858a-17d97ddee94e';
+
+    /**
      * Create a new FlowConjunctionNodeDefinition.
      */
     public static newConjunctionNode<TProject extends PotatnoProject>(): FlowConjunctionNodeDefinition<TProject> {
@@ -16,7 +22,7 @@ export class FlowConjunctionNodeDefinition<TProject extends PotatnoProject> exte
      */
     protected constructor() {
         super({
-            id: '23e9319b-3b62-4dd8-858a-17d97ddee94e',
+            id: FlowConjunctionNodeDefinition.DEFINITION_ID,
             label: 'Flow Conjunction',
             category: NodeCategory.Reroute,
             generators: {

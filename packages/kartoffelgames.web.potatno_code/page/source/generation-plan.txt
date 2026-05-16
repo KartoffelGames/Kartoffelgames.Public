@@ -24,23 +24,170 @@ bottom-up; each branching node's `inner` and `next` strings are already
 in the buffer when the node is emitted, so they thread straight into
 its pContext.
 
-walkBackward(startNode, stopBefore?, cursor) — iterative inside one
-scope, recursive across scopes (one sub-walk per fan-in branch).
+Buffer ordering convention: scope.buffer collects emitted code in
+REVERSE execution order via push. To produce the final code string,
+the consumer reverses and joins:
+    scope.buffer.slice().reverse().join('\n')
+The merge snapshot (nextCode) and each sub-walk's inner string are
+produced the same way before being passed into emitFlowNode.
 
-Per cursor step:
-  - 0 flow-input predecessors  → emit, return (entry / dead-end).
-  - 1 flow-input predecessor   → emit, advance.
-  - ≥2 flow-input predecessors → MERGE. Find branch point B via tagged
-                                  BFS. Spawn one sub-walk per fan-in
-                                  with stopBefore=B; each sub-walk's
-                                  buffer becomes that flow output's
-                                  `inner` on B. Code already accumulated
-                                  since the merge becomes `next`. Emit
-                                  B, then continue from B's predecessor.
+Top-level invocation (inside generateNodeCodeWithDependencies):
 
-findBranchPoint — backward BFS from each fan-in predecessor, each
-carrying a tag. First node whose accumulated tag set covers all
-branches is the branch point. O(V+E) over the merge's backward reach.
+    const cursor = {
+        counter: { id: 0 },
+        functionGenerationCache: new Map(),
+        dependencies: pDependencies,  // caller-owned, mutated in place
+        debug: this.mDebug,            // set on the generator instance
+        scope: {
+            valueIds: new Map(),
+            remaining: this.preCountConsumers(pExitNode, null),
+            buffer: []
+        }
+    };
+
+    this.walkBackward(pExitNode, null, cursor);
+
+    // Build the PotatnoCodeGeneratorGraph from cursor.scope and the
+    // entry node discovered at termination, then wrap into a
+    // PotatnoCodeGeneratorGraphResult.
+
+walkBackward main loop:
+
+    let cursor_node = pStartNode;
+
+    while (cursor_node !== null && cursor_node !== pStopBefore) {
+        const preds = this.skipFlowConjunctions(
+            cursor_node.flowInput.connectedPorts
+        );
+
+        // CASE A: 0 predecessors → entry node or dead end.
+        if (preds.length === 0) {
+            cursor.scope.buffer.push(
+                this.emitFlowNode(cursor_node, cursor)
+            );
+            return;
+        }
+
+        // CASE B: 1 predecessor → linear flow.
+        if (preds.length === 1) {
+            cursor.scope.buffer.push(
+                this.emitFlowNode(cursor_node, cursor)
+            );
+            cursor_node = preds[0];
+            continue;
+        }
+
+        // CASE C: ≥2 predecessors → cursor is a merge point.
+        // 1. Emit the merge node itself first (regular node, has code).
+        cursor.scope.buffer.push(
+            this.emitFlowNode(cursor_node, cursor)
+        );
+
+        // 2. Snapshot everything emitted so far → the branch point's
+        //    `next`. Reverse-then-join because buffer is backward.
+        const nextCode = cursor.scope.buffer
+            .slice().reverse().join('\n');
+        cursor.scope.buffer = [];
+
+        // 3. Resolve the branch point and run a sub-walk per fan-in.
+        const branchPoint = this.findBranchPoint(cursor_node);
+        const innerByPort: Record<string, string> = {};
+        const parentScope = cursor.scope;
+
+        for (const pred of preds) {
+            cursor.scope = {
+                valueIds: new Map(),
+                remaining: this.preCountConsumers(pred.node, branchPoint),
+                buffer: []
+            };
+            this.walkBackward(pred.node, branchPoint, cursor);
+            innerByPort[pred.sourcePort.id] = cursor.scope.buffer
+                .slice().reverse().join('\n');
+        }
+
+        cursor.scope = parentScope;
+
+        // 4. Emit the branch point with inner/next pre-filled.
+        cursor.scope.buffer.push(
+            this.emitFlowNode(branchPoint, cursor, innerByPort, nextCode)
+        );
+
+        // 5. Continue from the branch point's flow-input predecessor.
+        cursor_node = this.skipFlowConjunctions(
+            branchPoint.flowInput.connectedPorts
+        )[0] ?? null;
+    }
+
+When walkBackward returns, cursor.scope.buffer is the (still-backward)
+buffer for this scope. The caller — top-level or sub-walk handler —
+reverses and joins to produce the body string for whatever it's
+building.
+
+
+findBranchPoint — algorithm
+---------------------------
+Tagged backward BFS. Each fan-in predecessor seeds its own tag; tags
+propagate as the search walks back through flow inputs. The first
+node whose accumulated tag set covers ALL branches is the branch
+point.
+
+    findBranchPoint(pMergeNode):
+        const totalTags = pMergeNode.flowInput.connectedPorts.length;
+        const tagsByNode = new Map<Node, Set<TagId>>();
+        const queue: Array<Node> = [];
+
+        // Seed: one tag per fan-in predecessor.
+        pMergeNode.flowInput.connectedPorts.forEach((pred, i) => {
+            const predNode = this.skipFlowConjunctions(pred.node);
+            tagsByNode.set(predNode, new Set([i]));
+            queue.push(predNode);
+        });
+
+        while (queue.length > 0) {
+            const node = queue.shift()!;
+
+            // Branch point found.
+            if (tagsByNode.get(node)!.size === totalTags) {
+                return node;
+            }
+
+            // Propagate this node's tags to its flow-input predecessors.
+            const parentTags = tagsByNode.get(node)!;
+            for (const pred of node.flowInput.connectedPorts) {
+                const predNode = this.skipFlowConjunctions(pred.node);
+                const predTags = tagsByNode.get(predNode) ?? new Set();
+
+                let added = false;
+                for (const t of parentTags) {
+                    if (!predTags.has(t)) {
+                        predTags.add(t);
+                        added = true;
+                    }
+                }
+                tagsByNode.set(predNode, predTags);
+
+                if (added) {
+                    queue.push(predNode);
+                }
+            }
+        }
+
+        throw new Exception('No common branch point found.', this);
+
+O(V+E) over the merge's backward reach. A graph that fails to find a
+branch point implies a malformed subgraph — validation should have
+caught it.
+
+
+Definitions
+-----------
+"Pure-value producer" — a node with zero flow inputs AND zero flow
+outputs. Its execution is implied solely by data-flow demand. These
+are the nodes that participate in the lazy-emission refcount cascade
+(Math.PI, Add, Multiply, etc. in the playground).
+
+A node with at least one flow input or flow output is a "flow node"
+and is emitted only when the backward flow walk visits it directly.
 
 
 Cursor object
@@ -396,10 +543,16 @@ through the cursor. Private helpers:
 
   private emitFlowNode(
       pNode: PotatnoDocumentNode<TProject>,
-      pCursor: PotatnoCodeGeneratorPassCursor<TProject>
+      pCursor: PotatnoCodeGeneratorPassCursor<TProject>,
+      pInnerByPort?: Record<string, string>,
+      pNextCode?: string
   ): string;
-      // Builds the node's PotatnoNodeDefinitionGeneratorContext, calls
-      // its code generator, returns the result. Caller appends.
+      // Builds the node's PotatnoNodeDefinitionGeneratorContext and
+      // calls its code generator. For branching nodes the caller
+      // (walkBackward CASE C) passes pInnerByPort + pNextCode so they
+      // can be placed into pContext.outputs[port].code.inner and
+      // pContext.code.next; for non-branching nodes both default to
+      // empty (Record<string, ''> / '').
 
   private skipFlowConjunctions(
       pNode: PotatnoDocumentNode<TProject>

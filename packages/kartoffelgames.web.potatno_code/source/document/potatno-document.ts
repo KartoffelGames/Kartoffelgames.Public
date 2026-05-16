@@ -116,12 +116,84 @@ export class PotatnoDocument<TProject extends PotatnoProject> {
 
     /**
      * Validate all functions in this document and return any errors found.
+     * Also rejects cross-function recursion (A → B → A) so the code
+     * generator can assume an acyclic function-call graph.
      */
     public validate(): Array<PotatnoDocumentPortValidationError<TProject>> {
         const lErrors: Array<PotatnoDocumentPortValidationError<TProject>> = [];
 
+        // Per-function validation: flow/value cycles, region constraints, port resync.
         for (const lFunction of this.mFunctions) {
             lErrors.push(...lFunction.validate());
+        }
+
+        // Cross-function recursion detection over the function-call graph.
+        lErrors.push(...this.detectCrossFunctionRecursion());
+
+        return lErrors;
+    }
+
+    /**
+     * Build the function-call dependency graph from PotatnoFunctionNodeDefinition
+     * usages and report any cycles found.
+     */
+    private detectCrossFunctionRecursion(): Array<PotatnoDocumentPortValidationError<TProject>> {
+        const lErrors: Array<PotatnoDocumentPortValidationError<TProject>> = [];
+
+        // Create a mapping of which functions call which other functions based on the function nodes used in their graphs.
+        // The function call only searches for the requested function and caches the result, so each function's called functions are only computed once.
+        const lFunctionsUsedFunctions: Map<PotatnoDocumentFunction<TProject>, Set<PotatnoDocumentFunction<TProject>>> = new Map<PotatnoDocumentFunction<TProject>, Set<PotatnoDocumentFunction<TProject>>>();
+        const lGetUsedFunctions = (pFunction: PotatnoDocumentFunction<TProject>): Set<PotatnoDocumentFunction<TProject>> => {
+            // Create new mapping entry for this function if it doesn't exist yet.
+            if (!lFunctionsUsedFunctions.has(pFunction)) {
+                // Create new set of called functions for this function and populate it by searching through all nodes in the function.
+                const lUsedFunctions: Set<PotatnoDocumentFunction<TProject>> = new Set<PotatnoDocumentFunction<TProject>>();
+                for (const lNode of pFunction.nodes) {
+                    // If this node is a function node, add the corresponding function to the called set.
+                    if (this.mFunctionNodeDefinitions.has(lNode.definitionId)) {
+                        lUsedFunctions.add(this.mFunctionNodeDefinitions.get(lNode.definitionId)!.function);
+                    }
+                }
+
+                // Cache the result for future lookups.
+                lFunctionsUsedFunctions.set(pFunction, lUsedFunctions);
+            }
+
+            return lFunctionsUsedFunctions.get(pFunction)!;
+        };
+
+        // Search buffer lists.
+        const lProcessedFunctions: Set<PotatnoDocumentFunction<TProject>> = new Set<PotatnoDocumentFunction<TProject>>();
+        const lFunctionCallStack: Set<PotatnoDocumentFunction<TProject>> = new Set<PotatnoDocumentFunction<TProject>>();
+
+        // Recursive deep search function to explore the call graph.
+        const lVisit = (pFunction: PotatnoDocumentFunction<TProject>): void => {
+            // Skip already fully explored functions.
+            // That way each function is only processed once, even if there are multiple paths to it.
+            if (lProcessedFunctions.has(pFunction)) {
+                return;
+            }
+
+            // Already on the current search path => cycle.
+            if (lFunctionCallStack.has(pFunction)) {
+                lErrors.push(new PotatnoDocumentPortValidationError(`Function "${pFunction.label}" participates in a cross-function recursion cycle.`, pFunction));
+                return;
+            }
+
+            // Build the function stack for the current path and explore deeper.
+            lFunctionCallStack.add(pFunction);
+            for (const lCalled of lGetUsedFunctions(pFunction)) {
+                lVisit(lCalled);
+            }
+            lFunctionCallStack.delete(pFunction);
+
+            // Mark this function as fully processed.
+            lProcessedFunctions.add(pFunction);
+        };
+
+        // Check each function for itself.
+        for (const lFunction of this.mFunctions) {
+            lVisit(lFunction);
         }
 
         return lErrors;

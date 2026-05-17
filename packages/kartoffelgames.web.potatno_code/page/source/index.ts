@@ -124,10 +124,12 @@ const lEntryFunction = PotatnoFunctionDefinition.new(lProjectTypes, {
     },
     generator: {
         code: {
-            body: (pFunction) => {
-                const lNode = pFunction.nodes[0];
-                const lBodyCode: string = lNode?.graphCode ?? '';
-                return `function ${pFunction.functionName}(__pixel_x, __pixel_y) {\nlet __pixel_r = 0, __pixel_g = 0, __pixel_b = 0;\n${lBodyCode}\nreturn [__pixel_r, __pixel_g, __pixel_b];\n}`;
+            body: (pResult) => {
+                // Look up the OnPixel graph by its entry-definition id.
+                // The base result class exposes graphResultOf uniformly across FunctionResult and GraphResult.
+                const lGraph = pResult.graphResultOf('OnPixel');
+                const lBodyCode: string = lGraph?.bodyCode ?? '';
+                return `function ${pResult.functionName}(__pixel_x, __pixel_y) {\nlet __pixel_r = 0, __pixel_g = 0, __pixel_b = 0;\n${lBodyCode}\nreturn [__pixel_r, __pixel_g, __pixel_b];\n}`;
             },
             value: (pContext) => {
                 return `${pContext.inputs}`;
@@ -229,16 +231,18 @@ const lUserFunction = PotatnoFunctionDefinition.new(lProjectTypes, {
     },
     generator: {
         code: {
-            body: (pFunction) => {
-                const lNode = pFunction.nodes[0];
-                const lParams: string = lNode?.entryPorts.map((i) => i.valueId).join(', ') ?? '';
-                const lExitPorts = lNode?.exitPorts ?? [];
+            body: (pResult) => {
+                // Look up the HelperFunctionEntry graph. The graph's entryPorts
+                // give the parameter list and the exitPorts give the return values.
+                const lGraph = pResult.graphResultOf('HelperFunctionEntry');
+                const lParams: string = lGraph?.entryPorts.map((i) => i.valueId).join(', ') ?? '';
+                const lExitPorts = lGraph?.exitPorts ?? [];
                 const lReturnValues: string = lExitPorts.map((o) => o.valueId).join(', ');
-                let lBody: string = lNode?.graphCode ?? '';
+                let lBody: string = lGraph?.bodyCode ?? '';
                 if (lReturnValues) {
                     lBody += `\nreturn ${lExitPorts.length > 1 ? `[${lReturnValues}]` : lReturnValues};`;
                 }
-                return `function ${pFunction.functionName}(${lParams}) {\n${lBody}\n}`;
+                return `function ${pResult.functionName}(${lParams}) {\n${lBody}\n}`;
             },
             value: (pContext) => {
                 const lArgs: string = Object.values(pContext.inputs).map((i: any) => i.valueId).join(', ');

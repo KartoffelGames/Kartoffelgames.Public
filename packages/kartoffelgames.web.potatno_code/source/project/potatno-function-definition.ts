@@ -1,4 +1,5 @@
 import { PotatnoCodeGeneratorFunctionResult } from "../parser/potatno-code-generator-function-result.ts";
+import { PotatnoCodeGeneratorResult } from "../parser/potatno-code-generator-result.ts";
 import { PotatnoNodeDefinition, PotatnoNodeDefinitionGeneratorContext } from "./node_definition/potatno-node-definition.ts";
 import { PotatnoProject } from "./potatno-project.ts";
 import { PotatnoProjectTypesDefinition } from "./potatno-project-types-definition.ts";
@@ -154,9 +155,11 @@ type PotatnoFunctionDefinitionConstructorParameter<TProject extends PotatnoProje
  */
 export type PotatnoFunctionDefinitionGenerator<TProject extends PotatnoProject> = {
     /**
-     * Produces the complete function code from the function body and metadata.
+     * Produces the complete function code from one or more generated graphs.
+     * Accepts the abstract result type so both full-function and intermediate builds can flow through the same callback.
+     * Callers use pResult.graphResultOf(...) to look up specific graphs and stub out missing ones for intermediate builds.
      */
-    body: (pFunction: PotatnoCodeGeneratorFunctionResult<TProject>) => string;
+    body: (pResult: PotatnoCodeGeneratorResult<TProject>) => string;
 
     /**
      * Produces the call-site code expression when this function is invoked as a node.

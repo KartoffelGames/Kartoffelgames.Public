@@ -175,11 +175,46 @@ export type PotatnoNodeDefinitionPortGeneratorFunction<TProject extends PotatnoP
 /*
  * Code generator ports.
  */
-export type PotatnoCodeGeneratorPort = {
+
+/**
+ * Per-input-port context surface seen by a node's code generator.
+ * Input ports only carry a value identifier (either the valueId of the
+ * connected source output, or a literal expression for unconnected
+ * value inputs).
+ * 
+ * Flow inputs do not appear in pContext.inputs.
+ */
+export type PotatnoCodeGeneratorInputPort = {
+    /**
+     * The valueId or literal expression to read from this input port.
+     */
     valueId: string;
+};
+
+/**
+ * Per-output-port context surface seen by a node's code generator.
+ *
+ * For value outputs: valueId is the freshly-allocated variable name
+ * the node should assign to; code.inner is unused (empty string).
+ *
+ * For flow outputs: code.inner is the recursive subgraph code reachable
+ * downstream of this flow output; valueId is unused (empty string).
+ */
+export type PotatnoCodeGeneratorOutputPort = {
+    /**
+     * Variable name allocated for a value output. Empty string for flow outputs.
+     */
+    valueId: string;
+
+    /**
+     * Code attached to a flow output.
+     */
     code: {
+        /**
+         * Recursive code reachable downstream of this flow output port.
+         * Empty string for value outputs.
+         */
         inner: string;
-        next: string;
     };
 };
 
@@ -187,16 +222,41 @@ export type PotatnoCodeGeneratorPort = {
  * Code generator
  */
 
+/**
+ * Function signature for a node definition's code generator callback.
+ */
 export type PotatnoNodeDefinitionCodeGenerator = (pContext: PotatnoNodeDefinitionGeneratorContext) => string;
 
+/**
+ * Context object passed to a node definition's code generator callback.
+ */
 export type PotatnoNodeDefinitionGeneratorContext = {
     /**
-     *  Input port valueIds keyed by port name. 
+     * Input port surfaces keyed by port definition id.
+     * Only value inputs appear here; flow inputs are not represented.
      */
-    readonly inputs: Record<string, PotatnoCodeGeneratorPort>;
+    readonly inputs: Record<string, PotatnoCodeGeneratorInputPort>;
 
-    /** 
-     * Output port valueIds keyed by port name. 
+    /**
+     * Output port surfaces keyed by port definition id.
      */
-    readonly outputs: Record<string, PotatnoCodeGeneratorPort>;
+    readonly outputs: Record<string, PotatnoCodeGeneratorOutputPort>;
+
+    /**
+     * True when this generation pass is producing intermediate output
+     * that may be consumed by a preview executor. Node authors decide
+     * whether to emit hook comments based on this flag.
+     */
+    readonly debug: boolean;
+
+    /**
+     * Context-level code surface for branching nodes (≥2 flow outputs).
+     */
+    readonly code: {
+        /**
+         * Code that runs after a branching node's flow outputs reconverge the merged tail.
+         * Empty string for non-branching nodes.
+         */
+        next: string;
+    };
 };

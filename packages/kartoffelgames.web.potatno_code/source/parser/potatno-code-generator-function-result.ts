@@ -1,62 +1,23 @@
-import { PotatnoDocumentFunction } from "../document/potatno-document-function.ts";
-import { PotatnoProject } from "../project/potatno-project.ts";
-import { PotatnoCodeGeneratorGraphResult } from "./potatno-code-generator-graph-result.ts";
+import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
+import type { PotatnoProject } from '../project/potatno-project.ts';
+import { PotatnoCodeGeneratorResult } from './potatno-code-generator-result.ts';
 
 /**
- * Code generation result for the generation of a single function, or its subgraph.
+ * Code generation result for a full-function build.
+ *
+ * Aggregates one Graph per exit node in the owning function.
+ * Returned by generateFunctionCode and by the recursive function-call resolution inside the inner walk.
+ *
+ * Adds no fields of its own. The base class does all the heavy lifting.
+ * The subclass exists so callers can distinguish a full result from a single-graph intermediate result via instanceof.
  */
-export class PotatnoCodeGeneratorFunctionResult<TProject extends PotatnoProject> {
-    private readonly mFunction: PotatnoDocumentFunction<TProject>;
-    private readonly mFunctionName: string;
-    private readonly mNodeResults: Array<PotatnoCodeGeneratorGraphResult<TProject>>;
-
+export class PotatnoCodeGeneratorFunctionResult<TProject extends PotatnoProject> extends PotatnoCodeGeneratorResult<TProject> {
     /**
-     * The name of the function, as defined in the document function.
-     */
-    public get functionName(): string {
-        return this.mFunctionName;
-    }
-
-    /**
-     * The document function this result represents.
-     */
-    public get function(): PotatnoDocumentFunction<TProject> {
-        return this.mFunction;
-    }
-
-    /**
-     * The imports required by the function, as defined in the document function.
-     */
-    public get imports(): ReadonlyArray<string> {
-        return this.mFunction.imports;
-    }
-
-    /**
-     * Per-exit-node generation results. One entry per exit node found in the function graph.
-     * Each entry captures the graph code, entry/exit node references, and their port value IDs.
-     */
-    public get nodes(): ReadonlyArray<PotatnoCodeGeneratorGraphResult<TProject>> {
-        return this.mNodeResults;
-    }
-
-    /**
-     * Create a new function context instance.
+     * Constructor.
      *
-     * @param pFunctionName - Display name of the function.
-     * @param pFunction - The document function this context represents.
+     * @param pFunction - The document function the result represents.
      */
-    public constructor(pFunctionName: string, pFunction: PotatnoDocumentFunction<TProject>) {
-        this.mFunction = pFunction;
-        this.mFunctionName = pFunctionName;
-        this.mNodeResults = new Array<PotatnoCodeGeneratorGraphResult<TProject>>();
-    }
-
-    /**
-     * Add a single node graph result to the function context.
-     * 
-     * @param pResult - The result of the node graph to add.
-     */
-    public addNodeResult(pResult: PotatnoCodeGeneratorGraphResult<TProject>): void {
-        this.mNodeResults.push(pResult);
+    public constructor(pFunction: PotatnoDocumentFunction<TProject>) {
+        super(pFunction);
     }
 }

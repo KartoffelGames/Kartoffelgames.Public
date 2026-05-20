@@ -43,7 +43,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @returns The complete generated code as a single string.
      */
-    public generateDocumentCode(pDocument: PotatnoDocument<TProject>): string {
+    public generateDocument(pDocument: PotatnoDocument<TProject>): string {
         // Locate the entry-point function (the system function in the document).
         const lEntryPointFunction: PotatnoDocumentFunction<TProject> | undefined = [...pDocument.functions].find((pFunction) => {
             return pFunction.isSystem;
@@ -61,9 +61,11 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         // Generate the entry-point function. Its result transitively pulls in all called functions via the shared cache.
         // Each function's wrapped body is appended to lGlobals.generatedFunctionBodies in topological order (dependencies first, entry last).
         // The returned FunctionResult is consumed by the other public entry points. Here only the side-effect on lGlobals is needed.
-        this.generateFunctionCodeInternal(lEntryPointFunction, lGlobals);
+        this.generateFunctionCode(lEntryPointFunction, lGlobals);
 
-        return lGlobals.generatedFunctionBodies.join('\n');
+        // TODO: Thats seems wrong. Maybe it should return a object with anything (code & dependencies) or something?.
+        // TODO: So the function does the same as generate function???
+        return lGlobals.generatedFunctionBodies.join('\n'); 
     }
 
     /**
@@ -77,8 +79,8 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @returns A FunctionResult containing one Graph per exit node in the function.
      */
-    public generateFunctionCode(pFunction: PotatnoDocumentFunction<TProject>): PotatnoCodeGeneratorFunctionResult<TProject> {
-        return this.generateFunctionCodeInternal(pFunction, this.createGenerationPassData(true));
+    public generateFunction(pFunction: PotatnoDocumentFunction<TProject>): PotatnoCodeGeneratorFunctionResult<TProject> {
+        return this.generateFunctionCode(pFunction, this.createGenerationPassData(true));
     }
 
     /**
@@ -90,14 +92,14 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @returns A GraphResult containing one Graph for the subgraph.
      */
-    public generateNodeGraphCode(pExitNode: PotatnoDocumentNode<TProject>): PotatnoCodeGeneratorGraphResult<TProject> {
+    public generateNode(pExitNode: PotatnoDocumentNode<TProject>): PotatnoCodeGeneratorGraphResult<TProject> {
         const lGlobals: PotatnoCodeGeneratorPassData<TProject> = this.createGenerationPassData(true);
 
         // Create new function result.
         const lResult: PotatnoCodeGeneratorGraphResult<TProject> = new PotatnoCodeGeneratorGraphResult(pExitNode.function);
 
         // Walk the subgraph anchored at pExitNode and wrap the produced Graph into a single-graph result.
-        lResult.addGraph(this.generateNodeCodeWithDependencies(pExitNode, lGlobals));
+        lResult.addGraph(this.generateNodeCode(pExitNode, lGlobals));
 
         return lResult;
     }
@@ -117,20 +119,16 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
     }
 
     /**
-     * Internal function-code generator.
-     *
-     * Reuses the supplied global state so recursive calls (triggered when
-     * a PotatnoFunctionNodeDefinition is encountered during a walk)
-     * share the counter, function cache, and debug flag with their
-     * caller. Deduplication is done via the global functionGenerationCache.
+     * Generate code for a document function.
+     * Also generates the function codes for function dependencies encountered during generation.
      *
      * @param pFunction - The function to generate code for.
      * @param pGlobals - Shared global pass state.
      *
      * @returns The FunctionResult (either freshly built or cached).
      */
-    private generateFunctionCodeInternal(pFunction: PotatnoDocumentFunction<TProject>, pGlobals: PotatnoCodeGeneratorPassData<TProject>): PotatnoCodeGeneratorFunctionResult<TProject> {
-        // Dedup via the shared cache.
+    private generateFunctionCode(pFunction: PotatnoDocumentFunction<TProject>, pGlobals: PotatnoCodeGeneratorPassData<TProject>): PotatnoCodeGeneratorFunctionResult<TProject> {
+        // Skip generation when the node is currently or is already generated.
         const lCached: PotatnoCodeGeneratorFunctionResult<TProject> | undefined = pGlobals.functionGenerationCache.get(pFunction);
         if (lCached) {
             return lCached;
@@ -142,20 +140,24 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             throw new Exception(`Function definition not found for function "${pFunction.label}".`, this);
         }
 
-        // Build the result and cache BEFORE walking so any function-call recursion (legitimately broken via validation, but defensive here) terminates.
+        // Build the result and cache BEFORE walking so any function-call recursion terminates.
         const lFunctionResult: PotatnoCodeGeneratorFunctionResult<TProject> = new PotatnoCodeGeneratorFunctionResult(pFunction);
         pGlobals.functionGenerationCache.set(pFunction, lFunctionResult);
 
-        // Identify all exit nodes in this function (instances matching one of the function definition's declared exit-node definitions).
-        const lExitDefinitionIds: Set<string> = new Set<string>(lFunctionDefinition.getNodeDefinitions(pFunction).exit.map((pDef) => pDef.id));
-        const lExitNodes: Array<PotatnoDocumentNode<TProject>> = [...pFunction.nodes].filter((pNode) => {
-            return lExitDefinitionIds.has(pNode.definitionId);
-        });
+        // Read and convert the exit nodes of the function into a searchable set.
+        const lExitDefinitionIds: Set<string> = new Set<string>(lFunctionDefinition.getNodeDefinitions(pFunction).exit.map((pDef) => {
+            return pDef.id;
+        }));
 
         // Walk each exit node's subgraph and attach the produced graph to the result.
-        for (const lExitNode of lExitNodes) {
-            const lGraph: PotatnoCodeGeneratorGraph<TProject> = this.generateNodeCodeWithDependencies(lExitNode, pGlobals);
-            lFunctionResult.addGraph(lGraph);
+        for (const lNode of pFunction.nodes) {
+            // Skip any node that is not a exit node.
+            if (!lExitDefinitionIds.has(lNode.definitionId)) {
+                continue;
+            }
+
+            // Generate graph for the exit node and append it as result.
+            lFunctionResult.addGraph(this.generateNodeCode(lNode, pGlobals));
         }
 
         // Wrap the body via the function definition's code generator and record in completion order.
@@ -178,7 +180,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @returns A Graph capturing the subgraph's body code, entry/exit ports, imports, and dependencies.
      */
-    private generateNodeCodeWithDependencies(pExitNode: PotatnoDocumentNode<TProject>, pGlobals: PotatnoCodeGeneratorPassData<TProject>): PotatnoCodeGeneratorGraph<TProject> {
+    private generateNodeCode(pExitNode: PotatnoDocumentNode<TProject>, pGlobals: PotatnoCodeGeneratorPassData<TProject>): PotatnoCodeGeneratorGraph<TProject> {
         // Build a fresh cursor with the top-level scope and dependencies accumulator.
         const lDependencies: Array<PotatnoCodeGeneratorFunctionResult<TProject>> = new Array<PotatnoCodeGeneratorFunctionResult<TProject>>();
         const lCursor: PotatnoCodeGeneratorPassCursor<TProject> = {
@@ -356,7 +358,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
 
         // Function-call nodes also trigger generation of the target function (deduplicated via the global cache).
         if (lNodeDefinition instanceof PotatnoFunctionNodeDefinition) {
-            const lDependency: PotatnoCodeGeneratorFunctionResult<TProject> = this.generateFunctionCodeInternal(lNodeDefinition.function, pCursor);
+            const lDependency: PotatnoCodeGeneratorFunctionResult<TProject> = this.generateFunctionCode(lNodeDefinition.function, pCursor);
             if (!pCursor.dependencies.includes(lDependency)) {
                 pCursor.dependencies.push(lDependency);
             }
@@ -661,7 +663,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         const lResults: Array<PotatnoDocumentPort<TProject>> = new Array<PotatnoDocumentPort<TProject>>();
 
         // Port does not belong to a conjunction. Just return it.
-        if(pOutputPort.node.definitionId === FlowConjunctionNodeDefinition.DEFINITION_ID) {
+        if (pOutputPort.node.definitionId === FlowConjunctionNodeDefinition.DEFINITION_ID) {
             lResults.push(pOutputPort);
             return lResults;
         }
@@ -669,12 +671,12 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         // Try to read the nodes first input port.
         // Conjuctions only have one in- and output port. When it has no connection, just throw.
         const lInputPort: PotatnoDocumentPort<TProject> | undefined = pOutputPort.node.inputs.values().next().value;
-        if(!lInputPort || lInputPort.connectedPorts.size === 0) {
+        if (!lInputPort || lInputPort.connectedPorts.size === 0) {
             throw new Exception('Conjunction nodes must have a valid input and output connection', this);
         }
 
         // Read and recursive resolve all incoming ports.
-        for(const lOutputPort of lInputPort.connectedPorts) {
+        for (const lOutputPort of lInputPort.connectedPorts) {
             lResults.push(...this.resolveFlowConjunctions(lOutputPort));
         }
 
@@ -690,14 +692,14 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      */
     private resolveValueConjunctions(pOutputPort: PotatnoDocumentPort<TProject>): PotatnoDocumentPort<TProject> {
         // Port does not belong to a conjunction. Return it.
-        if(pOutputPort.node.definitionId !== ValueConjunctionNodeDefinition.DEFINITION_ID) {
-            return pOutputPort
+        if (pOutputPort.node.definitionId !== ValueConjunctionNodeDefinition.DEFINITION_ID) {
+            return pOutputPort;
         }
 
         // Try to read the nodes first input port.
         // Conjuctions only have one in- and output port. When it has no connection, just throw.
         const lInputPort: PotatnoDocumentPort<TProject> | undefined = pOutputPort.node.inputs.values().next().value;
-        if(!lInputPort || lInputPort.connectedPorts.size === 0) {
+        if (!lInputPort || lInputPort.connectedPorts.size === 0) {
             throw new Exception('Conjunction nodes must have a valid input and output connection', this);
         }
 

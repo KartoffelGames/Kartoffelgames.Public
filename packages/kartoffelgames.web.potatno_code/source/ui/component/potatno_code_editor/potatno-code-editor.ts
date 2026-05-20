@@ -691,8 +691,8 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
 
         try {
             const lGenerator: PotatnoCodeGenerator<TProject> = new PotatnoCodeGenerator<TProject>(lProject);
-            this.mGraphPreviewResult = lGenerator.generateFunctionCode(lEntryFunction);
-            this.mGraphPreviewCode = lGenerator.generateDocumentCode(lFile);
+            this.mGraphPreviewResult = lGenerator.generateFunction(lEntryFunction);
+            this.mGraphPreviewCode = lGenerator.generateDocument(lFile);
             this.updatePreviewsFromCache();
         } catch (pError) {
             console.error('[Editor] Preview code generation failed:', pError);

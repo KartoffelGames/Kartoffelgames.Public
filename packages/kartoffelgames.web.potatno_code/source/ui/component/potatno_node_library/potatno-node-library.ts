@@ -1,8 +1,8 @@
 import { ComponentState, PwbComponent, PwbExport } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
-import { NodeCategoryMeta } from '../../../parser/node/node-category.enum.ts';
-import { PotatnoNodeLibraryDragBus } from '../../potatno-node-library-drag.ts';
+import { NodeCategoryMeta } from "../../node/node-category.enum.ts";
 import { buildAvailableNodeDefinitionEntries, type PotatnoNodeDefinitionListEntry, type PotatnoUiProject } from '../../potatno-node-definition-list.ts';
+import { PotatnoNodeLibraryDragBus } from '../../potatno-node-library-drag.ts';
 import templateCss from './potatno-node-library.css' with { type: 'text' };
 import libraryTemplate from './potatno-node-library.html' with { type: 'text' };
 

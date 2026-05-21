@@ -1,6 +1,5 @@
-import { PwbComponent, PwbExport, PwbComponentEvent, PwbChild, ComponentEventEmitter, ComponentState } from '@kartoffelgames/web-potato-web-builder';
 import type { ComponentEvent, IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
-import { NodeCategory, NodeCategoryMeta } from '../../../parser/node/node-category.enum.ts';
+import { ComponentEventEmitter, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PortInteractionDetail } from '../potatno_port/potatno-port.ts';
@@ -8,6 +7,7 @@ import nodeCss from './potatno-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
 
 // Ensure the port component is registered before the node template is processed.
+import { NodeCategory, NodeCategoryMeta } from "../../node/node-category.enum.ts";
 import '../potatno_port/potatno-port.ts';
 
 /**
@@ -203,7 +203,7 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
             return '';
         }
         const lNodeData = this.nodeData;
-        const lDef = lNodeData.project.nodeDefinitions.find((lNodeDef: { id: string }) => lNodeDef.id === lNodeData.definitionId);
+        const lDef = lNodeData.project.nodeDefinitions.find((lNodeDef: { id: string; }) => lNodeDef.id === lNodeData.definitionId);
         return lDef?.label ?? lNodeData.label;
     }
 

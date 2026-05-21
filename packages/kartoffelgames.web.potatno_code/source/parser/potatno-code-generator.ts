@@ -9,9 +9,8 @@ import type { PotatnoCodeGeneratorInputPort, PotatnoCodeGeneratorOutputPort, Pot
 import { ValueConjunctionNodeDefinition } from '../project/node_definition/potatno-value-conjunction-node-definition.ts';
 import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
-import { PotatnoCodeGeneratorFunctionResult } from './potatno-code-generator-function-result.ts';
-import { PotatnoCodeGeneratorGraph, type PotatnoCodeGeneratorGraphPort } from './potatno-code-generator-graph.ts';
-import { PotatnoCodeGeneratorGraphResult } from './potatno-code-generator-graph-result.ts';
+import { PotatnoCodeGeneratorFunctionResult } from './result/potatno-code-generator-function-result.ts';
+import { PotatnoCodeGeneratorDocumentResult } from "./result/potatno-code-generator-document-result.ts";
 
 /**
  * Code generator for Potatno documents.
@@ -43,7 +42,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @returns The complete generated code as a single string.
      */
-    public generateDocument(pDocument: PotatnoDocument<TProject>): string {
+    public generateDocument(pDocument: PotatnoDocument<TProject>): PotatnoCodeGeneratorDocumentResult<TProject> {
         // Locate the entry-point function (the system function in the document).
         const lEntryPointFunction: PotatnoDocumentFunction<TProject> | undefined = [...pDocument.functions].find((pFunction) => {
             return pFunction.isSystem;
@@ -79,7 +78,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @returns A FunctionResult containing one Graph per exit node in the function.
      */
-    public generateFunction(pFunction: PotatnoDocumentFunction<TProject>): PotatnoCodeGeneratorFunctionResult<TProject> {
+    public generateFunction(pFunction: PotatnoDocumentFunction<TProject>): PotatnoCodeGeneratorDocumentResult<TProject> {
         return this.generateFunctionCode(pFunction, this.createGenerationPassData(true));
     }
 
@@ -92,11 +91,11 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @returns A GraphResult containing one Graph for the subgraph.
      */
-    public generateNode(pExitNode: PotatnoDocumentNode<TProject>): PotatnoCodeGeneratorGraphResult<TProject> {
+    public generateNode(pExitNode: PotatnoDocumentNode<TProject>): PotatnoCodeGeneratorDocumentResult<TProject> {
         const lGlobals: PotatnoCodeGeneratorPassData<TProject> = this.createGenerationPassData(true);
 
         // Create new function result.
-        const lResult: PotatnoCodeGeneratorGraphResult<TProject> = new PotatnoCodeGeneratorGraphResult(pExitNode.function);
+        const lResult: PotatnoCodeGeneratorNodeResult<TProject> = new PotatnoCodeGeneratorNodeResult(pExitNode.function);
 
         // Walk the subgraph anchored at pExitNode and wrap the produced Graph into a single-graph result.
         lResult.addGraph(this.generateNodeCode(pExitNode, lGlobals));
@@ -180,7 +179,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @returns A Graph capturing the subgraph's body code, entry/exit ports, imports, and dependencies.
      */
-    private generateNodeCode(pExitNode: PotatnoDocumentNode<TProject>, pGlobals: PotatnoCodeGeneratorPassData<TProject>): PotatnoCodeGeneratorGraph<TProject> {
+    private generateNodeCode(pExitNode: PotatnoDocumentNode<TProject>, pGlobals: PotatnoCodeGeneratorPassData<TProject>): PotatnoCodeGeneratorNodeResult<TProject> {
         // Build a fresh cursor with the top-level scope and dependencies accumulator.
         const lDependencies: Array<PotatnoCodeGeneratorFunctionResult<TProject>> = new Array<PotatnoCodeGeneratorFunctionResult<TProject>>();
         const lCursor: PotatnoCodeGeneratorPassCursor<TProject> = {
@@ -202,19 +201,19 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         }
 
         // Collect the entry-output and exit-input port valueIds.
-        const lEntryPorts: Array<PotatnoCodeGeneratorGraphPort> = this.collectEntryPorts(lEntryNode, lCursor);
-        const lExitPorts: Array<PotatnoCodeGeneratorGraphPort> = this.collectExitPorts(pExitNode, lCursor);
+        const lEntryPorts: Array<PotatnoCodeGeneratorNodeResultPort> = this.collectEntryPorts(lEntryNode, lCursor);
+        const lExitPorts: Array<PotatnoCodeGeneratorNodeResultPort> = this.collectExitPorts(pExitNode, lCursor);
 
         // Compose the body code in execution order. The buffer accumulates code in REVERSE execution order via push, so we reverse before joining.
         const lBodyCode: string = lCursor.scope.buffer.slice().reverse().join('\n');
 
-        return new PotatnoCodeGeneratorGraph({
+        return new PotatnoCodeGeneratorNodeResult({
             bodyCode: lBodyCode,
             dependencies: lDependencies,
             entryNode: lEntryNode,
             inputPorts: lEntryPorts,
             outputPorts: lExitPorts,
-            generatedNode: pExitNode,
+            exitNode: pExitNode,
             imports: pExitNode.function.imports
         });
     }
@@ -737,8 +736,8 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * @param pEntryNode - The entry node discovered by the walk.
      * @param pCursor - The pass cursor (used to read scope.valueIds).
      */
-    private collectEntryPorts(pEntryNode: PotatnoDocumentNode<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>): Array<PotatnoCodeGeneratorGraphPort> {
-        const lPorts: Array<PotatnoCodeGeneratorGraphPort> = new Array<PotatnoCodeGeneratorGraphPort>();
+    private collectEntryPorts(pEntryNode: PotatnoDocumentNode<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>): Array<PotatnoCodeGeneratorNodeResultPort> {
+        const lPorts: Array<PotatnoCodeGeneratorNodeResultPort> = new Array<PotatnoCodeGeneratorNodeResultPort>();
         for (const lPort of pEntryNode.outputs.values()) {
             if (lPort.portType !== 'value') {
                 continue;
@@ -759,8 +758,8 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * @param pExitNode - The exit node anchoring this subgraph.
      * @param pCursor - The pass cursor.
      */
-    private collectExitPorts(pExitNode: PotatnoDocumentNode<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>): Array<PotatnoCodeGeneratorGraphPort> {
-        const lPorts: Array<PotatnoCodeGeneratorGraphPort> = new Array<PotatnoCodeGeneratorGraphPort>();
+    private collectExitPorts(pExitNode: PotatnoDocumentNode<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>): Array<PotatnoCodeGeneratorNodeResultPort> {
+        const lPorts: Array<PotatnoCodeGeneratorNodeResultPort> = new Array<PotatnoCodeGeneratorNodeResultPort>();
         for (const lPort of pExitNode.inputs.values()) {
             if (lPort.portType !== 'value') {
                 continue;

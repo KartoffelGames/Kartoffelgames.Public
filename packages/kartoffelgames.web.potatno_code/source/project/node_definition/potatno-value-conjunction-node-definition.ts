@@ -1,5 +1,4 @@
 import { Exception } from "@kartoffelgames/core";
-import { NodeCategory } from '../../parser/node/node-category.enum.ts';
 import { PotatnoProject } from '../potatno-project.ts';
 import { PotatnoNodeDefinition } from './potatno-node-definition.ts';
 
@@ -24,7 +23,7 @@ export class ValueConjunctionNodeDefinition<TProject extends PotatnoProject> ext
         super({
             id: ValueConjunctionNodeDefinition.DEFINITION_ID,
             label: 'Value Conjunction',
-            category: NodeCategory.Reroute,
+            category: 'Conjunction',
             generators: {
                 ports: {
                     inputs: (pAddPort) => {

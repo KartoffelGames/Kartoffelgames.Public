@@ -1,6 +1,7 @@
+import { PotatnoCodeGeneratorDocumentResult } from "../parser/result/potatno-code-generator-document-result.ts";
+import { FlowConjunctionNodeDefinition } from "./node_definition/potatno-flow-conjunction-node-definition.ts";
 import { PotatnoNodeDefinition } from "./node_definition/potatno-node-definition.ts";
 import { PotatnoStaticNodeDefinition } from "./node_definition/potatno-static-node-definition.ts";
-import { FlowConjunctionNodeDefinition } from "./node_definition/potatno-flow-conjunction-node-definition.ts";
 import { ValueConjunctionNodeDefinition } from "./node_definition/potatno-value-conjunction-node-definition.ts";
 import type { PotatnoFunctionDefinition } from './potatno-function-definition.ts';
 import { PotatnoProjectTypesDefinition } from "./potatno-project-types-definition.ts";
@@ -20,11 +21,19 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
         return new PotatnoProject(pParameter);
     }
 
+    private readonly mCodeGenerator: PotatnoProjectCodeGenerator<this>;
     private readonly mEntryPoint: PotatnoFunctionDefinition<this>;
     private readonly mImports: Array<PotatnoProjectImportDefinition<this>>;
     private readonly mNodeDefinitions: Map<string, PotatnoNodeDefinition<this>>;
     private readonly mTypes: TProjectType;
     private readonly mUserFunctions: Map<string, PotatnoFunctionDefinition<this>>;
+
+    /**
+     * Code generator callback that produces the code string from a typed context.
+     */
+    public get codeGenerator(): PotatnoProjectCodeGenerator<this> {
+        return this.mCodeGenerator;
+    }
 
     /**
      * Get the registered entry point definition.
@@ -68,6 +77,7 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
     protected constructor(pParameter: PotatnoProjectConstructorParameter<TProjectType>) {
         // Init parameter.
         this.mTypes = pParameter.types;
+        this.mCodeGenerator = pParameter.generator.code;
 
         // Initialize empty arrays and maps for project definitions.
         this.mNodeDefinitions = new Map<string, PotatnoStaticNodeDefinition<this>>();
@@ -126,8 +136,16 @@ type PotatnoProjectConstructorParameter<TProjectType extends PotatnoProjectTypes
     functions: {
         entry: PotatnoFunctionDefinition<PotatnoProject<NoInfer<TProjectType>>>,
         dynamic?: Array<PotatnoFunctionDefinition<PotatnoProject<NoInfer<TProjectType>>>>;
-    }
+    },
+    generator: {
+        code: PotatnoProjectCodeGenerator<PotatnoProject<TProjectType>>;
+    };
 };
+
+/**
+ * Function signature for a projects code generator callback.
+ */
+export type PotatnoProjectCodeGenerator<TProject extends PotatnoProject> = (pContext: PotatnoCodeGeneratorDocumentResult<TProject>) => string;
 
 /**
  * Definition of an import group. When a function enables this import,

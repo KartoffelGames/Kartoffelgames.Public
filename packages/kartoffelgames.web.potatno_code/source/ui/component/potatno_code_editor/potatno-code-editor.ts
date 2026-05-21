@@ -4,7 +4,6 @@ import { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts'
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoDocument } from '../../../document/potatno-document.ts';
 import { PotatnoCodeGenerator } from '../../../parser/potatno-code-generator.ts';
-import { PotatnoCodeGeneratorFunctionResult } from '../../../parser/potatno-code-generator-function-result.ts';
 import { PotatnoFunctionDefinitionNodes, PotatnoFunctionDefinitionStatics } from '../../../project/potatno-function-definition.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import { PotatnoDeserializer } from '../../../serialization/potatno-deserializer.ts';
@@ -26,6 +25,7 @@ import '../potatno_preview/potatno-preview.ts';
 import '../potatno_resize_handle/potatno-resize-handle.ts';
 import '../potatno_search_input/potatno-search-input.ts';
 import '../potatno_tabs/potatno-tabs.ts';
+import { PotatnoCodeGeneratorFunctionResult } from "../../../parser/result/potatno-code-generator-function-result.ts";
 
 /**
  * Top-level UI orchestrator for the potatno-code visual programming environment.

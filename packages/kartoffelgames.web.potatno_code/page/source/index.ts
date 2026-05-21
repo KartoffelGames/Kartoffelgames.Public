@@ -1,5 +1,4 @@
 import { PotatnoDocument } from '../../source/document/potatno-document.ts';
-import { NodeCategory } from "../../source/parser/node/node-category.enum.ts";
 import { PotatnoCodeApplication } from '../../source/potatno-code-application.ts';
 import { PotatnoNodeDefinition } from "../../source/project/node_definition/potatno-node-definition.ts";
 import { PotatnoStaticNodeDefinition } from "../../source/project/node_definition/potatno-static-node-definition.ts";
@@ -93,8 +92,16 @@ const lEntryFunction = PotatnoFunctionDefinition.new(lProjectTypes, {
                 },
                 generators: {
                     code: (pContext) => {
-                        // Pixel coordinates
-                        return `const ${pContext.outputs["x"].valueId} = __pixel_x;\nconst ${pContext.outputs["y"].valueId} = __pixel_y;`;
+                        // Create function head.
+                        const lParameterNames = [
+                            pContext.inputs["red"].valueId,
+                            pContext.inputs["green"].valueId,
+                            pContext.inputs["blue"].valueId
+                        ];
+
+                        const lParameters = lParameterNames.join(', ');
+
+                        return `(${lParameters}) => { ${pContext.outputs['exec'].code.inner} ${pContext.code} }`;
                     }
                 }
             }));
@@ -104,7 +111,7 @@ const lEntryFunction = PotatnoFunctionDefinition.new(lProjectTypes, {
             pAddNode(PotatnoStaticNodeDefinition.newStaticNode({
                 id: 'PixelResult',
                 label: 'PixelResult',
-                category: NodeCategory.Output,
+                category: "Output",
                 ports: {
                     inputs: [
                         { label: 'exec', id: 'exec', portType: 'flow' },
@@ -116,7 +123,14 @@ const lEntryFunction = PotatnoFunctionDefinition.new(lProjectTypes, {
                 },
                 generators: {
                     code: (pContext) => {
-                        return `__pixel_r = ${pContext.inputs["red"].valueId};\n__pixel_g = ${pContext.inputs["green"].valueId};\n__pixel_b = ${pContext.inputs["blue"].valueId};`;
+                        // Create function head.
+                        const lParameterNames = [
+                            pContext.inputs["red"].valueId,
+                            pContext.inputs["green"].valueId,
+                            pContext.inputs["blue"].valueId
+                        ];
+
+                        return `{red: ${pContext.inputs["red"].valueId}, green: ${pContext.inputs["green"].valueId}, blue: ${pContext.inputs["blue"].valueId}}`;
                     }
                 }
             }));
@@ -128,44 +142,11 @@ const lEntryFunction = PotatnoFunctionDefinition.new(lProjectTypes, {
                 // Look up the OnPixel graph by its entry-definition id.
                 // The base result class exposes graphResultOf uniformly across FunctionResult and GraphResult.
                 const lGraph = pResult.graphResultOf('OnPixel');
-                const lBodyCode: string = lGraph?.code ?? '';
-                return `function ${pResult.function.label}(__pixel_x, __pixel_y) {\nlet __pixel_r = 0, __pixel_g = 0, __pixel_b = 0;\n${lBodyCode}\nreturn [__pixel_r, __pixel_g, __pixel_b];\n}`;
+
+                return `const ${pResult.function.label} = ${lGraph?.code ?? ''}`;
             },
             value: (pContext) => {
                 return `${pContext.inputs}`;
-            }
-        },
-        preview: {
-            generate: (): Element => {
-                const lPreviewCanvas: HTMLCanvasElement = document.createElement('canvas');
-                lPreviewCanvas.width = 100;
-                lPreviewCanvas.height = 100;
-                lPreviewCanvas.style.cssText = 'width: 100px; height: 100px; image-rendering: pixelated; background: #000;';
-
-                return lPreviewCanvas;
-            },
-            update: (pElement: Element, pFunction, _pPreviewInputData: {}, pCodeOutput: string) => {
-                const lCanvas: HTMLCanvasElement = pElement as HTMLCanvasElement;
-                const lPreviewCtx: CanvasRenderingContext2D = lCanvas.getContext('2d')!;
-                const lImageData: ImageData = lPreviewCtx.createImageData(lCanvas.width, lCanvas.height);
-
-                // Evaluate generated code to get the pixel shader function.
-                const lPixelShaderFunc = Function(pCodeOutput + '\nreturn ' + pFunction.function.label + ';')();
-
-                for (let lY = 0; lY < lImageData.height; lY++) {
-                    for (let lX = 0; lX < lImageData.width; lX++) {
-                        // Evaluate the node graph with normalized pixel coordinates.
-                        const lResult: [red: number, green: number, blue: number] = lPixelShaderFunc(lX / lImageData.width, lY / lImageData.height);
-
-                        const lIdx: number = (lY * lImageData.width + lX) * 4;
-                        lImageData.data[lIdx] = Math.max(0, Math.min(255, Math.round(lResult[0] * 255)));
-                        lImageData.data[lIdx + 1] = Math.max(0, Math.min(255, Math.round(lResult[1] * 255)));
-                        lImageData.data[lIdx + 2] = Math.max(0, Math.min(255, Math.round(lResult[2] * 255)));
-                        lImageData.data[lIdx + 3] = 255;
-                    }
-                }
-
-                lPreviewCtx.putImageData(lImageData, 0, 0);
             }
         }
     },
@@ -222,8 +203,12 @@ const lUserFunction = PotatnoFunctionDefinition.new(lProjectTypes, {
                         }
                     },
                     code: (pContext) => {
-                        // Pixel coordinates
-                        return `const ${pContext.outputs["x"].valueId} = __pixel_x;\nconst ${pContext.outputs["y"].valueId} = __pixel_y;`;
+                        // Create function head.
+                        const lParameters = Object.values(pContext.inputs).map((pValue) => {
+                            return pValue.valueId;
+                        }).join(', ');
+
+                        return `(${lParameters}) => { ${pContext.outputs['exec'].code.inner} ${pContext.code} }`;
                     }
                 }
             }));
@@ -235,14 +220,8 @@ const lUserFunction = PotatnoFunctionDefinition.new(lProjectTypes, {
                 // Look up the HelperFunctionEntry graph. The graph's entryPorts
                 // give the parameter list and the exitPorts give the return values.
                 const lGraph = pResult.graphResultOf('HelperFunctionEntry');
-                const lParams: string = lGraph?.inputPorts.map((i) => i.valueId).join(', ') ?? '';
-                const lExitPorts = lGraph?.outputPorts ?? [];
-                const lReturnValues: string = lExitPorts.map((o) => o.valueId).join(', ');
-                let lBody: string = lGraph?.code ?? '';
-                if (lReturnValues) {
-                    lBody += `\nreturn ${lExitPorts.length > 1 ? `[${lReturnValues}]` : lReturnValues};`;
-                }
-                return `function ${pResult.function.label}(${lParams}) {\n${lBody}\n}`;
+
+                return `const ${pResult.function.label} = ${lGraph?.code ?? ''}`;
             },
             value: (pContext) => {
                 const lArgs: string = Object.values(pContext.inputs).map((i: any) => i.valueId).join(', ');
@@ -299,11 +278,23 @@ const lProject = PotatnoProject.new({
     functions: {
         entry: lEntryFunction,
         dynamic: [lUserFunction]
+    },
+    generator: {
+        code: (pContext) => {
+            let lCodeResult: string = '';
+
+            // Append dependecies first.
+            for (const lDependency of pContext.dependencies) {
+                lCodeResult += `${lDependency.code}\n`;
+            }
+
+            return lCodeResult;
+        }
     }
 });
 
 // --- Imports ---
-lProject.addImport({ // TODO: Also create a PotatnoImportDefinition. The document knows what imports are used and can dynamicly add them to rhe nodeDefinitions property result.
+lProject.addImport({ // TODO: Also create a PotatnoImportDefinition. The document knows what imports are used and can dynamicly add them to the nodeDefinitions property result.
     id: 'Math',
     label: 'Math',
     nodes: [
@@ -338,7 +329,7 @@ lProject.addImport({ // TODO: Also create a PotatnoImportDefinition. The documen
         PotatnoStaticNodeDefinition.newStaticNode({
             id: 'Math.abs',
             label: 'Math.abs',
-            category: NodeCategory.Function,
+            category: 'Function',
             ports: {
                 inputs: [
                     { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
@@ -354,7 +345,7 @@ lProject.addImport({ // TODO: Also create a PotatnoImportDefinition. The documen
         PotatnoStaticNodeDefinition.newStaticNode({
             id: 'Math.floor',
             label: 'Math.floor',
-            category: NodeCategory.Function,
+            category: 'Function',
             ports: {
                 inputs: [
                     { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
@@ -370,7 +361,7 @@ lProject.addImport({ // TODO: Also create a PotatnoImportDefinition. The documen
         PotatnoStaticNodeDefinition.newStaticNode({
             id: 'Math.random',
             label: 'Math.random',
-            category: NodeCategory.Function,
+            category: 'Function',
             ports: {
                 inputs: [],
                 outputs: [
@@ -720,7 +711,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
 lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
     id: 'Console Log',
     label: 'Console Log',
-    category: NodeCategory.Function,
+    category: 'Function',
     ports: {
         inputs: [{ label: 'message', id: 'message', portType: 'value', dataType: 'string' }],
         outputs: []
@@ -733,7 +724,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
 lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
     id: 'String Concat',
     label: 'String Concat',
-    category: NodeCategory.Function,
+    category: 'Function',
     ports: {
         inputs: [
             { label: 'a', id: 'a', portType: 'value', dataType: 'string' },

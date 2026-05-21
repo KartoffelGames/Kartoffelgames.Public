@@ -1,5 +1,4 @@
 import { Exception } from "@kartoffelgames/core";
-import { PotatnoCodeGeneratorFunctionResult } from "../../parser/potatno-code-generator-function-result.ts";
 import { PotatnoPortDefinition, PotatnoPortDefinitionConfiguration } from "../potatno-port-definition.ts";
 import { PotatnoProject } from "../potatno-project.ts";
 

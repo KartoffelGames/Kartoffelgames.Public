@@ -1,9 +1,8 @@
-import { PotatnoCodeGeneratorFunctionResult } from "../parser/potatno-code-generator-function-result.ts";
-import { PotatnoCodeGeneratorResult } from "../parser/potatno-code-generator-result.ts";
-import { PotatnoNodeDefinition, PotatnoNodeDefinitionGeneratorContext } from "./node_definition/potatno-node-definition.ts";
-import { PotatnoProject } from "./potatno-project.ts";
-import { PotatnoProjectTypesDefinition } from "./potatno-project-types-definition.ts";
 import { PotatnoDocumentFunction } from "../document/potatno-document-function.ts";
+import { PotatnoCodeGeneratorFunctionResult } from "../parser/result/potatno-code-generator-function-result.ts";
+import { PotatnoNodeDefinition, PotatnoNodeDefinitionGeneratorContext } from "./node_definition/potatno-node-definition.ts";
+import { PotatnoProjectTypesDefinition } from "./potatno-project-types-definition.ts";
+import { PotatnoProject } from "./potatno-project.ts";
 
 /**
  * Definition of a entry point blueprint.
@@ -24,7 +23,6 @@ export class PotatnoFunctionDefinition<TProject extends PotatnoProject> {
 
     private readonly mId: string;
     private readonly mLabel: string;
-    private readonly mPreviewGenerator: PotatnoFunctionDefinitionPreview<TProject> | null;
     private readonly mStatics: PotatnoFunctionDefinitionStatics;
     private readonly mNodesProvider: PotatnoFunctionDefinitionNodeProvider<TProject>;
     private readonly mCodeGenerator: PotatnoFunctionDefinitionGenerator<TProject>;
@@ -52,14 +50,6 @@ export class PotatnoFunctionDefinition<TProject extends PotatnoProject> {
     }
 
     /**
-     * Get the preview configuration for this entry point, if provided. This can be used to generate and update a live preview element based on the entry point's function and example input data.
-     * If no preview configuration is provided, no preview will be available for this entry point.
-     */
-    public get preview(): PotatnoFunctionDefinitionPreview<TProject> | null {
-        return this.mPreviewGenerator;
-    }
-
-    /**
      * Static settings for this entry point definition, determining which static nodes are generated.
      */
     public get statics(): PotatnoFunctionDefinitionStatics {
@@ -77,9 +67,6 @@ export class PotatnoFunctionDefinition<TProject extends PotatnoProject> {
 
         // Set exclusive nodes defined for this entry point that are preset in the editor.
         this.mNodesProvider = pParameters.nodes;
-
-        // Set the preview element for this entry point, if provided.
-        this.mPreviewGenerator = pParameters.generator.preview ?? null;
 
         // Set static settings, defaulting to false for all if not provided.
         this.mStatics = pParameters.statics as PotatnoFunctionDefinitionStatics;
@@ -111,7 +98,7 @@ export class PotatnoFunctionDefinition<TProject extends PotatnoProject> {
 
             return lNodes;
         };
-        
+
         // Create a object with dynamic accessor properties for entry, exit, and dynamic nodes, which calls the corresponding provider callbacks when accessed.
         const lNodes: PotatnoFunctionDefinitionNodes<TProject> = {} as PotatnoFunctionDefinitionNodes<TProject>;
 
@@ -144,7 +131,6 @@ type PotatnoFunctionDefinitionConstructorParameter<TProject extends PotatnoProje
     nodes: PotatnoFunctionDefinitionNodeProvider<NoInfer<TProject>>;
     generator: {
         code: PotatnoFunctionDefinitionGenerator<TProject>;
-        preview?: PotatnoFunctionDefinitionPreview<TProject>;
     };
 };
 
@@ -159,7 +145,7 @@ export type PotatnoFunctionDefinitionGenerator<TProject extends PotatnoProject> 
      * Accepts the abstract result type so both full-function and intermediate builds can flow through the same callback.
      * Callers use pResult.graphResultOf(...) to look up specific graphs and stub out missing ones for intermediate builds.
      */
-    body: (pResult: PotatnoCodeGeneratorResult<TProject>) => string;
+    body: (pResult: PotatnoCodeGeneratorFunctionResult<TProject>) => string;
 
     /**
      * Produces the call-site code expression when this function is invoked as a node.

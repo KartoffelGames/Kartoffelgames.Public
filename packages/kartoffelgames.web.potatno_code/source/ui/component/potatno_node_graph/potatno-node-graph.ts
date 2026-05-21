@@ -2,20 +2,20 @@ import { ComponentEventEmitter, ComponentState, PwbChild, PwbComponent, PwbCompo
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { NodeCategory } from '../../../parser/node/node-category.enum.ts';
-import type { PotatnoCodeGeneratorFunctionResult } from '../../../parser/potatno-code-generator-function-result.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import { PotatnoCanvasRenderer, type ConnectionRenderData } from '../../potatno-canvas-renderer.ts';
 import { PotatnoClipboard } from '../../potatno-clipboard.ts';
-import { PotatnoNodeLibraryDragBus, type PotatnoNodeLibraryDragStartDetail, type PotatnoNodeLibraryInsertDetail } from '../../potatno-node-library-drag.ts';
 import { buildAvailableNodeDefinitionEntries, type PotatnoNodeDefinitionListEntry, type PotatnoUiProject } from '../../potatno-node-definition-list.ts';
+import { PotatnoNodeLibraryDragBus, type PotatnoNodeLibraryDragStartDetail, type PotatnoNodeLibraryInsertDetail } from '../../potatno-node-library-drag.ts';
 import type { CommentChangeDetail, DirectValueChangeDetail, OpenFunctionDetail, ResizeStartDetail } from '../potatno_node_component/potatno-node-component.ts';
 import type { PortInteractionDetail } from '../potatno_port/potatno-port.ts';
 import graphCss from './potatno-node-graph.css' with { type: 'text' };
 import graphTemplate from './potatno-node-graph.html' with { type: 'text' };
 
 // Import child components to ensure they are registered.
+import { PotatnoCodeGeneratorFunctionResult } from "../../../parser/result/potatno-code-generator-function-result.ts";
+import { NodeCategory } from "../../node/node-category.enum.ts";
 import '../potatno_node_component/potatno-node-component.ts';
 import '../potatno_port/potatno-port.ts';
 
@@ -979,7 +979,7 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
      * @param pEvent - Pointer event from the document.
      * @param pState - Active node drag state.
      */
-    private dragSelectedNodes(pEvent: PointerEvent, pState: Extract<GraphInteractionState<TProject>, { mode: 'dragging-node' }>): void {
+    private dragSelectedNodes(pEvent: PointerEvent, pState: Extract<GraphInteractionState<TProject>, { mode: 'dragging-node'; }>): void {
         const lZoom: number = this.mInteraction.zoom;
         const lGridSize: number = this.mInteraction.gridSize;
         const lDx: number = (pEvent.clientX - pState.startX) / lZoom;
@@ -1059,7 +1059,7 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
      * @param pEvent - Pointer up event from the document.
      * @param pState - Active library drag state.
      */
-    private finishLibraryDrag(pEvent: PointerEvent, pState: Extract<GraphInteractionState<TProject>, { mode: 'library-drag' }>): void {
+    private finishLibraryDrag(pEvent: PointerEvent, pState: Extract<GraphInteractionState<TProject>, { mode: 'library-drag'; }>): void {
         this.mLibraryDragIndicator = null;
 
         if (!this.isPointerInsideCanvas(pEvent.clientX, pEvent.clientY)) {
@@ -1498,7 +1498,7 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
      * @param pEvent - Pointer event from the document.
      * @param pState - Active wire drag state.
      */
-    private renderDraggedWire(pEvent: PointerEvent, pState: Extract<GraphInteractionState<TProject>, { mode: 'dragging-wire' }>): void {
+    private renderDraggedWire(pEvent: PointerEvent, pState: Extract<GraphInteractionState<TProject>, { mode: 'dragging-wire'; }>): void {
         const lSvg: SVGSVGElement | null = this.getSvgLayerOrNull();
         if (!lSvg) {
             return;

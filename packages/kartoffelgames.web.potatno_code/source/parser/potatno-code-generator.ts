@@ -11,6 +11,7 @@ import type { PotatnoFunctionDefinition } from '../project/potatno-function-defi
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import { PotatnoCodeGeneratorFunctionResult } from './result/potatno-code-generator-function-result.ts';
 import { PotatnoCodeGeneratorDocumentResult } from "./result/potatno-code-generator-document-result.ts";
+import { PotatnoCodeGeneratorNodeResultPort } from "./result/potatno-code-generator-node-result.ts";
 
 /**
  * Code generator for Potatno documents.

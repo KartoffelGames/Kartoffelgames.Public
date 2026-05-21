@@ -5,7 +5,7 @@ import { PotatnoCodeGeneratorFunctionResult } from "./potatno-code-generator-fun
 /**
  * Document code generation result for a entry point.
  */
-export abstract class PotatnoCodeGeneratorDocumentResult<TProject extends PotatnoProject> {
+export class PotatnoCodeGeneratorDocumentResult<TProject extends PotatnoProject> {
     private readonly mDocument: PotatnoDocument<TProject>;
     private readonly mDependencies: Array<PotatnoCodeGeneratorFunctionResult<TProject>>;
     private readonly mEntryPoint: PotatnoCodeGeneratorFunctionResult<TProject>;

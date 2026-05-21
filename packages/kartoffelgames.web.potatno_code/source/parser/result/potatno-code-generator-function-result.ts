@@ -10,7 +10,7 @@ import type { PotatnoCodeGeneratorNodeResult } from './potatno-code-generator-no
  * Owns the list of Graphs produced by a generation pass and exposes a uniform retrieval surface (graphResultOf, imports).
  * The class is declared abstract to block direct instantiation. Callers always receive one of the concrete subclasses.
  */
-export abstract class PotatnoCodeGeneratorFunctionResult<TProject extends PotatnoProject> {
+export class PotatnoCodeGeneratorFunctionResult<TProject extends PotatnoProject> {
     private readonly mFunction: PotatnoDocumentFunction<TProject>;
     private readonly mGraphs: Map<string, PotatnoCodeGeneratorNodeResult<TProject>>;
 
@@ -48,7 +48,7 @@ export abstract class PotatnoCodeGeneratorFunctionResult<TProject extends Potatn
      * @param pFunctionName - Display name of the owning function.
      * @param pFunction - The document function the graphs will belong to.
      */
-    protected constructor(pFunction: PotatnoDocumentFunction<TProject>) {
+    public constructor(pFunction: PotatnoDocumentFunction<TProject>) {
         this.mFunction = pFunction;
         this.mGraphs = new Map<string, PotatnoCodeGeneratorNodeResult<TProject>>();
     }

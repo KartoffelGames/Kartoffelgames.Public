@@ -242,13 +242,6 @@ export type PotatnoNodeDefinitionGeneratorContext = {
     readonly outputs: Record<string, PotatnoCodeGeneratorOutputPort>;
 
     /**
-     * True when this generation pass is producing intermediate output
-     * that may be consumed by a preview executor. Node authors decide
-     * whether to emit hook comments based on this flag.
-     */
-    readonly debug: boolean;
-
-    /**
      * Context-level code surface for branching nodes (≥2 flow outputs).
      */
     readonly code: {

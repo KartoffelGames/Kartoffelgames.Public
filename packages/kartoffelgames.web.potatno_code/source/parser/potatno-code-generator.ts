@@ -363,12 +363,32 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         const lContext: PotatnoNodeDefinitionGeneratorContext = {
             inputs: lInputs,
             outputs: lOutputs,
-            debug: pPassData.debug,
             code: { next: pNextCode ?? '' }
         };
 
+        // Generate node code.
+        let lNodeCode: string = lNodeDefinition.codeGenerator(lContext);
+
+        // Attach each input value id as hook after the generated code.
+        lNodeCode += Object.values(lInputs).reduce((pCurrent, pNext) => {
+            if (pNext.valueId === '') {
+                return pCurrent;
+            }
+
+            return pCurrent + this.mProject.generator.hook(pNext.valueId);
+        }, '');
+
+        // Attach each output value id as hook after the generated code.
+        lNodeCode += Object.values(lOutputs).reduce((pCurrent, pNext) => {
+            if (pNext.valueId === '') {
+                return pCurrent;
+            }
+
+            return pCurrent + this.mProject.generator.hook(pNext.valueId);
+        }, '');
+
         // Add code at code buffer start. Because code generation is backwards.
-        pCursor.scope.codeOutput.unshift(lNodeDefinition.codeGenerator(lContext));
+        pCursor.scope.codeOutput.unshift();
     }
 
     /**

@@ -31,7 +31,7 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
     /**
      * Code generator callback that produces the code string from a typed context.
      */
-    public get codeGenerator(): PotatnoProjectCodeGenerator<this> {
+    public get generator(): PotatnoProjectCodeGenerator<this> {
         return this.mCodeGenerator;
     }
 
@@ -77,7 +77,7 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
     protected constructor(pParameter: PotatnoProjectConstructorParameter<TProjectType>) {
         // Init parameter.
         this.mTypes = pParameter.types;
-        this.mCodeGenerator = pParameter.generator.code;
+        this.mCodeGenerator = pParameter.generator;
 
         // Initialize empty arrays and maps for project definitions.
         this.mNodeDefinitions = new Map<string, PotatnoStaticNodeDefinition<this>>();
@@ -137,15 +137,24 @@ type PotatnoProjectConstructorParameter<TProjectType extends PotatnoProjectTypes
         entry: PotatnoFunctionDefinition<PotatnoProject<NoInfer<TProjectType>>>,
         dynamic?: Array<PotatnoFunctionDefinition<PotatnoProject<NoInfer<TProjectType>>>>;
     },
-    generator: {
-        code: PotatnoProjectCodeGenerator<PotatnoProject<TProjectType>>;
-    };
+    generator: PotatnoProjectCodeGenerator<PotatnoProject<TProjectType>>;
 };
 
 /**
  * Function signature for a projects code generator callback.
  */
-export type PotatnoProjectCodeGenerator<TProject extends PotatnoProject> = (pContext: PotatnoCodeGeneratorDocumentResult<TProject>) => string;
+export type PotatnoProjectCodeGenerator<TProject extends PotatnoProject> = {
+    /**
+     * Code generator that combines the documents main function and their dependencies into a single string.
+     */
+    readonly code: (pContext: PotatnoCodeGeneratorDocumentResult<TProject>) => string;
+
+    /**
+     * Function callback for a hook generation.
+     * A hook should be appendable at any time in the generated code without affecting the execution.
+     */
+    readonly hook: (pValueId: string) => string;
+};
 
 /**
  * Definition of an import group. When a function enables this import,

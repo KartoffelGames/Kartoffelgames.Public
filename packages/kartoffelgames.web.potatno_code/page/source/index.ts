@@ -289,6 +289,9 @@ const lProject = PotatnoProject.new({
             }
 
             return lCodeResult;
+        },
+        hook: (pValueId: string) => {
+            return `/*[${pValueId}]*/`;
         }
     }
 });

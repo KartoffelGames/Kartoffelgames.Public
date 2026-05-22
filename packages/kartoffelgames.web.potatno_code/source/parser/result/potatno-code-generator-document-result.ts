@@ -14,7 +14,7 @@ export class PotatnoCodeGeneratorDocumentResult<TProject extends PotatnoProject>
      * Calls the underlying project definitions code generator to convert the function graphs into a single string.
      */
     public get code(): string {
-        return this.mDocument.project.codeGenerator(this);
+        return this.mDocument.project.generator.code(this);
     }
 
     /**

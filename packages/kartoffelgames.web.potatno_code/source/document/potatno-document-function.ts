@@ -1,3 +1,4 @@
+import { Exception } from "@kartoffelgames/core";
 import type { PotatnoNodeDefinition } from "../project/node_definition/potatno-node-definition.ts";
 import { PotatnoFunctionDefinition } from "../project/potatno-function-definition.ts";
 import { PotatnoPortDefinition } from "../project/potatno-port-definition.ts";
@@ -177,6 +178,29 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject> implements
      */
     public addNode(pNode: PotatnoDocumentNode<TProject>): void {
         this.mNodes.add(pNode);
+    }
+
+    /**
+     * Get document functions exit nodes.
+     * Exit nodes are the starting point for every code generation.
+     * 
+     * @returns all defined nodes that are defined as the functions exit nodes.
+     */
+    public getExitNodes(): Array<PotatnoDocumentNode<TProject>> {
+        const lFunctionDefinition = this.mProject.getFunction(this.mDefinitionId);
+        if (!lFunctionDefinition) {
+            throw new Exception(`Function definition not found for function "${this.mLabel}".`, this);
+        }
+
+        // Resolve every exit-node definition id declared by the function definition.
+        const lExitDefinitionIds: Set<string> = new Set<string>(lFunctionDefinition.getNodeDefinitions(this).exit.map((pDef) => {
+            return pDef.id;
+        }));
+
+        // Filter the function's nodes to those whose definitionId matches one of the exit-node definition ids.
+        return [...this.mNodes].filter((pNode) => {
+            return lExitDefinitionIds.has(pNode.definitionId);
+        });
     }
 
     /**

@@ -67,7 +67,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * @returns A DocumentResult with pFunction's result as the entry point plus all transitive dependencies.
      */
     public generateFunction(pFunction: PotatnoDocumentFunction<TProject>, pDebug: boolean = false): PotatnoCodeGeneratorDocumentResult<TProject> {
-        return this.buildDocumentResult(pFunction.document, pFunction, this.resolveAllExitNodes(pFunction), pDebug);
+        return this.buildDocumentResult(pFunction.document, pFunction.getExitNodes(), pDebug);
     }
 
     /**
@@ -80,7 +80,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * @returns A DocumentResult with the single-graph FunctionResult as the entry point plus all transitive dependencies.
      */
     public generateNode(pExitNode: PotatnoDocumentNode<TProject>, pDebug: boolean = false): PotatnoCodeGeneratorDocumentResult<TProject> {
-        return this.buildDocumentResult(pExitNode.document, pExitNode.function, [pExitNode], pDebug);
+        return this.buildDocumentResult(pExitNode.document, [pExitNode], pDebug);
     }
 
     /**
@@ -93,110 +93,66 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * @param pExitNodes - The exit nodes whose subgraphs are walked into the entry FunctionResult.
      * @param pDebug - Debug flag for the whole pass.
      */
-    private buildDocumentResult(pDocument: PotatnoDocument<TProject>, pEntryPointFunction: PotatnoDocumentFunction<TProject>, pExitNodes: ReadonlyArray<PotatnoDocumentNode<TProject>>, pDebug: boolean): PotatnoCodeGeneratorDocumentResult<TProject> {
+    private buildDocumentResult(pDocument: PotatnoDocument<TProject>, pExitNodes: Array<PotatnoDocumentNode<TProject>>, pDebug: boolean): PotatnoCodeGeneratorDocumentResult<TProject> {
         const lPassData: PotatnoCodeGeneratorPassData = {
             counter: { valueId: 0 },
             debug: pDebug
         };
 
-        // Build the entry FunctionResult with one NodeResult per requested exit node.
-        const lEntryFunctionResult: PotatnoCodeGeneratorFunctionResult<TProject> = this.generateFunctionCode(lPassData, pEntryPointFunction, pExitNodes);
+        // Generate everything. The last entry is the requested entry function result.
+        const lFunctionGenerationResults: Array<PotatnoCodeGeneratorFunctionResult<TProject>> = this.generateFunctionWithDependencies(lPassData, pExitNodes, new Set<PotatnoDocumentFunction<TProject>>());
 
-        // Recursively generate every transitive dependency function discovered through the entry's NodeResults.
-        const lDependencies: Array<PotatnoCodeGeneratorFunctionResult<TProject>> = this.generateAllDependencies(lPassData, lEntryFunctionResult);
+        const lEntryPointResult: PotatnoCodeGeneratorFunctionResult<TProject> = lFunctionGenerationResults.shift()!;
 
-        return new PotatnoCodeGeneratorDocumentResult(pDocument, lEntryFunctionResult, lDependencies);
+        return new PotatnoCodeGeneratorDocumentResult(pDocument, lEntryPointResult, lFunctionGenerationResults);
     }
 
     /**
-     * Resolve every exit node instance for a function from its function definition.
-     *
-     * @param pFunction - The function whose exit nodes to resolve.
+     * Recursive generate code for the starting exit nodes.
+     * After the initial generation the exit nodes dependencies get generated.
+     * 
+     * @param pPassData - Shared pass state (counter, debug).
+     * @param pFunctionExitNodes - Staring nodes of the first function that should be generated. 
      */
-    private resolveAllExitNodes(pFunction: PotatnoDocumentFunction<TProject>): Array<PotatnoDocumentNode<TProject>> {
-        const lFunctionDefinition = this.mProject.getFunction(pFunction.definitionId);
-        if (!lFunctionDefinition) {
-            throw new Exception(`Function definition not found for function "${pFunction.label}".`, this);
+    private generateFunctionWithDependencies(pPassData: PotatnoCodeGeneratorPassData, pFunctionExitNodes: Array<PotatnoDocumentNode<TProject>>, pFunctionBuffer: Set<PotatnoDocumentFunction<TProject>>): Array<PotatnoCodeGeneratorFunctionResult<TProject>> {
+        // Result list of generated functions.
+        const lGeneratedFunctions: Array<PotatnoCodeGeneratorFunctionResult<TProject>> = new Array<PotatnoCodeGeneratorFunctionResult<TProject>>();
+
+        // Validate that something has been generated.
+        if (pFunctionExitNodes.length === 0) {
+            return lGeneratedFunctions;
         }
 
-        // Resolve every exit-node definition id declared by the function definition.
-        const lExitDefinitionIds: Set<string> = new Set<string>(lFunctionDefinition.getNodeDefinitions(pFunction).exit.map((pDef) => {
-            return pDef.id;
-        }));
+        // Read the document function by looking at the first exit node. 
+        const lFunction: PotatnoDocumentFunction<TProject> = pFunctionExitNodes.at(0)!.function;
 
-        // Filter the function's nodes to those whose definitionId matches one of the exit-node definition ids.
-        return [...pFunction.nodes].filter((pNode) => {
-            return lExitDefinitionIds.has(pNode.definitionId);
-        });
-    }
+        // Define current function as "generated" to preempty skip endless recursion.
+        // This buffer is passthough to all function generations by reference and is shared among them.
+        pFunctionBuffer.add(lFunction);
 
-    /**
-     * Build a FunctionResult by walking the given exit nodes (or every exit node of the function when pExitNodes is omitted).
-     * Function-call dependencies are NOT generated here. They are tracked on each NodeResult and surfaced later via generateAllDependencies.
-     *
-     * @param pPassData - Shared pass state (counter, debug).
-     * @param pFunction - The function to generate code for.
-     * @param pExitNodes - Optional explicit exit-node list. Omit to walk every exit node declared by the function definition.
-     *
-     * @returns A fresh FunctionResult holding one NodeResult per walked exit node.
-     */
-    private generateFunctionCode(pPassData: PotatnoCodeGeneratorPassData, pFunction: PotatnoDocumentFunction<TProject>, pExitNodes?: ReadonlyArray<PotatnoDocumentNode<TProject>>): PotatnoCodeGeneratorFunctionResult<TProject> {
-        const lFunctionResult: PotatnoCodeGeneratorFunctionResult<TProject> = new PotatnoCodeGeneratorFunctionResult(pFunction);
+        // Create an empty function result and store it directly. The reference will be filled later.
+        const lFunctionResult: PotatnoCodeGeneratorFunctionResult<TProject> = new PotatnoCodeGeneratorFunctionResult(lFunction);
+        lGeneratedFunctions.push(lFunctionResult);
 
         // Walk every requested exit node's subgraph (defaults to all of the function's exits) and attach the produced NodeResult.
-        for (const lExitNode of pExitNodes ?? this.resolveAllExitNodes(pFunction)) {
-            lFunctionResult.addGraph(this.generateNodeCode(pPassData, lExitNode));
-        }
+        for (const lExitNode of pFunctionExitNodes) {
+            const lGeneratedGraph: PotatnoCodeGeneratorNodeResult<TProject> = this.generateNodeCode(pPassData, lExitNode);
+            lFunctionResult.addGraph(lGeneratedGraph);
 
-        return lFunctionResult;
-    }
-
-    /**
-     * Recursively generate all dependency functions reachable from an initial FunctionResult.
-     *
-     * Each NodeResult tracks the document functions referenced via PotatnoFunctionNodeDefinition usages during the walk.
-     * This method scans the current FunctionResult's NodeResults in appearance order, queues every unseen dependency,
-     * generates each queued function (which may surface further dependencies), and repeats until the queue drains.
-     *
-     * The initial FunctionResult's own function is treated as already generated so it is never re-emitted as a dependency.
-     *
-     * @param pPassData - Shared pass state.
-     * @param pInitialFunctionResult - The entry-point FunctionResult whose dependencies seed the recursion.
-     * 
-     * @returns Dependency FunctionResults in appearance order, excluding the initial function.
-     */
-    private generateAllDependencies(pPassData: PotatnoCodeGeneratorPassData, pInitialFunctionResult: PotatnoCodeGeneratorFunctionResult<TProject>): Array<PotatnoCodeGeneratorFunctionResult<TProject>> {
-        const lGenerated: Set<PotatnoDocumentFunction<TProject>> = new Set<PotatnoDocumentFunction<TProject>>([pInitialFunctionResult.function]);
-        const lQueued: Set<PotatnoDocumentFunction<TProject>> = new Set<PotatnoDocumentFunction<TProject>>();
-        const lQueue: Array<PotatnoDocumentFunction<TProject>> = new Array<PotatnoDocumentFunction<TProject>>();
-        const lDependencyResults: Array<PotatnoCodeGeneratorFunctionResult<TProject>> = new Array<PotatnoCodeGeneratorFunctionResult<TProject>>();
-
-        // Use a moving "current result" so the loop has one place where dependencies are surfaced.
-        // Each iteration: surface deps from current → pop next → generate → set as current.
-        let lCurrentResult: PotatnoCodeGeneratorFunctionResult<TProject> = pInitialFunctionResult;
-        while (true) {
-            // Surface every distinct, unseen dependency from the current result's NodeResults.
-            for (const lNodeResult of lCurrentResult.graphs) {
-                for (const lDependency of lNodeResult.dependencies) {
-                    if (lGenerated.has(lDependency) || lQueued.has(lDependency)) {
-                        continue;
-                    }
-                    lQueued.add(lDependency);
-                    lQueue.push(lDependency);
+            // Add each dependency into the task list.
+            for (const lDependencyFunction of lGeneratedGraph.dependencies) {
+                // Skip functions that already generated or are currently generating.
+                if (pFunctionBuffer.has(lDependencyFunction)) {
+                    continue;
                 }
-            }
 
-            // Done when nothing remains to generate.
-            if (lQueue.length === 0) {
-                return lDependencyResults;
+                // Start the generation of the dependency and their dependencies. Save the result. 
+                lGeneratedFunctions.push(...this.generateFunctionWithDependencies(pPassData, lDependencyFunction.getExitNodes(), pFunctionBuffer));
             }
-
-            // Generate the next dependency function. Mark it generated BEFORE walking so a self-reference short-circuits via lGenerated.
-            const lDependencyFunction: PotatnoDocumentFunction<TProject> = lQueue.shift()!;
-            lGenerated.add(lDependencyFunction);
-            lCurrentResult = this.generateFunctionCode(pPassData, lDependencyFunction);
-            lDependencyResults.push(lCurrentResult);
         }
+
+        // Reverse the output before returning to order the dependencies by ([No dependencies] ... [Required dependencies]).
+        return lGeneratedFunctions.reverse();
     }
 
     /**

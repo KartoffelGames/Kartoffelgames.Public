@@ -177,7 +177,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         const lEntryNode: PotatnoDocumentNode<TProject> = this.walkBackward(pPassData, lCursor, pExitNode, null);
 
         // Compose the body code in execution order. The buffer accumulates code in REVERSE execution order via push, so we reverse before joining.
-        const lBodyCode: string = lCursor.scope.buffer.join('\n');
+        const lBodyCode: string = lCursor.scope.codeOutput.join('\n');
 
         return new PotatnoCodeGeneratorNodeResult({
             bodyCode: lBodyCode,
@@ -197,8 +197,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         return {
             valueIds: new Map<PotatnoDocumentPort<TProject>, string>(),
             remaining: this.preCountConsumers(pStartNode, pStopBefore),
-            buffer: new Array<string>(),
-            lastEmittedNode: null
+            codeOutput: new Array<string>()
         };
     }
 
@@ -212,9 +211,12 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * @param pCursor - The pass cursor.
      * @param pStartNode - The node the walk begins at.
      * @param pStopBefore - When set, the walk stops as soon as the cursor would advance to this node. The node is NOT emitted. Null at top-level so the walk runs until reaching a real entry node (CASE A).
+     *
+     * @returns the last generated node. 
      */
     private walkBackward(pPassData: PotatnoCodeGeneratorPassData, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pStartNode: PotatnoDocumentNode<TProject>, pStopBefore: PotatnoDocumentNode<TProject> | null): PotatnoDocumentNode<TProject> {
         let lCursorNode: PotatnoDocumentNode<TProject> | null = pStartNode; // TODO: Remove the null when handleMergeAndAdvance is fixed.
+        let lLastGeneratedNode: PotatnoDocumentNode<TProject> | null = null;
 
         while (lCursorNode !== null && lCursorNode !== pStopBefore) {
             // Resolve flow-input predecessors, skipping flow conjunctions on the way.
@@ -223,11 +225,13 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             // CASE C: >1 predecessors. Cursor is a merge point.
             if (lPredecessors.length > 1) {
                 lCursorNode = this.handleMergeAndAdvance(pPassData, pCursor, lCursorNode, lPredecessors);
+                lLastGeneratedNode = lCursorNode;
                 continue;
             }
 
             // CASE A (0 predecessors) and CASE B (1 predecessor) both emit the current node.
             this.emitNode(pPassData, pCursor, lCursorNode);
+            lLastGeneratedNode = lCursorNode;
 
             // CASE A: entry node or dead-end.
             if (lPredecessors.length === 0) {
@@ -239,11 +243,11 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         }
 
         // There is something wrong when not a single node was walked. 
-        if (!lCursorNode) {
+        if (!lLastGeneratedNode) {
             throw new Exception(`Walk did not reach an entry node from exit "${pStartNode.label}".`, this);
         }
 
-        return lCursorNode;
+        return lLastGeneratedNode;
     }
 
     /**
@@ -263,8 +267,8 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         this.emitNode(pPassData, pCursor, pMergeNode);
 
         // 2. Snapshot the buffer so far as the branch point's `next`. Reverse-then-join because the buffer is in backward order.
-        const lNextCode: string = pCursor.scope.buffer.join('\n');
-        pCursor.scope.buffer = new Array<string>();
+        const lNextCode: string = pCursor.scope.codeOutput.join('\n');
+        pCursor.scope.codeOutput = new Array<string>();
 
         // 3. Find the branch point.
         const lBranchPoint: PotatnoDocumentNode<TProject> = this.findBranchPoint(pMergeNode);
@@ -274,13 +278,13 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         const lParentScope: PotatnoCodeGeneratorPassCursorScope<TProject> = pCursor.scope;
         for (const lPredecessor of pPredecessors) {
             pCursor.scope = this.createScope(lPredecessor.node, lBranchPoint);
-            this.walkBackward(pPassData, pCursor, lPredecessor.node, lBranchPoint);
+            const lLastGeneratedNode = this.walkBackward(pPassData, pCursor, lPredecessor.node, lBranchPoint);
 
             // The sub-walk's first node (in execution order) is the one we stopped just-before-advancing-to-branchPoint.
             // Map it back to the branch point's flow output port that initiated this branch.
-            const lBranchOutputPort: PotatnoDocumentPort<TProject> | null = this.findBranchOutputPortForFirstNode(lBranchPoint, pCursor.scope.lastEmittedNode);
+            const lBranchOutputPort: PotatnoDocumentPort<TProject> | null = this.findBranchOutputPortForFirstNode(lBranchPoint, lLastGeneratedNode);
             const lBranchKey: string = lBranchOutputPort ? lBranchOutputPort.definitionId : lPredecessor.sourcePort.definitionId;
-            lInnerByPort[lBranchKey] = pCursor.scope.buffer.join('\n');
+            lInnerByPort[lBranchKey] = pCursor.scope.codeOutput.join('\n');
         }
         pCursor.scope = lParentScope;
 
@@ -330,7 +334,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         }
 
         // Default inner for flow outputs: everything we've accumulated downstream of this node in the current scope.
-        const lDefaultInnerCode: string = pCursor.scope.buffer.join('\n');
+        const lDefaultInnerCode: string = pCursor.scope.codeOutput.join('\n');
 
         // Build the output port surfaces. Value outputs get freshly allocated valueIds. Flow outputs get inner code (overridden per port by pInnerByPort when emitting a branching node).
         const lOutputs: Record<string, PotatnoCodeGeneratorOutputPort> = {};
@@ -364,8 +368,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         };
 
         // Add code at code buffer start. Because code generation is backwards.
-        pCursor.scope.buffer.unshift(lNodeDefinition.codeGenerator(lContext));
-        pCursor.scope.lastEmittedNode = pNode;
+        pCursor.scope.codeOutput.unshift(lNodeDefinition.codeGenerator(lContext));
     }
 
     /**
@@ -713,15 +716,9 @@ type PotatnoCodeGeneratorPassCursorScope<TProject extends PotatnoProject> = {
     remaining: Map<PotatnoDocumentNode<TProject>, number>;
 
     /**
-     * Backward buffer accumulating emitted code in REVERSE execution order.
+     * Backward buffer accumulating emitted code in correct execution order.
      */
-    buffer: Array<string>;
-
-    /**
-     * The last node whose code was appended to the buffer in this scope.
-     * Used by sub-walks to identify which flow output port of the branch point initiated this branch.
-     */
-    lastEmittedNode: PotatnoDocumentNode<TProject> | null;
+    codeOutput: Array<string>;
 };
 
 /**

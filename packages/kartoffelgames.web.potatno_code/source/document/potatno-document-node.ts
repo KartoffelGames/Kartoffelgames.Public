@@ -95,6 +95,20 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
     }
 
     /**
+     * If node has any flow ports.
+     */
+    public get hasFlowPorts() {
+        return this.mOutputs.flow.length > 0 || this.mInputs.flow.length > 0; 
+    }
+
+    /**
+     * If node has any flow ports.
+     */
+    public get hasValuePorts() {
+        return this.mOutputs.value.length > 0 || this.mInputs.value.length > 0; 
+    }
+
+    /**
      * Create a new node from explicit port data. Used by the deserializer to reconstruct
      * nodes without requiring a live definition instance, enabling loading of documents
      * with changed or removed definitions.

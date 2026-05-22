@@ -445,7 +445,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         }
 
         // If the producer is a pure-value node, tick its refcount. Emit on depletion.
-        if (this.isPureValueProducer(lProducerNode)) {
+        if (!lProducerNode.hasFlowPorts) {
             const lRemaining: number = (pCursor.scope.remaining.get(lProducerNode) ?? 0) - 1;
             pCursor.scope.remaining.set(lProducerNode, lRemaining);
             if (lRemaining === 0) {
@@ -510,9 +510,10 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
                 }
 
                 const lProducer: PotatnoDocumentNode<TProject> = lIncomingPort.node;
-                if (!this.isPureValueProducer(lProducer)) {
+                if (lProducer.hasFlowPorts) {
                     continue;
                 }
+
                 lRemaining.set(lProducer, (lRemaining.get(lProducer) ?? 0) + 1);
                 if (!lProducers.has(lProducer)) {
                     lProducers.add(lProducer);
@@ -702,16 +703,6 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
 
         // Recurse with the single upstream output port the conjunction's input is connected to.
         return this.resolveValueConjunctions(lConjunctionInputPort);
-    }
-
-    /**
-     * Check if a node is a pure-value producer by verifying it has no flow input or output ports.
-     *
-     * @param pNode - The node to test.
-     */
-    private isPureValueProducer(pNode: PotatnoDocumentNode<TProject>): boolean {
-        // Check all input ports.
-        return pNode.inputs.flow.length === 0 && pNode.outputs.flow.length === 0;
     }
 }
 

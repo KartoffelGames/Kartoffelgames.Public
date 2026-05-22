@@ -47,9 +47,9 @@ export class PotatnoClipboard<TProject extends PotatnoProject> {
         // Serialize nodes.
         const lSerializedNodes: ClipboardData['nodes'] = lNodes.map((lNode) => {
             const lInputDirectValues: Record<string, Array<string>> = {};
-            for (const [lPortName, lPort] of lNode.inputs) {
+            for (const [lPortDefinitionId, lPort] of lNode.inputs.map) {
                 if (lPort.portType === 'value' && lPort.directValue.length > 0) {
-                    lInputDirectValues[lPortName] = [...lPort.directValue];
+                    lInputDirectValues[lPortDefinitionId] = [...lPort.directValue];
                 }
             }
 
@@ -65,13 +65,13 @@ export class PotatnoClipboard<TProject extends PotatnoProject> {
         const lInternalConnections: ClipboardData['internalConnections'] = [];
         for (const lSourceNode of lNodes) {
             const lSourceIdx = lNodeIndexMap.get(lSourceNode)!;
-            for (const [lPortName, lOutputPort] of lSourceNode.outputs) {
+            for (const [lPortDefinitionId, lOutputPort] of lSourceNode.outputs.map) {
                 for (const lConnectedPort of lOutputPort.connectedPorts) {
                     const lTargetIdx = lNodeIndexMap.get(lConnectedPort.node);
                     if (lTargetIdx !== undefined) {
                         lInternalConnections.push({
                             sourceNodeIndex: lSourceIdx,
-                            sourcePortName: lPortName,
+                            sourcePortName: lPortDefinitionId,
                             targetNodeIndex: lTargetIdx,
                             targetPortName: lConnectedPort.label
                         });
@@ -119,7 +119,7 @@ export class PotatnoClipboard<TProject extends PotatnoProject> {
             lNode.label = lNodeData.label;
 
             for (const [lPortName, lValues] of Object.entries(lNodeData.inputDirectValues)) {
-                const lPort = lNode.inputs.get(lPortName);
+                const lPort = lNode.inputs.map.get(lPortName);
                 if (lPort) {
                     lPort.setDirectValue(lValues);
                 }
@@ -136,8 +136,8 @@ export class PotatnoClipboard<TProject extends PotatnoProject> {
                 continue;
             }
 
-            const lSourcePort = lSourceNode.outputs.get(lConn.sourcePortName);
-            const lTargetPort = lTargetNode.inputs.get(lConn.targetPortName);
+            const lSourcePort = lSourceNode.outputs.map.get(lConn.sourcePortName);
+            const lTargetPort = lTargetNode.inputs.map.get(lConn.targetPortName);
             if (lSourcePort && lTargetPort) {
                 lSourcePort.connect(lTargetPort);
             }

@@ -63,7 +63,7 @@ export class PotatnoSerializer<TProject extends PotatnoProject> {
             const lSourceNodeId: string = lNodeIdMap.get(lNode)!;
 
             // Iterate all output ports and their connected ports to build connection data.
-            for (const lOutputPort of lNode.outputs.values()) {
+            for (const lOutputPort of lNode.outputs.list) {
                 // Each connected port is a target (input) port. Find the target nodeId from the temporary map.
                 for (const lConnectedPort of lOutputPort.connectedPorts) {
                     // Find the target nodeId from the temporary map.
@@ -107,7 +107,7 @@ export class PotatnoSerializer<TProject extends PotatnoProject> {
      * Serialize a single node with all its ports.
      */
     private serializeNode(pNode: PotatnoDocumentNode<TProject>, pNodeId: string): SerializedNode {
-        const lPorts: Array<SerializedNodePort> = [...pNode.inputs.values(), ...pNode.outputs.values()].map((pPort) => {
+        const lPorts: Array<SerializedNodePort> = [...pNode.inputs.list, ...pNode.outputs.list].map((pPort) => {
             return {
                 definitionId: pPort.definitionId,
                 label: pPort.label,

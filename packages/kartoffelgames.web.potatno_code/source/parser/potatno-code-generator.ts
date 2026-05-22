@@ -367,10 +367,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
 
         // Build the input port surfaces. Only value inputs make it into pContext.inputs.
         const lInputs: Record<string, PotatnoCodeGeneratorInputPort> = {};
-        for (const lPort of pNode.inputs.values()) {
-            if (lPort.portType !== 'value') {
-                continue;
-            }
+        for (const lPort of pNode.inputs.value) {
             lInputs[lPort.definitionId] = {
                 valueId: this.resolveValueInput(lPort, pCursor)
             };
@@ -381,7 +378,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
 
         // Build the output port surfaces. Value outputs get freshly allocated valueIds. Flow outputs get inner code (overridden per port by pInnerByPort when emitting a branching node).
         const lOutputs: Record<string, PotatnoCodeGeneratorOutputPort> = {};
-        for (const lPort of pNode.outputs.values()) {
+        for (const lPort of pNode.outputs.list) {
             if (lPort.portType === 'value') {
                 if (!pCursor.scope.valueIds.has(lPort)) {
                     pCursor.scope.valueIds.set(lPort, this.allocateValueId(pCursor));
@@ -494,10 +491,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             lFlowNodes.add(lNode);
 
             // Each flow input may have multiple connections (fan-in). Each connected source port may itself be on a chain of flow conjunctions that fan further out.
-            for (const lInputPort of lNode.inputs.values()) {
-                if (lInputPort.portType !== 'flow') {
-                    continue;
-                }
+            for (const lInputPort of lNode.inputs.flow) {
                 for (const lResolvedSourcePort of this.resolveFlowConjunctions(lInputPort)) {
                     lFlowQueue.push(lResolvedSourcePort.node);
                 }
@@ -508,11 +502,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         const lProducers: Set<PotatnoDocumentNode<TProject>> = new Set<PotatnoDocumentNode<TProject>>();
         const lProducerQueue: Array<PotatnoDocumentNode<TProject>> = new Array<PotatnoDocumentNode<TProject>>();
         const lCountAndDiscover = (pNode: PotatnoDocumentNode<TProject>): void => {
-            for (const lInputPort of pNode.inputs.values()) {
-                if (lInputPort.portType !== 'value') {
-                    continue;
-                }
-
+            for (const lInputPort of pNode.inputs.value) {
                 // Resolve incomming ports.
                 const lIncomingPort: PotatnoDocumentPort<TProject> | null = this.resolveValueConjunctions(lInputPort);
                 if (!lIncomingPort) {
@@ -600,10 +590,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
     private getFlowInputPredecessors(pNode: PotatnoDocumentNode<TProject>): Array<PotatnoCodeGeneratorFlowPredecessor<TProject>> {
         const lResult: Array<PotatnoCodeGeneratorFlowPredecessor<TProject>> = new Array<PotatnoCodeGeneratorFlowPredecessor<TProject>>();
 
-        for (const lInputPort of pNode.inputs.values()) {
-            if (lInputPort.portType !== 'flow') {
-                continue;
-            }
+        for (const lInputPort of pNode.inputs.flow) {
             for (const lResolvedSourcePort of this.resolveFlowConjunctions(lInputPort)) {
                 lResult.push({
                     node: lResolvedSourcePort.node,
@@ -629,16 +616,13 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             return null;
         }
 
-        for (const lOutputPort of pBranchPoint.outputs.values()) {
-            if (lOutputPort.portType !== 'flow') {
-                continue;
-            }
+        for (const lOutputPort of pBranchPoint.outputs.flow) {
             for (const lConnectedInput of lOutputPort.connectedPorts) {
                 // Walk forward through any chain of flow-conjunction reroutes to reach the real downstream node.
                 let lDownstreamNode: PotatnoDocumentNode<TProject> = lConnectedInput.node;
                 while (lDownstreamNode.definitionId === FlowConjunctionNodeDefinition.DEFINITION_ID) {
-                    // Conjunctions only have one output port. Read its single connection (if any) to advance forward.
-                    const lConjunctionOutput: PotatnoDocumentPort<TProject> | undefined = lDownstreamNode.outputs.values().next().value;
+                    // Conjunctions only have one output port. Read its single connection (if any) to advance forward. // TODO: What?? Conjunction...
+                    const lConjunctionOutput: PotatnoDocumentPort<TProject> | undefined = lDownstreamNode.outputs.list.at(-1);
                     if (!lConjunctionOutput || lConjunctionOutput.connectedPorts.size === 0) {
                         throw new Exception('Conjunction nodes must have a valid input and output connection', this);
                     }
@@ -674,7 +658,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
 
             // Try to read the nodes first input port.
             // Conjuctions only have one in- and output port. When it has no connection, just throw.
-            const lInputPort: PotatnoDocumentPort<TProject> | undefined = lOutputPort.node.inputs.values().next().value;
+            const lInputPort: PotatnoDocumentPort<TProject> | undefined = lOutputPort.node.inputs.flow.at(-1);
             if (!lInputPort || lInputPort.connectedPorts.size === 0) {
                 continue;
             }
@@ -711,7 +695,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         }
 
         // Try to read the nodes first input port.
-        const lConjunctionInputPort: PotatnoDocumentPort<TProject> | undefined = lIncommingConnection.node.inputs.values().next().value;
+        const lConjunctionInputPort: PotatnoDocumentPort<TProject> | undefined = lIncommingConnection.node.inputs.value.at(-1);
         if (!lConjunctionInputPort || lConjunctionInputPort.connectedPorts.size === 0) {
             return null;
         }
@@ -727,20 +711,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      */
     private isPureValueProducer(pNode: PotatnoDocumentNode<TProject>): boolean {
         // Check all input ports.
-        for (const lPort of pNode.inputs.values()) {
-            if (lPort.portType === 'flow') {
-                return false;
-            }
-        }
-
-        // Check all output ports.
-        for (const lPort of pNode.outputs.values()) {
-            if (lPort.portType === 'flow') {
-                return false;
-            }
-        }
-
-        return true;
+        return pNode.inputs.flow.length === 0 && pNode.outputs.flow.length === 0;
     }
 }
 

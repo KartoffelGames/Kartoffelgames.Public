@@ -1,3 +1,4 @@
+import { Exception } from "@kartoffelgames/core";
 import { PotatnoPortDefinition, PotatnoPortDefinitionDirection, PotatnoPortDefinitionType } from "../project/potatno-port-definition.ts";
 import { PotatnoProjectGenericType, PotatnoProjectType } from "../project/potatno-project-types-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
@@ -14,9 +15,9 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
     private readonly mDefinitionId: string;
     private readonly mDocument: PotatnoDocument<TProject>;
     private readonly mFunction: PotatnoDocumentFunction<TProject>;
-    private readonly mInputs: Map<string, PotatnoDocumentPort<TProject>>;
+    private readonly mInputs: PotatnoDocumentNodePortsInternal<TProject>;
     private mLabel: string;
-    private readonly mOutputs: Map<string, PotatnoDocumentPort<TProject>>;
+    private readonly mOutputs: PotatnoDocumentNodePortsInternal<TProject>;
     private readonly mIsSystem: boolean;
     private readonly mTransformation: PotatnoDocumentNodeTransformation;
     private readonly mProject: TProject;
@@ -45,14 +46,14 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
     /**
      * Get the data input ports of the node.
      */
-    public get inputs(): Map<string, PotatnoDocumentPort<TProject>> {
+    public get inputs(): PotatnoDocumentNodePorts<TProject> {
         return this.mInputs;
     }
 
     /**
      * Get the data output ports of the node.
      */
-    public get outputs(): Map<string, PotatnoDocumentPort<TProject>> {
+    public get outputs(): PotatnoDocumentNodePorts<TProject> {
         return this.mOutputs;
     }
 
@@ -112,31 +113,41 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
         this.mProject = pProject;
         this.mTransformation = pParameter.transformation;
 
-        // Create ports from input configurations.
-        this.mInputs = new Map<string, PotatnoDocumentPort<TProject>>();
-        for (const lPort of pParameter.ports.input) {
-            this.mInputs.set(lPort.definitionId, new PotatnoDocumentPort(this.mProject, this.mDocument, {
-                definitionId: lPort.definitionId,
-                direction: 'input',
-                label: lPort.label,
-                node: this,
-                portType: lPort.portType,
-                dataType: lPort.dataType
-            }));
-        }
+        const lCreatePortMapping = (pPorts: Array<PotatnoDocumentNodePortConfiguration<TProject>>, pDirection: PotatnoPortDefinitionDirection): PotatnoDocumentNodePortsInternal<TProject> => {
+            const lNodePorts: PotatnoDocumentNodePortsInternal<TProject> = {
+                direction: pDirection,
+                list: new Array<PotatnoDocumentPort<TProject>>(),
+                map: new Map<string, PotatnoDocumentPort<TProject>>(),
+                flow: new Array<PotatnoDocumentPort<TProject>>(),
+                value: new Array<PotatnoDocumentPort<TProject>>()
+            };
 
-        // Create ports from output configurations.
-        this.mOutputs = new Map<string, PotatnoDocumentPort<TProject>>();
-        for (const lPort of pParameter.ports.output) {
-            this.mOutputs.set(lPort.definitionId, new PotatnoDocumentPort(this.mProject, this.mDocument, {
-                definitionId: lPort.definitionId,
-                direction: 'output',
-                label: lPort.label,
-                node: this,
-                portType: lPort.portType,
-                dataType: lPort.dataType
-            }));
-        }
+            // Single loop to fill in.
+            for (const lPort of pPorts) {
+                // Create new port.
+                const lDocumentPort: PotatnoDocumentPort<TProject> = new PotatnoDocumentPort(this.mProject, this.mDocument, {
+                    definitionId: lPort.definitionId,
+                    direction: pDirection,
+                    label: lPort.label,
+                    node: this,
+                    portType: lPort.portType,
+                    dataType: lPort.dataType
+                });
+
+                lNodePorts.list.push(lDocumentPort);
+                lNodePorts.map.set(lDocumentPort.definitionId, lDocumentPort);
+
+                // Assign port to its typed list.
+                const lTypedList: Array<PotatnoDocumentPort<TProject>> = lDocumentPort.portType === 'flow' ? lNodePorts.flow : lNodePorts.value;
+                lTypedList.push(lDocumentPort);
+            }
+
+            return lNodePorts;
+        };
+
+        // Create ports from input configurations.
+        this.mInputs = lCreatePortMapping(pParameter.ports.input, 'input');
+        this.mOutputs = lCreatePortMapping(pParameter.ports.output, 'output');
     }
 
     /**
@@ -176,8 +187,8 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
             lErrors.push(new PotatnoDocumentPortValidationError(`Node "${this.mLabel}" definition "${this.mDefinitionId}" could not be found.`, this));
         } else {
             // Resync inputs and outputs against the current definition.
-            lErrors.push(...this.resyncPorts(this.mInputs, lNodeDefinition.inputs, 'input'));
-            lErrors.push(...this.resyncPorts(this.mOutputs, lNodeDefinition.outputs, 'output'));
+            lErrors.push(...this.resyncPorts(this.mInputs, lNodeDefinition.inputs));
+            lErrors.push(...this.resyncPorts(this.mOutputs, lNodeDefinition.outputs));
 
             // Validate region constraints.
             const lAllowedRegions = new Set<string>([...lNodeDefinition.regions.requires, ...lNodeDefinition.regions.allows]);
@@ -202,7 +213,7 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
         }
 
         // Run port-level validation.
-        for (const lPort of [...this.mInputs.values(), ...this.mOutputs.values()]) {
+        for (const lPort of [...this.mInputs.list, ...this.mOutputs.list]) {
             lErrors.push(...lPort.validate());
         }
 
@@ -221,33 +232,27 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
      * 
      * @returns An array of validation errors found during resync.
      */
-    private resyncPorts(pPortMap: Map<string, PotatnoDocumentPort<TProject>>, pPortDefinitions: ReadonlyArray<PotatnoPortDefinition<TProject>>, pDirection: PotatnoPortDefinitionDirection): Array<PotatnoDocumentPortValidationError<TProject>> {
+    private resyncPorts(pCurrentPorts: PotatnoDocumentNodePortsInternal<TProject>, pPortDefinitions: ReadonlyArray<PotatnoPortDefinition<TProject>>): Array<PotatnoDocumentPortValidationError<TProject>> {
         const lErrors: Array<PotatnoDocumentPortValidationError<TProject>> = new Array<PotatnoDocumentPortValidationError<TProject>>();
 
         // Create a set of existing port definition ids.
         const lExistingPortDefinitionIds = new Set(pPortDefinitions.map((pPort) => pPort.id));
 
         // Process ports present in the definition (new or potentially changed).
-        for (const lDefPort of pPortDefinitions) {
-            // Port is new — add silently.
-            if (!pPortMap.has(lDefPort.id)) {
-                pPortMap.set(lDefPort.id, new PotatnoDocumentPort<TProject>(this.mProject, this.mDocument, {
-                    definitionId: lDefPort.id,
-                    direction: pDirection,
-                    label: lDefPort.label,
-                    node: this,
-                    portType: lDefPort.portType,
-                    dataType: lDefPort.dataType
-                }));
+        for (let lPortDefinitionIndex: number = 0; lPortDefinitionIndex < pPortDefinitions.length; lPortDefinitionIndex++) {
+            const lPortDefinition: PotatnoPortDefinition<TProject> = pPortDefinitions[lPortDefinitionIndex];
 
+            // Port is new — add silently.
+            if (!pCurrentPorts.map.has(lPortDefinition.id)) {
+                this.addPort(pCurrentPorts, lPortDefinition, lPortDefinitionIndex);
                 continue;
             }
 
-            const lExistingPort: PotatnoDocumentPort<TProject> = pPortMap.get(lDefPort.id)!;
+            const lExistingPort: PotatnoDocumentPort<TProject> = pCurrentPorts.map.get(lPortDefinition.id)!;
 
             // Compare portType and dataType. dataType is '' for flow ports on the document port side.
-            const lPortTypeChanged: boolean = lExistingPort.portType !== lDefPort.portType;
-            const lDataTypeChanged: boolean = lExistingPort.dataType !== lDefPort.dataType;
+            const lPortTypeChanged: boolean = lExistingPort.portType !== lPortDefinition.portType;
+            const lDataTypeChanged: boolean = lExistingPort.dataType !== lPortDefinition.dataType;
 
             // Port is unchanged.
             if (!lPortTypeChanged && !lDataTypeChanged) {
@@ -261,19 +266,19 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
             }
 
             // Port config has changed but can be safely replaced without risking broken connections.
-            this.replacePort(pPortMap, lExistingPort, lDefPort, pDirection);
+            this.replacePort(pCurrentPorts, lExistingPort, lPortDefinition);
         }
 
         // Process ports on the node that are no longer in the definition.
-        for (const [lId, lPort] of pPortMap.entries()) {
+        for (const lPort of pCurrentPorts.list) {
             // Skip ports that are still present in the definition.
-            if (lExistingPortDefinitionIds.has(lId)) {
+            if (lExistingPortDefinitionIds.has(lPort.definitionId)) {
                 continue;
             }
 
             // Silently remove unconnected ports that are no longer in the definition.
             if (lPort.connectedPorts.size === 0) {
-                pPortMap.delete(lId);
+                this.removePort(pCurrentPorts, lPort);
                 continue;
             }
 
@@ -282,6 +287,66 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
         }
 
         return lErrors;
+    }
+
+    /**
+     * Add a new port. Hopefully in the correct order.
+     * 
+     * @param pPortMapping - Port mapping of node. 
+     * @param pPortDefinition - Port definition of new node.
+     * 
+     * @returns the created document port.
+     */
+    private addPort(pPortMapping: PotatnoDocumentNodePortsInternal<TProject>, pPortDefinition: PotatnoPortDefinition<TProject>, pOrderIndex: number): PotatnoDocumentPort<TProject> {
+        // Create new port.
+        const lDocumentPort: PotatnoDocumentPort<TProject> = new PotatnoDocumentPort(this.mProject, this.mDocument, {
+            definitionId: pPortDefinition.id,
+            direction: pPortMapping.direction,
+            label: pPortDefinition.label,
+            node: this,
+            portType: pPortDefinition.portType,
+            dataType: pPortDefinition.dataType
+        });
+
+        // Assign it to correct lists.
+        pPortMapping.list.splice(pOrderIndex, 0, lDocumentPort);
+        pPortMapping.map.set(lDocumentPort.definitionId, lDocumentPort);
+
+        // Assign port to its typed list.
+        const lTypedList: Array<PotatnoDocumentPort<TProject>> = lDocumentPort.portType === 'flow' ? pPortMapping.flow : pPortMapping.value;
+        lTypedList.push(lDocumentPort);
+
+        return lDocumentPort;
+    }
+
+    /**
+     * Remove port and return the order index of the removed port.
+     * 
+     * @param pPortMap - The port map to operate on (inputs or outputs).
+     * @param pPort - The port that should be deleted.
+     */
+    private removePort(pPortMap: PotatnoDocumentNodePortsInternal<TProject>, pPort: PotatnoDocumentPort<TProject>): number {
+        // Read index of port in ordered list.
+        const lIndex: number = pPortMap.list.indexOf(pPort);
+        if (lIndex === -1) {
+            throw new Exception(`Port "${pPort.label}" was not found and can not be removed.`, this);
+        }
+
+        // Remove from mapping and ordered list.
+        pPortMap.list.splice(lIndex, 1);
+        pPortMap.map.delete(pPort.definitionId);
+
+        // Find the index of the port in the typed port list.
+        const lTypedList: Array<PotatnoDocumentPort<TProject>> = pPort.portType === 'flow' ? pPortMap.flow : pPortMap.value;
+        const lTypedIndex: number = lTypedList.indexOf(pPort);
+        if (lIndex === -1) {
+            throw new Exception(`Port "${pPort.label}" was not found in typed list and can not be removed.`, this);
+        }
+
+        // Remove port from typed list.
+        lTypedList.splice(lTypedIndex, 1);
+
+        return lIndex;
     }
 
     /**
@@ -295,7 +360,7 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
      * 
      * @returns The newly created port instance.
      */
-    private replacePort(pPortMap: Map<string, PotatnoDocumentPort<TProject>>, pOldPort: PotatnoDocumentPort<TProject>, pPortDefinition: PotatnoPortDefinition<TProject>, pDirection: PotatnoPortDefinitionDirection): PotatnoDocumentPort<TProject> {
+    private replacePort(pPortMap: PotatnoDocumentNodePortsInternal<TProject>, pOldPort: PotatnoDocumentPort<TProject>, pPortDefinition: PotatnoPortDefinition<TProject>): PotatnoDocumentPort<TProject> {
         // Copy connected ports before replacing to avoid concurrent modification issues.
         const lOldConnections: Array<PotatnoDocumentPort<TProject>> = Array.from(pOldPort.connectedPorts);
 
@@ -305,18 +370,9 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
             pOldPort.disconnect(lConn);
         }
 
-        // Create new port from definition.
-        const lNewPort: PotatnoDocumentPort<TProject> = new PotatnoDocumentPort<TProject>(this.mProject, this.mDocument, {
-            definitionId: pPortDefinition.id,
-            direction: pDirection,
-            label: pPortDefinition.label,
-            node: this,
-            portType: pPortDefinition.portType,
-            dataType: pPortDefinition.dataType
-        });
-
         // Add port to eighter inputs or outputs map depending on its direction.
-        pPortMap.set(pPortDefinition.id, lNewPort);
+        const lOrderIndex: number = this.removePort(pPortMap, pOldPort);
+        const lNewPort: PotatnoDocumentPort<TProject> = this.addPort(pPortMap, pPortDefinition, lOrderIndex);
 
         // Create a new port and replace the connections.
         for (const lConnection of lOldConnections) {
@@ -326,6 +382,61 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
         return lNewPort;
     }
 }
+
+/**
+ * Ordered mapping of node ports but internal.
+ */
+type PotatnoDocumentNodePortsInternal<TProject extends PotatnoProject> = {
+    /**
+     * Direction of ports.
+     */
+    direction: PotatnoPortDefinitionDirection;
+
+    /**
+     * All ports in order.
+     */
+    list: Array<PotatnoDocumentPort<TProject>>;
+
+    /**
+     * Map of port definition id and port.
+     */
+    map: Map<string, PotatnoDocumentPort<TProject>>;
+
+    /**
+     * Flow ports.
+     */
+    flow: Array<PotatnoDocumentPort<TProject>>;
+
+    /**
+     * Flow ports.
+     */
+    value: Array<PotatnoDocumentPort<TProject>>;
+};
+
+/**
+ * Ordered mapping of node ports.
+ */
+export type PotatnoDocumentNodePorts<TProject extends PotatnoProject> = {
+    /**
+     * All ports in order.
+     */
+    list: ReadonlyArray<PotatnoDocumentPort<TProject>>;
+
+    /**
+     * Map of port definition id and port.
+     */
+    map: ReadonlyMap<string, PotatnoDocumentPort<TProject>>;
+
+    /**
+     * Flow ports.
+     */
+    flow: ReadonlyArray<PotatnoDocumentPort<TProject>>;
+
+    /**
+     * Flow ports.
+     */
+    value: ReadonlyArray<PotatnoDocumentPort<TProject>>;
+};
 
 export type PotatnoDocumentNodeConstructorParameter<TProject extends PotatnoProject> = {
     category: string,

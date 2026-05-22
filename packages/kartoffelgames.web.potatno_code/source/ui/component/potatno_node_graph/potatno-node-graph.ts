@@ -1149,11 +1149,11 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
         const lPortGap: number = 24;
         const lBodyPad: number = 4;
 
-        const lPortMap: Map<string, PotatnoDocumentPort<TProject>> = pPort.direction === 'output' ? lNode.outputs : lNode.inputs;
+        const lPortList: ReadonlyArray<PotatnoDocumentPort<TProject>> = pPort.direction === 'output' ? lNode.outputs.list : lNode.inputs.list;
         let lIdx: number = 0;
         let lCount: number = 0;
 
-        for (const lCandidatePort of lPortMap.values()) {
+        for (const lCandidatePort of lPortList) {
             if (lCandidatePort === pPort) {
                 lIdx = lCount;
                 break;
@@ -1464,7 +1464,7 @@ export class PotatnoNodeGraph<TProject extends PotatnoUiProject> implements ICom
 
         let lConnectionIndex: number = 0;
         for (const lNode of lActiveFunction.nodes) {
-            for (const lOutputPort of lNode.outputs.values()) {
+            for (const lOutputPort of lNode.outputs.list) {
                 for (const lConnectedPort of lOutputPort.connectedPorts) {
                     const lId: string = `c${lConnectionIndex++}`;
                     const lSourcePosition: Point = this.getPortPosition(lOutputPort);

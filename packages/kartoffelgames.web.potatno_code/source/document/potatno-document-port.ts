@@ -111,7 +111,7 @@ export class PotatnoDocumentPort<TProject extends PotatnoProject<PotatnoProjectT
 
         // When it is a output generic port, use the type of the connected input port with the same generic to resolve the generic type.
         if (this.mDirection === 'output') {
-            const lResolvingInputPort = this.mNode.inputs.values().find((pInputPort) => pInputPort.dataType === this.mValueType);
+            const lResolvingInputPort: PotatnoDocumentPort<TProject> | undefined = this.mNode.inputs.value.find((pInputPort) => pInputPort.dataType === this.mValueType);
             if (!lResolvingInputPort) {
                 return this.dataType;
             }
@@ -272,7 +272,7 @@ export class PotatnoDocumentPort<TProject extends PotatnoProject<PotatnoProjectT
             // Generic value output: all input ports on this node sharing the same generic must be connected.
             if (this.mPortType === 'value' && this.mProject.types.isGenericType(this.mValueType ?? '')) {
                 // Find all input ports on this node with the same generic type.
-                const lGenericInputPorts: IteratorObject<PotatnoDocumentPort<TProject>> = this.mNode.inputs.values().filter((pInputPort) => {
+                const lGenericInputPorts: Array<PotatnoDocumentPort<TProject>> = this.mNode.inputs.value.filter((pInputPort) => {
                     return pInputPort.dataType === this.mValueType;
                 });
 

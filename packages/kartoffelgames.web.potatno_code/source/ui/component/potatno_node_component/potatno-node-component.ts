@@ -224,7 +224,7 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
         if (!this.nodeData) {
             return [];
         }
-        return [...this.nodeData.inputs.values()];
+        return [...this.nodeData.inputs.list];
     }
 
     /**
@@ -234,7 +234,7 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
         if (!this.nodeData) {
             return [];
         }
-        return [...this.nodeData.outputs.values()];
+        return [...this.nodeData.outputs.list];
     }
 
     // ── Lifecycle ───────────────────────────────────────────────────────

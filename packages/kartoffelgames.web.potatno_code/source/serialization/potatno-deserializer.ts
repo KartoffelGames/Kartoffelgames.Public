@@ -86,8 +86,8 @@ export class PotatnoDeserializer<TProject extends PotatnoProject> {
                 continue;
             }
 
-            const lSourcePort = lSourceNode.outputs.get(lConnection.sourcePortId);
-            const lTargetPort = lTargetNode.inputs.get(lConnection.targetPortId);
+            const lSourcePort = lSourceNode.outputs.map.get(lConnection.sourcePortId);
+            const lTargetPort = lTargetNode.inputs.map.get(lConnection.targetPortId);
             if (!lSourcePort || !lTargetPort) {
                 continue;
             }
@@ -154,7 +154,7 @@ export class PotatnoDeserializer<TProject extends PotatnoProject> {
         // Restore direct values for value input ports.
         for (const lPortData of pData.ports) {
             if (lPortData.portType === 'value' && lPortData.directValue.length > 0) {
-                const lPort = lNode.inputs.get(lPortData.definitionId);
+                const lPort = lNode.inputs.map.get(lPortData.definitionId);
                 if (lPort) {
                     lPort.setDirectValue(lPortData.directValue);
                 }

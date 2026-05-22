@@ -220,7 +220,7 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject> implements
      */
     public removeNode(pNode: PotatnoDocumentNode<TProject>): void {
         // Disconnect all ports of the node.
-        for (const lPort of [...pNode.inputs.values(), ...pNode.outputs.values()]) {
+        for (const lPort of [...pNode.inputs.list, ...pNode.outputs.list]) {
             for (const lConnectedPort of Array.from(lPort.connectedPorts)) {
                 lPort.disconnect(lConnectedPort);
             }
@@ -346,7 +346,7 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject> implements
         const lNodeRegions = new Set<string>();
 
         // Walk all incoming connections (flow inputs and value inputs).
-        for (const lInputPort of pNode.inputs.values()) {
+        for (const lInputPort of pNode.inputs.list) {
             for (const lConnectedPort of lInputPort.connectedPorts) {
                 const lPredecessor = lConnectedPort.node;
 
@@ -401,7 +401,7 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject> implements
         pBuffer.set(pNode, lDomains);
 
         // Walk all incoming connections (flow inputs and value inputs).
-        for (const lInputPort of pNode.inputs.values()) {
+        for (const lInputPort of pNode.inputs.list) {
             for (const lConnectedPort of lInputPort.connectedPorts) {
                 const lPredecessor = lConnectedPort.node;
 

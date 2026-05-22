@@ -220,7 +220,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
 
         while (lCursorNode !== null && lCursorNode !== pStopBefore) {
             // Resolve flow-input predecessors, skipping flow conjunctions on the way.
-            const lPredecessors: Array<PotatnoCodeGeneratorFlowPredecessor<TProject>> = this.getFlowInputPredecessors(lCursorNode);
+            const lPredecessors: Array<PotatnoDocumentPort<TProject>> = this.getFlowInputPredecessors(lCursorNode);
 
             // CASE C: >1 predecessors. Cursor is a merge point.
             if (lPredecessors.length > 1) {
@@ -260,9 +260,9 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * @param pPassData - Shared pass state.
      * @param pCursor - The pass cursor.
      * @param pMergeNode - The cursor node that triggered the merge handling.
-     * @param pPredecessors - The merge's fan-in predecessors (already skipped through conjunctions).
+     * @param pPredecessorNodes - The merge's fan-in predecessors (already skipped through conjunctions).
      */
-    private handleMergeAndAdvance(pPassData: PotatnoCodeGeneratorPassData, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pMergeNode: PotatnoDocumentNode<TProject>, pPredecessors: Array<PotatnoCodeGeneratorFlowPredecessor<TProject>>): PotatnoDocumentNode<TProject> | null {
+    private handleMergeAndAdvance(pPassData: PotatnoCodeGeneratorPassData, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pMergeNode: PotatnoDocumentNode<TProject>, pPredecessorNodes: Array<PotatnoDocumentPort<TProject>>): PotatnoDocumentNode<TProject> | null {
         // 1. Emit the merge node first. It's a regular flow node with its own code.
         this.emitNode(pPassData, pCursor, pMergeNode);
 
@@ -276,14 +276,14 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         // 4. Run a sub-walk per fan-in branch into a fresh scope.
         const lInnerByPort: Record<string, string> = {};
         const lParentScope: PotatnoCodeGeneratorPassCursorScope<TProject> = pCursor.scope;
-        for (const lPredecessor of pPredecessors) {
-            pCursor.scope = this.createScope(lPredecessor.node, lBranchPoint);
-            const lLastGeneratedNode = this.walkBackward(pPassData, pCursor, lPredecessor.node, lBranchPoint);
+        for (const lPredecessorPort of pPredecessorNodes) {
+            pCursor.scope = this.createScope(lPredecessorPort.node, lBranchPoint);
+            const lLastGeneratedNode = this.walkBackward(pPassData, pCursor, lPredecessorPort.node, lBranchPoint);
 
             // The sub-walk's first node (in execution order) is the one we stopped just-before-advancing-to-branchPoint.
             // Map it back to the branch point's flow output port that initiated this branch.
             const lBranchOutputPort: PotatnoDocumentPort<TProject> | null = this.findBranchOutputPortForFirstNode(lBranchPoint, lLastGeneratedNode);
-            const lBranchKey: string = lBranchOutputPort ? lBranchOutputPort.definitionId : lPredecessor.sourcePort.definitionId;
+            const lBranchKey: string = lBranchOutputPort ? lBranchOutputPort.definitionId : lPredecessorPort.definitionId;
             lInnerByPort[lBranchKey] = pCursor.scope.codeOutput.join('\n');
         }
         pCursor.scope = lParentScope;
@@ -292,7 +292,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         this.emitNode(pPassData, pCursor, lBranchPoint, lInnerByPort, lNextCode);
 
         // 6. Continue from the branch point's flow-input predecessor.
-        const lBranchPointPredecessors: Array<PotatnoCodeGeneratorFlowPredecessor<TProject>> = this.getFlowInputPredecessors(lBranchPoint);
+        const lBranchPointPredecessors: Array<PotatnoDocumentPort<TProject>> = this.getFlowInputPredecessors(lBranchPoint);
         return lBranchPointPredecessors[0]?.node ?? null;
     }
 
@@ -498,17 +498,17 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * @param pMergeNode - A node with ≥2 flow-input connections.
      */
     private findBranchPoint(pMergeNode: PotatnoDocumentNode<TProject>): PotatnoDocumentNode<TProject> {
-        const lPredecessors: Array<PotatnoCodeGeneratorFlowPredecessor<TProject>> = this.getFlowInputPredecessors(pMergeNode);
-        const lTotalTags: number = lPredecessors.length;
+        const lPredecessorPorts: Array<PotatnoDocumentPort<TProject>> = this.getFlowInputPredecessors(pMergeNode);
+        const lTotalTags: number = lPredecessorPorts.length;
 
         const lTagsByNode: Map<PotatnoDocumentNode<TProject>, Set<number>> = new Map<PotatnoDocumentNode<TProject>, Set<number>>();
         const lQueue: Array<PotatnoDocumentNode<TProject>> = new Array<PotatnoDocumentNode<TProject>>();
 
         // Seed: one tag per fan-in predecessor.
-        for (let lIndex: number = 0; lIndex < lPredecessors.length; lIndex++) {
-            const lPredecessor: PotatnoCodeGeneratorFlowPredecessor<TProject> = lPredecessors[lIndex]!;
-            lTagsByNode.set(lPredecessor.node, new Set<number>([lIndex]));
-            lQueue.push(lPredecessor.node);
+        for (let lIndex: number = 0; lIndex < lPredecessorPorts.length; lIndex++) {
+            const lPredecessorPort: PotatnoDocumentPort<TProject> = lPredecessorPorts[lIndex]!;
+            lTagsByNode.set(lPredecessorPort.node, new Set<number>([lIndex]));
+            lQueue.push(lPredecessorPort.node);
         }
 
         while (lQueue.length > 0) {
@@ -545,17 +545,14 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * A single flow input may fan in from multiple upstream output ports, and each one may itself be on a chain of flow conjunctions that fan further out.
      *
      * @param pNode - The node whose predecessors to collect.
+     * 
+     * @returns all connected flow output ports.
      */
-    private getFlowInputPredecessors(pNode: PotatnoDocumentNode<TProject>): Array<PotatnoCodeGeneratorFlowPredecessor<TProject>> {
-        const lResult: Array<PotatnoCodeGeneratorFlowPredecessor<TProject>> = new Array<PotatnoCodeGeneratorFlowPredecessor<TProject>>();
+    private getFlowInputPredecessors(pNode: PotatnoDocumentNode<TProject>): Array<PotatnoDocumentPort<TProject>> {
+        const lResult: Array<PotatnoDocumentPort<TProject>> = new Array<PotatnoDocumentPort<TProject>>();
 
         for (const lInputPort of pNode.inputs.flow) {
-            for (const lResolvedSourcePort of this.resolveFlowConjunctions(lInputPort)) {
-                lResult.push({
-                    node: lResolvedSourcePort.node,
-                    sourcePort: lResolvedSourcePort
-                });
-            }
+            lResult.push(...this.resolveFlowConjunctions(lInputPort));
         }
 
         return lResult;
@@ -719,20 +716,4 @@ type PotatnoCodeGeneratorPassCursorScope<TProject extends PotatnoProject> = {
      * Backward buffer accumulating emitted code in correct execution order.
      */
     codeOutput: Array<string>;
-};
-
-/**
- * Flow-input predecessor description used during the backward walk.
- * Holds the resolved upstream node (post-conjunction-skip) plus the original connected source port (post-skip too) so callers can identify the originating output port.
- */
-type PotatnoCodeGeneratorFlowPredecessor<TProject extends PotatnoProject> = {
-    /**
-     * The upstream node (with any flow-conjunctions traversed away).
-     */
-    node: PotatnoDocumentNode<TProject>;
-
-    /**
-     * The actual upstream output port connected to the consumer's flow input (post-conjunction-skip).
-     */
-    sourcePort: PotatnoDocumentPort<TProject>;
 };

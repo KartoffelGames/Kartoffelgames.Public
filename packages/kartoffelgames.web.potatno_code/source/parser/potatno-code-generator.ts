@@ -285,7 +285,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         }
 
         // There is something wrong when not a single node was walked. 
-        if(!lCursorNode) {
+        if (!lCursorNode) {
             throw new Exception(`Walk did not reach an entry node from exit "${pStartNode.label}".`, this);
         }
 
@@ -427,15 +427,15 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      */
     private resolveValueInput(pInputPort: PotatnoDocumentPort<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>): string {
         // Resolve the input ports connection.
-        const lIncomingPort: PotatnoDocumentPort<TProject>| null = this.resolveValueConjunctions(pInputPort);
-        
+        const lIncomingPort: PotatnoDocumentPort<TProject> | null = this.resolveValueConjunctions(pInputPort);
+
         // Unconnected. Return an inline literal from the project type's converter (or '' when the data type can't be resolved).
         if (!lIncomingPort) {
             const lDataType = pInputPort.dataType;
             if (this.mProject.types.isGenericType(lDataType)) {
                 return '';
             }
-            
+
             return this.mProject.types.getType(lDataType).convert([...pInputPort.directValue]);
         }
 
@@ -498,10 +498,8 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
                 if (lInputPort.portType !== 'flow') {
                     continue;
                 }
-                for (const lConnectedPort of lInputPort.connectedPorts) {
-                    for (const lResolvedSourcePort of this.resolveFlowConjunctions(lConnectedPort)) {
-                        lFlowQueue.push(lResolvedSourcePort.node);
-                    }
+                for (const lResolvedSourcePort of this.resolveFlowConjunctions(lInputPort)) {
+                    lFlowQueue.push(lResolvedSourcePort.node);
                 }
             }
         }
@@ -516,8 +514,8 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
                 }
 
                 // Resolve incomming ports.
-                const lIncomingPort: PotatnoDocumentPort<TProject>| null = this.resolveValueConjunctions(lInputPort);
-                if(!lIncomingPort){
+                const lIncomingPort: PotatnoDocumentPort<TProject> | null = this.resolveValueConjunctions(lInputPort);
+                if (!lIncomingPort) {
                     continue;
                 }
 
@@ -606,13 +604,11 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             if (lInputPort.portType !== 'flow') {
                 continue;
             }
-            for (const lConnectedPort of lInputPort.connectedPorts) {
-                for (const lResolvedSourcePort of this.resolveFlowConjunctions(lConnectedPort)) {
-                    lResult.push({
-                        node: lResolvedSourcePort.node,
-                        sourcePort: lResolvedSourcePort
-                    });
-                }
+            for (const lResolvedSourcePort of this.resolveFlowConjunctions(lInputPort)) {
+                lResult.push({
+                    node: lResolvedSourcePort.node,
+                    sourcePort: lResolvedSourcePort
+                });
             }
         }
 
@@ -666,25 +662,27 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @return The actual, conjunction-cleared upstream output flow ports.
      */
-    private resolveFlowConjunctions(pOutputPort: PotatnoDocumentPort<TProject>): Array<PotatnoDocumentPort<TProject>> {
+    private resolveFlowConjunctions(pInputPort: PotatnoDocumentPort<TProject>): Array<PotatnoDocumentPort<TProject>> {
         const lResults: Array<PotatnoDocumentPort<TProject>> = new Array<PotatnoDocumentPort<TProject>>();
 
-        // Port does not belong to a conjunction. Just return it.
-        if (pOutputPort.node.definitionId !== FlowConjunctionNodeDefinition.DEFINITION_ID) {
-            lResults.push(pOutputPort);
-            return lResults;
-        }
+        for (const lOutputPort of pInputPort.connectedPorts) {
+            // Port does not belong to a conjunction. Just return it.
+            if (lOutputPort.node.definitionId !== FlowConjunctionNodeDefinition.DEFINITION_ID) {
+                lResults.push(lOutputPort);
+                continue;
+            }
 
-        // Try to read the nodes first input port.
-        // Conjuctions only have one in- and output port. When it has no connection, just throw.
-        const lInputPort: PotatnoDocumentPort<TProject> | undefined = pOutputPort.node.inputs.values().next().value;
-        if (!lInputPort || lInputPort.connectedPorts.size === 0) {
-            throw new Exception('Conjunction nodes must have a valid input and output connection', this);
-        }
+            // Try to read the nodes first input port.
+            // Conjuctions only have one in- and output port. When it has no connection, just throw.
+            const lInputPort: PotatnoDocumentPort<TProject> | undefined = lOutputPort.node.inputs.values().next().value;
+            if (!lInputPort || lInputPort.connectedPorts.size === 0) {
+                continue;
+            }
 
-        // Read and recursive resolve all incoming ports.
-        for (const lUpstreamOutputPort of lInputPort.connectedPorts) {
-            lResults.push(...this.resolveFlowConjunctions(lUpstreamOutputPort));
+            // Read and recursive resolve all incoming ports.
+            for (const lUpstreamOutputPort of lInputPort.connectedPorts) {
+                lResults.push(...this.resolveFlowConjunctions(lUpstreamOutputPort));
+            }
         }
 
         return lResults;
@@ -694,18 +692,18 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * Recursive walk backward through chains of value-conjunction reroute nodes to find the real upstream output port.
      * Value inputs are single-connection (per the value port rule), so the resolution always yields exactly one port.
      *
-     * @param pOutputPort - The candidate output port (may belong to a value-conjunction node or a real node).
+     * @param pInputPort - The input port with possible connections.
      *
      * @return The actual, conjunction-cleared upstream output value port.
      */
     private resolveValueConjunctions(pInputPort: PotatnoDocumentPort<TProject>): PotatnoDocumentPort<TProject> | null {
         // Check if input port has any connection.
-        if(pInputPort.connectedPorts.size === 0) {
+        if (pInputPort.connectedPorts.size === 0) {
             return null;
         }
-        
+
         // Get the first connection.
-        const lIncommingConnection: PotatnoDocumentPort<TProject> = pInputPort.connectedPorts.values().next().value!
+        const lIncommingConnection: PotatnoDocumentPort<TProject> = pInputPort.connectedPorts.values().next().value!;
 
         // Port does not belong to a conjunction. Return it.
         if (lIncommingConnection.node.definitionId !== ValueConjunctionNodeDefinition.DEFINITION_ID) {
@@ -713,10 +711,9 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         }
 
         // Try to read the nodes first input port.
-        // Conjuctions only have one in- and output port. When it has no connection, just throw.
         const lConjunctionInputPort: PotatnoDocumentPort<TProject> | undefined = lIncommingConnection.node.inputs.values().next().value;
         if (!lConjunctionInputPort || lConjunctionInputPort.connectedPorts.size === 0) {
-            throw new Exception('Conjunction nodes must have a valid input and output connection', this);
+            return null;
         }
 
         // Recurse with the single upstream output port the conjunction's input is connected to.

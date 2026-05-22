@@ -66,7 +66,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @returns A DocumentResult with pFunction's result as the entry point plus all transitive dependencies.
      */
-    public generateFunction(pFunction: PotatnoDocumentFunction<TProject>, pDebug: boolean = true): PotatnoCodeGeneratorDocumentResult<TProject> {
+    public generateFunction(pFunction: PotatnoDocumentFunction<TProject>, pDebug: boolean = false): PotatnoCodeGeneratorDocumentResult<TProject> {
         return this.buildDocumentResult(pFunction.document, pFunction, this.resolveAllExitNodes(pFunction), pDebug);
     }
 
@@ -79,7 +79,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @returns A DocumentResult with the single-graph FunctionResult as the entry point plus all transitive dependencies.
      */
-    public generateNode(pExitNode: PotatnoDocumentNode<TProject>, pDebug: boolean = true): PotatnoCodeGeneratorDocumentResult<TProject> {
+    public generateNode(pExitNode: PotatnoDocumentNode<TProject>, pDebug: boolean = false): PotatnoCodeGeneratorDocumentResult<TProject> {
         return this.buildDocumentResult(pExitNode.document, pExitNode.function, [pExitNode], pDebug);
     }
 
@@ -100,10 +100,10 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         };
 
         // Build the entry FunctionResult with one NodeResult per requested exit node.
-        const lEntryFunctionResult: PotatnoCodeGeneratorFunctionResult<TProject> = this.generateFunctionCode(pEntryPointFunction, lPassData, pExitNodes);
+        const lEntryFunctionResult: PotatnoCodeGeneratorFunctionResult<TProject> = this.generateFunctionCode(lPassData, pEntryPointFunction, pExitNodes);
 
         // Recursively generate every transitive dependency function discovered through the entry's NodeResults.
-        const lDependencies: Array<PotatnoCodeGeneratorFunctionResult<TProject>> = this.generateAllDependencies(lEntryFunctionResult, lPassData);
+        const lDependencies: Array<PotatnoCodeGeneratorFunctionResult<TProject>> = this.generateAllDependencies(lPassData, lEntryFunctionResult);
 
         return new PotatnoCodeGeneratorDocumentResult(pDocument, lEntryFunctionResult, lDependencies);
     }
@@ -134,18 +134,18 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * Build a FunctionResult by walking the given exit nodes (or every exit node of the function when pExitNodes is omitted).
      * Function-call dependencies are NOT generated here. They are tracked on each NodeResult and surfaced later via generateAllDependencies.
      *
-     * @param pFunction - The function to generate code for.
      * @param pPassData - Shared pass state (counter, debug).
+     * @param pFunction - The function to generate code for.
      * @param pExitNodes - Optional explicit exit-node list. Omit to walk every exit node declared by the function definition.
      *
      * @returns A fresh FunctionResult holding one NodeResult per walked exit node.
      */
-    private generateFunctionCode(pFunction: PotatnoDocumentFunction<TProject>, pPassData: PotatnoCodeGeneratorPassData, pExitNodes?: ReadonlyArray<PotatnoDocumentNode<TProject>>): PotatnoCodeGeneratorFunctionResult<TProject> {
+    private generateFunctionCode(pPassData: PotatnoCodeGeneratorPassData, pFunction: PotatnoDocumentFunction<TProject>, pExitNodes?: ReadonlyArray<PotatnoDocumentNode<TProject>>): PotatnoCodeGeneratorFunctionResult<TProject> {
         const lFunctionResult: PotatnoCodeGeneratorFunctionResult<TProject> = new PotatnoCodeGeneratorFunctionResult(pFunction);
 
         // Walk every requested exit node's subgraph (defaults to all of the function's exits) and attach the produced NodeResult.
         for (const lExitNode of pExitNodes ?? this.resolveAllExitNodes(pFunction)) {
-            lFunctionResult.addGraph(this.generateNodeCode(lExitNode, pPassData));
+            lFunctionResult.addGraph(this.generateNodeCode(pPassData, lExitNode));
         }
 
         return lFunctionResult;
@@ -160,12 +160,12 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * The initial FunctionResult's own function is treated as already generated so it is never re-emitted as a dependency.
      *
-     * @param pInitialFunctionResult - The entry-point FunctionResult whose dependencies seed the recursion.
      * @param pPassData - Shared pass state.
-     *
+     * @param pInitialFunctionResult - The entry-point FunctionResult whose dependencies seed the recursion.
+     * 
      * @returns Dependency FunctionResults in appearance order, excluding the initial function.
      */
-    private generateAllDependencies(pInitialFunctionResult: PotatnoCodeGeneratorFunctionResult<TProject>, pPassData: PotatnoCodeGeneratorPassData): Array<PotatnoCodeGeneratorFunctionResult<TProject>> {
+    private generateAllDependencies(pPassData: PotatnoCodeGeneratorPassData, pInitialFunctionResult: PotatnoCodeGeneratorFunctionResult<TProject>): Array<PotatnoCodeGeneratorFunctionResult<TProject>> {
         const lGenerated: Set<PotatnoDocumentFunction<TProject>> = new Set<PotatnoDocumentFunction<TProject>>([pInitialFunctionResult.function]);
         const lQueued: Set<PotatnoDocumentFunction<TProject>> = new Set<PotatnoDocumentFunction<TProject>>();
         const lQueue: Array<PotatnoDocumentFunction<TProject>> = new Array<PotatnoDocumentFunction<TProject>>();
@@ -194,7 +194,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             // Generate the next dependency function. Mark it generated BEFORE walking so a self-reference short-circuits via lGenerated.
             const lDependencyFunction: PotatnoDocumentFunction<TProject> = lQueue.shift()!;
             lGenerated.add(lDependencyFunction);
-            lCurrentResult = this.generateFunctionCode(lDependencyFunction, pPassData);
+            lCurrentResult = this.generateFunctionCode(pPassData, lDependencyFunction);
             lDependencyResults.push(lCurrentResult);
         }
     }
@@ -205,30 +205,27 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * Constructs a cursor with a fresh top-level scope, pre-counts the value-producer consumers,
      * runs the backward walk, then assembles the NodeResult from the accumulated buffer and the discovered entry node.
      *
-     * @param pExitNode - The exit node anchoring the subgraph.
      * @param pPassData - Shared pass state.
-     *
+     * @param pExitNode - The exit node anchoring the subgraph.
+     * 
      * @returns A NodeResult capturing the subgraph's body code, entry/exit nodes, and function-call dependencies.
      */
-    private generateNodeCode(pExitNode: PotatnoDocumentNode<TProject>, pPassData: PotatnoCodeGeneratorPassData): PotatnoCodeGeneratorNodeResult<TProject> {
+    private generateNodeCode(pPassData: PotatnoCodeGeneratorPassData, pExitNode: PotatnoDocumentNode<TProject>): PotatnoCodeGeneratorNodeResult<TProject> {
         // Build a fresh cursor with the top-level scope and a pass-wide dependencies accumulator.
-        const lDependencies: Array<PotatnoDocumentFunction<TProject>> = new Array<PotatnoDocumentFunction<TProject>>();
         const lCursor: PotatnoCodeGeneratorPassCursor<TProject> = {
-            counter: pPassData.counter,
-            debug: pPassData.debug,
-            dependencies: lDependencies,
+            dependencies: new Array<PotatnoDocumentFunction<TProject>>(),
             scope: this.createScope(pExitNode, null)
         };
 
         // Walk the exit node and retrive the starting node in this process.
-        const lEntryNode: PotatnoDocumentNode<TProject> = this.walkBackward(pExitNode, null, lCursor);
+        const lEntryNode: PotatnoDocumentNode<TProject> = this.walkBackward(pPassData, lCursor, pExitNode, null);
 
         // Compose the body code in execution order. The buffer accumulates code in REVERSE execution order via push, so we reverse before joining.
         const lBodyCode: string = lCursor.scope.buffer.join('\n');
 
         return new PotatnoCodeGeneratorNodeResult({
             bodyCode: lBodyCode,
-            dependencies: lDependencies,
+            dependencies: lCursor.dependencies,
             entryNode: lEntryNode,
             exitNode: pExitNode
         });
@@ -255,11 +252,12 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * Owns cursor.scope.buffer for its frame. Appends what emit* helpers return.
      * Sub-walks at merge points get their own fresh scope swapped in temporarily and restored on return.
      *
+     * @param pPassData - Shared pass state.
+     * @param pCursor - The pass cursor.
      * @param pStartNode - The node the walk begins at.
      * @param pStopBefore - When set, the walk stops as soon as the cursor would advance to this node. The node is NOT emitted. Null at top-level so the walk runs until reaching a real entry node (CASE A).
-     * @param pCursor - The pass cursor.
      */
-    private walkBackward(pStartNode: PotatnoDocumentNode<TProject>, pStopBefore: PotatnoDocumentNode<TProject> | null, pCursor: PotatnoCodeGeneratorPassCursor<TProject>): PotatnoDocumentNode<TProject> {
+    private walkBackward(pPassData: PotatnoCodeGeneratorPassData, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pStartNode: PotatnoDocumentNode<TProject>, pStopBefore: PotatnoDocumentNode<TProject> | null): PotatnoDocumentNode<TProject> {
         let lCursorNode: PotatnoDocumentNode<TProject> | null = pStartNode; // TODO: Remove the null when handleMergeAndAdvance is fixed.
 
         while (lCursorNode !== null && lCursorNode !== pStopBefore) {
@@ -268,12 +266,12 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
 
             // CASE C: >1 predecessors. Cursor is a merge point.
             if (lPredecessors.length > 1) {
-                lCursorNode = this.handleMergeAndAdvance(lCursorNode, lPredecessors, pCursor);
+                lCursorNode = this.handleMergeAndAdvance(pPassData, pCursor, lCursorNode, lPredecessors);
                 continue;
             }
 
             // CASE A (0 predecessors) and CASE B (1 predecessor) both emit the current node.
-            this.emitNode(lCursorNode, pCursor);
+            this.emitNode(pPassData, pCursor, lCursorNode);
 
             // CASE A: entry node or dead-end.
             if (lPredecessors.length === 0) {
@@ -299,13 +297,14 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * then emits the branch point with the per-branch inner strings and the shared next string pre-filled in its pContext.
      * Returns the branch point's flow-input predecessor so the outer walk continues from there.
      *
+     * @param pPassData - Shared pass state.
+     * @param pCursor - The pass cursor.
      * @param pMergeNode - The cursor node that triggered the merge handling.
      * @param pPredecessors - The merge's fan-in predecessors (already skipped through conjunctions).
-     * @param pCursor - The pass cursor.
      */
-    private handleMergeAndAdvance(pMergeNode: PotatnoDocumentNode<TProject>, pPredecessors: Array<PotatnoCodeGeneratorFlowPredecessor<TProject>>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>): PotatnoDocumentNode<TProject> | null {
+    private handleMergeAndAdvance(pPassData: PotatnoCodeGeneratorPassData, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pMergeNode: PotatnoDocumentNode<TProject>, pPredecessors: Array<PotatnoCodeGeneratorFlowPredecessor<TProject>>): PotatnoDocumentNode<TProject> | null {
         // 1. Emit the merge node first. It's a regular flow node with its own code.
-        this.emitNode(pMergeNode, pCursor);
+        this.emitNode(pPassData, pCursor, pMergeNode);
 
         // 2. Snapshot the buffer so far as the branch point's `next`. Reverse-then-join because the buffer is in backward order.
         const lNextCode: string = pCursor.scope.buffer.join('\n');
@@ -319,7 +318,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         const lParentScope: PotatnoCodeGeneratorPassCursorScope<TProject> = pCursor.scope;
         for (const lPredecessor of pPredecessors) {
             pCursor.scope = this.createScope(lPredecessor.node, lBranchPoint);
-            this.walkBackward(lPredecessor.node, lBranchPoint, pCursor);
+            this.walkBackward(pPassData, pCursor, lPredecessor.node, lBranchPoint);
 
             // The sub-walk's first node (in execution order) is the one we stopped just-before-advancing-to-branchPoint.
             // Map it back to the branch point's flow output port that initiated this branch.
@@ -330,7 +329,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         pCursor.scope = lParentScope;
 
         // 5. Emit the branch point with inner/next in its pContext.
-        this.emitNode(lBranchPoint, pCursor, lInnerByPort, lNextCode);
+        this.emitNode(pPassData, pCursor, lBranchPoint, lInnerByPort, lNextCode);
 
         // 6. Continue from the branch point's flow-input predecessor.
         const lBranchPointPredecessors: Array<PotatnoCodeGeneratorFlowPredecessor<TProject>> = this.getFlowInputPredecessors(lBranchPoint);
@@ -345,12 +344,13 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * Function-call nodes (PotatnoFunctionNodeDefinition) record their target document function in the cursor's dependency list (not generated here).
      *
-     * @param pNode - The node to emit code for.
+     * @param pPassData - Shared pass state.
      * @param pCursor - The pass cursor.
+     * @param pNode - The node to emit code for.
      * @param pInnerByPort - Inner code per flow output port id, when emitting a branching node. Optional.
      * @param pNextCode - Merged-tail code for a branching node. Optional.
      */
-    private emitNode(pNode: PotatnoDocumentNode<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pInnerByPort?: Record<string, string>, pNextCode?: string): void {
+    private emitNode(pPassData: PotatnoCodeGeneratorPassData, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pNode: PotatnoDocumentNode<TProject>, pInnerByPort?: Record<string, string>, pNextCode?: string): void {
         // Resolve the live node definition for this node.
         const lNodeDefinition = pNode.function.nodeDefinitions.find((pDef) => pDef.id === pNode.definitionId);
         if (!lNodeDefinition) {
@@ -369,7 +369,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         const lInputs: Record<string, PotatnoCodeGeneratorInputPort> = {};
         for (const lPort of pNode.inputs.value) {
             lInputs[lPort.definitionId] = {
-                valueId: this.resolveValueInput(lPort, pCursor)
+                valueId: this.resolveValueInput(pPassData, pCursor, lPort)
             };
         }
 
@@ -381,7 +381,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         for (const lPort of pNode.outputs.list) {
             if (lPort.portType === 'value') {
                 if (!pCursor.scope.valueIds.has(lPort)) {
-                    pCursor.scope.valueIds.set(lPort, this.allocateValueId(pCursor));
+                    pCursor.scope.valueIds.set(lPort, this.allocateValueId(pPassData));
                 }
                 lOutputs[lPort.definitionId] = {
                     valueId: pCursor.scope.valueIds.get(lPort)!,
@@ -403,7 +403,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         const lContext: PotatnoNodeDefinitionGeneratorContext = {
             inputs: lInputs,
             outputs: lOutputs,
-            debug: pCursor.debug,
+            debug: pPassData.debug,
             code: { next: pNextCode ?? '' }
         };
 
@@ -419,10 +419,11 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * Decrements the producer's reference count when the producer is a pure-value node and triggers emission once the count hits zero.
      * Placing the producer's `const v_N = ...;` line into the scope buffer at exactly the right backward position so it lands ABOVE its first execution-order consumer in the final output.
      *
-     * @param pInputPort - The value input port to resolve.
+     * @param pPassData - Shared pass state.
      * @param pCursor - The pass cursor.
+     * @param pInputPort - The value input port to resolve.
      */
-    private resolveValueInput(pInputPort: PotatnoDocumentPort<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>): string {
+    private resolveValueInput(pPassData: PotatnoCodeGeneratorPassData, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pInputPort: PotatnoDocumentPort<TProject>): string {
         // Resolve the input ports connection.
         const lIncomingPort: PotatnoDocumentPort<TProject> | null = this.resolveValueConjunctions(pInputPort);
 
@@ -441,7 +442,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
 
         // Allocate a fresh valueId on first encounter in this scope.
         if (!pCursor.scope.valueIds.has(lIncomingPort)) {
-            pCursor.scope.valueIds.set(lIncomingPort, this.allocateValueId(pCursor));
+            pCursor.scope.valueIds.set(lIncomingPort, this.allocateValueId(pPassData));
         }
 
         // If the producer is a pure-value node, tick its refcount. Emit on depletion.
@@ -449,7 +450,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             const lRemaining: number = (pCursor.scope.remaining.get(lProducerNode) ?? 0) - 1;
             pCursor.scope.remaining.set(lProducerNode, lRemaining);
             if (lRemaining === 0) {
-                this.emitNode(lProducerNode, pCursor);
+                this.emitNode(pPassData, pCursor, lProducerNode);
             }
         }
 
@@ -459,10 +460,8 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
     /**
      * Allocate a fresh valueId from the pass counter.
      */
-    private allocateValueId(pCursor: PotatnoCodeGeneratorPassCursor<TProject>): string {
-        const lId: number = pCursor.counter.valueId;
-        pCursor.counter.valueId = lId + 1;
-        return `v_${lId}`;
+    private allocateValueId(pPassData: PotatnoCodeGeneratorPassData): string {
+        return `v_${pPassData.counter.valueId++}`;
     }
 
     /**
@@ -729,7 +728,7 @@ type PotatnoCodeGeneratorPassData = {
  * The `scope` slot is swapped per backward walk (one per top-level call, plus one per sub-walk spawned at a merge).
  * Everything else is shared across all scopes within a single walk.
  */
-type PotatnoCodeGeneratorPassCursor<TProject extends PotatnoProject> = PotatnoCodeGeneratorPassData & {
+type PotatnoCodeGeneratorPassCursor<TProject extends PotatnoProject> = {
     /**
      * Dependent document functions discovered during the walk via PotatnoFunctionNodeDefinition usages.
      * Sub-walks share the same array. The generation of these dependency functions is deferred to generateAllDependencies; the walker only records appearance order here.

@@ -102,7 +102,6 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
 
         // Generate everything. The last entry is the requested entry function result.
         const lFunctionGenerationResults: Array<PotatnoCodeGeneratorFunctionResult<TProject>> = this.generateFunctionWithDependencies(lPassData, pExitNodes, new Set<PotatnoDocumentFunction<TProject>>());
-
         const lEntryPointResult: PotatnoCodeGeneratorFunctionResult<TProject> = lFunctionGenerationResults.shift()!;
 
         return new PotatnoCodeGeneratorDocumentResult(pDocument, lEntryPointResult, lFunctionGenerationResults);
@@ -200,6 +199,319 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             remaining: this.preCountConsumers(pStartNode, pStopBefore),
             codeOutput: new Array<string>()
         };
+    }
+
+    /**
+     * Resolve a value input port to either the valueId of its connected source output or to an inline literal from port's direct value.
+     * Decrements the producer's reference count when the producer is a pure-value node and triggers emission once the count hits zero.
+     *
+     * @param pPassData - Shared pass state.
+     * @param pCursor - The pass cursor.
+     * @param pInputPort - The value input port to resolve.
+     * 
+     * @returns the value id or the actual value for a input port.
+     */
+    private resolveValueInput(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pInputPort: PotatnoDocumentPort<TProject>): string {
+        // Resolve the input ports connection.
+        const lIncomingPort: PotatnoDocumentPort<TProject> | null = this.resolveValueConjunctions(pInputPort);
+
+        // Unconnected. Return an inline literal from the project type's converter (or '' when the data type can't be resolved).
+        if (!lIncomingPort) {
+            if (this.mProject.types.isGenericType(pInputPort.dataType)) {
+                throw new Exception(`Generic value inputs must be allways connected`, this);
+            }
+
+            return this.mProject.types.getType(pInputPort.dataType).convert([...pInputPort.directValue]);
+        }
+
+        // Connected. Walk through value conjunctions to the real producer's output port.
+        const lProducerNode: PotatnoDocumentNode<TProject> = lIncomingPort.node;
+
+        // If the producer is a pure-value node, tick its refcount. Emit on depletion.
+        if (!lProducerNode.hasFlowPorts) {
+            // Remaining in scope should allways be set otherwise something is broken in this code.
+            const lRemaining: number = pCursor.scope.remaining.get(lProducerNode)!;
+            pCursor.scope.remaining.set(lProducerNode, lRemaining - 1);
+
+            if (lRemaining <= 1) {
+                this.emitNode(pPassData, pCursor, lProducerNode);
+            }
+        }
+
+        return this.getPortValueId(pPassData, pCursor, lIncomingPort);
+    }
+
+    /**
+     * Get a valueId from the pass counter to a document port.
+     * Auto generates a new value id when none exists. 
+     * 
+     * @param pPassData - Shared pass state.
+     * @param pCursor - The pass cursor.
+     * @param pPort - Port the value id requested.
+     * 
+     * @returns the value id for a port.
+     */
+    private getPortValueId(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pPort: PotatnoDocumentPort<TProject>): string {
+        // Allocate a fresh valueId on first encounter in this scope.
+        if (!pCursor.scope.valueIds.has(pPort)) {
+            pCursor.scope.valueIds.set(pPort, `v_${pPassData.counter.valueId++}`);
+        }
+
+        return pCursor.scope.valueIds.get(pPort)!;
+    }
+
+    /**
+     * Collect a node's flow-input predecessors, walking through any flow-conjunction reroute nodes so the returned predecessors are always real (non-conjunction) nodes.
+     * A single flow input may fan in from multiple upstream output ports, and each one may itself be on a chain of flow conjunctions that fan further out.
+     *
+     * @param pNode - The node whose predecessors to collect.
+     * 
+     * @returns all connected flow output ports.
+     */
+    private getNodesInputFlowNodes(pNode: PotatnoDocumentNode<TProject>): Array<PotatnoDocumentNode<TProject>> {
+        const lResult: Set<PotatnoDocumentNode<TProject>> = new Set<PotatnoDocumentNode<TProject>>();
+
+        for (const lInputPort of pNode.inputs.flow) {
+            for (const lInputNodeOutputPort of this.resolveFlowConjunctions(lInputPort)) {
+                lResult.add(lInputNodeOutputPort.node);
+            }
+        }
+
+        return [...lResult];
+    }
+
+    /**
+     * Recursive walk backward through chains of flow-conjunction reroute nodes to find all upstream non-conjunction output ports.
+     * A flow conjunction's input port may have multiple connections (fan-in), so resolution can yield multiple results.
+     *
+     * @param pOutputPort - The candidate output port (may belong to a flow-conjunction node or a real node).
+     *
+     * @return The actual, conjunction-cleared upstream output flow ports.
+     */
+    private resolveFlowConjunctions(pInputPort: PotatnoDocumentPort<TProject>): Array<PotatnoDocumentPort<TProject>> {
+        const lResults: Array<PotatnoDocumentPort<TProject>> = new Array<PotatnoDocumentPort<TProject>>();
+
+        for (const lOutputPort of pInputPort.connectedPorts) {
+            // Port does not belong to a conjunction. Just return it.
+            if (lOutputPort.node.definitionId !== FlowConjunctionNodeDefinition.DEFINITION_ID) {
+                lResults.push(lOutputPort);
+                continue;
+            }
+
+            // Read the conjunction's single flow input port. When it has no connection, the chain dead-ends here.
+            const lInputPort: PotatnoDocumentPort<TProject> | undefined = lOutputPort.node.inputs.flow[0];
+            if (!lInputPort || lInputPort.connectedPorts.size === 0) {
+                continue;
+            }
+
+            // Read and recursive resolve incoming port.
+            lResults.push(...this.resolveFlowConjunctions(lInputPort));
+        }
+
+        return lResults;
+    }
+
+    /**
+     * Recursive walk backward through chains of value-conjunction reroute nodes to find the real upstream output port.
+     * Value inputs are single-connection (per the value port rule), so the resolution always yields exactly one port.
+     *
+     * @param pInputPort - The input port with possible connections.
+     *
+     * @return The actual, conjunction-cleared upstream output value port.
+     */
+    private resolveValueConjunctions(pInputPort: PotatnoDocumentPort<TProject>): PotatnoDocumentPort<TProject> | null {
+        // Check if input port has any connection.
+        if (pInputPort.connectedPorts.size === 0) {
+            return null;
+        }
+
+        // Get the first connection.
+        const lIncommingConnection: PotatnoDocumentPort<TProject> = pInputPort.connectedPorts.values().next().value!;
+
+        // Port does not belong to a conjunction. Return it.
+        if (lIncommingConnection.node.definitionId !== ValueConjunctionNodeDefinition.DEFINITION_ID) {
+            return lIncommingConnection;
+        }
+
+        // Read the conjunction's single value input port. When it has no connection, the chain dead-ends here.
+        const lConjunctionInputPort: PotatnoDocumentPort<TProject> | undefined = lIncommingConnection.node.inputs.value[0];
+        if (!lConjunctionInputPort || lConjunctionInputPort.connectedPorts.size === 0) {
+            return null;
+        }
+
+        // Recurse with the single upstream output port the conjunction's input is connected to.
+        return this.resolveValueConjunctions(lConjunctionInputPort);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    /**
+     * Pre-pass that counts each pure-value producer's direct consumers within a given scope's reach.
+     *
+     * The result map is used by resolveValueInput to know when a producer has been referenced by every consumer in this scope and can therefore be emitted.
+     *
+     * Walks backward through flow inputs to collect every flow node reachable from pStartNode within pStopBefore,
+     * then walks the value dependency closure from those flow nodes to collect every pure-value producer.
+     * Finally counts each producer's references across both flow nodes and chained pure-value producers.
+     *
+     * @param pStartNode - The starting node (the scope's exit / fan-in predecessor).
+     * @param pStopBefore - When set, traversal stops at this node (used by sub-walks to bound their scope to the branch).
+     */
+    private preCountConsumers(pStartNode: PotatnoDocumentNode<TProject>, pStopBefore: PotatnoDocumentNode<TProject> | null): Map<PotatnoDocumentNode<TProject>, number> {
+        const lRemaining: Map<PotatnoDocumentNode<TProject>, number> = new Map<PotatnoDocumentNode<TProject>, number>();
+
+        // Step 1: Collect every flow node reachable backward through flow inputs.
+        const lFlowNodes: Set<PotatnoDocumentNode<TProject>> = new Set<PotatnoDocumentNode<TProject>>();
+        const lFlowQueue: Array<PotatnoDocumentNode<TProject>> = [pStartNode];
+        while (lFlowQueue.length > 0) {
+            const lNode: PotatnoDocumentNode<TProject> = lFlowQueue.shift()!;
+            if (lNode === pStopBefore || lFlowNodes.has(lNode)) {
+                continue;
+            }
+            lFlowNodes.add(lNode);
+
+            // Each flow input may have multiple connections (fan-in). Each connected source port may itself be on a chain of flow conjunctions that fan further out.
+            for (const lInputPort of lNode.inputs.flow) {
+                for (const lResolvedSourcePort of this.resolveFlowConjunctions(lInputPort)) {
+                    lFlowQueue.push(lResolvedSourcePort.node);
+                }
+            }
+        }
+
+        // Step 2: Walk value-input edges to count consumer refs to each pure-value producer and transitively discover producer-to-producer chains.
+        const lProducers: Set<PotatnoDocumentNode<TProject>> = new Set<PotatnoDocumentNode<TProject>>();
+        const lProducerQueue: Array<PotatnoDocumentNode<TProject>> = new Array<PotatnoDocumentNode<TProject>>();
+        const lCountAndDiscover = (pNode: PotatnoDocumentNode<TProject>): void => {
+            for (const lInputPort of pNode.inputs.value) {
+                // Resolve incomming ports.
+                const lIncomingPort: PotatnoDocumentPort<TProject> | null = this.resolveValueConjunctions(lInputPort);
+                if (!lIncomingPort) {
+                    continue;
+                }
+
+                const lProducer: PotatnoDocumentNode<TProject> = lIncomingPort.node;
+                if (lProducer.hasFlowPorts) {
+                    continue;
+                }
+
+                lRemaining.set(lProducer, (lRemaining.get(lProducer) ?? 0) + 1);
+                if (!lProducers.has(lProducer)) {
+                    lProducers.add(lProducer);
+                    lProducerQueue.push(lProducer);
+                }
+            }
+        };
+        for (const lFlowNode of lFlowNodes) {
+            lCountAndDiscover(lFlowNode);
+        }
+        while (lProducerQueue.length > 0) {
+            lCountAndDiscover(lProducerQueue.shift()!);
+        }
+
+        return lRemaining;
+    }
+
+    /**
+     * Find which flow output port on the branch point ultimately reaches pFirstNode (the first node executed after the branch point in the branch).
+     *
+     * Walks every flow output of the branch point forward through flow-conjunction reroutes and returns the first output whose downstream resolves to pFirstNode.
+     * Flow conjunctions have exactly one flow output that connects to exactly one downstream flow input, so the forward walk through them is unambiguous.
+     *
+     * @param pBranchPoint - The branch point node.
+     * @param pFirstNode - The first execution-order node after the branch point in some branch (or null when the sub-walk emitted nothing).
+     */
+    private findBranchOutputPortForFirstNode(pBranchPoint: PotatnoDocumentNode<TProject>, pFirstNode: PotatnoDocumentNode<TProject> | null): PotatnoDocumentPort<TProject> | null {
+        if (!pFirstNode) {
+            return null;
+        }
+
+        for (const lOutputPort of pBranchPoint.outputs.flow) {
+            for (const lConnectedInput of lOutputPort.connectedPorts) {
+                // Walk forward through any chain of flow-conjunction reroutes to reach the real downstream node. Flow conjunctions only have one flow output, which always points at the next node in the chain.
+                let lDownstreamNode: PotatnoDocumentNode<TProject> = lConnectedInput.node;
+                while (lDownstreamNode.definitionId === FlowConjunctionNodeDefinition.DEFINITION_ID) {
+                    const lConjunctionOutput: PotatnoDocumentPort<TProject> | undefined = lDownstreamNode.outputs.flow[0];
+                    if (!lConjunctionOutput || lConjunctionOutput.connectedPorts.size === 0) {
+                        throw new Exception('Conjunction nodes must have a valid input and output connection', this);
+                    }
+                    lDownstreamNode = lConjunctionOutput.connectedPorts.values().next().value!.node;
+                }
+
+                if (lDownstreamNode === pFirstNode) {
+                    return lOutputPort;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    
+    /**
+     * Tagged backward BFS to find the branch point that ultimately fans into pMergeNode.
+     *
+     * Each fan-in predecessor seeds its own tag. Tags propagate as the search walks backward through flow inputs.
+     * The first node whose accumulated tag set covers all branches is the branch point.
+     *
+     * @param pMergeNode - A node with ≥2 flow-input connections.
+     */
+    private findBranchPoint(pMergeNode: PotatnoDocumentNode<TProject>): PotatnoDocumentNode<TProject> {
+        const lPredecessorNodes: Array<PotatnoDocumentNode<TProject>> = this.getNodesInputFlowNodes(pMergeNode);
+        const lTotalTags: number = lPredecessorNodes.length;
+
+        const lTagsByNode: Map<PotatnoDocumentNode<TProject>, Set<number>> = new Map<PotatnoDocumentNode<TProject>, Set<number>>();
+        const lQueue: Array<PotatnoDocumentNode<TProject>> = new Array<PotatnoDocumentNode<TProject>>();
+
+        // Seed: one tag per fan-in predecessor.
+        for (let lIndex: number = 0; lIndex < lPredecessorNodes.length; lIndex++) {
+            const lPredecessorNode: PotatnoDocumentNode<TProject> = lPredecessorNodes[lIndex]!;
+            lTagsByNode.set(lPredecessorNode, new Set<number>([lIndex]));
+            lQueue.push(lPredecessorNode);
+        }
+
+        while (lQueue.length > 0) {
+            const lNode: PotatnoDocumentNode<TProject> = lQueue.shift()!;
+            const lTags: Set<number> = lTagsByNode.get(lNode)!;
+
+            // Branch point found if this node has accumulated all tags.
+            if (lTags.size === lTotalTags) {
+                return lNode;
+            }
+
+            // Propagate tags to flow-input predecessors.
+            for (const lFlowPredecessorNode of this.getNodesInputFlowNodes(lNode)) {
+                const lPredecessorTags: Set<number> = lTagsByNode.get(lFlowPredecessorNode) ?? new Set<number>();
+                let lAdded: boolean = false;
+                for (const lTag of lTags) {
+                    if (!lPredecessorTags.has(lTag)) {
+                        lPredecessorTags.add(lTag);
+                        lAdded = true;
+                    }
+                }
+                lTagsByNode.set(lFlowPredecessorNode, lPredecessorTags);
+                if (lAdded) {
+                    lQueue.push(lFlowPredecessorNode);
+                }
+            }
+        }
+
+        throw new Exception('No common branch point found for merge node.', this);
     }
 
     /**
@@ -371,300 +683,6 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         pCursor.scope.codeOutput.unshift(lNodeCode);
 
         return pNode;
-    }
-
-    /**
-     * Resolve a value input port to either the valueId of its connected source output or to an inline literal from port's direct value.
-     * Decrements the producer's reference count when the producer is a pure-value node and triggers emission once the count hits zero.
-     *
-     * @param pPassData - Shared pass state.
-     * @param pCursor - The pass cursor.
-     * @param pInputPort - The value input port to resolve.
-     * 
-     * @returns the value id or the actual value for a input port.
-     */
-    private resolveValueInput(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pInputPort: PotatnoDocumentPort<TProject>): string {
-        // Resolve the input ports connection.
-        const lIncomingPort: PotatnoDocumentPort<TProject> | null = this.resolveValueConjunctions(pInputPort);
-
-        // Unconnected. Return an inline literal from the project type's converter (or '' when the data type can't be resolved).
-        if (!lIncomingPort) {
-            if (this.mProject.types.isGenericType(pInputPort.dataType)) {
-                throw new Exception(`Generic value inputs must be allways connected`, this);
-            }
-
-            return this.mProject.types.getType(pInputPort.dataType).convert([...pInputPort.directValue]);
-        }
-
-        // Connected. Walk through value conjunctions to the real producer's output port.
-        const lProducerNode: PotatnoDocumentNode<TProject> = lIncomingPort.node;
-
-        // If the producer is a pure-value node, tick its refcount. Emit on depletion.
-        if (!lProducerNode.hasFlowPorts) {
-            // Remaining in scope should allways be set otherwise something is broken in this code.
-            const lRemaining: number = pCursor.scope.remaining.get(lProducerNode)!;
-            pCursor.scope.remaining.set(lProducerNode, lRemaining - 1);
-
-            if (lRemaining <= 1) {
-                this.emitNode(pPassData, pCursor, lProducerNode);
-            }
-        }
-
-        return this.getPortValueId(pPassData, pCursor, lIncomingPort);
-    }
-
-    /**
-     * Get a valueId from the pass counter to a document port.
-     * Auto generates a new value id when none exists. 
-     * 
-     * @param pPassData - Shared pass state.
-     * @param pCursor - The pass cursor.
-     * @param pPort - Port the value id requested.
-     * 
-     * @returns the value id for a port.
-     */
-    private getPortValueId(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pPort: PotatnoDocumentPort<TProject>): string {
-        // Allocate a fresh valueId on first encounter in this scope.
-        if (!pCursor.scope.valueIds.has(pPort)) {
-            pCursor.scope.valueIds.set(pPort, `v_${pPassData.counter.valueId++}`);
-        }
-
-        return pCursor.scope.valueIds.get(pPort)!;
-    }
-
-    /**
-     * Pre-pass that counts each pure-value producer's direct consumers within a given scope's reach.
-     *
-     * The result map is used by resolveValueInput to know when a producer has been referenced by every consumer in this scope and can therefore be emitted.
-     *
-     * Walks backward through flow inputs to collect every flow node reachable from pStartNode within pStopBefore,
-     * then walks the value dependency closure from those flow nodes to collect every pure-value producer.
-     * Finally counts each producer's references across both flow nodes and chained pure-value producers.
-     *
-     * @param pStartNode - The starting node (the scope's exit / fan-in predecessor).
-     * @param pStopBefore - When set, traversal stops at this node (used by sub-walks to bound their scope to the branch).
-     */
-    private preCountConsumers(pStartNode: PotatnoDocumentNode<TProject>, pStopBefore: PotatnoDocumentNode<TProject> | null): Map<PotatnoDocumentNode<TProject>, number> {
-        const lRemaining: Map<PotatnoDocumentNode<TProject>, number> = new Map<PotatnoDocumentNode<TProject>, number>();
-
-        // Step 1: Collect every flow node reachable backward through flow inputs.
-        const lFlowNodes: Set<PotatnoDocumentNode<TProject>> = new Set<PotatnoDocumentNode<TProject>>();
-        const lFlowQueue: Array<PotatnoDocumentNode<TProject>> = [pStartNode];
-        while (lFlowQueue.length > 0) {
-            const lNode: PotatnoDocumentNode<TProject> = lFlowQueue.shift()!;
-            if (lNode === pStopBefore || lFlowNodes.has(lNode)) {
-                continue;
-            }
-            lFlowNodes.add(lNode);
-
-            // Each flow input may have multiple connections (fan-in). Each connected source port may itself be on a chain of flow conjunctions that fan further out.
-            for (const lInputPort of lNode.inputs.flow) {
-                for (const lResolvedSourcePort of this.resolveFlowConjunctions(lInputPort)) {
-                    lFlowQueue.push(lResolvedSourcePort.node);
-                }
-            }
-        }
-
-        // Step 2: Walk value-input edges to count consumer refs to each pure-value producer and transitively discover producer-to-producer chains.
-        const lProducers: Set<PotatnoDocumentNode<TProject>> = new Set<PotatnoDocumentNode<TProject>>();
-        const lProducerQueue: Array<PotatnoDocumentNode<TProject>> = new Array<PotatnoDocumentNode<TProject>>();
-        const lCountAndDiscover = (pNode: PotatnoDocumentNode<TProject>): void => {
-            for (const lInputPort of pNode.inputs.value) {
-                // Resolve incomming ports.
-                const lIncomingPort: PotatnoDocumentPort<TProject> | null = this.resolveValueConjunctions(lInputPort);
-                if (!lIncomingPort) {
-                    continue;
-                }
-
-                const lProducer: PotatnoDocumentNode<TProject> = lIncomingPort.node;
-                if (lProducer.hasFlowPorts) {
-                    continue;
-                }
-
-                lRemaining.set(lProducer, (lRemaining.get(lProducer) ?? 0) + 1);
-                if (!lProducers.has(lProducer)) {
-                    lProducers.add(lProducer);
-                    lProducerQueue.push(lProducer);
-                }
-            }
-        };
-        for (const lFlowNode of lFlowNodes) {
-            lCountAndDiscover(lFlowNode);
-        }
-        while (lProducerQueue.length > 0) {
-            lCountAndDiscover(lProducerQueue.shift()!);
-        }
-
-        return lRemaining;
-    }
-
-    /**
-     * Tagged backward BFS to find the branch point that ultimately fans into pMergeNode.
-     *
-     * Each fan-in predecessor seeds its own tag. Tags propagate as the search walks backward through flow inputs.
-     * The first node whose accumulated tag set covers all branches is the branch point.
-     *
-     * @param pMergeNode - A node with ≥2 flow-input connections.
-     */
-    private findBranchPoint(pMergeNode: PotatnoDocumentNode<TProject>): PotatnoDocumentNode<TProject> {
-        const lPredecessorNodes: Array<PotatnoDocumentNode<TProject>> = this.getNodesInputFlowNodes(pMergeNode);
-        const lTotalTags: number = lPredecessorNodes.length;
-
-        const lTagsByNode: Map<PotatnoDocumentNode<TProject>, Set<number>> = new Map<PotatnoDocumentNode<TProject>, Set<number>>();
-        const lQueue: Array<PotatnoDocumentNode<TProject>> = new Array<PotatnoDocumentNode<TProject>>();
-
-        // Seed: one tag per fan-in predecessor.
-        for (let lIndex: number = 0; lIndex < lPredecessorNodes.length; lIndex++) {
-            const lPredecessorNode: PotatnoDocumentNode<TProject> = lPredecessorNodes[lIndex]!;
-            lTagsByNode.set(lPredecessorNode, new Set<number>([lIndex]));
-            lQueue.push(lPredecessorNode);
-        }
-
-        while (lQueue.length > 0) {
-            const lNode: PotatnoDocumentNode<TProject> = lQueue.shift()!;
-            const lTags: Set<number> = lTagsByNode.get(lNode)!;
-
-            // Branch point found if this node has accumulated all tags.
-            if (lTags.size === lTotalTags) {
-                return lNode;
-            }
-
-            // Propagate tags to flow-input predecessors.
-            for (const lFlowPredecessorNode of this.getNodesInputFlowNodes(lNode)) {
-                const lPredecessorTags: Set<number> = lTagsByNode.get(lFlowPredecessorNode) ?? new Set<number>();
-                let lAdded: boolean = false;
-                for (const lTag of lTags) {
-                    if (!lPredecessorTags.has(lTag)) {
-                        lPredecessorTags.add(lTag);
-                        lAdded = true;
-                    }
-                }
-                lTagsByNode.set(lFlowPredecessorNode, lPredecessorTags);
-                if (lAdded) {
-                    lQueue.push(lFlowPredecessorNode);
-                }
-            }
-        }
-
-        throw new Exception('No common branch point found for merge node.', this);
-    }
-
-    /**
-     * Collect a node's flow-input predecessors, walking through any flow-conjunction reroute nodes so the returned predecessors are always real (non-conjunction) nodes.
-     * A single flow input may fan in from multiple upstream output ports, and each one may itself be on a chain of flow conjunctions that fan further out.
-     *
-     * @param pNode - The node whose predecessors to collect.
-     * 
-     * @returns all connected flow output ports.
-     */
-    private getNodesInputFlowNodes(pNode: PotatnoDocumentNode<TProject>): Array<PotatnoDocumentNode<TProject>> {
-        const lResult: Set<PotatnoDocumentNode<TProject>> = new Set<PotatnoDocumentNode<TProject>>();
-
-        for (const lInputPort of pNode.inputs.flow) {
-            for (const lInputNodeOutputPort of this.resolveFlowConjunctions(lInputPort)) {
-                lResult.add(lInputNodeOutputPort.node);
-            }
-        }
-
-        return [...lResult];
-    }
-
-    /**
-     * Find which flow output port on the branch point ultimately reaches pFirstNode (the first node executed after the branch point in the branch).
-     *
-     * Walks every flow output of the branch point forward through flow-conjunction reroutes and returns the first output whose downstream resolves to pFirstNode.
-     * Flow conjunctions have exactly one flow output that connects to exactly one downstream flow input, so the forward walk through them is unambiguous.
-     *
-     * @param pBranchPoint - The branch point node.
-     * @param pFirstNode - The first execution-order node after the branch point in some branch (or null when the sub-walk emitted nothing).
-     */
-    private findBranchOutputPortForFirstNode(pBranchPoint: PotatnoDocumentNode<TProject>, pFirstNode: PotatnoDocumentNode<TProject> | null): PotatnoDocumentPort<TProject> | null {
-        if (!pFirstNode) {
-            return null;
-        }
-
-        for (const lOutputPort of pBranchPoint.outputs.flow) {
-            for (const lConnectedInput of lOutputPort.connectedPorts) {
-                // Walk forward through any chain of flow-conjunction reroutes to reach the real downstream node. Flow conjunctions only have one flow output, which always points at the next node in the chain.
-                let lDownstreamNode: PotatnoDocumentNode<TProject> = lConnectedInput.node;
-                while (lDownstreamNode.definitionId === FlowConjunctionNodeDefinition.DEFINITION_ID) {
-                    const lConjunctionOutput: PotatnoDocumentPort<TProject> | undefined = lDownstreamNode.outputs.flow[0];
-                    if (!lConjunctionOutput || lConjunctionOutput.connectedPorts.size === 0) {
-                        throw new Exception('Conjunction nodes must have a valid input and output connection', this);
-                    }
-                    lDownstreamNode = lConjunctionOutput.connectedPorts.values().next().value!.node;
-                }
-
-                if (lDownstreamNode === pFirstNode) {
-                    return lOutputPort;
-                }
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Recursive walk backward through chains of flow-conjunction reroute nodes to find all upstream non-conjunction output ports.
-     * A flow conjunction's input port may have multiple connections (fan-in), so resolution can yield multiple results.
-     *
-     * @param pOutputPort - The candidate output port (may belong to a flow-conjunction node or a real node).
-     *
-     * @return The actual, conjunction-cleared upstream output flow ports.
-     */
-    private resolveFlowConjunctions(pInputPort: PotatnoDocumentPort<TProject>): Array<PotatnoDocumentPort<TProject>> {
-        const lResults: Array<PotatnoDocumentPort<TProject>> = new Array<PotatnoDocumentPort<TProject>>();
-
-        for (const lOutputPort of pInputPort.connectedPorts) {
-            // Port does not belong to a conjunction. Just return it.
-            if (lOutputPort.node.definitionId !== FlowConjunctionNodeDefinition.DEFINITION_ID) {
-                lResults.push(lOutputPort);
-                continue;
-            }
-
-            // Read the conjunction's single flow input port. When it has no connection, the chain dead-ends here.
-            const lInputPort: PotatnoDocumentPort<TProject> | undefined = lOutputPort.node.inputs.flow[0];
-            if (!lInputPort || lInputPort.connectedPorts.size === 0) {
-                continue;
-            }
-
-            // Read and recursive resolve incoming port.
-            lResults.push(...this.resolveFlowConjunctions(lInputPort));
-        }
-
-        return lResults;
-    }
-
-    /**
-     * Recursive walk backward through chains of value-conjunction reroute nodes to find the real upstream output port.
-     * Value inputs are single-connection (per the value port rule), so the resolution always yields exactly one port.
-     *
-     * @param pInputPort - The input port with possible connections.
-     *
-     * @return The actual, conjunction-cleared upstream output value port.
-     */
-    private resolveValueConjunctions(pInputPort: PotatnoDocumentPort<TProject>): PotatnoDocumentPort<TProject> | null {
-        // Check if input port has any connection.
-        if (pInputPort.connectedPorts.size === 0) {
-            return null;
-        }
-
-        // Get the first connection.
-        const lIncommingConnection: PotatnoDocumentPort<TProject> = pInputPort.connectedPorts.values().next().value!;
-
-        // Port does not belong to a conjunction. Return it.
-        if (lIncommingConnection.node.definitionId !== ValueConjunctionNodeDefinition.DEFINITION_ID) {
-            return lIncommingConnection;
-        }
-
-        // Read the conjunction's single value input port. When it has no connection, the chain dead-ends here.
-        const lConjunctionInputPort: PotatnoDocumentPort<TProject> | undefined = lIncommingConnection.node.inputs.value[0];
-        if (!lConjunctionInputPort || lConjunctionInputPort.connectedPorts.size === 0) {
-            return null;
-        }
-
-        // Recurse with the single upstream output port the conjunction's input is connected to.
-        return this.resolveValueConjunctions(lConjunctionInputPort);
     }
 }
 

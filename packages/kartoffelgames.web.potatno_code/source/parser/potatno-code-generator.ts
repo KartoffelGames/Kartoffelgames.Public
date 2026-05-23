@@ -403,7 +403,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
 
 
 
-    
+
 
     /**
      * Find which flow output port on the branch point ultimately reaches pFirstNode (the first node executed after the branch point in the branch).
@@ -571,17 +571,21 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         // 4. Run a sub-walk per fan-in branch into a fresh scope.
         const lInnerByPort: Record<string, string> = {};
         const lParentScope: PotatnoCodeGeneratorPassCursorScope<TProject> = pCursor.scope;
-        for (const lPredecessorPort of pPredecessorNodes) {
-            pCursor.scope = this.createScope(lPredecessorPort, lBranchPoint);
-            const lLastGeneratedNode = this.walkBackward(pPassData, pCursor, lPredecessorPort, lBranchPoint);
+        try {
+            for (const lPredecessorPort of pPredecessorNodes) {
+                pCursor.scope = this.createScope(lPredecessorPort, lBranchPoint);
+                const lLastGeneratedNode = this.walkBackward(pPassData, pCursor, lPredecessorPort, lBranchPoint);
 
-            // The sub-walk's first node (in execution order) is the one we stopped just-before-advancing-to-branchPoint.
-            // Map it back to the branch point's flow output port that initiated this branch.
-            const lBranchOutputPort: PotatnoDocumentPort<TProject> | null = this.findBranchOutputPortForFirstNode(lBranchPoint, lLastGeneratedNode);
-            const lBranchKey: string = lBranchOutputPort ? lBranchOutputPort.definitionId : lPredecessorPort.definitionId;
-            lInnerByPort[lBranchKey] = pCursor.scope.codeOutput.join('\n');
+                // The sub-walk's first node (in execution order) is the one we stopped just-before-advancing-to-branchPoint.
+                // Map it back to the branch point's flow output port that initiated this branch.
+                const lBranchOutputPort: PotatnoDocumentPort<TProject> | null = this.findBranchOutputPortForFirstNode(lBranchPoint, lLastGeneratedNode); // TODO: Still seems broken
+                const lBranchKey: string = lBranchOutputPort ? lBranchOutputPort.definitionId : lPredecessorPort.definitionId;
+                lInnerByPort[lBranchKey] = pCursor.scope.codeOutput.join('\n');
+            }
+        } finally {
+            // Reset scope to old scope.
+            pCursor.scope = lParentScope;
         }
-        pCursor.scope = lParentScope;
 
         // 5. Emit the branch point with inner/next in its pContext. Return it so the outer walk knows the last-emitted node.
         return this.emitNode(pPassData, pCursor, lBranchPoint, lInnerByPort, lNextCode);

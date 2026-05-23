@@ -234,7 +234,8 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             pCursor.scope.remaining.set(lProducerNode, lRemaining - 1);
 
             if (lRemaining <= 1) {
-                this.emitNode(pPassData, pCursor, lProducerNode);
+                // Pure-value producer: no flow outputs, so no inner-by-port mapping required.
+                this.emitNode(pPassData, pCursor, lProducerNode, {});
             }
         }
 
@@ -261,15 +262,15 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
     }
 
     /**
-     * Collect a node's flow-input predecessors, walking through any flow-conjunction reroute nodes so the returned predecessors are always real (non-conjunction) nodes.
-     * A single flow input may fan in from multiple upstream output ports, and each one may itself be on a chain of flow conjunctions that fan further out.
+     * Collect the real upstream flow output ports connected to a node's flow inputs.
+     * A single flow input may fan in from multiple upstream output ports, and each one may itself be on a chain of flow conjunctions that fan further out — those are resolved through to the real (non-conjunction) source ports.
      *
-     * @param pNode - The node whose predecessors to collect.
-     * 
-     * @returns all connected flow output ports.
+     * @param pNode - The node whose flow-input upstream source ports to collect.
+     *
+     * @returns the distinct list of upstream non-conjunction flow output ports. Each port's `.node` gives the upstream node.
      */
-    private getNodesInputFlowNodes(pNode: PotatnoDocumentNode<TProject>): Array<PotatnoDocumentNode<TProject>> {
-        const lResult: Array<PotatnoDocumentNode<TProject>> = new Array<PotatnoDocumentNode<TProject>>();
+    private getNodesInputFlowPorts(pNode: PotatnoDocumentNode<TProject>): Array<PotatnoDocumentPort<TProject>> {
+        const lResult: Array<PotatnoDocumentPort<TProject>> = new Array<PotatnoDocumentPort<TProject>>();
 
         for (const lInputPort of pNode.inputs.flow) {
             lResult.push(...this.resolveFlowConjunctions(lInputPort));
@@ -283,17 +284,17 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * Recursive walk backward through chains of flow-conjunction reroute nodes to find all upstream non-conjunction output ports.
      * A flow conjunction's input port may have multiple connections (fan-in), so resolution can yield multiple results.
      *
-     * @param pOutputPort - The candidate output port (may belong to a flow-conjunction node or a real node).
+     * @param pInputPort - The input port whose upstream sources to resolve.
      *
      * @return The actual, conjunction-cleared upstream output flow ports.
      */
-    private resolveFlowConjunctions(pInputPort: PotatnoDocumentPort<TProject>): Array<PotatnoDocumentNode<TProject>> {
-        const lResults: Array<PotatnoDocumentNode<TProject>> = new Array<PotatnoDocumentNode<TProject>>();
+    private resolveFlowConjunctions(pInputPort: PotatnoDocumentPort<TProject>): Array<PotatnoDocumentPort<TProject>> {
+        const lResults: Array<PotatnoDocumentPort<TProject>> = new Array<PotatnoDocumentPort<TProject>>();
 
         for (const lOutputPort of pInputPort.connectedPorts) {
-            // Port does not belong to a conjunction. Just return it.
+            // Port does not belong to a conjunction. Push the real upstream output port directly.
             if (lOutputPort.node.definitionId !== FlowConjunctionNodeDefinition.DEFINITION_ID) {
-                lResults.push(lOutputPort.node);
+                lResults.push(lOutputPort);
                 continue;
             }
 
@@ -372,7 +373,9 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
 
             // Move backwards of each flow output port and add these flow nodes as next flow tasks. Each flow input may have multiple connections.
             for (const lInputFlowPort of lNode.inputs.flow) {
-                lNodeTasks.push(...this.resolveFlowConjunctions(lInputFlowPort));
+                for (const lUpstreamPort of this.resolveFlowConjunctions(lInputFlowPort)) {
+                    lNodeTasks.push(lUpstreamPort.node);
+                }
             }
 
             // Move backwards for each value node.
@@ -450,15 +453,15 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * @param pMergeNode - A node with ≥2 flow-input connections.
      */
     private findBranchPoint(pMergeNode: PotatnoDocumentNode<TProject>): PotatnoDocumentNode<TProject> {
-        const lPredecessorNodes: Array<PotatnoDocumentNode<TProject>> = this.getNodesInputFlowNodes(pMergeNode);
-        const lTotalTags: number = lPredecessorNodes.length;
+        const lPredecessorPorts: Array<PotatnoDocumentPort<TProject>> = this.getNodesInputFlowPorts(pMergeNode);
+        const lTotalTags: number = lPredecessorPorts.length;
 
         const lTagsByNode: Map<PotatnoDocumentNode<TProject>, Set<number>> = new Map<PotatnoDocumentNode<TProject>, Set<number>>();
         const lQueue: Array<PotatnoDocumentNode<TProject>> = new Array<PotatnoDocumentNode<TProject>>();
 
         // Seed: one tag per fan-in predecessor.
-        for (let lIndex: number = 0; lIndex < lPredecessorNodes.length; lIndex++) {
-            const lPredecessorNode: PotatnoDocumentNode<TProject> = lPredecessorNodes[lIndex]!;
+        for (let lIndex: number = 0; lIndex < lPredecessorPorts.length; lIndex++) {
+            const lPredecessorNode: PotatnoDocumentNode<TProject> = lPredecessorPorts[lIndex]!.node;
             lTagsByNode.set(lPredecessorNode, new Set<number>([lIndex]));
             lQueue.push(lPredecessorNode);
         }
@@ -473,7 +476,8 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             }
 
             // Propagate tags to flow-input predecessors.
-            for (const lFlowPredecessorNode of this.getNodesInputFlowNodes(lNode)) {
+            for (const lFlowPredecessorPort of this.getNodesInputFlowPorts(lNode)) {
+                const lFlowPredecessorNode: PotatnoDocumentNode<TProject> = lFlowPredecessorPort.node;
                 const lPredecessorTags: Set<number> = lTagsByNode.get(lFlowPredecessorNode) ?? new Set<number>();
                 let lAdded: boolean = false;
                 for (const lTag of lTags) {
@@ -498,41 +502,52 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * Owns cursor.scope.buffer for its frame. Appends what emit* helpers return.
      * Sub-walks at merge points get their own fresh scope swapped in temporarily and restored on return.
      *
+     * Tracks the "active port" of the current cursor — the cursor's flow output port that leads (through any flow-conjunction chain) to the previously-emitted node downstream. That port becomes the single inner-by-port entry for the cursor's emit, so each flow output only receives the buffer code if it is genuinely the path the walk came from. Other flow outputs default to empty inner.
+     *
      * @param pPassData - Shared pass state.
      * @param pCursor - The pass cursor.
      * @param pStartNode - The node the walk begins at.
      * @param pStopBefore - When set, the walk stops as soon as the cursor would advance to this node. The node is NOT emitted. Null at top-level so the walk runs until reaching a real entry node (CASE A).
+     * @param pInitialActivePort - The active flow output port of pStartNode at the start of the walk. Used by sub-walks at merges to thread the merge-fan-in port into the predecessor's first emit. Null at top-level (the start node is a true exit with no downstream).
      *
-     * @returns the last generated node. 
+     * @returns the last generated node.
      */
-    private walkBackward(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pStartNode: PotatnoDocumentNode<TProject>, pStopBefore: PotatnoDocumentNode<TProject> | null): PotatnoDocumentNode<TProject> {
+    private walkBackward(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pStartNode: PotatnoDocumentNode<TProject>, pStopBefore: PotatnoDocumentNode<TProject> | null, pInitialActivePort: PotatnoDocumentPort<TProject> | null = null): PotatnoDocumentNode<TProject> {
         let lCursorNode: PotatnoDocumentNode<TProject> | null = pStartNode;
+        let lActivePort: PotatnoDocumentPort<TProject> | null = pInitialActivePort;
         let lLastGeneratedNode: PotatnoDocumentNode<TProject> | null = null;
 
         while (lCursorNode !== null && lCursorNode !== pStopBefore) {
-            // Resolve flow-input predecessors, skipping flow conjunctions on the way.
-            const lPredecessorNodes: Array<PotatnoDocumentNode<TProject>> = this.getNodesInputFlowNodes(lCursorNode);
+            // Resolve flow-input predecessors, skipping flow conjunctions on the way. Each result is a source flow output port on the upstream side.
+            const lPredecessorPorts: Array<PotatnoDocumentPort<TProject>> = this.getNodesInputFlowPorts(lCursorNode);
 
             // CASE C: >1 predecessors. Cursor is a merge point.
             // handleMergeAndAdvance emits both the merge node and the branch point, and returns the branch point (= last emitted in this call).
             // The outer walk continues from the branch point's flow-input predecessor.
-            if (lPredecessorNodes.length > 1) {
-                lLastGeneratedNode = this.handleMergeAndAdvance(pPassData, pCursor, lCursorNode, lPredecessorNodes);
-                const lBranchPointPredecessors: Array<PotatnoDocumentNode<TProject>> = this.getNodesInputFlowNodes(lLastGeneratedNode);
-                lCursorNode = lBranchPointPredecessors[0] ?? null;
+            if (lPredecessorPorts.length > 1) {
+                lLastGeneratedNode = this.handleMergeAndAdvance(pPassData, pCursor, lCursorNode, lActivePort, lPredecessorPorts);
+                const lBranchPointPredecessorPorts: Array<PotatnoDocumentPort<TProject>> = this.getNodesInputFlowPorts(lLastGeneratedNode);
+                lActivePort = lBranchPointPredecessorPorts[0] ?? null;
+                lCursorNode = lActivePort?.node ?? null;
                 continue;
             }
 
-            // CASE A (0 predecessors) and CASE B (1 predecessor) both emit the current node. Track the emitted node directly from emitNode's return.
-            lLastGeneratedNode = this.emitNode(pPassData, pCursor, lCursorNode);
+            // CASE A (0 predecessors) and CASE B (1 predecessor) both emit the current node.
+            // Pass the active port as the single inner-by-port entry — only the flow output that leads to the already-emitted downstream gets the buffer code; other flow outputs get empty inner.
+            const lInnerByPort: Record<string, string> = {};
+            if (lActivePort !== null) {
+                lInnerByPort[lActivePort.definitionId] = pCursor.scope.codeOutput.join('\n');
+            }
+            lLastGeneratedNode = this.emitNode(pPassData, pCursor, lCursorNode, lInnerByPort);
 
             // CASE A: entry node or dead-end.
-            if (lPredecessorNodes.length === 0) {
+            if (lPredecessorPorts.length === 0) {
                 break;
             }
 
-            // CASE B: advance to the single predecessor.
-            lCursorNode = lPredecessorNodes[0]!;
+            // CASE B: advance to the single predecessor. The predecessor port becomes its node's active port for the next emit.
+            lActivePort = lPredecessorPorts[0]!;
+            lCursorNode = lActivePort.node;
         }
 
         // There is something wrong when not a single node was walked.
@@ -553,28 +568,34 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * @param pPassData - Shared pass state.
      * @param pCursor - The pass cursor.
      * @param pMergeNode - The cursor node that triggered the merge handling.
-     * @param pPredecessorNodes - The merge's fan-in predecessors (already skipped through conjunctions).
+     * @param pMergeActivePort - The merge node's flow output port leading to the already-emitted downstream (null when the merge has no active downstream — e.g. top-of-walk merge).
+     * @param pPredecessorPorts - The merge's fan-in predecessor source ports (already conjunction-resolved).
      *
      * @returns The branch point node (= last node emitted in this call).
      */
-    private handleMergeAndAdvance(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pMergeNode: PotatnoDocumentNode<TProject>, pPredecessorNodes: Array<PotatnoDocumentNode<TProject>>): PotatnoDocumentNode<TProject> {
+    private handleMergeAndAdvance(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pMergeNode: PotatnoDocumentNode<TProject>, pMergeActivePort: PotatnoDocumentPort<TProject> | null, pPredecessorPorts: Array<PotatnoDocumentPort<TProject>>): PotatnoDocumentNode<TProject> {
         // 1. Emit the merge node first. It's a regular flow node with its own code.
-        this.emitNode(pPassData, pCursor, pMergeNode);
+        // Active port = the merge's flow output to the already-emitted downstream; only that port gets the buffer code as inner.
+        const lMergeInnerByPort: Record<string, string> = {};
+        if (pMergeActivePort !== null) {
+            lMergeInnerByPort[pMergeActivePort.definitionId] = pCursor.scope.codeOutput.join('\n');
+        }
+        this.emitNode(pPassData, pCursor, pMergeNode, lMergeInnerByPort);
 
-        // 2. Snapshot the buffer so far as the branch point's `next`. The buffer is already in execution order (unshift), so a plain join produces the merged-tail string directly.
+        // 2. Snapshot the buffer so far as the branch point's `next`. The buffer is in execution order (unshift), so a plain join produces the merged-tail string directly.
         const lNextCode: string = pCursor.scope.codeOutput.join('\n');
         pCursor.scope.codeOutput = new Array<string>();
 
         // 3. Find the branch point.
         const lBranchPoint: PotatnoDocumentNode<TProject> = this.findBranchPoint(pMergeNode);
 
-        // 4. Run a sub-walk per fan-in branch into a fresh scope.
+        // 4. Run a sub-walk per fan-in branch into a fresh scope. Each sub-walk starts at the predecessor node with the predecessor port as its initial active port.
         const lInnerByPort: Record<string, string> = {};
         const lParentScope: PotatnoCodeGeneratorPassCursorScope<TProject> = pCursor.scope;
         try {
-            for (const lPredecessorPort of pPredecessorNodes) {
-                pCursor.scope = this.createScope(lPredecessorPort, lBranchPoint);
-                const lLastGeneratedNode = this.walkBackward(pPassData, pCursor, lPredecessorPort, lBranchPoint);
+            for (const lPredecessorPort of pPredecessorPorts) {
+                pCursor.scope = this.createScope(lPredecessorPort.node, lBranchPoint);
+                const lLastGeneratedNode = this.walkBackward(pPassData, pCursor, lPredecessorPort.node, lBranchPoint, lPredecessorPort);
 
                 // The sub-walk's first node (in execution order) is the one we stopped just-before-advancing-to-branchPoint.
                 // Map it back to the branch point's flow output port that initiated this branch.
@@ -594,18 +615,18 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
     /**
      * Build the node's PotatnoNodeDefinitionGeneratorContext, call its code generator, append the result to the current scope's buffer, and record the node as last-emitted.
      *
-     * For branching nodes (CASE C), callers pass pInnerByPort and pNextCode so the inner/next strings can be placed into the context.
-     * For non-branching nodes (CASE A/B) the inner of each flow output defaults to the current scope buffer (everything accumulated downstream of this node so far) and next defaults to empty.
+     * Callers are required to supply pInnerByPort. Every flow output port either gets the inner string explicitly mapped via pInnerByPort, or defaults to empty.
+     * Callers that want the "current scope buffer" as a flow output's inner must compute it themselves and pass it in — emitNode never reads the buffer for the default.
      *
      * Function-call nodes (PotatnoFunctionNodeDefinition) record their target document function in the cursor's dependency list (not generated here).
      *
      * @param pPassData - Shared pass state.
      * @param pCursor - The pass cursor.
      * @param pNode - The node to emit code for.
-     * @param pInnerByPort - Inner code per flow output port id, when emitting a branching node. Optional.
-     * @param pNextCode - Merged-tail code for a branching node. Optional.
+     * @param pInnerByPort - Inner code per flow output port id.
+     * @param pNextCode - Merged-tail code for a branching node. Defaults to empty.
      */
-    private emitNode(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pNode: PotatnoDocumentNode<TProject>, pInnerByPort?: Record<string, string>, pNextCode?: string): PotatnoDocumentNode<TProject> {
+    private emitNode(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pNode: PotatnoDocumentNode<TProject>, pInnerByPort: Record<string, string>, pNextCode?: string): PotatnoDocumentNode<TProject> {
         // Initialize missing node definition lookups for this function.
         if (!pPassData.nodeDefinitions.get(pNode.function)) {
             const lNodeLookup: Map<string, PotatnoNodeDefinition<TProject>> = new Map<string, PotatnoNodeDefinition<TProject>>();
@@ -634,17 +655,13 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             };
         }
 
-        // Default inner for flow outputs: everything we've accumulated downstream of this node in the current scope.
-        const lDefaultInnerCode: string = pCursor.scope.codeOutput.join('\n');
-
-        // Build the output port surfaces. Value outputs get freshly allocated valueIds. Flow outputs get inner code (overridden per port by pInnerByPort when emitting a branching node).
+        // Build the output port surfaces. Value outputs get freshly allocated valueIds. Flow outputs get the caller-supplied inner code, defaulting to empty when the port is not present in pInnerByPort.
         const lOutputs: Record<string, PotatnoCodeGeneratorOutputPort> = {};
         for (const lPort of pNode.outputs.list) {
-            // Generate a new port context for each port.
             lOutputs[lPort.definitionId] = {
                 valueId: this.getPortValueId(pPassData, pCursor, lPort),
                 code: {
-                    inner: lPort.portType === 'flow' ? pInnerByPort?.[lPort.definitionId] ?? lDefaultInnerCode : '' // TODO: Whats that?
+                    inner: lPort.portType === 'flow' ? (pInnerByPort[lPort.definitionId] ?? '') : ''
                 }
             };
         }

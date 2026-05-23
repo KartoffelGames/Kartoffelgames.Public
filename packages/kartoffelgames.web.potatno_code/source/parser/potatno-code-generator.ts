@@ -191,12 +191,12 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * Construct a fresh scope ready to be used by a backward walk.
      *
      * @param pStartNode - The node the walk will start from.
-     * @param pStopBefore - The walk's stop sentinel (null at top-level).
+     * @param pStopNode - The walk's stop sentinel (null at top-level).
      */
-    private createScope(pStartNode: PotatnoDocumentNode<TProject>, pStopBefore: PotatnoDocumentNode<TProject> | null): PotatnoCodeGeneratorPassCursorScope<TProject> {
+    private createScope(pStartNode: PotatnoDocumentNode<TProject>, pStopNode: PotatnoDocumentNode<TProject> | null): PotatnoCodeGeneratorPassCursorScope<TProject> {
         return {
             valueIds: new Map<PotatnoDocumentPort<TProject>, string>(),
-            remaining: this.preCountConsumers(pStartNode, pStopBefore),
+            remaining: this.countNodeEncounter(pStartNode, pStopNode),
             codeOutput: new Array<string>()
         };
     }
@@ -269,15 +269,14 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * @returns all connected flow output ports.
      */
     private getNodesInputFlowNodes(pNode: PotatnoDocumentNode<TProject>): Array<PotatnoDocumentNode<TProject>> {
-        const lResult: Set<PotatnoDocumentNode<TProject>> = new Set<PotatnoDocumentNode<TProject>>();
+        const lResult: Array<PotatnoDocumentNode<TProject>> = new Array<PotatnoDocumentNode<TProject>>();
 
         for (const lInputPort of pNode.inputs.flow) {
-            for (const lInputNodeOutputPort of this.resolveFlowConjunctions(lInputPort)) {
-                lResult.add(lInputNodeOutputPort.node);
-            }
+            lResult.push(...this.resolveFlowConjunctions(lInputPort));
         }
 
-        return [...lResult];
+        // Distinct list.
+        return [...new Set(lResult)];
     }
 
     /**
@@ -288,13 +287,13 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @return The actual, conjunction-cleared upstream output flow ports.
      */
-    private resolveFlowConjunctions(pInputPort: PotatnoDocumentPort<TProject>): Array<PotatnoDocumentPort<TProject>> {
-        const lResults: Array<PotatnoDocumentPort<TProject>> = new Array<PotatnoDocumentPort<TProject>>();
+    private resolveFlowConjunctions(pInputPort: PotatnoDocumentPort<TProject>): Array<PotatnoDocumentNode<TProject>> {
+        const lResults: Array<PotatnoDocumentNode<TProject>> = new Array<PotatnoDocumentNode<TProject>>();
 
         for (const lOutputPort of pInputPort.connectedPorts) {
             // Port does not belong to a conjunction. Just return it.
             if (lOutputPort.node.definitionId !== FlowConjunctionNodeDefinition.DEFINITION_ID) {
-                lResults.push(lOutputPort);
+                lResults.push(lOutputPort.node);
                 continue;
             }
 
@@ -343,89 +342,68 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         return this.resolveValueConjunctions(lConjunctionInputPort);
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     /**
-     * Pre-pass that counts each pure-value producer's direct consumers within a given scope's reach.
-     *
-     * The result map is used by resolveValueInput to know when a producer has been referenced by every consumer in this scope and can therefore be emitted.
-     *
-     * Walks backward through flow inputs to collect every flow node reachable from pStartNode within pStopBefore,
-     * then walks the value dependency closure from those flow nodes to collect every pure-value producer.
-     * Finally counts each producer's references across both flow nodes and chained pure-value producers.
+     * Pass that counts each encountered node, starting at a root node.
      *
      * @param pStartNode - The starting node (the scope's exit / fan-in predecessor).
-     * @param pStopBefore - When set, traversal stops at this node (used by sub-walks to bound their scope to the branch).
+     * @param pStopNode - When set, traversal stops at this node (used by sub-walks to bound their scope to the branch).
+     * 
+     * @returns the mapping between the document nodes and the encounter counter.
      */
-    private preCountConsumers(pStartNode: PotatnoDocumentNode<TProject>, pStopBefore: PotatnoDocumentNode<TProject> | null): Map<PotatnoDocumentNode<TProject>, number> {
+    private countNodeEncounter(pStartNode: PotatnoDocumentNode<TProject>, pStopNode: PotatnoDocumentNode<TProject> | null): Map<PotatnoDocumentNode<TProject>, number> {
         const lRemaining: Map<PotatnoDocumentNode<TProject>, number> = new Map<PotatnoDocumentNode<TProject>, number>();
 
-        // Step 1: Collect every flow node reachable backward through flow inputs.
-        const lFlowNodes: Set<PotatnoDocumentNode<TProject>> = new Set<PotatnoDocumentNode<TProject>>();
-        const lFlowQueue: Array<PotatnoDocumentNode<TProject>> = [pStartNode];
-        while (lFlowQueue.length > 0) {
-            const lNode: PotatnoDocumentNode<TProject> = lFlowQueue.shift()!;
-            if (lNode === pStopBefore || lFlowNodes.has(lNode)) {
+        const lCheckedNodes: Set<PotatnoDocumentNode<TProject>> = new Set<PotatnoDocumentNode<TProject>>();
+        const lNodeTasks: Array<PotatnoDocumentNode<TProject>> = new Array<PotatnoDocumentNode<TProject>>(pStartNode);
+        while (lNodeTasks.length > 0) {
+            // Get next flow node task from stack. Skip if node should not be checked or the node was already checked.
+            const lNode: PotatnoDocumentNode<TProject> = lNodeTasks.pop()!;
+
+            // Count any incomming connection, even when a node port has multiple connections to the same node.
+            lRemaining.set(lNode, (lRemaining.get(lNode) ?? 0) + 1);
+
+            // Skip on stop node or when node was already marched.
+            if (lNode === pStopNode || lCheckedNodes.has(lNode)) {
                 continue;
             }
-            lFlowNodes.add(lNode);
 
-            // Each flow input may have multiple connections (fan-in). Each connected source port may itself be on a chain of flow conjunctions that fan further out.
-            for (const lInputPort of lNode.inputs.flow) {
-                for (const lResolvedSourcePort of this.resolveFlowConjunctions(lInputPort)) {
-                    lFlowQueue.push(lResolvedSourcePort.node);
+            // Add node to checked node.
+            lCheckedNodes.add(lNode);
+
+            // Move backwards of each flow output port and add these flow nodes as next flow tasks. Each flow input may have multiple connections.
+            for (const lInputFlowPort of lNode.inputs.flow) {
+                lNodeTasks.push(...this.resolveFlowConjunctions(lInputFlowPort));
+            }
+
+            // Move backwards for each value node.
+            for (const lInputValuePort of lNode.inputs.value) {
+                const lIncomingValuePort: PotatnoDocumentPort<TProject> | null = this.resolveValueConjunctions(lInputValuePort);
+                if (lIncomingValuePort) {
+                    lNodeTasks.push(lIncomingValuePort.node);
                 }
             }
-        }
-
-        // Step 2: Walk value-input edges to count consumer refs to each pure-value producer and transitively discover producer-to-producer chains.
-        const lProducers: Set<PotatnoDocumentNode<TProject>> = new Set<PotatnoDocumentNode<TProject>>();
-        const lProducerQueue: Array<PotatnoDocumentNode<TProject>> = new Array<PotatnoDocumentNode<TProject>>();
-        const lCountAndDiscover = (pNode: PotatnoDocumentNode<TProject>): void => {
-            for (const lInputPort of pNode.inputs.value) {
-                // Resolve incomming ports.
-                const lIncomingPort: PotatnoDocumentPort<TProject> | null = this.resolveValueConjunctions(lInputPort);
-                if (!lIncomingPort) {
-                    continue;
-                }
-
-                const lProducer: PotatnoDocumentNode<TProject> = lIncomingPort.node;
-                if (lProducer.hasFlowPorts) {
-                    continue;
-                }
-
-                lRemaining.set(lProducer, (lRemaining.get(lProducer) ?? 0) + 1);
-                if (!lProducers.has(lProducer)) {
-                    lProducers.add(lProducer);
-                    lProducerQueue.push(lProducer);
-                }
-            }
-        };
-        for (const lFlowNode of lFlowNodes) {
-            lCountAndDiscover(lFlowNode);
-        }
-        while (lProducerQueue.length > 0) {
-            lCountAndDiscover(lProducerQueue.shift()!);
         }
 
         return lRemaining;
     }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
 
     /**
      * Find which flow output port on the branch point ultimately reaches pFirstNode (the first node executed after the branch point in the branch).
@@ -462,7 +440,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         return null;
     }
 
-    
+
     /**
      * Tagged backward BFS to find the branch point that ultimately fans into pMergeNode.
      *

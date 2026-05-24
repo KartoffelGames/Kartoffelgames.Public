@@ -4,7 +4,7 @@ import { PotatnoFunctionDefinition } from "../project/potatno-function-definitio
 import { PotatnoPortDefinition } from "../project/potatno-port-definition.ts";
 import { PotatnoProjectGenericType, PotatnoProjectType } from "../project/potatno-project-types-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
-import type { IPotatnoDocumentItem } from './i-potatno-document-item.ts';
+import type { IPotatnoDocumentItem } from './i-potatno-document-item.interface.ts';
 import { PotatnoDocumentNode, PotatnoDocumentNodeConstructorParameter, PotatnoDocumentNodePortConfiguration, PotatnoDocumentNodeTransformation } from "./potatno-document-node.ts";
 import { PotatnoDocument, PotatnoDocumentPortValidationError } from "./potatno-document.ts";
 

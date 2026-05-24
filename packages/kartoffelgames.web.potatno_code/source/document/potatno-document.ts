@@ -3,7 +3,7 @@ import { PotatnoFunctionNodeDefinition } from "../project/node_definition/potatn
 import { PotatnoNodeDefinition } from "../project/node_definition/potatno-node-definition.ts";
 import { PotatnoProject } from "../project/potatno-project.ts";
 import { PotatnoDocumentFunction, PotatnoDocumentFunctionConstructorParameter } from './potatno-document-function.ts';
-import { IPotatnoDocumentItem } from "./i-potatno-document-item.ts";
+import { IPotatnoDocumentItem } from "./i-potatno-document-item.interface.ts";
 
 /**
  * Represents the mutable document state of a PotatnoCode file.

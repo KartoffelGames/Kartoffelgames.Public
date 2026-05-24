@@ -2,7 +2,7 @@ import { Exception } from "@kartoffelgames/core";
 import { PotatnoPortDefinition, PotatnoPortDefinitionDirection, PotatnoPortDefinitionType } from "../project/potatno-port-definition.ts";
 import { PotatnoProjectGenericType, PotatnoProjectType } from "../project/potatno-project-types-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
-import type { IPotatnoDocumentItem } from './i-potatno-document-item.ts';
+import type { IPotatnoDocumentItem } from './i-potatno-document-item.interface.ts';
 import type { PotatnoDocumentFunction } from './potatno-document-function.ts';
 import { PotatnoDocumentPort } from './potatno-document-port.ts';
 import { PotatnoDocument, PotatnoDocumentPortValidationError } from "./potatno-document.ts";

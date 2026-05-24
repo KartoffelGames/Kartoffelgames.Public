@@ -201,6 +201,13 @@ const gHelperFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
                 return `const ${pResult.function.label} = ${lGraph?.code ?? '() => undefined'};`;
             },
             value: (pContext): string => {
+                // The call site emits a call to the document function being
+                // invoked, looked up via pContext.function.label. That way
+                // every instance of this definition keeps a unique callable
+                // name and multi-instance documents work without a second
+                // definition.
+                const lFunctionName: string = pContext.function.label;
+
                 // Generate a destructuring call expression so each output
                 // port receives the corresponding field from the helper
                 // function's returned object.
@@ -214,7 +221,7 @@ const gHelperFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
 
                 // No value outputs - emit a plain call statement.
                 if (lOutputEntries.length === 0) {
-                    return `helperFunction(${lArgs});\n${pContext.outputs['exec']?.code.inner ?? ''}`;
+                    return `${lFunctionName}(${lArgs});\n${pContext.outputs['exec']?.code.inner ?? ''}`;
                 }
 
                 // Destructure the returned object into freshly allocated value
@@ -223,7 +230,7 @@ const gHelperFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
                     .map(([lId, lValueId]) => `${lId}: ${lValueId}`)
                     .join(', ');
 
-                return `const { ${lDestructure} } = helperFunction(${lArgs});\n${pContext.outputs['exec']?.code.inner ?? ''}`;
+                return `const { ${lDestructure} } = ${lFunctionName}(${lArgs});\n${pContext.outputs['exec']?.code.inner ?? ''}`;
             }
         }
     }
@@ -409,6 +416,58 @@ export const TestProject: PotatnoProject<typeof gProjectTypes> = PotatnoProject.
 });
 
 /*
+ * Pass node.
+ *
+ * A side-effect-free flow pass-through with no value ports. Emits a fixed
+ * `/* pass *\/;` marker plus the downstream flow. Used by code-generator tests
+ * to assert flow ordering and branch / merge layout without dragging in the
+ * arithmetic operators' value-id chatter.
+ */
+TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
+    id: 'Pass',
+    label: 'Pass',
+    category: 'flow',
+    ports: {
+        inputs: [
+            { label: 'exec', id: 'exec', portType: 'flow' }
+        ],
+        outputs: [
+            { label: 'exec', id: 'exec', portType: 'flow' }
+        ]
+    },
+    generators: {
+        code: (pContext): string => {
+            return `/* pass */;\n${pContext.outputs['exec'].code.inner}`;
+        }
+    }
+}));
+
+/*
+ * Const node.
+ *
+ * A pure-value node (no flow ports) that takes a single `number` input and
+ * re-emits it as its `result` output. Because it has no flow ports the
+ * generator's refcount path drives its emission, which lets dedup tests target
+ * a node whose emission rules are independent of the arithmetic operators.
+ */
+TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
+    id: 'Const',
+    label: 'Const',
+    category: 'value',
+    ports: {
+        inputs: [
+            { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
+        ],
+        outputs: [
+            { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
+        ]
+    },
+    generators: {
+        code: (pContext): string => `const ${pContext.outputs['result'].valueId} = ${pContext.inputs['value'].valueId};`
+    }
+}));
+
+/*
  * Arithmetic nodes.
  *
  * Each emits a `const <result> = <a> <op> <b>;` statement so the generated
@@ -541,6 +600,44 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
     },
     generators: {
         code: (pContext): string => `const ${pContext.outputs['result'].valueId} = ${pContext.inputs['a'].valueId} < ${pContext.inputs['b'].valueId};`
+    }
+}));
+
+/*
+ * Pick node.
+ *
+ * Generic value selector: returns the `a` input when `condition` is true,
+ * otherwise `b`. Both `a` and `b` share the generic `<T>` data type and the
+ * output resolves to the same generic, so the node validates a generic-port
+ * round-trip (input resolution via connected output) without committing to
+ * a concrete data type.
+ *
+ * Emitted code wraps the choice in an IIFE so the selection always evaluates
+ * exactly one of the two value inputs from the surrounding scope without
+ * introducing a statement-level if/else.
+ */
+TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
+    id: 'Pick',
+    label: 'Pick',
+    category: 'operator',
+    ports: {
+        inputs: [
+            { label: 'a', id: 'a', portType: 'value', dataType: '<T>' },
+            { label: 'b', id: 'b', portType: 'value', dataType: '<T>' },
+            { label: 'condition', id: 'condition', portType: 'value', dataType: 'boolean' }
+        ],
+        outputs: [
+            { label: 'result', id: 'result', portType: 'value', dataType: '<T>' }
+        ]
+    },
+    generators: {
+        code: (pContext): string => {
+            const lA: string = pContext.inputs['a'].valueId;
+            const lB: string = pContext.inputs['b'].valueId;
+            const lCondition: string = pContext.inputs['condition'].valueId;
+            const lResult: string = pContext.outputs['result'].valueId;
+            return `const ${lResult} = ((a, b, cond) => { if (cond) { return a; } return b; })(${lA}, ${lB}, ${lCondition});`;
+        }
     }
 }));
 

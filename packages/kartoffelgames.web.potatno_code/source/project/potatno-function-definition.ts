@@ -150,8 +150,16 @@ export type PotatnoFunctionDefinitionGenerator<TProject extends PotatnoProject> 
     /**
      * Produces the call-site code expression when this function is invoked as a node.
      */
-    value: (pContext: PotatnoNodeDefinitionGeneratorContext) => string;
+    value: (pContext: PotatnoFunctionDefinitionNodeValueGeneratorContext<TProject>) => string;
 };
+
+/**
+ * Generator context for nodes values of a function definition.
+ * Extends the default PotatnoNodeDefinitionGeneratorContext by the current document function of the node.
+ */
+export type PotatnoFunctionDefinitionNodeValueGeneratorContext<TProject extends PotatnoProject> = PotatnoNodeDefinitionGeneratorContext & {
+    function: PotatnoDocumentFunction<TProject>
+} 
 
 /**
  * Node provider for a function definition, providing a dynamic set of nodes.

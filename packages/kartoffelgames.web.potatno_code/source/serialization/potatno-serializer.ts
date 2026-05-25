@@ -46,7 +46,7 @@ export class PotatnoSerializer<TProject extends PotatnoProject> {
         const lNodeIdMap = new Map<PotatnoDocumentNode<TProject>, string>();
 
         // Assign stable nodeIds based on the order of nodes in the function's graph.
-        pFunction.nodes.forEach((pNode, pIndex) => {
+        [...pFunction.nodes].forEach((pNode, pIndex) => {
             lNodeIdMap.set(pNode, `n${pIndex}`);
         });
 

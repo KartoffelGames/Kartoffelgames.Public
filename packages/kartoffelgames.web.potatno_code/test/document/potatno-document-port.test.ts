@@ -105,41 +105,39 @@ Deno.test('PotatnoDocumentPort.constructor()', async (pContext) => {
         // Evaluation.
         expect(lPort.directValue.length).toBe(0);
     });
-});
 
-Deno.test('Error: PotatnoDocumentPort.constructor() - flow port with data type', async (pContext) => {
-    await pContext.step('Throws when constructing a flow port with a non-null dataType', () => {
-        // Setup.
-        const { document: lDocument, defaultEntry } = lSetupCalculatorDocument();
+    await pContext.step('Error', async (pContext) => {
+        await pContext.step('Flow port with data type', () => {
+            // Setup.
+            const { document: lDocument, defaultEntry } = lSetupCalculatorDocument();
 
-        // Process.
-        const lAction = (): void => {
-            new PotatnoDocumentPort(TestProject as any, lDocument, {
-                definitionId: 'p', direction: 'input', label: 'p',
-                node: defaultEntry, portType: 'flow', dataType: 'number' as any
-            });
-        };
+            // Process.
+            const lAction = (): void => {
+                new PotatnoDocumentPort(TestProject as any, lDocument, {
+                    definitionId: 'p', direction: 'input', label: 'p',
+                    node: defaultEntry, portType: 'flow', dataType: 'number' as any
+                });
+            };
 
-        // Evaluation.
-        expect(lAction).toThrow('Flow ports cannot have a value type.');
-    });
-});
+            // Evaluation.
+            expect(lAction).toThrow('Flow ports cannot have a value type.');
+        });
 
-Deno.test('Error: PotatnoDocumentPort.constructor() - value port without data type', async (pContext) => {
-    await pContext.step('Throws when constructing a value port with null dataType', () => {
-        // Setup.
-        const { document: lDocument, defaultEntry } = lSetupCalculatorDocument();
+        await pContext.step('Value port without data type', () => {
+            // Setup.
+            const { document: lDocument, defaultEntry } = lSetupCalculatorDocument();
 
-        // Process.
-        const lAction = (): void => {
-            new PotatnoDocumentPort(TestProject as any, lDocument, {
-                definitionId: 'p', direction: 'input', label: 'p',
-                node: defaultEntry, portType: 'value', dataType: null
-            });
-        };
+            // Process.
+            const lAction = (): void => {
+                new PotatnoDocumentPort(TestProject as any, lDocument, {
+                    definitionId: 'p', direction: 'input', label: 'p',
+                    node: defaultEntry, portType: 'value', dataType: null
+                });
+            };
 
-        // Evaluation.
-        expect(lAction).toThrow('Value ports must have a value type.');
+            // Evaluation.
+            expect(lAction).toThrow('Value ports must have a value type.');
+        });
     });
 });
 
@@ -451,41 +449,39 @@ Deno.test('PotatnoDocumentPort.connect()', async (pContext) => {
         // Evaluation.
         expect(lSource.connectedPorts.size).toBe(1);
     });
-});
 
-Deno.test('Error: PotatnoDocumentPort.connect() - mismatched port types', async (pContext) => {
-    await pContext.step('Throws when connecting flow to value', () => {
-        // Setup.
-        const { defaultEntry, defaultExit } = lSetupCalculatorDocument();
-        const lFlowOutput = defaultEntry.outputs.flow[0];
-        const lValueInput = defaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!;
+    await pContext.step('Error', async (pContext) => {
+        await pContext.step('Mismatched port types', () => {
+            // Setup.
+            const { defaultEntry, defaultExit } = lSetupCalculatorDocument();
+            const lFlowOutput = defaultEntry.outputs.flow[0];
+            const lValueInput = defaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!;
 
-        // Process.
-        const lAction = (): void => {
-            lFlowOutput.connect(lValueInput);
-        };
+            // Process.
+            const lAction = (): void => {
+                lFlowOutput.connect(lValueInput);
+            };
 
-        // Evaluation.
-        const lMessage: string = `Cannot connect port ${lFlowOutput.definitionId} of node ${defaultEntry.label} to port ${lValueInput.definitionId} of node ${defaultExit.label} due to incompatible port types.`;
-        expect(lAction).toThrow(lMessage);
-    });
-});
+            // Evaluation.
+            const lMessage: string = `Cannot connect port ${lFlowOutput.definitionId} of node ${defaultEntry.label} to port ${lValueInput.definitionId} of node ${defaultExit.label} due to incompatible port types.`;
+            expect(lAction).toThrow(lMessage);
+        });
 
-Deno.test('Error: PotatnoDocumentPort.connect() - same direction', async (pContext) => {
-    await pContext.step('Throws when connecting two output ports', () => {
-        // Setup. Two value-output ports on the same node (Entry has a and b).
-        const { defaultEntry } = lSetupCalculatorDocument();
-        const lA = defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!;
-        const lB = defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'b')!;
+        await pContext.step('Same direction', () => {
+            // Setup. Two value-output ports on the same node (Entry has a and b).
+            const { defaultEntry } = lSetupCalculatorDocument();
+            const lA = defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!;
+            const lB = defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'b')!;
 
-        // Process.
-        const lAction = (): void => {
-            lA.connect(lB);
-        };
+            // Process.
+            const lAction = (): void => {
+                lA.connect(lB);
+            };
 
-        // Evaluation.
-        const lMessage: string = `Cannot connect port ${lA.definitionId} of node ${defaultEntry.label} to port ${lB.definitionId} of node ${defaultEntry.label} due to incompatible directions.`;
-        expect(lAction).toThrow(lMessage);
+            // Evaluation.
+            const lMessage: string = `Cannot connect port ${lA.definitionId} of node ${defaultEntry.label} to port ${lB.definitionId} of node ${defaultEntry.label} due to incompatible directions.`;
+            expect(lAction).toThrow(lMessage);
+        });
     });
 });
 
@@ -558,54 +554,50 @@ Deno.test('PotatnoDocumentPort.setDirectValue()', async (pContext) => {
         expect(lPort.directValue).toBe(lReferenceArray);
         expect([...lReferenceArray]).toEqual(['99']);
     });
-});
 
-Deno.test('Error: PotatnoDocumentPort.setDirectValue() - flow port', async (pContext) => {
-    await pContext.step('Throws when called on a flow port', () => {
-        // Setup.
-        const { defaultExit } = lSetupCalculatorDocument();
-        const lPort = defaultExit.inputs.flow[0];
+    await pContext.step('Error', async (pContext) => {
+        await pContext.step('Flow port', () => {
+            // Setup.
+            const { defaultExit } = lSetupCalculatorDocument();
+            const lPort = defaultExit.inputs.flow[0];
 
-        // Process.
-        const lAction = (): void => {
-            lPort.setDirectValue(['x']);
-        };
+            // Process.
+            const lAction = (): void => {
+                lPort.setDirectValue(['x']);
+            };
 
-        // Evaluation.
-        expect(lAction).toThrow('Only value ports can have a direct value.');
-    });
-});
+            // Evaluation.
+            expect(lAction).toThrow('Only value ports can have a direct value.');
+        });
 
-Deno.test('Error: PotatnoDocumentPort.setDirectValue() - generic port', async (pContext) => {
-    await pContext.step('Throws when called on a generic value port', () => {
-        // Setup. Pick's `a` input is `<T>`.
-        const { function: lFunction } = lSetupCalculatorDocument();
-        const lPickNode = lAddProjectNode(lFunction, 'Pick');
-        const lPort = lPickNode.inputs.value.find((pPort) => pPort.definitionId === 'a')!;
+        await pContext.step('Generic port', () => {
+            // Setup. Pick's `a` input is `<T>`.
+            const { function: lFunction } = lSetupCalculatorDocument();
+            const lPickNode = lAddProjectNode(lFunction, 'Pick');
+            const lPort = lPickNode.inputs.value.find((pPort) => pPort.definitionId === 'a')!;
 
-        // Process.
-        const lAction = (): void => {
-            lPort.setDirectValue(['x']);
-        };
+            // Process.
+            const lAction = (): void => {
+                lPort.setDirectValue(['x']);
+            };
 
-        // Evaluation.
-        expect(lAction).toThrow('Generic value ports cannot have a direct value.');
-    });
-});
+            // Evaluation.
+            expect(lAction).toThrow('Generic value ports cannot have a direct value.');
+        });
 
-Deno.test('Error: PotatnoDocumentPort.setDirectValue() - length mismatch', async (pContext) => {
-    await pContext.step('Throws when array length does not match the type default', () => {
-        // Setup.
-        const { defaultExit } = lSetupCalculatorDocument();
-        const lPort = defaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!;
+        await pContext.step('Length mismatch', () => {
+            // Setup.
+            const { defaultExit } = lSetupCalculatorDocument();
+            const lPort = defaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!;
 
-        // Process.
-        const lAction = (): void => {
-            lPort.setDirectValue(['1', '2']);
-        };
+            // Process.
+            const lAction = (): void => {
+                lPort.setDirectValue(['1', '2']);
+            };
 
-        // Evaluation.
-        expect(lAction).toThrow("The provided value does not match the expected length of the default value for this port's type.");
+            // Evaluation.
+            expect(lAction).toThrow("The provided value does not match the expected length of the default value for this port's type.");
+        });
     });
 });
 

@@ -118,6 +118,12 @@ export class PotatnoSerializer<TProject extends PotatnoProject> {
             } satisfies SerializedNodePort;
         });
 
+        // Preserve the per-node preview opt-in so the user's choice survives reloads. `null`
+        // and "no preview" are equivalent on the runtime side; both serialize as omitted.
+        const lPreview: { portId: string; displayId: string; } | null = pNode.preview
+            ? { portId: pNode.preview.portId, displayId: pNode.preview.displayId }
+            : null;
+
         return {
             id: pNodeId,
             definitionId: pNode.definitionId,
@@ -125,7 +131,8 @@ export class PotatnoSerializer<TProject extends PotatnoProject> {
             label: pNode.label,
             isSystem: pNode.isSystem,
             transformation: { ...pNode.transformation },
-            ports: lPorts
+            ports: lPorts,
+            preview: lPreview
         };
     }
 }

@@ -161,6 +161,9 @@ export class PotatnoDeserializer<TProject extends PotatnoProject> {
             }
         }
 
+        // Restore per-node preview opt-in. Missing or null means "no preview".
+        lNode.preview = pData.preview ? { portId: pData.preview.portId, displayId: pData.preview.displayId } : null;
+
         return lNode;
     }
 }

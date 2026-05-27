@@ -112,6 +112,29 @@ export type SerializedNode = {
      * All ports of this node including their connection data.
      */
     ports: Array<SerializedNodePort>;
+
+    /**
+     * Per-node preview opt-in. `null` (or omitted) when the node has no preview;
+     * otherwise the pairing of which value output port to preview and which registered
+     * display id should render it.
+     */
+    preview?: SerializedNodePreview | null;
+};
+
+/**
+ * Serialized form of a node's preview opt-in. Mirrors the runtime `PotatnoDocumentNodePreviewBinding`
+ * shape so the choice survives a save/load roundtrip.
+ */
+export type SerializedNodePreview = {
+    /**
+     * Definition id of the value output port to preview.
+     */
+    portId: string;
+
+    /**
+     * Id of the registered display that should render the previewed value.
+     */
+    displayId: string;
 };
 
 /**

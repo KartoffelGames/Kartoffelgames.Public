@@ -27,7 +27,7 @@ import type { PotatnoPreviewFunctionExecutor, PotatnoPreviewFunctionExecutorCall
  * @typeParam TParams - The iteration parameter shape.
  * @typeParam TResult - The result shape both adapter and display consume.
  */
-export class PotatnoPreviewDriver<TProject extends PotatnoProject, TElement extends Element, TParams extends Readonly<Record<string, unknown>>, TResult> {
+export class PotatnoPreviewDriver<TProject extends PotatnoProject, TElement extends Element, TParams extends Readonly<Record<string, unknown>>, TResult> implements PotatnoPreviewDriverHandle {
     private mCachedCallable: PotatnoPreviewFunctionExecutorCallable<TParams, TResult> | null;
     private readonly mDisplay: PotatnoPreviewDisplay<TProject['types'], TElement, TParams, TResult, PotatnoPreviewDisplayTypeAdapter<TProject['types'], TResult>>;
     private mElement: TElement | null;
@@ -188,3 +188,31 @@ export type PotatnoPreviewDriverConstructorParameter<TProject extends PotatnoPro
  * @typeParam TProject - The project type the driver targets.
  */
 export type PotatnoPreviewDriverGeneratorResultProvider<TProject extends PotatnoProject> = () => PotatnoCodeGeneratorFunctionResult<TProject> | PotatnoCodeGeneratorNodeResult<TProject>;
+
+/**
+ * Type-erased view of a driver. Carries only the operations and properties consumers actually
+ * need at the registry / preview-manager level — the project-, element-, params- and
+ * result-specific generics stay sealed inside the concrete `PotatnoPreviewDriver` instance.
+ *
+ * The interface exists so heterogeneous drivers (one per registered display/executor pair,
+ * each with its own narrow generics) can be stored side-by-side in a single list without
+ * round-tripping through `unknown` — a concrete driver class trivially implements this
+ * interface and is therefore directly assignable to it.
+ */
+export interface PotatnoPreviewDriverHandle {
+    /**
+     * The DOM element the display renders into. Lazily created by the underlying driver.
+     */
+    readonly element: Element;
+
+    /**
+     * Drive one render pass on the underlying driver.
+     */
+    render(): Promise<void>;
+
+    /**
+     * Drop the underlying driver's cached iteration callable so the next render rebuilds
+     * from a fresh generator result.
+     */
+    invalidateCache(): void;
+}

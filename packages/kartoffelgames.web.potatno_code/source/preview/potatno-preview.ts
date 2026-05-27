@@ -1,6 +1,8 @@
 import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
+import type { PotatnoProject } from '../project/potatno-project.ts';
+import { PotatnoPreviewDriver, type PotatnoPreviewDriverGeneratorResultProvider, type PotatnoPreviewDriverHandle } from './potatno-preview-driver.ts';
 import { PotatnoPreviewDisplay, type PotatnoPreviewDisplayTypeAdapter } from './potatno-preview-display.ts';
-import type { PotatnoPreviewFunctionExecutor } from './potatno-preview-function-executor.ts';
+import type { PotatnoPreviewFunctionExecutor, PotatnoPreviewFunctionExecutorPortTarget } from './potatno-preview-function-executor.ts';
 
 /**
  * Project-wide preview registry.
@@ -74,34 +76,90 @@ export class PotatnoPreview<TTypes extends PotatnoProjectTypesDefinition<string,
      * @param pExecutor - The executor side of the pair. Its `parameters` must satisfy `pDisplay.expectedParameters`.
      */
     public addDisplay<TElement extends Element, TParams extends Readonly<Record<string, unknown>>, TResult, TAdapter extends PotatnoPreviewDisplayTypeAdapter<TTypes, TResult>>(pDisplay: PotatnoPreviewDisplay<TTypes, TElement, TParams, TResult, TAdapter>, pExecutor: PotatnoPreviewFunctionExecutor<TTypes, TParams, TResult>): void {
-        // Store the pair, widening to the registry's any-shape entry type. The compile-time check
-        // already proved the pair is internally consistent; the cast simply collapses the call-site
-        // generics into the heterogeneous entries list. Routing through `unknown` is required
-        // because TElement is covariant on update's parameter — direct casts are rejected even
-        // though the widening is sound at the storage boundary.
+        // Each entry closes over its own narrow types in a `createDriver` factory rather than
+        // exposing the display/executor directly. That keeps the heterogeneous list TS-sound:
+        // the registry holds existential entries (one set of narrow types per slot) and the
+        // factory rebinds them when a consumer asks for a driver — no upcast from narrow to
+        // wide is ever needed at the storage boundary.
         this.mEntries.push({
-            display: pDisplay as unknown as PotatnoPreviewDisplay<TTypes, Element, Readonly<Record<string, unknown>>, unknown, PotatnoPreviewDisplayTypeAdapter<TTypes, unknown>>,
-            executor: pExecutor as unknown as PotatnoPreviewFunctionExecutor<TTypes, Readonly<Record<string, unknown>>, unknown>
+            displayId: pDisplay.id,
+            executorFunctionId: pExecutor.function.id,
+            createDriver: <TProject extends PotatnoProject>(pParameter: PotatnoPreviewEntryCreateDriverParameter<TProject>): PotatnoPreviewDriverHandle => {
+                // Construct the driver with the precise narrow types captured by `addDisplay`'s
+                // generics. The factory's return type is the project-agnostic
+                // `PotatnoPreviewDriverHandle` interface, which the concrete driver class
+                // implements; upcasting to the implemented interface is sound for any narrow
+                // generics, so no `unknown` round-trip is needed.
+                return new PotatnoPreviewDriver<TProject, TElement, TParams, TResult>({
+                    display: pDisplay,
+                    executor: pExecutor,
+                    portTarget: pParameter.portTarget,
+                    generatorResultProvider: pParameter.generatorResultProvider
+                });
+            }
         });
     }
 }
 
 /**
- * One registered `(display, executor)` pair inside a `PotatnoPreview` registry. Generics are
- * collapsed to wide bounds so the registry can hold heterogeneous pairs in a single array — the
- * framework's driver construction re-binds the narrow generics when it pulls a pair out for a
- * concrete preview.
+ * Constructor parameters handed to a registry entry's `createDriver` factory. Holds the parts
+ * the registry does not own — the project-scoped port target and generator-result provider —
+ * so the factory only needs the precise types from its closure to build a driver.
+ *
+ * @typeParam TProject - The project type the driver is being built for.
+ */
+export type PotatnoPreviewEntryCreateDriverParameter<TProject extends PotatnoProject> = {
+    /**
+     * The port target the driver should be bound to; `null` for function-level previews.
+     */
+    portTarget: PotatnoPreviewFunctionExecutorPortTarget<TProject> | null;
+
+    /**
+     * Callback yielding the current code generator result on each cache miss.
+     */
+    generatorResultProvider: PotatnoPreviewDriverGeneratorResultProvider<TProject>;
+};
+
+/**
+ * One registered `(display, executor)` pair inside a `PotatnoPreview` registry.
+ *
+ * Stored as an existential — the original `display`/`executor` are sealed inside the entry's
+ * `createDriver` closure, which projects them back into a driver typed against the consumer's
+ * `TProject`. The only fields visible from outside are the two ids and the factory, so the
+ * registry never has to surface the heterogeneous narrow types as a single union.
  *
  * @typeParam TTypes - The project types definition the registry targets.
  */
 export type PotatnoPreviewEntry<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>> = {
     /**
-     * The registered display.
+     * Stable id of the bound display. Used for opt-in matching against `node.preview`.
      */
-    display: PotatnoPreviewDisplay<TTypes, Element, Readonly<Record<string, unknown>>, unknown, PotatnoPreviewDisplayTypeAdapter<TTypes, unknown>>;
+    readonly displayId: string;
 
     /**
-     * The executor paired with the display.
+     * Function-definition id the bound executor wraps. Used for matching against the project's
+     * entry-point or a per-node's owning function.
      */
-    executor: PotatnoPreviewFunctionExecutor<TTypes, Readonly<Record<string, unknown>>, unknown>;
+    readonly executorFunctionId: string;
+
+    /**
+     * Project-types phantom on the entry. Keeps the registry's `TTypes` generic load-bearing so
+     * unrelated entry types stay distinct at the type level even when the public fields would
+     * otherwise be structurally identical across different projects.
+     */
+    readonly _tTypesPhantom?: TTypes;
+
+    /**
+     * Build a `PotatnoPreviewDriver` bound to this entry's display and executor. The closure
+     * carries the precise narrow generics captured at `addDisplay` time; the returned handle
+     * is the project-agnostic `PotatnoPreviewDriverHandle` view so the registry's list stays
+     * heterogeneous-friendly.
+     *
+     * @typeParam TProject - The project type the consumer is building a driver against.
+     *
+     * @param pParameter - The project-scoped portions of the driver configuration.
+     *
+     * @returns The freshly constructed driver, exposed under its handle interface.
+     */
+    createDriver<TProject extends PotatnoProject>(pParameter: PotatnoPreviewEntryCreateDriverParameter<TProject>): PotatnoPreviewDriverHandle;
 };

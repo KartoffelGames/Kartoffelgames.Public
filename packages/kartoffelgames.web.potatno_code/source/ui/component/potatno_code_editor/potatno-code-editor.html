@@ -18,7 +18,7 @@
         <potatno-node-graph
             [activeFunction]="this.activeFunction"
             [refreshVersion]="this.graphRefreshVersion"
-            [previewResult]="this.graphPreviewResult"
+            [previewManager]="this.previewManager"
             [previewUpdateVersion]="this.previewUpdateVersion"
             [errorNodes]="this.graphErrorNodes"
             [errorPorts]="this.graphErrorPorts"
@@ -29,7 +29,7 @@
         </potatno-node-graph>
         $if(this.hasPreview) {
             <div class="preview-wrapper">
-                <potatno-preview #previewEl [errors]="this.editorErrors" [previewContent]="this.entryPreviewElement"></potatno-preview>
+                <potatno-preview #previewEl [errors]="this.editorErrors" [descriptors]="this.previewTabs"></potatno-preview>
             </div>
         }
     </div>

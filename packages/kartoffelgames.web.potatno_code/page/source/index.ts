@@ -243,43 +243,39 @@ type PixelCallable = (pX: number, pY: number) => [number, number, number];
 
 const lEntryFunctionExecutor = PotatnoPreviewFunctionExecutor.new(lProjectTypes, lEntryFunction, {
     parameters: { x: 0, y: 0 }, // Iteration-fed parameters; the display passes one of these per call.
-    build: (pExecutor, pGeneratorResult, pPortTarget) => {
-        // Per-node preview path. The generator result is a NodeResult whose `.code` is the
-        // graph body (no function wrap). The user's job is to splice in a `return` at the
-        // hook for the targeted valueId and compile the body into its own pixel-shaped fn.
-        if (pPortTarget) {
-            let lNodeBody: string = pGeneratorResult.code;
-            const lHookMarker: string = `/*[${pPortTarget.valueId}]*/`;
-            const lHookIndex: number = lNodeBody.indexOf(lHookMarker);
-            if (lHookIndex !== -1) {
-                // Drop everything after the hook — that code can't run because the function
-                // already returned — and replace the hook itself with the return statement.
-                lNodeBody = lNodeBody.substring(0, lHookIndex) + `\nreturn ${pPortTarget.valueId};\n`;
-            } else {
-                // Hook absent (e.g. node code generator didn't emit one). Append the return so
-                // the per-node callable still produces a value rather than `undefined`.
-                lNodeBody += `\nreturn ${pPortTarget.valueId};\n`;
-            }
-
-            const lNodeFn: (pX: number, pY: number) => number = new Function('x', 'y', lNodeBody) as (pX: number, pY: number) => number;
-            // The per-node callable returns the port's raw value (a `number` for the demo's
-            // 'number' adapter). The driver wraps it with the matching display adapter before
-            // handing it to `display.update`, so the cast lines the TS types up — the driver
-            // never reads `TResult` from the raw callable directly.
-            return ((pParameters: { x: number; y: number; }): number => {
-                return lNodeFn(pParameters.x, pParameters.y);
-            }) as unknown as (pParameters: { x: number; y: number; }) => [number, number, number];
-        }
-
-        // Function-level path. The result is a FunctionResult whose `.code` is a full
-        // `const pixelShader = (x, y) => {...};` declaration. Compile, then return the named
-        // function back out via the `new Function(...)` wrapper.
+    buildFunction: (pExecutor, pGeneratorResult) => {
+        // Function-level path. `pGeneratorResult.code` is a full
+        // `const pixelShader = (x, y) => {...};` declaration. Compile inside a wrapper and
+        // grab the named function back out — its natural return is the `[r, g, b]` array.
         const lFunctionCode: string = pGeneratorResult.code;
         const lFunctionName: string = pExecutor.function.id;
         const lCompiled: PixelCallable = new Function(`${lFunctionCode}\nreturn ${lFunctionName};`)() as PixelCallable;
 
         return (pParameters: { x: number; y: number; }): [number, number, number] => {
             return lCompiled(pParameters.x, pParameters.y);
+        };
+    },
+    buildNode: (_pExecutor, pGeneratorResult, pPortTarget) => {
+        // Per-node path. `pGeneratorResult.code` is the graph body up to and including the
+        // previewed node (no function wrap, no return). Splice in a `return` at the hook for
+        // the targeted valueId and drop anything after it; whatever follows the hook can't run
+        // because the function will have already returned.
+        let lNodeBody: string = pGeneratorResult.code;
+        const lHookMarker: string = `/*[${pPortTarget.valueId}]*/`;
+        const lHookIndex: number = lNodeBody.indexOf(lHookMarker);
+        if (lHookIndex !== -1) {
+            lNodeBody = lNodeBody.substring(0, lHookIndex) + `\nreturn ${pPortTarget.valueId};\n`;
+        } else {
+            // Hook absent (e.g. the node's code generator didn't emit one). Append the return
+            // so the per-node callable still produces a value rather than `undefined`.
+            lNodeBody += `\nreturn ${pPortTarget.valueId};\n`;
+        }
+
+        // The per-node callable yields the port's raw value. The driver wraps it with the
+        // display's matching adapter, so the executor's return type stays honestly `unknown`.
+        const lNodeFn: (pX: number, pY: number) => unknown = new Function('x', 'y', lNodeBody) as (pX: number, pY: number) => unknown;
+        return (pParameters: { x: number; y: number; }): unknown => {
+            return lNodeFn(pParameters.x, pParameters.y);
         };
     }
 });

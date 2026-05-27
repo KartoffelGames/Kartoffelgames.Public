@@ -2,10 +2,10 @@ import { ComponentEventEmitter, ComponentState, PwbChild, PwbComponent, PwbCompo
 import type { IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoProjectTypeDefinition, PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
+import { PotatnoProjectTypeDefinition } from "../../../project/potatno-project-types-definition.ts";
+import type { PotatnoUiProject } from '../../potatno-node-definition-list.ts';
 import portCss from './potatno-port.css' with { type: 'text' };
 import portTemplate from './potatno-port.html' with { type: 'text' };
-import { PotatnoProject } from "../../../project/potatno-project.ts";
 
 /**
  * Port component for the potatno-code visual editor.
@@ -23,7 +23,7 @@ export class PotatnoPortComponent implements IComponentOnUpdate {
      */
     @PwbExport
     @ComponentState.state()
-    public accessor port: PotatnoDocumentPort<PotatnoProject> | null = null;
+    public accessor port: PotatnoDocumentPort<PotatnoUiProject> | null = null;
 
     /**
      * Version counter forwarded from the editor via the node component whenever
@@ -39,7 +39,7 @@ export class PotatnoPortComponent implements IComponentOnUpdate {
      */
     @PwbExport
     @ComponentState.state()
-    public accessor ownerNode: PotatnoDocumentNode<any> | null = null;
+    public accessor ownerNode: PotatnoDocumentNode<PotatnoUiProject> | null = null;
 
     /**
      * Whether this port has a validation error.
@@ -69,7 +69,7 @@ export class PotatnoPortComponent implements IComponentOnUpdate {
     @PwbChild('portCircle')
     public accessor portCircleElement!: HTMLElement;
 
-    private mLastRegisteredPort: PotatnoDocumentPort<any> | null = null;
+    private mLastRegisteredPort: PotatnoDocumentPort<PotatnoUiProject> | null = null;
 
     /**
      * Port display name.
@@ -257,13 +257,13 @@ export class PotatnoPortComponent implements IComponentOnUpdate {
 }
 
 export type PortInteractionDetail = {
-    node: PotatnoDocumentNode<any>;
-    port: PotatnoDocumentPort<any>;
+    node: PotatnoDocumentNode<PotatnoUiProject>;
+    port: PotatnoDocumentPort<PotatnoUiProject>;
     element: HTMLElement;
 };
 
 type DirectValueChangeDetail = {
-    port: PotatnoDocumentPort<any>;
+    port: PotatnoDocumentPort<PotatnoUiProject>;
     values: Array<string>;
 };
 

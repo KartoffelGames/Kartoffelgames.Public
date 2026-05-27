@@ -6,6 +6,17 @@
         }
         $if(!this.hasErrors) {
             <span class="preview-title">Preview</span>
+            $if(this.hasDescriptors) {
+                <div class="preview-tabs">
+                    $for(tab of this.tabs) {
+                        <button type="button"
+                            class="{{this.tabClass(this.tab)}}"
+                            (click)="this.onTabSelect(this.tab.id)">
+                            {{this.tab.label}}
+                        </button>
+                    }
+                </div>
+            }
         }
     </div>
     $if(this.hasErrors) {

@@ -1,10 +1,41 @@
-import { PwbComponent, PwbExport, PwbChild, ComponentState, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
+import { ComponentState, type IComponentOnUpdate, PwbChild, PwbComponent, PwbExport } from '@kartoffelgames/web-potato-web-builder';
 import templateCss from './potatno-preview.css' with { type: 'text' };
 import previewTemplate from './potatno-preview.html' with { type: 'text' };
 
 /**
- * Preview component for the potatno-code visual editor.
- * Displays a live preview of the generated code output or validation errors.
+ * Lightweight descriptor handed to the preview panel for each driver it should host.
+ *
+ * The panel renders one tab per descriptor and swaps the visible element when the user
+ * picks a tab. Both `id` and `label` are plain strings so the component stays decoupled
+ * from the preview manager's generic-heavy `PotatnoUiPreviewDescriptor` shape; the editor
+ * is responsible for mapping descriptors into this minimal contract.
+ */
+export type PotatnoPreviewTabDescriptor = {
+    /**
+     * Stable id matching the underlying display id. Used to preserve the selected tab
+     * across rebuilds and to identify the active tab in click handlers.
+     */
+    readonly id: string;
+
+    /**
+     * Human-readable label shown on the tab button.
+     */
+    readonly label: string;
+
+    /**
+     * The DOM element produced by the display's `generate()`. Re-appended after every
+     * template update so PWB's $if re-renders cannot orphan it.
+     */
+    readonly element: HTMLElement;
+};
+
+/**
+ * Tabbed preview panel hosting one or more `PotatnoPreviewDriver` elements.
+ *
+ * The editor's preview manager hands the panel a list of tab descriptors; the panel renders
+ * a tab strip and shows the active descriptor's element in the content area. Validation
+ * errors take priority — when the editor supplies any, the error list replaces the preview
+ * content entirely until errors clear.
  */
 @PwbComponent({
     selector: 'potatno-preview',
@@ -13,9 +44,21 @@ import previewTemplate from './potatno-preview.html' with { type: 'text' };
 })
 export class PotatnoPreview implements IComponentOnUpdate {
     /**
-     * Reference to the content container element.
+     * Active preview tab id. State-tracked so a click re-renders the visible element.
      */
-    @PwbExport
+    @ComponentState.state()
+    private accessor mActiveTabId: string | null = null;
+
+    /**
+     * Tab descriptors driving the tab strip and content area.
+     */
+    @ComponentState.state({ complexValue: true })
+    private accessor mDescriptors: ReadonlyArray<PotatnoPreviewTabDescriptor> = [];
+
+    /**
+     * Reference to the content container element. The active descriptor's element is
+     * appended here on every update cycle.
+     */
     @PwbChild('PreviewContent')
     public accessor contentElement!: HTMLDivElement;
 
@@ -33,86 +76,128 @@ export class PotatnoPreview implements IComponentOnUpdate {
     public accessor errors: Array<{ message: string; location: string }> = [];
 
     /**
+     * Whether the panel currently has no descriptors to render. Drives the empty-state
+     * placeholder in the template.
+     */
+    public get hasDescriptors(): boolean {
+        return this.mDescriptors.length > 0;
+    }
+
+    /**
      * Whether there are any validation errors to display.
      */
     public get hasErrors(): boolean {
         return this.errors.length > 0;
     }
 
-    private mDragging: boolean = false;
-    private mStartX: number = 0;
-    private mStartY: number = 0;
-    private mStartWidth: number = 0;
-    private mStartHeight: number = 0;
-    private mStoredElement: Element | null = null;
+    /**
+     * Public descriptors view used by the template's tab strip.
+     */
+    public get tabs(): ReadonlyArray<PotatnoPreviewTabDescriptor> {
+        return this.mDescriptors;
+    }
+
+    private mDragging: boolean;
+    private mStartX: number;
+    private mStartY: number;
+    private mStartWidth: number;
+    private mStartHeight: number;
 
     /**
-     * Set the element to display in the preview area.
-     * Stored and re-appended after every component update via onUpdate().
+     * Constructor.
+     */
+    public constructor() {
+        this.mDragging = false;
+        this.mStartX = 0;
+        this.mStartY = 0;
+        this.mStartWidth = 0;
+        this.mStartHeight = 0;
+    }
+
+    /**
+     * Update the tab descriptor list. Re-selects the active tab when the previous selection
+     * disappears (descriptor list changed shape).
+     *
+     * @param pValue - The new list of descriptors. Empty array clears the panel.
      */
     @PwbExport
-    public set previewContent(pElement: Element | null) {
-        console.log('[Preview] previewContent setter called with:', pElement);
-        this.mStoredElement = pElement;
-        this.tryAppendStoredElement();
+    public set descriptors(pValue: ReadonlyArray<PotatnoPreviewTabDescriptor>) {
+        this.mDescriptors = pValue;
+
+        // Keep the active selection stable when the same id still exists; otherwise fall
+        // back to the first descriptor (or null when there are none).
+        const lActiveStillExists: boolean = this.mActiveTabId !== null && pValue.some((pDescriptor) => pDescriptor.id === this.mActiveTabId);
+        if (!lActiveStillExists) {
+            this.mActiveTabId = pValue[0]?.id ?? null;
+        }
     }
 
     /**
-     * After each template update cycle, re-append the stored preview element
-     * in case the #PreviewContent div was recreated by a $if re-render.
+     * Resolve the CSS class for a tab button (selected/unselected).
+     *
+     * @param pTab - The descriptor whose class to resolve.
+     *
+     * @returns A space-separated class list ready for the template.
+     */
+    public tabClass(pTab: PotatnoPreviewTabDescriptor): string {
+        return pTab.id === this.mActiveTabId ? 'preview-tab selected' : 'preview-tab';
+    }
+
+    /**
+     * Re-append the active descriptor's element after every template update cycle.
      */
     public onUpdate(): void {
-        this.tryAppendStoredElement();
+        this.attachActiveElement();
     }
 
     /**
-     * Append mStoredElement into #PreviewContent if it isn't already there.
-     * Silently does nothing when #PreviewContent is not in the DOM (hasErrors is true).
+     * Tab click handler — selects the clicked descriptor and forces re-attachment.
+     *
+     * @param pTabId - Id of the tab the user clicked.
      */
-    private tryAppendStoredElement(): void {
-        if (!this.mStoredElement) {
+    public onTabSelect(pTabId: string): void {
+        if (this.mActiveTabId === pTabId) {
             return;
         }
+
+        this.mActiveTabId = pTabId;
+    }
+
+    /**
+     * Append the currently active descriptor's element into `#PreviewContent`, replacing
+     * any previous occupant. Silently does nothing when no descriptor is active or when the
+     * content container is hidden because errors are shown instead.
+     */
+    private attachActiveElement(): void {
+        // Bail when errors are showing — the template hides #PreviewContent in that branch.
+        if (this.hasErrors) {
+            return;
+        }
+
+        // Find the active descriptor.
+        const lActive: PotatnoPreviewTabDescriptor | undefined = this.mDescriptors.find((pDescriptor) => pDescriptor.id === this.mActiveTabId);
+        if (!lActive) {
+            return;
+        }
+
         let lContainer: HTMLDivElement;
         try {
             lContainer = this.contentElement;
-        } catch (pError) {
-            console.error('[Preview] contentElement not accessible:', pError);
+        } catch {
             return;
         }
-        console.log('[Preview] tryAppendStoredElement - container:', lContainer, 'element:', this.mStoredElement, 'contains:', lContainer.contains(this.mStoredElement));
-        if (!lContainer.contains(this.mStoredElement)) {
-            while (lContainer.firstChild) {
-                lContainer.removeChild(lContainer.firstChild);
-            }
-            lContainer.appendChild(this.mStoredElement);
-            console.log('[Preview] element appended to container');
-        }
-    }
 
-    /**
-     * Get the content container element for external preview initialization.
-     *
-     * @returns The content container div element.
-     */
-    @PwbExport
-    public getContainer(): HTMLDivElement {
-        return this.contentElement;
-    }
-
-    /**
-     * Set content of the preview window by replacing the current content with a DocumentFragment.
-     *
-     * @param pFragment - The document fragment to display.
-     */
-    @PwbExport
-    public setContent(pFragment: DocumentFragment): void {
-        const lContentEl: HTMLDivElement = this.contentElement;
-        // Clear existing content.
-        while (lContentEl.firstChild) {
-            lContentEl.removeChild(lContentEl.firstChild);
+        // Replace the container's content with the active descriptor's element. The
+        // comparison guards against detaching the same element only to immediately
+        // re-append it on every update cycle.
+        if (lContainer.firstChild === lActive.element && lContainer.childNodes.length === 1) {
+            return;
         }
-        lContentEl.appendChild(pFragment);
+
+        while (lContainer.firstChild) {
+            lContainer.removeChild(lContainer.firstChild);
+        }
+        lContainer.appendChild(lActive.element);
     }
 
     /**

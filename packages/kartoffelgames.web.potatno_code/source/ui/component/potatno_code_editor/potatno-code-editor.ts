@@ -3,7 +3,6 @@ import { PotatnoDocumentFunction } from '../../../document/potatno-document-func
 import { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoDocument } from '../../../document/potatno-document.ts';
-import { PotatnoCodeGenerator } from '../../../parser/potatno-code-generator.ts';
 import { PotatnoFunctionDefinitionNodes, PotatnoFunctionDefinitionStatics } from '../../../project/potatno-function-definition.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import { PotatnoDeserializer } from '../../../serialization/potatno-deserializer.ts';
@@ -11,6 +10,8 @@ import type { PotatnoCodeFileSerializationResult } from '../../../serialization/
 import { PotatnoSerializer } from '../../../serialization/potatno-serializer.ts';
 import { PotatnoHistory } from '../../potatno-history.ts';
 import type { PotatnoUiProject } from '../../potatno-node-definition-list.ts';
+import { PotatnoUiPreviewManager } from '../../potatno-ui-preview-manager.ts';
+import type { PotatnoPreviewTabDescriptor } from '../potatno_preview/potatno-preview.ts';
 import type { GraphChangeDetail, OpenFunctionRequestDetail } from '../potatno_node_graph/potatno-node-graph.ts';
 import editorCss from './potatno-code-editor.css' with { type: 'text' };
 import editorTemplate from './potatno-code-editor.html' with { type: 'text' };
@@ -25,7 +26,6 @@ import '../potatno_preview/potatno-preview.ts';
 import '../potatno_resize_handle/potatno-resize-handle.ts';
 import '../potatno_search_input/potatno-search-input.ts';
 import '../potatno_tabs/potatno-tabs.ts';
-import { PotatnoCodeGeneratorFunctionResult } from "../../../parser/result/potatno-code-generator-function-result.ts";
 
 /**
  * Top-level UI orchestrator for the potatno-code visual programming environment.
@@ -41,7 +41,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
     private mFile: PotatnoDocument<TProject> | undefined;
     private mHistoryDebounceTimer: number | null;
     private mPreviewDebounceTimer: number | null;
-    private mPreviewDirty: boolean;
+    private mPreviewManager: PotatnoUiPreviewManager<TProject> | null;
     private mProject: TProject | undefined;
     private mResizeMoveHandler: ((pEvent: PointerEvent) => void) | null;
     private mResizeState: { panel: 'left' | 'right'; startX: number; startWidth: number; } | null;
@@ -51,25 +51,14 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      * Cached data for panels and preview chrome.
      */
     @ComponentState.state({ complexValue: true })
-    private accessor mCachedData: CachedViewData;
+    private accessor mCachedData: CachedViewData<TProject>;
 
     /**
-     * Entry-point preview element passed into the preview panel.
-     */
-    @ComponentState.state()
-    private accessor mEntryPointPreviewElement: Element | null = null;
-
-    /**
-     * Latest generated preview function result passed to the node graph.
+     * Tab descriptors handed to the preview panel. Rebuilt from the preview manager on each
+     * cache invalidation so the panel sees a fresh list whenever drivers come or go.
      */
     @ComponentState.state({ complexValue: true })
-    private accessor mGraphPreviewResult: PotatnoCodeGeneratorFunctionResult<TProject> | null = null;
-
-    /**
-     * Latest generated document code string used to drive preview evaluation.
-     */
-    @ComponentState.state()
-    private accessor mGraphPreviewCode: string = '';
+    private accessor mPreviewTabs: ReadonlyArray<PotatnoPreviewTabDescriptor> = [];
 
     /**
      * Explicit graph refresh token for non-graph document edits.
@@ -84,7 +73,8 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
     private accessor mNodeLibraryRefreshVersion: number = 0;
 
     /**
-     * Explicit preview visual refresh token.
+     * Explicit preview visual refresh token. Bumped after every manager rebuild so the
+     * node-graph re-fetches its per-node preview elements from the manager.
      */
     @ComponentState.state()
     private accessor mPreviewUpdateVersion: number = 0;
@@ -192,22 +182,15 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
     /**
      * Node error set derived from document validation, passed to the graph for highlighting.
      */
-    public get graphErrorNodes(): ReadonlySet<PotatnoDocumentNode<any>> {
+    public get graphErrorNodes(): ReadonlySet<PotatnoDocumentNode<TProject>> {
         return this.mCachedData.graphErrorNodes;
     }
 
     /**
      * Port error set derived from document validation, passed to the graph for highlighting.
      */
-    public get graphErrorPorts(): ReadonlySet<PotatnoDocumentPort<any>> {
+    public get graphErrorPorts(): ReadonlySet<PotatnoDocumentPort<TProject>> {
         return this.mCachedData.graphErrorPorts;
-    }
-
-    /**
-     * Entry preview element rendered by the preview panel.
-     */
-    public get entryPreviewElement(): Element | null {
-        return this.mEntryPointPreviewElement;
     }
 
     /**
@@ -215,13 +198,6 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      */
     public get functionList(): Array<{ id: string; name: string; label: string; system: boolean; }> {
         return this.mCachedData.functionList;
-    }
-
-    /**
-     * Current graph preview result passed into the graph component.
-     */
-    public get graphPreviewResult(): PotatnoCodeGeneratorFunctionResult<TProject> | null {
-        return this.mGraphPreviewResult;
     }
 
     /**
@@ -236,6 +212,21 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      */
     public get hasPreview(): boolean {
         return this.mCachedData.hasPreview;
+    }
+
+    /**
+     * Tab descriptors handed to the preview panel.
+     */
+    public get previewTabs(): ReadonlyArray<PotatnoPreviewTabDescriptor> {
+        return this.mPreviewTabs;
+    }
+
+    /**
+     * Preview manager passed down to child components so the node-graph can resolve per-node
+     * preview elements without owning the driver lifecycle itself.
+     */
+    public get previewManager(): PotatnoUiPreviewManager<TProject> | null {
+        return this.mPreviewManager;
     }
 
     /**
@@ -279,7 +270,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
         this.mHistory = new PotatnoHistory();
         this.mHistoryDebounceTimer = null;
         this.mPreviewDebounceTimer = null;
-        this.mPreviewDirty = true;
+        this.mPreviewManager = null;
         this.mResizeMoveHandler = null;
         this.mResizeState = null;
         this.mResizeUpHandler = null;
@@ -291,6 +282,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
     @PwbExport
     public set project(pProject: TProject) {
         this.mProject = pProject;
+        this.mPreviewManager = new PotatnoUiPreviewManager<TProject>(pProject);
         this.rebuildCachedData();
         this.refreshNodeLibrary();
     }
@@ -313,8 +305,6 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
         }
 
         this.mHistory.clear();
-        this.mGraphPreviewResult = null;
-        this.mEntryPointPreviewElement = null;
         this.rebuildCachedData();
         this.refreshGraph();
         this.refreshNodeLibrary();
@@ -338,8 +328,6 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
         this.mFile = lNewFile;
         this.mActiveFunctionId = [...lNewFile.functions][0]?.id ?? '';
         this.mHistory.clear();
-        this.mGraphPreviewResult = null;
-        this.mEntryPointPreviewElement = null;
         this.rebuildCachedData();
         this.refreshGraph();
         this.refreshNodeLibrary();
@@ -363,11 +351,14 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
     }
 
     /**
-     * Refresh preview visuals from cached generated code.
+     * Drive one preview tick. Called by the application's render loop; forwards to the
+     * preview manager which fans out to every active driver.
      */
     @PwbExport
     public triggerPreviewUpdate(): void {
-        this.updatePreviewsFromCache();
+        // Fire-and-forget — driver errors are isolated inside the manager so any individual
+        // failure does not break the loop.
+        void this.mPreviewManager?.render();
     }
 
     /**
@@ -641,7 +632,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      *
      * @returns Empty cached view data.
      */
-    private createEmptyCachedData(): CachedViewData {
+    private createEmptyCachedData(): CachedViewData<TProject> {
         return {
             activeFunctionEditableByUser: false,
             activeFunctionId: '',
@@ -654,49 +645,78 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
             availableTypes: [],
             errors: [],
             functionList: [],
-            graphErrorNodes: new Set<PotatnoDocumentNode<any>>(),
-            graphErrorPorts: new Set<PotatnoDocumentPort<any>>(),
+            graphErrorNodes: new Set<PotatnoDocumentNode<TProject>>(),
+            graphErrorPorts: new Set<PotatnoDocumentPort<TProject>>(),
             hasPreview: false
         };
     }
 
     /**
-     * Generate preview code when the preview is marked dirty.
+     * Determine whether the preview panel should be shown. True when the project's preview
+     * registry has at least one `(display, executor)` pair bound to the entry-point function;
+     * the panel is suppressed entirely when the registry is empty so the layout reclaims the
+     * space for the node graph.
+     *
+     * @returns Whether to render the preview panel.
      */
-    private evaluatePreview(): void {
+    private computeHasPreview(): boolean {
         const lProject: TProject | undefined = this.mProject;
-        const lFile: PotatnoDocument<TProject> | undefined = this.mFile;
-        if (!lProject || !lFile || !this.mPreviewDirty) {
-            return;
+        if (!lProject) {
+            return false;
         }
 
-        this.mPreviewDirty = false;
+        const lRegistry = lProject.previews;
+        if (!lRegistry) {
+            return false;
+        }
 
-        let lEntryFunction: PotatnoDocumentFunction<TProject> | undefined;
-        for (const lFunction of lFile.functions) {
-            if (lFunction.isSystem) {
-                lEntryFunction = lFunction;
-                break;
+        const lEntryPointId: string = lProject.entryPoint.id;
+        for (const lEntry of lRegistry.entries) {
+            if (lEntry.executorFunctionId === lEntryPointId) {
+                return true;
             }
         }
 
-        if (!lEntryFunction) {
+        return false;
+    }
+
+    /**
+     * Rebuild every preview driver from the latest document state and re-publish the tab
+     * descriptor list to the preview panel.
+     *
+     * Called from the debounced preview signal whenever a mutation invalidates the previous
+     * code-gen output (graph edits with `affectsPreview`, document loads, etc.). Errors are
+     * caught so a broken graph keeps the editor usable; failed previews simply disappear from
+     * the tab strip until the underlying mutation is fixed.
+     */
+    private rebuildPreviewDrivers(): void {
+        const lManager: PotatnoUiPreviewManager<TProject> | null = this.mPreviewManager;
+        if (!lManager) {
+            this.mPreviewTabs = [];
             return;
         }
 
-        const lEntryPreview = lProject.entryPoint.preview;
-        if (lEntryPreview && !this.mEntryPointPreviewElement) {
-            this.mEntryPointPreviewElement = lEntryPreview.generate();
+        try {
+            lManager.setDocument(this.mFile ?? null);
+        } catch (pError) {
+            console.error('[Editor] Preview manager rebuild failed:', pError);
+            this.mPreviewTabs = [];
+            return;
         }
 
-        try {
-            const lGenerator: PotatnoCodeGenerator<TProject> = new PotatnoCodeGenerator<TProject>(lProject);
-            this.mGraphPreviewResult = lGenerator.generateFunction(lEntryFunction);
-            this.mGraphPreviewCode = lGenerator.generateDocument(lFile);
-            this.updatePreviewsFromCache();
-        } catch (pError) {
-            console.error('[Editor] Preview code generation failed:', pError);
+        // Map descriptors with a non-null element into the preview-panel tab contract. Drop
+        // any descriptor whose display returned a non-HTMLElement — the tabbed panel only
+        // hosts DOM-attachable previews.
+        const lTabs: Array<PotatnoPreviewTabDescriptor> = [];
+        for (const lDescriptor of lManager.functionDescriptors) {
+            if (!lDescriptor.element) {
+                continue;
+            }
+            lTabs.push({ id: lDescriptor.displayId, label: lDescriptor.label, element: lDescriptor.element });
         }
+
+        this.mPreviewTabs = lTabs;
+        this.mPreviewUpdateVersion++;
     }
 
     /**
@@ -801,10 +821,12 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
         const lProject: TProject | undefined = this.mProject;
         const lFile: PotatnoDocument<TProject> | undefined = this.mFile;
         const lActiveFunction: PotatnoDocumentFunction<TProject> | null = this.activeFunction;
-        const lCached: CachedViewData = this.createEmptyCachedData();
+        const lCached: CachedViewData<TProject> = this.createEmptyCachedData();
 
         lCached.activeFunctionId = this.mActiveFunctionId;
-        lCached.hasPreview = lProject?.entryPoint.preview !== null && lProject?.entryPoint.preview !== undefined;
+        // Preview panel is shown when the project's preview registry has at least one entry
+        // bound to the entry-point function. Doesn't depend on the document content.
+        lCached.hasPreview = this.computeHasPreview();
 
         if (lFile) {
             const lErrorNodes: Set<PotatnoDocumentNode<TProject>> = new Set<PotatnoDocumentNode<TProject>>();
@@ -887,8 +909,6 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
             this.mActiveFunctionId = [...this.mFile.functions][0]?.id ?? '';
         }
 
-        this.mGraphPreviewResult = null;
-        this.mEntryPointPreviewElement = null;
         this.rebuildCachedData();
         this.refreshGraph();
         this.refreshNodeLibrary();
@@ -910,17 +930,18 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
     }
 
     /**
-     * Schedule a debounced preview regeneration.
+     * Schedule a debounced preview driver rebuild. Collapsing rapid graph mutations into a
+     * single rebuild keeps code-gen pressure down while staying responsive enough for the
+     * user to see fresh previews within ~one frame after they stop editing.
      */
     private schedulePreviewUpdate(): void {
-        this.mPreviewDirty = true;
         if (this.mPreviewDebounceTimer !== null) {
             clearTimeout(this.mPreviewDebounceTimer);
         }
 
         this.mPreviewDebounceTimer = setTimeout(() => {
             this.mPreviewDebounceTimer = null;
-            this.evaluatePreview();
+            this.rebuildPreviewDrivers();
         }, 300);
     }
 
@@ -977,35 +998,9 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
         this.mResizeState = null;
     }
 
-    /**
-     * Update preview elements from cached generated code.
-     */
-    private updatePreviewsFromCache(): void {
-        const lProject: TProject | undefined = this.mProject;
-        const lFunctionResult: PotatnoCodeGeneratorFunctionResult<TProject> | null = this.mGraphPreviewResult;
-        if (!lProject || !lFunctionResult) {
-            return;
-        }
-
-        const lEntryPreview = lProject.entryPoint.preview;
-        if (lEntryPreview && this.mEntryPointPreviewElement) {
-            try {
-                lEntryPreview.update(
-                    this.mEntryPointPreviewElement,
-                    lFunctionResult,
-                    {},
-                    this.mGraphPreviewCode
-                );
-            } catch (pError) {
-                console.error('[Editor] Entry preview update failed:', pError);
-            }
-        }
-
-        this.mPreviewUpdateVersion++;
-    }
 }
 
-interface CachedViewData {
+interface CachedViewData<TProject extends PotatnoUiProject> {
     activeFunctionEditableByUser: boolean;
     activeFunctionId: string;
     activeFunctionImports: Array<string>;
@@ -1017,8 +1012,8 @@ interface CachedViewData {
     availableTypes: Array<string>;
     errors: Array<{ message: string; location: string; }>;
     functionList: Array<{ id: string; name: string; label: string; system: boolean; }>;
-    graphErrorNodes: ReadonlySet<PotatnoDocumentNode<any>>;
-    graphErrorPorts: ReadonlySet<PotatnoDocumentPort<any>>;
+    graphErrorNodes: ReadonlySet<PotatnoDocumentNode<TProject>>;
+    graphErrorPorts: ReadonlySet<PotatnoDocumentPort<TProject>>;
     hasPreview: boolean;
 }
 

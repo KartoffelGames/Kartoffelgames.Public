@@ -1,8 +1,8 @@
 import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
-import { PotatnoPreviewDriver, type PotatnoPreviewDriverGeneratorResultProvider, type PotatnoPreviewDriverHandle } from './potatno-preview-driver.ts';
+import { PotatnoPreviewDriver, type PotatnoPreviewDriverConstructorFunctionParameter, type PotatnoPreviewDriverConstructorNodeParameter, type PotatnoPreviewDriverHandle } from './potatno-preview-driver.ts';
 import { PotatnoPreviewDisplay, type PotatnoPreviewDisplayTypeAdapter } from './potatno-preview-display.ts';
-import type { PotatnoPreviewFunctionExecutor, PotatnoPreviewFunctionExecutorPortTarget } from './potatno-preview-function-executor.ts';
+import type { PotatnoPreviewFunctionExecutor } from './potatno-preview-function-executor.ts';
 
 /**
  * Project-wide preview registry.
@@ -89,12 +89,12 @@ export class PotatnoPreview<TTypes extends PotatnoProjectTypesDefinition<string,
                 // generics. The factory's return type is the project-agnostic
                 // `PotatnoPreviewDriverHandle` interface, which the concrete driver class
                 // implements; upcasting to the implemented interface is sound for any narrow
-                // generics, so no `unknown` round-trip is needed.
+                // generics, so no `unknown` round-trip is needed. The discriminated branch in
+                // `pParameter` flows directly into the driver's matching constructor branch.
                 return new PotatnoPreviewDriver<TProject, TElement, TParams, TResult>({
                     display: pDisplay,
                     executor: pExecutor,
-                    portTarget: pParameter.portTarget,
-                    generatorResultProvider: pParameter.generatorResultProvider
+                    ...pParameter
                 });
             }
         });
@@ -102,23 +102,16 @@ export class PotatnoPreview<TTypes extends PotatnoProjectTypesDefinition<string,
 }
 
 /**
- * Constructor parameters handed to a registry entry's `createDriver` factory. Holds the parts
- * the registry does not own — the project-scoped port target and generator-result provider —
- * so the factory only needs the precise types from its closure to build a driver.
+ * Constructor parameters handed to a registry entry's `createDriver` factory. Mirrors the
+ * driver's own discriminated-union shape: callers either pass the function-level branch
+ * (`portTarget: null` + function-result provider) or the per-node branch
+ * (non-null port target + node-result provider).
  *
  * @typeParam TProject - The project type the driver is being built for.
  */
-export type PotatnoPreviewEntryCreateDriverParameter<TProject extends PotatnoProject> = {
-    /**
-     * The port target the driver should be bound to; `null` for function-level previews.
-     */
-    portTarget: PotatnoPreviewFunctionExecutorPortTarget<TProject> | null;
-
-    /**
-     * Callback yielding the current code generator result on each cache miss.
-     */
-    generatorResultProvider: PotatnoPreviewDriverGeneratorResultProvider<TProject>;
-};
+export type PotatnoPreviewEntryCreateDriverParameter<TProject extends PotatnoProject> =
+    | PotatnoPreviewDriverConstructorFunctionParameter<TProject>
+    | PotatnoPreviewDriverConstructorNodeParameter<TProject>;
 
 /**
  * One registered `(display, executor)` pair inside a `PotatnoPreview` registry.

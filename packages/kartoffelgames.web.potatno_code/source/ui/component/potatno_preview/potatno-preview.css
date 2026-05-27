@@ -34,7 +34,38 @@
     color: var(--pn-text-secondary);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+}
+
+.preview-tabs {
+    display: flex;
     flex: 1;
+    gap: 4px;
+    margin-left: 12px;
+    overflow-x: auto;
+}
+
+.preview-tab {
+    appearance: none;
+    border: 1px solid var(--pn-border-default);
+    background: var(--pn-bg-primary);
+    color: var(--pn-text-secondary);
+    font-family: var(--pn-font-family);
+    font-size: var(--pn-font-size-sm);
+    padding: 2px 8px;
+    border-radius: var(--pn-node-border-radius);
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.preview-tab:hover {
+    color: var(--pn-text-primary);
+    border-color: var(--pn-accent-primary);
+}
+
+.preview-tab.selected {
+    color: var(--pn-text-primary);
+    background: var(--pn-accent-primary);
+    border-color: var(--pn-accent-primary);
 }
 
 .preview-content {

@@ -2,6 +2,7 @@ import type { ComponentEvent, IComponentOnUpdate } from '@kartoffelgames/web-pot
 import { ComponentEventEmitter, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
+import type { PotatnoUiProject } from '../../potatno-node-definition-list.ts';
 import type { PortInteractionDetail } from '../potatno_port/potatno-port.ts';
 import nodeCss from './potatno-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
@@ -27,7 +28,7 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
      */
     @PwbExport
     @ComponentState.state()
-    public accessor nodeData: PotatnoDocumentNode<any> | null = null;
+    public accessor nodeData: PotatnoDocumentNode<PotatnoUiProject> | null = null;
 
     /**
      * Version counter that increments whenever any connection in the document changes.
@@ -57,7 +58,7 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
      */
     @PwbExport
     @ComponentState.state({ complexValue: true })
-    public accessor errorPorts: ReadonlySet<PotatnoDocumentPort<any>> = new Set();
+    public accessor errorPorts: ReadonlySet<PotatnoDocumentPort<PotatnoUiProject>> = new Set();
 
     /**
      * Grid size in pixels. Used to convert grid-unit positions to pixel values.
@@ -132,7 +133,7 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
      *
      * @param pPort - Port to check.
      */
-    public isPortError(pPort: PotatnoDocumentPort<any>): boolean {
+    public isPortError(pPort: PotatnoDocumentPort<PotatnoUiProject>): boolean {
         return this.errorPorts.has(pPort);
     }
 
@@ -220,7 +221,7 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     /**
      * All input ports in definition order (flow and value).
      */
-    public get inputPorts(): Array<PotatnoDocumentPort<any>> {
+    public get inputPorts(): Array<PotatnoDocumentPort<PotatnoUiProject>> {
         if (!this.nodeData) {
             return [];
         }
@@ -230,7 +231,7 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     /**
      * All output ports in definition order (flow and value).
      */
-    public get outputPorts(): Array<PotatnoDocumentPort<any>> {
+    public get outputPorts(): Array<PotatnoDocumentPort<PotatnoUiProject>> {
         if (!this.nodeData) {
             return [];
         }
@@ -362,32 +363,32 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
 }
 
 export type NodeSelectDetail = {
-    node: PotatnoDocumentNode<any>;
+    node: PotatnoDocumentNode<PotatnoUiProject>;
     shiftKey: boolean;
 };
 
 export type NodeDragStartDetail = {
-    node: PotatnoDocumentNode<any>;
+    node: PotatnoDocumentNode<PotatnoUiProject>;
     startX: number;
     startY: number;
 };
 
 export type OpenFunctionDetail = {
-    node: PotatnoDocumentNode<any>;
+    node: PotatnoDocumentNode<PotatnoUiProject>;
 };
 
 export type CommentChangeDetail = {
-    node: PotatnoDocumentNode<any>;
+    node: PotatnoDocumentNode<PotatnoUiProject>;
     text: string;
 };
 
 export type ResizeStartDetail = {
-    node: PotatnoDocumentNode<any>;
+    node: PotatnoDocumentNode<PotatnoUiProject>;
     startX: number;
     startY: number;
 };
 
 export type DirectValueChangeDetail = {
-    port: PotatnoDocumentPort<any>;
+    port: PotatnoDocumentPort<PotatnoUiProject>;
     values: Array<string>;
 };

@@ -1,7 +1,7 @@
 import type { PotatnoCodeGeneratorFunctionResult } from '../parser/result/potatno-code-generator-function-result.ts';
 import type { PotatnoCodeGeneratorNodeResult } from '../parser/result/potatno-code-generator-node-result.ts';
-import type { PotatnoProjectGenericType, PotatnoProjectType, PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
-import { PotatnoProject } from '../project/potatno-project.ts';
+import type { PotatnoProjectGenericType, PotatnoProjectType } from '../project/potatno-project-types-definition.ts';
+import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { PotatnoPreviewDisplay, PotatnoPreviewDisplayTypeAdapter } from './potatno-preview-display.ts';
 import type { PotatnoPreviewFunctionExecutor, PotatnoPreviewFunctionExecutorCallable, PotatnoPreviewFunctionExecutorPortTarget } from './potatno-preview-function-executor.ts';
 
@@ -17,24 +17,29 @@ import type { PotatnoPreviewFunctionExecutor, PotatnoPreviewFunctionExecutorCall
  * Cache invalidation is external — the driver does not observe graph mutations. The framework
  * calls `invalidateCache()` whenever the underlying code-gen result is known to be stale.
  *
- * @typeParam TTypes - The project types definition this driver targets.
+ * The driver is generic over the bound `TProject` directly (rather than the project's `TTypes`)
+ * so consumers carrying a project type can plug a driver in without reconstructing the project
+ * type from its types definition — the kind of reconstruction TypeScript treats as a brand-new,
+ * incompatible type.
+ *
+ * @typeParam TProject - The project type the driver targets.
  * @typeParam TElement - The element type produced by the display.
  * @typeParam TParams - The iteration parameter shape.
  * @typeParam TResult - The result shape both adapter and display consume.
  */
-export class PotatnoPreviewDriver<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TElement extends Element, TParams extends Readonly<Record<string, unknown>>, TResult> {
+export class PotatnoPreviewDriver<TProject extends PotatnoProject, TElement extends Element, TParams extends Readonly<Record<string, unknown>>, TResult> {
     private mCachedCallable: PotatnoPreviewFunctionExecutorCallable<TParams, TResult> | null;
-    private readonly mDisplay: PotatnoPreviewDisplay<TTypes, TElement, TParams, TResult, PotatnoPreviewDisplayTypeAdapter<TTypes, TResult>>;
+    private readonly mDisplay: PotatnoPreviewDisplay<TProject['types'], TElement, TParams, TResult, PotatnoPreviewDisplayTypeAdapter<TProject['types'], TResult>>;
     private mElement: TElement | null;
-    private readonly mExecutor: PotatnoPreviewFunctionExecutor<TTypes, TParams, TResult>;
-    private readonly mGeneratorResultProvider: PotatnoPreviewDriverGeneratorResultProvider<TTypes>;
-    private readonly mPortTarget: PotatnoPreviewFunctionExecutorPortTarget<PotatnoProject<TTypes>> | null;
+    private readonly mExecutor: PotatnoPreviewFunctionExecutor<TProject['types'], TParams, TResult>;
+    private readonly mGeneratorResultProvider: PotatnoPreviewDriverGeneratorResultProvider<TProject>;
+    private readonly mPortTarget: PotatnoPreviewFunctionExecutorPortTarget<TProject> | null;
 
     /**
      * The project type id of the port being previewed, or `null` for function-level previews.
      * The framework uses this to decide which display adapter to wrap the executor with.
      */
-    public get dataType(): PotatnoProjectType<PotatnoProject<TTypes>> | PotatnoProjectGenericType | null {
+    public get dataType(): PotatnoProjectType<TProject> | PotatnoProjectGenericType | null {
         if (!this.mPortTarget) {
             return null;
         }
@@ -56,7 +61,7 @@ export class PotatnoPreviewDriver<TTypes extends PotatnoProjectTypesDefinition<s
     /**
      * The bound port target, or `null` when this driver represents a function-level preview.
      */
-    public get portTarget(): PotatnoPreviewFunctionExecutorPortTarget<PotatnoProject<TTypes>> | null {
+    public get portTarget(): PotatnoPreviewFunctionExecutorPortTarget<TProject> | null {
         return this.mPortTarget;
     }
 
@@ -65,7 +70,7 @@ export class PotatnoPreviewDriver<TTypes extends PotatnoProjectTypesDefinition<s
      *
      * @param pParameters - Driver configuration capturing the display/executor/port-target triple and the generator-result provider.
      */
-    public constructor(pParameters: PotatnoPreviewDriverConstructorParameter<TTypes, TElement, TParams, TResult>) {
+    public constructor(pParameters: PotatnoPreviewDriverConstructorParameter<TProject, TElement, TParams, TResult>) {
         this.mDisplay = pParameters.display;
         this.mExecutor = pParameters.executor;
         this.mPortTarget = pParameters.portTarget;
@@ -97,7 +102,7 @@ export class PotatnoPreviewDriver<TTypes extends PotatnoProjectTypesDefinition<s
     public async render(): Promise<void> {
         // Compile-on-demand. Build is only re-invoked when something external invalidated the cache.
         if (!this.mCachedCallable) {
-            const lGeneratorResult: PotatnoCodeGeneratorFunctionResult<PotatnoProject<TTypes>> | PotatnoCodeGeneratorNodeResult<PotatnoProject<TTypes>> = this.mGeneratorResultProvider();
+            const lGeneratorResult: PotatnoCodeGeneratorFunctionResult<TProject> | PotatnoCodeGeneratorNodeResult<TProject> = this.mGeneratorResultProvider();
             this.mCachedCallable = this.mExecutor.compile(lGeneratorResult, this.mPortTarget);
         }
 
@@ -134,11 +139,12 @@ export class PotatnoPreviewDriver<TTypes extends PotatnoProjectTypesDefinition<s
             return pCallable;
         }
 
-        // Compose the adapter onto the raw callable. Awaiting via Promise.resolve normalises sync
-        // and async executor returns into a uniform async wrapped callable.
+        // Compose the adapter onto the raw callable. The per-node callable returns the port's
+        // raw value (typed as TResult in this code path, but a single value at runtime); the
+        // adapter accepts `unknown` and produces a TResult-shaped result.
         return async (pParameters: TParams): Promise<TResult> => {
-            const lRawResult: TResult = await Promise.resolve(pCallable(pParameters));
-            return lAdapter(lRawResult as unknown);
+            const lRawResult: unknown = await Promise.resolve(pCallable(pParameters));
+            return lAdapter(lRawResult);
         };
     }
 }
@@ -146,39 +152,39 @@ export class PotatnoPreviewDriver<TTypes extends PotatnoProjectTypesDefinition<s
 /**
  * Constructor parameters for PotatnoPreviewDriver.
  *
- * @typeParam TTypes - The project types definition the driver targets.
+ * @typeParam TProject - The project type the driver targets.
  * @typeParam TElement - The display's element type.
  * @typeParam TParams - The iteration parameter shape.
  * @typeParam TResult - The shared result shape.
  */
-export type PotatnoPreviewDriverConstructorParameter<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TElement extends Element, TParams extends Readonly<Record<string, unknown>>, TResult> = {
+export type PotatnoPreviewDriverConstructorParameter<TProject extends PotatnoProject, TElement extends Element, TParams extends Readonly<Record<string, unknown>>, TResult> = {
     /**
      * The display side of the bundled triple.
      */
-    display: PotatnoPreviewDisplay<TTypes, TElement, TParams, TResult, PotatnoPreviewDisplayTypeAdapter<TTypes, TResult>>;
+    display: PotatnoPreviewDisplay<TProject['types'], TElement, TParams, TResult, PotatnoPreviewDisplayTypeAdapter<TProject['types'], TResult>>;
 
     /**
      * The executor side of the bundled triple.
      */
-    executor: PotatnoPreviewFunctionExecutor<TTypes, TParams, TResult>;
+    executor: PotatnoPreviewFunctionExecutor<TProject['types'], TParams, TResult>;
 
     /**
      * The port target the driver is bound to. `null` for function-level previews; the
      * `{ documentPort, valueId }` shape for per-node previews.
      */
-    portTarget: PotatnoPreviewFunctionExecutorPortTarget<PotatnoProject<TTypes>> | null;
+    portTarget: PotatnoPreviewFunctionExecutorPortTarget<TProject> | null;
 
     /**
      * Callback yielding the current generator result. The driver pulls a fresh result on every
      * cache miss; the framework is responsible for keeping this callback pointed at the latest
      * code-gen output.
      */
-    generatorResultProvider: PotatnoPreviewDriverGeneratorResultProvider<TTypes>;
+    generatorResultProvider: PotatnoPreviewDriverGeneratorResultProvider<TProject>;
 };
 
 /**
  * Callback yielding the current code generator result for a driver's bound function.
  *
- * @typeParam TTypes - The project types definition the driver targets.
+ * @typeParam TProject - The project type the driver targets.
  */
-export type PotatnoPreviewDriverGeneratorResultProvider<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>> = () => PotatnoCodeGeneratorFunctionResult<PotatnoProject<TTypes>> | PotatnoCodeGeneratorNodeResult<PotatnoProject<TTypes>>;
+export type PotatnoPreviewDriverGeneratorResultProvider<TProject extends PotatnoProject> = () => PotatnoCodeGeneratorFunctionResult<TProject> | PotatnoCodeGeneratorNodeResult<TProject>;

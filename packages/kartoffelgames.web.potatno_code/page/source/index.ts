@@ -79,7 +79,8 @@ const lEntryFunction = PotatnoFunctionDefinition.new(lProjectTypes, {
     statics: PotatnoFunctionDefinitionStatics.imports | PotatnoFunctionDefinitionStatics.inputs,
     nodes: {
         entry: (pAddNode) => {
-            // OnPixel: provides normalized x/y coordinates (0-1 range)
+            // OnPixel: provides normalized x/y coordinates (0-1 range) as the function's
+            // parameters. Wraps every downstream node's code into an arrow-function body.
             pAddNode(PotatnoStaticNodeDefinition.newStaticNode({
                 id: 'OnPixel',
                 label: 'OnPixel',
@@ -94,22 +95,18 @@ const lEntryFunction = PotatnoFunctionDefinition.new(lProjectTypes, {
                 },
                 generators: {
                     code: (pContext) => {
-                        // Create function head.
-                        const lParameterNames = [
-                            pContext.inputs["red"].valueId,
-                            pContext.inputs["green"].valueId,
-                            pContext.inputs["blue"].valueId
-                        ];
-
-                        const lParameters = lParameterNames.join(', ');
-
-                        return `(${lParameters}) => { ${pContext.outputs['exec'].code.inner} ${pContext.code} }`;
+                        // x and y become the function parameters; the exec flow output's
+                        // inner code is every node downstream of OnPixel, ending with
+                        // PixelResult's `return [...]` statement.
+                        const lX: string = pContext.outputs['x'].valueId;
+                        const lY: string = pContext.outputs['y'].valueId;
+                        return `(${lX}, ${lY}) => { ${pContext.outputs['exec'].code.inner} }`;
                     }
                 }
             }));
         },
         exit: (pAddNode) => {
-            // PixelResult: receives RGB color values (0-1 range)
+            // PixelResult: receives RGB and emits the function's `return [r, g, b];` statement.
             pAddNode(PotatnoStaticNodeDefinition.newStaticNode({
                 id: 'PixelResult',
                 label: 'PixelResult',
@@ -125,14 +122,7 @@ const lEntryFunction = PotatnoFunctionDefinition.new(lProjectTypes, {
                 },
                 generators: {
                     code: (pContext) => {
-                        // Create function head.
-                        const lParameterNames = [
-                            pContext.inputs["red"].valueId,
-                            pContext.inputs["green"].valueId,
-                            pContext.inputs["blue"].valueId
-                        ];
-
-                        return `{red: ${pContext.inputs["red"].valueId}, green: ${pContext.inputs["green"].valueId}, blue: ${pContext.inputs["blue"].valueId}}`;
+                        return `return [${pContext.inputs["red"].valueId}, ${pContext.inputs["green"].valueId}, ${pContext.inputs["blue"].valueId}];`;
                     }
                 }
             }));
@@ -141,14 +131,15 @@ const lEntryFunction = PotatnoFunctionDefinition.new(lProjectTypes, {
     generator: {
         code: {
             body: (pResult) => {
-                // Look up the OnPixel graph by its entry-definition id.
-                // The base result class exposes graphResultOf uniformly across FunctionResult and GraphResult.
+                // Build the function declaration. Use the function's `definitionId` (an
+                // identifier-safe slug) — `label` can contain spaces and would be invalid JS.
                 const lGraph = pResult.graphResultOf('OnPixel');
-
-                return `const ${pResult.function.label} = ${lGraph?.code ?? ''}`;
+                return `const ${pResult.function.definitionId} = ${lGraph?.code ?? '() => [0, 0, 0]'};`;
             },
             value: (pContext) => {
-                return `${pContext.inputs}`;
+                // Call-site expression when this function is used as a node in another graph.
+                // Not exercised by the function-level pixel-shader preview itself.
+                return `${pContext.function.definitionId}()`;
             }
         }
     },
@@ -226,9 +217,9 @@ const lUserFunction = PotatnoFunctionDefinition.new(lProjectTypes, {
                 return `const ${pResult.function.label} = ${lGraph?.code ?? ''}`;
             },
             value: (pContext) => {
-                const lArgs: string = Object.values(pContext.inputs).map((i: any) => i.valueId).join(', ');
-                const lResultId: string = Object.values(pContext.outputs).map((o: any) => o.valueId)[0] ?? '_unused';
-                return `const ${lResultId} = ${pContext.inputs}(${lArgs});`;
+                const lArgs: string = Object.values(pContext.inputs).map((pInput) => pInput.valueId).join(', ');
+                const lResultId: string = Object.values(pContext.outputs).map((pOutput) => pOutput.valueId)[0] ?? '_unused';
+                return `const ${lResultId} = ${pContext.function.definitionId}(${lArgs});`;
             }
         }
     }
@@ -237,30 +228,57 @@ const lUserFunction = PotatnoFunctionDefinition.new(lProjectTypes, {
 /*
  * Define function executors for previews.
  */
+
+// Resolution of the canvas preview surface. Iteration cost scales with width * height, so keep
+// it small for the demo — 48x48 fills in a couple of milliseconds and gives a recognisable image.
+const gPreviewWidth: number = 48;
+const gPreviewHeight: number = 48;
+
+/**
+ * Shape of the compiled function-level callable: takes the pixel coords and returns an
+ * `[r, g, b]` triple, each component in the `[0, 1]` range. Defined once so both the build
+ * callback and the display loop reference the same contract.
+ */
+type PixelCallable = (pX: number, pY: number) => [number, number, number];
+
 const lEntryFunctionExecutor = PotatnoPreviewFunctionExecutor.new(lProjectTypes, lEntryFunction, {
     parameters: { x: 0, y: 0 }, // Iteration-fed parameters; the display passes one of these per call.
     build: (pExecutor, pGeneratorResult, pPortTarget) => {
-        // Start from the full function code with all hooks emitted by the generator.
-        let lFunctionCode: string = pGeneratorResult.code;
-
-        // Per-node preview: rewrite the requested hook into a `return` and drop any code after it
-        // so the compiled function yields the intermediate value instead of its natural result.
+        // Per-node preview path. The generator result is a NodeResult whose `.code` is the
+        // graph body (no function wrap). The user's job is to splice in a `return` at the
+        // hook for the targeted valueId and compile the body into its own pixel-shaped fn.
         if (pPortTarget) {
+            let lNodeBody: string = pGeneratorResult.code;
             const lHookMarker: string = `/*[${pPortTarget.valueId}]*/`;
-            const lHookIndex: number = lFunctionCode.indexOf(lHookMarker);
+            const lHookIndex: number = lNodeBody.indexOf(lHookMarker);
             if (lHookIndex !== -1) {
-                lFunctionCode = lFunctionCode.substring(0, lHookIndex) + `\nreturn ${pPortTarget.valueId};\n`;
+                // Drop everything after the hook — that code can't run because the function
+                // already returned — and replace the hook itself with the return statement.
+                lNodeBody = lNodeBody.substring(0, lHookIndex) + `\nreturn ${pPortTarget.valueId};\n`;
+            } else {
+                // Hook absent (e.g. node code generator didn't emit one). Append the return so
+                // the per-node callable still produces a value rather than `undefined`.
+                lNodeBody += `\nreturn ${pPortTarget.valueId};\n`;
             }
+
+            const lNodeFn: (pX: number, pY: number) => number = new Function('x', 'y', lNodeBody) as (pX: number, pY: number) => number;
+            // The per-node callable returns the port's raw value (a `number` for the demo's
+            // 'number' adapter). The driver wraps it with the matching display adapter before
+            // handing it to `display.update`, so the cast lines the TS types up — the driver
+            // never reads `TResult` from the raw callable directly.
+            return ((pParameters: { x: number; y: number; }): number => {
+                return lNodeFn(pParameters.x, pParameters.y);
+            }) as unknown as (pParameters: { x: number; y: number; }) => [number, number, number];
         }
 
-        // Compile the function body and grab the named entry function by its label.
-        const lFunctionName: string = pExecutor.function.label;
-        const lCompiled: (...pArgs: Array<number>) => Array<number> = new Function(
-            `${lFunctionCode}\nreturn ${lFunctionName};`
-        )() as (...pArgs: Array<number>) => Array<number>;
+        // Function-level path. The result is a FunctionResult whose `.code` is a full
+        // `const pixelShader = (x, y) => {...};` declaration. Compile, then return the named
+        // function back out via the `new Function(...)` wrapper.
+        const lFunctionCode: string = pGeneratorResult.code;
+        const lFunctionName: string = pExecutor.function.id;
+        const lCompiled: PixelCallable = new Function(`${lFunctionCode}\nreturn ${lFunctionName};`)() as PixelCallable;
 
-        // Return the per-iteration callable. The display feeds it one params object per pixel.
-        return (pParameters: { x: number; y: number; }): Array<number> => {
+        return (pParameters: { x: number; y: number; }): [number, number, number] => {
             return lCompiled(pParameters.x, pParameters.y);
         };
     }
@@ -273,17 +291,56 @@ const lEntryFunctionExecutor = PotatnoPreviewFunctionExecutor.new(lProjectTypes,
 const lCanvas2dPreviewDisplay = PotatnoPreviewDisplay.new(lProjectTypes, {
     id: '2dCanvas',
     expectedParameters: { x: 0, y: 0 },     // Must match lEntryFunctionExecutor.parameters at compile time.
-    defaultResult: [0, 0, 0] as Array<number>, // Sample result shape; every adapter must coerce values into this.
-    generate: (): HTMLCanvasElement => {    // Element generic infers from this return so update's pElement is typed the same.
-        return document.createElement('canvas'); // TODO: Actual element
+    defaultResult: [0, 0, 0] as [number, number, number], // [r, g, b] in [0, 1] range; drives TResult inference.
+    generate: (): HTMLCanvasElement => {
+        // Off-DOM canvas — the preview panel re-parents this element into its content area.
+        const lCanvas: HTMLCanvasElement = document.createElement('canvas');
+        lCanvas.width = gPreviewWidth;
+        lCanvas.height = gPreviewHeight;
+        lCanvas.style.width = '100%';
+        lCanvas.style.height = '100%';
+        lCanvas.style.imageRendering = 'pixelated';
+        return lCanvas;
     },
-    typeAdapter: { // Per-project-type adapters coercing intermediate values into defaultResult shape.
-        'number': (pInputValue) => { // pInputValue is inferred as number from lProjectTypes.number.default.value.
+    typeAdapter: {
+        'number': (pInputValue) => {
+            // `pInputValue` is inferred as `number` from lProjectTypes.number.default.value.
+            // Per-node previews evaluate a single number; this adapter widens that into a
+            // grayscale RGB triple so the canvas can paint it uniformly.
             return [pInputValue, pInputValue, pInputValue];
         }
     },
-    update: (_pElement, _pExecutor) => { // pExecutor: (params) => Array<number>, already adapter-wrapped by the driver.
+    update: async (pElement, pExecutor) => {
+        // pExecutor: (params) => [r, g, b] | Promise<[r, g, b]>, already adapter-wrapped for
+        // per-node previews. The display owns the outer iteration loop.
+        const lContext: CanvasRenderingContext2D | null = pElement.getContext('2d');
+        if (!lContext) {
+            return;
+        }
 
+        const lWidth: number = pElement.width;
+        const lHeight: number = pElement.height;
+        const lImageData: ImageData = lContext.createImageData(lWidth, lHeight);
+        const lPixels: Uint8ClampedArray = lImageData.data;
+
+        for (let lY = 0; lY < lHeight; lY++) {
+            for (let lX = 0; lX < lWidth; lX++) {
+                // Normalise to [0, 1] so the shader code can stay resolution-agnostic.
+                const lNormalizedX: number = lX / lWidth;
+                const lNormalizedY: number = lY / lHeight;
+                const lRgb: [number, number, number] = await Promise.resolve(pExecutor({ x: lNormalizedX, y: lNormalizedY }));
+
+                const lOffset: number = (lY * lWidth + lX) * 4;
+                // Clamp each component, scale to 8-bit, and write RGBA. Out-of-range or NaN
+                // values from the user's graph fall back to black so the preview never crashes.
+                lPixels[lOffset] = Math.floor(Math.max(0, Math.min(1, lRgb[0] || 0)) * 255);
+                lPixels[lOffset + 1] = Math.floor(Math.max(0, Math.min(1, lRgb[1] || 0)) * 255);
+                lPixels[lOffset + 2] = Math.floor(Math.max(0, Math.min(1, lRgb[2] || 0)) * 255);
+                lPixels[lOffset + 3] = 255;
+            }
+        }
+
+        lContext.putImageData(lImageData, 0, 0);
     }
 });
 

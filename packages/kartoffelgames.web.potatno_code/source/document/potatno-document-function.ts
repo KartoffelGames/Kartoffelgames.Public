@@ -52,17 +52,29 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject> implements
     }
 
     /**
-     * Get all available node definitions for this document, including both project-level and function node definitions.
+     * Get all available node definitions for this function.
+     *
+     * Concatenates the document's project-wide definitions with the function definition's
+     * own entry, exit, and dynamic node definitions. Entry/exit definitions belong here
+     * because they are the only sources for the system-placed nodes (e.g. `OnPixel`,
+     * `PixelResult`) — the code generator looks every node up via this list and previously
+     * threw on those entries because only `dynamic` was included.
      */
     public get nodeDefinitions(): ReadonlyArray<PotatnoNodeDefinition<TProject>> {
         // Read the function definition from project.
         const lFunctionDefinition: PotatnoFunctionDefinition<TProject> | undefined = this.mProject.getFunction(this.definitionId);
+        if (!lFunctionDefinition) { 
+            return [...this.mDocument.nodeDefinitions];
+        }
 
+        // TODO: Must be a better solution. There must be a diff access between public and internal nodes.
+
+        const lFunctionNodes = lFunctionDefinition.getNodeDefinitions(this);
         return [
             ...this.mDocument.nodeDefinitions,
-
-            // When no definition is set, the result is empty.
-            ...lFunctionDefinition?.getNodeDefinitions(this).dynamic ?? new Array<PotatnoNodeDefinition<TProject>>()
+            ...lFunctionNodes.entry,
+            ...lFunctionNodes.exit,
+            ...lFunctionNodes.dynamic
         ];
     }
 

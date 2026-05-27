@@ -188,6 +188,12 @@ export type PotatnoCodeGeneratorInputPort = {
      * The valueId or literal expression to read from this input port.
      */
     valueId: string;
+
+    /**
+     * Input value is a direct value.
+     * Determinates that this input port is not connected to any output.
+     */
+    isDirectValue: boolean; 
 };
 
 /**

@@ -177,7 +177,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         const lEntryNode: PotatnoDocumentNode<TProject> = this.walkBackward(pPassData, lCursor, pExitNode, null);
 
         // Compose the body code in execution order. The buffer accumulates code in REVERSE execution order via push, so we reverse before joining.
-        const lBodyCode: string = lCursor.scope.codeOutput.join('\n');
+        const lBodyCode: string = lCursor.scope.codeOutput.join(' ');
 
         return new PotatnoCodeGeneratorNodeResult({
             bodyCode: lBodyCode,
@@ -214,7 +214,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * 
      * @returns the value id or the actual value for a input port.
      */
-    private resolveValueInput(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pInputPort: PotatnoDocumentPort<TProject>): string {
+    private resolveValueInput(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pInputPort: PotatnoDocumentPort<TProject>): PotatnoCodeGeneratorInputPort {
         // Resolve the input ports connection.
         const lIncomingPort: PotatnoDocumentPort<TProject> | null = this.resolveValueConjunctions(pInputPort);
 
@@ -224,7 +224,10 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
                 throw new Exception(`Generic value inputs must be allways connected`, this);
             }
 
-            return this.mProject.types.getType(pInputPort.dataType).convert([...pInputPort.directValue]);
+            return {
+                valueId: this.mProject.types.getType(pInputPort.dataType).convert([...pInputPort.directValue]),
+                isDirectValue: true
+            };
         }
 
         // Connected. Walk through value conjunctions to the real producer's output port.
@@ -242,7 +245,10 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             }
         }
 
-        return this.getPortValueId(pPassData, pCursor, lIncomingPort);
+        return {
+            valueId: this.getPortValueId(pPassData, pCursor, lIncomingPort),
+            isDirectValue: false
+        };
     }
 
     /**
@@ -539,7 +545,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             // Pass the active port as the single inner-by-port entry — only the flow output that leads to the already-emitted downstream gets the buffer code; other flow outputs get empty inner.
             const lInnerByPort: Record<string, string> = {};
             if (lActivePort !== null) {
-                lInnerByPort[lActivePort.definitionId] = pCursor.scope.codeOutput.join('\n');
+                lInnerByPort[lActivePort.definitionId] = pCursor.scope.codeOutput.join(' ');
             }
             lLastGeneratedNode = this.emitNode(pPassData, pCursor, lCursorNode, lInnerByPort);
 
@@ -581,12 +587,12 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         // Active port = the merge's flow output to the already-emitted downstream; only that port gets the buffer code as inner.
         const lMergeInnerByPort: Record<string, string> = {};
         if (pMergeActivePort !== null) {
-            lMergeInnerByPort[pMergeActivePort.definitionId] = pCursor.scope.codeOutput.join('\n');
+            lMergeInnerByPort[pMergeActivePort.definitionId] = pCursor.scope.codeOutput.join(' ');
         }
         this.emitNode(pPassData, pCursor, pMergeNode, lMergeInnerByPort);
 
         // 2. Snapshot the buffer so far as the branch point's `next`. The buffer is in execution order (unshift), so a plain join produces the merged-tail string directly.
-        const lNextCode: string = pCursor.scope.codeOutput.join('\n');
+        const lNextCode: string = pCursor.scope.codeOutput.join(' ');
         pCursor.scope.codeOutput = new Array<string>();
 
         // 3. Find the branch point.
@@ -604,7 +610,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
                 // Map it back to the branch point's flow output port that initiated this branch.
                 const lBranchOutputPort: PotatnoDocumentPort<TProject> | null = this.findBranchOutputPortForFirstNode(lBranchPoint, lLastGeneratedNode); // TODO: Still seems broken
                 const lBranchKey: string = lBranchOutputPort ? lBranchOutputPort.definitionId : lPredecessorPort.definitionId;
-                lInnerByPort[lBranchKey] = pCursor.scope.codeOutput.join('\n');
+                lInnerByPort[lBranchKey] = pCursor.scope.codeOutput.join(' ');
             }
         } finally {
             // Reset scope to old scope.
@@ -653,9 +659,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         // Build the input port surfaces. Only value inputs make it into pContext.inputs.
         const lInputs: Record<string, PotatnoCodeGeneratorInputPort> = {};
         for (const lPort of pNode.inputs.value) {
-            lInputs[lPort.definitionId] = {
-                valueId: this.resolveValueInput(pPassData, pCursor, lPort)
-            };
+            lInputs[lPort.definitionId] = this.resolveValueInput(pPassData, pCursor, lPort);
         }
 
         // Build the output port surfaces. Value outputs get freshly allocated valueIds. Flow outputs get the caller-supplied inner code, defaulting to empty when the port is not present in pInnerByPort.
@@ -678,7 +682,15 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
 
         // Attach each input and output value id as hook after the generated code. But only on debug :)
         if (pPassData.debug) {
-            lNodeCode += [...Object.values(lInputs), ...Object.values(lOutputs)].reduce((pCurrent, pNext) => {
+            lNodeCode += Object.values(lInputs).reduce((pCurrent, pNext) => {
+                // Skip output of ports with no read value id.
+                if(pNext.isDirectValue) {
+                    return pCurrent;
+                }
+
+                return pCurrent + this.mProject.generator.hook(pNext.valueId);
+            }, '');
+            lNodeCode += Object.values(lOutputs).reduce((pCurrent, pNext) => {
                 return pCurrent + this.mProject.generator.hook(pNext.valueId);
             }, '');
         }

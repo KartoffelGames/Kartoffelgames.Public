@@ -149,7 +149,7 @@ const gHelperFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
                             .map((pOutput) => pOutput.valueId)
                             .join(', ');
 
-                        return `(${lParameters}) => {\nlet ${TestProjectGlobalMultiplierVariable} = 1;\n${pContext.outputs['exec'].code.inner}\n}`;
+                        return `(${lParameters}) => { let ${TestProjectGlobalMultiplierVariable} = 1; ${pContext.outputs['exec'].code.inner} }`;
                     }
                 }
             }));
@@ -221,7 +221,7 @@ const gHelperFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
 
                 // No value outputs - emit a plain call statement.
                 if (lOutputEntries.length === 0) {
-                    return `${lFunctionName}(${lArgs});\n${pContext.outputs['exec']?.code.inner ?? ''}`;
+                    return `${lFunctionName}(${lArgs}); ${pContext.outputs['exec']?.code.inner ?? ''}`;
                 }
 
                 // Destructure the returned object into freshly allocated value
@@ -230,7 +230,7 @@ const gHelperFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
                     .map(([lId, lValueId]) => `${lId}: ${lValueId}`)
                     .join(', ');
 
-                return `const { ${lDestructure} } = ${lFunctionName}(${lArgs});\n${pContext.outputs['exec']?.code.inner ?? ''}`;
+                return `const { ${lDestructure} } = ${lFunctionName}(${lArgs}); ${pContext.outputs['exec']?.code.inner ?? ''}`;
             }
         }
     }
@@ -269,7 +269,7 @@ const gMainFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
                 },
                 generators: {
                     code: (pContext): string => {
-                        return `(${pContext.outputs['a'].valueId}, ${pContext.outputs['b'].valueId}) => {\nlet ${TestProjectGlobalMultiplierVariable} = 1;\n${pContext.outputs['exec'].code.inner}\n}`;
+                        return `(${pContext.outputs['a'].valueId}, ${pContext.outputs['b'].valueId}) => { let ${TestProjectGlobalMultiplierVariable} = 1; ${pContext.outputs['exec'].code.inner} }`;
                     }
                 }
             }));
@@ -293,7 +293,7 @@ const gMainFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
                 },
                 generators: {
                     code: (pContext): string => {
-                        return `(${pContext.outputs['a'].valueId}, ${pContext.outputs['b'].valueId}) => {\nlet ${TestProjectGlobalMultiplierVariable} = 1;\n${pContext.outputs['exec'].code.inner}\n}`;
+                        return `(${pContext.outputs['a'].valueId}, ${pContext.outputs['b'].valueId}) => { let ${TestProjectGlobalMultiplierVariable} = 1; ${pContext.outputs['exec'].code.inner} }`;
                     }
                 }
             }));
@@ -362,7 +362,7 @@ const gMainFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
                     lParts.push(`const ${pResult.function.label}X10 = ${lX10Graph.code};`);
                 }
 
-                return lParts.join('\n');
+                return lParts.join('');
             },
             value: (pContext): string => {
                 // The main function is not callable as a node from anywhere
@@ -401,7 +401,7 @@ export const TestProject: PotatnoProject<typeof gProjectTypes> = PotatnoProject.
             let lCodeResult: string = '';
 
             for (const lDependency of pContext.dependencies) {
-                lCodeResult += `${lDependency.code}\n`;
+                lCodeResult += `${lDependency.code} `;
             }
 
             // Append the main entry point body.
@@ -418,9 +418,8 @@ export const TestProject: PotatnoProject<typeof gProjectTypes> = PotatnoProject.
 /*
  * Pass node.
  *
- * A side-effect-free flow pass-through with no value ports. Emits a fixed
- * `/* pass *\/;` marker plus the downstream flow. Used by code-generator tests
- * to assert flow ordering and branch / merge layout without dragging in the
+ * A side-effect-free flow pass-through with no value ports. 
+ * Used by code-generator tests to assert flow ordering and branch / merge layout without dragging in the
  * arithmetic operators' value-id chatter.
  */
 TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
@@ -437,7 +436,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
     },
     generators: {
         code: (pContext): string => {
-            return `/* pass */;\n${pContext.outputs['exec'].code.inner}`;
+            return `/* pass */; ${pContext.outputs['exec'].code.inner}`;
         }
     }
 }));
@@ -700,7 +699,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
     },
     generators: {
         code: (pContext): string => {
-            return `if (${pContext.inputs['condition'].valueId}) {\n${pContext.outputs['then'].code.inner}\n} else {\n${pContext.outputs['else'].code.inner}\n}\n${pContext.code.next}`;
+            return `if (${pContext.inputs['condition'].valueId}) { ${pContext.outputs['then'].code.inner} } else { ${pContext.outputs['else'].code.inner} } ${pContext.code.next}`;
         }
     }
 }));
@@ -731,7 +730,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
     },
     generators: {
         code: (pContext): string => {
-            return `${TestProjectGlobalMultiplierVariable} = ${pContext.inputs['value'].valueId};\n${pContext.outputs['exec'].code.inner}`;
+            return `${TestProjectGlobalMultiplierVariable} = ${pContext.inputs['value'].valueId}; ${pContext.outputs['exec'].code.inner}`;
         }
     }
 }));

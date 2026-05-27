@@ -46,9 +46,9 @@ Deno.test('PotatnoCodeGenerator.generateDocument()', async (pContext) => {
             // Evaluation. The document body wraps the entry's arrow function and
             // the calculator label-prefixed const.
             expect(lResult.code).toBe(
-                'const calculatorDefault = (v_1, v_2) => {\n'
-                + 'let __globalMultiplier = 1;\n'
-                + 'return (0) * __globalMultiplier;\n'
+                'const calculatorDefault = (v_1, v_2) => { '
+                + 'let __globalMultiplier = 1; '
+                + 'return (0) * __globalMultiplier; '
                 + '};'
             );
         });
@@ -69,10 +69,10 @@ Deno.test('PotatnoCodeGenerator.generateDocument()', async (pContext) => {
 
             // Evaluation. Add's const sits between the multiplier init and the exit return.
             expect(lResult.code).toBe(
-                'const calculatorDefault = (v_1, v_2) => {\n'
-                + 'let __globalMultiplier = 1;\n'
-                + 'const v_3 = v_1 + v_2;\n'
-                + 'return (v_3) * __globalMultiplier;\n'
+                'const calculatorDefault = (v_1, v_2) => { '
+                + 'let __globalMultiplier = 1; '
+                + 'const v_3 = v_1 + v_2; '
+                + 'return (v_3) * __globalMultiplier; '
                 + '};'
             );
         });
@@ -92,13 +92,13 @@ Deno.test('PotatnoCodeGenerator.generateDocument()', async (pContext) => {
 
             // Evaluation. Both graphs emitted as named consts, X10 keeps its (result) * 10 wrapper.
             expect(lResult.code).toBe(
-                'const calculatorDefault = (v_1, v_2) => {\n'
-                + 'let __globalMultiplier = 1;\n'
-                + 'return (0) * __globalMultiplier;\n'
-                + '};\n'
-                + 'const calculatorX10 = (v_3, v_4) => {\n'
-                + 'let __globalMultiplier = 1;\n'
-                + 'return ((0) * 10) * __globalMultiplier;\n'
+                'const calculatorDefault = (v_1, v_2) => { '
+                + 'let __globalMultiplier = 1; '
+                + 'return (0) * __globalMultiplier; '
+                + '}; '
+                + 'const calculatorX10 = (v_3, v_4) => { '
+                + 'let __globalMultiplier = 1; '
+                + 'return ((0) * 10) * __globalMultiplier; '
                 + '};'
             );
         });
@@ -116,10 +116,10 @@ Deno.test('PotatnoCodeGenerator.generateDocument()', async (pContext) => {
 
             // Evaluation. The multiplier write sits between the init and the exit return.
             expect(lResult.code).toBe(
-                'const calculatorDefault = (v_1, v_2) => {\n'
-                + 'let __globalMultiplier = 1;\n'
-                + '__globalMultiplier = 5;\n'
-                + 'return (0) * __globalMultiplier;\n'
+                'const calculatorDefault = (v_1, v_2) => { '
+                + 'let __globalMultiplier = 1; '
+                + '__globalMultiplier = 5; '
+                + 'return (0) * __globalMultiplier; '
                 + '};'
             );
         });
@@ -144,10 +144,10 @@ Deno.test('PotatnoCodeGenerator.generateDocument()', async (pContext) => {
             // Evaluation. Only the X10 graph is emitted; the multiplier write composes
             // multiplicatively with the X10 exit's (result) * 10 wrapper.
             expect(lResult.code).toBe(
-                'const calculatorX10 = (v_1, v_2) => {\n'
-                + 'let __globalMultiplier = 1;\n'
-                + '__globalMultiplier = 5;\n'
-                + 'return ((0) * 10) * __globalMultiplier;\n'
+                'const calculatorX10 = (v_1, v_2) => { '
+                + 'let __globalMultiplier = 1; '
+                + '__globalMultiplier = 5; '
+                + 'return ((0) * 10) * __globalMultiplier; '
                 + '};'
             );
         });
@@ -187,9 +187,9 @@ Deno.test('PotatnoCodeGenerator.generateFunction()', async (pContext) => {
             // single named const emitted by the function definition's body callback.
             expect(lResult.entryPoint.graphs.length).toBe(1);
             expect(lResult.entryPoint.code).toBe(
-                'const calculatorDefault = (v_1, v_2) => {\n'
-                + 'let __globalMultiplier = 1;\n'
-                + 'return (0) * __globalMultiplier;\n'
+                'const calculatorDefault = (v_1, v_2) => { '
+                + 'let __globalMultiplier = 1; '
+                + 'return (0) * __globalMultiplier; '
                 + '};'
             );
         });
@@ -210,13 +210,13 @@ Deno.test('PotatnoCodeGenerator.generateFunction()', async (pContext) => {
             // Evaluation. Two graphs (one per exit) plus two named consts.
             expect(lResult.entryPoint.graphs.length).toBe(2);
             expect(lResult.entryPoint.code).toBe(
-                'const calculatorDefault = (v_1, v_2) => {\n'
-                + 'let __globalMultiplier = 1;\n'
-                + 'return (0) * __globalMultiplier;\n'
-                + '};\n'
-                + 'const calculatorX10 = (v_3, v_4) => {\n'
-                + 'let __globalMultiplier = 1;\n'
-                + 'return ((0) * 10) * __globalMultiplier;\n'
+                'const calculatorDefault = (v_1, v_2) => { '
+                + 'let __globalMultiplier = 1; '
+                + 'return (0) * __globalMultiplier; '
+                + '}; '
+                + 'const calculatorX10 = (v_3, v_4) => { '
+                + 'let __globalMultiplier = 1; '
+                + 'return ((0) * 10) * __globalMultiplier; '
                 + '};'
             );
         });
@@ -237,9 +237,9 @@ Deno.test('PotatnoCodeGenerator.generateFunction()', async (pContext) => {
             // only the default graph appears and the body code lacks calculatorX10.
             expect(lResult.entryPoint.graphs.length).toBe(1);
             expect(lResult.entryPoint.code).toBe(
-                'const calculatorDefault = (v_1, v_2) => {\n'
-                + 'let __globalMultiplier = 1;\n'
-                + 'return (0) * __globalMultiplier;\n'
+                'const calculatorDefault = (v_1, v_2) => { '
+                + 'let __globalMultiplier = 1; '
+                + 'return (0) * __globalMultiplier; '
                 + '};'
             );
         });
@@ -258,9 +258,9 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
 
             // Evaluation. Graph body matches the entry's arrow function wrapping the exit's return.
             expect(lResult.entryPoint.graphs[0].code).toBe(
-                '(v_1, v_2) => {\n'
-                + 'let __globalMultiplier = 1;\n'
-                + 'return (0) * __globalMultiplier;\n'
+                '(v_1, v_2) => { '
+                + 'let __globalMultiplier = 1; '
+                + 'return (0) * __globalMultiplier; '
                 + '}'
             );
         });
@@ -279,10 +279,10 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
             // Evaluation. The Const allocates first (v_1) during the exit's value
             // resolution; the entry's a/b allocate afterwards (v_2, v_3).
             expect(lResult.entryPoint.graphs[0].code).toBe(
-                '(v_2, v_3) => {\n'
-                + 'let __globalMultiplier = 1;\n'
-                + 'const v_1 = 42;\n'
-                + 'return (v_1) * __globalMultiplier;\n'
+                '(v_2, v_3) => { '
+                + 'let __globalMultiplier = 1; '
+                + 'const v_1 = 42; '
+                + 'return (v_1) * __globalMultiplier; '
                 + '}'
             );
         });
@@ -310,11 +310,11 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
             // Allocation order on the deepest-first descent: entry.a (v_1), entry.b
             // (v_2), Add.result (v_3), Multiply.result (v_4).
             expect(lResult.entryPoint.graphs[0].code).toBe(
-                '(v_1, v_2) => {\n'
-                + 'let __globalMultiplier = 1;\n'
-                + 'const v_3 = v_1 + v_2;\n'
-                + 'const v_4 = v_3 * v_2;\n'
-                + 'return (v_4) * __globalMultiplier;\n'
+                '(v_1, v_2) => { '
+                + 'let __globalMultiplier = 1; '
+                + 'const v_3 = v_1 + v_2; '
+                + 'const v_4 = v_3 * v_2; '
+                + 'return (v_4) * __globalMultiplier; '
                 + '}'
             );
         });
@@ -346,13 +346,13 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
             // allocates entry.a/b as v_3/v_4 and its own result as v_5), then Pick
             // (v_6). Entry emits last using the already-allocated v_3/v_4.
             expect(lResult.entryPoint.graphs[0].code).toBe(
-                '(v_3, v_4) => {\n'
-                + 'let __globalMultiplier = 1;\n'
-                + 'const v_1 = 1;\n'
-                + 'const v_2 = 2;\n'
-                + 'const v_5 = v_3 > v_4;\n'
-                + 'const v_6 = ((a, b, cond) => { if (cond) { return a; } return b; })(v_1, v_2, v_5);\n'
-                + 'return (v_6) * __globalMultiplier;\n'
+                '(v_3, v_4) => { '
+                + 'let __globalMultiplier = 1; '
+                + 'const v_1 = 1; '
+                + 'const v_2 = 2; '
+                + 'const v_5 = v_3 > v_4; '
+                + 'const v_6 = ((a, b, cond) => { if (cond) { return a; } return b; })(v_1, v_2, v_5); '
+                + 'return (v_6) * __globalMultiplier; '
                 + '}'
             );
         });
@@ -371,11 +371,11 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
 
             // Evaluation. Two `/* pass */;` markers, one per Pass, in flow order.
             expect(lResult.entryPoint.graphs[0].code).toBe(
-                '(v_1, v_2) => {\n'
-                + 'let __globalMultiplier = 1;\n'
-                + '/* pass */;\n'
-                + '/* pass */;\n'
-                + 'return (0) * __globalMultiplier;\n'
+                '(v_1, v_2) => { '
+                + 'let __globalMultiplier = 1; '
+                + '/* pass */; '
+                + '/* pass */; '
+                + 'return (0) * __globalMultiplier; '
                 + '}'
             );
         });
@@ -408,17 +408,17 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
             // (the exit's return) lives on If's `code.next`. Greater (the
             // condition's value producer) emits before If on the parent scope.
             expect(lResult.entryPoint.graphs[0].code).toBe(
-                '(v_1, v_2) => {\n'
-                + 'let __globalMultiplier = 1;\n'
-                + 'const v_3 = v_1 > v_2;\n'
-                + 'if (v_3) {\n'
-                + '/* pass */;\n'
-                + '\n'
-                + '} else {\n'
-                + '/* pass */;\n'
-                + '\n'
-                + '}\n'
-                + 'return (0) * __globalMultiplier;\n'
+                '(v_1, v_2) => { '
+                + 'let __globalMultiplier = 1; '
+                + 'const v_3 = v_1 > v_2; '
+                + 'if (v_3) { '
+                + '/* pass */; '
+                + ' '
+                + '} else { '
+                + '/* pass */; '
+                + ' '
+                + '} '
+                + 'return (0) * __globalMultiplier; '
                 + '}'
             );
         });
@@ -443,10 +443,10 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
             // Evaluation. The conjunction does not contribute a node to the buffer;
             // output is exactly Entry -> Pass -> Exit.
             expect(lResult.entryPoint.graphs[0].code).toBe(
-                '(v_1, v_2) => {\n'
-                + 'let __globalMultiplier = 1;\n'
-                + '/* pass */;\n'
-                + 'return (0) * __globalMultiplier;\n'
+                '(v_1, v_2) => { '
+                + 'let __globalMultiplier = 1; '
+                + '/* pass */; '
+                + 'return (0) * __globalMultiplier; '
                 + '}'
             );
         });
@@ -472,11 +472,11 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
             // since it is the first port touched during the descent. Entry.a/b
             // allocate later as v_3/v_4.
             expect(lResult.entryPoint.graphs[0].code).toBe(
-                '(v_3, v_4) => {\n'
-                + 'let __globalMultiplier = 1;\n'
-                + 'const v_1 = 7;\n'
-                + 'const v_2 = v_1 + v_1;\n'
-                + 'return (v_2) * __globalMultiplier;\n'
+                '(v_3, v_4) => { '
+                + 'let __globalMultiplier = 1; '
+                + 'const v_1 = 7; '
+                + 'const v_2 = v_1 + v_1; '
+                + 'return (v_2) * __globalMultiplier; '
                 + '}'
             );
         });
@@ -501,10 +501,10 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
             // /*[v_1]*//*[v_2]*//*[v_3]*/, the exit gets /*[v_3]*/, the entry gets
             // /*[v_1]*//*[v_2]*/ (flow ports have empty valueIds and are skipped).
             expect(lResult.entryPoint.graphs[0].code).toBe(
-                '(v_1, v_2) => {\n'
-                + 'let __globalMultiplier = 1;\n'
-                + 'const v_3 = v_1 + v_2;/*[v_1]*//*[v_2]*//*[v_3]*/\n'
-                + 'return (v_3) * __globalMultiplier;/*[v_3]*/\n'
+                '(v_1, v_2) => { '
+                + 'let __globalMultiplier = 1; '
+                + 'const v_3 = v_1 + v_2;/*[v_1]*//*[v_2]*//*[v_3]*/ '
+                + 'return (v_3) * __globalMultiplier;/*[v_3]*/ '
                 + '}/*[v_1]*//*[v_2]*/'
             );
         });
@@ -527,7 +527,7 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
                     inputs: [],
                     outputs: [{ label: 'exec', id: 'exec', portType: 'flow' }]
                 },
-                generators: { code: (pContext): string => `START();\n${pContext.outputs['exec'].code.inner}` }
+                generators: { code: (pContext): string => `START(); ${pContext.outputs['exec'].code.inner}` }
             });
 
             const lSimpleExit = PotatnoStaticNodeDefinition.newStaticNode({
@@ -581,8 +581,7 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
             // is the literal `0` (the type's convert(['0']) output). The custom
             // hook is called with that literal and emits `<<0>>` after End's code.
             expect(lResult.entryPoint.graphs[0].code).toBe(
-                'START();\n'
-                + 'END(0);<<0>>'
+                'START(); END(0);<<v_0>>'
             );
         });
     });

@@ -923,10 +923,10 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
             clearTimeout(this.mHistoryDebounceTimer);
         }
 
-        this.mHistoryDebounceTimer = setTimeout(() => {
+        this.mHistoryDebounceTimer = globalThis.setTimeout(() => {
             this.mHistoryDebounceTimer = null;
             this.pushHistorySnapshot();
-        }, 500);
+        }, 500) as unknown as number;
     }
 
     /**
@@ -942,7 +942,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
         this.mPreviewDebounceTimer = setTimeout(() => {
             this.mPreviewDebounceTimer = null;
             this.rebuildPreviewDrivers();
-        }, 300);
+        }, 300) as unknown as number;
     }
 
     /**

@@ -309,7 +309,7 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
         // Resolve the valueId for the targeted port up-front so the executor's build callback
         // gets a stable handle even if the generator re-runs between compile and render.
         const lFirstResult: PotatnoCodeGeneratorNodeResult<TProject> = lProvider();
-        const lValueId: string | undefined = lFirstResult.portValueIds.get(lPort);
+        const lValueId: string | undefined = lFirstResult.ports.get(lPort);
         if (!lValueId) {
             return null;
         }

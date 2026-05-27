@@ -1,89 +1,184 @@
-import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
-import type { PotatnoProjectType } from '../project/potatno-project-types-definition.ts';
-import type { PotatnoProject } from '../project/potatno-project.ts';
+import type { PotatnoCodeGeneratorFunctionResult } from '../parser/result/potatno-code-generator-function-result.ts';
+import type { PotatnoCodeGeneratorNodeResult } from '../parser/result/potatno-code-generator-node-result.ts';
+import type { PotatnoProjectGenericType, PotatnoProjectType, PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
+import { PotatnoProject } from '../project/potatno-project.ts';
+import type { PotatnoPreviewDisplay, PotatnoPreviewDisplayTypeAdapter } from './potatno-preview-display.ts';
+import type { PotatnoPreviewFunctionExecutor, PotatnoPreviewFunctionExecutorCallable, PotatnoPreviewFunctionExecutorPortTarget } from './potatno-preview-function-executor.ts';
 
 /**
- * Runtime bridge between a port preview and the function's execution.
+ * Runtime object the UI binds to one visible preview.
  *
- * Instances are constructed by the framework at preview time from a triple of
- * (preview definition, document port, function executor). The result
- * definition's update method receives one and uses execute() to obtain the
- * strongly typed function output for its rendering pass.
+ * Bundles a `(display, executor, port-target)` triple together with a callback that yields the
+ * current generator result. Lazily creates the element via `display.generate()`, lazily compiles
+ * the executor callable on first `render` after an invalidation, transparently wraps the
+ * callable with the matching adapter for per-node previews, and delegates the per-render
+ * iteration loop to `display.update`.
  *
- * @typeParam TProject - Project type this driver belongs to.
- * @typeParam TExecutionParameter - Execution parameter shape pinned by the preview kind.
- * @typeParam TResult - Execution result shape pinned by the preview kind.
+ * Cache invalidation is external — the driver does not observe graph mutations. The framework
+ * calls `invalidateCache()` whenever the underlying code-gen result is known to be stale.
+ *
+ * @typeParam TTypes - The project types definition this driver targets.
+ * @typeParam TElement - The element type produced by the display.
+ * @typeParam TParams - The iteration parameter shape.
+ * @typeParam TResult - The result shape both adapter and display consume.
  */
-export class PotatnoPreviewDriver<TProject extends PotatnoProject, TExecutionParameter extends PotatnoPreviewDriverParameter, TResult> {
-    private readonly mResultDataProjectType: PotatnoProjectType<TProject>;
-    private readonly mExecutor: PotatnoPreviewDriverExecutor<TExecutionParameter, TResult>;
-    private readonly mPort: PotatnoDocumentPort<TProject>;
-    private readonly mValueId: string | null;
+export class PotatnoPreviewDriver<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TElement extends Element, TParams extends Readonly<Record<string, unknown>>, TResult> {
+    private mCachedCallable: PotatnoPreviewFunctionExecutorCallable<TParams, TResult> | null;
+    private readonly mDisplay: PotatnoPreviewDisplay<TTypes, TElement, TParams, TResult, PotatnoPreviewDisplayTypeAdapter<TTypes, TResult>>;
+    private mElement: TElement | null;
+    private readonly mExecutor: PotatnoPreviewFunctionExecutor<TTypes, TParams, TResult>;
+    private readonly mGeneratorResultProvider: PotatnoPreviewDriverGeneratorResultProvider<TTypes>;
+    private readonly mPortTarget: PotatnoPreviewFunctionExecutorPortTarget<PotatnoProject<TTypes>> | null;
 
     /**
-     * The resolved data type of the port being previewed.
+     * The project type id of the port being previewed, or `null` for function-level previews.
+     * The framework uses this to decide which display adapter to wrap the executor with.
      */
-    public get resultDataProjectType(): PotatnoProjectType<TProject> {
-        return this.mResultDataProjectType;
+    public get dataType(): PotatnoProjectType<PotatnoProject<TTypes>> | PotatnoProjectGenericType | null {
+        if (!this.mPortTarget) {
+            return null;
+        }
+
+        return this.mPortTarget.documentPort.dataType;
     }
 
     /**
-     * The document port being previewed.
+     * The element the display renders into. Lazily created on first access via `display.generate()`.
      */
-    public get port(): PotatnoDocumentPort<TProject> {
-        return this.mPort;
+    public get element(): TElement {
+        if (!this.mElement) {
+            this.mElement = this.mDisplay.generate();
+        }
+
+        return this.mElement;
     }
 
     /**
-     * The valueId whose hook the executor rewrites before each call.
-     * A null sentinel signals the main-preview path: no hook rewrite, the
-     * function returns its natural value.
+     * The bound port target, or `null` when this driver represents a function-level preview.
      */
-    public get valueId(): string | null {
-        return this.mValueId;
+    public get portTarget(): PotatnoPreviewFunctionExecutorPortTarget<PotatnoProject<TTypes>> | null {
+        return this.mPortTarget;
     }
 
     /**
      * Constructor.
      *
-     * @param pParameters - Constructor parameters.
+     * @param pParameters - Driver configuration capturing the display/executor/port-target triple and the generator-result provider.
      */
-    public constructor(pParameters: PotatnoPreviewDriverConstructorParameter<TProject, TExecutionParameter, TResult>) {
-        this.mResultDataProjectType = pParameters.dataType;
+    public constructor(pParameters: PotatnoPreviewDriverConstructorParameter<TTypes, TElement, TParams, TResult>) {
+        this.mDisplay = pParameters.display;
         this.mExecutor = pParameters.executor;
-        this.mPort = pParameters.port;
-        this.mValueId = pParameters.valueId;
+        this.mPortTarget = pParameters.portTarget;
+        this.mGeneratorResultProvider = pParameters.generatorResultProvider;
+        this.mCachedCallable = null;
+        this.mElement = null;
     }
 
     /**
-     * Run the function with the given execution parameter. The bound valueId
-     * is passed to the executor for hook rewriting.
-     *
-     * @param pParameter - Execution parameter required by the preview kind.
-     *
-     * @returns The strongly typed result for the preview kind.
+     * Drop the cached iteration callable. The next `render` call will pull a fresh generator
+     * result and re-invoke `executor.compile`. The element itself is preserved so the previous
+     * preview stays visible until the new callable is ready.
      */
-    public execute(pParameter: TExecutionParameter): Promise<TResult> {
-        return this.mExecutor(pParameter, this.mValueId);
+    public invalidateCache(): void {
+        this.mCachedCallable = null;
+    }
+
+    /**
+     * Run one render pass.
+     *
+     * Compile-on-demand: when the cache is empty, fetches the current generator result and
+     * compiles a fresh callable via `executor.compile`. Then wraps the callable with the
+     * display's adapter for per-node previews (function-level previews skip the wrap, since the
+     * executor already returns a value in `defaultResult` shape) and hands control to
+     * `display.update`.
+     *
+     * @returns A promise resolving when the display's update pass completes.
+     */
+    public async render(): Promise<void> {
+        // Compile-on-demand. Build is only re-invoked when something external invalidated the cache.
+        if (!this.mCachedCallable) {
+            const lGeneratorResult: PotatnoCodeGeneratorFunctionResult<PotatnoProject<TTypes>> | PotatnoCodeGeneratorNodeResult<PotatnoProject<TTypes>> = this.mGeneratorResultProvider();
+            this.mCachedCallable = this.mExecutor.compile(lGeneratorResult, this.mPortTarget);
+        }
+
+        // Wrap the executor with the display's per-type adapter when previewing a single port.
+        // Function-level previews pass the raw callable through — its result is already in
+        // `defaultResult` shape because the natural function return drives it.
+        const lWrappedCallable: PotatnoPreviewFunctionExecutorCallable<TParams, TResult> = this.wrapCallableWithAdapter(this.mCachedCallable);
+
+        // Hand off to the display's update loop. Awaiting covers both sync and async updates.
+        await Promise.resolve(this.mDisplay.update(this.element, lWrappedCallable));
+    }
+
+    /**
+     * Wrap the raw iteration callable with the display's per-type adapter when this driver is
+     * bound to a port target. For function-level drivers the wrap is a no-op pass-through.
+     *
+     * @param pCallable - The raw iteration callable produced by `executor.compile`.
+     *
+     * @returns A callable returning values in the display's `defaultResult` shape regardless of whether the underlying executor returns the natural function result or a per-port intermediate.
+     */
+    private wrapCallableWithAdapter(pCallable: PotatnoPreviewFunctionExecutorCallable<TParams, TResult>): PotatnoPreviewFunctionExecutorCallable<TParams, TResult> {
+        // Function-level: the executor's natural return already matches TResult. Skip the wrap.
+        if (!this.mPortTarget) {
+            return pCallable;
+        }
+
+        // Resolve the adapter once per render. Falls back to a pass-through if no adapter is
+        // registered for this type — the per-node preview is still useful (the raw value lands
+        // unchanged) and avoids a hard failure when the project ships partial adapter coverage.
+        const lDataType: string = this.mPortTarget.documentPort.dataType;
+        const lAdapter: ((pValue: unknown) => TResult) | undefined = this.mDisplay.adapterFor(lDataType);
+
+        if (!lAdapter) {
+            return pCallable;
+        }
+
+        // Compose the adapter onto the raw callable. Awaiting via Promise.resolve normalises sync
+        // and async executor returns into a uniform async wrapped callable.
+        return async (pParameters: TParams): Promise<TResult> => {
+            const lRawResult: TResult = await Promise.resolve(pCallable(pParameters));
+            return lAdapter(lRawResult as unknown);
+        };
     }
 }
 
 /**
  * Constructor parameters for PotatnoPreviewDriver.
+ *
+ * @typeParam TTypes - The project types definition the driver targets.
+ * @typeParam TElement - The display's element type.
+ * @typeParam TParams - The iteration parameter shape.
+ * @typeParam TResult - The shared result shape.
  */
-export type PotatnoPreviewDriverConstructorParameter<TProject extends PotatnoProject, TExecutionParameter extends PotatnoPreviewDriverParameter, TResult> = {
-    dataType: PotatnoProjectType<TProject>;
-    executor: PotatnoPreviewDriverExecutor<TExecutionParameter, TResult>;
-    port: PotatnoDocumentPort<TProject>;
-    valueId: string | null;
+export type PotatnoPreviewDriverConstructorParameter<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TElement extends Element, TParams extends Readonly<Record<string, unknown>>, TResult> = {
+    /**
+     * The display side of the bundled triple.
+     */
+    display: PotatnoPreviewDisplay<TTypes, TElement, TParams, TResult, PotatnoPreviewDisplayTypeAdapter<TTypes, TResult>>;
+
+    /**
+     * The executor side of the bundled triple.
+     */
+    executor: PotatnoPreviewFunctionExecutor<TTypes, TParams, TResult>;
+
+    /**
+     * The port target the driver is bound to. `null` for function-level previews; the
+     * `{ documentPort, valueId }` shape for per-node previews.
+     */
+    portTarget: PotatnoPreviewFunctionExecutorPortTarget<PotatnoProject<TTypes>> | null;
+
+    /**
+     * Callback yielding the current generator result. The driver pulls a fresh result on every
+     * cache miss; the framework is responsible for keeping this callback pointed at the latest
+     * code-gen output.
+     */
+    generatorResultProvider: PotatnoPreviewDriverGeneratorResultProvider<TTypes>;
 };
 
-export type PotatnoPreviewDriverParameter = Record<string, unknown>
-
 /**
- * Underlying executor callable the driver wraps. Accepts the typed parameter
- * and the bound valueId, performs the hook rewrite when valueId is non-null,
- * and returns the typed result.
+ * Callback yielding the current code generator result for a driver's bound function.
+ *
+ * @typeParam TTypes - The project types definition the driver targets.
  */
-export type PotatnoPreviewDriverExecutor<TExecutionParameter extends PotatnoPreviewDriverParameter, TResult> = (pParameter: TExecutionParameter, pExtractValueId: string | null) => Promise<TResult>;
-
+export type PotatnoPreviewDriverGeneratorResultProvider<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>> = () => PotatnoCodeGeneratorFunctionResult<PotatnoProject<TTypes>> | PotatnoCodeGeneratorNodeResult<PotatnoProject<TTypes>>;

@@ -1,11 +1,13 @@
 import { PotatnoDocument } from '../../source/document/potatno-document.ts';
 import { PotatnoCodeApplication } from '../../source/potatno-code-application.ts';
+import { PotatnoPreviewDisplay } from "../../source/preview/potatno-preview-display.ts";
+import { PotatnoPreviewFunctionExecutor } from "../../source/preview/potatno-preview-function-executor.ts";
+import { PotatnoPreview } from "../../source/preview/potatno-preview.ts";
 import { PotatnoNodeDefinition } from "../../source/project/node_definition/potatno-node-definition.ts";
 import { PotatnoStaticNodeDefinition } from "../../source/project/node_definition/potatno-static-node-definition.ts";
 import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from "../../source/project/potatno-function-definition.ts";
 import { PotatnoProjectTypesDefinition } from "../../source/project/potatno-project-types-definition.ts";
 import { PotatnoProject } from '../../source/project/potatno-project.ts';
-import { PotatnoPreview } from "../../source/ui/component/potatno_preview/potatno-preview.ts";
 
 /*
  // TODO:
@@ -233,29 +235,54 @@ const lUserFunction = PotatnoFunctionDefinition.new(lProjectTypes, {
 });
 
 /*
- * Define function executors for previews. 
+ * Define function executors for previews.
  */
-const lEntryFunctionExecutor = PotatnoPreviewFunctionExecutor.new(lEntryFunction, {
+const lEntryFunctionExecutor = PotatnoPreviewFunctionExecutor.new(lProjectTypes, lEntryFunction, {
+    parameters: { x: 0, y: 0 }, // Iteration-fed parameters; the display passes one of these per call.
+    build: (pExecutor, pGeneratorResult, pPortTarget) => {
+        // Start from the full function code with all hooks emitted by the generator.
+        let lFunctionCode: string = pGeneratorResult.code;
 
+        // Per-node preview: rewrite the requested hook into a `return` and drop any code after it
+        // so the compiled function yields the intermediate value instead of its natural result.
+        if (pPortTarget) {
+            const lHookMarker: string = `/*[${pPortTarget.valueId}]*/`;
+            const lHookIndex: number = lFunctionCode.indexOf(lHookMarker);
+            if (lHookIndex !== -1) {
+                lFunctionCode = lFunctionCode.substring(0, lHookIndex) + `\nreturn ${pPortTarget.valueId};\n`;
+            }
+        }
+
+        // Compile the function body and grab the named entry function by its label.
+        const lFunctionName: string = pExecutor.function.label;
+        const lCompiled: (...pArgs: Array<number>) => Array<number> = new Function(
+            `${lFunctionCode}\nreturn ${lFunctionName};`
+        )() as (...pArgs: Array<number>) => Array<number>;
+
+        // Return the per-iteration callable. The display feeds it one params object per pixel.
+        return (pParameters: { x: number; y: number; }): Array<number> => {
+            return lCompiled(pParameters.x, pParameters.y);
+        };
+    }
 });
 
 /*
- * Define preview displays. 
+ * Define preview displays.
  */
 
-const lCanvas2dPreviewDisplay = PotatnoPreviewDisplay.new({
+const lCanvas2dPreviewDisplay = PotatnoPreviewDisplay.new(lProjectTypes, {
     id: '2dCanvas',
-    defaultResult: [0, 0, 0], // This defined the required result for type adapter. 
-    generate: (): HTMLCanvasElement => { // The Element is generic too so the update and generate functions can work with the correct type without the need of type assertions.
-        return document.createElement('canvas');// TODO: Actual element
+    expectedParameters: { x: 0, y: 0 },     // Must match lEntryFunctionExecutor.parameters at compile time.
+    defaultResult: [0, 0, 0] as Array<number>, // Sample result shape; every adapter must coerce values into this.
+    generate: (): HTMLCanvasElement => {    // Element generic infers from this return so update's pElement is typed the same.
+        return document.createElement('canvas'); // TODO: Actual element
     },
-    typeAdapter: { // Gets created from a class instance internally `PotatnoPreviewTypeAdapter`.
-        'number': (pInputValue) => { // pInputValue-Type is infered from the PotatnoProjectTypesDefinition type. 
-            // Convert value to vec3 (rgb)
+    typeAdapter: { // Per-project-type adapters coercing intermediate values into defaultResult shape.
+        'number': (pInputValue) => { // pInputValue is inferred as number from lProjectTypes.number.default.value.
             return [pInputValue, pInputValue, pInputValue];
         }
     },
-    update: (pElement: HTMLCanvasElement, pDriver) => { // The driver contains the PotatnoPreviewTypeAdapter and automaticly converts the function output to the required type for the display.
+    update: (_pElement, _pExecutor) => { // pExecutor: (params) => Array<number>, already adapter-wrapped by the driver.
 
     }
 });

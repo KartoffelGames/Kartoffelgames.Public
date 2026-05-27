@@ -1,4 +1,5 @@
 import { PotatnoCodeGeneratorDocumentResult } from "../parser/result/potatno-code-generator-document-result.ts";
+import type { PotatnoPreview } from "../preview/potatno-preview.ts";
 import { FlowConjunctionNodeDefinition } from "./node_definition/potatno-flow-conjunction-node-definition.ts";
 import { PotatnoNodeDefinition } from "./node_definition/potatno-node-definition.ts";
 import { PotatnoStaticNodeDefinition } from "./node_definition/potatno-static-node-definition.ts";
@@ -25,6 +26,7 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
     private readonly mEntryPoint: PotatnoFunctionDefinition<this>;
     private readonly mImports: Array<PotatnoProjectImportDefinition<this>>;
     private readonly mNodeDefinitions: Map<string, PotatnoNodeDefinition<this>>;
+    private readonly mPreviews: PotatnoPreview<TProjectType> | null;
     private readonly mTypes: TProjectType;
     private readonly mUserFunctions: Map<string, PotatnoFunctionDefinition<this>>;
 
@@ -58,6 +60,14 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
     }
 
     /**
+     * Get the project's preview registry holding every registered (display, executor) pair.
+     * Returns `null` when the project was created without a preview registry.
+     */
+    public get previews(): PotatnoPreview<TProjectType> | null {
+        return this.mPreviews;
+    }
+
+    /**
      * Get the project type configuration, containing the valid type identifiers and their default values.
      */
     public get types(): TProjectType {
@@ -73,11 +83,14 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
 
     /**
      * Create a new editor configuration with default values.
+     *
+     * @param pParameter - Configuration providing project types, function definitions, code generator and optional preview registry.
      */
     protected constructor(pParameter: PotatnoProjectConstructorParameter<TProjectType>) {
         // Init parameter.
         this.mTypes = pParameter.types;
         this.mCodeGenerator = pParameter.generator;
+        this.mPreviews = (pParameter.previews ?? null) as PotatnoPreview<TProjectType> | null;
 
         // Initialize empty arrays and maps for project definitions.
         this.mNodeDefinitions = new Map<string, PotatnoStaticNodeDefinition<this>>();
@@ -138,6 +151,7 @@ type PotatnoProjectConstructorParameter<TProjectType extends PotatnoProjectTypes
         dynamic?: Array<PotatnoFunctionDefinition<PotatnoProject<NoInfer<TProjectType>>>>;
     },
     generator: PotatnoProjectCodeGenerator<PotatnoProject<TProjectType>>;
+    previews?: PotatnoPreview<NoInfer<TProjectType>>;
 };
 
 /**

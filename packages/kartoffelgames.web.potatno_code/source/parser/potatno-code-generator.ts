@@ -676,10 +676,12 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             code: { next: pNextCode ?? '' }
         });
 
-        // Attach each input and output value id as hook after the generated code.
-        lNodeCode += [...Object.values(lInputs), ...Object.values(lOutputs)].reduce((pCurrent, pNext) => {
-            return pCurrent + this.mProject.generator.hook(pNext.valueId);
-        }, '');
+        // Attach each input and output value id as hook after the generated code. But only on debug :)
+        if (pPassData.debug) {
+            lNodeCode += [...Object.values(lInputs), ...Object.values(lOutputs)].reduce((pCurrent, pNext) => {
+                return pCurrent + this.mProject.generator.hook(pNext.valueId);
+            }, '');
+        }
 
         // Add the produced code at the buffer start. Because the walk is backward, the buffer is always in correct execution order.
         pCursor.scope.codeOutput.unshift(lNodeCode);

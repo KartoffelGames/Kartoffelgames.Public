@@ -19,6 +19,7 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
     private mLabel: string;
     private readonly mOutputs: PotatnoDocumentNodePortsInternal<TProject>;
     private readonly mIsSystem: boolean;
+    private mPreview: PotatnoDocumentNodePreviewBinding | null;
     private readonly mTransformation: PotatnoDocumentNodeTransformation;
     private readonly mProject: TProject;
 
@@ -95,6 +96,17 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
     }
 
     /**
+     * Per-node preview opt-in. `null` when the node has no preview displayed; otherwise the
+     * pairing of which output port to expose and which registered display id should render it.
+     * The framework picks up changes here on the next preview rebuild.
+     */
+    public get preview(): PotatnoDocumentNodePreviewBinding | null {
+        return this.mPreview;
+    } set preview(pValue: PotatnoDocumentNodePreviewBinding | null) {
+        this.mPreview = pValue;
+    }
+
+    /**
      * If node has any flow ports.
      */
     public get hasFlowPorts() {
@@ -124,6 +136,7 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
         this.mFunction = pFunction;
         this.mIsSystem = pParameter.isSystem;
         this.mLabel = pParameter.label;
+        this.mPreview = pParameter.preview ?? null;
         this.mProject = pProject;
         this.mTransformation = pParameter.transformation;
 
@@ -461,7 +474,25 @@ export type PotatnoDocumentNodeConstructorParameter<TProject extends PotatnoProj
         input: Array<PotatnoDocumentNodePortConfiguration<TProject>>,
         output: Array<PotatnoDocumentNodePortConfiguration<TProject>>;
     };
+    preview?: PotatnoDocumentNodePreviewBinding | null,
     transformation: PotatnoDocumentNodeTransformation,
+};
+
+/**
+ * Per-node preview opt-in payload. Identifies which value output port to evaluate and which
+ * registered display should host the rendering. Stored alongside the node and persisted by
+ * the serializer so the choice survives a save/load roundtrip.
+ */
+export type PotatnoDocumentNodePreviewBinding = {
+    /**
+     * Definition id of the value output port to preview.
+     */
+    portId: string;
+
+    /**
+     * Id of the registered display the framework should pair with the node's bound executor.
+     */
+    displayId: string;
 };
 
 export type PotatnoDocumentNodePortConfiguration<TProject extends PotatnoProject> = {

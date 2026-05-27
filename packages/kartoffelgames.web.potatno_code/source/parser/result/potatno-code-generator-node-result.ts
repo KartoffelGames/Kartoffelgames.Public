@@ -1,5 +1,6 @@
 import { PotatnoDocumentFunction } from "../../document/potatno-document-function.ts";
 import type { PotatnoDocumentNode } from '../../document/potatno-document-node.ts';
+import type { PotatnoDocumentPort } from '../../document/potatno-document-port.ts';
 import type { PotatnoProject } from '../../project/potatno-project.ts';
 
 /**
@@ -11,6 +12,7 @@ export class PotatnoCodeGeneratorNodeResult<TProject extends PotatnoProject> {
     private readonly mDependencies: ReadonlyArray<PotatnoDocumentFunction<TProject>>;
     private readonly mEntryNode: PotatnoDocumentNode<TProject>;
     private readonly mExitNode: PotatnoDocumentNode<TProject>;
+    private readonly mPortValueIds: Map<PotatnoDocumentPort<TProject>, string>;
 
     /**
      * Generated body code for this subgraph, in execution order.
@@ -43,6 +45,13 @@ export class PotatnoCodeGeneratorNodeResult<TProject extends PotatnoProject> {
     }
 
     /**
+     * Mapping from each port that participated in this generation pass. 
+     */
+    public get portValueIds(): ReadonlyMap<PotatnoDocumentPort<TProject>, string> {
+        return this.mPortValueIds;
+    }
+
+    /**
      * Constructor.
      *
      * @param pParameter - Construction parameters.
@@ -52,6 +61,7 @@ export class PotatnoCodeGeneratorNodeResult<TProject extends PotatnoProject> {
         this.mDependencies = [...pParameter.dependencies];
         this.mEntryNode = pParameter.entryNode;
         this.mExitNode = pParameter.exitNode;
+        this.mPortValueIds = pParameter.portValueIds;
     }
 }
 
@@ -78,6 +88,11 @@ export type PotatnoCodeGeneratorGraphConstructorParameter<TProject extends Potat
      * Dependent functions required for this graph to be runnable.
      */
     dependencies: ReadonlyArray<PotatnoDocumentFunction<TProject>>;
+
+    /**
+     * Mapping from each port emitted in this pass to its allocated valueId.
+     */
+    portValueIds: Map<PotatnoDocumentPort<TProject>, string>;
 };
 
 /**

@@ -183,7 +183,10 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             bodyCode: lBodyCode,
             dependencies: lCursor.dependencies,
             entryNode: lEntryNode,
-            exitNode: pExitNode
+            exitNode: pExitNode,
+
+            // Copy current value ids so the current scope cant be changed outside.
+            portValueIds: new Map<PotatnoDocumentPort<TProject>, string>(lCursor.scope.valueIds)
         });
     }
 

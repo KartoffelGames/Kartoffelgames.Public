@@ -3,9 +3,8 @@ import { FlowConjunctionNodeDefinition } from '../../source/project/node_definit
 import { PotatnoStaticNodeDefinition } from '../../source/project/node_definition/potatno-static-node-definition.ts';
 import { ValueConjunctionNodeDefinition } from '../../source/project/node_definition/potatno-value-conjunction-node-definition.ts';
 import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from '../../source/project/potatno-function-definition.ts';
-import { PotatnoProject } from '../../source/project/potatno-project.ts';
 import { PotatnoProjectTypesDefinition } from '../../source/project/potatno-project-types-definition.ts';
-import { ModuleValues } from "@kartoffelgames/web-potato-web-builder";
+import { PotatnoProject } from '../../source/project/potatno-project.ts';
 
 const lNewBareProject = (): PotatnoProject<PotatnoProjectTypesDefinition<'number'>> => {
     const lTypes = PotatnoProjectTypesDefinition.new({

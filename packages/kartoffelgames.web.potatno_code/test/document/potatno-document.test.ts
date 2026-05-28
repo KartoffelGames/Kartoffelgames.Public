@@ -102,11 +102,9 @@ Deno.test('PotatnoDocument.nodeDefinitions', async (pContext) => {
         const lDefinitions = lDocument.nodeDefinitions;
 
         // Evaluation. With no functions present, only the project's definitions are returned.
-        const lProjectIds: Set<string> = new Set(TestProject.nodeDefinitions.map((pDef) => pDef.id));
-        const lDocumentIds: Set<string> = new Set(lDefinitions.map((pDef) => pDef.id));
-        for (const lId of lProjectIds) {
-            expect(lDocumentIds.has(lId)).toBe(true);
-        }
+        const lProjectIds: Set<string> = new Set(TestProject.nodeDefinitions.map((pDefinition) => pDefinition.id));
+        const lDocumentIds: Set<string> = new Set(lDefinitions.map((pDefinition) => pDefinition.id));
+        expect(lProjectIds.difference(lDocumentIds).size).toBe(0);
     });
 
     await pContext.step('Returns project plus function-node definitions when functions exist', () => {
@@ -118,7 +116,7 @@ Deno.test('PotatnoDocument.nodeDefinitions', async (pContext) => {
         const lDefinitions = lDocument.nodeDefinitions;
 
         // Evaluation. A USERFUNCTION_<id> definition appears among the document's definitions.
-        const lHasFunctionNode: boolean = lDefinitions.some((pDef) => pDef instanceof PotatnoFunctionNodeDefinition);
+        const lHasFunctionNode: boolean = lDefinitions.some((pDefinition) => pDefinition instanceof PotatnoFunctionNodeDefinition);
         expect(lHasFunctionNode).toBe(true);
     });
 });
@@ -164,8 +162,8 @@ Deno.test('PotatnoDocument.newFunction()', async (pContext) => {
         });
 
         // Evaluation. A function-node definition mirroring the new function is registered.
-        const lMatching = lDocument.nodeDefinitions.find((pDef) =>
-            pDef instanceof PotatnoFunctionNodeDefinition && pDef.function === lFunction);
+        const lMatching = lDocument.nodeDefinitions.find((pDefinition) =>
+            pDefinition instanceof PotatnoFunctionNodeDefinition && pDefinition.function === lFunction);
         expect(lMatching).toBeDefined();
     });
 });
@@ -198,8 +196,8 @@ Deno.test('PotatnoDocument.addFunction()', async (pContext) => {
         lDocument.addFunction(lFunction);
 
         // Evaluation.
-        const lMatching = lDocument.nodeDefinitions.find((pDef) =>
-            pDef instanceof PotatnoFunctionNodeDefinition && pDef.function === lFunction);
+        const lMatching = lDocument.nodeDefinitions.find((pDefinition) =>
+            pDefinition instanceof PotatnoFunctionNodeDefinition && pDefinition.function === lFunction);
         expect(lMatching).toBeDefined();
     });
 });
@@ -253,8 +251,8 @@ Deno.test('PotatnoDocument.removeFunction()', async (pContext) => {
         lDocument.removeFunction(lHelper);
 
         // Evaluation.
-        const lMatching = lDocument.nodeDefinitions.find((pDef) =>
-            pDef instanceof PotatnoFunctionNodeDefinition && pDef.function === lHelper);
+        const lMatching = lDocument.nodeDefinitions.find((pDefinition) =>
+            pDefinition instanceof PotatnoFunctionNodeDefinition && pDefinition.function === lHelper);
         expect(lMatching).toBeUndefined();
     });
 });
@@ -288,8 +286,8 @@ Deno.test('PotatnoDocument - Validation', async (pContext) => {
         // Setup. Helper function whose graph contains a function-call to itself.
         const lDocument = new PotatnoDocument(TestProject);
         const lHelper = lNewHelperFunction(lDocument, 'h-self', 'helperSelf');
-        const lSelfNodeDef = lDocument.nodeDefinitions.find((pDef) =>
-            pDef instanceof PotatnoFunctionNodeDefinition && pDef.function === lHelper)!;
+        const lSelfNodeDef = lDocument.nodeDefinitions.find((pDefinition) =>
+            pDefinition instanceof PotatnoFunctionNodeDefinition && pDefinition.function === lHelper)!;
         lHelper.newNode(lSelfNodeDef, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
@@ -304,10 +302,10 @@ Deno.test('PotatnoDocument - Validation', async (pContext) => {
         const lDocument = new PotatnoDocument(TestProject);
         const lHelperA = lNewHelperFunction(lDocument, 'a', 'helperA');
         const lHelperB = lNewHelperFunction(lDocument, 'b', 'helperB');
-        const lDefA = lDocument.nodeDefinitions.find((pDef) =>
-            pDef instanceof PotatnoFunctionNodeDefinition && pDef.function === lHelperA)!;
-        const lDefB = lDocument.nodeDefinitions.find((pDef) =>
-            pDef instanceof PotatnoFunctionNodeDefinition && pDef.function === lHelperB)!;
+        const lDefA = lDocument.nodeDefinitions.find((pDefinition) =>
+            pDefinition instanceof PotatnoFunctionNodeDefinition && pDefinition.function === lHelperA)!;
+        const lDefB = lDocument.nodeDefinitions.find((pDefinition) =>
+            pDefinition instanceof PotatnoFunctionNodeDefinition && pDefinition.function === lHelperB)!;
         lHelperA.newNode(lDefB, { x: 0, y: 0, width: 4, height: 2 });
         lHelperB.newNode(lDefA, { x: 0, y: 0, width: 4, height: 2 });
 
@@ -325,10 +323,10 @@ Deno.test('PotatnoDocument - Validation', async (pContext) => {
         const lA = lNewHelperFunction(lDocument, 'a', 'helperA');
         const lB = lNewHelperFunction(lDocument, 'b', 'helperB');
         const lC = lNewHelperFunction(lDocument, 'c', 'helperC');
-        const lDefB = lDocument.nodeDefinitions.find((pDef) =>
-            pDef instanceof PotatnoFunctionNodeDefinition && pDef.function === lB)!;
-        const lDefC = lDocument.nodeDefinitions.find((pDef) =>
-            pDef instanceof PotatnoFunctionNodeDefinition && pDef.function === lC)!;
+        const lDefB = lDocument.nodeDefinitions.find((pDefinition) =>
+            pDefinition instanceof PotatnoFunctionNodeDefinition && pDefinition.function === lB)!;
+        const lDefC = lDocument.nodeDefinitions.find((pDefinition) =>
+            pDefinition instanceof PotatnoFunctionNodeDefinition && pDefinition.function === lC)!;
         lA.newNode(lDefB, { x: 0, y: 0, width: 4, height: 2 });
         lB.newNode(lDefC, { x: 0, y: 0, width: 4, height: 2 });
 
@@ -344,8 +342,8 @@ Deno.test('PotatnoDocument - Validation', async (pContext) => {
         // Setup. Self-recursive helper.
         const lDocument = new PotatnoDocument(TestProject);
         const lHelper = lNewHelperFunction(lDocument, 'h-self', 'helperSelf');
-        const lSelfNodeDef = lDocument.nodeDefinitions.find((pDef) =>
-            pDef instanceof PotatnoFunctionNodeDefinition && pDef.function === lHelper)!;
+        const lSelfNodeDef = lDocument.nodeDefinitions.find((pDefinition) =>
+            pDefinition instanceof PotatnoFunctionNodeDefinition && pDefinition.function === lHelper)!;
         lHelper.newNode(lSelfNodeDef, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.

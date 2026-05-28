@@ -9,7 +9,7 @@ import { PotatnoProjectTypesDefinition } from '../../source/project/potatno-proj
 import { PotatnoProject } from '../../source/project/potatno-project.ts';
 import { TestProject } from '../test-project.ts';
 
-const lSetupCalculatorDocument = () => {
+const gSetupCalculatorDocument = () => {
     const lEntryDefinition = TestProject.entryPoint;
     const lDocument: PotatnoDocument<typeof TestProject> = new PotatnoDocument(TestProject);
     const lFunction: PotatnoDocumentFunction<typeof TestProject> = lDocument.newFunction({
@@ -25,7 +25,7 @@ const lSetupCalculatorDocument = () => {
     return { document: lDocument, function: lFunction, defaultEntry: lDefaultEntry, defaultExit: lDefaultExit };
 };
 
-const lAddProjectNode = (pFunction: PotatnoDocumentFunction<typeof TestProject>, pDefinitionId: string): PotatnoDocumentNode<typeof TestProject> => {
+const gAddProjectNode = (pFunction: PotatnoDocumentFunction<typeof TestProject>, pDefinitionId: string): PotatnoDocumentNode<typeof TestProject> => {
     const lDefinition = TestProject.nodeDefinitions.find((pDef) => pDef.id === pDefinitionId);
     if (!lDefinition) {
         throw new Error(`No project node definition with id "${pDefinitionId}"`);
@@ -37,7 +37,7 @@ Deno.test('PotatnoCodeGenerator.generateDocument()', async (pContext) => {
     await pContext.step('Document', async (pContext) => {
         await pContext.step('Linear flow only', () => {
             // Setup. Entry -> Exit, flow-only.
-            const { document, defaultEntry, defaultExit } = lSetupCalculatorDocument();
+            const { document, defaultEntry, defaultExit } = gSetupCalculatorDocument();
             defaultEntry.outputs.flow[0].connect(defaultExit.inputs.flow[0]);
 
             // Process.
@@ -55,8 +55,8 @@ Deno.test('PotatnoCodeGenerator.generateDocument()', async (pContext) => {
 
         await pContext.step('Chained arithmetic', () => {
             // Setup. Entry(a,b) -> Add -> Exit(result), flow Entry -> Exit.
-            const { document, function: lFunction, defaultEntry, defaultExit } = lSetupCalculatorDocument();
-            const lAddNode = lAddProjectNode(lFunction, 'Add');
+            const { document, function: lFunction, defaultEntry, defaultExit } = gSetupCalculatorDocument();
+            const lAddNode = gAddProjectNode(lFunction, 'Add');
             defaultEntry.outputs.flow[0].connect(defaultExit.inputs.flow[0]);
             defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!
                 .connect(lAddNode.inputs.value.find((pPort) => pPort.definitionId === 'a')!);
@@ -80,7 +80,7 @@ Deno.test('PotatnoCodeGenerator.generateDocument()', async (pContext) => {
         await pContext.step('Multiple entries', () => {
             // Setup. Wire both Default and X10 pairs.
             const lEntryDefinition = TestProject.entryPoint;
-            const { document, function: lFunction, defaultEntry, defaultExit } = lSetupCalculatorDocument();
+            const { document, function: lFunction, defaultEntry, defaultExit } = gSetupCalculatorDocument();
             const lNodes = lEntryDefinition.getNodeDefinitions(lFunction);
             const lX10Entry = lFunction.newNode(lNodes.entry[1], { x: 0, y: 8, width: 6, height: 4 }, true);
             const lX10Exit = lFunction.newNode(lNodes.exit[1], { x: 12, y: 8, width: 6, height: 4 }, true);
@@ -105,8 +105,8 @@ Deno.test('PotatnoCodeGenerator.generateDocument()', async (pContext) => {
 
         await pContext.step('GlobalMultiplier in flow', () => {
             // Setup. Entry -> GlobalMultiplier(5) -> Exit.
-            const { document, function: lFunction, defaultEntry, defaultExit } = lSetupCalculatorDocument();
-            const lGlobalMult = lAddProjectNode(lFunction, 'GlobalMultiplier');
+            const { document, function: lFunction, defaultEntry, defaultExit } = gSetupCalculatorDocument();
+            const lGlobalMult = gAddProjectNode(lFunction, 'GlobalMultiplier');
             lGlobalMult.inputs.value.find((pPort) => pPort.definitionId === 'value')!.setDirectValue(['5']);
             defaultEntry.outputs.flow[0].connect(lGlobalMult.inputs.flow[0]);
             lGlobalMult.outputs.flow[0].connect(defaultExit.inputs.flow[0]);
@@ -129,11 +129,11 @@ Deno.test('PotatnoCodeGenerator.generateDocument()', async (pContext) => {
             // default pair stays in the function but is left unwired, so it should
             // not contribute a graph.
             const lEntryDefinition = TestProject.entryPoint;
-            const { document, function: lFunction } = lSetupCalculatorDocument();
+            const { document, function: lFunction } = gSetupCalculatorDocument();
             const lNodes = lEntryDefinition.getNodeDefinitions(lFunction);
             const lX10Entry = lFunction.newNode(lNodes.entry[1], { x: 0, y: 8, width: 6, height: 4 }, true);
             const lX10Exit = lFunction.newNode(lNodes.exit[1], { x: 12, y: 8, width: 6, height: 4 }, true);
-            const lGlobalMult = lAddProjectNode(lFunction, 'GlobalMultiplier');
+            const lGlobalMult = gAddProjectNode(lFunction, 'GlobalMultiplier');
             lGlobalMult.inputs.value.find((pPort) => pPort.definitionId === 'value')!.setDirectValue(['5']);
             lX10Entry.outputs.flow[0].connect(lGlobalMult.inputs.flow[0]);
             lGlobalMult.outputs.flow[0].connect(lX10Exit.inputs.flow[0]);
@@ -177,7 +177,7 @@ Deno.test('PotatnoCodeGenerator.generateFunction()', async (pContext) => {
     await pContext.step('Function', async (pContext) => {
         await pContext.step('Single exit', () => {
             // Setup.
-            const { function: lFunction, defaultEntry, defaultExit } = lSetupCalculatorDocument();
+            const { function: lFunction, defaultEntry, defaultExit } = gSetupCalculatorDocument();
             defaultEntry.outputs.flow[0].connect(defaultExit.inputs.flow[0]);
 
             // Process.
@@ -197,7 +197,7 @@ Deno.test('PotatnoCodeGenerator.generateFunction()', async (pContext) => {
         await pContext.step('Two exits', () => {
             // Setup.
             const lEntryDefinition = TestProject.entryPoint;
-            const { function: lFunction, defaultEntry, defaultExit } = lSetupCalculatorDocument();
+            const { function: lFunction, defaultEntry, defaultExit } = gSetupCalculatorDocument();
             const lNodes = lEntryDefinition.getNodeDefinitions(lFunction);
             const lX10Entry = lFunction.newNode(lNodes.entry[1], { x: 0, y: 8, width: 6, height: 4 }, true);
             const lX10Exit = lFunction.newNode(lNodes.exit[1], { x: 12, y: 8, width: 6, height: 4 }, true);
@@ -224,7 +224,7 @@ Deno.test('PotatnoCodeGenerator.generateFunction()', async (pContext) => {
         await pContext.step('Unwired exit produces no graph for that exit', () => {
             // Setup. Only the default-pair flow is wired.
             const lEntryDefinition = TestProject.entryPoint;
-            const { function: lFunction, defaultEntry, defaultExit } = lSetupCalculatorDocument();
+            const { function: lFunction, defaultEntry, defaultExit } = gSetupCalculatorDocument();
             const lNodes = lEntryDefinition.getNodeDefinitions(lFunction);
             lFunction.newNode(lNodes.entry[1], { x: 0, y: 8, width: 6, height: 4 }, true);
             lFunction.newNode(lNodes.exit[1], { x: 12, y: 8, width: 6, height: 4 }, true);
@@ -250,7 +250,7 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
     await pContext.step('Linear', async (pContext) => {
         await pContext.step('Single entry to exit', () => {
             // Setup.
-            const { defaultEntry, defaultExit } = lSetupCalculatorDocument();
+            const { defaultEntry, defaultExit } = gSetupCalculatorDocument();
             defaultEntry.outputs.flow[0].connect(defaultExit.inputs.flow[0]);
 
             // Process.
@@ -267,8 +267,8 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
 
         await pContext.step('Single value-producer feeds exit', () => {
             // Setup. Const(42) -> Exit.result.
-            const { function: lFunction, defaultEntry, defaultExit } = lSetupCalculatorDocument();
-            const lConstNode = lAddProjectNode(lFunction, 'Const');
+            const { function: lFunction, defaultEntry, defaultExit } = gSetupCalculatorDocument();
+            const lConstNode = gAddProjectNode(lFunction, 'Const');
             lConstNode.inputs.value.find((pPort) => pPort.definitionId === 'value')!.setDirectValue(['42']);
             lConstNode.outputs.value[0].connect(defaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!);
             defaultEntry.outputs.flow[0].connect(defaultExit.inputs.flow[0]);
@@ -289,9 +289,9 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
 
         await pContext.step('Two-node arithmetic chain', () => {
             // Setup. Entry.a/b -> Add -> Multiply(other Entry.b) -> Exit.
-            const { function: lFunction, defaultEntry, defaultExit } = lSetupCalculatorDocument();
-            const lAddNode = lAddProjectNode(lFunction, 'Add');
-            const lMulNode = lAddProjectNode(lFunction, 'Multiply');
+            const { function: lFunction, defaultEntry, defaultExit } = gSetupCalculatorDocument();
+            const lAddNode = gAddProjectNode(lFunction, 'Add');
+            const lMulNode = gAddProjectNode(lFunction, 'Multiply');
             defaultEntry.outputs.flow[0].connect(defaultExit.inputs.flow[0]);
             defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!
                 .connect(lAddNode.inputs.value.find((pPort) => pPort.definitionId === 'a')!);
@@ -321,11 +321,11 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
 
         await pContext.step('Pick selects between two value inputs', () => {
             // Setup. Pick(Const(1), Const(2), Greater(a, b)) -> Exit.result.
-            const { function: lFunction, defaultEntry, defaultExit } = lSetupCalculatorDocument();
-            const lConstA = lAddProjectNode(lFunction, 'Const');
-            const lConstB = lAddProjectNode(lFunction, 'Const');
-            const lGreater = lAddProjectNode(lFunction, 'Greater');
-            const lPick = lAddProjectNode(lFunction, 'Pick');
+            const { function: lFunction, defaultEntry, defaultExit } = gSetupCalculatorDocument();
+            const lConstA = gAddProjectNode(lFunction, 'Const');
+            const lConstB = gAddProjectNode(lFunction, 'Const');
+            const lGreater = gAddProjectNode(lFunction, 'Greater');
+            const lPick = gAddProjectNode(lFunction, 'Pick');
             lConstA.inputs.value.find((pPort) => pPort.definitionId === 'value')!.setDirectValue(['1']);
             lConstB.inputs.value.find((pPort) => pPort.definitionId === 'value')!.setDirectValue(['2']);
             defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!
@@ -359,9 +359,9 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
 
         await pContext.step('Multiple flow nodes in sequence', () => {
             // Setup. Entry -> Pass -> Pass -> Exit.
-            const { function: lFunction, defaultEntry, defaultExit } = lSetupCalculatorDocument();
-            const lPassOne = lAddProjectNode(lFunction, 'Pass');
-            const lPassTwo = lAddProjectNode(lFunction, 'Pass');
+            const { function: lFunction, defaultEntry, defaultExit } = gSetupCalculatorDocument();
+            const lPassOne = gAddProjectNode(lFunction, 'Pass');
+            const lPassTwo = gAddProjectNode(lFunction, 'Pass');
             defaultEntry.outputs.flow[0].connect(lPassOne.inputs.flow[0]);
             lPassOne.outputs.flow[0].connect(lPassTwo.inputs.flow[0]);
             lPassTwo.outputs.flow[0].connect(defaultExit.inputs.flow[0]);
@@ -384,11 +384,11 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
     await pContext.step('Branching', async (pContext) => {
         await pContext.step('If with both branches terminating at exit', () => {
             // Setup. Entry -> If, then: Pass -> Exit, else: Pass -> Exit. Condition is a Greater node.
-            const { function: lFunction, defaultEntry, defaultExit } = lSetupCalculatorDocument();
-            const lIf = lAddProjectNode(lFunction, 'If');
-            const lGreater = lAddProjectNode(lFunction, 'Greater');
-            const lPassThen = lAddProjectNode(lFunction, 'Pass');
-            const lPassElse = lAddProjectNode(lFunction, 'Pass');
+            const { function: lFunction, defaultEntry, defaultExit } = gSetupCalculatorDocument();
+            const lIf = gAddProjectNode(lFunction, 'If');
+            const lGreater = gAddProjectNode(lFunction, 'Greater');
+            const lPassThen = gAddProjectNode(lFunction, 'Pass');
+            const lPassElse = gAddProjectNode(lFunction, 'Pass');
             defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!
                 .connect(lGreater.inputs.value.find((pPort) => pPort.definitionId === 'a')!);
             defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'b')!
@@ -429,10 +429,10 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
             // Setup. Entry -> FlowConjunction -> Pass -> Exit. The conjunction must
             // be invisible in the output - it produces the same code as a direct
             // Entry -> Pass -> Exit chain would.
-            const { function: lFunction, defaultEntry, defaultExit } = lSetupCalculatorDocument();
+            const { function: lFunction, defaultEntry, defaultExit } = gSetupCalculatorDocument();
             const lConjDef = TestProject.nodeDefinitions.find((pDef) => pDef.category === 'Conjunction' && pDef.inputs.some((p) => p.portType === 'flow'))!;
             const lConjunction = lFunction.newNode(lConjDef, { x: 0, y: 0, width: 4, height: 2 });
-            const lPass = lAddProjectNode(lFunction, 'Pass');
+            const lPass = gAddProjectNode(lFunction, 'Pass');
             defaultEntry.outputs.flow[0].connect(lConjunction.inputs.flow[0]);
             lConjunction.outputs.flow[0].connect(lPass.inputs.flow[0]);
             lPass.outputs.flow[0].connect(defaultExit.inputs.flow[0]);
@@ -455,10 +455,10 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
     await pContext.step('Refcount', async (pContext) => {
         await pContext.step('Pure-value producer used twice in the same flow node', () => {
             // Setup. SharedConst feeds both Add inputs; Add -> Exit.result.
-            const { function: lFunction, defaultEntry, defaultExit } = lSetupCalculatorDocument();
-            const lSharedConst = lAddProjectNode(lFunction, 'Const');
+            const { function: lFunction, defaultEntry, defaultExit } = gSetupCalculatorDocument();
+            const lSharedConst = gAddProjectNode(lFunction, 'Const');
             lSharedConst.inputs.value.find((pPort) => pPort.definitionId === 'value')!.setDirectValue(['7']);
-            const lAddNode = lAddProjectNode(lFunction, 'Add');
+            const lAddNode = gAddProjectNode(lFunction, 'Add');
             lSharedConst.outputs.value[0].connect(lAddNode.inputs.value.find((pPort) => pPort.definitionId === 'a')!);
             lSharedConst.outputs.value[0].connect(lAddNode.inputs.value.find((pPort) => pPort.definitionId === 'b')!);
             lAddNode.outputs.value[0].connect(defaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!);
@@ -485,8 +485,8 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
     await pContext.step('Hooks', async (pContext) => {
         await pContext.step('Appended for every input and output valueId', () => {
             // Setup. A single Add fed by entry.a/b with all-default-value inputs.
-            const { function: lFunction, defaultEntry, defaultExit } = lSetupCalculatorDocument();
-            const lAddNode = lAddProjectNode(lFunction, 'Add');
+            const { function: lFunction, defaultEntry, defaultExit } = gSetupCalculatorDocument();
+            const lAddNode = gAddProjectNode(lFunction, 'Add');
             defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!
                 .connect(lAddNode.inputs.value.find((pPort) => pPort.definitionId === 'a')!);
             defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'b')!
@@ -596,7 +596,7 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
     await pContext.step('Error', async (pContext) => {
         await pContext.step('Missing node definition for a node in the graph', () => {
             // Setup. Construct a node whose definitionId is not in the function's lookup.
-            const { function: lFunction } = lSetupCalculatorDocument();
+            const { function: lFunction } = gSetupCalculatorDocument();
             const lGhostDef = PotatnoStaticNodeDefinition.newStaticNode({
                 id: 'GhostNode', label: 'GhostNode', category: 'event',
                 ports: {
@@ -621,7 +621,7 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
 
         await pContext.step('Walk emits zero nodes', () => {
             // Setup. Exit with unconnected flow input.
-            const { defaultExit } = lSetupCalculatorDocument();
+            const { defaultExit } = gSetupCalculatorDocument();
 
             // Process.
             const lAction = (): void => {

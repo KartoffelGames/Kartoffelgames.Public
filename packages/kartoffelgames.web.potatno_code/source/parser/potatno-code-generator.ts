@@ -264,7 +264,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
     private getPortValue(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pPort: PotatnoDocumentPort<TProject>): string {
         // Allocate a fresh valueId on first encounter in this scope.
         if (!pCursor.scope.values.has(pPort)) {
-            pCursor.scope.values.set(pPort, `v_${pPassData.counter.valueIndex++}`);
+            pCursor.scope.values.set(pPort, this.mProject.generator.values.valueId(pPassData.counter.valueIndex++));
         }
 
         return pCursor.scope.values.get(pPort)!;
@@ -688,10 +688,10 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
                     return pCurrent;
                 }
 
-                return pCurrent + this.mProject.generator.hook(pNext.value);
+                return pCurrent + this.mProject.generator.values.hook(pNext.value);
             }, '');
             lNodeCode += Object.values(lOutputs).reduce((pCurrent, pNext) => {
-                return pCurrent + this.mProject.generator.hook(pNext.value);
+                return pCurrent + this.mProject.generator.values.hook(pNext.value);
             }, '');
         }
 

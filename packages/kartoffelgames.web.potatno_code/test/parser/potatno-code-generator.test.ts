@@ -21,7 +21,7 @@ const lSetupCalculatorDocument = () => {
     const lNodes = lEntryDefinition.getNodeDefinitions(lFunction);
     const lDefaultEntry = lFunction.newNode(lNodes.entry[0], { x: 0, y: 0, width: 6, height: 4 }, true);
     const lDefaultExit = lFunction.newNode(lNodes.exit[0], { x: 12, y: 0, width: 6, height: 4 }, true);
-    
+
     return { document: lDocument, function: lFunction, defaultEntry: lDefaultEntry, defaultExit: lDefaultExit };
 };
 
@@ -561,7 +561,14 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
                 functions: { entry: lLocalEntryFn },
                 generator: {
                     code: (pContext): string => pContext.entryPoint.code,
-                    hook: (pValueId: string): string => `<<${pValueId}>>`
+                    values: {
+                        valueId: (pValueIndex: number): string => {
+                            return `v_${pValueIndex}`;
+                        },
+                        hook: (pValueId: string): string => {
+                            return `<<${pValueId}>>`;
+                        }
+                    }
                 }
             });
 

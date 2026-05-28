@@ -370,9 +370,15 @@ const lProject = PotatnoProject.new({
 
             return lCodeResult;
         },
-        hook: (pValueId: string) => {
-            return `/*[${pValueId}]*/`;
+        values: {
+            valueId: (pValueIndex: number) => {
+                return `v_${pValueIndex}`;
+            },
+            hook: (pValueId: string) => {
+                return `/*[${pValueId}]*/`;
+            }
         }
+
     }
 });
 

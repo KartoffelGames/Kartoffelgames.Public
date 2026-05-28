@@ -409,8 +409,13 @@ export const TestProject: PotatnoProject<typeof gProjectTypes> = PotatnoProject.
 
             return lCodeResult;
         },
-        hook: (pValueId: string): string => {
-            return `/*[${pValueId}]*/`;
+        values: {
+            valueId: (pValueIndex: number): string => {
+                return `v_${pValueIndex}`;
+            },
+            hook: (pValueId: string): string => {
+                return `/*[${pValueId}]*/`;
+            }
         }
     }
 });

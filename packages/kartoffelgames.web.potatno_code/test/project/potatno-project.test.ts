@@ -5,6 +5,7 @@ import { ValueConjunctionNodeDefinition } from '../../source/project/node_defini
 import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from '../../source/project/potatno-function-definition.ts';
 import { PotatnoProject } from '../../source/project/potatno-project.ts';
 import { PotatnoProjectTypesDefinition } from '../../source/project/potatno-project-types-definition.ts';
+import { ModuleValues } from "@kartoffelgames/web-potato-web-builder";
 
 const lNewBareProject = (): PotatnoProject<PotatnoProjectTypesDefinition<'number'>> => {
     const lTypes = PotatnoProjectTypesDefinition.new({
@@ -33,7 +34,14 @@ const lNewBareProject = (): PotatnoProject<PotatnoProjectTypesDefinition<'number
         functions: { entry: lEntry },
         generator: {
             code: (): string => '',
-            hook: (pValueId: string): string => `/*[${pValueId}]*/`
+            values: {
+                valueId: (pValueIndex: number): string => {
+                    return `v_${pValueIndex}`;
+                },
+                hook: (pValueId: string): string => {
+                    return `/*[${pValueId}]*/`;
+                }
+            }
         }
     });
 };
@@ -76,7 +84,14 @@ Deno.test('PotatnoProject.new()', async (pContext) => {
             functions: { entry: lEntry, dynamic: [lUserFunction] },
             generator: {
                 code: (): string => '',
-                hook: (pValueId: string): string => pValueId
+                values: {
+                    valueId: (pValueIndex: number): string => {
+                        return `v_${pValueIndex}`;
+                    },
+                    hook: (pValueId: string): string => {
+                        return `/*[${pValueId}]*/`;
+                    }
+                }
             }
         });
 
@@ -114,7 +129,17 @@ Deno.test('PotatnoProject.types', async (pContext) => {
         const lProject = PotatnoProject.new({
             types: lTypes,
             functions: { entry: lEntry },
-            generator: { code: (): string => '', hook: (pValueId: string): string => pValueId }
+            generator: {
+                code: (): string => '',
+                values: {
+                    valueId: (pValueIndex: number): string => {
+                        return `v_${pValueIndex}`;
+                    },
+                    hook: (pValueId: string): string => {
+                        return `/*[${pValueId}]*/`;
+                    }
+                }
+            }
         });
 
         // Process.
@@ -143,7 +168,17 @@ Deno.test('PotatnoProject.entryPoint', async (pContext) => {
         const lProject = PotatnoProject.new({
             types: lTypes,
             functions: { entry: lEntry },
-            generator: { code: (): string => '', hook: (pValueId: string): string => pValueId }
+            generator: {
+                code: (): string => '',
+                values: {
+                    valueId: (pValueIndex: number): string => {
+                        return `v_${pValueIndex}`;
+                    },
+                    hook: (pValueId: string): string => {
+                        return `/*[${pValueId}]*/`;
+                    }
+                }
+            }
         });
 
         // Process.
@@ -192,7 +227,17 @@ Deno.test('PotatnoProject.userFunctions', async (pContext) => {
         const lProject = PotatnoProject.new({
             types: lTypes,
             functions: { entry: lEntry, dynamic: [lFunctionOne, lFunctionTwo] },
-            generator: { code: (): string => '', hook: (pValueId: string): string => pValueId }
+            generator: {
+                code: (): string => '',
+                values: {
+                    valueId: (pValueIndex: number): string => {
+                        return `v_${pValueIndex}`;
+                    },
+                    hook: (pValueId: string): string => {
+                        return `/*[${pValueId}]*/`;
+                    }
+                }
+            }
         });
 
         // Evaluation.
@@ -274,7 +319,14 @@ Deno.test('PotatnoProject.generator', async (pContext) => {
         });
         const lGenerator = {
             code: (): string => 'expected',
-            hook: (pValueId: string): string => `<${pValueId}>`
+            values: {
+                valueId: (pValueIndex: number): string => {
+                    return `v_${pValueIndex}`;
+                },
+                hook: (pValueId: string): string => {
+                    return `<${pValueId}>`;
+                }
+            }
         };
 
         // Process.
@@ -401,7 +453,17 @@ Deno.test('PotatnoProject.getFunction()', async (pContext) => {
         const lProject = PotatnoProject.new({
             types: lTypes,
             functions: { entry: lEntry, dynamic: [lUserFunction] },
-            generator: { code: (): string => '', hook: (pValueId: string): string => pValueId }
+            generator: {
+                code: (): string => '',
+                values: {
+                    valueId: (pValueIndex: number): string => {
+                        return `v_${pValueIndex}`;
+                    },
+                    hook: (pValueId: string): string => {
+                        return `/*[${pValueId}]*/`;
+                    }
+                }
+            }
         });
 
         // Evaluation.

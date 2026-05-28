@@ -164,10 +164,28 @@ export type PotatnoProjectCodeGenerator<TProject extends PotatnoProject> = {
     readonly code: (pContext: PotatnoCodeGeneratorDocumentResult<TProject>) => string;
 
     /**
-     * Function callback for a hook generation.
-     * A hook should be appendable at any time in the generated code without affecting the execution.
+     * Generators for generating value related string.
      */
-    readonly hook: (pValueId: string) => string;
+    readonly values: {
+        /**
+         * Generate a value id, mostly known as variable name, that the code generator can use to reference values.
+         * 
+         * @param pValueIndex - The current value index.
+         * 
+         * @returns a value id that can be used to reference values in code. 
+         */
+        readonly valueId: (pValueIndex: number) => string;
+
+        /**
+         * Function callback for a hook generation.
+         * A hook should be appendable at any time in the generated code without affecting the execution.
+         * 
+         * @param pValueId - Generated value id.
+         *  
+         * @returns a hook string that can be inserted into the code. 
+         */
+        readonly hook: (pValueId: string) => string;
+    };
 };
 
 /**

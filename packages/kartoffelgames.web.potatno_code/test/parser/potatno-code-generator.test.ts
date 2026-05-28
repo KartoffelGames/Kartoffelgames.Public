@@ -1,61 +1,12 @@
 import { expect } from '@kartoffelgames/core-test';
-import { PotatnoDocumentFunction } from '../../source/document/potatno-document-function.ts';
-import { PotatnoDocumentNode } from '../../source/document/potatno-document-node.ts';
 import { PotatnoDocument } from '../../source/document/potatno-document.ts';
 import { PotatnoCodeGenerator } from '../../source/parser/potatno-code-generator.ts';
 import { PotatnoStaticNodeDefinition } from '../../source/project/node_definition/potatno-static-node-definition.ts';
 import { PotatnoFunctionDefinition } from '../../source/project/potatno-function-definition.ts';
 import { PotatnoProjectTypesDefinition } from '../../source/project/potatno-project-types-definition.ts';
 import { PotatnoProject } from '../../source/project/potatno-project.ts';
-import { TestProject } from '../test-project.ts';
-
-class PotatnoHelper {
-    public static addProjectNode(pFunction: PotatnoDocumentFunction<typeof TestProject>, pDefinitionId: string): PotatnoDocumentNode<typeof TestProject> {
-        const lDefinition = TestProject.nodeDefinitions.find((pDefinition) => pDefinition.id === pDefinitionId);
-        if (!lDefinition) {
-            throw new Error(`No project node definition with id "${pDefinitionId}"`);
-        }
-        return pFunction.newNode(lDefinition, { x: 0, y: 0, width: 6, height: 4 });
-    }
-
-    public static connectFlow(pSourceNode: PotatnoDocumentNode<typeof TestProject>, pTargetNode: PotatnoDocumentNode<typeof TestProject>, pSourceFlowId?: string): void {
-        // Use the named flow output when an id is given, otherwise the node's single flow output.
-        const lSourcePort = pSourceFlowId === undefined ? pSourceNode.outputs.flow[0] : pSourceNode.outputs.map.get(pSourceFlowId)!;
-
-        lSourcePort.connect(pTargetNode.inputs.flow[0]);
-    }
-
-    public static connectValue(pSourceNode: PotatnoDocumentNode<typeof TestProject>, pSourcePortId: string, pTargetNode: PotatnoDocumentNode<typeof TestProject>, pTargetPortId: string): void {
-        pSourceNode.outputs.map.get(pSourcePortId)!.connect(pTargetNode.inputs.map.get(pTargetPortId)!);
-    }
-
-    public static setInputValue(pNode: PotatnoDocumentNode<typeof TestProject>, pPortId: string, pValue: Array<string>): void {
-        pNode.inputs.map.get(pPortId)!.setDirectValue(pValue);
-    }
-
-    public static setupCalculatorDocument(): PotatnoHelperCalculatorDocument {
-        const lEntryDefinition = TestProject.entryPoint;
-        const lDocument: PotatnoDocument<typeof TestProject> = new PotatnoDocument(TestProject);
-        const lFunction: PotatnoDocumentFunction<typeof TestProject> = lDocument.newFunction({
-            definitionId: lEntryDefinition.id,
-            id: 'calc-instance-1',
-            label: 'calculator',
-            isSystem: true
-        });
-        const lNodes = lEntryDefinition.getNodeDefinitions(lFunction);
-        const lDefaultEntry = lFunction.newNode(lNodes.entry[0], { x: 0, y: 0, width: 6, height: 4 }, true);
-        const lDefaultExit = lFunction.newNode(lNodes.exit[0], { x: 12, y: 0, width: 6, height: 4 }, true);
-
-        return { document: lDocument, function: lFunction, defaultEntry: lDefaultEntry, defaultExit: lDefaultExit };
-    }
-}
-
-type PotatnoHelperCalculatorDocument = {
-    document: PotatnoDocument<typeof TestProject>;
-    function: PotatnoDocumentFunction<typeof TestProject>;
-    defaultEntry: PotatnoDocumentNode<typeof TestProject>;
-    defaultExit: PotatnoDocumentNode<typeof TestProject>;
-};
+import { PotatnoHelper } from '../helper/potatno-helper.ts';
+import { TestProject } from '../helper/test-project.ts';
 
 Deno.test('PotatnoCodeGenerator.generateDocument()', async (pContext) => {
     await pContext.step('Document', async (pContext) => {

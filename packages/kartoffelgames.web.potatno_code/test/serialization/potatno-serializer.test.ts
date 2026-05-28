@@ -2,45 +2,9 @@ import { expect } from '@kartoffelgames/core-test';
 import { PotatnoDocumentFunction } from '../../source/document/potatno-document-function.ts';
 import { PotatnoDocumentNode } from '../../source/document/potatno-document-node.ts';
 import { PotatnoDocument } from '../../source/document/potatno-document.ts';
-import { PotatnoDeserializer } from '../../source/serialization/potatno-deserializer.ts';
 import { PotatnoSerializer } from '../../source/serialization/potatno-serializer.ts';
-import { TestProject } from '../test-project.ts';
-
-const lSetupCalculatorDocument = (): {
-    document: PotatnoDocument<typeof TestProject>;
-    function: PotatnoDocumentFunction<typeof TestProject>;
-    defaultEntry: PotatnoDocumentNode<typeof TestProject>;
-    defaultExit: PotatnoDocumentNode<typeof TestProject>;
-} => {
-    const lEntryDefinition = TestProject.entryPoint;
-    const lDocument: PotatnoDocument<typeof TestProject> = new PotatnoDocument(TestProject);
-    const lFunction: PotatnoDocumentFunction<typeof TestProject> = lDocument.newFunction({
-        definitionId: lEntryDefinition.id,
-        id: 'calc-instance-1',
-        label: lEntryDefinition.label,
-        isSystem: true
-    });
-    const lNodes = lEntryDefinition.getNodeDefinitions(lFunction);
-    const lDefaultEntry = lFunction.newNode(lNodes.entry[0], { x: 0, y: 0, width: 6, height: 4 }, true);
-    const lDefaultExit = lFunction.newNode(lNodes.exit[0], { x: 12, y: 0, width: 6, height: 4 }, true);
-    return { document: lDocument, function: lFunction, defaultEntry: lDefaultEntry, defaultExit: lDefaultExit };
-};
-
-const lAddProjectNode = (pFunction: PotatnoDocumentFunction<typeof TestProject>, pDefinitionId: string): PotatnoDocumentNode<typeof TestProject> => {
-    const lDefinition = TestProject.nodeDefinitions.find((pDef) => pDef.id === pDefinitionId);
-    if (!lDefinition) {
-        throw new Error(`No project node definition with id "${pDefinitionId}"`);
-    }
-    return pFunction.newNode(lDefinition, { x: 0, y: 0, width: 6, height: 4 });
-};
-
-// Run a document through a serialize / deserialize round-trip and return the
-// reconstructed copy.
-const lRoundTrip = (pDocument: PotatnoDocument<typeof TestProject>): PotatnoDocument<typeof TestProject> => {
-    const lSerializer = new PotatnoSerializer<typeof TestProject>();
-    const lDeserializer = new PotatnoDeserializer<typeof TestProject>(TestProject);
-    return lDeserializer.deserialize(lSerializer.serialize(pDocument));
-};
+import { PotatnoHelper } from '../helper/potatno-helper.ts';
+import { TestProject } from '../helper/test-project.ts';
 
 // Structural equivalence helper. Compares functions, nodes, ports, and the
 // connection multiset without depending on node-identity equality (the
@@ -133,7 +97,7 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
             const lDocument = new PotatnoDocument(TestProject);
 
             // Process.
-            const lRoundTripped = lRoundTrip(lDocument);
+            const lRoundTripped = PotatnoHelper.roundTrip(lDocument);
 
             // Evaluation.
             lExpectDocumentsEquivalent(lRoundTripped, lDocument);
@@ -148,7 +112,7 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
             });
 
             // Process.
-            const lRoundTripped = lRoundTrip(lDocument);
+            const lRoundTripped = PotatnoHelper.roundTrip(lDocument);
 
             // Evaluation.
             lExpectDocumentsEquivalent(lRoundTripped, lDocument);
@@ -161,7 +125,7 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
             lDocument.newFunction({ definitionId: TestProject.entryPoint.id, id: 'b', label: 'b', isSystem: false });
 
             // Process.
-            const lRoundTripped = lRoundTrip(lDocument);
+            const lRoundTripped = PotatnoHelper.roundTrip(lDocument);
 
             // Evaluation.
             lExpectDocumentsEquivalent(lRoundTripped, lDocument);
@@ -171,10 +135,10 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
     await pContext.step('Function Shape', async (pContext) => {
         await pContext.step('Function id and label preserved', () => {
             // Setup.
-            const { document } = lSetupCalculatorDocument();
+            const { document } = PotatnoHelper.setupCalculatorDocument();
 
             // Process.
-            const lRoundTripped = lRoundTrip(document);
+            const lRoundTripped = PotatnoHelper.roundTrip(document);
 
             // Evaluation.
             lExpectDocumentsEquivalent(lRoundTripped, document);
@@ -187,7 +151,7 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
             lDocument.newFunction({ definitionId: TestProject.entryPoint.id, id: 'usr', label: 'usr', isSystem: false });
 
             // Process.
-            const lRoundTripped = lRoundTrip(lDocument);
+            const lRoundTripped = PotatnoHelper.roundTrip(lDocument);
 
             // Evaluation.
             lExpectDocumentsEquivalent(lRoundTripped, lDocument);
@@ -203,7 +167,7 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
             });
 
             // Process.
-            const lRoundTripped = lRoundTrip(lDocument);
+            const lRoundTripped = PotatnoHelper.roundTrip(lDocument);
 
             // Evaluation.
             lExpectDocumentsEquivalent(lRoundTripped, lDocument);
@@ -219,7 +183,7 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
             lFunction.addInput({ label: 'second', dataType: 'string' as never });
 
             // Process.
-            const lRoundTripped = lRoundTrip(lDocument);
+            const lRoundTripped = PotatnoHelper.roundTrip(lDocument);
 
             // Evaluation.
             lExpectDocumentsEquivalent(lRoundTripped, lDocument);
@@ -237,7 +201,7 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
             lFunction.addOutput({ label: 'second', dataType: 'string' as never });
 
             // Process.
-            const lRoundTripped = lRoundTrip(lDocument);
+            const lRoundTripped = PotatnoHelper.roundTrip(lDocument);
 
             // Evaluation.
             const lRtFunction = [...lRoundTripped.functions][0];
@@ -254,7 +218,7 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
             lFunction.addImport('Second');
 
             // Process.
-            const lRoundTripped = lRoundTrip(lDocument);
+            const lRoundTripped = PotatnoHelper.roundTrip(lDocument);
 
             // Evaluation.
             const lRtFunction = [...lRoundTripped.functions][0];
@@ -265,11 +229,11 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
     await pContext.step('Nodes', async (pContext) => {
         await pContext.step('Node category preserved', () => {
             // Setup. Add a Pass node (category 'flow').
-            const { document, function: lFunction } = lSetupCalculatorDocument();
-            lAddProjectNode(lFunction, 'Pass');
+            const { document, function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+            PotatnoHelper.addProjectNode(lFunction, 'Pass');
 
             // Process.
-            const lRoundTripped = lRoundTrip(document);
+            const lRoundTripped = PotatnoHelper.roundTrip(document);
 
             // Evaluation.
             lExpectDocumentsEquivalent(lRoundTripped, document);
@@ -277,12 +241,12 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
 
         await pContext.step('Node label preserved', () => {
             // Setup. Rename a node.
-            const { document, function: lFunction } = lSetupCalculatorDocument();
-            const lAddNode = lAddProjectNode(lFunction, 'Add');
+            const { document, function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+            const lAddNode = PotatnoHelper.addProjectNode(lFunction, 'Add');
             lAddNode.label = 'CustomLabel';
 
             // Process.
-            const lRoundTripped = lRoundTrip(document);
+            const lRoundTripped = PotatnoHelper.roundTrip(document);
 
             // Evaluation.
             lExpectDocumentsEquivalent(lRoundTripped, document);
@@ -290,11 +254,11 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
 
         await pContext.step('Node isSystem preserved', () => {
             // Setup. defaultEntry / defaultExit are system; lAdd is not.
-            const { document, function: lFunction } = lSetupCalculatorDocument();
-            lAddProjectNode(lFunction, 'Add');
+            const { document, function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+            PotatnoHelper.addProjectNode(lFunction, 'Add');
 
             // Process.
-            const lRoundTripped = lRoundTrip(document);
+            const lRoundTripped = PotatnoHelper.roundTrip(document);
 
             // Evaluation.
             lExpectDocumentsEquivalent(lRoundTripped, document);
@@ -302,12 +266,12 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
 
         await pContext.step('Node transformation preserved', () => {
             // Setup.
-            const { document, function: lFunction } = lSetupCalculatorDocument();
+            const { document, function: lFunction } = PotatnoHelper.setupCalculatorDocument();
             const lDefinition = TestProject.nodeDefinitions.find((pDef) => pDef.id === 'Add')!;
             lFunction.newNode(lDefinition, { x: 99, y: 88, width: 77, height: 66 });
 
             // Process.
-            const lRoundTripped = lRoundTrip(document);
+            const lRoundTripped = PotatnoHelper.roundTrip(document);
 
             // Evaluation.
             lExpectDocumentsEquivalent(lRoundTripped, document);
@@ -317,11 +281,11 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
     await pContext.step('Ports', async (pContext) => {
         await pContext.step('Port directValue preserved when overridden via setDirectValue', () => {
             // Setup.
-            const { document, defaultExit } = lSetupCalculatorDocument();
+            const { document, defaultExit } = PotatnoHelper.setupCalculatorDocument();
             defaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!.setDirectValue(['7']);
 
             // Process.
-            const lRoundTripped = lRoundTrip(document);
+            const lRoundTripped = PotatnoHelper.roundTrip(document);
 
             // Evaluation.
             lExpectDocumentsEquivalent(lRoundTripped, document);
@@ -334,12 +298,12 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
     await pContext.step('Connections', async (pContext) => {
         await pContext.step('Single value connection between two nodes', () => {
             // Setup.
-            const { document, defaultEntry, defaultExit } = lSetupCalculatorDocument();
+            const { document, defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
             defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!
                 .connect(defaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!);
 
             // Process.
-            const lRoundTripped = lRoundTrip(document);
+            const lRoundTripped = PotatnoHelper.roundTrip(document);
 
             // Evaluation.
             lExpectDocumentsEquivalent(lRoundTripped, document);
@@ -347,11 +311,11 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
 
         await pContext.step('Single flow connection between two nodes', () => {
             // Setup.
-            const { document, defaultEntry, defaultExit } = lSetupCalculatorDocument();
+            const { document, defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
             defaultEntry.outputs.flow[0].connect(defaultExit.inputs.flow[0]);
 
             // Process.
-            const lRoundTripped = lRoundTrip(document);
+            const lRoundTripped = PotatnoHelper.roundTrip(document);
 
             // Evaluation.
             lExpectDocumentsEquivalent(lRoundTripped, document);
@@ -359,15 +323,15 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
 
         await pContext.step('Value output fan-out', () => {
             // Setup. Entry.a → Add1.a + Add2.a.
-            const { document, function: lFunction, defaultEntry } = lSetupCalculatorDocument();
-            const lAddOne = lAddProjectNode(lFunction, 'Add');
-            const lAddTwo = lAddProjectNode(lFunction, 'Add');
+            const { document, function: lFunction, defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+            const lAddOne = PotatnoHelper.addProjectNode(lFunction, 'Add');
+            const lAddTwo = PotatnoHelper.addProjectNode(lFunction, 'Add');
             const lSource = defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!;
             lSource.connect(lAddOne.inputs.value.find((pPort) => pPort.definitionId === 'a')!);
             lSource.connect(lAddTwo.inputs.value.find((pPort) => pPort.definitionId === 'a')!);
 
             // Process.
-            const lRoundTripped = lRoundTrip(document);
+            const lRoundTripped = PotatnoHelper.roundTrip(document);
 
             // Evaluation.
             lExpectDocumentsEquivalent(lRoundTripped, document);
@@ -375,14 +339,14 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
 
         await pContext.step('Flow input fan-in', () => {
             // Setup. Two Pass nodes both terminating at the exit's flow input.
-            const { document, function: lFunction, defaultExit } = lSetupCalculatorDocument();
-            const lPassOne = lAddProjectNode(lFunction, 'Pass');
-            const lPassTwo = lAddProjectNode(lFunction, 'Pass');
+            const { document, function: lFunction, defaultExit } = PotatnoHelper.setupCalculatorDocument();
+            const lPassOne = PotatnoHelper.addProjectNode(lFunction, 'Pass');
+            const lPassTwo = PotatnoHelper.addProjectNode(lFunction, 'Pass');
             lPassOne.outputs.flow[0].connect(defaultExit.inputs.flow[0]);
             lPassTwo.outputs.flow[0].connect(defaultExit.inputs.flow[0]);
 
             // Process.
-            const lRoundTripped = lRoundTrip(document);
+            const lRoundTripped = PotatnoHelper.roundTrip(document);
 
             // Evaluation.
             lExpectDocumentsEquivalent(lRoundTripped, document);
@@ -390,15 +354,15 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
 
         await pContext.step('Multiple parallel connections between the same pair', () => {
             // Setup. Entry.a → Exit.result and Entry.b → Add.b (two distinct pairs).
-            const { document, function: lFunction, defaultEntry, defaultExit } = lSetupCalculatorDocument();
-            const lAddNode = lAddProjectNode(lFunction, 'Add');
+            const { document, function: lFunction, defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
+            const lAddNode = PotatnoHelper.addProjectNode(lFunction, 'Add');
             defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!
                 .connect(defaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!);
             defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'b')!
                 .connect(lAddNode.inputs.value.find((pPort) => pPort.definitionId === 'b')!);
 
             // Process.
-            const lRoundTripped = lRoundTrip(document);
+            const lRoundTripped = PotatnoHelper.roundTrip(document);
 
             // Evaluation.
             lExpectDocumentsEquivalent(lRoundTripped, document);
@@ -408,10 +372,10 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
     await pContext.step('Full TestProject', async (pContext) => {
         await pContext.step('Full TestProject calculator scenario', () => {
             // Setup. Realistic graph with helper call, GlobalMultiplier, and If/else.
-            const { document, function: lFunction, defaultEntry, defaultExit } = lSetupCalculatorDocument();
+            const { document, function: lFunction, defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
 
             // Add value pipeline: Add(a,b) -> Exit.result.
-            const lAddNode = lAddProjectNode(lFunction, 'Add');
+            const lAddNode = PotatnoHelper.addProjectNode(lFunction, 'Add');
             defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!
                 .connect(lAddNode.inputs.value.find((pPort) => pPort.definitionId === 'a')!);
             defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'b')!
@@ -419,7 +383,7 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
             lAddNode.outputs.value[0].connect(defaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!);
 
             // Add GlobalMultiplier in the flow.
-            const lGlobalMult = lAddProjectNode(lFunction, 'GlobalMultiplier');
+            const lGlobalMult = PotatnoHelper.addProjectNode(lFunction, 'GlobalMultiplier');
             defaultEntry.outputs.flow[0].connect(lGlobalMult.inputs.flow[0]);
             lGlobalMult.outputs.flow[0].connect(defaultExit.inputs.flow[0]);
 
@@ -436,7 +400,7 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
             expect(lHelper.label).toBe('helperOne');
 
             // Process.
-            const lRoundTripped = lRoundTrip(document);
+            const lRoundTripped = PotatnoHelper.roundTrip(document);
 
             // Evaluation.
             lExpectDocumentsEquivalent(lRoundTripped, document);

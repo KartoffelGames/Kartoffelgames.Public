@@ -30,11 +30,11 @@
  * code-generation tests only.
  */
 
-import { PotatnoNodeDefinition } from '../source/project/node_definition/potatno-node-definition.ts';
-import { PotatnoStaticNodeDefinition } from '../source/project/node_definition/potatno-static-node-definition.ts';
-import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from '../source/project/potatno-function-definition.ts';
-import { PotatnoProjectTypesDefinition } from '../source/project/potatno-project-types-definition.ts';
-import { PotatnoProject } from '../source/project/potatno-project.ts';
+import { PotatnoNodeDefinition } from '../../source/project/node_definition/potatno-node-definition.ts';
+import { PotatnoStaticNodeDefinition } from '../../source/project/node_definition/potatno-static-node-definition.ts';
+import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from '../../source/project/potatno-function-definition.ts';
+import { PotatnoProjectTypesDefinition } from '../../source/project/potatno-project-types-definition.ts';
+import { PotatnoProject } from '../../source/project/potatno-project.ts';
 
 /**
  * Name of the function-scoped variable used to carry the runtime multiplier.

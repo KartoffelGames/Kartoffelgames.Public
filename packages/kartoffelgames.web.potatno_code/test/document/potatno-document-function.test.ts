@@ -2,31 +2,8 @@ import { expect } from '@kartoffelgames/core-test';
 import { PotatnoDocumentFunction } from '../../source/document/potatno-document-function.ts';
 import { PotatnoDocumentNode } from '../../source/document/potatno-document-node.ts';
 import { PotatnoDocument } from '../../source/document/potatno-document.ts';
-import { TestProject } from '../test-project.ts';
-
-const lSetupCalculatorDocument = () => {
-    const lEntryDefinition = TestProject.entryPoint;
-    const lDocument: PotatnoDocument<typeof TestProject> = new PotatnoDocument(TestProject);
-    const lFunction: PotatnoDocumentFunction<typeof TestProject> = lDocument.newFunction({
-        definitionId: lEntryDefinition.id,
-        id: 'calc-instance-1',
-        label: lEntryDefinition.label,
-        isSystem: true
-    });
-    const lNodes = lEntryDefinition.getNodeDefinitions(lFunction);
-    const lDefaultEntry = lFunction.newNode(lNodes.entry[0], { x: 0, y: 0, width: 6, height: 4 }, true);
-    const lDefaultExit = lFunction.newNode(lNodes.exit[0], { x: 12, y: 0, width: 6, height: 4 }, true);
-
-    return { document: lDocument, function: lFunction, defaultEntry: lDefaultEntry, defaultExit: lDefaultExit };
-};
-
-const lAddProjectNode = (pFunction: PotatnoDocumentFunction<typeof TestProject>, pDefinitionId: string): PotatnoDocumentNode<typeof TestProject> => {
-    const lDefinition = TestProject.nodeDefinitions.find((pDef) => pDef.id === pDefinitionId);
-    if (!lDefinition) {
-        throw new Error(`No project node definition with id "${pDefinitionId}"`);
-    }
-    return pFunction.newNode(lDefinition, { x: 0, y: 0, width: 6, height: 4 });
-};
+import { PotatnoHelper } from '../helper/potatno-helper.ts';
+import { TestProject } from '../helper/test-project.ts';
 
 Deno.test('PotatnoDocumentFunction.constructor()', async (pContext) => {
     await pContext.step('Stores id', () => {
@@ -140,7 +117,7 @@ Deno.test('PotatnoDocumentFunction.constructor()', async (pContext) => {
 Deno.test('PotatnoDocumentFunction.id', async (pContext) => {
     await pContext.step('Returns the provided id', () => {
         // Setup. Process.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
         expect(lFunction.id).toBe('calc-instance-1');
@@ -150,7 +127,7 @@ Deno.test('PotatnoDocumentFunction.id', async (pContext) => {
 Deno.test('PotatnoDocumentFunction.definitionId', async (pContext) => {
     await pContext.step('Returns the provided definition id', () => {
         // Setup. Process.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
         expect(lFunction.definitionId).toBe(TestProject.entryPoint.id);
@@ -160,7 +137,7 @@ Deno.test('PotatnoDocumentFunction.definitionId', async (pContext) => {
 Deno.test('PotatnoDocumentFunction.document', async (pContext) => {
     await pContext.step('Returns the provided document', () => {
         // Setup. Process.
-        const { document, function: lFunction } = lSetupCalculatorDocument();
+        const { document, function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
         expect(lFunction.document).toBe(document);
@@ -170,7 +147,7 @@ Deno.test('PotatnoDocumentFunction.document', async (pContext) => {
 Deno.test('PotatnoDocumentFunction.project', async (pContext) => {
     await pContext.step('Returns the provided project', () => {
         // Setup. Process.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
         expect(lFunction.project).toBe(TestProject);
@@ -180,7 +157,7 @@ Deno.test('PotatnoDocumentFunction.project', async (pContext) => {
 Deno.test('PotatnoDocumentFunction.label', async (pContext) => {
     await pContext.step('Getter returns the constructor value', () => {
         // Setup. Process.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
         expect(lFunction.label).toBe(TestProject.entryPoint.label);
@@ -188,7 +165,7 @@ Deno.test('PotatnoDocumentFunction.label', async (pContext) => {
 
     await pContext.step('Setter updates the label', () => {
         // Setup.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
         lFunction.label = 'renamed';
@@ -201,7 +178,7 @@ Deno.test('PotatnoDocumentFunction.label', async (pContext) => {
 Deno.test('PotatnoDocumentFunction.isSystem', async (pContext) => {
     await pContext.step('Returns true for system function', () => {
         // Setup. Process.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
         expect(lFunction.isSystem).toBe(true);
@@ -237,7 +214,7 @@ Deno.test('PotatnoDocumentFunction.nodes', async (pContext) => {
 
     await pContext.step('Contains added nodes', () => {
         // Setup. Process.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation. Entry + Exit were added by the helper.
         expect(lFunction.nodes.size).toBe(2);
@@ -245,7 +222,7 @@ Deno.test('PotatnoDocumentFunction.nodes', async (pContext) => {
 
     await pContext.step('Does not contain removed nodes', () => {
         // Setup.
-        const { function: lFunction, defaultEntry } = lSetupCalculatorDocument();
+        const { function: lFunction, defaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
         lFunction.removeNode(defaultEntry);
@@ -258,7 +235,7 @@ Deno.test('PotatnoDocumentFunction.nodes', async (pContext) => {
 Deno.test('PotatnoDocumentFunction.imports', async (pContext) => {
     await pContext.step('Empty after construction', () => {
         // Setup. Process.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
         expect(lFunction.imports.length).toBe(0);
@@ -266,7 +243,7 @@ Deno.test('PotatnoDocumentFunction.imports', async (pContext) => {
 
     await pContext.step('Contains added imports', () => {
         // Setup.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
         lFunction.addImport('A');
@@ -280,7 +257,7 @@ Deno.test('PotatnoDocumentFunction.imports', async (pContext) => {
 Deno.test('PotatnoDocumentFunction.inputs', async (pContext) => {
     await pContext.step('Empty after construction', () => {
         // Setup. Process.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
         expect(lFunction.inputs.length).toBe(0);
@@ -288,7 +265,7 @@ Deno.test('PotatnoDocumentFunction.inputs', async (pContext) => {
 
     await pContext.step('Contains added input ports in insertion order', () => {
         // Setup.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
         lFunction.addInput({ label: 'first', dataType: 'number' as never });
@@ -302,7 +279,7 @@ Deno.test('PotatnoDocumentFunction.inputs', async (pContext) => {
 Deno.test('PotatnoDocumentFunction.outputs', async (pContext) => {
     await pContext.step('Empty after construction', () => {
         // Setup. Process.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
         expect(lFunction.outputs.length).toBe(0);
@@ -310,7 +287,7 @@ Deno.test('PotatnoDocumentFunction.outputs', async (pContext) => {
 
     await pContext.step('Contains added output ports in insertion order', () => {
         // Setup.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
         lFunction.addOutput({ label: 'first', dataType: 'number' as never });
@@ -324,7 +301,7 @@ Deno.test('PotatnoDocumentFunction.outputs', async (pContext) => {
 Deno.test('PotatnoDocumentFunction.nodeDefinitions', async (pContext) => {
     await pContext.step('Returns document definitions when the function definition has no dynamic provider', () => {
         // Setup. Process.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation. At minimum the project's added definitions are present.
         expect(lFunction.nodeDefinitions.length).toBeGreaterThan(0);
@@ -334,7 +311,7 @@ Deno.test('PotatnoDocumentFunction.nodeDefinitions', async (pContext) => {
         // Setup. Helper functions in TestProject have no dynamic provider in
         // the fixture; assert that the calculator's available definitions are a
         // superset of the project's static node definitions.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
         const lProjectIds: Set<string> = new Set(TestProject.nodeDefinitions.map((pDef) => pDef.id));
 
         // Process.
@@ -350,7 +327,7 @@ Deno.test('PotatnoDocumentFunction.nodeDefinitions', async (pContext) => {
 Deno.test('PotatnoDocumentFunction.addImport()', async (pContext) => {
     await pContext.step('Adds a new import', () => {
         // Setup.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
         lFunction.addImport('Math');
@@ -361,7 +338,7 @@ Deno.test('PotatnoDocumentFunction.addImport()', async (pContext) => {
 
     await pContext.step('No-op for duplicate import', () => {
         // Setup.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
         lFunction.addImport('Math');
@@ -375,7 +352,7 @@ Deno.test('PotatnoDocumentFunction.addImport()', async (pContext) => {
 Deno.test('PotatnoDocumentFunction.removeImport()', async (pContext) => {
     await pContext.step('Removes an existing import', () => {
         // Setup.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
         lFunction.addImport('Math');
 
         // Process.
@@ -387,7 +364,7 @@ Deno.test('PotatnoDocumentFunction.removeImport()', async (pContext) => {
 
     await pContext.step('No-op for unknown import', () => {
         // Setup.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
         lFunction.addImport('Math');
 
         // Process.
@@ -401,7 +378,7 @@ Deno.test('PotatnoDocumentFunction.removeImport()', async (pContext) => {
 Deno.test('PotatnoDocumentFunction.addInput()', async (pContext) => {
     await pContext.step('Adds a new input', () => {
         // Setup.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
         lFunction.addInput({ label: 'first', dataType: 'number' as never });
@@ -412,7 +389,7 @@ Deno.test('PotatnoDocumentFunction.addInput()', async (pContext) => {
 
     await pContext.step('No-op for duplicate label', () => {
         // Setup.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
         lFunction.addInput({ label: 'first', dataType: 'number' as never });
@@ -426,7 +403,7 @@ Deno.test('PotatnoDocumentFunction.addInput()', async (pContext) => {
 Deno.test('PotatnoDocumentFunction.removeInput()', async (pContext) => {
     await pContext.step('Removes an existing input by label', () => {
         // Setup.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
         lFunction.addInput({ label: 'first', dataType: 'number' as never });
 
         // Process.
@@ -438,7 +415,7 @@ Deno.test('PotatnoDocumentFunction.removeInput()', async (pContext) => {
 
     await pContext.step('No-op for unknown label', () => {
         // Setup.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
         lFunction.addInput({ label: 'first', dataType: 'number' as never });
 
         // Process.
@@ -452,7 +429,7 @@ Deno.test('PotatnoDocumentFunction.removeInput()', async (pContext) => {
 Deno.test('PotatnoDocumentFunction.addOutput()', async (pContext) => {
     await pContext.step('Adds a new output', () => {
         // Setup.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
         lFunction.addOutput({ label: 'first', dataType: 'number' as never });
@@ -463,7 +440,7 @@ Deno.test('PotatnoDocumentFunction.addOutput()', async (pContext) => {
 
     await pContext.step('No-op for duplicate label', () => {
         // Setup.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
         lFunction.addOutput({ label: 'first', dataType: 'number' as never });
@@ -477,7 +454,7 @@ Deno.test('PotatnoDocumentFunction.addOutput()', async (pContext) => {
 Deno.test('PotatnoDocumentFunction.removeOutput()', async (pContext) => {
     await pContext.step('Removes an existing output by label', () => {
         // Setup.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
         lFunction.addOutput({ label: 'first', dataType: 'number' as never });
 
         // Process.
@@ -489,7 +466,7 @@ Deno.test('PotatnoDocumentFunction.removeOutput()', async (pContext) => {
 
     await pContext.step('No-op for unknown label', () => {
         // Setup.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
         lFunction.addOutput({ label: 'first', dataType: 'number' as never });
 
         // Process.
@@ -529,8 +506,8 @@ Deno.test('PotatnoDocumentFunction.addNode()', async (pContext) => {
 Deno.test('PotatnoDocumentFunction.newNode()', async (pContext) => {
     await pContext.step('Creates a node from the definition', () => {
         // Setup. Process.
-        const { function: lFunction } = lSetupCalculatorDocument();
-        const lAddNode = lAddProjectNode(lFunction, 'Add');
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+        const lAddNode = PotatnoHelper.addProjectNode(lFunction, 'Add');
 
         // Evaluation.
         expect(lAddNode.definitionId).toBe('Add');
@@ -538,8 +515,8 @@ Deno.test('PotatnoDocumentFunction.newNode()', async (pContext) => {
 
     await pContext.step('Mirrors definition input port ids and types', () => {
         // Setup. Process.
-        const { function: lFunction } = lSetupCalculatorDocument();
-        const lAddNode = lAddProjectNode(lFunction, 'Add');
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+        const lAddNode = PotatnoHelper.addProjectNode(lFunction, 'Add');
 
         // Evaluation. Add has two number inputs: 'a' and 'b'.
         expect(lAddNode.inputs.list.map((pPort) => pPort.definitionId)).toEqual(['a', 'b']);
@@ -548,8 +525,8 @@ Deno.test('PotatnoDocumentFunction.newNode()', async (pContext) => {
 
     await pContext.step('Mirrors definition output port ids and types', () => {
         // Setup. Process.
-        const { function: lFunction } = lSetupCalculatorDocument();
-        const lAddNode = lAddProjectNode(lFunction, 'Add');
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+        const lAddNode = PotatnoHelper.addProjectNode(lFunction, 'Add');
 
         // Evaluation.
         expect(lAddNode.outputs.list.map((pPort) => pPort.definitionId)).toEqual(['result']);
@@ -558,8 +535,8 @@ Deno.test('PotatnoDocumentFunction.newNode()', async (pContext) => {
 
     await pContext.step('Defaults isSystem to false', () => {
         // Setup. Process.
-        const { function: lFunction } = lSetupCalculatorDocument();
-        const lAddNode = lAddProjectNode(lFunction, 'Add');
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+        const lAddNode = PotatnoHelper.addProjectNode(lFunction, 'Add');
 
         // Evaluation.
         expect(lAddNode.isSystem).toBe(false);
@@ -567,7 +544,7 @@ Deno.test('PotatnoDocumentFunction.newNode()', async (pContext) => {
 
     await pContext.step('Honours pSystem=true', () => {
         // Setup.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
         const lDefinition = TestProject.nodeDefinitions.find((pDef) => pDef.id === 'Add')!;
 
         // Process.
@@ -581,7 +558,7 @@ Deno.test('PotatnoDocumentFunction.newNode()', async (pContext) => {
 Deno.test('PotatnoDocumentFunction.removeNode()', async (pContext) => {
     await pContext.step('Removes the node from the set', () => {
         // Setup.
-        const { function: lFunction, defaultEntry } = lSetupCalculatorDocument();
+        const { function: lFunction, defaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
         lFunction.removeNode(defaultEntry);
@@ -592,8 +569,8 @@ Deno.test('PotatnoDocumentFunction.removeNode()', async (pContext) => {
 
     await pContext.step('Disconnects all input port connections before removal', () => {
         // Setup. Wire an Add → Exit, then remove the Exit.
-        const { function: lFunction, defaultExit } = lSetupCalculatorDocument();
-        const lAddNode = lAddProjectNode(lFunction, 'Add');
+        const { function: lFunction, defaultExit } = PotatnoHelper.setupCalculatorDocument();
+        const lAddNode = PotatnoHelper.addProjectNode(lFunction, 'Add');
         lAddNode.outputs.value[0].connect(defaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!);
         const lAddOutput = lAddNode.outputs.value[0];
 
@@ -606,8 +583,8 @@ Deno.test('PotatnoDocumentFunction.removeNode()', async (pContext) => {
 
     await pContext.step('Disconnects all output port connections before removal', () => {
         // Setup. Wire Entry → Add, then remove the Entry.
-        const { function: lFunction, defaultEntry } = lSetupCalculatorDocument();
-        const lAddNode = lAddProjectNode(lFunction, 'Add');
+        const { function: lFunction, defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const lAddNode = PotatnoHelper.addProjectNode(lFunction, 'Add');
         defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!
             .connect(lAddNode.inputs.value.find((pPort) => pPort.definitionId === 'a')!);
         const lAddInput = lAddNode.inputs.value.find((pPort) => pPort.definitionId === 'a')!;
@@ -623,7 +600,7 @@ Deno.test('PotatnoDocumentFunction.removeNode()', async (pContext) => {
 Deno.test('PotatnoDocumentFunction.getExitNodes()', async (pContext) => {
     await pContext.step('Returns nodes whose definitionId matches an exit definition', () => {
         // Setup. Process.
-        const { function: lFunction, defaultExit } = lSetupCalculatorDocument();
+        const { function: lFunction, defaultExit } = PotatnoHelper.setupCalculatorDocument();
         const lResult = lFunction.getExitNodes();
 
         // Evaluation.
@@ -670,8 +647,8 @@ Deno.test('Error: PotatnoDocumentFunction.getExitNodes() on missing definition',
 Deno.test('PotatnoDocumentFunction - Validation', async (pContext) => {
     await pContext.step('Valid graph', () => {
         // Setup. Entry → Add → Exit, fully wired and value-supplied.
-        const { function: lFunction, defaultEntry, defaultExit } = lSetupCalculatorDocument();
-        const lAddNode = lAddProjectNode(lFunction, 'Add');
+        const { function: lFunction, defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
+        const lAddNode = PotatnoHelper.addProjectNode(lFunction, 'Add');
         defaultEntry.outputs.flow[0].connect(defaultExit.inputs.flow[0]);
         defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!
             .connect(lAddNode.inputs.value.find((pPort) => pPort.definitionId === 'a')!);
@@ -703,7 +680,7 @@ Deno.test('PotatnoDocumentFunction - Validation', async (pContext) => {
 
     await pContext.step('Flow input not connected', () => {
         // Setup. Default exit's flow input is unconnected.
-        const { function: lFunction } = lSetupCalculatorDocument();
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
         const lErrors = lFunction.validate();
@@ -714,9 +691,9 @@ Deno.test('PotatnoDocumentFunction - Validation', async (pContext) => {
 
     await pContext.step('Connection cycle in graph', () => {
         // Setup. Pass A → Pass B → Pass A (flow cycle).
-        const { function: lFunction } = lSetupCalculatorDocument();
-        const lPassA = lAddProjectNode(lFunction, 'Pass');
-        const lPassB = lAddProjectNode(lFunction, 'Pass');
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+        const lPassA = PotatnoHelper.addProjectNode(lFunction, 'Pass');
+        const lPassB = PotatnoHelper.addProjectNode(lFunction, 'Pass');
         lPassA.outputs.flow[0].connect(lPassB.inputs.flow[0]);
         lPassB.outputs.flow[0].connect(lPassA.inputs.flow[0]);
 
@@ -729,10 +706,10 @@ Deno.test('PotatnoDocumentFunction - Validation', async (pContext) => {
 
     await pContext.step('Node reachable from multiple entry nodes', () => {
         // Setup. Place both Default and X10 entries plus a shared downstream Pass node.
-        const { function: lFunction, defaultEntry } = lSetupCalculatorDocument();
+        const { function: lFunction, defaultEntry } = PotatnoHelper.setupCalculatorDocument();
         const lNodes = TestProject.entryPoint.getNodeDefinitions(lFunction);
         const lX10Entry = lFunction.newNode(lNodes.entry[1], { x: 0, y: 8, width: 6, height: 4 }, true);
-        const lSharedPass = lAddProjectNode(lFunction, 'Pass');
+        const lSharedPass = PotatnoHelper.addProjectNode(lFunction, 'Pass');
         defaultEntry.outputs.flow[0].connect(lSharedPass.inputs.flow[0]);
         lX10Entry.outputs.flow[0].connect(lSharedPass.inputs.flow[0]);
 
@@ -745,9 +722,9 @@ Deno.test('PotatnoDocumentFunction - Validation', async (pContext) => {
 
     await pContext.step('Validation errors include item references', () => {
         // Setup. Build a graph with a connection cycle so we can assert on item identity.
-        const { function: lFunction } = lSetupCalculatorDocument();
-        const lPassA = lAddProjectNode(lFunction, 'Pass');
-        const lPassB = lAddProjectNode(lFunction, 'Pass');
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+        const lPassA = PotatnoHelper.addProjectNode(lFunction, 'Pass');
+        const lPassB = PotatnoHelper.addProjectNode(lFunction, 'Pass');
         lPassA.outputs.flow[0].connect(lPassB.inputs.flow[0]);
         lPassB.outputs.flow[0].connect(lPassA.inputs.flow[0]);
 

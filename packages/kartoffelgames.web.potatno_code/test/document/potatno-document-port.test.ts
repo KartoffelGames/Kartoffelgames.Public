@@ -1,44 +1,12 @@
 import { expect } from '@kartoffelgames/core-test';
-import { PotatnoDocumentFunction } from '../../source/document/potatno-document-function.ts';
-import { PotatnoDocumentNode } from '../../source/document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../source/document/potatno-document-port.ts';
-import { PotatnoDocument } from '../../source/document/potatno-document.ts';
-import { TestProject } from '../test-project.ts';
-
-const lSetupCalculatorDocument = () => {
-    // Read the entry function definition from the project.
-    const lEntryDefinition = TestProject.entryPoint;
-
-    // Build a document and the entry function instance.
-    const lDocument: PotatnoDocument<typeof TestProject> = new PotatnoDocument(TestProject);
-    const lFunction: PotatnoDocumentFunction<typeof TestProject> = lDocument.newFunction({
-        definitionId: lEntryDefinition.id,
-        id: 'calc-instance-1',
-        label: lEntryDefinition.label,
-        isSystem: true
-    });
-
-    // Resolve the Default entry / exit node definitions from the function definition.
-    const lNodes = lEntryDefinition.getNodeDefinitions(lFunction);
-    const lDefaultEntry = lFunction.newNode(lNodes.entry[0], { x: 0, y: 0, width: 6, height: 4 }, true);
-    const lDefaultExit = lFunction.newNode(lNodes.exit[0], { x: 12, y: 0, width: 6, height: 4 }, true);
-
-    return { document: lDocument, function: lFunction, defaultEntry: lDefaultEntry, defaultExit: lDefaultExit };
-};
-
-// Look up a definition from the project by id and place it on the function.
-const lAddProjectNode = (pFunction: PotatnoDocumentFunction<typeof TestProject>, pDefinitionId: string): PotatnoDocumentNode<typeof TestProject> => {
-    const lDefinition = TestProject.nodeDefinitions.find((pDef) => pDef.id === pDefinitionId);
-    if (!lDefinition) {
-        throw new Error(`No project node definition with id "${pDefinitionId}"`);
-    }
-    return pFunction.newNode(lDefinition, { x: 0, y: 0, width: 6, height: 4 });
-};
+import { PotatnoHelper } from '../helper/potatno-helper.ts';
+import { TestProject } from '../helper/test-project.ts';
 
 Deno.test('PotatnoDocumentPort.constructor()', async (pContext) => {
     await pContext.step('Construct flow input', () => {
         // Setup. Process.
-        const { defaultExit } = lSetupCalculatorDocument();
+        const { defaultExit } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultExit.inputs.flow[0];
 
         // Evaluation.
@@ -48,7 +16,7 @@ Deno.test('PotatnoDocumentPort.constructor()', async (pContext) => {
 
     await pContext.step('Construct flow output', () => {
         // Setup. Process.
-        const { defaultEntry } = lSetupCalculatorDocument();
+        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultEntry.outputs.flow[0];
 
         // Evaluation.
@@ -58,7 +26,7 @@ Deno.test('PotatnoDocumentPort.constructor()', async (pContext) => {
 
     await pContext.step('Construct value input', () => {
         // Setup. Process.
-        const { defaultExit } = lSetupCalculatorDocument();
+        const { defaultExit } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultExit.inputs.value[0];
 
         // Evaluation.
@@ -68,7 +36,7 @@ Deno.test('PotatnoDocumentPort.constructor()', async (pContext) => {
 
     await pContext.step('Construct value output', () => {
         // Setup. Process.
-        const { defaultEntry } = lSetupCalculatorDocument();
+        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultEntry.outputs.value[0];
 
         // Evaluation.
@@ -79,7 +47,7 @@ Deno.test('PotatnoDocumentPort.constructor()', async (pContext) => {
     await pContext.step('Direct value seeded from project type default for non-generic value ports', () => {
         // Setup. Process. The exit's `result` input is a number value port; the
         // project's number type defaults to ['0'].
-        const { defaultExit } = lSetupCalculatorDocument();
+        const { defaultExit } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultExit.inputs.value[0];
 
         // Evaluation.
@@ -89,7 +57,7 @@ Deno.test('PotatnoDocumentPort.constructor()', async (pContext) => {
 
     await pContext.step('Direct value empty for flow ports', () => {
         // Setup. Process.
-        const { defaultEntry } = lSetupCalculatorDocument();
+        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultEntry.outputs.flow[0];
 
         // Evaluation.
@@ -98,8 +66,8 @@ Deno.test('PotatnoDocumentPort.constructor()', async (pContext) => {
 
     await pContext.step('Direct value empty for generic value ports', () => {
         // Setup. Process. The Pick node's `a` input is `<T>` - a generic value port.
-        const { function: lFunction } = lSetupCalculatorDocument();
-        const lPickNode = lAddProjectNode(lFunction, 'Pick');
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+        const lPickNode = PotatnoHelper.addProjectNode(lFunction, 'Pick');
         const lPort = lPickNode.inputs.value.find((pPort) => pPort.definitionId === 'a')!;
 
         // Evaluation.
@@ -109,7 +77,7 @@ Deno.test('PotatnoDocumentPort.constructor()', async (pContext) => {
     await pContext.step('Error', async (pContext) => {
         await pContext.step('Flow port with data type', () => {
             // Setup.
-            const { document: lDocument, defaultEntry } = lSetupCalculatorDocument();
+            const { document: lDocument, defaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
             // Process.
             const lAction = (): void => {
@@ -125,7 +93,7 @@ Deno.test('PotatnoDocumentPort.constructor()', async (pContext) => {
 
         await pContext.step('Value port without data type', () => {
             // Setup.
-            const { document: lDocument, defaultEntry } = lSetupCalculatorDocument();
+            const { document: lDocument, defaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
             // Process.
             const lAction = (): void => {
@@ -144,7 +112,7 @@ Deno.test('PotatnoDocumentPort.constructor()', async (pContext) => {
 Deno.test('PotatnoDocumentPort.label', async (pContext) => {
     await pContext.step('Getter returns constructor value', () => {
         // Setup. Process. The Default Entry's `a` output port has label `a`.
-        const { defaultEntry } = lSetupCalculatorDocument();
+        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!;
 
         // Evaluation.
@@ -153,7 +121,7 @@ Deno.test('PotatnoDocumentPort.label', async (pContext) => {
 
     await pContext.step('Setter updates label', () => {
         // Setup.
-        const { defaultEntry } = lSetupCalculatorDocument();
+        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultEntry.outputs.value[0];
 
         // Process.
@@ -167,7 +135,7 @@ Deno.test('PotatnoDocumentPort.label', async (pContext) => {
 Deno.test('PotatnoDocumentPort.definitionId', async (pContext) => {
     await pContext.step('Returns provided id', () => {
         // Setup.
-        const { defaultEntry } = lSetupCalculatorDocument();
+        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!;
 
         // Process.
@@ -181,7 +149,7 @@ Deno.test('PotatnoDocumentPort.definitionId', async (pContext) => {
 Deno.test('PotatnoDocumentPort.direction', async (pContext) => {
     await pContext.step("Returns 'input' for input port", () => {
         // Setup. Process.
-        const { defaultExit } = lSetupCalculatorDocument();
+        const { defaultExit } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultExit.inputs.value[0];
 
         // Evaluation.
@@ -190,7 +158,7 @@ Deno.test('PotatnoDocumentPort.direction', async (pContext) => {
 
     await pContext.step("Returns 'output' for output port", () => {
         // Setup. Process.
-        const { defaultEntry } = lSetupCalculatorDocument();
+        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultEntry.outputs.value[0];
 
         // Evaluation.
@@ -201,7 +169,7 @@ Deno.test('PotatnoDocumentPort.direction', async (pContext) => {
 Deno.test('PotatnoDocumentPort.portType', async (pContext) => {
     await pContext.step("Returns 'flow' for flow ports", () => {
         // Setup. Process.
-        const { defaultEntry } = lSetupCalculatorDocument();
+        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultEntry.outputs.flow[0];
 
         // Evaluation.
@@ -210,7 +178,7 @@ Deno.test('PotatnoDocumentPort.portType', async (pContext) => {
 
     await pContext.step("Returns 'value' for value ports", () => {
         // Setup. Process.
-        const { defaultEntry } = lSetupCalculatorDocument();
+        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultEntry.outputs.value[0];
 
         // Evaluation.
@@ -221,7 +189,7 @@ Deno.test('PotatnoDocumentPort.portType', async (pContext) => {
 Deno.test('PotatnoDocumentPort.node', async (pContext) => {
     await pContext.step('Returns the owning node', () => {
         // Setup. Process.
-        const { defaultEntry } = lSetupCalculatorDocument();
+        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultEntry.outputs.value[0];
 
         // Evaluation.
@@ -232,7 +200,7 @@ Deno.test('PotatnoDocumentPort.node', async (pContext) => {
 Deno.test('PotatnoDocumentPort.document', async (pContext) => {
     await pContext.step('Returns the owning document', () => {
         // Setup. Process.
-        const { document, defaultEntry } = lSetupCalculatorDocument();
+        const { document, defaultEntry } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultEntry.outputs.value[0];
 
         // Evaluation.
@@ -243,7 +211,7 @@ Deno.test('PotatnoDocumentPort.document', async (pContext) => {
 Deno.test('PotatnoDocumentPort.project', async (pContext) => {
     await pContext.step('Returns the owning project', () => {
         // Setup. Process.
-        const { defaultEntry } = lSetupCalculatorDocument();
+        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultEntry.outputs.value[0];
 
         // Evaluation.
@@ -254,7 +222,7 @@ Deno.test('PotatnoDocumentPort.project', async (pContext) => {
 Deno.test('PotatnoDocumentPort.dataType', async (pContext) => {
     await pContext.step('Returns the configured data type', () => {
         // Setup. Process.
-        const { defaultEntry } = lSetupCalculatorDocument();
+        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultEntry.outputs.value[0];
 
         // Evaluation.
@@ -263,7 +231,7 @@ Deno.test('PotatnoDocumentPort.dataType', async (pContext) => {
 
     await pContext.step('Returns empty string when none (flow port)', () => {
         // Setup. Process.
-        const { defaultEntry } = lSetupCalculatorDocument();
+        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultEntry.outputs.flow[0];
 
         // Evaluation.
@@ -274,7 +242,7 @@ Deno.test('PotatnoDocumentPort.dataType', async (pContext) => {
 Deno.test('PotatnoDocumentPort.directValue', async (pContext) => {
     await pContext.step('Reflects seeded default', () => {
         // Setup. Process.
-        const { defaultExit } = lSetupCalculatorDocument();
+        const { defaultExit } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultExit.inputs.value[0];
 
         // Evaluation.
@@ -283,7 +251,7 @@ Deno.test('PotatnoDocumentPort.directValue', async (pContext) => {
 
     await pContext.step('Reflects set value', () => {
         // Setup.
-        const { defaultExit } = lSetupCalculatorDocument();
+        const { defaultExit } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultExit.inputs.value[0];
 
         // Process.
@@ -297,7 +265,7 @@ Deno.test('PotatnoDocumentPort.directValue', async (pContext) => {
 Deno.test('PotatnoDocumentPort.connectedPorts', async (pContext) => {
     await pContext.step('Empty after construction', () => {
         // Setup. Process.
-        const { defaultEntry } = lSetupCalculatorDocument();
+        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultEntry.outputs.flow[0];
 
         // Evaluation.
@@ -306,7 +274,7 @@ Deno.test('PotatnoDocumentPort.connectedPorts', async (pContext) => {
 
     await pContext.step('Contains the peer after connect()', () => {
         // Setup.
-        const { defaultEntry, defaultExit } = lSetupCalculatorDocument();
+        const { defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
         const lSource = defaultEntry.outputs.flow[0];
         const lTarget = defaultExit.inputs.flow[0];
 
@@ -319,7 +287,7 @@ Deno.test('PotatnoDocumentPort.connectedPorts', async (pContext) => {
 
     await pContext.step('Does not contain the peer after disconnect()', () => {
         // Setup.
-        const { defaultEntry, defaultExit } = lSetupCalculatorDocument();
+        const { defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
         const lSource = defaultEntry.outputs.flow[0];
         const lTarget = defaultExit.inputs.flow[0];
         lSource.connect(lTarget);
@@ -335,7 +303,7 @@ Deno.test('PotatnoDocumentPort.connectedPorts', async (pContext) => {
 Deno.test('PotatnoDocumentPort.connect()', async (pContext) => {
     await pContext.step('Connects an output value to an input value of matching type', () => {
         // Setup.
-        const { defaultEntry, defaultExit } = lSetupCalculatorDocument();
+        const { defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
         const lSource = defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!;
         const lTarget = defaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!;
 
@@ -349,7 +317,7 @@ Deno.test('PotatnoDocumentPort.connect()', async (pContext) => {
 
     await pContext.step('Connects flow output to flow input', () => {
         // Setup.
-        const { defaultEntry, defaultExit } = lSetupCalculatorDocument();
+        const { defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
         const lSource = defaultEntry.outputs.flow[0];
         const lTarget = defaultExit.inputs.flow[0];
 
@@ -362,7 +330,7 @@ Deno.test('PotatnoDocumentPort.connect()', async (pContext) => {
 
     await pContext.step('Bidirectional - both ports list each other after a single call', () => {
         // Setup.
-        const { defaultEntry, defaultExit } = lSetupCalculatorDocument();
+        const { defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
         const lSource = defaultEntry.outputs.flow[0];
         const lTarget = defaultExit.inputs.flow[0];
 
@@ -376,9 +344,9 @@ Deno.test('PotatnoDocumentPort.connect()', async (pContext) => {
 
     await pContext.step('Flow input allows multiple incoming connections', () => {
         // Setup. Two Pass nodes both feeding into the exit's flow input.
-        const { function: lFunction, defaultExit } = lSetupCalculatorDocument();
-        const lPassOne = lAddProjectNode(lFunction, 'Pass');
-        const lPassTwo = lAddProjectNode(lFunction, 'Pass');
+        const { function: lFunction, defaultExit } = PotatnoHelper.setupCalculatorDocument();
+        const lPassOne = PotatnoHelper.addProjectNode(lFunction, 'Pass');
+        const lPassTwo = PotatnoHelper.addProjectNode(lFunction, 'Pass');
         const lExitFlow = defaultExit.inputs.flow[0];
 
         // Process.
@@ -391,9 +359,9 @@ Deno.test('PotatnoDocumentPort.connect()', async (pContext) => {
 
     await pContext.step('Value output allows multiple outgoing connections', () => {
         // Setup. Entry's `a` output fanning into two Add nodes.
-        const { function: lFunction, defaultEntry } = lSetupCalculatorDocument();
-        const lAddOne = lAddProjectNode(lFunction, 'Add');
-        const lAddTwo = lAddProjectNode(lFunction, 'Add');
+        const { function: lFunction, defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const lAddOne = PotatnoHelper.addProjectNode(lFunction, 'Add');
+        const lAddTwo = PotatnoHelper.addProjectNode(lFunction, 'Add');
         const lSourceValue = defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!;
 
         // Process.
@@ -406,9 +374,9 @@ Deno.test('PotatnoDocumentPort.connect()', async (pContext) => {
 
     await pContext.step('Flow output replaces an existing connection when a second is added (1-export rule)', () => {
         // Setup. Two Pass nodes downstream of a single flow output.
-        const { function: lFunction, defaultEntry } = lSetupCalculatorDocument();
-        const lPassOne = lAddProjectNode(lFunction, 'Pass');
-        const lPassTwo = lAddProjectNode(lFunction, 'Pass');
+        const { function: lFunction, defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const lPassOne = PotatnoHelper.addProjectNode(lFunction, 'Pass');
+        const lPassTwo = PotatnoHelper.addProjectNode(lFunction, 'Pass');
         const lSourceFlow = defaultEntry.outputs.flow[0];
 
         // Process.
@@ -422,9 +390,9 @@ Deno.test('PotatnoDocumentPort.connect()', async (pContext) => {
 
     await pContext.step('Value input replaces an existing connection when a second is added (1-import rule)', () => {
         // Setup. Two Add outputs feeding the same value input.
-        const { function: lFunction, defaultExit } = lSetupCalculatorDocument();
-        const lAddOne = lAddProjectNode(lFunction, 'Add');
-        const lAddTwo = lAddProjectNode(lFunction, 'Add');
+        const { function: lFunction, defaultExit } = PotatnoHelper.setupCalculatorDocument();
+        const lAddOne = PotatnoHelper.addProjectNode(lFunction, 'Add');
+        const lAddTwo = PotatnoHelper.addProjectNode(lFunction, 'Add');
         const lTargetInput = defaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!;
 
         // Process.
@@ -438,7 +406,7 @@ Deno.test('PotatnoDocumentPort.connect()', async (pContext) => {
 
     await pContext.step('Idempotent for an already-connected pair', () => {
         // Setup.
-        const { defaultEntry, defaultExit } = lSetupCalculatorDocument();
+        const { defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
         const lSource = defaultEntry.outputs.flow[0];
         const lTarget = defaultExit.inputs.flow[0];
         lSource.connect(lTarget);
@@ -453,7 +421,7 @@ Deno.test('PotatnoDocumentPort.connect()', async (pContext) => {
     await pContext.step('Error', async (pContext) => {
         await pContext.step('Mismatched port types', () => {
             // Setup.
-            const { defaultEntry, defaultExit } = lSetupCalculatorDocument();
+            const { defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
             const lFlowOutput = defaultEntry.outputs.flow[0];
             const lValueInput = defaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!;
 
@@ -469,7 +437,7 @@ Deno.test('PotatnoDocumentPort.connect()', async (pContext) => {
 
         await pContext.step('Same direction', () => {
             // Setup. Two value-output ports on the same node (Entry has a and b).
-            const { defaultEntry } = lSetupCalculatorDocument();
+            const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
             const lA = defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!;
             const lB = defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'b')!;
 
@@ -488,7 +456,7 @@ Deno.test('PotatnoDocumentPort.connect()', async (pContext) => {
 Deno.test('PotatnoDocumentPort.disconnect()', async (pContext) => {
     await pContext.step('Removes a connection', () => {
         // Setup.
-        const { defaultEntry, defaultExit } = lSetupCalculatorDocument();
+        const { defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
         const lSource = defaultEntry.outputs.flow[0];
         const lTarget = defaultExit.inputs.flow[0];
         lSource.connect(lTarget);
@@ -502,7 +470,7 @@ Deno.test('PotatnoDocumentPort.disconnect()', async (pContext) => {
 
     await pContext.step('Bidirectional', () => {
         // Setup.
-        const { defaultEntry, defaultExit } = lSetupCalculatorDocument();
+        const { defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
         const lSource = defaultEntry.outputs.flow[0];
         const lTarget = defaultExit.inputs.flow[0];
         lSource.connect(lTarget);
@@ -516,7 +484,7 @@ Deno.test('PotatnoDocumentPort.disconnect()', async (pContext) => {
 
     await pContext.step('No-op when not connected', () => {
         // Setup.
-        const { defaultEntry, defaultExit } = lSetupCalculatorDocument();
+        const { defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
         const lSource = defaultEntry.outputs.flow[0];
         const lTarget = defaultExit.inputs.flow[0];
 
@@ -531,7 +499,7 @@ Deno.test('PotatnoDocumentPort.disconnect()', async (pContext) => {
 Deno.test('PotatnoDocumentPort.setDirectValue()', async (pContext) => {
     await pContext.step('Updates direct value for value port', () => {
         // Setup.
-        const { defaultExit } = lSetupCalculatorDocument();
+        const { defaultExit } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!;
 
         // Process.
@@ -543,7 +511,7 @@ Deno.test('PotatnoDocumentPort.setDirectValue()', async (pContext) => {
 
     await pContext.step('Preserves length contract by replacing in place', () => {
         // Setup.
-        const { defaultExit } = lSetupCalculatorDocument();
+        const { defaultExit } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!;
         const lReferenceArray = lPort.directValue;
 
@@ -558,7 +526,7 @@ Deno.test('PotatnoDocumentPort.setDirectValue()', async (pContext) => {
     await pContext.step('Error', async (pContext) => {
         await pContext.step('Flow port', () => {
             // Setup.
-            const { defaultExit } = lSetupCalculatorDocument();
+            const { defaultExit } = PotatnoHelper.setupCalculatorDocument();
             const lPort = defaultExit.inputs.flow[0];
 
             // Process.
@@ -572,8 +540,8 @@ Deno.test('PotatnoDocumentPort.setDirectValue()', async (pContext) => {
 
         await pContext.step('Generic port', () => {
             // Setup. Pick's `a` input is `<T>`.
-            const { function: lFunction } = lSetupCalculatorDocument();
-            const lPickNode = lAddProjectNode(lFunction, 'Pick');
+            const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+            const lPickNode = PotatnoHelper.addProjectNode(lFunction, 'Pick');
             const lPort = lPickNode.inputs.value.find((pPort) => pPort.definitionId === 'a')!;
 
             // Process.
@@ -587,7 +555,7 @@ Deno.test('PotatnoDocumentPort.setDirectValue()', async (pContext) => {
 
         await pContext.step('Length mismatch', () => {
             // Setup.
-            const { defaultExit } = lSetupCalculatorDocument();
+            const { defaultExit } = PotatnoHelper.setupCalculatorDocument();
             const lPort = defaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!;
 
             // Process.
@@ -604,7 +572,7 @@ Deno.test('PotatnoDocumentPort.setDirectValue()', async (pContext) => {
 Deno.test('PotatnoDocumentPort.resolvedDataType', async (pContext) => {
     await pContext.step('Returns same as dataType for non-generic value ports', () => {
         // Setup.
-        const { defaultEntry } = lSetupCalculatorDocument();
+        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultEntry.outputs.value[0];
 
         // Process.
@@ -616,7 +584,7 @@ Deno.test('PotatnoDocumentPort.resolvedDataType', async (pContext) => {
 
     await pContext.step('Returns empty string for flow ports', () => {
         // Setup.
-        const { defaultEntry } = lSetupCalculatorDocument();
+        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultEntry.outputs.flow[0];
 
         // Process.
@@ -628,8 +596,8 @@ Deno.test('PotatnoDocumentPort.resolvedDataType', async (pContext) => {
 
     await pContext.step('Output generic port resolves via connected input port on the same node with the same generic', () => {
         // Setup. Wire Const(number) into Pick.a; Pick.result is <T> and resolves to number.
-        const { function: lFunction, defaultEntry } = lSetupCalculatorDocument();
-        const lPickNode = lAddProjectNode(lFunction, 'Pick');
+        const { function: lFunction, defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const lPickNode = PotatnoHelper.addProjectNode(lFunction, 'Pick');
         defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!
             .connect(lPickNode.inputs.value.find((pPort) => pPort.definitionId === 'a')!);
 
@@ -642,8 +610,8 @@ Deno.test('PotatnoDocumentPort.resolvedDataType', async (pContext) => {
 
     await pContext.step('Output generic port returns the generic when no resolving input exists', () => {
         // Setup. Pick with no inputs connected.
-        const { function: lFunction } = lSetupCalculatorDocument();
-        const lPickNode = lAddProjectNode(lFunction, 'Pick');
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+        const lPickNode = PotatnoHelper.addProjectNode(lFunction, 'Pick');
 
         // Process.
         const lResult = lPickNode.outputs.value.find((pPort) => pPort.definitionId === 'result')!.resolvedDataType;
@@ -654,8 +622,8 @@ Deno.test('PotatnoDocumentPort.resolvedDataType', async (pContext) => {
 
     await pContext.step('Input generic port resolves via its connected output port', () => {
         // Setup.
-        const { function: lFunction, defaultEntry } = lSetupCalculatorDocument();
-        const lPickNode = lAddProjectNode(lFunction, 'Pick');
+        const { function: lFunction, defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const lPickNode = PotatnoHelper.addProjectNode(lFunction, 'Pick');
         const lPickAInput = lPickNode.inputs.value.find((pPort) => pPort.definitionId === 'a')!;
         defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!.connect(lPickAInput);
 
@@ -668,8 +636,8 @@ Deno.test('PotatnoDocumentPort.resolvedDataType', async (pContext) => {
 
     await pContext.step('Input generic port returns the generic when not connected', () => {
         // Setup.
-        const { function: lFunction } = lSetupCalculatorDocument();
-        const lPickNode = lAddProjectNode(lFunction, 'Pick');
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+        const lPickNode = PotatnoHelper.addProjectNode(lFunction, 'Pick');
         const lPickAInput = lPickNode.inputs.value.find((pPort) => pPort.definitionId === 'a')!;
 
         // Process.
@@ -683,7 +651,7 @@ Deno.test('PotatnoDocumentPort.resolvedDataType', async (pContext) => {
 Deno.test('PotatnoDocumentPort - Validation', async (pContext) => {
     await pContext.step('Output flow with single connection', () => {
         // Setup.
-        const { defaultEntry, defaultExit } = lSetupCalculatorDocument();
+        const { defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultEntry.outputs.flow[0];
         lPort.connect(defaultExit.inputs.flow[0]);
 
@@ -696,9 +664,9 @@ Deno.test('PotatnoDocumentPort - Validation', async (pContext) => {
 
     await pContext.step('Output flow with multiple connections', () => {
         // Setup. Force two connections by going through the port set directly.
-        const { defaultEntry, function: lFunction } = lSetupCalculatorDocument();
-        const lPassOne = lAddProjectNode(lFunction, 'Pass');
-        const lPassTwo = lAddProjectNode(lFunction, 'Pass');
+        const { defaultEntry, function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+        const lPassOne = PotatnoHelper.addProjectNode(lFunction, 'Pass');
+        const lPassTwo = PotatnoHelper.addProjectNode(lFunction, 'Pass');
         const lFlowOutput = defaultEntry.outputs.flow[0];
         // Manually push a second connection by reusing the set surfaces.
         lFlowOutput.connect(lPassOne.inputs.flow[0]);
@@ -714,8 +682,8 @@ Deno.test('PotatnoDocumentPort - Validation', async (pContext) => {
 
     await pContext.step('Output value generic resolved', () => {
         // Setup.
-        const { function: lFunction, defaultEntry } = lSetupCalculatorDocument();
-        const lPickNode = lAddProjectNode(lFunction, 'Pick');
+        const { function: lFunction, defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const lPickNode = PotatnoHelper.addProjectNode(lFunction, 'Pick');
         defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!
             .connect(lPickNode.inputs.value.find((pPort) => pPort.definitionId === 'a')!);
         defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'b')!
@@ -730,8 +698,8 @@ Deno.test('PotatnoDocumentPort - Validation', async (pContext) => {
 
     await pContext.step('Output value generic unresolved', () => {
         // Setup. Only `a` connected, `b` left unconnected — output cannot resolve `<T>`.
-        const { function: lFunction, defaultEntry } = lSetupCalculatorDocument();
-        const lPickNode = lAddProjectNode(lFunction, 'Pick');
+        const { function: lFunction, defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const lPickNode = PotatnoHelper.addProjectNode(lFunction, 'Pick');
         defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!
             .connect(lPickNode.inputs.value.find((pPort) => pPort.definitionId === 'a')!);
 
@@ -746,7 +714,7 @@ Deno.test('PotatnoDocumentPort - Validation', async (pContext) => {
 
     await pContext.step('Input flow connected', () => {
         // Setup.
-        const { defaultEntry, defaultExit } = lSetupCalculatorDocument();
+        const { defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
         defaultEntry.outputs.flow[0].connect(defaultExit.inputs.flow[0]);
 
         // Process.
@@ -758,7 +726,7 @@ Deno.test('PotatnoDocumentPort - Validation', async (pContext) => {
 
     await pContext.step('Input flow unconnected', () => {
         // Setup.
-        const { defaultExit } = lSetupCalculatorDocument();
+        const { defaultExit } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultExit.inputs.flow[0];
 
         // Process.
@@ -771,7 +739,7 @@ Deno.test('PotatnoDocumentPort - Validation', async (pContext) => {
 
     await pContext.step('Input value with single matching connection', () => {
         // Setup.
-        const { defaultEntry, defaultExit } = lSetupCalculatorDocument();
+        const { defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
         defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!
             .connect(defaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!);
 
@@ -784,8 +752,8 @@ Deno.test('PotatnoDocumentPort - Validation', async (pContext) => {
 
     await pContext.step('Input value with multiple connections', () => {
         // Setup. Force two connections by reaching past the connect() 1-import rule.
-        const { defaultEntry, defaultExit, function: lFunction } = lSetupCalculatorDocument();
-        const lAddNode = lAddProjectNode(lFunction, 'Add');
+        const { defaultEntry, defaultExit, function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+        const lAddNode = PotatnoHelper.addProjectNode(lFunction, 'Add');
         const lTarget = defaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!;
         const lFirstSource = defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!;
         const lSecondSource = lAddNode.outputs.value[0];
@@ -802,8 +770,8 @@ Deno.test('PotatnoDocumentPort - Validation', async (pContext) => {
 
     await pContext.step('Input value with type mismatch', () => {
         // Setup. Wire a Boolean-producing Greater output into a number value input.
-        const { function: lFunction, defaultEntry, defaultExit } = lSetupCalculatorDocument();
-        const lGreaterNode = lAddProjectNode(lFunction, 'Greater');
+        const { function: lFunction, defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
+        const lGreaterNode = PotatnoHelper.addProjectNode(lFunction, 'Greater');
         defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'a')!
             .connect(lGreaterNode.inputs.value.find((pPort) => pPort.definitionId === 'a')!);
         defaultEntry.outputs.value.find((pPort) => pPort.definitionId === 'b')!
@@ -821,7 +789,7 @@ Deno.test('PotatnoDocumentPort - Validation', async (pContext) => {
 
     await pContext.step('Input value unconnected', () => {
         // Setup.
-        const { defaultExit } = lSetupCalculatorDocument();
+        const { defaultExit } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!;
 
         // Process.

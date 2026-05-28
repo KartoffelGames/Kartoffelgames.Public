@@ -187,7 +187,7 @@ export type PotatnoPreviewFunctionExecutorPortTarget<TProject extends PotatnoPro
      * callback rewrites the matching `/*[valueId]*\/`-style comment into a return statement
      * so the compiled function yields this intermediate value.
      */
-    valueId: string;
+    value: string;
 };
 
 /**

@@ -95,7 +95,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      */
     private buildDocumentResult(pDocument: PotatnoDocument<TProject>, pExitNodes: Array<PotatnoDocumentNode<TProject>>, pDebug: boolean): PotatnoCodeGeneratorDocumentResult<TProject> {
         const lPassData: PotatnoCodeGeneratorPassData<TProject> = {
-            counter: { valueId: 0 },
+            counter: { valueIndex: 0 },
             debug: pDebug,
             nodeDefinitions: new Map<PotatnoDocumentFunction<TProject>, Map<string, PotatnoNodeDefinition<TProject>>>()
         };
@@ -186,7 +186,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             exitNode: pExitNode,
 
             // Copy current value ids so the current scope cant be changed outside.
-            portValueIds: new Map<PotatnoDocumentPort<TProject>, string>(lCursor.scope.valueIds)
+            portValues: new Map<PotatnoDocumentPort<TProject>, string>(lCursor.scope.values)
         });
     }
 
@@ -198,7 +198,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      */
     private createScope(pStartNode: PotatnoDocumentNode<TProject>, pStopNode: PotatnoDocumentNode<TProject> | null): PotatnoCodeGeneratorPassCursorScope<TProject> {
         return {
-            valueIds: new Map<PotatnoDocumentPort<TProject>, string>(),
+            values: new Map<PotatnoDocumentPort<TProject>, string>(),
             remaining: this.countNodeEncounter(pStartNode, pStopNode),
             codeOutput: new Array<string>()
         };
@@ -214,7 +214,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * 
      * @returns the value id or the actual value for a input port.
      */
-    private resolveValueInput(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pInputPort: PotatnoDocumentPort<TProject>): PotatnoCodeGeneratorInputPort {
+    private resolveInputValue(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pInputPort: PotatnoDocumentPort<TProject>): PotatnoCodeGeneratorInputPort {
         // Resolve the input ports connection.
         const lIncomingPort: PotatnoDocumentPort<TProject> | null = this.resolveValueConjunctions(pInputPort);
 
@@ -225,7 +225,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             }
 
             return {
-                valueId: this.mProject.types.getType(pInputPort.dataType).convert([...pInputPort.directValue]),
+                value: this.mProject.types.getType(pInputPort.dataType).convert([...pInputPort.directValue]),
                 isDirectValue: true
             };
         }
@@ -246,7 +246,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         }
 
         return {
-            valueId: this.getPortValueId(pPassData, pCursor, lIncomingPort),
+            value: this.getPortValue(pPassData, pCursor, lIncomingPort),
             isDirectValue: false
         };
     }
@@ -261,13 +261,13 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * 
      * @returns the value id for a port.
      */
-    private getPortValueId(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pPort: PotatnoDocumentPort<TProject>): string {
+    private getPortValue(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pPort: PotatnoDocumentPort<TProject>): string {
         // Allocate a fresh valueId on first encounter in this scope.
-        if (!pCursor.scope.valueIds.has(pPort)) {
-            pCursor.scope.valueIds.set(pPort, `v_${pPassData.counter.valueId++}`);
+        if (!pCursor.scope.values.has(pPort)) {
+            pCursor.scope.values.set(pPort, `v_${pPassData.counter.valueIndex++}`);
         }
 
-        return pCursor.scope.valueIds.get(pPort)!;
+        return pCursor.scope.values.get(pPort)!;
     }
 
     /**
@@ -659,14 +659,14 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         // Build the input port surfaces. Only value inputs make it into pContext.inputs.
         const lInputs: Record<string, PotatnoCodeGeneratorInputPort> = {};
         for (const lPort of pNode.inputs.value) {
-            lInputs[lPort.definitionId] = this.resolveValueInput(pPassData, pCursor, lPort);
+            lInputs[lPort.definitionId] = this.resolveInputValue(pPassData, pCursor, lPort);
         }
 
         // Build the output port surfaces. Value outputs get freshly allocated valueIds. Flow outputs get the caller-supplied inner code, defaulting to empty when the port is not present in pInnerByPort.
         const lOutputs: Record<string, PotatnoCodeGeneratorOutputPort> = {};
         for (const lPort of pNode.outputs.list) {
             lOutputs[lPort.definitionId] = {
-                valueId: this.getPortValueId(pPassData, pCursor, lPort),
+                value: this.getPortValue(pPassData, pCursor, lPort),
                 code: {
                     inner: lPort.portType === 'flow' ? (pInnerByPort[lPort.definitionId] ?? '') : ''
                 }
@@ -688,10 +688,10 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
                     return pCurrent;
                 }
 
-                return pCurrent + this.mProject.generator.hook(pNext.valueId);
+                return pCurrent + this.mProject.generator.hook(pNext.value);
             }, '');
             lNodeCode += Object.values(lOutputs).reduce((pCurrent, pNext) => {
-                return pCurrent + this.mProject.generator.hook(pNext.valueId);
+                return pCurrent + this.mProject.generator.hook(pNext.value);
             }, '');
         }
 
@@ -710,7 +710,7 @@ type PotatnoCodeGeneratorPassData<TProject extends PotatnoProject> = {
      * Monotonic source of fresh valueId strings.
      */
     counter: {
-        valueId: number;
+        valueIndex: number;
     };
 
     /**
@@ -750,7 +750,7 @@ type PotatnoCodeGeneratorPassCursorScope<TProject extends PotatnoProject> = {
     /**
      * Output ports allocated WITHIN this scope, mapped to their valueIds.
      */
-    valueIds: Map<PotatnoDocumentPort<TProject>, string>;
+    values: Map<PotatnoDocumentPort<TProject>, string>;
 
     /**
      * Refcount for each pure-value producer used in this scope.

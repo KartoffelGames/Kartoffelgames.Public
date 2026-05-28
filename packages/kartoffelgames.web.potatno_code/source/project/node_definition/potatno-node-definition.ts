@@ -187,7 +187,7 @@ export type PotatnoCodeGeneratorInputPort = {
     /**
      * The valueId or literal expression to read from this input port.
      */
-    valueId: string;
+    value: string;
 
     /**
      * Input value is a direct value.
@@ -209,7 +209,7 @@ export type PotatnoCodeGeneratorOutputPort = {
     /**
      * Variable name allocated for a value output. Empty string for flow outputs.
      */
-    valueId: string;
+    value: string;
 
     /**
      * Code attached to a flow output.

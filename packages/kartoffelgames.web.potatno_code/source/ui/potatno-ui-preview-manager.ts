@@ -319,7 +319,7 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
         const lDriver: PotatnoPreviewDriverHandle = lEntry.createDriver<TProject>({
             portTarget: {
                 documentPort: lPort,
-                valueId: lValueId
+                value: lValueId
             },
             generatorResultProvider: lProvider
         });

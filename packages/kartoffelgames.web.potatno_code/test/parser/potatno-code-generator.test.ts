@@ -539,7 +539,7 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
                     ],
                     outputs: []
                 },
-                generators: { code: (pContext): string => `END(${pContext.inputs['val'].valueId});` }
+                generators: { code: (pContext): string => `END(${pContext.inputs['val'].value});` }
             });
 
             const lLocalEntryFn = PotatnoFunctionDefinition.new(lLocalTypes, {

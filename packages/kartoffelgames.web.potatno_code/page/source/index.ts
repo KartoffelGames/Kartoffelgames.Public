@@ -98,8 +98,8 @@ const lEntryFunction = PotatnoFunctionDefinition.new(lProjectTypes, {
                         // x and y become the function parameters; the exec flow output's
                         // inner code is every node downstream of OnPixel, ending with
                         // PixelResult's `return [...]` statement.
-                        const lX: string = pContext.outputs['x'].valueId;
-                        const lY: string = pContext.outputs['y'].valueId;
+                        const lX: string = pContext.outputs['x'].value;
+                        const lY: string = pContext.outputs['y'].value;
                         return `(${lX}, ${lY}) => { ${pContext.outputs['exec'].code.inner} }`;
                     }
                 }
@@ -122,7 +122,7 @@ const lEntryFunction = PotatnoFunctionDefinition.new(lProjectTypes, {
                 },
                 generators: {
                     code: (pContext) => {
-                        return `return [${pContext.inputs["red"].valueId}, ${pContext.inputs["green"].valueId}, ${pContext.inputs["blue"].valueId}];`;
+                        return `return [${pContext.inputs["red"].value}, ${pContext.inputs["green"].value}, ${pContext.inputs["blue"].value}];`;
                     }
                 }
             }));
@@ -171,7 +171,7 @@ const lUserFunction = PotatnoFunctionDefinition.new(lProjectTypes, {
                     },
                     code: (pContext) => {
                         // Pixel coordinates
-                        return `const ${pContext.outputs["x"].valueId} = __pixel_x;\nconst ${pContext.outputs["y"].valueId} = __pixel_y;`;
+                        return `const ${pContext.outputs["x"].value} = __pixel_x;\nconst ${pContext.outputs["y"].value} = __pixel_y;`;
                     }
                 }
             }));
@@ -198,7 +198,7 @@ const lUserFunction = PotatnoFunctionDefinition.new(lProjectTypes, {
                     code: (pContext) => {
                         // Create function head.
                         const lParameters = Object.values(pContext.inputs).map((pValue) => {
-                            return pValue.valueId;
+                            return pValue.value;
                         }).join(', ');
 
                         return `(${lParameters}) => { ${pContext.outputs['exec'].code.inner} ${pContext.code} }`;
@@ -217,8 +217,8 @@ const lUserFunction = PotatnoFunctionDefinition.new(lProjectTypes, {
                 return `const ${pResult.function.label} = ${lGraph?.code ?? ''}`;
             },
             value: (pContext) => {
-                const lArgs: string = Object.values(pContext.inputs).map((pInput) => pInput.valueId).join(', ');
-                const lResultId: string = Object.values(pContext.outputs).map((pOutput) => pOutput.valueId)[0] ?? '_unused';
+                const lArgs: string = Object.values(pContext.inputs).map((pInput) => pInput.value).join(', ');
+                const lResultId: string = Object.values(pContext.outputs).map((pOutput) => pOutput.value)[0] ?? '_unused';
                 return `const ${lResultId} = ${pContext.function.definitionId}(${lArgs});`;
             }
         }
@@ -261,14 +261,14 @@ const lEntryFunctionExecutor = PotatnoPreviewFunctionExecutor.new(lProjectTypes,
         // the targeted valueId and drop anything after it; whatever follows the hook can't run
         // because the function will have already returned.
         let lNodeBody: string = pGeneratorResult.code;
-        const lHookMarker: string = `/*[${pPortTarget.valueId}]*/`;
+        const lHookMarker: string = `/*[${pPortTarget.value}]*/`;
         const lHookIndex: number = lNodeBody.indexOf(lHookMarker);
         if (lHookIndex !== -1) {
-            lNodeBody = lNodeBody.substring(0, lHookIndex) + `\nreturn ${pPortTarget.valueId};\n`;
+            lNodeBody = lNodeBody.substring(0, lHookIndex) + `\nreturn ${pPortTarget.value};\n`;
         } else {
             // Hook absent (e.g. the node's code generator didn't emit one). Append the return
             // so the per-node callable still produces a value rather than `undefined`.
-            lNodeBody += `\nreturn ${pPortTarget.valueId};\n`;
+            lNodeBody += `\nreturn ${pPortTarget.value};\n`;
         }
 
         // The per-node callable yields the port's raw value. The driver wraps it with the
@@ -392,7 +392,7 @@ lProject.addImport({ // TODO: Also create a PotatnoImportDefinition. The documen
                 ]
             },
             generators: {
-                code: (pContext) => `const ${pContext.outputs["value"].valueId} = Math.PI;`
+                code: (pContext) => `const ${pContext.outputs["value"].value} = Math.PI;`
             }
         }),
         PotatnoStaticNodeDefinition.newStaticNode({
@@ -406,7 +406,7 @@ lProject.addImport({ // TODO: Also create a PotatnoImportDefinition. The documen
                 ]
             },
             generators: {
-                code: (pContext) => `const ${pContext.outputs["value"].valueId} = Math.E;`
+                code: (pContext) => `const ${pContext.outputs["value"].value} = Math.E;`
             }
         }),
         PotatnoStaticNodeDefinition.newStaticNode({
@@ -422,7 +422,7 @@ lProject.addImport({ // TODO: Also create a PotatnoImportDefinition. The documen
                 ]
             },
             generators: {
-                code: (pContext) => `const ${pContext.outputs["result"].valueId} = Math.abs(${pContext.inputs["value"].valueId});`
+                code: (pContext) => `const ${pContext.outputs["result"].value} = Math.abs(${pContext.inputs["value"].value});`
             }
         }),
         PotatnoStaticNodeDefinition.newStaticNode({
@@ -438,7 +438,7 @@ lProject.addImport({ // TODO: Also create a PotatnoImportDefinition. The documen
                 ]
             },
             generators: {
-                code: (pContext) => `const ${pContext.outputs["result"].valueId} = Math.floor(${pContext.inputs["value"].valueId});`
+                code: (pContext) => `const ${pContext.outputs["result"].value} = Math.floor(${pContext.inputs["value"].value});`
             }
         }),
         PotatnoStaticNodeDefinition.newStaticNode({
@@ -452,7 +452,7 @@ lProject.addImport({ // TODO: Also create a PotatnoImportDefinition. The documen
                 ]
             },
             generators: {
-                code: (pContext) => `const ${pContext.outputs["result"].valueId} = Math.random();`
+                code: (pContext) => `const ${pContext.outputs["result"].value} = Math.random();`
             }
         })
     ]
@@ -473,7 +473,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].valueId} = ${pContext.inputs["a"].valueId} + ${pContext.inputs["b"].valueId};`
+        code: (pContext) => `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} + ${pContext.inputs["b"].value};`
     }
 }));
 
@@ -491,7 +491,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].valueId} = ${pContext.inputs["a"].valueId} - ${pContext.inputs["b"].valueId};`
+        code: (pContext) => `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} - ${pContext.inputs["b"].value};`
     }
 }));
 
@@ -510,8 +510,8 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
     },
     generators: {
         code: (pContext) => {
-            return `const ${pContext.outputs["result"].valueId} = ${pContext.inputs["a"].valueId} * ${pContext.inputs["b"].valueId};` +
-                `/*MULTIPLYHOOK_${pContext.outputs["result"].valueId}*/`;
+            return `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} * ${pContext.inputs["b"].value};` +
+                `/*MULTIPLYHOOK_${pContext.outputs["result"].value}*/`;
         }
     }
 }));
@@ -531,7 +531,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
     },
     generators: {
         code: (pContext) => {
-            return `const ${pContext.outputs["result"].valueId} = ${pContext.inputs["a"].valueId} / ${pContext.inputs["b"].valueId};`;
+            return `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} / ${pContext.inputs["b"].value};`;
         }
     }
 }));
@@ -550,7 +550,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].valueId} = ${pContext.inputs["a"].valueId} % ${pContext.inputs["b"].valueId};`
+        code: (pContext) => `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} % ${pContext.inputs["b"].value};`
     }
 }));
 
@@ -569,7 +569,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].valueId} = ${pContext.inputs["a"].valueId} === ${pContext.inputs["b"].valueId};`
+        code: (pContext) => `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} === ${pContext.inputs["b"].value};`
     }
 }));
 
@@ -587,7 +587,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].valueId} = ${pContext.inputs["a"].valueId} !== ${pContext.inputs["b"].valueId};`
+        code: (pContext) => `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} !== ${pContext.inputs["b"].value};`
     }
 }));
 
@@ -605,7 +605,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].valueId} = ${pContext.inputs["a"].valueId} < ${pContext.inputs["b"].valueId};`
+        code: (pContext) => `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} < ${pContext.inputs["b"].value};`
     }
 }));
 
@@ -623,7 +623,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].valueId} = ${pContext.inputs["a"].valueId} > ${pContext.inputs["b"].valueId};`
+        code: (pContext) => `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} > ${pContext.inputs["b"].value};`
     }
 }));
 
@@ -642,7 +642,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].valueId} = ${pContext.inputs["a"].valueId} && ${pContext.inputs["b"].valueId};`
+        code: (pContext) => `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} && ${pContext.inputs["b"].value};`
     }
 }));
 
@@ -660,7 +660,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].valueId} = ${pContext.inputs["a"].valueId} || ${pContext.inputs["b"].valueId};`
+        code: (pContext) => `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} || ${pContext.inputs["b"].value};`
     }
 }));
 
@@ -677,7 +677,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].valueId} = !${pContext.inputs["a"].valueId};`
+        code: (pContext) => `const ${pContext.outputs["result"].value} = !${pContext.inputs["a"].value};`
     }
 }));
 
@@ -695,7 +695,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext) => `const ${pContext.outputs["output"].valueId} = String(${pContext.inputs["input"].valueId});`
+        code: (pContext) => `const ${pContext.outputs["output"].value} = String(${pContext.inputs["input"].value});`
     }
 }));
 
@@ -712,7 +712,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext) => `const ${pContext.outputs["output"].valueId} = Number(${pContext.inputs["input"].valueId});`
+        code: (pContext) => `const ${pContext.outputs["output"].value} = Number(${pContext.inputs["input"].value});`
     }
 }));
 
@@ -729,7 +729,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext) => `const ${pContext.outputs["output"].valueId} = String(${pContext.inputs["input"].valueId});`
+        code: (pContext) => `const ${pContext.outputs["output"].value} = String(${pContext.inputs["input"].value});`
     }
 }));
 
@@ -749,7 +749,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext) => `if (${pContext.inputs["condition"].valueId}) {\n${pContext.outputs["then"].code.inner}\n} else {\n${pContext.outputs["else"].code.inner}\n}`
+        code: (pContext) => `if (${pContext.inputs["condition"].value}) {\n${pContext.outputs["then"].code.inner}\n} else {\n${pContext.outputs["else"].code.inner}\n}`
     }
 }));
 
@@ -767,7 +767,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext) => `while (${pContext.inputs["condition"].valueId}) {\n${pContext.outputs["body"].code.inner}\n}`
+        code: (pContext) => `while (${pContext.inputs["condition"].value}) {\n${pContext.outputs["body"].code.inner}\n}`
     }
 }));
 
@@ -786,7 +786,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext) => `for (let ${pContext.outputs["index"].valueId} = 0; ${pContext.outputs["index"].valueId} < ${pContext.inputs["count"].valueId}; ${pContext.outputs["index"].valueId}++) {\n${pContext.outputs["exec"].code.inner}\n}`
+        code: (pContext) => `for (let ${pContext.outputs["index"].value} = 0; ${pContext.outputs["index"].value} < ${pContext.inputs["count"].value}; ${pContext.outputs["index"].value}++) {\n${pContext.outputs["exec"].code.inner}\n}`
     }
 }));
 
@@ -800,7 +800,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         outputs: []
     },
     generators: {
-        code: ({ inputs }) => `console.log(${inputs["message"].valueId});`
+        code: ({ inputs }) => `console.log(${inputs["message"].value});`
     }
 }));
 
@@ -818,7 +818,7 @@ lProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].valueId} = ${pContext.inputs["a"].valueId} + ${pContext.inputs["b"].valueId};`
+        code: (pContext) => `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} + ${pContext.inputs["b"].value};`
     }
 }));
 

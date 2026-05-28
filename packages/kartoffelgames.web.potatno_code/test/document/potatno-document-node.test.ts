@@ -195,7 +195,7 @@ Deno.test('PotatnoDocumentNode.category', async (pContext) => {
                 ]
             },
             generators: {
-                code: (pContext): string => `const ${pContext.outputs['result'].valueId} = ${pContext.inputs['a'].valueId} + ${pContext.inputs['b'].valueId};`
+                code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} + ${pContext.inputs['b'].value};`
             }
         }));
     });

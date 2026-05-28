@@ -145,8 +145,8 @@ const gHelperFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
                         // parameter list mirrors the value outputs of this
                         // entry node (i.e. the function's inputs).
                         const lParameters: string = Object.values(pContext.outputs)
-                            .filter((pOutput) => pOutput.valueId !== '')
-                            .map((pOutput) => pOutput.valueId)
+                            .filter((pOutput) => pOutput.value !== '')
+                            .map((pOutput) => pOutput.value)
                             .join(', ');
 
                         return `(${lParameters}) => { let ${TestProjectGlobalMultiplierVariable} = 1; ${pContext.outputs['exec'].code.inner} }`;
@@ -183,7 +183,7 @@ const gHelperFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
                         // here, mirroring the Calculator behaviour.
                         const lReturnFields: string = Object.entries(pContext.inputs)
                             .filter(([lId]) => lId !== 'exec')
-                            .map(([lId, lInput]) => `${lId}: (${lInput.valueId}) * ${TestProjectGlobalMultiplierVariable}`)
+                            .map(([lId, lInput]) => `${lId}: (${lInput.value}) * ${TestProjectGlobalMultiplierVariable}`)
                             .join(', ');
 
                         return `return { ${lReturnFields} };`;
@@ -212,12 +212,12 @@ const gHelperFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
                 // port receives the corresponding field from the helper
                 // function's returned object.
                 const lArgs: string = Object.values(pContext.inputs)
-                    .map((pInput) => pInput.valueId)
+                    .map((pInput) => pInput.value)
                     .join(', ');
 
                 const lOutputEntries: Array<[string, string]> = Object.entries(pContext.outputs)
-                    .filter(([lId, lOutput]) => lId !== 'exec' && lOutput.valueId !== '')
-                    .map(([lId, lOutput]) => [lId, lOutput.valueId]);
+                    .filter(([lId, lOutput]) => lId !== 'exec' && lOutput.value !== '')
+                    .map(([lId, lOutput]) => [lId, lOutput.value]);
 
                 // No value outputs - emit a plain call statement.
                 if (lOutputEntries.length === 0) {
@@ -269,7 +269,7 @@ const gMainFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
                 },
                 generators: {
                     code: (pContext): string => {
-                        return `(${pContext.outputs['a'].valueId}, ${pContext.outputs['b'].valueId}) => { let ${TestProjectGlobalMultiplierVariable} = 1; ${pContext.outputs['exec'].code.inner} }`;
+                        return `(${pContext.outputs['a'].value}, ${pContext.outputs['b'].value}) => { let ${TestProjectGlobalMultiplierVariable} = 1; ${pContext.outputs['exec'].code.inner} }`;
                     }
                 }
             }));
@@ -293,7 +293,7 @@ const gMainFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
                 },
                 generators: {
                     code: (pContext): string => {
-                        return `(${pContext.outputs['a'].valueId}, ${pContext.outputs['b'].valueId}) => { let ${TestProjectGlobalMultiplierVariable} = 1; ${pContext.outputs['exec'].code.inner} }`;
+                        return `(${pContext.outputs['a'].value}, ${pContext.outputs['b'].value}) => { let ${TestProjectGlobalMultiplierVariable} = 1; ${pContext.outputs['exec'].code.inner} }`;
                     }
                 }
             }));
@@ -314,7 +314,7 @@ const gMainFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
                 },
                 generators: {
                     code: (pContext): string => {
-                        return `return (${pContext.inputs['result'].valueId}) * ${TestProjectGlobalMultiplierVariable};`;
+                        return `return (${pContext.inputs['result'].value}) * ${TestProjectGlobalMultiplierVariable};`;
                     }
                 }
             }));
@@ -336,7 +336,7 @@ const gMainFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
                 },
                 generators: {
                     code: (pContext): string => {
-                        return `return ((${pContext.inputs['result'].valueId}) * 10) * ${TestProjectGlobalMultiplierVariable};`;
+                        return `return ((${pContext.inputs['result'].value}) * 10) * ${TestProjectGlobalMultiplierVariable};`;
                     }
                 }
             }));
@@ -368,7 +368,7 @@ const gMainFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
                 // The main function is not callable as a node from anywhere
                 // else, so the call-site form is only emitted defensively.
                 const lArgs: string = Object.values(pContext.inputs)
-                    .map((pInput) => pInput.valueId)
+                    .map((pInput) => pInput.value)
                     .join(', ');
                 return `calculatorDefault(${lArgs})`;
             }
@@ -462,7 +462,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext): string => `const ${pContext.outputs['result'].valueId} = ${pContext.inputs['value'].valueId};`
+        code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['value'].value};`
     }
 }));
 
@@ -486,7 +486,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext): string => `const ${pContext.outputs['result'].valueId} = ${pContext.inputs['a'].valueId} + ${pContext.inputs['b'].valueId};`
+        code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} + ${pContext.inputs['b'].value};`
     }
 }));
 
@@ -504,7 +504,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext): string => `const ${pContext.outputs['result'].valueId} = ${pContext.inputs['a'].valueId} - ${pContext.inputs['b'].valueId};`
+        code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} - ${pContext.inputs['b'].value};`
     }
 }));
 
@@ -522,7 +522,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext): string => `const ${pContext.outputs['result'].valueId} = ${pContext.inputs['a'].valueId} * ${pContext.inputs['b'].valueId};`
+        code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} * ${pContext.inputs['b'].value};`
     }
 }));
 
@@ -540,7 +540,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext): string => `const ${pContext.outputs['result'].valueId} = ${pContext.inputs['a'].valueId} / ${pContext.inputs['b'].valueId};`
+        code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} / ${pContext.inputs['b'].value};`
     }
 }));
 
@@ -562,7 +562,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext): string => `const ${pContext.outputs['result'].valueId} = ${pContext.inputs['a'].valueId} === ${pContext.inputs['b'].valueId};`
+        code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} === ${pContext.inputs['b'].value};`
     }
 }));
 
@@ -580,7 +580,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext): string => `const ${pContext.outputs['result'].valueId} = ${pContext.inputs['a'].valueId} > ${pContext.inputs['b'].valueId};`
+        code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} > ${pContext.inputs['b'].value};`
     }
 }));
 
@@ -598,7 +598,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext): string => `const ${pContext.outputs['result'].valueId} = ${pContext.inputs['a'].valueId} < ${pContext.inputs['b'].valueId};`
+        code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} < ${pContext.inputs['b'].value};`
     }
 }));
 
@@ -631,10 +631,10 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
     },
     generators: {
         code: (pContext): string => {
-            const lA: string = pContext.inputs['a'].valueId;
-            const lB: string = pContext.inputs['b'].valueId;
-            const lCondition: string = pContext.inputs['condition'].valueId;
-            const lResult: string = pContext.outputs['result'].valueId;
+            const lA: string = pContext.inputs['a'].value;
+            const lB: string = pContext.inputs['b'].value;
+            const lCondition: string = pContext.inputs['condition'].value;
+            const lResult: string = pContext.outputs['result'].value;
             return `const ${lResult} = ((a, b, cond) => { if (cond) { return a; } return b; })(${lA}, ${lB}, ${lCondition});`;
         }
     }
@@ -657,7 +657,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext): string => `const ${pContext.outputs['result'].valueId} = String(${pContext.inputs['value'].valueId});`
+        code: (pContext): string => `const ${pContext.outputs['result'].value} = String(${pContext.inputs['value'].value});`
     }
 }));
 
@@ -674,7 +674,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
         ]
     },
     generators: {
-        code: (pContext): string => `const ${pContext.outputs['result'].valueId} = Number(${pContext.inputs['value'].valueId});`
+        code: (pContext): string => `const ${pContext.outputs['result'].value} = Number(${pContext.inputs['value'].value});`
     }
 }));
 
@@ -699,7 +699,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
     },
     generators: {
         code: (pContext): string => {
-            return `if (${pContext.inputs['condition'].valueId}) { ${pContext.outputs['then'].code.inner} } else { ${pContext.outputs['else'].code.inner} } ${pContext.code.next}`;
+            return `if (${pContext.inputs['condition'].value}) { ${pContext.outputs['then'].code.inner} } else { ${pContext.outputs['else'].code.inner} } ${pContext.code.next}`;
         }
     }
 }));
@@ -730,7 +730,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
     },
     generators: {
         code: (pContext): string => {
-            return `${TestProjectGlobalMultiplierVariable} = ${pContext.inputs['value'].valueId}; ${pContext.outputs['exec'].code.inner}`;
+            return `${TestProjectGlobalMultiplierVariable} = ${pContext.inputs['value'].value}; ${pContext.outputs['exec'].code.inner}`;
         }
     }
 }));
@@ -761,7 +761,7 @@ TestProject.addImport({
                 ]
             },
             generators: {
-                code: (pContext): string => `const ${pContext.outputs['result'].valueId} = ${pContext.inputs['a'].valueId} >= ${pContext.inputs['b'].valueId};`
+                code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} >= ${pContext.inputs['b'].value};`
             }
         }),
         PotatnoStaticNodeDefinition.newStaticNode({
@@ -778,7 +778,7 @@ TestProject.addImport({
                 ]
             },
             generators: {
-                code: (pContext): string => `const ${pContext.outputs['result'].valueId} = ${pContext.inputs['a'].valueId} <= ${pContext.inputs['b'].valueId};`
+                code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} <= ${pContext.inputs['b'].value};`
             }
         })
     ]

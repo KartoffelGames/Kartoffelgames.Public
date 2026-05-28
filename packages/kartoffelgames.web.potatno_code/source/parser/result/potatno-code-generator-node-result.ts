@@ -62,7 +62,7 @@ export class PotatnoCodeGeneratorNodeResult<TProject extends PotatnoProject> {
         this.mDependencies = [...pParameter.dependencies];
         this.mEntryNode = pParameter.entryNode;
         this.mExitNode = pParameter.exitNode;
-        this.mPorts = pParameter.portValueIds;
+        this.mPorts = pParameter.portValues;
     }
 }
 
@@ -93,7 +93,7 @@ export type PotatnoCodeGeneratorGraphConstructorParameter<TProject extends Potat
     /**
      * Mapping from each port emitted in this pass to its allocated valueId.
      */
-    portValueIds: Map<PotatnoDocumentPort<TProject>, string>;
+    portValues: Map<PotatnoDocumentPort<TProject>, string>;
 };
 
 /**
@@ -109,5 +109,5 @@ export type PotatnoCodeGeneratorNodeResultPort = {
      * The valueId or literal expression resolved for this port in the
      * current generation pass.
      */
-    valueId: string;
+    value: string;
 };

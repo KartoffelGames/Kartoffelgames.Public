@@ -409,44 +409,19 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         return lRemaining;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     /**
-     * Iterative backward walk through a flow chain.
+     * Iterative backward walk through a flow chain. Collects the emitted code for its frame and returns it as an emit result.
+     * Each node's code is merged in front of the code collected so far, keeping the result in execution order.
      *
-     * Collects the emitted code for its frame in a local accumulator and returns it as an emit result.
-     * Each emitted node's code is merged in front of the code collected so far, so the result stays in execution order.
-     * Sub-walks at merge points get their own fresh scope (value ids / refcounts) and return their own emit result.
-     *
-     * Tracks the "active port" of the current cursor — the cursor's flow output port that leads (through any flow-conjunction chain) to the previously-emitted node downstream. That port becomes the single inner-by-port entry for the cursor's emit, so each flow output only receives the collected code if it is genuinely the path the walk came from. Other flow outputs default to empty inner.
+     * The "active port" is the cursor's flow output that leads to the already-emitted downstream node; only that port receives the collected code as its inner. Sub-walks at merges run in a fresh scope and return their own emit result.
      *
      * @param pPassData - Shared pass state.
      * @param pCursor - The pass cursor.
      * @param pStartNode - The node the walk begins at.
-     * @param pStopBefore - When set, the walk stops as soon as the cursor would advance to this node. The node is NOT emitted. Null at top-level so the walk runs until reaching a real entry node (CASE A).
-     * @param pInitialActivePort - The active flow output port of pStartNode at the start of the walk. Used by sub-walks at merges to thread the merge-fan-in port into the predecessor's first emit. Null at top-level (the start node is a true exit with no downstream).
+     * @param pStopBefore - Stop before advancing to this node (not emitted). Null at top-level.
+     * @param pInitialActivePort - The start node's active flow output. Null at top-level.
      *
-     * @returns the emit result for the walked chain: the collected code and the last (most upstream) node generated.
+     * @returns the collected code and the last (most upstream) node generated.
      */
     private walkBackward(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pStartNode: PotatnoDocumentNode<TProject>, pStopBefore: PotatnoDocumentNode<TProject> | null, pInitialActivePort: PotatnoDocumentPort<TProject> | null = null): PotatnoCodeGeneratorEmitResult<TProject> {
         let lCursorNode: PotatnoDocumentNode<TProject> | null = pStartNode;
@@ -514,13 +489,10 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
     }
 
     /**
-     * Find which flow output port on the branch point ultimately reaches pFirstNode (the first node executed after the branch point in the branch).
-     *
-     * Walks every flow output of the branch point forward through flow-conjunction reroutes and returns the first output whose downstream resolves to pFirstNode.
-     * Flow conjunctions have exactly one flow output that connects to exactly one downstream flow input, so the forward walk through them is unambiguous.
+     * Find which of the branch point's flow outputs reaches pFirstNode, walking forward through any flow-conjunction reroutes.
      *
      * @param pBranchPoint - The branch point node.
-     * @param pFirstNode - The first execution-order node after the branch point in some branch (or null when the sub-walk emitted nothing).
+     * @param pFirstNode - The first execution-order node after the branch point in a branch (null when the sub-walk emitted nothing).
      */
     private findBranchOutputPortForFirstNode(pBranchPoint: PotatnoDocumentNode<TProject>, pFirstNode: PotatnoDocumentNode<TProject> | null): PotatnoDocumentPort<TProject> | null {
         if (!pFirstNode) {
@@ -550,10 +522,8 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
 
 
     /**
-     * Tagged backward BFS to find the branch point that ultimately fans into pMergeNode.
-     *
-     * Each fan-in predecessor seeds its own tag. Tags propagate as the search walks backward through flow inputs.
-     * The first node whose accumulated tag set covers all branches is the branch point.
+     * Find the branch point that fans into pMergeNode via a tagged backward BFS: each fan-in predecessor seeds a tag,
+     * tags propagate backward, and the first node accumulating every tag is the branch point.
      *
      * @param pMergeNode - A node with ≥2 flow-input connections.
      */
@@ -602,20 +572,17 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
     }
 
     /**
-     * Handle CASE C of the backward walk.
-     *
-     * Emits the merge node (folding the already-collected downstream code into its inner) and uses that emit as the branch point's `next`,
-     * runs one sub-walk per fan-in branch into a fresh scope, then emits the branch point with the per-branch inner strings and the shared next string pre-filled in its pContext.
-     * The branch point is the last node emitted in this call; its emit result is returned so the outer walkBackward can track it as lLastGeneratedNode and compute the next cursor.
+     * Handle CASE C of the backward walk: emit the merge node (folding the downstream code into its inner) and use that as the branch point's `next`,
+     * sub-walk each fan-in branch in a fresh scope, then emit the branch point with the per-branch inner code and shared next.
      *
      * @param pPassData - Shared pass state.
      * @param pCursor - The pass cursor.
      * @param pMergeNode - The cursor node that triggered the merge handling.
-     * @param pMergeActivePort - The merge node's flow output port leading to the already-emitted downstream (null when the merge has no active downstream — e.g. top-of-walk merge).
-     * @param pPredecessorPorts - The merge's fan-in predecessor source ports (already conjunction-resolved).
-     * @param pDownstreamCode - The code collected downstream of the merge node so far. Folded into the merge node's active-port inner.
+     * @param pMergeActivePort - The merge's flow output leading to the already-emitted downstream (null for a top-of-walk merge).
+     * @param pPredecessorPorts - The merge's fan-in predecessor source ports (conjunction-resolved).
+     * @param pDownstreamCode - The code collected downstream of the merge node, folded into the merge node's inner.
      *
-     * @returns The emit result of the branch point (= last node emitted in this call) and the code collected in this call.
+     * @returns the branch point's emit result (= last node emitted here and the code collected in this call).
      */
     private handleMergeAndAdvance(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pMergeNode: PotatnoDocumentNode<TProject>, pMergeActivePort: PotatnoDocumentPort<TProject> | null, pPredecessorPorts: Array<PotatnoDocumentPort<TProject>>, pDownstreamCode: Array<string>): PotatnoCodeGeneratorEmitResult<TProject> {
         // 1. Emit the merge node first. It's a regular flow node with its own code.
@@ -656,14 +623,11 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
     }
 
     /**
-     * Build the node's PotatnoNodeDefinitionGeneratorContext, call its code generator, and return the produced code as an emit result.
+     * Build the node's generator context, run its code generator, and return the produced code as an emit result.
      *
-     * Callers are required to supply pInnerByPort. Every flow output port either gets the inner string explicitly mapped via pInnerByPort, or defaults to empty.
-     * Callers that want the "downstream code" as a flow output's inner must compute it themselves and pass it in — emitNode never reads any buffer for the default.
-     *
-     * Pure-value producers feeding this node's value inputs are emitted here too; their code is folded into the returned emit result (this node's own code first, producers after) so the caller only has to merge a single result.
-     *
-     * Function-call nodes (PotatnoFunctionNodeDefinition) record their target document function in the cursor's dependency list (not generated here).
+     * Each flow output gets its inner string from pInnerByPort (empty when absent); emitNode never reads a buffer itself.
+     * Pure-value producers feeding this node's value inputs are emitted here and folded into the result (producers first, then this node's code).
+     * Function-call nodes record their target function in the cursor's dependency list.
      *
      * @param pPassData - Shared pass state.
      * @param pCursor - The pass cursor.
@@ -671,7 +635,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * @param pInnerByPort - Inner code per flow output port id.
      * @param pNextCode - Merged-tail code for a branching node. Defaults to empty.
      *
-     * @returns the emit result holding this node's code (plus any value-producer code) and the node itself as last-generated.
+     * @returns this node's emit result (its code plus any value-producer code) with the node as last-generated.
      */
     private emitNode(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pNode: PotatnoDocumentNode<TProject>, pInnerByPort: Record<string, string>, pNextCode?: string): PotatnoCodeGeneratorEmitResult<TProject> {
         // Initialize missing node definition lookups for this function.
@@ -740,13 +704,13 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             }, '');
         }
 
-        // Assemble this node's contribution in execution order: the node's own code first, then its pure-value
-        // producers in reverse input order. This mirrors the previous unshift-per-producer behaviour, where each
-        // later producer was prepended ahead of the earlier ones and the node's own code was prepended last (landing in front).
-        const lCodeOutput: Array<string> = [lNodeCode];
-        for (let lIndex: number = lProducerEmits.length - 1; lIndex >= 0; lIndex--) {
-            lCodeOutput.push(...lProducerEmits[lIndex]!.codeOutput);
+        // Assemble this node's contribution in execution order: each value producer's code first (in input order),
+        // then this node's own code, so a produced value is always defined before the node that consumes it.
+        const lCodeOutput: Array<string> = new Array<string>();
+        for (const lProducerEmit of lProducerEmits) {
+            lCodeOutput.push(...lProducerEmit.codeOutput);
         }
+        lCodeOutput.push(lNodeCode);
 
         return {
             codeOutput: lCodeOutput,

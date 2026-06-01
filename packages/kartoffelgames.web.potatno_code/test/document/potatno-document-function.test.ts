@@ -734,6 +734,6 @@ Deno.test('PotatnoDocumentFunction - Validation', async (pContext) => {
         // Evaluation. The cycle error's item is one of the two pass nodes.
         const lCycleError = lErrors.find((pError) => /is part of a connection cycle/.test(pError.message));
         expect(lCycleError).toBeDefined();
-        expect([lPassA, lPassB]).toContain(lCycleError!.item as any);
+        expect([lPassA.definitionId, lPassB.definitionId]).toContain(lCycleError!.item.definitionId);
     });
 });

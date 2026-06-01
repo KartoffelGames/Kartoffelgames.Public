@@ -689,16 +689,8 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             code: { next: pNextCode ?? '' }
         });
 
-        // Attach each input and output value id as hook after the generated code. But only on debug :)
+        // Attach each output value id as hook after the generated code. But only on debug :)
         if (pPassData.debug) {
-            lNodeCode += Object.values(lInputs).reduce((pCurrent, pNext) => {
-                // Skip output of ports with no read value id.
-                if (pNext.isDirectValue) {
-                    return pCurrent;
-                }
-
-                return pCurrent + this.mProject.generator.values.hook(pNext.value);
-            }, '');
             lNodeCode += Object.values(lOutputs).reduce((pCurrent, pNext) => {
                 return pCurrent + this.mProject.generator.values.hook(pNext.value);
             }, '');

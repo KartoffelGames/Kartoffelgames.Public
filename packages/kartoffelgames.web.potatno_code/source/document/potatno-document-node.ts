@@ -287,7 +287,7 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
             }
 
             // Connected and portType changed — cannot safely replace; add validation error and keep as-is.
-            if (lExistingPort.connectedPorts.size > 0 || lPortTypeChanged) {
+            if (lExistingPort.connectedPorts.size > 0 && lPortTypeChanged) {
                 lErrors.push(new PotatnoDocumentPortValidationError(`Port "${lExistingPort.label}" on node "${this.mLabel}" has a changed type.`, lExistingPort));
                 continue;
             }

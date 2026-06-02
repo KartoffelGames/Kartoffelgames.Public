@@ -66,6 +66,12 @@ $if(this.nodeData) {
                         open
                     </button>
                 }
+                $if(this.canPreview) {
+                    <button [className]="this.previewToggleClass"
+                            (click)="this.onPreviewToggle($event)">
+                        👁
+                    </button>
+                }
             </div>
             <div class="node-body">
                 <div class="node-inputs">

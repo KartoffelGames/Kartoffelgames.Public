@@ -9,7 +9,7 @@ import { PotatnoClipboard } from '../../potatno-clipboard.ts';
 import { NodeCategoryMeta } from '../../node/node-category.enum.ts';
 import { buildAvailableNodeDefinitionEntries, type PotatnoNodeDefinitionListEntry, type PotatnoUiProject } from '../../potatno-node-definition-list.ts';
 import type { PotatnoUiPreviewManager } from '../../potatno-ui-preview-manager.ts';
-import type { CommentChangeDetail, DirectValueChangeDetail, OpenFunctionDetail, ResizeStartDetail } from '../potatno_node_component/potatno-node-component.ts';
+import type { CommentChangeDetail, DirectValueChangeDetail, OpenFunctionDetail, PreviewToggleDetail, ResizeStartDetail } from '../potatno_node_component/potatno-node-component.ts';
 import type { PortInteractionDetail } from '../potatno_port/potatno-port.ts';
 import graphCss from './potatno-node-graph.css' with { type: 'text' };
 import graphTemplate from './potatno-node-graph.html' with { type: 'text' };
@@ -669,6 +669,30 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
                 ? lDefinitionId.slice('USERFUNCTION_'.length)
                 : lDefinitionId
         });
+    }
+
+    /**
+     * Toggle a node's inline output preview. Enables it by resolving a default port/display
+     * binding from the preview manager, or clears the opt-in when it is already active. Emits a
+     * preview-affecting graph change so the editor rebuilds the preview drivers.
+     *
+     * @param pEvent - Component event containing the node to toggle.
+     */
+    public onNodePreviewToggle(pEvent: ComponentEvent<PreviewToggleDetail>): void {
+        const lNode: PotatnoDocumentNode<PotatnoUiProject> = pEvent.value.node;
+
+        if (lNode.preview) {
+            lNode.preview = null;
+        } else {
+            const lBinding = this.mPreviewManager?.resolveNodePreviewBinding(lNode) ?? null;
+            if (!lBinding) {
+                return;
+            }
+            lNode.preview = lBinding;
+        }
+
+        this.invalidateGraphContent();
+        this.emitGraphChange(true);
     }
 
     /**

@@ -112,6 +112,9 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     @PwbComponentEvent('port-element-ready')
     private accessor mPortElementReady!: ComponentEventEmitter<PortInteractionDetail>;
 
+    @PwbComponentEvent('preview-toggle')
+    private accessor mPreviewToggle!: ComponentEventEmitter<PreviewToggleDetail>;
+
     // ── Computed template properties ────────────────────────────────────
 
     /**
@@ -167,6 +170,27 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
             return false;
         }
         return this.isFunction && !this.nodeData.isSystem;
+    }
+
+    /**
+     * Whether the node exposes a value output and can therefore host an inline preview.
+     */
+    public get canPreview(): boolean {
+        return (this.nodeData?.outputs.value.length ?? 0) > 0;
+    }
+
+    /**
+     * Whether this node currently has an active inline preview opt-in.
+     */
+    public get isPreviewActive(): boolean {
+        return this.nodeData?.preview != null;
+    }
+
+    /**
+     * CSS class for the preview toggle button, reflecting its active state.
+     */
+    public get previewToggleClass(): string {
+        return this.isPreviewActive ? 'preview-toggle-btn active' : 'preview-toggle-btn';
     }
 
     /**
@@ -323,6 +347,18 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     }
 
     /**
+     * Handle click on the preview toggle button. Asks the graph to enable or disable this node's
+     * inline output preview.
+     */
+    public onPreviewToggle(pEvent: MouseEvent): void {
+        pEvent.stopPropagation();
+        if (!this.nodeData) {
+            return;
+        }
+        this.mPreviewToggle.dispatchEvent({ node: this.nodeData });
+    }
+
+    /**
      * Handle click on the open-function button.
      */
     public onOpenFunction(pEvent: MouseEvent): void {
@@ -374,6 +410,10 @@ export type NodeDragStartDetail = {
 };
 
 export type OpenFunctionDetail = {
+    node: PotatnoDocumentNode<PotatnoUiProject>;
+};
+
+export type PreviewToggleDetail = {
     node: PotatnoDocumentNode<PotatnoUiProject>;
 };
 

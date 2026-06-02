@@ -1,5 +1,5 @@
 import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
-import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
+import type { PotatnoDocumentNode, PotatnoDocumentNodePreviewBinding } from '../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import type { PotatnoDocument } from '../document/potatno-document.ts';
 import { PotatnoCodeGenerator } from '../parser/potatno-code-generator.ts';
@@ -112,6 +112,46 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
      */
     public getNodeDescriptor(pNode: PotatnoDocumentNode<TProject>): PotatnoUiPreviewDescriptor<TProject> | null {
         return this.mNodeDescriptors.get(pNode) ?? null;
+    }
+
+    /**
+     * Resolve a default per-node preview opt-in for the given node, or `null` when the node has
+     * nothing previewable. Picks the node's first value output port and the first registered
+     * display whose executor wraps the node's owning function definition. The UI uses this to
+     * toggle a node's inline preview on without the user choosing a port/display by hand.
+     *
+     * @param pNode - The node to resolve a preview binding for.
+     *
+     * @returns A `{ portId, displayId }` opt-in, or `null` when the node can not be previewed.
+     */
+    public resolveNodePreviewBinding(pNode: PotatnoDocumentNode<TProject>): PotatnoDocumentNodePreviewBinding | null {
+        // A node is previewable only when it exposes a value output to read.
+        const lValuePort: PotatnoDocumentPort<TProject> | undefined = pNode.outputs.value[0];
+        if (!lValuePort) {
+            return null;
+        }
+
+        // No registry → nothing to bind against.
+        const lRegistry = this.mProject.previews;
+        if (!lRegistry) {
+            return null;
+        }
+
+        // The bound display's executor must wrap the node's owning function definition, mirroring
+        // the match `tryBuildNodeDescriptor` performs when it actually builds the driver.
+        const lOwningFunctionDefinition = this.mProject.getFunction(pNode.function.definitionId);
+        if (!lOwningFunctionDefinition) {
+            return null;
+        }
+
+        const lEntry: PotatnoPreviewEntry<TProject['types']> | undefined = lRegistry.entries.find((pEntry) => {
+            return pEntry.executorFunctionId === lOwningFunctionDefinition.id;
+        });
+        if (!lEntry) {
+            return null;
+        }
+
+        return { portId: lValuePort.definitionId, displayId: lEntry.displayId };
     }
 
     /**

@@ -1,5 +1,5 @@
 import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
-import type { PotatnoCodeGeneratorFunctionResult } from '../parser/result/potatno-code-generator-function-result.ts';
+import type { PotatnoCodeGeneratorDocumentResult } from '../parser/result/potatno-code-generator-document-result.ts';
 import type { PotatnoCodeGeneratorNodeResult } from '../parser/result/potatno-code-generator-node-result.ts';
 import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
@@ -91,14 +91,17 @@ export class PotatnoPreviewFunctionExecutor<TTypes extends PotatnoProjectTypesDe
     /**
      * Compile the function-level generator result into a per-iteration callable.
      *
-     * Invokes `buildFunction` with a slim build context, the full function-result code (with
-     * all hooks intact), and returns the callable the display will invoke per iteration.
+     * Invokes `buildFunction` with a slim build context, the full document-result code (the entry
+     * function plus every dependency function declaration, with all hooks intact), and returns the
+     * callable the display will invoke per iteration. The whole document is passed — not just the
+     * entry function — so a preview of a graph that calls user functions has those declarations in
+     * scope.
      *
-     * @param pGeneratorResult - The function-level code generator result.
+     * @param pGeneratorResult - The document-level code generator result.
      *
      * @returns A callable accepting one iteration's parameter object and returning the function's natural `TResult`.
      */
-    public compileFunction(pGeneratorResult: PotatnoCodeGeneratorFunctionResult<PotatnoProject<TTypes>>): PotatnoPreviewFunctionExecutorCallable<TParams, TResult> {
+    public compileFunction(pGeneratorResult: PotatnoCodeGeneratorDocumentResult<PotatnoProject<TTypes>>): PotatnoPreviewFunctionExecutorCallable<TParams, TResult> {
         return this.mBuildFunction(this.buildContext(), pGeneratorResult);
     }
 
@@ -199,7 +202,7 @@ export type PotatnoPreviewFunctionExecutorPortTarget<TProject extends PotatnoPro
  * @typeParam TParams - The iteration parameter shape.
  * @typeParam TResult - The function-level result shape.
  */
-export type PotatnoPreviewFunctionExecutorBuildFunction<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Readonly<Record<string, unknown>>, TResult> = (pExecutor: PotatnoPreviewFunctionExecutorBuildContext<TTypes, TParams>, pGeneratorResult: PotatnoCodeGeneratorFunctionResult<PotatnoProject<TTypes>>) => PotatnoPreviewFunctionExecutorCallable<TParams, TResult>;
+export type PotatnoPreviewFunctionExecutorBuildFunction<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Readonly<Record<string, unknown>>, TResult> = (pExecutor: PotatnoPreviewFunctionExecutorBuildContext<TTypes, TParams>, pGeneratorResult: PotatnoCodeGeneratorDocumentResult<PotatnoProject<TTypes>>) => PotatnoPreviewFunctionExecutorCallable<TParams, TResult>;
 
 /**
  * Per-node build callback. Called once per cache miss for per-node previews to compile the

@@ -3,7 +3,7 @@ import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import type { PotatnoDocument } from '../document/potatno-document.ts';
 import { PotatnoCodeGenerator } from '../parser/potatno-code-generator.ts';
-import type { PotatnoCodeGeneratorFunctionResult } from '../parser/result/potatno-code-generator-function-result.ts';
+import type { PotatnoCodeGeneratorDocumentResult } from '../parser/result/potatno-code-generator-document-result.ts';
 import type { PotatnoCodeGeneratorNodeResult } from '../parser/result/potatno-code-generator-node-result.ts';
 import type { PotatnoPreviewDriverHandle } from '../preview/potatno-preview-driver.ts';
 import type { PotatnoPreviewEntry } from '../preview/potatno-preview.ts';
@@ -256,10 +256,12 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
      */
     private buildFunctionDescriptor(pEntry: PotatnoPreviewEntry<TProject['types']>, pDocumentFunction: PotatnoDocumentFunction<TProject>): PotatnoUiPreviewDescriptor<TProject> {
         // Each driver gets its own generator-result provider closure so the executor's build
-        // callback always sees the latest code-gen output for the bound function.
-        const lProvider = (): PotatnoCodeGeneratorFunctionResult<TProject> => {
+        // callback always sees the latest code-gen output for the bound function. The whole
+        // document result is handed over (not just the entry point) so dependency function
+        // declarations are in scope when the previewed graph calls user functions.
+        const lProvider = (): PotatnoCodeGeneratorDocumentResult<TProject> => {
             const lGenerator: PotatnoCodeGenerator<TProject> = new PotatnoCodeGenerator<TProject>(this.mProject);
-            return lGenerator.generateFunction(pDocumentFunction, true).entryPoint;
+            return lGenerator.generateFunction(pDocumentFunction, true);
         };
 
         // Delegate construction to the entry's factory via its function-level branch. The

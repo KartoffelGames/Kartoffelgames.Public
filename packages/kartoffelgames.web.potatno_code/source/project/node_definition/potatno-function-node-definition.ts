@@ -36,6 +36,15 @@ export class PotatnoFunctionNodeDefinition<TProject extends PotatnoProject> exte
     }
 
     /**
+     * Live display label, read fresh from the source function so renaming the function updates
+     * every surface that shows this definition (the node selector, placed call nodes). The base
+     * class captured the label at construction time, which froze it at the function's initial name.
+     */
+    public override get label(): string {
+        return this.mFunction.label;
+    }
+
+    /**
      * Constructor.
      *
      * @param pFunction - The document function this definition mirrors.

@@ -1,4 +1,4 @@
-import type { PotatnoCodeGeneratorFunctionResult } from '../parser/result/potatno-code-generator-function-result.ts';
+import type { PotatnoCodeGeneratorDocumentResult } from '../parser/result/potatno-code-generator-document-result.ts';
 import type { PotatnoCodeGeneratorNodeResult } from '../parser/result/potatno-code-generator-node-result.ts';
 import type { PotatnoProjectGenericType, PotatnoProjectType } from '../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
@@ -32,7 +32,7 @@ export class PotatnoPreviewDriver<TProject extends PotatnoProject, TElement exte
     private readonly mDisplay: PotatnoPreviewDisplay<TProject['types'], TElement, TParams, TResult, PotatnoPreviewDisplayTypeAdapter<TProject['types'], TResult>>;
     private mElement: TElement | null;
     private readonly mExecutor: PotatnoPreviewFunctionExecutor<TProject['types'], TParams, TResult>;
-    private readonly mFunctionResultProvider: (() => PotatnoCodeGeneratorFunctionResult<TProject>) | null;
+    private readonly mFunctionResultProvider: (() => PotatnoCodeGeneratorDocumentResult<TProject>) | null;
     private readonly mNodeResultProvider: (() => PotatnoCodeGeneratorNodeResult<TProject>) | null;
     private readonly mPortTarget: PotatnoPreviewFunctionExecutorPortTarget<TProject> | null;
 
@@ -78,7 +78,7 @@ export class PotatnoPreviewDriver<TProject extends PotatnoProject, TElement exte
         this.mElement = null;
 
         // The constructor parameter is a discriminated union: function-level drivers ship a
-        // function-result provider with `portTarget: null`; per-node drivers ship a node-result
+        // document-result provider with `portTarget: null`; per-node drivers ship a node-result
         // provider with a non-null port target. Splitting them onto separate fields lets the
         // render path call the right one without a runtime cast on the result type.
         if (pParameters.portTarget === null) {
@@ -136,7 +136,7 @@ export class PotatnoPreviewDriver<TProject extends PotatnoProject, TElement exte
      * @returns The composed iteration callable to cache and hand to `display.update`.
      */
     private compileCachedCallable(): PotatnoPreviewFunctionExecutorCallable<TParams, TResult> {
-        // Function-level: pipe the function-result code through the executor's function build.
+        // Function-level: pipe the document-result code through the executor's function build.
         // The function build returns a TResult-typed callable; no adapter wrap needed.
         if (this.mFunctionResultProvider !== null) {
             return this.mExecutor.compileFunction(this.mFunctionResultProvider());
@@ -166,7 +166,7 @@ export class PotatnoPreviewDriver<TProject extends PotatnoProject, TElement exte
  * Constructor parameters for PotatnoPreviewDriver.
  *
  * The parameter is a discriminated union on `portTarget` so the generator-result provider's
- * return type is precise per case: function-level drivers get a function-result provider,
+ * return type is precise per case: function-level drivers get a document-result provider,
  * per-node drivers get a node-result provider. No casting is required inside the driver to
  * narrow between the two.
  *
@@ -202,13 +202,13 @@ export type PotatnoPreviewDriverConstructorBaseParameter<TProject extends Potatn
 
 /**
  * Function-level branch of the discriminated constructor parameter. `portTarget` is `null`
- * and the provider yields function-result code.
+ * and the provider yields document-result code.
  *
  * @typeParam TProject - The project type the driver targets.
  */
 export type PotatnoPreviewDriverConstructorFunctionParameter<TProject extends PotatnoProject> = {
     readonly portTarget: null;
-    readonly generatorResultProvider: () => PotatnoCodeGeneratorFunctionResult<TProject>;
+    readonly generatorResultProvider: () => PotatnoCodeGeneratorDocumentResult<TProject>;
 };
 
 /**

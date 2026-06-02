@@ -170,8 +170,13 @@ const lUserFunction = PotatnoFunctionDefinition.new(lProjectTypes, {
                         inputs: () => { }
                     },
                     code: (pContext) => {
-                        // Pixel coordinates
-                        return `const ${pContext.outputs["x"].value} = __pixel_x;\nconst ${pContext.outputs["y"].value} = __pixel_y;`;
+                        // Wrap the downstream flow in an arrow function whose parameters are this
+                        // entry node's value outputs (i.e. the function inputs).
+                        const lParameters: string = Object.entries(pContext.outputs)
+                            .filter(([lId]) => lId !== 'exec')
+                            .map(([, lOutput]) => lOutput.value)
+                            .join(', ');
+                        return `(${lParameters}) => { ${pContext.outputs['exec'].code.inner} }`;
                     }
                 }
             }));
@@ -196,12 +201,12 @@ const lUserFunction = PotatnoFunctionDefinition.new(lProjectTypes, {
                         }
                     },
                     code: (pContext) => {
-                        // Create function head.
-                        const lParameters = Object.values(pContext.inputs).map((pValue) => {
-                            return pValue.value;
-                        }).join(', ');
-
-                        return `(${lParameters}) => { ${pContext.outputs['exec'].code.inner} ${pContext.code} }`;
+                        // Emit a single return of an object keyed by output label (this node's
+                        // value inputs are the function outputs). Flow inputs are not in pContext.inputs.
+                        const lReturnFields: string = Object.entries(pContext.inputs)
+                            .map(([lId, lInput]) => `${lId}: (${lInput.value})`)
+                            .join(', ');
+                        return `return { ${lReturnFields} };`;
                     }
                 }
             }));
@@ -210,16 +215,32 @@ const lUserFunction = PotatnoFunctionDefinition.new(lProjectTypes, {
     generator: {
         code: {
             body: (pResult) => {
-                // Look up the HelperFunctionEntry graph. The graph's entryPorts
-                // give the parameter list and the exitPorts give the return values.
+                // Declare the function as `const <fnName> = (params) => { ...; return {...}; };`.
+                // The name is a JS-safe identifier derived from the function instance id so
+                // multiple instances of the same definition never collide.
+                const lFunctionName: string = `__fn_${pResult.function.id.replaceAll('-', '_')}`;
                 const lGraph = pResult.graphResultOf('HelperFunctionEntry');
-
-                return `const ${pResult.function.label} = ${lGraph?.code ?? ''}`;
+                return `const ${lFunctionName} = ${lGraph?.code ?? '() => ({})'};`;
             },
             value: (pContext) => {
-                const lArgs: string = Object.values(pContext.inputs).map((pInput) => pInput.value).join(', ');
-                const lResultId: string = Object.values(pContext.outputs).map((pOutput) => pOutput.value)[0] ?? '_unused';
-                return `const ${lResultId} = ${pContext.function.definitionId}(${lArgs});`;
+                // Call site: invoke the function and destructure its returned object into the call
+                // node's value outputs (keyed by output label). The trailing flow output continues
+                // the surrounding graph.
+                const lFunctionName: string = `__fn_${pContext.function.id.replaceAll('-', '_')}`;
+                const lArgs: string = Object.entries(pContext.inputs)
+                    .map(([, lInput]) => lInput.value)
+                    .join(', ');
+                const lDestructure: string = Object.entries(pContext.outputs)
+                    .filter(([lId]) => lId !== 'Output')
+                    .map(([lId, lOutput]) => `${lId}: ${lOutput.value}`)
+                    .join(', ');
+                const lFlowNext: string = pContext.outputs['Output']?.code.inner ?? '';
+
+                if (lDestructure === '') {
+                    return `${lFunctionName}(${lArgs}); ${lFlowNext}`;
+                }
+
+                return `const { ${lDestructure} } = ${lFunctionName}(${lArgs}); ${lFlowNext}`;
             }
         }
     }
@@ -363,10 +384,13 @@ const lProject = PotatnoProject.new({
         code: (pContext) => {
             let lCodeResult: string = '';
 
-            // Append dependecies first.
+            // Append dependency function declarations first so the entry point can call them.
             for (const lDependency of pContext.dependencies) {
                 lCodeResult += `${lDependency.code}\n`;
             }
+
+            // Then the entry point function declaration itself.
+            lCodeResult += pContext.entryPoint.code;
 
             return lCodeResult;
         },

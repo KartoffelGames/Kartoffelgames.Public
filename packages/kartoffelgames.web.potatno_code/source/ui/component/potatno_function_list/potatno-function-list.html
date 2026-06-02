@@ -3,11 +3,11 @@
         <div [className]="this.getEntryClass(this.fn.id)" (click)="this.onFunctionSelect(this.fn.id)">
             <span class="function-icon">f</span>
             $if(this.fn.system) {
-                <span class="lock-icon">&#128274;</span>
+                <span class="lock-icon">🔒</span>
             }
             <span class="function-name">{{this.fn.label}}</span>
             $if(!this.fn.system) {
-                <button class="delete-button" (click)="this.onFunctionDelete($event, this.fn.id)">&#10005;</button>
+                <button class="delete-button" (click)="this.onFunctionDelete($event, this.fn.id)">✕</button>
             }
         </div>
     }

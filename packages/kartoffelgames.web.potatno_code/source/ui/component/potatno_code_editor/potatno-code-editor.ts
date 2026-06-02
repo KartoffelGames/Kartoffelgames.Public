@@ -1,9 +1,9 @@
 import { ComponentState, PwbChild, PwbComponent, PwbExport, type ComponentEvent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
-import { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
+import { PotatnoDocumentFunction, type PotatnoDocumentFunctionConstructorParameter } from '../../../document/potatno-document-function.ts';
 import { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoDocument } from '../../../document/potatno-document.ts';
-import { PotatnoFunctionDefinitionNodes, PotatnoFunctionDefinitionStatics } from '../../../project/potatno-function-definition.ts';
+import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionNodes, PotatnoFunctionDefinitionStatics } from '../../../project/potatno-function-definition.ts';
 import { PotatnoDeserializer } from '../../../serialization/potatno-deserializer.ts';
 import type { PotatnoCodeFileSerializationResult } from '../../../serialization/potatno-serialization.type.ts';
 import { PotatnoSerializer } from '../../../serialization/potatno-serializer.ts';
@@ -378,29 +378,25 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
             return;
         }
 
-        const lFunctionDefinition = lProject.userFunctions.get(lDefinitionId);
+        const lFunctionDefinition: PotatnoFunctionDefinition<TProject> | undefined = lProject.userFunctions.get(lDefinitionId);
         if (!lFunctionDefinition) {
             return;
         }
 
-        const lFunction: PotatnoDocumentFunction<TProject> = new PotatnoDocumentFunction(lProject, lFile, {
+        // Build the function with its default entry/exit nodes (same as the system function).
+        const lFunction: PotatnoDocumentFunction<TProject> = this.createDocumentFunction(lFile, lProject, lFunctionDefinition, {
             definitionId: lFunctionDefinition.id,
             id: crypto.randomUUID(),
             isSystem: false,
             label: `Function ${lFile.functions.size}`
         });
 
-        if ((lFunctionDefinition.statics & PotatnoFunctionDefinitionStatics.imports) !== 0) {
-            for (const lImport of lProject.imports) {
-                lFunction.addImport(lImport.label);
-            }
-        }
-
         lFile.addFunction(lFunction);
         this.mActiveFunctionId = lFunction.id;
         this.scheduleHistorySnapshot();
         this.rebuildCachedData();
-        this.refreshGraph();    }
+        this.refreshGraph();
+    }
 
     /**
      * Delete a function from the document.
@@ -448,34 +444,28 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
         }
 
         if (lData.inputs !== undefined) {
-            const lExistingNames: Set<string> = new Set<string>(lActiveFunction.inputs.map((pPort) => pPort.label));
-            const lNewNames: Set<string> = new Set<string>(lData.inputs.map((pPort) => pPort.name));
+            // Rebuild the input list from the panel's desired state so renames and type changes
+            // apply, not just additions and removals. The entry/exit node ports are resynced
+            // against the regenerated definition during validation in rebuildCachedData.
             for (const lPort of [...lActiveFunction.inputs]) {
-                if (!lNewNames.has(lPort.label)) {
-                    lActiveFunction.removeInput(lPort);
-                }
+                lActiveFunction.removeInput(lPort);
             }
 
             for (const lPortData of lData.inputs) {
-                if (!lExistingNames.has(lPortData.name)) {
-                    lActiveFunction.addInput({ dataType: lPortData.type, label: lPortData.name });
-                }
-            }        }
+                lActiveFunction.addInput({ dataType: lPortData.type, label: lPortData.name });
+            }
+        }
 
         if (lData.outputs !== undefined) {
-            const lExistingNames: Set<string> = new Set<string>(lActiveFunction.outputs.map((pPort) => pPort.label));
-            const lNewNames: Set<string> = new Set<string>(lData.outputs.map((pPort) => pPort.name));
+            // Rebuild the output list from the panel's desired state (see inputs above).
             for (const lPort of [...lActiveFunction.outputs]) {
-                if (!lNewNames.has(lPort.label)) {
-                    lActiveFunction.removeOutput(lPort);
-                }
+                lActiveFunction.removeOutput(lPort);
             }
 
             for (const lPortData of lData.outputs) {
-                if (!lExistingNames.has(lPortData.name)) {
-                    lActiveFunction.addOutput({ dataType: lPortData.type, label: lPortData.name });
-                }
-            }        }
+                lActiveFunction.addOutput({ dataType: lPortData.type, label: lPortData.name });
+            }
+        }
 
         if (lData.imports !== undefined) {
             const lExistingImports: Set<string> = new Set<string>(lActiveFunction.imports);
@@ -490,7 +480,8 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
                 if (!lExistingImports.has(lImport)) {
                     lActiveFunction.addImport(lImport);
                 }
-            }        }
+            }
+        }
 
         this.scheduleHistorySnapshot();
         this.rebuildCachedData();
@@ -685,37 +676,54 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      * @param pProject - Project that owns the entry point definition.
      */
     private initializeMainFunctions(pFile: PotatnoDocument<TProject>, pProject: TProject): void {
-        const lEntryPoint = pProject.entryPoint;
+        const lEntryPoint: PotatnoFunctionDefinition<TProject> | undefined = pProject.entryPoint;
         if (!lEntryPoint) {
             return;
         }
 
-        const lFunction: PotatnoDocumentFunction<TProject> = new PotatnoDocumentFunction(pProject, pFile, {
+        const lFunction: PotatnoDocumentFunction<TProject> = this.createDocumentFunction(pFile, pProject, lEntryPoint, {
             definitionId: lEntryPoint.id,
             id: crypto.randomUUID(),
             isSystem: true,
             label: 'Main'
         });
 
-        const lFunctionNodes: PotatnoFunctionDefinitionNodes<TProject> = lEntryPoint.getNodeDefinitions(lFunction);
+        pFile.addFunction(lFunction);
+    }
 
-        // Create entry nodes. Stack them vertically staring at 0,0 position with with 20 height units between them. 
-        lFunctionNodes.entry.forEach((pStaticDefinition, pIndex) => {
-            lFunction.newNode(pStaticDefinition, { height: 4, width: 10, x: 0, y: pIndex * 20 }, true);
+    /**
+     * Build a document function instance from a definition: places its default entry and exit
+     * nodes and enables the project imports when the definition declares the imports static.
+     * Shared by the system entry-point function and user-created functions so both get their
+     * default nodes wired in the same way.
+     *
+     * @param pFile - Document the function will belong to.
+     * @param pProject - Project that owns the definition and imports.
+     * @param pDefinition - The function definition to instantiate.
+     * @param pParameter - Identity and metadata for the new function instance.
+     *
+     * @returns The populated function instance, not yet added to the document.
+     */
+    private createDocumentFunction(pFile: PotatnoDocument<TProject>, pProject: TProject, pDefinition: PotatnoFunctionDefinition<TProject>, pParameter: PotatnoDocumentFunctionConstructorParameter): PotatnoDocumentFunction<TProject> {
+        const lFunction: PotatnoDocumentFunction<TProject> = new PotatnoDocumentFunction(pProject, pFile, pParameter);
+
+        // Place the default entry/exit nodes. Entry nodes stack down from 0,0; exit nodes from 40,0.
+        const lFunctionNodes: PotatnoFunctionDefinitionNodes<TProject> = pDefinition.getNodeDefinitions(lFunction);
+        lFunctionNodes.entry.forEach((pNodeDefinition, pIndex) => {
+            lFunction.newNode(pNodeDefinition, { height: 4, width: 10, x: 0, y: pIndex * 20 }, true);
+        });
+        lFunctionNodes.exit.forEach((pNodeDefinition, pIndex) => {
+            lFunction.newNode(pNodeDefinition, { height: 4, width: 10, x: 40, y: pIndex * 20 }, true);
         });
 
-        // Create exit nodes. Stack them vertically starting at 40,0 position with with 20 height units between them.
-        lFunctionNodes.exit.forEach((pStaticDefinition, pIndex) => {
-            lFunction.newNode(pStaticDefinition, { height: 4, width: 10, x: 40, y: pIndex * 20 }, true);
-        });
-
-        if ((lEntryPoint.statics & PotatnoFunctionDefinitionStatics.imports) !== 0) {
+        // Enable every project import when the definition opts into imports.
+        if ((pDefinition.statics & PotatnoFunctionDefinitionStatics.imports) !== 0) {
             for (const lImport of pProject.imports) {
                 lFunction.addImport(lImport.label);
             }
         }
 
-        pFile.addFunction(lFunction);
+        return lFunction;
     }
 
     /**

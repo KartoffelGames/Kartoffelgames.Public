@@ -1,11 +1,9 @@
 <div class="editor-layout">
     <div #panelLeft class="panel-left">
         <potatno-panel-left
-            [activeFunction]="this.activeFunction"
             [functions]="this.functionList"
             [activeFunctionId]="this.activeFunctionId"
             [userFunctionDefinitions]="this.userFunctionDefinitions"
-            [nodeLibraryRefreshVersion]="this.nodeLibraryRefreshVersion"
             (function-select)="this.onFunctionSelect($event)"
             (function-add)="this.onFunctionAdd($event)"
             (function-delete)="this.onFunctionDelete($event)">

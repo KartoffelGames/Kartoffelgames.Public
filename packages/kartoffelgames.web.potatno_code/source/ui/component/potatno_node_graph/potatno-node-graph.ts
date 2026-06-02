@@ -6,8 +6,8 @@ import type { PotatnoNodeDefinition } from '../../../project/node_definition/pot
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import { PotatnoCanvasRenderer, type ConnectionRenderData } from '../../potatno-canvas-renderer.ts';
 import { PotatnoClipboard } from '../../potatno-clipboard.ts';
+import { NodeCategoryMeta } from '../../node/node-category.enum.ts';
 import { buildAvailableNodeDefinitionEntries, type PotatnoNodeDefinitionListEntry, type PotatnoUiProject } from '../../potatno-node-definition-list.ts';
-import { PotatnoNodeLibraryDragBus, type PotatnoNodeLibraryDragStartDetail, type PotatnoNodeLibraryInsertDetail } from '../../potatno-node-library-drag.ts';
 import type { PotatnoUiPreviewManager } from '../../potatno-ui-preview-manager.ts';
 import type { CommentChangeDetail, DirectValueChangeDetail, OpenFunctionDetail, ResizeStartDetail } from '../potatno_node_component/potatno-node-component.ts';
 import type { PortInteractionDetail } from '../potatno_port/potatno-port.ts';
@@ -45,8 +45,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     private mHoveredPort: PortHoverRecord | null;
     private mInteractionState: GraphInteractionState;
     private mKeyboardHandler: ((pEvent: KeyboardEvent) => void) | null;
-    private mLibraryDragUnsubscribe: (() => void) | null;
-    private mLibraryInsertUnsubscribe: (() => void) | null;
     private mPendingConnectionRenderFrame: number;
     private mPreviewManager: PotatnoUiPreviewManager<PotatnoUiProject> | null;
     private mPreviewUpdateVersion: number;
@@ -82,12 +80,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      */
     @ComponentState.state({ complexValue: true })
     private accessor mFilteredAddNodeEntries: Array<NodeDefinitionEntry> = [];
-
-    /**
-     * Visible indicator for a node dragged out of the left library.
-     */
-    @ComponentState.state({ complexValue: true })
-    private accessor mLibraryDragIndicator: LibraryDragIndicatorState | null = null;
 
     /**
      * SVG element that hosts graph connections.
@@ -144,8 +136,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         this.mInteraction = new PotatnoCanvasInteraction(20);
         this.mInteractionState = { mode: 'idle' };
         this.mKeyboardHandler = null;
-        this.mLibraryDragUnsubscribe = null;
-        this.mLibraryInsertUnsubscribe = null;
         this.mPendingConnectionRenderFrame = 0;
         this.mPortElementRegistry = new Map<PotatnoDocumentPort<PotatnoUiProject>, HTMLElement>();
         this.mPreviewManager = null;
@@ -170,7 +160,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         this.mErrorPorts = new Set<PotatnoDocumentPort<PotatnoUiProject>>();
         this.mHoveredPort = null;
         this.mInteractionState = { mode: 'idle' };
-        this.mLibraryDragIndicator = null;
         this.mPortElementRegistry.clear();
         this.mSelectedNodes.clear();
         this.stopDocumentPointerTracking();
@@ -348,32 +337,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Whether a library drag indicator is currently visible.
-     */
-    public get hasLibraryDragIndicator(): boolean {
-        return this.mLibraryDragIndicator !== null;
-    }
-
-    /**
-     * Style for the library drag indicator.
-     */
-    public get libraryDragIndicatorStyle(): string {
-        const lIndicator: LibraryDragIndicatorState | null = this.mLibraryDragIndicator;
-        if (!lIndicator) {
-            return '';
-        }
-
-        return `left: ${lIndicator.clientX}px; top: ${lIndicator.clientY}px`;
-    }
-
-    /**
-     * Label displayed inside the library drag indicator.
-     */
-    public get libraryDragLabel(): string {
-        return this.mLibraryDragIndicator?.label ?? '';
-    }
-
-    /**
      * Resolve the per-node preview element for a node rendered by this graph.
      *
      * Defers to the preview manager: a node only has a preview when its `node.preview` opt-in
@@ -410,11 +373,42 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
+     * Resolve the category accent color for an add-node result row.
+     *
+     * @param pEntry - Entry whose category color to resolve.
+     *
+     * @returns A CSS color string for the entry's category.
+     */
+    public getAddNodeEntryColor(pEntry: NodeDefinitionEntry): string {
+        return NodeCategoryMeta.get(pEntry.category).cssColor;
+    }
+
+    /**
+     * Resolve the category icon glyph for an add-node result row.
+     *
+     * @param pEntry - Entry whose category icon to resolve.
+     *
+     * @returns The category icon glyph.
+     */
+    public getAddNodeEntryIcon(pEntry: NodeDefinitionEntry): string {
+        return NodeCategoryMeta.get(pEntry.category).icon;
+    }
+
+    /**
+     * Resolve the human-readable category label for an add-node result row.
+     *
+     * @param pEntry - Entry whose category label to resolve.
+     *
+     * @returns The display label of the entry's category.
+     */
+    public getAddNodeEntryCategoryLabel(pEntry: NodeDefinitionEntry): string {
+        return NodeCategoryMeta.get(pEntry.category).label;
+    }
+
+    /**
      * Register global graph listeners.
      */
     public onConnect(): void {
-        this.mLibraryDragUnsubscribe = PotatnoNodeLibraryDragBus.subscribe((pDetail: PotatnoNodeLibraryDragStartDetail) => this.startLibraryDrag(pDetail));
-        this.mLibraryInsertUnsubscribe = PotatnoNodeLibraryDragBus.subscribeInsert((pDetail: PotatnoNodeLibraryInsertDetail) => this.insertLibraryNodeAtViewportCenter(pDetail));
         this.mKeyboardHandler = (pEvent: KeyboardEvent) => this.onKeyDown(pEvent);
         document.addEventListener('keydown', this.mKeyboardHandler);
         this.invalidateGraphContent();
@@ -429,16 +423,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         if (this.mKeyboardHandler) {
             document.removeEventListener('keydown', this.mKeyboardHandler);
             this.mKeyboardHandler = null;
-        }
-
-        if (this.mLibraryDragUnsubscribe) {
-            this.mLibraryDragUnsubscribe();
-            this.mLibraryDragUnsubscribe = null;
-        }
-
-        if (this.mLibraryInsertUnsubscribe) {
-            this.mLibraryInsertUnsubscribe();
-            this.mLibraryInsertUnsubscribe = null;
         }
 
         if (this.mPendingConnectionRenderFrame !== 0) {
@@ -489,6 +473,13 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * @param pEvent - Wheel event from the graph wrapper.
      */
     public onCanvasWheel(pEvent: WheelEvent): void {
+        // Let the add-node popup scroll its own result list. The popup is nested inside the canvas
+        // wrapper, so its wheel events bubble here; without this guard the canvas would swallow
+        // them to zoom and the list could never scroll.
+        if (this.eventPathContainsAddNodePopup(pEvent)) {
+            return;
+        }
+
         pEvent.preventDefault();
         const lLocalPosition: Point = this.getLocalPointerPosition(pEvent.clientX, pEvent.clientY);
         this.mInteraction.zoomAt(
@@ -653,7 +644,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      */
     public onCommentChange(pEvent: ComponentEvent<CommentChangeDetail>): void {
         void pEvent;
-        this.emitGraphChange(false, false);
+        this.emitGraphChange(false);
     }
 
     /**
@@ -663,7 +654,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      */
     public onDirectValueChange(pEvent: ComponentEvent<DirectValueChangeDetail>): void {
         void pEvent;
-        this.emitGraphChange(true, false);
+        this.emitGraphChange(true);
     }
 
     /**
@@ -786,35 +777,25 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             this.rebuildVisibleNodePositions();
             return;
         }
-
-        if (lState.mode === 'library-drag') {
-            this.mLibraryDragIndicator = {
-                clientX: pEvent.clientX,
-                clientY: pEvent.clientY,
-                label: lState.label
-            };
-        }
     }
 
     /**
      * Finish the active document-level pointer interaction.
      *
-     * @param pEvent - Pointer up event from the document.
+     * @param _pEvent - Unused pointer up event from the document.
      */
-    private onDocumentPointerUp(pEvent: PointerEvent): void {
+    private onDocumentPointerUp(_pEvent: PointerEvent): void {
         const lState: GraphInteractionState = this.mInteractionState;
 
         if (lState.mode === 'dragging-node') {
-            this.emitGraphChange(true, false);
+            this.emitGraphChange(true);
         } else if (lState.mode === 'dragging-wire') {
             this.completeWireDrag();
         } else if (lState.mode === 'selecting') {
             this.mShowSelectionBox = false;
             this.selectNodesInBox();
         } else if (lState.mode === 'resizing-comment') {
-            this.emitGraphChange(false, false);
-        } else if (lState.mode === 'library-drag') {
-            this.finishLibraryDrag(pEvent, lState);
+            this.emitGraphChange(false);
         }
 
         this.mInteractionState = { mode: 'idle' };
@@ -932,7 +913,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             lSource.connect(lTarget);
             this.mConnectionVersion++;
             this.invalidateGraphContent();
-            this.emitGraphChange(true, false);
+            this.emitGraphChange(true);
         } catch (pError) {
             console.error('[NodeGraph] Connection failed:', pError);
         }
@@ -952,7 +933,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         lConnection.sourcePort.disconnect(lConnection.targetPort);
         this.mConnectionVersion++;
         this.invalidateGraphContent();
-        this.emitGraphChange(true, false);
+        this.emitGraphChange(true);
     }
 
     /**
@@ -981,7 +962,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
 
         this.mConnectionVersion++;
         this.invalidateGraphContent();
-        this.emitGraphChange(true, false);
+        this.emitGraphChange(true);
     }
 
     /**
@@ -1009,11 +990,9 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * Emit a graph mutation event to the editor.
      *
      * @param pAffectsPreview - Whether the mutation should schedule preview regeneration.
-     * @param pAffectsLibrary - Whether the mutation should refresh available library nodes.
      */
-    private emitGraphChange(pAffectsPreview: boolean, pAffectsLibrary: boolean): void {
+    private emitGraphChange(pAffectsPreview: boolean): void {
         this.mGraphChange.dispatchEvent({
-            affectsLibrary: pAffectsLibrary,
             affectsPreview: pAffectsPreview
         });
     }
@@ -1065,28 +1044,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Finish a library drag and insert only when released over the graph.
-     *
-     * @param pEvent - Pointer up event from the document.
-     * @param pState - Active library drag state.
-     */
-    private finishLibraryDrag(pEvent: PointerEvent, pState: Extract<GraphInteractionState, { mode: 'library-drag'; }>): void {
-        this.mLibraryDragIndicator = null;
-
-        if (!this.isPointerInsideCanvas(pEvent.clientX, pEvent.clientY)) {
-            return;
-        }
-
-        const lEntry: NodeDefinitionEntry | null = this.getNodeDefinitionEntryById(pState.definitionId);
-        if (!lEntry) {
-            return;
-        }
-
-        const lWorldPosition: Point = this.getWorldPointerPosition(pEvent.clientX, pEvent.clientY);
-        this.insertNodeAt(lEntry.definition, lWorldPosition);
-    }
-
-    /**
      * Find the graph wrapper if it is already connected.
      *
      * @returns Canvas wrapper or null before render.
@@ -1097,17 +1054,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         } catch {
             return null;
         }
-    }
-
-    /**
-     * Find an available node definition by id.
-     *
-     * @param pDefinitionId - Definition id to resolve.
-     *
-     * @returns Matching entry, or null when unavailable.
-     */
-    private getNodeDefinitionEntryById(pDefinitionId: string): NodeDefinitionEntry | null {
-        return buildAvailableNodeDefinitionEntries(this.mActiveFunction).find((pEntry: NodeDefinitionEntry) => pEntry.id === pDefinitionId) ?? null;
     }
 
     /**
@@ -1244,28 +1190,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         this.mSelectedNodes.add(lNode);
         this.closeAddNodePopup();
         this.invalidateGraphContent();
-        this.emitGraphChange(true, false);
-    }
-
-    /**
-     * Insert a clicked library node into the center of the visible graph area.
-     *
-     * @param pDetail - Library click insertion request.
-     */
-    private insertLibraryNodeAtViewportCenter(pDetail: PotatnoNodeLibraryInsertDetail): void {
-        const lEntry: NodeDefinitionEntry | null = this.getNodeDefinitionEntryById(pDetail.definitionId);
-        const lWrapper: HTMLElement | null = this.getCanvasWrapperOrNull();
-        if (!lEntry || !lWrapper) {
-            return;
-        }
-
-        this.mInteractionState = { mode: 'idle' };
-        this.mLibraryDragIndicator = null;
-        this.stopDocumentPointerTracking();
-        this.insertNodeAt(
-            lEntry.definition,
-            this.mInteraction.screenToWorld(lWrapper.clientWidth / 2, lWrapper.clientHeight / 2)
-        );
+        this.emitGraphChange(true);
     }
 
     /**
@@ -1305,27 +1230,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         return lActiveElement instanceof HTMLInputElement
             || lActiveElement instanceof HTMLTextAreaElement
             || lActiveElement instanceof HTMLSelectElement;
-    }
-
-    /**
-     * Check whether viewport coordinates are inside the graph wrapper.
-     *
-     * @param pClientX - Viewport X coordinate.
-     * @param pClientY - Viewport Y coordinate.
-     *
-     * @returns True when the pointer is over the graph wrapper.
-     */
-    private isPointerInsideCanvas(pClientX: number, pClientY: number): boolean {
-        const lWrapper: HTMLElement | null = this.getCanvasWrapperOrNull();
-        if (!lWrapper) {
-            return false;
-        }
-
-        const lRect: DOMRect = lWrapper.getBoundingClientRect();
-        return pClientX >= lRect.left
-            && pClientX <= lRect.right
-            && pClientY >= lRect.top
-            && pClientY <= lRect.bottom;
     }
 
     /**
@@ -1392,7 +1296,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
 
         this.mConnectionVersion++;
         this.invalidateGraphContent();
-        this.emitGraphChange(true, false);
+        this.emitGraphChange(true);
     }
 
     /**
@@ -1582,30 +1486,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Start the graph-owned drag indicator for a library drag.
-     *
-     * @param pDetail - Drag start data from the node library.
-     */
-    private startLibraryDrag(pDetail: PotatnoNodeLibraryDragStartDetail): void {
-        if (!this.mActiveFunction) {
-            return;
-        }
-
-        this.closeAddNodePopup();
-        this.mInteractionState = {
-            definitionId: pDetail.definitionId,
-            label: pDetail.label,
-            mode: 'library-drag'
-        };
-        this.mLibraryDragIndicator = {
-            clientX: pDetail.clientX,
-            clientY: pDetail.clientY,
-            label: pDetail.label
-        };
-        this.startDocumentPointerTracking();
-    }
-
-    /**
      * Stop document pointer tracking for the active interaction.
      */
     private stopDocumentPointerTracking(): void {
@@ -1623,7 +1503,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
 }
 
 export type GraphChangeDetail = {
-    affectsLibrary: boolean;
     affectsPreview: boolean;
 };
 
@@ -1654,8 +1533,7 @@ type GraphInteractionState =
     | { mode: 'dragging-node'; startX: number; startY: number; origins: Map<PotatnoDocumentNode<PotatnoUiProject>, NodeDragOrigin>; }
     | { mode: 'dragging-wire'; sourcePort: PotatnoDocumentPort<PotatnoUiProject>; startX: number; startY: number; }
     | { mode: 'selecting'; }
-    | { mode: 'resizing-comment'; node: PotatnoDocumentNode<PotatnoUiProject>; startX: number; startY: number; originalW: number; originalH: number; }
-    | { mode: 'library-drag'; definitionId: string; label: string; };
+    | { mode: 'resizing-comment'; node: PotatnoDocumentNode<PotatnoUiProject>; startX: number; startY: number; originalW: number; originalH: number; };
 
 type AddNodePopupState = {
     screenX: number;
@@ -1667,12 +1545,6 @@ type AddNodePopupState = {
 type ConnectionRecord = {
     sourcePort: PotatnoDocumentPort<PotatnoUiProject>;
     targetPort: PotatnoDocumentPort<PotatnoUiProject>;
-};
-
-type LibraryDragIndicatorState = {
-    clientX: number;
-    clientY: number;
-    label: string;
 };
 
 type NodeDragOrigin = {

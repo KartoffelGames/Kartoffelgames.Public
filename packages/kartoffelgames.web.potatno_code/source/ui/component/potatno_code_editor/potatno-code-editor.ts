@@ -4,7 +4,6 @@ import { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts'
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoDocument } from '../../../document/potatno-document.ts';
 import { PotatnoFunctionDefinitionNodes, PotatnoFunctionDefinitionStatics } from '../../../project/potatno-function-definition.ts';
-import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import { PotatnoDeserializer } from '../../../serialization/potatno-deserializer.ts';
 import type { PotatnoCodeFileSerializationResult } from '../../../serialization/potatno-serialization.type.ts';
 import { PotatnoSerializer } from '../../../serialization/potatno-serializer.ts';
@@ -19,13 +18,10 @@ import editorTemplate from './potatno-code-editor.html' with { type: 'text' };
 // Import child components to ensure they are registered.
 import '../potatno_function_list/potatno-function-list.ts';
 import '../potatno_node_graph/potatno-node-graph.ts';
-import '../potatno_node_library/potatno-node-library.ts';
 import '../potatno_panel_left/potatno-panel-left.ts';
 import '../potatno_panel_properties/potatno-panel-properties.ts';
 import '../potatno_preview/potatno-preview.ts';
 import '../potatno_resize_handle/potatno-resize-handle.ts';
-import '../potatno_search_input/potatno-search-input.ts';
-import '../potatno_tabs/potatno-tabs.ts';
 
 /**
  * Top-level UI orchestrator for the potatno-code visual programming environment.
@@ -65,12 +61,6 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      */
     @ComponentState.state()
     private accessor mGraphRefreshVersion: number = 0;
-
-    /**
-     * Explicit node-library refresh token.
-     */
-    @ComponentState.state()
-    private accessor mNodeLibraryRefreshVersion: number = 0;
 
     /**
      * Explicit preview visual refresh token. Bumped after every manager rebuild so the
@@ -230,13 +220,6 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
     }
 
     /**
-     * Node library refresh token passed into the left panel.
-     */
-    public get nodeLibraryRefreshVersion(): number {
-        return this.mNodeLibraryRefreshVersion;
-    }
-
-    /**
      * Preview visual refresh token passed into the graph component.
      */
     public get previewUpdateVersion(): number {
@@ -284,7 +267,6 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
         this.mProject = pProject;
         this.mPreviewManager = new PotatnoUiPreviewManager<TProject>(pProject);
         this.rebuildCachedData();
-        this.refreshNodeLibrary();
     }
 
     /**
@@ -306,9 +288,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
 
         this.mHistory.clear();
         this.rebuildCachedData();
-        this.refreshGraph();
-        this.refreshNodeLibrary();
-        this.schedulePreviewUpdate();
+        this.refreshGraph();        this.schedulePreviewUpdate();
     }
 
     /**
@@ -329,9 +309,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
         this.mActiveFunctionId = [...lNewFile.functions][0]?.id ?? '';
         this.mHistory.clear();
         this.rebuildCachedData();
-        this.refreshGraph();
-        this.refreshNodeLibrary();
-        this.schedulePreviewUpdate();
+        this.refreshGraph();        this.schedulePreviewUpdate();
     }
 
     /**
@@ -422,9 +400,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
         this.mActiveFunctionId = lFunction.id;
         this.scheduleHistorySnapshot();
         this.rebuildCachedData();
-        this.refreshGraph();
-        this.refreshNodeLibrary();
-    }
+        this.refreshGraph();    }
 
     /**
      * Delete a function from the document.
@@ -451,9 +427,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
 
         this.scheduleHistorySnapshot();
         this.rebuildCachedData();
-        this.refreshGraph();
-        this.refreshNodeLibrary();
-        this.schedulePreviewUpdate();
+        this.refreshGraph();        this.schedulePreviewUpdate();
     }
 
     /**
@@ -468,7 +442,6 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
         }
 
         const lData: PropertiesChangeData = pEvent.value;
-        let lLibraryChanged: boolean = false;
 
         if (lData.name !== undefined) {
             lActiveFunction.label = lData.name;
@@ -487,9 +460,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
                 if (!lExistingNames.has(lPortData.name)) {
                     lActiveFunction.addInput({ dataType: lPortData.type, label: lPortData.name });
                 }
-            }
-            lLibraryChanged = true;
-        }
+            }        }
 
         if (lData.outputs !== undefined) {
             const lExistingNames: Set<string> = new Set<string>(lActiveFunction.outputs.map((pPort) => pPort.label));
@@ -504,9 +475,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
                 if (!lExistingNames.has(lPortData.name)) {
                     lActiveFunction.addOutput({ dataType: lPortData.type, label: lPortData.name });
                 }
-            }
-            lLibraryChanged = true;
-        }
+            }        }
 
         if (lData.imports !== undefined) {
             const lExistingImports: Set<string> = new Set<string>(lActiveFunction.imports);
@@ -521,16 +490,11 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
                 if (!lExistingImports.has(lImport)) {
                     lActiveFunction.addImport(lImport);
                 }
-            }
-            lLibraryChanged = true;
-        }
+            }        }
 
         this.scheduleHistorySnapshot();
         this.rebuildCachedData();
         this.refreshGraph();
-        if (lLibraryChanged) {
-            this.refreshNodeLibrary();
-        }
         this.schedulePreviewUpdate();
     }
 
@@ -542,10 +506,6 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
     public onGraphChange(pEvent: ComponentEvent<GraphChangeDetail>): void {
         this.scheduleHistorySnapshot();
         this.rebuildCachedData();
-
-        if (pEvent.value.affectsLibrary) {
-            this.refreshNodeLibrary();
-        }
 
         if (pEvent.value.affectsPreview) {
             this.schedulePreviewUpdate();
@@ -621,7 +581,6 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
                 this.mActiveFunctionId = pFunctionId;
                 this.rebuildCachedData();
                 this.refreshGraph();
-                this.refreshNodeLibrary();
                 return;
             }
         }
@@ -717,48 +676,6 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
 
         this.mPreviewTabs = lTabs;
         this.mPreviewUpdateVersion++;
-    }
-
-    /**
-     * Get all node definitions available to a function.
-     *
-     * @param pFunction - Function whose available definitions should be read.
-     *
-     * @returns Available node definitions in display order.
-     */
-    private getAvailableDefinitionsForFunction(pFunction: PotatnoDocumentFunction<TProject>): Array<PotatnoNodeDefinition<TProject>> {
-        const lDefinitions: Array<PotatnoNodeDefinition<TProject>> = [];
-        const lAddedIds: Set<string> = new Set<string>();
-
-        const addDefinition = (pDefinition: PotatnoNodeDefinition<TProject>): void => {
-            if (lAddedIds.has(pDefinition.id)) {
-                return;
-            }
-
-            lAddedIds.add(pDefinition.id);
-            lDefinitions.push(pDefinition);
-        };
-
-        for (const lDefinition of pFunction.project.nodeDefinitions) {
-            addDefinition(lDefinition);
-        }
-
-        for (const lDefinition of pFunction.nodeDefinitions) {
-            addDefinition(lDefinition);
-        }
-
-        const lEnabledImports: Set<string> = new Set<string>(pFunction.imports);
-        for (const lImport of pFunction.project.imports) {
-            if (!lEnabledImports.has(lImport.label)) {
-                continue;
-            }
-
-            for (const lDefinition of lImport.nodes) {
-                addDefinition(lDefinition);
-            }
-        }
-
-        return lDefinitions;
     }
 
     /**
@@ -885,13 +802,6 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
     }
 
     /**
-     * Increment the node library refresh token.
-     */
-    private refreshNodeLibrary(): void {
-        this.mNodeLibraryRefreshVersion++;
-    }
-
-    /**
      * Restore a serialized snapshot into the editor.
      *
      * @param pSnapshot - Snapshot to deserialize and display.
@@ -910,9 +820,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
         }
 
         this.rebuildCachedData();
-        this.refreshGraph();
-        this.refreshNodeLibrary();
-        this.schedulePreviewUpdate();
+        this.refreshGraph();        this.schedulePreviewUpdate();
     }
 
     /**

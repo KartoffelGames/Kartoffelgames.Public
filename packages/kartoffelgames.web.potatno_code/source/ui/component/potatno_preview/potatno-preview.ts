@@ -122,6 +122,7 @@ export class PotatnoPreview implements IComponentOnUpdate {
      */
     @PwbExport
     public set descriptors(pValue: ReadonlyArray<PotatnoPreviewTabDescriptor>) {
+        // Store the new descriptor list.
         this.mDescriptors = pValue;
 
         // Keep the active selection stable when the same id still exists; otherwise fall
@@ -130,6 +131,16 @@ export class PotatnoPreview implements IComponentOnUpdate {
         if (!lActiveStillExists) {
             this.mActiveTabId = pValue[0]?.id ?? null;
         }
+
+        // Re-attach the active element directly. When a descriptor's element changes without the
+        // tab list changing shape (e.g. the document is replaced on load/undo, so the manager
+        // builds a fresh driver and element while the tab keeps the same id and label), the
+        // rendered template is unchanged and the component's onUpdate hook never fires — so it
+        // cannot swap in the new element on its own. Attaching here covers that case and is a
+        // cheap no-op (guarded) when the element is unchanged. onUpdate still covers structural
+        // changes (initial mount, errors toggling) where the content container is (re)created only
+        // after this setter has already run.
+        this.attachActiveElement();
     }
 
     /**

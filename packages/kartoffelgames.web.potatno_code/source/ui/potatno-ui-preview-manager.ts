@@ -65,15 +65,19 @@ export type PotatnoUiPreviewDescriptor<TProject extends PotatnoUiProject> = {
  *    display with the targeted port's value.
  *
  * The manager owns the cache lifecycle. Mutations that affect code generation (`affectsPreview`
- * from the graph, document loads, etc.) call `rebuild()` which throws away the old drivers and
- * builds fresh ones from the latest document state. `render()` is called from the application
- * loop and forwards to every active driver.
+ * from the graph, document loads, etc.) call `rebuild()`. While the bound document instance is
+ * unchanged (in-place graph edits), function-level drivers are reused — their cache is
+ * invalidated so the next render recompiles from the latest graph, but the driver and its DOM
+ * element stay stable so the UI never has to swap a live `<canvas>`. A new document instance
+ * (load, undo/redo) drops the reusable drivers and builds fresh ones. `render()` is called from
+ * the application loop and forwards to every active driver.
  *
  * @typeParam TProject - The widened UI project type the manager operates on.
  */
 export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
     private readonly mProject: TProject;
     private mDocument: PotatnoDocument<TProject> | null;
+    private mDriverDocument: PotatnoDocument<TProject> | null;
     private mFunctionDescriptors: Array<PotatnoUiPreviewDescriptor<TProject>>;
     private mNodeDescriptors: Map<PotatnoDocumentNode<TProject>, PotatnoUiPreviewDescriptor<TProject>>;
 
@@ -93,6 +97,7 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
     public constructor(pProject: TProject) {
         this.mProject = pProject;
         this.mDocument = null;
+        this.mDriverDocument = null;
         this.mFunctionDescriptors = new Array<PotatnoUiPreviewDescriptor<TProject>>();
         this.mNodeDescriptors = new Map<PotatnoDocumentNode<TProject>, PotatnoUiPreviewDescriptor<TProject>>();
     }
@@ -130,6 +135,14 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
      * resolve the system entry function instance).
      */
     public rebuild(): void {
+        // Snapshot the previous function descriptors so unchanged previews can keep their driver
+        // (and live element) instead of being rebuilt. Reuse is only safe while the bound document
+        // instance is unchanged: a new instance (load, undo/redo) leaves the old drivers' provider
+        // closures pointing at a stale document, so they must be dropped and rebuilt.
+        const lPreviousFunctionDescriptors: Array<PotatnoUiPreviewDescriptor<TProject>> = this.mFunctionDescriptors;
+        const lReuseDrivers: boolean = this.mDocument !== null && this.mDocument === this.mDriverDocument;
+        this.mDriverDocument = this.mDocument;
+
         this.mFunctionDescriptors = new Array<PotatnoUiPreviewDescriptor<TProject>>();
         this.mNodeDescriptors = new Map<PotatnoDocumentNode<TProject>, PotatnoUiPreviewDescriptor<TProject>>();
 
@@ -174,13 +187,30 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
                     continue;
                 }
 
-                this.mFunctionDescriptors.push(this.buildFunctionDescriptor(lEntry, lEntryDocumentFunction));
+                // Reuse the existing driver for this display id when possible: invalidate its
+                // cache so the next render recompiles from the latest graph, but keep the same
+                // driver and element. Only build a fresh driver (and a new element) when none can
+                // be reused — i.e. on first build or after the document instance was replaced.
+                const lReusedDescriptor: PotatnoUiPreviewDescriptor<TProject> | undefined = lReuseDrivers
+                    ? lPreviousFunctionDescriptors.find((pDescriptor) => pDescriptor.displayId === lEntry.displayId)
+                    : undefined;
+
+                if (lReusedDescriptor) {
+                    lReusedDescriptor.driver.invalidateCache();
+                    this.mFunctionDescriptors.push(lReusedDescriptor);
+                } else {
+                    this.mFunctionDescriptors.push(this.buildFunctionDescriptor(lEntry, lEntryDocumentFunction));
+                }
             }
         }
 
         // Build per-node descriptors. Walk every node in every function and respect the
         // node.preview opt-in. A pair qualifies when its display id matches the opt-in's
         // display id AND its executor wraps the node's owning function definition.
+        //
+        // Unlike function-level descriptors these are always rebuilt: a per-node driver bakes the
+        // targeted port's valueId into its port target at build time, and that valueId can shift
+        // whenever the graph changes, so a reused driver would splice in a stale id.
         for (const lDocumentFunction of lDocument.functions) {
             for (const lNode of lDocumentFunction.nodes) {
                 const lDescriptor: PotatnoUiPreviewDescriptor<TProject> | null = this.tryBuildNodeDescriptor(lNode, lDocumentFunction, lEntries);

@@ -425,31 +425,31 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @returns the collected code and the last (most upstream) node generated.
      */
-    private walkBackward(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pStartNode: PotatnoDocumentNode<TProject>, pEndNode: PotatnoDocumentNode<TProject> | null, pInitialActivePort: PotatnoDocumentPort<TProject> | null = null): PotatnoCodeGeneratorEmitResult<TProject> {
-        let lCursorNode: PotatnoDocumentNode<TProject> | null = pStartNode;
-        let lActivePort: PotatnoDocumentPort<TProject> | null = pInitialActivePort;
-
+    private walkBackward(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pStartNode: PotatnoDocumentNode<TProject>, pEndNode: PotatnoDocumentNode<TProject> | null): PotatnoCodeGeneratorEmitResult<TProject> {
         let lEmitResult: PotatnoCodeGeneratorEmitResult<TProject> = {
             codeOutput: new Array<string>(),
             lastGeneratedNode: null!, // Must be handled.
             endFlowPort: null
         };
 
+        // Iteration values.
+        let lActivePort: PotatnoDocumentPort<TProject> | null = null;
+        let lCursorNode: PotatnoDocumentNode<TProject> | null = pStartNode;
+
         // Skip when no node is iterated or the node is a ending node.
         while (lCursorNode !== null && lCursorNode !== pEndNode) {
             // Emit the current node, folding the active port's downstream code into its inner.
             // Only the flow output that leads to the already-emitted downstream gets the collected code; other flow outputs get empty inner.
-            const lInnerByPort: Record<string, string> = {};
+            const lFlowPortCodeOutput: Record<string, string> = {};
             if (lActivePort !== null) {
-                lInnerByPort[lActivePort.definitionId] = lEmitResult.codeOutput.join(' ');
-
-                // The downstream code is now folded into the node's inner, so drop it before the node's own code is merged in front.
+                // Write current code into flow port code output.
+                lFlowPortCodeOutput[lActivePort.definitionId] = lEmitResult.codeOutput.join(' ');
                 lEmitResult.codeOutput = new Array<string>();
             }
 
             // Emit the node and merge its code in front of the code collected so far.
             const lPreEmitCodeOutput: Array<string> = lEmitResult.codeOutput;
-            lEmitResult = this.emitNode(pPassData, pCursor, lCursorNode, lInnerByPort);
+            lEmitResult = this.emitNode(pPassData, pCursor, lCursorNode, lFlowPortCodeOutput);
             lEmitResult.codeOutput = [...lEmitResult.codeOutput, ...lPreEmitCodeOutput];
 
             // Resolve flow-input predecessors of the emitted node and skip when on dead end.
@@ -486,7 +486,6 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
 
         return lEmitResult;
     }
-
 
     /**
      * Find the branch point that fans into pMergeNode via a tagged backward BFS: each fan-in predecessor seeds a tag,
@@ -563,7 +562,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         try {
             for (const lPredecessorPort of pPredecessorPorts) {
                 pCursor.scope = this.createScope(lPredecessorPort.node, lBranchPoint);
-                const lBranchEmitResult: PotatnoCodeGeneratorEmitResult<TProject> = this.walkBackward(pPassData, pCursor, lPredecessorPort.node, lBranchPoint, lPredecessorPort);
+                const lBranchEmitResult: PotatnoCodeGeneratorEmitResult<TProject> = this.walkBackward(pPassData, pCursor, lPredecessorPort.node, lBranchPoint);
 
                 // The walk ended on the branch point so the port it ended on is the branch point's flow output that initiated this branch.
                 // Map this branch's code back to that output port. The end flow port MUST be set when a end node is specified in a walk.
@@ -588,12 +587,12 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * @param pPassData - Shared pass state.
      * @param pCursor - The pass cursor.
      * @param pNode - The node to emit code for.
-     * @param pInnerByPort - Inner code per flow output port id.
+     * @param pFlowPortCodeOutput - Inner code per flow output port id.
      * @param pNextCode - Merged-tail code for a branching node. Defaults to empty.
      *
      * @returns this node's emit result (its code plus any value-producer code) with the node as last-generated.
      */
-    private emitNode(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pNode: PotatnoDocumentNode<TProject>, pInnerByPort: Record<string, string>, pNextCode?: string): PotatnoCodeGeneratorEmitResult<TProject> {
+    private emitNode(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pNode: PotatnoDocumentNode<TProject>, pFlowPortCodeOutput: Record<string, string>, pNextCode?: string): PotatnoCodeGeneratorEmitResult<TProject> {
         // Initialize missing node definition lookups for this function.
         if (!pPassData.nodeDefinitions.get(pNode.function)) {
             const lNodeLookup: Map<string, PotatnoNodeDefinition<TProject>> = new Map<string, PotatnoNodeDefinition<TProject>>();
@@ -633,7 +632,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             lOutputs[lPort.definitionId] = {
                 value: this.getPortValue(pPassData, pCursor, lPort),
                 code: {
-                    inner: lPort.portType === 'flow' ? (pInnerByPort[lPort.definitionId] ?? '') : ''
+                    inner: pFlowPortCodeOutput[lPort.definitionId] ?? ''
                 }
             };
         }

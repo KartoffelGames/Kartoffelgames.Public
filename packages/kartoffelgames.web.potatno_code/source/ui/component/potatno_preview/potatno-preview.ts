@@ -1,4 +1,4 @@
-import { ComponentState, type IComponentOnUpdate, PwbChild, PwbComponent, PwbExport } from '@kartoffelgames/web-potato-web-builder';
+import { ComponentEventEmitter, ComponentState, type IComponentOnUpdate, PwbChild, PwbComponent, PwbComponentEvent, PwbExport } from '@kartoffelgames/web-potato-web-builder';
 import templateCss from './potatno-preview.css' with { type: 'text' };
 import previewTemplate from './potatno-preview.html' with { type: 'text' };
 
@@ -74,6 +74,54 @@ export class PotatnoPreview implements IComponentOnUpdate {
     @PwbExport
     @ComponentState.state()
     public accessor errors: Array<{ message: string; location: string }> = [];
+
+    /**
+     * Whether to show the display + output selectors (set by the editor for user functions; the
+     * entry/main function always shows its full output, so it stays `false`).
+     */
+    @PwbExport
+    @ComponentState.state()
+    public accessor showSelectors: boolean = false;
+
+    /**
+     * Output port options for the output selector (id + label).
+     */
+    @PwbExport
+    @ComponentState.state({ complexValue: true })
+    public accessor outputOptions: ReadonlyArray<{ id: string; label: string }> = [];
+
+    /**
+     * Display ("style") id options for the display selector.
+     */
+    @PwbExport
+    @ComponentState.state({ complexValue: true })
+    public accessor displayOptions: ReadonlyArray<string> = [];
+
+    /**
+     * Currently selected output port id.
+     */
+    @PwbExport
+    @ComponentState.state()
+    public accessor selectedOutputId: string = '';
+
+    /**
+     * Currently selected display id.
+     */
+    @PwbExport
+    @ComponentState.state()
+    public accessor selectedDisplayId: string = '';
+
+    /**
+     * Emitted when the user picks a different output port to preview.
+     */
+    @PwbComponentEvent('output-change')
+    private accessor mOutputChange!: ComponentEventEmitter<string>;
+
+    /**
+     * Emitted when the user picks a different display ("style").
+     */
+    @PwbComponentEvent('display-change')
+    private accessor mDisplayChange!: ComponentEventEmitter<string>;
 
     /**
      * Whether the panel currently has no descriptors to render. Drives the empty-state
@@ -172,6 +220,24 @@ export class PotatnoPreview implements IComponentOnUpdate {
         }
 
         this.mActiveTabId = pTabId;
+    }
+
+    /**
+     * Relay an output-selector change to the editor.
+     *
+     * @param pEvent - Change event from the output `<select>`.
+     */
+    public onOutputSelect(pEvent: Event): void {
+        this.mOutputChange.dispatchEvent((pEvent.target as HTMLSelectElement).value);
+    }
+
+    /**
+     * Relay a display-selector ("style") change to the editor.
+     *
+     * @param pEvent - Change event from the display `<select>`.
+     */
+    public onDisplaySelect(pEvent: Event): void {
+        this.mDisplayChange.dispatchEvent((pEvent.target as HTMLSelectElement).value);
     }
 
     /**

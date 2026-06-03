@@ -44,6 +44,25 @@
     overflow-x: auto;
 }
 
+.preview-selectors {
+    display: flex;
+    flex: 1;
+    gap: 6px;
+    margin-left: 12px;
+    justify-content: flex-end;
+}
+
+.preview-select {
+    background: var(--pn-bg-surface);
+    border: 1px solid var(--pn-border-default);
+    border-radius: 3px;
+    color: var(--pn-text-primary);
+    font-family: var(--pn-font-family);
+    font-size: var(--pn-font-size-sm);
+    padding: 2px 4px;
+    max-width: 45%;
+}
+
 .preview-tab {
     appearance: none;
     border: 1px solid var(--pn-border-default);

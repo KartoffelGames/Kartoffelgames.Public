@@ -27,7 +27,17 @@
         </potatno-node-graph>
         $if(this.hasPreview) {
             <div class="preview-wrapper">
-                <potatno-preview #previewEl [errors]="this.editorErrors" [descriptors]="this.previewTabs"></potatno-preview>
+                <potatno-preview #previewEl
+                    [errors]="this.editorErrors"
+                    [descriptors]="this.previewTabs"
+                    [showSelectors]="this.previewShowSelectors"
+                    [outputOptions]="this.previewOutputOptions"
+                    [displayOptions]="this.previewDisplayOptions"
+                    [selectedOutputId]="this.previewSelectedOutputId"
+                    [selectedDisplayId]="this.previewSelectedDisplayId"
+                    (output-change)="this.onPreviewOutputChange($event)"
+                    (display-change)="this.onPreviewDisplayChange($event)">
+                </potatno-preview>
             </div>
         }
     </div>

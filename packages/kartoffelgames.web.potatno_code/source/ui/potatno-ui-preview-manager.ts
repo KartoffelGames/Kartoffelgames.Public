@@ -3,6 +3,7 @@ import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import type { PotatnoDocument } from '../document/potatno-document.ts';
 import { PotatnoCodeGenerator } from '../parser/potatno-code-generator.ts';
+import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
 import type { PotatnoCodeGeneratorDocumentResult } from '../parser/result/potatno-code-generator-document-result.ts';
 import type { PotatnoCodeGeneratorFunctionResult } from '../parser/result/potatno-code-generator-function-result.ts';
 import type { PotatnoPreviewDriverHandle } from '../preview/potatno-preview-driver.ts';
@@ -52,6 +53,22 @@ export type PotatnoUiPreviewDescriptor<TProject extends PotatnoUiProject> = {
 };
 
 /**
+ * One selectable output for a user function's main preview — the output port's label, used both
+ * as the option id and its display text.
+ */
+export type PotatnoUiPreviewOutputOption = {
+    /**
+     * Output port label, used as the stable option id.
+     */
+    readonly id: string;
+
+    /**
+     * Human-readable label shown in the output selector.
+     */
+    readonly label: string;
+};
+
+/**
  * UI-owned lifecycle helper that walks the project's preview registry, constructs
  * `PotatnoPreviewDriver` instances for every applicable preview on the active document, and
  * exposes them to the rest of the editor.
@@ -76,10 +93,13 @@ export type PotatnoUiPreviewDescriptor<TProject extends PotatnoUiProject> = {
  */
 export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
     private readonly mProject: TProject;
+    private mActiveFunction: PotatnoDocumentFunction<TProject> | null;
     private mDocument: PotatnoDocument<TProject> | null;
     private mDriverDocument: PotatnoDocument<TProject> | null;
     private mFunctionDescriptors: Array<PotatnoUiPreviewDescriptor<TProject>>;
     private mNodeDescriptors: Map<PotatnoDocumentNode<TProject>, PotatnoUiPreviewDescriptor<TProject>>;
+    private mSelectedDisplayId: string;
+    private mSelectedOutputId: string;
 
     /**
      * Function-level preview descriptors in registration order. The preview-panel tab UI
@@ -96,10 +116,47 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
      */
     public constructor(pProject: TProject) {
         this.mProject = pProject;
+        this.mActiveFunction = null;
         this.mDocument = null;
         this.mDriverDocument = null;
         this.mFunctionDescriptors = new Array<PotatnoUiPreviewDescriptor<TProject>>();
         this.mNodeDescriptors = new Map<PotatnoDocumentNode<TProject>, PotatnoUiPreviewDescriptor<TProject>>();
+        this.mSelectedDisplayId = '';
+        this.mSelectedOutputId = '';
+    }
+
+    /**
+     * The display ("style") id chosen for the main preview, defaulting to the first display the
+     * active function supports. Empty when the active function has no registered preview.
+     */
+    public get activePreviewDisplayId(): string {
+        const lDisplays: Array<string> = this.getActivePreviewDisplays();
+        if (this.mSelectedDisplayId !== '' && lDisplays.includes(this.mSelectedDisplayId)) {
+            return this.mSelectedDisplayId;
+        }
+        return lDisplays[0] ?? '';
+    }
+
+    /**
+     * Whether the active function is a non-entry (user) function, which the main preview shows
+     * one selected output of. The entry/main function always shows its full output instead.
+     */
+    public get activePreviewIsUserFunction(): boolean {
+        const lFunctionDefinition = this.activeFunctionDefinition();
+        return lFunctionDefinition !== null && lFunctionDefinition.id !== this.mProject.entryPoint.id;
+    }
+
+    /**
+     * The output port label chosen for a user function's main preview, defaulting to the first
+     * output. Empty for the entry/main function (which shows its full output) or when there are
+     * no outputs.
+     */
+    public get activePreviewOutputId(): string {
+        const lOutputs: Array<PotatnoUiPreviewOutputOption> = this.getActivePreviewOutputs();
+        if (this.mSelectedOutputId !== '' && lOutputs.some((pOutput) => pOutput.id === this.mSelectedOutputId)) {
+            return this.mSelectedOutputId;
+        }
+        return lOutputs[0]?.id ?? '';
     }
 
     /**
@@ -145,6 +202,90 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
         }
 
         return [...lDisplays];
+    }
+
+    /**
+     * The output port options for the active function's main preview — empty for the entry/main
+     * function (full output) and for functions with no registered preview.
+     *
+     * @returns The selectable outputs (id + label).
+     */
+    public getActivePreviewOutputs(): Array<PotatnoUiPreviewOutputOption> {
+        const lFunction: PotatnoDocumentFunction<TProject> | null = this.mActiveFunction;
+        if (!lFunction || !this.activePreviewIsUserFunction) {
+            return [];
+        }
+
+        return lFunction.outputs.map((pOutput) => ({ id: pOutput.label, label: pOutput.label }));
+    }
+
+    /**
+     * The display ("style") ids available for the active function's main preview — the registered
+     * displays whose executor wraps the active function's definition.
+     *
+     * @returns The matching display ids, deduplicated.
+     */
+    public getActivePreviewDisplays(): Array<string> {
+        const lFunctionDefinition = this.activeFunctionDefinition();
+        if (!lFunctionDefinition) {
+            return [];
+        }
+
+        const lRegistry = this.mProject.previews;
+        if (!lRegistry) {
+            return [];
+        }
+
+        const lDisplays: Set<string> = new Set<string>();
+        for (const lEntry of lRegistry.entries) {
+            if (lEntry.executorFunctionId === lFunctionDefinition.id) {
+                lDisplays.add(lEntry.displayId);
+            }
+        }
+
+        return [...lDisplays];
+    }
+
+    /**
+     * Bind the function whose preview the main panel shows. Stored without rebuilding; the editor
+     * triggers the rebuild via `setDocument`.
+     *
+     * @param pFunction - The active function, or `null` to clear.
+     */
+    public setActiveFunction(pFunction: PotatnoDocumentFunction<TProject> | null): void {
+        this.mActiveFunction = pFunction;
+    }
+
+    /**
+     * Choose which display renders the main preview. The editor re-runs the rebuild afterwards.
+     *
+     * @param pDisplayId - The chosen display id.
+     */
+    public setActivePreviewDisplay(pDisplayId: string): void {
+        this.mSelectedDisplayId = pDisplayId;
+    }
+
+    /**
+     * Choose which output port a user function's main preview shows. The editor re-runs the
+     * rebuild afterwards.
+     *
+     * @param pOutputId - The chosen output port label.
+     */
+    public setActivePreviewOutput(pOutputId: string): void {
+        this.mSelectedOutputId = pOutputId;
+    }
+
+    /**
+     * Resolve the active function's definition, or `null` when none is bound or it has no
+     * definition in the project.
+     */
+    private activeFunctionDefinition(): PotatnoFunctionDefinition<TProject> | null {
+        const lFunction: PotatnoDocumentFunction<TProject> | null = this.mActiveFunction;
+        if (!lFunction) {
+            return null;
+        }
+
+        return this.mProject.getFunction(lFunction.definitionId) ?? null;
     }
 
     /**
@@ -197,42 +338,25 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
         // so the rest of the file talks in project terms instead of types terms.
         const lEntries: ReadonlyArray<PotatnoPreviewEntry<TProject['types']>> = lRegistry.entries;
 
-        // Locate the document's system entry-point function instance — function-level previews
-        // run against this. Helper functions can also have previews but only via per-node opt-in
-        // on their internal nodes.
-        let lEntryDocumentFunction: PotatnoDocumentFunction<TProject> | null = null;
-        for (const lFunction of lDocument.functions) {
-            if (lFunction.isSystem) {
-                lEntryDocumentFunction = lFunction;
-                break;
-            }
-        }
+        // Build the single main-panel descriptor for the ACTIVE function: the entry/main function
+        // shows its full output, a user function shows one selected output (default inputs). Reuse
+        // the previous descriptor for the same display id only for the entry function — a user
+        // function descriptor bakes the selected output's exit port + valueId, both of which move
+        // with the selection and the graph, so it is always rebuilt. Otherwise invalidate the
+        // reused driver's cache so it recompiles while keeping its element stable.
+        const lActiveFunction: PotatnoDocumentFunction<TProject> | null = this.mActiveFunction;
+        if (lActiveFunction) {
+            const lReusedDescriptor: PotatnoUiPreviewDescriptor<TProject> | undefined = (lReuseDrivers && !this.activePreviewIsUserFunction)
+                ? lPreviousFunctionDescriptors.find((pDescriptor) => pDescriptor.displayId === this.activePreviewDisplayId)
+                : undefined;
 
-        // Build function-level descriptors. A pair qualifies when its executor wraps the
-        // project's entry-point definition; helper-function executors do not show up here.
-        // Compare by definition id rather than reference because the registry's executor and
-        // the project's entry point carry different TProject generics at the type level even
-        // though they are the same definition instance at runtime.
-        if (lEntryDocumentFunction) {
-            const lEntryPointId: string = this.mProject.entryPoint.id;
-            for (const lEntry of lEntries) {
-                if (lEntry.executorFunctionId !== lEntryPointId) {
-                    continue;
-                }
-
-                // Reuse the existing driver for this display id when possible: invalidate its
-                // cache so the next render recompiles from the latest graph, but keep the same
-                // driver and element. Only build a fresh driver (and a new element) when none can
-                // be reused — i.e. on first build or after the document instance was replaced.
-                const lReusedDescriptor: PotatnoUiPreviewDescriptor<TProject> | undefined = lReuseDrivers
-                    ? lPreviousFunctionDescriptors.find((pDescriptor) => pDescriptor.displayId === lEntry.displayId)
-                    : undefined;
-
-                if (lReusedDescriptor) {
-                    lReusedDescriptor.driver.invalidateCache();
-                    this.mFunctionDescriptors.push(lReusedDescriptor);
-                } else {
-                    this.mFunctionDescriptors.push(this.buildFunctionDescriptor(lEntry, lEntryDocumentFunction));
+            if (lReusedDescriptor) {
+                lReusedDescriptor.driver.invalidateCache();
+                this.mFunctionDescriptors.push(lReusedDescriptor);
+            } else {
+                const lDescriptor: PotatnoUiPreviewDescriptor<TProject> | null = this.buildActiveFunctionDescriptor(lActiveFunction, lEntries);
+                if (lDescriptor) {
+                    this.mFunctionDescriptors.push(lDescriptor);
                 }
             }
         }
@@ -279,10 +403,89 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
     }
 
     /**
-     * Build one function-level descriptor for the given registry entry. The driver runs the
-     * project's entry-point function on every cache miss and feeds the display.
+     * Build the main-panel descriptor for the active function. The entry/main function uses the
+     * function-level path (full output); a user function uses the per-node path to preview a single
+     * selected output, evaluated with default inputs by the registered user-function executor.
      *
-     * @param pEntry - The registry entry whose executor wraps the entry-point function.
+     * @param pFunction - The active document function to preview.
+     * @param pEntries - All registered `(display, executor)` pairs.
+     *
+     * @returns The descriptor, or `null` when the function has no matching registered preview.
+     */
+    private buildActiveFunctionDescriptor(pFunction: PotatnoDocumentFunction<TProject>, pEntries: ReadonlyArray<PotatnoPreviewEntry<TProject['types']>>): PotatnoUiPreviewDescriptor<TProject> | null {
+        const lFunctionDefinition = this.activeFunctionDefinition();
+        if (!lFunctionDefinition) {
+            return null;
+        }
+
+        // Pick the registered pair for the active function and the chosen display.
+        const lDisplayId: string = this.activePreviewDisplayId;
+        const lEntry: PotatnoPreviewEntry<TProject['types']> | undefined = pEntries.find((pEntry) => {
+            return pEntry.executorFunctionId === lFunctionDefinition.id && pEntry.displayId === lDisplayId;
+        });
+        if (!lEntry) {
+            return null;
+        }
+
+        // Entry/main function → full output via the function-level path.
+        if (!this.activePreviewIsUserFunction) {
+            return this.buildFunctionDescriptor(lEntry, pFunction);
+        }
+
+        // User function → preview one selected output. Route through the per-node path: the target
+        // is the exit node's value-input port for the selected output, and the value the executor
+        // returns is keyed by the output label.
+        const lOutputId: string = this.activePreviewOutputId;
+        const lExitPort: PotatnoDocumentPort<TProject> | null = lOutputId === '' ? null : this.findFunctionOutputPort(pFunction, lOutputId);
+        if (!lExitPort) {
+            return null;
+        }
+
+        const lProvider = (): PotatnoCodeGeneratorDocumentResult<TProject> => {
+            const lGenerator: PotatnoCodeGenerator<TProject> = new PotatnoCodeGenerator<TProject>(this.mProject);
+            return lGenerator.generateFunction(pFunction, true);
+        };
+
+        const lDriver: PotatnoPreviewDriverHandle = lEntry.createDriver<TProject>({
+            portTarget: { documentPort: lExitPort, value: lOutputId },
+            generatorResultProvider: lProvider
+        });
+
+        const lElement: Element = lDriver.element;
+
+        return {
+            displayId: lEntry.displayId,
+            label: `${lEntry.displayId} · ${lOutputId}`,
+            element: lElement instanceof HTMLElement ? lElement : null,
+            driver: lDriver,
+            node: null
+        };
+    }
+
+    /**
+     * Find the exit node's value-input port carrying a given function output, by output label.
+     *
+     * @param pFunction - The function whose exit nodes to search.
+     * @param pOutputId - The output port label to match.
+     *
+     * @returns The matching value input port, or `null`.
+     */
+    private findFunctionOutputPort(pFunction: PotatnoDocumentFunction<TProject>, pOutputId: string): PotatnoDocumentPort<TProject> | null {
+        for (const lExitNode of pFunction.getExitNodes()) {
+            const lPort: PotatnoDocumentPort<TProject> | undefined = lExitNode.inputs.map.get(pOutputId);
+            if (lPort && lPort.portType === 'value') {
+                return lPort;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Build one function-level descriptor for the given registry entry. The driver runs the
+     * bound function on every cache miss and feeds the display.
+     *
+     * @param pEntry - The registry entry whose executor wraps the function definition.
      * @param pDocumentFunction - The document function instance to drive the code generator with.
      *
      * @returns The fresh descriptor.

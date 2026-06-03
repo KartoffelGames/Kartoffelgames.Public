@@ -9,7 +9,7 @@ import type { PotatnoCodeFileSerializationResult } from '../../../serialization/
 import { PotatnoSerializer } from '../../../serialization/potatno-serializer.ts';
 import { PotatnoHistory } from '../../potatno-history.ts';
 import type { PotatnoUiProject } from '../../potatno-node-definition-list.ts';
-import { PotatnoUiPreviewManager } from '../../potatno-ui-preview-manager.ts';
+import { PotatnoUiPreviewManager, type PotatnoUiPreviewOutputOption } from '../../potatno-ui-preview-manager.ts';
 import type { PotatnoPreviewTabDescriptor } from '../potatno_preview/potatno-preview.ts';
 import type { GraphChangeDetail, OpenFunctionRequestDetail } from '../potatno_node_graph/potatno-node-graph.ts';
 import editorCss from './potatno-code-editor.css' with { type: 'text' };
@@ -224,6 +224,42 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      */
     public get previewUpdateVersion(): number {
         return this.mPreviewUpdateVersion;
+    }
+
+    /**
+     * Output options for the main preview's output selector. Empty for the entry/main function
+     * (which always shows its full output).
+     */
+    public get previewOutputOptions(): Array<PotatnoUiPreviewOutputOption> {
+        return this.mPreviewManager?.getActivePreviewOutputs() ?? [];
+    }
+
+    /**
+     * Display ("style") options for the main preview's display selector.
+     */
+    public get previewDisplayOptions(): Array<string> {
+        return this.mPreviewManager?.getActivePreviewDisplays() ?? [];
+    }
+
+    /**
+     * The output port currently shown in the main preview (for a user function).
+     */
+    public get previewSelectedOutputId(): string {
+        return this.mPreviewManager?.activePreviewOutputId ?? '';
+    }
+
+    /**
+     * The display currently rendering the main preview.
+     */
+    public get previewSelectedDisplayId(): string {
+        return this.mPreviewManager?.activePreviewDisplayId ?? '';
+    }
+
+    /**
+     * Whether the main preview should show the display/output selectors (only for user functions).
+     */
+    public get previewShowSelectors(): boolean {
+        return this.mPreviewManager?.activePreviewIsUserFunction ?? false;
     }
 
     /**
@@ -504,6 +540,27 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
     }
 
     /**
+     * Apply a main-preview output selection from the preview panel and rebuild immediately.
+     *
+     * @param pEvent - Component event carrying the chosen output port label.
+     */
+    public onPreviewOutputChange(pEvent: ComponentEvent<string>): void {
+        this.mPreviewManager?.setActivePreviewOutput(pEvent.value);
+        this.rebuildPreviewDrivers();
+    }
+
+    /**
+     * Apply a main-preview display ("style") selection from the preview panel and rebuild
+     * immediately.
+     *
+     * @param pEvent - Component event carrying the chosen display id.
+     */
+    public onPreviewDisplayChange(pEvent: ComponentEvent<string>): void {
+        this.mPreviewManager?.setActivePreviewDisplay(pEvent.value);
+        this.rebuildPreviewDrivers();
+    }
+
+    /**
      * Open a function requested by the node graph.
      *
      * @param pEvent - Graph open-function request event.
@@ -570,8 +627,13 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
         for (const lFunction of lFile.functions) {
             if (lFunction.id === pFunctionId) {
                 this.mActiveFunctionId = pFunctionId;
+                // Point the manager at the new active function synchronously so the panel's
+                // selector getters reflect it on this render; the debounced rebuild then swaps the
+                // preview descriptor.
+                this.mPreviewManager?.setActiveFunction(lFunction);
                 this.rebuildCachedData();
                 this.refreshGraph();
+                this.schedulePreviewUpdate();
                 return;
             }
         }
@@ -602,16 +664,16 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
     }
 
     /**
-     * Determine whether the preview panel should be shown. True when the project's preview
-     * registry has at least one `(display, executor)` pair bound to the entry-point function;
-     * the panel is suppressed entirely when the registry is empty so the layout reclaims the
-     * space for the node graph.
+     * Determine whether the preview panel should be shown. True when the active function has at
+     * least one registered `(display, executor)` pair; the panel is suppressed otherwise so the
+     * layout reclaims the space for the node graph.
      *
      * @returns Whether to render the preview panel.
      */
     private computeHasPreview(): boolean {
         const lProject: TProject | undefined = this.mProject;
-        if (!lProject) {
+        const lActiveFunction: PotatnoDocumentFunction<TProject> | null = this.activeFunction;
+        if (!lProject || !lActiveFunction) {
             return false;
         }
 
@@ -620,9 +682,8 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
             return false;
         }
 
-        const lEntryPointId: string = lProject.entryPoint.id;
         for (const lEntry of lRegistry.entries) {
-            if (lEntry.executorFunctionId === lEntryPointId) {
+            if (lEntry.executorFunctionId === lActiveFunction.definitionId) {
                 return true;
             }
         }
@@ -647,6 +708,9 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
         }
 
         try {
+            // The main preview follows the active function; set it before the rebuild so the
+            // manager builds the descriptor for the right function.
+            lManager.setActiveFunction(this.activeFunction);
             lManager.setDocument(this.mFile ?? null);
         } catch (pError) {
             console.error('[Editor] Preview manager rebuild failed:', pError);

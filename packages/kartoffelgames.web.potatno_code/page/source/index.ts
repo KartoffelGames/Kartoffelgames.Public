@@ -299,6 +299,36 @@ const lEntryFunctionExecutor = PotatnoPreviewFunctionExecutor.new(lProjectTypes,
     }
 });
 
+/**
+ * Executor for previewing a USER function's output in the main panel. The function is evaluated
+ * once with every input at its type default; the selected output (carried as the port target's
+ * value, keyed by output label) is returned and rendered as a flat color via the display's
+ * `number` adapter.
+ */
+const lUserFunctionExecutor = PotatnoPreviewFunctionExecutor.new(lProjectTypes, lUserFunction, {
+    parameters: { x: 0, y: 0 }, // Match the display; coordinates are ignored (output is constant).
+    buildFunction: () => {
+        // User-function previews always go through the per-output (buildNode) path; this is an
+        // unused fallback.
+        return (): [number, number, number] => [0, 0, 0];
+    },
+    buildNode: (pExecutor, pGeneratorResult, pPortTarget) => {
+        // `pGeneratorResult.code` declares `const __fn_<instanceId> = (in0, in1, ...) => { ...; return { out: ... }; };`.
+        // Call it with each input at its type default and return the selected output field.
+        const lFunction = pGeneratorResult.entryPoint.function;
+        const lFunctionName: string = `__fn_${lFunction.id.replaceAll('-', '_')}`;
+        const lLooseTypes = pExecutor.projectTypes as PotatnoProjectTypesDefinition<string>;
+        const lDefaultArguments: Array<unknown> = lFunction.inputs.map((pInput) => lLooseTypes.getDefaultValue(pInput.dataType));
+        const lOutputKey: string = pPortTarget.value;
+
+        const lCompiled: (...pArgs: Array<unknown>) => Record<string, unknown> = new Function(`${pGeneratorResult.code}\nreturn ${lFunctionName};`)() as (...pArgs: Array<unknown>) => Record<string, unknown>;
+        return (): unknown => {
+            const lResult: Record<string, unknown> = lCompiled(...lDefaultArguments);
+            return lResult ? lResult[lOutputKey] : undefined;
+        };
+    }
+});
+
 /*
  * Define preview displays.
  */
@@ -365,6 +395,7 @@ const lCanvas2dPreviewDisplay = PotatnoPreviewDisplay.new(lProjectTypes, {
 
 const lProjectPreviews = PotatnoPreview.new(lProjectTypes);
 lProjectPreviews.addDisplay(lCanvas2dPreviewDisplay, lEntryFunctionExecutor);
+lProjectPreviews.addDisplay(lCanvas2dPreviewDisplay, lUserFunctionExecutor);
 
 
 /*

@@ -94,6 +94,8 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * @param pDebug - Debug flag for the whole pass.
      */
     private buildDocumentResult(pDocument: PotatnoDocument<TProject>, pExitNodes: Array<PotatnoDocumentNode<TProject>>, pDebug: boolean): PotatnoCodeGeneratorDocumentResult<TProject> {
+        // TODO: Validate document before generation.
+        
         const lPassData: PotatnoCodeGeneratorPassData<TProject> = {
             counter: { valueIndex: 0 },
             debug: pDebug,
@@ -429,7 +431,8 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
 
         let lEmitResult: PotatnoCodeGeneratorEmitResult<TProject> = {
             codeOutput: new Array<string>(),
-            lastGeneratedNode: null! // Must be handled.
+            lastGeneratedNode: null!, // Must be handled.
+            endFlowPort: null
         };
 
         // Skip when no node is iterated or the node is a ending node.
@@ -473,39 +476,15 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             throw new Exception(`Walk did not reach an entry node from exit "${pStartNode.label}".`, this);
         }
 
+        // When an end node is set, it MUST be reached.
+        if(pEndNode && lCursorNode !== pEndNode) {
+            throw new Exception('Malformed graph. End node not reached', this);
+        }
+
+        // The current active port is also the end node.
+        lEmitResult.endFlowPort = lActivePort;
+
         return lEmitResult;
-    }
-
-    /**
-     * Find which of the branch point's flow outputs reaches pFirstNode, walking forward through any flow-conjunction reroutes.
-     *
-     * @param pBranchPoint - The branch point node.
-     * @param pFirstNode - The first execution-order node after the branch point in a branch (null when the sub-walk emitted nothing).
-     */
-    private findBranchOutputPortForFirstNode(pBranchPoint: PotatnoDocumentNode<TProject>, pFirstNode: PotatnoDocumentNode<TProject> | null): PotatnoDocumentPort<TProject> | null {
-        if (!pFirstNode) {
-            return null;
-        }
-
-        for (const lOutputPort of pBranchPoint.outputs.flow) {
-            for (const lConnectedInput of lOutputPort.connectedPorts) {
-                // Walk forward through any chain of flow-conjunction reroutes to reach the real downstream node. Flow conjunctions only have one flow output, which always points at the next node in the chain.
-                let lDownstreamNode: PotatnoDocumentNode<TProject> = lConnectedInput.node;
-                while (lDownstreamNode.definitionId === FlowConjunctionNodeDefinition.DEFINITION_ID) {
-                    const lConjunctionOutput: PotatnoDocumentPort<TProject> | undefined = lDownstreamNode.outputs.flow[0];
-                    if (!lConjunctionOutput || lConjunctionOutput.connectedPorts.size === 0) {
-                        throw new Exception('Conjunction nodes must have a valid input and output connection', this);
-                    }
-                    lDownstreamNode = lConjunctionOutput.connectedPorts.values().next().value!.node;
-                }
-
-                if (lDownstreamNode === pFirstNode) {
-                    return lOutputPort;
-                }
-            }
-        }
-
-        return null;
     }
 
 
@@ -586,11 +565,9 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
                 pCursor.scope = this.createScope(lPredecessorPort.node, lBranchPoint);
                 const lBranchEmitResult: PotatnoCodeGeneratorEmitResult<TProject> = this.walkBackward(pPassData, pCursor, lPredecessorPort.node, lBranchPoint, lPredecessorPort);
 
-                // The sub-walk's first node (in execution order) is the one we stopped just-before-advancing-to-branchPoint.
-                // Map it back to the branch point's flow output port that initiated this branch.
-                const lBranchOutputPort: PotatnoDocumentPort<TProject> | null = this.findBranchOutputPortForFirstNode(lBranchPoint, lBranchEmitResult.lastGeneratedNode); // TODO: Still seems broken
-                const lBranchKey: string = lBranchOutputPort ? lBranchOutputPort.definitionId : lPredecessorPort.definitionId;
-                lInnerByPort[lBranchKey] = lBranchEmitResult.codeOutput.join(' ');
+                // The walk ended on the branch point so the port it ended on is the branch point's flow output that initiated this branch.
+                // Map this branch's code back to that output port. The end flow port MUST be set when a end node is specified in a walk.
+                lInnerByPort[lBranchEmitResult.endFlowPort!.definitionId] = lBranchEmitResult.codeOutput.join(' ');
             }
         } finally {
             // Reset scope to old scope.
@@ -685,7 +662,10 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
 
         return {
             codeOutput: lCodeOutput,
-            lastGeneratedNode: pNode
+            lastGeneratedNode: pNode,
+
+            // An emit happens without a flow port.
+            endFlowPort: null
         };
     }
 }
@@ -751,7 +731,7 @@ type PotatnoCodeGeneratorPassCursorScope<TProject extends PotatnoProject> = {
  * Code emitted by a single walk step, sub-walk, or merge handler.
  * Returned up the call chain so callers can merge fragments together instead of sharing a mutable buffer.
  */
-type PotatnoCodeGeneratorEmitResult<TProject extends PotatnoProject> = {
+type PotatnoCodeGeneratorEmitResult<TProject extends PotatnoProject, > = {
     /**
      * Emitted code fragments in execution order (front = earliest).
      */
@@ -761,6 +741,11 @@ type PotatnoCodeGeneratorEmitResult<TProject extends PotatnoProject> = {
      * The last node generated in this emit (the most upstream node of a walk, or the emitted node itself).
      */
     lastGeneratedNode: PotatnoDocumentNode<TProject>;
+
+    /**
+     * The flow-output port the walk or emit ended on.
+     */
+    endFlowPort: PotatnoDocumentPort<TProject> | null;
 };
 
 /**

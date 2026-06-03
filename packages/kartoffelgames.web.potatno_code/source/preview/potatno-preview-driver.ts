@@ -1,5 +1,4 @@
 import type { PotatnoCodeGeneratorDocumentResult } from '../parser/result/potatno-code-generator-document-result.ts';
-import type { PotatnoCodeGeneratorNodeResult } from '../parser/result/potatno-code-generator-node-result.ts';
 import type { PotatnoProjectGenericType, PotatnoProjectType } from '../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { PotatnoPreviewDisplay, PotatnoPreviewDisplayTypeAdapter } from './potatno-preview-display.ts';
@@ -33,7 +32,7 @@ export class PotatnoPreviewDriver<TProject extends PotatnoProject, TElement exte
     private mElement: TElement | null;
     private readonly mExecutor: PotatnoPreviewFunctionExecutor<TProject['types'], TParams, TResult>;
     private readonly mFunctionResultProvider: (() => PotatnoCodeGeneratorDocumentResult<TProject>) | null;
-    private readonly mNodeResultProvider: (() => PotatnoCodeGeneratorNodeResult<TProject>) | null;
+    private readonly mNodeResultProvider: (() => PotatnoCodeGeneratorDocumentResult<TProject>) | null;
     private readonly mPortTarget: PotatnoPreviewFunctionExecutorPortTarget<TProject> | null;
 
     /**
@@ -142,9 +141,9 @@ export class PotatnoPreviewDriver<TProject extends PotatnoProject, TElement exte
             return this.mExecutor.compileFunction(this.mFunctionResultProvider());
         }
 
-        // Per-node: the node-result provider and port target are guaranteed non-null by the
+        // Per-node: the document-result provider and port target are guaranteed non-null by the
         // constructor's discriminated union — if we got here, both are set.
-        const lNodeResult: PotatnoCodeGeneratorNodeResult<TProject> = this.mNodeResultProvider!();
+        const lNodeResult: PotatnoCodeGeneratorDocumentResult<TProject> = this.mNodeResultProvider!();
         const lRawCallable: PotatnoPreviewFunctionExecutorCallable<TParams, unknown> = this.mExecutor.compileNode(lNodeResult, this.mPortTarget!);
 
         // Wrap with the display's matching type adapter so the loop sees TResult-shaped values
@@ -213,13 +212,14 @@ export type PotatnoPreviewDriverConstructorFunctionParameter<TProject extends Po
 
 /**
  * Per-node branch of the discriminated constructor parameter. `portTarget` is non-null and
- * the provider yields a node-result whose exit node is the previewed node.
+ * the provider yields the full document-result for the previewed node's function; the executor
+ * returns the targeted port's value by replacing its valueId hook with a return.
  *
  * @typeParam TProject - The project type the driver targets.
  */
 export type PotatnoPreviewDriverConstructorNodeParameter<TProject extends PotatnoProject> = {
     readonly portTarget: PotatnoPreviewFunctionExecutorPortTarget<TProject>;
-    readonly generatorResultProvider: () => PotatnoCodeGeneratorNodeResult<TProject>;
+    readonly generatorResultProvider: () => PotatnoCodeGeneratorDocumentResult<TProject>;
 };
 
 /**

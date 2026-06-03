@@ -9,7 +9,7 @@ import { PotatnoClipboard } from '../../potatno-clipboard.ts';
 import { NodeCategoryMeta } from '../../node/node-category.enum.ts';
 import { buildAvailableNodeDefinitionEntries, type PotatnoNodeDefinitionListEntry, type PotatnoUiProject } from '../../potatno-node-definition-list.ts';
 import type { PotatnoUiPreviewManager } from '../../potatno-ui-preview-manager.ts';
-import type { CommentChangeDetail, DirectValueChangeDetail, OpenFunctionDetail, PreviewToggleDetail, ResizeStartDetail } from '../potatno_node_component/potatno-node-component.ts';
+import type { CommentChangeDetail, DirectValueChangeDetail, OpenFunctionDetail, PreviewSelectDetail, PreviewStyleDetail, ResizeStartDetail } from '../potatno_node_component/potatno-node-component.ts';
 import type { PortInteractionDetail } from '../potatno_port/potatno-port.ts';
 import graphCss from './potatno-node-graph.css' with { type: 'text' };
 import graphTemplate from './potatno-node-graph.html' with { type: 'text' };
@@ -672,25 +672,57 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Toggle a node's inline output preview. Enables it by resolving a default port/display
-     * binding from the preview manager, or clears the opt-in when it is already active. Emits a
-     * preview-affecting graph change so the editor rebuilds the preview drivers.
+     * List the preview display ids available for a node's outputs, for the node's style selector.
      *
-     * @param pEvent - Component event containing the node to toggle.
+     * @param pNode - Node whose available preview displays to list.
+     *
+     * @returns The display ids, or an empty array when the node can not be previewed.
      */
-    public onNodePreviewToggle(pEvent: ComponentEvent<PreviewToggleDetail>): void {
-        const lNode: PotatnoDocumentNode<PotatnoUiProject> = pEvent.value.node;
+    public getPreviewDisplaysForNode(pNode: PotatnoDocumentNode<PotatnoUiProject>): Array<string> {
+        return this.mPreviewManager?.getPreviewDisplaysForNode(pNode) ?? [];
+    }
 
-        if (lNode.preview) {
+    /**
+     * Select which output port of a node is previewed inline. Re-selecting the active port turns
+     * the preview off. Keeps the current display when still valid, otherwise defaults to the first
+     * available. Emits a preview-affecting graph change so the editor rebuilds the drivers.
+     *
+     * @param pEvent - Component event containing the node and chosen port id.
+     */
+    public onNodePreviewSelect(pEvent: ComponentEvent<PreviewSelectDetail>): void {
+        const lNode: PotatnoDocumentNode<PotatnoUiProject> = pEvent.value.node;
+        const lPortId: string = pEvent.value.portId;
+
+        // Re-selecting the active port toggles the preview off.
+        if (lNode.preview?.portId === lPortId) {
             lNode.preview = null;
         } else {
-            const lBinding = this.mPreviewManager?.resolveNodePreviewBinding(lNode) ?? null;
-            if (!lBinding) {
+            const lDisplays: Array<string> = this.getPreviewDisplaysForNode(lNode);
+            const lDisplayId: string | undefined = (lNode.preview && lDisplays.includes(lNode.preview.displayId))
+                ? lNode.preview.displayId
+                : lDisplays[0];
+            if (!lDisplayId) {
                 return;
             }
-            lNode.preview = lBinding;
+            lNode.preview = { portId: lPortId, displayId: lDisplayId };
         }
 
+        this.invalidateGraphContent();
+        this.emitGraphChange(true);
+    }
+
+    /**
+     * Change the display ("style") of a node's active preview.
+     *
+     * @param pEvent - Component event containing the node and chosen display id.
+     */
+    public onNodePreviewStyle(pEvent: ComponentEvent<PreviewStyleDetail>): void {
+        const lNode: PotatnoDocumentNode<PotatnoUiProject> = pEvent.value.node;
+        if (!lNode.preview) {
+            return;
+        }
+
+        lNode.preview = { portId: lNode.preview.portId, displayId: pEvent.value.displayId };
         this.invalidateGraphContent();
         this.emitGraphChange(true);
     }

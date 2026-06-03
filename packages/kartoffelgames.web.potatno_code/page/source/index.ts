@@ -276,25 +276,23 @@ const lEntryFunctionExecutor = PotatnoPreviewFunctionExecutor.new(lProjectTypes,
             return lCompiled(pParameters.x, pParameters.y);
         };
     },
-    buildNode: (_pExecutor, pGeneratorResult, pPortTarget) => {
-        // Per-node path. `pGeneratorResult.code` is the graph body up to and including the
-        // previewed node (no function wrap, no return). Splice in a `return` at the hook for
-        // the targeted valueId and drop anything after it; whatever follows the hook can't run
-        // because the function will have already returned.
-        let lNodeBody: string = pGeneratorResult.code;
+    buildNode: (pExecutor, pGeneratorResult, pPortTarget) => {
+        // Per-node path. `pGeneratorResult.code` is the FULL function declaration (with deps):
+        //   const pixelShader = (x, y) => { ...; /*[valueId]*/ ...; return [...]; };
+        // so the input node already supplies the (x, y) interface and the previewed value is
+        // computed in context. Replace the targeted output port's valueId hook with a `return`
+        // so the function yields that intermediate value instead of its final result, then pull
+        // the named function out and run it per pixel. Code after the injected return is dead.
+        const lFunctionCode: string = pGeneratorResult.code;
+        const lFunctionName: string = pExecutor.function.id;
         const lHookMarker: string = `/*[${pPortTarget.value}]*/`;
-        const lHookIndex: number = lNodeBody.indexOf(lHookMarker);
-        if (lHookIndex !== -1) {
-            lNodeBody = lNodeBody.substring(0, lHookIndex) + `\nreturn ${pPortTarget.value};\n`;
-        } else {
-            // Hook absent (e.g. the node's code generator didn't emit one). Append the return
-            // so the per-node callable still produces a value rather than `undefined`.
-            lNodeBody += `\nreturn ${pPortTarget.value};\n`;
-        }
+        const lInstrumented: string = lFunctionCode.includes(lHookMarker)
+            ? lFunctionCode.replace(lHookMarker, `; return ${pPortTarget.value};`)
+            : lFunctionCode;
 
         // The per-node callable yields the port's raw value. The driver wraps it with the
         // display's matching adapter, so the executor's return type stays honestly `unknown`.
-        const lNodeFn: (pX: number, pY: number) => unknown = new Function('x', 'y', lNodeBody) as (pX: number, pY: number) => unknown;
+        const lNodeFn: (pX: number, pY: number) => unknown = new Function(`${lInstrumented}\nreturn ${lFunctionName};`)() as (pX: number, pY: number) => unknown;
         return (pParameters: { x: number; y: number; }): unknown => {
             return lNodeFn(pParameters.x, pParameters.y);
         };

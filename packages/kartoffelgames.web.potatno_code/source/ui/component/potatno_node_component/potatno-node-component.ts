@@ -74,6 +74,20 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     public previewElement: HTMLElement | null = null;
 
     /**
+     * Display ids available for previewing this node's outputs, supplied by the graph from the
+     * project's preview registry. Drives the "style" selector shown on an active preview.
+     */
+    @PwbExport
+    @ComponentState.state({ complexValue: true })
+    public accessor previewDisplays: Array<string> = [];
+
+    /**
+     * Whether the output-port selection menu (opened by the eye button) is visible.
+     */
+    @ComponentState.state()
+    private accessor mShowPortMenu: boolean = false;
+
+    /**
      * Reference to the preview container element inside the node.
      * Only available for standard nodes (not reroute or comment).
      */
@@ -112,8 +126,11 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     @PwbComponentEvent('port-element-ready')
     private accessor mPortElementReady!: ComponentEventEmitter<PortInteractionDetail>;
 
-    @PwbComponentEvent('preview-toggle')
-    private accessor mPreviewToggle!: ComponentEventEmitter<PreviewToggleDetail>;
+    @PwbComponentEvent('preview-select')
+    private accessor mPreviewSelect!: ComponentEventEmitter<PreviewSelectDetail>;
+
+    @PwbComponentEvent('preview-style')
+    private accessor mPreviewStyle!: ComponentEventEmitter<PreviewStyleDetail>;
 
     // ── Computed template properties ────────────────────────────────────
 
@@ -176,7 +193,7 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
      * Whether the node exposes a value output and can therefore host an inline preview.
      */
     public get canPreview(): boolean {
-        return (this.nodeData?.outputs.value.length ?? 0) > 0;
+        return this.valueOutputPorts.length > 0;
     }
 
     /**
@@ -187,10 +204,52 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     }
 
     /**
-     * CSS class for the preview toggle button, reflecting its active state.
+     * CSS class for the eye button, reflecting its active state.
      */
-    public get previewToggleClass(): string {
-        return this.isPreviewActive ? 'preview-toggle-btn active' : 'preview-toggle-btn';
+    public get previewEyeClass(): string {
+        return this.isPreviewActive ? 'preview-eye-btn active' : 'preview-eye-btn';
+    }
+
+    /**
+     * Whether the output-port selection menu is currently open.
+     */
+    public get showPortMenu(): boolean {
+        return this.mShowPortMenu;
+    }
+
+    /**
+     * The node's value output ports — the candidates for an inline preview.
+     */
+    public get valueOutputPorts(): Array<PotatnoDocumentPort<PotatnoUiProject>> {
+        if (!this.nodeData) {
+            return [];
+        }
+        return [...this.nodeData.outputs.value];
+    }
+
+    /**
+     * The display id currently selected for the active preview, or '' when none is active.
+     */
+    public get selectedDisplayId(): string {
+        return this.nodeData?.preview?.displayId ?? '';
+    }
+
+    /**
+     * Whether the given port is the one currently previewed.
+     *
+     * @param pPort - Port to check.
+     */
+    public isPreviewedPort(pPort: PotatnoDocumentPort<PotatnoUiProject>): boolean {
+        return this.nodeData?.preview?.portId === pPort.definitionId;
+    }
+
+    /**
+     * CSS class for a port row in the preview menu.
+     *
+     * @param pPort - Port the row represents.
+     */
+    public previewPortClass(pPort: PotatnoDocumentPort<PotatnoUiProject>): string {
+        return this.isPreviewedPort(pPort) ? 'preview-port-item active' : 'preview-port-item';
     }
 
     /**
@@ -347,15 +406,40 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     }
 
     /**
-     * Handle click on the preview toggle button. Asks the graph to enable or disable this node's
-     * inline output preview.
+     * Toggle the output-port selection menu opened by the eye button.
      */
-    public onPreviewToggle(pEvent: MouseEvent): void {
+    public onEyeClick(pEvent: MouseEvent): void {
+        pEvent.stopPropagation();
+        this.mShowPortMenu = !this.mShowPortMenu;
+    }
+
+    /**
+     * Choose which output port to preview (clicking the active one turns the preview off). Closes
+     * the menu and lets the graph apply the opt-in.
+     *
+     * @param pEvent - Click event from the port row.
+     * @param pPort - Port to preview.
+     */
+    public onSelectPreviewPort(pEvent: MouseEvent, pPort: PotatnoDocumentPort<PotatnoUiProject>): void {
+        pEvent.stopPropagation();
+        this.mShowPortMenu = false;
+        if (!this.nodeData) {
+            return;
+        }
+        this.mPreviewSelect.dispatchEvent({ node: this.nodeData, portId: pPort.definitionId });
+    }
+
+    /**
+     * Change the preview display ("style") for the active preview.
+     *
+     * @param pEvent - Change event from the style selector.
+     */
+    public onSelectPreviewStyle(pEvent: Event): void {
         pEvent.stopPropagation();
         if (!this.nodeData) {
             return;
         }
-        this.mPreviewToggle.dispatchEvent({ node: this.nodeData });
+        this.mPreviewStyle.dispatchEvent({ node: this.nodeData, displayId: (pEvent.target as HTMLSelectElement).value });
     }
 
     /**
@@ -413,8 +497,14 @@ export type OpenFunctionDetail = {
     node: PotatnoDocumentNode<PotatnoUiProject>;
 };
 
-export type PreviewToggleDetail = {
+export type PreviewSelectDetail = {
     node: PotatnoDocumentNode<PotatnoUiProject>;
+    portId: string;
+};
+
+export type PreviewStyleDetail = {
+    node: PotatnoDocumentNode<PotatnoUiProject>;
+    displayId: string;
 };
 
 export type CommentChangeDetail = {

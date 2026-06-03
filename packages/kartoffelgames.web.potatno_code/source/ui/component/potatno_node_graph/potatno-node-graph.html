@@ -16,6 +16,7 @@
                         [hasError]="this.nodeState.hasError"
                         [errorPorts]="this.nodeState.errorPorts"
                         [previewElement]="this.getPreviewElementForNode(this.nodeState.node)"
+                        [previewDisplays]="this.getPreviewDisplaysForNode(this.nodeState.node)"
                         (pointerdown)="this.onNodePointerDown($event, this.nodeState.node)"
                         (port-drag-start)="this.onPortDragStart($event)"
                         (port-hover)="this.onPortHover($event)"
@@ -24,7 +25,8 @@
                         (resize-start)="this.onNodeResizeStart($event)"
                         (comment-change)="this.onCommentChange($event)"
                         (open-function)="this.onOpenFunction($event)"
-                        (preview-toggle)="this.onNodePreviewToggle($event)"
+                        (preview-select)="this.onNodePreviewSelect($event)"
+                        (preview-style)="this.onNodePreviewStyle($event)"
                         (direct-value-change)="this.onDirectValueChange($event)">
                     </potatno-node>
                 </div>

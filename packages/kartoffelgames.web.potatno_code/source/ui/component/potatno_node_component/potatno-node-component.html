@@ -67,12 +67,22 @@ $if(this.nodeData) {
                     </button>
                 }
                 $if(this.canPreview) {
-                    <button [className]="this.previewToggleClass"
-                            (click)="this.onPreviewToggle($event)">
+                    <button [className]="this.previewEyeClass"
+                            (click)="this.onEyeClick($event)">
                         👁
                     </button>
                 }
             </div>
+            $if(this.showPortMenu) {
+                <div class="preview-port-menu">
+                    $for(port of this.valueOutputPorts) {
+                        <button [className]="this.previewPortClass(this.port)"
+                                (click)="this.onSelectPreviewPort($event, this.port)">
+                            {{this.port.label}}
+                        </button>
+                    }
+                </div>
+            }
             <div class="node-body">
                 <div class="node-inputs">
                     $for(inPort of this.inputPorts) {
@@ -105,6 +115,15 @@ $if(this.nodeData) {
                     }
                 </div>
             </div>
+            $if(this.isPreviewActive) {
+                <div class="preview-style-bar">
+                    <select class="preview-style-select" (change)="this.onSelectPreviewStyle($event)">
+                        $for(display of this.previewDisplays) {
+                            <option [value]="this.display" [selected]="this.display === this.selectedDisplayId">{{this.display}}</option>
+                        }
+                    </select>
+                </div>
+            }
             <div class="node-preview" #NodePreview></div>
         </div>
     }

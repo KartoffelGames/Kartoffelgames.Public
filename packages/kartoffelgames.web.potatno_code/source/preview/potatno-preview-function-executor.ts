@@ -1,6 +1,5 @@
 import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import type { PotatnoCodeGeneratorDocumentResult } from '../parser/result/potatno-code-generator-document-result.ts';
-import type { PotatnoCodeGeneratorNodeResult } from '../parser/result/potatno-code-generator-node-result.ts';
 import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
@@ -108,17 +107,19 @@ export class PotatnoPreviewFunctionExecutor<TTypes extends PotatnoProjectTypesDe
     /**
      * Compile a per-node generator result into a per-iteration callable.
      *
-     * Invokes `buildNode` with the build context, the per-node graph result (whose `.code` is
-     * the bounded subgraph body), and the port target identifying which intermediate value to
-     * return. The returned callable yields the raw port value — the driver applies the
-     * matching display adapter before handing it to `display.update`.
+     * Invokes `buildNode` with the build context, the full document-result code (the previewed
+     * node's owning function plus its dependencies, with all hooks intact), and the port target
+     * identifying which intermediate value to return. `buildNode` replaces the target port's
+     * valueId hook with a return so the compiled function yields that value. The returned callable
+     * yields the raw port value — the driver applies the matching display adapter before handing it
+     * to `display.update`.
      *
-     * @param pGeneratorResult - The per-node graph result whose exit node is the previewed node.
+     * @param pGeneratorResult - The document-level code generator result for the previewed node's function.
      * @param pPortTarget - The document port being previewed plus its bound `valueId`.
      *
      * @returns A callable accepting one iteration's parameter object and returning the targeted port's raw value.
      */
-    public compileNode(pGeneratorResult: PotatnoCodeGeneratorNodeResult<PotatnoProject<TTypes>>, pPortTarget: PotatnoPreviewFunctionExecutorPortTarget<PotatnoProject<TTypes>>): PotatnoPreviewFunctionExecutorCallable<TParams, unknown> {
+    public compileNode(pGeneratorResult: PotatnoCodeGeneratorDocumentResult<PotatnoProject<TTypes>>, pPortTarget: PotatnoPreviewFunctionExecutorPortTarget<PotatnoProject<TTypes>>): PotatnoPreviewFunctionExecutorCallable<TParams, unknown> {
         return this.mBuildNode(this.buildContext(), pGeneratorResult, pPortTarget);
     }
 
@@ -205,8 +206,9 @@ export type PotatnoPreviewFunctionExecutorPortTarget<TProject extends PotatnoPro
 export type PotatnoPreviewFunctionExecutorBuildFunction<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Readonly<Record<string, unknown>>, TResult> = (pExecutor: PotatnoPreviewFunctionExecutorBuildContext<TTypes, TParams>, pGeneratorResult: PotatnoCodeGeneratorDocumentResult<PotatnoProject<TTypes>>) => PotatnoPreviewFunctionExecutorCallable<TParams, TResult>;
 
 /**
- * Per-node build callback. Called once per cache miss for per-node previews to compile the
- * targeted-node graph result into a per-iteration callable returning the port's raw value.
+ * Per-node build callback. Called once per cache miss for per-node previews to compile the full
+ * document-result code into a per-iteration callable returning a single port's raw value (by
+ * replacing that port's valueId hook with a return).
  *
  * The callable's return type is `unknown` rather than `TResult` because per-node previews
  * yield whatever the targeted port emits — a single number, a string, a custom struct — which
@@ -216,7 +218,7 @@ export type PotatnoPreviewFunctionExecutorBuildFunction<TTypes extends PotatnoPr
  * @typeParam TTypes - The project types definition the executor targets.
  * @typeParam TParams - The iteration parameter shape.
  */
-export type PotatnoPreviewFunctionExecutorBuildNode<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Readonly<Record<string, unknown>>> = (pExecutor: PotatnoPreviewFunctionExecutorBuildContext<TTypes, TParams>, pGeneratorResult: PotatnoCodeGeneratorNodeResult<PotatnoProject<TTypes>>, pPortTarget: PotatnoPreviewFunctionExecutorPortTarget<PotatnoProject<TTypes>>) => PotatnoPreviewFunctionExecutorCallable<TParams, unknown>;
+export type PotatnoPreviewFunctionExecutorBuildNode<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Readonly<Record<string, unknown>>> = (pExecutor: PotatnoPreviewFunctionExecutorBuildContext<TTypes, TParams>, pGeneratorResult: PotatnoCodeGeneratorDocumentResult<PotatnoProject<TTypes>>, pPortTarget: PotatnoPreviewFunctionExecutorPortTarget<PotatnoProject<TTypes>>) => PotatnoPreviewFunctionExecutorCallable<TParams, unknown>;
 
 /**
  * Constructor parameters for PotatnoPreviewFunctionExecutor.

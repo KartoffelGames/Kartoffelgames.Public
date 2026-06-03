@@ -1,10 +1,10 @@
 import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
-import type { PotatnoDocumentNode, PotatnoDocumentNodePreviewBinding } from '../document/potatno-document-node.ts';
+import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import type { PotatnoDocument } from '../document/potatno-document.ts';
 import { PotatnoCodeGenerator } from '../parser/potatno-code-generator.ts';
 import type { PotatnoCodeGeneratorDocumentResult } from '../parser/result/potatno-code-generator-document-result.ts';
-import type { PotatnoCodeGeneratorNodeResult } from '../parser/result/potatno-code-generator-node-result.ts';
+import type { PotatnoCodeGeneratorFunctionResult } from '../parser/result/potatno-code-generator-function-result.ts';
 import type { PotatnoPreviewDriverHandle } from '../preview/potatno-preview-driver.ts';
 import type { PotatnoPreviewEntry } from '../preview/potatno-preview.ts';
 import type { PotatnoUiProject } from './potatno-node-definition-list.ts';
@@ -115,43 +115,36 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
     }
 
     /**
-     * Resolve a default per-node preview opt-in for the given node, or `null` when the node has
-     * nothing previewable. Picks the node's first value output port and the first registered
-     * display whose executor wraps the node's owning function definition. The UI uses this to
-     * toggle a node's inline preview on without the user choosing a port/display by hand.
+     * List the display ids that can preview an output of the given node — the registered displays
+     * whose executor wraps the node's owning function definition. Drives the node's "style"
+     * selector and supplies the default display when a preview port is first chosen. Empty when
+     * the node's function has no registered preview.
      *
-     * @param pNode - The node to resolve a preview binding for.
+     * @param pNode - The node whose available preview displays to list.
      *
-     * @returns A `{ portId, displayId }` opt-in, or `null` when the node can not be previewed.
+     * @returns The matching display ids, in registration order, deduplicated.
      */
-    public resolveNodePreviewBinding(pNode: PotatnoDocumentNode<TProject>): PotatnoDocumentNodePreviewBinding | null {
-        // A node is previewable only when it exposes a value output to read.
-        const lValuePort: PotatnoDocumentPort<TProject> | undefined = pNode.outputs.value[0];
-        if (!lValuePort) {
-            return null;
-        }
-
-        // No registry → nothing to bind against.
+    public getPreviewDisplaysForNode(pNode: PotatnoDocumentNode<TProject>): Array<string> {
         const lRegistry = this.mProject.previews;
         if (!lRegistry) {
-            return null;
+            return [];
         }
 
-        // The bound display's executor must wrap the node's owning function definition, mirroring
-        // the match `tryBuildNodeDescriptor` performs when it actually builds the driver.
+        // The display's executor must wrap the node's owning function definition, mirroring the
+        // match `tryBuildNodeDescriptor` performs when it actually builds the driver.
         const lOwningFunctionDefinition = this.mProject.getFunction(pNode.function.definitionId);
         if (!lOwningFunctionDefinition) {
-            return null;
+            return [];
         }
 
-        const lEntry: PotatnoPreviewEntry<TProject['types']> | undefined = lRegistry.entries.find((pEntry) => {
-            return pEntry.executorFunctionId === lOwningFunctionDefinition.id;
-        });
-        if (!lEntry) {
-            return null;
+        const lDisplays: Set<string> = new Set<string>();
+        for (const lEntry of lRegistry.entries) {
+            if (lEntry.executorFunctionId === lOwningFunctionDefinition.id) {
+                lDisplays.add(lEntry.displayId);
+            }
         }
 
-        return { portId: lValuePort.definitionId, displayId: lEntry.displayId };
+        return [...lDisplays];
     }
 
     /**
@@ -364,24 +357,21 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
             return null;
         }
 
-        // Generate code with the target node as the exit — used both to populate portValueIds
-        // for the port lookup we hand to the executor, and as the per-render result the driver
-        // pulls on each cache miss. The closure re-runs the generator on every miss so the
-        // valueId map and the body code stay consistent.
-        const lProvider = (): PotatnoCodeGeneratorNodeResult<TProject> => {
+        // Generate the FULL owning function (with its dependencies). The input node supplies the
+        // JS-function interface and the previewed value is computed in context; the executor's
+        // build callback then replaces the target output port's valueId hook with a return so the
+        // function yields that intermediate value. The closure re-runs the generator on every
+        // cache miss so the valueId map and body code stay consistent.
+        const lProvider = (): PotatnoCodeGeneratorDocumentResult<TProject> => {
             const lGenerator: PotatnoCodeGenerator<TProject> = new PotatnoCodeGenerator<TProject>(this.mProject);
-            const lDocumentResult = lGenerator.generateNode(pNode, true);
-            // generateNode produces a FunctionResult with exactly one graph anchored at the
-            // requested exit node — that single graph holds the portValueIds map and the body
-            // code the executor needs.
-            const lGraphs: ReadonlyArray<PotatnoCodeGeneratorNodeResult<TProject>> = lDocumentResult.entryPoint.graphs;
-            return lGraphs[0]!;
+            return lGenerator.generateFunction(pDocumentFunction, true);
         };
 
-        // Resolve the valueId for the targeted port up-front so the executor's build callback
-        // gets a stable handle even if the generator re-runs between compile and render.
-        const lFirstResult: PotatnoCodeGeneratorNodeResult<TProject> = lProvider();
-        const lValueId: string | undefined = lFirstResult.ports.get(lPort);
+        // Resolve the valueId allocated to the targeted port in the full generation. Generation is
+        // deterministic, so the id stays stable across the provider's re-runs. A `null` here means
+        // the port's value is not emitted (e.g. nothing downstream consumes it), so there is no
+        // hook to anchor the preview on.
+        const lValueId: string | undefined = this.findPortValueId(lProvider(), lPort);
         if (!lValueId) {
             return null;
         }
@@ -405,5 +395,29 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
             driver: lDriver,
             node: pNode
         };
+    }
+
+    /**
+     * Find the valueId allocated to a port across every graph of a generation result. The
+     * previewed port can live in the entry function or any dependency function, so all results
+     * are searched.
+     *
+     * @param pDocumentResult - The generation result to search.
+     * @param pPort - The port whose valueId to find.
+     *
+     * @returns The valueId, or `undefined` when the port's value was not emitted.
+     */
+    private findPortValueId(pDocumentResult: PotatnoCodeGeneratorDocumentResult<TProject>, pPort: PotatnoDocumentPort<TProject>): string | undefined {
+        const lFunctionResults: Array<PotatnoCodeGeneratorFunctionResult<TProject>> = [pDocumentResult.entryPoint, ...pDocumentResult.dependencies];
+        for (const lFunctionResult of lFunctionResults) {
+            for (const lGraph of lFunctionResult.graphs) {
+                const lValueId: string | undefined = lGraph.ports.get(pPort);
+                if (lValueId !== undefined) {
+                    return lValueId;
+                }
+            }
+        }
+
+        return undefined;
     }
 }

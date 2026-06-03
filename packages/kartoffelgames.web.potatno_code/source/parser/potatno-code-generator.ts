@@ -194,12 +194,12 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * Construct a fresh scope ready to be used by a backward walk.
      *
      * @param pStartNode - The node the walk will start from.
-     * @param pStopNode - The walk's stop sentinel (null at top-level).
+     * @param pEndNode - The walk's stop sentinel (null at top-level).
      */
-    private createScope(pStartNode: PotatnoDocumentNode<TProject>, pStopNode: PotatnoDocumentNode<TProject> | null): PotatnoCodeGeneratorPassCursorScope<TProject> {
+    private createScope(pStartNode: PotatnoDocumentNode<TProject>, pEndNode: PotatnoDocumentNode<TProject> | null): PotatnoCodeGeneratorPassCursorScope<TProject> {
         return {
             values: new Map<PotatnoDocumentPort<TProject>, string>(),
-            remaining: this.countNodeEncounter(pStartNode, pStopNode)
+            remaining: this.countNodeEncounter(pStartNode, pEndNode)
         };
     }
 
@@ -366,11 +366,11 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * Pass that counts each encountered node, starting at a root node.
      *
      * @param pStartNode - The starting node (the scope's exit / fan-in predecessor).
-     * @param pStopNode - When set, traversal stops at this node (used by sub-walks to bound their scope to the branch).
+     * @param pEndNode - When set, traversal stops at this node (used by sub-walks to bound their scope to the branch).
      * 
      * @returns the mapping between the document nodes and the encounter counter.
      */
-    private countNodeEncounter(pStartNode: PotatnoDocumentNode<TProject>, pStopNode: PotatnoDocumentNode<TProject> | null): Map<PotatnoDocumentNode<TProject>, number> {
+    private countNodeEncounter(pStartNode: PotatnoDocumentNode<TProject>, pEndNode: PotatnoDocumentNode<TProject> | null): Map<PotatnoDocumentNode<TProject>, number> {
         const lRemaining: Map<PotatnoDocumentNode<TProject>, number> = new Map<PotatnoDocumentNode<TProject>, number>();
 
         const lCheckedNodes: Set<PotatnoDocumentNode<TProject>> = new Set<PotatnoDocumentNode<TProject>>();
@@ -382,8 +382,8 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             // Count any incomming connection, even when a node port has multiple connections to the same node.
             lRemaining.set(lNode, (lRemaining.get(lNode) ?? 0) + 1);
 
-            // Skip on stop node or when node was already marched.
-            if (lNode === pStopNode || lCheckedNodes.has(lNode)) {
+            // Skip on end node or when node was already marched.
+            if (lNode === pEndNode || lCheckedNodes.has(lNode)) {
                 continue;
             }
 
@@ -418,12 +418,12 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * @param pPassData - Shared pass state.
      * @param pCursor - The pass cursor.
      * @param pStartNode - The node the walk begins at.
-     * @param pStopBefore - Stop before advancing to this node (not emitted). Null at top-level.
+     * @param pEndNode - Stop before advancing to this node (not emitted). Null at top-level.
      * @param pInitialActivePort - The start node's active flow output. Null at top-level.
      *
      * @returns the collected code and the last (most upstream) node generated.
      */
-    private walkBackward(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pStartNode: PotatnoDocumentNode<TProject>, pStopBefore: PotatnoDocumentNode<TProject> | null, pInitialActivePort: PotatnoDocumentPort<TProject> | null = null): PotatnoCodeGeneratorEmitResult<TProject> {
+    private walkBackward(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pStartNode: PotatnoDocumentNode<TProject>, pEndNode: PotatnoDocumentNode<TProject> | null, pInitialActivePort: PotatnoDocumentPort<TProject> | null = null): PotatnoCodeGeneratorEmitResult<TProject> {
         let lCursorNode: PotatnoDocumentNode<TProject> | null = pStartNode;
         let lActivePort: PotatnoDocumentPort<TProject> | null = pInitialActivePort;
 
@@ -432,8 +432,8 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             lastGeneratedNode: null! // Must be handled.
         };
 
-        // Skip when no node is iterated or the node is a stop nodes.
-        while (lCursorNode !== null && lCursorNode !== pStopBefore) {
+        // Skip when no node is iterated or the node is a ending node.
+        while (lCursorNode !== null && lCursorNode !== pEndNode) {
             // Emit the current node, folding the active port's downstream code into its inner.
             // Only the flow output that leads to the already-emitted downstream gets the collected code; other flow outputs get empty inner.
             const lInnerByPort: Record<string, string> = {};

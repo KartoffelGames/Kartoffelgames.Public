@@ -429,9 +429,13 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
 
         lFile.addFunction(lFunction);
         this.mActiveFunctionId = lFunction.id;
+        // The new function becomes active: point the manager at it (so the main preview follows)
+        // and refresh the preview, mirroring activateFunction.
+        this.mPreviewManager?.setActiveFunction(lFunction);
         this.scheduleHistorySnapshot();
         this.rebuildCachedData();
         this.refreshGraph();
+        this.schedulePreviewUpdate();
     }
 
     /**
@@ -533,6 +537,10 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
     public onGraphChange(pEvent: ComponentEvent<GraphChangeDetail>): void {
         this.scheduleHistorySnapshot();
         this.rebuildCachedData();
+        // Bump the graph refresh token so the node-graph re-reads the freshly validated error
+        // sets, matching every other mutation handler. Without it a connection re-validates the
+        // document but the graph never repaints the updated error highlighting.
+        this.refreshGraph();
 
         if (pEvent.value.affectsPreview) {
             this.schedulePreviewUpdate();

@@ -204,6 +204,10 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      */
     @PwbExport
     public set previewManager(pValue: PotatnoUiPreviewManager<PotatnoUiProject> | null) {
+        if (this.mPreviewManager === pValue) {
+            return;
+        }
+
         this.mPreviewManager = pValue;
         this.invalidateGraphContent();
     }
@@ -617,6 +621,14 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      */
     public onPortElementReady(pEvent: ComponentEvent<PortInteractionDetail>): void {
         this.mPortElementRegistry.set(pEvent.value.port, pEvent.value.element);
+
+        // Re-render connections now that a real port position is known. Connections are first
+        // drawn right after a graph rebuild — before the freshly created port elements have
+        // registered — so they fall back to estimated, index-based anchor positions. Without this
+        // re-render those stale estimates stick (most visibly after a function switch: every wire
+        // collapses onto the first input row). The rAF debounce coalesces the burst of per-port
+        // registrations into a single redraw.
+        this.scheduleConnectionRender();
     }
 
     /**
@@ -840,13 +852,13 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      *
      * @param _pEvent - Unused pointer up event from the document.
      */
-    private onDocumentPointerUp(_pEvent: PointerEvent): void {
+    private onDocumentPointerUp(pEvent: PointerEvent): void {
         const lState: GraphInteractionState = this.mInteractionState;
 
         if (lState.mode === 'dragging-node') {
             this.emitGraphChange(true);
         } else if (lState.mode === 'dragging-wire') {
-            this.completeWireDrag();
+            this.completeWireDrag(pEvent);
         } else if (lState.mode === 'selecting') {
             this.mShowSelectionBox = false;
             this.selectNodesInBox();
@@ -942,9 +954,11 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Complete a wire drag and create a connection when the hovered target is valid.
+     * Complete a wire drag and create a connection when the drop target is valid.
+     *
+     * @param pEvent - The pointer-up event whose coordinates locate the drop target.
      */
-    private completeWireDrag(): void {
+    private completeWireDrag(pEvent: PointerEvent): void {
         const lSvg: SVGSVGElement | null = this.getSvgLayerOrNull();
         if (lSvg) {
             this.mRenderer.clearTempConnection(lSvg);
@@ -954,8 +968,14 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             return;
         }
 
+        // Resolve the drop target. Prefer the hover-tracked port, but fall back to a geometric
+        // hit-test against the registered port elements. Relying on `pointerenter` alone is
+        // fragile: when the graph re-renders mid-drag the `$for` re-creates the port element under
+        // the (stationary) cursor, and the browser never fires `pointerenter` on an element that
+        // appears beneath a pointer that did not move — leaving `mHoveredPort` null even though the
+        // cursor sits squarely on a valid port. The hit-test recovers the target in that case.
         const lSource: PotatnoDocumentPort<PotatnoUiProject> = this.mInteractionState.sourcePort;
-        const lTarget: PotatnoDocumentPort<PotatnoUiProject> | null = this.mHoveredPort?.port ?? null;
+        const lTarget: PotatnoDocumentPort<PotatnoUiProject> | null = this.mHoveredPort?.port ?? this.hitTestPort(pEvent.clientX, pEvent.clientY);
 
         if (!lTarget || lSource === lTarget) {
             return;
@@ -973,6 +993,26 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         } catch (pError) {
             console.error('[NodeGraph] Connection failed:', pError);
         }
+    }
+
+    /**
+     * Find a port whose registered circle element contains the given viewport point. Used as a
+     * drop-target fallback when hover tracking missed the target (see `completeWireDrag`).
+     *
+     * @param pClientX - Viewport X coordinate of the drop.
+     * @param pClientY - Viewport Y coordinate of the drop.
+     *
+     * @returns The port under the point, or `null` when none matches.
+     */
+    private hitTestPort(pClientX: number, pClientY: number): PotatnoDocumentPort<PotatnoUiProject> | null {
+        for (const [lPort, lElement] of this.mPortElementRegistry) {
+            const lRect: DOMRect = lElement.getBoundingClientRect();
+            if (pClientX >= lRect.left && pClientX <= lRect.right && pClientY >= lRect.top && pClientY <= lRect.bottom) {
+                return lPort;
+            }
+        }
+
+        return null;
     }
 
     /**

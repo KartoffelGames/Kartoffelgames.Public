@@ -887,11 +887,12 @@ lApp.appendTo(document.body);
 lApp.document = new PotatnoDocument(lProject);
 
 // --- Pixel shader render loop ---
-function renderFrame(): void {
-    // Update node element previews once per frame with center pixel data.
-    lApp.update();
+async function renderFrame(): Promise<void> {
+    // Update node element previews once per frame. Awaited so a slow render pass (previews paint
+    // per-pixel via microtasks) cannot overlap the next frame's pass and snowball the queue.
+    await lApp.update();
 
     requestAnimationFrame(renderFrame);
 }
 
-renderFrame();
+void renderFrame();

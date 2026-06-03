@@ -94,6 +94,7 @@ export type PotatnoUiPreviewOutputOption = {
 export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
     private readonly mProject: TProject;
     private mActiveFunction: PotatnoDocumentFunction<TProject> | null;
+    private mDescriptorFunction: PotatnoDocumentFunction<TProject> | null;
     private mDocument: PotatnoDocument<TProject> | null;
     private mDriverDocument: PotatnoDocument<TProject> | null;
     private mFunctionDescriptors: Array<PotatnoUiPreviewDescriptor<TProject>>;
@@ -117,6 +118,7 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
     public constructor(pProject: TProject) {
         this.mProject = pProject;
         this.mActiveFunction = null;
+        this.mDescriptorFunction = null;
         this.mDocument = null;
         this.mDriverDocument = null;
         this.mFunctionDescriptors = new Array<PotatnoUiPreviewDescriptor<TProject>>();
@@ -314,8 +316,17 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
         // instance is unchanged: a new instance (load, undo/redo) leaves the old drivers' provider
         // closures pointing at a stale document, so they must be dropped and rebuilt.
         const lPreviousFunctionDescriptors: Array<PotatnoUiPreviewDescriptor<TProject>> = this.mFunctionDescriptors;
-        const lReuseDrivers: boolean = this.mDocument !== null && this.mDocument === this.mDriverDocument;
+        // Reuse the function-level driver (and its live element) only for an in-place edit of the
+        // SAME active function. The active-function guard is essential: the entry function and a
+        // user function can expose the same display id, so without it a user → entry switch would
+        // match by display id and reuse the user function's driver (baked with that function's exit
+        // port and a provider that generates the user function) for the entry/main preview, leaving
+        // the main preview rendering the wrong function.
+        const lReuseDrivers: boolean = this.mDocument !== null
+            && this.mDocument === this.mDriverDocument
+            && this.mActiveFunction === this.mDescriptorFunction;
         this.mDriverDocument = this.mDocument;
+        this.mDescriptorFunction = this.mActiveFunction;
 
         this.mFunctionDescriptors = new Array<PotatnoUiPreviewDescriptor<TProject>>();
         this.mNodeDescriptors = new Map<PotatnoDocumentNode<TProject>, PotatnoUiPreviewDescriptor<TProject>>();

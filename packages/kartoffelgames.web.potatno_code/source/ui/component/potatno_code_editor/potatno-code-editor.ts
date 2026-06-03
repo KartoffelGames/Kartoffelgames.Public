@@ -369,10 +369,14 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      * preview manager which fans out to every active driver.
      */
     @PwbExport
-    public triggerPreviewUpdate(): void {
-        // Fire-and-forget — driver errors are isolated inside the manager so any individual
-        // failure does not break the loop.
-        void this.mPreviewManager?.render();
+    public triggerPreviewUpdate(): Promise<void> {
+        // Return the render promise so the application loop can await it before scheduling the
+        // next frame. Awaiting prevents overlapping renders: the preview displays render
+        // per-pixel through microtasks, so a fire-and-forget tick that outlives the frame budget
+        // would stack with the next tick, snowballing the microtask queue (the editor grows
+        // unresponsive "after some usage") and pinning every in-flight render's descriptor
+        // snapshot — and its canvas — alive. Driver errors stay isolated inside the manager.
+        return this.mPreviewManager?.render() ?? Promise.resolve();
     }
 
     /**

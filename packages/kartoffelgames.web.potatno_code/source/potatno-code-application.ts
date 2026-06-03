@@ -68,10 +68,13 @@ export class PotatnoCodeApplication<TProject extends PotatnoProject> extends Pwb
     }
 
     /**
-     * Trigger a preview re-evaluation. Previews are updated asynchronously
-     * via the node definition's updatePreview callbacks.
+     * Trigger a preview re-evaluation. Previews are updated asynchronously via the node
+     * definition's updatePreview callbacks.
+     *
+     * @returns A promise resolving once the current render pass finishes, so a frame loop can
+     * await it and avoid overlapping renders.
      */
-    public update(): void {
-        this.mCodeEditor.triggerPreviewUpdate();
+    public update(): Promise<void> {
+        return this.mCodeEditor.triggerPreviewUpdate();
     }
 }

@@ -68,10 +68,14 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     public accessor gridSize: number = 20;
 
     /**
-     * Preview element to display inline. Set by the parent editor via template binding.
+     * Preview element to display inline. Set by the parent graph via template binding. Tracked as
+     * state so swapping in a freshly built preview canvas (after a rebuild) re-runs onUpdate and
+     * re-attaches it right away, instead of waiting for an unrelated state change (e.g. selecting
+     * the node).
      */
     @PwbExport
-    public previewElement: HTMLElement | null = null;
+    @ComponentState.state()
+    public accessor previewElement: HTMLElement | null = null;
 
     /**
      * Display ids available for previewing this node's outputs, supplied by the graph from the
@@ -80,12 +84,6 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     @PwbExport
     @ComponentState.state({ complexValue: true })
     public accessor previewDisplays: Array<string> = [];
-
-    /**
-     * Whether the output-port selection menu (opened by the eye button) is visible.
-     */
-    @ComponentState.state()
-    private accessor mShowPortMenu: boolean = false;
 
     /**
      * Reference to the preview container element inside the node.
@@ -211,13 +209,6 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     }
 
     /**
-     * Whether the output-port selection menu is currently open.
-     */
-    public get showPortMenu(): boolean {
-        return this.mShowPortMenu;
-    }
-
-    /**
      * The node's value output ports — the candidates for an inline preview.
      */
     public get valueOutputPorts(): Array<PotatnoDocumentPort<PotatnoUiProject>> {
@@ -250,6 +241,13 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
      */
     public previewPortClass(pPort: PotatnoDocumentPort<PotatnoUiProject>): string {
         return this.isPreviewedPort(pPort) ? 'preview-port-item active' : 'preview-port-item';
+    }
+
+    /**
+     * CSS class for the "None" (disable) row — active when no preview is set.
+     */
+    public get previewNoneClass(): string {
+        return this.isPreviewActive ? 'preview-port-item' : 'preview-port-item active';
     }
 
     /**
@@ -406,27 +404,30 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     }
 
     /**
-     * Toggle the output-port selection menu opened by the eye button.
-     */
-    public onEyeClick(pEvent: MouseEvent): void {
-        pEvent.stopPropagation();
-        this.mShowPortMenu = !this.mShowPortMenu;
-    }
-
-    /**
-     * Choose which output port to preview (clicking the active one turns the preview off). Closes
-     * the menu and lets the graph apply the opt-in.
+     * Choose which output port to preview. Lets the graph apply the opt-in.
      *
      * @param pEvent - Click event from the port row.
      * @param pPort - Port to preview.
      */
     public onSelectPreviewPort(pEvent: MouseEvent, pPort: PotatnoDocumentPort<PotatnoUiProject>): void {
         pEvent.stopPropagation();
-        this.mShowPortMenu = false;
         if (!this.nodeData) {
             return;
         }
         this.mPreviewSelect.dispatchEvent({ node: this.nodeData, portId: pPort.definitionId });
+    }
+
+    /**
+     * Disable this node's inline preview (the "None" row).
+     *
+     * @param pEvent - Click event from the row.
+     */
+    public onClearPreview(pEvent: MouseEvent): void {
+        pEvent.stopPropagation();
+        if (!this.nodeData) {
+            return;
+        }
+        this.mPreviewSelect.dispatchEvent({ node: this.nodeData, portId: '' });
     }
 
     /**

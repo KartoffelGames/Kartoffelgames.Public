@@ -166,11 +166,29 @@
     background: rgba(255, 255, 255, 0.25);
 }
 
+.preview-eye-wrapper {
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+}
+
 .preview-port-menu {
-    display: flex;
+    display: none;
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 50;
+    min-width: 96px;
     flex-direction: column;
     background: var(--pn-bg-elevated);
-    border-bottom: 1px solid var(--pn-border-default);
+    border: 1px solid var(--pn-border-default);
+    border-radius: 4px;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+    padding: 2px 0;
+}
+
+.preview-eye-wrapper:hover .preview-port-menu {
+    display: flex;
 }
 
 .preview-port-item {

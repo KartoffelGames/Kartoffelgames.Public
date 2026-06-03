@@ -67,22 +67,23 @@ $if(this.nodeData) {
                     </button>
                 }
                 $if(this.canPreview) {
-                    <button [className]="this.previewEyeClass"
-                            (click)="this.onEyeClick($event)">
-                        👁
-                    </button>
+                    <div class="preview-eye-wrapper">
+                        <button [className]="this.previewEyeClass">👁</button>
+                        <div class="preview-port-menu">
+                            <button [className]="this.previewNoneClass"
+                                    (click)="this.onClearPreview($event)">
+                                None
+                            </button>
+                            $for(port of this.valueOutputPorts) {
+                                <button [className]="this.previewPortClass(this.port)"
+                                        (click)="this.onSelectPreviewPort($event, this.port)">
+                                    {{this.port.label}}
+                                </button>
+                            }
+                        </div>
+                    </div>
                 }
             </div>
-            $if(this.showPortMenu) {
-                <div class="preview-port-menu">
-                    $for(port of this.valueOutputPorts) {
-                        <button [className]="this.previewPortClass(this.port)"
-                                (click)="this.onSelectPreviewPort($event, this.port)">
-                            {{this.port.label}}
-                        </button>
-                    }
-                </div>
-            }
             <div class="node-body">
                 <div class="node-inputs">
                     $for(inPort of this.inputPorts) {

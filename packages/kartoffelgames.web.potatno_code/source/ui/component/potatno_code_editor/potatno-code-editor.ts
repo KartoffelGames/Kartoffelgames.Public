@@ -858,7 +858,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
         this.mPreviewDebounceTimer = setTimeout(() => {
             this.mPreviewDebounceTimer = null;
             this.rebuildPreviewDrivers();
-        }, 300) as unknown as number;
+        }, 50) as unknown as number;
     }
 
     /**

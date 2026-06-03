@@ -693,8 +693,8 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         const lNode: PotatnoDocumentNode<PotatnoUiProject> = pEvent.value.node;
         const lPortId: string = pEvent.value.portId;
 
-        // Re-selecting the active port toggles the preview off.
-        if (lNode.preview?.portId === lPortId) {
+        // The empty portId is the explicit "None" row; re-selecting the active port also turns it off.
+        if (lPortId === '' || lNode.preview?.portId === lPortId) {
             lNode.preview = null;
         } else {
             const lDisplays: Array<string> = this.getPreviewDisplaysForNode(lNode);

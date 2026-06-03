@@ -67,15 +67,31 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     @ComponentState.state()
     public accessor gridSize: number = 20;
 
+    private mPreviewElement: HTMLElement | null = null;
+
     /**
-     * Preview element to display inline. Set by the parent graph via template binding. Tracked as
-     * state so swapping in a freshly built preview canvas (after a rebuild) re-runs onUpdate and
-     * re-attaches it right away, instead of waiting for an unrelated state change (e.g. selecting
-     * the node).
+     * Preview element to display inline, pushed by the graph via template binding. (Re)attaching
+     * happens in the setter rather than only in `onUpdate`, because the element is mounted
+     * imperatively (not through the template) — so a swapped-in canvas after a rebuild, or a
+     * cleared preview, takes effect immediately instead of waiting for an unrelated template
+     * change (e.g. selecting the node).
      */
     @PwbExport
-    @ComponentState.state()
-    public accessor previewElement: HTMLElement | null = null;
+    public set previewElement(pValue: HTMLElement | null) {
+        if (this.mPreviewElement === pValue) {
+            return;
+        }
+
+        this.mPreviewElement = pValue;
+        this.attachPreviewElement();
+    }
+
+    /**
+     * Get the inline preview element.
+     */
+    public get previewElement(): HTMLElement | null {
+        return this.mPreviewElement;
+    }
 
     /**
      * Display ids available for previewing this node's outputs, supplied by the graph from the
@@ -325,22 +341,41 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
      * After each update cycle, ensure the preview element is appended to the container.
      */
     public onUpdate(): void {
-        const lPreviewEl: HTMLElement | null = this.previewElement;
-        if (!lPreviewEl) {
-            return;
-        }
+        // The container is (re)created by the template; re-run the attach so the preview element
+        // lands in the fresh container after a template update.
+        this.attachPreviewElement();
+    }
 
+    /**
+     * Mount the current preview element into the preview container, replacing any previous
+     * occupant, or clear the container when there is no preview (e.g. after selecting "None").
+     * Called from the `previewElement` setter and from `onUpdate`.
+     */
+    private attachPreviewElement(): void {
         let lContainer: HTMLDivElement;
         try {
             lContainer = this.mPreviewContainer;
         } catch {
+            // The container is not in the DOM yet (node not rendered, or a reroute/comment node).
             return;
         }
 
-        if (lPreviewEl.parentElement !== lContainer) {
-            lContainer.innerHTML = '';
-            lContainer.appendChild(lPreviewEl);
+        const lPreviewEl: HTMLElement | null = this.mPreviewElement;
+
+        // No preview → remove any previously mounted element.
+        if (!lPreviewEl) {
+            if (lContainer.firstChild) {
+                lContainer.innerHTML = '';
+            }
+            return;
         }
+
+        if (lContainer.firstChild === lPreviewEl && lContainer.childNodes.length === 1) {
+            return;
+        }
+
+        lContainer.innerHTML = '';
+        lContainer.appendChild(lPreviewEl);
     }
 
     // ── Event handlers ──────────────────────────────────────────────────

@@ -251,11 +251,34 @@ export class PotatnoPanelProperties {
     }
 
     /**
+     * Produce a port name that does not collide with the function name or any existing input or
+     * output. Adding ports with a fixed default name made `addInput`/`addOutput` silently dedupe
+     * the second one (and briefly wedged the panel on the duplicate), so each new port gets a
+     * unique name like `new_input`, `new_input_2`, ….
+     *
+     * @param pBase - The base name to start from.
+     *
+     * @returns A unique, identifier-safe port name.
+     */
+    private uniquePortName(pBase: string): string {
+        if (!this.isNameDuplicate(pBase, 'function')) {
+            return pBase;
+        }
+
+        let lCounter: number = 2;
+        while (this.isNameDuplicate(`${pBase}_${lCounter}`, 'function')) {
+            lCounter++;
+        }
+
+        return `${pBase}_${lCounter}`;
+    }
+
+    /**
      * Add a new empty input port.
      */
     public onAddInput(): void {
         const lDefaultType: string = this.mAvailableTypes.length > 0 ? this.mAvailableTypes[0] : 'number';
-        const lInputs: Array<PortEntry> = [...this.functionInputs, { name: 'new_input', type: lDefaultType }];
+        const lInputs: Array<PortEntry> = [...this.functionInputs, { name: this.uniquePortName('new_input'), type: lDefaultType }];
         this.functionInputs = lInputs;
         this.mPropertiesChange.dispatchEvent({ inputs: lInputs });
     }
@@ -277,7 +300,7 @@ export class PotatnoPanelProperties {
      */
     public onAddOutput(): void {
         const lDefaultType: string = this.mAvailableTypes.length > 0 ? this.mAvailableTypes[0] : 'number';
-        const lOutputs: Array<PortEntry> = [...this.functionOutputs, { name: 'new_output', type: lDefaultType }];
+        const lOutputs: Array<PortEntry> = [...this.functionOutputs, { name: this.uniquePortName('new_output'), type: lDefaultType }];
         this.functionOutputs = lOutputs;
         this.mPropertiesChange.dispatchEvent({ outputs: lOutputs });
     }

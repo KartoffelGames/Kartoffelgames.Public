@@ -890,7 +890,17 @@ lApp.document = new PotatnoDocument(lProject);
 async function renderFrame(): Promise<void> {
     // Update node element previews once per frame. Awaited so a slow render pass (previews paint
     // per-pixel via microtasks) cannot overlap the next frame's pass and snowball the queue.
-    await lApp.update();
+    //
+    // The await must never let an error stop the loop: per-driver failures are already isolated
+    // inside the manager, but a rejection escaping that (e.g. a scripting error in a preview)
+    // would otherwise skip the requestAnimationFrame below and permanently freeze every preview.
+    // Swallow it here so the next frame is always scheduled; the underlying error is already
+    // logged by the manager.
+    try {
+        await lApp.update();
+    } catch (lError) {
+        console.error('[Page] Preview render pass failed:', lError);
+    }
 
     requestAnimationFrame(renderFrame);
 }

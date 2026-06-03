@@ -432,30 +432,10 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             lastGeneratedNode: null! // Must be handled.
         };
 
-        while (lCursorNode !== null) {
-            // Skip on stop nodes.
-            if (lCursorNode === pStopBefore) {
-                break;
-            }
-
-            // Resolve flow-input predecessors, skipping flow conjunctions on the way.
-            const lPredecessorPorts: Array<PotatnoDocumentPort<TProject>> = this.getNodesInputFlowPorts(lCursorNode);
-
-            // CASE C: >1 predecessors. Cursor is a merge point.
-            // handleMergeAndAdvance emits both the merge node and the branch point and returns their combined emit result (= branch point as last node).
-            // Its result replaces the accumulated code (the prior downstream is folded into the merge node's inner) and the outer walk continues from the branch point's flow-input predecessor.
-            if (lPredecessorPorts.length > 1) {
-                lEmitResult = this.handleMergeAndAdvance(pPassData, pCursor, lCursorNode, lActivePort, lPredecessorPorts, lEmitResult.codeOutput);
-
-                const lBranchPointPredecessorPorts: Array<PotatnoDocumentPort<TProject>> = this.getNodesInputFlowPorts(lEmitResult.lastGeneratedNode);
-                lActivePort = lBranchPointPredecessorPorts[0] ?? null;
-                lCursorNode = lActivePort?.node ?? null;
-                
-                continue;
-            }
-
-            // CASE A (0 predecessors) and CASE B (1 predecessor) both emit the current node.
-            // Pass the active port as the single inner-by-port entry — only the flow output that leads to the already-emitted downstream gets the collected code; other flow outputs get empty inner.
+        // Skip when no node is iterated or the node is a stop nodes.
+        while (lCursorNode !== null && lCursorNode !== pStopBefore) {
+            // Emit the current node, folding the active port's downstream code into its inner.
+            // Only the flow output that leads to the already-emitted downstream gets the collected code; other flow outputs get empty inner.
             const lInnerByPort: Record<string, string> = {};
             if (lActivePort !== null) {
                 lInnerByPort[lActivePort.definitionId] = lEmitResult.codeOutput.join(' ');
@@ -465,18 +445,27 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             }
 
             // Emit the node and merge its code in front of the code collected so far.
-            const lNodeEmitResult: PotatnoCodeGeneratorEmitResult<TProject> = this.emitNode(pPassData, pCursor, lCursorNode, lInnerByPort);
-            lEmitResult.codeOutput = [...lNodeEmitResult.codeOutput, ...lEmitResult.codeOutput];
-            lEmitResult.lastGeneratedNode = lNodeEmitResult.lastGeneratedNode;
+            const lPreEmitCodeOutput: Array<string> = lEmitResult.codeOutput;
+            lEmitResult = this.emitNode(pPassData, pCursor, lCursorNode, lInnerByPort);
+            lEmitResult.codeOutput = [...lEmitResult.codeOutput, ...lPreEmitCodeOutput];
 
-            // CASE A: entry node or dead-end.
+            // Resolve flow-input predecessors of the emitted node and skip when on dead end.
+            let lPredecessorPorts: Array<PotatnoDocumentPort<TProject>> = this.getNodesInputFlowPorts(lCursorNode);
             if (lPredecessorPorts.length === 0) {
                 break;
             }
 
-            // CASE B: advance to the single predecessor. The predecessor port becomes its node's active port for the next emit.
-            lActivePort = lPredecessorPorts[0]!;
-            lCursorNode = lActivePort.node;
+            // The just-emitted node is a merge point.
+            if (lPredecessorPorts.length > 1) {
+                lEmitResult = this.handleFlowMerge(pPassData, pCursor, lCursorNode, lPredecessorPorts, lEmitResult.codeOutput);
+
+                // Advance past the merged flow by reading the flow ports of the last node that was emited by the merge.
+                lPredecessorPorts = this.getNodesInputFlowPorts(lEmitResult.lastGeneratedNode);
+            }
+
+            // The predecessor port becomes its node's active port for the next emit.
+            lActivePort = lPredecessorPorts[0] ?? null;
+            lCursorNode = lActivePort?.node ?? null;
         }
 
         // There is something wrong when not a single node was walked.
@@ -571,34 +560,25 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
     }
 
     /**
-     * Handle CASE C of the backward walk: emit the merge node (folding the downstream code into its inner) and use that as the branch point's `next`,
-     * sub-walk each fan-in branch in a fresh scope, then emit the branch point with the per-branch inner code and shared next.
+     * Handle CASE C of the backward walk: the merge node has already been emitted by the caller; its code becomes the branch point's `next`.
+     * Find the branch point, sub-walk each fan-in branch in a fresh scope, then emit the branch point with the per-branch inner code and shared next.
      *
      * @param pPassData - Shared pass state.
      * @param pCursor - The pass cursor.
-     * @param pMergeNode - The cursor node that triggered the merge handling.
-     * @param pMergeActivePort - The merge's flow output leading to the already-emitted downstream (null for a top-of-walk merge).
+     * @param pMergeNode - The already-emitted merge node that triggered the merge handling.
      * @param pPredecessorPorts - The merge's fan-in predecessor source ports (conjunction-resolved).
-     * @param pDownstreamCode - The code collected downstream of the merge node, folded into the merge node's inner.
+     * @param pMergeCode - The merge node's emitted code (with the downstream already folded into its inner), used as the branch point's `next`.
      *
      * @returns the branch point's emit result (= last node emitted here and the code collected in this call).
      */
-    private handleMergeAndAdvance(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pMergeNode: PotatnoDocumentNode<TProject>, pMergeActivePort: PotatnoDocumentPort<TProject> | null, pPredecessorPorts: Array<PotatnoDocumentPort<TProject>>, pDownstreamCode: Array<string>): PotatnoCodeGeneratorEmitResult<TProject> {
-        // 1. Emit the merge node first. It's a regular flow node with its own code.
-        // Active port = the merge's flow output to the already-emitted downstream; only that port gets the downstream code as inner.
-        const lMergeInnerByPort: Record<string, string> = {};
-        if (pMergeActivePort !== null) {
-            lMergeInnerByPort[pMergeActivePort.definitionId] = pDownstreamCode.join(' ');
-        }
-        const lMergeEmitResult: PotatnoCodeGeneratorEmitResult<TProject> = this.emitNode(pPassData, pCursor, pMergeNode, lMergeInnerByPort);
+    private handleFlowMerge(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pMergeNode: PotatnoDocumentNode<TProject>, pPredecessorPorts: Array<PotatnoDocumentPort<TProject>>, pMergeCode: Array<string>): PotatnoCodeGeneratorEmitResult<TProject> {
+        // The merge node's emitted code (with the downstream folded into its inner) is the branch point's `next`.
+        const lNextCode: string = pMergeCode.join(' ');
 
-        // 2. The merge node's emitted code (with the downstream folded into its inner) is the branch point's `next`.
-        const lNextCode: string = lMergeEmitResult.codeOutput.join(' ');
-
-        // 3. Find the branch point.
+        // Find the flow branching point of the flow merge. 
         const lBranchPoint: PotatnoDocumentNode<TProject> = this.findBranchPoint(pMergeNode);
 
-        // 4. Run a sub-walk per fan-in branch into a fresh scope. Each sub-walk starts at the predecessor node with the predecessor port as its initial active port.
+        // Run a sub-walk per fan-in branch into a fresh scope. Each sub-walk starts at the predecessor node with the predecessor port as its initial active port.
         const lInnerByPort: Record<string, string> = {};
         const lParentScope: PotatnoCodeGeneratorPassCursorScope<TProject> = pCursor.scope;
         try {
@@ -617,7 +597,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             pCursor.scope = lParentScope;
         }
 
-        // 5. Emit the branch point with inner/next in its pContext. Its emit result is returned so the outer walk knows the last-emitted node and the merged code.
+        // 4. Emit the branch point with inner/next in its pContext. Its emit result is returned so the outer walk knows the last-emitted node and the merged code.
         return this.emitNode(pPassData, pCursor, lBranchPoint, lInnerByPort, lNextCode);
     }
 

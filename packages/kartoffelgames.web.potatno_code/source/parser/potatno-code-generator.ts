@@ -426,8 +426,11 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
     private walkBackward(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pStartNode: PotatnoDocumentNode<TProject>, pStopBefore: PotatnoDocumentNode<TProject> | null, pInitialActivePort: PotatnoDocumentPort<TProject> | null = null): PotatnoCodeGeneratorEmitResult<TProject> {
         let lCursorNode: PotatnoDocumentNode<TProject> | null = pStartNode;
         let lActivePort: PotatnoDocumentPort<TProject> | null = pInitialActivePort;
-        let lLastGeneratedNode: PotatnoDocumentNode<TProject> | null = null;
-        let lCodeOutput: Array<string> = new Array<string>();
+
+        let lEmitResult: PotatnoCodeGeneratorEmitResult<TProject> = {
+            codeOutput: new Array<string>(),
+            lastGeneratedNode: null! // Must be handled.
+        };
 
         while (lCursorNode !== null) {
             // Skip on stop nodes.
@@ -435,20 +438,19 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
                 break;
             }
 
-            // Resolve flow-input predecessors, skipping flow conjunctions on the way. Each result is a source flow output port on the upstream side.
+            // Resolve flow-input predecessors, skipping flow conjunctions on the way.
             const lPredecessorPorts: Array<PotatnoDocumentPort<TProject>> = this.getNodesInputFlowPorts(lCursorNode);
 
             // CASE C: >1 predecessors. Cursor is a merge point.
             // handleMergeAndAdvance emits both the merge node and the branch point and returns their combined emit result (= branch point as last node).
             // Its result replaces the accumulated code (the prior downstream is folded into the merge node's inner) and the outer walk continues from the branch point's flow-input predecessor.
             if (lPredecessorPorts.length > 1) {
-                const lMergeResult: PotatnoCodeGeneratorEmitResult<TProject> = this.handleMergeAndAdvance(pPassData, pCursor, lCursorNode, lActivePort, lPredecessorPorts, lCodeOutput);
-                lCodeOutput = lMergeResult.codeOutput;
-                lLastGeneratedNode = lMergeResult.lastGeneratedNode;
+                lEmitResult = this.handleMergeAndAdvance(pPassData, pCursor, lCursorNode, lActivePort, lPredecessorPorts, lEmitResult.codeOutput);
 
-                const lBranchPointPredecessorPorts: Array<PotatnoDocumentPort<TProject>> = this.getNodesInputFlowPorts(lLastGeneratedNode);
+                const lBranchPointPredecessorPorts: Array<PotatnoDocumentPort<TProject>> = this.getNodesInputFlowPorts(lEmitResult.lastGeneratedNode);
                 lActivePort = lBranchPointPredecessorPorts[0] ?? null;
                 lCursorNode = lActivePort?.node ?? null;
+                
                 continue;
             }
 
@@ -456,16 +458,16 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             // Pass the active port as the single inner-by-port entry — only the flow output that leads to the already-emitted downstream gets the collected code; other flow outputs get empty inner.
             const lInnerByPort: Record<string, string> = {};
             if (lActivePort !== null) {
-                lInnerByPort[lActivePort.definitionId] = lCodeOutput.join(' ');
+                lInnerByPort[lActivePort.definitionId] = lEmitResult.codeOutput.join(' ');
 
                 // The downstream code is now folded into the node's inner, so drop it before the node's own code is merged in front.
-                lCodeOutput = new Array<string>();
+                lEmitResult.codeOutput = new Array<string>();
             }
 
             // Emit the node and merge its code in front of the code collected so far.
-            const lEmitResult: PotatnoCodeGeneratorEmitResult<TProject> = this.emitNode(pPassData, pCursor, lCursorNode, lInnerByPort);
-            lCodeOutput = [...lEmitResult.codeOutput, ...lCodeOutput];
-            lLastGeneratedNode = lEmitResult.lastGeneratedNode;
+            const lNodeEmitResult: PotatnoCodeGeneratorEmitResult<TProject> = this.emitNode(pPassData, pCursor, lCursorNode, lInnerByPort);
+            lEmitResult.codeOutput = [...lNodeEmitResult.codeOutput, ...lEmitResult.codeOutput];
+            lEmitResult.lastGeneratedNode = lNodeEmitResult.lastGeneratedNode;
 
             // CASE A: entry node or dead-end.
             if (lPredecessorPorts.length === 0) {
@@ -478,14 +480,11 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         }
 
         // There is something wrong when not a single node was walked.
-        if (!lLastGeneratedNode) {
+        if (!lEmitResult.lastGeneratedNode) {
             throw new Exception(`Walk did not reach an entry node from exit "${pStartNode.label}".`, this);
         }
 
-        return {
-            codeOutput: lCodeOutput,
-            lastGeneratedNode: lLastGeneratedNode
-        };
+        return lEmitResult;
     }
 
     /**

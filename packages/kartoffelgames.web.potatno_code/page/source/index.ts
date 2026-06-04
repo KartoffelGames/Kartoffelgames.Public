@@ -513,6 +513,59 @@ lProject.addImport({ // TODO: Also create a PotatnoImportDefinition. The documen
             generators: {
                 code: (pContext) => `const ${pContext.outputs["result"].value} = Math.random();`
             }
+        }),
+        PotatnoStaticNodeDefinition.newStaticNode({
+            id: 'Math.sin',
+            label: 'Math.sin',
+            category: 'Function',
+            ports: {
+                inputs: [
+                    { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
+                ],
+                outputs: [
+                    { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
+                ]
+            },
+            generators: {
+                code: (pContext) => `const ${pContext.outputs["result"].value} = Math.sin(${pContext.inputs["value"].value});`
+            }
+        }),
+        PotatnoStaticNodeDefinition.newStaticNode({
+            id: 'Math.cos',
+            label: 'Math.cos',
+            category: 'Function',
+            ports: {
+                inputs: [
+                    { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
+                ],
+                outputs: [
+                    { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
+                ]
+            },
+            generators: {
+                code: (pContext) => `const ${pContext.outputs["result"].value} = Math.cos(${pContext.inputs["value"].value});`
+            }
+        })
+    ]
+});
+
+lProject.addImport({
+    id: 'Time',
+    label: 'Time',
+    nodes: [
+        PotatnoStaticNodeDefinition.newStaticNode({
+            id: 'CurrentTime',
+            label: 'CurrentTime',
+            category: 'value',
+            ports: {
+                inputs: [],
+                outputs: [
+                    { label: 'seconds', id: 'seconds', portType: 'value', dataType: 'number' }
+                ]
+            },
+            generators: {
+                code: (pContext) => `const ${pContext.outputs["seconds"].value} = (performance.now() / 1000);`
+            }
         })
     ]
 });

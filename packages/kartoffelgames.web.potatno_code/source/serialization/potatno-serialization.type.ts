@@ -99,11 +99,6 @@ export type SerializedNode = {
     label: string;
 
     /**
-     * Whether this is a system node that cannot be removed.
-     */
-    isSystem: boolean;
-
-    /**
      * Grid position and size of the node.
      */
     transformation: { x: number; y: number; width: number; height: number; };

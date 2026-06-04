@@ -110,7 +110,7 @@ export class PotatnoDeserializer<TProject extends PotatnoProject> {
         let lNode: PotatnoDocumentNode<TProject>;
 
         if (lDefinition) {
-            lNode = pFunction.addNodeByDefinition(lDefinition, { ...pData.transformation }, pData.isSystem);
+            lNode = pFunction.addNodeByDefinition(lDefinition, { ...pData.transformation });
         } else {
             // Definition is gone — reconstruct from the serialized port snapshot.
             const lInputPorts: Array<PotatnoDocumentNodePortConfiguration<TProject>> = pData.ports.filter((pPort) => pPort.direction === 'input')
@@ -141,7 +141,6 @@ export class PotatnoDeserializer<TProject extends PotatnoProject> {
                     input: lInputPorts,
                     output: lOutputPorts
                 },
-                isSystem: pData.isSystem,
                 label: pData.label,
                 transformation: { ...pData.transformation }
             });

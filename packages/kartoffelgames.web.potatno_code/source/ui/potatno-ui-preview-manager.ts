@@ -393,12 +393,24 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
      * Tick every active driver once. Awaited so callers can chain when needed; in the typical
      * `requestAnimationFrame` loop this is fire-and-forget.
      *
+     * @param pSuppressInvalidGeneration - When `true`, the document currently has validation
+     * errors: the main (function-level) preview is skipped entirely (it is not shown anyway), and
+     * per-node previews render only from their cached callable so no fresh — and failing —
+     * generation is triggered.
+     *
      * @returns A promise resolving once every driver has finished its render pass.
      */
-    public async render(): Promise<void> {
+    public async render(pSuppressInvalidGeneration: boolean = false): Promise<void> {
+        // While the document is invalid the main preview is not run; per-node previews keep their
+        // last cached value but must not recompile (compilation would re-run the failing generator).
+        const lFunctionDescriptors: Array<PotatnoUiPreviewDescriptor<TProject>> = pSuppressInvalidGeneration
+            ? []
+            : this.mFunctionDescriptors;
+        const lAllowCompile: boolean = !pSuppressInvalidGeneration;
+
         // Snapshot the descriptor lists so a rebuild mid-render doesn't disturb iteration.
         const lDescriptors: Array<PotatnoUiPreviewDescriptor<TProject>> = [
-            ...this.mFunctionDescriptors,
+            ...lFunctionDescriptors,
             ...this.mNodeDescriptors.values()
         ];
 
@@ -406,7 +418,7 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
         // not stop the others.
         await Promise.all(lDescriptors.map(async (pDescriptor) => {
             try {
-                await pDescriptor.driver.render();
+                await pDescriptor.driver.render(lAllowCompile);
             } catch (pError) {
                 console.error(`[PreviewManager] Driver "${pDescriptor.displayId}" render failed:`, pError);
             }

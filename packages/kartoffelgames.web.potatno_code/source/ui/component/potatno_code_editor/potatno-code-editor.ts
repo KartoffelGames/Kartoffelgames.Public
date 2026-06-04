@@ -370,13 +370,20 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      */
     @PwbExport
     public triggerPreviewUpdate(): Promise<void> {
+        // Suppress preview generation while the document has validation errors. Generation always
+        // validates first and throws on an invalid graph, so an unguarded per-frame tick would
+        // re-run — and fail — the generator every frame, stalling user interaction. The main
+        // preview is hidden during validation errors anyway; cached per-node previews keep
+        // rendering their last value (see PotatnoUiPreviewManager.render).
+        const lHasValidationErrors: boolean = this.mCachedData.errors.length > 0;
+
         // Return the render promise so the application loop can await it before scheduling the
         // next frame. Awaiting prevents overlapping renders: the preview displays render
         // per-pixel through microtasks, so a fire-and-forget tick that outlives the frame budget
         // would stack with the next tick, snowballing the microtask queue (the editor grows
         // unresponsive "after some usage") and pinning every in-flight render's descriptor
         // snapshot — and its canvas — alive. Driver errors stay isolated inside the manager.
-        return this.mPreviewManager?.render() ?? Promise.resolve();
+        return this.mPreviewManager?.render(lHasValidationErrors) ?? Promise.resolve();
     }
 
     /**
@@ -716,6 +723,14 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
         const lManager: PotatnoUiPreviewManager<TProject> | null = this.mPreviewManager;
         if (!lManager) {
             this.mPreviewTabs = [];
+            return;
+        }
+
+        // Don't rebuild while the document has validation errors: a rebuild re-runs the code
+        // generator (which throws on an invalid graph) and would invalidate the cached drivers.
+        // Leaving the existing drivers in place lets per-node previews keep rendering their last
+        // valid value until the graph is fixed, at which point the next mutation rebuilds them.
+        if (this.mCachedData.errors.length > 0) {
             return;
         }
 

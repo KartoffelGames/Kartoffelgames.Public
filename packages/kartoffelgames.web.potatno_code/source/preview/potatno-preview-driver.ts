@@ -109,13 +109,23 @@ export class PotatnoPreviewDriver<TProject extends PotatnoProject, TElement exte
      * executor already returns a value in `defaultResult` shape) and hands control to
      * `display.update`.
      *
+     * @param pAllowCompile - When `false`, a driver without a cached callable is skipped instead
+     * of compiling a fresh one. Lets the framework keep cached previews rendering while the
+     * document is invalid and a fresh (failing) generation must not be triggered.
+     *
      * @returns A promise resolving when the display's update pass completes.
      */
-    public async render(): Promise<void> {
+    public async render(pAllowCompile: boolean = true): Promise<void> {
         // Compile-on-demand. Build is only re-invoked when something external invalidated the
         // cache. The function-level path stays strictly typed against TResult; the per-node
         // path runs through the display's adapter to coerce the port's raw value into TResult.
         if (!this.mCachedCallable) {
+            // No cached callable and compilation is disabled: skip without generating so an
+            // invalid graph is never run.
+            if (!pAllowCompile) {
+                return;
+            }
+
             this.mCachedCallable = this.compileCachedCallable();
         }
 
@@ -240,8 +250,11 @@ export interface PotatnoPreviewDriverHandle {
 
     /**
      * Drive one render pass on the underlying driver.
+     *
+     * @param pAllowCompile - When `false`, a driver without a cached callable is skipped instead
+     * of compiling a fresh one, so cached previews keep rendering without triggering new generation.
      */
-    render(): Promise<void>;
+    render(pAllowCompile?: boolean): Promise<void>;
 
     /**
      * Drop the underlying driver's cached iteration callable so the next render rebuilds

@@ -122,6 +122,8 @@ export class PotatnoDocument<TProject extends PotatnoProject> {
     public validate(): Array<PotatnoDocumentPortValidationError<TProject>> {
         const lErrors: Array<PotatnoDocumentPortValidationError<TProject>> = [];
 
+        // TODO: Validation is in wrong order. Validate in correct dependency order.
+
         // Per-function validation: flow/value cycles, region constraints, port resync.
         for (const lFunction of this.mFunctions) {
             lErrors.push(...lFunction.validate());

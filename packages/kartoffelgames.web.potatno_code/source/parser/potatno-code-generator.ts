@@ -2,10 +2,10 @@ import { Exception } from '@kartoffelgames/core';
 import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
-import type { PotatnoDocument } from '../document/potatno-document.ts';
+import type { PotatnoDocument, PotatnoDocumentPortValidationError } from '../document/potatno-document.ts';
 import { FlowConjunctionNodeDefinition } from '../project/node_definition/potatno-flow-conjunction-node-definition.ts';
 import { PotatnoFunctionNodeDefinition } from '../project/node_definition/potatno-function-node-definition.ts';
-import { type PotatnoCodeGeneratorInputPort, type PotatnoCodeGeneratorOutputPort, PotatnoNodeDefinition, type PotatnoNodeDefinitionGeneratorContext } from '../project/node_definition/potatno-node-definition.ts';
+import { type PotatnoCodeGeneratorInputPort, type PotatnoCodeGeneratorOutputPort, PotatnoNodeDefinition } from '../project/node_definition/potatno-node-definition.ts';
 import { ValueConjunctionNodeDefinition } from '../project/node_definition/potatno-value-conjunction-node-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import { PotatnoCodeGeneratorDocumentResult } from './result/potatno-code-generator-document-result.ts';
@@ -94,8 +94,12 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * @param pDebug - Debug flag for the whole pass.
      */
     private buildDocumentResult(pDocument: PotatnoDocument<TProject>, pExitNodes: Array<PotatnoDocumentNode<TProject>>, pDebug: boolean): PotatnoCodeGeneratorDocumentResult<TProject> {
-        // TODO: Validate document before generation.
-        
+        // Validate document before generation.
+        const lValidationResult: Array<PotatnoDocumentPortValidationError<TProject>> = pDocument.validate();
+        if(lValidationResult.length > 0) {
+            throw new Exception('Code generation exited. Code graph validation failed.', this);
+        }
+
         const lPassData: PotatnoCodeGeneratorPassData<TProject> = {
             counter: { valueIndex: 0 },
             debug: pDebug,
@@ -432,7 +436,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             endFlowPort: null
         };
         let lActivePort: PotatnoDocumentPort<TProject> | null = null;
-        
+
         // Skip when no node is iterated or the node is a ending node.
         let lCursorNode: PotatnoDocumentNode<TProject> | null = pStartNode;
         while (lCursorNode !== null && lCursorNode !== pEndNode) {
@@ -475,7 +479,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         }
 
         // When an end node is set, it MUST be reached.
-        if(pEndNode && lCursorNode !== pEndNode) {
+        if (pEndNode && lCursorNode !== pEndNode) {
             throw new Exception('Malformed graph. End node not reached', this);
         }
 
@@ -559,7 +563,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         try {
             for (const lPredecessorPort of pPredecessorPorts) {
                 pCursor.scope = this.createScope(lPredecessorPort.node, lBranchPoint);
-                
+
                 // The walk ended on the branch point so the port it ended on is the branch point's flow output that initiated this branch.
                 // Map this branch's code back to that output port. The end flow port MUST be set when a end node is specified in a walk.
                 const lBranchEmitResult: PotatnoCodeGeneratorEmitResult<TProject> = this.walkBackward(pPassData, pCursor, lPredecessorPort.node, lBranchPoint);
@@ -727,7 +731,7 @@ type PotatnoCodeGeneratorPassCursorScope<TProject extends PotatnoProject> = {
  * Code emitted by a single walk step, sub-walk, or merge handler.
  * Returned up the call chain so callers can merge fragments together instead of sharing a mutable buffer.
  */
-type PotatnoCodeGeneratorEmitResult<TProject extends PotatnoProject, > = {
+type PotatnoCodeGeneratorEmitResult<TProject extends PotatnoProject> = {
     /**
      * Emitted code fragments in execution order (front = earliest).
      */

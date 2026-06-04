@@ -58,7 +58,6 @@ export class CoreEntityUpdater {
         this.mUpdateFunction = pParameter.onUpdate;
 
         // Create isolated or default zone from found parent interaction zone.
-        this.mInteractionZone = pParameter.zone;
         this.mManualComponentState = new ComponentState<Symbol>(Symbol('Manual Update'));
 
         // Init loop detection values.
@@ -78,6 +77,7 @@ export class CoreEntityUpdater {
         };
 
         // Add listener for interactions. Shedules an update on interaction zone.
+        this.mInteractionZone = InteractionZone.create(`Update-Zone`);
         this.mInteractionZone.addInteractionListener((pReason: InteractionZoneEvent<ComponentState>) => {
             // Only update on sets.
             if ((pReason.triggerType & ComponentStateType.set) === 0) {
@@ -403,11 +403,6 @@ type BaseCoreEntityUpdateZoneConstructorParameter = {
      * Function executed on update.
      */
     onUpdate: UpdateListener;
-
-    /**
-     * Interaction zone.
-     */
-    zone: InteractionZone;
 };
 
 export type CoreEntityUpdaterInteractionData = {

@@ -25,12 +25,8 @@ export abstract class CoreEntityUpdateable<TProcessor extends CoreEntityProcesso
     public constructor(pParameter: CoreEntityUpdateableConstructorParameter<TProcessor>) {
         super(pParameter);
 
-        // Create a new interaction zone for updates.
-        const lInteractionZone = InteractionZone.create(`${pParameter.constructor.name}-Update-Zone`);
-
         this.mUpdater = new CoreEntityUpdater({
             label: pParameter.constructor.name,
-            zone: lInteractionZone,
             onUpdate: () => {
                 return this.onUpdate();
             }

@@ -1033,7 +1033,8 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Delete selected non-system nodes from the active graph.
+     * Delete the selected nodes from the active graph.
+     * System entry/exit nodes can be deleted too; they are re-synced automatically on the next validation.
      */
     private deleteSelectedNodes(): void {
         const lActiveFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mActiveFunction;
@@ -1043,10 +1044,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
 
         let lDeleted: boolean = false;
         for (const lNode of [...this.mSelectedNodes]) {
-            if (lNode.isSystem) {
-                continue;
-            }
-
             lActiveFunction.removeNode(lNode);
             this.mSelectedNodes.delete(lNode);
             lDeleted = true;

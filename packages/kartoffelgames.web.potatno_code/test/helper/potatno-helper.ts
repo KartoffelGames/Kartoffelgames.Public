@@ -102,9 +102,15 @@ export class PotatnoHelper {
     }
 
     /**
-     * Build a calculator document with the entry function instance and its default entry / exit nodes wired in.
+     * Build a calculator document with the entry function instance.
      *
-     * @returns The document together with the entry function and its default entry and exit nodes.
+     * The function's system entry / exit nodes are not placed by hand; a single
+     * {@link PotatnoDocument.validate} call syncs all of them (the `Default` and `X10`
+     * entry / exit pairs) into the graph. The secondary `X10` entry → exit pair is then
+     * wired flow-only so the document validates while leaving the `Default` pair free for
+     * the caller to wire as the test requires.
+     *
+     * @returns The document together with the entry function and all four synced system nodes.
      */
     public static setupCalculatorDocument(): PotatnoHelperCalculatorDocument {
         const lEntryDefinition = TestProject.entryPoint;
@@ -115,21 +121,41 @@ export class PotatnoHelper {
             label: lEntryDefinition.label,
             isSystem: true
         });
-        const lNodes = lEntryDefinition.getNodeDefinitions(lFunction);
-        const lDefaultEntry = lFunction.addNodeByDefinition(lNodes.entry[0], { x: 0, y: 0, width: 6, height: 4 });
-        const lDefaultExit = lFunction.addNodeByDefinition(lNodes.exit[0], { x: 12, y: 0, width: 6, height: 4 });
 
-        return { document: lDocument, function: lFunction, defaultEntry: lDefaultEntry, defaultExit: lDefaultExit };
+        // Validate once so the function's system entry / exit nodes are synced into the graph.
+        lDocument.validate();
+
+        // Resolve the synced system nodes by their definition ids.
+        const lNodeDefinitions = lEntryDefinition.getNodeDefinitions(lFunction);
+        const lFindNode = (pDefinitionId: string): PotatnoDocumentNode<typeof TestProject> => {
+            const lNode = [...lFunction.nodes].find((pNode) => pNode.definitionId === pDefinitionId);
+            if (!lNode) {
+                throw new Error(`System node "${pDefinitionId}" was not synced into the calculator document.`);
+            }
+            return lNode;
+        };
+
+        const lDefaultEntry = lFindNode(lNodeDefinitions.entry[0].id);
+        const lX10Entry = lFindNode(lNodeDefinitions.entry[1].id);
+        const lDefaultExit = lFindNode(lNodeDefinitions.exit[0].id);
+        const lX10Exit = lFindNode(lNodeDefinitions.exit[1].id);
+
+        // Wire the secondary X10 entry → exit pair flow-only so the X10 exit terminates and the document validates.
+        lX10Entry.outputs.flow[0].connect(lX10Exit.inputs.flow[0]);
+
+        return { document: lDocument, function: lFunction, defaultEntry: lDefaultEntry, defaultExit: lDefaultExit, x10Entry: lX10Entry, x10Exit: lX10Exit };
     }
 }
 
 /**
  * Result of {@link PotatnoHelper.setupCalculatorDocument}: the calculator document
- * alongside its entry function and the default entry / exit nodes.
+ * alongside its entry function and the synced `Default` / `X10` entry and exit nodes.
  */
 export type PotatnoHelperCalculatorDocument = {
     document: PotatnoDocument<typeof TestProject>;
     function: PotatnoDocumentFunction<typeof TestProject>;
     defaultEntry: PotatnoDocumentNode<typeof TestProject>;
     defaultExit: PotatnoDocumentNode<typeof TestProject>;
+    x10Entry: PotatnoDocumentNode<typeof TestProject>;
+    x10Exit: PotatnoDocumentNode<typeof TestProject>;
 };

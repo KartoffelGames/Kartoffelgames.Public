@@ -25,7 +25,7 @@ export class PotatnoClipboard<TProject extends PotatnoProject> {
     }
 
     /**
-     * Copy selected (non-system) nodes and their internal connections.
+     * Copy the selected nodes and their internal connections.
      *
      * @param pSelectedNodes - The nodes to copy.
      */
@@ -34,10 +34,8 @@ export class PotatnoClipboard<TProject extends PotatnoProject> {
         const lNodeIndexMap: Map<PotatnoDocumentNode<TProject>, number> = new Map();
 
         for (const lNode of pSelectedNodes) {
-            if (!lNode.isSystem) {
-                lNodeIndexMap.set(lNode, lNodes.length);
-                lNodes.push(lNode);
-            }
+            lNodeIndexMap.set(lNode, lNodes.length);
+            lNodes.push(lNode);
         }
 
         if (lNodes.length === 0) {
@@ -115,7 +113,7 @@ export class PotatnoClipboard<TProject extends PotatnoProject> {
                 height: lNodeData.transformation.height
             };
 
-            const lNode = pFunction.addNodeByDefinition(lDefinition, lTransformation, false);
+            const lNode = pFunction.addNodeByDefinition(lDefinition, lTransformation);
             lNode.label = lNodeData.label;
 
             for (const [lPortName, lValues] of Object.entries(lNodeData.inputDirectValues)) {

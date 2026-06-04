@@ -41,7 +41,6 @@ const lExpectDocumentsEquivalent = (pActual: PotatnoDocument<typeof TestProject>
             expect(lActualNode.definitionId).toBe(lExpectedNode.definitionId);
             expect(lActualNode.label).toBe(lExpectedNode.label);
             expect(lActualNode.category).toBe(lExpectedNode.category);
-            expect(lActualNode.isSystem).toBe(lExpectedNode.isSystem);
             expect(lActualNode.transformation).toEqual(lExpectedNode.transformation);
 
             // Compare ports by definitionId.
@@ -244,18 +243,6 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
             const { document, function: lFunction } = PotatnoHelper.setupCalculatorDocument();
             const lAddNode = PotatnoHelper.addProjectNode(lFunction, 'Add');
             lAddNode.label = 'CustomLabel';
-
-            // Process.
-            const lRoundTripped = PotatnoHelper.roundTrip(document);
-
-            // Evaluation.
-            lExpectDocumentsEquivalent(lRoundTripped, document);
-        });
-
-        await pContext.step('Node isSystem preserved', () => {
-            // Setup. defaultEntry / defaultExit are system; lAdd is not.
-            const { document, function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-            PotatnoHelper.addProjectNode(lFunction, 'Add');
 
             // Process.
             const lRoundTripped = PotatnoHelper.roundTrip(document);

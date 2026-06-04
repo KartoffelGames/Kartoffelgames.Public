@@ -216,8 +216,8 @@ Deno.test('PotatnoDocumentFunction.nodes', async (pContext) => {
         // Setup. Process.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
-        // Evaluation. Entry + Exit were added by the helper.
-        expect(lFunction.nodes.size).toBe(2);
+        // Evaluation. The helper syncs the Default + X10 entry and exit nodes.
+        expect(lFunction.nodes.size).toBe(4);
     });
 
     await pContext.step('Does not contain removed nodes', () => {
@@ -489,7 +489,6 @@ Deno.test('PotatnoDocumentFunction.addNode()', async (pContext) => {
         const lExternalNode = new PotatnoDocumentNode(TestProject, lDocument, lFunction, {
             category: lDefinition.category,
             definitionId: lDefinition.id,
-            isSystem: false,
             label: lDefinition.label,
             transformation: { x: 0, y: 0, width: 4, height: 2 },
             ports: { input: [], output: [] }
@@ -533,26 +532,6 @@ Deno.test('PotatnoDocumentFunction.newNode()', async (pContext) => {
         expect(lAddNode.outputs.list[0].dataType).toBe('number');
     });
 
-    await pContext.step('Defaults isSystem to false', () => {
-        // Setup. Process.
-        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lAddNode = PotatnoHelper.addProjectNode(lFunction, 'Add');
-
-        // Evaluation.
-        expect(lAddNode.isSystem).toBe(false);
-    });
-
-    await pContext.step('Honours pSystem=true', () => {
-        // Setup.
-        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lDefinition = TestProject.nodeDefinitions.find((pDef) => pDef.id === 'Add')!;
-
-        // Process.
-        const lAddNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 4, height: 2 }, true);
-
-        // Evaluation.
-        expect(lAddNode.isSystem).toBe(true);
-    });
 });
 
 Deno.test('PotatnoDocumentFunction.removeNode()', async (pContext) => {
@@ -600,12 +579,15 @@ Deno.test('PotatnoDocumentFunction.removeNode()', async (pContext) => {
 Deno.test('PotatnoDocumentFunction.getExitNodes()', async (pContext) => {
     await pContext.step('Returns nodes whose definitionId matches an exit definition', () => {
         // Setup. Process.
-        const { function: lFunction, defaultExit } = PotatnoHelper.setupCalculatorDocument();
-        const lResult = lFunction.getExitNodes();
+        const { function: lFunction, defaultExit, x10Exit } = PotatnoHelper.setupCalculatorDocument();
+        const lResultDefinitionIds = lFunction.getExitNodes().map((pDefinition)=> {
+            return pDefinition.definitionId;
+        });
 
-        // Evaluation.
-        expect(lResult.length).toBe(1);
-        expect(lResult[0]).toBe(defaultExit);
+        // Evaluation. Both the Default and X10 exit nodes are synced by the helper.
+        expect(lResultDefinitionIds.length).toBe(2);
+        expect(lResultDefinitionIds).toContain(defaultExit.definitionId);
+        expect(lResultDefinitionIds).toContain(x10Exit.definitionId);
     });
 
     await pContext.step('Returns empty array when no exit-matching nodes exist', () => {
@@ -617,7 +599,7 @@ Deno.test('PotatnoDocumentFunction.getExitNodes()', async (pContext) => {
             id: 'no-exits', label: 'no-exits', isSystem: true
         });
         const lNodes = lEntryDefinition.getNodeDefinitions(lFunction);
-        lFunction.addNodeByDefinition(lNodes.entry[0], { x: 0, y: 0, width: 4, height: 2 }, true);
+        lFunction.addNodeByDefinition(lNodes.entry[0], { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
         const lResult = lFunction.getExitNodes();
@@ -705,13 +687,11 @@ Deno.test('PotatnoDocumentFunction - Validation', async (pContext) => {
     });
 
     await pContext.step('Node reachable from multiple entry nodes', () => {
-        // Setup. Place both Default and X10 entries plus a shared downstream Pass node.
-        const { function: lFunction, defaultEntry } = PotatnoHelper.setupCalculatorDocument();
-        const lNodes = TestProject.entryPoint.getNodeDefinitions(lFunction);
-        const lX10Entry = lFunction.addNodeByDefinition(lNodes.entry[1], { x: 0, y: 8, width: 6, height: 4 }, true);
+        // Setup. Route both the Default and X10 entries (synced by the helper) into a shared downstream Pass node.
+        const { function: lFunction, defaultEntry, x10Entry } = PotatnoHelper.setupCalculatorDocument();
         const lSharedPass = PotatnoHelper.addProjectNode(lFunction, 'Pass');
         defaultEntry.outputs.flow[0].connect(lSharedPass.inputs.flow[0]);
-        lX10Entry.outputs.flow[0].connect(lSharedPass.inputs.flow[0]);
+        x10Entry.outputs.flow[0].connect(lSharedPass.inputs.flow[0]);
 
         // Process.
         const lErrors = lFunction.validate();

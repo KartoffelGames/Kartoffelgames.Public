@@ -32,22 +32,16 @@ Deno.test('PotatnoDocumentNode.constructor()', async (pContext) => {
         expect(defaultEntry.label).toBeDefined();
     });
 
-    await pContext.step('Sets isSystem', () => {
-        // Setup. Process.
-        const { defaultEntry, function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lAddNode = PotatnoHelper.addProjectNode(lFunction, 'Add');
-
-        // Evaluation. defaultEntry was created with isSystem=true; lAddNode defaults to false.
-        expect(defaultEntry.isSystem).toBe(true);
-        expect(lAddNode.isSystem).toBe(false);
-    });
-
     await pContext.step('Stores transformation', () => {
-        // Setup. Process.
-        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        // Setup. The node stores whatever transformation it is created with.
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+        const lDefinition = TestProject.nodeDefinitions.find((pDef) => pDef.id === 'Add')!;
+
+        // Process.
+        const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 5, y: 6, width: 7, height: 8 });
 
         // Evaluation.
-        expect(defaultEntry.transformation).toEqual({ x: 0, y: 0, width: 6, height: 4 });
+        expect(lNode.transformation).toEqual({ x: 5, y: 6, width: 7, height: 8 });
     });
 
     await pContext.step('Builds input ports from configuration', () => {
@@ -195,25 +189,6 @@ Deno.test('PotatnoDocumentNode.label', async (pContext) => {
 
         // Evaluation.
         expect(lAddNode.label).toBe('Renamed');
-    });
-});
-
-Deno.test('PotatnoDocumentNode.isSystem', async (pContext) => {
-    await pContext.step('Returns true when constructed as system', () => {
-        // Setup. Process.
-        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
-
-        // Evaluation.
-        expect(defaultEntry.isSystem).toBe(true);
-    });
-
-    await pContext.step('Returns false otherwise', () => {
-        // Setup. Process.
-        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lAddNode = PotatnoHelper.addProjectNode(lFunction, 'Add');
-
-        // Evaluation.
-        expect(lAddNode.isSystem).toBe(false);
     });
 });
 

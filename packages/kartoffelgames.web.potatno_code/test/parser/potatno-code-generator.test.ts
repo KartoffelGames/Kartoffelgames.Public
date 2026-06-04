@@ -18,12 +18,16 @@ Deno.test('PotatnoCodeGenerator.generateDocument()', async (pContext) => {
             // Process.
             const lResult = new PotatnoCodeGenerator(TestProject).generateDocument(document);
 
-            // Evaluation. The document body wraps the entry's arrow function and
-            // the calculator label-prefixed const.
+            // Evaluation. The document body wraps the entry's arrow function and the calculator
+            // label-prefixed const. The helper-wired X10 exit contributes a second const.
             expect(lResult.code).toBe(
                 'const calculatorDefault = (v_1, v_2) => { '
                 + 'let __globalMultiplier = 1; '
                 + 'return (0) * __globalMultiplier; '
+                + '};'
+                + 'const calculatorX10 = (v_4, v_5) => { '
+                + 'let __globalMultiplier = 1; '
+                + 'return ((0) * 10) * __globalMultiplier; '
                 + '};'
             );
         });
@@ -41,24 +45,24 @@ Deno.test('PotatnoCodeGenerator.generateDocument()', async (pContext) => {
             const lResult = new PotatnoCodeGenerator(TestProject).generateDocument(document);
 
             // Evaluation. Add's const sits between the multiplier init and the exit return.
+            // The helper-wired X10 exit contributes a second const.
             expect(lResult.code).toBe(
                 'const calculatorDefault = (v_0, v_1) => { '
                 + 'let __globalMultiplier = 1; '
                 + 'const v_2 = v_0 + v_1; '
                 + 'return (v_2) * __globalMultiplier; '
                 + '};'
+                + 'const calculatorX10 = (v_5, v_6) => { '
+                + 'let __globalMultiplier = 1; '
+                + 'return ((0) * 10) * __globalMultiplier; '
+                + '};'
             );
         });
 
         await pContext.step('Multiple entries', () => {
-            // Setup. Wire both Default and X10 pairs.
-            const lEntryDefinition = TestProject.entryPoint;
-            const { document, function: lFunction, defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
-            const lNodes = lEntryDefinition.getNodeDefinitions(lFunction);
-            const lX10Entry = lFunction.addNodeByDefinition(lNodes.entry[1], { x: 0, y: 8, width: 6, height: 4 }, true);
-            const lX10Exit = lFunction.addNodeByDefinition(lNodes.exit[1], { x: 12, y: 8, width: 6, height: 4 }, true);
+            // Setup. The X10 pair is wired flow-only by the helper; wire the Default pair here.
+            const { document, defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
             PotatnoHelper.connectFlow(defaultEntry, defaultExit);
-            PotatnoHelper.connectFlow(lX10Entry, lX10Exit);
 
             // Process.
             const lResult = new PotatnoCodeGenerator(TestProject).generateDocument(document);
@@ -88,28 +92,29 @@ Deno.test('PotatnoCodeGenerator.generateDocument()', async (pContext) => {
             const lResult = new PotatnoCodeGenerator(TestProject).generateDocument(document);
 
             // Evaluation. The multiplier write sits between the init and the exit return.
+            // The helper-wired X10 exit contributes a second const.
             expect(lResult.code).toBe(
                 'const calculatorDefault = (v_2, v_3) => { '
                 + 'let __globalMultiplier = 1; '
                 + '__globalMultiplier = 5; '
                 + 'return (0) * __globalMultiplier; '
                 + '};'
+                + 'const calculatorX10 = (v_5, v_6) => { '
+                + 'let __globalMultiplier = 1; '
+                + 'return ((0) * 10) * __globalMultiplier; '
+                + '};'
             );
         });
 
         await pContext.step('X10 exit composed with GlobalMultiplier', () => {
             // Setup. Default Entry -> Default Exit, plus X10 Entry -> GlobalMultiplier(5) -> X10 Exit.
-            // The default pair is wired so the document validates; both exits contribute a graph.
-            const lEntryDefinition = TestProject.entryPoint;
-            const { document, function: lFunction, defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
-            const lNodes = lEntryDefinition.getNodeDefinitions(lFunction);
-            const lX10Entry = lFunction.addNodeByDefinition(lNodes.entry[1], { x: 0, y: 8, width: 6, height: 4 }, true);
-            const lX10Exit = lFunction.addNodeByDefinition(lNodes.exit[1], { x: 12, y: 8, width: 6, height: 4 }, true);
+            // The helper pre-wires X10 Entry -> X10 Exit; re-routing the X10 entry flow replaces that link.
+            const { document, function: lFunction, defaultEntry, defaultExit, x10Entry, x10Exit } = PotatnoHelper.setupCalculatorDocument();
             const lGlobalMultiplier = PotatnoHelper.addProjectNode(lFunction, 'GlobalMultiplier');
             PotatnoHelper.setInputValue(lGlobalMultiplier, 'value', ['5']);
             PotatnoHelper.connectFlow(defaultEntry, defaultExit);
-            PotatnoHelper.connectFlow(lX10Entry, lGlobalMultiplier);
-            PotatnoHelper.connectFlow(lGlobalMultiplier, lX10Exit);
+            PotatnoHelper.connectFlow(x10Entry, lGlobalMultiplier);
+            PotatnoHelper.connectFlow(lGlobalMultiplier, x10Exit);
 
             // Process.
             const lResult = new PotatnoCodeGenerator(TestProject).generateDocument(document);
@@ -152,34 +157,11 @@ Deno.test('PotatnoCodeGenerator.generateDocument()', async (pContext) => {
 
 Deno.test('PotatnoCodeGenerator.generateFunction()', async (pContext) => {
     await pContext.step('Function', async (pContext) => {
-        await pContext.step('Single exit', () => {
-            // Setup.
-            const { function: lFunction, defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
-            PotatnoHelper.connectFlow(defaultEntry, defaultExit);
-
-            // Process.
-            const lResult = new PotatnoCodeGenerator(TestProject).generateFunction(lFunction);
-
-            // Evaluation. Exactly one graph for the wired exit, body code is the
-            // single named const emitted by the function definition's body callback.
-            expect(lResult.entryPoint.graphs.length).toBe(1);
-            expect(lResult.entryPoint.code).toBe(
-                'const calculatorDefault = (v_1, v_2) => { '
-                + 'let __globalMultiplier = 1; '
-                + 'return (0) * __globalMultiplier; '
-                + '};'
-            );
-        });
-
         await pContext.step('Two exits', () => {
-            // Setup.
-            const lEntryDefinition = TestProject.entryPoint;
+            // Setup. The calculator always has both the Default and X10 exits; the X10 pair is
+            // wired flow-only by the helper, so wiring the Default pair gives a graph per exit.
             const { function: lFunction, defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
-            const lNodes = lEntryDefinition.getNodeDefinitions(lFunction);
-            const lX10Entry = lFunction.addNodeByDefinition(lNodes.entry[1], { x: 0, y: 8, width: 6, height: 4 }, true);
-            const lX10Exit = lFunction.addNodeByDefinition(lNodes.exit[1], { x: 12, y: 8, width: 6, height: 4 }, true);
             PotatnoHelper.connectFlow(defaultEntry, defaultExit);
-            PotatnoHelper.connectFlow(lX10Entry, lX10Exit);
 
             // Process.
             const lResult = new PotatnoCodeGenerator(TestProject).generateFunction(lFunction);
@@ -522,8 +504,8 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
                 definitionId: lLocalEntryFunction.id, id: 'main-instance', label: 'main', isSystem: true
             });
             const lLocalNodes = lLocalEntryFunction.getNodeDefinitions(lLocalFunction);
-            const lLocalEntry = lLocalFunction.addNodeByDefinition(lLocalNodes.entry[0], { x: 0, y: 0, width: 4, height: 2 }, true);
-            const lLocalExit = lLocalFunction.addNodeByDefinition(lLocalNodes.exit[0], { x: 4, y: 0, width: 4, height: 2 }, true);
+            const lLocalEntry = lLocalFunction.addNodeByDefinition(lLocalNodes.entry[0], { x: 0, y: 0, width: 4, height: 2 });
+            const lLocalExit = lLocalFunction.addNodeByDefinition(lLocalNodes.exit[0], { x: 4, y: 0, width: 4, height: 2 });
             lLocalEntry.outputs.flow[0].connect(lLocalExit.inputs.flow[0]);
 
             // Process. pDebug=true enables the per-node hook auto-append.

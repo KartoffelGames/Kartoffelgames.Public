@@ -194,13 +194,13 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
 
     /**
      * Whether the open-function button should be shown.
-     * Only for non-system function nodes.
+     * Only for function nodes.
      */
     public get showOpenButton(): boolean {
         if (!this.nodeData) {
             return false;
         }
-        return this.isFunction && !this.nodeData.isSystem;
+        return this.isFunction;
     }
 
     /**

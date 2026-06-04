@@ -238,7 +238,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         const lProducerNode: PotatnoDocumentNode<TProject> = lIncomingPort.node;
 
         // If the producer is a pure-value node, tick its refcount. Emit on depletion.
-        let lProducerEmit: PotatnoCodeGeneratorEmitResult<TProject> | null = (() => {
+        const lProducerEmit: PotatnoCodeGeneratorEmitResult<TProject> | null = (() => {
             if (!lProducerNode.hasFlowPorts) {
                 // Remaining in scope should allways be set otherwise something is broken in this code.
                 const lRemaining: number = pCursor.scope.remaining.get(lProducerNode)!;
@@ -252,7 +252,6 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
 
             return null;
         })();
-
 
         return {
             inputPort: {
@@ -493,42 +492,41 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * @param pMergeNode - A node with ≥2 flow-input connections.
      */
     private findBranchPoint(pMergeNode: PotatnoDocumentNode<TProject>): PotatnoDocumentNode<TProject> {
-        const lPredecessorPorts: Array<PotatnoDocumentPort<TProject>> = this.getNodesInputFlowPorts(pMergeNode);
-        const lTotalTags: number = lPredecessorPorts.length;
+        // Each fan-in branch seeds a distinct tag; the first node that accumulates every tag is the common branch point.
+        const lBranchPorts: Array<PotatnoDocumentPort<TProject>> = this.getNodesInputFlowPorts(pMergeNode);
+        const lTagCount: number = lBranchPorts.length;
 
+        // Seed one tag per fan-in branch. Ports sharing a node union their tags so that node starts with all of them.
         const lTagsByNode: Map<PotatnoDocumentNode<TProject>, Set<number>> = new Map<PotatnoDocumentNode<TProject>, Set<number>>();
         const lQueue: Array<PotatnoDocumentNode<TProject>> = new Array<PotatnoDocumentNode<TProject>>();
-
-        // Seed: one tag per fan-in predecessor.
-        for (let lIndex: number = 0; lIndex < lPredecessorPorts.length; lIndex++) {
-            const lPredecessorNode: PotatnoDocumentNode<TProject> = lPredecessorPorts[lIndex]!.node;
-            lTagsByNode.set(lPredecessorNode, new Set<number>([lIndex]));
-            lQueue.push(lPredecessorNode);
+        for (const [lTag, lBranchPort] of lBranchPorts.entries()) {
+            const lSeedTags: Set<number> = lTagsByNode.get(lBranchPort.node) ?? new Set<number>();
+            lSeedTags.add(lTag);
+            lTagsByNode.set(lBranchPort.node, lSeedTags);
+            lQueue.push(lBranchPort.node);
         }
 
+        // Propagate tags backward. The first node holding every tag is the branch point.
         while (lQueue.length > 0) {
             const lNode: PotatnoDocumentNode<TProject> = lQueue.shift()!;
-            const lTags: Set<number> = lTagsByNode.get(lNode)!;
+            const lNodeTags: Set<number> = lTagsByNode.get(lNode)!;
 
-            // Branch point found if this node has accumulated all tags.
-            if (lTags.size === lTotalTags) {
+            // All branches have met here.
+            if (lNodeTags.size === lTagCount) {
                 return lNode;
             }
 
-            // Propagate tags to flow-input predecessors.
-            for (const lFlowPredecessorPort of this.getNodesInputFlowPorts(lNode)) {
-                const lFlowPredecessorNode: PotatnoDocumentNode<TProject> = lFlowPredecessorPort.node;
-                const lPredecessorTags: Set<number> = lTagsByNode.get(lFlowPredecessorNode) ?? new Set<number>();
-                let lAdded: boolean = false;
-                for (const lTag of lTags) {
-                    if (!lPredecessorTags.has(lTag)) {
-                        lPredecessorTags.add(lTag);
-                        lAdded = true;
-                    }
+            // Union this node's tags into each flow predecessor; re-enqueue any predecessor that gained a tag.
+            for (const lPredecessorPort of this.getNodesInputFlowPorts(lNode)) {
+                const lPredecessorTags: Set<number> = lTagsByNode.get(lPredecessorPort.node) ?? new Set<number>();
+                const lSizeBefore: number = lPredecessorTags.size;
+                for (const lTag of lNodeTags) {
+                    lPredecessorTags.add(lTag);
                 }
-                lTagsByNode.set(lFlowPredecessorNode, lPredecessorTags);
-                if (lAdded) {
-                    lQueue.push(lFlowPredecessorNode);
+                lTagsByNode.set(lPredecessorPort.node, lPredecessorTags);
+
+                if (lPredecessorTags.size > lSizeBefore) {
+                    lQueue.push(lPredecessorPort.node);
                 }
             }
         }

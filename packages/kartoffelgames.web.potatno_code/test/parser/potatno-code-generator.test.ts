@@ -98,26 +98,30 @@ Deno.test('PotatnoCodeGenerator.generateDocument()', async (pContext) => {
         });
 
         await pContext.step('X10 exit composed with GlobalMultiplier', () => {
-            // Setup. X10 Entry -> GlobalMultiplier(5) -> X10 Exit. The helper-placed
-            // default pair stays in the function but is left unwired, so it should
-            // not contribute a graph.
+            // Setup. Default Entry -> Default Exit, plus X10 Entry -> GlobalMultiplier(5) -> X10 Exit.
+            // The default pair is wired so the document validates; both exits contribute a graph.
             const lEntryDefinition = TestProject.entryPoint;
-            const { document, function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+            const { document, function: lFunction, defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
             const lNodes = lEntryDefinition.getNodeDefinitions(lFunction);
             const lX10Entry = lFunction.newNode(lNodes.entry[1], { x: 0, y: 8, width: 6, height: 4 }, true);
             const lX10Exit = lFunction.newNode(lNodes.exit[1], { x: 12, y: 8, width: 6, height: 4 }, true);
             const lGlobalMultiplier = PotatnoHelper.addProjectNode(lFunction, 'GlobalMultiplier');
             PotatnoHelper.setInputValue(lGlobalMultiplier, 'value', ['5']);
+            PotatnoHelper.connectFlow(defaultEntry, defaultExit);
             PotatnoHelper.connectFlow(lX10Entry, lGlobalMultiplier);
             PotatnoHelper.connectFlow(lGlobalMultiplier, lX10Exit);
 
             // Process.
             const lResult = new PotatnoCodeGenerator(TestProject).generateDocument(document);
 
-            // Evaluation. Only the X10 graph is emitted; the multiplier write composes
+            // Evaluation. Both graphs are emitted; the X10 multiplier write composes
             // multiplicatively with the X10 exit's (result) * 10 wrapper.
             expect(lResult.code).toBe(
-                'const calculatorX10 = (v_2, v_3) => { '
+                'const calculatorDefault = (v_1, v_2) => { '
+                + 'let __globalMultiplier = 1; '
+                + 'return (0) * __globalMultiplier; '
+                + '};'
+                + 'const calculatorX10 = (v_5, v_6) => { '
                 + 'let __globalMultiplier = 1; '
                 + '__globalMultiplier = 5; '
                 + 'return ((0) * 10) * __globalMultiplier; '
@@ -194,28 +198,6 @@ Deno.test('PotatnoCodeGenerator.generateFunction()', async (pContext) => {
             );
         });
 
-        await pContext.step('Unwired exit produces no graph for that exit', () => {
-            // Setup. Only the default-pair flow is wired.
-            const lEntryDefinition = TestProject.entryPoint;
-            const { function: lFunction, defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
-            const lNodes = lEntryDefinition.getNodeDefinitions(lFunction);
-            lFunction.newNode(lNodes.entry[1], { x: 0, y: 8, width: 6, height: 4 }, true);
-            lFunction.newNode(lNodes.exit[1], { x: 12, y: 8, width: 6, height: 4 }, true);
-            PotatnoHelper.connectFlow(defaultEntry, defaultExit);
-
-            // Process.
-            const lResult = new PotatnoCodeGenerator(TestProject).generateFunction(lFunction);
-
-            // Evaluation. X10 exit has no flow input, so it contributes no graph;
-            // only the default graph appears and the body code lacks calculatorX10.
-            expect(lResult.entryPoint.graphs.length).toBe(1);
-            expect(lResult.entryPoint.code).toBe(
-                'const calculatorDefault = (v_1, v_2) => { '
-                + 'let __globalMultiplier = 1; '
-                + 'return (0) * __globalMultiplier; '
-                + '};'
-            );
-        });
     });
 });
 
@@ -578,11 +560,11 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
                 new PotatnoCodeGenerator(TestProject).generateNode(lGhostNode);
             };
 
-            // Evaluation.
-            expect(lAction).toThrow(`Node definition "GhostNode" not found for node "${lGhostNode.label}".`);
+            // Evaluation. The missing definition is caught by document validation before generation runs.
+            expect(lAction).toThrow('Code generation exited. Code graph validation failed.');
         });
 
-        await pContext.step('Walk emits zero nodes', () => {
+        await pContext.step('Unconnected exit flow input fails validation', () => {
             // Setup. Exit with unconnected flow input.
             const { defaultExit } = PotatnoHelper.setupCalculatorDocument();
 
@@ -591,8 +573,8 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
                 new PotatnoCodeGenerator(TestProject).generateNode(defaultExit);
             };
 
-            // Evaluation. The contract is the exact message below.
-            expect(lAction).toThrow('Walk did not reach an entry node from exit "Default".');
+            // Evaluation. The dangling flow input is rejected by document validation before the walk runs.
+            expect(lAction).toThrow('Code generation exited. Code graph validation failed.');
         });
     });
 });

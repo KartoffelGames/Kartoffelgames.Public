@@ -1,23 +1,32 @@
-import { ComponentEventEmitter, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport } from '@kartoffelgames/web-potato-web-builder';
-import type { IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
+import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { Component, ComponentEventEmitter, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoProjectTypeDefinition } from "../../../project/potatno-project-types-definition.ts";
+import { PotatnoCodeUiManager, PotatnoCodeUiManagerEventType } from '../../potatno-code-ui-manager.ts';
 import type { PotatnoUiProject } from '../../potatno-node-definition-list.ts';
 import portCss from './potatno-port.css' with { type: 'text' };
 import portTemplate from './potatno-port.html' with { type: 'text' };
 
 /**
  * Port component for the potatno-code visual editor.
- * Receives a PotatnoDocumentPort object reference and renders its state.
- * Input value ports that are not connected display editable direct-value inputs.
+ *
+ * Renders a single {@link PotatnoDocumentPort}. The owning node pushes in the port and owner-node
+ * references; error highlighting comes from the shared {@link PotatnoCodeUiManager}, and direct-value
+ * edits are committed through it. The component self-updates by subscribing to manager events so it
+ * re-renders its connection-dependent visuals (direct-value inputs, colour) without a version token.
  */
 @PwbComponent({
     selector: 'potatno-port',
     template: portTemplate,
     style: portCss,
 })
-export class PotatnoPortComponent implements IComponentOnUpdate {
+export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDeconstruct, IComponentOnUpdate {
+    private readonly mComponent: Component;
+    private mLastRegisteredPort: PotatnoDocumentPort<PotatnoUiProject> | null;
+    private readonly mManager: PotatnoCodeUiManager;
+    private mUnsubscribe: (() => void) | null;
+
     /**
      * The domain port object to render.
      */
@@ -26,27 +35,11 @@ export class PotatnoPortComponent implements IComponentOnUpdate {
     public accessor port: PotatnoDocumentPort<PotatnoUiProject> | null = null;
 
     /**
-     * Version counter forwarded from the editor via the node component whenever
-     * any connection in the document changes. Reading this in showDirectValueInput
-     * links the port component's zone so it re-renders on connection changes.
-     */
-    @PwbExport
-    @ComponentState.state()
-    public accessor portVersion: number = 0;
-
-    /**
      * The node that owns this port — included in all emitted events.
      */
     @PwbExport
     @ComponentState.state()
     public accessor ownerNode: PotatnoDocumentNode<PotatnoUiProject> | null = null;
-
-    /**
-     * Whether this port has a validation error.
-     */
-    @PwbExport
-    @ComponentState.state()
-    public accessor hasError: boolean = false;
 
     @PwbComponentEvent('port-drag-start')
     private accessor mPortDragStart!: ComponentEventEmitter<PortInteractionDetail>;
@@ -57,9 +50,6 @@ export class PotatnoPortComponent implements IComponentOnUpdate {
     @PwbComponentEvent('port-leave')
     private accessor mPortLeave!: ComponentEventEmitter<void>;
 
-    @PwbComponentEvent('direct-value-change')
-    private accessor mDirectValueChange!: ComponentEventEmitter<DirectValueChangeDetail>;
-
     @PwbComponentEvent('port-element-ready')
     private accessor mPortElementReady!: ComponentEventEmitter<PortInteractionDetail>;
 
@@ -69,7 +59,12 @@ export class PotatnoPortComponent implements IComponentOnUpdate {
     @PwbChild('portCircle')
     public accessor portCircleElement!: HTMLElement;
 
-    private mLastRegisteredPort: PotatnoDocumentPort<PotatnoUiProject> | null = null;
+    /**
+     * Whether this port currently has a validation error.
+     */
+    public get hasError(): boolean {
+        return this.port !== null && this.mManager.errorPorts.has(this.port);
+    }
 
     /**
      * Port display name.
@@ -133,10 +128,6 @@ export class PotatnoPortComponent implements IComponentOnUpdate {
      * Only for unconnected, non-generic value input ports.
      */
     public get showDirectValueInput(): boolean {
-        // Reading portVersion links this getter's zone to portVersion state.
-        // When portVersion changes (connection made/removed), the port re-renders
-        // and re-reads the current connectedPorts.size.
-        void this.portVersion;
         if (!this.port) {
             return false;
         }
@@ -166,8 +157,42 @@ export class PotatnoPortComponent implements IComponentOnUpdate {
     }
 
     /**
+     * Create the port component.
+     *
+     * @param pComponent - Injected component reference, used to trigger self-updates.
+     * @param pManager - Injected shared UI manager singleton.
+     */
+    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoCodeUiManager = Injection.use(PotatnoCodeUiManager)) {
+        this.mComponent = pComponent;
+        this.mLastRegisteredPort = null;
+        this.mManager = pManager;
+        this.mUnsubscribe = null;
+    }
+
+    /**
+     * Subscribe to manager events that change this port's connection-dependent visuals.
+     */
+    public onConnect(): void {
+        this.mUnsubscribe = this.mManager.listen([
+            PotatnoCodeUiManagerEventType.ConnectionAdd,
+            PotatnoCodeUiManagerEventType.ConnectionDelete,
+            PotatnoCodeUiManagerEventType.NodeChange
+        ], () => {
+            this.mComponent.updater.update();
+        });
+    }
+
+    /**
+     * Detach the manager subscription.
+     */
+    public onDeconstruct(): void {
+        this.mUnsubscribe?.();
+        this.mUnsubscribe = null;
+    }
+
+    /**
      * After each update, register this port's circle element with the parent graph via event.
-     * Only emits when the port reference changes to avoid redundant events on every portVersion tick.
+     * Only emits when the port reference changes to avoid redundant events on every tick.
      */
     public onUpdate(): void {
         if (!this.port || !this.ownerNode || this.port === this.mLastRegisteredPort) {
@@ -191,6 +216,8 @@ export class PotatnoPortComponent implements IComponentOnUpdate {
 
     /**
      * Handle pointer down on the port circle to initiate connection dragging.
+     *
+     * @param pEvent - Pointer event from the port circle.
      */
     public onPointerDown(pEvent: PointerEvent): void {
         pEvent.stopPropagation();
@@ -207,6 +234,8 @@ export class PotatnoPortComponent implements IComponentOnUpdate {
 
     /**
      * Handle pointer enter on the port circle for connection drop targeting.
+     *
+     * @param _pEvent - Unused pointer event.
      */
     public onPointerEnter(_pEvent: PointerEvent): void {
         if (!this.port || !this.ownerNode) {
@@ -221,6 +250,8 @@ export class PotatnoPortComponent implements IComponentOnUpdate {
 
     /**
      * Handle pointer leave on the port circle.
+     *
+     * @param _pEvent - Unused pointer event.
      */
     public onPointerLeave(_pEvent: PointerEvent): void {
         this.mPortLeave.dispatchEvent(undefined as unknown as void);
@@ -230,7 +261,7 @@ export class PotatnoPortComponent implements IComponentOnUpdate {
      * Handle input changes on a direct-value input field.
      *
      * @param pEvent - Input event.
-     * @param pIndex - Index of the changed value within directValue array.
+     * @param pIndex - Index of the changed value within the directValue array.
      */
     public onDirectValueInput(pEvent: Event, pIndex: number): void {
         if (!this.port) {
@@ -239,12 +270,15 @@ export class PotatnoPortComponent implements IComponentOnUpdate {
         const lTarget: HTMLInputElement = pEvent.target as HTMLInputElement;
         const lNewValues: Array<string> = [...this.port.directValue];
         lNewValues[pIndex] = lTarget.type === 'checkbox' ? (lTarget.checked ? 'true' : 'false') : lTarget.value;
-        this.port.setDirectValue(lNewValues);
-        this.mDirectValueChange.dispatchEvent({ port: this.port, values: lNewValues });
+        this.mManager.setPortDirectValue(this.port, lNewValues);
     }
 
     /**
      * Generate a deterministic HSL color from a type string.
+     *
+     * @param pType - Type identifier to derive a colour from.
+     *
+     * @returns A CSS HSL color string.
      */
     private getTypeColor(pType: string): string {
         let lHash: number = 0;
@@ -260,11 +294,6 @@ export type PortInteractionDetail = {
     node: PotatnoDocumentNode<PotatnoUiProject>;
     port: PotatnoDocumentPort<PotatnoUiProject>;
     element: HTMLElement;
-};
-
-type DirectValueChangeDetail = {
-    port: PotatnoDocumentPort<PotatnoUiProject>;
-    values: Array<string>;
 };
 
 type DirectValueInputDef = {

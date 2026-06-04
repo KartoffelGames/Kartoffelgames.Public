@@ -1,7 +1,8 @@
-import type { ComponentEvent, IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
-import { ComponentEventEmitter, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport } from '@kartoffelgames/web-potato-web-builder';
+import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { Component, ComponentEventEmitter, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEvent, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
+import { PotatnoCodeUiManager, PotatnoCodeUiManagerEventType } from '../../potatno-code-ui-manager.ts';
 import type { PotatnoUiProject } from '../../potatno-node-definition-list.ts';
 import type { PortInteractionDetail } from '../potatno_port/potatno-port.ts';
 import nodeCss from './potatno-node-component.css' with { type: 'text' };
@@ -13,15 +14,23 @@ import '../potatno_port/potatno-port.ts';
 
 /**
  * Node component for the potatno-code visual editor.
- * Receives a PotatnoDocumentNode object reference and renders its state.
+ *
+ * Renders a single {@link PotatnoDocumentNode}. Layout inputs (which node, selected, grid size)
+ * are pushed in by the graph; everything else — validation highlighting, the inline preview
+ * element and its available displays, and every mutation (label edits, preview opt-in, opening a
+ * function) — goes through the shared {@link PotatnoCodeUiManager}. The component self-updates by
+ * subscribing to manager events instead of receiving refresh tokens.
  */
 @PwbComponent({
     selector: 'potatno-node',
     template: nodeTemplate,
     style: nodeCss,
 })
-export class PotatnoNodeComponent implements IComponentOnUpdate {
-    // ── Exported properties ─────────────────────────────────────────────
+export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDeconstruct, IComponentOnUpdate {
+    private readonly mComponent: Component;
+    private readonly mManager: PotatnoCodeUiManager;
+    private mPreviewElement: HTMLElement | null;
+    private mUnsubscribe: (() => void) | null;
 
     /**
      * The domain node object to render.
@@ -31,34 +40,11 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     public accessor nodeData: PotatnoDocumentNode<PotatnoUiProject> | null = null;
 
     /**
-     * Version counter that increments whenever any connection in the document changes.
-     * Passed down to port components so they re-render and re-evaluate connection state.
-     */
-    @PwbExport
-    @ComponentState.state()
-    public accessor connectionVersion: number = 0;
-
-    /**
      * Whether this node is currently selected.
      */
     @PwbExport
     @ComponentState.state()
     public accessor selected: boolean = false;
-
-    /**
-     * Whether this node has a validation error (triggers red outline).
-     */
-    @PwbExport
-    @ComponentState.state()
-    public accessor hasError: boolean = false;
-
-    /**
-     * Set of ports on this node that have validation errors.
-     * Shared read-only reference from the graph — checked per-port in the template.
-     */
-    @PwbExport
-    @ComponentState.state({ complexValue: true })
-    public accessor errorPorts: ReadonlySet<PotatnoDocumentPort<PotatnoUiProject>> = new Set();
 
     /**
      * Grid size in pixels. Used to convert grid-unit positions to pixel values.
@@ -67,54 +53,12 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     @ComponentState.state()
     public accessor gridSize: number = 20;
 
-    private mPreviewElement: HTMLElement | null = null;
-
-    /**
-     * Preview element to display inline, pushed by the graph via template binding. (Re)attaching
-     * happens in the setter rather than only in `onUpdate`, because the element is mounted
-     * imperatively (not through the template) — so a swapped-in canvas after a rebuild, or a
-     * cleared preview, takes effect immediately instead of waiting for an unrelated template
-     * change (e.g. selecting the node).
-     */
-    @PwbExport
-    public set previewElement(pValue: HTMLElement | null) {
-        if (this.mPreviewElement === pValue) {
-            return;
-        }
-
-        this.mPreviewElement = pValue;
-        this.attachPreviewElement();
-    }
-
-    /**
-     * Get the inline preview element.
-     */
-    public get previewElement(): HTMLElement | null {
-        return this.mPreviewElement;
-    }
-
-    /**
-     * Display ids available for previewing this node's outputs, supplied by the graph from the
-     * project's preview registry. Drives the "style" selector shown on an active preview.
-     */
-    @PwbExport
-    @ComponentState.state({ complexValue: true })
-    public accessor previewDisplays: Array<string> = [];
-
     /**
      * Reference to the preview container element inside the node.
      * Only available for standard nodes (not reroute or comment).
      */
     @PwbChild('NodePreview')
     private accessor mPreviewContainer!: HTMLDivElement;
-
-    // ── Event emitters ──────────────────────────────────────────────────
-
-    @PwbComponentEvent('node-select')
-    private accessor mNodeSelect!: ComponentEventEmitter<NodeSelectDetail>;
-
-    @PwbComponentEvent('node-drag-start')
-    private accessor mNodeDragStart!: ComponentEventEmitter<NodeDragStartDetail>;
 
     @PwbComponentEvent('port-drag-start')
     private accessor mPortDragStart!: ComponentEventEmitter<PortInteractionDetail>;
@@ -125,28 +69,11 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     @PwbComponentEvent('port-leave')
     private accessor mPortLeave!: ComponentEventEmitter<void>;
 
-    @PwbComponentEvent('open-function')
-    private accessor mOpenFunction!: ComponentEventEmitter<OpenFunctionDetail>;
-
-    @PwbComponentEvent('comment-change')
-    private accessor mCommentChange!: ComponentEventEmitter<CommentChangeDetail>;
-
     @PwbComponentEvent('resize-start')
     private accessor mResizeStart!: ComponentEventEmitter<ResizeStartDetail>;
 
-    @PwbComponentEvent('direct-value-change')
-    private accessor mDirectValueChange!: ComponentEventEmitter<DirectValueChangeDetail>;
-
     @PwbComponentEvent('port-element-ready')
     private accessor mPortElementReady!: ComponentEventEmitter<PortInteractionDetail>;
-
-    @PwbComponentEvent('preview-select')
-    private accessor mPreviewSelect!: ComponentEventEmitter<PreviewSelectDetail>;
-
-    @PwbComponentEvent('preview-style')
-    private accessor mPreviewStyle!: ComponentEventEmitter<PreviewStyleDetail>;
-
-    // ── Computed template properties ────────────────────────────────────
 
     /**
      * CSS class string for the selected state.
@@ -159,16 +86,7 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
      * CSS class string for the error state.
      */
     public get hasErrorClass(): string {
-        return this.hasError ? 'has-error' : '';
-    }
-
-    /**
-     * Return whether the given port has a validation error.
-     *
-     * @param pPort - Port to check.
-     */
-    public isPortError(pPort: PotatnoDocumentPort<PotatnoUiProject>): boolean {
-        return this.errorPorts.has(pPort);
+        return (this.nodeData !== null && this.mManager.errorNodes.has(this.nodeData)) ? 'has-error' : '';
     }
 
     /**
@@ -193,13 +111,9 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     }
 
     /**
-     * Whether the open-function button should be shown.
-     * Only for function nodes.
+     * Whether the open-function button should be shown. Only for function nodes.
      */
     public get showOpenButton(): boolean {
-        if (!this.nodeData) {
-            return false;
-        }
         return this.isFunction;
     }
 
@@ -225,6 +139,16 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
     }
 
     /**
+     * Display ids available for previewing this node's outputs, resolved from the manager.
+     */
+    public get previewDisplays(): Array<string> {
+        if (!this.nodeData) {
+            return [];
+        }
+        return this.mManager.getPreviewDisplaysForNode(this.nodeData);
+    }
+
+    /**
      * The node's value output ports — the candidates for an inline preview.
      */
     public get valueOutputPorts(): Array<PotatnoDocumentPort<PotatnoUiProject>> {
@@ -239,24 +163,6 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
      */
     public get selectedDisplayId(): string {
         return this.nodeData?.preview?.displayId ?? '';
-    }
-
-    /**
-     * Whether the given port is the one currently previewed.
-     *
-     * @param pPort - Port to check.
-     */
-    public isPreviewedPort(pPort: PotatnoDocumentPort<PotatnoUiProject>): boolean {
-        return this.nodeData?.preview?.portId === pPort.definitionId;
-    }
-
-    /**
-     * CSS class for a port row in the preview menu.
-     *
-     * @param pPort - Port the row represents.
-     */
-    public previewPortClass(pPort: PotatnoDocumentPort<PotatnoUiProject>): string {
-        return this.isPreviewedPort(pPort) ? 'preview-port-item active' : 'preview-port-item';
     }
 
     /**
@@ -335,21 +241,190 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
         return [...this.nodeData.outputs.list];
     }
 
-    // ── Lifecycle ───────────────────────────────────────────────────────
+    /**
+     * Create the node component.
+     *
+     * @param pComponent - Injected component reference, used to trigger self-updates.
+     * @param pManager - Injected shared UI manager singleton.
+     */
+    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoCodeUiManager = Injection.use(PotatnoCodeUiManager)) {
+        this.mComponent = pComponent;
+        this.mManager = pManager;
+        this.mPreviewElement = null;
+        this.mUnsubscribe = null;
+    }
 
     /**
-     * After each update cycle, ensure the preview element is appended to the container.
+     * Whether the given port is the one currently previewed.
+     *
+     * @param pPort - Port to check.
+     */
+    public isPreviewedPort(pPort: PotatnoDocumentPort<PotatnoUiProject>): boolean {
+        return this.nodeData?.preview?.portId === pPort.definitionId;
+    }
+
+    /**
+     * CSS class for a port row in the preview menu.
+     *
+     * @param pPort - Port the row represents.
+     */
+    public previewPortClass(pPort: PotatnoDocumentPort<PotatnoUiProject>): string {
+        return this.isPreviewedPort(pPort) ? 'preview-port-item active' : 'preview-port-item';
+    }
+
+    /**
+     * Subscribe to manager events that affect this node's rendering.
+     */
+    public onConnect(): void {
+        this.mUnsubscribe = this.mManager.listen([
+            PotatnoCodeUiManagerEventType.NodeAdd,
+            PotatnoCodeUiManagerEventType.NodeChange,
+            PotatnoCodeUiManagerEventType.NodeDelete,
+            PotatnoCodeUiManagerEventType.ConnectionAdd,
+            PotatnoCodeUiManagerEventType.ConnectionDelete,
+            PotatnoCodeUiManagerEventType.PreviewChange
+        ], () => {
+            this.mComponent.updater.update();
+        });
+    }
+
+    /**
+     * Detach the manager subscription.
+     */
+    public onDeconstruct(): void {
+        this.mUnsubscribe?.();
+        this.mUnsubscribe = null;
+    }
+
+    /**
+     * After each update cycle, ensure the inline preview element is mounted.
      */
     public onUpdate(): void {
-        // The container is (re)created by the template; re-run the attach so the preview element
-        // lands in the fresh container after a template update.
         this.attachPreviewElement();
     }
 
     /**
-     * Mount the current preview element into the preview container, replacing any previous
-     * occupant, or clear the container when there is no preview (e.g. after selecting "None").
-     * Called from the `previewElement` setter and from `onUpdate`.
+     * Re-emit a port-drag-start event from a child port component.
+     *
+     * @param pEvent - Port interaction event from the port component.
+     */
+    public onPortDragStart(pEvent: ComponentEvent<PortInteractionDetail>): void {
+        this.mPortDragStart.dispatchEvent(pEvent.value);
+    }
+
+    /**
+     * Re-emit a port-hover event from a child port component.
+     *
+     * @param pEvent - Port interaction event from the port component.
+     */
+    public onPortHover(pEvent: ComponentEvent<PortInteractionDetail>): void {
+        this.mPortHover.dispatchEvent(pEvent.value);
+    }
+
+    /**
+     * Re-emit a port-leave event from a child port component.
+     */
+    public onPortLeave(): void {
+        this.mPortLeave.dispatchEvent(undefined as unknown as void);
+    }
+
+    /**
+     * Re-emit a port-element-ready event from a child port component.
+     *
+     * @param pEvent - Port interaction event from the port component.
+     */
+    public onPortElementReady(pEvent: ComponentEvent<PortInteractionDetail>): void {
+        this.mPortElementReady.dispatchEvent(pEvent.value);
+    }
+
+    /**
+     * Choose which output port to preview.
+     *
+     * @param pEvent - Click event from the port row.
+     * @param pPort - Port to preview.
+     */
+    public onSelectPreviewPort(pEvent: MouseEvent, pPort: PotatnoDocumentPort<PotatnoUiProject>): void {
+        pEvent.stopPropagation();
+        if (!this.nodeData) {
+            return;
+        }
+        this.mManager.setNodePreview(this.nodeData, pPort.definitionId);
+    }
+
+    /**
+     * Disable this node's inline preview (the "None" row).
+     *
+     * @param pEvent - Click event from the row.
+     */
+    public onClearPreview(pEvent: MouseEvent): void {
+        pEvent.stopPropagation();
+        if (!this.nodeData) {
+            return;
+        }
+        this.mManager.setNodePreview(this.nodeData, '');
+    }
+
+    /**
+     * Change the preview display ("style") for the active preview.
+     *
+     * @param pEvent - Change event from the style selector.
+     */
+    public onSelectPreviewStyle(pEvent: Event): void {
+        pEvent.stopPropagation();
+        if (!this.nodeData) {
+            return;
+        }
+        this.mManager.setNodePreviewDisplay(this.nodeData, (pEvent.target as HTMLSelectElement).value);
+    }
+
+    /**
+     * Open the document function represented by this function node.
+     *
+     * @param pEvent - Click event from the open button.
+     */
+    public onOpenFunction(pEvent: MouseEvent): void {
+        pEvent.stopPropagation();
+        if (!this.nodeData) {
+            return;
+        }
+        this.mManager.openNodeFunction(this.nodeData);
+    }
+
+    /**
+     * Handle text input changes on comment nodes.
+     *
+     * @param pEvent - Input event from the comment textarea.
+     */
+    public onCommentInput(pEvent: Event): void {
+        const lTarget: HTMLTextAreaElement = pEvent.target as HTMLTextAreaElement;
+        if (!this.nodeData) {
+            return;
+        }
+        this.nodeData.label = lTarget.value;
+        this.mManager.commitNodeChange(false, this.nodeData);
+    }
+
+    /**
+     * Handle pointer down on the resize handle of comment nodes.
+     *
+     * @param pEvent - Pointer event from the resize handle.
+     */
+    public onResizeStart(pEvent: PointerEvent): void {
+        pEvent.stopPropagation();
+        pEvent.preventDefault();
+        if (!this.nodeData) {
+            return;
+        }
+        this.mResizeStart.dispatchEvent({
+            node: this.nodeData,
+            startX: pEvent.clientX,
+            startY: pEvent.clientY
+        });
+    }
+
+    /**
+     * Mount the current inline preview element (resolved from the manager) into the preview
+     * container, replacing any previous occupant, or clear the container when there is no preview.
      */
     private attachPreviewElement(): void {
         let lContainer: HTMLDivElement;
@@ -360,7 +435,8 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
             return;
         }
 
-        const lPreviewEl: HTMLElement | null = this.mPreviewElement;
+        const lPreviewEl: HTMLElement | null = this.nodeData ? this.mManager.getNodePreviewElement(this.nodeData) : null;
+        this.mPreviewElement = lPreviewEl;
 
         // No preview → remove any previously mounted element.
         if (!lPreviewEl) {
@@ -377,184 +453,10 @@ export class PotatnoNodeComponent implements IComponentOnUpdate {
         lContainer.innerHTML = '';
         lContainer.appendChild(lPreviewEl);
     }
-
-    // ── Event handlers ──────────────────────────────────────────────────
-
-    /**
-     * Handle pointer down on the node for selection and drag initiation.
-     */
-    public onNodePointerDown(pEvent: PointerEvent): void {
-        if ((pEvent.target as HTMLElement).tagName?.toLowerCase() === 'potatno-port') {
-            return;
-        }
-        if (!this.nodeData) {
-            return;
-        }
-
-        this.mNodeSelect.dispatchEvent({
-            node: this.nodeData,
-            shiftKey: pEvent.shiftKey
-        });
-
-        this.mNodeDragStart.dispatchEvent({
-            node: this.nodeData,
-            startX: pEvent.clientX,
-            startY: pEvent.clientY
-        });
-    }
-
-    /**
-     * Re-emit a port-drag-start event from a child port component.
-     */
-    public onPortDragStart(pEvent: ComponentEvent<PortInteractionDetail>): void {
-        this.mPortDragStart.dispatchEvent(pEvent.value);
-    }
-
-    /**
-     * Re-emit a port-hover event from a child port component.
-     */
-    public onPortHover(pEvent: ComponentEvent<PortInteractionDetail>): void {
-        this.mPortHover.dispatchEvent(pEvent.value);
-    }
-
-    /**
-     * Re-emit a port-leave event from a child port component.
-     */
-    public onPortLeave(_pEvent: ComponentEvent<void>): void {
-        this.mPortLeave.dispatchEvent(undefined as unknown as void);
-    }
-
-    /**
-     * Re-emit a direct-value-change event from a child port component.
-     */
-    public onDirectValueChange(pEvent: ComponentEvent<DirectValueChangeDetail>): void {
-        this.mDirectValueChange.dispatchEvent(pEvent.value);
-    }
-
-    /**
-     * Re-emit a port-element-ready event from a child port component.
-     */
-    public onPortElementReady(pEvent: ComponentEvent<PortInteractionDetail>): void {
-        this.mPortElementReady.dispatchEvent(pEvent.value);
-    }
-
-    /**
-     * Choose which output port to preview. Lets the graph apply the opt-in.
-     *
-     * @param pEvent - Click event from the port row.
-     * @param pPort - Port to preview.
-     */
-    public onSelectPreviewPort(pEvent: MouseEvent, pPort: PotatnoDocumentPort<PotatnoUiProject>): void {
-        pEvent.stopPropagation();
-        if (!this.nodeData) {
-            return;
-        }
-        this.mPreviewSelect.dispatchEvent({ node: this.nodeData, portId: pPort.definitionId });
-    }
-
-    /**
-     * Disable this node's inline preview (the "None" row).
-     *
-     * @param pEvent - Click event from the row.
-     */
-    public onClearPreview(pEvent: MouseEvent): void {
-        pEvent.stopPropagation();
-        if (!this.nodeData) {
-            return;
-        }
-        this.mPreviewSelect.dispatchEvent({ node: this.nodeData, portId: '' });
-    }
-
-    /**
-     * Change the preview display ("style") for the active preview.
-     *
-     * @param pEvent - Change event from the style selector.
-     */
-    public onSelectPreviewStyle(pEvent: Event): void {
-        pEvent.stopPropagation();
-        if (!this.nodeData) {
-            return;
-        }
-        this.mPreviewStyle.dispatchEvent({ node: this.nodeData, displayId: (pEvent.target as HTMLSelectElement).value });
-    }
-
-    /**
-     * Handle click on the open-function button.
-     */
-    public onOpenFunction(pEvent: MouseEvent): void {
-        pEvent.stopPropagation();
-        if (!this.nodeData) {
-            return;
-        }
-        this.mOpenFunction.dispatchEvent({ node: this.nodeData });
-    }
-
-    /**
-     * Handle text input changes on comment nodes.
-     */
-    public onCommentInput(pEvent: Event): void {
-        const lTarget: HTMLTextAreaElement = pEvent.target as HTMLTextAreaElement;
-        if (!this.nodeData) {
-            return;
-        }
-        this.nodeData.label = lTarget.value;
-        this.mCommentChange.dispatchEvent({ node: this.nodeData, text: lTarget.value });
-    }
-
-    /**
-     * Handle pointer down on the resize handle of comment nodes.
-     */
-    public onResizeStart(pEvent: PointerEvent): void {
-        pEvent.stopPropagation();
-        pEvent.preventDefault();
-        if (!this.nodeData) {
-            return;
-        }
-        this.mResizeStart.dispatchEvent({
-            node: this.nodeData,
-            startX: pEvent.clientX,
-            startY: pEvent.clientY
-        });
-    }
 }
-
-export type NodeSelectDetail = {
-    node: PotatnoDocumentNode<PotatnoUiProject>;
-    shiftKey: boolean;
-};
-
-export type NodeDragStartDetail = {
-    node: PotatnoDocumentNode<PotatnoUiProject>;
-    startX: number;
-    startY: number;
-};
-
-export type OpenFunctionDetail = {
-    node: PotatnoDocumentNode<PotatnoUiProject>;
-};
-
-export type PreviewSelectDetail = {
-    node: PotatnoDocumentNode<PotatnoUiProject>;
-    portId: string;
-};
-
-export type PreviewStyleDetail = {
-    node: PotatnoDocumentNode<PotatnoUiProject>;
-    displayId: string;
-};
-
-export type CommentChangeDetail = {
-    node: PotatnoDocumentNode<PotatnoUiProject>;
-    text: string;
-};
 
 export type ResizeStartDetail = {
     node: PotatnoDocumentNode<PotatnoUiProject>;
     startX: number;
     startY: number;
-};
-
-export type DirectValueChangeDetail = {
-    port: PotatnoDocumentPort<PotatnoUiProject>;
-    values: Array<string>;
 };

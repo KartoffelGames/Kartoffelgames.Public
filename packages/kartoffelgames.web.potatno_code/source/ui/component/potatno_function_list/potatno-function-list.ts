@@ -1,39 +1,25 @@
-import { PwbComponent, PwbExport, PwbComponentEvent, ComponentEventEmitter, ComponentState } from '@kartoffelgames/web-potato-web-builder';
+import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { Component, ComponentState, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { PotatnoCodeUiManager, PotatnoCodeUiManagerEventType, type PotatnoCodeUiManagerFunctionView, type PotatnoCodeUiManagerUserFunctionView } from '../../potatno-code-ui-manager.ts';
 import templateCss from './potatno-function-list.css' with { type: 'text' };
 import functionListTemplate from './potatno-function-list.html' with { type: 'text' };
 
 /**
  * Function list component for the potatno-code visual editor.
- * Displays a list of functions with selection, add, and delete capabilities.
- * Shows a selection popup when adding a function, listing available user function definitions.
+ *
+ * Reads the function set and active selection straight from the shared {@link PotatnoCodeUiManager}
+ * and routes selection, creation and deletion back through it. Only the type-selection popup is local
+ * state. The component self-updates on the manager's function events.
  */
 @PwbComponent({
     selector: 'potatno-function-list',
     template: functionListTemplate,
     style: templateCss,
 })
-export class PotatnoFunctionList {
-    /**
-     * Array of function entries to display.
-     */
-    @PwbExport
-    @ComponentState.state()
-    public accessor functions: Array<FunctionListEntry> = [];
-
-    /**
-     * ID of the currently active (selected) function.
-     */
-    @PwbExport
-    @ComponentState.state()
-    public accessor activeFunctionId: string = '';
-
-    /**
-     * User function definitions available for creation.
-     * When empty, the "Add Function" button is hidden.
-     */
-    @PwbExport
-    @ComponentState.state()
-    public accessor userFunctionDefinitions: Array<UserFunctionDefinitionEntry> = [];
+export class PotatnoFunctionList implements IComponentOnConnect, IComponentOnDeconstruct {
+    private readonly mComponent: Component;
+    private readonly mManager: PotatnoCodeUiManager;
+    private mUnsubscribe: (() => void) | null;
 
     /**
      * Whether the function type selection popup is currently visible.
@@ -42,28 +28,24 @@ export class PotatnoFunctionList {
     private accessor mShowPopup: boolean = false;
 
     /**
-     * Event emitted when a function is selected.
+     * Id of the currently active function.
      */
-    @PwbComponentEvent('function-select')
-    private accessor mFunctionSelect!: ComponentEventEmitter<string>;
+    public get activeFunctionId(): string {
+        return this.mManager.activeFunctionId;
+    }
 
     /**
-     * Event emitted when a function type is selected from the popup.
+     * Function entries to display.
      */
-    @PwbComponentEvent('function-add')
-    private accessor mFunctionAdd!: ComponentEventEmitter<string>;
-
-    /**
-     * Event emitted when a function delete button is clicked.
-     */
-    @PwbComponentEvent('function-delete')
-    private accessor mFunctionDelete!: ComponentEventEmitter<string>;
+    public get functions(): Array<PotatnoCodeUiManagerFunctionView> {
+        return this.mManager.functionList;
+    }
 
     /**
      * Whether user function definitions are available for creation.
      */
     public get hasUserFunctionDefinitions(): boolean {
-        return this.userFunctionDefinitions.length > 0;
+        return this.mManager.userFunctionDefinitions.length > 0;
     }
 
     /**
@@ -74,44 +56,22 @@ export class PotatnoFunctionList {
     }
 
     /**
-     * Get the CSS class for a function entry based on active state.
-     *
-     * @param pId - Function ID.
-     * @returns CSS class string.
+     * User function definitions available for creation.
      */
-    public getEntryClass(pId: string): string {
-        return pId === this.activeFunctionId ? 'function-entry active' : 'function-entry';
+    public get userFunctionDefinitions(): Array<PotatnoCodeUiManagerUserFunctionView> {
+        return this.mManager.userFunctionDefinitions;
     }
 
     /**
-     * Handle function entry click to select it.
+     * Create the function list component.
      *
-     * @param pId - The function ID to select.
+     * @param pComponent - Injected component reference, used to trigger self-updates.
+     * @param pManager - Injected shared UI manager singleton.
      */
-    public onFunctionSelect(pId: string): void {
-        this.mFunctionSelect.dispatchEvent(pId);
-    }
-
-    /**
-     * Handle add function button click. Opens the selection popup.
-     */
-    public onAddButtonClick(): void {
-        if (this.userFunctionDefinitions.length === 1) {
-            // If only one definition, skip the popup and add directly.
-            this.mFunctionAdd.dispatchEvent(this.userFunctionDefinitions[0].id);
-        } else {
-            this.mShowPopup = !this.mShowPopup;
-        }
-    }
-
-    /**
-     * Handle selecting a function definition from the popup.
-     *
-     * @param pDefinitionId - The selected definition ID.
-     */
-    public onDefinitionSelect(pDefinitionId: string): void {
-        this.mShowPopup = false;
-        this.mFunctionAdd.dispatchEvent(pDefinitionId);
+    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoCodeUiManager = Injection.use(PotatnoCodeUiManager)) {
+        this.mComponent = pComponent;
+        this.mManager = pManager;
+        this.mUnsubscribe = null;
     }
 
     /**
@@ -122,31 +82,79 @@ export class PotatnoFunctionList {
     }
 
     /**
+     * Get the CSS class for a function entry based on active state.
+     *
+     * @param pId - Function id.
+     *
+     * @returns CSS class string.
+     */
+    public getEntryClass(pId: string): string {
+        return pId === this.activeFunctionId ? 'function-entry active' : 'function-entry';
+    }
+
+    /**
+     * Subscribe to manager function events.
+     */
+    public onConnect(): void {
+        this.mUnsubscribe = this.mManager.listen([
+            PotatnoCodeUiManagerEventType.DocumentChange,
+            PotatnoCodeUiManagerEventType.FunctionActivate,
+            PotatnoCodeUiManagerEventType.FunctionAdd,
+            PotatnoCodeUiManagerEventType.FunctionChange,
+            PotatnoCodeUiManagerEventType.FunctionDelete
+        ], () => {
+            this.mComponent.updater.update();
+        });
+    }
+
+    /**
+     * Detach the manager subscription.
+     */
+    public onDeconstruct(): void {
+        this.mUnsubscribe?.();
+        this.mUnsubscribe = null;
+    }
+
+    /**
+     * Handle add function button click. Adds directly when only one definition exists, otherwise
+     * opens the selection popup.
+     */
+    public onAddButtonClick(): void {
+        const lDefinitions: Array<PotatnoCodeUiManagerUserFunctionView> = this.userFunctionDefinitions;
+        if (lDefinitions.length === 1) {
+            this.mManager.addFunction(lDefinitions[0].id);
+        } else {
+            this.mShowPopup = !this.mShowPopup;
+        }
+    }
+
+    /**
+     * Handle selecting a function definition from the popup.
+     *
+     * @param pDefinitionId - The selected definition id.
+     */
+    public onDefinitionSelect(pDefinitionId: string): void {
+        this.mShowPopup = false;
+        this.mManager.addFunction(pDefinitionId);
+    }
+
+    /**
      * Handle delete button click on a function entry.
-     * Stops propagation to prevent triggering the select event.
      *
      * @param pEvent - The click event.
-     * @param pId - The function ID to delete.
+     * @param pId - The function id to delete.
      */
     public onFunctionDelete(pEvent: MouseEvent, pId: string): void {
         pEvent.stopPropagation();
-        this.mFunctionDelete.dispatchEvent(pId);
+        this.mManager.removeFunction(pId);
     }
-}
 
-/**
- * Function entry displayed in the function list.
- */
-interface FunctionListEntry {
-    id: string;
-    name: string;
-    label: string;
-    system: boolean;
-}
-
-/**
- * User function definition entry for the selection popup.
- */
-interface UserFunctionDefinitionEntry {
-    id: string;
+    /**
+     * Handle function entry click to select it.
+     *
+     * @param pId - The function id to select.
+     */
+    public onFunctionSelect(pId: string): void {
+        this.mManager.setActiveFunction(pId);
+    }
 }

@@ -1,73 +1,38 @@
-import { ComponentState, PwbChild, PwbComponent, PwbExport, type ComponentEvent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
-import { PotatnoDocumentFunction, type PotatnoDocumentFunctionConstructorParameter } from '../../../document/potatno-document-function.ts';
-import { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
-import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoDocument } from '../../../document/potatno-document.ts';
-import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionNodes, PotatnoFunctionDefinitionStatics } from '../../../project/potatno-function-definition.ts';
-import { PotatnoDeserializer } from '../../../serialization/potatno-deserializer.ts';
+import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { Component, PwbChild, PwbComponent, PwbExport, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import type { PotatnoDocument } from '../../../document/potatno-document.ts';
 import type { PotatnoCodeFileSerializationResult } from '../../../serialization/potatno-serialization.type.ts';
-import { PotatnoSerializer } from '../../../serialization/potatno-serializer.ts';
-import { PotatnoHistory } from '../../potatno-history.ts';
+import { PotatnoCodeUiManager, PotatnoCodeUiManagerEventType } from '../../potatno-code-ui-manager.ts';
 import type { PotatnoUiProject } from '../../potatno-node-definition-list.ts';
-import { PotatnoUiPreviewManager, type PotatnoUiPreviewOutputOption } from '../../potatno-ui-preview-manager.ts';
-import type { PotatnoPreviewTabDescriptor } from '../potatno_preview/potatno-preview.ts';
-import type { GraphChangeDetail, OpenFunctionRequestDetail } from '../potatno_node_graph/potatno-node-graph.ts';
 import editorCss from './potatno-code-editor.css' with { type: 'text' };
 import editorTemplate from './potatno-code-editor.html' with { type: 'text' };
 
 // Import child components to ensure they are registered.
-import '../potatno_function_list/potatno-function-list.ts';
 import '../potatno_node_graph/potatno-node-graph.ts';
 import '../potatno_panel_left/potatno-panel-left.ts';
 import '../potatno_panel_properties/potatno-panel-properties.ts';
 import '../potatno_preview/potatno-preview.ts';
-import '../potatno_resize_handle/potatno-resize-handle.ts';
 
 /**
- * Top-level UI orchestrator for the potatno-code visual programming environment.
+ * Top-level layout shell for the Potatno-code editor.
+ *
+ * All editor state and behaviour live in the shared {@link PotatnoCodeUiManager}; this component
+ * only owns the panel layout, the resize handles, and the bridge from {@link PwbApplication}'s
+ * imperative API (project/document/preview tick) into the manager. It re-renders itself when the
+ * preview availability changes so the preview panel can appear or disappear.
  */
 @PwbComponent({
     selector: 'potatno-code-editor',
     template: editorTemplate,
     style: editorCss,
 })
-export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements IComponentOnDeconstruct {
-    private readonly mHistory: PotatnoHistory;
-    private mActiveFunctionId: string = '';
-    private mFile: PotatnoDocument<TProject> | undefined;
-    private mHistoryDebounceTimer: number | null;
-    private mPreviewDebounceTimer: number | null;
-    private mPreviewManager: PotatnoUiPreviewManager<TProject> | null;
-    private mProject: TProject | undefined;
+export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements IComponentOnConnect, IComponentOnDeconstruct {
+    private readonly mComponent: Component;
+    private readonly mManager: PotatnoCodeUiManager;
     private mResizeMoveHandler: ((pEvent: PointerEvent) => void) | null;
     private mResizeState: { panel: 'left' | 'right'; startX: number; startWidth: number; } | null;
     private mResizeUpHandler: (() => void) | null;
-
-    /**
-     * Cached data for panels and preview chrome.
-     */
-    @ComponentState.state({ complexValue: true })
-    private accessor mCachedData: CachedViewData<TProject>;
-
-    /**
-     * Tab descriptors handed to the preview panel. Rebuilt from the preview manager on each
-     * cache invalidation so the panel sees a fresh list whenever drivers come or go.
-     */
-    @ComponentState.state({ complexValue: true })
-    private accessor mPreviewTabs: ReadonlyArray<PotatnoPreviewTabDescriptor> = [];
-
-    /**
-     * Explicit graph refresh token for non-graph document edits.
-     */
-    @ComponentState.state()
-    private accessor mGraphRefreshVersion: number = 0;
-
-    /**
-     * Explicit preview visual refresh token. Bumped after every manager rebuild so the
-     * node-graph re-fetches its per-node preview elements from the manager.
-     */
-    @ComponentState.state()
-    private accessor mPreviewUpdateVersion: number = 0;
+    private mUnsubscribe: (() => void) | null;
 
     /**
      * Left panel DOM element used for resizing.
@@ -82,217 +47,32 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
     public accessor panelRight!: HTMLElement;
 
     /**
-     * Resolve the currently active document function by id.
-     */
-    public get activeFunction(): PotatnoDocumentFunction<TProject> | null {
-        const lFile: PotatnoDocument<TProject> | undefined = this.mFile;
-        if (!lFile) {
-            return null;
-        }
-
-        for (const lFunction of lFile.functions) {
-            if (lFunction.id === this.mActiveFunctionId) {
-                return lFunction;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Active function id used by the function list.
-     */
-    public get activeFunctionId(): string {
-        return this.mActiveFunctionId;
-    }
-
-    /**
-     * Current function name shown in the right panel.
-     */
-    public get activeFunctionName(): string {
-        return this.mCachedData.activeFunctionName;
-    }
-
-    /**
-     * Current function inputs shown in the right panel.
-     */
-    public get activeFunctionInputs(): Array<{ name: string; type: string; }> {
-        return this.mCachedData.activeFunctionInputs;
-    }
-
-    /**
-     * Current function outputs shown in the right panel.
-     */
-    public get activeFunctionOutputs(): Array<{ name: string; type: string; }> {
-        return this.mCachedData.activeFunctionOutputs;
-    }
-
-    /**
-     * Current enabled imports shown in the right panel.
-     */
-    public get activeFunctionImports(): Array<string> {
-        return this.mCachedData.activeFunctionImports;
-    }
-
-    /**
-     * Whether the active function is system-owned.
-     */
-    public get activeFunctionIsSystem(): boolean {
-        return this.mCachedData.activeFunctionIsSystem;
-    }
-
-    /**
-     * Whether active function structure can be edited by the user.
-     */
-    public get activeFunctionEditableByUser(): boolean {
-        return this.mCachedData.activeFunctionEditableByUser;
-    }
-
-    /**
-     * Available import names for the right panel.
-     */
-    public get availableImportsList(): Array<string> {
-        return this.mCachedData.availableImports;
-    }
-
-    /**
-     * Available type names for the right panel.
-     */
-    public get availableTypes(): Array<string> {
-        return this.mCachedData.availableTypes;
-    }
-
-    /**
-     * Current validation errors for the preview panel.
-     */
-    public get editorErrors(): Array<{ message: string; location: string; }> {
-        return this.mCachedData.errors;
-    }
-
-    /**
-     * Node error set derived from document validation, passed to the graph for highlighting.
-     */
-    public get graphErrorNodes(): ReadonlySet<PotatnoDocumentNode<TProject>> {
-        return this.mCachedData.graphErrorNodes;
-    }
-
-    /**
-     * Port error set derived from document validation, passed to the graph for highlighting.
-     */
-    public get graphErrorPorts(): ReadonlySet<PotatnoDocumentPort<TProject>> {
-        return this.mCachedData.graphErrorPorts;
-    }
-
-    /**
-     * Function entries shown in the left panel.
-     */
-    public get functionList(): Array<{ id: string; name: string; label: string; system: boolean; }> {
-        return this.mCachedData.functionList;
-    }
-
-    /**
-     * Graph refresh token passed into the graph component.
-     */
-    public get graphRefreshVersion(): number {
-        return this.mGraphRefreshVersion;
-    }
-
-    /**
-     * Whether the preview panel should be shown.
+     * Whether the preview panel should currently be shown.
      */
     public get hasPreview(): boolean {
-        return this.mCachedData.hasPreview;
-    }
-
-    /**
-     * Tab descriptors handed to the preview panel.
-     */
-    public get previewTabs(): ReadonlyArray<PotatnoPreviewTabDescriptor> {
-        return this.mPreviewTabs;
-    }
-
-    /**
-     * Preview manager passed down to child components so the node-graph can resolve per-node
-     * preview elements without owning the driver lifecycle itself.
-     */
-    public get previewManager(): PotatnoUiPreviewManager<TProject> | null {
-        return this.mPreviewManager;
-    }
-
-    /**
-     * Preview visual refresh token passed into the graph component.
-     */
-    public get previewUpdateVersion(): number {
-        return this.mPreviewUpdateVersion;
-    }
-
-    /**
-     * Output options for the main preview's output selector. Empty for the entry/main function
-     * (which always shows its full output).
-     */
-    public get previewOutputOptions(): Array<PotatnoUiPreviewOutputOption> {
-        return this.mPreviewManager?.getActivePreviewOutputs() ?? [];
-    }
-
-    /**
-     * Display ("style") options for the main preview's display selector.
-     */
-    public get previewDisplayOptions(): Array<string> {
-        return this.mPreviewManager?.getActivePreviewDisplays() ?? [];
-    }
-
-    /**
-     * The output port currently shown in the main preview (for a user function).
-     */
-    public get previewSelectedOutputId(): string {
-        return this.mPreviewManager?.activePreviewOutputId ?? '';
-    }
-
-    /**
-     * The display currently rendering the main preview.
-     */
-    public get previewSelectedDisplayId(): string {
-        return this.mPreviewManager?.activePreviewDisplayId ?? '';
-    }
-
-    /**
-     * Whether the main preview should show the display/output selectors (only for user functions).
-     */
-    public get previewShowSelectors(): boolean {
-        return this.mPreviewManager?.activePreviewIsUserFunction ?? false;
-    }
-
-    /**
-     * User function definitions available for creation.
-     */
-    public get userFunctionDefinitions(): Array<{ id: string; }> {
-        const lProject: TProject | undefined = this.mProject;
-        if (!lProject) {
-            return [];
-        }
-
-        return [...lProject.userFunctions.values()].map((pDefinition) => ({ id: pDefinition.id }));
+        return this.mManager.hasPreview;
     }
 
     /**
      * Current document state.
      */
     public get file(): PotatnoDocument<TProject> | null {
-        return this.mFile ?? null;
+        return this.mManager.document as PotatnoDocument<TProject> | null;
     }
 
     /**
-     * Create a new editor orchestrator.
+     * Create the editor shell.
+     *
+     * @param pComponent - Injected component reference, used to trigger self-updates.
+     * @param pManager - Injected shared UI manager singleton.
      */
-    public constructor() {
-        this.mCachedData = this.createEmptyCachedData();
-        this.mHistory = new PotatnoHistory();
-        this.mHistoryDebounceTimer = null;
-        this.mPreviewDebounceTimer = null;
-        this.mPreviewManager = null;
+    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoCodeUiManager = Injection.use(PotatnoCodeUiManager)) {
+        this.mComponent = pComponent;
+        this.mManager = pManager;
         this.mResizeMoveHandler = null;
         this.mResizeState = null;
         this.mResizeUpHandler = null;
+        this.mUnsubscribe = null;
     }
 
     /**
@@ -300,9 +80,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      */
     @PwbExport
     public set project(pProject: TProject) {
-        this.mProject = pProject;
-        this.mPreviewManager = new PotatnoUiPreviewManager<TProject>(pProject);
-        this.rebuildCachedData();
+        this.mManager.initialize(pProject);
     }
 
     /**
@@ -310,21 +88,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      */
     @PwbExport
     public set file(pFile: PotatnoDocument<TProject> | null) {
-        if (pFile) {
-            this.mFile = pFile;
-            const lProject: TProject | undefined = this.mProject;
-            if (lProject && pFile.functions.size === 0) {
-                this.initializeMainFunctions(pFile, lProject);
-            }
-            this.mActiveFunctionId = [...pFile.functions][0]?.id ?? '';
-        } else {
-            this.mFile = undefined;
-            this.mActiveFunctionId = '';
-        }
-
-        this.mHistory.clear();
-        this.rebuildCachedData();
-        this.refreshGraph();        this.schedulePreviewUpdate();
+        this.mManager.setDocument(pFile as PotatnoDocument<PotatnoUiProject> | null);
     }
 
     /**
@@ -334,18 +98,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      */
     @PwbExport
     public loadCode(pData: PotatnoCodeFileSerializationResult): void {
-        const lProject: TProject | undefined = this.mProject;
-        if (!lProject) {
-            return;
-        }
-
-        const lDeserializer: PotatnoDeserializer<TProject> = new PotatnoDeserializer(lProject);
-        const lNewFile: PotatnoDocument<TProject> = lDeserializer.deserialize(pData);
-        this.mFile = lNewFile;
-        this.mActiveFunctionId = [...lNewFile.functions][0]?.id ?? '';
-        this.mHistory.clear();
-        this.rebuildCachedData();
-        this.refreshGraph();        this.schedulePreviewUpdate();
+        this.mManager.loadCode(pData);
     }
 
     /**
@@ -355,261 +108,42 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      */
     @PwbExport
     public generateCode(): PotatnoCodeFileSerializationResult | null {
-        const lFile: PotatnoDocument<TProject> | undefined = this.mFile;
-        if (!lFile) {
-            return null;
-        }
-
-        const lSerializer: PotatnoSerializer<TProject> = new PotatnoSerializer<TProject>();
-        return lSerializer.serialize(lFile);
+        return this.mManager.generateCode();
     }
 
     /**
-     * Drive one preview tick. Called by the application's render loop; forwards to the
-     * preview manager which fans out to every active driver.
+     * Drive one preview tick. Called by the application's render loop.
+     *
+     * @returns A promise resolving once the current render pass finishes.
      */
     @PwbExport
     public triggerPreviewUpdate(): Promise<void> {
-        // Suppress preview generation while the document has validation errors. Generation always
-        // validates first and throws on an invalid graph, so an unguarded per-frame tick would
-        // re-run — and fail — the generator every frame, stalling user interaction. The main
-        // preview is hidden during validation errors anyway; cached per-node previews keep
-        // rendering their last value (see PotatnoUiPreviewManager.render).
-        const lHasValidationErrors: boolean = this.mCachedData.errors.length > 0;
-
-        // Return the render promise so the application loop can await it before scheduling the
-        // next frame. Awaiting prevents overlapping renders: the preview displays render
-        // per-pixel through microtasks, so a fire-and-forget tick that outlives the frame budget
-        // would stack with the next tick, snowballing the microtask queue (the editor grows
-        // unresponsive "after some usage") and pinning every in-flight render's descriptor
-        // snapshot — and its canvas — alive. Driver errors stay isolated inside the manager.
-        return this.mPreviewManager?.render(lHasValidationErrors) ?? Promise.resolve();
+        return this.mManager.triggerPreviewUpdate();
     }
 
     /**
-     * Clear timers and panel resize listeners.
+     * Subscribe to the manager so the preview panel toggles with preview availability.
+     */
+    public onConnect(): void {
+        this.mUnsubscribe = this.mManager.listen([
+            PotatnoCodeUiManagerEventType.DocumentChange,
+            PotatnoCodeUiManagerEventType.FunctionActivate,
+            PotatnoCodeUiManagerEventType.FunctionAdd,
+            PotatnoCodeUiManagerEventType.FunctionDelete,
+            PotatnoCodeUiManagerEventType.PreviewChange
+        ], () => {
+            this.mComponent.updater.update();
+        });
+    }
+
+    /**
+     * Detach listeners and panel resize handlers.
      */
     public onDeconstruct(): void {
-        if (this.mHistoryDebounceTimer !== null) {
-            clearTimeout(this.mHistoryDebounceTimer);
-            this.mHistoryDebounceTimer = null;
-        }
-
-        if (this.mPreviewDebounceTimer !== null) {
-            clearTimeout(this.mPreviewDebounceTimer);
-            this.mPreviewDebounceTimer = null;
-        }
-
+        this.mUnsubscribe?.();
+        this.mUnsubscribe = null;
+        this.mManager.dispose();
         this.stopPanelResize();
-    }
-
-    /**
-     * Select an active function from the left function list.
-     *
-     * @param pEvent - Component event containing the function id.
-     */
-    public onFunctionSelect(pEvent: ComponentEvent<string>): void {
-        this.activateFunction(pEvent.value);
-    }
-
-    /**
-     * Add a new function from a user function definition.
-     *
-     * @param pEvent - Component event containing the function definition id.
-     */
-    public onFunctionAdd(pEvent: ComponentEvent<string>): void {
-        const lDefinitionId: string = pEvent.value;
-        const lFile: PotatnoDocument<TProject> | undefined = this.mFile;
-        const lProject: TProject | undefined = this.mProject;
-        if (!lFile || !lProject) {
-            return;
-        }
-
-        const lFunctionDefinition: PotatnoFunctionDefinition<TProject> | undefined = lProject.userFunctions.get(lDefinitionId);
-        if (!lFunctionDefinition) {
-            return;
-        }
-
-        // Build the function with its default entry/exit nodes (same as the system function).
-        const lFunction: PotatnoDocumentFunction<TProject> = this.createDocumentFunction(lFile, lProject, lFunctionDefinition, {
-            definitionId: lFunctionDefinition.id,
-            id: crypto.randomUUID(),
-            isSystem: false,
-            label: `Function ${lFile.functions.size}`
-        });
-
-        lFile.addFunction(lFunction);
-        this.mActiveFunctionId = lFunction.id;
-        // The new function becomes active: point the manager at it (so the main preview follows)
-        // and refresh the preview, mirroring activateFunction.
-        this.mPreviewManager?.setActiveFunction(lFunction);
-        this.scheduleHistorySnapshot();
-        this.rebuildCachedData();
-        this.refreshGraph();
-        this.schedulePreviewUpdate();
-    }
-
-    /**
-     * Delete a function from the document.
-     *
-     * @param pEvent - Component event containing the function id.
-     */
-    public onFunctionDelete(pEvent: ComponentEvent<string>): void {
-        const lFunctionId: string = pEvent.value;
-        const lFile: PotatnoDocument<TProject> | undefined = this.mFile;
-        if (!lFile) {
-            return;
-        }
-
-        for (const lFunction of lFile.functions) {
-            if (lFunction.id === lFunctionId) {
-                lFile.removeFunction(lFunction);
-                break;
-            }
-        }
-
-        if (this.mActiveFunctionId === lFunctionId) {
-            this.mActiveFunctionId = [...lFile.functions][0]?.id ?? '';
-        }
-
-        this.scheduleHistorySnapshot();
-        this.rebuildCachedData();
-        this.refreshGraph();        this.schedulePreviewUpdate();
-    }
-
-    /**
-     * Apply right-panel function property changes.
-     *
-     * @param pEvent - Component event containing changed function data.
-     */
-    public onPropertiesChange(pEvent: ComponentEvent<PropertiesChangeData>): void {
-        const lActiveFunction: PotatnoDocumentFunction<TProject> | null = this.activeFunction;
-        if (!lActiveFunction) {
-            return;
-        }
-
-        const lData: PropertiesChangeData = pEvent.value;
-
-        if (lData.name !== undefined) {
-            lActiveFunction.label = lData.name;
-        }
-
-        if (lData.inputs !== undefined) {
-            // Rebuild the input list from the panel's desired state so renames and type changes
-            // apply, not just additions and removals. The entry/exit node ports are resynced
-            // against the regenerated definition during validation in rebuildCachedData.
-            for (const lPort of [...lActiveFunction.inputs]) {
-                lActiveFunction.removeInput(lPort);
-            }
-
-            for (const lPortData of lData.inputs) {
-                lActiveFunction.addInput({ dataType: lPortData.type, label: lPortData.name });
-            }
-        }
-
-        if (lData.outputs !== undefined) {
-            // Rebuild the output list from the panel's desired state (see inputs above).
-            for (const lPort of [...lActiveFunction.outputs]) {
-                lActiveFunction.removeOutput(lPort);
-            }
-
-            for (const lPortData of lData.outputs) {
-                lActiveFunction.addOutput({ dataType: lPortData.type, label: lPortData.name });
-            }
-        }
-
-        if (lData.imports !== undefined) {
-            const lExistingImports: Set<string> = new Set<string>(lActiveFunction.imports);
-            const lNewImports: Set<string> = new Set<string>(lData.imports);
-            for (const lImport of [...lActiveFunction.imports]) {
-                if (!lNewImports.has(lImport)) {
-                    lActiveFunction.removeImport(lImport);
-                }
-            }
-
-            for (const lImport of lData.imports) {
-                if (!lExistingImports.has(lImport)) {
-                    lActiveFunction.addImport(lImport);
-                }
-            }
-        }
-
-        this.scheduleHistorySnapshot();
-        this.rebuildCachedData();
-        this.refreshGraph();
-        this.schedulePreviewUpdate();
-    }
-
-    /**
-     * React to mutations owned by the node graph component.
-     *
-     * @param pEvent - Graph change event.
-     */
-    public onGraphChange(pEvent: ComponentEvent<GraphChangeDetail>): void {
-        this.scheduleHistorySnapshot();
-        this.rebuildCachedData();
-        // Bump the graph refresh token so the node-graph re-reads the freshly validated error
-        // sets, matching every other mutation handler. Without it a connection re-validates the
-        // document but the graph never repaints the updated error highlighting.
-        this.refreshGraph();
-
-        if (pEvent.value.affectsPreview) {
-            this.schedulePreviewUpdate();
-        }
-    }
-
-    /**
-     * Apply a main-preview output selection from the preview panel and rebuild immediately.
-     *
-     * @param pEvent - Component event carrying the chosen output port label.
-     */
-    public onPreviewOutputChange(pEvent: ComponentEvent<string>): void {
-        this.mPreviewManager?.setActivePreviewOutput(pEvent.value);
-        this.rebuildPreviewDrivers();
-    }
-
-    /**
-     * Apply a main-preview display ("style") selection from the preview panel and rebuild
-     * immediately.
-     *
-     * @param pEvent - Component event carrying the chosen display id.
-     */
-    public onPreviewDisplayChange(pEvent: ComponentEvent<string>): void {
-        this.mPreviewManager?.setActivePreviewDisplay(pEvent.value);
-        this.rebuildPreviewDrivers();
-    }
-
-    /**
-     * Open a function requested by the node graph.
-     *
-     * @param pEvent - Graph open-function request event.
-     */
-    public onGraphOpenFunction(pEvent: ComponentEvent<OpenFunctionRequestDetail>): void {
-        this.activateFunction(pEvent.value.functionId);
-    }
-
-    /**
-     * Restore the previous document snapshot.
-     *
-     * @param _pEvent - Unused graph undo event.
-     */
-    public onGraphUndoRequest(_pEvent: ComponentEvent<void>): void {
-        const lSnapshot: PotatnoCodeFileSerializationResult | null = this.mHistory.undo();
-        if (lSnapshot) {
-            this.restoreSnapshot(lSnapshot);
-        }
-    }
-
-    /**
-     * Restore the next document snapshot.
-     *
-     * @param _pEvent - Unused graph redo event.
-     */
-    public onGraphRedoRequest(_pEvent: ComponentEvent<void>): void {
-        const lSnapshot: PotatnoCodeFileSerializationResult | null = this.mHistory.redo();
-        if (lSnapshot) {
-            this.restoreSnapshot(lSnapshot);
-        }
     }
 
     /**
@@ -630,326 +164,6 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
     public onResizeRightStart(pEvent: PointerEvent): void {
         pEvent.preventDefault();
         this.startPanelResize('right', pEvent);
-    }
-
-    /**
-     * Activate a function by id and refresh function-owned UI slices.
-     *
-     * @param pFunctionId - Function id to activate.
-     */
-    private activateFunction(pFunctionId: string): void {
-        const lFile: PotatnoDocument<TProject> | undefined = this.mFile;
-        if (!lFile) {
-            return;
-        }
-
-        for (const lFunction of lFile.functions) {
-            if (lFunction.id === pFunctionId) {
-                this.mActiveFunctionId = pFunctionId;
-                // Point the manager at the new active function synchronously so the panel's
-                // selector getters reflect it on this render; the debounced rebuild then swaps the
-                // preview descriptor.
-                this.mPreviewManager?.setActiveFunction(lFunction);
-                this.rebuildCachedData();
-                this.refreshGraph();
-                this.schedulePreviewUpdate();
-                return;
-            }
-        }
-    }
-
-    /**
-     * Create an empty cached data object.
-     *
-     * @returns Empty cached view data.
-     */
-    private createEmptyCachedData(): CachedViewData<TProject> {
-        return {
-            activeFunctionEditableByUser: false,
-            activeFunctionId: '',
-            activeFunctionImports: [],
-            activeFunctionInputs: [],
-            activeFunctionIsSystem: false,
-            activeFunctionName: '',
-            activeFunctionOutputs: [],
-            availableImports: [],
-            availableTypes: [],
-            errors: [],
-            functionList: [],
-            graphErrorNodes: new Set<PotatnoDocumentNode<TProject>>(),
-            graphErrorPorts: new Set<PotatnoDocumentPort<TProject>>(),
-            hasPreview: false
-        };
-    }
-
-    /**
-     * Determine whether the preview panel should be shown. True when the active function has at
-     * least one registered `(display, executor)` pair; the panel is suppressed otherwise so the
-     * layout reclaims the space for the node graph.
-     *
-     * @returns Whether to render the preview panel.
-     */
-    private computeHasPreview(): boolean {
-        const lProject: TProject | undefined = this.mProject;
-        const lActiveFunction: PotatnoDocumentFunction<TProject> | null = this.activeFunction;
-        if (!lProject || !lActiveFunction) {
-            return false;
-        }
-
-        const lRegistry = lProject.previews;
-        if (!lRegistry) {
-            return false;
-        }
-
-        for (const lEntry of lRegistry.entries) {
-            if (lEntry.executorFunctionId === lActiveFunction.definitionId) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * Rebuild every preview driver from the latest document state and re-publish the tab
-     * descriptor list to the preview panel.
-     *
-     * Called from the debounced preview signal whenever a mutation invalidates the previous
-     * code-gen output (graph edits with `affectsPreview`, document loads, etc.). Errors are
-     * caught so a broken graph keeps the editor usable; failed previews simply disappear from
-     * the tab strip until the underlying mutation is fixed.
-     */
-    private rebuildPreviewDrivers(): void {
-        const lManager: PotatnoUiPreviewManager<TProject> | null = this.mPreviewManager;
-        if (!lManager) {
-            this.mPreviewTabs = [];
-            return;
-        }
-
-        // Don't rebuild while the document has validation errors: a rebuild re-runs the code
-        // generator (which throws on an invalid graph) and would invalidate the cached drivers.
-        // Leaving the existing drivers in place lets per-node previews keep rendering their last
-        // valid value until the graph is fixed, at which point the next mutation rebuilds them.
-        if (this.mCachedData.errors.length > 0) {
-            return;
-        }
-
-        try {
-            // The main preview follows the active function; set it before the rebuild so the
-            // manager builds the descriptor for the right function.
-            lManager.setActiveFunction(this.activeFunction);
-            lManager.setDocument(this.mFile ?? null);
-        } catch (pError) {
-            console.error('[Editor] Preview manager rebuild failed:', pError);
-            this.mPreviewTabs = [];
-            return;
-        }
-
-        // Map descriptors with a non-null element into the preview-panel tab contract. Drop
-        // any descriptor whose display returned a non-HTMLElement — the tabbed panel only
-        // hosts DOM-attachable previews.
-        const lTabs: Array<PotatnoPreviewTabDescriptor> = [];
-        for (const lDescriptor of lManager.functionDescriptors) {
-            if (!lDescriptor.element) {
-                continue;
-            }
-            lTabs.push({ id: lDescriptor.displayId, label: lDescriptor.label, element: lDescriptor.element });
-        }
-
-        this.mPreviewTabs = lTabs;
-        this.mPreviewUpdateVersion++;
-    }
-
-    /**
-     * Create the system entry function for a new empty document.
-     *
-     * @param pFile - Document receiving the entry function.
-     * @param pProject - Project that owns the entry point definition.
-     */
-    private initializeMainFunctions(pFile: PotatnoDocument<TProject>, pProject: TProject): void {
-        const lEntryPoint: PotatnoFunctionDefinition<TProject> | undefined = pProject.entryPoint;
-        if (!lEntryPoint) {
-            return;
-        }
-
-        const lFunction: PotatnoDocumentFunction<TProject> = this.createDocumentFunction(pFile, pProject, lEntryPoint, {
-            definitionId: lEntryPoint.id,
-            id: crypto.randomUUID(),
-            isSystem: true,
-            label: 'Main'
-        });
-
-        pFile.addFunction(lFunction);
-    }
-
-    /**
-     * Build a document function instance from a definition: places its default entry and exit
-     * nodes and enables the project imports when the definition declares the imports static.
-     * Shared by the system entry-point function and user-created functions so both get their
-     * default nodes wired in the same way.
-     *
-     * @param pFile - Document the function will belong to.
-     * @param pProject - Project that owns the definition and imports.
-     * @param pDefinition - The function definition to instantiate.
-     * @param pParameter - Identity and metadata for the new function instance.
-     *
-     * @returns The populated function instance, not yet added to the document.
-     */
-    private createDocumentFunction(pFile: PotatnoDocument<TProject>, pProject: TProject, pDefinition: PotatnoFunctionDefinition<TProject>, pParameter: PotatnoDocumentFunctionConstructorParameter): PotatnoDocumentFunction<TProject> {
-        const lFunction: PotatnoDocumentFunction<TProject> = new PotatnoDocumentFunction(pProject, pFile, pParameter);
-
-        // Place the default entry/exit nodes. Entry nodes stack down from 0,0; exit nodes from 40,0.
-        const lFunctionNodes: PotatnoFunctionDefinitionNodes<TProject> = pDefinition.getNodeDefinitions(lFunction);
-        lFunctionNodes.entry.forEach((pNodeDefinition, pIndex) => {
-            lFunction.addNodeByDefinition(pNodeDefinition, { height: 4, width: 10, x: 0, y: pIndex * 20 });
-        });
-        lFunctionNodes.exit.forEach((pNodeDefinition, pIndex) => {
-            lFunction.addNodeByDefinition(pNodeDefinition, { height: 4, width: 10, x: 40, y: pIndex * 20 });
-        });
-
-        // Enable every project import when the definition opts into imports.
-        if ((pDefinition.statics & PotatnoFunctionDefinitionStatics.imports) !== 0) {
-            for (const lImport of pProject.imports) {
-                lFunction.addImport(lImport.label);
-            }
-        }
-
-        return lFunction;
-    }
-
-    /**
-     * Push the current document snapshot into history.
-     */
-    private pushHistorySnapshot(): void {
-        const lFile: PotatnoDocument<TProject> | undefined = this.mFile;
-        if (!lFile) {
-            return;
-        }
-
-        const lSerializer: PotatnoSerializer<TProject> = new PotatnoSerializer<TProject>();
-        this.mHistory.push(lSerializer.serialize(lFile));
-    }
-
-    /**
-     * Rebuild cached panel and preview data from the current project and document.
-     */
-    private rebuildCachedData(): void {
-        const lProject: TProject | undefined = this.mProject;
-        const lFile: PotatnoDocument<TProject> | undefined = this.mFile;
-        const lActiveFunction: PotatnoDocumentFunction<TProject> | null = this.activeFunction;
-        const lCached: CachedViewData<TProject> = this.createEmptyCachedData();
-
-        lCached.activeFunctionId = this.mActiveFunctionId;
-        // Preview panel is shown when the project's preview registry has at least one entry
-        // bound to the entry-point function. Doesn't depend on the document content.
-        lCached.hasPreview = this.computeHasPreview();
-
-        if (lFile) {
-            const lErrorNodes: Set<PotatnoDocumentNode<TProject>> = new Set<PotatnoDocumentNode<TProject>>();
-            const lErrorPorts: Set<PotatnoDocumentPort<TProject>> = new Set<PotatnoDocumentPort<TProject>>();
-
-            for (const lError of lFile.validate()) {
-                if (lError.item instanceof PotatnoDocumentPort) {
-                    lCached.errors.push({ location: `Node "${lError.item.node.label}"`, message: lError.message });
-                    lErrorPorts.add(lError.item);
-                    lErrorNodes.add(lError.item.node);
-                } else if (lError.item instanceof PotatnoDocumentNode) {
-                    lErrorNodes.add(lError.item);
-                }
-            }
-
-            lCached.graphErrorNodes = lErrorNodes;
-            lCached.graphErrorPorts = lErrorPorts;
-
-            for (const lFunction of lFile.functions) {
-                lCached.functionList.push({
-                    id: lFunction.id,
-                    label: lFunction.label,
-                    name: lFunction.label,
-                    system: lFunction.isSystem
-                });
-            }
-        }
-
-        lCached.availableImports = lProject?.imports.map((pImport) => pImport.label) ?? [];
-
-        if (lProject) {
-            const lTypeSet: Set<string> = new Set<string>();
-            for (const [lTypeName] of lProject.types.types) {
-                lTypeSet.add(lTypeName);
-            }
-            lCached.availableTypes = [...lTypeSet].sort();
-        }
-
-        if (lActiveFunction) {
-            lCached.activeFunctionEditableByUser = !lActiveFunction.isSystem;
-            lCached.activeFunctionImports = [...lActiveFunction.imports];
-            lCached.activeFunctionInputs = lActiveFunction.inputs.map((pPort) => ({ name: pPort.label, type: pPort.dataType }));
-            lCached.activeFunctionIsSystem = lActiveFunction.isSystem;
-            lCached.activeFunctionName = lActiveFunction.label;
-            lCached.activeFunctionOutputs = lActiveFunction.outputs.map((pPort) => ({ name: pPort.label, type: pPort.dataType }));
-        }
-
-        this.mCachedData = lCached;
-    }
-
-    /**
-     * Increment the graph refresh token.
-     */
-    private refreshGraph(): void {
-        this.mGraphRefreshVersion++;
-    }
-
-    /**
-     * Restore a serialized snapshot into the editor.
-     *
-     * @param pSnapshot - Snapshot to deserialize and display.
-     */
-    private restoreSnapshot(pSnapshot: PotatnoCodeFileSerializationResult): void {
-        const lProject: TProject | undefined = this.mProject;
-        if (!lProject) {
-            return;
-        }
-
-        const lDeserializer: PotatnoDeserializer<TProject> = new PotatnoDeserializer(lProject);
-        this.mFile = lDeserializer.deserialize(pSnapshot);
-
-        if (![...this.mFile.functions].some((pFunction) => pFunction.id === this.mActiveFunctionId)) {
-            this.mActiveFunctionId = [...this.mFile.functions][0]?.id ?? '';
-        }
-
-        this.rebuildCachedData();
-        this.refreshGraph();        this.schedulePreviewUpdate();
-    }
-
-    /**
-     * Schedule a debounced history snapshot.
-     */
-    private scheduleHistorySnapshot(): void {
-        if (this.mHistoryDebounceTimer !== null) {
-            clearTimeout(this.mHistoryDebounceTimer);
-        }
-
-        this.mHistoryDebounceTimer = globalThis.setTimeout(() => {
-            this.mHistoryDebounceTimer = null;
-            this.pushHistorySnapshot();
-        }, 500) as unknown as number;
-    }
-
-    /**
-     * Schedule a debounced preview driver rebuild. Collapsing rapid graph mutations into a
-     * single rebuild keeps code-gen pressure down while staying responsive enough for the
-     * user to see fresh previews within ~one frame after they stop editing.
-     */
-    private schedulePreviewUpdate(): void {
-        if (this.mPreviewDebounceTimer !== null) {
-            clearTimeout(this.mPreviewDebounceTimer);
-        }
-
-        this.mPreviewDebounceTimer = setTimeout(() => {
-            this.mPreviewDebounceTimer = null;
-            this.rebuildPreviewDrivers();
-        }, 50) as unknown as number;
     }
 
     /**
@@ -1004,29 +218,4 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
 
         this.mResizeState = null;
     }
-
 }
-
-interface CachedViewData<TProject extends PotatnoUiProject> {
-    activeFunctionEditableByUser: boolean;
-    activeFunctionId: string;
-    activeFunctionImports: Array<string>;
-    activeFunctionInputs: Array<{ name: string; type: string; }>;
-    activeFunctionIsSystem: boolean;
-    activeFunctionName: string;
-    activeFunctionOutputs: Array<{ name: string; type: string; }>;
-    availableImports: Array<string>;
-    availableTypes: Array<string>;
-    errors: Array<{ message: string; location: string; }>;
-    functionList: Array<{ id: string; name: string; label: string; system: boolean; }>;
-    graphErrorNodes: ReadonlySet<PotatnoDocumentNode<TProject>>;
-    graphErrorPorts: ReadonlySet<PotatnoDocumentPort<TProject>>;
-    hasPreview: boolean;
-}
-
-type PropertiesChangeData = {
-    imports?: Array<string>;
-    inputs?: Array<{ name: string; type: string; }>;
-    name?: string;
-    outputs?: Array<{ name: string; type: string; }>;
-};

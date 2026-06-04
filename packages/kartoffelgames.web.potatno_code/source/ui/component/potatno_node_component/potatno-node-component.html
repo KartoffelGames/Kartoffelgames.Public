@@ -1,18 +1,14 @@
 $if(this.nodeData) {
     $if(this.isReroute) {
-        <div class="node-reroute {{this.selectedClass}} {{this.hasErrorClass}}"
-             (pointerdown)="this.onNodePointerDown($event)">
+        <div class="node-reroute {{this.selectedClass}} {{this.hasErrorClass}}">
             <div class="reroute-inputs">
                 $for(inPort of this.inputPorts) {
                     <potatno-port
                         [port]="this.inPort"
                         [ownerNode]="this.nodeData"
-                        [portVersion]="this.connectionVersion"
-                        [hasError]="this.isPortError(this.inPort)"
                         (port-drag-start)="this.onPortDragStart($event)"
                         (port-hover)="this.onPortHover($event)"
                         (port-leave)="this.onPortLeave($event)"
-                        (direct-value-change)="this.onDirectValueChange($event)"
                         (port-element-ready)="this.onPortElementReady($event)">
                     </potatno-port>
                 }
@@ -23,12 +19,9 @@ $if(this.nodeData) {
                     <potatno-port
                         [port]="this.outPort"
                         [ownerNode]="this.nodeData"
-                        [portVersion]="this.connectionVersion"
-                        [hasError]="this.isPortError(this.outPort)"
                         (port-drag-start)="this.onPortDragStart($event)"
                         (port-hover)="this.onPortHover($event)"
                         (port-leave)="this.onPortLeave($event)"
-                        (direct-value-change)="this.onDirectValueChange($event)"
                         (port-element-ready)="this.onPortElementReady($event)">
                     </potatno-port>
                 }
@@ -38,8 +31,7 @@ $if(this.nodeData) {
     $if(!this.isReroute) {
     $if(this.isComment) {
         <div class="node-comment {{this.selectedClass}} {{this.hasErrorClass}}"
-             [style]="this.commentSizeStyle"
-             (pointerdown)="this.onNodePointerDown($event)">
+             [style]="this.commentSizeStyle">
             <div class="comment-header">
                 <span class="node-icon">{{this.categoryIcon}}</span>
                 <span class="node-label">{{this.nodeName}}</span>
@@ -55,8 +47,7 @@ $if(this.nodeData) {
         </div>
     }
     $if(!this.isComment) {
-        <div class="node {{this.selectedClass}} {{this.hasErrorClass}}"
-             (pointerdown)="this.onNodePointerDown($event)">
+        <div class="node {{this.selectedClass}} {{this.hasErrorClass}}">
             <div class="node-header" style="background: {{this.categoryColor}}">
                 <span class="node-icon">{{this.categoryIcon}}</span>
                 <span class="node-label">{{this.nodeName}}</span>
@@ -90,12 +81,9 @@ $if(this.nodeData) {
                         <potatno-port
                             [port]="this.inPort"
                             [ownerNode]="this.nodeData"
-                            [portVersion]="this.connectionVersion"
-                            [hasError]="this.isPortError(this.inPort)"
                             (port-drag-start)="this.onPortDragStart($event)"
                             (port-hover)="this.onPortHover($event)"
                             (port-leave)="this.onPortLeave($event)"
-                            (direct-value-change)="this.onDirectValueChange($event)"
                             (port-element-ready)="this.onPortElementReady($event)">
                         </potatno-port>
                     }
@@ -105,12 +93,9 @@ $if(this.nodeData) {
                         <potatno-port
                             [port]="this.outPort"
                             [ownerNode]="this.nodeData"
-                            [portVersion]="this.connectionVersion"
-                            [hasError]="this.isPortError(this.outPort)"
                             (port-drag-start)="this.onPortDragStart($event)"
                             (port-hover)="this.onPortHover($event)"
                             (port-leave)="this.onPortLeave($event)"
-                            (direct-value-change)="this.onDirectValueChange($event)"
                             (port-element-ready)="this.onPortElementReady($event)">
                         </potatno-port>
                     }

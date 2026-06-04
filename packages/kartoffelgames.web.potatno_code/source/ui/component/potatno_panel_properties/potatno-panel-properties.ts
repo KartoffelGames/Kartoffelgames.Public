@@ -1,74 +1,85 @@
-import { PwbComponent, PwbExport, PwbComponentEvent, ComponentEventEmitter, ComponentState } from '@kartoffelgames/web-potato-web-builder';
+import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { Component, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { PotatnoCodeUiManager, PotatnoCodeUiManagerEventType, type PotatnoCodeUiManagerPortView } from '../../potatno-code-ui-manager.ts';
 import templateCss from './potatno-panel-properties.css' with { type: 'text' };
 import propertiesTemplate from './potatno-panel-properties.html' with { type: 'text' };
 
 /**
  * Properties panel component for the potatno-code visual editor.
- * Allows editing function name, input/output ports, and imports.
+ *
+ * Reads the active function's name, ports and imports from the shared {@link PotatnoCodeUiManager}
+ * and applies every edit back through it; the manager re-validates and notifies listeners. Only the
+ * pending import-dropdown selection is local. Name/identifier validation stays here as a UI concern.
  */
 @PwbComponent({
     selector: 'potatno-panel-properties',
     template: propertiesTemplate,
     style: templateCss,
 })
-export class PotatnoPanelProperties {
-    /**
-     * The name of the function being edited.
-     */
-    @PwbExport
-    @ComponentState.state()
-    public accessor functionName: string = '';
+export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOnDeconstruct {
+    private readonly mComponent: Component;
+    private readonly mManager: PotatnoCodeUiManager;
+    private mSelectedImport: string;
+    private mUnsubscribe: (() => void) | null;
 
     /**
-     * Input port definitions for the function.
+     * Available import names registered by the project.
      */
-    @PwbExport
-    @ComponentState.state()
-    public accessor functionInputs: Array<PortEntry> = [];
-
-    /**
-     * Output port definitions for the function.
-     */
-    @PwbExport
-    @ComponentState.state()
-    public accessor functionOutputs: Array<PortEntry> = [];
-
-    @ComponentState.state()
-    private accessor mFunctionImports: Array<string> = [];
-
-    /**
-     * Import names used by the function.
-     */
-    @PwbExport
-    public set functionImports(pValue: Array<string>) {
-        this.mFunctionImports = pValue;
-        this.rebuildUnusedImports();
+    public get availableImports(): Array<string> {
+        return this.mManager.availableImports;
     }
 
     /**
-     * Get the import names used by the function.
+     * Available port types that can be selected.
      */
-    public get functionImports(): Array<string> {
-        return this.mFunctionImports;
+    public get availableTypes(): Array<string> {
+        return this.mManager.availableTypes;
     }
-
-    /**
-     * Whether the function is a system function (non-editable).
-     */
-    @PwbExport
-    @ComponentState.state()
-    public accessor isSystem: boolean = false;
 
     /**
      * Whether the system function allows user editing of ports/imports.
      */
-    @PwbExport
-    @ComponentState.state()
-    public accessor editableByUser: boolean = false;
+    public get editableByUser(): boolean {
+        return this.mManager.activeFunctionEditableByUser;
+    }
+
+    /**
+     * Import names used by the active function.
+     */
+    public get functionImports(): Array<string> {
+        return this.mManager.activeFunctionImports;
+    }
+
+    /**
+     * Input port descriptors of the active function.
+     */
+    public get functionInputs(): Array<PortEntry> {
+        return this.mManager.activeFunctionInputs;
+    }
+
+    /**
+     * Name of the active function.
+     */
+    public get functionName(): string {
+        return this.mManager.activeFunctionName;
+    }
+
+    /**
+     * Output port descriptors of the active function.
+     */
+    public get functionOutputs(): Array<PortEntry> {
+        return this.mManager.activeFunctionOutputs;
+    }
+
+    /**
+     * Whether the active function is a system function (non-editable).
+     */
+    public get isSystem(): boolean {
+        return this.mManager.activeFunctionIsSystem;
+    }
 
     /**
      * Whether the function name input should be disabled.
-     * System functions always have their name locked.
      */
     public get nameDisabled(): boolean {
         return this.isSystem;
@@ -76,116 +87,123 @@ export class PotatnoPanelProperties {
 
     /**
      * Whether port/import editing is disabled.
-     * System functions are locked unless editableByUser is true.
      */
     public get portsDisabled(): boolean {
         return this.isSystem && !this.editableByUser;
     }
 
-    @ComponentState.state()
-    private accessor mAvailableImports: Array<string> = [];
-
     /**
-     * Available import names that can be added.
+     * Import names available to add (registered but not yet used).
      */
-    @PwbExport
-    public set availableImports(pValue: Array<string>) {
-        this.mAvailableImports = pValue;
-        this.rebuildUnusedImports();
+    public get unusedImports(): Array<string> {
+        const lUsed: Set<string> = new Set<string>(this.functionImports);
+        return this.availableImports.filter((pImport) => !lUsed.has(pImport));
     }
 
     /**
-     * Get available import names.
-     */
-    public get availableImports(): Array<string> {
-        return this.mAvailableImports;
-    }
-
-    @ComponentState.state()
-    private accessor mAvailableTypes: Array<string> = [];
-
-    /**
-     * Available port types that can be selected.
-     */
-    @PwbExport
-    public set availableTypes(pValue: Array<string>) {
-        this.mAvailableTypes = pValue;
-    }
-
-    /**
-     * Get available port types.
-     */
-    public get availableTypes(): Array<string> {
-        return this.mAvailableTypes;
-    }
-
-    @ComponentState.state()
-    private accessor mCachedUnusedImports: Array<string> = [];
-    private mSelectedImport: string = '';
-
-    /**
-     * Event emitted when any property changes.
-     */
-    @PwbComponentEvent('properties-change')
-    private accessor mPropertiesChange!: ComponentEventEmitter<PropertiesChangePayload>;
-
-    /**
-     * Validate that a name matches the required identifier pattern.
-     * Must start with a letter, followed by letters, digits, or underscores.
+     * Create the properties panel.
      *
-     * @param pName - The name to validate.
-     * @returns True if valid.
+     * @param pComponent - Injected component reference, used to trigger self-updates.
+     * @param pManager - Injected shared UI manager singleton.
      */
-    private validateName(pName: string): boolean {
-        return /^[a-zA-Z][a-zA-Z0-9_]*$/.test(pName);
+    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoCodeUiManager = Injection.use(PotatnoCodeUiManager)) {
+        this.mComponent = pComponent;
+        this.mManager = pManager;
+        this.mSelectedImport = '';
+        this.mUnsubscribe = null;
     }
 
     /**
-     * Check whether a name is duplicated across inputs, outputs, and function name.
-     *
-     * @param pName - The name to check.
-     * @param pExcludeList - Which list the name belongs to.
-     * @param pIndex - Index within the list to skip.
-     * @returns True if duplicated.
+     * Subscribe to manager events that change the displayed function.
      */
-    private isNameDuplicate(pName: string, pExcludeList: 'input' | 'output' | 'function', pIndex?: number): boolean {
-        if (pExcludeList !== 'function' && pName === this.functionName) {
-            return true;
+    public onConnect(): void {
+        this.mUnsubscribe = this.mManager.listen([
+            PotatnoCodeUiManagerEventType.DocumentChange,
+            PotatnoCodeUiManagerEventType.FunctionActivate,
+            PotatnoCodeUiManagerEventType.FunctionChange
+        ], () => {
+            this.mComponent.updater.update();
+        });
+    }
+
+    /**
+     * Detach the manager subscription.
+     */
+    public onDeconstruct(): void {
+        this.mUnsubscribe?.();
+        this.mUnsubscribe = null;
+    }
+
+    /**
+     * Add the currently selected import from the dropdown.
+     */
+    public onAddSelectedImport(): void {
+        const lUnused: Array<string> = this.unusedImports;
+        const lImportName: string = this.mSelectedImport || (lUnused.length > 0 ? lUnused[0] : '');
+        if (!lImportName) {
+            return;
         }
 
-        for (let lIdx: number = 0; lIdx < this.functionInputs.length; lIdx++) {
-            if (pExcludeList === 'input' && lIdx === pIndex) {
-                continue;
-            }
-            if (this.functionInputs[lIdx].name === pName) {
-                return true;
-            }
-        }
-
-        for (let lIdx: number = 0; lIdx < this.functionOutputs.length; lIdx++) {
-            if (pExcludeList === 'output' && lIdx === pIndex) {
-                continue;
-            }
-            if (this.functionOutputs[lIdx].name === pName) {
-                return true;
-            }
-        }
-
-        return false;
+        this.mManager.updateFunctionProperties({ imports: [...this.functionImports, lImportName] });
+        this.mSelectedImport = '';
     }
 
     /**
-     * Handle function name change.
-     *
-     * @param pEvent - Change event from the name input.
+     * Add a new empty input port.
      */
-    public onNameChange(pEvent: Event): void {
-        const lInput: HTMLInputElement = pEvent.target as HTMLInputElement;
-        const lNewName: string = lInput.value;
-        const lIsInvalid: boolean = !this.validateName(lNewName) || this.isNameDuplicate(lNewName, 'function');
-        lInput.style.borderColor = lIsInvalid ? 'var(--pn-accent-danger)' : '';
-        this.functionName = lNewName;
-        this.mPropertiesChange.dispatchEvent({ name: lNewName });
+    public onAddInput(): void {
+        const lDefaultType: string = this.availableTypes.length > 0 ? this.availableTypes[0] : 'number';
+        this.mManager.updateFunctionProperties({ inputs: [...this.functionInputs, { name: this.uniquePortName('new_input'), type: lDefaultType }] });
+    }
+
+    /**
+     * Add a new empty output port.
+     */
+    public onAddOutput(): void {
+        const lDefaultType: string = this.availableTypes.length > 0 ? this.availableTypes[0] : 'number';
+        this.mManager.updateFunctionProperties({ outputs: [...this.functionOutputs, { name: this.uniquePortName('new_output'), type: lDefaultType }] });
+    }
+
+    /**
+     * Delete an import by index.
+     *
+     * @param pIndex - Index of the import to remove.
+     */
+    public onDeleteImport(pIndex: number): void {
+        const lImports: Array<string> = [...this.functionImports];
+        lImports.splice(pIndex, 1);
+        this.mManager.updateFunctionProperties({ imports: lImports });
+    }
+
+    /**
+     * Delete an input port by index.
+     *
+     * @param pIndex - Index of the input to remove.
+     */
+    public onDeleteInput(pIndex: number): void {
+        const lInputs: Array<PortEntry> = [...this.functionInputs];
+        lInputs.splice(pIndex, 1);
+        this.mManager.updateFunctionProperties({ inputs: lInputs });
+    }
+
+    /**
+     * Delete an output port by index.
+     *
+     * @param pIndex - Index of the output to remove.
+     */
+    public onDeleteOutput(pIndex: number): void {
+        const lOutputs: Array<PortEntry> = [...this.functionOutputs];
+        lOutputs.splice(pIndex, 1);
+        this.mManager.updateFunctionProperties({ outputs: lOutputs });
+    }
+
+    /**
+     * Handle import dropdown selection change.
+     *
+     * @param pEvent - Change event from the select element.
+     */
+    public onImportSelectChange(pEvent: Event): void {
+        this.mSelectedImport = (pEvent.target as HTMLSelectElement).value;
     }
 
     /**
@@ -201,8 +219,7 @@ export class PotatnoPanelProperties {
         lInput.style.borderColor = lIsInvalid ? 'var(--pn-accent-danger)' : '';
         const lInputs: Array<PortEntry> = [...this.functionInputs];
         lInputs[pIndex] = { ...lInputs[pIndex], name: lNewName };
-        this.functionInputs = lInputs;
-        this.mPropertiesChange.dispatchEvent({ inputs: lInputs });
+        this.mManager.updateFunctionProperties({ inputs: lInputs });
     }
 
     /**
@@ -215,8 +232,20 @@ export class PotatnoPanelProperties {
         const lNewType: string = (pEvent.target as HTMLSelectElement).value;
         const lInputs: Array<PortEntry> = [...this.functionInputs];
         lInputs[pIndex] = { ...lInputs[pIndex], type: lNewType };
-        this.functionInputs = lInputs;
-        this.mPropertiesChange.dispatchEvent({ inputs: lInputs });
+        this.mManager.updateFunctionProperties({ inputs: lInputs });
+    }
+
+    /**
+     * Handle function name change.
+     *
+     * @param pEvent - Change event from the name input.
+     */
+    public onNameChange(pEvent: Event): void {
+        const lInput: HTMLInputElement = pEvent.target as HTMLInputElement;
+        const lNewName: string = lInput.value;
+        const lIsInvalid: boolean = !this.validateName(lNewName) || this.isNameDuplicate(lNewName, 'function');
+        lInput.style.borderColor = lIsInvalid ? 'var(--pn-accent-danger)' : '';
+        this.mManager.updateFunctionProperties({ name: lNewName });
     }
 
     /**
@@ -232,8 +261,7 @@ export class PotatnoPanelProperties {
         lInput.style.borderColor = lIsInvalid ? 'var(--pn-accent-danger)' : '';
         const lOutputs: Array<PortEntry> = [...this.functionOutputs];
         lOutputs[pIndex] = { ...lOutputs[pIndex], name: lNewName };
-        this.functionOutputs = lOutputs;
-        this.mPropertiesChange.dispatchEvent({ outputs: lOutputs });
+        this.mManager.updateFunctionProperties({ outputs: lOutputs });
     }
 
     /**
@@ -246,15 +274,48 @@ export class PotatnoPanelProperties {
         const lNewType: string = (pEvent.target as HTMLSelectElement).value;
         const lOutputs: Array<PortEntry> = [...this.functionOutputs];
         lOutputs[pIndex] = { ...lOutputs[pIndex], type: lNewType };
-        this.functionOutputs = lOutputs;
-        this.mPropertiesChange.dispatchEvent({ outputs: lOutputs });
+        this.mManager.updateFunctionProperties({ outputs: lOutputs });
     }
 
     /**
-     * Produce a port name that does not collide with the function name or any existing input or
-     * output. Adding ports with a fixed default name made `addInput`/`addOutput` silently dedupe
-     * the second one (and briefly wedged the panel on the duplicate), so each new port gets a
-     * unique name like `new_input`, `new_input_2`, ….
+     * Check whether a name is duplicated across inputs, outputs, and function name.
+     *
+     * @param pName - The name to check.
+     * @param pExcludeList - Which list the name belongs to.
+     * @param pIndex - Index within the list to skip.
+     *
+     * @returns True if duplicated.
+     */
+    private isNameDuplicate(pName: string, pExcludeList: 'input' | 'output' | 'function', pIndex?: number): boolean {
+        if (pExcludeList !== 'function' && pName === this.functionName) {
+            return true;
+        }
+
+        const lInputs: Array<PortEntry> = this.functionInputs;
+        for (let lIdx: number = 0; lIdx < lInputs.length; lIdx++) {
+            if (pExcludeList === 'input' && lIdx === pIndex) {
+                continue;
+            }
+            if (lInputs[lIdx].name === pName) {
+                return true;
+            }
+        }
+
+        const lOutputs: Array<PortEntry> = this.functionOutputs;
+        for (let lIdx: number = 0; lIdx < lOutputs.length; lIdx++) {
+            if (pExcludeList === 'output' && lIdx === pIndex) {
+                continue;
+            }
+            if (lOutputs[lIdx].name === pName) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Produce a port name that does not collide with the function name or any existing port.
      *
      * @param pBase - The base name to start from.
      *
@@ -274,115 +335,18 @@ export class PotatnoPanelProperties {
     }
 
     /**
-     * Add a new empty input port.
-     */
-    public onAddInput(): void {
-        const lDefaultType: string = this.mAvailableTypes.length > 0 ? this.mAvailableTypes[0] : 'number';
-        const lInputs: Array<PortEntry> = [...this.functionInputs, { name: this.uniquePortName('new_input'), type: lDefaultType }];
-        this.functionInputs = lInputs;
-        this.mPropertiesChange.dispatchEvent({ inputs: lInputs });
-    }
-
-    /**
-     * Delete an input port by index.
+     * Validate that a name matches the required identifier pattern.
      *
-     * @param pIndex - Index of the input to remove.
-     */
-    public onDeleteInput(pIndex: number): void {
-        const lInputs: Array<PortEntry> = [...this.functionInputs];
-        lInputs.splice(pIndex, 1);
-        this.functionInputs = lInputs;
-        this.mPropertiesChange.dispatchEvent({ inputs: lInputs });
-    }
-
-    /**
-     * Add a new empty output port.
-     */
-    public onAddOutput(): void {
-        const lDefaultType: string = this.mAvailableTypes.length > 0 ? this.mAvailableTypes[0] : 'number';
-        const lOutputs: Array<PortEntry> = [...this.functionOutputs, { name: this.uniquePortName('new_output'), type: lDefaultType }];
-        this.functionOutputs = lOutputs;
-        this.mPropertiesChange.dispatchEvent({ outputs: lOutputs });
-    }
-
-    /**
-     * Delete an output port by index.
+     * @param pName - The name to validate.
      *
-     * @param pIndex - Index of the output to remove.
+     * @returns True if valid.
      */
-    public onDeleteOutput(pIndex: number): void {
-        const lOutputs: Array<PortEntry> = [...this.functionOutputs];
-        lOutputs.splice(pIndex, 1);
-        this.functionOutputs = lOutputs;
-        this.mPropertiesChange.dispatchEvent({ outputs: lOutputs });
-    }
-
-    /**
-     * Get the list of unused imports available for selection.
-     */
-    public get unusedImports(): Array<string> {
-        return this.mCachedUnusedImports;
-    }
-
-    /**
-     * Handle import dropdown selection change.
-     *
-     * @param pEvent - Change event from the select element.
-     */
-    public onImportSelectChange(pEvent: Event): void {
-        this.mSelectedImport = (pEvent.target as HTMLSelectElement).value;
-    }
-
-    /**
-     * Add the currently selected import from the dropdown.
-     */
-    public onAddSelectedImport(): void {
-        const lImportName: string = this.mSelectedImport || (this.mCachedUnusedImports.length > 0 ? this.mCachedUnusedImports[0] : '');
-        if (!lImportName) {
-            return;
-        }
-
-        const lImports: Array<string> = [...this.mFunctionImports, lImportName];
-        this.functionImports = lImports;
-        this.mSelectedImport = '';
-        this.mPropertiesChange.dispatchEvent({ imports: lImports });
-    }
-
-    /**
-     * Delete an import by index.
-     *
-     * @param pIndex - Index of the import to remove.
-     */
-    public onDeleteImport(pIndex: number): void {
-        const lImports: Array<string> = [...this.mFunctionImports];
-        lImports.splice(pIndex, 1);
-        this.functionImports = lImports;
-        this.mPropertiesChange.dispatchEvent({ imports: lImports });
-    }
-
-    /**
-     * Rebuild the cached list of unused imports.
-     */
-    private rebuildUnusedImports(): void {
-        const lUsed: Set<string> = new Set(this.mFunctionImports);
-        this.mCachedUnusedImports = this.mAvailableImports.filter(i => !lUsed.has(i));
+    private validateName(pName: string): boolean {
+        return /^[a-zA-Z][a-zA-Z0-9_]*$/.test(pName);
     }
 }
 
 /**
  * Port definition for function inputs and outputs.
  */
-interface PortEntry {
-    name: string;
-    type: string;
-}
-
-/**
- * Change payload dispatched when any property is modified.
- */
-interface PropertiesChangePayload {
-    name?: string;
-    inputs?: Array<PortEntry>;
-    outputs?: Array<PortEntry>;
-    imports?: Array<string>;
-}
+type PortEntry = PotatnoCodeUiManagerPortView;

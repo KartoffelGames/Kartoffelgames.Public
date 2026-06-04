@@ -1,43 +1,15 @@
 <div class="editor-layout">
     <div #panelLeft class="panel-left">
-        <potatno-panel-left
-            [functions]="this.functionList"
-            [activeFunctionId]="this.activeFunctionId"
-            [userFunctionDefinitions]="this.userFunctionDefinitions"
-            (function-select)="this.onFunctionSelect($event)"
-            (function-add)="this.onFunctionAdd($event)"
-            (function-delete)="this.onFunctionDelete($event)">
-        </potatno-panel-left>
+        <potatno-panel-left></potatno-panel-left>
     </div>
     <div #resizeLeft class="resize-handle-left"
         (pointerdown)="this.onResizeLeftStart($event)">
     </div>
     <div class="center-area">
-        <potatno-node-graph
-            [activeFunction]="this.activeFunction"
-            [refreshVersion]="this.graphRefreshVersion"
-            [previewManager]="this.previewManager"
-            [previewUpdateVersion]="this.previewUpdateVersion"
-            [errorNodes]="this.graphErrorNodes"
-            [errorPorts]="this.graphErrorPorts"
-            (graph-change)="this.onGraphChange($event)"
-            (open-function)="this.onGraphOpenFunction($event)"
-            (undo-request)="this.onGraphUndoRequest($event)"
-            (redo-request)="this.onGraphRedoRequest($event)">
-        </potatno-node-graph>
+        <potatno-node-graph></potatno-node-graph>
         $if(this.hasPreview) {
             <div class="preview-wrapper">
-                <potatno-preview #previewEl
-                    [errors]="this.editorErrors"
-                    [descriptors]="this.previewTabs"
-                    [showSelectors]="this.previewShowSelectors"
-                    [outputOptions]="this.previewOutputOptions"
-                    [displayOptions]="this.previewDisplayOptions"
-                    [selectedOutputId]="this.previewSelectedOutputId"
-                    [selectedDisplayId]="this.previewSelectedDisplayId"
-                    (output-change)="this.onPreviewOutputChange($event)"
-                    (display-change)="this.onPreviewDisplayChange($event)">
-                </potatno-preview>
+                <potatno-preview></potatno-preview>
             </div>
         }
     </div>
@@ -45,16 +17,6 @@
         (pointerdown)="this.onResizeRightStart($event)">
     </div>
     <div #panelRight class="panel-right">
-        <potatno-panel-properties
-            [functionName]="this.activeFunctionName"
-            [functionInputs]="this.activeFunctionInputs"
-            [functionOutputs]="this.activeFunctionOutputs"
-            [functionImports]="this.activeFunctionImports"
-            [isSystem]="this.activeFunctionIsSystem"
-            [editableByUser]="this.activeFunctionEditableByUser"
-            [availableImports]="this.availableImportsList"
-            [availableTypes]="this.availableTypes"
-            (properties-change)="this.onPropertiesChange($event)">
-        </potatno-panel-properties>
+        <potatno-panel-properties></potatno-panel-properties>
     </div>
 </div>

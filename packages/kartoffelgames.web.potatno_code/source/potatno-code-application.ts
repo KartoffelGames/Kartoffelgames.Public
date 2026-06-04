@@ -8,16 +8,7 @@ import themeCss from './ui/component/potatno-theme.css' with { type: 'text' };
 
 /*
  * TODO: UI
- * - Limit updates calls. Update available nodes only when function is switched or import is changed.
- * - Limit node update. Nodes can update too. Only update when ??? 
- */
-
-/*
- * TODO: Pre-generate
- * - Color invalid port connections red.
- * - Allow connections to wrong types. The validator should then mark the connection as invalid.
- * - Allow specific port connection modes. Flow ports: Multiple connections to a single port. Data port: One connection to multiple ports.
- * - Render the proxy ports used for connection structure. 
+ * - PWB should somehow be able to inject object for dependency injection with a PwbApplication. That whould be very sick.
  */
 
 /**

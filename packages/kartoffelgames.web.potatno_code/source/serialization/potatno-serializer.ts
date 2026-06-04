@@ -2,7 +2,7 @@ import type { PotatnoDocumentFunction } from '../document/potatno-document-funct
 import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
 import type { PotatnoDocument } from '../document/potatno-document.ts';
 import { PotatnoProject } from "../project/potatno-project.ts";
-import type { PotatnoCodeFileSerializationResult, SerializedConnection, SerializedFunction, SerializedFunctionPort, SerializedNode, SerializedNodePort } from './potatno-serialization.type.ts';
+import type { PotatnoCodeFileSerializationResult, SerializedConnection, SerializedFunction, SerializedFunctionPort, SerializedNode, SerializedNodePort, SerializedNodePreview } from './potatno-serialization.type.ts';
 
 /**
  * Serializes a PotatnoDocument to a plain JSON metadata object.
@@ -120,9 +120,14 @@ export class PotatnoSerializer<TProject extends PotatnoProject> {
 
         // Preserve the per-node preview opt-in so the user's choice survives reloads. `null`
         // and "no preview" are equivalent on the runtime side; both serialize as omitted.
-        const lPreview: { portId: string; displayId: string; } | null = pNode.preview
-            ? { portId: pNode.preview.portId, displayId: pNode.preview.displayId }
-            : null;
+        const lPreview: SerializedNodePreview | null = (() => {
+            if (!pNode.preview) {
+                return null;
+            }
+
+            // Copy as it is likly changed after serialization.
+            return structuredClone(pNode.preview);
+        })();
 
         return {
             id: pNodeId,

@@ -786,10 +786,10 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
         // Place the default entry/exit nodes. Entry nodes stack down from 0,0; exit nodes from 40,0.
         const lFunctionNodes: PotatnoFunctionDefinitionNodes<TProject> = pDefinition.getNodeDefinitions(lFunction);
         lFunctionNodes.entry.forEach((pNodeDefinition, pIndex) => {
-            lFunction.newNode(pNodeDefinition, { height: 4, width: 10, x: 0, y: pIndex * 20 }, true);
+            lFunction.addNodeByDefinition(pNodeDefinition, { height: 4, width: 10, x: 0, y: pIndex * 20 }, true);
         });
         lFunctionNodes.exit.forEach((pNodeDefinition, pIndex) => {
-            lFunction.newNode(pNodeDefinition, { height: 4, width: 10, x: 40, y: pIndex * 20 }, true);
+            lFunction.addNodeByDefinition(pNodeDefinition, { height: 4, width: 10, x: 40, y: pIndex * 20 }, true);
         });
 
         // Enable every project import when the definition opts into imports.

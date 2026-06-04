@@ -18,7 +18,6 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
     private readonly mInputs: PotatnoDocumentNodePortsInternal<TProject>;
     private mLabel: string;
     private readonly mOutputs: PotatnoDocumentNodePortsInternal<TProject>;
-    private readonly mIsSystem: boolean;
     private mPreview: PotatnoDocumentNodePreviewBinding | null;
     private readonly mTransformation: PotatnoDocumentNodeTransformation;
     private readonly mProject: TProject;
@@ -89,13 +88,6 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
     }
 
     /**
-     * Get whether this is a system node that cannot be removed.
-     */
-    public get isSystem(): boolean {
-        return this.mIsSystem;
-    }
-
-    /**
      * Per-node preview opt-in. `null` when the node has no preview displayed; otherwise the
      * pairing of which output port to expose and which registered display id should render it.
      * The framework picks up changes here on the next preview rebuild.
@@ -134,7 +126,6 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
         this.mDocument = pDocument;
         this.mDefinitionId = pParameter.definitionId;
         this.mFunction = pFunction;
-        this.mIsSystem = pParameter.isSystem;
         this.mLabel = pParameter.label;
         this.mPreview = pParameter.preview ?? null;
         this.mProject = pProject;
@@ -269,7 +260,7 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
         for (let lPortDefinitionIndex: number = 0; lPortDefinitionIndex < pPortDefinitions.length; lPortDefinitionIndex++) {
             const lPortDefinition: PotatnoPortDefinition<TProject> = pPortDefinitions[lPortDefinitionIndex];
 
-            // Port is new — add silently.
+            // Port is new,add silently.
             if (!pCurrentPorts.map.has(lPortDefinition.id)) {
                 this.addPort(pCurrentPorts, lPortDefinition, lPortDefinitionIndex);
                 continue;
@@ -286,7 +277,7 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
                 continue;
             }
 
-            // Connected and portType changed — cannot safely replace; add validation error and keep as-is.
+            // Connected and portType changed and cannot safely replace. Add validation error and keep as-is.
             if (lExistingPort.connectedPorts.size > 0 && lPortTypeChanged) {
                 lErrors.push(new PotatnoDocumentPortValidationError(`Port "${lExistingPort.label}" on node "${this.mLabel}" has a changed type.`, lExistingPort));
                 continue;
@@ -309,7 +300,7 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
                 continue;
             }
 
-            // Connected — add validation error and keep as-is.
+            // The ports are connected. Add validation error and keep as-is.
             lErrors.push(new PotatnoDocumentPortValidationError(`Port "${lPort.label}" on node "${this.mLabel}" no longer exists in its definition.`, lPort));
         }
 
@@ -393,8 +384,8 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
 
         // Disconnect all connections from the old port.
         // Copy ports before disconnecting to avoid concurrent modification issues.
-        for (const lConn of Array.from(pOldPort.connectedPorts)) {
-            pOldPort.disconnect(lConn);
+        for (const lConnection of Array.from(pOldPort.connectedPorts)) {
+            pOldPort.disconnect(lConnection);
         }
 
         // Add port to eighter inputs or outputs map depending on its direction.
@@ -468,7 +459,6 @@ export type PotatnoDocumentNodePorts<TProject extends PotatnoProject> = {
 export type PotatnoDocumentNodeConstructorParameter<TProject extends PotatnoProject> = {
     category: string,
     definitionId: string,
-    isSystem: boolean,
     label: string,
     ports: {
         input: Array<PotatnoDocumentNodePortConfiguration<TProject>>,

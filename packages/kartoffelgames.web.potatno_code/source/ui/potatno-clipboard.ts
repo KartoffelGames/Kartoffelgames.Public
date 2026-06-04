@@ -115,7 +115,7 @@ export class PotatnoClipboard<TProject extends PotatnoProject> {
                 height: lNodeData.transformation.height
             };
 
-            const lNode = pFunction.newNode(lDefinition, lTransformation, false);
+            const lNode = pFunction.addNodeByDefinition(lDefinition, lTransformation, false);
             lNode.label = lNodeData.label;
 
             for (const [lPortName, lValues] of Object.entries(lNodeData.inputDirectValues)) {

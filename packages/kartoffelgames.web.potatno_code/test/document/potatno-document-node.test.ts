@@ -222,7 +222,7 @@ Deno.test('PotatnoDocumentNode.transformation', async (pContext) => {
         // Setup. Process.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
         const lDefinition = TestProject.nodeDefinitions.find((pDef) => pDef.id === 'Add')!;
-        const lAddNode = lFunction.newNode(lDefinition, { x: 5, y: 6, width: 7, height: 8 });
+        const lAddNode = lFunction.addNodeByDefinition(lDefinition, { x: 5, y: 6, width: 7, height: 8 });
 
         // Evaluation.
         expect(lAddNode.transformation).toEqual({ x: 5, y: 6, width: 7, height: 8 });
@@ -414,7 +414,7 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
             generators: { code: (): string => '' }
         });
         TestProject.addNodeDefinition(lDefinition);
-        const lNode = lFunction.newNode(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
+        const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
         // Make the project forget the definition by swapping it for a different id.
         (TestProject as any).mNodeDefinitions.delete('TempMissing');
 
@@ -436,7 +436,7 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
             generators: { code: (): string => '' }
         });
         TestProject.addNodeDefinition(lDefinition);
-        const lNode = lFunction.newNode(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
+        const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
         const lErrors = lNode.validate(new Set<string>(['X']));
@@ -458,7 +458,7 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
             generators: { code: (): string => '' }
         });
         TestProject.addNodeDefinition(lDefinition);
-        const lNode = lFunction.newNode(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
+        const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
         const lErrors = lNode.validate(new Set<string>());
@@ -480,7 +480,7 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
             generators: { code: (): string => '' }
         });
         TestProject.addNodeDefinition(lDefinition);
-        const lNode = lFunction.newNode(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
+        const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
         const lErrors = lNode.validate(new Set<string>(['X']));
@@ -502,7 +502,7 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
             generators: { code: (): string => '' }
         });
         TestProject.addNodeDefinition(lDefinition);
-        const lNode = lFunction.newNode(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
+        const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
         const lErrors = lNode.validate(new Set<string>(['Y']));

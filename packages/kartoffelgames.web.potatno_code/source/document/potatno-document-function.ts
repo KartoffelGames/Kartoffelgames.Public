@@ -1,11 +1,11 @@
 import { Exception } from "@kartoffelgames/core";
 import type { PotatnoNodeDefinition } from "../project/node_definition/potatno-node-definition.ts";
-import { PotatnoFunctionDefinition } from "../project/potatno-function-definition.ts";
+import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionNodes } from "../project/potatno-function-definition.ts";
 import { PotatnoPortDefinition } from "../project/potatno-port-definition.ts";
 import { PotatnoProjectGenericType, PotatnoProjectType } from "../project/potatno-project-types-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { IPotatnoDocumentItem } from './i-potatno-document-item.interface.ts';
-import { PotatnoDocumentNode, PotatnoDocumentNodeConstructorParameter, PotatnoDocumentNodePortConfiguration, PotatnoDocumentNodeTransformation } from "./potatno-document-node.ts";
+import { PotatnoDocumentNode, PotatnoDocumentNodePortConfiguration, PotatnoDocumentNodeTransformation } from "./potatno-document-node.ts";
 import { PotatnoDocument, PotatnoDocumentPortValidationError } from "./potatno-document.ts";
 
 /**
@@ -63,7 +63,7 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject> implements
     public get nodeDefinitions(): ReadonlyArray<PotatnoNodeDefinition<TProject>> {
         // Read the function definition from project.
         const lFunctionDefinition: PotatnoFunctionDefinition<TProject> | undefined = this.mProject.getFunction(this.definitionId);
-        if (!lFunctionDefinition) { 
+        if (!lFunctionDefinition) {
             return [...this.mDocument.nodeDefinitions];
         }
 
@@ -193,6 +193,40 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject> implements
     }
 
     /**
+     * Create a new node from a definition instance. Used by the editor when the user places a node.
+     * The definition's ports and metadata are used to populate the node.
+     *
+     * @param pDefinition - The node definition to create the node from.
+     * @param pTransformation - Initial grid position of the node.
+     */
+    public addNodeByDefinition(pDefinition: PotatnoNodeDefinition<TProject>, pTransformation: PotatnoDocumentNodeTransformation): PotatnoDocumentNode<TProject> {
+        // Node definition to configuration converter.
+        const lNodeConverter = (pPort: PotatnoPortDefinition<TProject>): PotatnoDocumentNodePortConfiguration<TProject> => {
+            return {
+                definitionId: pPort.id,
+                label: pPort.label,
+                portType: pPort.portType,
+                dataType: pPort.dataType
+            };
+        };
+
+        const lNode = new PotatnoDocumentNode<TProject>(this.mProject, this.mDocument, this, {
+            category: pDefinition.category,
+            definitionId: pDefinition.id,
+            ports: {
+                input: pDefinition.inputs.map(lNodeConverter),
+                output: pDefinition.outputs.map(lNodeConverter)
+            },
+            label: pDefinition.label,
+            transformation: pTransformation
+        });
+
+        this.mNodes.add(lNode);
+
+        return lNode;
+    }
+
+    /**
      * Get document functions exit nodes.
      * Exit nodes are the starting point for every code generation.
      * 
@@ -213,42 +247,6 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject> implements
         return [...this.mNodes].filter((pNode) => {
             return lExitDefinitionIds.has(pNode.definitionId);
         });
-    }
-
-    /**
-     * Create a new node from a definition instance. Used by the editor when the user places a node.
-     * The definition's ports and metadata are used to populate the node.
-     *
-     * @param pDefinition - The node definition to create the node from.
-     * @param pTransformation - Initial grid position of the node.
-     * @param pSystem - Whether this is a system node.
-     */
-    public newNode(pDefinition: PotatnoNodeDefinition<TProject>, pTransformation: PotatnoDocumentNodeTransformation, pSystem: boolean = false): PotatnoDocumentNode<TProject> {
-        // Node definition to configuration converter.
-        const lNodeConverter = (pPort: PotatnoPortDefinition<TProject>): PotatnoDocumentNodePortConfiguration<TProject> => {
-            return {
-                definitionId: pPort.id,
-                label: pPort.label,
-                portType: pPort.portType,
-                dataType: pPort.dataType
-            };
-        };
-
-        const lNode = new PotatnoDocumentNode<TProject>(this.mProject, this.mDocument, this, {
-            category: pDefinition.category,
-            definitionId: pDefinition.id,
-            ports: {
-                input: pDefinition.inputs.map(lNodeConverter),
-                output: pDefinition.outputs.map(lNodeConverter)
-            },
-            isSystem: pSystem,
-            label: pDefinition.label,
-            transformation: pTransformation
-        });
-
-        this.mNodes.add(lNode);
-
-        return lNode;
     }
 
     /**
@@ -313,15 +311,18 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject> implements
         const lErrors: Array<PotatnoDocumentPortValidationError<TProject>> = [];
 
         // Check if this function's definition can still be found.
-        const lDefinition = this.mProject.getFunction(this.mDefinitionId);
+        const lDefinition: PotatnoFunctionDefinition<TProject> | undefined = this.mProject.getFunction(this.mDefinitionId);
         if (!lDefinition) {
             lErrors.push(new PotatnoDocumentPortValidationError(`Function "${this.mLabel}" definition "${this.mDefinitionId}" could not be found.`, this));
         }
 
-        // Get all definition ids of entry nodes defined by the function definition.
-        const lEntryNodeDefinitionIds = new Set(lDefinition?.getNodeDefinitions(this).entry.map((pNodeDefinition) => {
-            return pNodeDefinition.id;
-        }) ?? new Array<string>());
+        // Read node definitions once.
+        const lNodeDefinitions: PotatnoFunctionDefinitionNodes<TProject> | undefined = lDefinition?.getNodeDefinitions(this);
+
+        // Resync function nodes.
+        if (lNodeDefinitions) {
+            this.resyncFunction(lNodeDefinitions);
+        }
 
         // First pass: compute incoming region set for every node via memoized backward recursion.
         // Each top-level call receives a fresh visited set so cycle detection tracks only the current path.
@@ -330,6 +331,11 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject> implements
         for (const lNode of this.mNodes) {
             lNodeRegions.set(lNode, this.accumulateRegions(lNode, lNodeRegionBuffer, new Set<PotatnoDocumentNode<TProject>>(), lErrors));
         }
+
+        // Get all definition ids of entry nodes defined by the function definition.
+        const lEntryNodeDefinitionIds = new Set(lNodeDefinitions?.entry.map((pNodeDefinition) => {
+            return pNodeDefinition.id;
+        }) ?? new Array<string>());
 
         // Second pass: validate every node with its computed incoming regions and entry domains.
         const lEntryNodeDomainBuffer: Map<PotatnoDocumentNode<TProject>, Set<PotatnoDocumentNode<TProject>>> = new Map<PotatnoDocumentNode<TProject>, Set<PotatnoDocumentNode<TProject>>>();
@@ -365,6 +371,8 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject> implements
      * @returns The accumulated incoming region set for pNode.
      */
     private accumulateRegions(pNode: PotatnoDocumentNode<TProject>, pBuffer: Map<PotatnoDocumentNode<TProject>, Set<string>>, pVisitedNodes: Set<PotatnoDocumentNode<TProject>>, pErrors: Array<PotatnoDocumentPortValidationError<TProject>>): Set<string> {
+        // TODO: That seems like it can be rewriten to a recursive function to eliminate the stupid node loop and buffer handling.
+
         // Return cached result if this node was already resolved.
         if (pBuffer.has(pNode)) {
             return pBuffer.get(pNode)!;
@@ -454,6 +462,41 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject> implements
         }
 
         return lDomains;
+    }
+
+    /**
+     * Resync system nodes.
+     * Ensures all system nodes are present at any time during validation. 
+     * 
+     * @param pNodeDefinitions - node definitions of this function. 
+     */
+    private resyncFunction(pNodeDefinitions: PotatnoFunctionDefinitionNodes<TProject>): void {
+        // Find all entry and output node definitions.
+        const lSystemNodes = [...pNodeDefinitions.entry, ...pNodeDefinitions.exit];
+
+        // Convert document nodes into a O(n) searchable set.
+        const lCurrentNodes: Set<string> = new Set(this.mNodes.values().map((pNode) => {
+            return pNode.definitionId;
+        }));
+
+        // Node counter to space addded nodes.
+        let lNodeCounter = 0;
+
+        // Validate that every entry and exit node exists.
+        for (const lSystemNodeDefinition of lSystemNodes) {
+            // System node exists, all fine continue. Nothing to see here.
+            if (lCurrentNodes.has(lSystemNodeDefinition.id)) {
+                continue;
+            }
+
+            lNodeCounter++;
+
+            this.addNodeByDefinition(lSystemNodeDefinition, {
+                x: 0, 
+                y: lNodeCounter * 15,
+                width: 0, height: 0
+            });
+        }
     }
 }
 

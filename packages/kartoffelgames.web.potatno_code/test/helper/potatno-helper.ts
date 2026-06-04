@@ -29,7 +29,7 @@ export class PotatnoHelper {
         if (!lDefinition) {
             throw new Error(`No project node definition with id "${pDefinitionId}"`);
         }
-        return pFunction.newNode(lDefinition, { x: 0, y: 0, width: 6, height: 4 });
+        return pFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 6, height: 4 });
     }
 
     /**
@@ -116,8 +116,8 @@ export class PotatnoHelper {
             isSystem: true
         });
         const lNodes = lEntryDefinition.getNodeDefinitions(lFunction);
-        const lDefaultEntry = lFunction.newNode(lNodes.entry[0], { x: 0, y: 0, width: 6, height: 4 }, true);
-        const lDefaultExit = lFunction.newNode(lNodes.exit[0], { x: 12, y: 0, width: 6, height: 4 }, true);
+        const lDefaultEntry = lFunction.addNodeByDefinition(lNodes.entry[0], { x: 0, y: 0, width: 6, height: 4 });
+        const lDefaultExit = lFunction.addNodeByDefinition(lNodes.exit[0], { x: 12, y: 0, width: 6, height: 4 });
 
         return { document: lDocument, function: lFunction, defaultEntry: lDefaultEntry, defaultExit: lDefaultExit };
     }

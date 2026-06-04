@@ -1275,7 +1275,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
 
         const lGridSize: number = this.mInteraction.gridSize;
         const lSnappedPosition: Point = this.mInteraction.snapToGrid(pWorldPosition.x, pWorldPosition.y);
-        const lNode: PotatnoDocumentNode<PotatnoUiProject> = lActiveFunction.newNode(pDefinition, {
+        const lNode: PotatnoDocumentNode<PotatnoUiProject> = lActiveFunction.addNodeByDefinition(pDefinition, {
             height: 4,
             width: 10,
             x: Math.round(lSnappedPosition.x / lGridSize),

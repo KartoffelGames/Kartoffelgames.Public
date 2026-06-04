@@ -261,7 +261,7 @@ Deno.test('PotatnoDocument - Validation', async (pContext) => {
         const lHelper = PotatnoHelper.newHelperFunction(lDocument, 'h-self', 'helperSelf');
         const lSelfNodeDef = lDocument.nodeDefinitions.find((pDefinition) =>
             pDefinition instanceof PotatnoFunctionNodeDefinition && pDefinition.function === lHelper)!;
-        lHelper.newNode(lSelfNodeDef, { x: 0, y: 0, width: 4, height: 2 });
+        lHelper.addNodeByDefinition(lSelfNodeDef, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
         const lErrors = lDocument.validate();
@@ -279,8 +279,8 @@ Deno.test('PotatnoDocument - Validation', async (pContext) => {
             pDefinition instanceof PotatnoFunctionNodeDefinition && pDefinition.function === lHelperA)!;
         const lDefB = lDocument.nodeDefinitions.find((pDefinition) =>
             pDefinition instanceof PotatnoFunctionNodeDefinition && pDefinition.function === lHelperB)!;
-        lHelperA.newNode(lDefB, { x: 0, y: 0, width: 4, height: 2 });
-        lHelperB.newNode(lDefA, { x: 0, y: 0, width: 4, height: 2 });
+        lHelperA.addNodeByDefinition(lDefB, { x: 0, y: 0, width: 4, height: 2 });
+        lHelperB.addNodeByDefinition(lDefA, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
         const lErrors = lDocument.validate();
@@ -300,8 +300,8 @@ Deno.test('PotatnoDocument - Validation', async (pContext) => {
             pDefinition instanceof PotatnoFunctionNodeDefinition && pDefinition.function === lB)!;
         const lDefC = lDocument.nodeDefinitions.find((pDefinition) =>
             pDefinition instanceof PotatnoFunctionNodeDefinition && pDefinition.function === lC)!;
-        lA.newNode(lDefB, { x: 0, y: 0, width: 4, height: 2 });
-        lB.newNode(lDefC, { x: 0, y: 0, width: 4, height: 2 });
+        lA.addNodeByDefinition(lDefB, { x: 0, y: 0, width: 4, height: 2 });
+        lB.addNodeByDefinition(lDefC, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
         const lErrors = lDocument.validate();
@@ -317,7 +317,7 @@ Deno.test('PotatnoDocument - Validation', async (pContext) => {
         const lHelper = PotatnoHelper.newHelperFunction(lDocument, 'h-self', 'helperSelf');
         const lSelfNodeDef = lDocument.nodeDefinitions.find((pDefinition) =>
             pDefinition instanceof PotatnoFunctionNodeDefinition && pDefinition.function === lHelper)!;
-        lHelper.newNode(lSelfNodeDef, { x: 0, y: 0, width: 4, height: 2 });
+        lHelper.addNodeByDefinition(lSelfNodeDef, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
         const lErrors = lDocument.validate();

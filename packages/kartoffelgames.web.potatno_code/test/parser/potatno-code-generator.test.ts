@@ -55,8 +55,8 @@ Deno.test('PotatnoCodeGenerator.generateDocument()', async (pContext) => {
             const lEntryDefinition = TestProject.entryPoint;
             const { document, function: lFunction, defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
             const lNodes = lEntryDefinition.getNodeDefinitions(lFunction);
-            const lX10Entry = lFunction.newNode(lNodes.entry[1], { x: 0, y: 8, width: 6, height: 4 }, true);
-            const lX10Exit = lFunction.newNode(lNodes.exit[1], { x: 12, y: 8, width: 6, height: 4 }, true);
+            const lX10Entry = lFunction.addNodeByDefinition(lNodes.entry[1], { x: 0, y: 8, width: 6, height: 4 }, true);
+            const lX10Exit = lFunction.addNodeByDefinition(lNodes.exit[1], { x: 12, y: 8, width: 6, height: 4 }, true);
             PotatnoHelper.connectFlow(defaultEntry, defaultExit);
             PotatnoHelper.connectFlow(lX10Entry, lX10Exit);
 
@@ -103,8 +103,8 @@ Deno.test('PotatnoCodeGenerator.generateDocument()', async (pContext) => {
             const lEntryDefinition = TestProject.entryPoint;
             const { document, function: lFunction, defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
             const lNodes = lEntryDefinition.getNodeDefinitions(lFunction);
-            const lX10Entry = lFunction.newNode(lNodes.entry[1], { x: 0, y: 8, width: 6, height: 4 }, true);
-            const lX10Exit = lFunction.newNode(lNodes.exit[1], { x: 12, y: 8, width: 6, height: 4 }, true);
+            const lX10Entry = lFunction.addNodeByDefinition(lNodes.entry[1], { x: 0, y: 8, width: 6, height: 4 }, true);
+            const lX10Exit = lFunction.addNodeByDefinition(lNodes.exit[1], { x: 12, y: 8, width: 6, height: 4 }, true);
             const lGlobalMultiplier = PotatnoHelper.addProjectNode(lFunction, 'GlobalMultiplier');
             PotatnoHelper.setInputValue(lGlobalMultiplier, 'value', ['5']);
             PotatnoHelper.connectFlow(defaultEntry, defaultExit);
@@ -176,8 +176,8 @@ Deno.test('PotatnoCodeGenerator.generateFunction()', async (pContext) => {
             const lEntryDefinition = TestProject.entryPoint;
             const { function: lFunction, defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
             const lNodes = lEntryDefinition.getNodeDefinitions(lFunction);
-            const lX10Entry = lFunction.newNode(lNodes.entry[1], { x: 0, y: 8, width: 6, height: 4 }, true);
-            const lX10Exit = lFunction.newNode(lNodes.exit[1], { x: 12, y: 8, width: 6, height: 4 }, true);
+            const lX10Entry = lFunction.addNodeByDefinition(lNodes.entry[1], { x: 0, y: 8, width: 6, height: 4 }, true);
+            const lX10Exit = lFunction.addNodeByDefinition(lNodes.exit[1], { x: 12, y: 8, width: 6, height: 4 }, true);
             PotatnoHelper.connectFlow(defaultEntry, defaultExit);
             PotatnoHelper.connectFlow(lX10Entry, lX10Exit);
 
@@ -378,7 +378,7 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
             // Entry -> Pass -> Exit chain would.
             const { function: lFunction, defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
             const lConjunctionDefinition = TestProject.nodeDefinitions.find((pDefinition) => pDefinition.category === 'Conjunction' && pDefinition.inputs.some((pPort) => pPort.portType === 'flow'))!;
-            const lConjunction = lFunction.newNode(lConjunctionDefinition, { x: 0, y: 0, width: 4, height: 2 });
+            const lConjunction = lFunction.addNodeByDefinition(lConjunctionDefinition, { x: 0, y: 0, width: 4, height: 2 });
             const lPass = PotatnoHelper.addProjectNode(lFunction, 'Pass');
             PotatnoHelper.connectFlow(defaultEntry, lConjunction);
             PotatnoHelper.connectFlow(lConjunction, lPass);
@@ -522,8 +522,8 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
                 definitionId: lLocalEntryFunction.id, id: 'main-instance', label: 'main', isSystem: true
             });
             const lLocalNodes = lLocalEntryFunction.getNodeDefinitions(lLocalFunction);
-            const lLocalEntry = lLocalFunction.newNode(lLocalNodes.entry[0], { x: 0, y: 0, width: 4, height: 2 }, true);
-            const lLocalExit = lLocalFunction.newNode(lLocalNodes.exit[0], { x: 4, y: 0, width: 4, height: 2 }, true);
+            const lLocalEntry = lLocalFunction.addNodeByDefinition(lLocalNodes.entry[0], { x: 0, y: 0, width: 4, height: 2 }, true);
+            const lLocalExit = lLocalFunction.addNodeByDefinition(lLocalNodes.exit[0], { x: 4, y: 0, width: 4, height: 2 }, true);
             lLocalEntry.outputs.flow[0].connect(lLocalExit.inputs.flow[0]);
 
             // Process. pDebug=true enables the per-node hook auto-append.
@@ -551,7 +551,7 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
                 generators: { code: (): string => '' }
             });
             TestProject.addNodeDefinition(lGhostDefinition);
-            const lGhostNode = lFunction.newNode(lGhostDefinition, { x: 0, y: 0, width: 4, height: 2 });
+            const lGhostNode = lFunction.addNodeByDefinition(lGhostDefinition, { x: 0, y: 0, width: 4, height: 2 });
             // Remove the definition from the project's lookup so the generator can't find it.
             (TestProject as any).mNodeDefinitions.delete('GhostNode');
 

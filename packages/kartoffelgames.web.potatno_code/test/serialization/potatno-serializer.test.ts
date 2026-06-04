@@ -268,7 +268,7 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
             // Setup.
             const { document, function: lFunction } = PotatnoHelper.setupCalculatorDocument();
             const lDefinition = TestProject.nodeDefinitions.find((pDef) => pDef.id === 'Add')!;
-            lFunction.newNode(lDefinition, { x: 99, y: 88, width: 77, height: 66 });
+            lFunction.addNodeByDefinition(lDefinition, { x: 99, y: 88, width: 77, height: 66 });
 
             // Process.
             const lRoundTripped = PotatnoHelper.roundTrip(document);
@@ -394,7 +394,7 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
             });
             const lHelperNodeDef = document.nodeDefinitions.find((pDef) => /^USERFUNCTION_helperOne$/.test(pDef.id));
             if (lHelperNodeDef) {
-                lFunction.newNode(lHelperNodeDef, { x: 6, y: 12, width: 6, height: 4 });
+                lFunction.addNodeByDefinition(lHelperNodeDef, { x: 6, y: 12, width: 6, height: 4 });
             }
             // Use the helper function so the suite includes it.
             expect(lHelper.label).toBe('helperOne');

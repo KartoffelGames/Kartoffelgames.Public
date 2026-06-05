@@ -1,6 +1,6 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentState, PwbChild, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
-import { PotatnoCodeUiManager, PotatnoCodeUiManagerEventType, type PotatnoCodeUiManagerError } from '../../potatno-code-ui-manager.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerEventType, type PotatnoCodeUiManagerError } from '../../manager/potatno-ui-manager.ts';
 import templateCss from './potatno-preview.css' with { type: 'text' };
 import previewTemplate from './potatno-preview.html' with { type: 'text' };
 
@@ -34,7 +34,7 @@ export type PotatnoPreviewTabDescriptor = {
  * Tabbed preview panel hosting one or more `PotatnoPreviewDriver` elements.
  *
  * Reads its tab descriptors, validation errors and selector state from the shared
- * {@link PotatnoCodeUiManager} and relays selector changes back through it. Validation errors take
+ * {@link PotatnoUiManager} and relays selector changes back through it. Validation errors take
  * priority — while the manager reports any, the error list replaces the preview content. Only the
  * active tab id is local state.
  */
@@ -46,7 +46,7 @@ export type PotatnoPreviewTabDescriptor = {
 export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstruct, IComponentOnUpdate {
     private readonly mComponent: Component;
     private mDragging: boolean;
-    private readonly mManager: PotatnoCodeUiManager;
+    private readonly mManager: PotatnoUiManager;
     private mStartHeight: number;
     private mStartWidth: number;
     private mStartX: number;
@@ -140,7 +140,7 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      * @param pComponent - Injected component reference, used to trigger self-updates.
      * @param pManager - Injected shared UI manager singleton.
      */
-    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoCodeUiManager = Injection.use(PotatnoCodeUiManager)) {
+    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mComponent = pComponent;
         this.mDragging = false;
         this.mManager = pManager;
@@ -155,7 +155,7 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      * Subscribe to manager events affecting the preview content and validation list.
      */
     public onConnect(): void {
-        this.mUnsubscribe = this.mManager.listen([
+        this.mUnsubscribe = this.mManager.subscribe([
             PotatnoCodeUiManagerEventType.DocumentChange,
             PotatnoCodeUiManagerEventType.FunctionActivate,
             PotatnoCodeUiManagerEventType.FunctionChange,

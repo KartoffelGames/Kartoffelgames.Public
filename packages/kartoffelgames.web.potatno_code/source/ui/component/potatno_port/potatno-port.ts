@@ -3,7 +3,7 @@ import { Component, ComponentEventEmitter, ComponentState, PwbChild, PwbComponen
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoProjectTypeDefinition } from "../../../project/potatno-project-types-definition.ts";
-import { PotatnoCodeUiManager, PotatnoCodeUiManagerEventType } from '../../potatno-code-ui-manager.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerEventType } from '../../manager/potatno-ui-manager.ts';
 import type { PotatnoUiProject } from '../../potatno-node-definition-list.ts';
 import portCss from './potatno-port.css' with { type: 'text' };
 import portTemplate from './potatno-port.html' with { type: 'text' };
@@ -12,7 +12,7 @@ import portTemplate from './potatno-port.html' with { type: 'text' };
  * Port component for the potatno-code visual editor.
  *
  * Renders a single {@link PotatnoDocumentPort}. The owning node pushes in the port and owner-node
- * references; error highlighting comes from the shared {@link PotatnoCodeUiManager}, and direct-value
+ * references; error highlighting comes from the shared {@link PotatnoUiManager}, and direct-value
  * edits are committed through it. The component self-updates by subscribing to manager events so it
  * re-renders its connection-dependent visuals (direct-value inputs, colour) without a version token.
  */
@@ -24,7 +24,7 @@ import portTemplate from './potatno-port.html' with { type: 'text' };
 export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDeconstruct, IComponentOnUpdate {
     private readonly mComponent: Component;
     private mLastRegisteredPort: PotatnoDocumentPort<PotatnoUiProject> | null;
-    private readonly mManager: PotatnoCodeUiManager;
+    private readonly mManager: PotatnoUiManager;
     private mUnsubscribe: (() => void) | null;
 
     /**
@@ -162,7 +162,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      * @param pComponent - Injected component reference, used to trigger self-updates.
      * @param pManager - Injected shared UI manager singleton.
      */
-    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoCodeUiManager = Injection.use(PotatnoCodeUiManager)) {
+    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mComponent = pComponent;
         this.mLastRegisteredPort = null;
         this.mManager = pManager;
@@ -173,7 +173,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      * Subscribe to manager events that change this port's connection-dependent visuals.
      */
     public onConnect(): void {
-        this.mUnsubscribe = this.mManager.listen([
+        this.mUnsubscribe = this.mManager.subscribe([
             PotatnoCodeUiManagerEventType.ConnectionAdd,
             PotatnoCodeUiManagerEventType.ConnectionDelete,
             PotatnoCodeUiManagerEventType.NodeChange

@@ -1,13 +1,13 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
-import { PotatnoCodeUiManager, PotatnoCodeUiManagerEventType, type PotatnoCodeUiManagerPortView } from '../../potatno-code-ui-manager.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerEventType, type PotatnoCodeUiManagerPortView } from '../../manager/potatno-ui-manager.ts';
 import templateCss from './potatno-panel-properties.css' with { type: 'text' };
 import propertiesTemplate from './potatno-panel-properties.html' with { type: 'text' };
 
 /**
  * Properties panel component for the potatno-code visual editor.
  *
- * Reads the active function's name, ports and imports from the shared {@link PotatnoCodeUiManager}
+ * Reads the active function's name, ports and imports from the shared {@link PotatnoUiManager}
  * and applies every edit back through it; the manager re-validates and notifies listeners. Only the
  * pending import-dropdown selection is local. Name/identifier validation stays here as a UI concern.
  */
@@ -18,7 +18,7 @@ import propertiesTemplate from './potatno-panel-properties.html' with { type: 't
 })
 export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOnDeconstruct {
     private readonly mComponent: Component;
-    private readonly mManager: PotatnoCodeUiManager;
+    private readonly mManager: PotatnoUiManager;
     private mSelectedImport: string;
     private mUnsubscribe: (() => void) | null;
 
@@ -106,7 +106,7 @@ export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOn
      * @param pComponent - Injected component reference, used to trigger self-updates.
      * @param pManager - Injected shared UI manager singleton.
      */
-    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoCodeUiManager = Injection.use(PotatnoCodeUiManager)) {
+    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mComponent = pComponent;
         this.mManager = pManager;
         this.mSelectedImport = '';
@@ -117,7 +117,7 @@ export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOn
      * Subscribe to manager events that change the displayed function.
      */
     public onConnect(): void {
-        this.mUnsubscribe = this.mManager.listen([
+        this.mUnsubscribe = this.mManager.subscribe([
             PotatnoCodeUiManagerEventType.DocumentChange,
             PotatnoCodeUiManagerEventType.FunctionActivate,
             PotatnoCodeUiManagerEventType.FunctionChange

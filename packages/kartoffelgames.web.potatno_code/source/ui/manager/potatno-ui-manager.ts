@@ -1,17 +1,17 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { PotatnoDocumentFunction, type PotatnoDocumentFunctionConstructorParameter } from '../document/potatno-document-function.ts';
-import { PotatnoDocumentNode, type PotatnoDocumentNodeTransformation } from '../document/potatno-document-node.ts';
-import { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
-import { PotatnoDocument } from '../document/potatno-document.ts';
-import type { PotatnoNodeDefinition } from '../project/node_definition/potatno-node-definition.ts';
-import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics, type PotatnoFunctionDefinitionNodes } from '../project/potatno-function-definition.ts';
-import { PotatnoDeserializer } from '../serialization/potatno-deserializer.ts';
-import type { PotatnoCodeFileSerializationResult } from '../serialization/potatno-serialization.type.ts';
-import { PotatnoSerializer } from '../serialization/potatno-serializer.ts';
-import type { PotatnoPreviewTabDescriptor } from './component/potatno_preview/potatno-preview.ts';
-import { PotatnoHistory } from './potatno-history.ts';
-import type { PotatnoUiProject } from './potatno-node-definition-list.ts';
-import { PotatnoUiPreviewManager, type PotatnoUiPreviewOutputOption } from './potatno-ui-preview-manager.ts';
+import { PotatnoDocumentFunction, type PotatnoDocumentFunctionConstructorParameter } from '../../document/potatno-document-function.ts';
+import { PotatnoDocumentNode, type PotatnoDocumentNodeTransformation } from '../../document/potatno-document-node.ts';
+import { PotatnoDocumentPort } from '../../document/potatno-document-port.ts';
+import { PotatnoDocument } from '../../document/potatno-document.ts';
+import type { PotatnoNodeDefinition } from '../../project/node_definition/potatno-node-definition.ts';
+import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics, type PotatnoFunctionDefinitionNodes } from '../../project/potatno-function-definition.ts';
+import { PotatnoDeserializer } from '../../serialization/potatno-deserializer.ts';
+import type { PotatnoCodeFileSerializationResult } from '../../serialization/potatno-serialization.type.ts';
+import { PotatnoSerializer } from '../../serialization/potatno-serializer.ts';
+import type { PotatnoPreviewTabDescriptor } from '../component/potatno_preview/potatno-preview.ts';
+import { PotatnoHistory } from '../potatno-history.ts';
+import type { PotatnoUiProject } from '../potatno-node-definition-list.ts';
+import { PotatnoUiPreviewManager, type PotatnoUiPreviewOutputOption } from '../potatno-ui-preview-manager.ts';
 
 /**
  * Central, shared state owner for the whole Potatno-code editor UI.
@@ -23,13 +23,13 @@ import { PotatnoUiPreviewManager, type PotatnoUiPreviewOutputOption } from './po
  * snapshots, preview rebuilds — happen in one place.
  *
  * It extends {@link EventTarget} and fires a typed {@link PotatnoCodeUiManagerEventType} event for
- * every meaningful change. Components subscribe via {@link listen} and call their own
+ * every meaningful change. Components subscribe via {@link subscribe} and call their own
  * `updater.update()` in response, so they refresh from the shared state without owning a private
  * `@ComponentState` copy of it. This removes the version-token plumbing the old editor used to
  * keep fragmented component state in sync.
  */
 @Injection.injectable('singleton')
-export class PotatnoCodeUiManager extends EventTarget {
+export class PotatnoUiManager extends EventTarget {
     private mActiveFunctionId: string;
     private mDocument: PotatnoDocument<PotatnoUiProject> | null;
     private mErrorList: Array<PotatnoCodeUiManagerError>;
@@ -465,7 +465,7 @@ export class PotatnoCodeUiManager extends EventTarget {
      *
      * @returns An unsubscribe function removing every registered listener.
      */
-    public listen(pTypes: ReadonlyArray<PotatnoCodeUiManagerEventType>, pCallback: (pDetail: PotatnoCodeUiManagerChangeDetail) => void): () => void {
+    public subscribe(pTypes: ReadonlyArray<PotatnoCodeUiManagerEventType>, pCallback: (pDetail: PotatnoCodeUiManagerChangeDetail) => void): () => void {
         const lHandler = (pEvent: Event): void => {
             pCallback((pEvent as CustomEvent<PotatnoCodeUiManagerChangeDetail>).detail);
         };
@@ -1032,7 +1032,7 @@ export class PotatnoCodeUiManager extends EventTarget {
 }
 
 /**
- * Event types fired by {@link PotatnoCodeUiManager}.
+ * Event types fired by {@link PotatnoUiManager}.
  */
 export const PotatnoCodeUiManagerEventType = {
     ConnectionAdd: 'connection-add',
@@ -1050,7 +1050,7 @@ export const PotatnoCodeUiManagerEventType = {
 export type PotatnoCodeUiManagerEventType = typeof PotatnoCodeUiManagerEventType[keyof typeof PotatnoCodeUiManagerEventType];
 
 /**
- * Detail payload carried by every {@link PotatnoCodeUiManager} event.
+ * Detail payload carried by every {@link PotatnoUiManager} event.
  */
 export type PotatnoCodeUiManagerChangeDetail = {
     /**

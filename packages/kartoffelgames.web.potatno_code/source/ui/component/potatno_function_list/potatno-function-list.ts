@@ -1,13 +1,13 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentState, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
-import { PotatnoCodeUiManager, PotatnoCodeUiManagerEventType, type PotatnoCodeUiManagerFunctionView, type PotatnoCodeUiManagerUserFunctionView } from '../../potatno-code-ui-manager.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerEventType, type PotatnoCodeUiManagerFunctionView, type PotatnoCodeUiManagerUserFunctionView } from '../../manager/potatno-ui-manager.ts';
 import templateCss from './potatno-function-list.css' with { type: 'text' };
 import functionListTemplate from './potatno-function-list.html' with { type: 'text' };
 
 /**
  * Function list component for the potatno-code visual editor.
  *
- * Reads the function set and active selection straight from the shared {@link PotatnoCodeUiManager}
+ * Reads the function set and active selection straight from the shared {@link PotatnoUiManager}
  * and routes selection, creation and deletion back through it. Only the type-selection popup is local
  * state. The component self-updates on the manager's function events.
  */
@@ -18,7 +18,7 @@ import functionListTemplate from './potatno-function-list.html' with { type: 'te
 })
 export class PotatnoFunctionList implements IComponentOnConnect, IComponentOnDeconstruct {
     private readonly mComponent: Component;
-    private readonly mManager: PotatnoCodeUiManager;
+    private readonly mManager: PotatnoUiManager;
     private mUnsubscribe: (() => void) | null;
 
     /**
@@ -68,7 +68,7 @@ export class PotatnoFunctionList implements IComponentOnConnect, IComponentOnDec
      * @param pComponent - Injected component reference, used to trigger self-updates.
      * @param pManager - Injected shared UI manager singleton.
      */
-    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoCodeUiManager = Injection.use(PotatnoCodeUiManager)) {
+    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mComponent = pComponent;
         this.mManager = pManager;
         this.mUnsubscribe = null;
@@ -96,7 +96,7 @@ export class PotatnoFunctionList implements IComponentOnConnect, IComponentOnDec
      * Subscribe to manager function events.
      */
     public onConnect(): void {
-        this.mUnsubscribe = this.mManager.listen([
+        this.mUnsubscribe = this.mManager.subscribe([
             PotatnoCodeUiManagerEventType.DocumentChange,
             PotatnoCodeUiManagerEventType.FunctionActivate,
             PotatnoCodeUiManagerEventType.FunctionAdd,

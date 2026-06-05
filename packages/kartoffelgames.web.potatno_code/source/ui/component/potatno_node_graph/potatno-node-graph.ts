@@ -7,7 +7,7 @@ import type { PotatnoNodeDefinition } from '../../../project/node_definition/pot
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import { PotatnoCanvasRenderer, type ConnectionRenderData } from '../../potatno-canvas-renderer.ts';
 import { PotatnoClipboard } from '../../potatno-clipboard.ts';
-import { PotatnoCodeUiManager, PotatnoCodeUiManagerEventType } from '../../potatno-code-ui-manager.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerEventType } from '../../manager/potatno-ui-manager.ts';
 import { NodeCategoryMeta } from '../../node/node-category.enum.ts';
 import { buildAvailableNodeDefinitionEntries, type PotatnoNodeDefinitionListEntry, type PotatnoUiProject } from '../../potatno-node-definition-list.ts';
 import type { ResizeStartDetail } from '../potatno_node_component/potatno-node-component.ts';
@@ -25,7 +25,7 @@ import '../potatno_port/potatno-port.ts';
  *
  * Owns only graph-local interaction state — pan/zoom, selection, the add-node popup, the clipboard
  * and the SVG connection layer. The document it renders, the active function, validation errors and
- * the per-node preview elements all come from the shared {@link PotatnoCodeUiManager}; every document
+ * the per-node preview elements all come from the shared {@link PotatnoUiManager}; every document
  * mutation is routed back through the manager so history, validation and preview rebuilds stay
  * centralized. The graph refreshes by subscribing to manager events instead of receiving refresh
  * tokens through template bindings.
@@ -40,7 +40,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     private readonly mComponent: Component;
     private readonly mConnectionRegistry: Map<string, ConnectionRecord>;
     private readonly mInteraction: PotatnoCanvasInteraction;
-    private readonly mManager: PotatnoCodeUiManager;
+    private readonly mManager: PotatnoUiManager;
     private readonly mPortElementRegistry: Map<PotatnoDocumentPort<PotatnoUiProject>, HTMLElement>;
     private readonly mRenderer: PotatnoCanvasRenderer;
     private readonly mSelectedNodes: Set<PotatnoDocumentNode<PotatnoUiProject>>;
@@ -103,7 +103,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * @param pComponent - Injected component reference, used to trigger self-updates.
      * @param pManager - Injected shared UI manager singleton.
      */
-    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoCodeUiManager = Injection.use(PotatnoCodeUiManager)) {
+    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mAddNodeSearchQuery = '';
         this.mAddNodeSelectedDefinitionId = null;
         this.mCachedGraphData = { visibleNodes: [] };
@@ -259,7 +259,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
 
         // Refresh the graph whenever the document, active function, or graph structure changes.
         // A document load or function switch resets all interaction state first.
-        this.mUnsubscribe = this.mManager.listen([
+        this.mUnsubscribe = this.mManager.subscribe([
             PotatnoCodeUiManagerEventType.DocumentChange,
             PotatnoCodeUiManagerEventType.FunctionActivate,
             PotatnoCodeUiManagerEventType.NodeAdd,

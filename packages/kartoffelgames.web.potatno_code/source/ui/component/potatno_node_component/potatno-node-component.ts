@@ -2,7 +2,7 @@ import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentEventEmitter, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEvent, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoCodeUiManager, PotatnoCodeUiManagerEventType } from '../../potatno-code-ui-manager.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerEventType } from '../../manager/potatno-ui-manager.ts';
 import type { PotatnoUiProject } from '../../potatno-node-definition-list.ts';
 import type { PortInteractionDetail } from '../potatno_port/potatno-port.ts';
 import nodeCss from './potatno-node-component.css' with { type: 'text' };
@@ -18,7 +18,7 @@ import '../potatno_port/potatno-port.ts';
  * Renders a single {@link PotatnoDocumentNode}. Layout inputs (which node, selected, grid size)
  * are pushed in by the graph; everything else — validation highlighting, the inline preview
  * element and its available displays, and every mutation (label edits, preview opt-in, opening a
- * function) — goes through the shared {@link PotatnoCodeUiManager}. The component self-updates by
+ * function) — goes through the shared {@link PotatnoUiManager}. The component self-updates by
  * subscribing to manager events instead of receiving refresh tokens.
  */
 @PwbComponent({
@@ -28,7 +28,7 @@ import '../potatno_port/potatno-port.ts';
 })
 export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDeconstruct, IComponentOnUpdate {
     private readonly mComponent: Component;
-    private readonly mManager: PotatnoCodeUiManager;
+    private readonly mManager: PotatnoUiManager;
     private mPreviewElement: HTMLElement | null;
     private mUnsubscribe: (() => void) | null;
 
@@ -247,7 +247,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      * @param pComponent - Injected component reference, used to trigger self-updates.
      * @param pManager - Injected shared UI manager singleton.
      */
-    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoCodeUiManager = Injection.use(PotatnoCodeUiManager)) {
+    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mComponent = pComponent;
         this.mManager = pManager;
         this.mPreviewElement = null;
@@ -276,7 +276,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      * Subscribe to manager events that affect this node's rendering.
      */
     public onConnect(): void {
-        this.mUnsubscribe = this.mManager.listen([
+        this.mUnsubscribe = this.mManager.subscribe([
             PotatnoCodeUiManagerEventType.NodeAdd,
             PotatnoCodeUiManagerEventType.NodeChange,
             PotatnoCodeUiManagerEventType.NodeDelete,

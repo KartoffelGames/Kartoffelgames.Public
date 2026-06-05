@@ -2,7 +2,7 @@ import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, PwbChild, PwbComponent, PwbExport, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocument } from '../../../document/potatno-document.ts';
 import type { PotatnoCodeFileSerializationResult } from '../../../serialization/potatno-serialization.type.ts';
-import { PotatnoCodeUiManager, PotatnoCodeUiManagerEventType } from '../../potatno-code-ui-manager.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerEventType } from '../../manager/potatno-ui-manager.ts';
 import type { PotatnoUiProject } from '../../potatno-node-definition-list.ts';
 import editorCss from './potatno-code-editor.css' with { type: 'text' };
 import editorTemplate from './potatno-code-editor.html' with { type: 'text' };
@@ -16,7 +16,7 @@ import '../potatno_preview/potatno-preview.ts';
 /**
  * Top-level layout shell for the Potatno-code editor.
  *
- * All editor state and behaviour live in the shared {@link PotatnoCodeUiManager}; this component
+ * All editor state and behaviour live in the shared {@link PotatnoUiManager}; this component
  * only owns the panel layout, the resize handles, and the bridge from {@link PwbApplication}'s
  * imperative API (project/document/preview tick) into the manager. It re-renders itself when the
  * preview availability changes so the preview panel can appear or disappear.
@@ -28,7 +28,7 @@ import '../potatno_preview/potatno-preview.ts';
 })
 export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements IComponentOnConnect, IComponentOnDeconstruct {
     private readonly mComponent: Component;
-    private readonly mManager: PotatnoCodeUiManager;
+    private readonly mManager: PotatnoUiManager;
     private mResizeMoveHandler: ((pEvent: PointerEvent) => void) | null;
     private mResizeState: { panel: 'left' | 'right'; startX: number; startWidth: number; } | null;
     private mResizeUpHandler: (() => void) | null;
@@ -66,7 +66,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      * @param pComponent - Injected component reference, used to trigger self-updates.
      * @param pManager - Injected shared UI manager singleton.
      */
-    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoCodeUiManager = Injection.use(PotatnoCodeUiManager)) {
+    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mComponent = pComponent;
         this.mManager = pManager;
         this.mResizeMoveHandler = null;
@@ -125,7 +125,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      * Subscribe to the manager so the preview panel toggles with preview availability.
      */
     public onConnect(): void {
-        this.mUnsubscribe = this.mManager.listen([
+        this.mUnsubscribe = this.mManager.subscribe([
             PotatnoCodeUiManagerEventType.DocumentChange,
             PotatnoCodeUiManagerEventType.FunctionActivate,
             PotatnoCodeUiManagerEventType.FunctionAdd,

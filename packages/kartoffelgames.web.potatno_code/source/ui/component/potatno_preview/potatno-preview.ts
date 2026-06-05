@@ -1,6 +1,7 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentState, PwbChild, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import { PotatnoUiManager, PotatnoCodeUiManagerEventType, type PotatnoCodeUiManagerError } from '../../manager/potatno-ui-manager.ts';
+import type { PotatnoUiPreviewOutputOption } from '../../potatno-ui-preview-manager.ts';
 import templateCss from './potatno-preview.css' with { type: 'text' };
 import previewTemplate from './potatno-preview.html' with { type: 'text' };
 
@@ -75,7 +76,7 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      * Display ("style") id options for the display selector.
      */
     public get displayOptions(): ReadonlyArray<string> {
-        return this.mManager.previewDisplayOptions;
+        return this.mManager.previewManager?.getActivePreviewDisplays() ?? [];
     }
 
     /**
@@ -102,29 +103,29 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
     /**
      * Output port options for the output selector.
      */
-    public get outputOptions(): ReadonlyArray<{ id: string; label: string; }> {
-        return this.mManager.previewOutputOptions;
+    public get outputOptions(): ReadonlyArray<PotatnoUiPreviewOutputOption> {
+        return this.mManager.previewManager?.getActivePreviewOutputs() ?? [];
     }
 
     /**
      * Currently selected display id.
      */
     public get selectedDisplayId(): string {
-        return this.mManager.previewSelectedDisplayId;
+        return this.mManager.previewManager?.activePreviewDisplayId ?? '';
     }
 
     /**
      * Currently selected output port id.
      */
     public get selectedOutputId(): string {
-        return this.mManager.previewSelectedOutputId;
+        return this.mManager.previewManager?.activePreviewOutputId ?? '';
     }
 
     /**
      * Whether to show the display + output selectors (user functions only).
      */
     public get showSelectors(): boolean {
-        return this.mManager.previewShowSelectors;
+        return this.mManager.previewManager?.activePreviewIsUserFunction ?? false;
     }
 
     /**

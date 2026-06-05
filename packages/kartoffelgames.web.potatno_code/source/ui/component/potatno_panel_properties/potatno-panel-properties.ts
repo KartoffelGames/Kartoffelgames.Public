@@ -1,6 +1,8 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import { PotatnoUiManager, PotatnoCodeUiManagerEventType, type PotatnoCodeUiManagerPortView } from '../../manager/potatno-ui-manager.ts';
+import type { PotatnoUiProject } from '../../potatno-node-definition-list.ts';
 import templateCss from './potatno-panel-properties.css' with { type: 'text' };
 import propertiesTemplate from './potatno-panel-properties.html' with { type: 'text' };
 
@@ -26,56 +28,67 @@ export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOn
      * Available import names registered by the project.
      */
     public get availableImports(): Array<string> {
-        return this.mManager.availableImports;
+        return this.mManager.project?.imports.map((pImport) => pImport.label) ?? [];
     }
 
     /**
      * Available port types that can be selected.
      */
     public get availableTypes(): Array<string> {
-        return this.mManager.availableTypes;
+        const lProject: PotatnoUiProject | null = this.mManager.project;
+        if (!lProject) {
+            return [];
+        }
+
+        const lTypeSet: Set<string> = new Set<string>();
+        for (const [lTypeName] of lProject.types.types) {
+            lTypeSet.add(lTypeName);
+        }
+
+        return [...lTypeSet].sort();
     }
 
     /**
      * Whether the system function allows user editing of ports/imports.
      */
     public get editableByUser(): boolean {
-        return this.mManager.activeFunctionEditableByUser;
+        const lActiveFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mManager.activeFunction;
+        return lActiveFunction !== null && !lActiveFunction.isSystem;
     }
 
     /**
      * Import names used by the active function.
      */
     public get functionImports(): Array<string> {
-        return this.mManager.activeFunctionImports;
+        return [...(this.mManager.activeFunction?.imports ?? [])];
     }
 
     /**
      * Input port descriptors of the active function.
      */
     public get functionInputs(): Array<PortEntry> {
-        return this.mManager.activeFunctionInputs;
+        return (this.mManager.activeFunction?.inputs ?? []).map((pPort) => ({ name: pPort.label, type: pPort.dataType }));
     }
 
     /**
      * Name of the active function.
      */
     public get functionName(): string {
-        return this.mManager.activeFunctionName;
+        return this.mManager.activeFunction?.label ?? '';
     }
 
     /**
      * Output port descriptors of the active function.
      */
     public get functionOutputs(): Array<PortEntry> {
-        return this.mManager.activeFunctionOutputs;
+        return (this.mManager.activeFunction?.outputs ?? []).map((pPort) => ({ name: pPort.label, type: pPort.dataType }));
     }
 
     /**
      * Whether the active function is a system function (non-editable).
      */
     public get isSystem(): boolean {
-        return this.mManager.activeFunctionIsSystem;
+        return this.mManager.activeFunction?.isSystem ?? false;
     }
 
     /**

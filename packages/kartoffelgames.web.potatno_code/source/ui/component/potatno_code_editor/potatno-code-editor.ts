@@ -1,5 +1,6 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, PwbChild, PwbComponent, PwbExport, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocument } from '../../../document/potatno-document.ts';
 import type { PotatnoCodeFileSerializationResult } from '../../../serialization/potatno-serialization.type.ts';
 import { PotatnoUiManager, PotatnoCodeUiManagerEventType } from '../../manager/potatno-ui-manager.ts';
@@ -50,7 +51,19 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      * Whether the preview panel should currently be shown.
      */
     public get hasPreview(): boolean {
-        return this.mManager.hasPreview;
+        const lProject: PotatnoUiProject | null = this.mManager.project;
+        const lActiveFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mManager.activeFunction;
+        if (!lProject || !lActiveFunction || !lProject.previews) {
+            return false;
+        }
+
+        for (const lEntry of lProject.previews.entries) {
+            if (lEntry.executorFunctionId === lActiveFunction.definitionId) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**

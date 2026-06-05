@@ -11,7 +11,7 @@ import { PotatnoSerializer } from '../../serialization/potatno-serializer.ts';
 import type { PotatnoPreviewTabDescriptor } from '../component/potatno_preview/potatno-preview.ts';
 import { PotatnoHistory } from '../potatno-history.ts';
 import type { PotatnoUiProject } from '../potatno-node-definition-list.ts';
-import { PotatnoUiPreviewManager, type PotatnoUiPreviewOutputOption } from '../potatno-ui-preview-manager.ts';
+import { PotatnoUiPreviewManager } from '../potatno-ui-preview-manager.ts';
 
 /**
  * Central, shared state owner for the whole Potatno-code editor UI.
@@ -61,77 +61,10 @@ export class PotatnoUiManager extends EventTarget {
     }
 
     /**
-     * Whether structure of the active function may be edited by the user.
-     */
-    public get activeFunctionEditableByUser(): boolean {
-        const lFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.activeFunction;
-        return lFunction !== null && !lFunction.isSystem;
-    }
-
-    /**
      * Id of the active function.
      */
     public get activeFunctionId(): string {
         return this.mActiveFunctionId;
-    }
-
-    /**
-     * Enabled import names of the active function.
-     */
-    public get activeFunctionImports(): Array<string> {
-        return [...(this.activeFunction?.imports ?? [])];
-    }
-
-    /**
-     * Input port descriptors of the active function.
-     */
-    public get activeFunctionInputs(): Array<PotatnoCodeUiManagerPortView> {
-        return (this.activeFunction?.inputs ?? []).map((pPort) => ({ name: pPort.label, type: pPort.dataType }));
-    }
-
-    /**
-     * Whether the active function is system-owned.
-     */
-    public get activeFunctionIsSystem(): boolean {
-        return this.activeFunction?.isSystem ?? false;
-    }
-
-    /**
-     * Display name of the active function.
-     */
-    public get activeFunctionName(): string {
-        return this.activeFunction?.label ?? '';
-    }
-
-    /**
-     * Output port descriptors of the active function.
-     */
-    public get activeFunctionOutputs(): Array<PotatnoCodeUiManagerPortView> {
-        return (this.activeFunction?.outputs ?? []).map((pPort) => ({ name: pPort.label, type: pPort.dataType }));
-    }
-
-    /**
-     * Import names registered by the project.
-     */
-    public get availableImports(): Array<string> {
-        return this.mProject?.imports.map((pImport) => pImport.label) ?? [];
-    }
-
-    /**
-     * Sorted type names registered by the project.
-     */
-    public get availableTypes(): Array<string> {
-        const lProject: PotatnoUiProject | null = this.mProject;
-        if (!lProject) {
-            return [];
-        }
-
-        const lTypeSet: Set<string> = new Set<string>();
-        for (const [lTypeName] of lProject.types.types) {
-            lTypeSet.add(lTypeName);
-        }
-
-        return [...lTypeSet].sort();
     }
 
     /**
@@ -177,42 +110,6 @@ export class PotatnoUiManager extends EventTarget {
     }
 
     /**
-     * Function entries for the left function list.
-     */
-    public get functionList(): Array<PotatnoCodeUiManagerFunctionView> {
-        const lDocument: PotatnoDocument<PotatnoUiProject> | null = this.mDocument;
-        if (!lDocument) {
-            return [];
-        }
-
-        const lFunctionList: Array<PotatnoCodeUiManagerFunctionView> = [];
-        for (const lFunction of lDocument.functions) {
-            lFunctionList.push({ id: lFunction.id, label: lFunction.label, name: lFunction.label, system: lFunction.isSystem });
-        }
-
-        return lFunctionList;
-    }
-
-    /**
-     * Whether the active function has a registered preview and the preview panel should show.
-     */
-    public get hasPreview(): boolean {
-        const lProject: PotatnoUiProject | null = this.mProject;
-        const lActiveFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.activeFunction;
-        if (!lProject || !lActiveFunction || !lProject.previews) {
-            return false;
-        }
-
-        for (const lEntry of lProject.previews.entries) {
-            if (lEntry.executorFunctionId === lActiveFunction.definitionId) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
      * The current project, or `null` before initialization.
      */
     public get project(): PotatnoUiProject | null {
@@ -220,38 +117,11 @@ export class PotatnoUiManager extends EventTarget {
     }
 
     /**
-     * Display ("style") id of the main preview.
+     * The preview lifecycle helper, or `null` before initialization. The preview panel reads the
+     * active preview's display/output selection and its available options directly from it.
      */
-    public get previewSelectedDisplayId(): string {
-        return this.mPreviewManager?.activePreviewDisplayId ?? '';
-    }
-
-    /**
-     * Selected output port id of the main preview.
-     */
-    public get previewSelectedOutputId(): string {
-        return this.mPreviewManager?.activePreviewOutputId ?? '';
-    }
-
-    /**
-     * Whether the main preview shows display/output selectors (user functions only).
-     */
-    public get previewShowSelectors(): boolean {
-        return this.mPreviewManager?.activePreviewIsUserFunction ?? false;
-    }
-
-    /**
-     * Display id options for the main preview's display selector.
-     */
-    public get previewDisplayOptions(): Array<string> {
-        return this.mPreviewManager?.getActivePreviewDisplays() ?? [];
-    }
-
-    /**
-     * Output options for the main preview's output selector.
-     */
-    public get previewOutputOptions(): Array<PotatnoUiPreviewOutputOption> {
-        return this.mPreviewManager?.getActivePreviewOutputs() ?? [];
+    public get previewManager(): PotatnoUiPreviewManager<PotatnoUiProject> | null {
+        return this.mPreviewManager;
     }
 
     /**
@@ -259,18 +129,6 @@ export class PotatnoUiManager extends EventTarget {
      */
     public get previewTabs(): ReadonlyArray<PotatnoPreviewTabDescriptor> {
         return this.mPreviewTabs;
-    }
-
-    /**
-     * User function definitions available for creation.
-     */
-    public get userFunctionDefinitions(): Array<PotatnoCodeUiManagerUserFunctionView> {
-        const lProject: PotatnoUiProject | null = this.mProject;
-        if (!lProject) {
-            return [];
-        }
-
-        return [...lProject.userFunctions.values()].map((pDefinition) => ({ id: pDefinition.id }));
     }
 
     /**
@@ -1078,16 +936,6 @@ export type PotatnoCodeUiManagerError = {
 };
 
 /**
- * A function entry for the function list.
- */
-export type PotatnoCodeUiManagerFunctionView = {
-    id: string;
-    label: string;
-    name: string;
-    system: boolean;
-};
-
-/**
  * A function port descriptor for the properties panel.
  */
 export type PotatnoCodeUiManagerPortView = {
@@ -1103,11 +951,4 @@ export type PotatnoCodeUiManagerPropertiesChange = {
     inputs?: Array<PotatnoCodeUiManagerPortView>;
     name?: string;
     outputs?: Array<PotatnoCodeUiManagerPortView>;
-};
-
-/**
- * A user function definition entry for the function-add popup.
- */
-export type PotatnoCodeUiManagerUserFunctionView = {
-    id: string;
 };

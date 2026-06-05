@@ -1,6 +1,8 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentState, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
-import { PotatnoUiManager, PotatnoCodeUiManagerEventType, type PotatnoCodeUiManagerFunctionView, type PotatnoCodeUiManagerUserFunctionView } from '../../manager/potatno-ui-manager.ts';
+import type { PotatnoDocument } from '../../../document/potatno-document.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerEventType } from '../../manager/potatno-ui-manager.ts';
+import type { PotatnoUiProject } from '../../potatno-node-definition-list.ts';
 import templateCss from './potatno-function-list.css' with { type: 'text' };
 import functionListTemplate from './potatno-function-list.html' with { type: 'text' };
 
@@ -37,15 +39,25 @@ export class PotatnoFunctionList implements IComponentOnConnect, IComponentOnDec
     /**
      * Function entries to display.
      */
-    public get functions(): Array<PotatnoCodeUiManagerFunctionView> {
-        return this.mManager.functionList;
+    public get functions(): Array<PotatnoFunctionListEntry> {
+        const lDocument: PotatnoDocument<PotatnoUiProject> | null = this.mManager.document;
+        if (!lDocument) {
+            return [];
+        }
+
+        const lFunctionList: Array<PotatnoFunctionListEntry> = [];
+        for (const lFunction of lDocument.functions) {
+            lFunctionList.push({ id: lFunction.id, label: lFunction.label, name: lFunction.label, system: lFunction.isSystem });
+        }
+
+        return lFunctionList;
     }
 
     /**
      * Whether user function definitions are available for creation.
      */
     public get hasUserFunctionDefinitions(): boolean {
-        return this.mManager.userFunctionDefinitions.length > 0;
+        return this.userFunctionDefinitions.length > 0;
     }
 
     /**
@@ -58,8 +70,13 @@ export class PotatnoFunctionList implements IComponentOnConnect, IComponentOnDec
     /**
      * User function definitions available for creation.
      */
-    public get userFunctionDefinitions(): Array<PotatnoCodeUiManagerUserFunctionView> {
-        return this.mManager.userFunctionDefinitions;
+    public get userFunctionDefinitions(): Array<PotatnoFunctionListUserFunctionEntry> {
+        const lProject: PotatnoUiProject | null = this.mManager.project;
+        if (!lProject) {
+            return [];
+        }
+
+        return [...lProject.userFunctions.values()].map((pDefinition) => ({ id: pDefinition.id }));
     }
 
     /**
@@ -120,7 +137,7 @@ export class PotatnoFunctionList implements IComponentOnConnect, IComponentOnDec
      * opens the selection popup.
      */
     public onAddButtonClick(): void {
-        const lDefinitions: Array<PotatnoCodeUiManagerUserFunctionView> = this.userFunctionDefinitions;
+        const lDefinitions: Array<PotatnoFunctionListUserFunctionEntry> = this.userFunctionDefinitions;
         if (lDefinitions.length === 1) {
             this.mManager.addFunction(lDefinitions[0].id);
         } else {
@@ -158,3 +175,20 @@ export class PotatnoFunctionList implements IComponentOnConnect, IComponentOnDec
         this.mManager.setActiveFunction(pId);
     }
 }
+
+/**
+ * A function entry for the function list.
+ */
+type PotatnoFunctionListEntry = {
+    id: string;
+    label: string;
+    name: string;
+    system: boolean;
+};
+
+/**
+ * A user function definition entry for the function-add popup.
+ */
+type PotatnoFunctionListUserFunctionEntry = {
+    id: string;
+};

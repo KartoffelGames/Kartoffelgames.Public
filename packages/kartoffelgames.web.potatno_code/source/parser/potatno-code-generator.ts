@@ -96,7 +96,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
     private buildDocumentResult(pDocument: PotatnoDocument<TProject>, pExitNodes: Array<PotatnoDocumentNode<TProject>>, pDebug: boolean): PotatnoCodeGeneratorDocumentResult<TProject> {
         // Validate document before generation.
         const lValidationResult: Array<PotatnoDocumentPortValidationError<TProject>> = pDocument.validate();
-        if(lValidationResult.length > 0) {
+        if (lValidationResult.length > 0) {
             throw new Exception('Code generation exited. Code graph validation failed.', this);
         }
 
@@ -495,42 +495,53 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @param pMergeNode - A node with ≥2 flow-input connections.
      */
-    private findBranchPoint(pMergeNode: PotatnoDocumentNode<TProject>): PotatnoDocumentNode<TProject> {
+    private findBranchStartPoint(pMergeNode: PotatnoDocumentNode<TProject>): PotatnoDocumentNode<TProject> {
         // Each fan-in branch seeds a distinct tag; the first node that accumulates every tag is the common branch point.
         const lBranchPorts: Array<PotatnoDocumentPort<TProject>> = this.getNodesInputFlowPorts(pMergeNode);
-        const lTagCount: number = lBranchPorts.length;
+        const lMaxBrachCount: number = lBranchPorts.length;
+
+        // Union pTags into pNode's tag set, creating it on first encounter, and enqueue pNode whenever it gained a tag.
+        const lNodeTags: Map<PotatnoDocumentNode<TProject>, Set<number>> = new Map<PotatnoDocumentNode<TProject>, Set<number>>();
+        const lQueue: Array<PotatnoDocumentNode<TProject>> = new Array<PotatnoDocumentNode<TProject>>();
+        const lMergeTags = (pNode: PotatnoDocumentNode<TProject>, pAddingTags: Iterable<number>): Set<number> => {
+            // Read or create the current tags of the node.
+            const lTags: Set<number> = (()=>{
+                if(!lNodeTags.has(pNode)) {
+                    lNodeTags.set(pNode, new Set<number>());
+                }
+
+                return lNodeTags.get(pNode)!;
+            })();
+            
+            // Save the current tag count to check for growth after the union.
+            const lSizeBefore: number = lTags.size;
+            for (const lNewTag of pAddingTags) {
+                lTags.add(lNewTag);
+            }
+            
+            // Check for new tags on node and enqueue if it gained any.
+            if (lTags.size > lSizeBefore) {
+                lQueue.push(pNode);
+            }
+
+            return lTags;
+        };
 
         // Seed one tag per fan-in branch. Ports sharing a node union their tags so that node starts with all of them.
-        const lTagsByNode: Map<PotatnoDocumentNode<TProject>, Set<number>> = new Map<PotatnoDocumentNode<TProject>, Set<number>>();
-        const lQueue: Array<PotatnoDocumentNode<TProject>> = new Array<PotatnoDocumentNode<TProject>>();
         for (const [lTag, lBranchPort] of lBranchPorts.entries()) {
-            const lSeedTags: Set<number> = lTagsByNode.get(lBranchPort.node) ?? new Set<number>();
-            lSeedTags.add(lTag);
-            lTagsByNode.set(lBranchPort.node, lSeedTags);
-            lQueue.push(lBranchPort.node);
+            lMergeTags(lBranchPort.node, [lTag]);
         }
 
         // Propagate tags backward. The first node holding every tag is the branch point.
         while (lQueue.length > 0) {
             const lNode: PotatnoDocumentNode<TProject> = lQueue.shift()!;
-            const lNodeTags: Set<number> = lTagsByNode.get(lNode)!;
+            const lTags: Set<number> = lNodeTags.get(lNode)!;
 
-            // All branches have met here.
-            if (lNodeTags.size === lTagCount) {
-                return lNode;
-            }
-
-            // Union this node's tags into each flow predecessor; re-enqueue any predecessor that gained a tag.
+            // Union this node's tags into each flow predecessor.
             for (const lPredecessorPort of this.getNodesInputFlowPorts(lNode)) {
-                const lPredecessorTags: Set<number> = lTagsByNode.get(lPredecessorPort.node) ?? new Set<number>();
-                const lSizeBefore: number = lPredecessorTags.size;
-                for (const lTag of lNodeTags) {
-                    lPredecessorTags.add(lTag);
-                }
-                lTagsByNode.set(lPredecessorPort.node, lPredecessorTags);
-
-                if (lPredecessorTags.size > lSizeBefore) {
-                    lQueue.push(lPredecessorPort.node);
+                // Merge tags and check if this predecessor is the branch point.
+                if (lMergeTags(lPredecessorPort.node, lTags).size === lMaxBrachCount) {
+                    return lPredecessorPort.node;
                 }
             }
         }
@@ -555,7 +566,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         const lNextCode: string = pMergeCode.join(' ');
 
         // Find the flow branching point of the flow merge. 
-        const lBranchPoint: PotatnoDocumentNode<TProject> = this.findBranchPoint(pMergeNode);
+        const lBranchPoint: PotatnoDocumentNode<TProject> = this.findBranchStartPoint(pMergeNode);
 
         // Run a sub-walk per fan-in branch into a fresh scope. Each sub-walk starts at the predecessor node with the predecessor port as its initial active port.
         const lFlowPortOutputCode: Record<string, string> = {};

@@ -4,7 +4,12 @@
     (wheel)="this.onCanvasWheel($event)"
     (contextmenu)="this.onContextMenu($event)">
     <div #gridLayer class="grid-layer" [style]="this.gridTransformStyle">
-        <potatno-connection-layer [interaction]="this.canvasInteraction" [tempConnection]="this.tempConnection"></potatno-connection-layer>
+        <potatno-connection-layer [interaction]="this.canvasInteraction"></potatno-connection-layer>
+        $if(this.showTempConnection) {
+            <svg class="temp-wire-layer" xmlns="http://www.w3.org/2000/svg">
+                <path class="temp-wire" fill="none" d="{{this.tempWirePath}}"></path>
+            </svg>
+        }
         <div class="node-layer">
             $for(nodeState of this.visibleNodes) {
                 <div class="node-position" style="left:{{this.nodeState.pixelX}}px;top:{{this.nodeState.pixelY}}px;width:{{this.nodeState.pixelW}}px">
@@ -25,10 +30,8 @@
     $if(this.showSelectionBox) {
         <div class="selection-box" [style]="this.selectionBoxStyle"></div>
     }
-    $if(this.showAddNodePopup) {
-        <potatno-add-node-popup [style]="this.addNodePopupStyle"
-            (node-select)="this.onAddNodePopupNodeSelect($event)"
-            (close)="this.onAddNodePopupClose()">
-        </potatno-add-node-popup>
-    }
+    <potatno-add-node-popup [open]="this.showAddNodePopup" [style]="this.addNodePopupStyle"
+        (node-select)="this.onAddNodePopupNodeSelect($event)"
+        (close)="this.onAddNodePopupClose()">
+    </potatno-add-node-popup>
 </div>

@@ -1,5 +1,5 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { ComponentEventEmitter, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, type IComponentOnConnect } from '@kartoffelgames/web-potato-web-builder';
+import { ComponentEventEmitter, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type IComponentOnConnect, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import { PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
@@ -23,10 +23,21 @@ import addNodePopupTemplate from './potatno-add-node-popup.html' with { type: 't
     template: addNodePopupTemplate,
     style: addNodePopupCss,
 })
-export class PotatnoAddNodePopup implements IComponentOnConnect {
+export class PotatnoAddNodePopup implements IComponentOnConnect, IComponentOnUpdate {
     private readonly mManager: PotatnoUiManager;
     private mSearchQuery: string;
     private mSelectedDefinitionId: string | null;
+    private mWasOpen: boolean;
+
+    /**
+     * Whether the popup is currently shown. The host always renders this component (so its event
+     * bindings stay attached) and toggles visibility through this input; an `$if` would destroy and
+     * recreate the component, and PWB does not re-attach component-event listeners on the recreated
+     * instance — silently dropping `node-select`.
+     */
+    @PwbExport
+    @ComponentState.state()
+    public accessor open: boolean = false;
 
     /**
      * Filtered node definition entries shown in the result list.
@@ -75,6 +86,7 @@ export class PotatnoAddNodePopup implements IComponentOnConnect {
         this.mManager = pManager;
         this.mSearchQuery = '';
         this.mSelectedDefinitionId = null;
+        this.mWasOpen = false;
         this.mFilteredEntries = [];
     }
 
@@ -123,11 +135,26 @@ export class PotatnoAddNodePopup implements IComponentOnConnect {
     }
 
     /**
-     * Build the initial result list and focus the search field.
+     * Build the result list and focus the search field if the popup mounts already open.
      */
     public onConnect(): void {
-        this.rebuildResults();
-        this.focusSearchInput();
+        this.mWasOpen = this.open;
+        if (this.open) {
+            this.rebuildResults();
+            this.focusSearchInput();
+        }
+    }
+
+    /**
+     * Rebuild the result list and focus the search field each time the popup transitions to open.
+     */
+    public onUpdate(): void {
+        if (this.open && !this.mWasOpen) {
+            this.rebuildResults();
+            this.focusSearchInput();
+        }
+
+        this.mWasOpen = this.open;
     }
 
     /**

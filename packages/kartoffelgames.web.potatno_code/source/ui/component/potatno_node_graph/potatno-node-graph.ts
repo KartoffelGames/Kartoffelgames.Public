@@ -9,7 +9,6 @@ import { PotatnoClipboard } from '../../potatno-clipboard.ts';
 import { PotatnoUiManager, PotatnoCodeUiManagerEventType } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPortRegistry } from '../../potatno-port-registry.ts';
 import type { PotatnoUiProject } from '../../potatno-ui-project.ts';
-import type { PotatnoConnectionLayerTempConnection } from '../potatno_connection_layer/potatno-connection-layer.ts';
 import type { ResizeStartDetail } from '../potatno_node_component/potatno-node-component.ts';
 import type { PortInteractionDetail } from '../potatno_port/potatno-port.ts';
 import graphCss from './potatno-node-graph.css' with { type: 'text' };
@@ -84,11 +83,11 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     private accessor mAddNodePopup: AddNodePopupState | null = null;
 
     /**
-     * The transient drag wire, in world coordinates, pushed down to the connection layer while a
-     * connection is being dragged from a port. `null` when no wire is in progress.
+     * The transient drag wire, in world coordinates, drawn while a connection is being dragged from
+     * a port. `null` when no wire is in progress.
      */
     @ComponentState.state({ complexValue: true })
-    private accessor mTempConnection: PotatnoConnectionLayerTempConnection | null = null;
+    private accessor mTempConnection: GraphTempConnection | null = null;
 
     /**
      * Root graph wrapper used for pointer coordinate calculations.
@@ -127,10 +126,22 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * The transient drag wire passed to the connection layer, or `null` when none is in progress.
+     * Whether a transient drag wire is currently being drawn.
      */
-    public get tempConnection(): PotatnoConnectionLayerTempConnection | null {
-        return this.mTempConnection;
+    public get showTempConnection(): boolean {
+        return this.mTempConnection !== null;
+    }
+
+    /**
+     * The bezier `d` attribute for the transient drag wire, or an empty string when none.
+     */
+    public get tempWirePath(): string {
+        const lTemp: GraphTempConnection | null = this.mTempConnection;
+        if (!lTemp) {
+            return '';
+        }
+
+        return this.generateBezierPath(lTemp.start.x, lTemp.start.y, lTemp.end.x, lTemp.end.y);
     }
 
     /**
@@ -631,13 +642,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             return;
         }
 
-        // Reject a duplicate of an existing connection between the same two ports. Re-adding a wire
-        // that already exists (most easily triggered when the first wire's render lagged a frame and
-        // looked absent) corrupts the document model, so guard it here.
-        if (lSource.connectedPorts.has(lTarget)) {
-            return;
-        }
-
         this.mManager.connectPorts(lSource, lTarget);
     }
 
@@ -709,6 +713,21 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         }
 
         return false;
+    }
+
+    /**
+     * Generate a cubic bezier `d` attribute between two world points for the transient drag wire.
+     *
+     * @param pX1 - Source X coordinate.
+     * @param pY1 - Source Y coordinate.
+     * @param pX2 - Target X coordinate.
+     * @param pY2 - Target Y coordinate.
+     *
+     * @returns SVG path "d" attribute string.
+     */
+    private generateBezierPath(pX1: number, pY1: number, pX2: number, pY2: number): string {
+        const lOffset: number = Math.max(Math.abs(pX2 - pX1) * 0.4, 50);
+        return `M ${pX1} ${pY1} C ${pX1 + lOffset} ${pY1}, ${pX2 - lOffset} ${pY2}, ${pX2} ${pY2}`;
     }
 
     /**
@@ -1016,6 +1035,11 @@ type AddNodePopupState = {
     screenY: number;
     worldX: number;
     worldY: number;
+};
+
+type GraphTempConnection = {
+    start: Point;
+    end: Point;
 };
 
 type NodeDragOrigin = {

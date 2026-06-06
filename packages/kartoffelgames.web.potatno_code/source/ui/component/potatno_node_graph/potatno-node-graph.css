@@ -25,6 +25,24 @@
     width: 100%;
 }
 
+.temp-wire-layer {
+    height: 100%;
+    left: 0;
+    overflow: visible;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    width: 100%;
+}
+
+.temp-wire {
+    stroke: #bac2de;
+    stroke-width: 2;
+    opacity: 0.6;
+    stroke-dasharray: 8 4;
+    pointer-events: none;
+}
+
 .node-layer {
     left: 0;
     position: absolute;

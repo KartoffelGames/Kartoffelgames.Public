@@ -19,8 +19,8 @@ import connectionLayerTemplate from './potatno-connection-layer.html' with { typ
  * through the shared {@link PotatnoPortRegistry}. The layer sits inside the graph's transformed
  * `grid-layer`, so pan/zoom is handled by the parent CSS transform and never needs a redraw — only
  * node geometry changes (a live drag, raised by the manager's `NodeTransform` event) and structural
- * changes do. Right-clicking a wire deletes it through the manager. The host graph pushes the
- * transient drag wire in via {@link tempConnection} and the live transform via {@link interaction}.
+ * changes do. Right-clicking a wire deletes it through the manager. The host graph pushes the live
+ * transform in via {@link interaction}; the transient drag wire is drawn by the graph itself.
  */
 @PwbComponent({
     selector: 'potatno-connection-layer',
@@ -40,41 +40,14 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
      * positions to graph world coordinates.
      */
     @PwbExport
-    @ComponentState.state({ complexValue: true })
+    @ComponentState.state()
     public accessor interaction: PotatnoCanvasInteraction | null = null;
-
-    /**
-     * The transient drag wire pushed in by the graph while a connection is being dragged, or `null`
-     * when no wire is in progress.
-     */
-    @PwbExport
-    @ComponentState.state({ complexValue: true })
-    public accessor tempConnection: PotatnoConnectionLayerTempConnection | null = null;
 
     /**
      * SVG element that hosts the connection paths.
      */
     @PwbChild('svgLayer')
     public accessor svgLayer!: SVGSVGElement;
-
-    /**
-     * Whether a transient drag wire is currently in progress.
-     */
-    public get hasTempConnection(): boolean {
-        return this.tempConnection !== null;
-    }
-
-    /**
-     * The bezier `d` attribute for the transient drag wire, or an empty string when none.
-     */
-    public get tempWirePath(): string {
-        const lTemp: PotatnoConnectionLayerTempConnection | null = this.tempConnection;
-        if (!lTemp) {
-            return '';
-        }
-
-        return this.mRenderer.generateBezierPath(lTemp.start.x, lTemp.start.y, lTemp.end.x, lTemp.end.y);
-    }
 
     /**
      * Create the connection layer.
@@ -158,7 +131,14 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
             return;
         }
 
-        this.mManager.disconnectPorts(lConnection.sourcePort, lConnection.targetPort);
+        // Re-resolve the live port objects by their node + definition id. The document recreates
+        // port objects during validation (`resyncPorts`/`replacePort`), so the objects captured in
+        // the registry at render time can be stale, already-disconnected instances — disconnecting
+        // those would no-op. Looking the ports back up on their (stable) nodes yields the current
+        // instances the model actually has connected.
+        const lSource: PotatnoDocumentPort<PotatnoUiProject> = lConnection.sourcePort.node.outputs.map.get(lConnection.sourcePort.definitionId) ?? lConnection.sourcePort;
+        const lTarget: PotatnoDocumentPort<PotatnoUiProject> = lConnection.targetPort.node.inputs.map.get(lConnection.targetPort.definitionId) ?? lConnection.targetPort;
+        this.mManager.disconnectPorts(lSource, lTarget);
     }
 
     /**
@@ -293,14 +273,6 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
         });
     }
 }
-
-/**
- * The transient drag wire endpoints, in graph world coordinates.
- */
-export type PotatnoConnectionLayerTempConnection = {
-    start: Point;
-    end: Point;
-};
 
 type PotatnoConnectionLayerRecord = {
     sourcePort: PotatnoDocumentPort<PotatnoUiProject>;

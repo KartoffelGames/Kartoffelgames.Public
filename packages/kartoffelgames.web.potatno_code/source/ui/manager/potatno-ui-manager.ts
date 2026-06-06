@@ -1,4 +1,5 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { IPotatnoDocumentItem } from "../../document/i-potatno-document-item.interface.ts";
 import { PotatnoDocumentFunction, type PotatnoDocumentFunctionConstructorParameter } from '../../document/potatno-document-function.ts';
 import { PotatnoDocumentNode, type PotatnoDocumentNodeTransformation } from '../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../document/potatno-document-port.ts';
@@ -10,8 +11,9 @@ import type { PotatnoCodeFileSerializationResult } from '../../serialization/pot
 import { PotatnoSerializer } from '../../serialization/potatno-serializer.ts';
 import type { PotatnoPreviewTabDescriptor } from '../component/potatno_preview/potatno-preview.ts';
 import { PotatnoHistory } from '../potatno-history.ts';
-import type { PotatnoUiProject } from '../potatno-ui-project.ts';
 import { PotatnoUiPreviewManager } from '../potatno-ui-preview-manager.ts';
+import type { PotatnoUiProject } from '../potatno-ui-project.ts';
+import { PotatnoUiManagerIntegrity } from "./manager_component/potatno-ui-manager-integrity.ts";
 
 /**
  * Central, shared state owner for the whole Potatno-code editor UI.
@@ -22,7 +24,7 @@ import { PotatnoUiPreviewManager } from '../potatno-ui-preview-manager.ts';
  * document mutations funnel through its methods so the side effects — re-validation, history
  * snapshots, preview rebuilds — happen in one place.
  *
- * It extends {@link EventTarget} and fires a typed {@link PotatnoCodeUiManagerEventType} event for
+ * It extends {@link EventTarget} and fires a typed {@link PotatnoCodeUiManagerChangeType} event for
  * every meaningful change. Components subscribe via {@link subscribe} and call their own
  * `updater.update()` in response, so they refresh from the shared state without owning a private
  * `@ComponentState` copy of it. This removes the version-token plumbing the old editor used to
@@ -32,15 +34,16 @@ import { PotatnoUiPreviewManager } from '../potatno-ui-preview-manager.ts';
 export class PotatnoUiManager extends EventTarget {
     private mActiveFunctionId: string;
     private mDocument: PotatnoDocument<PotatnoUiProject> | null;
-    private mErrorList: Array<PotatnoCodeUiManagerError>;
-    private mErrorNodes: ReadonlySet<PotatnoDocumentNode<PotatnoUiProject>>;
-    private mErrorPorts: ReadonlySet<PotatnoDocumentPort<PotatnoUiProject>>;
+
     private readonly mHistory: PotatnoHistory;
     private mHistoryDebounceTimer: number | null;
     private mPreviewDebounceTimer: number | null;
     private mPreviewManager: PotatnoUiPreviewManager<PotatnoUiProject> | null;
     private mPreviewTabs: ReadonlyArray<PotatnoPreviewTabDescriptor>;
     private mProject: PotatnoUiProject | null;
+
+    // Manager components.
+    private readonly mIntegrity: PotatnoUiManagerIntegrity;
 
     /**
      * The currently active document function, or `null` when none is resolvable.
@@ -89,27 +92,6 @@ export class PotatnoUiManager extends EventTarget {
     }
 
     /**
-     * Nodes flagged by the last validation pass. Used by the graph for error highlighting.
-     */
-    public get errorNodes(): ReadonlySet<PotatnoDocumentNode<PotatnoUiProject>> {
-        return this.mErrorNodes;
-    }
-
-    /**
-     * Ports flagged by the last validation pass. Used by the graph for error highlighting.
-     */
-    public get errorPorts(): ReadonlySet<PotatnoDocumentPort<PotatnoUiProject>> {
-        return this.mErrorPorts;
-    }
-
-    /**
-     * Human-readable validation errors for the preview panel.
-     */
-    public get errors(): Array<PotatnoCodeUiManagerError> {
-        return this.mErrorList;
-    }
-
-    /**
      * The current project, or `null` before initialization.
      */
     public get project(): PotatnoUiProject | null {
@@ -137,11 +119,11 @@ export class PotatnoUiManager extends EventTarget {
     public constructor() {
         super();
 
+        // Create manager components.
+        this.mIntegrity = new PotatnoUiManagerIntegrity(this);
+
         this.mActiveFunctionId = '';
         this.mDocument = null;
-        this.mErrorList = [];
-        this.mErrorNodes = new Set<PotatnoDocumentNode<PotatnoUiProject>>();
-        this.mErrorPorts = new Set<PotatnoDocumentPort<PotatnoUiProject>>();
         this.mHistory = new PotatnoHistory();
         this.mHistoryDebounceTimer = null;
         this.mPreviewDebounceTimer = null;
@@ -178,11 +160,9 @@ export class PotatnoUiManager extends EventTarget {
         this.mActiveFunctionId = lFunction.id;
         this.mPreviewManager?.setActiveFunction(lFunction);
 
-        this.revalidate();
         this.scheduleHistorySnapshot();
         this.schedulePreviewUpdate();
-        this.dispatch(PotatnoCodeUiManagerEventType.FunctionAdd);
-        this.dispatch(PotatnoCodeUiManagerEventType.FunctionActivate);
+        this.dispatch(PotatnoCodeUiManagerChangeType.Function, lFunction);
     }
 
     /**
@@ -201,10 +181,9 @@ export class PotatnoUiManager extends EventTarget {
 
         const lNode: PotatnoDocumentNode<PotatnoUiProject> = lActiveFunction.addNodeByDefinition(pDefinition, pTransformation);
 
-        this.revalidate();
         this.scheduleHistorySnapshot();
         this.schedulePreviewUpdate();
-        this.dispatch(PotatnoCodeUiManagerEventType.NodeAdd, { node: lNode });
+        this.dispatch(PotatnoCodeUiManagerChangeType.Node, lNode);
 
         return lNode;
     }
@@ -225,10 +204,12 @@ export class PotatnoUiManager extends EventTarget {
             return false;
         }
 
-        this.revalidate();
         this.scheduleHistorySnapshot();
         this.schedulePreviewUpdate();
-        this.dispatch(PotatnoCodeUiManagerEventType.ConnectionAdd, { ports: [pSource, pTarget] });
+
+        // Dispatch for from-node as well as to-node.
+        this.dispatch(PotatnoCodeUiManagerChangeType.Connection, pSource);
+        this.dispatch(PotatnoCodeUiManagerChangeType.Connection, pTarget);
 
         return true;
     }
@@ -242,10 +223,12 @@ export class PotatnoUiManager extends EventTarget {
     public disconnectPorts(pSource: PotatnoDocumentPort<PotatnoUiProject>, pTarget: PotatnoDocumentPort<PotatnoUiProject>): void {
         pSource.disconnect(pTarget);
 
-        this.revalidate();
         this.scheduleHistorySnapshot();
         this.schedulePreviewUpdate();
-        this.dispatch(PotatnoCodeUiManagerEventType.ConnectionDelete, { ports: [pSource, pTarget] });
+
+        // Dispatch for from-node as well as to-node.
+        this.dispatch(PotatnoCodeUiManagerChangeType.Connection, pSource);
+        this.dispatch(PotatnoCodeUiManagerChangeType.Connection, pTarget);
     }
 
     /**
@@ -304,38 +287,82 @@ export class PotatnoUiManager extends EventTarget {
      *
      * @param pProject - The project configuration backing the editor.
      */
-    public initialize(pProject: PotatnoUiProject): void {
+    public initialize(pProject: PotatnoUiProject, pDocument: PotatnoDocument<PotatnoUiProject>): void {
         this.mProject = pProject;
-        this.mPreviewManager = new PotatnoUiPreviewManager<PotatnoUiProject>(pProject);
+        this.mPreviewManager = new PotatnoUiPreviewManager<PotatnoUiProject>(pProject, pDocument);
         this.mActiveFunctionId = '';
         this.mDocument = null;
         this.mHistory.clear();
-        this.revalidate();
-        this.dispatch(PotatnoCodeUiManagerEventType.DocumentChange);
+
+        this.dispatch(PotatnoCodeUiManagerChangeType.Document, pDocument);
     }
 
     /**
-     * Subscribe to one or more manager events. The callback fires after the manager state is
-     * already updated, so consumers can read the fresh state directly.
+     * Subscribe to one or more manager events.
+     * The callback fires after the manager state is already updated, so consumers can read the fresh state directly.
      *
      * @param pTypes - Event types to listen for.
-     * @param pCallback - Handler invoked with the change detail.
+     * @param pTargets - Potatno document targets for this listener. Threated as reference. Targets can be changed after subscribing.
+     * @param pListener - Handler invoked with the change detail.
      *
      * @returns An unsubscribe function removing every registered listener.
      */
-    public subscribe(pTypes: ReadonlyArray<PotatnoCodeUiManagerEventType>, pCallback: (pDetail: PotatnoCodeUiManagerChangeDetail) => void): () => void {
-        const lHandler = (pEvent: Event): void => {
-            pCallback((pEvent as CustomEvent<PotatnoCodeUiManagerChangeDetail>).detail);
+    public subscribe(pTypes: PotatnoCodeUiManagerChangeType, pTargets: Set<PotatnoUiManagerChangeEventTarget> | null, pListener: (pEvent: PotatnoUiManagerChangeEvent) => void): () => void {
+        const lTargetMatched = (pItem: PotatnoUiManagerChangeEventTarget): boolean => {
+            if (!pTargets) {
+                return true;
+            }
+
+            // Intialize waterfall buffer.
+            let lItem: PotatnoUiManagerChangeEventTarget | null = pItem;
+            while (lItem !== null) {
+                // Check for a existing target. 
+                if (pTargets.has(lItem)) {
+                    return true;
+                }
+
+                // Cascade down from port -> node -> function to check all levels for targets.
+                switch (true) {
+                    case lItem instanceof PotatnoDocumentPort: {
+                        lItem = lItem.node;
+                        break;
+                    }
+                    case lItem instanceof PotatnoDocumentNode: {
+                        lItem = lItem.function;
+                        break;
+                    }
+                    case lItem instanceof PotatnoDocumentFunction: {
+                        lItem = lItem.document;
+                        break;
+                    }
+                }
+            }
+
+            return false;
         };
 
-        for (const lType of pTypes) {
-            this.addEventListener(lType, lHandler);
-        }
-
-        return () => {
-            for (const lType of pTypes) {
-                this.removeEventListener(lType, lHandler);
+        // Custom wrapper for scoping the actual event listener.
+        const lEventHandler = (pEvent: PotatnoUiManagerChangeEvent): void => {
+            // Skip event when handler is not "any" and does not contains the change type.
+            if (pTypes !== PotatnoCodeUiManagerChangeType.Any && (pEvent.changeType % pTypes) === 0) {
+                return;
             }
+
+            // Skip if no target can be matched.
+            if (pTargets !== null && !lTargetMatched(pEvent.item)) {
+                return;
+            }
+
+            // Not its fine to fire the actual handler.
+            pListener(pEvent);
+        };
+
+        // Add wrapped callback as listner.
+        this.addEventListener(PotatnoUiManagerChangeEvent.EVENT_TYPE, lEventHandler as (pEvent: Event) => void);
+
+        // Return a unsubscribe callback.
+        return () => {
+            this.removeEventListener(PotatnoUiManagerChangeEvent.EVENT_TYPE, lEventHandler as (pEvent: Event) => void);
         };
     }
 
@@ -359,8 +386,23 @@ export class PotatnoUiManager extends EventTarget {
      * layer can redraw its wires. Carries no history/preview/validation side effects — those are
      * committed separately on pointer-up via {@link commitNodeChange}.
      */
-    public notifyNodeTransform(): void {
-        this.dispatch(PotatnoCodeUiManagerEventType.NodeTransform);
+    public transformNode(pNode: PotatnoDocumentNode<PotatnoUiProject>, pTransformation: Partial<PotatnoDocumentNodeTransformation>): void {
+        // Build full transformation and override provided data.
+        const lTransformation: PotatnoDocumentNodeTransformation = {
+            x: pNode.transformation.x,
+            y: pNode.transformation.y,
+            width: pNode.transformation.width,
+            height: pNode.transformation.height,
+
+            // Override with provided data.
+            ...pTransformation
+        };
+
+        // Move and resize.
+        pNode.moveTo(lTransformation.x, lTransformation.y);
+        pNode.resizeTo(lTransformation.width, lTransformation.height);
+
+        this.dispatch(PotatnoCodeUiManagerChangeType.NodeTransform, pNode);
     }
 
     /**
@@ -373,10 +415,9 @@ export class PotatnoUiManager extends EventTarget {
             return;
         }
 
-        this.revalidate();
         this.scheduleHistorySnapshot();
         this.schedulePreviewUpdate();
-        this.dispatch(PotatnoCodeUiManagerEventType.NodeAdd);
+        this.dispatch(PotatnoCodeUiManagerChangeType.NodeAdd);
     }
 
     /**
@@ -392,7 +433,7 @@ export class PotatnoUiManager extends EventTarget {
         if (pAffectsPreview) {
             this.schedulePreviewUpdate();
         }
-        this.dispatch(PotatnoCodeUiManagerEventType.NodeChange, pNode ? { node: pNode } : {});
+        this.dispatch(PotatnoCodeUiManagerChangeType.NodeChange, pNode ? { node: pNode } : {});
     }
 
     /**
@@ -441,11 +482,10 @@ export class PotatnoUiManager extends EventTarget {
             this.mPreviewManager?.setActiveFunction(this.activeFunction);
         }
 
-        this.revalidate();
         this.scheduleHistorySnapshot();
         this.schedulePreviewUpdate();
-        this.dispatch(PotatnoCodeUiManagerEventType.FunctionDelete);
-        this.dispatch(PotatnoCodeUiManagerEventType.FunctionActivate);
+        this.dispatch(PotatnoCodeUiManagerChangeType.FunctionDelete);
+        this.dispatch(PotatnoCodeUiManagerChangeType.FunctionActivate);
     }
 
     /**
@@ -471,10 +511,9 @@ export class PotatnoUiManager extends EventTarget {
             return false;
         }
 
-        this.revalidate();
         this.scheduleHistorySnapshot();
         this.schedulePreviewUpdate();
-        this.dispatch(PotatnoCodeUiManagerEventType.NodeDelete);
+        this.dispatch(PotatnoCodeUiManagerChangeType.NodeDelete);
 
         return true;
     }
@@ -494,9 +533,8 @@ export class PotatnoUiManager extends EventTarget {
             if (lFunction.id === pFunctionId) {
                 this.mActiveFunctionId = pFunctionId;
                 this.mPreviewManager?.setActiveFunction(lFunction);
-                this.revalidate();
                 this.schedulePreviewUpdate();
-                this.dispatch(PotatnoCodeUiManagerEventType.FunctionActivate);
+                this.dispatch(PotatnoCodeUiManagerChangeType.FunctionActivate);
                 return;
             }
         }
@@ -515,8 +553,7 @@ export class PotatnoUiManager extends EventTarget {
             this.mPreviewManager?.setActiveFunction(null);
             this.mPreviewManager?.setDocument(null);
             this.mPreviewTabs = [];
-            this.revalidate();
-            this.dispatch(PotatnoCodeUiManagerEventType.DocumentChange);
+            this.dispatch(PotatnoCodeUiManagerChangeType.DocumentChange);
             return;
         }
 
@@ -550,7 +587,7 @@ export class PotatnoUiManager extends EventTarget {
 
         this.scheduleHistorySnapshot();
         this.schedulePreviewUpdate();
-        this.dispatch(PotatnoCodeUiManagerEventType.NodeChange, { node: pPort.node });
+        this.dispatch(PotatnoCodeUiManagerChangeType.NodeChange, { node: pPort.node });
     }
 
     /**
@@ -586,7 +623,7 @@ export class PotatnoUiManager extends EventTarget {
 
         this.scheduleHistorySnapshot();
         this.schedulePreviewUpdate();
-        this.dispatch(PotatnoCodeUiManagerEventType.NodeChange, { node: pNode });
+        this.dispatch(PotatnoCodeUiManagerChangeType.NodeChange, { node: pNode });
     }
 
     /**
@@ -604,7 +641,7 @@ export class PotatnoUiManager extends EventTarget {
 
         this.scheduleHistorySnapshot();
         this.schedulePreviewUpdate();
-        this.dispatch(PotatnoCodeUiManagerEventType.NodeChange, { node: pNode });
+        this.dispatch(PotatnoCodeUiManagerChangeType.NodeChange, { node: pNode });
     }
 
     /**
@@ -686,10 +723,9 @@ export class PotatnoUiManager extends EventTarget {
             }
         }
 
-        this.revalidate();
         this.scheduleHistorySnapshot();
         this.schedulePreviewUpdate();
-        this.dispatch(PotatnoCodeUiManagerEventType.FunctionChange);
+        this.dispatch(PotatnoCodeUiManagerChangeType.FunctionChange);
     }
 
     /**
@@ -703,11 +739,10 @@ export class PotatnoUiManager extends EventTarget {
         this.mHistory.clear();
         this.mPreviewManager?.setActiveFunction(this.activeFunction);
 
-        this.revalidate();
         // Push the initial snapshot so the first edit is undoable.
         this.pushHistorySnapshot();
         this.rebuildPreviewDrivers();
-        this.dispatch(PotatnoCodeUiManagerEventType.DocumentChange);
+        this.dispatch(PotatnoCodeUiManagerChangeType.DocumentChange);
     }
 
     /**
@@ -749,8 +784,9 @@ export class PotatnoUiManager extends EventTarget {
      * @param pType - Event type to dispatch.
      * @param pDetail - Optional change detail.
      */
-    private dispatch(pType: PotatnoCodeUiManagerEventType, pDetail: PotatnoCodeUiManagerChangeDetail = {}): void {
-        this.dispatchEvent(new CustomEvent<PotatnoCodeUiManagerChangeDetail>(pType, { detail: { type: pType, ...pDetail } }));
+    private dispatch(pType: PotatnoCodeUiManagerChangeType, pItem: PotatnoUiManagerChangeEventTarget): void {
+        // Create and dispatch custom change event.
+        this.dispatchEvent(new PotatnoUiManagerChangeEvent(pType, pItem));
     }
 
     /**
@@ -809,7 +845,7 @@ export class PotatnoUiManager extends EventTarget {
         } catch (pError) {
             console.error('[PotatnoCodeUiManager] Preview manager rebuild failed:', pError);
             this.mPreviewTabs = [];
-            this.dispatch(PotatnoCodeUiManagerEventType.PreviewChange);
+            this.dispatch(PotatnoCodeUiManagerChangeType.PreviewChange);
             return;
         }
 
@@ -822,7 +858,7 @@ export class PotatnoUiManager extends EventTarget {
         }
 
         this.mPreviewTabs = lTabs;
-        this.dispatch(PotatnoCodeUiManagerEventType.PreviewChange);
+        this.dispatch(PotatnoCodeUiManagerChangeType.PreviewChange);
     }
 
     /**
@@ -843,35 +879,8 @@ export class PotatnoUiManager extends EventTarget {
         }
 
         this.mPreviewManager?.setActiveFunction(this.activeFunction);
-        this.revalidate();
         this.schedulePreviewUpdate();
-        this.dispatch(PotatnoCodeUiManagerEventType.DocumentChange);
-    }
-
-    /**
-     * Re-run document validation and refresh the cached error list and highlight sets.
-     */
-    private revalidate(): void {
-        const lDocument: PotatnoDocument<PotatnoUiProject> | null = this.mDocument;
-        const lErrorList: Array<PotatnoCodeUiManagerError> = [];
-        const lErrorNodes: Set<PotatnoDocumentNode<PotatnoUiProject>> = new Set<PotatnoDocumentNode<PotatnoUiProject>>();
-        const lErrorPorts: Set<PotatnoDocumentPort<PotatnoUiProject>> = new Set<PotatnoDocumentPort<PotatnoUiProject>>();
-
-        if (lDocument) {
-            for (const lError of lDocument.validate()) {
-                if (lError.item instanceof PotatnoDocumentPort) {
-                    lErrorList.push({ location: `Node "${lError.item.node.label}"`, message: lError.message });
-                    lErrorPorts.add(lError.item);
-                    lErrorNodes.add(lError.item.node);
-                } else if (lError.item instanceof PotatnoDocumentNode) {
-                    lErrorNodes.add(lError.item);
-                }
-            }
-        }
-
-        this.mErrorList = lErrorList;
-        this.mErrorNodes = lErrorNodes;
-        this.mErrorPorts = lErrorPorts;
+        this.dispatch(PotatnoCodeUiManagerChangeType.DocumentChange);
     }
 
     /**
@@ -906,49 +915,48 @@ export class PotatnoUiManager extends EventTarget {
 /**
  * Event types fired by {@link PotatnoUiManager}.
  */
-export const PotatnoCodeUiManagerEventType = {
-    ConnectionAdd: 'connection-add',
-    ConnectionDelete: 'connection-delete',
-    DocumentChange: 'document-change',
-    FunctionActivate: 'function-activate',
-    FunctionAdd: 'function-add',
-    FunctionChange: 'function-change',
-    FunctionDelete: 'function-delete',
-    NodeAdd: 'node-add',
-    NodeChange: 'node-change',
-    NodeDelete: 'node-delete',
-    NodeTransform: 'node-transform',
-    PreviewChange: 'preview-change'
+export const PotatnoCodeUiManagerChangeType = {
+    Any: 0,
+    Connection: 1,
+    Document: 2,
+    Function: 4,
+    Node: 8,
+    NodeTransform: 16
 } as const;
-export type PotatnoCodeUiManagerEventType = typeof PotatnoCodeUiManagerEventType[keyof typeof PotatnoCodeUiManagerEventType];
+export type PotatnoCodeUiManagerChangeType = typeof PotatnoCodeUiManagerChangeType[keyof typeof PotatnoCodeUiManagerChangeType];
 
 /**
- * Detail payload carried by every {@link PotatnoUiManager} event.
+ * Custom change event dispatched by the {@link PotatnoUiManager}
  */
-export type PotatnoCodeUiManagerChangeDetail = {
-    /**
-     * The event type that produced this detail.
-     */
-    type?: PotatnoCodeUiManagerEventType;
+class PotatnoUiManagerChangeEvent extends Event {
+    public static readonly EVENT_TYPE: string = 'PotatnoUiManagerChangeEvent';
+
+    private readonly mChangeType: PotatnoCodeUiManagerChangeType;
+    private readonly mEventItem: PotatnoUiManagerChangeEventTarget;
 
     /**
-     * The node a node-scoped event refers to.
+     * The event type that produced this event.
      */
-    node?: PotatnoDocumentNode<PotatnoUiProject>;
+    public get changeType(): PotatnoCodeUiManagerChangeType {
+        return this.mChangeType;
+    }
 
     /**
-     * The endpoints a connection-scoped event refers to.
+     * The potatno document item the event refers to.
      */
-    ports?: ReadonlyArray<PotatnoDocumentPort<PotatnoUiProject>>;
-};
+    public get item(): PotatnoUiManagerChangeEventTarget {
+        return this.mEventItem;
+    }
 
-/**
- * A validation error shaped for the preview panel.
- */
-export type PotatnoCodeUiManagerError = {
-    location: string;
-    message: string;
-};
+    public constructor(pChangeType: PotatnoCodeUiManagerChangeType, pEventItem: PotatnoUiManagerChangeEventTarget) {
+        super(PotatnoUiManagerChangeEvent.EVENT_TYPE);
+
+        this.mChangeType = pChangeType;
+        this.mEventItem = pEventItem;
+    }
+}
+
+export type PotatnoUiManagerChangeEventTarget = IPotatnoDocumentItem<PotatnoUiProject> | PotatnoDocument<PotatnoUiProject>;
 
 /**
  * A function port descriptor for the properties panel.

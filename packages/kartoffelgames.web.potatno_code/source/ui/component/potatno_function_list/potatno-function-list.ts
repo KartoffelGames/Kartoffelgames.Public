@@ -1,7 +1,7 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentState, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocument } from '../../../document/potatno-document.ts';
-import { PotatnoUiManager, PotatnoCodeUiManagerEventType } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerChangeType } from '../../manager/potatno-ui-manager.ts';
 import type { PotatnoUiProject } from '../../potatno-ui-project.ts';
 import templateCss from './potatno-function-list.css' with { type: 'text' };
 import functionListTemplate from './potatno-function-list.html' with { type: 'text' };
@@ -114,11 +114,11 @@ export class PotatnoFunctionList implements IComponentOnConnect, IComponentOnDec
      */
     public onConnect(): void {
         this.mUnsubscribe = this.mManager.subscribe([
-            PotatnoCodeUiManagerEventType.DocumentChange,
-            PotatnoCodeUiManagerEventType.FunctionActivate,
-            PotatnoCodeUiManagerEventType.FunctionAdd,
-            PotatnoCodeUiManagerEventType.FunctionChange,
-            PotatnoCodeUiManagerEventType.FunctionDelete
+            PotatnoCodeUiManagerChangeType.DocumentChange,
+            PotatnoCodeUiManagerChangeType.FunctionActivate,
+            PotatnoCodeUiManagerChangeType.FunctionAdd,
+            PotatnoCodeUiManagerChangeType.FunctionChange,
+            PotatnoCodeUiManagerChangeType.FunctionDelete
         ], () => {
             this.mComponent.updater.update();
         });

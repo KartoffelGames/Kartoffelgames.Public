@@ -95,7 +95,7 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
     private readonly mProject: TProject;
     private mActiveFunction: PotatnoDocumentFunction<TProject> | null;
     private mDescriptorFunction: PotatnoDocumentFunction<TProject> | null;
-    private mDocument: PotatnoDocument<TProject> | null;
+    private mDocument: PotatnoDocument<TProject>;
     private mDriverDocument: PotatnoDocument<TProject> | null;
     private mFunctionDescriptors: Array<PotatnoUiPreviewDescriptor<TProject>>;
     private mNodeDescriptors: Map<PotatnoDocumentNode<TProject>, PotatnoUiPreviewDescriptor<TProject>>;
@@ -115,11 +115,12 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
      *
      * @param pProject - Project that owns the preview registry and node definitions.
      */
-    public constructor(pProject: TProject) {
+    public constructor(pProject: TProject, pDocument: PotatnoDocument<TProject>) {
         this.mProject = pProject;
+        this.mDocument = pDocument;
+
         this.mActiveFunction = null;
         this.mDescriptorFunction = null;
-        this.mDocument = null;
         this.mDriverDocument = null;
         this.mFunctionDescriptors = new Array<PotatnoUiPreviewDescriptor<TProject>>();
         this.mNodeDescriptors = new Map<PotatnoDocumentNode<TProject>, PotatnoUiPreviewDescriptor<TProject>>();
@@ -288,17 +289,6 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
         }
 
         return this.mProject.getFunction(lFunction.definitionId) ?? null;
-    }
-
-    /**
-     * Bind the active document. Triggers an immediate `rebuild()` so descriptors reflect the
-     * new document state (or clears them when the document is removed).
-     *
-     * @param pDocument - The document to bind, or `null` to clear.
-     */
-    public setDocument(pDocument: PotatnoDocument<TProject> | null): void {
-        this.mDocument = pDocument;
-        this.rebuild();
     }
 
     /**

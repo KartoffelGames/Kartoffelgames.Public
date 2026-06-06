@@ -3,7 +3,7 @@ import { Component, ComponentEventEmitter, ComponentState, PwbChild, PwbComponen
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoProjectTypeDefinition } from "../../../project/potatno-project-types-definition.ts";
-import { PotatnoUiManager, PotatnoCodeUiManagerEventType } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerChangeType } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPortRegistry } from '../../potatno-port-registry.ts';
 import type { PotatnoUiProject } from '../../potatno-ui-project.ts';
 import portCss from './potatno-port.css' with { type: 'text' };
@@ -174,9 +174,9 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      */
     public onConnect(): void {
         this.mUnsubscribe = this.mManager.subscribe([
-            PotatnoCodeUiManagerEventType.ConnectionAdd,
-            PotatnoCodeUiManagerEventType.ConnectionDelete,
-            PotatnoCodeUiManagerEventType.NodeChange
+            PotatnoCodeUiManagerChangeType.ConnectionAdd,
+            PotatnoCodeUiManagerChangeType.ConnectionDelete,
+            PotatnoCodeUiManagerChangeType.NodeChange
         ], () => {
             this.mComponent.updater.update();
         });
@@ -222,7 +222,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
 
         // The port element's real position is now known; nudge the connection layer to redraw any
         // wire that used an estimated anchor before this port mounted.
-        this.mManager.notifyNodeTransform();
+        this.mManager.transformNode();
     }
 
     /**

@@ -2,7 +2,7 @@ import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentEventEmitter, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEvent, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoUiManager, PotatnoCodeUiManagerEventType } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerChangeType } from '../../manager/potatno-ui-manager.ts';
 import type { PotatnoUiProject } from '../../potatno-ui-project.ts';
 import type { PortInteractionDetail } from '../potatno_port/potatno-port.ts';
 import nodeCss from './potatno-node-component.css' with { type: 'text' };
@@ -274,13 +274,13 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      */
     public onConnect(): void {
         this.mUnsubscribe = this.mManager.subscribe([
-            PotatnoCodeUiManagerEventType.FunctionChange,
-            PotatnoCodeUiManagerEventType.NodeAdd,
-            PotatnoCodeUiManagerEventType.NodeChange,
-            PotatnoCodeUiManagerEventType.NodeDelete,
-            PotatnoCodeUiManagerEventType.ConnectionAdd,
-            PotatnoCodeUiManagerEventType.ConnectionDelete,
-            PotatnoCodeUiManagerEventType.PreviewChange
+            PotatnoCodeUiManagerChangeType.FunctionChange,
+            PotatnoCodeUiManagerChangeType.NodeAdd,
+            PotatnoCodeUiManagerChangeType.NodeChange,
+            PotatnoCodeUiManagerChangeType.NodeDelete,
+            PotatnoCodeUiManagerChangeType.ConnectionAdd,
+            PotatnoCodeUiManagerChangeType.ConnectionDelete,
+            PotatnoCodeUiManagerChangeType.PreviewChange
         ], () => {
             this.mComponent.updater.update();
         });

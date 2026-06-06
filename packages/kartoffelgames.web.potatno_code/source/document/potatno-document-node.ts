@@ -67,7 +67,7 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
     /**
      * Get the grid position and size of the node.
      */
-    public get transformation(): PotatnoDocumentNodeTransformation {
+    public get transformation(): Readonly<PotatnoDocumentNodeTransformation> {
         return this.mTransformation;
     }
 
@@ -179,9 +179,10 @@ export class PotatnoDocumentNode<TProject extends PotatnoProject> implements IPo
     /**
      * Resize the node (comment nodes).
      */
-    public resizeTo(pW: number, pH: number): void {
-        this.mTransformation.width = Math.max(4, pW);
-        this.mTransformation.height = Math.max(2, pH);
+    public resizeTo(pWidth: number, pHeight: number): void {
+        // Min size to [4, 4] so the UI cant break for [0, 0] sized nodes.
+        this.mTransformation.width = Math.max(4, pWidth);
+        this.mTransformation.height = Math.max(4, pHeight);
     }
 
     /**

@@ -1,6 +1,6 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentState, PwbChild, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
-import { PotatnoUiManager, PotatnoCodeUiManagerEventType, type PotatnoCodeUiManagerError } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerChangeType, type PotatnoCodeUiManagerError } from '../../manager/potatno-ui-manager.ts';
 import type { PotatnoUiPreviewOutputOption } from '../../potatno-ui-preview-manager.ts';
 import templateCss from './potatno-preview.css' with { type: 'text' };
 import previewTemplate from './potatno-preview.html' with { type: 'text' };
@@ -157,15 +157,15 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      */
     public onConnect(): void {
         this.mUnsubscribe = this.mManager.subscribe([
-            PotatnoCodeUiManagerEventType.DocumentChange,
-            PotatnoCodeUiManagerEventType.FunctionActivate,
-            PotatnoCodeUiManagerEventType.FunctionChange,
-            PotatnoCodeUiManagerEventType.NodeAdd,
-            PotatnoCodeUiManagerEventType.NodeChange,
-            PotatnoCodeUiManagerEventType.NodeDelete,
-            PotatnoCodeUiManagerEventType.ConnectionAdd,
-            PotatnoCodeUiManagerEventType.ConnectionDelete,
-            PotatnoCodeUiManagerEventType.PreviewChange
+            PotatnoCodeUiManagerChangeType.DocumentChange,
+            PotatnoCodeUiManagerChangeType.FunctionActivate,
+            PotatnoCodeUiManagerChangeType.FunctionChange,
+            PotatnoCodeUiManagerChangeType.NodeAdd,
+            PotatnoCodeUiManagerChangeType.NodeChange,
+            PotatnoCodeUiManagerChangeType.NodeDelete,
+            PotatnoCodeUiManagerChangeType.ConnectionAdd,
+            PotatnoCodeUiManagerChangeType.ConnectionDelete,
+            PotatnoCodeUiManagerChangeType.PreviewChange
         ], () => {
             this.reconcileActiveTab();
             this.mComponent.updater.update();

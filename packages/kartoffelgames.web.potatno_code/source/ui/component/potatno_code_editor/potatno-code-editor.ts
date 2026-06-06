@@ -3,7 +3,7 @@ import { Component, PwbChild, PwbComponent, PwbExport, type IComponentOnConnect,
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocument } from '../../../document/potatno-document.ts';
 import type { PotatnoCodeFileSerializationResult } from '../../../serialization/potatno-serialization.type.ts';
-import { PotatnoUiManager, PotatnoCodeUiManagerEventType } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerChangeType } from '../../manager/potatno-ui-manager.ts';
 import type { PotatnoUiProject } from '../../potatno-ui-project.ts';
 import editorCss from './potatno-code-editor.css' with { type: 'text' };
 import editorTemplate from './potatno-code-editor.html' with { type: 'text' };
@@ -139,11 +139,11 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      */
     public onConnect(): void {
         this.mUnsubscribe = this.mManager.subscribe([
-            PotatnoCodeUiManagerEventType.DocumentChange,
-            PotatnoCodeUiManagerEventType.FunctionActivate,
-            PotatnoCodeUiManagerEventType.FunctionAdd,
-            PotatnoCodeUiManagerEventType.FunctionDelete,
-            PotatnoCodeUiManagerEventType.PreviewChange
+            PotatnoCodeUiManagerChangeType.DocumentChange,
+            PotatnoCodeUiManagerChangeType.FunctionActivate,
+            PotatnoCodeUiManagerChangeType.FunctionAdd,
+            PotatnoCodeUiManagerChangeType.FunctionDelete,
+            PotatnoCodeUiManagerChangeType.PreviewChange
         ], () => {
             this.mComponent.updater.update();
         });

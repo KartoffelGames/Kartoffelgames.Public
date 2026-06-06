@@ -1,7 +1,7 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
-import { PotatnoUiManager, PotatnoCodeUiManagerEventType, type PotatnoCodeUiManagerPortView } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerChangeType, type PotatnoCodeUiManagerPortView } from '../../manager/potatno-ui-manager.ts';
 import type { PotatnoUiProject } from '../../potatno-ui-project.ts';
 import templateCss from './potatno-panel-properties.css' with { type: 'text' };
 import propertiesTemplate from './potatno-panel-properties.html' with { type: 'text' };
@@ -131,9 +131,9 @@ export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOn
      */
     public onConnect(): void {
         this.mUnsubscribe = this.mManager.subscribe([
-            PotatnoCodeUiManagerEventType.DocumentChange,
-            PotatnoCodeUiManagerEventType.FunctionActivate,
-            PotatnoCodeUiManagerEventType.FunctionChange
+            PotatnoCodeUiManagerChangeType.DocumentChange,
+            PotatnoCodeUiManagerChangeType.FunctionActivate,
+            PotatnoCodeUiManagerChangeType.FunctionChange
         ], () => {
             this.mComponent.updater.update();
         });

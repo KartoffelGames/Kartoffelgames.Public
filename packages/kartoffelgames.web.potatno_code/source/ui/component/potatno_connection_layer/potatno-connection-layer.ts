@@ -2,7 +2,7 @@ import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { ComponentState, PwbChild, PwbComponent, PwbExport, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoUiManager, PotatnoCodeUiManagerEventType } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerChangeType } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoCanvasRenderer, type ConnectionRenderData } from '../../potatno-canvas-renderer.ts';
 import type { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import { PotatnoPortRegistry } from '../../potatno-port-registry.ts';
@@ -69,15 +69,15 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
      */
     public onConnect(): void {
         this.mUnsubscribe = this.mManager.subscribe([
-            PotatnoCodeUiManagerEventType.DocumentChange,
-            PotatnoCodeUiManagerEventType.FunctionActivate,
-            PotatnoCodeUiManagerEventType.FunctionChange,
-            PotatnoCodeUiManagerEventType.NodeAdd,
-            PotatnoCodeUiManagerEventType.NodeChange,
-            PotatnoCodeUiManagerEventType.NodeDelete,
-            PotatnoCodeUiManagerEventType.NodeTransform,
-            PotatnoCodeUiManagerEventType.ConnectionAdd,
-            PotatnoCodeUiManagerEventType.ConnectionDelete
+            PotatnoCodeUiManagerChangeType.DocumentChange,
+            PotatnoCodeUiManagerChangeType.FunctionActivate,
+            PotatnoCodeUiManagerChangeType.FunctionChange,
+            PotatnoCodeUiManagerChangeType.NodeAdd,
+            PotatnoCodeUiManagerChangeType.NodeChange,
+            PotatnoCodeUiManagerChangeType.NodeDelete,
+            PotatnoCodeUiManagerChangeType.NodeTransform,
+            PotatnoCodeUiManagerChangeType.ConnectionAdd,
+            PotatnoCodeUiManagerChangeType.ConnectionDelete
         ], () => {
             this.scheduleRender();
         });

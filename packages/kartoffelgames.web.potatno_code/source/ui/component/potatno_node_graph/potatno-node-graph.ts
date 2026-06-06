@@ -6,7 +6,7 @@ import type { PotatnoDocumentPort } from '../../../document/potatno-document-por
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import { PotatnoClipboard } from '../../potatno-clipboard.ts';
-import { PotatnoUiManager, PotatnoCodeUiManagerEventType } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerChangeType } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPortRegistry } from '../../potatno-port-registry.ts';
 import type { PotatnoUiProject } from '../../potatno-ui-project.ts';
 import type { ResizeStartDetail } from '../potatno_node_component/potatno-node-component.ts';
@@ -221,16 +221,16 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         // Refresh the graph whenever the document, active function, or graph structure changes.
         // A document load or function switch resets all interaction state first.
         this.mUnsubscribe = this.mManager.subscribe([
-            PotatnoCodeUiManagerEventType.DocumentChange,
-            PotatnoCodeUiManagerEventType.FunctionActivate,
-            PotatnoCodeUiManagerEventType.FunctionChange,
-            PotatnoCodeUiManagerEventType.NodeAdd,
-            PotatnoCodeUiManagerEventType.NodeChange,
-            PotatnoCodeUiManagerEventType.NodeDelete,
-            PotatnoCodeUiManagerEventType.ConnectionAdd,
-            PotatnoCodeUiManagerEventType.ConnectionDelete
+            PotatnoCodeUiManagerChangeType.DocumentChange,
+            PotatnoCodeUiManagerChangeType.FunctionActivate,
+            PotatnoCodeUiManagerChangeType.FunctionChange,
+            PotatnoCodeUiManagerChangeType.NodeAdd,
+            PotatnoCodeUiManagerChangeType.NodeChange,
+            PotatnoCodeUiManagerChangeType.NodeDelete,
+            PotatnoCodeUiManagerChangeType.ConnectionAdd,
+            PotatnoCodeUiManagerChangeType.ConnectionDelete
         ], (pDetail) => {
-            if (pDetail.type === PotatnoCodeUiManagerEventType.DocumentChange || pDetail.type === PotatnoCodeUiManagerEventType.FunctionActivate) {
+            if (pDetail.type === PotatnoCodeUiManagerChangeType.DocumentChange || pDetail.type === PotatnoCodeUiManagerChangeType.FunctionActivate) {
                 this.resetForActiveFunction();
             }
 
@@ -695,7 +695,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         this.rebuildVisibleNodePositions();
 
         // The node geometry changed; let the connection layer redraw its wires to follow.
-        this.mManager.notifyNodeTransform();
+        this.mManager.transformNode();
     }
 
     /**

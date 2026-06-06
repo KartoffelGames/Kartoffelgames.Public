@@ -4,7 +4,7 @@
     (wheel)="this.onCanvasWheel($event)"
     (contextmenu)="this.onContextMenu($event)">
     <div #gridLayer class="grid-layer" [style]="this.gridTransformStyle">
-        <svg #svgLayer class="svg-layer" xmlns="http://www.w3.org/2000/svg"></svg>
+        <potatno-connection-layer [interaction]="this.canvasInteraction" [tempConnection]="this.tempConnection"></potatno-connection-layer>
         <div class="node-layer">
             $for(nodeState of this.visibleNodes) {
                 <div class="node-position" style="left:{{this.nodeState.pixelX}}px;top:{{this.nodeState.pixelY}}px;width:{{this.nodeState.pixelW}}px">
@@ -16,7 +16,6 @@
                         (port-drag-start)="this.onPortDragStart($event)"
                         (port-hover)="this.onPortHover($event)"
                         (port-leave)="this.onPortLeave()"
-                        (port-element-ready)="this.onPortElementReady($event)"
                         (resize-start)="this.onNodeResizeStart($event)">
                     </potatno-node>
                 </div>
@@ -27,21 +26,9 @@
         <div class="selection-box" [style]="this.selectionBoxStyle"></div>
     }
     $if(this.showAddNodePopup) {
-        <div class="add-node-popup" [style]="this.addNodePopupStyle" (pointerdown)="this.onAddNodePopupPointerDown($event)">
-            <input class="add-node-search" type="text" placeholder="Search nodes..." [value]="this.addNodeSearchValue" (input)="this.onAddNodeSearchInput($event)" (keydown)="this.onAddNodeSearchKeyDown($event)" />
-            <div class="add-node-results">
-                $for(entry of this.addNodeResults) {
-                    <button [className]="this.getAddNodeEntryClass(this.entry)" (pointerdown)="this.onAddNodeEntryPointerDown($event, this.entry)">
-                        <span class="add-node-result-border" style="background: {{this.getAddNodeEntryColor(this.entry)}}"></span>
-                        <span class="add-node-result-icon">{{this.getAddNodeEntryIcon(this.entry)}}</span>
-                        <span class="add-node-result-name">{{this.entry.name}}</span>
-                        <span class="add-node-result-category">{{this.getAddNodeEntryCategoryLabel(this.entry)}}</span>
-                    </button>
-                }
-                $if(this.addNodeResults.length === 0) {
-                    <div class="add-node-empty">No matching nodes found.</div>
-                }
-            </div>
-        </div>
+        <potatno-add-node-popup [style]="this.addNodePopupStyle"
+            (node-select)="this.onAddNodePopupNodeSelect($event)"
+            (close)="this.onAddNodePopupClose()">
+        </potatno-add-node-popup>
     }
 </div>

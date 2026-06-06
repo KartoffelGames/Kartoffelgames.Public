@@ -8,7 +8,7 @@ import type { PotatnoCodeGeneratorDocumentResult } from '../parser/result/potatn
 import type { PotatnoCodeGeneratorFunctionResult } from '../parser/result/potatno-code-generator-function-result.ts';
 import type { PotatnoPreviewDriverHandle } from '../preview/potatno-preview-driver.ts';
 import type { PotatnoPreviewEntry } from '../preview/potatno-preview.ts';
-import type { PotatnoUiProject } from './potatno-node-definition-list.ts';
+import type { PotatnoUiProject } from './potatno-ui-project.ts';
 
 /**
  * One ready-to-render preview built by the manager.

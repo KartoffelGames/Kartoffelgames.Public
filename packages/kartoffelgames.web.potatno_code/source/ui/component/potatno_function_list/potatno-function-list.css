@@ -37,6 +37,7 @@
     color: var(--pn-text-primary);
     background: transparent;
     border: none;
+    box-sizing: border-box;
     width: 100%;
     text-align: left;
     transition: background 0.1s;
@@ -110,6 +111,7 @@
     align-items: center;
     justify-content: center;
     gap: 6px;
+    box-sizing: border-box;
     width: 100%;
     padding: 6px 12px;
     background: var(--pn-bg-surface);

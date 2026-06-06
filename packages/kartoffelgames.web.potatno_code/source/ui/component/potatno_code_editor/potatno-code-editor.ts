@@ -4,13 +4,13 @@ import type { PotatnoDocumentFunction } from '../../../document/potatno-document
 import type { PotatnoDocument } from '../../../document/potatno-document.ts';
 import type { PotatnoCodeFileSerializationResult } from '../../../serialization/potatno-serialization.type.ts';
 import { PotatnoUiManager, PotatnoCodeUiManagerEventType } from '../../manager/potatno-ui-manager.ts';
-import type { PotatnoUiProject } from '../../potatno-node-definition-list.ts';
+import type { PotatnoUiProject } from '../../potatno-ui-project.ts';
 import editorCss from './potatno-code-editor.css' with { type: 'text' };
 import editorTemplate from './potatno-code-editor.html' with { type: 'text' };
 
 // Import child components to ensure they are registered.
+import '../potatno_function_list/potatno-function-list.ts';
 import '../potatno_node_graph/potatno-node-graph.ts';
-import '../potatno_panel_left/potatno-panel-left.ts';
 import '../potatno_panel_properties/potatno-panel-properties.ts';
 import '../potatno_preview/potatno-preview.ts';
 
@@ -186,6 +186,11 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      * @param pEvent - Pointer event that started resizing.
      */
     private startPanelResize(pPanel: 'left' | 'right', pEvent: PointerEvent): void {
+        // Tear down any in-progress resize first. This must happen before the new state is assigned:
+        // stopPanelResize() clears mResizeState, so calling it afterwards would null the state the
+        // move handler checks and silently no-op every resize.
+        this.stopPanelResize();
+
         const lPanelElement: HTMLElement = pPanel === 'left' ? this.panelLeft : this.panelRight;
         this.mResizeState = { panel: pPanel, startWidth: lPanelElement.offsetWidth, startX: pEvent.clientX };
 
@@ -208,7 +213,6 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
             this.mResizeUpHandler = null;
         };
 
-        this.stopPanelResize();
         this.mResizeMoveHandler = lMoveHandler;
         this.mResizeUpHandler = lUpHandler;
         document.addEventListener('pointermove', lMoveHandler);

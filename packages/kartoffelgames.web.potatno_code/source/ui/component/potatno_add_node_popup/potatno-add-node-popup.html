@@ -1,0 +1,19 @@
+<div class="add-node-popup"
+    (pointerdown)="this.onRootPointerDown($event)"
+    (wheel)="this.onRootWheel($event)"
+    (contextmenu)="this.onRootContextMenu($event)">
+    <input class="add-node-search" #searchInput type="text" placeholder="Search nodes..." [value]="this.searchValue" (input)="this.onSearchInput($event)" (keydown)="this.onSearchKeyDown($event)" />
+    <div class="add-node-results">
+        $for(entry of this.results) {
+            <button [className]="this.getEntryClass(this.entry)" (pointerdown)="this.onEntryPointerDown($event, this.entry)">
+                <span class="add-node-result-border" style="background: {{this.getEntryColor(this.entry)}}"></span>
+                <span class="add-node-result-icon">{{this.getEntryIcon(this.entry)}}</span>
+                <span class="add-node-result-name">{{this.entry.name}}</span>
+                <span class="add-node-result-category">{{this.getEntryCategoryLabel(this.entry)}}</span>
+            </button>
+        }
+        $if(this.results.length === 0) {
+            <div class="add-node-empty">No matching nodes found.</div>
+        }
+    </div>
+</div>

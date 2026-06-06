@@ -10,7 +10,7 @@ import type { PotatnoCodeFileSerializationResult } from '../../serialization/pot
 import { PotatnoSerializer } from '../../serialization/potatno-serializer.ts';
 import type { PotatnoPreviewTabDescriptor } from '../component/potatno_preview/potatno-preview.ts';
 import { PotatnoHistory } from '../potatno-history.ts';
-import type { PotatnoUiProject } from '../potatno-node-definition-list.ts';
+import type { PotatnoUiProject } from '../potatno-ui-project.ts';
 import { PotatnoUiPreviewManager } from '../potatno-ui-preview-manager.ts';
 
 /**
@@ -355,6 +355,15 @@ export class PotatnoUiManager extends EventTarget {
     }
 
     /**
+     * Announce a transient, in-place node geometry change (a live drag or resize) so the connection
+     * layer can redraw its wires. Carries no history/preview/validation side effects — those are
+     * committed separately on pointer-up via {@link commitNodeChange}.
+     */
+    public notifyNodeTransform(): void {
+        this.dispatch(PotatnoCodeUiManagerEventType.NodeTransform);
+    }
+
+    /**
      * Paste clipboard contents into the active function.
      *
      * @param pNodes - The freshly pasted nodes produced by the clipboard.
@@ -604,10 +613,15 @@ export class PotatnoUiManager extends EventTarget {
      * @returns A promise resolving once the render pass finishes.
      */
     public triggerPreviewUpdate(): Promise<void> {
-        // Suppress preview generation while the document has validation errors: generation always
-        // validates first and throws on an invalid graph, so an unguarded per-frame tick would fail
-        // every frame. The main preview is hidden during errors anyway; cached per-node previews
-        // keep rendering their last value.
+        // Suppress preview generation while the document has validation errors. Drivers are
+        // pull-model — code only executes when their `render()` is called from here — so passing
+        // the error flag down is what actually keeps work from running, not just hidden:
+        //  - The main (function-level) preview is skipped entirely: `render(true)` drops the
+        //    function descriptors, so its compiled callable is never invoked. It is not shown
+        //    during errors (only the error list is), so nothing should run for it in the background.
+        //  - Per-node previews keep rendering their last cached callable (`allowCompile: false`),
+        //    so a value already computed before the error still shows, but no fresh — failing —
+        //    generation is triggered.
         const lHasValidationErrors: boolean = this.mErrorList.length > 0;
         return this.mPreviewManager?.render(lHasValidationErrors) ?? Promise.resolve();
     }
@@ -903,6 +917,7 @@ export const PotatnoCodeUiManagerEventType = {
     NodeAdd: 'node-add',
     NodeChange: 'node-change',
     NodeDelete: 'node-delete',
+    NodeTransform: 'node-transform',
     PreviewChange: 'preview-change'
 } as const;
 export type PotatnoCodeUiManagerEventType = typeof PotatnoCodeUiManagerEventType[keyof typeof PotatnoCodeUiManagerEventType];

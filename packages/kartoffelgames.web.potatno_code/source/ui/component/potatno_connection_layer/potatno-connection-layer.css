@@ -1,0 +1,19 @@
+:host {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.svg-layer {
+    height: 100%;
+    left: 0;
+    overflow: visible;
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    width: 100%;
+}
+
+.svg-layer path[data-hit-area] {
+    pointer-events: stroke;
+}

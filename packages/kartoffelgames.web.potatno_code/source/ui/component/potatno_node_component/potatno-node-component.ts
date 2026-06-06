@@ -3,7 +3,7 @@ import { Component, ComponentEventEmitter, ComponentState, PwbChild, PwbComponen
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoUiManager, PotatnoCodeUiManagerEventType } from '../../manager/potatno-ui-manager.ts';
-import type { PotatnoUiProject } from '../../potatno-node-definition-list.ts';
+import type { PotatnoUiProject } from '../../potatno-ui-project.ts';
 import type { PortInteractionDetail } from '../potatno_port/potatno-port.ts';
 import nodeCss from './potatno-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
@@ -71,9 +71,6 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
 
     @PwbComponentEvent('resize-start')
     private accessor mResizeStart!: ComponentEventEmitter<ResizeStartDetail>;
-
-    @PwbComponentEvent('port-element-ready')
-    private accessor mPortElementReady!: ComponentEventEmitter<PortInteractionDetail>;
 
     /**
      * CSS class string for the selected state.
@@ -326,15 +323,6 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      */
     public onPortLeave(): void {
         this.mPortLeave.dispatchEvent(undefined as unknown as void);
-    }
-
-    /**
-     * Re-emit a port-element-ready event from a child port component.
-     *
-     * @param pEvent - Port interaction event from the port component.
-     */
-    public onPortElementReady(pEvent: ComponentEvent<PortInteractionDetail>): void {
-        this.mPortElementReady.dispatchEvent(pEvent.value);
     }
 
     /**

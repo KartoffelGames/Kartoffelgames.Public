@@ -4,7 +4,8 @@ import type { PotatnoDocumentNode } from '../../../document/potatno-document-nod
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoProjectTypeDefinition } from "../../../project/potatno-project-types-definition.ts";
 import { PotatnoUiManager, PotatnoCodeUiManagerEventType } from '../../manager/potatno-ui-manager.ts';
-import type { PotatnoUiProject } from '../../potatno-node-definition-list.ts';
+import { PotatnoPortRegistry } from '../../potatno-port-registry.ts';
+import type { PotatnoUiProject } from '../../potatno-ui-project.ts';
 import portCss from './potatno-port.css' with { type: 'text' };
 import portTemplate from './potatno-port.html' with { type: 'text' };
 
@@ -25,6 +26,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     private readonly mComponent: Component;
     private mLastRegisteredPort: PotatnoDocumentPort<PotatnoUiProject> | null;
     private readonly mManager: PotatnoUiManager;
+    private readonly mPortRegistry: PotatnoPortRegistry;
     private mUnsubscribe: (() => void) | null;
 
     /**
@@ -49,9 +51,6 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
 
     @PwbComponentEvent('port-leave')
     private accessor mPortLeave!: ComponentEventEmitter<void>;
-
-    @PwbComponentEvent('port-element-ready')
-    private accessor mPortElementReady!: ComponentEventEmitter<PortInteractionDetail>;
 
     /**
      * Reference to the port circle DOM element for position calculations.
@@ -162,10 +161,11 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      * @param pComponent - Injected component reference, used to trigger self-updates.
      * @param pManager - Injected shared UI manager singleton.
      */
-    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
+    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager), pPortRegistry: PotatnoPortRegistry = Injection.use(PotatnoPortRegistry)) {
         this.mComponent = pComponent;
         this.mLastRegisteredPort = null;
         this.mManager = pManager;
+        this.mPortRegistry = pPortRegistry;
         this.mUnsubscribe = null;
     }
 
@@ -183,16 +183,22 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     }
 
     /**
-     * Detach the manager subscription.
+     * Detach the manager subscription and drop this port's element registration.
      */
     public onDeconstruct(): void {
         this.mUnsubscribe?.();
         this.mUnsubscribe = null;
+
+        if (this.mLastRegisteredPort) {
+            this.mPortRegistry.unregister(this.mLastRegisteredPort);
+            this.mLastRegisteredPort = null;
+        }
     }
 
     /**
-     * After each update, register this port's circle element with the parent graph via event.
-     * Only emits when the port reference changes to avoid redundant events on every tick.
+     * After each update, register this port's circle element with the shared port registry so the
+     * connection layer can anchor wires to it. Only re-registers when the port reference changes to
+     * avoid redundant work on every tick.
      */
     public onUpdate(): void {
         if (!this.port || !this.ownerNode || this.port === this.mLastRegisteredPort) {
@@ -206,12 +212,17 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
             return;
         }
 
+        // Drop the previous port's registration when this component is recycled for another port.
+        if (this.mLastRegisteredPort && this.mLastRegisteredPort !== this.port) {
+            this.mPortRegistry.unregister(this.mLastRegisteredPort);
+        }
+
         this.mLastRegisteredPort = this.port;
-        this.mPortElementReady.dispatchEvent({
-            node: this.ownerNode,
-            port: this.port,
-            element: lCircleEl
-        });
+        this.mPortRegistry.register(this.port, lCircleEl);
+
+        // The port element's real position is now known; nudge the connection layer to redraw any
+        // wire that used an estimated anchor before this port mounted.
+        this.mManager.notifyNodeTransform();
     }
 
     /**

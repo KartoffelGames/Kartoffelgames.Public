@@ -62,7 +62,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      * Whether this port currently has a validation error.
      */
     public get hasError(): boolean {
-        return this.port !== null && this.mManager.errorPorts.has(this.port);
+        return this.port !== null && this.mManager.errorItems.has(this.port);
     }
 
     /**
@@ -173,13 +173,12 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      * Subscribe to manager events that change this port's connection-dependent visuals.
      */
     public onConnect(): void {
-        this.mUnsubscribe = this.mManager.subscribe([
-            PotatnoCodeUiManagerChangeType.ConnectionAdd,
-            PotatnoCodeUiManagerChangeType.ConnectionDelete,
-            PotatnoCodeUiManagerChangeType.NodeChange
-        ], () => {
-            this.mComponent.updater.update();
-        });
+        this.mUnsubscribe = this.mManager.subscribe(
+            PotatnoCodeUiManagerChangeType.Connection | PotatnoCodeUiManagerChangeType.Node,
+            null,
+            () => {
+                this.mComponent.updater.update();
+            });
     }
 
     /**
@@ -201,7 +200,9 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      * avoid redundant work on every tick.
      */
     public onUpdate(): void {
-        if (!this.port || !this.ownerNode || this.port === this.mLastRegisteredPort) {
+        const lPort: PotatnoDocumentPort<PotatnoUiProject> | null = this.port;
+        const lNode: PotatnoDocumentNode<PotatnoUiProject> | null = this.ownerNode;
+        if (!lPort || !lNode || lPort === this.mLastRegisteredPort) {
             return;
         }
 
@@ -213,16 +214,17 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         }
 
         // Drop the previous port's registration when this component is recycled for another port.
-        if (this.mLastRegisteredPort && this.mLastRegisteredPort !== this.port) {
+        if (this.mLastRegisteredPort && this.mLastRegisteredPort !== lPort) {
             this.mPortRegistry.unregister(this.mLastRegisteredPort);
         }
 
-        this.mLastRegisteredPort = this.port;
-        this.mPortRegistry.register(this.port, lCircleEl);
+        this.mLastRegisteredPort = lPort;
+        this.mPortRegistry.register(lPort, lCircleEl);
 
         // The port element's real position is now known; nudge the connection layer to redraw any
-        // wire that used an estimated anchor before this port mounted.
-        this.mManager.transformNode();
+        // wire that used an estimated anchor before this port mounted. An empty transformation
+        // re-applies the node's current geometry, so this only fires the redraw notification.
+        this.mManager.transformNode(lNode, {});
     }
 
     /**

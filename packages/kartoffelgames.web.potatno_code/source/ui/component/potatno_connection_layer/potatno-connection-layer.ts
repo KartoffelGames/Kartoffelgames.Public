@@ -1,5 +1,6 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { ComponentState, PwbChild, PwbComponent, PwbExport, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-item.interface.ts';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoUiManager, PotatnoCodeUiManagerChangeType } from '../../manager/potatno-ui-manager.ts';
@@ -68,19 +69,12 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
      * Subscribe to the manager events that change the rendered connection set and draw once.
      */
     public onConnect(): void {
-        this.mUnsubscribe = this.mManager.subscribe([
-            PotatnoCodeUiManagerChangeType.DocumentChange,
-            PotatnoCodeUiManagerChangeType.FunctionActivate,
-            PotatnoCodeUiManagerChangeType.FunctionChange,
-            PotatnoCodeUiManagerChangeType.NodeAdd,
-            PotatnoCodeUiManagerChangeType.NodeChange,
-            PotatnoCodeUiManagerChangeType.NodeDelete,
-            PotatnoCodeUiManagerChangeType.NodeTransform,
-            PotatnoCodeUiManagerChangeType.ConnectionAdd,
-            PotatnoCodeUiManagerChangeType.ConnectionDelete
-        ], () => {
-            this.scheduleRender();
-        });
+        this.mUnsubscribe = this.mManager.subscribe(
+            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.NodeTransform | PotatnoCodeUiManagerChangeType.Connection,
+            null,
+            () => {
+                this.scheduleRender();
+            });
 
         this.scheduleRender();
     }
@@ -224,7 +218,7 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
             return;
         }
 
-        const lErrorPorts: ReadonlySet<PotatnoDocumentPort<PotatnoUiProject>> = this.mManager.errorPorts;
+        const lErrorItems: ReadonlySet<IPotatnoDocumentItem<PotatnoUiProject>> = this.mManager.errorItems;
         const lConnectionData: Array<ConnectionRenderData> = [];
         this.mConnectionRegistry.clear();
 
@@ -235,7 +229,7 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
                     const lId: string = `c${lConnectionIndex++}`;
                     const lSourcePosition: Point = this.getPortPosition(lOutputPort);
                     const lTargetPosition: Point = this.getPortPosition(lConnectedPort);
-                    const lHasError: boolean = lErrorPorts.has(lOutputPort) || lErrorPorts.has(lConnectedPort);
+                    const lHasError: boolean = lErrorItems.has(lOutputPort) || lErrorItems.has(lConnectedPort);
 
                     this.mConnectionRegistry.set(lId, {
                         sourcePort: lOutputPort,

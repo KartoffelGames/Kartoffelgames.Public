@@ -1,6 +1,7 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentState, PwbChild, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
-import { PotatnoUiManager, PotatnoCodeUiManagerChangeType, type PotatnoCodeUiManagerError } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerChangeType } from '../../manager/potatno-ui-manager.ts';
+import type { PotatnoCodeUiManagerIntegrityError } from '../../manager/manager_component/potatno-ui-manager-integrity.ts';
 import type { PotatnoUiPreviewOutputOption } from '../../potatno-ui-preview-manager.ts';
 import templateCss from './potatno-preview.css' with { type: 'text' };
 import previewTemplate from './potatno-preview.html' with { type: 'text' };
@@ -82,7 +83,7 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
     /**
      * Validation errors to display instead of the preview.
      */
-    public get errors(): ReadonlyArray<PotatnoCodeUiManagerError> {
+    public get errors(): ReadonlyArray<PotatnoCodeUiManagerIntegrityError> {
         return this.mManager.errors;
     }
 
@@ -156,20 +157,13 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      * Subscribe to manager events affecting the preview content and validation list.
      */
     public onConnect(): void {
-        this.mUnsubscribe = this.mManager.subscribe([
-            PotatnoCodeUiManagerChangeType.DocumentChange,
-            PotatnoCodeUiManagerChangeType.FunctionActivate,
-            PotatnoCodeUiManagerChangeType.FunctionChange,
-            PotatnoCodeUiManagerChangeType.NodeAdd,
-            PotatnoCodeUiManagerChangeType.NodeChange,
-            PotatnoCodeUiManagerChangeType.NodeDelete,
-            PotatnoCodeUiManagerChangeType.ConnectionAdd,
-            PotatnoCodeUiManagerChangeType.ConnectionDelete,
-            PotatnoCodeUiManagerChangeType.PreviewChange
-        ], () => {
-            this.reconcileActiveTab();
-            this.mComponent.updater.update();
-        });
+        this.mUnsubscribe = this.mManager.subscribe(
+            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection | PotatnoCodeUiManagerChangeType.Preview,
+            null,
+            () => {
+                this.reconcileActiveTab();
+                this.mComponent.updater.update();
+            });
 
         // Pick an initial active tab when the panel mounts with descriptors already built.
         this.reconcileActiveTab();

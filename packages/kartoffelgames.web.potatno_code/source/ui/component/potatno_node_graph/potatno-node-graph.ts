@@ -220,23 +220,17 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
 
         // Refresh the graph whenever the document, active function, or graph structure changes.
         // A document load or function switch resets all interaction state first.
-        this.mUnsubscribe = this.mManager.subscribe([
-            PotatnoCodeUiManagerChangeType.DocumentChange,
-            PotatnoCodeUiManagerChangeType.FunctionActivate,
-            PotatnoCodeUiManagerChangeType.FunctionChange,
-            PotatnoCodeUiManagerChangeType.NodeAdd,
-            PotatnoCodeUiManagerChangeType.NodeChange,
-            PotatnoCodeUiManagerChangeType.NodeDelete,
-            PotatnoCodeUiManagerChangeType.ConnectionAdd,
-            PotatnoCodeUiManagerChangeType.ConnectionDelete
-        ], (pDetail) => {
-            if (pDetail.type === PotatnoCodeUiManagerChangeType.DocumentChange || pDetail.type === PotatnoCodeUiManagerChangeType.FunctionActivate) {
-                this.resetForActiveFunction();
-            }
+        this.mUnsubscribe = this.mManager.subscribe(
+            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection,
+            null,
+            (pEvent) => {
+                if (pEvent.changeType === PotatnoCodeUiManagerChangeType.Document || pEvent.changeType === PotatnoCodeUiManagerChangeType.Function) {
+                    this.resetForActiveFunction();
+                }
 
-            this.invalidateGraphContent();
-            this.mComponent.updater.update();
-        });
+                this.invalidateGraphContent();
+                this.mComponent.updater.update();
+            });
 
         this.invalidateGraphContent();
     }
@@ -687,15 +681,13 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         const lDx: number = (pEvent.clientX - pState.startX) / lZoom;
         const lDy: number = (pEvent.clientY - pState.startY) / lZoom;
 
+        // Move each dragged node through the manager so the connection layer redraws its wires to follow.
         for (const [lNode, lOrigin] of pState.origins) {
             const lSnapped: Point = this.mInteraction.snapToGrid(lOrigin.originX + lDx, lOrigin.originY + lDy);
-            lNode.moveTo(Math.round(lSnapped.x / lGridSize), Math.round(lSnapped.y / lGridSize));
+            this.mManager.transformNode(lNode, { x: Math.round(lSnapped.x / lGridSize), y: Math.round(lSnapped.y / lGridSize) });
         }
 
         this.rebuildVisibleNodePositions();
-
-        // The node geometry changed; let the connection layer redraw its wires to follow.
-        this.mManager.transformNode();
     }
 
     /**

@@ -367,7 +367,7 @@ Deno.test('PotatnoDocumentNode.resizeTo()', async (pContext) => {
         expect(defaultEntry.transformation.width).toBe(4);
     });
 
-    await pContext.step('Clamps height to minimum 2', () => {
+    await pContext.step('Clamps height to minimum 4', () => {
         // Setup.
         const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
@@ -375,7 +375,7 @@ Deno.test('PotatnoDocumentNode.resizeTo()', async (pContext) => {
         defaultEntry.resizeTo(10, 1);
 
         // Evaluation.
-        expect(defaultEntry.transformation.height).toBe(2);
+        expect(defaultEntry.transformation.height).toBe(4);
     });
 });
 

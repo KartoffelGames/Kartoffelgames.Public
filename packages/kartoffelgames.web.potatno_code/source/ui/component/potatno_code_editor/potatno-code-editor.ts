@@ -30,6 +30,7 @@ import '../potatno_preview/potatno-preview.ts';
 export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements IComponentOnConnect, IComponentOnDeconstruct {
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
+    private mProject: TProject | null;
     private mResizeMoveHandler: ((pEvent: PointerEvent) => void) | null;
     private mResizeState: { panel: 'left' | 'right'; startX: number; startWidth: number; } | null;
     private mResizeUpHandler: (() => void) | null;
@@ -69,8 +70,8 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
     /**
      * Current document state.
      */
-    public get file(): PotatnoDocument<TProject> | null {
-        return this.mManager.document as PotatnoDocument<TProject> | null;
+    public get file(): PotatnoDocument<TProject> {
+        return this.mManager.document as PotatnoDocument<TProject>;
     }
 
     /**
@@ -82,6 +83,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
     public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mComponent = pComponent;
         this.mManager = pManager;
+        this.mProject = null;
         this.mResizeMoveHandler = null;
         this.mResizeState = null;
         this.mResizeUpHandler = null;
@@ -93,15 +95,20 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      */
     @PwbExport
     public set project(pProject: TProject) {
-        this.mManager.initialize(pProject);
+        // Cache the project. The manager is initialized once the document arrives via `file`.
+        this.mProject = pProject;
     }
 
     /**
      * Document state backing the editor.
      */
     @PwbExport
-    public set file(pFile: PotatnoDocument<TProject> | null) {
-        this.mManager.setDocument(pFile as PotatnoDocument<PotatnoUiProject> | null);
+    public set file(pFile: PotatnoDocument<TProject>) {
+        if (!this.mProject) {
+            return;
+        }
+
+        this.mManager.initialize(this.mProject as PotatnoUiProject, pFile as PotatnoDocument<PotatnoUiProject>);
     }
 
     /**
@@ -138,15 +145,12 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      * Subscribe to the manager so the preview panel toggles with preview availability.
      */
     public onConnect(): void {
-        this.mUnsubscribe = this.mManager.subscribe([
-            PotatnoCodeUiManagerChangeType.DocumentChange,
-            PotatnoCodeUiManagerChangeType.FunctionActivate,
-            PotatnoCodeUiManagerChangeType.FunctionAdd,
-            PotatnoCodeUiManagerChangeType.FunctionDelete,
-            PotatnoCodeUiManagerChangeType.PreviewChange
-        ], () => {
-            this.mComponent.updater.update();
-        });
+        this.mUnsubscribe = this.mManager.subscribe(
+            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.Preview,
+            null,
+            () => {
+                this.mComponent.updater.update();
+            });
     }
 
     /**

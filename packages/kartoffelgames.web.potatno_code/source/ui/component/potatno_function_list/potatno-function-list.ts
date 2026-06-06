@@ -113,15 +113,12 @@ export class PotatnoFunctionList implements IComponentOnConnect, IComponentOnDec
      * Subscribe to manager function events.
      */
     public onConnect(): void {
-        this.mUnsubscribe = this.mManager.subscribe([
-            PotatnoCodeUiManagerChangeType.DocumentChange,
-            PotatnoCodeUiManagerChangeType.FunctionActivate,
-            PotatnoCodeUiManagerChangeType.FunctionAdd,
-            PotatnoCodeUiManagerChangeType.FunctionChange,
-            PotatnoCodeUiManagerChangeType.FunctionDelete
-        ], () => {
-            this.mComponent.updater.update();
-        });
+        this.mUnsubscribe = this.mManager.subscribe(
+            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function,
+            null,
+            () => {
+                this.mComponent.updater.update();
+            });
     }
 
     /**

@@ -23,9 +23,9 @@ export class PotatnoCodeApplication<TProject extends PotatnoProject> extends Pwb
     /**
      * Get the current code file (document state).
      */
-    public get document(): PotatnoDocument<TProject> | null {
+    public get document(): PotatnoDocument<TProject> {
         return this.mCodeEditor.file;
-    } set document(pFile: PotatnoDocument<TProject> | null) {
+    } set document(pFile: PotatnoDocument<TProject>) {
         this.mCodeEditor.file = pFile;
     }
 
@@ -54,8 +54,9 @@ export class PotatnoCodeApplication<TProject extends PotatnoProject> extends Pwb
         // Add the editor component and store the element reference.
         this.mCodeEditor = this.addContent(PotatnoCodeEditor) as unknown as PotatnoCodeEditor<TProject>;
 
-        // Pass the project configuration into the editor.
+        // Pass the project configuration into the editor, then seed it with an empty document.
         this.mCodeEditor.project = pProject;
+        this.mCodeEditor.file = new PotatnoDocument(pProject);
     }
 
     /**

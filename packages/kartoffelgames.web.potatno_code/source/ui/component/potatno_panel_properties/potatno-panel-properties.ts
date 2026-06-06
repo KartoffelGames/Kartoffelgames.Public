@@ -130,13 +130,12 @@ export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOn
      * Subscribe to manager events that change the displayed function.
      */
     public onConnect(): void {
-        this.mUnsubscribe = this.mManager.subscribe([
-            PotatnoCodeUiManagerChangeType.DocumentChange,
-            PotatnoCodeUiManagerChangeType.FunctionActivate,
-            PotatnoCodeUiManagerChangeType.FunctionChange
-        ], () => {
-            this.mComponent.updater.update();
-        });
+        this.mUnsubscribe = this.mManager.subscribe(
+            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function,
+            null,
+            () => {
+                this.mComponent.updater.update();
+            });
     }
 
     /**

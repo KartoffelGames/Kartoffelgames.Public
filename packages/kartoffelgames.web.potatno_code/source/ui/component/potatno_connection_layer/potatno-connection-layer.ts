@@ -1,5 +1,5 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { ComponentState, PwbChild, PwbComponent, PwbExport, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
+import { ComponentState, PwbChild, PwbComponent, PwbExport, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoUiManager, PotatnoCodeUiManagerEventType } from '../../manager/potatno-ui-manager.ts';
@@ -27,7 +27,7 @@ import connectionLayerTemplate from './potatno-connection-layer.html' with { typ
     template: connectionLayerTemplate,
     style: connectionLayerCss,
 })
-export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOnDeconstruct, IComponentOnUpdate {
+export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOnDeconstruct {
     private readonly mConnectionRegistry: Map<string, PotatnoConnectionLayerRecord>;
     private readonly mManager: PotatnoUiManager;
     private mPendingRenderFrame: number;
@@ -58,6 +58,25 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
     public accessor svgLayer!: SVGSVGElement;
 
     /**
+     * Whether a transient drag wire is currently in progress.
+     */
+    public get hasTempConnection(): boolean {
+        return this.tempConnection !== null;
+    }
+
+    /**
+     * The bezier `d` attribute for the transient drag wire, or an empty string when none.
+     */
+    public get tempWirePath(): string {
+        const lTemp: PotatnoConnectionLayerTempConnection | null = this.tempConnection;
+        if (!lTemp) {
+            return '';
+        }
+
+        return this.mRenderer.generateBezierPath(lTemp.start.x, lTemp.start.y, lTemp.end.x, lTemp.end.y);
+    }
+
+    /**
      * Create the connection layer.
      *
      * @param pManager - Injected shared UI manager singleton.
@@ -79,6 +98,7 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
         this.mUnsubscribe = this.mManager.subscribe([
             PotatnoCodeUiManagerEventType.DocumentChange,
             PotatnoCodeUiManagerEventType.FunctionActivate,
+            PotatnoCodeUiManagerEventType.FunctionChange,
             PotatnoCodeUiManagerEventType.NodeAdd,
             PotatnoCodeUiManagerEventType.NodeChange,
             PotatnoCodeUiManagerEventType.NodeDelete,
@@ -102,23 +122,6 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
         if (this.mPendingRenderFrame !== 0) {
             cancelAnimationFrame(this.mPendingRenderFrame);
             this.mPendingRenderFrame = 0;
-        }
-    }
-
-    /**
-     * Render or clear the transient drag wire after each input update.
-     */
-    public onUpdate(): void {
-        const lSvg: SVGSVGElement | null = this.getSvgLayerOrNull();
-        if (!lSvg) {
-            return;
-        }
-
-        const lTemp: PotatnoConnectionLayerTempConnection | null = this.tempConnection;
-        if (lTemp) {
-            this.mRenderer.renderTempConnection(lSvg, lTemp.start, lTemp.end, '#bac2de');
-        } else {
-            this.mRenderer.clearTempConnection(lSvg);
         }
     }
 

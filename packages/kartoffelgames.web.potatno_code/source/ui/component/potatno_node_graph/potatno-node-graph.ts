@@ -212,6 +212,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         this.mUnsubscribe = this.mManager.subscribe([
             PotatnoCodeUiManagerEventType.DocumentChange,
             PotatnoCodeUiManagerEventType.FunctionActivate,
+            PotatnoCodeUiManagerEventType.FunctionChange,
             PotatnoCodeUiManagerEventType.NodeAdd,
             PotatnoCodeUiManagerEventType.NodeChange,
             PotatnoCodeUiManagerEventType.NodeDelete,
@@ -223,6 +224,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             }
 
             this.invalidateGraphContent();
+            this.mComponent.updater.update();
         });
 
         this.invalidateGraphContent();
@@ -626,6 +628,13 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         }
 
         if (lSource.direction === lTarget.direction || lSource.portType !== lTarget.portType) {
+            return;
+        }
+
+        // Reject a duplicate of an existing connection between the same two ports. Re-adding a wire
+        // that already exists (most easily triggered when the first wire's render lagged a frame and
+        // looked absent) corrupts the document model, so guard it here.
+        if (lSource.connectedPorts.has(lTarget)) {
             return;
         }
 

@@ -17,3 +17,11 @@
 .svg-layer path[data-hit-area] {
     pointer-events: stroke;
 }
+
+.temp-wire {
+    stroke: #bac2de;
+    stroke-width: 2;
+    opacity: 0.6;
+    stroke-dasharray: 8 4;
+    pointer-events: none;
+}

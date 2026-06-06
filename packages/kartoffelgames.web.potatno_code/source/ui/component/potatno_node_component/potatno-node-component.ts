@@ -274,6 +274,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      */
     public onConnect(): void {
         this.mUnsubscribe = this.mManager.subscribe([
+            PotatnoCodeUiManagerEventType.FunctionChange,
             PotatnoCodeUiManagerEventType.NodeAdd,
             PotatnoCodeUiManagerEventType.NodeChange,
             PotatnoCodeUiManagerEventType.NodeDelete,

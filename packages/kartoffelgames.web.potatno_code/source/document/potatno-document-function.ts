@@ -482,20 +482,29 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject> implements
         // Node counter to space addded nodes.
         let lNodeCounter = 0;
 
+        const lItemSpacing: number = 20;
+
         // Validate that every entry and exit node exists.
         for (const lSystemNodeDefinition of lSystemNodes) {
+
             // System node exists, all fine continue. Nothing to see here.
             if (lCurrentNodes.has(lSystemNodeDefinition.id)) {
                 continue;
             }
 
-            lNodeCounter++;
+            console.log(Math.floor(lNodeCounter / (lSystemNodes.length / 2)));
 
             this.addNodeByDefinition(lSystemNodeDefinition, {
-                x: 0, 
-                y: lNodeCounter * 15,
+                // First half left (x:2) second half right (x: 20).
+                x: (Math.floor(lNodeCounter / (lSystemNodes.length / 2)) * lItemSpacing) + 2,
+                
+                // First half and second half both start at (y: 2)
+                y: (lNodeCounter * lItemSpacing) + 2 - (Math.floor(lNodeCounter / (lSystemNodes.length / 2)) * ((lSystemNodes.length / 2) * lItemSpacing)),
+
                 width: 0, height: 0
             });
+
+            lNodeCounter++;
         }
     }
 }

@@ -84,7 +84,7 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      * Validation errors to display instead of the preview.
      */
     public get errors(): ReadonlyArray<PotatnoCodeUiManagerIntegrityError> {
-        return this.mManager.errors;
+        return this.mManager.integrity.errors;
     }
 
     /**
@@ -98,7 +98,7 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      * Whether there are any validation errors to display.
      */
     public get hasErrors(): boolean {
-        return this.mManager.errors.length > 0;
+        return !this.mManager.integrity.isValid;
     }
 
     /**

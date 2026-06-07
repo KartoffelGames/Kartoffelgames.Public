@@ -14,6 +14,8 @@ import { PotatnoHistory } from '../potatno-history.ts';
 import { PotatnoUiPreviewManager } from '../potatno-ui-preview-manager.ts';
 import type { PotatnoUiProject } from '../potatno-ui-project.ts';
 import { PotatnoUiManagerIntegrity, type PotatnoCodeUiManagerIntegrityError } from './manager_component/potatno-ui-manager-integrity.ts';
+import { PotatnoUiManagerGraph } from "./manager_component/potatno-ui-manager-graph.ts";
+import { PotatnoUiManagerHistory } from "./manager_component/potatno-ui-manager-history.ts";
 
 /**
  * Central, shared state owner for the whole Potatno-code editor UI.
@@ -33,9 +35,7 @@ import { PotatnoUiManagerIntegrity, type PotatnoCodeUiManagerIntegrityError } fr
 @Injection.injectable('singleton')
 export class PotatnoUiManager extends EventTarget {
     private mActiveFunctionId: string;
-    private mDocument: PotatnoDocument<PotatnoUiProject> | null;
 
-    private readonly mHistory: PotatnoHistory;
     private mHistoryDebounceTimer: number | null;
     private mPreviewDebounceTimer: number | null;
     private mPreviewManager: PotatnoUiPreviewManager<PotatnoUiProject> | null;
@@ -43,7 +43,30 @@ export class PotatnoUiManager extends EventTarget {
     private mProject: PotatnoUiProject | null;
 
     // Manager components.
+    private readonly mGraph: PotatnoUiManagerGraph;
+    private readonly mHistory: PotatnoUiManagerHistory;
     private readonly mIntegrity: PotatnoUiManagerIntegrity;
+
+    /**
+     * UI manager document component.
+     */
+    public get graph(): PotatnoUiManagerGraph {
+        return this.mGraph;
+    }
+
+    /**
+     * UI manager history component.
+     */
+    public get history(): PotatnoUiManagerHistory {
+        return this.mHistory;
+    }
+
+    /**
+     * UI manager integrity component.
+     */
+    public get integrity(): PotatnoUiManagerIntegrity {
+        return this.mIntegrity;
+    }
 
     /**
      * The currently active document function, or `null` when none is resolvable.
@@ -68,42 +91,6 @@ export class PotatnoUiManager extends EventTarget {
      */
     public get activeFunctionId(): string {
         return this.mActiveFunctionId;
-    }
-
-    /**
-     * Whether a redo snapshot is available.
-     */
-    public get canRedo(): boolean {
-        return this.mHistory.canRedo;
-    }
-
-    /**
-     * Whether an undo snapshot is available.
-     */
-    public get canUndo(): boolean {
-        return this.mHistory.canUndo;
-    }
-
-    /**
-     * Current document, or `null` when none is loaded.
-     */
-    public get document(): PotatnoDocument<PotatnoUiProject> | null {
-        return this.mDocument;
-    }
-
-    /**
-     * Document items (nodes and ports) flagged by the last validation pass. Used by the graph,
-     * nodes and ports for error highlighting.
-     */
-    public get errorItems(): ReadonlySet<IPotatnoDocumentItem<PotatnoUiProject>> {
-        return this.mIntegrity.errorItems;
-    }
-
-    /**
-     * Human-readable validation errors for the preview panel.
-     */
-    public get errors(): ReadonlyArray<PotatnoCodeUiManagerIntegrityError> {
-        return this.mIntegrity.errors;
     }
 
     /**
@@ -136,10 +123,10 @@ export class PotatnoUiManager extends EventTarget {
 
         // Create manager components.
         this.mIntegrity = new PotatnoUiManagerIntegrity(this);
+        this.mGraph = new PotatnoUiManagerGraph(this);
+        this.mHistory = new PotatnoUiManagerHistory(this);
 
         this.mActiveFunctionId = '';
-        this.mDocument = null;
-        this.mHistory = new PotatnoHistory();
         this.mHistoryDebounceTimer = null;
         this.mPreviewDebounceTimer = null;
         this.mPreviewManager = null;
@@ -175,7 +162,6 @@ export class PotatnoUiManager extends EventTarget {
         this.mActiveFunctionId = lFunction.id;
         this.mPreviewManager?.setActiveFunction(lFunction);
 
-        this.scheduleHistorySnapshot();
         this.schedulePreviewUpdate();
         this.dispatch(PotatnoCodeUiManagerChangeType.Function, lFunction);
     }
@@ -196,7 +182,6 @@ export class PotatnoUiManager extends EventTarget {
 
         const lNode: PotatnoDocumentNode<PotatnoUiProject> = lActiveFunction.addNodeByDefinition(pDefinition, pTransformation);
 
-        this.scheduleHistorySnapshot();
         this.schedulePreviewUpdate();
         this.dispatch(PotatnoCodeUiManagerChangeType.Node, lNode);
 
@@ -219,7 +204,6 @@ export class PotatnoUiManager extends EventTarget {
             return false;
         }
 
-        this.scheduleHistorySnapshot();
         this.schedulePreviewUpdate();
 
         // Dispatch for from-node as well as to-node.
@@ -238,7 +222,6 @@ export class PotatnoUiManager extends EventTarget {
     public disconnectPorts(pSource: PotatnoDocumentPort<PotatnoUiProject>, pTarget: PotatnoDocumentPort<PotatnoUiProject>): void {
         pSource.disconnect(pTarget);
 
-        this.scheduleHistorySnapshot();
         this.schedulePreviewUpdate();
 
         // Dispatch for from-node as well as to-node.
@@ -435,7 +418,6 @@ export class PotatnoUiManager extends EventTarget {
             return;
         }
 
-        this.scheduleHistorySnapshot();
         this.schedulePreviewUpdate();
 
         // Notify per pasted node.
@@ -453,7 +435,6 @@ export class PotatnoUiManager extends EventTarget {
      * @param pNode - The node that changed, when known.
      */
     public commitNodeChange(pAffectsPreview: boolean = false, pNode?: PotatnoDocumentNode<PotatnoUiProject>): void {
-        this.scheduleHistorySnapshot();
         if (pAffectsPreview) {
             this.schedulePreviewUpdate();
         }
@@ -471,16 +452,6 @@ export class PotatnoUiManager extends EventTarget {
             ? lDefinitionId.slice('USERFUNCTION_'.length)
             : lDefinitionId;
         this.setActiveFunction(lFunctionId);
-    }
-
-    /**
-     * Redo the next history snapshot, if any.
-     */
-    public redo(): void {
-        const lSnapshot: PotatnoCodeFileSerializationResult | null = this.mHistory.redo();
-        if (lSnapshot) {
-            this.restoreSnapshot(lSnapshot);
-        }
     }
 
     /**
@@ -512,7 +483,6 @@ export class PotatnoUiManager extends EventTarget {
             this.mPreviewManager?.setActiveFunction(this.activeFunction);
         }
 
-        this.scheduleHistorySnapshot();
         this.schedulePreviewUpdate();
 
         // Notify for the removed function and for the newly active one.
@@ -542,7 +512,6 @@ export class PotatnoUiManager extends EventTarget {
             return false;
         }
 
-        this.scheduleHistorySnapshot();
         this.schedulePreviewUpdate();
 
         // Notify per removed node.
@@ -569,7 +538,7 @@ export class PotatnoUiManager extends EventTarget {
                 this.mActiveFunctionId = pFunctionId;
                 this.mPreviewManager?.setActiveFunction(lFunction);
                 this.schedulePreviewUpdate();
-                this.dispatch(PotatnoCodeUiManagerChangeType.Function, lFunction);
+                this.dispatch(PotatnoCodeUiManagerChangeType.ActiveFunction, lFunction);
                 return;
             }
         }
@@ -594,7 +563,6 @@ export class PotatnoUiManager extends EventTarget {
     public setPortDirectValue(pPort: PotatnoDocumentPort<PotatnoUiProject>, pValues: Array<string>): void {
         pPort.setDirectValue(pValues);
 
-        this.scheduleHistorySnapshot();
         this.schedulePreviewUpdate();
         this.dispatch(PotatnoCodeUiManagerChangeType.Node, pPort);
     }
@@ -630,7 +598,6 @@ export class PotatnoUiManager extends EventTarget {
             pNode.preview = { portId: pPortId, displayId: lDisplayId };
         }
 
-        this.scheduleHistorySnapshot();
         this.schedulePreviewUpdate();
         this.dispatch(PotatnoCodeUiManagerChangeType.Node, pNode);
     }
@@ -648,7 +615,6 @@ export class PotatnoUiManager extends EventTarget {
 
         pNode.preview = { portId: pNode.preview.portId, displayId: pDisplayId };
 
-        this.scheduleHistorySnapshot();
         this.schedulePreviewUpdate();
         this.dispatch(PotatnoCodeUiManagerChangeType.Node, pNode);
     }
@@ -670,16 +636,6 @@ export class PotatnoUiManager extends EventTarget {
         //    generation is triggered.
         const lHasValidationErrors: boolean = this.mIntegrity.errors.length > 0;
         return this.mPreviewManager?.render(lHasValidationErrors) ?? Promise.resolve();
-    }
-
-    /**
-     * Undo the previous history snapshot, if any.
-     */
-    public undo(): void {
-        const lSnapshot: PotatnoCodeFileSerializationResult | null = this.mHistory.undo();
-        if (lSnapshot) {
-            this.restoreSnapshot(lSnapshot);
-        }
     }
 
     /**
@@ -732,7 +688,6 @@ export class PotatnoUiManager extends EventTarget {
             }
         }
 
-        this.scheduleHistorySnapshot();
         this.schedulePreviewUpdate();
         this.dispatch(PotatnoCodeUiManagerChangeType.Function, lActiveFunction);
     }
@@ -757,7 +712,6 @@ export class PotatnoUiManager extends EventTarget {
         this.mPreviewManager.setActiveFunction(this.activeFunction);
 
         // Push the initial snapshot so the first edit is undoable.
-        this.pushHistorySnapshot();
         this.rebuildPreviewDrivers();
         this.dispatch(PotatnoCodeUiManagerChangeType.Document, pDocument);
     }
@@ -801,7 +755,7 @@ export class PotatnoUiManager extends EventTarget {
      * @param pType - Change type to dispatch.
      * @param pItem - The document item the change refers to, or `null` when no single item applies.
      */
-    private dispatch(pType: PotatnoCodeUiManagerChangeType, pItem: PotatnoUiManagerChangeEventTarget | null): void {
+    public dispatch(pType: PotatnoCodeUiManagerChangeType, pItem: PotatnoUiManagerChangeEventTarget | null): void {
         // Create and dispatch custom change event.
         this.dispatchEvent(new PotatnoUiManagerChangeEvent(pType, pItem));
     }
@@ -826,18 +780,6 @@ export class PotatnoUiManager extends EventTarget {
         });
 
         pDocument.addFunction(lFunction);
-    }
-
-    /**
-     * Push the current document snapshot into history.
-     */
-    private pushHistorySnapshot(): void {
-        const lDocument: PotatnoDocument<PotatnoUiProject> | null = this.mDocument;
-        if (!lDocument) {
-            return;
-        }
-
-        this.mHistory.push(new PotatnoSerializer<PotatnoUiProject>().serialize(lDocument));
     }
 
     /**
@@ -879,42 +821,6 @@ export class PotatnoUiManager extends EventTarget {
     }
 
     /**
-     * Restore a serialized snapshot into the editor without clearing history.
-     *
-     * @param pSnapshot - Snapshot to deserialize and display.
-     */
-    private restoreSnapshot(pSnapshot: PotatnoCodeFileSerializationResult): void {
-        const lProject: PotatnoUiProject | null = this.mProject;
-        if (!lProject) {
-            return;
-        }
-
-        this.mDocument = new PotatnoDeserializer<PotatnoUiProject>(lProject).deserialize(pSnapshot);
-
-        if (![...this.mDocument.functions].some((pFunction) => pFunction.id === this.mActiveFunctionId)) {
-            this.mActiveFunctionId = [...this.mDocument.functions][0]?.id ?? '';
-        }
-
-        this.mPreviewManager?.setActiveFunction(this.activeFunction);
-        this.schedulePreviewUpdate();
-        this.dispatch(PotatnoCodeUiManagerChangeType.Document, this.mDocument);
-    }
-
-    /**
-     * Schedule a debounced history snapshot, collapsing rapid edits into one snapshot.
-     */
-    private scheduleHistorySnapshot(): void {
-        if (this.mHistoryDebounceTimer !== null) {
-            clearTimeout(this.mHistoryDebounceTimer);
-        }
-
-        this.mHistoryDebounceTimer = globalThis.setTimeout(() => {
-            this.mHistoryDebounceTimer = null;
-            this.pushHistorySnapshot();
-        }, 500) as unknown as number;
-    }
-
-    /**
      * Schedule a debounced preview driver rebuild, collapsing rapid mutations into one rebuild.
      */
     private schedulePreviewUpdate(): void {
@@ -939,7 +845,11 @@ export const PotatnoCodeUiManagerChangeType = {
     Function: 4,
     Node: 8,
     NodeTransform: 16,
-    Preview: 32
+
+    // Specials 
+    // TODO: Mabe that can be changed?
+    Preview: 32,
+    ActiveFunction: 64
 } as const;
 export type PotatnoCodeUiManagerChangeType = typeof PotatnoCodeUiManagerChangeType[keyof typeof PotatnoCodeUiManagerChangeType];
 

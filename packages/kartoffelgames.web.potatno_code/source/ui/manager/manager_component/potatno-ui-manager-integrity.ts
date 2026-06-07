@@ -77,7 +77,7 @@ export class PotatnoUiManagerIntegrity {
         this.mIsDirty = false;
 
         // Do nothing if document is not set.
-        if (!this.mManager.document) {
+        if (!this.mManager.graph.document) {
             return;
         }
 
@@ -86,7 +86,7 @@ export class PotatnoUiManagerIntegrity {
         this.mErrorItems.clear();
 
         // Validate and track all errors.
-        for (const lError of this.mManager.document.validate()) {
+        for (const lError of this.mManager.graph.document.validate()) {
             // Register as error item.
             this.mErrorItems.add(lError.item);
 

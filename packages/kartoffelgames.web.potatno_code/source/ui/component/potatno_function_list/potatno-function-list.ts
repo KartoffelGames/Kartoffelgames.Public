@@ -40,7 +40,7 @@ export class PotatnoFunctionList implements IComponentOnConnect, IComponentOnDec
      * Function entries to display.
      */
     public get functions(): Array<PotatnoFunctionListEntry> {
-        const lDocument: PotatnoDocument<PotatnoUiProject> | null = this.mManager.document;
+        const lDocument: PotatnoDocument<PotatnoUiProject> | null = this.mManager.graph.document;
         if (!lDocument) {
             return [];
         }
@@ -114,7 +114,7 @@ export class PotatnoFunctionList implements IComponentOnConnect, IComponentOnDec
      */
     public onConnect(): void {
         this.mUnsubscribe = this.mManager.subscribe(
-            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function,
+            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.ActiveFunction,
             null,
             () => {
                 this.mComponent.updater.update();

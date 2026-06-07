@@ -62,7 +62,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      * Whether this port currently has a validation error.
      */
     public get hasError(): boolean {
-        return this.port !== null && this.mManager.errorItems.has(this.port);
+        return this.port !== null && this.mManager.integrity.errorItems.has(this.port);
     }
 
     /**

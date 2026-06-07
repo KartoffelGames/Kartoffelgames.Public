@@ -158,7 +158,7 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      */
     public onConnect(): void {
         this.mUnsubscribe = this.mManager.subscribe(
-            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection | PotatnoCodeUiManagerChangeType.Preview,
+            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.ActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection | PotatnoCodeUiManagerChangeType.Preview,
             null,
             () => {
                 this.reconcileActiveTab();

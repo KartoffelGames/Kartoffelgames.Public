@@ -8,6 +8,8 @@ import type { PotatnoCodeGeneratorDocumentResult } from '../parser/result/potatn
 import type { PotatnoCodeGeneratorFunctionResult } from '../parser/result/potatno-code-generator-function-result.ts';
 import type { PotatnoPreviewDriverHandle } from '../preview/potatno-preview-driver.ts';
 import type { PotatnoPreviewEntry } from '../preview/potatno-preview.ts';
+import type { PotatnoPreviewTabDescriptor } from './component/potatno_preview/potatno-preview.ts';
+import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from './manager/potatno-ui-manager.ts';
 import type { PotatnoUiProject } from './potatno-ui-project.ts';
 
 /**
@@ -92,15 +94,19 @@ export type PotatnoUiPreviewOutputOption = {
  * @typeParam TProject - The widened UI project type the manager operates on.
  */
 export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
+    private readonly mManager: PotatnoUiManager;
     private readonly mProject: TProject;
+    private readonly mUnsubscribe: () => void;
     private mActiveFunction: PotatnoDocumentFunction<TProject> | null;
     private mDescriptorFunction: PotatnoDocumentFunction<TProject> | null;
     private mDocument: PotatnoDocument<TProject>;
     private mDriverDocument: PotatnoDocument<TProject> | null;
     private mFunctionDescriptors: Array<PotatnoUiPreviewDescriptor<TProject>>;
     private mNodeDescriptors: Map<PotatnoDocumentNode<TProject>, PotatnoUiPreviewDescriptor<TProject>>;
+    private mPreviewTabs: ReadonlyArray<PotatnoPreviewTabDescriptor>;
     private mSelectedDisplayId: string;
     private mSelectedOutputId: string;
+    private mUpdateDebounceTimer: number | null;
 
     /**
      * Function-level preview descriptors in registration order. The preview-panel tab UI
@@ -111,21 +117,47 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
     }
 
     /**
+     * Function-level preview tab descriptors for the preview panel, republished on every rebuild.
+     */
+    public get previewTabs(): ReadonlyArray<PotatnoPreviewTabDescriptor> {
+        return this.mPreviewTabs;
+    }
+
+    /**
      * Constructor.
      *
      * @param pProject - Project that owns the preview registry and node definitions.
+     * @param pDocument - The document instance the previews are built from.
+     * @param pManager - The owning UI manager whose change events drive the rebuilds.
      */
-    public constructor(pProject: TProject, pDocument: PotatnoDocument<TProject>) {
+    public constructor(pProject: TProject, pDocument: PotatnoDocument<TProject>, pManager: PotatnoUiManager) {
         this.mProject = pProject;
         this.mDocument = pDocument;
+        this.mManager = pManager;
 
         this.mActiveFunction = null;
         this.mDescriptorFunction = null;
         this.mDriverDocument = null;
         this.mFunctionDescriptors = new Array<PotatnoUiPreviewDescriptor<TProject>>();
         this.mNodeDescriptors = new Map<PotatnoDocumentNode<TProject>, PotatnoUiPreviewDescriptor<TProject>>();
+        this.mPreviewTabs = [];
         this.mSelectedDisplayId = '';
         this.mSelectedOutputId = '';
+        this.mUpdateDebounceTimer = null;
+
+        // Rebuild the previews whenever the manager reports a change that can alter generated code.
+        // Live node transforms (NodeTransform) are intentionally excluded so dragging/resizing a
+        // node does not churn the drivers; cosmetic move/label commits flow through that channel too.
+        this.mUnsubscribe = pManager.subscribe(
+            PotatnoCodeUiManagerChangeType.Connection
+            | PotatnoCodeUiManagerChangeType.Document
+            | PotatnoCodeUiManagerChangeType.Function
+            | PotatnoCodeUiManagerChangeType.Node
+            | PotatnoCodeUiManagerChangeType.ActiveFunction,
+            null,
+            () => {
+                this.scheduleUpdate();
+            });
     }
 
     /**
@@ -279,6 +311,20 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
     }
 
     /**
+     * Schedule a debounced rebuild, collapsing rapid manager mutations into one rebuild.
+     */
+    private scheduleUpdate(): void {
+        if (this.mUpdateDebounceTimer !== null) {
+            clearTimeout(this.mUpdateDebounceTimer);
+        }
+
+        this.mUpdateDebounceTimer = globalThis.setTimeout(() => {
+            this.mUpdateDebounceTimer = null;
+            this.update();
+        }, 50) as unknown as number;
+    }
+
+    /**
      * Resolve the active function's definition, or `null` when none is bound or it has no
      * definition in the project.
      */
@@ -289,6 +335,63 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
         }
 
         return this.mProject.getFunction(lFunction.definitionId) ?? null;
+    }
+
+    /**
+     * Remove the manager subscription and cancel any pending rebuild. Called when this preview
+     * manager is replaced (a new document is adopted) or the editor is torn down.
+     */
+    public dispose(): void {
+        this.mUnsubscribe();
+
+        if (this.mUpdateDebounceTimer !== null) {
+            clearTimeout(this.mUpdateDebounceTimer);
+            this.mUpdateDebounceTimer = null;
+        }
+    }
+
+    /**
+     * Rebuild every preview driver from the latest manager state and republish the tab list, then
+     * notify listeners with a {@link PotatnoCodeUiManagerChangeType.Preview} event. Skipped while the
+     * document has validation errors so the existing drivers keep their last value instead of
+     * re-running — and failing — the generator.
+     */
+    public update(): void {
+        // Sync the bound document and active function from the manager. A document swap (undo/redo)
+        // replaces the instance, so this keeps the drivers building against the live graph.
+        const lDocument: PotatnoDocument<TProject> | null = this.mManager.graph.document as PotatnoDocument<TProject> | null;
+        if (!lDocument) {
+            this.mPreviewTabs = [];
+            return;
+        }
+        this.mDocument = lDocument;
+        this.mActiveFunction = this.mManager.activeFunction as PotatnoDocumentFunction<TProject> | null;
+
+        // Keep the last drivers while the document is invalid.
+        if (!this.mManager.integrity.isValid) {
+            return;
+        }
+
+        // Rebuild the drivers, then republish the function-level tab descriptors.
+        try {
+            this.rebuild();
+        } catch (pError) {
+            console.error('[PotatnoUiPreviewManager] Preview rebuild failed:', pError);
+            this.mPreviewTabs = [];
+            this.mManager.dispatch(PotatnoCodeUiManagerChangeType.Preview, this.mDocument);
+            return;
+        }
+
+        const lTabs: Array<PotatnoPreviewTabDescriptor> = [];
+        for (const lDescriptor of this.mFunctionDescriptors) {
+            if (!lDescriptor.element) {
+                continue;
+            }
+            lTabs.push({ id: lDescriptor.displayId, label: lDescriptor.label, element: lDescriptor.element });
+        }
+
+        this.mPreviewTabs = lTabs;
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.Preview, this.mDocument);
     }
 
     /**

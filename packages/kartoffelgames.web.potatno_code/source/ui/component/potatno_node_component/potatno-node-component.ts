@@ -83,7 +83,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      * CSS class string for the error state.
      */
     public get hasErrorClass(): string {
-        return (this.nodeData !== null && this.mManager.errorItems.has(this.nodeData)) ? 'has-error' : '';
+        return (this.nodeData !== null && this.mManager.integrity.errorItems.has(this.nodeData)) ? 'has-error' : '';
     }
 
     /**
@@ -274,7 +274,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      */
     public onConnect(): void {
         this.mUnsubscribe = this.mManager.subscribe(
-            PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection | PotatnoCodeUiManagerChangeType.Preview,
+            PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.ActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection | PotatnoCodeUiManagerChangeType.Preview,
             null,
             () => {
                 this.mComponent.updater.update();

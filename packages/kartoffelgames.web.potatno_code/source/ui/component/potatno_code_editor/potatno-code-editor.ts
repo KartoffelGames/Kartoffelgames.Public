@@ -71,7 +71,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      * Current document state.
      */
     public get file(): PotatnoDocument<TProject> {
-        return this.mManager.document as PotatnoDocument<TProject>;
+        return this.mManager.graph.document as PotatnoDocument<TProject>;
     }
 
     /**

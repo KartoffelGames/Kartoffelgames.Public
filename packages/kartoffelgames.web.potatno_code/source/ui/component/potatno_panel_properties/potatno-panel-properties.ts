@@ -131,7 +131,7 @@ export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOn
      */
     public onConnect(): void {
         this.mUnsubscribe = this.mManager.subscribe(
-            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function,
+            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.ActiveFunction,
             null,
             () => {
                 this.mComponent.updater.update();

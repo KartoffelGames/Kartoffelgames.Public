@@ -221,10 +221,10 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         // Refresh the graph whenever the document, active function, or graph structure changes.
         // A document load or function switch resets all interaction state first.
         this.mUnsubscribe = this.mManager.subscribe(
-            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection,
+            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.ActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection,
             null,
             (pEvent) => {
-                if (pEvent.changeType === PotatnoCodeUiManagerChangeType.Document || pEvent.changeType === PotatnoCodeUiManagerChangeType.Function) {
+                if (pEvent.changeType === PotatnoCodeUiManagerChangeType.Document || pEvent.changeType === PotatnoCodeUiManagerChangeType.Function || pEvent.changeType === PotatnoCodeUiManagerChangeType.ActiveFunction) {
                     this.resetForActiveFunction();
                 }
 
@@ -543,16 +543,16 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         if (pEvent.ctrlKey && pEvent.key === 'z') {
             pEvent.preventDefault();
             if (pEvent.shiftKey) {
-                this.mManager.redo();
+                this.mManager.history.redo();
             } else {
-                this.mManager.undo();
+                this.mManager.history.undo();
             }
             return;
         }
 
         if (pEvent.ctrlKey && pEvent.key === 'y') {
             pEvent.preventDefault();
-            this.mManager.redo();
+            this.mManager.history.redo();
             return;
         }
 

@@ -70,7 +70,7 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
      */
     public onConnect(): void {
         this.mUnsubscribe = this.mManager.subscribe(
-            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.NodeTransform | PotatnoCodeUiManagerChangeType.Connection,
+            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.ActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.NodeTransform | PotatnoCodeUiManagerChangeType.Connection,
             null,
             () => {
                 this.scheduleRender();
@@ -218,7 +218,7 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
             return;
         }
 
-        const lErrorItems: ReadonlySet<IPotatnoDocumentItem<PotatnoUiProject>> = this.mManager.errorItems;
+        const lErrorItems: ReadonlySet<IPotatnoDocumentItem<PotatnoUiProject>> = this.mManager.integrity.errorItems;
         const lConnectionData: Array<ConnectionRenderData> = [];
         this.mConnectionRegistry.clear();
 

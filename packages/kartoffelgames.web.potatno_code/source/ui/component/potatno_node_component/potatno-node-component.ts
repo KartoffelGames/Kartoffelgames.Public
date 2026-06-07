@@ -371,7 +371,12 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
         if (!this.nodeData) {
             return;
         }
-        this.mManager.openNodeFunction(this.nodeData);
+
+        const lDefinitionId: string = this.nodeData.definitionId;
+        const lFunctionId: string = lDefinitionId.startsWith('USERFUNCTION_')
+            ? lDefinitionId.slice('USERFUNCTION_'.length)
+            : lDefinitionId;
+        this.mManager.setActiveFunction(lFunctionId);
     }
 
     /**

@@ -160,6 +160,18 @@ export class PotatnoUiManagerGraph {
     }
 
     /**
+     * Remove a node from the active function.
+     *
+     * @param pNode - The node to remove.
+     */
+    public removeNode(lNode: PotatnoDocumentNode<PotatnoUiProject>): void {
+        lNode.function.removeNode(lNode);
+
+        // Notify per removed node.
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.Node, lNode);
+    }
+
+    /**
      * Connect two ports and rebuild dependent state.
      *
      * @param pSource - One side of the connection.
@@ -194,6 +206,18 @@ export class PotatnoUiManagerGraph {
         // Dispatch for from-node as well as to-node.
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.Connection, pSource);
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.Connection, pTarget);
+    }
+
+    /**
+     * Set a port's direct value.
+     *
+     * @param pPort - The value port to set.
+     * @param pValues - The new direct value strings.
+     */
+    public setPortDirectValue(pPort: PotatnoDocumentPort<PotatnoUiProject>, pValues: Array<string>): void {
+        pPort.setDirectValue(pValues);
+
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.Node, pPort);
     }
 
     /**

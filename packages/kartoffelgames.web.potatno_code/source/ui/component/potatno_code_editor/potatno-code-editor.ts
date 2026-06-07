@@ -139,7 +139,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
     public onDeconstruct(): void {
         this.mUnsubscribe?.();
         this.mUnsubscribe = null;
-        this.mManager.dispose();
+        this.mManager.deconstruct();
         this.stopPanelResize();
     }
 

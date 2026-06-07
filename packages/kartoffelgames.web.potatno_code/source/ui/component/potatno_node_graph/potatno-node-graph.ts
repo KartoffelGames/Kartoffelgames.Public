@@ -664,9 +664,11 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * System entry/exit nodes can be deleted too; they are re-synced automatically on the next validation.
      */
     private deleteSelectedNodes(): void {
-        if (this.mManager.removeNodes(this.mSelectedNodes)) {
-            this.mSelectedNodes.clear();
+        for(const lNode of this.mSelectedNodes){
+            this.mManager.graph.removeNode(lNode)
         }
+
+        this.mSelectedNodes.clear();
     }
 
     /**

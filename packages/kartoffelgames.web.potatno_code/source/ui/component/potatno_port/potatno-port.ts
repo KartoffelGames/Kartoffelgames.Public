@@ -283,7 +283,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         const lTarget: HTMLInputElement = pEvent.target as HTMLInputElement;
         const lNewValues: Array<string> = [...this.port.directValue];
         lNewValues[pIndex] = lTarget.type === 'checkbox' ? (lTarget.checked ? 'true' : 'false') : lTarget.value;
-        this.mManager.setPortDirectValue(this.port, lNewValues);
+        this.mManager.graph.setPortDirectValue(this.port, lNewValues);
     }
 
     /**

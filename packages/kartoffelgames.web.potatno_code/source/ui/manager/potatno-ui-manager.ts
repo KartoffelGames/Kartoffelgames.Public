@@ -15,6 +15,7 @@ import type { PotatnoUiProject } from '../potatno-ui-project.ts';
 import { PotatnoUiManagerIntegrity } from './manager_component/potatno-ui-manager-integrity.ts';
 import { PotatnoUiManagerGraph } from './manager_component/potatno-ui-manager-graph.ts';
 import { PotatnoUiManagerHistory } from './manager_component/potatno-ui-manager-history.ts';
+import { IDeconstructable } from "@kartoffelgames/core";
 
 /**
  * Central, shared state owner for the whole Potatno-code editor UI.
@@ -32,7 +33,7 @@ import { PotatnoUiManagerHistory } from './manager_component/potatno-ui-manager-
  * keep fragmented component state in sync.
  */
 @Injection.injectable('singleton')
-export class PotatnoUiManager extends EventTarget {
+export class PotatnoUiManager extends EventTarget implements IDeconstructable {
     private mActiveFunctionId: string;
 
     private mPreviewManager: PotatnoUiPreviewManager<PotatnoUiProject> | null;
@@ -130,7 +131,7 @@ export class PotatnoUiManager extends EventTarget {
     /**
      * Release timers held by the manager. Called when the editor is torn down.
      */
-    public dispose(): void {
+    public deconstruct(): void {
         this.mPreviewManager?.dispose();
     }
 
@@ -260,49 +261,6 @@ export class PotatnoUiManager extends EventTarget {
     }
 
     /**
-     * Resolve and activate the document function a function node points at.
-     *
-     * @param pNode - The function node whose target function to open.
-     */
-    public openNodeFunction(pNode: PotatnoDocumentNode<PotatnoUiProject>): void {
-        const lDefinitionId: string = pNode.definitionId;
-        const lFunctionId: string = lDefinitionId.startsWith('USERFUNCTION_')
-            ? lDefinitionId.slice('USERFUNCTION_'.length)
-            : lDefinitionId;
-        this.setActiveFunction(lFunctionId);
-    }
-
-    /**
-     * Remove a set of nodes from the active function.
-     *
-     * @param pNodes - The nodes to remove.
-     *
-     * @returns `true` when at least one node was removed.
-     */
-    public removeNodes(pNodes: Iterable<PotatnoDocumentNode<PotatnoUiProject>>): boolean {
-        const lActiveFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.activeFunction;
-        if (!lActiveFunction) {
-            return false;
-        }
-
-        const lRemovedNodes: Array<PotatnoDocumentNode<PotatnoUiProject>> = [...pNodes];
-        for (const lNode of lRemovedNodes) {
-            lActiveFunction.removeNode(lNode);
-        }
-
-        if (lRemovedNodes.length === 0) {
-            return false;
-        }
-
-        // Notify per removed node.
-        for (const lNode of lRemovedNodes) {
-            this.dispatch(PotatnoCodeUiManagerChangeType.Node, lNode);
-        }
-
-        return true;
-    }
-
-    /**
      * Activate a function by id.
      *
      * @param pFunctionId - Id of the function to activate.
@@ -331,18 +289,6 @@ export class PotatnoUiManager extends EventTarget {
     public setPreviewDisplay(pDisplayId: string): void {
         this.mPreviewManager?.setActivePreviewDisplay(pDisplayId);
         this.mPreviewManager?.update();
-    }
-
-    /**
-     * Set a port's direct value.
-     *
-     * @param pPort - The value port to set.
-     * @param pValues - The new direct value strings.
-     */
-    public setPortDirectValue(pPort: PotatnoDocumentPort<PotatnoUiProject>, pValues: Array<string>): void {
-        pPort.setDirectValue(pValues);
-
-        this.dispatch(PotatnoCodeUiManagerChangeType.Node, pPort);
     }
 
     /**
@@ -465,39 +411,6 @@ export class PotatnoUiManager extends EventTarget {
         }
 
         this.dispatch(PotatnoCodeUiManagerChangeType.Function, lActiveFunction);
-    }
-
-    /**
-     * Build a document function from a definition, placing its default entry/exit nodes and
-     * enabling project imports when the definition declares them.
-     *
-     * @param pDocument - Document the function belongs to.
-     * @param pProject - Project that owns the definition and imports.
-     * @param pDefinition - The function definition to instantiate.
-     * @param pParameter - Identity/metadata for the new function instance.
-     *
-     * @returns The populated function instance, not yet added to the document.
-     */
-    private createDocumentFunction(pDocument: PotatnoDocument<PotatnoUiProject>, pProject: PotatnoUiProject, pDefinition: PotatnoFunctionDefinition<PotatnoUiProject>, pParameter: PotatnoDocumentFunctionConstructorParameter): PotatnoDocumentFunction<PotatnoUiProject> {
-        const lFunction: PotatnoDocumentFunction<PotatnoUiProject> = new PotatnoDocumentFunction(pProject, pDocument, pParameter);
-
-        // Place the default entry/exit nodes. Entry nodes stack down from 0,0; exit nodes from 40,0.
-        const lFunctionNodes: PotatnoFunctionDefinitionNodes<PotatnoUiProject> = pDefinition.getNodeDefinitions(lFunction);
-        lFunctionNodes.entry.forEach((pNodeDefinition, pIndex) => {
-            lFunction.addNodeByDefinition(pNodeDefinition, { height: 4, width: 10, x: 0, y: pIndex * 20 });
-        });
-        lFunctionNodes.exit.forEach((pNodeDefinition, pIndex) => {
-            lFunction.addNodeByDefinition(pNodeDefinition, { height: 4, width: 10, x: 40, y: pIndex * 20 });
-        });
-
-        // Enable every project import when the definition opts into imports.
-        if ((pDefinition.statics & PotatnoFunctionDefinitionStatics.imports) !== 0) {
-            for (const lImport of pProject.imports) {
-                lFunction.addImport(lImport.label);
-            }
-        }
-
-        return lFunction;
     }
 
     /**

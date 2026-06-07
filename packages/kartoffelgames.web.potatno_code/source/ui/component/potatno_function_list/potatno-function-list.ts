@@ -136,7 +136,7 @@ export class PotatnoFunctionList implements IComponentOnConnect, IComponentOnDec
     public onAddButtonClick(): void {
         const lDefinitions: Array<PotatnoFunctionListUserFunctionEntry> = this.userFunctionDefinitions;
         if (lDefinitions.length === 1) {
-            this.mManager.addFunction(lDefinitions[0].id);
+            this.mManager.graph.addFunction(lDefinitions[0].id);
         } else {
             this.mShowPopup = !this.mShowPopup;
         }
@@ -149,7 +149,7 @@ export class PotatnoFunctionList implements IComponentOnConnect, IComponentOnDec
      */
     public onDefinitionSelect(pDefinitionId: string): void {
         this.mShowPopup = false;
-        this.mManager.addFunction(pDefinitionId);
+        this.mManager.graph.addFunction(pDefinitionId);
     }
 
     /**
@@ -160,7 +160,7 @@ export class PotatnoFunctionList implements IComponentOnConnect, IComponentOnDec
      */
     public onFunctionDelete(pEvent: MouseEvent, pId: string): void {
         pEvent.stopPropagation();
-        this.mManager.removeFunction(pId);
+        this.mManager.graph.removeFunction(pId);
     }
 
     /**

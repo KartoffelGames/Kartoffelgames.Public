@@ -122,6 +122,18 @@ export class PotatnoDocument<TProject extends PotatnoProject> {
     public validate(): Array<PotatnoDocumentPortValidationError<TProject>> {
         const lErrors: Array<PotatnoDocumentPortValidationError<TProject>> = [];
 
+        const lEntryPointDefinitionId: string = this.mProject.entryPoint.id;
+
+        // Check for the entry point function and initialize of not added yet.
+        if (!this.mFunctions.values().some((pFunction) => pFunction.definitionId === lEntryPointDefinitionId)) {
+            this.newFunction({
+                definitionId: lEntryPointDefinitionId,
+                id: crypto.randomUUID(),
+                isSystem: true,
+                label: this.mProject.entryPoint.label
+            });
+        }
+
         // TODO: Validation is in wrong order. Validate in correct dependency order.
 
         // Per-function validation: flow/value cycles, region constraints, port resync.

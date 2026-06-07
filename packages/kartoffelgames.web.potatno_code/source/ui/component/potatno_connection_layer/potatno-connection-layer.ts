@@ -132,7 +132,7 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
         // instances the model actually has connected.
         const lSource: PotatnoDocumentPort<PotatnoUiProject> = lConnection.sourcePort.node.outputs.map.get(lConnection.sourcePort.definitionId) ?? lConnection.sourcePort;
         const lTarget: PotatnoDocumentPort<PotatnoUiProject> = lConnection.targetPort.node.inputs.map.get(lConnection.targetPort.definitionId) ?? lConnection.targetPort;
-        this.mManager.disconnectPorts(lSource, lTarget);
+        this.mManager.graph.disconnectPorts(lSource, lTarget);
     }
 
     /**

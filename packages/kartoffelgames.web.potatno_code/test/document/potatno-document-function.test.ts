@@ -115,12 +115,12 @@ Deno.test('PotatnoDocumentFunction.constructor()', async (pContext) => {
 });
 
 Deno.test('PotatnoDocumentFunction.id', async (pContext) => {
-    await pContext.step('Returns the provided id', () => {
+    await pContext.step('Returns a id', () => {
         // Setup. Process.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(lFunction.id).toBe('calc-instance-1');
+        expect(typeof lFunction.id).toBe('string')
     });
 });
 

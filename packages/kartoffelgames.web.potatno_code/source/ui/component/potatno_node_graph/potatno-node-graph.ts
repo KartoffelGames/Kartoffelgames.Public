@@ -636,7 +636,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             return;
         }
 
-        this.mManager.connectPorts(lSource, lTarget);
+        this.mManager.graph.connectPorts(lSource, lTarget);
     }
 
     /**
@@ -684,7 +684,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         // Move each dragged node through the manager so the connection layer redraws its wires to follow.
         for (const [lNode, lOrigin] of pState.origins) {
             const lSnapped: Point = this.mInteraction.snapToGrid(lOrigin.originX + lDx, lOrigin.originY + lDy);
-            this.mManager.transformNode(lNode, { x: Math.round(lSnapped.x / lGridSize), y: Math.round(lSnapped.y / lGridSize) });
+            this.mManager.graph.transformNode(lNode, { x: Math.round(lSnapped.x / lGridSize), y: Math.round(lSnapped.y / lGridSize) });
         }
 
         this.rebuildVisibleNodePositions();
@@ -788,18 +788,18 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * @param pWorldPosition - Graph world position for the new node.
      */
     private insertNodeAt(pDefinition: PotatnoNodeDefinition<PotatnoUiProject>, pWorldPosition: Point): void {
+        if (!this.mManager.activeFunction) {
+            return;
+        }
+
         const lGridSize: number = this.mInteraction.gridSize;
         const lSnappedPosition: Point = this.mInteraction.snapToGrid(pWorldPosition.x, pWorldPosition.y);
-        const lNode: PotatnoDocumentNode<PotatnoUiProject> | null = this.mManager.addNode(pDefinition, {
+        const lNode: PotatnoDocumentNode<PotatnoUiProject> = this.mManager.graph.addNode(this.mManager.activeFunction, pDefinition, {
             height: 4,
             width: 10,
             x: Math.round(lSnappedPosition.x / lGridSize),
             y: Math.round(lSnappedPosition.y / lGridSize)
         });
-
-        if (!lNode) {
-            return;
-        }
 
         this.mSelectedNodes.clear();
         this.mSelectedNodes.add(lNode);
@@ -873,8 +873,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         for (const lNode of lNewNodes) {
             this.mSelectedNodes.add(lNode);
         }
-
-        this.mManager.notifyNodesPasted(lNewNodes);
     }
 
     /**

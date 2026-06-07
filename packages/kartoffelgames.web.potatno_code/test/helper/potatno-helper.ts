@@ -113,17 +113,14 @@ export class PotatnoHelper {
      * @returns The document together with the entry function and all four synced system nodes.
      */
     public static setupCalculatorDocument(): PotatnoHelperCalculatorDocument {
-        const lEntryDefinition = TestProject.entryPoint;
-        const lDocument: PotatnoDocument<typeof TestProject> = new PotatnoDocument(TestProject);
-        const lFunction: PotatnoDocumentFunction<typeof TestProject> = lDocument.newFunction({
-            definitionId: lEntryDefinition.id,
-            id: 'calc-instance-1',
-            label: lEntryDefinition.label,
-            isSystem: true
-        });
-
         // Validate once so the function's system entry / exit nodes are synced into the graph.
+        const lDocument: PotatnoDocument<typeof TestProject> = new PotatnoDocument(TestProject)
         lDocument.validate();
+
+        // Get the first function as entry point.
+        const lFunction: PotatnoDocumentFunction<typeof TestProject> = [...lDocument.functions].at(0)!;
+
+        const lEntryDefinition = TestProject.entryPoint;
 
         // Resolve the synced system nodes by their definition ids.
         const lNodeDefinitions = lEntryDefinition.getNodeDefinitions(lFunction);

@@ -63,16 +63,28 @@ export class PotatnoUiManagerIntegrity {
         // Simple dirty flag to revalidate.
         this.mIsDirty = true;
 
-        // Register "all"-Listener and set dirtly.
+        // Register "all"-Listener and set dirtly. After a debounce validate automaticly.
+        let lDebounce: number = 0;
         this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Any, null, ()=>{
             this.mIsDirty = true;
+
+            // Debounce: Clear and set a new timeout before pushing new history.
+            globalThis.clearTimeout(lDebounce);
+            lDebounce = globalThis.setTimeout(() => {
+                this.revalidate();
+            }, 1000) as unknown as number;
         });
     }
 
     /**
      * Re-run document validation and refresh the cached error list and highlight sets.
      */
-    private revalidate(): void {
+    public revalidate(): void {
+        // If its not dirty, no need to reevaluate.
+        if(!this.mIsDirty){
+            return;
+        }
+
         // Reset dirty flag.
         this.mIsDirty = false;
 

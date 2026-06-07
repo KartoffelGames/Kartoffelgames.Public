@@ -224,7 +224,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         // The port element's real position is now known; nudge the connection layer to redraw any
         // wire that used an estimated anchor before this port mounted. An empty transformation
         // re-applies the node's current geometry, so this only fires the redraw notification.
-        this.mManager.transformNode(lNode, {});
+        this.mManager.graph.transformNode(lNode, {});
     }
 
     /**

@@ -112,26 +112,6 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
     }
 
     /**
-     * Load serialized code into a new document.
-     *
-     * @param pData - Serialized Potatno document data.
-     */
-    @PwbExport
-    public loadCode(pData: PotatnoCodeFileSerializationResult): void {
-        this.mManager.loadCode(pData);
-    }
-
-    /**
-     * Generate serializable code from the current document.
-     *
-     * @returns Serialized Potatno document data, or null without a document.
-     */
-    @PwbExport
-    public generateCode(): PotatnoCodeFileSerializationResult | null {
-        return this.mManager.generateCode();
-    }
-
-    /**
      * Drive one preview tick. Called by the application's render loop.
      *
      * @returns A promise resolving once the current render pass finishes.

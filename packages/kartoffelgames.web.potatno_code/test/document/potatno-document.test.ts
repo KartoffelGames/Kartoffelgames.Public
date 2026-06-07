@@ -244,7 +244,7 @@ Deno.test('Error: PotatnoDocument.removeFunction() on system function', async (p
 });
 
 Deno.test('PotatnoDocument - Validation', async (pContext) => {
-    await pContext.step('Empty document', () => {
+    await pContext.step('Empty document initialize with entry points', () => {
         // Setup.
         const lDocument = new PotatnoDocument(TestProject);
 
@@ -252,7 +252,8 @@ Deno.test('PotatnoDocument - Validation', async (pContext) => {
         const lErrors = lDocument.validate();
 
         // Evaluation.
-        expect(lErrors.length).toBe(0);
+        expect(lErrors.length).toBe(2); // Two not connected flow ports of the entry point.
+        expect(lDocument.functions.size).toBe(1);
     });
 
     await pContext.step('Cross-function recursion: A -> A', () => {

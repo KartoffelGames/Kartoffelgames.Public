@@ -128,113 +128,10 @@ export class PotatnoUiManager extends EventTarget {
     }
 
     /**
-     * Add a new user function from a definition id and activate it.
-     *
-     * @param pDefinitionId - The user function definition id to instantiate.
-     */
-    public addFunction(pDefinitionId: string): void {
-        const lDocument: PotatnoDocument<PotatnoUiProject> | null = this.mGraph.document;
-        const lProject: PotatnoUiProject | null = this.mProject;
-        if (!lDocument || !lProject) {
-            return;
-        }
-
-        const lDefinition: PotatnoFunctionDefinition<PotatnoUiProject> | undefined = lProject.userFunctions.get(pDefinitionId);
-        if (!lDefinition) {
-            return;
-        }
-
-        const lFunction: PotatnoDocumentFunction<PotatnoUiProject> = this.createDocumentFunction(lDocument, lProject, lDefinition, {
-            definitionId: lDefinition.id,
-            id: crypto.randomUUID(),
-            isSystem: false,
-            label: `Function ${lDocument.functions.size}`
-        });
-
-        lDocument.addFunction(lFunction);
-        this.mActiveFunctionId = lFunction.id;
-        this.mPreviewManager?.setActiveFunction(lFunction);
-
-        this.dispatch(PotatnoCodeUiManagerChangeType.Function, lFunction);
-    }
-
-    /**
-     * Place a new node in the active function from a definition.
-     *
-     * @param pDefinition - The node definition to instantiate.
-     * @param pTransformation - Initial grid placement of the node.
-     *
-     * @returns The created node, or `null` when there is no active function.
-     */
-    public addNode(pDefinition: PotatnoNodeDefinition<PotatnoUiProject>, pTransformation: PotatnoDocumentNodeTransformation): PotatnoDocumentNode<PotatnoUiProject> | null {
-        const lActiveFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.activeFunction;
-        if (!lActiveFunction) {
-            return null;
-        }
-
-        const lNode: PotatnoDocumentNode<PotatnoUiProject> = lActiveFunction.addNodeByDefinition(pDefinition, pTransformation);
-
-        this.dispatch(PotatnoCodeUiManagerChangeType.Node, lNode);
-
-        return lNode;
-    }
-
-    /**
-     * Connect two ports and rebuild dependent state.
-     *
-     * @param pSource - One side of the connection.
-     * @param pTarget - The other side of the connection.
-     *
-     * @returns `true` when the ports were connected, `false` when the connection was rejected.
-     */
-    public connectPorts(pSource: PotatnoDocumentPort<PotatnoUiProject>, pTarget: PotatnoDocumentPort<PotatnoUiProject>): boolean {
-        try {
-            pSource.connect(pTarget);
-        } catch (pError) {
-            console.error('[PotatnoCodeUiManager] Connection failed:', pError);
-            return false;
-        }
-
-        // Dispatch for from-node as well as to-node.
-        this.dispatch(PotatnoCodeUiManagerChangeType.Connection, pSource);
-        this.dispatch(PotatnoCodeUiManagerChangeType.Connection, pTarget);
-
-        return true;
-    }
-
-    /**
-     * Disconnect two ports and rebuild dependent state.
-     *
-     * @param pSource - One side of the connection.
-     * @param pTarget - The other side of the connection.
-     */
-    public disconnectPorts(pSource: PotatnoDocumentPort<PotatnoUiProject>, pTarget: PotatnoDocumentPort<PotatnoUiProject>): void {
-        pSource.disconnect(pTarget);
-
-        // Dispatch for from-node as well as to-node.
-        this.dispatch(PotatnoCodeUiManagerChangeType.Connection, pSource);
-        this.dispatch(PotatnoCodeUiManagerChangeType.Connection, pTarget);
-    }
-
-    /**
      * Release timers held by the manager. Called when the editor is torn down.
      */
     public dispose(): void {
         this.mPreviewManager?.dispose();
-    }
-
-    /**
-     * Serialize the current document.
-     *
-     * @returns The serialized document, or `null` without a document.
-     */
-    public generateCode(): PotatnoCodeFileSerializationResult | null {
-        const lDocument: PotatnoDocument<PotatnoUiProject> | null = this.mGraph.document;
-        if (!lDocument) {
-            return null;
-        }
-
-        return new PotatnoSerializer<PotatnoUiProject>().serialize(lDocument);
     }
 
     /**
@@ -267,13 +164,8 @@ export class PotatnoUiManager extends EventTarget {
     public initialize(pProject: PotatnoUiProject, pDocument: PotatnoDocument<PotatnoUiProject>): void {
         this.mProject = pProject;
 
-        // Seed an empty document with its system entry function so the user always has a graph.
-        if (pDocument.functions.size === 0) {
-            this.initializeMainFunctions(pDocument, pProject);
-        }
-
         // Adopt the document. This creates the preview manager bound to it and notifies listeners.
-        this.adoptDocument(pDocument);
+        this.mGraph.setDocument(pDocument);
     }
 
     /**
@@ -349,61 +241,6 @@ export class PotatnoUiManager extends EventTarget {
     }
 
     /**
-     * Replace the document with a freshly deserialized one.
-     *
-     * @param pData - Serialized document data.
-     */
-    public loadCode(pData: PotatnoCodeFileSerializationResult): void {
-        const lProject: PotatnoUiProject | null = this.mProject;
-        if (!lProject) {
-            return;
-        }
-
-        const lDocument: PotatnoDocument<PotatnoUiProject> = new PotatnoDeserializer<PotatnoUiProject>(lProject).deserialize(pData);
-        this.adoptDocument(lDocument);
-    }
-
-    /**
-     * Announce a transient, in-place node geometry change (a live drag or resize) so the connection
-     * layer can redraw its wires. Carries no history/preview/validation side effects — those are
-     * committed separately on pointer-up via {@link commitNodeChange}.
-     */
-    public transformNode(pNode: PotatnoDocumentNode<PotatnoUiProject>, pTransformation: Partial<PotatnoDocumentNodeTransformation>): void {
-        // Build full transformation and override provided data.
-        const lTransformation: PotatnoDocumentNodeTransformation = {
-            x: pNode.transformation.x,
-            y: pNode.transformation.y,
-            width: pNode.transformation.width,
-            height: pNode.transformation.height,
-
-            // Override with provided data.
-            ...pTransformation
-        };
-
-        // Move and resize.
-        pNode.moveTo(lTransformation.x, lTransformation.y);
-        pNode.resizeTo(lTransformation.width, lTransformation.height);
-
-        this.dispatch(PotatnoCodeUiManagerChangeType.NodeTransform, pNode);
-    }
-
-    /**
-     * Paste clipboard contents into the active function.
-     *
-     * @param pNodes - The freshly pasted nodes produced by the clipboard.
-     */
-    public notifyNodesPasted(pNodes: ReadonlyArray<PotatnoDocumentNode<PotatnoUiProject>>): void {
-        if (pNodes.length === 0) {
-            return;
-        }
-
-        // Notify per pasted node.
-        for (const lNode of pNodes) {
-            this.dispatch(PotatnoCodeUiManagerChangeType.Node, lNode);
-        }
-    }
-
-    /**
      * Commit an in-place node edit the caller already applied to the document (a move, a resize,
      * or a comment/label change). Records history and notifies listeners. Preview regeneration is
      * opt-in since layout and label edits do not change generated code.
@@ -433,40 +270,6 @@ export class PotatnoUiManager extends EventTarget {
             ? lDefinitionId.slice('USERFUNCTION_'.length)
             : lDefinitionId;
         this.setActiveFunction(lFunctionId);
-    }
-
-    /**
-     * Remove a function from the document.
-     *
-     * @param pFunctionId - Id of the function to remove.
-     */
-    public removeFunction(pFunctionId: string): void {
-        const lDocument: PotatnoDocument<PotatnoUiProject> | null = this.mGraph.document;
-        if (!lDocument) {
-            return;
-        }
-
-        let lRemovedFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = null;
-        for (const lFunction of lDocument.functions) {
-            if (lFunction.id === pFunctionId) {
-                lRemovedFunction = lFunction;
-                lDocument.removeFunction(lFunction);
-                break;
-            }
-        }
-
-        if (!lRemovedFunction) {
-            return;
-        }
-
-        if (this.mActiveFunctionId === pFunctionId) {
-            this.mActiveFunctionId = [...lDocument.functions][0]?.id ?? '';
-            this.mPreviewManager?.setActiveFunction(this.activeFunction);
-        }
-
-        // Notify for the removed function and for the newly active one.
-        this.dispatch(PotatnoCodeUiManagerChangeType.Function, lRemovedFunction);
-        this.dispatch(PotatnoCodeUiManagerChangeType.Function, this.activeFunction);
     }
 
     /**
@@ -665,36 +468,6 @@ export class PotatnoUiManager extends EventTarget {
     }
 
     /**
-     * Take ownership of a document instance, point the preview manager at it, validate and notify.
-     *
-     * @param pDocument - The document to adopt.
-     */
-    private adoptDocument(pDocument: PotatnoDocument<PotatnoUiProject>): void {
-        const lProject: PotatnoUiProject | null = this.mProject;
-        if (!lProject) {
-            return;
-        }
-
-        // Reset the active function and history for the freshly loaded document.
-        this.mActiveFunctionId = '';
-        this.mHistory.clear();
-
-        // (Re)create the preview manager bound to the adopted document, replacing any previous one
-        // so its event subscription does not leak. It subscribes to the manager and rebuilds itself
-        // on the document change dispatched by the graph component below.
-        this.mPreviewManager?.dispose();
-        this.mPreviewManager = new PotatnoUiPreviewManager<PotatnoUiProject>(lProject, pDocument, this);
-
-        // Adopt the document through the graph component. This resolves the active function and
-        // dispatches the document change event.
-        this.mGraph.setDocument(pDocument);
-
-        // Point the preview at the resolved active function and build the initial drivers.
-        this.mPreviewManager.setActiveFunction(this.activeFunction);
-        this.mPreviewManager.update();
-    }
-
-    /**
      * Build a document function from a definition, placing its default entry/exit nodes and
      * enabling project imports when the definition declares them.
      *
@@ -737,29 +510,6 @@ export class PotatnoUiManager extends EventTarget {
         // Create and dispatch custom change event.
         this.dispatchEvent(new PotatnoUiManagerChangeEvent(pType, pItem));
     }
-
-    /**
-     * Create the system entry function for a new empty document.
-     *
-     * @param pDocument - Document receiving the entry function.
-     * @param pProject - Project that owns the entry point definition.
-     */
-    private initializeMainFunctions(pDocument: PotatnoDocument<PotatnoUiProject>, pProject: PotatnoUiProject): void {
-        const lEntryPoint: PotatnoFunctionDefinition<PotatnoUiProject> | undefined = pProject.entryPoint;
-        if (!lEntryPoint) {
-            return;
-        }
-
-        const lFunction: PotatnoDocumentFunction<PotatnoUiProject> = this.createDocumentFunction(pDocument, pProject, lEntryPoint, {
-            definitionId: lEntryPoint.id,
-            id: crypto.randomUUID(),
-            isSystem: true,
-            label: 'Main'
-        });
-
-        pDocument.addFunction(lFunction);
-    }
-
 }
 
 /**

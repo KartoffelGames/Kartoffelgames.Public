@@ -492,8 +492,6 @@ export class PotatnoDocumentFunction<TProject extends PotatnoProject> implements
                 continue;
             }
 
-            console.log(Math.floor(lNodeCounter / (lSystemNodes.length / 2)));
-
             this.addNodeByDefinition(lSystemNodeDefinition, {
                 // First half left (x:2) second half right (x: 20).
                 x: (Math.floor(lNodeCounter / (lSystemNodes.length / 2)) * lItemSpacing) + 2,

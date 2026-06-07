@@ -160,7 +160,7 @@ export class PotatnoPreviewDriver<TProject extends PotatnoProject, TElement exte
         // just like the function-level path. Falling back to an identity wrap keeps things
         // rendering when no adapter is registered — at runtime the port value flows through
         // unchanged.
-        const lDataType: string = this.mPortTarget!.documentPort.dataType;
+        const lDataType: string = this.mPortTarget!.documentPort.resolvedDataType;
         const lAdapter: ((pValue: unknown) => TResult) | undefined = this.mDisplay.adapterFor(lDataType);
         const lAdapterFunction: (pValue: unknown) => TResult = lAdapter ?? ((pValue: unknown): TResult => pValue as TResult);
 

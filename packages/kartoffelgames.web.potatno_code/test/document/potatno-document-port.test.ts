@@ -229,13 +229,13 @@ Deno.test('PotatnoDocumentPort.dataType', async (pContext) => {
         expect(lPort.dataType).toBe('number');
     });
 
-    await pContext.step('Returns empty string when none (flow port)', () => {
+    await pContext.step('Returns null when none (flow port)', () => {
         // Setup. Process.
         const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultEntry.outputs.flow[0];
 
         // Evaluation.
-        expect(lPort.dataType).toBe('');
+        expect(lPort.dataType).toBeNull();
     });
 });
 

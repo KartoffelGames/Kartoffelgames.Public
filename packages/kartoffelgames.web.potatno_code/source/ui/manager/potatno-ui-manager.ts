@@ -122,6 +122,15 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
         this.mActiveFunctionId = '';
         this.mPreviewManager = null;
         this.mProject = null;
+
+        // Rebuild the preview manager whenever a new document is adopted (initial load, undo/redo),
+        // keeping the preview lifecycle owned here instead of in the graph component.
+        this.subscribe(PotatnoCodeUiManagerChangeType.Document, null, () => {
+            const lDocument: PotatnoDocument<PotatnoUiProject> | null = this.mGraph.document;
+            if (lDocument) {
+                this.resetPreviewManager(lDocument);
+            }
+        });
     }
 
     /**
@@ -161,7 +170,8 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
     public initialize(pProject: PotatnoUiProject, pDocument: PotatnoDocument<PotatnoUiProject>): void {
         this.mProject = pProject;
 
-        // Adopt the document. This creates the preview manager bound to it and notifies listeners.
+        // Adopt the document. The manager's own document subscription rebuilds the preview manager
+        // and notifies listeners.
         this.mGraph.setDocument(pDocument);
     }
 
@@ -399,6 +409,34 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
     public dispatch(pType: PotatnoCodeUiManagerChangeType, pItem: PotatnoUiManagerChangeEventTarget | null): void {
         // Create and dispatch custom change event.
         this.dispatchEvent(new PotatnoUiManagerChangeEvent(pType, pItem));
+    }
+
+    /**
+     * (Re)create the preview manager bound to the given document, disposing any previous instance.
+     * Driven by the manager's document subscription so the previews rebuild against the live graph
+     * instead of a stale document instance.
+     *
+     * @param pDocument - The document the previews are built from.
+     */
+    private resetPreviewManager(pDocument: PotatnoDocument<PotatnoUiProject>): void {
+        // Drop the previous preview manager's subscription and timers.
+        this.mPreviewManager?.dispose();
+        this.mPreviewManager = null;
+
+        // A preview manager needs a project to resolve node definitions and the preview registry.
+        if (!this.mProject) {
+            return;
+        }
+
+        // Build the manager and bind the currently active function so the main preview targets it
+        // even when the active function id is unchanged across a document swap.
+        this.mPreviewManager = new PotatnoUiPreviewManager<PotatnoUiProject>(this.mProject, pDocument, this);
+        this.mPreviewManager.setActiveFunction(this.activeFunction);
+
+        // Build immediately: the fresh manager is created during the document event dispatch, so it
+        // missed that event and a same-active-function swap (undo/redo) fires no follow-up event to
+        // trigger its first build.
+        this.mPreviewManager.update();
     }
 }
 

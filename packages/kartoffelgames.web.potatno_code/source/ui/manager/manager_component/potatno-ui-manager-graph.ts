@@ -3,7 +3,6 @@ import { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from "../../..
 import { PotatnoDocumentPort } from "../../../document/potatno-document-port.ts";
 import { PotatnoDocument } from "../../../document/potatno-document.ts";
 import { PotatnoNodeDefinition } from "../../../project/node_definition/potatno-node-definition.ts";
-import { PotatnoFunctionDefinition } from "../../../project/potatno-function-definition.ts";
 import { PotatnoUiProject } from "../../potatno-ui-project.ts";
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from "../potatno-ui-manager.ts";
 

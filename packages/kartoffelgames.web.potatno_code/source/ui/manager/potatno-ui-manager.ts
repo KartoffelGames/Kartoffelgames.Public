@@ -1,21 +1,16 @@
+import { IDeconstructable } from "@kartoffelgames/core";
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import type { IPotatnoDocumentItem } from '../../document/i-potatno-document-item.interface.ts';
-import { PotatnoDocumentFunction, type PotatnoDocumentFunctionConstructorParameter } from '../../document/potatno-document-function.ts';
-import { PotatnoDocumentNode, type PotatnoDocumentNodeTransformation } from '../../document/potatno-document-node.ts';
+import { PotatnoDocumentFunction } from '../../document/potatno-document-function.ts';
+import { PotatnoDocumentNode } from '../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../document/potatno-document-port.ts';
 import { PotatnoDocument } from '../../document/potatno-document.ts';
-import type { PotatnoNodeDefinition } from '../../project/node_definition/potatno-node-definition.ts';
-import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics, type PotatnoFunctionDefinitionNodes } from '../../project/potatno-function-definition.ts';
-import { PotatnoDeserializer } from '../../serialization/potatno-deserializer.ts';
-import type { PotatnoCodeFileSerializationResult } from '../../serialization/potatno-serialization.type.ts';
-import { PotatnoSerializer } from '../../serialization/potatno-serializer.ts';
 import type { PotatnoPreviewTabDescriptor } from '../component/potatno_preview/potatno-preview.ts';
 import { PotatnoUiPreviewManager } from '../potatno-ui-preview-manager.ts';
 import type { PotatnoUiProject } from '../potatno-ui-project.ts';
-import { PotatnoUiManagerIntegrity } from './manager_component/potatno-ui-manager-integrity.ts';
 import { PotatnoUiManagerGraph } from './manager_component/potatno-ui-manager-graph.ts';
 import { PotatnoUiManagerHistory } from './manager_component/potatno-ui-manager-history.ts';
-import { IDeconstructable } from "@kartoffelgames/core";
+import { PotatnoUiManagerIntegrity } from './manager_component/potatno-ui-manager-integrity.ts';
 
 /**
  * Central, shared state owner for the whole Potatno-code editor UI.
@@ -239,25 +234,6 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
         return () => {
             this.removeEventListener(PotatnoUiManagerChangeEvent.EVENT_TYPE, lEventHandler as (pEvent: Event) => void);
         };
-    }
-
-    /**
-     * Commit an in-place node edit the caller already applied to the document (a move, a resize,
-     * or a comment/label change). Records history and notifies listeners. Preview regeneration is
-     * opt-in since layout and label edits do not change generated code.
-     *
-     * @param pAffectsPreview - Whether the edit changed generated code and should rebuild the preview.
-     * @param pNode - The node that changed, when known.
-     */
-    public commitNodeChange(pAffectsPreview: boolean = false, pNode?: PotatnoDocumentNode<PotatnoUiProject>): void {
-        // A preview-affecting commit broadcasts a Node change (the preview manager rebuilds on it).
-        // A cosmetic move/resize/label commit uses the geometry channel instead, so it redraws
-        // wires and records history without triggering a preview rebuild.
-        if (pAffectsPreview) {
-            this.dispatch(PotatnoCodeUiManagerChangeType.Node, pNode ?? null);
-        } else {
-            this.dispatch(PotatnoCodeUiManagerChangeType.NodeTransform, pNode ?? null);
-        }
     }
 
     /**

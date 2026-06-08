@@ -1,5 +1,5 @@
-import { AccessMode, IAttributeOnDeconstruct, IAttributeOnUpdate, LevelProcedure, ModuleAttribute, ModuleDataLevel, ModuleTargetNode, PwbAttributeModule } from "@kartoffelgames/web-potato-web-builder";
 import { Injection } from "@kartoffelgames/core-dependency-injection";
+import { AccessMode, IAttributeOnUpdate, LevelProcedure, ModuleAttribute, ModuleDataLevel, ModuleTargetNode, PwbAttributeModule } from "@kartoffelgames/web-potato-web-builder";
 import { PotatnoPreviewDriver } from "../../preview/potatno-preview-driver.ts";
 import { PotatnoUiProject } from "../potatno-ui-project.ts";
 

@@ -5,6 +5,7 @@ import { PotatnoDocumentFunction } from '../../document/potatno-document-functio
 import { PotatnoDocumentNode } from '../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../document/potatno-document-port.ts';
 import { PotatnoDocument } from '../../document/potatno-document.ts';
+import type { PotatnoPreviewDriverHandle } from '../../preview/potatno-preview-driver.ts';
 import type { PotatnoPreviewTabDescriptor } from '../component/potatno_preview/potatno-preview.ts';
 import { PotatnoUiPreviewManager } from '../potatno-ui-preview-manager.ts';
 import type { PotatnoUiProject } from '../potatno-ui-project.ts';
@@ -131,14 +132,14 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
     }
 
     /**
-     * Resolve the per-node inline preview element from the preview manager.
+     * Resolve the per-node inline preview driver from the preview manager.
      *
-     * @param pNode - The node whose preview element to resolve.
+     * @param pNode - The node whose preview driver to resolve.
      *
-     * @returns The element, or `null` when the node has no active preview.
+     * @returns The driver handle, or `null` when the node has no active preview.
      */
-    public getNodePreviewElement(pNode: PotatnoDocumentNode<PotatnoUiProject>): HTMLElement | null {
-        return this.mPreviewManager?.getNodeDescriptor(pNode)?.element ?? null;
+    public getNodePreviewDriver(pNode: PotatnoDocumentNode<PotatnoUiProject>): PotatnoPreviewDriverHandle | null {
+        return this.mPreviewManager?.getNodeDescriptor(pNode)?.driver ?? null;
     }
 
     /**

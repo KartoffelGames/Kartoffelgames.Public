@@ -1,7 +1,9 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, ComponentState, PwbChild, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
-import { PotatnoUiManager, PotatnoCodeUiManagerChangeType } from '../../manager/potatno-ui-manager.ts';
+import { Component, ComponentState, PwbChild, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import type { PotatnoPreviewDriverHandle } from '../../../preview/potatno-preview-driver.ts';
 import type { PotatnoCodeUiManagerIntegrityError } from '../../manager/manager_component/potatno-ui-manager-integrity.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoPreviewModule } from "../../module/potatno-preview.module.ts";
 import type { PotatnoUiPreviewOutputOption } from '../../potatno-ui-preview-manager.ts';
 import templateCss from './potatno-preview.css' with { type: 'text' };
 import previewTemplate from './potatno-preview.html' with { type: 'text' };
@@ -26,10 +28,11 @@ export type PotatnoPreviewTabDescriptor = {
     readonly label: string;
 
     /**
-     * The DOM element produced by the display's `generate()`. Re-appended after every template
-     * update so PWB's $if re-renders cannot orphan it.
+     * The preview driver backing this tab. The {@link PotatnoPreviewModule} binds to it and mounts
+     * its element into the content area, re-appending after every template update so PWB's $if
+     * re-renders cannot orphan it.
      */
-    readonly element: HTMLElement;
+    readonly driver: PotatnoPreviewDriverHandle;
 };
 
 /**
@@ -44,8 +47,9 @@ export type PotatnoPreviewTabDescriptor = {
     selector: 'potatno-preview',
     template: previewTemplate,
     style: templateCss,
+    modules: [PotatnoPreviewModule]
 })
-export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstruct, IComponentOnUpdate {
+export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstruct {
     private readonly mComponent: Component;
     private mDragging: boolean;
     private readonly mManager: PotatnoUiManager;
@@ -62,16 +66,18 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
     private accessor mActiveTabId: string | null = null;
 
     /**
-     * Reference to the content container element. The active descriptor's element is appended here.
-     */
-    @PwbChild('PreviewContent')
-    public accessor contentElement!: HTMLDivElement;
-
-    /**
      * Reference to the preview container for resize operations.
      */
     @PwbChild('PreviewContainer')
     public accessor containerElement!: HTMLDivElement;
+
+    /**
+     * Driver backing the active tab, bound by the template's `potatno-preview` module to mount the
+     * preview element. `null` when no tab is active so the module clears the content area.
+     */
+    public get activeTabDriver(): PotatnoPreviewDriverHandle | null {
+        return this.tabs.find((pDescriptor) => pDescriptor.id === this.mActiveTabId)?.driver ?? null;
+    }
 
     /**
      * Display ("style") id options for the display selector.
@@ -178,13 +184,6 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
     }
 
     /**
-     * Re-append the active descriptor's element after every template update cycle.
-     */
-    public onUpdate(): void {
-        this.attachActiveElement();
-    }
-
-    /**
      * Relay a display-selector ("style") change to the manager.
      *
      * @param pEvent - Change event from the display `<select>`.
@@ -271,37 +270,6 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      */
     public tabClass(pTab: PotatnoPreviewTabDescriptor): string {
         return pTab.id === this.mActiveTabId ? 'preview-tab selected' : 'preview-tab';
-    }
-
-    /**
-     * Append the active descriptor's element into `#PreviewContent`, replacing any previous
-     * occupant. Does nothing when no descriptor is active or when the error list is shown instead.
-     */
-    private attachActiveElement(): void {
-        if (this.hasErrors) {
-            return;
-        }
-
-        const lActive: PotatnoPreviewTabDescriptor | undefined = this.tabs.find((pDescriptor) => pDescriptor.id === this.mActiveTabId);
-        if (!lActive) {
-            return;
-        }
-
-        let lContainer: HTMLDivElement;
-        try {
-            lContainer = this.contentElement;
-        } catch {
-            return;
-        }
-
-        if (lContainer.firstChild === lActive.element && lContainer.childNodes.length === 1) {
-            return;
-        }
-
-        while (lContainer.firstChild) {
-            lContainer.removeChild(lContainer.firstChild);
-        }
-        lContainer.appendChild(lActive.element);
     }
 
     /**

@@ -1,16 +1,17 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, ComponentEventEmitter, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEvent, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
+import { Component, ComponentEventEmitter, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEvent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoUiManager, PotatnoCodeUiManagerChangeType } from '../../manager/potatno-ui-manager.ts';
+import type { PotatnoPreviewDriverHandle } from '../../../preview/potatno-preview-driver.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoPreviewModule } from "../../module/potatno-preview.module.ts";
+import { NodeCategory, NodeCategoryMeta } from "../../node/node-category.enum.ts";
 import type { PotatnoUiProject } from '../../potatno-ui-project.ts';
-import type { PortInteractionDetail } from '../potatno_port/potatno-port.ts';
+import { PotatnoPortComponent, type PortInteractionDetail } from '../potatno_port/potatno-port.ts';
 import nodeCss from './potatno-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
 
-// Ensure the port component is registered before the node template is processed.
-import { NodeCategory, NodeCategoryMeta } from "../../node/node-category.enum.ts";
-import '../potatno_port/potatno-port.ts';
+
 
 /**
  * Node component for the potatno-code visual editor.
@@ -25,11 +26,12 @@ import '../potatno_port/potatno-port.ts';
     selector: 'potatno-node',
     template: nodeTemplate,
     style: nodeCss,
+    modules: [PotatnoPreviewModule],
+    components: [PotatnoPortComponent]
 })
-export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDeconstruct, IComponentOnUpdate {
+export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDeconstruct {
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
-    private mPreviewElement: HTMLElement | null;
     private mUnsubscribe: (() => void) | null;
 
     /**
@@ -52,13 +54,6 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     @PwbExport
     @ComponentState.state()
     public accessor gridSize: number = 20;
-
-    /**
-     * Reference to the preview container element inside the node.
-     * Only available for standard nodes (not reroute or comment).
-     */
-    @PwbChild('NodePreview')
-    private accessor mPreviewContainer!: HTMLDivElement;
 
     @PwbComponentEvent('port-drag-start')
     private accessor mPortDragStart!: ComponentEventEmitter<PortInteractionDetail>;
@@ -143,6 +138,18 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
             return [];
         }
         return this.mManager.getPreviewDisplaysForNode(this.nodeData);
+    }
+
+    /**
+     * The driver backing this node's inline preview, bound by the template's `potatno-preview`
+     * module to mount the preview element. `null` when the node has no active preview so the module
+     * clears the container.
+     */
+    public get previewDriver(): PotatnoPreviewDriverHandle | null {
+        if (!this.nodeData) {
+            return null;
+        }
+        return this.mManager.getNodePreviewDriver(this.nodeData);
     }
 
     /**
@@ -247,7 +254,6 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mComponent = pComponent;
         this.mManager = pManager;
-        this.mPreviewElement = null;
         this.mUnsubscribe = null;
     }
 
@@ -287,13 +293,6 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     public onDeconstruct(): void {
         this.mUnsubscribe?.();
         this.mUnsubscribe = null;
-    }
-
-    /**
-     * After each update cycle, ensure the inline preview element is mounted.
-     */
-    public onUpdate(): void {
-        this.attachPreviewElement();
     }
 
     /**
@@ -388,9 +387,9 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
         const lTarget: HTMLTextAreaElement = pEvent.target as HTMLTextAreaElement;
 
         // Set node data.
-        this.mManager.graph.updateNode(this.nodeData, (pNode)=>{
+        this.mManager.graph.updateNode(this.nodeData, (pNode) => {
             pNode.label = lTarget.value;
-        })
+        });
     }
 
     /**
@@ -411,37 +410,6 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
         });
     }
 
-    /**
-     * Mount the current inline preview element (resolved from the manager) into the preview
-     * container, replacing any previous occupant, or clear the container when there is no preview.
-     */
-    private attachPreviewElement(): void {
-        let lContainer: HTMLDivElement;
-        try {
-            lContainer = this.mPreviewContainer;
-        } catch {
-            // The container is not in the DOM yet (node not rendered, or a reroute/comment node).
-            return;
-        }
-
-        const lPreviewEl: HTMLElement | null = this.nodeData ? this.mManager.getNodePreviewElement(this.nodeData) : null;
-        this.mPreviewElement = lPreviewEl;
-
-        // No preview → remove any previously mounted element.
-        if (!lPreviewEl) {
-            if (lContainer.firstChild) {
-                lContainer.innerHTML = '';
-            }
-            return;
-        }
-
-        if (lContainer.firstChild === lPreviewEl && lContainer.childNodes.length === 1) {
-            return;
-        }
-
-        lContainer.innerHTML = '';
-        lContainer.appendChild(lPreviewEl);
-    }
 }
 
 export type ResizeStartDetail = {

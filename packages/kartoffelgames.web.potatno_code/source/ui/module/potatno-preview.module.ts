@@ -12,7 +12,7 @@ import { PotatnoUiProject } from "../potatno-ui-project.ts";
 })
 export class PotatnoPreviewModule implements IAttributeOnUpdate {
     private readonly mTarget: Element;
-    private readonly mProcedure: LevelProcedure<PotatnoPreviewDriver<PotatnoUiProject, Element, Readonly<Record<string, unknown>>, unknown>>;
+    private readonly mProcedure: LevelProcedure<PotatnoPreviewDriver<PotatnoUiProject, Element, Readonly<Record<string, unknown>>, unknown> | null>;
 
     /**
      * Constructor.
@@ -35,11 +35,22 @@ export class PotatnoPreviewModule implements IAttributeOnUpdate {
     public onUpdate(): boolean {
         const lPreviewDriver = this.mProcedure.execute();
 
-        // Read the previre driver element.
+        // No driver to display: clear any previously appended element.
+        if (!lPreviewDriver) {
+            // Check for existing elements before removing.
+            const lContainsElement: boolean = this.mTarget.childNodes.length > 0;
+            if(lContainsElement){
+                this.mTarget.innerHTML = '';
+            }
+
+            return lContainsElement;
+        }
+
+        // Read the preview driver element.
         const lPreviewElement: Element = lPreviewDriver.element;
 
         // Preview element is already added.
-        if(this.mTarget.contains(lPreviewElement)){
+        if (this.mTarget.contains(lPreviewElement)) {
             return false;
         }
 

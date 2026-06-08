@@ -387,7 +387,7 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
             if (!lDescriptor.element) {
                 continue;
             }
-            lTabs.push({ id: lDescriptor.displayId, label: lDescriptor.label, element: lDescriptor.element });
+            lTabs.push({ id: lDescriptor.displayId, label: lDescriptor.label, driver: lDescriptor.driver });
         }
 
         this.mPreviewTabs = lTabs;

@@ -510,15 +510,11 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     private onDocumentPointerUp(pEvent: PointerEvent): void {
         const lState: GraphInteractionState = this.mInteractionState;
 
-        if (lState.mode === 'dragging-node') {
-            this.mManager.commitNodeChange(false);
-        } else if (lState.mode === 'dragging-wire') {
+        if (lState.mode === 'dragging-wire') {
             this.completeWireDrag(pEvent);
         } else if (lState.mode === 'selecting') {
             this.mShowSelectionBox = false;
             this.selectNodesInBox();
-        } else if (lState.mode === 'resizing-comment') {
-            this.mManager.commitNodeChange(false, lState.node);
         }
 
         this.mInteractionState = { mode: 'idle' };

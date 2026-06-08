@@ -112,14 +112,14 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         if (!this.port || this.port.portType === 'flow') {
             return 'var(--pn-text-primary)';
         }
-        if (this.port.node.project.types.isGenericType(this.port.dataType)) {
+        if (this.port.node.project.types.isGenericType(this.port.dataType ?? '')) {
             if (this.port.connectedPorts.size > 0) {
                 const lConnected = [...this.port.connectedPorts][0];
-                return this.getTypeColor(lConnected.dataType);
+                return this.getTypeColor(lConnected.dataType ?? '');
             }
             return 'var(--pn-text-muted)';
         }
-        return this.getTypeColor(this.port.dataType);
+        return this.getTypeColor(this.port.dataType ?? '');
     }
 
     /**
@@ -133,7 +133,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         return this.port.portType === 'value'
             && this.port.direction === 'input'
             && this.port.connectedPorts.size === 0
-            && !this.port.node.project.types.isGenericType(this.port.dataType);
+            && !this.port.node.project.types.isGenericType(this.port.dataType ?? '');
     }
 
     /**
@@ -143,10 +143,10 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         if (!this.port || this.port.portType !== 'value') {
             return [];
         }
-        if (this.port.node.project.types.isGenericType(this.port.dataType)) {
+        if (this.port.node.project.types.isGenericType(this.port.dataType ?? '')) {
             return [];
         }
-        const lTypeDef: PotatnoProjectTypeDefinition<string> = this.port.project.types.getType(this.port.dataType);
+        const lTypeDef: PotatnoProjectTypeDefinition<string> = this.port.project.types.getType(this.port.dataType ?? '');
         return lTypeDef.inputs.map((lInput, lIndex) => ({
             htmlType: lInput.type === 'number' ? 'number' : lInput.type === 'boolean' ? 'checkbox' : 'text',
             index: lIndex,

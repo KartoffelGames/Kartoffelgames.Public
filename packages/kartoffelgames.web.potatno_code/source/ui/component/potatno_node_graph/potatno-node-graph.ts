@@ -493,10 +493,12 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             const lGridSize: number = this.mInteraction.gridSize;
             const lDx: number = (pEvent.clientX - lState.startX) / this.mInteraction.zoom;
             const lDy: number = (pEvent.clientY - lState.startY) / this.mInteraction.zoom;
-            lState.node.resizeTo(
-                lState.originalW + Math.round(lDx / lGridSize),
-                lState.originalH + Math.round(lDy / lGridSize)
-            );
+
+            // Resize through the manager so the change is announced and the connection layer redraws.
+            this.mManager.graph.transformNode(lState.node, {
+                width: lState.originalW + Math.round(lDx / lGridSize),
+                height: lState.originalH + Math.round(lDy / lGridSize)
+            });
             this.rebuildVisibleNodePositions();
             return;
         }

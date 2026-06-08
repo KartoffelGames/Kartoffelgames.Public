@@ -221,6 +221,25 @@ export class PotatnoUiManagerGraph {
     }
 
     /**
+     * Update unspecified fields of a node.
+     * 
+     * @param pNode - Node to update.
+     * @param pUpdater - Update method of the node.
+     */
+    public updateNode(pNode: PotatnoDocumentNode<PotatnoUiProject> | null, pUpdater: (pNode: PotatnoDocumentNode<PotatnoUiProject>)=>void): void {
+        // Skip node update when no node is set.
+        if(!pNode){
+            return;
+        }
+
+        // Simple pass forward.
+        pUpdater(pNode);
+
+        // Dispatch changes.
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.Node, pNode);
+    }
+
+    /**
      * Set a default active function when the current active function is not accessable anymore.
      */
     private setDefaultActiveFunction() {

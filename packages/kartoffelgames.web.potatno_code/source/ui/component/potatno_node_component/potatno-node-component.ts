@@ -389,7 +389,13 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
         if (!this.nodeData) {
             return;
         }
-        this.nodeData.label = lTarget.value;
+
+        // Set node data.
+        this.mManager.graph.updateNode(this.nodeData, (pNode)=>{
+            pNode.label = lTarget.value;
+        })
+
+        
         this.mManager.commitNodeChange(false, this.nodeData);
     }
 

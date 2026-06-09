@@ -5,45 +5,42 @@ import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-t
 import type { PotatnoProject } from '../project/potatno-project.ts';
 
 /**
- * Runs a single function definition under a single display.
+ * Runs a single function definition for a preview.
  *
- * An executor binds a `PotatnoFunctionDefinition` together with the iteration parameter shape
- * the matching display will feed in per call, and two user-supplied build callbacks: one for
- * function-level previews that yield the natural `TResult`, and one for per-node previews that
- * yield the targeted port's raw value (typed as `unknown` since the value's static type varies
- * with the port's `dataType`; the display's adapter then coerces it into `TResult` shape).
+ * An executor binds a `PotatnoFunctionDefinition` together with the iteration parameter shape the
+ * matching display feeds in per call, and a single `build` callback. The callback receives an
+ * optional port target: when it is `null` the whole function is previewed (function-level), when
+ * it is set the previewed value is the targeted port's intermediate value. There is no separate
+ * function/node callback — the user code branches on `pPortTarget` if it needs to.
  *
- * Splitting the two paths into separate callbacks keeps each return type precise — the
- * function-level callback proves it returns `TResult`, the per-node callback returns whatever
- * the targeted port produces — without forcing either side through a widening cast.
+ * The callback returns both the per-iteration callable and the project type name of the value it
+ * yields, so the paired display can pick the matching type adapter to coerce that value into its
+ * render shape — for the full-function result just as for a single port value.
  *
  * @typeParam TTypes - The project types definition the executor targets.
  * @typeParam TParams - The iteration parameter shape supplied by the paired display per call.
- * @typeParam TResult - The result shape the function-level callable produces.
  */
-export class PotatnoPreviewFunctionExecutor<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Readonly<Record<string, unknown>>, TResult> {
+export class PotatnoPreviewFunctionExecutor<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Readonly<Record<string, unknown>>> {
     /**
      * Create a new PotatnoPreviewFunctionExecutor.
      *
-     * `pTypes` is taken purely for type inference and stored so build callbacks can read
+     * `pTypes` is taken purely for type inference and stored so the build callback can read
      * project type defaults at compile time via `pExecutor.projectTypes`.
      *
      * @typeParam TTypes - Inferred project types definition.
      * @typeParam TParams - Inferred iteration parameter shape.
-     * @typeParam TResult - Inferred function-level result shape.
      *
-     * @param pTypes - Project types definition. Used for type inference and runtime helper access from inside the build callbacks.
+     * @param pTypes - Project types definition. Used for type inference and runtime helper access from inside the build callback.
      * @param pFunction - The function definition this executor wraps. Becomes `pExecutor.function`.
-     * @param pParameters - Executor configuration: iteration parameter spec and the two build callbacks.
+     * @param pParameters - Executor configuration: iteration parameter spec and the build callback.
      *
      * @returns The constructed executor.
      */
-    public static new<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Readonly<Record<string, unknown>>, TResult>(pTypes: TTypes, pFunction: PotatnoFunctionDefinition<PotatnoProject<TTypes>>, pParameters: PotatnoPreviewFunctionExecutorConstructorParameter<TTypes, TParams, TResult>): PotatnoPreviewFunctionExecutor<TTypes, TParams, TResult> {
-        return new PotatnoPreviewFunctionExecutor<TTypes, TParams, TResult>(pTypes, pFunction, pParameters);
+    public static new<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Readonly<Record<string, unknown>>>(pTypes: TTypes, pFunction: PotatnoFunctionDefinition<PotatnoProject<TTypes>>, pParameters: PotatnoPreviewFunctionExecutorConstructorParameter<TTypes, TParams>): PotatnoPreviewFunctionExecutor<TTypes, TParams> {
+        return new PotatnoPreviewFunctionExecutor<TTypes, TParams>(pTypes, pFunction, pParameters);
     }
 
-    private readonly mBuildFunction: PotatnoPreviewFunctionExecutorBuildFunction<TTypes, TParams, TResult>;
-    private readonly mBuildNode: PotatnoPreviewFunctionExecutorBuildNode<TTypes, TParams>;
+    private readonly mBuild: PotatnoPreviewFunctionExecutorBuild<TTypes, TParams>;
     private readonly mFunction: PotatnoFunctionDefinition<PotatnoProject<TTypes>>;
     private readonly mParameters: TParams;
     private readonly mProjectTypes: TTypes;
@@ -58,14 +55,14 @@ export class PotatnoPreviewFunctionExecutor<TTypes extends PotatnoProjectTypesDe
     /**
      * The iteration parameter spec the paired display feeds in each call. Used both for
      * compile-time pair matching with the display's `expectedParameters` and as the typed
-     * accessor inside the build callbacks when the user needs the parameter names/defaults.
+     * accessor inside the build callback when the user needs the parameter names/defaults.
      */
     public get parameters(): TParams {
         return this.mParameters;
     }
 
     /**
-     * The project types definition. Exposed for use inside build callbacks — typically to
+     * The project types definition. Exposed for use inside the build callback — typically to
      * resolve a function's static inputs from their project type's `default.value`.
      */
     public get projectTypes(): TTypes {
@@ -79,54 +76,34 @@ export class PotatnoPreviewFunctionExecutor<TTypes extends PotatnoProjectTypesDe
      * @param pFunction - Bound function definition.
      * @param pParameters - The executor configuration captured by `new`.
      */
-    protected constructor(pTypes: TTypes, pFunction: PotatnoFunctionDefinition<PotatnoProject<TTypes>>, pParameters: PotatnoPreviewFunctionExecutorConstructorParameter<TTypes, TParams, TResult>) {
+    protected constructor(pTypes: TTypes, pFunction: PotatnoFunctionDefinition<PotatnoProject<TTypes>>, pParameters: PotatnoPreviewFunctionExecutorConstructorParameter<TTypes, TParams>) {
         this.mProjectTypes = pTypes;
         this.mFunction = pFunction;
         this.mParameters = pParameters.parameters;
-        this.mBuildFunction = pParameters.buildFunction;
-        this.mBuildNode = pParameters.buildNode;
+        this.mBuild = pParameters.build;
     }
 
     /**
-     * Compile the function-level generator result into a per-iteration callable.
+     * Compile the generator result into a per-iteration build result.
      *
-     * Invokes `buildFunction` with a slim build context, the full document-result code (the entry
-     * function plus every dependency function declaration, with all hooks intact), and returns the
-     * callable the display will invoke per iteration. The whole document is passed — not just the
-     * entry function — so a preview of a graph that calls user functions has those declarations in
-     * scope.
+     * Invokes `build` with a slim build context, the full document-result code (the entry function
+     * plus every dependency function declaration, with all hooks intact) and the port target. The
+     * whole document is passed — not just the entry function — so a preview of a graph that calls
+     * user functions has those declarations in scope. The returned build result pairs the callable
+     * the display invokes per iteration with the project type name of the value it yields.
      *
      * @param pGeneratorResult - The document-level code generator result.
+     * @param pPortTarget - The previewed port plus its resolved value identifier, or `null` for a function-level preview.
      *
-     * @returns A callable accepting one iteration's parameter object and returning the function's natural `TResult`.
+     * @returns The build result: the iteration callable and the type name of the yielded value.
      */
-    public compileFunction(pGeneratorResult: PotatnoCodeGeneratorDocumentResult<PotatnoProject<TTypes>>): PotatnoPreviewFunctionExecutorCallable<TParams, TResult> {
-        return this.mBuildFunction(this.buildContext(), pGeneratorResult);
+    public compile(pGeneratorResult: PotatnoCodeGeneratorDocumentResult<PotatnoProject<TTypes>>, pPortTarget: PotatnoPreviewFunctionExecutorPortTarget<PotatnoProject<TTypes>> | null): PotatnoPreviewFunctionExecutorBuildResult<TParams> {
+        return this.mBuild(this.buildContext(), pGeneratorResult, pPortTarget);
     }
 
     /**
-     * Compile a per-node generator result into a per-iteration callable.
-     *
-     * Invokes `buildNode` with the build context, the full document-result code (the previewed
-     * node's owning function plus its dependencies, with all hooks intact), and the port target
-     * identifying which intermediate value to return. `buildNode` replaces the target port's
-     * valueId hook with a return so the compiled function yields that value. The returned callable
-     * yields the raw port value — the driver applies the matching display adapter before handing it
-     * to `display.update`.
-     *
-     * @param pGeneratorResult - The document-level code generator result for the previewed node's function.
-     * @param pPortTarget - The document port being previewed plus its bound `valueId`.
-     *
-     * @returns A callable accepting one iteration's parameter object and returning the targeted port's raw value.
-     */
-    public compileNode(pGeneratorResult: PotatnoCodeGeneratorDocumentResult<PotatnoProject<TTypes>>, pPortTarget: PotatnoPreviewFunctionExecutorPortTarget<PotatnoProject<TTypes>>): PotatnoPreviewFunctionExecutorCallable<TParams, unknown> {
-        return this.mBuildNode(this.buildContext(), pGeneratorResult, pPortTarget);
-    }
-
-    /**
-     * Build the stable context view handed to both build callbacks. Kept off the executor
-     * instance so TResult never appears in a contravariant inference position from the
-     * callbacks' perspective.
+     * Build the stable context view handed to the build callback. Kept off the executor instance so
+     * the iteration parameter spec and project types are accessed through one cohesive object.
      *
      * @returns The build context for this executor.
      */
@@ -140,9 +117,8 @@ export class PotatnoPreviewFunctionExecutor<TTypes extends PotatnoProjectTypesDe
 }
 
 /**
- * Build-time view handed to the build callbacks. Carries the helpers documented in the
- * preview design — the bound function definition, the iteration parameter spec, and the project
- * types definition — without leaking TResult into a contravariant inference position.
+ * Build-time view handed to the build callback. Carries the bound function definition, the
+ * iteration parameter spec, and the project types definition.
  *
  * @typeParam TTypes - The project types definition the executor targets.
  * @typeParam TParams - The iteration parameter shape.
@@ -165,18 +141,36 @@ export type PotatnoPreviewFunctionExecutorBuildContext<TTypes extends PotatnoPro
 };
 
 /**
- * Iteration callable produced by a build callback and invoked by the display per iteration.
+ * Iteration callable produced by the build callback and invoked by the display per iteration.
  *
- * The return shape is `TResult | Promise<TResult>` so executors backed by async work — a
- * WebGPU dispatch, an audio worklet round-trip — fit alongside synchronous compiled JS. The
- * driver always normalises results through `Promise.resolve` before handing them to the
- * display.
+ * The return shape is `unknown | Promise<unknown>` so executors backed by async work — a WebGPU
+ * dispatch, an audio worklet round-trip — fit alongside synchronous compiled JS. The driver
+ * always normalises results through `Promise.resolve` and the display's type adapter before
+ * handing them to the display.
  */
-export type PotatnoPreviewFunctionExecutorCallable<TParams, TResult> = (pParameters: TParams) => TResult | Promise<TResult>;
+export type PotatnoPreviewFunctionExecutorCallable<TParams> = (pParameters: TParams) => unknown | Promise<unknown>;
 
 /**
- * Discriminator for the per-node preview path passed to `buildNode`. Identifies which port's
- * intermediate value the per-node callable should yield.
+ * Result of one `build` call: the per-iteration callable plus the project type name of the value
+ * it yields. The driver uses the type to select the display's matching adapter.
+ *
+ * @typeParam TParams - The iteration parameter shape.
+ */
+export type PotatnoPreviewFunctionExecutorBuildResult<TParams> = {
+    /**
+     * The per-iteration callable the display invokes.
+     */
+    execute: PotatnoPreviewFunctionExecutorCallable<TParams>;
+
+    /**
+     * Project type name of the value the callable yields. Selects the display's type adapter.
+     */
+    type: string;
+};
+
+/**
+ * Identifies which port the preview targets. `null` is passed to the build callback instead of a
+ * target for function-level previews.
  *
  * @typeParam TProject - The project the previewed port belongs to.
  */
@@ -187,47 +181,31 @@ export type PotatnoPreviewFunctionExecutorPortTarget<TProject extends PotatnoPro
     documentPort: PotatnoDocumentPort<TProject>;
 
     /**
-     * The valueId assigned to the port's output during code generation. The `buildNode`
-     * callback rewrites the matching `/*[valueId]*\/`-style comment into a return statement
-     * so the compiled function yields this intermediate value.
+     * The resolved identifier of the targeted value. For per-node previews this is the valueId
+     * allocated to the port's output during code generation (the build callback rewrites the
+     * matching `/*[valueId]*\/`-style hook into a return); for a function-output preview it is the
+     * output label keying the function's returned object.
      */
     value: string;
 };
 
 /**
- * Function-level build callback. Called once per cache miss for function-level previews to
- * turn the generator's function-result code into a per-iteration callable returning the
- * function's natural `TResult`.
- *
- * @typeParam TTypes - The project types definition the executor targets.
- * @typeParam TParams - The iteration parameter shape.
- * @typeParam TResult - The function-level result shape.
- */
-export type PotatnoPreviewFunctionExecutorBuildFunction<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Readonly<Record<string, unknown>>, TResult> = (pExecutor: PotatnoPreviewFunctionExecutorBuildContext<TTypes, TParams>, pGeneratorResult: PotatnoCodeGeneratorDocumentResult<PotatnoProject<TTypes>>) => PotatnoPreviewFunctionExecutorCallable<TParams, TResult>;
-
-/**
- * Per-node build callback. Called once per cache miss for per-node previews to compile the full
- * document-result code into a per-iteration callable returning a single port's raw value (by
- * replacing that port's valueId hook with a return).
- *
- * The callable's return type is `unknown` rather than `TResult` because per-node previews
- * yield whatever the targeted port emits — a single number, a string, a custom struct — which
- * is not the same shape as the display's `TResult`. The driver bridges the gap by wrapping
- * the callable with the display's matching type adapter.
+ * The single build callback. Called once per cache refresh to turn the generator result into a
+ * per-iteration callable plus its yielded value type. `pPortTarget` is `null` for function-level
+ * previews and set for per-port previews.
  *
  * @typeParam TTypes - The project types definition the executor targets.
  * @typeParam TParams - The iteration parameter shape.
  */
-export type PotatnoPreviewFunctionExecutorBuildNode<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Readonly<Record<string, unknown>>> = (pExecutor: PotatnoPreviewFunctionExecutorBuildContext<TTypes, TParams>, pGeneratorResult: PotatnoCodeGeneratorDocumentResult<PotatnoProject<TTypes>>, pPortTarget: PotatnoPreviewFunctionExecutorPortTarget<PotatnoProject<TTypes>>) => PotatnoPreviewFunctionExecutorCallable<TParams, unknown>;
+export type PotatnoPreviewFunctionExecutorBuild<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Readonly<Record<string, unknown>>> = (pExecutor: PotatnoPreviewFunctionExecutorBuildContext<TTypes, TParams>, pGeneratorResult: PotatnoCodeGeneratorDocumentResult<PotatnoProject<TTypes>>, pPortTarget: PotatnoPreviewFunctionExecutorPortTarget<PotatnoProject<TTypes>> | null) => PotatnoPreviewFunctionExecutorBuildResult<TParams>;
 
 /**
  * Constructor parameters for PotatnoPreviewFunctionExecutor.
  *
  * @typeParam TTypes - The project types definition the executor targets.
  * @typeParam TParams - The iteration parameter shape.
- * @typeParam TResult - The function-level result shape.
  */
-export type PotatnoPreviewFunctionExecutorConstructorParameter<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Readonly<Record<string, unknown>>, TResult> = {
+export type PotatnoPreviewFunctionExecutorConstructorParameter<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Readonly<Record<string, unknown>>> = {
     /**
      * Iteration parameter spec — JS-value defaults. Must structurally match the paired display's
      * `expectedParameters`.
@@ -235,14 +213,8 @@ export type PotatnoPreviewFunctionExecutorConstructorParameter<TTypes extends Po
     parameters: TParams;
 
     /**
-     * Build callback for the function-level preview path. Receives the full function-result
-     * code and returns a callable yielding the function's natural `TResult`.
+     * Build callback turning a generator result (and optional port target) into a callable plus
+     * the project type name of the value it yields.
      */
-    buildFunction: PotatnoPreviewFunctionExecutorBuildFunction<TTypes, TParams, TResult>;
-
-    /**
-     * Build callback for the per-node preview path. Receives the per-node graph result plus
-     * the port target and returns a callable yielding the targeted port's raw value.
-     */
-    buildNode: PotatnoPreviewFunctionExecutorBuildNode<TTypes, TParams>;
+    build: PotatnoPreviewFunctionExecutorBuild<TTypes, TParams>;
 };

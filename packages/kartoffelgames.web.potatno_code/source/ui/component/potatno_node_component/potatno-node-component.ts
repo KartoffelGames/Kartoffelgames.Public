@@ -130,13 +130,20 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     }
 
     /**
-     * Display ids available for previewing this node's outputs, resolved from the manager.
+     * Display ("style") ids registered for the node's function, from the project's preview registry.
      */
     public get previewDisplays(): Array<string> {
         if (!this.nodeData) {
             return [];
         }
-        return this.mManager.getPreviewDisplaysForNode(this.nodeData);
+
+        const lProject: PotatnoUiProject = this.nodeData.project;
+        const lFunctionDefinition = lProject.getFunction(this.nodeData.function.definitionId);
+        if (!lProject.previews || !lFunctionDefinition) {
+            return [];
+        }
+
+        return lProject.previews.availablePreviewTypes(lFunctionDefinition);
     }
 
     /**
@@ -148,7 +155,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
         if (!this.nodeData) {
             return null;
         }
-        return this.mManager.getNodePreviewDriver(this.nodeData);
+        return this.mManager.preview.nodeDriver(this.nodeData);
     }
 
     /**
@@ -320,17 +327,28 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     }
 
     /**
-     * Choose which output port to preview.
+     * Choose which output port to preview. Re-selecting the active port turns the preview off.
      *
      * @param pEvent - Click event from the port row.
      * @param pPort - Port to preview.
      */
     public onSelectPreviewPort(pEvent: MouseEvent, pPort: PotatnoDocumentPort<PotatnoUiProject>): void {
         pEvent.stopPropagation();
-        if (!this.nodeData) {
-            return;
-        }
-        this.mManager.setNodePreview(this.nodeData, pPort.definitionId);
+
+        const lDisplays: Array<string> = this.previewDisplays;
+        this.mManager.graph.updateNode(this.nodeData, (pNode) => {
+            // Toggle off when re-selecting the active port.
+            if (pNode.preview?.portId === pPort.definitionId) {
+                pNode.preview = null;
+                return;
+            }
+
+            // Keep the chosen display when it still applies, else default to the first available.
+            const lDisplayId: string | undefined = (pNode.preview && lDisplays.includes(pNode.preview.displayId)) ? pNode.preview.displayId : lDisplays[0];
+            if (lDisplayId) {
+                pNode.preview = { portId: pPort.definitionId, displayId: lDisplayId };
+            }
+        });
     }
 
     /**
@@ -340,10 +358,9 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      */
     public onClearPreview(pEvent: MouseEvent): void {
         pEvent.stopPropagation();
-        if (!this.nodeData) {
-            return;
-        }
-        this.mManager.setNodePreview(this.nodeData, '');
+        this.mManager.graph.updateNode(this.nodeData, (pNode) => {
+            pNode.preview = null;
+        });
     }
 
     /**
@@ -353,10 +370,13 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      */
     public onSelectPreviewStyle(pEvent: Event): void {
         pEvent.stopPropagation();
-        if (!this.nodeData) {
-            return;
-        }
-        this.mManager.setNodePreviewDisplay(this.nodeData, (pEvent.target as HTMLSelectElement).value);
+
+        const lDisplayId: string = (pEvent.target as HTMLSelectElement).value;
+        this.mManager.graph.updateNode(this.nodeData, (pNode) => {
+            if (pNode.preview) {
+                pNode.preview = { portId: pNode.preview.portId, displayId: lDisplayId };
+            }
+        });
     }
 
     /**

@@ -1,47 +1,20 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentState, PwbChild, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
+import { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
 import type { PotatnoCodeUiManagerIntegrityError } from '../../manager/manager_component/potatno-ui-manager-integrity.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoUiProject } from '../../manager/potatno-ui-manager.ts';
-import { PotatnoPreviewModule } from "../../module/potatno-preview.module.ts";
-import type { PotatnoUiPreviewOutputOption } from '../../potatno-ui-preview-manager.ts';
+import { PotatnoPreviewModule } from '../../module/potatno-preview.module.ts';
 import templateCss from './potatno-preview.css' with { type: 'text' };
 import previewTemplate from './potatno-preview.html' with { type: 'text' };
-import { PotatnoPreviewDriver } from "../../../preview/potatno-preview-driver.ts";
 
 /**
- * Lightweight descriptor handed to the preview panel for each driver it should host.
+ * Preview panel hosting the active function's main preview driver.
  *
- * The panel renders one tab per descriptor and swaps the visible element when the user picks a tab.
- * Both `id` and `label` are plain strings so the component stays decoupled from the preview
- * manager's generic-heavy descriptor shape.
- */
-export type PotatnoPreviewTabDescriptor = {
-    /**
-     * Stable id matching the underlying display id. Used to preserve the selected tab across
-     * rebuilds and to identify the active tab in click handlers.
-     */
-    readonly id: string;
-
-    /**
-     * Human-readable label shown on the tab button.
-     */
-    readonly label: string;
-
-    /**
-     * The preview driver backing this tab. The {@link PotatnoPreviewModule} binds to it and mounts
-     * its element into the content area, re-appending after every template update so PWB's $if
-     * re-renders cannot orphan it.
-     */
-    readonly driver: PotatnoPreviewDriver<PotatnoUiProject>;
-};
-
-/**
- * Tabbed preview panel hosting one or more `PotatnoPreviewDriver` elements.
- *
- * Reads its tab descriptors, validation errors and selector state from the shared
- * {@link PotatnoUiManager} and relays selector changes back through it. Validation errors take
- * priority — while the manager reports any, the error list replaces the preview content. Only the
- * active tab id is local state.
+ * Reads its validation errors and the available display/output options from the shared
+ * {@link PotatnoUiManager}, owns the local display/output selection and requests the matching driver
+ * from the preview component. Validation errors take priority — while the manager reports any, the
+ * error list replaces the preview content.
  */
 @PwbComponent({
     selector: 'potatno-preview',
@@ -57,13 +30,20 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
     private mStartWidth: number;
     private mStartX: number;
     private mStartY: number;
+    private mTrackedFunction: PotatnoDocumentFunction<PotatnoUiProject> | null;
     private mUnsubscribe: (() => void) | null;
 
     /**
-     * Active preview tab id. State-tracked so a click re-renders the visible element.
+     * Display id chosen in the display selector. Empty falls back to the first available display.
      */
     @ComponentState.state()
-    private accessor mActiveTabId: string | null = null;
+    private accessor mSelectedDisplayId: string = '';
+
+    /**
+     * Output label chosen in the output selector. Empty falls back to the first available output.
+     */
+    @ComponentState.state()
+    private accessor mSelectedOutputId: string = '';
 
     /**
      * Reference to the preview container for resize operations.
@@ -72,18 +52,17 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
     public accessor containerElement!: HTMLDivElement;
 
     /**
-     * Driver backing the active tab, bound by the template's `potatno-preview` module to mount the
-     * preview element. `null` when no tab is active so the module clears the content area.
-     */
-    public get activeTabDriver(): PotatnoPreviewDriver<PotatnoUiProject> | null {
-        return this.tabs.find((pDescriptor) => pDescriptor.id === this.mActiveTabId)?.driver ?? null;
-    }
-
-    /**
-     * Display ("style") id options for the display selector.
+     * Display ("style") id options for the display selector, from the project's preview registry.
      */
     public get displayOptions(): ReadonlyArray<string> {
-        return this.mManager.previewManager?.getActivePreviewDisplays() ?? [];
+        const lFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mManager.activeFunction;
+        const lProject: PotatnoUiProject | null = this.mManager.project;
+        const lFunctionDefinition = lFunction && lProject ? lProject.getFunction(lFunction.definitionId) : undefined;
+        if (!lProject?.previews || !lFunctionDefinition) {
+            return [];
+        }
+
+        return lProject.previews.availablePreviewTypes(lFunctionDefinition);
     }
 
     /**
@@ -94,13 +73,6 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
     }
 
     /**
-     * Whether the panel currently has any descriptors to render.
-     */
-    public get hasDescriptors(): boolean {
-        return this.mManager.previewTabs.length > 0;
-    }
-
-    /**
      * Whether there are any validation errors to display.
      */
     public get hasErrors(): boolean {
@@ -108,38 +80,63 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
     }
 
     /**
-     * Output port options for the output selector.
+     * Output options for the output selector (user functions only).
      */
-    public get outputOptions(): ReadonlyArray<PotatnoUiPreviewOutputOption> {
-        return this.mManager.previewManager?.getActivePreviewOutputs() ?? [];
+    public get outputOptions(): ReadonlyArray<PotatnoPreviewOutputOption> {
+        const lFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mManager.activeFunction;
+        if (!lFunction || !this.showOutputSelector) {
+            return [];
+        }
+
+        return lFunction.outputs.map((pOutput) => ({ id: pOutput.label, label: pOutput.label }));
     }
 
     /**
-     * Currently selected display id.
+     * The driver for the active function's main preview, bound by the template's `potatno-preview`
+     * module. `null` when no function is active or no matching preview is registered.
+     */
+    public get previewDriver(): PotatnoPreviewDriver<PotatnoUiProject> | null {
+        const lFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mManager.activeFunction;
+        if (!lFunction) {
+            return null;
+        }
+
+        return this.mManager.preview.functionDriver(lFunction, this.selectedDisplayId, this.selectedOutputId);
+    }
+
+    /**
+     * Currently selected display id, falling back to the first available.
      */
     public get selectedDisplayId(): string {
-        return this.mManager.previewManager?.activePreviewDisplayId ?? '';
+        const lOptions: ReadonlyArray<string> = this.displayOptions;
+        if (this.mSelectedDisplayId !== '' && lOptions.includes(this.mSelectedDisplayId)) {
+            return this.mSelectedDisplayId;
+        }
+        return lOptions[0] ?? '';
     }
 
     /**
-     * Currently selected output port id.
+     * Currently selected output id, falling back to the first available.
      */
     public get selectedOutputId(): string {
-        return this.mManager.previewManager?.activePreviewOutputId ?? '';
+        const lOptions: ReadonlyArray<PotatnoPreviewOutputOption> = this.outputOptions;
+        if (this.mSelectedOutputId !== '' && lOptions.some((pOption) => pOption.id === this.mSelectedOutputId)) {
+            return this.mSelectedOutputId;
+        }
+        return lOptions[0]?.id ?? '';
     }
 
     /**
-     * Whether to show the display + output selectors (user functions only).
+     * Whether to show the output selector — only for user (non-entry) functions.
      */
-    public get showSelectors(): boolean {
-        return this.mManager.previewManager?.activePreviewIsUserFunction ?? false;
-    }
+    public get showOutputSelector(): boolean {
+        const lFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mManager.activeFunction;
+        const lProject: PotatnoUiProject | null = this.mManager.project;
+        if (!lFunction || !lProject) {
+            return false;
+        }
 
-    /**
-     * Tab descriptors driving the tab strip and content area.
-     */
-    public get tabs(): ReadonlyArray<PotatnoPreviewTabDescriptor> {
-        return this.mManager.previewTabs;
+        return lFunction.definitionId !== lProject.entryPoint.id;
     }
 
     /**
@@ -156,6 +153,7 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
         this.mStartWidth = 0;
         this.mStartX = 0;
         this.mStartY = 0;
+        this.mTrackedFunction = null;
         this.mUnsubscribe = null;
     }
 
@@ -164,15 +162,14 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      */
     public onConnect(): void {
         this.mUnsubscribe = this.mManager.subscribe(
-            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.ActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection | PotatnoCodeUiManagerChangeType.Preview,
+            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.ActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection,
             null,
             () => {
-                this.reconcileActiveTab();
+                this.releaseSupersededDriver();
                 this.mComponent.updater.update();
             });
 
-        // Pick an initial active tab when the panel mounts with descriptors already built.
-        this.reconcileActiveTab();
+        this.releaseSupersededDriver();
     }
 
     /**
@@ -184,21 +181,21 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
     }
 
     /**
-     * Relay a display-selector ("style") change to the manager.
+     * Relay a display-selector ("style") change to the panel state.
      *
      * @param pEvent - Change event from the display `<select>`.
      */
     public onDisplaySelect(pEvent: Event): void {
-        this.mManager.setPreviewDisplay((pEvent.target as HTMLSelectElement).value);
+        this.mSelectedDisplayId = (pEvent.target as HTMLSelectElement).value;
     }
 
     /**
-     * Relay an output-selector change to the manager.
+     * Relay an output-selector change to the panel state.
      *
      * @param pEvent - Change event from the output `<select>`.
      */
     public onOutputSelect(pEvent: Event): void {
-        this.mManager.setPreviewOutput((pEvent.target as HTMLSelectElement).value);
+        this.mSelectedOutputId = (pEvent.target as HTMLSelectElement).value;
     }
 
     /**
@@ -249,38 +246,29 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
     }
 
     /**
-     * Tab click handler — selects the clicked descriptor.
-     *
-     * @param pTabId - Id of the tab the user clicked.
+     * When the active function changed, drop the previous function's driver (only one main preview
+     * is active at a time) and reset the local selection so the new function picks its defaults.
      */
-    public onTabSelect(pTabId: string): void {
-        if (this.mActiveTabId === pTabId) {
+    private releaseSupersededDriver(): void {
+        const lFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mManager.activeFunction;
+        if (lFunction === this.mTrackedFunction) {
             return;
         }
 
-        this.mActiveTabId = pTabId;
-    }
-
-    /**
-     * Resolve the CSS class for a tab button (selected/unselected).
-     *
-     * @param pTab - The descriptor whose class to resolve.
-     *
-     * @returns A space-separated class list ready for the template.
-     */
-    public tabClass(pTab: PotatnoPreviewTabDescriptor): string {
-        return pTab.id === this.mActiveTabId ? 'preview-tab selected' : 'preview-tab';
-    }
-
-    /**
-     * Keep the active tab selection valid as the descriptor list changes shape, falling back to
-     * the first descriptor (or none) when the previous selection disappears.
-     */
-    private reconcileActiveTab(): void {
-        const lTabs: ReadonlyArray<PotatnoPreviewTabDescriptor> = this.tabs;
-        const lActiveStillExists: boolean = this.mActiveTabId !== null && lTabs.some((pDescriptor) => pDescriptor.id === this.mActiveTabId);
-        if (!lActiveStillExists) {
-            this.mActiveTabId = lTabs[0]?.id ?? null;
+        if (this.mTrackedFunction) {
+            this.mManager.preview.release(this.mTrackedFunction);
         }
+
+        this.mTrackedFunction = lFunction;
+        this.mSelectedDisplayId = '';
+        this.mSelectedOutputId = '';
     }
 }
+
+/**
+ * One selectable output for a user function's main preview.
+ */
+type PotatnoPreviewOutputOption = {
+    readonly id: string;
+    readonly label: string;
+};

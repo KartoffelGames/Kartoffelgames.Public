@@ -116,7 +116,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      */
     @PwbExport
     public triggerPreviewUpdate(): Promise<void> {
-        return this.mManager.triggerPreviewUpdate();
+        return this.mManager.preview.execute();
     }
 
     /**

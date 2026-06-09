@@ -7,12 +7,10 @@ import { PotatnoDocumentPort } from '../../document/potatno-document-port.ts';
 import { PotatnoDocument } from '../../document/potatno-document.ts';
 import { PotatnoProjectTypesDefinition } from "../../project/potatno-project-types-definition.ts";
 import { PotatnoProject } from "../../project/potatno-project.ts";
-import type { PotatnoPreviewTabDescriptor } from '../component/potatno_preview/potatno-preview.ts';
-import { PotatnoUiPreviewManager } from '../potatno-ui-preview-manager.ts';
 import { PotatnoUiManagerGraph } from './manager_component/potatno-ui-manager-graph.ts';
 import { PotatnoUiManagerHistory } from './manager_component/potatno-ui-manager-history.ts';
 import { PotatnoUiManagerIntegrity } from './manager_component/potatno-ui-manager-integrity.ts';
-import { PotatnoPreviewDriver } from "../../preview/potatno-preview-driver.ts";
+import { PotatnoUiManagerPreview } from './manager_component/potatno-ui-manager-preview.ts';
 
 /**
  * Central, shared state owner for the whole Potatno-code editor UI.
@@ -33,13 +31,13 @@ import { PotatnoPreviewDriver } from "../../preview/potatno-preview-driver.ts";
 export class PotatnoUiManager extends EventTarget implements IDeconstructable {
     private mActiveFunctionId: string;
 
-    private mPreviewManager: PotatnoUiPreviewManager | null;
     private mProject: PotatnoUiProject | null;
 
     // Manager components.
     private readonly mGraph: PotatnoUiManagerGraph;
     private readonly mHistory: PotatnoUiManagerHistory;
     private readonly mIntegrity: PotatnoUiManagerIntegrity;
+    private readonly mPreview: PotatnoUiManagerPreview;
 
     /**
      * UI manager document component.
@@ -95,18 +93,11 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
     }
 
     /**
-     * The preview lifecycle helper, or `null` before initialization. The preview panel reads the
-     * active preview's display/output selection and its available options directly from it.
+     * The preview component, owning every live preview driver. Components request node and
+     * main-panel drivers from it and read its available display/output options.
      */
-    public get previewManager(): PotatnoUiPreviewManager | null {
-        return this.mPreviewManager;
-    }
-
-    /**
-     * Preview tab descriptors for the preview panel.
-     */
-    public get previewTabs(): ReadonlyArray<PotatnoPreviewTabDescriptor> {
-        return this.mPreviewManager?.previewTabs ?? [];
+    public get preview(): PotatnoUiManagerPreview {
+        return this.mPreview;
     }
 
     /**
@@ -119,60 +110,30 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
         this.mIntegrity = new PotatnoUiManagerIntegrity(this);
         this.mGraph = new PotatnoUiManagerGraph(this);
         this.mHistory = new PotatnoUiManagerHistory(this);
+        this.mPreview = new PotatnoUiManagerPreview(this);
 
         this.mActiveFunctionId = '';
-        this.mPreviewManager = null;
         this.mProject = null;
-
-        // Rebuild the preview manager whenever a new document is adopted (initial load, undo/redo),
-        // keeping the preview lifecycle owned here instead of in the graph component.
-        this.subscribe(PotatnoCodeUiManagerChangeType.Document, null, () => {
-            const lDocument: PotatnoDocument<PotatnoUiProject> | null = this.mGraph.document;
-            if (lDocument) {
-                this.resetPreviewManager(lDocument);
-            }
-        });
     }
 
     /**
-     * Release timers held by the manager. Called when the editor is torn down.
+     * Tear-down hook. The manager's components subscribe for the editor's lifetime, so there is
+     * nothing to release.
      */
     public deconstruct(): void {
-        this.mPreviewManager?.dispose();
+        // Nothing to release.
     }
 
     /**
-     * Resolve the per-node inline preview driver from the preview manager.
-     *
-     * @param pNode - The node whose preview driver to resolve.
-     *
-     * @returns The driver handle, or `null` when the node has no active preview.
-     */
-    public getNodePreviewDriver(pNode: PotatnoDocumentNode<PotatnoUiProject>): PotatnoPreviewDriver<PotatnoUiProject> | null {
-        return this.mPreviewManager?.getNodeDescriptor(pNode)?.driver ?? null;
-    }
-
-    /**
-     * List the preview display ids available for a node's outputs.
-     *
-     * @param pNode - The node whose available preview displays to list.
-     *
-     * @returns The display ids, or an empty array.
-     */
-    public getPreviewDisplaysForNode(pNode: PotatnoDocumentNode<PotatnoUiProject>): Array<string> {
-        return this.mPreviewManager?.getPreviewDisplaysForNode(pNode) ?? [];
-    }
-
-    /**
-     * Bind the manager to a project. Resets document, history and the preview manager.
+     * Bind the manager to a project. Resets document and history.
      *
      * @param pProject - The project configuration backing the editor.
      */
     public initialize(pProject: PotatnoUiProject, pDocument: PotatnoDocument<PotatnoUiProject>): void {
         this.mProject = pProject;
 
-        // Adopt the document. The manager's own document subscription rebuilds the preview manager
-        // and notifies listeners.
+        // Adopt the document. The manager's own document event notifies listeners and the preview
+        // component drops its stale drivers.
         this.mGraph.setDocument(pDocument);
     }
 
@@ -262,90 +223,10 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
         for (const lFunction of lDocument.functions) {
             if (lFunction.id === pFunctionId) {
                 this.mActiveFunctionId = pFunctionId;
-                this.mPreviewManager?.setActiveFunction(lFunction);
                 this.dispatch(PotatnoCodeUiManagerChangeType.ActiveFunction, lFunction);
                 return;
             }
         }
-    }
-
-    /**
-     * Choose which display renders the main preview and rebuild immediately.
-     *
-     * @param pDisplayId - The chosen display id.
-     */
-    public setPreviewDisplay(pDisplayId: string): void {
-        this.mPreviewManager?.setActivePreviewDisplay(pDisplayId);
-        this.mPreviewManager?.update();
-    }
-
-    /**
-     * Choose which output port a user function's main preview shows and rebuild immediately.
-     *
-     * @param pOutputId - The chosen output port label.
-     */
-    public setPreviewOutput(pOutputId: string): void {
-        this.mPreviewManager?.setActivePreviewOutput(pOutputId);
-        this.mPreviewManager?.update();
-    }
-
-    /**
-     * Set a node's inline preview opt-in (or clear it). Re-selecting the active port turns the
-     * preview off; an empty port id explicitly clears it.
-     *
-     * @param pNode - The node whose preview to change.
-     * @param pPortId - The value output port id to preview, or `''` to clear.
-     */
-    public setNodePreview(pNode: PotatnoDocumentNode<PotatnoUiProject>, pPortId: string): void {
-        if (pPortId === '' || pNode.preview?.portId === pPortId) {
-            pNode.preview = null;
-        } else {
-            const lDisplays: Array<string> = this.getPreviewDisplaysForNode(pNode);
-            const lDisplayId: string | undefined = (pNode.preview && lDisplays.includes(pNode.preview.displayId))
-                ? pNode.preview.displayId
-                : lDisplays[0];
-            if (!lDisplayId) {
-                return;
-            }
-            pNode.preview = { portId: pPortId, displayId: lDisplayId };
-        }
-
-        this.dispatch(PotatnoCodeUiManagerChangeType.Node, pNode);
-    }
-
-    /**
-     * Change the display ("style") of a node's active inline preview.
-     *
-     * @param pNode - The node whose preview display to change.
-     * @param pDisplayId - The chosen display id.
-     */
-    public setNodePreviewDisplay(pNode: PotatnoDocumentNode<PotatnoUiProject>, pDisplayId: string): void {
-        if (!pNode.preview) {
-            return;
-        }
-
-        pNode.preview = { portId: pNode.preview.portId, displayId: pDisplayId };
-
-        this.dispatch(PotatnoCodeUiManagerChangeType.Node, pNode);
-    }
-
-    /**
-     * Drive one preview render tick. Forwarded by the application loop.
-     *
-     * @returns A promise resolving once the render pass finishes.
-     */
-    public triggerPreviewUpdate(): Promise<void> {
-        // Suppress preview generation while the document has validation errors. Drivers are
-        // pull-model — code only executes when their `render()` is called from here — so passing
-        // the error flag down is what actually keeps work from running, not just hidden:
-        //  - The main (function-level) preview is skipped entirely: `render(true)` drops the
-        //    function descriptors, so its compiled callable is never invoked. It is not shown
-        //    during errors (only the error list is), so nothing should run for it in the background.
-        //  - Per-node previews keep rendering their last cached callable (`allowCompile: false`),
-        //    so a value already computed before the error still shows, but no fresh — failing —
-        //    generation is triggered.
-        const lHasValidationErrors: boolean = this.mIntegrity.errors.length > 0;
-        return this.mPreviewManager?.render(lHasValidationErrors) ?? Promise.resolve();
     }
 
     /**
@@ -410,34 +291,6 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
     public dispatch(pType: PotatnoCodeUiManagerChangeType, pItem: PotatnoUiManagerChangeEventTarget | null): void {
         // Create and dispatch custom change event.
         this.dispatchEvent(new PotatnoUiManagerChangeEvent(pType, pItem));
-    }
-
-    /**
-     * (Re)create the preview manager bound to the given document, disposing any previous instance.
-     * Driven by the manager's document subscription so the previews rebuild against the live graph
-     * instead of a stale document instance.
-     *
-     * @param pDocument - The document the previews are built from.
-     */
-    private resetPreviewManager(pDocument: PotatnoDocument<PotatnoUiProject>): void {
-        // Drop the previous preview manager's subscription and timers.
-        this.mPreviewManager?.dispose();
-        this.mPreviewManager = null;
-
-        // A preview manager needs a project to resolve node definitions and the preview registry.
-        if (!this.mProject) {
-            return;
-        }
-
-        // Build the manager and bind the currently active function so the main preview targets it
-        // even when the active function id is unchanged across a document swap.
-        this.mPreviewManager = new PotatnoUiPreviewManager(this.mProject, pDocument, this);
-        this.mPreviewManager.setActiveFunction(this.activeFunction);
-
-        // Build immediately: the fresh manager is created during the document event dispatch, so it
-        // missed that event and a same-active-function swap (undo/redo) fires no follow-up event to
-        // trigger its first build.
-        this.mPreviewManager.update();
     }
 }
 

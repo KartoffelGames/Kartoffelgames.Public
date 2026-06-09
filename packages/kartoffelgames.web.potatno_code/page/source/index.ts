@@ -264,55 +264,53 @@ type PixelCallable = (pX: number, pY: number) => [number, number, number];
 
 const lEntryFunctionExecutor = PotatnoPreviewFunctionExecutor.new(lProjectTypes, lEntryFunction, {
     parameters: { x: 0, y: 0 }, // Iteration-fed parameters; the display passes one of these per call.
-    buildFunction: (pExecutor, pGeneratorResult) => {
-        // Function-level path. `pGeneratorResult.code` is a full
-        // `const pixelShader = (x, y) => {...};` declaration. Compile inside a wrapper and
-        // grab the named function back out — its natural return is the `[r, g, b]` array.
+    build: (pExecutor, pGeneratorResult, pPortTarget) => {
         const lFunctionCode: string = pGeneratorResult.code;
         const lFunctionName: string = pExecutor.function.id;
-        const lCompiled: PixelCallable = new Function(`${lFunctionCode}\nreturn ${lFunctionName};`)() as PixelCallable;
 
-        return (pParameters: { x: number; y: number; }): [number, number, number] => {
-            return lCompiled(pParameters.x, pParameters.y);
-        };
-    },
-    buildNode: (pExecutor, pGeneratorResult, pPortTarget) => {
-        // Per-node path. `pGeneratorResult.code` is the FULL function declaration (with deps):
-        //   const pixelShader = (x, y) => { ...; /*[valueId]*/ ...; return [...]; };
-        // so the input node already supplies the (x, y) interface and the previewed value is
-        // computed in context. Replace the targeted output port's valueId hook with a `return`
-        // so the function yields that intermediate value instead of its final result, then pull
-        // the named function out and run it per pixel. Code after the injected return is dead.
-        const lFunctionCode: string = pGeneratorResult.code;
-        const lFunctionName: string = pExecutor.function.id;
+        // Function-level path (no port target). `pGeneratorResult.code` is a full
+        // `const pixelShader = (x, y) => {...};` declaration. Compile inside a wrapper and grab the
+        // named function back out — its natural return is the `[r, g, b]` array. The reported type
+        // `rgb` has no per-type adapter, so the driver passes the triple straight to the display.
+        if (!pPortTarget) {
+            const lCompiled: PixelCallable = new Function(`${lFunctionCode}\nreturn ${lFunctionName};`)() as PixelCallable;
+            return {
+                type: 'rgb',
+                execute: (pParameters: { x: number; y: number; }): [number, number, number] => lCompiled(pParameters.x, pParameters.y)
+            };
+        }
+
+        // Per-node path. `pGeneratorResult.code` is the FULL function declaration (with deps), so
+        // the input node already supplies the (x, y) interface and the previewed value is computed
+        // in context. Replace the targeted output port's valueId hook with a `return` so the
+        // function yields that intermediate value; the display's adapter for the port's data type
+        // then coerces it. Code after the injected return is dead.
         const lHookMarker: string = `/*[${pPortTarget.value}]*/`;
         const lInstrumented: string = lFunctionCode.includes(lHookMarker)
             ? lFunctionCode.replace(lHookMarker, `; return ${pPortTarget.value};`)
             : lFunctionCode;
-
-        // The per-node callable yields the port's raw value. The driver wraps it with the
-        // display's matching adapter, so the executor's return type stays honestly `unknown`.
         const lNodeFn: (pX: number, pY: number) => unknown = new Function(`${lInstrumented}\nreturn ${lFunctionName};`)() as (pX: number, pY: number) => unknown;
-        return (pParameters: { x: number; y: number; }): unknown => {
-            return lNodeFn(pParameters.x, pParameters.y);
+        return {
+            type: pPortTarget.documentPort.resolvedDataType,
+            execute: (pParameters: { x: number; y: number; }): unknown => lNodeFn(pParameters.x, pParameters.y)
         };
     }
 });
 
 /**
- * Executor for previewing a USER function's output in the main panel. The function is evaluated
- * once with every input at its type default; the selected output (carried as the port target's
- * value, keyed by output label) is returned and rendered as a flat color via the display's
- * `number` adapter.
+ * Executor for previewing a USER function's output. The function is evaluated once with every input
+ * at its type default; the targeted output (carried as the port target's value, keyed by output
+ * label) is returned and rendered via the display's adapter for the output's data type.
  */
 const lUserFunctionExecutor = PotatnoPreviewFunctionExecutor.new(lProjectTypes, lUserFunction, {
     parameters: { x: 0, y: 0 }, // Match the display; coordinates are ignored (output is constant).
-    buildFunction: () => {
-        // User-function previews always go through the per-output (buildNode) path; this is an
-        // unused fallback.
-        return (): [number, number, number] => [0, 0, 0];
-    },
-    buildNode: (pExecutor, pGeneratorResult, pPortTarget) => {
+    build: (pExecutor, pGeneratorResult, pPortTarget) => {
+        // User-function previews always target a specific output; without a port target there is
+        // nothing to show.
+        if (!pPortTarget) {
+            return { type: 'rgb', execute: (): [number, number, number] => [0, 0, 0] };
+        }
+
         // `pGeneratorResult.code` declares `const __fn_<instanceId> = (in0, in1, ...) => { ...; return { out: ... }; };`.
         // Call it with each input at its type default and return the selected output field.
         const lFunction = pGeneratorResult.entryPoint.function;
@@ -322,9 +320,12 @@ const lUserFunctionExecutor = PotatnoPreviewFunctionExecutor.new(lProjectTypes, 
         const lOutputKey: string = pPortTarget.value;
 
         const lCompiled: (...pArgs: Array<unknown>) => Record<string, unknown> = new Function(`${pGeneratorResult.code}\nreturn ${lFunctionName};`)() as (...pArgs: Array<unknown>) => Record<string, unknown>;
-        return (): unknown => {
-            const lResult: Record<string, unknown> = lCompiled(...lDefaultArguments);
-            return lResult ? lResult[lOutputKey] : undefined;
+        return {
+            type: pPortTarget.documentPort.resolvedDataType,
+            execute: (): unknown => {
+                const lResult: Record<string, unknown> = lCompiled(...lDefaultArguments);
+                return lResult ? lResult[lOutputKey] : undefined;
+            }
         };
     }
 });

@@ -5,7 +5,7 @@ import type { PotatnoDocument } from '../document/potatno-document.ts';
 import { PotatnoCodeGenerator } from '../parser/potatno-code-generator.ts';
 import type { PotatnoCodeGeneratorDocumentResult } from '../parser/result/potatno-code-generator-document-result.ts';
 import type { PotatnoCodeGeneratorFunctionResult } from '../parser/result/potatno-code-generator-function-result.ts';
-import type { PotatnoPreviewDriverHandle } from '../preview/potatno-preview-driver.ts';
+import { PotatnoPreviewDriver } from "../preview/potatno-preview-driver.ts";
 import type { PotatnoPreviewEntry } from '../preview/potatno-preview.ts';
 import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
 import type { PotatnoPreviewTabDescriptor } from './component/potatno_preview/potatno-preview.ts';
@@ -18,9 +18,9 @@ import { PotatnoCodeUiManagerChangeType, PotatnoUiProject, type PotatnoUiManager
  * display id, the DOM element to insert). Per-node descriptors additionally carry the bound
  * document node for the node-graph's lookup-by-node calls.
  *
- * @typeParam TProject - The widened UI project type the descriptors belong to.
+ * @typeParam PotatnoUiProject - The widened UI project type the descriptors belong to.
  */
-export type PotatnoUiPreviewDescriptor<TProject extends PotatnoUiProject> = {
+export type PotatnoUiPreviewDescriptor = {
     /**
      * Stable id of the registered display backing this descriptor. Used to identify the
      * descriptor across rebuilds (e.g. so a preview-panel tab stays selected after the user
@@ -44,13 +44,13 @@ export type PotatnoUiPreviewDescriptor<TProject extends PotatnoUiProject> = {
      * `PotatnoPreviewDriverHandle` interface so descriptor consumers don't need to know the
      * driver's narrow generics.
      */
-    readonly driver: PotatnoPreviewDriverHandle;
+    readonly driver: PotatnoPreviewDriver<PotatnoUiProject>;
 
     /**
      * For per-node descriptors, the document node whose port is being previewed. `null` for
      * function-level descriptors.
      */
-    readonly node: PotatnoDocumentNode<TProject> | null;
+    readonly node: PotatnoDocumentNode<PotatnoUiProject> | null;
 };
 
 /**
@@ -90,18 +90,18 @@ export type PotatnoUiPreviewOutputOption = {
  * (load, undo/redo) drops the reusable drivers and builds fresh ones. `render()` is called from
  * the application loop and forwards to every active driver.
  *
- * @typeParam TProject - The widened UI project type the manager operates on.
+ * @typeParam PotatnoUiProject - The widened UI project type the manager operates on.
  */
-export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
+export class PotatnoUiPreviewManager {
     private readonly mManager: PotatnoUiManager;
-    private readonly mProject: TProject;
+    private readonly mProject: PotatnoUiProject;
     private readonly mUnsubscribe: () => void;
-    private mActiveFunction: PotatnoDocumentFunction<TProject> | null;
-    private mDescriptorFunction: PotatnoDocumentFunction<TProject> | null;
-    private mDocument: PotatnoDocument<TProject>;
-    private mDriverDocument: PotatnoDocument<TProject> | null;
-    private mFunctionDescriptors: Array<PotatnoUiPreviewDescriptor<TProject>>;
-    private mNodeDescriptors: Map<PotatnoDocumentNode<TProject>, PotatnoUiPreviewDescriptor<TProject>>;
+    private mActiveFunction: PotatnoDocumentFunction<PotatnoUiProject> | null;
+    private mDescriptorFunction: PotatnoDocumentFunction<PotatnoUiProject> | null;
+    private mDocument: PotatnoDocument<PotatnoUiProject>;
+    private mDriverDocument: PotatnoDocument<PotatnoUiProject> | null;
+    private mFunctionDescriptors: Array<PotatnoUiPreviewDescriptor>;
+    private mNodeDescriptors: Map<PotatnoDocumentNode<PotatnoUiProject>, PotatnoUiPreviewDescriptor>;
     private mPreviewTabs: ReadonlyArray<PotatnoPreviewTabDescriptor>;
     private mSelectedDisplayId: string;
     private mSelectedOutputId: string;
@@ -111,7 +111,7 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
      * Function-level preview descriptors in registration order. The preview-panel tab UI
      * renders these as tabs and switches the visible element when the user selects one.
      */
-    public get functionDescriptors(): ReadonlyArray<PotatnoUiPreviewDescriptor<TProject>> {
+    public get functionDescriptors(): ReadonlyArray<PotatnoUiPreviewDescriptor> {
         return this.mFunctionDescriptors;
     }
 
@@ -129,7 +129,7 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
      * @param pDocument - The document instance the previews are built from.
      * @param pManager - The owning UI manager whose change events drive the rebuilds.
      */
-    public constructor(pProject: TProject, pDocument: PotatnoDocument<TProject>, pManager: PotatnoUiManager) {
+    public constructor(pProject: PotatnoUiProject, pDocument: PotatnoDocument<PotatnoUiProject>, pManager: PotatnoUiManager) {
         this.mProject = pProject;
         this.mDocument = pDocument;
         this.mManager = pManager;
@@ -137,8 +137,8 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
         this.mActiveFunction = null;
         this.mDescriptorFunction = null;
         this.mDriverDocument = null;
-        this.mFunctionDescriptors = new Array<PotatnoUiPreviewDescriptor<TProject>>();
-        this.mNodeDescriptors = new Map<PotatnoDocumentNode<TProject>, PotatnoUiPreviewDescriptor<TProject>>();
+        this.mFunctionDescriptors = new Array<PotatnoUiPreviewDescriptor>();
+        this.mNodeDescriptors = new Map<PotatnoDocumentNode<PotatnoUiProject>, PotatnoUiPreviewDescriptor>();
         this.mPreviewTabs = [];
         this.mSelectedDisplayId = '';
         this.mSelectedOutputId = '';
@@ -201,7 +201,7 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
      *
      * @returns The matching descriptor, or `null`.
      */
-    public getNodeDescriptor(pNode: PotatnoDocumentNode<TProject>): PotatnoUiPreviewDescriptor<TProject> | null {
+    public getNodeDescriptor(pNode: PotatnoDocumentNode<PotatnoUiProject>): PotatnoUiPreviewDescriptor | null {
         return this.mNodeDescriptors.get(pNode) ?? null;
     }
 
@@ -215,7 +215,7 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
      *
      * @returns The matching display ids, in registration order, deduplicated.
      */
-    public getPreviewDisplaysForNode(pNode: PotatnoDocumentNode<TProject>): Array<string> {
+    public getPreviewDisplaysForNode(pNode: PotatnoDocumentNode<PotatnoUiProject>): Array<string> {
         const lRegistry = this.mProject.previews;
         if (!lRegistry) {
             return [];
@@ -230,8 +230,8 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
 
         const lDisplays: Set<string> = new Set<string>();
         for (const lEntry of lRegistry.entries) {
-            if (lEntry.executorFunctionId === lOwningFunctionDefinition.id) {
-                lDisplays.add(lEntry.displayId);
+            if (lEntry.executor.function.id === lOwningFunctionDefinition.id) {
+                lDisplays.add(lEntry.display.id);
             }
         }
 
@@ -245,7 +245,7 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
      * @returns The selectable outputs (id + label).
      */
     public getActivePreviewOutputs(): Array<PotatnoUiPreviewOutputOption> {
-        const lFunction: PotatnoDocumentFunction<TProject> | null = this.mActiveFunction;
+        const lFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mActiveFunction;
         if (!lFunction || !this.activePreviewIsUserFunction) {
             return [];
         }
@@ -272,8 +272,8 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
 
         const lDisplays: Set<string> = new Set<string>();
         for (const lEntry of lRegistry.entries) {
-            if (lEntry.executorFunctionId === lFunctionDefinition.id) {
-                lDisplays.add(lEntry.displayId);
+            if (lEntry.executor.function.id === lFunctionDefinition.id) {
+                lDisplays.add(lEntry.display.id);
             }
         }
 
@@ -286,7 +286,7 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
      *
      * @param pFunction - The active function, or `null` to clear.
      */
-    public setActiveFunction(pFunction: PotatnoDocumentFunction<TProject> | null): void {
+    public setActiveFunction(pFunction: PotatnoDocumentFunction<PotatnoUiProject> | null): void {
         this.mActiveFunction = pFunction;
     }
 
@@ -327,8 +327,8 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
      * Resolve the active function's definition, or `null` when none is bound or it has no
      * definition in the project.
      */
-    private activeFunctionDefinition(): PotatnoFunctionDefinition<TProject> | null {
-        const lFunction: PotatnoDocumentFunction<TProject> | null = this.mActiveFunction;
+    private activeFunctionDefinition(): PotatnoFunctionDefinition<PotatnoUiProject> | null {
+        const lFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mActiveFunction;
         if (!lFunction) {
             return null;
         }
@@ -358,13 +358,13 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
     public update(): void {
         // Sync the bound document and active function from the manager. A document swap (undo/redo)
         // replaces the instance, so this keeps the drivers building against the live graph.
-        const lDocument: PotatnoDocument<TProject> | null = this.mManager.graph.document as PotatnoDocument<TProject> | null;
+        const lDocument: PotatnoDocument<PotatnoUiProject> | null = this.mManager.graph.document as PotatnoDocument<PotatnoUiProject> | null;
         if (!lDocument) {
             this.mPreviewTabs = [];
             return;
         }
         this.mDocument = lDocument;
-        this.mActiveFunction = this.mManager.activeFunction as PotatnoDocumentFunction<TProject> | null;
+        this.mActiveFunction = this.mManager.activeFunction as PotatnoDocumentFunction<PotatnoUiProject> | null;
 
         // Keep the last drivers while the document is invalid.
         if (!this.mManager.integrity.isValid) {
@@ -407,7 +407,7 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
         // (and live element) instead of being rebuilt. Reuse is only safe while the bound document
         // instance is unchanged: a new instance (load, undo/redo) leaves the old drivers' provider
         // closures pointing at a stale document, so they must be dropped and rebuilt.
-        const lPreviousFunctionDescriptors: Array<PotatnoUiPreviewDescriptor<TProject>> = this.mFunctionDescriptors;
+        const lPreviousFunctionDescriptors: Array<PotatnoUiPreviewDescriptor> = this.mFunctionDescriptors;
         // Reuse the function-level driver (and its live element) only for an in-place edit of the
         // SAME active function. The active-function guard is essential: the entry function and a
         // user function can expose the same display id, so without it a user → entry switch would
@@ -420,8 +420,8 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
         this.mDriverDocument = this.mDocument;
         this.mDescriptorFunction = this.mActiveFunction;
 
-        this.mFunctionDescriptors = new Array<PotatnoUiPreviewDescriptor<TProject>>();
-        this.mNodeDescriptors = new Map<PotatnoDocumentNode<TProject>, PotatnoUiPreviewDescriptor<TProject>>();
+        this.mFunctionDescriptors = new Array<PotatnoUiPreviewDescriptor>();
+        this.mNodeDescriptors = new Map<PotatnoDocumentNode<PotatnoUiProject>, PotatnoUiPreviewDescriptor>();
 
         // No registry → nothing to build.
         const lRegistry = this.mProject.previews;
@@ -431,15 +431,15 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
 
         // No document → no drivers, since both function-level and per-node paths need a
         // document function instance to run the code generator against.
-        const lDocument: PotatnoDocument<TProject> | null = this.mDocument;
+        const lDocument: PotatnoDocument<PotatnoUiProject> | null = this.mDocument;
         if (!lDocument) {
             return;
         }
 
         // Registry entries are typed against the project's types definition. The registry
-        // captured them with the precise generic; here we rebind to the manager's TProject
+        // captured them with the precise generic; here we rebind to the manager's PotatnoUiProject
         // so the rest of the file talks in project terms instead of types terms.
-        const lEntries: ReadonlyArray<PotatnoPreviewEntry<TProject['types']>> = lRegistry.entries;
+        const lEntries: ReadonlyArray<PotatnoPreviewEntry<PotatnoUiProject['types']>> = lRegistry.entries;
 
         // Build the single main-panel descriptor for the ACTIVE function: the entry/main function
         // shows its full output, a user function shows one selected output (default inputs). Reuse
@@ -447,9 +447,9 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
         // function descriptor bakes the selected output's exit port + valueId, both of which move
         // with the selection and the graph, so it is always rebuilt. Otherwise invalidate the
         // reused driver's cache so it recompiles while keeping its element stable.
-        const lActiveFunction: PotatnoDocumentFunction<TProject> | null = this.mActiveFunction;
+        const lActiveFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mActiveFunction;
         if (lActiveFunction) {
-            const lReusedDescriptor: PotatnoUiPreviewDescriptor<TProject> | undefined = (lReuseDrivers && !this.activePreviewIsUserFunction)
+            const lReusedDescriptor: PotatnoUiPreviewDescriptor | undefined = (lReuseDrivers && !this.activePreviewIsUserFunction)
                 ? lPreviousFunctionDescriptors.find((pDescriptor) => pDescriptor.displayId === this.activePreviewDisplayId)
                 : undefined;
 
@@ -457,7 +457,7 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
                 lReusedDescriptor.driver.invalidateCache();
                 this.mFunctionDescriptors.push(lReusedDescriptor);
             } else {
-                const lDescriptor: PotatnoUiPreviewDescriptor<TProject> | null = this.buildActiveFunctionDescriptor(lActiveFunction, lEntries);
+                const lDescriptor: PotatnoUiPreviewDescriptor | null = this.buildActiveFunctionDescriptor(lActiveFunction, lEntries);
                 if (lDescriptor) {
                     this.mFunctionDescriptors.push(lDescriptor);
                 }
@@ -473,7 +473,7 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
         // whenever the graph changes, so a reused driver would splice in a stale id.
         for (const lDocumentFunction of lDocument.functions) {
             for (const lNode of lDocumentFunction.nodes) {
-                const lDescriptor: PotatnoUiPreviewDescriptor<TProject> | null = this.tryBuildNodeDescriptor(lNode, lDocumentFunction, lEntries);
+                const lDescriptor: PotatnoUiPreviewDescriptor | null = this.tryBuildNodeDescriptor(lNode, lDocumentFunction, lEntries);
                 if (lDescriptor) {
                     this.mNodeDescriptors.set(lNode, lDescriptor);
                 }
@@ -495,13 +495,13 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
     public async render(pSuppressInvalidGeneration: boolean = false): Promise<void> {
         // While the document is invalid the main preview is not run; per-node previews keep their
         // last cached value but must not recompile (compilation would re-run the failing generator).
-        const lFunctionDescriptors: Array<PotatnoUiPreviewDescriptor<TProject>> = pSuppressInvalidGeneration
+        const lFunctionDescriptors: Array<PotatnoUiPreviewDescriptor> = pSuppressInvalidGeneration
             ? []
             : this.mFunctionDescriptors;
         const lAllowCompile: boolean = !pSuppressInvalidGeneration;
 
         // Snapshot the descriptor lists so a rebuild mid-render doesn't disturb iteration.
-        const lDescriptors: Array<PotatnoUiPreviewDescriptor<TProject>> = [
+        const lDescriptors: Array<PotatnoUiPreviewDescriptor> = [
             ...lFunctionDescriptors,
             ...this.mNodeDescriptors.values()
         ];
@@ -527,7 +527,7 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
      *
      * @returns The descriptor, or `null` when the function has no matching registered preview.
      */
-    private buildActiveFunctionDescriptor(pFunction: PotatnoDocumentFunction<TProject>, pEntries: ReadonlyArray<PotatnoPreviewEntry<TProject['types']>>): PotatnoUiPreviewDescriptor<TProject> | null {
+    private buildActiveFunctionDescriptor(pFunction: PotatnoDocumentFunction<PotatnoUiProject>, pEntries: ReadonlyArray<PotatnoPreviewEntry<PotatnoUiProject['types']>>): PotatnoUiPreviewDescriptor | null {
         const lFunctionDefinition = this.activeFunctionDefinition();
         if (!lFunctionDefinition) {
             return null;
@@ -535,8 +535,8 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
 
         // Pick the registered pair for the active function and the chosen display.
         const lDisplayId: string = this.activePreviewDisplayId;
-        const lEntry: PotatnoPreviewEntry<TProject['types']> | undefined = pEntries.find((pEntry) => {
-            return pEntry.executorFunctionId === lFunctionDefinition.id && pEntry.displayId === lDisplayId;
+        const lEntry: PotatnoPreviewEntry<PotatnoUiProject['types']> | undefined = pEntries.find((pEntry) => {
+            return pEntry.executor.function.id === lFunctionDefinition.id && pEntry.display.id === lDisplayId;
         });
         if (!lEntry) {
             return null;
@@ -551,17 +551,17 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
         // is the exit node's value-input port for the selected output, and the value the executor
         // returns is keyed by the output label.
         const lOutputId: string = this.activePreviewOutputId;
-        const lExitPort: PotatnoDocumentPort<TProject> | null = lOutputId === '' ? null : this.findFunctionOutputPort(pFunction, lOutputId);
+        const lExitPort: PotatnoDocumentPort<PotatnoUiProject> | null = lOutputId === '' ? null : this.findFunctionOutputPort(pFunction, lOutputId);
         if (!lExitPort) {
             return null;
         }
 
-        const lProvider = (): PotatnoCodeGeneratorDocumentResult<TProject> => {
-            const lGenerator: PotatnoCodeGenerator<TProject> = new PotatnoCodeGenerator<TProject>(this.mProject);
+        const lProvider = (): PotatnoCodeGeneratorDocumentResult<PotatnoUiProject> => {
+            const lGenerator: PotatnoCodeGenerator<PotatnoUiProject> = new PotatnoCodeGenerator<PotatnoUiProject>(this.mProject);
             return lGenerator.generateFunction(pFunction, true);
         };
 
-        const lDriver: PotatnoPreviewDriverHandle = lEntry.createDriver<TProject>({
+        const lDriver: PotatnoPreviewDriver<PotatnoUiProject> = lEntry.createDriver<PotatnoUiProject>({
             portTarget: { documentPort: lExitPort, value: lOutputId },
             generatorResultProvider: lProvider
         });
@@ -569,8 +569,8 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
         const lElement: Element = lDriver.element;
 
         return {
-            displayId: lEntry.displayId,
-            label: `${lEntry.displayId} · ${lOutputId}`,
+            displayId: lEntry.display.id,
+            label: `${lEntry.display.id} · ${lOutputId}`,
             element: lElement instanceof HTMLElement ? lElement : null,
             driver: lDriver,
             node: null
@@ -585,9 +585,9 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
      *
      * @returns The matching value input port, or `null`.
      */
-    private findFunctionOutputPort(pFunction: PotatnoDocumentFunction<TProject>, pOutputId: string): PotatnoDocumentPort<TProject> | null {
+    private findFunctionOutputPort(pFunction: PotatnoDocumentFunction<PotatnoUiProject>, pOutputId: string): PotatnoDocumentPort<PotatnoUiProject> | null {
         for (const lExitNode of pFunction.getExitNodes()) {
-            const lPort: PotatnoDocumentPort<TProject> | undefined = lExitNode.inputs.map.get(pOutputId);
+            const lPort: PotatnoDocumentPort<PotatnoUiProject> | undefined = lExitNode.inputs.map.get(pOutputId);
             if (lPort && lPort.portType === 'value') {
                 return lPort;
             }
@@ -605,20 +605,20 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
      *
      * @returns The fresh descriptor.
      */
-    private buildFunctionDescriptor(pEntry: PotatnoPreviewEntry<TProject['types']>, pDocumentFunction: PotatnoDocumentFunction<TProject>): PotatnoUiPreviewDescriptor<TProject> {
+    private buildFunctionDescriptor(pEntry: PotatnoPreviewEntry<PotatnoUiProject['types']>, pDocumentFunction: PotatnoDocumentFunction<PotatnoUiProject>): PotatnoUiPreviewDescriptor {
         // Each driver gets its own generator-result provider closure so the executor's build
         // callback always sees the latest code-gen output for the bound function. The whole
         // document result is handed over (not just the entry point) so dependency function
         // declarations are in scope when the previewed graph calls user functions.
-        const lProvider = (): PotatnoCodeGeneratorDocumentResult<TProject> => {
-            const lGenerator: PotatnoCodeGenerator<TProject> = new PotatnoCodeGenerator<TProject>(this.mProject);
+        const lProvider = (): PotatnoCodeGeneratorDocumentResult<PotatnoUiProject> => {
+            const lGenerator: PotatnoCodeGenerator<PotatnoUiProject> = new PotatnoCodeGenerator<PotatnoUiProject>(this.mProject);
             return lGenerator.generateFunction(pDocumentFunction, true);
         };
 
         // Delegate construction to the entry's factory via its function-level branch. The
         // factory still owns the precise narrow generics captured at `addDisplay` time; we get
         // back the project-agnostic handle.
-        const lDriver: PotatnoPreviewDriverHandle = pEntry.createDriver<TProject>({
+        const lDriver: PotatnoPreviewDriver<PotatnoUiProject> = pEntry.createDriver<PotatnoUiProject>({
             portTarget: null,
             generatorResultProvider: lProvider
         });
@@ -626,8 +626,8 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
         const lElement: Element = lDriver.element;
 
         return {
-            displayId: pEntry.displayId,
-            label: pEntry.displayId,
+            displayId: pEntry.display.id,
+            label: pEntry.display.id,
             element: lElement instanceof HTMLElement ? lElement : null,
             driver: lDriver,
             node: null
@@ -645,7 +645,7 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
      *
      * @returns The descriptor, or `null` if the node should not have a preview.
      */
-    private tryBuildNodeDescriptor(pNode: PotatnoDocumentNode<TProject>, pDocumentFunction: PotatnoDocumentFunction<TProject>, pEntries: ReadonlyArray<PotatnoPreviewEntry<TProject['types']>>): PotatnoUiPreviewDescriptor<TProject> | null {
+    private tryBuildNodeDescriptor(pNode: PotatnoDocumentNode<PotatnoUiProject>, pDocumentFunction: PotatnoDocumentFunction<PotatnoUiProject>, pEntries: ReadonlyArray<PotatnoPreviewEntry<PotatnoUiProject['types']>>): PotatnoUiPreviewDescriptor | null {
         const lBinding = pNode.preview;
         if (!lBinding) {
             return null;
@@ -654,7 +654,7 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
         // Resolve the targeted value output port. Per-node previews only make sense on value
         // outputs — a flow port has nothing to expose; an input would not have a stable
         // valueId allocated for it.
-        const lPort: PotatnoDocumentPort<TProject> | undefined = pNode.outputs.map.get(lBinding.portId);
+        const lPort: PotatnoDocumentPort<PotatnoUiProject> | undefined = pNode.outputs.map.get(lBinding.portId);
         if (!lPort || lPort.portType !== 'value') {
             return null;
         }
@@ -668,8 +668,8 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
         }
 
         const lOwningFunctionDefinitionId: string = lOwningFunctionDefinition.id;
-        const lEntry: PotatnoPreviewEntry<TProject['types']> | undefined = pEntries.find((pEntry) => {
-            return pEntry.displayId === lBinding.displayId && pEntry.executorFunctionId === lOwningFunctionDefinitionId;
+        const lEntry: PotatnoPreviewEntry<PotatnoUiProject['types']> | undefined = pEntries.find((pEntry) => {
+            return pEntry.display.id === lBinding.displayId && pEntry.executor.function.id === lOwningFunctionDefinitionId;
         });
         if (!lEntry) {
             return null;
@@ -680,8 +680,8 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
         // build callback then replaces the target output port's valueId hook with a return so the
         // function yields that intermediate value. The closure re-runs the generator on every
         // cache miss so the valueId map and body code stay consistent.
-        const lProvider = (): PotatnoCodeGeneratorDocumentResult<TProject> => {
-            const lGenerator: PotatnoCodeGenerator<TProject> = new PotatnoCodeGenerator<TProject>(this.mProject);
+        const lProvider = (): PotatnoCodeGeneratorDocumentResult<PotatnoUiProject> => {
+            const lGenerator: PotatnoCodeGenerator<PotatnoUiProject> = new PotatnoCodeGenerator<PotatnoUiProject>(this.mProject);
             return lGenerator.generateFunction(pDocumentFunction, true);
         };
 
@@ -696,7 +696,7 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
 
         // Delegate construction to the entry's factory so the precise display/executor
         // generics stay encapsulated.
-        const lDriver: PotatnoPreviewDriverHandle = lEntry.createDriver<TProject>({
+        const lDriver: PotatnoPreviewDriver<PotatnoUiProject> = lEntry.createDriver<PotatnoUiProject>({
             portTarget: {
                 documentPort: lPort,
                 value: lValueId
@@ -707,8 +707,8 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
         const lElement: Element = lDriver.element;
 
         return {
-            displayId: lEntry.displayId,
-            label: lEntry.displayId,
+            displayId: lEntry.display.id,
+            label: lEntry.display.id,
             element: lElement instanceof HTMLElement ? lElement : null,
             driver: lDriver,
             node: pNode
@@ -725,8 +725,8 @@ export class PotatnoUiPreviewManager<TProject extends PotatnoUiProject> {
      *
      * @returns The valueId, or `undefined` when the port's value was not emitted.
      */
-    private findPortValueId(pDocumentResult: PotatnoCodeGeneratorDocumentResult<TProject>, pPort: PotatnoDocumentPort<TProject>): string | undefined {
-        const lFunctionResults: Array<PotatnoCodeGeneratorFunctionResult<TProject>> = [pDocumentResult.entryPoint, ...pDocumentResult.dependencies];
+    private findPortValueId(pDocumentResult: PotatnoCodeGeneratorDocumentResult<PotatnoUiProject>, pPort: PotatnoDocumentPort<PotatnoUiProject>): string | undefined {
+        const lFunctionResults: Array<PotatnoCodeGeneratorFunctionResult<PotatnoUiProject>> = [pDocumentResult.entryPoint, ...pDocumentResult.dependencies];
         for (const lFunctionResult of lFunctionResults) {
             for (const lGraph of lFunctionResult.graphs) {
                 const lValueId: string | undefined = lGraph.ports.get(pPort);

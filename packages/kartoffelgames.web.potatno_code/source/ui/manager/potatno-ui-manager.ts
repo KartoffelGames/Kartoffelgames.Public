@@ -5,14 +5,14 @@ import { PotatnoDocumentFunction } from '../../document/potatno-document-functio
 import { PotatnoDocumentNode } from '../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../document/potatno-document-port.ts';
 import { PotatnoDocument } from '../../document/potatno-document.ts';
-import type { PotatnoPreviewDriverHandle } from '../../preview/potatno-preview-driver.ts';
+import { PotatnoProjectTypesDefinition } from "../../project/potatno-project-types-definition.ts";
+import { PotatnoProject } from "../../project/potatno-project.ts";
 import type { PotatnoPreviewTabDescriptor } from '../component/potatno_preview/potatno-preview.ts';
 import { PotatnoUiPreviewManager } from '../potatno-ui-preview-manager.ts';
 import { PotatnoUiManagerGraph } from './manager_component/potatno-ui-manager-graph.ts';
 import { PotatnoUiManagerHistory } from './manager_component/potatno-ui-manager-history.ts';
 import { PotatnoUiManagerIntegrity } from './manager_component/potatno-ui-manager-integrity.ts';
-import { PotatnoProjectTypesDefinition } from "../../project/potatno-project-types-definition.ts";
-import { PotatnoProject } from "../../project/potatno-project.ts";
+import { PotatnoPreviewDriver } from "../../preview/potatno-preview-driver.ts";
 
 /**
  * Central, shared state owner for the whole Potatno-code editor UI.
@@ -33,7 +33,7 @@ import { PotatnoProject } from "../../project/potatno-project.ts";
 export class PotatnoUiManager extends EventTarget implements IDeconstructable {
     private mActiveFunctionId: string;
 
-    private mPreviewManager: PotatnoUiPreviewManager<PotatnoUiProject> | null;
+    private mPreviewManager: PotatnoUiPreviewManager | null;
     private mProject: PotatnoUiProject | null;
 
     // Manager components.
@@ -98,7 +98,7 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
      * The preview lifecycle helper, or `null` before initialization. The preview panel reads the
      * active preview's display/output selection and its available options directly from it.
      */
-    public get previewManager(): PotatnoUiPreviewManager<PotatnoUiProject> | null {
+    public get previewManager(): PotatnoUiPreviewManager | null {
         return this.mPreviewManager;
     }
 
@@ -148,7 +148,7 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
      *
      * @returns The driver handle, or `null` when the node has no active preview.
      */
-    public getNodePreviewDriver(pNode: PotatnoDocumentNode<PotatnoUiProject>): PotatnoPreviewDriverHandle | null {
+    public getNodePreviewDriver(pNode: PotatnoDocumentNode<PotatnoUiProject>): PotatnoPreviewDriver<PotatnoUiProject> | null {
         return this.mPreviewManager?.getNodeDescriptor(pNode)?.driver ?? null;
     }
 
@@ -431,7 +431,7 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
 
         // Build the manager and bind the currently active function so the main preview targets it
         // even when the active function id is unchanged across a document swap.
-        this.mPreviewManager = new PotatnoUiPreviewManager<PotatnoUiProject>(this.mProject, pDocument, this);
+        this.mPreviewManager = new PotatnoUiPreviewManager(this.mProject, pDocument, this);
         this.mPreviewManager.setActiveFunction(this.activeFunction);
 
         // Build immediately: the fresh manager is created during the document event dispatch, so it

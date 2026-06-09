@@ -57,7 +57,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
         }
 
         for (const lEntry of lProject.previews.entries) {
-            if (lEntry.executorFunctionId === lActiveFunction.definitionId) {
+            if (lEntry.executor.function.id === lActiveFunction.definitionId) {
                 return true;
             }
         }

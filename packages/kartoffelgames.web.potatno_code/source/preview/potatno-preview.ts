@@ -1,62 +1,31 @@
 import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
-import { PotatnoPreviewDriver, type PotatnoPreviewDriverConstructorFunctionParameter, type PotatnoPreviewDriverConstructorNodeParameter, type PotatnoPreviewDriverHandle } from './potatno-preview-driver.ts';
 import { PotatnoPreviewDisplay, type PotatnoPreviewDisplayTypeAdapter } from './potatno-preview-display.ts';
+import { PotatnoPreviewDriver, type PotatnoPreviewDriverConstructorFunctionParameter, type PotatnoPreviewDriverConstructorNodeParameter } from './potatno-preview-driver.ts';
 import type { PotatnoPreviewFunctionExecutor } from './potatno-preview-function-executor.ts';
 
 /**
  * Project-wide preview registry.
- *
- * Holds every `(display, executor)` pair the project supports. The framework iterates registered
- * pairs to decide which previews to offer the user: a pair whose executor wraps the document's
- * entry function becomes a candidate function-level preview, and a pair whose display ships an
- * adapter for some value port's `dataType` becomes a candidate per-node preview for that port.
- *
- * `PotatnoPreview.new` only takes the project types — the project itself is constructed later
- * and references this registry through its `previews` field. This avoids the chicken-and-egg
- * between the project and a registry that needs to be constructed before it.
+ * Holds every `(display, executor)` pair the project supports.
  *
  * @typeParam TTypes - The project types definition this registry targets.
  */
-export class PotatnoPreview<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>> {
-    /**
-     * Create a new, empty preview registry bound to the given project types.
-     *
-     * @typeParam TTypes - Inferred project types definition.
-     *
-     * @param pTypes - Project types definition. Used purely for inference and forwarded to the registry instance for future helper access.
-     *
-     * @returns The fresh, empty registry.
-     */
-    public static new<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>>(pTypes: TTypes): PotatnoPreview<TTypes> {
-        return new PotatnoPreview<TTypes>(pTypes);
-    }
-
+export class PotatnoPreview<TTypes extends PotatnoProjectTypesDefinition<string>> {
     private readonly mEntries: Array<PotatnoPreviewEntry<TTypes>>;
-    private readonly mProjectTypes: TTypes;
 
     /**
-     * Every registered `(display, executor)` pair in insertion order. Read-only — pairs are
-     * added via `addDisplay`.
+     * Every registered `(display, executor)` pair in insertion order.
      */
     public get entries(): ReadonlyArray<PotatnoPreviewEntry<TTypes>> {
         return this.mEntries;
     }
 
     /**
-     * The project types definition this registry was created against.
-     */
-    public get projectTypes(): TTypes {
-        return this.mProjectTypes;
-    }
-
-    /**
      * Constructor.
      *
-     * @param pTypes - The project types definition the registry binds against.
+     * @param _pTypes - The project types definition. Used only as a type hint. 
      */
-    protected constructor(pTypes: TTypes) {
-        this.mProjectTypes = pTypes;
+    public constructor(_pTypes: TTypes) {
         this.mEntries = new Array<PotatnoPreviewEntry<TTypes>>();
     }
 
@@ -82,9 +51,9 @@ export class PotatnoPreview<TTypes extends PotatnoProjectTypesDefinition<string,
         // factory rebinds them when a consumer asks for a driver — no upcast from narrow to
         // wide is ever needed at the storage boundary.
         this.mEntries.push({
-            displayId: pDisplay.id,
-            executorFunctionId: pExecutor.function.id,
-            createDriver: <TProject extends PotatnoProject>(pParameter: PotatnoPreviewEntryCreateDriverParameter<TProject>): PotatnoPreviewDriverHandle => {
+            display: pDisplay,
+            executor: pExecutor,
+            createDriver: <TProject extends PotatnoProject>(pParameter: PotatnoPreviewEntryCreateDriverParameter<TProject>): PotatnoPreviewDriver<TProject, TElement, TParams, TResult> => {
                 // Construct the driver with the precise narrow types captured by `addDisplay`'s
                 // generics. The factory's return type is the project-agnostic
                 // `PotatnoPreviewDriverHandle` interface, which the concrete driver class
@@ -121,32 +90,21 @@ export type PotatnoPreviewEntryCreateDriverParameter<TProject extends PotatnoPro
  * `TProject`. The only fields visible from outside are the two ids and the factory, so the
  * registry never has to surface the heterogeneous narrow types as a single union.
  *
- * @typeParam TTypes - The project types definition the registry targets.
+ * @typeParam _TTypes - The project types definition the registry targets.
  */
 export type PotatnoPreviewEntry<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>> = {
     /**
-     * Stable id of the bound display. Used for opt-in matching against `node.preview`.
+     * Preview display.
      */
-    readonly displayId: string;
+    readonly display:  PotatnoPreviewDisplay<TTypes, TElement, TParams, TResult, TAdapter>;
 
     /**
-     * Function-definition id the bound executor wraps. Used for matching against the project's
-     * entry-point or a per-node's owning function.
+     * Preview code executor.
      */
-    readonly executorFunctionId: string;
+    readonly executor: PotatnoPreviewFunctionExecutor<TTypes, TParams, TResult>
 
     /**
-     * Project-types phantom on the entry. Keeps the registry's `TTypes` generic load-bearing so
-     * unrelated entry types stay distinct at the type level even when the public fields would
-     * otherwise be structurally identical across different projects.
-     */
-    readonly _tTypesPhantom?: TTypes;
-
-    /**
-     * Build a `PotatnoPreviewDriver` bound to this entry's display and executor. The closure
-     * carries the precise narrow generics captured at `addDisplay` time; the returned handle
-     * is the project-agnostic `PotatnoPreviewDriverHandle` view so the registry's list stays
-     * heterogeneous-friendly.
+     * Build a `PotatnoPreviewDriver` bound to this entry's display and executor. 
      *
      * @typeParam TProject - The project type the consumer is building a driver against.
      *
@@ -154,5 +112,5 @@ export type PotatnoPreviewEntry<TTypes extends PotatnoProjectTypesDefinition<str
      *
      * @returns The freshly constructed driver, exposed under its handle interface.
      */
-    createDriver<TProject extends PotatnoProject>(pParameter: PotatnoPreviewEntryCreateDriverParameter<TProject>): PotatnoPreviewDriverHandle;
+    createDriver<TProject extends PotatnoProject>(pParameter: PotatnoPreviewEntryCreateDriverParameter<TProject>): PotatnoPreviewDriver<TProject, TElement, TParams, TResult>;
 };

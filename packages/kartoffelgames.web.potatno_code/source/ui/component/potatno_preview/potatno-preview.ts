@@ -1,12 +1,12 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentState, PwbChild, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
-import type { PotatnoPreviewDriverHandle } from '../../../preview/potatno-preview-driver.ts';
 import type { PotatnoCodeUiManagerIntegrityError } from '../../manager/manager_component/potatno-ui-manager-integrity.ts';
-import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoUiProject } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPreviewModule } from "../../module/potatno-preview.module.ts";
 import type { PotatnoUiPreviewOutputOption } from '../../potatno-ui-preview-manager.ts';
 import templateCss from './potatno-preview.css' with { type: 'text' };
 import previewTemplate from './potatno-preview.html' with { type: 'text' };
+import { PotatnoPreviewDriver } from "../../../preview/potatno-preview-driver.ts";
 
 /**
  * Lightweight descriptor handed to the preview panel for each driver it should host.
@@ -32,7 +32,7 @@ export type PotatnoPreviewTabDescriptor = {
      * its element into the content area, re-appending after every template update so PWB's $if
      * re-renders cannot orphan it.
      */
-    readonly driver: PotatnoPreviewDriverHandle;
+    readonly driver: PotatnoPreviewDriver<PotatnoUiProject>;
 };
 
 /**
@@ -75,7 +75,7 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      * Driver backing the active tab, bound by the template's `potatno-preview` module to mount the
      * preview element. `null` when no tab is active so the module clears the content area.
      */
-    public get activeTabDriver(): PotatnoPreviewDriverHandle | null {
+    public get activeTabDriver(): PotatnoPreviewDriver<PotatnoUiProject> | null {
         return this.tabs.find((pDescriptor) => pDescriptor.id === this.mActiveTabId)?.driver ?? null;
     }
 

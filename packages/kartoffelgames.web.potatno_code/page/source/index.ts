@@ -393,7 +393,7 @@ const lCanvas2dPreviewDisplay = PotatnoPreviewDisplay.new(lProjectTypes, {
  * Define previews for nodes and functions.
  */
 
-const lProjectPreviews = PotatnoPreview.new(lProjectTypes);
+const lProjectPreviews = new PotatnoPreview(lProjectTypes);
 lProjectPreviews.addDisplay(lCanvas2dPreviewDisplay, lEntryFunctionExecutor);
 lProjectPreviews.addDisplay(lCanvas2dPreviewDisplay, lUserFunctionExecutor);
 

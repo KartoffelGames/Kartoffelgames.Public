@@ -1,11 +1,13 @@
-import { PotatnoDocumentFunction } from "../../../document/potatno-document-function.ts";
 import { PotatnoDocument } from "../../../document/potatno-document.ts";
 import { PotatnoDeserializer } from "../../../serialization/potatno-deserializer.ts";
 import { PotatnoCodeFileSerializationResult } from "../../../serialization/potatno-serialization.type.ts";
 import { PotatnoSerializer } from "../../../serialization/potatno-serializer.ts";
-import { PotatnoUiProject } from "../../potatno-ui-project.ts";
-import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from "../potatno-ui-manager.ts";
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoUiProject } from "../potatno-ui-manager.ts";
 
+/**
+ * History component of the UI manager.
+ * Automaticaly sets a new history entry on changes.
+ */
 export class PotatnoUiManagerHistory {
     private static readonly MAX_HISTORY_ITEMS: number = 100;
 

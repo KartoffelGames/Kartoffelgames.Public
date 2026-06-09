@@ -4,11 +4,10 @@ import type { PotatnoDocumentFunction } from '../../../document/potatno-document
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoUiProject } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import { PotatnoClipboard } from '../../potatno-clipboard.ts';
-import { PotatnoUiManager, PotatnoCodeUiManagerChangeType } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPortRegistry } from '../../potatno-port-registry.ts';
-import type { PotatnoUiProject } from '../../potatno-ui-project.ts';
 import type { ResizeStartDetail } from '../potatno_node_component/potatno-node-component.ts';
 import type { PortInteractionDetail } from '../potatno_port/potatno-port.ts';
 import graphCss from './potatno-node-graph.css' with { type: 'text' };

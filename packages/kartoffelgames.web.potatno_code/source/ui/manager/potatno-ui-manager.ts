@@ -8,10 +8,11 @@ import { PotatnoDocument } from '../../document/potatno-document.ts';
 import type { PotatnoPreviewDriverHandle } from '../../preview/potatno-preview-driver.ts';
 import type { PotatnoPreviewTabDescriptor } from '../component/potatno_preview/potatno-preview.ts';
 import { PotatnoUiPreviewManager } from '../potatno-ui-preview-manager.ts';
-import type { PotatnoUiProject } from '../potatno-ui-project.ts';
 import { PotatnoUiManagerGraph } from './manager_component/potatno-ui-manager-graph.ts';
 import { PotatnoUiManagerHistory } from './manager_component/potatno-ui-manager-history.ts';
 import { PotatnoUiManagerIntegrity } from './manager_component/potatno-ui-manager-integrity.ts';
+import { PotatnoProjectTypesDefinition } from "../../project/potatno-project-types-definition.ts";
+import { PotatnoProject } from "../../project/potatno-project.ts";
 
 /**
  * Central, shared state owner for the whole Potatno-code editor UI.
@@ -508,3 +509,12 @@ export type PotatnoCodeUiManagerPropertiesChange = {
     name?: string;
     outputs?: Array<PotatnoCodeUiManagerPortView>;
 };
+
+/**
+ * Project shape accepted by UI components that read Potatno project metadata.
+ *
+ * A shared project-shape contract with no single owning class — every UI component that reads
+ * project metadata widens the project to this alias, so it lives in its own file rather than
+ * attached to one component.
+ */
+export type PotatnoUiProject = PotatnoProject<PotatnoProjectTypesDefinition<string>>;

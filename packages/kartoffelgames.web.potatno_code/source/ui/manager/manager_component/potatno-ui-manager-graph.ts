@@ -3,8 +3,7 @@ import { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from "../../..
 import { PotatnoDocumentPort } from "../../../document/potatno-document-port.ts";
 import { PotatnoDocument } from "../../../document/potatno-document.ts";
 import { PotatnoNodeDefinition } from "../../../project/node_definition/potatno-node-definition.ts";
-import { PotatnoUiProject } from "../../potatno-ui-project.ts";
-import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from "../potatno-ui-manager.ts";
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoUiProject } from "../potatno-ui-manager.ts";
 
 /**
  * Ui manager graph component.

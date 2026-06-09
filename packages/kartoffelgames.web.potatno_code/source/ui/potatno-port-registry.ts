@@ -1,6 +1,6 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
-import type { PotatnoUiProject } from './potatno-ui-project.ts';
+import { PotatnoUiProject } from "./manager/potatno-ui-manager.ts";
 
 /**
  * Shared registry mapping each rendered {@link PotatnoDocumentPort} to its circle DOM element.

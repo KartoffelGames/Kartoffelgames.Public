@@ -2,9 +2,7 @@ import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, PwbChild, PwbComponent, PwbExport, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocument } from '../../../document/potatno-document.ts';
-import type { PotatnoCodeFileSerializationResult } from '../../../serialization/potatno-serialization.type.ts';
-import { PotatnoUiManager, PotatnoCodeUiManagerChangeType } from '../../manager/potatno-ui-manager.ts';
-import type { PotatnoUiProject } from '../../potatno-ui-project.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerChangeType, PotatnoUiProject } from '../../manager/potatno-ui-manager.ts';
 import editorCss from './potatno-code-editor.css' with { type: 'text' };
 import editorTemplate from './potatno-code-editor.html' with { type: 'text' };
 
@@ -27,10 +25,10 @@ import '../potatno_preview/potatno-preview.ts';
     template: editorTemplate,
     style: editorCss,
 })
-export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements IComponentOnConnect, IComponentOnDeconstruct {
+export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDeconstruct {
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
-    private mProject: TProject | null;
+    private mProject: PotatnoUiProject | null;
     private mResizeMoveHandler: ((pEvent: PointerEvent) => void) | null;
     private mResizeState: { panel: 'left' | 'right'; startX: number; startWidth: number; } | null;
     private mResizeUpHandler: (() => void) | null;
@@ -70,8 +68,8 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
     /**
      * Current document state.
      */
-    public get file(): PotatnoDocument<TProject> {
-        return this.mManager.graph.document as PotatnoDocument<TProject>;
+    public get file(): PotatnoDocument<PotatnoUiProject> {
+        return this.mManager.graph.document as PotatnoDocument<PotatnoUiProject>;
     }
 
     /**
@@ -94,7 +92,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      * Project configuration backing the editor.
      */
     @PwbExport
-    public set project(pProject: TProject) {
+    public set project(pProject: PotatnoUiProject) {
         // Cache the project. The manager is initialized once the document arrives via `file`.
         this.mProject = pProject;
     }
@@ -103,7 +101,7 @@ export class PotatnoCodeEditor<TProject extends PotatnoUiProject> implements ICo
      * Document state backing the editor.
      */
     @PwbExport
-    public set file(pFile: PotatnoDocument<TProject>) {
+    public set file(pFile: PotatnoDocument<PotatnoUiProject>) {
         if (!this.mProject) {
             return;
         }

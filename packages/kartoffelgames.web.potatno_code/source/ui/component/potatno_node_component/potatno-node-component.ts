@@ -3,10 +3,9 @@ import { Component, ComponentEventEmitter, ComponentState, PwbComponent, PwbComp
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPreviewDriverHandle } from '../../../preview/potatno-preview-driver.ts';
-import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoUiProject } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPreviewModule } from "../../module/potatno-preview.module.ts";
 import { NodeCategory, NodeCategoryMeta } from "../../node/node-category.enum.ts";
-import type { PotatnoUiProject } from '../../potatno-ui-project.ts';
 import { PotatnoPortComponent, type PortInteractionDetail } from '../potatno_port/potatno-port.ts';
 import nodeCss from './potatno-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-node-component.html' with { type: 'text' };

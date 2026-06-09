@@ -3,9 +3,8 @@ import { Component, ComponentEventEmitter, ComponentState, PwbChild, PwbComponen
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoProjectTypeDefinition } from "../../../project/potatno-project-types-definition.ts";
-import { PotatnoUiManager, PotatnoCodeUiManagerChangeType } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoUiProject } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPortRegistry } from '../../potatno-port-registry.ts';
-import type { PotatnoUiProject } from '../../potatno-ui-project.ts';
 import portCss from './potatno-port.css' with { type: 'text' };
 import portTemplate from './potatno-port.html' with { type: 'text' };
 

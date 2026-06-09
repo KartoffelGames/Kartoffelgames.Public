@@ -1,8 +1,7 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
-import { PotatnoUiManager, PotatnoCodeUiManagerChangeType, type PotatnoCodeUiManagerPortView } from '../../manager/potatno-ui-manager.ts';
-import type { PotatnoUiProject } from '../../potatno-ui-project.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerChangeType, type PotatnoCodeUiManagerPortView, PotatnoUiProject } from '../../manager/potatno-ui-manager.ts';
 import templateCss from './potatno-panel-properties.css' with { type: 'text' };
 import propertiesTemplate from './potatno-panel-properties.html' with { type: 'text' };
 

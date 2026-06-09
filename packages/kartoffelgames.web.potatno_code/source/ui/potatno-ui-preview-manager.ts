@@ -3,14 +3,13 @@ import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import type { PotatnoDocument } from '../document/potatno-document.ts';
 import { PotatnoCodeGenerator } from '../parser/potatno-code-generator.ts';
-import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
 import type { PotatnoCodeGeneratorDocumentResult } from '../parser/result/potatno-code-generator-document-result.ts';
 import type { PotatnoCodeGeneratorFunctionResult } from '../parser/result/potatno-code-generator-function-result.ts';
 import type { PotatnoPreviewDriverHandle } from '../preview/potatno-preview-driver.ts';
 import type { PotatnoPreviewEntry } from '../preview/potatno-preview.ts';
+import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
 import type { PotatnoPreviewTabDescriptor } from './component/potatno_preview/potatno-preview.ts';
-import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from './manager/potatno-ui-manager.ts';
-import type { PotatnoUiProject } from './potatno-ui-project.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoUiProject, type PotatnoUiManager } from './manager/potatno-ui-manager.ts';
 
 /**
  * One ready-to-render preview built by the manager.

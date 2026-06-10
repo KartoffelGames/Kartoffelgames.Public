@@ -1,15 +1,16 @@
+import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
+import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
-import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
+import type { PotatnoProjectGenericType, PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
-import { PotatnoPreviewDriver, type PotatnoPreviewDriverPortTarget } from './potatno-preview-driver.ts';
 import type { PotatnoPreviewDisplay, PotatnoPreviewDisplayTypeAdapter } from './potatno-preview-display.ts';
-import type { PotatnoCodeGeneratorDocumentResult } from '../parser/result/potatno-code-generator-document-result.ts';
+import { PotatnoPreviewDriver } from './potatno-preview-driver.ts';
 import type { PotatnoPreviewFunctionExecutor } from './potatno-preview-function-executor.ts';
 
 /**
  * Project-wide preview registry.
- * Holds every `(display, executor)` pair the project supports and answers which of them apply to a
- * given function.
+ * Holds every `(display, executor)` pair the project supports. Entries answer which previews apply
+ * to a function and value type, and build the drivers bound to them.
  *
  * @typeParam TTypes - The project types definition this registry targets.
  */
@@ -33,10 +34,10 @@ export class PotatnoPreview<TTypes extends PotatnoProjectTypesDefinition<string,
     }
 
     /**
-     * Register one `(display, executor)` pair.
-     *
-     * The compile-time pair check is enforced by the shared `TParams` generic: the display's
-     * `expectedParameters` must structurally match the executor's `parameters`.
+     * Register one `(display, executor)` pair. Two compile-time checks are enforced: the shared
+     * `TParams` generic matches the display's iteration parameters with the executor's, and every
+     * type name the executor's build can report must either be a project type or carry an adapter
+     * in the display's record.
      *
      * @typeParam TElement - The display's element type.
      * @typeParam TParams - The shared iteration parameter shape.
@@ -44,44 +45,34 @@ export class PotatnoPreview<TTypes extends PotatnoProjectTypesDefinition<string,
      * @typeParam TAdapter - The display's adapter record shape.
      *
      * @param pDisplay - The display side of the pair.
-     * @param pExecutor - The executor side of the pair. Its `parameters` must satisfy `pDisplay.expectedParameters`.
+     * @param pExecutor - The executor side of the pair.
      */
-    public addDisplay<TElement extends Element, TParams extends Readonly<Record<string, unknown>>, TResult, TAdapter extends PotatnoPreviewDisplayTypeAdapter<TTypes, TResult>>(pDisplay: PotatnoPreviewDisplay<TTypes, TElement, TParams, TResult, TAdapter>, pExecutor: PotatnoPreviewFunctionExecutor<TTypes, TParams>): void {
-        // Each entry closes over its own narrow types in a `createDriver` factory rather than
-        // exposing the display/executor under their narrow generics. The stored display/executor are
-        // widened existentials used only for id/function lookups; the factory rebinds the narrow
-        // types when a consumer asks for a driver, so the registry never upcasts at construction.
-        this.mEntries.push({
-            display: pDisplay as unknown as PotatnoPreviewEntry<TTypes>['display'],
-            executor: pExecutor as unknown as PotatnoPreviewEntry<TTypes>['executor'],
-            createDriver: <TProject extends PotatnoProject>(pParameter: PotatnoPreviewEntryCreateDriverParameter<TProject>): PotatnoPreviewDriver<TProject> => {
-                return new PotatnoPreviewDriver<TProject, TElement, TParams, TResult>({
-                    display: pDisplay as unknown as PotatnoPreviewDisplay<TProject['types'], TElement, TParams, TResult, PotatnoPreviewDisplayTypeAdapter<TProject['types'], TResult>>,
-                    executor: pExecutor as unknown as PotatnoPreviewFunctionExecutor<TProject['types'], TParams>,
-                    portTarget: pParameter.portTarget,
-                    generatorResultProvider: pParameter.generatorResultProvider
-                }) as unknown as PotatnoPreviewDriver<TProject>;
+    public addDisplay<TElement extends Element, TParams extends Readonly<Record<string, unknown>>, TResult, TAdapter extends PotatnoPreviewDisplayTypeAdapter<TTypes, TResult>>(pDisplay: PotatnoPreviewDisplay<TTypes, TElement, TParams, TResult, TAdapter>, pExecutor: PotatnoPreviewFunctionExecutor<TTypes, TParams, Extract<keyof TAdapter, string> | TTypes['typeNames'][number] | PotatnoProjectGenericType>): void {
+        // Store the pair widened to existential types; the narrow types were already validated
+        // against each other by this method's generics.
+        const lEntry: PotatnoPreviewEntry<TTypes> = {
+            display: pDisplay as unknown as PotatnoPreviewEntryDisplay<TTypes>,
+            executor: pExecutor as unknown as PotatnoPreviewEntryExecutor<TTypes>,
+            createDriver: <TProject extends PotatnoProject>(pTarget: PotatnoDocumentFunction<TProject> | PotatnoDocumentPort<TProject>): PotatnoPreviewDriver<TProject> => {
+                return new PotatnoPreviewDriver<TProject>(lEntry as unknown as PotatnoPreviewEntry<TProject['types']>, pTarget);
             }
-        });
+        };
+
+        this.mEntries.push(lEntry);
     }
 
     /**
-     * All registered pairs that can preview a value produced within the given function — the entries
-     * whose executor wraps the function. Used when building a per-port driver (node output or
-     * function output).
-     *
-     * `pProjectType` carries the previewed value's project type for the caller's context; the filter
-     * itself is by function — a display's actual ability to render a given type is handled later by
-     * its adapter (identity fallback when none is registered), not by excluding it here.
+     * All registered pairs that can preview a value of the given type within the given function:
+     * the executor must wrap the function and the display's adapter record must allow the type.
      *
      * @param pFunctionDefinition - The function whose previews to list.
-     * @param _pProjectType - The project type name of the previewed value (loose hint, not a filter).
+     * @param pProjectType - Type name of the previewed value. Project type or custom type like `'fullOutput'`.
      *
      * @returns The matching entries, in registration order.
      */
-    public availablePreviews(pFunctionDefinition: PotatnoFunctionDefinition<PotatnoProject>, _pProjectType: string): Array<PotatnoPreviewEntry<TTypes>> {
+    public availablePreviews(pFunctionDefinition: PotatnoFunctionDefinition<PotatnoProject>, pProjectType: string): Array<PotatnoPreviewEntry<TTypes>> {
         return this.mEntries.filter((pEntry) => {
-            return pEntry.executor.function.id === pFunctionDefinition.id;
+            return pEntry.executor.function.id === pFunctionDefinition.id && pEntry.display.allowsType(pProjectType);
         });
     }
 
@@ -103,53 +94,66 @@ export class PotatnoPreview<TTypes extends PotatnoProjectTypesDefinition<string,
 
         return [...lDisplays];
     }
+
+    /**
+     * Find the entry registered for the exact `(display, executor)` pair.
+     *
+     * @typeParam TElement - The display's element type.
+     * @typeParam TParams - The shared iteration parameter shape.
+     * @typeParam TResult - The display's result shape.
+     * @typeParam TAdapter - The display's adapter record shape.
+     *
+     * @param pDisplay - The display side of the pair.
+     * @param pExecutor - The executor side of the pair.
+     *
+     * @returns The matching entry, or `null` when the pair was never registered.
+     */
+    public entryOf<TElement extends Element, TParams extends Readonly<Record<string, unknown>>, TResult, TAdapter extends PotatnoPreviewDisplayTypeAdapter<TTypes, TResult>>(pDisplay: PotatnoPreviewDisplay<TTypes, TElement, TParams, TResult, TAdapter>, pExecutor: PotatnoPreviewFunctionExecutor<TTypes, TParams>): PotatnoPreviewEntry<TTypes> | null {
+        return this.mEntries.find((pEntry) => {
+            return pEntry.display === (pDisplay as unknown) && pEntry.executor === (pExecutor as unknown);
+        }) ?? null;
+    }
 }
 
 /**
- * Constructor parameters handed to a registry entry's `createDriver` factory.
- *
- * @typeParam TProject - The project type the driver is being built for.
- */
-export type PotatnoPreviewEntryCreateDriverParameter<TProject extends PotatnoProject> = {
-    /**
-     * The previewed port plus its value resolver, or `null` for a function-level preview.
-     */
-    readonly portTarget: PotatnoPreviewDriverPortTarget<TProject> | null;
-
-    /**
-     * Yields the current document generator result on every driver refresh.
-     */
-    readonly generatorResultProvider: () => PotatnoCodeGeneratorDocumentResult<TProject>;
-};
-
-/**
- * One registered `(display, executor)` pair inside a `PotatnoPreview` registry.
- *
- * The `display`/`executor` are stored widened to existential types — only their `id` and bound
- * `function` are read from the outside. The narrow types are sealed inside the `createDriver`
- * closure, which projects them back into a driver typed against the consumer's `TProject`.
+ * One registered `(display, executor)` pair inside a `PotatnoPreview` registry. The pair is stored
+ * widened to existential types; `createDriver` builds a driver bound to it.
  *
  * @typeParam TTypes - The project types definition the registry targets.
  */
 export type PotatnoPreviewEntry<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>> = {
     /**
-     * Preview display, widened to an existential — read for its `id` and `adapterFor`.
+     * Preview display, widened to an existential.
      */
-    readonly display: PotatnoPreviewDisplay<TTypes, Element, Readonly<Record<string, unknown>>, unknown, PotatnoPreviewDisplayTypeAdapter<TTypes, unknown>>;
+    readonly display: PotatnoPreviewEntryDisplay<TTypes>;
 
     /**
-     * Preview code executor, widened to an existential — read for its bound `function`.
+     * Preview code executor, widened to an existential.
      */
-    readonly executor: PotatnoPreviewFunctionExecutor<TTypes, Readonly<Record<string, unknown>>>;
+    readonly executor: PotatnoPreviewEntryExecutor<TTypes>;
 
     /**
-     * Build a `PotatnoPreviewDriver` bound to this entry's display and executor.
+     * Build a {@link PotatnoPreviewDriver} bound to this entry's display and executor.
      *
-     * @typeParam TProject - The project type the consumer is building a driver against.
+     * @typeParam TProject - The project type the driver is built for.
      *
-     * @param pParameter - The project-scoped portions of the driver configuration.
+     * @param pTarget - The previewed document port, or a document function for a full-output preview.
      *
      * @returns The freshly constructed driver.
      */
-    createDriver<TProject extends PotatnoProject>(pParameter: PotatnoPreviewEntryCreateDriverParameter<TProject>): PotatnoPreviewDriver<TProject>;
+    createDriver<TProject extends PotatnoProject>(pTarget: PotatnoDocumentFunction<TProject> | PotatnoDocumentPort<TProject>): PotatnoPreviewDriver<TProject>;
 };
+
+/**
+ * Existential display type of a registry entry — element, parameter and result shapes widened.
+ *
+ * @typeParam TTypes - The project types definition the registry targets.
+ */
+export type PotatnoPreviewEntryDisplay<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>> = PotatnoPreviewDisplay<TTypes, Element, Readonly<Record<string, unknown>>, unknown, PotatnoPreviewDisplayTypeAdapter<TTypes, unknown>>;
+
+/**
+ * Existential executor type of a registry entry — parameter and result type shapes widened.
+ *
+ * @typeParam TTypes - The project types definition the registry targets.
+ */
+export type PotatnoPreviewEntryExecutor<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>> = PotatnoPreviewFunctionExecutor<TTypes, Readonly<Record<string, unknown>>, string>;

@@ -1,6 +1,6 @@
 import { PotatnoDocument } from '../../source/document/potatno-document.ts';
 import { PotatnoCodeApplication } from '../../source/potatno-code-application.ts';
-import { PotatnoPreviewDisplay } from "../../source/preview/potatno-preview-display.ts";
+import { PotatnoPreviewDisplay, type PotatnoPreviewDisplayExecutorCallable } from "../../source/preview/potatno-preview-display.ts";
 import { PotatnoPreviewFunctionExecutor } from "../../source/preview/potatno-preview-function-executor.ts";
 import { PotatnoPreview } from "../../source/preview/potatno-preview.ts";
 import { PotatnoNodeDefinition } from "../../source/project/node_definition/potatno-node-definition.ts";
@@ -263,7 +263,7 @@ const gPreviewHeight: number = 48;
 type PixelCallable = (pX: number, pY: number) => [number, number, number];
 
 const lEntryFunctionExecutor = PotatnoPreviewFunctionExecutor.new(lProjectTypes, lEntryFunction, {
-    parameters: { x: 0, y: 0 }, // Iteration-fed parameters; the display passes one of these per call.
+    defaultParameters: { x: 0, y: 0 }, // Iteration parameter defaults; the display overrides them per call.
     build: (pExecutor, pGeneratorResult, pPortTarget) => {
         const lFunctionCode: string = pGeneratorResult.code;
         const lFunctionName: string = pExecutor.function.id;
@@ -299,13 +299,13 @@ const lEntryFunctionExecutor = PotatnoPreviewFunctionExecutor.new(lProjectTypes,
 
 /**
  * Executor for previewing a USER function's output. The function is evaluated once with every input
- * at its type default; the targeted output (carried as the port target's value, keyed by output
- * label) is returned and rendered via the display's adapter for the output's data type.
+ * at its type default; the targeted exit input port's definition id keys the function's returned
+ * object, and that field is rendered via the display's adapter for the port's data type.
  */
 const lUserFunctionExecutor = PotatnoPreviewFunctionExecutor.new(lProjectTypes, lUserFunction, {
-    parameters: { x: 0, y: 0 }, // Match the display; coordinates are ignored (output is constant).
+    defaultParameters: { x: 0, y: 0 }, // Match the display; coordinates are ignored (output is constant).
     build: (pExecutor, pGeneratorResult, pPortTarget) => {
-        // User-function previews always target a specific output; without a port target there is
+        // User-function previews always target a specific port; without a port target there is
         // nothing to show.
         if (!pPortTarget) {
             return { type: 'rgb', execute: (): [number, number, number] => [0, 0, 0] };
@@ -336,8 +336,6 @@ const lUserFunctionExecutor = PotatnoPreviewFunctionExecutor.new(lProjectTypes, 
 
 const lCanvas2dPreviewDisplay = PotatnoPreviewDisplay.new(lProjectTypes, {
     id: '2dCanvas',
-    expectedParameters: { x: 0, y: 0 },     // Must match lEntryFunctionExecutor.parameters at compile time.
-    defaultResult: [0, 0, 0] as [number, number, number], // [r, g, b] in [0, 1] range; drives TResult inference.
     generate: (): HTMLCanvasElement => {
         // Off-DOM canvas — the preview panel re-parents this element into its content area.
         const lCanvas: HTMLCanvasElement = document.createElement('canvas');
@@ -349,16 +347,22 @@ const lCanvas2dPreviewDisplay = PotatnoPreviewDisplay.new(lProjectTypes, {
         return lCanvas;
     },
     typeAdapter: {
-        'number': (pInputValue) => {
+        'number': (pInputValue): [number, number, number] => {
             // `pInputValue` is inferred as `number` from lProjectTypes.number.default.value.
             // Per-node previews evaluate a single number; this adapter widens that into a
             // grayscale RGB triple so the canvas can paint it uniformly.
             return [pInputValue, pInputValue, pInputValue];
+        },
+        'rgb': (pInputValue: [number, number, number]) => {
+            // Custom type reported by the executors' full-output builds. The adapter record is the
+            // display's allowed-type list, so the pass-through must be declared explicitly.
+            return pInputValue;
         }
     },
-    update: async (pElement, pExecutor) => {
-        // pExecutor: (params) => [r, g, b] | Promise<[r, g, b]>, already adapter-wrapped for
-        // per-node previews. The display owns the outer iteration loop.
+    update: async (pElement, pExecutor: PotatnoPreviewDisplayExecutorCallable<{ x: number; y: number; }, [number, number, number]>) => {
+        // The executor annotation declares the display's iteration parameter and result shapes —
+        // they must match the paired executor's `parameters` at registration time. The display
+        // owns the outer iteration loop; adapter coercion is already applied.
         const lContext: CanvasRenderingContext2D | null = pElement.getContext('2d');
         if (!lContext) {
             return;

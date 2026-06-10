@@ -1,53 +1,36 @@
-import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
+import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
+import { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
+import { PotatnoCodeGenerator } from '../parser/potatno-code-generator.ts';
 import type { PotatnoCodeGeneratorDocumentResult } from '../parser/result/potatno-code-generator-document-result.ts';
-import type { PotatnoProjectGenericType, PotatnoProjectType } from '../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
-import type { PotatnoPreviewDisplay, PotatnoPreviewDisplayTypeAdapter } from './potatno-preview-display.ts';
-import type { PotatnoPreviewFunctionExecutor, PotatnoPreviewFunctionExecutorBuildResult, PotatnoPreviewFunctionExecutorCallable } from './potatno-preview-function-executor.ts';
+import type { PotatnoPreviewFunctionExecutorBuildResult, PotatnoPreviewFunctionExecutorPortTarget } from './potatno-preview-function-executor.ts';
+import type { PotatnoPreviewEntry, PotatnoPreviewEntryDisplay, PotatnoPreviewEntryExecutor } from './potatno-preview.ts';
 
 /**
- * Runtime object the UI binds to one visible preview.
+ * Self-contained runtime object behind one visible preview, created via a registry entry's
+ * `createDriver`. Builds the preview element, regenerates and compiles the document code and
+ * renders — the caller only decides when `refresh()` (graph changed) and `execute()` (render tick)
+ * run; the driver never triggers either on its own.
  *
- * Bundles a `(display, executor, port-target)` triple together with a callback that yields the
- * current generator result. Lazily creates the element via `display.generate()`. Compilation and
- * rendering are two separate steps:
- *  - `refresh()` pulls a fresh generator result, re-resolves the targeted port's value and
- *    recompiles the iteration callable. Called whenever the underlying graph changed.
- *  - `execute()` runs one render pass with the last compiled callable. Called every frame. It never
- *    compiles, so a stale-but-valid preview keeps rendering while the document is invalid.
- *
- * The driver is generic over the bound `TProject` directly (rather than the project's `TTypes`) so
- * consumers carrying a project type can plug a driver in without reconstructing the project type
- * from its types definition.
+ * The target is either a document port — a value output identified by its generated valueId, or a
+ * value input identified by its definition id, like an exit node's output-carrying inputs — or a
+ * whole document function, which previews the function's complete output under an
+ * executor-reported type like `'rgb'`.
  *
  * @typeParam TProject - The project type the driver targets.
- * @typeParam TElement - The element type produced by the display.
- * @typeParam TParams - The iteration parameter shape.
- * @typeParam TResult - The result shape the display consumes after adapter coercion.
  */
-export class PotatnoPreviewDriver<TProject extends PotatnoProject, TElement extends Element = Element, TParams extends Readonly<Record<string, unknown>> = {}, TResult = any> {
-    private mCachedCallable: PotatnoPreviewDisplayCallable<TParams, TResult> | null;
-    private readonly mDisplay: PotatnoPreviewDisplay<TProject['types'], TElement, TParams, TResult, PotatnoPreviewDisplayTypeAdapter<TProject['types'], TResult>>;
-    private mElement: TElement | null;
-    private readonly mExecutor: PotatnoPreviewFunctionExecutor<TProject['types'], TParams>;
-    private readonly mGeneratorResultProvider: () => PotatnoCodeGeneratorDocumentResult<TProject>;
-    private readonly mPortTarget: PotatnoPreviewDriverPortTarget<TProject> | null;
+export class PotatnoPreviewDriver<TProject extends PotatnoProject> {
+    private mCachedCallable: PotatnoPreviewDriverCallable | null;
+    private readonly mDisplay: PotatnoPreviewEntryDisplay<TProject['types']>;
+    private mElement: Element | null;
+    private readonly mExecutor: PotatnoPreviewEntryExecutor<TProject['types']>;
+    private mSpecifiedParameters: Readonly<Record<string, unknown>>;
+    private readonly mTarget: PotatnoDocumentFunction<TProject> | PotatnoDocumentPort<TProject>;
 
     /**
-     * The project type id of the port being previewed, or `null` for function-level previews.
+     * The element the display renders into. Lazily created on first access.
      */
-    public get dataType(): PotatnoProjectType<TProject> | PotatnoProjectGenericType | null {
-        if (!this.mPortTarget) {
-            return null;
-        }
-
-        return this.mPortTarget.documentPort.dataType;
-    }
-
-    /**
-     * The element the display renders into. Lazily created on first access via `display.generate()`.
-     */
-    public get element(): TElement {
+    public get element(): Element {
         if (!this.mElement) {
             this.mElement = this.mDisplay.generate();
         }
@@ -56,32 +39,23 @@ export class PotatnoPreviewDriver<TProject extends PotatnoProject, TElement exte
     }
 
     /**
-     * The bound port target, or `null` when this driver represents a function-level preview.
-     */
-    public get portTarget(): PotatnoPreviewDriverPortTarget<TProject> | null {
-        return this.mPortTarget;
-    }
-
-    /**
-     * Constructor.
+     * Constructor. Usually called through a registry entry's `createDriver`.
      *
-     * @param pParameters - Driver configuration capturing the display/executor/port-target triple and the generator-result provider.
+     * @param pEntry - The registry `(display, executor)` pair backing this driver.
+     * @param pTarget - The previewed document port or document function.
      */
-    public constructor(pParameters: PotatnoPreviewDriverConstructorParameter<TProject, TElement, TParams, TResult>) {
-        this.mDisplay = pParameters.display;
-        this.mExecutor = pParameters.executor;
-        this.mGeneratorResultProvider = pParameters.generatorResultProvider;
-        this.mPortTarget = pParameters.portTarget;
+    public constructor(pEntry: PotatnoPreviewEntry<TProject['types']>, pTarget: PotatnoDocumentFunction<TProject> | PotatnoDocumentPort<TProject>) {
+        this.mDisplay = pEntry.display;
+        this.mExecutor = pEntry.executor;
+        this.mTarget = pTarget;
         this.mCachedCallable = null;
         this.mElement = null;
+        this.mSpecifiedParameters = {};
     }
 
     /**
-     * Run one render pass with the last compiled callable.
-     *
-     * Does not compile: a driver that has never been refreshed (or whose target value could not be
-     * resolved on the last refresh) is skipped. This keeps the previously rendered preview visible
-     * while the document is invalid, since no fresh — and possibly failing — generation is run.
+     * Run one render pass with the last compiled callable. Never compiles — an unrefreshed or
+     * unresolved driver is skipped, keeping the previously rendered preview visible.
      *
      * @returns A promise resolving when the display's update pass completes.
      */
@@ -90,101 +64,94 @@ export class PotatnoPreviewDriver<TProject extends PotatnoProject, TElement exte
             return;
         }
 
-        await Promise.resolve(this.mDisplay.update(this.element, this.mCachedCallable));
+        await this.mDisplay.update(this.element, this.mCachedCallable);
     }
 
     /**
-     * Recompile the iteration callable from the latest generator result.
-     *
-     * Pulls a fresh document result, re-resolves the targeted port's value (so a shifted valueId is
-     * always current), runs the executor's build callback and wraps the resulting callable with the
-     * display's adapter matching the value type the build reports. When the port's value is not
-     * emitted by the current graph, the cached callable is cleared so `execute` no-ops.
+     * Regenerate the document code and recompile the iteration callable. The targeted value is
+     * re-resolved on every call. When it is not emitted, or the display has no adapter for the
+     * reported value type, the cached callable is cleared so `execute` no-ops.
      */
     public refresh(): void {
-        const lGeneratorResult: PotatnoCodeGeneratorDocumentResult<TProject> = this.mGeneratorResultProvider();
+        const lTarget: PotatnoDocumentFunction<TProject> | PotatnoDocumentPort<TProject> = this.mTarget;
 
-        // Resolve the per-port value identifier against the fresh result. A `null` means the port's
-        // value is not emitted (nothing downstream consumes it), so there is nothing to preview.
-        let lPortTarget: { documentPort: PotatnoDocumentPort<TProject>; value: string; } | null = null;
-        if (this.mPortTarget) {
-            const lValue: string | null = this.mPortTarget.valueResolver(lGeneratorResult);
+        // Resolve the previewed function from the target and regenerate its full document result.
+        const lFunction: PotatnoDocumentFunction<TProject> = lTarget instanceof PotatnoDocumentPort ? lTarget.node.function : lTarget;
+        const lGeneratorResult: PotatnoCodeGeneratorDocumentResult<TProject> = new PotatnoCodeGenerator<TProject>(lFunction.project).generateFunction(lFunction, true);
+
+        // Resolve the executor port target. Output ports resolve to their generated valueId.
+        // Input ports carry their definition id instead — their value has no own valueId and is
+        // named at the consuming side, like the output label keying a function's returned object.
+        // Function targets preview the function's complete output and need no port target.
+        let lPortTarget: PotatnoPreviewFunctionExecutorPortTarget<TProject> | null = null;
+        if (lTarget instanceof PotatnoDocumentPort) {
+            const lValue: string | null = lTarget.direction === 'input' ? lTarget.definitionId : this.resolvePortValueId(lGeneratorResult, lTarget);
             if (lValue === null) {
                 this.mCachedCallable = null;
                 return;
             }
 
-            lPortTarget = { documentPort: this.mPortTarget.documentPort, value: lValue };
+            lPortTarget = { documentPort: lTarget, value: lValue };
         }
 
-        // Build the raw callable plus the project type name of the value it yields.
-        const lBuildResult: PotatnoPreviewFunctionExecutorBuildResult<TParams> = this.mExecutor.compile(lGeneratorResult, lPortTarget);
+        // Compile the raw callable. The executor is stored widened, so the result is cast through
+        // the matching widened project shape.
+        const lBuildResult: PotatnoPreviewFunctionExecutorBuildResult<Readonly<Record<string, unknown>>> = this.mExecutor.compile(
+            lGeneratorResult as unknown as PotatnoCodeGeneratorDocumentResult<PotatnoProject<TProject['types']>>,
+            lPortTarget as unknown as PotatnoPreviewFunctionExecutorPortTarget<PotatnoProject<TProject['types']>> | null
+        );
 
-        // Pick the display adapter for that type, coercing the raw value into the display's TResult
-        // shape. Falling back to an identity wrap keeps things rendering when no adapter is
-        // registered for the reported type — the value flows through unchanged.
-        const lAdapter: ((pValue: unknown) => TResult) | undefined = this.mDisplay.adapterFor(lBuildResult.type);
-        const lAdapterFunction: (pValue: unknown) => TResult = lAdapter ?? ((pValue: unknown): TResult => pValue as TResult);
-        const lRawCallable: PotatnoPreviewFunctionExecutorCallable<TParams> = lBuildResult.execute;
+        // The adapter record defines every type the display can render — no adapter, no preview.
+        if (!this.mDisplay.allowsType(lBuildResult.type)) {
+            this.mCachedCallable = null;
+            return;
+        }
 
-        this.mCachedCallable = async (pParameters: TParams): Promise<TResult> => {
-            const lRawResult: unknown = await Promise.resolve(lRawCallable(pParameters));
-            return lAdapterFunction(lRawResult);
+        const lAdapter: (pValue: unknown) => unknown = this.mDisplay.adapterFor(lBuildResult.type);
+
+        // Per-call parameters: executor defaults, overlaid by user-specified values, overlaid by
+        // whatever the display supplies for the iteration.
+        this.mCachedCallable = async (pParameters: Readonly<Record<string, unknown>>): Promise<unknown> => {
+            return lAdapter(await lBuildResult.execute({ ...this.mExecutor.defaultParameters, ...this.mSpecifiedParameters, ...pParameters }));
         };
+    }
+
+    /**
+     * Set user-defined execution parameters, overriding the executor's defaults on every
+     * iteration. Partial: only the given keys are set, merged over previously specified values.
+     * Parameters the display supplies itself still win. Applies on the next `execute`, no refresh
+     * needed.
+     *
+     * @param pParameters - The parameter values to feed the executor.
+     */
+    public specifyParameters(pParameters: Readonly<Record<string, unknown>>): void {
+        this.mSpecifiedParameters = { ...this.mSpecifiedParameters, ...pParameters };
+    }
+
+    /**
+     * Find the valueId allocated to an output port across every graph of a generation result.
+     *
+     * @param pGeneratorResult - The generation result to search.
+     * @param pPort - The port whose valueId to find.
+     *
+     * @returns The valueId, or `null` when the port's value was not emitted.
+     */
+    private resolvePortValueId(pGeneratorResult: PotatnoCodeGeneratorDocumentResult<TProject>, pPort: PotatnoDocumentPort<TProject>): string | null {
+        for (const lFunctionResult of [pGeneratorResult.entryPoint, ...pGeneratorResult.dependencies]) {
+            for (const lGraph of lFunctionResult.graphs) {
+                const lValueId: string | undefined = lGraph.ports.get(pPort);
+                if (lValueId !== undefined) {
+                    return lValueId;
+                }
+            }
+        }
+
+        return null;
     }
 }
 
 /**
- * Driver-internal callable handed to the display's `update` loop — adapter coercion baked in.
+ * Compiled iteration callable handed to the display's `update` loop — parameter merge and adapter
+ * coercion baked in.
  */
-type PotatnoPreviewDisplayCallable<TParams, TResult> = (pParameters: TParams) => TResult | Promise<TResult>;
-
-/**
- * Per-port preview target carried by the driver. Unlike the executor's port target it holds a
- * resolver rather than a fixed value, so each refresh re-derives the current value identifier from
- * the latest generator result instead of baking in a now-stale one.
- *
- * @typeParam TProject - The project type the driver targets.
- */
-export type PotatnoPreviewDriverPortTarget<TProject extends PotatnoProject> = {
-    /**
-     * The document port being previewed.
-     */
-    readonly documentPort: PotatnoDocumentPort<TProject>;
-
-    /**
-     * Resolve the targeted value identifier from a generator result, or `null` when the port's
-     * value is not emitted by the current graph.
-     */
-    readonly valueResolver: (pGeneratorResult: PotatnoCodeGeneratorDocumentResult<TProject>) => string | null;
-};
-
-/**
- * Constructor parameters for PotatnoPreviewDriver.
- *
- * @typeParam TProject - The project type the driver targets.
- * @typeParam TElement - The display's element type.
- * @typeParam TParams - The iteration parameter shape.
- * @typeParam TResult - The shared result shape.
- */
-export type PotatnoPreviewDriverConstructorParameter<TProject extends PotatnoProject, TElement extends Element, TParams extends Readonly<Record<string, unknown>>, TResult> = {
-    /**
-     * The display side of the bundled triple.
-     */
-    display: PotatnoPreviewDisplay<TProject['types'], TElement, TParams, TResult, PotatnoPreviewDisplayTypeAdapter<TProject['types'], TResult>>;
-
-    /**
-     * The executor side of the bundled triple.
-     */
-    executor: PotatnoPreviewFunctionExecutor<TProject['types'], TParams>;
-
-    /**
-     * The previewed port plus its value resolver, or `null` for a function-level preview.
-     */
-    portTarget: PotatnoPreviewDriverPortTarget<TProject> | null;
-
-    /**
-     * Yields the current document generator result on every refresh.
-     */
-    generatorResultProvider: () => PotatnoCodeGeneratorDocumentResult<TProject>;
-};
+type PotatnoPreviewDriverCallable = (pParameters: Readonly<Record<string, unknown>>) => Promise<unknown>;

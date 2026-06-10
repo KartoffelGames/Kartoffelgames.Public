@@ -2,9 +2,7 @@ import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoCodeGenerator } from '../../../parser/potatno-code-generator.ts';
-import type { PotatnoCodeGeneratorDocumentResult } from '../../../parser/result/potatno-code-generator-document-result.ts';
-import type { PotatnoPreviewDriver, PotatnoPreviewDriverPortTarget } from '../../../preview/potatno-preview-driver.ts';
+import type { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
 import type { PotatnoPreviewEntry } from '../../../preview/potatno-preview.ts';
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager, type PotatnoUiProject } from '../potatno-ui-manager.ts';
 
@@ -14,10 +12,14 @@ import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager, type PotatnoUiPr
  * Components request a driver via {@link nodeDriver} / {@link functionDriver}; a weak list of all
  * live drivers is recompiled on a structural change ({@link refresh}) and rendered every frame
  * ({@link execute}).
+ *
+ * Drivers are self-contained — building the preview element, regenerating and compiling the code
+ * and rendering all happen inside the driver. This component only decides when each driver
+ * refreshes and executes, and which driver belongs to which document item.
  */
 export class PotatnoUiManagerPreview {
-    private readonly mDrivers: WeakMap<IPotatnoDocumentItem<PotatnoUiProject>, PotatnoUiManagerPreviewBinding>;
     private readonly mDriverList: Array<WeakRef<PotatnoPreviewDriver<PotatnoUiProject>>>;
+    private readonly mDrivers: WeakMap<IPotatnoDocumentItem<PotatnoUiProject>, PotatnoUiManagerPreviewBinding>;
     private readonly mManager: PotatnoUiManager;
 
     /**
@@ -74,37 +76,30 @@ export class PotatnoUiManagerPreview {
      */
     public functionDriver(pFunction: PotatnoDocumentFunction<PotatnoUiProject>, pDisplayId: string, pOutputId: string): PotatnoPreviewDriver<PotatnoUiProject> | null {
         const lProject: PotatnoUiProject | null = this.mManager.project;
-        const lFunctionDefinition = lProject?.getFunction(pFunction.definitionId);
-        if (!lProject?.previews || !lFunctionDefinition) {
+        if (!lProject?.previews) {
             this.release(pFunction);
             return null;
         }
 
-        const lIsUserFunction: boolean = lFunctionDefinition.id !== lProject.entryPoint.id;
-        const lTarget: string = lIsUserFunction ? pOutputId : '';
+        // The entry function previews its full output, so its cache identity is display-only.
+        const lTarget: string = pFunction.definitionId === lProject.entryPoint.id ? '' : pOutputId;
 
         return this.acquire(pFunction, pDisplayId, lTarget, (): PotatnoPreviewDriver<PotatnoUiProject> | null => {
-            const lEntry: PotatnoPreviewEntry<PotatnoUiProject['types']> | undefined = lProject.previews!.availablePreviews(lFunctionDefinition, '').find((pEntry) => pEntry.display.id === pDisplayId);
+            const lEntry: PotatnoPreviewEntry<PotatnoUiProject['types']> | undefined = lProject.previews!.entries.find((pEntry) => {
+                return pEntry.executor.function.id === pFunction.definitionId && pEntry.display.id === pDisplayId;
+            });
             if (!lEntry) {
                 return null;
             }
 
-            // User function → preview the selected output via the exit node's value-input port; the
-            // executor returns the value keyed by label. Entry function → function-level (no target).
-            let lPortTarget: PotatnoPreviewDriverPortTarget<PotatnoUiProject> | null = null;
-            if (lIsUserFunction) {
-                const lExitPort: PotatnoDocumentPort<PotatnoUiProject> | null = pOutputId === '' ? null : this.findFunctionOutputPort(pFunction, pOutputId);
-                if (!lExitPort) {
-                    return null;
-                }
-
-                lPortTarget = { documentPort: lExitPort, valueResolver: (): string => pOutputId };
+            // The entry function previews its full output via a function target. A user function
+            // previews the exit node input port carrying the selected output.
+            if (lTarget === '') {
+                return lEntry.createDriver<PotatnoUiProject>(pFunction);
             }
 
-            return lEntry.createDriver<PotatnoUiProject>({
-                portTarget: lPortTarget,
-                generatorResultProvider: (): PotatnoCodeGeneratorDocumentResult<PotatnoUiProject> => new PotatnoCodeGenerator<PotatnoUiProject>(lProject).generateFunction(pFunction, true)
-            });
+            const lPort: PotatnoDocumentPort<PotatnoUiProject> | null = this.findFunctionOutputPort(pFunction, lTarget);
+            return lPort ? lEntry.createDriver<PotatnoUiProject>(lPort) : null;
         });
     }
 
@@ -130,15 +125,10 @@ export class PotatnoUiManagerPreview {
                 return null;
             }
 
+            // Only entries whose display allows the port's value type can render it.
             const lEntry: PotatnoPreviewEntry<PotatnoUiProject['types']> | undefined = lProject.previews.availablePreviews(lFunctionDefinition, lPort.resolvedDataType).find((pEntry) => pEntry.display.id === lBinding.displayId);
-            if (!lEntry) {
-                return null;
-            }
 
-            return lEntry.createDriver<PotatnoUiProject>({
-                portTarget: { documentPort: lPort, valueResolver: (pResult: PotatnoCodeGeneratorDocumentResult<PotatnoUiProject>): string | null => this.findPortValueId(pResult, lPort) },
-                generatorResultProvider: (): PotatnoCodeGeneratorDocumentResult<PotatnoUiProject> => new PotatnoCodeGenerator<PotatnoUiProject>(lProject).generateFunction(pNode.function, true)
-            });
+            return lEntry?.createDriver<PotatnoUiProject>(lPort) ?? null;
         });
     }
 
@@ -207,7 +197,7 @@ export class PotatnoUiManagerPreview {
     }
 
     /**
-     * Find the exit node's value-input port carrying a function output, by output label.
+     * Find the exit node's value input port carrying a function output, by output label.
      *
      * @param pFunction - The function whose exit nodes to search.
      * @param pOutputId - The output port label to match.
@@ -219,27 +209,6 @@ export class PotatnoUiManagerPreview {
             const lPort: PotatnoDocumentPort<PotatnoUiProject> | undefined = lExitNode.inputs.map.get(pOutputId);
             if (lPort && lPort.portType === 'value') {
                 return lPort;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * Find the valueId allocated to a port across every graph of a generation result.
-     *
-     * @param pDocumentResult - The generation result to search.
-     * @param pPort - The port whose valueId to find.
-     *
-     * @returns The valueId, or `null` when the port's value was not emitted.
-     */
-    private findPortValueId(pDocumentResult: PotatnoCodeGeneratorDocumentResult<PotatnoUiProject>, pPort: PotatnoDocumentPort<PotatnoUiProject>): string | null {
-        for (const lFunctionResult of [pDocumentResult.entryPoint, ...pDocumentResult.dependencies]) {
-            for (const lGraph of lFunctionResult.graphs) {
-                const lValueId: string | undefined = lGraph.ports.get(pPort);
-                if (lValueId !== undefined) {
-                    return lValueId;
-                }
             }
         }
 

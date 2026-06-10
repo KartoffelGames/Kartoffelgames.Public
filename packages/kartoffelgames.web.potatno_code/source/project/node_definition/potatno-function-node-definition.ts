@@ -17,15 +17,6 @@ import { PotatnoNodeDefinition, PotatnoNodeDefinitionPortGeneratorFunction } fro
  * referencing this definition keep their identity across sessions.
  */
 export class PotatnoFunctionNodeDefinition<TProject extends PotatnoProject> extends PotatnoNodeDefinition<TProject> {
-    /**
-     * Create a new PotatnoFunctionNodeDefinition mirroring the given document function.
-     *
-     * @param pFunction - The document function this definition reflects.
-     */
-    public static newFunctionNode<TProject extends PotatnoProject>(pFunction: PotatnoDocumentFunction<TProject>): PotatnoFunctionNodeDefinition<TProject> {
-        return new PotatnoFunctionNodeDefinition(pFunction);
-    }
-
     private readonly mFunction: PotatnoDocumentFunction<TProject>;
 
     /**
@@ -49,7 +40,7 @@ export class PotatnoFunctionNodeDefinition<TProject extends PotatnoProject> exte
      *
      * @param pFunction - The document function this definition mirrors.
      */
-    protected constructor(pFunction: PotatnoDocumentFunction<TProject>) {
+    public constructor(pFunction: PotatnoDocumentFunction<TProject>) {
         const lPortGenerator = (pDirectionName: string, pFunctionPorts: ReadonlyArray<PotatnoDocumentFunctionPort<TProject>>): PotatnoNodeDefinitionPortGeneratorFunction<TProject> => {
             return (pAddPort): void => {
                 // Add an additional flow port for function call chaining.

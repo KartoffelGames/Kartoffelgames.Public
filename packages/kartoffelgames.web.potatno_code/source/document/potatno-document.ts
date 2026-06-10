@@ -58,7 +58,7 @@ export class PotatnoDocument<TProject extends PotatnoProject> {
         this.mFunctions.add(pFunction);
 
         // Create and register a corresponding node definition for this function.
-        const lNodeDefinition: PotatnoFunctionNodeDefinition<TProject> = PotatnoFunctionNodeDefinition.newFunctionNode(pFunction);
+        const lNodeDefinition: PotatnoFunctionNodeDefinition<TProject> = new PotatnoFunctionNodeDefinition(pFunction);
         this.mFunctionNodeDefinitions.set(lNodeDefinition.id, lNodeDefinition);
     }
 
@@ -76,7 +76,7 @@ export class PotatnoDocument<TProject extends PotatnoProject> {
         this.mFunctions.add(lFunction);
 
         // Create and register a corresponding node definition for this function.
-        const lNodeDefinition: PotatnoFunctionNodeDefinition<TProject> = PotatnoFunctionNodeDefinition.newFunctionNode(lFunction);
+        const lNodeDefinition: PotatnoFunctionNodeDefinition<TProject> = new PotatnoFunctionNodeDefinition(lFunction);
         this.mFunctionNodeDefinitions.set(lNodeDefinition.id, lNodeDefinition);
 
         return lFunction;

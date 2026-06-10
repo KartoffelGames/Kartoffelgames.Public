@@ -1,24 +1,15 @@
 import { expect } from '@kartoffelgames/core-test';
 import { PotatnoStaticNodeDefinition } from '../../source/project/node_definition/potatno-static-node-definition.ts';
 import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from '../../source/project/potatno-function-definition.ts';
-import { PotatnoProjectTypesDefinition } from '../../source/project/potatno-project-types-definition.ts';
-
-const lTypes = PotatnoProjectTypesDefinition.new({
-    number: {
-        default: { string: ['0'], value: 0 },
-        convert: (pValues: Array<string>): string => pValues[0],
-        inputs: [{ name: 'value', type: 'number' }]
-    }
-});
 
 const lEmptyGenerator = {
     code: { body: (): string => '', value: (): string => '' }
 };
 
-Deno.test('PotatnoFunctionDefinition.new()', async (pContext) => {
+Deno.test('new PotatnoFunctionDefinition()', async (pContext) => {
     await pContext.step('Construct with no statics flags', () => {
         // Setup. Process.
-        const lFunction = PotatnoFunctionDefinition.new(lTypes, {
+        const lFunction = new PotatnoFunctionDefinition({
             id: 'a', label: 'a',
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
             generator: lEmptyGenerator
@@ -34,7 +25,7 @@ Deno.test('PotatnoFunctionDefinition.new()', async (pContext) => {
         const lCombined: number = PotatnoFunctionDefinitionStatics.imports | PotatnoFunctionDefinitionStatics.inputs;
 
         // Process.
-        const lFunction = PotatnoFunctionDefinition.new(lTypes, {
+        const lFunction = new PotatnoFunctionDefinition({
             id: 'a', label: 'a',
             statics: lCombined, nodes: {},
             generator: lEmptyGenerator
@@ -46,7 +37,7 @@ Deno.test('PotatnoFunctionDefinition.new()', async (pContext) => {
 
     await pContext.step('Construct stores id and label', () => {
         // Setup. Process.
-        const lFunction = PotatnoFunctionDefinition.new(lTypes, {
+        const lFunction = new PotatnoFunctionDefinition({
             id: 'myId', label: 'myLabel',
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
             generator: lEmptyGenerator
@@ -61,7 +52,7 @@ Deno.test('PotatnoFunctionDefinition.new()', async (pContext) => {
 Deno.test('PotatnoFunctionDefinition.id', async (pContext) => {
     await pContext.step('Returns the provided id', () => {
         // Setup.
-        const lFunction = PotatnoFunctionDefinition.new(lTypes, {
+        const lFunction = new PotatnoFunctionDefinition({
             id: 'fancyId', label: 'l',
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
             generator: lEmptyGenerator
@@ -78,7 +69,7 @@ Deno.test('PotatnoFunctionDefinition.id', async (pContext) => {
 Deno.test('PotatnoFunctionDefinition.label', async (pContext) => {
     await pContext.step('Returns the provided label', () => {
         // Setup.
-        const lFunction = PotatnoFunctionDefinition.new(lTypes, {
+        const lFunction = new PotatnoFunctionDefinition({
             id: 'i', label: 'fancyLabel',
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
             generator: lEmptyGenerator
@@ -98,7 +89,7 @@ Deno.test('PotatnoFunctionDefinition.statics', async (pContext) => {
         const lMask: number = PotatnoFunctionDefinitionStatics.imports
             | PotatnoFunctionDefinitionStatics.inputs
             | PotatnoFunctionDefinitionStatics.outputs;
-        const lFunction = PotatnoFunctionDefinition.new(lTypes, {
+        const lFunction = new PotatnoFunctionDefinition({
             id: 'a', label: 'a',
             statics: lMask, nodes: {},
             generator: lEmptyGenerator
@@ -113,7 +104,7 @@ Deno.test('PotatnoFunctionDefinition.statics', async (pContext) => {
 
     await pContext.step('Returns zero for none flag', () => {
         // Setup.
-        const lFunction = PotatnoFunctionDefinition.new(lTypes, {
+        const lFunction = new PotatnoFunctionDefinition({
             id: 'a', label: 'a',
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
             generator: lEmptyGenerator
@@ -136,7 +127,7 @@ Deno.test('PotatnoFunctionDefinition.codeGenerator', async (pContext) => {
                 value: (): string => 'value'
             }
         };
-        const lFunction = PotatnoFunctionDefinition.new(lTypes, {
+        const lFunction = new PotatnoFunctionDefinition({
             id: 'a', label: 'a',
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
             generator: lGenerator
@@ -153,7 +144,7 @@ Deno.test('PotatnoFunctionDefinition.codeGenerator', async (pContext) => {
 Deno.test('PotatnoFunctionDefinition.getNodeDefinitions()', async (pContext) => {
     await pContext.step('Returns empty arrays when no providers are configured', () => {
         // Setup.
-        const lFunction = PotatnoFunctionDefinition.new(lTypes, {
+        const lFunction = new PotatnoFunctionDefinition({
             id: 'a', label: 'a',
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
             generator: lEmptyGenerator
@@ -170,11 +161,11 @@ Deno.test('PotatnoFunctionDefinition.getNodeDefinitions()', async (pContext) => 
 
     await pContext.step('Entry callback nodes are returned via .entry', () => {
         // Setup.
-        const lEntryNode = PotatnoStaticNodeDefinition.newStaticNode({
+        const lEntryNode = new PotatnoStaticNodeDefinition({
             id: 'EntryNode', label: 'EntryNode', category: 'event',
             ports: { inputs: [], outputs: [] }, generators: { code: (): string => '' }
         });
-        const lFunction = PotatnoFunctionDefinition.new(lTypes, {
+        const lFunction = new PotatnoFunctionDefinition({
             id: 'a', label: 'a',
             statics: PotatnoFunctionDefinitionStatics.none,
             nodes: {
@@ -193,11 +184,11 @@ Deno.test('PotatnoFunctionDefinition.getNodeDefinitions()', async (pContext) => 
 
     await pContext.step('Exit callback nodes are returned via .exit', () => {
         // Setup.
-        const lExitNode = PotatnoStaticNodeDefinition.newStaticNode({
+        const lExitNode = new PotatnoStaticNodeDefinition({
             id: 'ExitNode', label: 'ExitNode', category: 'output',
             ports: { inputs: [], outputs: [] }, generators: { code: (): string => '' }
         });
-        const lFunction = PotatnoFunctionDefinition.new(lTypes, {
+        const lFunction = new PotatnoFunctionDefinition({
             id: 'a', label: 'a',
             statics: PotatnoFunctionDefinitionStatics.none,
             nodes: {
@@ -216,11 +207,11 @@ Deno.test('PotatnoFunctionDefinition.getNodeDefinitions()', async (pContext) => 
 
     await pContext.step('Dynamic callback nodes are returned via .dynamic', () => {
         // Setup.
-        const lDynamicNode = PotatnoStaticNodeDefinition.newStaticNode({
+        const lDynamicNode = new PotatnoStaticNodeDefinition({
             id: 'DynamicNode', label: 'DynamicNode', category: 'operator',
             ports: { inputs: [], outputs: [] }, generators: { code: (): string => '' }
         });
-        const lFunction = PotatnoFunctionDefinition.new(lTypes, {
+        const lFunction = new PotatnoFunctionDefinition({
             id: 'a', label: 'a',
             statics: PotatnoFunctionDefinitionStatics.none,
             nodes: {
@@ -240,7 +231,7 @@ Deno.test('PotatnoFunctionDefinition.getNodeDefinitions()', async (pContext) => 
     await pContext.step('Each property re-invokes the provider on access', () => {
         // Setup.
         let lCallCount: number = 0;
-        const lFunction = PotatnoFunctionDefinition.new(lTypes, {
+        const lFunction = new PotatnoFunctionDefinition({
             id: 'a', label: 'a',
             statics: PotatnoFunctionDefinitionStatics.none,
             nodes: {

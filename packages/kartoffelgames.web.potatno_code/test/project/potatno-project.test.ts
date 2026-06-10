@@ -7,7 +7,7 @@ import { PotatnoProjectTypesDefinition } from '../../source/project/potatno-proj
 import { PotatnoProject } from '../../source/project/potatno-project.ts';
 
 const lNewBareProject = (): PotatnoProject<PotatnoProjectTypesDefinition<'number'>> => {
-    const lTypes = PotatnoProjectTypesDefinition.new({
+    const lTypes = new PotatnoProjectTypesDefinition({
         number: {
             default: { string: ['0'], value: 0 },
             convert: (pValues: Array<string>): string => pValues[0],
@@ -15,7 +15,7 @@ const lNewBareProject = (): PotatnoProject<PotatnoProjectTypesDefinition<'number
         }
     });
 
-    const lEntry = PotatnoFunctionDefinition.new(lTypes, {
+    const lEntry = new PotatnoFunctionDefinition({
         id: 'entry',
         label: 'entry',
         statics: PotatnoFunctionDefinitionStatics.none,
@@ -28,7 +28,7 @@ const lNewBareProject = (): PotatnoProject<PotatnoProjectTypesDefinition<'number
         }
     });
 
-    return PotatnoProject.new({
+    return new PotatnoProject({
         types: lTypes,
         functions: { entry: lEntry },
         generator: {
@@ -45,7 +45,7 @@ const lNewBareProject = (): PotatnoProject<PotatnoProjectTypesDefinition<'number
     });
 };
 
-Deno.test('PotatnoProject.new()', async (pContext) => {
+Deno.test('new PotatnoProject()', async (pContext) => {
     await pContext.step('Construct with minimal config', () => {
         // Setup. Process.
         const lProject = lNewBareProject();
@@ -57,7 +57,7 @@ Deno.test('PotatnoProject.new()', async (pContext) => {
 
     await pContext.step('Construct with dynamic user functions', () => {
         // Setup.
-        const lTypes = PotatnoProjectTypesDefinition.new({
+        const lTypes = new PotatnoProjectTypesDefinition({
             number: {
                 default: { string: ['0'], value: 0 },
                 convert: (pValues: Array<string>): string => pValues[0],
@@ -65,20 +65,20 @@ Deno.test('PotatnoProject.new()', async (pContext) => {
             }
         });
 
-        const lEntry = PotatnoFunctionDefinition.new(lTypes, {
+        const lEntry = new PotatnoFunctionDefinition({
             id: 'entry', label: 'entry',
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
             generator: { code: { body: (): string => '', value: (): string => '' } }
         });
 
-        const lUserFunction = PotatnoFunctionDefinition.new(lTypes, {
+        const lUserFunction = new PotatnoFunctionDefinition({
             id: 'userOne', label: 'userOne',
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
             generator: { code: { body: (): string => '', value: (): string => '' } }
         });
 
         // Process.
-        const lProject = PotatnoProject.new({
+        const lProject = new PotatnoProject({
             types: lTypes,
             functions: { entry: lEntry, dynamic: [lUserFunction] },
             generator: {
@@ -113,19 +113,19 @@ Deno.test('PotatnoProject.new()', async (pContext) => {
 Deno.test('PotatnoProject.types', async (pContext) => {
     await pContext.step('Returns the provided types definition', () => {
         // Setup.
-        const lTypes = PotatnoProjectTypesDefinition.new({
+        const lTypes = new PotatnoProjectTypesDefinition({
             number: {
                 default: { string: ['0'], value: 0 },
                 convert: (pValues: Array<string>): string => pValues[0],
                 inputs: [{ name: 'value', type: 'number' }]
             }
         });
-        const lEntry = PotatnoFunctionDefinition.new(lTypes, {
+        const lEntry = new PotatnoFunctionDefinition({
             id: 'entry', label: 'entry',
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
             generator: { code: { body: (): string => '', value: (): string => '' } }
         });
-        const lProject = PotatnoProject.new({
+        const lProject = new PotatnoProject({
             types: lTypes,
             functions: { entry: lEntry },
             generator: {
@@ -152,19 +152,19 @@ Deno.test('PotatnoProject.types', async (pContext) => {
 Deno.test('PotatnoProject.entryPoint', async (pContext) => {
     await pContext.step('Returns the entry function definition', () => {
         // Setup.
-        const lTypes = PotatnoProjectTypesDefinition.new({
+        const lTypes = new PotatnoProjectTypesDefinition({
             number: {
                 default: { string: ['0'], value: 0 },
                 convert: (pValues: Array<string>): string => pValues[0],
                 inputs: [{ name: 'value', type: 'number' }]
             }
         });
-        const lEntry = PotatnoFunctionDefinition.new(lTypes, {
+        const lEntry = new PotatnoFunctionDefinition({
             id: 'entry', label: 'entry',
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
             generator: { code: { body: (): string => '', value: (): string => '' } }
         });
-        const lProject = PotatnoProject.new({
+        const lProject = new PotatnoProject({
             types: lTypes,
             functions: { entry: lEntry },
             generator: {
@@ -199,31 +199,31 @@ Deno.test('PotatnoProject.userFunctions', async (pContext) => {
 
     await pContext.step('Contains added user functions keyed by id', () => {
         // Setup.
-        const lTypes = PotatnoProjectTypesDefinition.new({
+        const lTypes = new PotatnoProjectTypesDefinition({
             number: {
                 default: { string: ['0'], value: 0 },
                 convert: (pValues: Array<string>): string => pValues[0],
                 inputs: [{ name: 'value', type: 'number' }]
             }
         });
-        const lEntry = PotatnoFunctionDefinition.new(lTypes, {
+        const lEntry = new PotatnoFunctionDefinition({
             id: 'entry', label: 'entry',
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
             generator: { code: { body: (): string => '', value: (): string => '' } }
         });
-        const lFunctionOne = PotatnoFunctionDefinition.new(lTypes, {
+        const lFunctionOne = new PotatnoFunctionDefinition({
             id: 'one', label: 'one',
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
             generator: { code: { body: (): string => '', value: (): string => '' } }
         });
-        const lFunctionTwo = PotatnoFunctionDefinition.new(lTypes, {
+        const lFunctionTwo = new PotatnoFunctionDefinition({
             id: 'two', label: 'two',
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
             generator: { code: { body: (): string => '', value: (): string => '' } }
         });
 
         // Process.
-        const lProject = PotatnoProject.new({
+        const lProject = new PotatnoProject({
             types: lTypes,
             functions: { entry: lEntry, dynamic: [lFunctionOne, lFunctionTwo] },
             generator: {
@@ -284,7 +284,7 @@ Deno.test('PotatnoProject.nodeDefinitions', async (pContext) => {
     await pContext.step('Returns added node definitions plus conjunctions', () => {
         // Setup.
         const lProject = lNewBareProject();
-        const lAddedDefinition = PotatnoStaticNodeDefinition.newStaticNode({
+        const lAddedDefinition = new PotatnoStaticNodeDefinition({
             id: 'Marker',
             label: 'Marker',
             category: 'operator',
@@ -304,14 +304,14 @@ Deno.test('PotatnoProject.nodeDefinitions', async (pContext) => {
 Deno.test('PotatnoProject.generator', async (pContext) => {
     await pContext.step('Returns the provided generator object', () => {
         // Setup.
-        const lTypes = PotatnoProjectTypesDefinition.new({
+        const lTypes = new PotatnoProjectTypesDefinition({
             number: {
                 default: { string: ['0'], value: 0 },
                 convert: (pValues: Array<string>): string => pValues[0],
                 inputs: [{ name: 'value', type: 'number' }]
             }
         });
-        const lEntry = PotatnoFunctionDefinition.new(lTypes, {
+        const lEntry = new PotatnoFunctionDefinition({
             id: 'entry', label: 'entry',
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
             generator: { code: { body: (): string => '', value: (): string => '' } }
@@ -329,7 +329,7 @@ Deno.test('PotatnoProject.generator', async (pContext) => {
         };
 
         // Process.
-        const lProject = PotatnoProject.new({
+        const lProject = new PotatnoProject({
             types: lTypes,
             functions: { entry: lEntry },
             generator: lGenerator
@@ -375,7 +375,7 @@ Deno.test('PotatnoProject.addNodeDefinition()', async (pContext) => {
     await pContext.step('Registers a node definition by id', () => {
         // Setup.
         const lProject = lNewBareProject();
-        const lDefinition = PotatnoStaticNodeDefinition.newStaticNode({
+        const lDefinition = new PotatnoStaticNodeDefinition({
             id: 'TestDefinition',
             label: 'TestDefinition',
             category: 'operator',
@@ -393,14 +393,14 @@ Deno.test('PotatnoProject.addNodeDefinition()', async (pContext) => {
     await pContext.step('Re-registering the same id overwrites the previous definition', () => {
         // Setup.
         const lProject = lNewBareProject();
-        const lFirst = PotatnoStaticNodeDefinition.newStaticNode({
+        const lFirst = new PotatnoStaticNodeDefinition({
             id: 'Same',
             label: 'first',
             category: 'operator',
             ports: { inputs: [], outputs: [] },
             generators: { code: (): string => 'first' }
         });
-        const lSecond = PotatnoStaticNodeDefinition.newStaticNode({
+        const lSecond = new PotatnoStaticNodeDefinition({
             id: 'Same',
             label: 'second',
             category: 'operator',
@@ -430,26 +430,26 @@ Deno.test('PotatnoProject.getFunction()', async (pContext) => {
 
     await pContext.step('Returns a user function when its id matches', () => {
         // Setup.
-        const lTypes = PotatnoProjectTypesDefinition.new({
+        const lTypes = new PotatnoProjectTypesDefinition({
             number: {
                 default: { string: ['0'], value: 0 },
                 convert: (pValues: Array<string>): string => pValues[0],
                 inputs: [{ name: 'value', type: 'number' }]
             }
         });
-        const lEntry = PotatnoFunctionDefinition.new(lTypes, {
+        const lEntry = new PotatnoFunctionDefinition({
             id: 'entry', label: 'entry',
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
             generator: { code: { body: (): string => '', value: (): string => '' } }
         });
-        const lUserFunction = PotatnoFunctionDefinition.new(lTypes, {
+        const lUserFunction = new PotatnoFunctionDefinition({
             id: 'user', label: 'user',
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
             generator: { code: { body: (): string => '', value: (): string => '' } }
         });
 
         // Process.
-        const lProject = PotatnoProject.new({
+        const lProject = new PotatnoProject({
             types: lTypes,
             functions: { entry: lEntry, dynamic: [lUserFunction] },
             generator: {

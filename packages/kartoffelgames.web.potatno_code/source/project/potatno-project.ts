@@ -1,5 +1,5 @@
 import { PotatnoCodeGeneratorDocumentResult } from "../parser/result/potatno-code-generator-document-result.ts";
-import type { PotatnoPreview } from "../preview/potatno-preview.ts";
+import { PotatnoPreview } from "../preview/potatno-preview.ts";
 import { FlowConjunctionNodeDefinition } from "./node_definition/potatno-flow-conjunction-node-definition.ts";
 import { PotatnoNodeDefinition } from "./node_definition/potatno-node-definition.ts";
 import { PotatnoStaticNodeDefinition } from "./node_definition/potatno-static-node-definition.ts";
@@ -13,20 +13,11 @@ import { PotatnoProjectTypesDefinition } from "./potatno-project-types-definitio
  * and callback configurations. Does not hold document state.
  */
 export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<string> = any> {
-    /**
-     * Create a new PotatnoProject with the given configuration.
-     *
-     * @param pParameter - Project configuration including type definitions and entry point.
-     */
-    public static new<TProjectType extends PotatnoProjectTypesDefinition<string>>(pParameter: PotatnoProjectConstructorParameter<TProjectType>): PotatnoProject<TProjectType> {
-        return new PotatnoProject(pParameter);
-    }
-
     private readonly mCodeGenerator: PotatnoProjectCodeGenerator<this>;
     private readonly mEntryPoint: PotatnoFunctionDefinition<this>;
     private readonly mImports: Array<PotatnoProjectImportDefinition<this>>;
     private readonly mNodeDefinitions: Map<string, PotatnoNodeDefinition<this>>;
-    private readonly mPreviews: PotatnoPreview<TProjectType> | null;
+    private readonly mPreview: PotatnoPreview<PotatnoProject<TProjectType>>;
     private readonly mTypes: TProjectType;
     private readonly mUserFunctions: Map<string, PotatnoFunctionDefinition<this>>;
 
@@ -60,11 +51,10 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
     }
 
     /**
-     * Get the project's preview registry holding every registered (display, executor) pair.
-     * Returns `null` when the project was created without a preview registry.
+     * Get the project's preview registry.
      */
-    public get previews(): PotatnoPreview<TProjectType> | null {
-        return this.mPreviews;
+    public get preview(): PotatnoPreview<PotatnoProject<TProjectType>> {
+        return this.mPreview;
     }
 
     /**
@@ -86,11 +76,11 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
      *
      * @param pParameter - Configuration providing project types, function definitions, code generator and optional preview registry.
      */
-    protected constructor(pParameter: PotatnoProjectConstructorParameter<TProjectType>) {
+    public constructor(pParameter: PotatnoProjectConstructorParameter<TProjectType>) {
         // Init parameter.
         this.mTypes = pParameter.types;
         this.mCodeGenerator = pParameter.generator;
-        this.mPreviews = (pParameter.previews ?? null) as PotatnoPreview<TProjectType> | null;
+        this.mPreview = new PotatnoPreview<PotatnoProject<TProjectType>>();
 
         // Initialize empty arrays and maps for project definitions.
         this.mNodeDefinitions = new Map<string, PotatnoStaticNodeDefinition<this>>();
@@ -108,8 +98,8 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
         }
 
         // Built-in conjunction pass-through nodes are always available in every project.
-        this.addNodeDefinition(FlowConjunctionNodeDefinition.newConjunctionNode());
-        this.addNodeDefinition(ValueConjunctionNodeDefinition.newConjunctionNode());
+        this.addNodeDefinition(new FlowConjunctionNodeDefinition());
+        this.addNodeDefinition(new ValueConjunctionNodeDefinition());
     }
 
     /**
@@ -151,7 +141,6 @@ type PotatnoProjectConstructorParameter<TProjectType extends PotatnoProjectTypes
         dynamic?: Array<PotatnoFunctionDefinition<PotatnoProject<NoInfer<TProjectType>>>>;
     },
     generator: PotatnoProjectCodeGenerator<PotatnoProject<TProjectType>>;
-    previews?: PotatnoPreview<NoInfer<TProjectType>>;
 };
 
 /**

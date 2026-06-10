@@ -13,20 +13,11 @@ import { PotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeD
  */
 export class PotatnoStaticNodeDefinition<TProject extends PotatnoProject> extends PotatnoNodeDefinition<TProject> {
     /**
-     * Create a new PotatnoStaticNodeDefinition.
-     *
-     * @param pParameters - Static node definition configuration including id, label, category, ports, and generators.
-     */
-    public static newStaticNode<TProject extends PotatnoProject>(pParameters: PotatnoStaticNodeDefinitionConstructorParameter<TProject>): PotatnoStaticNodeDefinition<TProject> {
-        return new PotatnoStaticNodeDefinition(pParameters);
-    }
-
-    /**
      * Constructor.
      *
      * @param pParameters - Constructor parameters.
      */
-    protected constructor(pParameters: PotatnoStaticNodeDefinitionConstructorParameter<TProject>) {
+    public constructor(pParameters: PotatnoStaticNodeDefinitionConstructorParameter<TProject>) {
         // Set id and label. Label defaults to id if not provided.
         super({
             id: pParameters.id,

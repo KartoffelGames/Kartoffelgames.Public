@@ -10,16 +10,9 @@ export class ValueConjunctionNodeDefinition<TProject extends PotatnoProject> ext
     public static readonly DEFINITION_ID: string = 'a579584d-5d35-42b5-b2ba-3daddee488e0';
 
     /**
-     * Create a new ValueConjunctionNodeDefinition.
-     */
-    public static newConjunctionNode<TProject extends PotatnoProject>(): ValueConjunctionNodeDefinition<TProject> {
-        return new ValueConjunctionNodeDefinition<TProject>();
-    }
-
-    /**
      * Constructor.
      */
-    protected constructor() {
+    public constructor() {
         super({
             id: ValueConjunctionNodeDefinition.DEFINITION_ID,
             label: 'Value Conjunction',

@@ -10,16 +10,9 @@ export class FlowConjunctionNodeDefinition<TProject extends PotatnoProject> exte
     public static readonly DEFINITION_ID: string = '23e9319b-3b62-4dd8-858a-17d97ddee94e';
 
     /**
-     * Create a new FlowConjunctionNodeDefinition.
-     */
-    public static newConjunctionNode<TProject extends PotatnoProject>(): FlowConjunctionNodeDefinition<TProject> {
-        return new FlowConjunctionNodeDefinition<TProject>();
-    }
-
-    /**
      * Constructor.
      */
-    protected constructor() {
+    public constructor() {
         super({
             id: FlowConjunctionNodeDefinition.DEFINITION_ID,
             label: 'Flow Conjunction',

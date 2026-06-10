@@ -6,15 +6,6 @@ import { PotatnoProject } from "../potatno-project.ts";
  * Potatno node definition that changes dynamically based on the provided context.
  */
 export class PotatnoNodeDefinition<TProject extends PotatnoProject> {
-    /**
-     * Create a new PotatnoNodeDefinition.
-     *
-     * @param pParameters - Static node definition configuration including id, label, category, ports, and generators.
-     */
-    public static newNode<TProject extends PotatnoProject>(pParameters: PotatnoNodeDefinitionConstructorParameter<TProject>): PotatnoNodeDefinition<TProject> {
-        return new PotatnoNodeDefinition<TProject>(pParameters);
-    }
-
     private readonly mId: string;
     private readonly mCategory: string;
     private readonly mLabel: string;
@@ -46,7 +37,7 @@ export class PotatnoNodeDefinition<TProject extends PotatnoProject> {
         // Reads port configuration and converts it into PotatnoPortDefinition.
         const lPorts: Array<PotatnoPortDefinition<TProject>> = [];
         this.mPortProvider.inputs((pConfiguration) => {
-            lPorts.push(PotatnoPortDefinition.new<TProject>(pConfiguration));
+            lPorts.push(new PotatnoPortDefinition<TProject>(pConfiguration));
 
             // Check that there is only a single flow port.
             if (pConfiguration.portType === 'flow') {
@@ -75,7 +66,7 @@ export class PotatnoNodeDefinition<TProject extends PotatnoProject> {
         // Reads port configuration and converts it into PotatnoPortDefinition.
         const lPorts: Array<PotatnoPortDefinition<TProject>> = [];
         this.mPortProvider.outputs((pConfiguration) => {
-            lPorts.push(PotatnoPortDefinition.new<TProject>(pConfiguration));
+            lPorts.push(new PotatnoPortDefinition<TProject>(pConfiguration));
         });
 
         return lPorts;
@@ -109,7 +100,7 @@ export class PotatnoNodeDefinition<TProject extends PotatnoProject> {
      *
      * @param pParameters - Constructor parameters.
      */
-    protected constructor(pParameters: PotatnoNodeDefinitionConstructorParameter<TProject>) {
+    public constructor(pParameters: PotatnoNodeDefinitionConstructorParameter<TProject>) {
         // Set id and label.
         this.mId = pParameters.id;
         this.mLabel = pParameters.label;

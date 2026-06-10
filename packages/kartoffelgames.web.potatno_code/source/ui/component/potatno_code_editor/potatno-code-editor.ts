@@ -52,11 +52,11 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
     public get hasPreview(): boolean {
         const lProject: PotatnoUiProject | null = this.mManager.project;
         const lActiveFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mManager.activeFunction;
-        if (!lProject || !lActiveFunction || !lProject.previews) {
+        if (!lProject || !lActiveFunction) {
             return false;
         }
 
-        for (const lEntry of lProject.previews.entries) {
+        for (const lEntry of lProject.preview.entries) {
             if (lEntry.executor.function.id === lActiveFunction.definitionId) {
                 return true;
             }

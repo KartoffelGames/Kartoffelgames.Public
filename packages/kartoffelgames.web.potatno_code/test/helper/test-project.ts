@@ -52,7 +52,7 @@ export const TestProjectGlobalMultiplierVariable: string = '__globalMultiplier';
  *    JavaScript literal,
  *  - an `inputs` array describing the editor input fields for the type.
  */
-const gProjectTypes = PotatnoProjectTypesDefinition.new({
+const gProjectTypes = new PotatnoProjectTypesDefinition({
     number: {
         default: {
             string: ['0'],
@@ -115,7 +115,7 @@ const gProjectTypes = PotatnoProjectTypesDefinition.new({
  * against user-defined function shapes and to test how user-function call
  * sites compose with the rest of the graph.
  */
-const gHelperFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
+const gHelperFunction = new PotatnoFunctionDefinition({
     id: 'helperFunction',
     label: 'helperFunction',
     statics: PotatnoFunctionDefinitionStatics.none,
@@ -123,7 +123,7 @@ const gHelperFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
         entry: (pAddNode, pFunction) => {
             // Entry node exposes the function's inputs as value outputs and
             // hands off control via a single `exec` flow output.
-            pAddNode(PotatnoNodeDefinition.newNode({
+            pAddNode(new PotatnoNodeDefinition({
                 id: 'HelperEntry',
                 label: 'Entry',
                 category: 'event',
@@ -157,7 +157,7 @@ const gHelperFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
         exit: (pAddNode, pFunction) => {
             // Exit node mirrors the function's outputs as value inputs and
             // consumes a single `exec` flow input.
-            pAddNode(PotatnoNodeDefinition.newNode({
+            pAddNode(new PotatnoNodeDefinition({
                 id: 'HelperExit',
                 label: 'Return',
                 category: 'event',
@@ -248,14 +248,14 @@ const gHelperFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
  * The entry nodes emit `let __globalMultiplier = 1;` so the GlobalMultiplier
  * node can write to that binding from anywhere downstream.
  */
-const gMainFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
+const gMainFunction = new PotatnoFunctionDefinition({
     id: 'calculator',
     label: 'calculator',
     statics: PotatnoFunctionDefinitionStatics.imports | PotatnoFunctionDefinitionStatics.inputs | PotatnoFunctionDefinitionStatics.outputs,
     nodes: {
         entry: (pAddNode) => {
             // Default entry node.
-            pAddNode(PotatnoStaticNodeDefinition.newStaticNode({
+            pAddNode(new PotatnoStaticNodeDefinition({
                 id: 'CalculatorDefaultEntry',
                 label: 'Default',
                 category: 'event',
@@ -279,7 +279,7 @@ const gMainFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
             // Functionally identical to the Default entry. The X10 designation
             // exists so tests can verify that the function definition supports
             // multiple entry graphs and that each is generated independently.
-            pAddNode(PotatnoStaticNodeDefinition.newStaticNode({
+            pAddNode(new PotatnoStaticNodeDefinition({
                 id: 'CalculatorX10Entry',
                 label: 'X10',
                 category: 'event',
@@ -301,7 +301,7 @@ const gMainFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
         exit: (pAddNode) => {
             // Default exit node. Returns `result` multiplied by the runtime
             // multiplier only.
-            pAddNode(PotatnoStaticNodeDefinition.newStaticNode({
+            pAddNode(new PotatnoStaticNodeDefinition({
                 id: 'CalculatorDefaultExit',
                 label: 'Default',
                 category: 'output',
@@ -323,7 +323,7 @@ const gMainFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
             // then composes it with the runtime multiplier. Per the project
             // requirement, X10 and the runtime multiplier compose - they do
             // not override each other.
-            pAddNode(PotatnoStaticNodeDefinition.newStaticNode({
+            pAddNode(new PotatnoStaticNodeDefinition({
                 id: 'CalculatorX10Exit',
                 label: 'X10',
                 category: 'output',
@@ -388,7 +388,7 @@ const gMainFunction = PotatnoFunctionDefinition.new(gProjectTypes, {
  * use it, but it is exercised by serializer / parser tests via the project
  * generator surface.
  */
-export const TestProject: PotatnoProject<typeof gProjectTypes> = PotatnoProject.new({
+export const TestProject: PotatnoProject<typeof gProjectTypes> = new PotatnoProject({
     types: gProjectTypes,
     functions: {
         entry: gMainFunction,
@@ -427,7 +427,7 @@ export const TestProject: PotatnoProject<typeof gProjectTypes> = PotatnoProject.
  * Used by code-generator tests to assert flow ordering and branch / merge layout without dragging in the
  * arithmetic operators' value-id chatter.
  */
-TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
+TestProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Pass',
     label: 'Pass',
     category: 'flow',
@@ -454,7 +454,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
  * generator's refcount path drives its emission, which lets dedup tests target
  * a node whose emission rules are independent of the arithmetic operators.
  */
-TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
+TestProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Const',
     label: 'Const',
     category: 'value',
@@ -477,7 +477,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
  * Each emits a `const <result> = <a> <op> <b>;` statement so the generated
  * code can be evaluated as plain JavaScript.
  */
-TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
+TestProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Add',
     label: 'Add',
     category: 'operator',
@@ -495,7 +495,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
     }
 }));
 
-TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
+TestProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Subtract',
     label: 'Subtract',
     category: 'operator',
@@ -513,7 +513,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
     }
 }));
 
-TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
+TestProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Multiply',
     label: 'Multiply',
     category: 'operator',
@@ -531,7 +531,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
     }
 }));
 
-TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
+TestProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Divide',
     label: 'Divide',
     category: 'operator',
@@ -553,7 +553,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
  * Boolean comparison nodes. Produce a `boolean` value output that can only
  * legally feed the `If` condition input.
  */
-TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
+TestProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Equal',
     label: 'Equal',
     category: 'operator',
@@ -571,7 +571,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
     }
 }));
 
-TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
+TestProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Greater',
     label: 'Greater',
     category: 'operator',
@@ -589,7 +589,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
     }
 }));
 
-TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
+TestProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Smaller',
     label: 'Smaller',
     category: 'operator',
@@ -620,7 +620,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
  * exactly one of the two value inputs from the surrounding scope without
  * introducing a statement-level if/else.
  */
-TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
+TestProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'Pick',
     label: 'Pick',
     category: 'operator',
@@ -649,7 +649,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
  * Parsing nodes. Convert between `number` and `string`. Two separate nodes
  * keep the directionality explicit and let tests assert each independently.
  */
-TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
+TestProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'NumberToString',
     label: 'toString',
     category: 'parsing',
@@ -666,7 +666,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
     }
 }));
 
-TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
+TestProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'ParseStringToNumber',
     label: 'parseString',
     category: 'parsing',
@@ -688,7 +688,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
  * condition. `code.next` is appended so the merged tail after the if/else
  * reconverge is rendered after the closing brace.
  */
-TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
+TestProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'If',
     label: 'If',
     category: 'flow',
@@ -720,7 +720,7 @@ TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
  * Because the multiplier is read at the exit-node level, this composes with
  * the X10 exit multiplicatively rather than overriding it.
  */
-TestProject.addNodeDefinition(PotatnoStaticNodeDefinition.newStaticNode({
+TestProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
     id: 'GlobalMultiplier',
     label: 'global multiplier',
     category: 'global',
@@ -752,7 +752,7 @@ TestProject.addImport({
     id: 'ExtraComparison',
     label: 'Extra Comparison',
     nodes: [
-        PotatnoStaticNodeDefinition.newStaticNode({
+        new PotatnoStaticNodeDefinition({
             id: 'GreaterOrEqual',
             label: 'greaterOrEqual',
             category: 'operator',
@@ -769,7 +769,7 @@ TestProject.addImport({
                 code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} >= ${pContext.inputs['b'].value};`
             }
         }),
-        PotatnoStaticNodeDefinition.newStaticNode({
+        new PotatnoStaticNodeDefinition({
             id: 'SmallerOrEqual',
             label: 'smallerOrEqual',
             category: 'operator',

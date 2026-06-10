@@ -1,7 +1,6 @@
 import { PotatnoDocumentFunction } from "../document/potatno-document-function.ts";
 import { PotatnoCodeGeneratorFunctionResult } from "../parser/result/potatno-code-generator-function-result.ts";
 import { PotatnoNodeDefinition, PotatnoNodeDefinitionGeneratorContext } from "./node_definition/potatno-node-definition.ts";
-import { PotatnoProjectTypesDefinition } from "./potatno-project-types-definition.ts";
 import { PotatnoProject } from "./potatno-project.ts";
 
 /**
@@ -9,18 +8,6 @@ import { PotatnoProject } from "./potatno-project.ts";
  * Of of these blueprints eighter the main entry point or secondary user created entry points can be instantiated in the editor.
  */
 export class PotatnoFunctionDefinition<TProject extends PotatnoProject> {
-    /**
-     * Create a new PotatnoFunctionDefinition.
-     *
-     * Prefer {@link PotatnoFunctionDefinition.forTypes} when type inference for
-     * `pAddNode` callbacks is required.
-     *
-     * @param pParameters - Parameters defining the entry point's id, static nodes, dynamic nodes, and static settings.
-     */
-    public static new<TTypes extends PotatnoProjectTypesDefinition<string>, TProject extends PotatnoProject<TTypes>>(_pTypes: TTypes, pParameters: PotatnoFunctionDefinitionConstructorParameter<TProject>): PotatnoFunctionDefinition<TProject> {
-        return new PotatnoFunctionDefinition(pParameters);
-    }
-
     private readonly mId: string;
     private readonly mLabel: string;
     private readonly mStatics: PotatnoFunctionDefinitionStatics;
@@ -61,7 +48,7 @@ export class PotatnoFunctionDefinition<TProject extends PotatnoProject> {
      *
      * @param pParameters - Parameters defining the entry point's id, label, static nodes, dynamic nodes, and static settings.
      */
-    protected constructor(pParameters: PotatnoFunctionDefinitionConstructorParameter<TProject>) {
+    public constructor(pParameters: PotatnoFunctionDefinitionConstructorParameter<TProject>) {
         this.mId = pParameters.id;
         this.mLabel = pParameters.label;
 

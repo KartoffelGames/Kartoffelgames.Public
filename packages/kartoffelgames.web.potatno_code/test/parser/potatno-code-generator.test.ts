@@ -440,7 +440,7 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
             // Setup. One-off project whose hook returns `<<id>>`. The exit's value
             // input forces a hook emission (flow-only nodes would not allocate any
             // valueId so the custom hook would never run).
-            const lLocalTypes = PotatnoProjectTypesDefinition.new({
+            const lLocalTypes = new PotatnoProjectTypesDefinition({
                 number: {
                     default: { string: ['0'], value: 0 },
                     convert: (pValues: Array<string>): string => pValues[0],
@@ -448,7 +448,7 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
                 }
             });
 
-            const lSimpleEntry = PotatnoStaticNodeDefinition.newStaticNode({
+            const lSimpleEntry = new PotatnoStaticNodeDefinition({
                 id: 'Start', label: 'Start', category: 'event',
                 ports: {
                     inputs: [],
@@ -457,7 +457,7 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
                 generators: { code: (pContext): string => `START(); ${pContext.outputs['exec'].code.inner}` }
             });
 
-            const lSimpleExit = PotatnoStaticNodeDefinition.newStaticNode({
+            const lSimpleExit = new PotatnoStaticNodeDefinition({
                 id: 'End', label: 'End', category: 'output',
                 ports: {
                     inputs: [
@@ -469,7 +469,7 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
                 generators: { code: (pContext): string => `END(${pContext.inputs['val'].value});` }
             });
 
-            const lLocalEntryFunction = PotatnoFunctionDefinition.new(lLocalTypes, {
+            const lLocalEntryFunction = new PotatnoFunctionDefinition({
                 id: 'main', label: 'main',
                 statics: 7, nodes: {
                     entry: (pAddNode): void => { pAddNode(lSimpleEntry); },
@@ -483,7 +483,7 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
                 }
             });
 
-            const lLocalProject = PotatnoProject.new({
+            const lLocalProject = new PotatnoProject({
                 types: lLocalTypes,
                 functions: { entry: lLocalEntryFunction },
                 generator: {
@@ -524,7 +524,7 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
         await pContext.step('Missing node definition for a node in the graph', () => {
             // Setup. Construct a node whose definitionId is not in the function's lookup.
             const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-            const lGhostDefinition = PotatnoStaticNodeDefinition.newStaticNode({
+            const lGhostDefinition = new PotatnoStaticNodeDefinition({
                 id: 'GhostNode', label: 'GhostNode', category: 'event',
                 ports: {
                     inputs: [{ label: 'exec', id: 'exec', portType: 'flow' }],

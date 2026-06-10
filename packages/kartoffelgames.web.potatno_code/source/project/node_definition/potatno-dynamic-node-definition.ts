@@ -6,20 +6,11 @@ import { PotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeD
  */
 export class PotatnoDynamicNodeDefinition<TProject extends PotatnoProject> extends PotatnoNodeDefinition<TProject> {
     /**
-     * Create a new PotatnoNodeDefinition.
-     *
-     * @param pParameters - Node definition configuration including id, label, category, and generators.
-     */
-    public static new<TProject extends PotatnoProject>(pParameters: PotatnoDynamicNodeDefinitionConstructorParameter<TProject>): PotatnoDynamicNodeDefinition<TProject> {
-        return new PotatnoDynamicNodeDefinition(pParameters);
-    }
-
-    /**
      * Constructor.
      *
      * @param pParameters - Constructor parameters.
      */
-    protected constructor(pParameters: PotatnoDynamicNodeDefinitionConstructorParameter<TProject>) {
+    public constructor(pParameters: PotatnoDynamicNodeDefinitionConstructorParameter<TProject>) {
         super({
             id: pParameters.id,
             label: pParameters.label,

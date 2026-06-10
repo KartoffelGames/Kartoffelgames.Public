@@ -14,21 +14,6 @@ import { PotatnoProject } from "./potatno-project.ts";
  * @typeParam TValueMap - Map of type name to its representative JS value shape.
  */
 export class PotatnoProjectTypesDefinition<TTypeName extends string, TValueMap extends Record<TTypeName, unknown> = Record<TTypeName, unknown>> {
-    /**
-     * Create a new PotatnoProjectTypesDefinition from the given type configurations.
-     *
-     * The full configuration shape is captured as a generic so per-type `default.value` types
-     * (e.g. `value: 0` => `number`) propagate into the returned definition for downstream type
-     * adapter inference.
-     *
-     * @param pParameters - Record mapping each type name to its definition.
-     *
-     * @returns The new project types definition with the inferred type-name union and value map.
-     */
-    public static new<TConfig extends PotatnoProjectTypeDefinitionConfiguration<string>>(pParameters: TConfig): PotatnoProjectTypesDefinition<keyof TConfig & string, PotatnoProjectTypesValueMap<TConfig>> {
-        return new PotatnoProjectTypesDefinition(pParameters) as PotatnoProjectTypesDefinition<keyof TConfig & string, PotatnoProjectTypesValueMap<TConfig>>;
-    }
-
     private readonly mTypes: Map<TTypeName, PotatnoProjectTypeDefinition<TTypeName>>;
 
     /**
@@ -50,7 +35,7 @@ export class PotatnoProjectTypesDefinition<TTypeName extends string, TValueMap e
      *
      * @param pParameters - Record mapping each type name to its definition.
      */
-    protected constructor(pParameters: PotatnoProjectTypeDefinitionConfiguration<TTypeName>) {
+    public constructor(pParameters: PotatnoProjectTypeDefinitionConfiguration<TTypeName>) {
         this.mTypes = new Map<TTypeName, PotatnoProjectTypeDefinition<TTypeName>>();
 
         // Convert all types
@@ -160,7 +145,7 @@ export type PotatnoProjectType<TProject extends PotatnoProject> = TProject['type
 /**
  * Extract the JS value shape of a registered project type by name.
  *
- * Walks back through the second generic captured at `PotatnoProjectTypesDefinition.new` time. Falls
+ * Walks back through the second generic captured on the type definition instance. Falls
  * back to `unknown` if the definition was constructed without per-type value information (e.g.
  * type-only annotation such as `PotatnoProjectTypesDefinition<'number'>`).
  *
@@ -173,10 +158,3 @@ export type PotatnoProjectTypeValue<TTypes extends PotatnoProjectTypesDefinition
     ? TValueMap[TTypeName]
     : unknown
     : unknown;
-
-/**
- * Map every type id in a literal configuration to its representative JS value type.
- */
-type PotatnoProjectTypesValueMap<TConfig extends PotatnoProjectTypeDefinitionConfiguration<string>> = {
-    [K in keyof TConfig & string]: TConfig[K] extends { default: { value: infer TValue } } ? TValue : unknown;
-};

@@ -1,7 +1,9 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentState, PwbChild, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
+import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
+import { PotatnoPreviewFunctionExecutor } from '../../../preview/potatno-preview-function-executor.ts';
 import type { PotatnoCodeUiManagerIntegrityError } from '../../manager/manager_component/potatno-ui-manager-integrity.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoUiProject } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPreviewModule } from '../../module/potatno-preview.module.ts';
@@ -58,11 +60,20 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
         const lFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mManager.activeFunction;
         const lProject: PotatnoUiProject | null = this.mManager.project;
         const lFunctionDefinition = lFunction && lProject ? lProject.getFunction(lFunction.definitionId) : undefined;
-        if (!lProject?.previews || !lFunctionDefinition) {
+        if (!lFunction || !lProject || !lFunctionDefinition) {
             return [];
         }
 
-        return lProject.previews.availablePreviewTypes(lFunctionDefinition);
+        if (this.selectedOutputId === PotatnoPreviewFunctionExecutor.MAIN) {
+            return lProject.preview.availablePreviewTypes(lFunctionDefinition, PotatnoPreviewFunctionExecutor.MAIN);
+        }
+
+        const lPort: PotatnoDocumentPort<PotatnoUiProject> | null = this.findFunctionOutputPort(lFunction, this.selectedOutputId);
+        if (lPort) {
+            return lProject.preview.availablePreviewTypes(lFunctionDefinition, lPort.resolvedDataType);
+        }
+
+        return lProject.preview.availablePreviewTypes(lFunctionDefinition);
     }
 
     /**
@@ -84,11 +95,34 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      */
     public get outputOptions(): ReadonlyArray<PotatnoPreviewOutputOption> {
         const lFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mManager.activeFunction;
-        if (!lFunction || !this.showOutputSelector) {
+        const lProject: PotatnoUiProject | null = this.mManager.project;
+        const lFunctionDefinition = lFunction && lProject ? lProject.getFunction(lFunction.definitionId) : undefined;
+        if (!lFunction || !lProject || !lFunctionDefinition) {
             return [];
         }
 
-        return lFunction.outputs.map((pOutput) => ({ id: pOutput.label, label: pOutput.label }));
+        const lOptions: Array<PotatnoPreviewOutputOption> = new Array<PotatnoPreviewOutputOption>();
+        if (lProject.preview.availablePreviewTypes(lFunctionDefinition, PotatnoPreviewFunctionExecutor.MAIN).length > 0) {
+            lOptions.push({ id: PotatnoPreviewFunctionExecutor.MAIN, label: 'Main' });
+        }
+
+        const lOutputIds: Set<string> = new Set<string>();
+        for (const lExitNode of lFunction.getExitNodes()) {
+            for (const lPort of lExitNode.inputs.value) {
+                if (lOutputIds.has(lPort.definitionId)) {
+                    continue;
+                }
+
+                if (lProject.preview.availablePreviewTypes(lFunctionDefinition, lPort.resolvedDataType).length === 0) {
+                    continue;
+                }
+
+                lOutputIds.add(lPort.definitionId);
+                lOptions.push({ id: lPort.definitionId, label: lPort.label });
+            }
+        }
+
+        return lOptions;
     }
 
     /**
@@ -136,7 +170,7 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
             return false;
         }
 
-        return lFunction.definitionId !== lProject.entryPoint.id;
+        return this.outputOptions.length > 1;
     }
 
     /**
@@ -262,6 +296,23 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
         this.mTrackedFunction = lFunction;
         this.mSelectedDisplayId = '';
         this.mSelectedOutputId = '';
+    }
+
+    /**
+     * Find the exit-node value input matching a selectable output id.
+     *
+     * @param pFunction - Function whose exit nodes should be searched.
+     * @param pOutputId - Selected output id.
+     */
+    private findFunctionOutputPort(pFunction: PotatnoDocumentFunction<PotatnoUiProject>, pOutputId: string): PotatnoDocumentPort<PotatnoUiProject> | null {
+        for (const lExitNode of pFunction.getExitNodes()) {
+            const lPort: PotatnoDocumentPort<PotatnoUiProject> | undefined = lExitNode.inputs.map.get(pOutputId);
+            if (lPort && lPort.portType === 'value') {
+                return lPort;
+            }
+        }
+
+        return null;
     }
 }
 

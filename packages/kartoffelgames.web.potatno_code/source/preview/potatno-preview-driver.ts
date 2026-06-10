@@ -3,8 +3,8 @@ import { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import { PotatnoCodeGenerator } from '../parser/potatno-code-generator.ts';
 import type { PotatnoCodeGeneratorDocumentResult } from '../parser/result/potatno-code-generator-document-result.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
-import type { PotatnoPreviewFunctionExecutorBuildResult, PotatnoPreviewFunctionExecutorPortTarget } from './potatno-preview-function-executor.ts';
-import type { PotatnoPreviewEntry, PotatnoPreviewEntryDisplay, PotatnoPreviewEntryExecutor } from './potatno-preview.ts';
+import type { PotatnoPreviewFunctionExecutorBuildResult, PotatnoPreviewFunctionExecutorPortTarget, PotatnoPreviewResultType } from './potatno-preview-function-executor.ts';
+import type { PotatnoPreviewEntryDisplay, PotatnoPreviewEntryExecutor } from './potatno-preview.ts';
 
 /**
  * Self-contained runtime object behind one visible preview, created via a registry entry's
@@ -21,9 +21,9 @@ import type { PotatnoPreviewEntry, PotatnoPreviewEntryDisplay, PotatnoPreviewEnt
  */
 export class PotatnoPreviewDriver<TProject extends PotatnoProject> {
     private mCachedCallable: PotatnoPreviewDriverCallable | null;
-    private readonly mDisplay: PotatnoPreviewEntryDisplay<TProject['types']>;
+    private readonly mDisplay: PotatnoPreviewEntryDisplay<TProject>;
     private mElement: Element | null;
-    private readonly mExecutor: PotatnoPreviewEntryExecutor<TProject['types']>;
+    private readonly mExecutor: PotatnoPreviewEntryExecutor<TProject>;
     private mSpecifiedParameters: Record<string, unknown>;
     private readonly mTarget: PotatnoDocumentFunction<TProject> | PotatnoDocumentPort<TProject>;
 
@@ -45,7 +45,7 @@ export class PotatnoPreviewDriver<TProject extends PotatnoProject> {
      * @param pExecutor - Preview code executor.
      * @param pTarget - The previewed document port or document function.
      */
-    public constructor(pDisplay: PotatnoPreviewEntryDisplay<TProject["types"]>, pExecutor: PotatnoPreviewEntryExecutor<TProject["types"]>, pTarget: PotatnoDocumentFunction<TProject> | PotatnoDocumentPort<TProject>) {
+    public constructor(pDisplay: PotatnoPreviewEntryDisplay<TProject>, pExecutor: PotatnoPreviewEntryExecutor<TProject>, pTarget: PotatnoDocumentFunction<TProject> | PotatnoDocumentPort<TProject>) {
         this.mDisplay = pDisplay;
         this.mExecutor = pExecutor;
         this.mTarget = pTarget;
@@ -97,12 +97,7 @@ export class PotatnoPreviewDriver<TProject extends PotatnoProject> {
             lPortTarget = { documentPort: lTarget, value: lValue };
         }
 
-        // Compile the raw callable. The executor is stored widened, so the result is cast through
-        // the matching widened project shape.
-        const lBuildResult: PotatnoPreviewFunctionExecutorBuildResult<Record<string, unknown>> = this.mExecutor.compile(
-            lGeneratorResult as unknown as PotatnoCodeGeneratorDocumentResult<PotatnoProject<TProject['types']>>,
-            lPortTarget as unknown as PotatnoPreviewFunctionExecutorPortTarget<PotatnoProject<TProject['types']>> | null
-        );
+        const lBuildResult: PotatnoPreviewFunctionExecutorBuildResult<Record<string, unknown>, PotatnoPreviewResultType<TProject>> = this.mExecutor.compile(lGeneratorResult, lPortTarget);
 
         // The adapter record defines every type the display can render — no adapter, no preview.
         if (!this.mDisplay.allowsType(lBuildResult.type)) {

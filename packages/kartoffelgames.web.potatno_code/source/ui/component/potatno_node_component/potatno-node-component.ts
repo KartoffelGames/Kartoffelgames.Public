@@ -10,8 +10,6 @@ import nodeCss from './potatno-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
 import { PotatnoPreviewDriver } from "../../../preview/potatno-preview-driver.ts";
 
-
-
 /**
  * Node component for the potatno-code visual editor.
  *
@@ -139,11 +137,24 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
 
         const lProject: PotatnoUiProject = this.nodeData.project;
         const lFunctionDefinition = lProject.getFunction(this.nodeData.function.definitionId);
-        if (!lProject.previews || !lFunctionDefinition) {
+        if (!lFunctionDefinition) {
             return [];
         }
 
-        return lProject.previews.availablePreviewTypes(lFunctionDefinition);
+        const lBinding = this.nodeData.preview;
+        const lPort: PotatnoDocumentPort<PotatnoUiProject> | undefined = lBinding ? this.nodeData.outputs.map.get(lBinding.portId) : undefined;
+        if (lPort && lPort.portType === 'value') {
+            return lProject.preview.availablePreviewTypes(lFunctionDefinition, lPort.resolvedDataType);
+        }
+
+        const lDisplays: Set<string> = new Set<string>();
+        for (const lPort of this.valueOutputPorts) {
+            for (const lDisplay of lProject.preview.availablePreviewTypes(lFunctionDefinition, lPort.resolvedDataType)) {
+                lDisplays.add(lDisplay);
+            }
+        }
+
+        return [...lDisplays];
     }
 
     /**
@@ -335,7 +346,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     public onSelectPreviewPort(pEvent: MouseEvent, pPort: PotatnoDocumentPort<PotatnoUiProject>): void {
         pEvent.stopPropagation();
 
-        const lDisplays: Array<string> = this.previewDisplays;
+        const lDisplays: Array<string> = this.previewDisplaysForPort(pPort);
         this.mManager.graph.updateNode(this.nodeData, (pNode) => {
             // Toggle off when re-selecting the active port.
             if (pNode.preview?.portId === pPort.definitionId) {
@@ -349,6 +360,24 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
                 pNode.preview = { portId: pPort.definitionId, displayId: lDisplayId };
             }
         });
+    }
+
+    /**
+     * Display ids that can render the given value output port.
+     *
+     * @param pPort - Port whose preview displays should be listed.
+     */
+    private previewDisplaysForPort(pPort: PotatnoDocumentPort<PotatnoUiProject>): Array<string> {
+        if (!this.nodeData) {
+            return [];
+        }
+
+        const lFunctionDefinition = this.nodeData.project.getFunction(this.nodeData.function.definitionId);
+        if (!lFunctionDefinition) {
+            return [];
+        }
+
+        return this.nodeData.project.preview.availablePreviewTypes(lFunctionDefinition, pPort.resolvedDataType);
     }
 
     /**

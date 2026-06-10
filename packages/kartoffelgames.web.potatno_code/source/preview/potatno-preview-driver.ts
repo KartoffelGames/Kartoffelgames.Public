@@ -24,7 +24,7 @@ export class PotatnoPreviewDriver<TProject extends PotatnoProject> {
     private readonly mDisplay: PotatnoPreviewEntryDisplay<TProject['types']>;
     private mElement: Element | null;
     private readonly mExecutor: PotatnoPreviewEntryExecutor<TProject['types']>;
-    private mSpecifiedParameters: Readonly<Record<string, unknown>>;
+    private mSpecifiedParameters: Record<string, unknown>;
     private readonly mTarget: PotatnoDocumentFunction<TProject> | PotatnoDocumentPort<TProject>;
 
     /**
@@ -41,16 +41,19 @@ export class PotatnoPreviewDriver<TProject extends PotatnoProject> {
     /**
      * Constructor. Usually called through a registry entry's `createDriver`.
      *
-     * @param pEntry - The registry `(display, executor)` pair backing this driver.
+     * @param pDisplay - Preview display.
+     * @param pExecutor - Preview code executor.
      * @param pTarget - The previewed document port or document function.
      */
-    public constructor(pEntry: PotatnoPreviewEntry<TProject['types']>, pTarget: PotatnoDocumentFunction<TProject> | PotatnoDocumentPort<TProject>) {
-        this.mDisplay = pEntry.display;
-        this.mExecutor = pEntry.executor;
+    public constructor(pDisplay: PotatnoPreviewEntryDisplay<TProject["types"]>, pExecutor: PotatnoPreviewEntryExecutor<TProject["types"]>, pTarget: PotatnoDocumentFunction<TProject> | PotatnoDocumentPort<TProject>) {
+        this.mDisplay = pDisplay;
+        this.mExecutor = pExecutor;
         this.mTarget = pTarget;
         this.mCachedCallable = null;
         this.mElement = null;
-        this.mSpecifiedParameters = {};
+
+        // Insert default parameters of executor.
+        this.mSpecifiedParameters = { ...this.mExecutor.defaultParameters };
     }
 
     /**
@@ -96,7 +99,7 @@ export class PotatnoPreviewDriver<TProject extends PotatnoProject> {
 
         // Compile the raw callable. The executor is stored widened, so the result is cast through
         // the matching widened project shape.
-        const lBuildResult: PotatnoPreviewFunctionExecutorBuildResult<Readonly<Record<string, unknown>>> = this.mExecutor.compile(
+        const lBuildResult: PotatnoPreviewFunctionExecutorBuildResult<Record<string, unknown>> = this.mExecutor.compile(
             lGeneratorResult as unknown as PotatnoCodeGeneratorDocumentResult<PotatnoProject<TProject['types']>>,
             lPortTarget as unknown as PotatnoPreviewFunctionExecutorPortTarget<PotatnoProject<TProject['types']>> | null
         );
@@ -111,7 +114,7 @@ export class PotatnoPreviewDriver<TProject extends PotatnoProject> {
 
         // Per-call parameters: executor defaults, overlaid by user-specified values, overlaid by
         // whatever the display supplies for the iteration.
-        this.mCachedCallable = async (pParameters: Readonly<Record<string, unknown>>): Promise<unknown> => {
+        this.mCachedCallable = async (pParameters: Record<string, unknown>): Promise<unknown> => {
             return lAdapter(await lBuildResult.execute({ ...this.mExecutor.defaultParameters, ...this.mSpecifiedParameters, ...pParameters }));
         };
     }
@@ -124,7 +127,7 @@ export class PotatnoPreviewDriver<TProject extends PotatnoProject> {
      *
      * @param pParameters - The parameter values to feed the executor.
      */
-    public specifyParameters(pParameters: Readonly<Record<string, unknown>>): void {
+    public specifyParameters(pParameters: Record<string, unknown>): void {
         this.mSpecifiedParameters = { ...this.mSpecifiedParameters, ...pParameters };
     }
 
@@ -154,4 +157,4 @@ export class PotatnoPreviewDriver<TProject extends PotatnoProject> {
  * Compiled iteration callable handed to the display's `update` loop — parameter merge and adapter
  * coercion baked in.
  */
-type PotatnoPreviewDriverCallable = (pParameters: Readonly<Record<string, unknown>>) => Promise<unknown>;
+type PotatnoPreviewDriverCallable = (pParameters: Record<string, unknown>) => Promise<unknown>;

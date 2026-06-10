@@ -20,7 +20,7 @@ import type { PotatnoProject } from '../project/potatno-project.ts';
  * @typeParam TParams - The iteration parameter shape supplied by the paired display per call.
  * @typeParam TResultType - Union of type names the build callback can report.
  */
-export class PotatnoPreviewFunctionExecutor<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Readonly<Record<string, unknown>>, TResultType extends string = string> {
+export class PotatnoPreviewFunctionExecutor<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Record<string, unknown>, TResultType extends string = string> {
     /**
      * Create a new PotatnoPreviewFunctionExecutor. `pTypes` is stored so the build callback can
      * read project type defaults via its context.
@@ -35,7 +35,7 @@ export class PotatnoPreviewFunctionExecutor<TTypes extends PotatnoProjectTypesDe
      *
      * @returns The constructed executor.
      */
-    public static new<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Readonly<Record<string, unknown>>, TResultType extends string>(pTypes: TTypes, pFunction: PotatnoFunctionDefinition<PotatnoProject<TTypes>>, pParameters: PotatnoPreviewFunctionExecutorConstructorParameter<TTypes, TParams, TResultType>): PotatnoPreviewFunctionExecutor<TTypes, TParams, TResultType> {
+    public static new<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Record<string, unknown>, TResultType extends string>(pTypes: TTypes, pFunction: PotatnoFunctionDefinition<PotatnoProject<TTypes>>, pParameters: PotatnoPreviewFunctionExecutorConstructorParameter<TTypes, TParams, TResultType>): PotatnoPreviewFunctionExecutor<TTypes, TParams, TResultType> {
         return new PotatnoPreviewFunctionExecutor<TTypes, TParams, TResultType>(pTypes, pFunction, pParameters);
     }
 
@@ -95,7 +95,7 @@ export class PotatnoPreviewFunctionExecutor<TTypes extends PotatnoProjectTypesDe
  * @typeParam TTypes - The project types definition the executor targets.
  * @typeParam TParams - The iteration parameter shape.
  */
-export type PotatnoPreviewFunctionExecutorBuildContext<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Readonly<Record<string, unknown>>> = {
+export type PotatnoPreviewFunctionExecutorBuildContext<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Record<string, unknown>> = {
     /**
      * Default values for the iteration parameters.
      */
@@ -164,7 +164,7 @@ export type PotatnoPreviewFunctionExecutorPortTarget<TProject extends PotatnoPro
  * @typeParam TParams - The iteration parameter shape.
  * @typeParam TResultType - Union of type names the callback can report.
  */
-export type PotatnoPreviewFunctionExecutorBuild<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Readonly<Record<string, unknown>>, TResultType extends string> = (pExecutor: PotatnoPreviewFunctionExecutorBuildContext<TTypes, TParams>, pGeneratorResult: PotatnoCodeGeneratorDocumentResult<PotatnoProject<TTypes>>, pPortTarget: PotatnoPreviewFunctionExecutorPortTarget<PotatnoProject<TTypes>> | null) => PotatnoPreviewFunctionExecutorBuildResult<TParams, TResultType>;
+export type PotatnoPreviewFunctionExecutorBuild<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Record<string, unknown>, TResultType extends string> = (pExecutor: PotatnoPreviewFunctionExecutorBuildContext<TTypes, TParams>, pGeneratorResult: PotatnoCodeGeneratorDocumentResult<PotatnoProject<TTypes>>, pPortTarget: PotatnoPreviewFunctionExecutorPortTarget<PotatnoProject<TTypes>> | null) => PotatnoPreviewFunctionExecutorBuildResult<TParams, TResultType>;
 
 /**
  * Constructor parameters for PotatnoPreviewFunctionExecutor.
@@ -173,7 +173,7 @@ export type PotatnoPreviewFunctionExecutorBuild<TTypes extends PotatnoProjectTyp
  * @typeParam TParams - The iteration parameter shape.
  * @typeParam TResultType - Union of type names the build callback can report.
  */
-export type PotatnoPreviewFunctionExecutorConstructorParameter<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Readonly<Record<string, unknown>>, TResultType extends string> = {
+export type PotatnoPreviewFunctionExecutorConstructorParameter<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TParams extends Record<string, unknown>, TResultType extends string> = {
     /**
      * Default values for the iteration parameters. Must structurally match the paired display's
      * iteration parameter shape; the defaults seed every iteration call.

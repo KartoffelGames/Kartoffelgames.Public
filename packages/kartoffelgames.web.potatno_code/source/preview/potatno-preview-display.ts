@@ -17,7 +17,7 @@ import type { PotatnoProjectTypesDefinition, PotatnoProjectTypeValue } from '../
  * @typeParam TResult - The result shape every type adapter produces.
  * @typeParam TAdapter - The literal record type of the supplied adapters.
  */
-export class PotatnoPreviewDisplay<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TElement extends Element, TParams extends Readonly<Record<string, unknown>>, TResult, TAdapter extends PotatnoPreviewDisplayTypeAdapter<TTypes, TResult>> {
+export class PotatnoPreviewDisplay<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TElement extends Element, TParams extends Record<string, unknown>, TResult, TAdapter extends PotatnoPreviewDisplayTypeAdapter<TTypes, TResult>> {
     /**
      * Create a new PotatnoPreviewDisplay. All generics are inferred from the supplied callbacks;
      * `pTypes` only carries `TTypes` so adapter keys and their `pValue` parameters can be typed.
@@ -33,7 +33,7 @@ export class PotatnoPreviewDisplay<TTypes extends PotatnoProjectTypesDefinition<
      *
      * @returns The constructed display.
      */
-    public static new<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TElement extends Element, TParams extends Readonly<Record<string, unknown>>, TResult, TAdapter extends PotatnoPreviewDisplayTypeAdapter<TTypes, TResult>>(_pTypes: TTypes, pParameters: PotatnoPreviewDisplayConstructorParameter<TTypes, TElement, TParams, TResult, TAdapter>): PotatnoPreviewDisplay<TTypes, TElement, TParams, TResult, TAdapter> {
+    public static new<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TElement extends Element, TParams extends Record<string, unknown>, TResult, TAdapter extends PotatnoPreviewDisplayTypeAdapter<TTypes, TResult>>(_pTypes: TTypes, pParameters: PotatnoPreviewDisplayConstructorParameter<TTypes, TElement, TParams, TResult, TAdapter>): PotatnoPreviewDisplay<TTypes, TElement, TParams, TResult, TAdapter> {
         return new PotatnoPreviewDisplay<TTypes, TElement, TParams, TResult, TAdapter>(pParameters);
     }
 
@@ -73,7 +73,7 @@ export class PotatnoPreviewDisplay<TTypes extends PotatnoProjectTypesDefinition<
      */
     public adapterFor(pTypeName: string): (pValue: unknown) => TResult {
         // Cast through unknown so the per-key narrowed types collapse to a single callable shape.
-        const lAdapter: unknown = (this.mTypeAdapter as Readonly<Record<string, unknown>>)[pTypeName];
+        const lAdapter: unknown = (this.mTypeAdapter as Record<string, unknown>)[pTypeName];
         if (lAdapter === undefined) {
             throw new Exception(`Display "${this.mId}" has no type adapter for type "${pTypeName}".`, this);
         }
@@ -89,7 +89,7 @@ export class PotatnoPreviewDisplay<TTypes extends PotatnoProjectTypesDefinition<
      * @returns `true` when an adapter is registered for the type.
      */
     public allowsType(pTypeName: string): boolean {
-        return (this.mTypeAdapter as Readonly<Record<string, unknown>>)[pTypeName] !== undefined;
+        return (this.mTypeAdapter as Record<string, unknown>)[pTypeName] !== undefined;
     }
 
     /**
@@ -127,7 +127,7 @@ export class PotatnoPreviewDisplay<TTypes extends PotatnoProjectTypesDefinition<
  */
 export type PotatnoPreviewDisplayTypeAdapter<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TResult> = Partial<{
     [K in TTypes['typeNames'][number]]: (pValue: PotatnoProjectTypeValue<TTypes, K>) => TResult;
-}> & Readonly<Record<string, ((pValue: never) => TResult) | undefined>>;
+}> & Record<string, ((pValue: never) => TResult) | undefined>;
 
 /**
  * Driver-wrapped iteration callable handed to the display's `update` loop. Adapter coercion is
@@ -149,7 +149,7 @@ export type PotatnoPreviewDisplayUpdate<TElement extends Element, TParams, TResu
  * @typeParam TResult - The result shape every adapter produces and every `pExecutor` call yields.
  * @typeParam TAdapter - The literal adapter record shape.
  */
-export type PotatnoPreviewDisplayConstructorParameter<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TElement extends Element, TParams extends Readonly<Record<string, unknown>>, TResult, TAdapter extends PotatnoPreviewDisplayTypeAdapter<TTypes, TResult>> = {
+export type PotatnoPreviewDisplayConstructorParameter<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>, TElement extends Element, TParams extends Record<string, unknown>, TResult, TAdapter extends PotatnoPreviewDisplayTypeAdapter<TTypes, TResult>> = {
     /**
      * Stable id for this display. Persisted with per-node preview bindings.
      */

@@ -48,17 +48,20 @@ export class PotatnoPreview<TTypes extends PotatnoProjectTypesDefinition<string,
      * @param pExecutor - The executor side of the pair.
      */
     public addDisplay<TElement extends Element, TParams extends Readonly<Record<string, unknown>>, TResult, TAdapter extends PotatnoPreviewDisplayTypeAdapter<TTypes, TResult>>(pDisplay: PotatnoPreviewDisplay<TTypes, TElement, TParams, TResult, TAdapter>, pExecutor: PotatnoPreviewFunctionExecutor<TTypes, TParams, Extract<keyof TAdapter, string> | TTypes['typeNames'][number] | PotatnoProjectGenericType>): void {
-        // Store the pair widened to existential types; the narrow types were already validated
-        // against each other by this method's generics.
-        const lEntry: PotatnoPreviewEntry<TTypes> = {
-            display: pDisplay as unknown as PotatnoPreviewEntryDisplay<TTypes>,
-            executor: pExecutor as unknown as PotatnoPreviewEntryExecutor<TTypes>,
-            createDriver: <TProject extends PotatnoProject>(pTarget: PotatnoDocumentFunction<TProject> | PotatnoDocumentPort<TProject>): PotatnoPreviewDriver<TProject> => {
-                return new PotatnoPreviewDriver<TProject>(lEntry as unknown as PotatnoPreviewEntry<TProject['types']>, pTarget);
-            }
-        };
+        // "Convert" display and executor into a more flexibly type
+        const lDisplay: PotatnoPreviewEntryDisplay<TTypes> = pDisplay as unknown as PotatnoPreviewEntryDisplay<TTypes>;
+        const lExecutor: PotatnoPreviewEntryExecutor<TTypes> = pExecutor as unknown as PotatnoPreviewEntryExecutor<TTypes>;
 
-        this.mEntries.push(lEntry);
+        // Append new entry.
+        this.mEntries.push({
+            display: lDisplay,
+            executor: lExecutor,
+
+            // Dynamic preview driver generator.
+            createDriver: <TProject extends PotatnoProject>(pTarget: PotatnoDocumentFunction<TProject> | PotatnoDocumentPort<TProject>): PotatnoPreviewDriver<TProject> => {
+                return new PotatnoPreviewDriver<TProject>(lDisplay, lExecutor, pTarget);
+            }
+        });
     }
 
     /**
@@ -93,25 +96,6 @@ export class PotatnoPreview<TTypes extends PotatnoProjectTypesDefinition<string,
         }
 
         return [...lDisplays];
-    }
-
-    /**
-     * Find the entry registered for the exact `(display, executor)` pair.
-     *
-     * @typeParam TElement - The display's element type.
-     * @typeParam TParams - The shared iteration parameter shape.
-     * @typeParam TResult - The display's result shape.
-     * @typeParam TAdapter - The display's adapter record shape.
-     *
-     * @param pDisplay - The display side of the pair.
-     * @param pExecutor - The executor side of the pair.
-     *
-     * @returns The matching entry, or `null` when the pair was never registered.
-     */
-    public entryOf<TElement extends Element, TParams extends Readonly<Record<string, unknown>>, TResult, TAdapter extends PotatnoPreviewDisplayTypeAdapter<TTypes, TResult>>(pDisplay: PotatnoPreviewDisplay<TTypes, TElement, TParams, TResult, TAdapter>, pExecutor: PotatnoPreviewFunctionExecutor<TTypes, TParams>): PotatnoPreviewEntry<TTypes> | null {
-        return this.mEntries.find((pEntry) => {
-            return pEntry.display === (pDisplay as unknown) && pEntry.executor === (pExecutor as unknown);
-        }) ?? null;
     }
 }
 
@@ -149,11 +133,11 @@ export type PotatnoPreviewEntry<TTypes extends PotatnoProjectTypesDefinition<str
  *
  * @typeParam TTypes - The project types definition the registry targets.
  */
-export type PotatnoPreviewEntryDisplay<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>> = PotatnoPreviewDisplay<TTypes, Element, Readonly<Record<string, unknown>>, unknown, PotatnoPreviewDisplayTypeAdapter<TTypes, unknown>>;
+export type PotatnoPreviewEntryDisplay<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>> = PotatnoPreviewDisplay<TTypes, Element, Record<string, unknown>, unknown, PotatnoPreviewDisplayTypeAdapter<TTypes, unknown>>;
 
 /**
  * Existential executor type of a registry entry — parameter and result type shapes widened.
  *
  * @typeParam TTypes - The project types definition the registry targets.
  */
-export type PotatnoPreviewEntryExecutor<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>> = PotatnoPreviewFunctionExecutor<TTypes, Readonly<Record<string, unknown>>, string>;
+export type PotatnoPreviewEntryExecutor<TTypes extends PotatnoProjectTypesDefinition<string, Record<string, unknown>>> = PotatnoPreviewFunctionExecutor<TTypes, Record<string, unknown>, string>;

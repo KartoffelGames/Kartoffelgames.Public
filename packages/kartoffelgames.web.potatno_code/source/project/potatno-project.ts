@@ -74,11 +74,13 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
     /**
      * Create a new editor configuration with default values.
      *
-     * @param pParameter - Configuration providing project types, function definitions, code generator and optional preview registry.
+     * @param pTypes - Project type configuration.
+     * @param pEntryFunction - Registered entry point function definition.
+     * @param pParameter - Configuration providing code generator and optional preview registry.
      */
-    public constructor(pParameter: PotatnoProjectConstructorParameter<TProjectType>) {
+    public constructor(pTypes: TProjectType, pEntryFunction: PotatnoFunctionDefinition<PotatnoProject<NoInfer<TProjectType>>>, pParameter: PotatnoProjectConstructorParameter<TProjectType>) {
         // Init parameter.
-        this.mTypes = pParameter.types;
+        this.mTypes = pTypes;
         this.mCodeGenerator = pParameter.generator;
         this.mPreview = new PotatnoPreview<PotatnoProject<TProjectType>>();
 
@@ -88,14 +90,7 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
         this.mUserFunctions = new Map<string, PotatnoFunctionDefinition<this>>();
 
         // Add endpoint function definition.
-        this.mEntryPoint = pParameter.functions.entry as unknown as PotatnoFunctionDefinition<this>;
-
-        // Add user functions if provided.
-        if (pParameter.functions.dynamic) {
-            for (const lFunctionDefinition of pParameter.functions.dynamic) {
-                this.mUserFunctions.set(lFunctionDefinition.id, lFunctionDefinition as unknown as PotatnoFunctionDefinition<this>);
-            }
-        }
+        this.mEntryPoint = pEntryFunction as unknown as PotatnoFunctionDefinition<this>;
 
         // Built-in conjunction pass-through nodes are always available in every project.
         this.addNodeDefinition(new FlowConjunctionNodeDefinition());
@@ -132,14 +127,18 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
 
         return this.mUserFunctions.get(pId);
     }
+
+    /**
+     * Register or replace a dynamic function definition.
+     *
+     * @param pDefinition - The dynamic function definition to register.
+     */
+    public setDynamicFunction(pDefinition: PotatnoFunctionDefinition<PotatnoProject<NoInfer<TProjectType>>>): void {
+        this.mUserFunctions.set(pDefinition.id, pDefinition as unknown as PotatnoFunctionDefinition<this>);
+    }
 }
 
 type PotatnoProjectConstructorParameter<TProjectType extends PotatnoProjectTypesDefinition<string>> = {
-    types: TProjectType;
-    functions: {
-        entry: PotatnoFunctionDefinition<PotatnoProject<NoInfer<TProjectType>>>,
-        dynamic?: Array<PotatnoFunctionDefinition<PotatnoProject<NoInfer<TProjectType>>>>;
-    },
     generator: PotatnoProjectCodeGenerator<PotatnoProject<TProjectType>>;
 };
 

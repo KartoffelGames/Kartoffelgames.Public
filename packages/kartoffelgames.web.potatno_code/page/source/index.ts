@@ -443,12 +443,7 @@ const lUserCanvas2dPreviewDisplay = new PotatnoPreviewDisplay(lUserFunctionExecu
  * Project configuration. 
  */
 
-const lProject = new PotatnoProject({
-    types: lProjectTypes,
-    functions: {
-        entry: lEntryFunction,
-        dynamic: [lUserFunction]
-    },
+const lProject = new PotatnoProject(lProjectTypes, lEntryFunction, {
     generator: {
         code: (pContext) => {
             let lCodeResult: string = '';
@@ -475,6 +470,7 @@ const lProject = new PotatnoProject({
     }
 });
 
+lProject.setDynamicFunction(lUserFunction);
 lProject.preview.addDisplay(lEntryCanvas2dPreviewDisplay);
 lProject.preview.addDisplay(lUserCanvas2dPreviewDisplay);
 

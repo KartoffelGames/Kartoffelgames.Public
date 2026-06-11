@@ -28,9 +28,7 @@ const lNewBareProject = (): PotatnoProject<PotatnoProjectTypesDefinition<'number
         }
     });
 
-    return new PotatnoProject({
-        types: lTypes,
-        functions: { entry: lEntry },
+    return new PotatnoProject(lTypes, lEntry, {
         generator: {
             code: (): string => '',
             values: {
@@ -55,7 +53,7 @@ Deno.test('new PotatnoProject()', async (pContext) => {
         expect(lProject.entryPoint).toBeDefined();
     });
 
-    await pContext.step('Construct with dynamic user functions', () => {
+    await pContext.step('Set dynamic user functions', () => {
         // Setup.
         const lTypes = new PotatnoProjectTypesDefinition({
             number: {
@@ -78,9 +76,7 @@ Deno.test('new PotatnoProject()', async (pContext) => {
         });
 
         // Process.
-        const lProject = new PotatnoProject({
-            types: lTypes,
-            functions: { entry: lEntry, dynamic: [lUserFunction] },
+        const lProject = new PotatnoProject(lTypes, lEntry, {
             generator: {
                 code: (): string => '',
                 values: {
@@ -93,6 +89,7 @@ Deno.test('new PotatnoProject()', async (pContext) => {
                 }
             }
         });
+        lProject.setDynamicFunction(lUserFunction);
 
         // Evaluation.
         expect(lProject.userFunctions.has('userOne')).toBe(true);
@@ -125,9 +122,7 @@ Deno.test('PotatnoProject.types', async (pContext) => {
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
             generator: { code: { body: (): string => '', value: (): string => '' } }
         });
-        const lProject = new PotatnoProject({
-            types: lTypes,
-            functions: { entry: lEntry },
+        const lProject = new PotatnoProject(lTypes, lEntry, {
             generator: {
                 code: (): string => '',
                 values: {
@@ -164,9 +159,7 @@ Deno.test('PotatnoProject.entryPoint', async (pContext) => {
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
             generator: { code: { body: (): string => '', value: (): string => '' } }
         });
-        const lProject = new PotatnoProject({
-            types: lTypes,
-            functions: { entry: lEntry },
+        const lProject = new PotatnoProject(lTypes, lEntry, {
             generator: {
                 code: (): string => '',
                 values: {
@@ -223,9 +216,7 @@ Deno.test('PotatnoProject.userFunctions', async (pContext) => {
         });
 
         // Process.
-        const lProject = new PotatnoProject({
-            types: lTypes,
-            functions: { entry: lEntry, dynamic: [lFunctionOne, lFunctionTwo] },
+        const lProject = new PotatnoProject(lTypes, lEntry, {
             generator: {
                 code: (): string => '',
                 values: {
@@ -238,6 +229,8 @@ Deno.test('PotatnoProject.userFunctions', async (pContext) => {
                 }
             }
         });
+        lProject.setDynamicFunction(lFunctionOne);
+        lProject.setDynamicFunction(lFunctionTwo);
 
         // Evaluation.
         expect(lProject.userFunctions.size).toBe(2);
@@ -329,9 +322,7 @@ Deno.test('PotatnoProject.generator', async (pContext) => {
         };
 
         // Process.
-        const lProject = new PotatnoProject({
-            types: lTypes,
-            functions: { entry: lEntry },
+        const lProject = new PotatnoProject(lTypes, lEntry, {
             generator: lGenerator
         });
 
@@ -449,9 +440,7 @@ Deno.test('PotatnoProject.getFunction()', async (pContext) => {
         });
 
         // Process.
-        const lProject = new PotatnoProject({
-            types: lTypes,
-            functions: { entry: lEntry, dynamic: [lUserFunction] },
+        const lProject = new PotatnoProject(lTypes, lEntry, {
             generator: {
                 code: (): string => '',
                 values: {
@@ -464,6 +453,7 @@ Deno.test('PotatnoProject.getFunction()', async (pContext) => {
                 }
             }
         });
+        lProject.setDynamicFunction(lUserFunction);
 
         // Evaluation.
         expect(lProject.getFunction('user')).toBe(lUserFunction);

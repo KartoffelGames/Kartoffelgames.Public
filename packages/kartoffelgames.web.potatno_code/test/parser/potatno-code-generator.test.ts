@@ -483,9 +483,7 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
                 }
             });
 
-            const lLocalProject = new PotatnoProject({
-                types: lLocalTypes,
-                functions: { entry: lLocalEntryFunction },
+            const lLocalProject = new PotatnoProject(lLocalTypes, lLocalEntryFunction, {
                 generator: {
                     code: (pContext): string => pContext.entryPoint.code,
                     values: {

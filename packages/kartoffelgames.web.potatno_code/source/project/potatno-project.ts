@@ -13,7 +13,7 @@ import { PotatnoProjectTypesDefinition } from "./potatno-project-types-definitio
  * Contains all registered node types, main function definitions, imports,
  * and callback configurations. Does not hold document state.
  */
-export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<string> = any, TProject extends PotatnoProject<TProjectType, any> = any> {
+export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition = any, TProject extends PotatnoProject<TProjectType, any> = any> {
     private readonly mCodeGenerator: PotatnoProjectCodeGenerator<TProject>;
     private readonly mEntryPoint: PotatnoFunctionDefinition<TProject>;
     private readonly mImports: Array<PotatnoImportDefinition<TProject>>;

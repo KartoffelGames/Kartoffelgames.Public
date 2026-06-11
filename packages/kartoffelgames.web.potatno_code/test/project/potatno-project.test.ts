@@ -7,6 +7,10 @@ import { PotatnoImportDefinition } from '../../source/project/potatno-import-def
 import { PotatnoProjectTypesDefinition } from '../../source/project/potatno-project-types-definition.ts';
 import { PotatnoProject } from '../../source/project/potatno-project.ts';
 
+type TestProjectTypeMapping = {
+    number: number;
+}
+
 const lNewBareProject = (): PotatnoProject<PotatnoProjectTypesDefinition<'number'>> => {
     const lTypes = new PotatnoProjectTypesDefinition({
         number: {

@@ -3,7 +3,7 @@ import { PotatnoProjectTypesDefinition } from '../../../source/project/potatno-p
 /**
  * Project type configuration for the canvas shader playground.
  */
-export class CanvasProjectTypesDefinition extends PotatnoProjectTypesDefinition<'number' | 'string' | 'boolean', CanvasProjectTypesDefinitionValueMap> {
+export class CanvasProjectTypesDefinition extends PotatnoProjectTypesDefinition<CanvasProjectTypesDefinitionValueMap> {
     /**
      * Create the canvas project type configuration.
      */

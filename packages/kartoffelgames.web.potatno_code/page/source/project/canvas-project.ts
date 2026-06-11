@@ -7,7 +7,7 @@ import { CanvasProjectUserFunctionDefinition } from './canvas-project-user-funct
 /**
  * Project configuration for the canvas shader playground.
  */
-export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition, CanvasProject> {
+export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> {
     private readonly mUserFunction: CanvasProjectUserFunctionDefinition;
 
     /**

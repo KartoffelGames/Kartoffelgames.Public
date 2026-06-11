@@ -33,6 +33,7 @@
 import { PotatnoNodeDefinition } from '../../source/project/node_definition/potatno-node-definition.ts';
 import { PotatnoStaticNodeDefinition } from '../../source/project/node_definition/potatno-static-node-definition.ts';
 import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from '../../source/project/potatno-function-definition.ts';
+import { PotatnoImportDefinition } from '../../source/project/potatno-import-definition.ts';
 import { PotatnoProjectTypesDefinition } from '../../source/project/potatno-project-types-definition.ts';
 import { PotatnoProject } from '../../source/project/potatno-project.ts';
 
@@ -744,43 +745,39 @@ TestProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
  * static flag) gain `GreaterOrEqual` and `SmallerOrEqual` in their node
  * library.
  */
-TestProject.addImport({
-    id: 'ExtraComparison',
-    label: 'Extra Comparison',
-    nodes: [
-        new PotatnoStaticNodeDefinition({
-            id: 'GreaterOrEqual',
-            label: 'greaterOrEqual',
-            category: 'operator',
-            ports: {
-                inputs: [
-                    { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
-                    { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
-                ],
-                outputs: [
-                    { label: 'result', id: 'result', portType: 'value', dataType: 'boolean' }
-                ]
-            },
-            generators: {
-                code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} >= ${pContext.inputs['b'].value};`
-            }
-        }),
-        new PotatnoStaticNodeDefinition({
-            id: 'SmallerOrEqual',
-            label: 'smallerOrEqual',
-            category: 'operator',
-            ports: {
-                inputs: [
-                    { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
-                    { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
-                ],
-                outputs: [
-                    { label: 'result', id: 'result', portType: 'value', dataType: 'boolean' }
-                ]
-            },
-            generators: {
-                code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} <= ${pContext.inputs['b'].value};`
-            }
-        })
-    ]
-});
+const gExtraComparisonImport = new PotatnoImportDefinition<typeof TestProject>('ExtraComparison', 'Extra Comparison');
+gExtraComparisonImport.addNode(new PotatnoStaticNodeDefinition({
+    id: 'GreaterOrEqual',
+    label: 'greaterOrEqual',
+    category: 'operator',
+    ports: {
+        inputs: [
+            { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
+            { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
+        ],
+        outputs: [
+            { label: 'result', id: 'result', portType: 'value', dataType: 'boolean' }
+        ]
+    },
+    generators: {
+        code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} >= ${pContext.inputs['b'].value};`
+    }
+}));
+gExtraComparisonImport.addNode(new PotatnoStaticNodeDefinition({
+    id: 'SmallerOrEqual',
+    label: 'smallerOrEqual',
+    category: 'operator',
+    ports: {
+        inputs: [
+            { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
+            { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
+        ],
+        outputs: [
+            { label: 'result', id: 'result', portType: 'value', dataType: 'boolean' }
+        ]
+    },
+    generators: {
+        code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} <= ${pContext.inputs['b'].value};`
+    }
+}));
+TestProject.addImport(gExtraComparisonImport);

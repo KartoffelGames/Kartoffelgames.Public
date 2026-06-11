@@ -5,6 +5,7 @@ import { PotatnoPreviewFunctionExecutor } from "../../source/preview/potatno-pre
 import { PotatnoNodeDefinition } from "../../source/project/node_definition/potatno-node-definition.ts";
 import { PotatnoStaticNodeDefinition } from "../../source/project/node_definition/potatno-static-node-definition.ts";
 import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from "../../source/project/potatno-function-definition.ts";
+import { PotatnoImportDefinition } from '../../source/project/potatno-import-definition.ts';
 import { PotatnoProjectTypesDefinition } from "../../source/project/potatno-project-types-definition.ts";
 import { PotatnoProject } from '../../source/project/potatno-project.ts';
 
@@ -475,139 +476,131 @@ lProject.preview.addDisplay(lEntryCanvas2dPreviewDisplay);
 lProject.preview.addDisplay(lUserCanvas2dPreviewDisplay);
 
 // --- Imports ---
-lProject.addImport({ // TODO: Also create a PotatnoImportDefinition. The document knows what imports are used and can dynamicly add them to the nodeDefinitions property result.
-    id: 'Math',
-    label: 'Math',
-    nodes: [
-        new PotatnoStaticNodeDefinition({
-            id: 'Math.PI',
-            label: 'Math.PI',
-            category: 'value',
-            ports: {
-                inputs: [],
-                outputs: [
-                    { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
-                ]
-            },
-            generators: {
-                code: (pContext) => `const ${pContext.outputs["value"].value} = Math.PI;`
-            }
-        }),
-        new PotatnoStaticNodeDefinition({
-            id: 'Math.E',
-            label: 'Math.E',
-            category: 'value',
-            ports: {
-                inputs: [],
-                outputs: [
-                    { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
-                ]
-            },
-            generators: {
-                code: (pContext) => `const ${pContext.outputs["value"].value} = Math.E;`
-            }
-        }),
-        new PotatnoStaticNodeDefinition({
-            id: 'Math.abs',
-            label: 'Math.abs',
-            category: 'Function',
-            ports: {
-                inputs: [
-                    { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
-                ],
-                outputs: [
-                    { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
-                ]
-            },
-            generators: {
-                code: (pContext) => `const ${pContext.outputs["result"].value} = Math.abs(${pContext.inputs["value"].value});`
-            }
-        }),
-        new PotatnoStaticNodeDefinition({
-            id: 'Math.floor',
-            label: 'Math.floor',
-            category: 'Function',
-            ports: {
-                inputs: [
-                    { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
-                ],
-                outputs: [
-                    { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
-                ]
-            },
-            generators: {
-                code: (pContext) => `const ${pContext.outputs["result"].value} = Math.floor(${pContext.inputs["value"].value});`
-            }
-        }),
-        new PotatnoStaticNodeDefinition({
-            id: 'Math.random',
-            label: 'Math.random',
-            category: 'Function',
-            ports: {
-                inputs: [],
-                outputs: [
-                    { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
-                ]
-            },
-            generators: {
-                code: (pContext) => `const ${pContext.outputs["result"].value} = Math.random();`
-            }
-        }),
-        new PotatnoStaticNodeDefinition({
-            id: 'Math.sin',
-            label: 'Math.sin',
-            category: 'Function',
-            ports: {
-                inputs: [
-                    { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
-                ],
-                outputs: [
-                    { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
-                ]
-            },
-            generators: {
-                code: (pContext) => `const ${pContext.outputs["result"].value} = Math.sin(${pContext.inputs["value"].value});`
-            }
-        }),
-        new PotatnoStaticNodeDefinition({
-            id: 'Math.cos',
-            label: 'Math.cos',
-            category: 'Function',
-            ports: {
-                inputs: [
-                    { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
-                ],
-                outputs: [
-                    { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
-                ]
-            },
-            generators: {
-                code: (pContext) => `const ${pContext.outputs["result"].value} = Math.cos(${pContext.inputs["value"].value});`
-            }
-        })
-    ]
-});
+const lMathImport = new PotatnoImportDefinition<typeof lProject>('Math', 'Math');
+lMathImport.addNode(new PotatnoStaticNodeDefinition({
+    id: 'Math.PI',
+    label: 'Math.PI',
+    category: 'value',
+    ports: {
+        inputs: [],
+        outputs: [
+            { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
+        ]
+    },
+    generators: {
+        code: (pContext) => `const ${pContext.outputs["value"].value} = Math.PI;`
+    }
+}));
+lMathImport.addNode(new PotatnoStaticNodeDefinition({
+    id: 'Math.E',
+    label: 'Math.E',
+    category: 'value',
+    ports: {
+        inputs: [],
+        outputs: [
+            { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
+        ]
+    },
+    generators: {
+        code: (pContext) => `const ${pContext.outputs["value"].value} = Math.E;`
+    }
+}));
+lMathImport.addNode(new PotatnoStaticNodeDefinition({
+    id: 'Math.abs',
+    label: 'Math.abs',
+    category: 'Function',
+    ports: {
+        inputs: [
+            { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
+        ],
+        outputs: [
+            { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
+        ]
+    },
+    generators: {
+        code: (pContext) => `const ${pContext.outputs["result"].value} = Math.abs(${pContext.inputs["value"].value});`
+    }
+}));
+lMathImport.addNode(new PotatnoStaticNodeDefinition({
+    id: 'Math.floor',
+    label: 'Math.floor',
+    category: 'Function',
+    ports: {
+        inputs: [
+            { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
+        ],
+        outputs: [
+            { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
+        ]
+    },
+    generators: {
+        code: (pContext) => `const ${pContext.outputs["result"].value} = Math.floor(${pContext.inputs["value"].value});`
+    }
+}));
+lMathImport.addNode(new PotatnoStaticNodeDefinition({
+    id: 'Math.random',
+    label: 'Math.random',
+    category: 'Function',
+    ports: {
+        inputs: [],
+        outputs: [
+            { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
+        ]
+    },
+    generators: {
+        code: (pContext) => `const ${pContext.outputs["result"].value} = Math.random();`
+    }
+}));
+lMathImport.addNode(new PotatnoStaticNodeDefinition({
+    id: 'Math.sin',
+    label: 'Math.sin',
+    category: 'Function',
+    ports: {
+        inputs: [
+            { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
+        ],
+        outputs: [
+            { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
+        ]
+    },
+    generators: {
+        code: (pContext) => `const ${pContext.outputs["result"].value} = Math.sin(${pContext.inputs["value"].value});`
+    }
+}));
+lMathImport.addNode(new PotatnoStaticNodeDefinition({
+    id: 'Math.cos',
+    label: 'Math.cos',
+    category: 'Function',
+    ports: {
+        inputs: [
+            { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
+        ],
+        outputs: [
+            { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
+        ]
+    },
+    generators: {
+        code: (pContext) => `const ${pContext.outputs["result"].value} = Math.cos(${pContext.inputs["value"].value});`
+    }
+}));
+lProject.addImport(lMathImport);
 
-lProject.addImport({
-    id: 'Time',
-    label: 'Time',
-    nodes: [
-        new PotatnoStaticNodeDefinition({
-            id: 'CurrentTime',
-            label: 'CurrentTime',
-            category: 'value',
-            ports: {
-                inputs: [],
-                outputs: [
-                    { label: 'seconds', id: 'seconds', portType: 'value', dataType: 'number' }
-                ]
-            },
-            generators: {
-                code: (pContext) => `const ${pContext.outputs["seconds"].value} = (performance.now() / 1000);`
-            }
-        })
-    ]
-});
+const lTimeImport = new PotatnoImportDefinition<typeof lProject>('Time', 'Time');
+lTimeImport.addNode(new PotatnoStaticNodeDefinition({
+    id: 'CurrentTime',
+    label: 'CurrentTime',
+    category: 'value',
+    ports: {
+        inputs: [],
+        outputs: [
+            { label: 'seconds', id: 'seconds', portType: 'value', dataType: 'number' }
+        ]
+    },
+    generators: {
+        code: (pContext) => `const ${pContext.outputs["seconds"].value} = (performance.now() / 1000);`
+    }
+}));
+lProject.addImport(lTimeImport);
 
 // --- Operator Nodes: Arithmetic ---
 lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({

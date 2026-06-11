@@ -2,15 +2,18 @@ import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, PwbChild, PwbComponent, PwbExport, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocument } from '../../../document/potatno-document.ts';
-import { PotatnoUiManager, PotatnoCodeUiManagerChangeType, PotatnoUiProject } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import editorCss from './potatno-code-editor.css' with { type: 'text' };
 import editorTemplate from './potatno-code-editor.html' with { type: 'text' };
 
 // Import child components to ensure they are registered.
+import { PotatnoProject } from "../../../project/potatno-project.ts";
 import '../potatno_function_list/potatno-function-list.ts';
 import '../potatno_node_graph/potatno-node-graph.ts';
 import '../potatno_panel_properties/potatno-panel-properties.ts';
 import '../potatno_preview/potatno-preview.ts';
+
 
 /**
  * Top-level layout shell for the Potatno-code editor.
@@ -28,7 +31,7 @@ import '../potatno_preview/potatno-preview.ts';
 export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDeconstruct {
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
-    private mProject: PotatnoUiProject | null;
+    private mProject: PotatnoProject<PotatnoProjectTypesDefinition> | null;
     private mResizeMoveHandler: ((pEvent: PointerEvent) => void) | null;
     private mResizeState: { panel: 'left' | 'right'; startX: number; startWidth: number; } | null;
     private mResizeUpHandler: (() => void) | null;
@@ -50,8 +53,8 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      * Whether the preview panel should currently be shown.
      */
     public get hasPreview(): boolean {
-        const lProject: PotatnoUiProject | null = this.mManager.project;
-        const lActiveFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mManager.activeFunction;
+        const lProject: PotatnoProject<PotatnoProjectTypesDefinition> | null = this.mManager.project;
+        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
         if (!lProject || !lActiveFunction) {
             return false;
         }
@@ -68,8 +71,8 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
     /**
      * Current document state.
      */
-    public get file(): PotatnoDocument<PotatnoUiProject> {
-        return this.mManager.graph.document as PotatnoDocument<PotatnoUiProject>;
+    public get file(): PotatnoDocument<PotatnoProjectTypesDefinition> {
+        return this.mManager.graph.document;
     }
 
     /**
@@ -92,7 +95,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      * Project configuration backing the editor.
      */
     @PwbExport
-    public set project(pProject: PotatnoUiProject) {
+    public set project(pProject: PotatnoProject<PotatnoProjectTypesDefinition>) {
         // Cache the project. The manager is initialized once the document arrives via `file`.
         this.mProject = pProject;
     }
@@ -101,12 +104,12 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      * Document state backing the editor.
      */
     @PwbExport
-    public set file(pFile: PotatnoDocument<PotatnoUiProject>) {
+    public set file(pFile: PotatnoDocument<PotatnoProjectTypesDefinition>) {
         if (!this.mProject) {
             return;
         }
 
-        this.mManager.initialize(this.mProject as PotatnoUiProject, pFile as PotatnoDocument<PotatnoUiProject>);
+        this.mManager.initialize(this.mProject, pFile as PotatnoDocument<PotatnoProjectTypesDefinition>);
     }
 
     /**

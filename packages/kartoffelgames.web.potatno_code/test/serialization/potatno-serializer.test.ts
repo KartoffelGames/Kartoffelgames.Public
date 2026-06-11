@@ -2,6 +2,7 @@ import { expect } from '@kartoffelgames/core-test';
 import { PotatnoDocumentFunction } from '../../source/document/potatno-document-function.ts';
 import { PotatnoDocumentNode } from '../../source/document/potatno-document-node.ts';
 import { PotatnoDocument } from '../../source/document/potatno-document.ts';
+import { PotatnoProjectTypesDefinition } from "../../source/project/potatno-project-types-definition.ts";
 import { PotatnoSerializer } from '../../source/serialization/potatno-serializer.ts';
 import { PotatnoHelper } from '../helper/potatno-helper.ts';
 import { TestProject } from '../helper/test-project.ts';
@@ -9,11 +10,11 @@ import { TestProject } from '../helper/test-project.ts';
 // Structural equivalence helper. Compares functions, nodes, ports, and the
 // connection multiset without depending on node-identity equality (the
 // deserializer creates fresh instances).
-const lExpectDocumentsEquivalent = (pActual: PotatnoDocument<typeof TestProject>, pExpected: PotatnoDocument<typeof TestProject>): void => {
+const lExpectDocumentsEquivalent = (pActual: PotatnoDocument<PotatnoProjectTypesDefinition>, pExpected: PotatnoDocument<PotatnoProjectTypesDefinition>): void => {
     expect(pActual.functions.size).toBe(pExpected.functions.size);
 
-    const lExpectedFunctions: Array<PotatnoDocumentFunction<typeof TestProject>> = [...pExpected.functions];
-    const lActualFunctions: Array<PotatnoDocumentFunction<typeof TestProject>> = [...pActual.functions];
+    const lExpectedFunctions: Array<PotatnoDocumentFunction<PotatnoProjectTypesDefinition>> = [...pExpected.functions];
+    const lActualFunctions: Array<PotatnoDocumentFunction<PotatnoProjectTypesDefinition>> = [...pActual.functions];
 
     for (let lIndex: number = 0; lIndex < lExpectedFunctions.length; lIndex++) {
         const lExpectedFunction = lExpectedFunctions[lIndex];
@@ -30,8 +31,8 @@ const lExpectDocumentsEquivalent = (pActual: PotatnoDocument<typeof TestProject>
 
         // Compare nodes by definitionId in order. Node id is regenerated each
         // serialize pass so identity comparisons are unreliable.
-        const lExpectedNodes: Array<PotatnoDocumentNode<typeof TestProject>> = [...lExpectedFunction.nodes];
-        const lActualNodes: Array<PotatnoDocumentNode<typeof TestProject>> = [...lActualFunction.nodes];
+        const lExpectedNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = [...lExpectedFunction.nodes];
+        const lActualNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = [...lActualFunction.nodes];
         expect(lActualNodes.length).toBe(lExpectedNodes.length);
 
         for (let lNodeIndex: number = 0; lNodeIndex < lExpectedNodes.length; lNodeIndex++) {
@@ -62,7 +63,7 @@ const lExpectDocumentsEquivalent = (pActual: PotatnoDocument<typeof TestProject>
         const lConnectionKey = (pSourceNodeDef: string, pSourcePortId: string, pTargetNodeDef: string, pTargetPortId: string): string =>
             `${pSourceNodeDef}.${pSourcePortId} -> ${pTargetNodeDef}.${pTargetPortId}`;
 
-        const lCollectConnections = (pFunc: PotatnoDocumentFunction<typeof TestProject>): Array<string> => {
+        const lCollectConnections = (pFunc: PotatnoDocumentFunction<PotatnoProjectTypesDefinition>): Array<string> => {
             const lEntries: Array<string> = [];
             for (const lNode of pFunc.nodes) {
                 for (const lOutputPort of lNode.outputs.list) {
@@ -82,7 +83,7 @@ const lExpectDocumentsEquivalent = (pActual: PotatnoDocument<typeof TestProject>
 Deno.test('PotatnoSerializer.constructor()', async (pContext) => {
     await pContext.step('Construct without arguments', () => {
         // Setup. Process.
-        const lSerializer = new PotatnoSerializer<typeof TestProject>();
+        const lSerializer = new PotatnoSerializer<PotatnoProjectTypesDefinition>();
 
         // Evaluation.
         expect(lSerializer).toBeDefined();

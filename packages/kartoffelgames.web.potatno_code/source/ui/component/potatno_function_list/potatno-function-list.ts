@@ -1,7 +1,7 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentState, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocument } from '../../../document/potatno-document.ts';
-import { PotatnoUiManager, PotatnoCodeUiManagerChangeType, PotatnoUiProject } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerChangeType, PotatnoProjectTypesDefinition } from '../../manager/potatno-ui-manager.ts';
 import templateCss from './potatno-function-list.css' with { type: 'text' };
 import functionListTemplate from './potatno-function-list.html' with { type: 'text' };
 
@@ -39,7 +39,7 @@ export class PotatnoFunctionList implements IComponentOnConnect, IComponentOnDec
      * Function entries to display.
      */
     public get functions(): Array<PotatnoFunctionListEntry> {
-        const lDocument: PotatnoDocument<PotatnoUiProject> | null = this.mManager.graph.document;
+        const lDocument: PotatnoDocument<PotatnoProjectTypesDefinition> | null = this.mManager.graph.document;
         if (!lDocument) {
             return [];
         }
@@ -70,7 +70,7 @@ export class PotatnoFunctionList implements IComponentOnConnect, IComponentOnDec
      * User function definitions available for creation.
      */
     public get userFunctionDefinitions(): Array<PotatnoFunctionListUserFunctionEntry> {
-        const lProject: PotatnoUiProject | null = this.mManager.project;
+        const lProject: PotatnoProjectTypesDefinition | null = this.mManager.project;
         if (!lProject) {
             return [];
         }

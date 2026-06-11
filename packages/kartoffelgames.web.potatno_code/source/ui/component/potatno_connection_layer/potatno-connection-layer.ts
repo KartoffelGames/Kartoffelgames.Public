@@ -3,7 +3,7 @@ import { ComponentState, PwbChild, PwbComponent, PwbExport, type IComponentOnCon
 import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-item.interface.ts';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoUiManager, PotatnoCodeUiManagerChangeType, PotatnoUiProject } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerChangeType, PotatnoProjectTypesDefinition } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoCanvasRenderer, type ConnectionRenderData } from '../../potatno-canvas-renderer.ts';
 import type { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import { PotatnoPortRegistry } from '../../potatno-port-registry.ts';
@@ -129,8 +129,8 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
         // the registry at render time can be stale, already-disconnected instances — disconnecting
         // those would no-op. Looking the ports back up on their (stable) nodes yields the current
         // instances the model actually has connected.
-        const lSource: PotatnoDocumentPort<PotatnoUiProject> = lConnection.sourcePort.node.outputs.map.get(lConnection.sourcePort.definitionId) ?? lConnection.sourcePort;
-        const lTarget: PotatnoDocumentPort<PotatnoUiProject> = lConnection.targetPort.node.inputs.map.get(lConnection.targetPort.definitionId) ?? lConnection.targetPort;
+        const lSource: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = lConnection.sourcePort.node.outputs.map.get(lConnection.sourcePort.definitionId) ?? lConnection.sourcePort;
+        const lTarget: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = lConnection.targetPort.node.inputs.map.get(lConnection.targetPort.definitionId) ?? lConnection.targetPort;
         this.mManager.graph.disconnectPorts(lSource, lTarget);
     }
 
@@ -146,7 +146,7 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
      *
      * @returns World position for the port.
      */
-    private getPortPosition(pPort: PotatnoDocumentPort<PotatnoUiProject>): Point {
+    private getPortPosition(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): Point {
         const lZoom: number = this.interaction?.zoom ?? 1;
         const lGridSize: number = this.interaction?.gridSize ?? 20;
         const lCircleEl: HTMLElement | undefined = this.mPortRegistry.get(pPort);
@@ -170,7 +170,7 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
         const lPortGap: number = 24;
         const lBodyPad: number = 4;
 
-        const lPortList: ReadonlyArray<PotatnoDocumentPort<PotatnoUiProject>> = pPort.direction === 'output' ? lNode.outputs.list : lNode.inputs.list;
+        const lPortList: ReadonlyArray<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> = pPort.direction === 'output' ? lNode.outputs.list : lNode.inputs.list;
         let lIdx: number = 0;
         let lCount: number = 0;
 
@@ -210,14 +210,14 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
             return;
         }
 
-        const lActiveFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mManager.activeFunction;
+        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
         if (!lActiveFunction) {
             this.mRenderer.clearAll(lSvg);
             this.mConnectionRegistry.clear();
             return;
         }
 
-        const lErrorItems: ReadonlySet<IPotatnoDocumentItem<PotatnoUiProject>> = this.mManager.integrity.errorItems;
+        const lErrorItems: ReadonlySet<IPotatnoDocumentItem<PotatnoProjectTypesDefinition>> = this.mManager.integrity.errorItems;
         const lConnectionData: Array<ConnectionRenderData> = [];
         this.mConnectionRegistry.clear();
 
@@ -268,8 +268,8 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
 }
 
 type PotatnoConnectionLayerRecord = {
-    sourcePort: PotatnoDocumentPort<PotatnoUiProject>;
-    targetPort: PotatnoDocumentPort<PotatnoUiProject>;
+    sourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>;
+    targetPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>;
 };
 
 type Point = {

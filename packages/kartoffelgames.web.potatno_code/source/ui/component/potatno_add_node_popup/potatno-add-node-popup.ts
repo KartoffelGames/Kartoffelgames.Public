@@ -2,7 +2,7 @@ import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { ComponentEventEmitter, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type IComponentOnConnect, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
-import { PotatnoUiManager, PotatnoUiProject } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoUiManager, PotatnoProjectTypesDefinition } from '../../manager/potatno-ui-manager.ts';
 import { NodeCategoryMeta } from '../../node/node-category.enum.ts';
 import addNodePopupCss from './potatno-add-node-popup.css' with { type: 'text' };
 import addNodePopupTemplate from './potatno-add-node-popup.html' with { type: 'text' };
@@ -54,7 +54,7 @@ export class PotatnoAddNodePopup implements IComponentOnConnect, IComponentOnUpd
      * Emitted with the definition the user picked, for the host to insert.
      */
     @PwbComponentEvent('node-select')
-    private accessor mNodeSelect!: ComponentEventEmitter<PotatnoNodeDefinition<PotatnoUiProject>>;
+    private accessor mNodeSelect!: ComponentEventEmitter<PotatnoNodeDefinition<PotatnoProjectTypesDefinition>>;
 
     /**
      * Emitted when the user dismisses the popup (Escape).
@@ -241,7 +241,7 @@ export class PotatnoAddNodePopup implements IComponentOnConnect, IComponentOnUpd
      *
      * @returns Ordered node definition entries available to the function.
      */
-    private buildAvailableNodeDefinitionEntries(pActiveFunction: PotatnoDocumentFunction<PotatnoUiProject> | null): Array<PotatnoAddNodePopupEntry> {
+    private buildAvailableNodeDefinitionEntries(pActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null): Array<PotatnoAddNodePopupEntry> {
         const lEntries: Array<PotatnoAddNodePopupEntry> = [];
         const lAddedIds: Set<string> = new Set<string>();
 
@@ -250,7 +250,7 @@ export class PotatnoAddNodePopup implements IComponentOnConnect, IComponentOnUpd
         }
 
         // Add a definition if it was not already listed by an earlier source.
-        const addDefinition = (pDefinition: PotatnoNodeDefinition<PotatnoUiProject>): void => {
+        const addDefinition = (pDefinition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition>): void => {
             if (lAddedIds.has(pDefinition.id)) {
                 return;
             }
@@ -349,7 +349,7 @@ export class PotatnoAddNodePopup implements IComponentOnConnect, IComponentOnUpd
  */
 export type PotatnoAddNodePopupEntry = {
     readonly category: string;
-    readonly definition: PotatnoNodeDefinition<PotatnoUiProject>;
+    readonly definition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition>;
     readonly id: string;
     readonly name: string;
 };

@@ -4,7 +4,7 @@ import type { PotatnoDocumentNode } from '../../../document/potatno-document-nod
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
 import { PotatnoPreviewFunctionExecutor } from '../../../preview/potatno-preview-function-executor.ts';
-import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager, type PotatnoUiProject } from '../potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager, type PotatnoProjectTypesDefinition } from '../potatno-ui-manager.ts';
 
 /**
  * Owner of every live preview driver. Each previewable document item — a node with a preview opt-in
@@ -18,8 +18,8 @@ import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager, type PotatnoUiPr
  * refreshes and executes, and which driver belongs to which document item.
  */
 export class PotatnoUiManagerPreview {
-    private readonly mDriverList: Array<WeakRef<PotatnoPreviewDriver<PotatnoUiProject>>>;
-    private readonly mDrivers: WeakMap<IPotatnoDocumentItem<PotatnoUiProject>, PotatnoUiManagerPreviewBinding>;
+    private readonly mDriverList: Array<WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>>;
+    private readonly mDrivers: WeakMap<IPotatnoDocumentItem<PotatnoProjectTypesDefinition>, PotatnoUiManagerPreviewBinding>;
     private readonly mManager: PotatnoUiManager;
 
     /**
@@ -29,8 +29,8 @@ export class PotatnoUiManagerPreview {
      */
     public constructor(pManager: PotatnoUiManager) {
         this.mManager = pManager;
-        this.mDrivers = new WeakMap<IPotatnoDocumentItem<PotatnoUiProject>, PotatnoUiManagerPreviewBinding>();
-        this.mDriverList = new Array<WeakRef<PotatnoPreviewDriver<PotatnoUiProject>>>();
+        this.mDrivers = new WeakMap<IPotatnoDocumentItem<PotatnoProjectTypesDefinition>, PotatnoUiManagerPreviewBinding>();
+        this.mDriverList = new Array<WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>>();
 
         // A new document instance replaces every item; drop the drivers so components re-request
         // fresh ones against the live graph.
@@ -75,8 +75,8 @@ export class PotatnoUiManagerPreview {
      *
      * @returns The driver, or `null` when no matching preview is registered.
      */
-    public functionDriver(pFunction: PotatnoDocumentFunction<PotatnoUiProject>, pDisplayId: string, pOutputId: string): PotatnoPreviewDriver<PotatnoUiProject> | null {
-        const lProject: PotatnoUiProject | null = this.mManager.project;
+    public functionDriver(pFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition>, pDisplayId: string, pOutputId: string): PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | null {
+        const lProject: PotatnoProjectTypesDefinition | null = this.mManager.project;
         if (!lProject) {
             this.release(pFunction);
             return null;
@@ -84,7 +84,7 @@ export class PotatnoUiManagerPreview {
 
         const lTarget: string = pOutputId;
 
-        return this.acquire(pFunction, pDisplayId, lTarget, (): PotatnoPreviewDriver<PotatnoUiProject> | null => {
+        return this.acquire(pFunction, pDisplayId, lTarget, (): PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | null => {
             const lFunctionDefinition = lProject.getFunction(pFunction.definitionId);
             if (!lFunctionDefinition) {
                 return null;
@@ -92,16 +92,16 @@ export class PotatnoUiManagerPreview {
 
             if (lTarget === PotatnoPreviewFunctionExecutor.MAIN) {
                 const lEntry = lProject.preview.availablePreviews(lFunctionDefinition, PotatnoPreviewFunctionExecutor.MAIN).find((pEntry) => pEntry.display.id === pDisplayId);
-                return lEntry?.createDriver<PotatnoUiProject>(pFunction) ?? null;
+                return lEntry?.createDriver<PotatnoProjectTypesDefinition>(pFunction) ?? null;
             }
 
-            const lPort: PotatnoDocumentPort<PotatnoUiProject> | null = this.findFunctionOutputPort(pFunction, lTarget);
+            const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.findFunctionOutputPort(pFunction, lTarget);
             if (!lPort) {
                 return null;
             }
 
             const lEntry = lProject.preview.availablePreviews(lFunctionDefinition, lPort.resolvedDataType).find((pEntry) => pEntry.display.id === pDisplayId);
-            return lEntry?.createDriver<PotatnoUiProject>(lPort) ?? null;
+            return lEntry?.createDriver<PotatnoProjectTypesDefinition>(lPort) ?? null;
         });
     }
 
@@ -112,16 +112,16 @@ export class PotatnoUiManagerPreview {
      *
      * @returns The driver, or `null` when the node has no opt-in or no matching display.
      */
-    public nodeDriver(pNode: PotatnoDocumentNode<PotatnoUiProject>): PotatnoPreviewDriver<PotatnoUiProject> | null {
+    public nodeDriver(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | null {
         const lBinding = pNode.preview;
-        const lPort: PotatnoDocumentPort<PotatnoUiProject> | undefined = lBinding ? pNode.outputs.map.get(lBinding.portId) : undefined;
+        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = lBinding ? pNode.outputs.map.get(lBinding.portId) : undefined;
         if (!lBinding || !lPort || lPort.portType !== 'value') {
             this.release(pNode);
             return null;
         }
 
-        return this.acquire(pNode, lBinding.displayId, lBinding.portId, (): PotatnoPreviewDriver<PotatnoUiProject> | null => {
-            const lProject: PotatnoUiProject | null = this.mManager.project;
+        return this.acquire(pNode, lBinding.displayId, lBinding.portId, (): PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | null => {
+            const lProject: PotatnoProjectTypesDefinition | null = this.mManager.project;
             const lFunctionDefinition = lProject?.getFunction(pNode.function.definitionId);
             if (!lProject || !lFunctionDefinition) {
                 return null;
@@ -130,7 +130,7 @@ export class PotatnoUiManagerPreview {
             // Only entries whose display allows the port's value type can render it.
             const lEntry = lProject.preview.availablePreviews(lFunctionDefinition, lPort.resolvedDataType).find((pEntry) => pEntry.display.id === lBinding.displayId);
 
-            return lEntry?.createDriver<PotatnoUiProject>(lPort) ?? null;
+            return lEntry?.createDriver<PotatnoProjectTypesDefinition>(lPort) ?? null;
         });
     }
 
@@ -153,7 +153,7 @@ export class PotatnoUiManagerPreview {
      *
      * @param pItem - The document item whose driver to release.
      */
-    public release(pItem: IPotatnoDocumentItem<PotatnoUiProject>): void {
+    public release(pItem: IPotatnoDocumentItem<PotatnoProjectTypesDefinition>): void {
         const lExisting: PotatnoUiManagerPreviewBinding | undefined = this.mDrivers.get(pItem);
         if (lExisting) {
             this.mDrivers.delete(pItem);
@@ -172,13 +172,13 @@ export class PotatnoUiManagerPreview {
      *
      * @returns The cached or freshly built driver, or `null` when the factory yielded none.
      */
-    private acquire(pItem: IPotatnoDocumentItem<PotatnoUiProject>, pDisplayId: string, pTarget: string, pBuild: () => PotatnoPreviewDriver<PotatnoUiProject> | null): PotatnoPreviewDriver<PotatnoUiProject> | null {
+    private acquire(pItem: IPotatnoDocumentItem<PotatnoProjectTypesDefinition>, pDisplayId: string, pTarget: string, pBuild: () => PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | null): PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | null {
         const lExisting: PotatnoUiManagerPreviewBinding | undefined = this.mDrivers.get(pItem);
         if (lExisting && lExisting.displayId === pDisplayId && lExisting.target === pTarget) {
             return lExisting.driver;
         }
 
-        const lDriver: PotatnoPreviewDriver<PotatnoUiProject> | null = pBuild();
+        const lDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | null = pBuild();
         if (!lDriver) {
             this.release(pItem);
             return null;
@@ -188,7 +188,7 @@ export class PotatnoUiManagerPreview {
             this.removeFromList(lExisting.driver);
         }
         this.mDrivers.set(pItem, { driver: lDriver, displayId: pDisplayId, target: pTarget });
-        this.mDriverList.push(new WeakRef<PotatnoPreviewDriver<PotatnoUiProject>>(lDriver));
+        this.mDriverList.push(new WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>(lDriver));
 
         // Compile immediately when the graph is valid so the first frame already renders.
         if (this.mManager.integrity.isValid) {
@@ -206,9 +206,9 @@ export class PotatnoUiManagerPreview {
      *
      * @returns The matching value input port, or `null`.
      */
-    private findFunctionOutputPort(pFunction: PotatnoDocumentFunction<PotatnoUiProject>, pOutputId: string): PotatnoDocumentPort<PotatnoUiProject> | null {
+    private findFunctionOutputPort(pFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition>, pOutputId: string): PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null {
         for (const lExitNode of pFunction.getExitNodes()) {
-            const lPort: PotatnoDocumentPort<PotatnoUiProject> | undefined = lExitNode.inputs.map.get(pOutputId);
+            const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = lExitNode.inputs.map.get(pOutputId);
             if (lPort && lPort.portType === 'value') {
                 return lPort;
             }
@@ -222,10 +222,10 @@ export class PotatnoUiManagerPreview {
      *
      * @returns Every still-referenced driver.
      */
-    private liveDrivers(): Array<PotatnoPreviewDriver<PotatnoUiProject>> {
-        const lDrivers: Array<PotatnoPreviewDriver<PotatnoUiProject>> = [];
+    private liveDrivers(): Array<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>> {
+        const lDrivers: Array<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>> = [];
         for (let lIndex: number = this.mDriverList.length - 1; lIndex >= 0; lIndex--) {
-            const lDriver: PotatnoPreviewDriver<PotatnoUiProject> | undefined = this.mDriverList[lIndex].deref();
+            const lDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | undefined = this.mDriverList[lIndex].deref();
             if (lDriver) {
                 lDrivers.push(lDriver);
             } else {
@@ -241,7 +241,7 @@ export class PotatnoUiManagerPreview {
      *
      * @param pDriver - The driver to remove.
      */
-    private removeFromList(pDriver: PotatnoPreviewDriver<PotatnoUiProject>): void {
+    private removeFromList(pDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition>): void {
         const lIndex: number = this.mDriverList.findIndex((pRef) => pRef.deref() === pDriver);
         if (lIndex !== -1) {
             this.mDriverList.splice(lIndex, 1);
@@ -254,7 +254,7 @@ export class PotatnoUiManagerPreview {
  * matched against the live binding.
  */
 type PotatnoUiManagerPreviewBinding = {
-    driver: PotatnoPreviewDriver<PotatnoUiProject>;
+    driver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition>;
     displayId: string;
     target: string;
 };

@@ -1,6 +1,6 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
-import { PotatnoUiProject } from "./manager/potatno-ui-manager.ts";
+import { PotatnoProjectTypesDefinition } from "./manager/potatno-ui-manager.ts";
 
 /**
  * Shared registry mapping each rendered {@link PotatnoDocumentPort} to its circle DOM element.
@@ -12,13 +12,13 @@ import { PotatnoUiProject } from "./manager/potatno-ui-manager.ts";
  */
 @Injection.injectable('singleton')
 export class PotatnoPortRegistry {
-    private readonly mElements: Map<PotatnoDocumentPort<PotatnoUiProject>, HTMLElement>;
+    private readonly mElements: Map<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, HTMLElement>;
 
     /**
      * Create an empty registry.
      */
     public constructor() {
-        this.mElements = new Map<PotatnoDocumentPort<PotatnoUiProject>, HTMLElement>();
+        this.mElements = new Map<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, HTMLElement>();
     }
 
     /**
@@ -26,7 +26,7 @@ export class PotatnoPortRegistry {
      *
      * @returns An iterator over the registered entries.
      */
-    public entries(): IterableIterator<[PotatnoDocumentPort<PotatnoUiProject>, HTMLElement]> {
+    public entries(): IterableIterator<[PotatnoDocumentPort<PotatnoProjectTypesDefinition>, HTMLElement]> {
         return this.mElements.entries();
     }
 
@@ -37,7 +37,7 @@ export class PotatnoPortRegistry {
      *
      * @returns The registered element, or `undefined` when the port is not rendered.
      */
-    public get(pPort: PotatnoDocumentPort<PotatnoUiProject>): HTMLElement | undefined {
+    public get(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): HTMLElement | undefined {
         return this.mElements.get(pPort);
     }
 
@@ -47,7 +47,7 @@ export class PotatnoPortRegistry {
      * @param pPort - The port being rendered.
      * @param pElement - The port's circle element.
      */
-    public register(pPort: PotatnoDocumentPort<PotatnoUiProject>, pElement: HTMLElement): void {
+    public register(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pElement: HTMLElement): void {
         this.mElements.set(pPort, pElement);
     }
 
@@ -56,7 +56,7 @@ export class PotatnoPortRegistry {
      *
      * @param pPort - The port whose element to forget.
      */
-    public unregister(pPort: PotatnoDocumentPort<PotatnoUiProject>): void {
+    public unregister(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): void {
         this.mElements.delete(pPort);
     }
 }

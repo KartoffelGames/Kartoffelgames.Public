@@ -4,6 +4,7 @@ import { PotatnoPreviewDisplay, type PotatnoPreviewDisplayExecutorCallable } fro
 import { PotatnoPreviewFunctionExecutor } from '../../source/preview/potatno-preview-function-executor.ts';
 import { CanvasProjectMathImportDefinition } from "./project/canvas-project-math-import-definition.ts";
 import { CanvasProjectTimeImportDefinition } from "./project/canvas-project-time-import-definition.ts";
+import { CanvasProjectTypesDefinition } from "./project/canvas-project-types-definition.ts";
 import { CanvasProject } from './project/canvas-project.ts';
 
 const lProject = new CanvasProject();
@@ -26,7 +27,7 @@ type PixelCallable = (pX: number, pY: number) => [number, number, number];
 type CanvasProjectType = 'number' | 'string' | 'boolean';
 type CanvasPreviewResultType = CanvasProjectType | typeof PotatnoPreviewFunctionExecutor.MAIN;
 
-const lEntryFunctionExecutor = new PotatnoPreviewFunctionExecutor<CanvasProject, { x: number; y: number; }, CanvasPreviewResultType>(lProject.entryPoint, {
+const lEntryFunctionExecutor = new PotatnoPreviewFunctionExecutor<CanvasProjectTypesDefinition, { x: number; y: number; }, CanvasPreviewResultType>(lProject.entryPoint, {
     defaultParameters: { x: 0, y: 0 },
     types: [PotatnoPreviewFunctionExecutor.MAIN, 'number', 'string', 'boolean'],
     build: (pExecutor, pGeneratorResult, pPortTarget) => {
@@ -58,7 +59,7 @@ const lEntryFunctionExecutor = new PotatnoPreviewFunctionExecutor<CanvasProject,
 /**
  * Executor for previewing a user function output.
  */
-const lUserFunctionExecutor = new PotatnoPreviewFunctionExecutor<CanvasProject, { x: number; y: number; }, CanvasProjectType>(lProject.userFunction, {
+const lUserFunctionExecutor = new PotatnoPreviewFunctionExecutor<CanvasProjectTypesDefinition, { x: number; y: number; }, CanvasProjectType>(lProject.userFunction, {
     defaultParameters: { x: 0, y: 0 },
     types: ['number', 'string', 'boolean'],
     build: (pExecutor, pGeneratorResult, pPortTarget) => {

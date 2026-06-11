@@ -1,7 +1,7 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
-import { PotatnoUiManager, PotatnoCodeUiManagerChangeType, type PotatnoCodeUiManagerPortView, PotatnoUiProject } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerChangeType, type PotatnoCodeUiManagerPortView, PotatnoProjectTypesDefinition } from '../../manager/potatno-ui-manager.ts';
 import templateCss from './potatno-panel-properties.css' with { type: 'text' };
 import propertiesTemplate from './potatno-panel-properties.html' with { type: 'text' };
 
@@ -34,7 +34,7 @@ export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOn
      * Available port types that can be selected.
      */
     public get availableTypes(): Array<string> {
-        const lProject: PotatnoUiProject | null = this.mManager.project;
+        const lProject: PotatnoProjectTypesDefinition | null = this.mManager.project;
         if (!lProject) {
             return [];
         }
@@ -51,7 +51,7 @@ export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOn
      * Whether the system function allows user editing of ports/imports.
      */
     public get editableByUser(): boolean {
-        const lActiveFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mManager.activeFunction;
+        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
         return lActiveFunction !== null && !lActiveFunction.isSystem;
     }
 

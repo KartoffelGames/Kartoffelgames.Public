@@ -4,7 +4,7 @@ import type { PotatnoDocumentFunction } from '../../../document/potatno-document
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
-import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoUiProject } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoProjectTypesDefinition } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import { PotatnoClipboard } from '../../potatno-clipboard.ts';
 import { PotatnoPortRegistry } from '../../potatno-port-registry.ts';
@@ -37,12 +37,12 @@ import '../potatno_port/potatno-port.ts';
     style: graphCss,
 })
 export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDeconstruct {
-    private readonly mClipboard: PotatnoClipboard<PotatnoUiProject>;
+    private readonly mClipboard: PotatnoClipboard<PotatnoProjectTypesDefinition>;
     private readonly mComponent: Component;
     private readonly mInteraction: PotatnoCanvasInteraction;
     private readonly mManager: PotatnoUiManager;
     private readonly mPortRegistry: PotatnoPortRegistry;
-    private readonly mSelectedNodes: Set<PotatnoDocumentNode<PotatnoUiProject>>;
+    private readonly mSelectedNodes: Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>;
     private mDocumentPointerMoveHandler: ((pEvent: PointerEvent) => void) | null;
     private mDocumentPointerUpHandler: ((pEvent: PointerEvent) => void) | null;
     private mHoveredPort: PortHoverRecord | null;
@@ -103,7 +103,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      */
     public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager), pPortRegistry: PotatnoPortRegistry = Injection.use(PotatnoPortRegistry)) {
         this.mCachedGraphData = { visibleNodes: [] };
-        this.mClipboard = new PotatnoClipboard<PotatnoUiProject>();
+        this.mClipboard = new PotatnoClipboard<PotatnoProjectTypesDefinition>();
         this.mComponent = pComponent;
         this.mDocumentPointerMoveHandler = null;
         this.mDocumentPointerUpHandler = null;
@@ -113,7 +113,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         this.mKeyboardHandler = null;
         this.mManager = pManager;
         this.mPortRegistry = pPortRegistry;
-        this.mSelectedNodes = new Set<PotatnoDocumentNode<PotatnoUiProject>>();
+        this.mSelectedNodes = new Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>();
         this.mUnsubscribe = null;
     }
 
@@ -325,7 +325,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * @param pEvent - Pointer event from the node element.
      * @param pNode - Node that received the pointer down.
      */
-    public onNodePointerDown(pEvent: PointerEvent, pNode: PotatnoDocumentNode<PotatnoUiProject>): void {
+    public onNodePointerDown(pEvent: PointerEvent, pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): void {
         for (const lPathItem of pEvent.composedPath()) {
             if (lPathItem instanceof HTMLElement && lPathItem.tagName.toLowerCase() === 'potatno-port') {
                 return;
@@ -353,7 +353,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         this.invalidateNodeVisuals();
 
         const lGridSize: number = this.mInteraction.gridSize;
-        const lOrigins: Map<PotatnoDocumentNode<PotatnoUiProject>, NodeDragOrigin> = new Map<PotatnoDocumentNode<PotatnoUiProject>, NodeDragOrigin>();
+        const lOrigins: Map<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, NodeDragOrigin> = new Map<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, NodeDragOrigin>();
 
         for (const lNode of this.mSelectedNodes) {
             lOrigins.set(lNode, {
@@ -438,7 +438,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      *
      * @param pEvent - Component event carrying the selected node definition.
      */
-    public onAddNodePopupNodeSelect(pEvent: ComponentEvent<PotatnoNodeDefinition<PotatnoUiProject>>): void {
+    public onAddNodePopupNodeSelect(pEvent: ComponentEvent<PotatnoNodeDefinition<PotatnoProjectTypesDefinition>>): void {
         this.insertNodeFromAddPopup(pEvent.value);
     }
 
@@ -570,8 +570,8 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * @param pCommentNode - Comment node being dragged.
      * @param pOrigins - Origin map to extend.
      */
-    private addCommentContainedNodeOrigins(pCommentNode: PotatnoDocumentNode<PotatnoUiProject>, pOrigins: Map<PotatnoDocumentNode<PotatnoUiProject>, NodeDragOrigin>): void {
-        const lActiveFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mManager.activeFunction;
+    private addCommentContainedNodeOrigins(pCommentNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>, pOrigins: Map<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, NodeDragOrigin>): void {
+        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
         if (!lActiveFunction) {
             return;
         }
@@ -622,8 +622,8 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         // the (stationary) cursor, and the browser never fires `pointerenter` on an element that
         // appears beneath a pointer that did not move — leaving `mHoveredPort` null even though the
         // cursor sits squarely on a valid port. The hit-test recovers the target in that case.
-        const lSource: PotatnoDocumentPort<PotatnoUiProject> = this.mInteractionState.sourcePort;
-        const lTarget: PotatnoDocumentPort<PotatnoUiProject> | null = this.mHoveredPort?.port ?? this.hitTestPort(pEvent.clientX, pEvent.clientY);
+        const lSource: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = this.mInteractionState.sourcePort;
+        const lTarget: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.mHoveredPort?.port ?? this.hitTestPort(pEvent.clientX, pEvent.clientY);
 
         if (!lTarget || lSource === lTarget) {
             return;
@@ -645,7 +645,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      *
      * @returns The port under the point, or `null` when none matches.
      */
-    private hitTestPort(pClientX: number, pClientY: number): PotatnoDocumentPort<PotatnoUiProject> | null {
+    private hitTestPort(pClientX: number, pClientY: number): PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null {
         for (const [lPort, lElement] of this.mPortRegistry.entries()) {
             const lRect: DOMRect = lElement.getBoundingClientRect();
             if (pClientX >= lRect.left && pClientX <= lRect.right && pClientY >= lRect.top && pClientY <= lRect.bottom) {
@@ -786,14 +786,14 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * @param pDefinition - Node definition to instantiate.
      * @param pWorldPosition - Graph world position for the new node.
      */
-    private insertNodeAt(pDefinition: PotatnoNodeDefinition<PotatnoUiProject>, pWorldPosition: Point): void {
+    private insertNodeAt(pDefinition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition>, pWorldPosition: Point): void {
         if (!this.mManager.activeFunction) {
             return;
         }
 
         const lGridSize: number = this.mInteraction.gridSize;
         const lSnappedPosition: Point = this.mInteraction.snapToGrid(pWorldPosition.x, pWorldPosition.y);
-        const lNode: PotatnoDocumentNode<PotatnoUiProject> = this.mManager.graph.addNode(this.mManager.activeFunction, pDefinition, {
+        const lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = this.mManager.graph.addNode(this.mManager.activeFunction, pDefinition, {
             height: 4,
             width: 10,
             x: Math.round(lSnappedPosition.x / lGridSize),
@@ -810,7 +810,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      *
      * @param pDefinition - Definition to insert.
      */
-    private insertNodeFromAddPopup(pDefinition: PotatnoNodeDefinition<PotatnoUiProject>): void {
+    private insertNodeFromAddPopup(pDefinition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition>): void {
         const lPopup: AddNodePopupState | null = this.mAddNodePopup;
         if (!lPopup) {
             return;
@@ -858,12 +858,12 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * Paste copied nodes into the active graph.
      */
     private pasteFromClipboard(): void {
-        const lActiveFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mManager.activeFunction;
+        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
         if (!lActiveFunction) {
             return;
         }
 
-        const lNewNodes: Array<PotatnoDocumentNode<PotatnoUiProject>> = this.mClipboard.paste(lActiveFunction, lActiveFunction.document, 2, 2);
+        const lNewNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = this.mClipboard.paste(lActiveFunction, lActiveFunction.document, 2, 2);
         if (lNewNodes.length === 0) {
             return;
         }
@@ -879,7 +879,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      */
     private rebuildGraphData(): void {
         const lVisibleNodes: Array<NodeViewState> = [];
-        const lActiveFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mManager.activeFunction;
+        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
 
         if (lActiveFunction) {
             const lGridSize: number = this.mInteraction.gridSize;
@@ -943,7 +943,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * Select all nodes intersecting the current selection box.
      */
     private selectNodesInBox(): void {
-        const lActiveFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mManager.activeFunction;
+        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
         if (!lActiveFunction) {
             return;
         }
@@ -1000,7 +1000,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
 }
 
 export type NodeViewState = {
-    node: PotatnoDocumentNode<PotatnoUiProject>;
+    node: PotatnoDocumentNode<PotatnoProjectTypesDefinition>;
     pixelW: number;
     pixelX: number;
     pixelY: number;
@@ -1014,10 +1014,10 @@ type GraphViewData = {
 type GraphInteractionState =
     | { mode: 'idle'; }
     | { mode: 'panning'; startX: number; startY: number; }
-    | { mode: 'dragging-node'; startX: number; startY: number; origins: Map<PotatnoDocumentNode<PotatnoUiProject>, NodeDragOrigin>; }
-    | { mode: 'dragging-wire'; sourcePort: PotatnoDocumentPort<PotatnoUiProject>; startX: number; startY: number; }
+    | { mode: 'dragging-node'; startX: number; startY: number; origins: Map<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, NodeDragOrigin>; }
+    | { mode: 'dragging-wire'; sourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>; startX: number; startY: number; }
     | { mode: 'selecting'; }
-    | { mode: 'resizing-comment'; node: PotatnoDocumentNode<PotatnoUiProject>; startX: number; startY: number; originalW: number; originalH: number; };
+    | { mode: 'resizing-comment'; node: PotatnoDocumentNode<PotatnoProjectTypesDefinition>; startX: number; startY: number; originalW: number; originalH: number; };
 
 type AddNodePopupState = {
     screenX: number;
@@ -1042,8 +1042,8 @@ type Point = {
 };
 
 type PortHoverRecord = {
-    node: PotatnoDocumentNode<PotatnoUiProject>;
-    port: PotatnoDocumentPort<PotatnoUiProject>;
+    node: PotatnoDocumentNode<PotatnoProjectTypesDefinition>;
+    port: PotatnoDocumentPort<PotatnoProjectTypesDefinition>;
 };
 
 type SelectionBoxScreen = {

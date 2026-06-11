@@ -60,7 +60,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
      */
     private addBaseNodeDefinitions(): void {
         // Register arithmetic nodes.
-        this.addNodeDefinition(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Add',
             label: 'Add',
             category: 'operator',
@@ -77,7 +77,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
                 code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} + ${pContext.inputs['b'].value};`
             }
         }));
-        this.addNodeDefinition(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Subtract',
             label: 'Subtract',
             category: 'operator',
@@ -94,7 +94,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
                 code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} - ${pContext.inputs['b'].value};`
             }
         }));
-        this.addNodeDefinition(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Multiply',
             label: 'Multiply',
             category: 'operator',
@@ -114,7 +114,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
                 }
             }
         }));
-        this.addNodeDefinition(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Divide',
             label: 'Divide',
             category: 'operator',
@@ -133,7 +133,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
                 }
             }
         }));
-        this.addNodeDefinition(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Modulo',
             label: 'Modulo',
             category: 'operator',
@@ -152,7 +152,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         }));
 
         // Register comparison nodes.
-        this.addNodeDefinition(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Equal',
             label: 'Equal',
             category: 'operator',
@@ -169,7 +169,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
                 code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} === ${pContext.inputs['b'].value};`
             }
         }));
-        this.addNodeDefinition(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Not Equal',
             label: 'Not Equal',
             category: 'operator',
@@ -186,7 +186,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
                 code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} !== ${pContext.inputs['b'].value};`
             }
         }));
-        this.addNodeDefinition(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Less Than',
             label: 'Less Than',
             category: 'operator',
@@ -203,7 +203,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
                 code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} < ${pContext.inputs['b'].value};`
             }
         }));
-        this.addNodeDefinition(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Greater Than',
             label: 'Greater Than',
             category: 'operator',
@@ -222,7 +222,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         }));
 
         // Register logic nodes.
-        this.addNodeDefinition(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'And',
             label: 'And',
             category: 'operator',
@@ -239,7 +239,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
                 code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} && ${pContext.inputs['b'].value};`
             }
         }));
-        this.addNodeDefinition(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Or',
             label: 'Or',
             category: 'operator',
@@ -256,7 +256,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
                 code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} || ${pContext.inputs['b'].value};`
             }
         }));
-        this.addNodeDefinition(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Not',
             label: 'Not',
             category: 'operator',
@@ -274,7 +274,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         }));
 
         // Register type conversion nodes.
-        this.addNodeDefinition(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Number to String',
             label: 'Number to String',
             category: 'type-conversion',
@@ -290,7 +290,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
                 code: (pContext): string => `const ${pContext.outputs['output'].value} = String(${pContext.inputs['input'].value});`
             }
         }));
-        this.addNodeDefinition(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'String to Number',
             label: 'String to Number',
             category: 'type-conversion',
@@ -306,7 +306,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
                 code: (pContext): string => `const ${pContext.outputs['output'].value} = Number(${pContext.inputs['input'].value});`
             }
         }));
-        this.addNodeDefinition(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Boolean to String',
             label: 'Boolean to String',
             category: 'type-conversion',
@@ -324,7 +324,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         }));
 
         // Register flow nodes.
-        this.addNodeDefinition(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'If',
             label: 'If',
             category: 'flow',
@@ -342,7 +342,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
                 code: (pContext): string => `if (${pContext.inputs['condition'].value}) {\n${pContext.outputs['then'].code.inner}\n} else {\n${pContext.outputs['else'].code.inner}\n}`
             }
         }));
-        this.addNodeDefinition(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'While',
             label: 'While',
             category: 'flow',
@@ -359,7 +359,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
                 code: (pContext): string => `while (${pContext.inputs['condition'].value}) {\n${pContext.outputs['body'].code.inner}\n}`
             }
         }));
-        this.addNodeDefinition(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'For Loop',
             label: 'For Loop',
             category: 'flow',
@@ -379,7 +379,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         }));
 
         // Register function nodes.
-        this.addNodeDefinition(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Console Log',
             label: 'Console Log',
             category: 'Function',
@@ -391,7 +391,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
                 code: ({ inputs }): string => `console.log(${inputs['message'].value});`
             }
         }));
-        this.addNodeDefinition(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'String Concat',
             label: 'String Concat',
             category: 'Function',

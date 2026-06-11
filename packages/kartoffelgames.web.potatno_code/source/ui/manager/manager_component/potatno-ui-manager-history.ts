@@ -2,7 +2,7 @@ import { PotatnoDocument } from "../../../document/potatno-document.ts";
 import { PotatnoDeserializer } from "../../../serialization/potatno-deserializer.ts";
 import { PotatnoCodeFileSerializationResult } from "../../../serialization/potatno-serialization.type.ts";
 import { PotatnoSerializer } from "../../../serialization/potatno-serializer.ts";
-import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoUiProject } from "../potatno-ui-manager.ts";
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoProjectTypesDefinition } from "../potatno-ui-manager.ts";
 
 /**
  * History component of the UI manager.
@@ -98,7 +98,7 @@ export class PotatnoUiManagerHistory {
      * Push the current document snapshot into history.
      */
     private pushHistory(): void {
-        const lDocument: PotatnoDocument<PotatnoUiProject> | null = this.mManager.graph.document;
+        const lDocument: PotatnoDocument<PotatnoProjectTypesDefinition> | null = this.mManager.graph.document;
         if (!lDocument) {
             return;
         }
@@ -107,7 +107,7 @@ export class PotatnoUiManagerHistory {
         this.mSnapshots.splice(this.mSnapshotIndex + 1);
 
         // Serialize result and convert to string.
-        const lSerializerResult: PotatnoCodeFileSerializationResult = new PotatnoSerializer<PotatnoUiProject>().serialize(lDocument);
+        const lSerializerResult: PotatnoCodeFileSerializationResult = new PotatnoSerializer<PotatnoProjectTypesDefinition>().serialize(lDocument);
         const lSerializerResultString: string = JSON.stringify(lSerializerResult);
 
         // Read last item, if it has one, and compare the items.
@@ -135,12 +135,12 @@ export class PotatnoUiManagerHistory {
      * @param pSnapshot - Snapshot to deserialize and display.
      */
     private restoreHistory(pSnapshot: PotatnoCodeFileSerializationResult): void {
-        const lProject: PotatnoUiProject | null = this.mManager.project;
+        const lProject: PotatnoProjectTypesDefinition | null = this.mManager.project;
         if (!lProject) {
             return;
         }
 
         //  Deserialize snapshot into a new document and update document.
-        this.mManager.graph.setDocument(new PotatnoDeserializer<PotatnoUiProject>(lProject).deserialize(pSnapshot));
+        this.mManager.graph.setDocument(new PotatnoDeserializer<PotatnoProjectTypesDefinition>(lProject).deserialize(pSnapshot));
     }
 }

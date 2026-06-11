@@ -10,13 +10,13 @@
  * @typeParam TValueMap - Map of type name to its representative JS value shape.
  * @typeParam TTypeName - Union of registered type names inferred from `TValueMap`.
  */
-export class PotatnoProjectTypesDefinition<TValueMap extends PotatnoProjectTypeMapping<TValueMap> = PotatnoProjectTypeMapping> {
-    private readonly mTypes: Map<PotatnoProjectTypeName<TValueMap>, PotatnoProjectTypeDefinition<TValueMap>>;
+export class PotatnoProjectTypesDefinition<TValueMap extends PotatnoProjectTypeMapping = PotatnoProjectTypeMapping> {
+    private readonly mTypes: Map<string, PotatnoProjectTypeDefinitionBase>;
 
     /**
      * Get all registered type definitions as a readonly map keyed by type name.
      */
-    public get types(): ReadonlyMap<PotatnoProjectTypeName<TValueMap>, PotatnoProjectTypeDefinition<TValueMap>> {
+    public get types(): ReadonlyMap<string, PotatnoProjectTypeDefinitionBase> {
         return this.mTypes;
     }
 
@@ -24,7 +24,7 @@ export class PotatnoProjectTypesDefinition<TValueMap extends PotatnoProjectTypeM
      * Get all registered type names as a readonly array.
      */
     public get typeNames(): Array<PotatnoProjectTypeName<TValueMap>> {
-        return Array.from(this.mTypes.keys());
+        return Array.from(this.mTypes.keys()) as Array<PotatnoProjectTypeName<TValueMap>>;
     }
 
     /**
@@ -33,11 +33,11 @@ export class PotatnoProjectTypesDefinition<TValueMap extends PotatnoProjectTypeM
      * @param pParameters - Record mapping each type name to its definition.
      */
     public constructor(pParameters: PotatnoProjectTypeDefinitionConfiguration<TValueMap>) {
-        this.mTypes = new Map<PotatnoProjectTypeName<TValueMap>, PotatnoProjectTypeDefinition<TValueMap>>();
+        this.mTypes = new Map<string, PotatnoProjectTypeDefinitionBase>();
 
         // Convert all types
-        for (const [lTypeName, lTypeDefinition] of Object.entries(pParameters as PotatnoProjectTypeDefinitionConfiguration<Record<string, unknown>>)) {
-            this.mTypes.set(lTypeName as PotatnoProjectTypeName<TValueMap>, {
+        for (const [lTypeName, lTypeDefinition] of Object.entries(pParameters)) {
+            this.mTypes.set(lTypeName, {
                 name: lTypeName as PotatnoProjectTypeName<TValueMap>,
                 ...lTypeDefinition
             } as PotatnoProjectTypeDefinition<TValueMap>);
@@ -72,7 +72,7 @@ export class PotatnoProjectTypesDefinition<TValueMap extends PotatnoProjectTypeM
             throw new Error(`Type "${pTypeName}" is not defined in the project types definition.`);
         }
 
-        return this.mTypes.get(pTypeName)!;
+        return this.mTypes.get(pTypeName)! as PotatnoProjectTypeDefinition<TValueMap>;
     }
 
     /**
@@ -92,7 +92,7 @@ export class PotatnoProjectTypesDefinition<TValueMap extends PotatnoProjectTypeM
     }
 }
 
-type PotatnoProjectTypeDefinitionConfiguration<TValueMap extends Record<string, unknown>> = {
+export type PotatnoProjectTypeDefinitionConfiguration<TValueMap extends PotatnoProjectTypeMapping> = {
     [TTypeName in Extract<keyof TValueMap, string>]: PotatnoProjectTypesItem<TValueMap>;
 };
 
@@ -100,7 +100,7 @@ type PotatnoProjectTypeDefinitionConfiguration<TValueMap extends Record<string, 
  * Potatno project valid types.
  * Defined by a type name and a default value of that type.
  */
-type PotatnoProjectTypesItem<TValueMap extends Record<string, unknown>> = {
+type PotatnoProjectTypesItem<TValueMap extends PotatnoProjectTypeMapping> = {
     /**
      * A default value for this type.
      */
@@ -129,7 +129,17 @@ type PotatnoProjectTypesItem<TValueMap extends Record<string, unknown>> = {
     /**
      * Optional subtype name for composite types (e.g. a vec3 has subtype float for its components).
      */
-    subtype?: PotatnoProjectTypeDefinitionConfiguration<TValueMap>;
+    subtype?: Partial<Record<PotatnoProjectTypeName<TValueMap>, PotatnoProjectTypesItemBase>>;
+};
+
+type PotatnoProjectTypesItemBase = {
+    default: {
+        string: Array<string>;
+        value: unknown;
+    };
+    convert: (pValues: Array<string>) => string;
+    inputs: ReadonlyArray<PotatnoProjectTypeInputElement>;
+    subtype?: Partial<Record<string, PotatnoProjectTypesItemBase>>;
 };
 
 /** A single editor input element for a project type. */
@@ -138,13 +148,17 @@ type PotatnoProjectTypeInputElement = {
     type: 'string' | 'number' | 'boolean';
 };
 
-type PotatnoProjectTypeName<TValueMap extends PotatnoProjectTypeMapping<TValueMap>> = Extract<keyof TValueMap, string>;
+type PotatnoProjectTypeName<TValueMap extends PotatnoProjectTypeMapping> = Extract<keyof TValueMap, string>;
 
-export type PotatnoProjectTypeDefinition<TValueMap extends Record<string, unknown>> = {
+export type PotatnoProjectTypeDefinition<TValueMap extends PotatnoProjectTypeMapping> = {
     name: PotatnoProjectTypeName<TValueMap>;
 } & PotatnoProjectTypesItem<TValueMap>;
 
+export type PotatnoProjectTypeDefinitionBase = {
+    name: string;
+} & PotatnoProjectTypesItemBase;
+
 export type PotatnoProjectGenericType = `<${string}>`;
 
-export type PotatnoProjectTypeMapping<TValueMap extends Record<string, unknown> = Record<string, unknown>> = Record<PotatnoProjectTypeName<TValueMap>, unknown>;
+export type PotatnoProjectTypeMapping<TValueMap extends Record<string, unknown> = Record<string, unknown>> = Record<Extract<keyof TValueMap, string>, unknown>;
 export type PotatnoProjectTypeNames<TType extends PotatnoProjectTypesDefinition> = TType['typeNames'][number];

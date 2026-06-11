@@ -5,7 +5,7 @@ import type { PotatnoDocumentPort } from '../../../document/potatno-document-por
 import { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
 import { PotatnoPreviewFunctionExecutor } from '../../../preview/potatno-preview-function-executor.ts';
 import type { PotatnoCodeUiManagerIntegrityError } from '../../manager/manager_component/potatno-ui-manager-integrity.ts';
-import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoUiProject } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoProjectTypesDefinition } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPreviewModule } from '../../module/potatno-preview.module.ts';
 import templateCss from './potatno-preview.css' with { type: 'text' };
 import previewTemplate from './potatno-preview.html' with { type: 'text' };
@@ -32,7 +32,7 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
     private mStartWidth: number;
     private mStartX: number;
     private mStartY: number;
-    private mTrackedFunction: PotatnoDocumentFunction<PotatnoUiProject> | null;
+    private mTrackedFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null;
     private mUnsubscribe: (() => void) | null;
 
     /**
@@ -57,8 +57,8 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      * Display ("style") id options for the display selector, from the project's preview registry.
      */
     public get displayOptions(): ReadonlyArray<string> {
-        const lFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mManager.activeFunction;
-        const lProject: PotatnoUiProject | null = this.mManager.project;
+        const lFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
+        const lProject: PotatnoProjectTypesDefinition | null = this.mManager.project;
         const lFunctionDefinition = lFunction && lProject ? lProject.getFunction(lFunction.definitionId) : undefined;
         if (!lFunction || !lProject || !lFunctionDefinition) {
             return [];
@@ -68,7 +68,7 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
             return lProject.preview.availablePreviewTypes(lFunctionDefinition, PotatnoPreviewFunctionExecutor.MAIN);
         }
 
-        const lPort: PotatnoDocumentPort<PotatnoUiProject> | null = this.findFunctionOutputPort(lFunction, this.selectedOutputId);
+        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.findFunctionOutputPort(lFunction, this.selectedOutputId);
         if (lPort) {
             return lProject.preview.availablePreviewTypes(lFunctionDefinition, lPort.resolvedDataType);
         }
@@ -94,8 +94,8 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      * Output options for the output selector (user functions only).
      */
     public get outputOptions(): ReadonlyArray<PotatnoPreviewOutputOption> {
-        const lFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mManager.activeFunction;
-        const lProject: PotatnoUiProject | null = this.mManager.project;
+        const lFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
+        const lProject: PotatnoProjectTypesDefinition | null = this.mManager.project;
         const lFunctionDefinition = lFunction && lProject ? lProject.getFunction(lFunction.definitionId) : undefined;
         if (!lFunction || !lProject || !lFunctionDefinition) {
             return [];
@@ -129,8 +129,8 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      * The driver for the active function's main preview, bound by the template's `potatno-preview`
      * module. `null` when no function is active or no matching preview is registered.
      */
-    public get previewDriver(): PotatnoPreviewDriver<PotatnoUiProject> | null {
-        const lFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mManager.activeFunction;
+    public get previewDriver(): PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | null {
+        const lFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
         if (!lFunction) {
             return null;
         }
@@ -164,8 +164,8 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      * Whether to show the output selector — only for user (non-entry) functions.
      */
     public get showOutputSelector(): boolean {
-        const lFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mManager.activeFunction;
-        const lProject: PotatnoUiProject | null = this.mManager.project;
+        const lFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
+        const lProject: PotatnoProjectTypesDefinition | null = this.mManager.project;
         if (!lFunction || !lProject) {
             return false;
         }
@@ -284,7 +284,7 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      * is active at a time) and reset the local selection so the new function picks its defaults.
      */
     private releaseSupersededDriver(): void {
-        const lFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.mManager.activeFunction;
+        const lFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
         if (lFunction === this.mTrackedFunction) {
             return;
         }
@@ -304,9 +304,9 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      * @param pFunction - Function whose exit nodes should be searched.
      * @param pOutputId - Selected output id.
      */
-    private findFunctionOutputPort(pFunction: PotatnoDocumentFunction<PotatnoUiProject>, pOutputId: string): PotatnoDocumentPort<PotatnoUiProject> | null {
+    private findFunctionOutputPort(pFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition>, pOutputId: string): PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null {
         for (const lExitNode of pFunction.getExitNodes()) {
-            const lPort: PotatnoDocumentPort<PotatnoUiProject> | undefined = lExitNode.inputs.map.get(pOutputId);
+            const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = lExitNode.inputs.map.get(pOutputId);
             if (lPort && lPort.portType === 'value') {
                 return lPort;
             }

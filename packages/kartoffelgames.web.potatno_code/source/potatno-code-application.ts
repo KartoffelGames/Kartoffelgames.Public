@@ -5,6 +5,7 @@ import { PotatnoCodeEditor } from './ui/component/potatno_code_editor/potatno-co
 
 import applicationCss from './potatno-code-application.css' with { type: 'text' };
 import themeCss from './ui/component/potatno-theme.css' with { type: 'text' };
+import { PotatnoProjectTypeDefinition } from "./project/potatno-project-types-definition.ts";
 
 /*
  * TODO: UI
@@ -16,23 +17,23 @@ import themeCss from './ui/component/potatno-theme.css' with { type: 'text' };
  * Extends PwbApplication to provide a pre-configured editor component
  * backed by a PotatnoProject (configuration) and a PotatnoCodeFile (document state).
  */
-export class PotatnoCodeApplication<TProject extends PotatnoProject> extends PwbApplication {
+export class PotatnoCodeApplication<TProjectTypes extends PotatnoProjectTypeDefinition> extends PwbApplication {
     private mCodeEditor: PotatnoCodeEditor;
-    private readonly mProject: TProject;
+    private readonly mProject: PotatnoProject<TProjectTypes>;
 
     /**
      * Get the current code file (document state).
      */
-    public get document(): PotatnoDocument<TProject> {
-        return this.mCodeEditor.file as PotatnoDocument<TProject>;
-    } set document(pFile: PotatnoDocument<TProject>) {
+    public get document(): PotatnoDocument<TProjectTypes> {
+        return this.mCodeEditor.file as PotatnoDocument<TProjectTypes>;
+    } set document(pFile: PotatnoDocument<TProjectTypes>) {
         this.mCodeEditor.file = pFile;
     }
 
     /**
      * Get the project configuration.
      */
-    public get project(): TProject {
+    public get project(): PotatnoProject<TProjectTypes> {
         return this.mProject;
     }
 
@@ -42,7 +43,7 @@ export class PotatnoCodeApplication<TProject extends PotatnoProject> extends Pwb
      *
      * @param pProject - The project configuration containing node definitions, main functions, and preview callbacks.
      */
-    public constructor(pProject: TProject) {
+    public constructor(pProject: PotatnoProject<TProjectTypes>) {
         super();
 
         this.mProject = pProject;

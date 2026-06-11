@@ -6,11 +6,11 @@ import { PotatnoDocumentNode } from '../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../document/potatno-document-port.ts';
 import { PotatnoDocument } from '../../document/potatno-document.ts';
 import { PotatnoProjectTypesDefinition } from "../../project/potatno-project-types-definition.ts";
-import { PotatnoProject } from "../../project/potatno-project.ts";
 import { PotatnoUiManagerGraph } from './manager_component/potatno-ui-manager-graph.ts';
 import { PotatnoUiManagerHistory } from './manager_component/potatno-ui-manager-history.ts';
 import { PotatnoUiManagerIntegrity } from './manager_component/potatno-ui-manager-integrity.ts';
 import { PotatnoUiManagerPreview } from './manager_component/potatno-ui-manager-preview.ts';
+import { PotatnoProject } from "../../project/potatno-project.ts";
 
 /**
  * Central, shared state owner for the whole Potatno-code editor UI.
@@ -30,8 +30,7 @@ import { PotatnoUiManagerPreview } from './manager_component/potatno-ui-manager-
 @Injection.injectable('singleton')
 export class PotatnoUiManager extends EventTarget implements IDeconstructable {
     private mActiveFunctionId: string;
-
-    private mProject: PotatnoUiProject | null;
+    private mProject: PotatnoProject<PotatnoProjectTypesDefinition> | null;
 
     // Manager components.
     private readonly mGraph: PotatnoUiManagerGraph;
@@ -63,8 +62,8 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
     /**
      * The currently active document function, or `null` when none is resolvable.
      */
-    public get activeFunction(): PotatnoDocumentFunction<PotatnoUiProject> | null {
-        const lDocument: PotatnoDocument<PotatnoUiProject> | null = this.mGraph.document;
+    public get activeFunction(): PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null {
+        const lDocument: PotatnoDocument<PotatnoProjectTypesDefinition> | null = this.mGraph.document;
         if (!lDocument) {
             return null;
         }
@@ -88,7 +87,7 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
     /**
      * The current project, or `null` before initialization.
      */
-    public get project(): PotatnoUiProject | null {
+    public get project(): PotatnoProject<PotatnoProjectTypesDefinition> | null {
         return this.mProject;
     }
 
@@ -129,7 +128,7 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
      *
      * @param pProject - The project configuration backing the editor.
      */
-    public initialize(pProject: PotatnoUiProject, pDocument: PotatnoDocument<PotatnoUiProject>): void {
+    public initialize(pProject: PotatnoProject<PotatnoProjectTypesDefinition>, pDocument: PotatnoDocument<PotatnoProjectTypesDefinition>): void {
         this.mProject = pProject;
 
         // Adopt the document. The manager's own document event notifies listeners and the preview
@@ -215,7 +214,7 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
      * @param pFunctionId - Id of the function to activate.
      */
     public setActiveFunction(pFunctionId: string): void {
-        const lDocument: PotatnoDocument<PotatnoUiProject> | null = this.mGraph.document;
+        const lDocument: PotatnoDocument<PotatnoProjectTypesDefinition> | null = this.mGraph.document;
         if (!lDocument || this.mActiveFunctionId === pFunctionId) {
             return;
         }
@@ -235,7 +234,7 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
      * @param pData - The changed function properties.
      */
     public updateFunctionProperties(pData: PotatnoCodeUiManagerPropertiesChange): void {
-        const lActiveFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = this.activeFunction;
+        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.activeFunction;
         if (!lActiveFunction) {
             return;
         }
@@ -343,7 +342,7 @@ class PotatnoUiManagerChangeEvent extends Event {
     }
 }
 
-export type PotatnoUiManagerChangeEventTarget = IPotatnoDocumentItem<PotatnoUiProject> | PotatnoDocument<PotatnoUiProject>;
+export type PotatnoUiManagerChangeEventTarget = IPotatnoDocumentItem<PotatnoProjectTypesDefinition> | PotatnoDocument<PotatnoProjectTypesDefinition>;
 
 /**
  * A function port descriptor for the properties panel.
@@ -362,12 +361,3 @@ export type PotatnoCodeUiManagerPropertiesChange = {
     name?: string;
     outputs?: Array<PotatnoCodeUiManagerPortView>;
 };
-
-/**
- * Project shape accepted by UI components that read Potatno project metadata.
- *
- * A shared project-shape contract with no single owning class — every UI component that reads
- * project metadata widens the project to this alias, so it lives in its own file rather than
- * attached to one component.
- */
-export type PotatnoUiProject = PotatnoProject<PotatnoProjectTypesDefinition<string>>;

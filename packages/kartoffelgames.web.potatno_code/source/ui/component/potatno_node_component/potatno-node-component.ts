@@ -2,7 +2,7 @@ import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentEventEmitter, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEvent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoUiProject } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoProjectTypesDefinition } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPreviewModule } from "../../module/potatno-preview.module.ts";
 import { NodeCategory, NodeCategoryMeta } from "../../node/node-category.enum.ts";
 import { PotatnoPortComponent, type PortInteractionDetail } from '../potatno_port/potatno-port.ts';
@@ -36,7 +36,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      */
     @PwbExport
     @ComponentState.state()
-    public accessor nodeData: PotatnoDocumentNode<PotatnoUiProject> | null = null;
+    public accessor nodeData: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null = null;
 
     /**
      * Whether this node is currently selected.
@@ -135,14 +135,14 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
             return [];
         }
 
-        const lProject: PotatnoUiProject = this.nodeData.project;
+        const lProject: PotatnoProjectTypesDefinition = this.nodeData.project;
         const lFunctionDefinition = lProject.getFunction(this.nodeData.function.definitionId);
         if (!lFunctionDefinition) {
             return [];
         }
 
         const lBinding = this.nodeData.preview;
-        const lPort: PotatnoDocumentPort<PotatnoUiProject> | undefined = lBinding ? this.nodeData.outputs.map.get(lBinding.portId) : undefined;
+        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = lBinding ? this.nodeData.outputs.map.get(lBinding.portId) : undefined;
         if (lPort && lPort.portType === 'value') {
             return lProject.preview.availablePreviewTypes(lFunctionDefinition, lPort.resolvedDataType);
         }
@@ -162,7 +162,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      * module to mount the preview element. `null` when the node has no active preview so the module
      * clears the container.
      */
-    public get previewDriver(): PotatnoPreviewDriver<PotatnoUiProject> | null {
+    public get previewDriver(): PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | null {
         if (!this.nodeData) {
             return null;
         }
@@ -172,7 +172,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     /**
      * The node's value output ports — the candidates for an inline preview.
      */
-    public get valueOutputPorts(): Array<PotatnoDocumentPort<PotatnoUiProject>> {
+    public get valueOutputPorts(): Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> {
         if (!this.nodeData) {
             return [];
         }
@@ -245,7 +245,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     /**
      * All input ports in definition order (flow and value).
      */
-    public get inputPorts(): Array<PotatnoDocumentPort<PotatnoUiProject>> {
+    public get inputPorts(): Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> {
         if (!this.nodeData) {
             return [];
         }
@@ -255,7 +255,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     /**
      * All output ports in definition order (flow and value).
      */
-    public get outputPorts(): Array<PotatnoDocumentPort<PotatnoUiProject>> {
+    public get outputPorts(): Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> {
         if (!this.nodeData) {
             return [];
         }
@@ -279,7 +279,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      *
      * @param pPort - Port to check.
      */
-    public isPreviewedPort(pPort: PotatnoDocumentPort<PotatnoUiProject>): boolean {
+    public isPreviewedPort(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): boolean {
         return this.nodeData?.preview?.portId === pPort.definitionId;
     }
 
@@ -288,7 +288,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      *
      * @param pPort - Port the row represents.
      */
-    public previewPortClass(pPort: PotatnoDocumentPort<PotatnoUiProject>): string {
+    public previewPortClass(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): string {
         return this.isPreviewedPort(pPort) ? 'preview-port-item active' : 'preview-port-item';
     }
 
@@ -343,7 +343,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      * @param pEvent - Click event from the port row.
      * @param pPort - Port to preview.
      */
-    public onSelectPreviewPort(pEvent: MouseEvent, pPort: PotatnoDocumentPort<PotatnoUiProject>): void {
+    public onSelectPreviewPort(pEvent: MouseEvent, pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): void {
         pEvent.stopPropagation();
 
         const lDisplays: Array<string> = this.previewDisplaysForPort(pPort);
@@ -367,7 +367,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      *
      * @param pPort - Port whose preview displays should be listed.
      */
-    private previewDisplaysForPort(pPort: PotatnoDocumentPort<PotatnoUiProject>): Array<string> {
+    private previewDisplaysForPort(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): Array<string> {
         if (!this.nodeData) {
             return [];
         }
@@ -461,7 +461,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
 }
 
 export type ResizeStartDetail = {
-    node: PotatnoDocumentNode<PotatnoUiProject>;
+    node: PotatnoDocumentNode<PotatnoProjectTypesDefinition>;
     startX: number;
     startY: number;
 };

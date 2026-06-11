@@ -1,7 +1,7 @@
 import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-item.interface.ts';
 import { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoCodeUiManagerChangeType, PotatnoUiProject, type PotatnoUiManager } from '../potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoProjectTypesDefinition, type PotatnoUiManager } from '../potatno-ui-manager.ts';
 
 /**
  * Ui manager integrity component.
@@ -9,7 +9,7 @@ import { PotatnoCodeUiManagerChangeType, PotatnoUiProject, type PotatnoUiManager
  */
 export class PotatnoUiManagerIntegrity {
     private readonly mErrorList: Array<PotatnoCodeUiManagerIntegrityError>;
-    private readonly mErrorItems: Set<IPotatnoDocumentItem<PotatnoUiProject>>;
+    private readonly mErrorItems: Set<IPotatnoDocumentItem<PotatnoProjectTypesDefinition>>;
     private mIsDirty: boolean;
     private readonly mManager: PotatnoUiManager;
 
@@ -28,7 +28,7 @@ export class PotatnoUiManagerIntegrity {
     /**
      * Nodes flagged by the last validation pass. Used by the graph for error highlighting.
      */
-    public get errorItems(): ReadonlySet<IPotatnoDocumentItem<PotatnoUiProject>> {
+    public get errorItems(): ReadonlySet<IPotatnoDocumentItem<PotatnoProjectTypesDefinition>> {
         // Retrigger validation on dirty state.
         if (this.mIsDirty) {
             this.revalidate();
@@ -57,7 +57,7 @@ export class PotatnoUiManagerIntegrity {
     public constructor(pManager: PotatnoUiManager) {
         this.mManager = pManager;
         this.mErrorList = new Array<PotatnoCodeUiManagerIntegrityError>();
-        this.mErrorItems = new Set<IPotatnoDocumentItem<PotatnoUiProject>>();
+        this.mErrorItems = new Set<IPotatnoDocumentItem<PotatnoProjectTypesDefinition>>();
 
         // Simple dirty flag to revalidate.
         this.mIsDirty = true;

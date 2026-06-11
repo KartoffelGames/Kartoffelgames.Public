@@ -3,7 +3,7 @@ import { Component, ComponentEventEmitter, ComponentState, PwbChild, PwbComponen
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoProjectTypeDefinition } from "../../../project/potatno-project-types-definition.ts";
-import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoUiProject } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoProjectTypesDefinition } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPortRegistry } from '../../potatno-port-registry.ts';
 import portCss from './potatno-port.css' with { type: 'text' };
 import portTemplate from './potatno-port.html' with { type: 'text' };
@@ -23,7 +23,7 @@ import portTemplate from './potatno-port.html' with { type: 'text' };
 })
 export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDeconstruct, IComponentOnUpdate {
     private readonly mComponent: Component;
-    private mLastRegisteredPort: PotatnoDocumentPort<PotatnoUiProject> | null;
+    private mLastRegisteredPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null;
     private readonly mManager: PotatnoUiManager;
     private readonly mPortRegistry: PotatnoPortRegistry;
     private mUnsubscribe: (() => void) | null;
@@ -33,14 +33,14 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      */
     @PwbExport
     @ComponentState.state()
-    public accessor port: PotatnoDocumentPort<PotatnoUiProject> | null = null;
+    public accessor port: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = null;
 
     /**
      * The node that owns this port — included in all emitted events.
      */
     @PwbExport
     @ComponentState.state()
-    public accessor ownerNode: PotatnoDocumentNode<PotatnoUiProject> | null = null;
+    public accessor ownerNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null = null;
 
     @PwbComponentEvent('port-drag-start')
     private accessor mPortDragStart!: ComponentEventEmitter<PortInteractionDetail>;
@@ -199,8 +199,8 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      * avoid redundant work on every tick.
      */
     public onUpdate(): void {
-        const lPort: PotatnoDocumentPort<PotatnoUiProject> | null = this.port;
-        const lNode: PotatnoDocumentNode<PotatnoUiProject> | null = this.ownerNode;
+        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.port;
+        const lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null = this.ownerNode;
         if (!lPort || !lNode || lPort === this.mLastRegisteredPort) {
             return;
         }
@@ -303,8 +303,8 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
 }
 
 export type PortInteractionDetail = {
-    node: PotatnoDocumentNode<PotatnoUiProject>;
-    port: PotatnoDocumentPort<PotatnoUiProject>;
+    node: PotatnoDocumentNode<PotatnoProjectTypesDefinition>;
+    port: PotatnoDocumentPort<PotatnoProjectTypesDefinition>;
     element: HTMLElement;
 };
 

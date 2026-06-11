@@ -3,7 +3,9 @@ import { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from "../../..
 import { PotatnoDocumentPort } from "../../../document/potatno-document-port.ts";
 import { PotatnoDocument } from "../../../document/potatno-document.ts";
 import { PotatnoNodeDefinition } from "../../../project/node_definition/potatno-node-definition.ts";
-import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoUiProject } from "../potatno-ui-manager.ts";
+import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
+import { PotatnoProject } from "../../../project/potatno-project.ts";
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from "../potatno-ui-manager.ts";
 
 /**
  * Ui manager graph component.
@@ -11,12 +13,12 @@ import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoUiProject } fr
  */
 export class PotatnoUiManagerGraph {
     private readonly mManager: PotatnoUiManager;
-    private mDocument: PotatnoDocument<PotatnoUiProject> | null;
+    private mDocument: PotatnoDocument<PotatnoProjectTypesDefinition> | null;
 
     /**
      * Document.
      */
-    public get document(): PotatnoDocument<PotatnoUiProject> | null {
+    public get document(): PotatnoDocument<PotatnoProjectTypesDefinition> | null {
         return this.mDocument;
     }
 
@@ -36,12 +38,12 @@ export class PotatnoUiManagerGraph {
      * 
      * @param pDocument - New document.
      */
-    public setDocument(pDocument: PotatnoDocument<PotatnoUiProject>) {
+    public setDocument(pDocument: PotatnoDocument<PotatnoProjectTypesDefinition>) {
         // Set document and dispatch change event.
         this.mDocument = pDocument;
 
         // Before signaling the document, validate it.
-        this.mManager.integrity.revalidate()
+        this.mManager.integrity.revalidate();
 
         // Then signal it.
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.Document, this.mDocument);
@@ -56,12 +58,12 @@ export class PotatnoUiManagerGraph {
      * @param pFunctionId - Id of the function to remove.
      */
     public removeFunction(pFunctionId: string): void {
-        const lDocument: PotatnoDocument<PotatnoUiProject> | null = this.mDocument;
+        const lDocument: PotatnoDocument<PotatnoProjectTypesDefinition> | null = this.mDocument;
         if (!lDocument) {
             return;
         }
 
-        let lRemovedFunction: PotatnoDocumentFunction<PotatnoUiProject> | null = null;
+        let lRemovedFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = null;
         for (const lFunction of lDocument.functions) {
             if (lFunction.id === pFunctionId) {
                 lRemovedFunction = lFunction;
@@ -86,7 +88,7 @@ export class PotatnoUiManagerGraph {
      * layer can redraw its wires. Carries no history/preview/validation side effects — those are
      * committed separately on pointer-up via {@link commitNodeChange}.
      */
-    public transformNode(pNode: PotatnoDocumentNode<PotatnoUiProject>, pTransformation: Partial<PotatnoDocumentNodeTransformation>): void {
+    public transformNode(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>, pTransformation: Partial<PotatnoDocumentNodeTransformation>): void {
         // Build full transformation and override provided data.
         const lTransformation: PotatnoDocumentNodeTransformation = {
             x: pNode.transformation.x,
@@ -111,8 +113,8 @@ export class PotatnoUiManagerGraph {
      * @param pDefinitionId - The user function definition id to instantiate.
      */
     public addFunction(pDefinitionId: string): void {
-        const lDocument: PotatnoDocument<PotatnoUiProject> | null = this.mDocument;
-        const lProject: PotatnoUiProject | null = this.mManager.project;
+        const lDocument: PotatnoDocument<PotatnoProjectTypesDefinition> | null = this.mDocument;
+        const lProject: PotatnoProject<PotatnoProjectTypesDefinition> | null = this.mManager.project;
         if (!lDocument || !lProject) {
             return;
         }
@@ -123,7 +125,7 @@ export class PotatnoUiManagerGraph {
         }
 
         // Create new function.
-        const lFunction: PotatnoDocumentFunction<PotatnoUiProject> = new PotatnoDocumentFunction(lProject, lDocument, {
+        const lFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> = new PotatnoDocumentFunction(lProject, lDocument, {
             definitionId: pDefinitionId,
             id: crypto.randomUUID(),
             isSystem: false,
@@ -149,9 +151,9 @@ export class PotatnoUiManagerGraph {
      *
      * @returns The created node.
      */
-    public addNode(pFunction: PotatnoDocumentFunction<PotatnoUiProject>, pDefinition: PotatnoNodeDefinition<PotatnoUiProject>, pTransformation: PotatnoDocumentNodeTransformation): PotatnoDocumentNode<PotatnoUiProject> {
+    public addNode(pFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition>, pDefinition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition>, pTransformation: PotatnoDocumentNodeTransformation): PotatnoDocumentNode<PotatnoProjectTypesDefinition> {
         // Add node to function.
-        const lNode: PotatnoDocumentNode<PotatnoUiProject> = pFunction.addNodeByDefinition(pDefinition, pTransformation);
+        const lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = pFunction.addNodeByDefinition(pDefinition, pTransformation);
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.Node, lNode);
 
         return lNode;
@@ -162,7 +164,7 @@ export class PotatnoUiManagerGraph {
      *
      * @param pNode - The node to remove.
      */
-    public removeNode(lNode: PotatnoDocumentNode<PotatnoUiProject>): void {
+    public removeNode(lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): void {
         lNode.function.removeNode(lNode);
 
         // Notify per removed node.
@@ -177,7 +179,7 @@ export class PotatnoUiManagerGraph {
      *
      * @returns `true` when the ports were connected, `false` when the connection was rejected.
      */
-    public connectPorts(pSource: PotatnoDocumentPort<PotatnoUiProject>, pTarget: PotatnoDocumentPort<PotatnoUiProject>): boolean {
+    public connectPorts(pSource: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pTarget: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): boolean {
         try {
             pSource.connect(pTarget);
         } catch (pError) {
@@ -198,7 +200,7 @@ export class PotatnoUiManagerGraph {
      * @param pSource - One side of the connection.
      * @param pTarget - The other side of the connection.
      */
-    public disconnectPorts(pSource: PotatnoDocumentPort<PotatnoUiProject>, pTarget: PotatnoDocumentPort<PotatnoUiProject>): void {
+    public disconnectPorts(pSource: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pTarget: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): void {
         pSource.disconnect(pTarget);
 
         // Dispatch for from-node as well as to-node.
@@ -212,7 +214,7 @@ export class PotatnoUiManagerGraph {
      * @param pPort - The value port to set.
      * @param pValues - The new direct value strings.
      */
-    public setPortDirectValue(pPort: PotatnoDocumentPort<PotatnoUiProject>, pValues: Array<string>): void {
+    public setPortDirectValue(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pValues: Array<string>): void {
         pPort.setDirectValue(pValues);
 
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.Node, pPort);
@@ -224,9 +226,9 @@ export class PotatnoUiManagerGraph {
      * @param pNode - Node to update.
      * @param pUpdater - Update method of the node.
      */
-    public updateNode(pNode: PotatnoDocumentNode<PotatnoUiProject> | null, pUpdater: (pNode: PotatnoDocumentNode<PotatnoUiProject>)=>void): void {
+    public updateNode(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null, pUpdater: (pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>) => void): void {
         // Skip node update when no node is set.
-        if(!pNode){
+        if (!pNode) {
             return;
         }
 
@@ -248,7 +250,7 @@ export class PotatnoUiManagerGraph {
 
         // Check the current active function and reset to the first if it is not there anymore.
         const lActiveFunctionId: string = (() => {
-            const lNewDocumentFunctions: Array<PotatnoDocumentFunction<PotatnoUiProject>> = [...this.mDocument.functions];
+            const lNewDocumentFunctions: Array<PotatnoDocumentFunction<PotatnoProjectTypesDefinition>> = [...this.mDocument.functions];
 
             // Try to find the current active function id inside the snapshot function.
             const lIsFunctionIdFound = lNewDocumentFunctions.some((pFunction) => pFunction.id === this.mManager.activeFunctionId);

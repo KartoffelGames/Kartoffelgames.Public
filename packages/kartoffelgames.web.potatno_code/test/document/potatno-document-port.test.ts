@@ -1,7 +1,6 @@
 import { expect } from '@kartoffelgames/core-test';
 import { PotatnoDocumentPort } from '../../source/document/potatno-document-port.ts';
 import { PotatnoHelper } from '../helper/potatno-helper.ts';
-import { TestProject } from '../helper/test-project.ts';
 
 Deno.test('PotatnoDocumentPort.constructor()', async (pContext) => {
     await pContext.step('Construct flow input', () => {
@@ -81,7 +80,7 @@ Deno.test('PotatnoDocumentPort.constructor()', async (pContext) => {
 
             // Process.
             const lAction = (): void => {
-                new PotatnoDocumentPort(TestProject as any, lDocument, {
+                new PotatnoDocumentPort(PotatnoHelper.TestProject as any, lDocument, {
                     definitionId: 'p', direction: 'input', label: 'p',
                     node: defaultEntry, portType: 'flow', dataType: 'number' as any
                 });
@@ -97,7 +96,7 @@ Deno.test('PotatnoDocumentPort.constructor()', async (pContext) => {
 
             // Process.
             const lAction = (): void => {
-                new PotatnoDocumentPort(TestProject as any, lDocument, {
+                new PotatnoDocumentPort(PotatnoHelper.TestProject as any, lDocument, {
                     definitionId: 'p', direction: 'input', label: 'p',
                     node: defaultEntry, portType: 'value', dataType: null
                 });
@@ -215,7 +214,7 @@ Deno.test('PotatnoDocumentPort.project', async (pContext) => {
         const lPort = defaultEntry.outputs.value[0];
 
         // Evaluation.
-        expect(lPort.project).toBe(TestProject);
+        expect(lPort.project).toBe(PotatnoHelper.TestProject);
     });
 });
 

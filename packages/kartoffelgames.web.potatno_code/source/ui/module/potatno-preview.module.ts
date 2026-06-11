@@ -1,7 +1,7 @@
 import { Injection } from "@kartoffelgames/core-dependency-injection";
 import { AccessMode, IAttributeOnUpdate, LevelProcedure, ModuleAttribute, ModuleDataLevel, ModuleTargetNode, PwbAttributeModule } from "@kartoffelgames/web-potato-web-builder";
 import type { PotatnoPreviewDriver } from '../../preview/potatno-preview-driver.ts';
-import type { PotatnoProjectTypesDefinition } from '../manager/potatno-ui-manager.ts';
+import { PotatnoProjectTypesDefinition } from "../../project/potatno-project-types-definition.ts";
 
 /**
  * Attribute module that automaticly displays the preview drivers preview element as the sole child element.

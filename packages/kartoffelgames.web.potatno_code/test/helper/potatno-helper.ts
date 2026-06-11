@@ -3,7 +3,8 @@ import type { PotatnoDocumentNode } from '../../source/document/potatno-document
 import { PotatnoDocument } from '../../source/document/potatno-document.ts';
 import { PotatnoDeserializer } from '../../source/serialization/potatno-deserializer.ts';
 import { PotatnoSerializer } from '../../source/serialization/potatno-serializer.ts';
-import { TestProject } from './test-project.ts';
+import { PotatnoTestProjectTypesDefinition } from "./potatno_test_project/potatno-test-project-types-definition.ts";
+import { PotatnoTestProject } from "./potatno_test_project/potatno-test-project.ts";
 
 /**
  * Shared test helper for the PotatnoCode test suite.
@@ -14,6 +15,8 @@ import { TestProject } from './test-project.ts';
  * exists to group the helpers into a single tree-shakeable unit.
  */
 export class PotatnoHelper {
+    public static readonly TestProject: PotatnoTestProject = new PotatnoTestProject();
+
     /**
      * Place a project node definition on a function by its definition id.
      *
@@ -24,8 +27,8 @@ export class PotatnoHelper {
      *
      * @throws When the project has no node definition with the given id.
      */
-    public static addProjectNode(pFunction: PotatnoDocumentFunction<typeof TestProject>, pDefinitionId: string): PotatnoDocumentNode<typeof TestProject> {
-        const lDefinition = TestProject.nodeDefinitions.find((pDefinition) => pDefinition.id === pDefinitionId);
+    public static addProjectNode(pFunction: PotatnoDocumentFunction<PotatnoTestProjectTypesDefinition>, pDefinitionId: string): PotatnoDocumentNode<PotatnoTestProjectTypesDefinition> {
+        const lDefinition = PotatnoHelper.TestProject.nodeDefinitions.find((pDefinition) => pDefinition.id === pDefinitionId);
         if (!lDefinition) {
             throw new Error(`No project node definition with id "${pDefinitionId}"`);
         }
@@ -39,7 +42,7 @@ export class PotatnoHelper {
      * @param pTargetNode - Node whose single flow input receives the connection.
      * @param pSourceFlowId - Definition id of the named flow output to use. When omitted, the source node's single flow output is used.
      */
-    public static connectFlow(pSourceNode: PotatnoDocumentNode<typeof TestProject>, pTargetNode: PotatnoDocumentNode<typeof TestProject>, pSourceFlowId?: string): void {
+    public static connectFlow(pSourceNode: PotatnoDocumentNode<PotatnoTestProjectTypesDefinition>, pTargetNode: PotatnoDocumentNode<PotatnoTestProjectTypesDefinition>, pSourceFlowId?: string): void {
         // Use the named flow output when an id is given, otherwise the node's single flow output.
         const lSourcePort = pSourceFlowId === undefined ? pSourceNode.outputs.flow[0] : pSourceNode.outputs.map.get(pSourceFlowId)!;
 
@@ -54,7 +57,7 @@ export class PotatnoHelper {
      * @param pTargetNode - Node that receives the value input.
      * @param pTargetPortId - Definition id of the target node's value input port.
      */
-    public static connectValue(pSourceNode: PotatnoDocumentNode<typeof TestProject>, pSourcePortId: string, pTargetNode: PotatnoDocumentNode<typeof TestProject>, pTargetPortId: string): void {
+    public static connectValue(pSourceNode: PotatnoDocumentNode<PotatnoTestProjectTypesDefinition>, pSourcePortId: string, pTargetNode: PotatnoDocumentNode<PotatnoTestProjectTypesDefinition>, pTargetPortId: string): void {
         pSourceNode.outputs.map.get(pSourcePortId)!.connect(pTargetNode.inputs.map.get(pTargetPortId)!);
     }
 
@@ -67,8 +70,8 @@ export class PotatnoHelper {
      *
      * @returns The newly created, non-system document function.
      */
-    public static newHelperFunction(pDocument: PotatnoDocument<typeof TestProject>, pId: string, pLabel: string): PotatnoDocumentFunction<typeof TestProject> {
-        const lHelperDefinition = [...TestProject.userFunctions.values()][0];
+    public static newHelperFunction(pDocument: PotatnoDocument<PotatnoTestProjectTypesDefinition>, pId: string, pLabel: string): PotatnoDocumentFunction<PotatnoTestProjectTypesDefinition> {
+        const lHelperDefinition = [...PotatnoHelper.TestProject.userFunctions.values()][0];
         return pDocument.newFunction({
             definitionId: lHelperDefinition.id,
             id: pId,
@@ -84,9 +87,9 @@ export class PotatnoHelper {
      *
      * @returns A freshly reconstructed document equivalent to the input.
      */
-    public static roundTrip(pDocument: PotatnoDocument<typeof TestProject>): PotatnoDocument<typeof TestProject> {
-        const lSerializer = new PotatnoSerializer<typeof TestProject>();
-        const lDeserializer = new PotatnoDeserializer<typeof TestProject>(TestProject);
+    public static roundTrip(pDocument: PotatnoDocument<PotatnoTestProjectTypesDefinition>): PotatnoDocument<PotatnoTestProjectTypesDefinition> {
+        const lSerializer = new PotatnoSerializer<PotatnoTestProjectTypesDefinition>();
+        const lDeserializer = new PotatnoDeserializer<PotatnoTestProjectTypesDefinition>(PotatnoHelper.TestProject);
         return lDeserializer.deserialize(lSerializer.serialize(pDocument));
     }
 
@@ -97,7 +100,7 @@ export class PotatnoHelper {
      * @param pPortId - Definition id of the value input port.
      * @param pValue - Direct value to assign, as the port type's string representation.
      */
-    public static setInputValue(pNode: PotatnoDocumentNode<typeof TestProject>, pPortId: string, pValue: Array<string>): void {
+    public static setInputValue(pNode: PotatnoDocumentNode<PotatnoTestProjectTypesDefinition>, pPortId: string, pValue: Array<string>): void {
         pNode.inputs.map.get(pPortId)!.setDirectValue(pValue);
     }
 
@@ -114,17 +117,17 @@ export class PotatnoHelper {
      */
     public static setupCalculatorDocument(): PotatnoHelperCalculatorDocument {
         // Validate once so the function's system entry / exit nodes are synced into the graph.
-        const lDocument: PotatnoDocument<typeof TestProject> = new PotatnoDocument(TestProject)
+        const lDocument: PotatnoDocument<PotatnoTestProjectTypesDefinition> = new PotatnoDocument(PotatnoHelper.TestProject);
         lDocument.validate();
 
         // Get the first function as entry point.
-        const lFunction: PotatnoDocumentFunction<typeof TestProject> = [...lDocument.functions].at(0)!;
+        const lFunction: PotatnoDocumentFunction<PotatnoTestProjectTypesDefinition> = [...lDocument.functions].at(0)!;
 
-        const lEntryDefinition = TestProject.entryPoint;
+        const lEntryDefinition = PotatnoHelper.TestProject.entryPoint;
 
         // Resolve the synced system nodes by their definition ids.
         const lNodeDefinitions = lEntryDefinition.getNodeDefinitions(lFunction);
-        const lFindNode = (pDefinitionId: string): PotatnoDocumentNode<typeof TestProject> => {
+        const lFindNode = (pDefinitionId: string): PotatnoDocumentNode<PotatnoTestProjectTypesDefinition> => {
             const lNode = [...lFunction.nodes].find((pNode) => pNode.definitionId === pDefinitionId);
             if (!lNode) {
                 throw new Error(`System node "${pDefinitionId}" was not synced into the calculator document.`);
@@ -149,10 +152,10 @@ export class PotatnoHelper {
  * alongside its entry function and the synced `Default` / `X10` entry and exit nodes.
  */
 export type PotatnoHelperCalculatorDocument = {
-    document: PotatnoDocument<typeof TestProject>;
-    function: PotatnoDocumentFunction<typeof TestProject>;
-    defaultEntry: PotatnoDocumentNode<typeof TestProject>;
-    defaultExit: PotatnoDocumentNode<typeof TestProject>;
-    x10Entry: PotatnoDocumentNode<typeof TestProject>;
-    x10Exit: PotatnoDocumentNode<typeof TestProject>;
+    document: PotatnoDocument<PotatnoTestProjectTypesDefinition>;
+    function: PotatnoDocumentFunction<PotatnoTestProjectTypesDefinition>;
+    defaultEntry: PotatnoDocumentNode<PotatnoTestProjectTypesDefinition>;
+    defaultExit: PotatnoDocumentNode<PotatnoTestProjectTypesDefinition>;
+    x10Entry: PotatnoDocumentNode<PotatnoTestProjectTypesDefinition>;
+    x10Exit: PotatnoDocumentNode<PotatnoTestProjectTypesDefinition>;
 };

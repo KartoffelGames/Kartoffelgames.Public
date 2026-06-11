@@ -3,12 +3,13 @@ import { ComponentState, PwbChild, PwbComponent, PwbExport, type IComponentOnCon
 import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-item.interface.ts';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoUiManager, PotatnoCodeUiManagerChangeType, PotatnoProjectTypesDefinition } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerChangeType } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoCanvasRenderer, type ConnectionRenderData } from '../../potatno-canvas-renderer.ts';
 import type { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import { PotatnoPortRegistry } from '../../potatno-port-registry.ts';
 import connectionLayerCss from './potatno-connection-layer.css' with { type: 'text' };
 import connectionLayerTemplate from './potatno-connection-layer.html' with { type: 'text' };
+import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
 
 /**
  * SVG connection layer for the node graph.

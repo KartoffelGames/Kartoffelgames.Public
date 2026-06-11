@@ -1,7 +1,7 @@
 import { expect } from '@kartoffelgames/core-test';
 import { PotatnoStaticNodeDefinition } from '../../source/project/node_definition/potatno-static-node-definition.ts';
 import { PotatnoHelper } from '../helper/potatno-helper.ts';
-import { TestProject } from '../helper/test-project.ts';
+import { PotatnoTestProjectTypesDefinition } from "../helper/potatno_test_project/potatno-test-project-types-definition.ts";
 
 Deno.test('PotatnoDocumentNode.constructor()', async (pContext) => {
     await pContext.step('Sets category snapshot from constructor', () => {
@@ -14,7 +14,7 @@ Deno.test('PotatnoDocumentNode.constructor()', async (pContext) => {
 
     await pContext.step('Sets definitionId', () => {
         // Setup.
-        const lEntryDefinition = TestProject.entryPoint;
+        const lEntryDefinition = PotatnoHelper.TestProject.entryPoint;
         const { defaultEntry, function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
@@ -35,7 +35,7 @@ Deno.test('PotatnoDocumentNode.constructor()', async (pContext) => {
     await pContext.step('Stores transformation', () => {
         // Setup. The node stores whatever transformation it is created with.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lDefinition = TestProject.nodeDefinitions.find((pDef) => pDef.id === 'Add')!;
+        const lDefinition = PotatnoHelper.TestProject.nodeDefinitions.find((pDef) => pDef.id === 'Add')!;
 
         // Process.
         const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 5, y: 6, width: 7, height: 8 });
@@ -129,7 +129,7 @@ Deno.test('PotatnoDocumentNode.project', async (pContext) => {
         const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(defaultEntry.project).toBe(TestProject);
+        expect(defaultEntry.project).toBe(PotatnoHelper.TestProject);
     });
 });
 
@@ -139,7 +139,7 @@ Deno.test('PotatnoDocumentNode.category', async (pContext) => {
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
         const lAddNode = PotatnoHelper.addProjectNode(lFunction, 'Add');
         const lOriginalCategory: string = lAddNode.category;
-        TestProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+        PotatnoHelper.TestProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Add', label: 'Add', category: 'new-category',
             ports: { inputs: [], outputs: [] }, generators: { code: (): string => '' }
         }));
@@ -151,7 +151,7 @@ Deno.test('PotatnoDocumentNode.category', async (pContext) => {
         expect(lResult).toBe(lOriginalCategory);
 
         // Cleanup. Re-register the original Add so other tests in the suite are not polluted.
-        TestProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+        PotatnoHelper.TestProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Add', label: 'Add', category: 'operator',
             ports: {
                 inputs: [
@@ -196,7 +196,7 @@ Deno.test('PotatnoDocumentNode.transformation', async (pContext) => {
     await pContext.step('Returns the stored transformation', () => {
         // Setup. Process.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lDefinition = TestProject.nodeDefinitions.find((pDef) => pDef.id === 'Add')!;
+        const lDefinition = PotatnoHelper.TestProject.nodeDefinitions.find((pDef) => pDef.id === 'Add')!;
         const lAddNode = lFunction.addNodeByDefinition(lDefinition, { x: 5, y: 6, width: 7, height: 8 });
 
         // Evaluation.
@@ -383,15 +383,15 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
     await pContext.step('Missing definition', () => {
         // Setup. Place an Add node, then re-register Add to remove it from the project lookup.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lDefinition = new PotatnoStaticNodeDefinition({
+        const lDefinition = new PotatnoStaticNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'TempMissing', label: 'TempMissing', category: 'operator',
             ports: { inputs: [], outputs: [] },
             generators: { code: (): string => '' }
         });
-        TestProject.addNodeDefinition(lDefinition);
+        PotatnoHelper.TestProject.addNodeDefinition(lDefinition);
         const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
         // Make the project forget the definition by swapping it for a different id.
-        (TestProject as any).mNodeDefinitions.delete('TempMissing');
+        (PotatnoHelper.TestProject as any).mNodeDefinitions.delete('TempMissing');
 
         // Process.
         const lErrors = lNode.validate(new Set<string>());
@@ -404,13 +404,13 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
     await pContext.step('Region required and present', () => {
         // Setup. Definition that requires region 'X'.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lDefinition = new PotatnoStaticNodeDefinition({
+        const lDefinition = new PotatnoStaticNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'RequiresXOnly', label: 'RequiresXOnly', category: 'operator',
             regions: { requires: ['X'] },
             ports: { inputs: [], outputs: [] },
             generators: { code: (): string => '' }
         });
-        TestProject.addNodeDefinition(lDefinition);
+        PotatnoHelper.TestProject.addNodeDefinition(lDefinition);
         const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
@@ -420,19 +420,19 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
         expect(lErrors.length).toBe(0);
 
         // Cleanup.
-        (TestProject as any).mNodeDefinitions.delete('RequiresXOnly');
+        (PotatnoHelper.TestProject as any).mNodeDefinitions.delete('RequiresXOnly');
     });
 
     await pContext.step('Region required and absent', () => {
         // Setup.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lDefinition = new PotatnoStaticNodeDefinition({
+        const lDefinition = new PotatnoStaticNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'RequiresMissing', label: 'RequiresMissing', category: 'operator',
             regions: { requires: ['X'] },
             ports: { inputs: [], outputs: [] },
             generators: { code: (): string => '' }
         });
-        TestProject.addNodeDefinition(lDefinition);
+        PotatnoHelper.TestProject.addNodeDefinition(lDefinition);
         const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
@@ -442,19 +442,19 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
         expect(lErrors.some((pError) => pError.message === `Node "${lNode.label}" requires region "X" but it is not active.`)).toBe(true);
 
         // Cleanup.
-        (TestProject as any).mNodeDefinitions.delete('RequiresMissing');
+        (PotatnoHelper.TestProject as any).mNodeDefinitions.delete('RequiresMissing');
     });
 
     await pContext.step('Region allowed pass-through', () => {
         // Setup.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lDefinition = new PotatnoStaticNodeDefinition({
+        const lDefinition = new PotatnoStaticNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'AllowsXOnly', label: 'AllowsXOnly', category: 'operator',
             regions: { allows: ['X'] },
             ports: { inputs: [], outputs: [] },
             generators: { code: (): string => '' }
         });
-        TestProject.addNodeDefinition(lDefinition);
+        PotatnoHelper.TestProject.addNodeDefinition(lDefinition);
         const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
@@ -464,19 +464,19 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
         expect(lErrors.length).toBe(0);
 
         // Cleanup.
-        (TestProject as any).mNodeDefinitions.delete('AllowsXOnly');
+        (PotatnoHelper.TestProject as any).mNodeDefinitions.delete('AllowsXOnly');
     });
 
     await pContext.step('Region forbidden', () => {
         // Setup. Definition allows X only, but incoming set contains Y.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lDefinition = new PotatnoStaticNodeDefinition({
+        const lDefinition = new PotatnoStaticNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'ForbidsY', label: 'ForbidsY', category: 'operator',
             regions: { allows: ['X'] },
             ports: { inputs: [], outputs: [] },
             generators: { code: (): string => '' }
         });
-        TestProject.addNodeDefinition(lDefinition);
+        PotatnoHelper.TestProject.addNodeDefinition(lDefinition);
         const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
@@ -486,7 +486,7 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
         expect(lErrors.some((pError) => pError.message === `Node "${lNode.label}" does not allow region "Y".`)).toBe(true);
 
         // Cleanup.
-        (TestProject as any).mNodeDefinitions.delete('ForbidsY');
+        (PotatnoHelper.TestProject as any).mNodeDefinitions.delete('ForbidsY');
     });
 
     await pContext.step('Resync delegates to ports', () => {

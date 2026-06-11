@@ -4,7 +4,7 @@ import type { PotatnoDocumentFunction } from '../../../document/potatno-document
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
-import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoProjectTypesDefinition } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import { PotatnoClipboard } from '../../potatno-clipboard.ts';
 import { PotatnoPortRegistry } from '../../potatno-port-registry.ts';
@@ -19,6 +19,7 @@ import '../potatno_add_node_popup/potatno-add-node-popup.ts';
 import '../potatno_connection_layer/potatno-connection-layer.ts';
 import '../potatno_node_component/potatno-node-component.ts';
 import '../potatno_port/potatno-port.ts';
+import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
 
 /**
  * Interactive node graph for the active Potatno document function.
@@ -37,7 +38,7 @@ import '../potatno_port/potatno-port.ts';
     style: graphCss,
 })
 export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDeconstruct {
-    private readonly mClipboard: PotatnoClipboard<PotatnoProjectTypesDefinition>;
+    private readonly mClipboard: PotatnoClipboard;
     private readonly mComponent: Component;
     private readonly mInteraction: PotatnoCanvasInteraction;
     private readonly mManager: PotatnoUiManager;
@@ -103,7 +104,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      */
     public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager), pPortRegistry: PotatnoPortRegistry = Injection.use(PotatnoPortRegistry)) {
         this.mCachedGraphData = { visibleNodes: [] };
-        this.mClipboard = new PotatnoClipboard<PotatnoProjectTypesDefinition>();
+        this.mClipboard = new PotatnoClipboard();
         this.mComponent = pComponent;
         this.mDocumentPointerMoveHandler = null;
         this.mDocumentPointerUpHandler = null;

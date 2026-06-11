@@ -2,8 +2,8 @@ import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentEventEmitter, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoProjectTypeDefinition } from "../../../project/potatno-project-types-definition.ts";
-import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoProjectTypesDefinition } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoProjectTypeDefinition, PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPortRegistry } from '../../potatno-port-registry.ts';
 import portCss from './potatno-port.css' with { type: 'text' };
 import portTemplate from './potatno-port.html' with { type: 'text' };
@@ -145,7 +145,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         if (this.port.node.project.types.isGenericType(this.port.dataType ?? '')) {
             return [];
         }
-        const lTypeDef: PotatnoProjectTypeDefinition<string> = this.port.project.types.getType(this.port.dataType ?? '');
+        const lTypeDef = this.port.project.types.getType(this.port.dataType ?? '');
         return lTypeDef.inputs.map((lInput, lIndex) => ({
             htmlType: lInput.type === 'number' ? 'number' : lInput.type === 'boolean' ? 'checkbox' : 'text',
             index: lIndex,

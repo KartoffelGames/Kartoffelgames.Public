@@ -2,11 +2,12 @@ import { expect } from '@kartoffelgames/core-test';
 import { PotatnoStaticNodeDefinition } from '../../source/project/node_definition/potatno-static-node-definition.ts';
 import { PotatnoImportDefinition } from '../../source/project/potatno-import-definition.ts';
 import type { PotatnoProject } from '../../source/project/potatno-project.ts';
+import { PotatnoTestProjectTypesDefinition } from "../helper/potatno_test_project/potatno-test-project-types-definition.ts";
 
 Deno.test('new PotatnoImportDefinition()', async (pContext) => {
     await pContext.step('Construct with id and label', () => {
         // Setup. Process.
-        const lImport = new PotatnoImportDefinition<PotatnoProject>('TestImport', 'Test Import');
+        const lImport = new PotatnoImportDefinition<PotatnoTestProjectTypesDefinition>('TestImport', 'Test Import');
 
         // Evaluation.
         expect(lImport.id).toBe('TestImport');
@@ -18,15 +19,15 @@ Deno.test('new PotatnoImportDefinition()', async (pContext) => {
 Deno.test('PotatnoImportDefinition.addNode()', async (pContext) => {
     await pContext.step('Adds node definitions in call order', () => {
         // Setup.
-        const lImport = new PotatnoImportDefinition<PotatnoProject>('TestImport', 'Test Import');
-        const lNodeOne = new PotatnoStaticNodeDefinition<PotatnoProject>({
+        const lImport = new PotatnoImportDefinition<PotatnoTestProjectTypesDefinition>('TestImport', 'Test Import');
+        const lNodeOne = new PotatnoStaticNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'NodeOne',
             label: 'Node One',
             category: 'test',
             ports: { inputs: [], outputs: [] },
             generators: { code: (): string => '' }
         });
-        const lNodeTwo = new PotatnoStaticNodeDefinition<PotatnoProject>({
+        const lNodeTwo = new PotatnoStaticNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'NodeTwo',
             label: 'Node Two',
             category: 'test',

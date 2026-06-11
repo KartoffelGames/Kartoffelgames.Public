@@ -4,7 +4,9 @@ import type { PotatnoDocumentNode } from '../../../document/potatno-document-nod
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
 import { PotatnoPreviewFunctionExecutor } from '../../../preview/potatno-preview-function-executor.ts';
-import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager, type PotatnoProjectTypesDefinition } from '../potatno-ui-manager.ts';
+import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
+import { PotatnoProject } from "../../../project/potatno-project.ts";
+import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatno-ui-manager.ts';
 
 /**
  * Owner of every live preview driver. Each previewable document item — a node with a preview opt-in
@@ -76,7 +78,7 @@ export class PotatnoUiManagerPreview {
      * @returns The driver, or `null` when no matching preview is registered.
      */
     public functionDriver(pFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition>, pDisplayId: string, pOutputId: string): PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | null {
-        const lProject: PotatnoProjectTypesDefinition | null = this.mManager.project;
+        const lProject: PotatnoProject<PotatnoProjectTypesDefinition> | null = this.mManager.project;
         if (!lProject) {
             this.release(pFunction);
             return null;
@@ -92,7 +94,7 @@ export class PotatnoUiManagerPreview {
 
             if (lTarget === PotatnoPreviewFunctionExecutor.MAIN) {
                 const lEntry = lProject.preview.availablePreviews(lFunctionDefinition, PotatnoPreviewFunctionExecutor.MAIN).find((pEntry) => pEntry.display.id === pDisplayId);
-                return lEntry?.createDriver<PotatnoProjectTypesDefinition>(pFunction) ?? null;
+                return lEntry?.createDriver(pFunction) ?? null;
             }
 
             const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.findFunctionOutputPort(pFunction, lTarget);
@@ -101,7 +103,7 @@ export class PotatnoUiManagerPreview {
             }
 
             const lEntry = lProject.preview.availablePreviews(lFunctionDefinition, lPort.resolvedDataType).find((pEntry) => pEntry.display.id === pDisplayId);
-            return lEntry?.createDriver<PotatnoProjectTypesDefinition>(lPort) ?? null;
+            return lEntry?.createDriver(lPort) ?? null;
         });
     }
 
@@ -121,7 +123,7 @@ export class PotatnoUiManagerPreview {
         }
 
         return this.acquire(pNode, lBinding.displayId, lBinding.portId, (): PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | null => {
-            const lProject: PotatnoProjectTypesDefinition | null = this.mManager.project;
+            const lProject: PotatnoProject<PotatnoProjectTypesDefinition> | null = this.mManager.project;
             const lFunctionDefinition = lProject?.getFunction(pNode.function.definitionId);
             if (!lProject || !lFunctionDefinition) {
                 return null;
@@ -130,7 +132,7 @@ export class PotatnoUiManagerPreview {
             // Only entries whose display allows the port's value type can render it.
             const lEntry = lProject.preview.availablePreviews(lFunctionDefinition, lPort.resolvedDataType).find((pEntry) => pEntry.display.id === lBinding.displayId);
 
-            return lEntry?.createDriver<PotatnoProjectTypesDefinition>(lPort) ?? null;
+            return lEntry?.createDriver(lPort) ?? null;
         });
     }
 

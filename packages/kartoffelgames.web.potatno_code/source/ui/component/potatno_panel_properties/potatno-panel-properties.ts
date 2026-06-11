@@ -1,9 +1,11 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
-import { PotatnoUiManager, PotatnoCodeUiManagerChangeType, type PotatnoCodeUiManagerPortView, PotatnoProjectTypesDefinition } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoUiManager, PotatnoCodeUiManagerChangeType, type PotatnoCodeUiManagerPortView } from '../../manager/potatno-ui-manager.ts';
 import templateCss from './potatno-panel-properties.css' with { type: 'text' };
 import propertiesTemplate from './potatno-panel-properties.html' with { type: 'text' };
+import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
+import { PotatnoProject } from "../../../project/potatno-project.ts";
 
 /**
  * Properties panel component for the potatno-code visual editor.
@@ -34,7 +36,7 @@ export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOn
      * Available port types that can be selected.
      */
     public get availableTypes(): Array<string> {
-        const lProject: PotatnoProjectTypesDefinition | null = this.mManager.project;
+        const lProject: PotatnoProject<PotatnoProjectTypesDefinition> | null = this.mManager.project;
         if (!lProject) {
             return [];
         }

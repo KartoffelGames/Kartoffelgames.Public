@@ -71,7 +71,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
     /**
      * Current document state.
      */
-    public get file(): PotatnoDocument<PotatnoProjectTypesDefinition> {
+    public get file(): PotatnoDocument<PotatnoProjectTypesDefinition> | null {
         return this.mManager.graph.document;
     }
 

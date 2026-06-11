@@ -5,7 +5,7 @@ import { PotatnoCodeEditor } from './ui/component/potatno_code_editor/potatno-co
 
 import applicationCss from './potatno-code-application.css' with { type: 'text' };
 import themeCss from './ui/component/potatno-theme.css' with { type: 'text' };
-import { PotatnoProjectTypeDefinition } from "./project/potatno-project-types-definition.ts";
+import { PotatnoProjectTypesDefinition } from "./project/potatno-project-types-definition.ts";
 
 /*
  * TODO: UI
@@ -17,7 +17,7 @@ import { PotatnoProjectTypeDefinition } from "./project/potatno-project-types-de
  * Extends PwbApplication to provide a pre-configured editor component
  * backed by a PotatnoProject (configuration) and a PotatnoCodeFile (document state).
  */
-export class PotatnoCodeApplication<TProjectTypes extends PotatnoProjectTypeDefinition> extends PwbApplication {
+export class PotatnoCodeApplication<TProjectTypes extends PotatnoProjectTypesDefinition> extends PwbApplication {
     private mCodeEditor: PotatnoCodeEditor;
     private readonly mProject: PotatnoProject<TProjectTypes>;
 
@@ -25,9 +25,9 @@ export class PotatnoCodeApplication<TProjectTypes extends PotatnoProjectTypeDefi
      * Get the current code file (document state).
      */
     public get document(): PotatnoDocument<TProjectTypes> {
-        return this.mCodeEditor.file as PotatnoDocument<TProjectTypes>;
+        return this.mCodeEditor.file! as unknown as PotatnoDocument<TProjectTypes>;
     } set document(pFile: PotatnoDocument<TProjectTypes>) {
-        this.mCodeEditor.file = pFile;
+        this.mCodeEditor.file = pFile as unknown as PotatnoDocument<PotatnoProjectTypesDefinition>;
     }
 
     /**
@@ -56,8 +56,8 @@ export class PotatnoCodeApplication<TProjectTypes extends PotatnoProjectTypeDefi
         this.mCodeEditor = this.addContent(PotatnoCodeEditor) as unknown as PotatnoCodeEditor;
 
         // Pass the project configuration into the editor, then seed it with an empty document.
-        this.mCodeEditor.project = pProject;
-        this.mCodeEditor.file = new PotatnoDocument(pProject);
+        this.mCodeEditor.project = pProject as unknown as PotatnoProject<PotatnoProjectTypesDefinition>;
+        this.mCodeEditor.file = new PotatnoDocument(pProject) as unknown as PotatnoDocument<PotatnoProjectTypesDefinition>;
     }
 
     /**

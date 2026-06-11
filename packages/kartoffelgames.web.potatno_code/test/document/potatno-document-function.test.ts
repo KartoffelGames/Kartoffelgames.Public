@@ -3,14 +3,13 @@ import { PotatnoDocumentFunction } from '../../source/document/potatno-document-
 import { PotatnoDocumentNode } from '../../source/document/potatno-document-node.ts';
 import { PotatnoDocument } from '../../source/document/potatno-document.ts';
 import { PotatnoHelper } from '../helper/potatno-helper.ts';
-import { TestProject } from '../helper/test-project.ts';
 
 Deno.test('PotatnoDocumentFunction.constructor()', async (pContext) => {
     await pContext.step('Stores id', () => {
         // Setup. Process.
-        const lDocument = new PotatnoDocument(TestProject);
-        const lFunction = new PotatnoDocumentFunction(TestProject, lDocument, {
-            definitionId: TestProject.entryPoint.id,
+        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lFunction = new PotatnoDocumentFunction(PotatnoHelper.TestProject, lDocument, {
+            definitionId: PotatnoHelper.TestProject.entryPoint.id,
             id: 'fn-id',
             label: 'fn-label',
             isSystem: false
@@ -22,9 +21,9 @@ Deno.test('PotatnoDocumentFunction.constructor()', async (pContext) => {
 
     await pContext.step('Stores label', () => {
         // Setup. Process.
-        const lDocument = new PotatnoDocument(TestProject);
-        const lFunction = new PotatnoDocumentFunction(TestProject, lDocument, {
-            definitionId: TestProject.entryPoint.id,
+        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lFunction = new PotatnoDocumentFunction(PotatnoHelper.TestProject, lDocument, {
+            definitionId: PotatnoHelper.TestProject.entryPoint.id,
             id: 'fn-id',
             label: 'fn-label',
             isSystem: false
@@ -36,27 +35,27 @@ Deno.test('PotatnoDocumentFunction.constructor()', async (pContext) => {
 
     await pContext.step('Stores definitionId', () => {
         // Setup. Process.
-        const lDocument = new PotatnoDocument(TestProject);
-        const lFunction = new PotatnoDocumentFunction(TestProject, lDocument, {
-            definitionId: TestProject.entryPoint.id,
+        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lFunction = new PotatnoDocumentFunction(PotatnoHelper.TestProject, lDocument, {
+            definitionId: PotatnoHelper.TestProject.entryPoint.id,
             id: 'fn-id',
             label: 'fn-label',
             isSystem: false
         });
 
         // Evaluation.
-        expect(lFunction.definitionId).toBe(TestProject.entryPoint.id);
+        expect(lFunction.definitionId).toBe(PotatnoHelper.TestProject.entryPoint.id);
     });
 
     await pContext.step('Stores isSystem flag', () => {
         // Setup. Process.
-        const lDocument = new PotatnoDocument(TestProject);
-        const lSystemFunction = new PotatnoDocumentFunction(TestProject, lDocument, {
-            definitionId: TestProject.entryPoint.id,
+        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lSystemFunction = new PotatnoDocumentFunction(PotatnoHelper.TestProject, lDocument, {
+            definitionId: PotatnoHelper.TestProject.entryPoint.id,
             id: 'sys', label: 'sys', isSystem: true
         });
-        const lUserFunction = new PotatnoDocumentFunction(TestProject, lDocument, {
-            definitionId: TestProject.entryPoint.id,
+        const lUserFunction = new PotatnoDocumentFunction(PotatnoHelper.TestProject, lDocument, {
+            definitionId: PotatnoHelper.TestProject.entryPoint.id,
             id: 'usr', label: 'usr', isSystem: false
         });
 
@@ -67,9 +66,9 @@ Deno.test('PotatnoDocumentFunction.constructor()', async (pContext) => {
 
     await pContext.step('Initialises empty nodes set', () => {
         // Setup. Process.
-        const lDocument = new PotatnoDocument(TestProject);
-        const lFunction = new PotatnoDocumentFunction(TestProject, lDocument, {
-            definitionId: TestProject.entryPoint.id,
+        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lFunction = new PotatnoDocumentFunction(PotatnoHelper.TestProject, lDocument, {
+            definitionId: PotatnoHelper.TestProject.entryPoint.id,
             id: 'fn', label: 'fn', isSystem: false
         });
 
@@ -79,9 +78,9 @@ Deno.test('PotatnoDocumentFunction.constructor()', async (pContext) => {
 
     await pContext.step('Initialises empty inputs array', () => {
         // Setup. Process.
-        const lDocument = new PotatnoDocument(TestProject);
-        const lFunction = new PotatnoDocumentFunction(TestProject, lDocument, {
-            definitionId: TestProject.entryPoint.id,
+        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lFunction = new PotatnoDocumentFunction(PotatnoHelper.TestProject, lDocument, {
+            definitionId: PotatnoHelper.TestProject.entryPoint.id,
             id: 'fn', label: 'fn', isSystem: false
         });
 
@@ -91,9 +90,9 @@ Deno.test('PotatnoDocumentFunction.constructor()', async (pContext) => {
 
     await pContext.step('Initialises empty outputs array', () => {
         // Setup. Process.
-        const lDocument = new PotatnoDocument(TestProject);
-        const lFunction = new PotatnoDocumentFunction(TestProject, lDocument, {
-            definitionId: TestProject.entryPoint.id,
+        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lFunction = new PotatnoDocumentFunction(PotatnoHelper.TestProject, lDocument, {
+            definitionId: PotatnoHelper.TestProject.entryPoint.id,
             id: 'fn', label: 'fn', isSystem: false
         });
 
@@ -103,9 +102,9 @@ Deno.test('PotatnoDocumentFunction.constructor()', async (pContext) => {
 
     await pContext.step('Initialises empty imports array', () => {
         // Setup. Process.
-        const lDocument = new PotatnoDocument(TestProject);
-        const lFunction = new PotatnoDocumentFunction(TestProject, lDocument, {
-            definitionId: TestProject.entryPoint.id,
+        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lFunction = new PotatnoDocumentFunction(PotatnoHelper.TestProject, lDocument, {
+            definitionId: PotatnoHelper.TestProject.entryPoint.id,
             id: 'fn', label: 'fn', isSystem: false
         });
 
@@ -120,7 +119,7 @@ Deno.test('PotatnoDocumentFunction.id', async (pContext) => {
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(typeof lFunction.id).toBe('string')
+        expect(typeof lFunction.id).toBe('string');
     });
 });
 
@@ -130,7 +129,7 @@ Deno.test('PotatnoDocumentFunction.definitionId', async (pContext) => {
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(lFunction.definitionId).toBe(TestProject.entryPoint.id);
+        expect(lFunction.definitionId).toBe(PotatnoHelper.TestProject.entryPoint.id);
     });
 });
 
@@ -150,7 +149,7 @@ Deno.test('PotatnoDocumentFunction.project', async (pContext) => {
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(lFunction.project).toBe(TestProject);
+        expect(lFunction.project).toBe(PotatnoHelper.TestProject);
     });
 });
 
@@ -160,7 +159,7 @@ Deno.test('PotatnoDocumentFunction.label', async (pContext) => {
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(lFunction.label).toBe(TestProject.entryPoint.label);
+        expect(lFunction.label).toBe(PotatnoHelper.TestProject.entryPoint.label);
     });
 
     await pContext.step('Setter updates the label', () => {
@@ -186,11 +185,11 @@ Deno.test('PotatnoDocumentFunction.isSystem', async (pContext) => {
 
     await pContext.step('Returns false for user function', () => {
         // Setup.
-        const lDocument = new PotatnoDocument(TestProject);
+        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
 
         // Process.
         const lUserFunction = lDocument.newFunction({
-            definitionId: TestProject.entryPoint.id,
+            definitionId: PotatnoHelper.TestProject.entryPoint.id,
             id: 'usr', label: 'usr', isSystem: false
         });
 
@@ -202,9 +201,9 @@ Deno.test('PotatnoDocumentFunction.isSystem', async (pContext) => {
 Deno.test('PotatnoDocumentFunction.nodes', async (pContext) => {
     await pContext.step('Empty after construction', () => {
         // Setup. Process.
-        const lDocument = new PotatnoDocument(TestProject);
+        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
         const lFunction = lDocument.newFunction({
-            definitionId: TestProject.entryPoint.id,
+            definitionId: PotatnoHelper.TestProject.entryPoint.id,
             id: 'fn', label: 'fn', isSystem: false
         });
 
@@ -308,11 +307,11 @@ Deno.test('PotatnoDocumentFunction.nodeDefinitions', async (pContext) => {
     });
 
     await pContext.step("Includes dynamic definitions returned by the function definition's dynamic callback", () => {
-        // Setup. Helper functions in TestProject have no dynamic provider in
+        // Setup. Helper functions in PotatnoHelper.TestProject have no dynamic provider in
         // the fixture; assert that the calculator's available definitions are a
         // superset of the project's static node definitions.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lProjectIds: Set<string> = new Set(TestProject.nodeDefinitions.map((pDef) => pDef.id));
+        const lProjectIds: Set<string> = new Set(PotatnoHelper.TestProject.nodeDefinitions.map((pDef) => pDef.id));
 
         // Process.
         const lFunctionIds: Set<string> = new Set(lFunction.nodeDefinitions.map((pDef) => pDef.id));
@@ -480,13 +479,13 @@ Deno.test('PotatnoDocumentFunction.removeOutput()', async (pContext) => {
 Deno.test('PotatnoDocumentFunction.addNode()', async (pContext) => {
     await pContext.step('Adds a pre-built node to the nodes set', () => {
         // Setup.
-        const lDocument = new PotatnoDocument(TestProject);
+        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
         const lFunction = lDocument.newFunction({
-            definitionId: TestProject.entryPoint.id,
+            definitionId: PotatnoHelper.TestProject.entryPoint.id,
             id: 'fn', label: 'fn', isSystem: false
         });
-        const lDefinition = TestProject.nodeDefinitions.find((pDef) => pDef.id === 'Add')!;
-        const lExternalNode = new PotatnoDocumentNode(TestProject, lDocument, lFunction, {
+        const lDefinition = PotatnoHelper.TestProject.nodeDefinitions.find((pDef) => pDef.id === 'Add')!;
+        const lExternalNode = new PotatnoDocumentNode(PotatnoHelper.TestProject, lDocument, lFunction, {
             category: lDefinition.category,
             definitionId: lDefinition.id,
             label: lDefinition.label,
@@ -580,7 +579,7 @@ Deno.test('PotatnoDocumentFunction.getExitNodes()', async (pContext) => {
     await pContext.step('Returns nodes whose definitionId matches an exit definition', () => {
         // Setup. Process.
         const { function: lFunction, defaultExit, x10Exit } = PotatnoHelper.setupCalculatorDocument();
-        const lResultDefinitionIds = lFunction.getExitNodes().map((pDefinition)=> {
+        const lResultDefinitionIds = lFunction.getExitNodes().map((pDefinition) => {
             return pDefinition.definitionId;
         });
 
@@ -592,8 +591,8 @@ Deno.test('PotatnoDocumentFunction.getExitNodes()', async (pContext) => {
 
     await pContext.step('Returns empty array when no exit-matching nodes exist', () => {
         // Setup. Build a function with the entry node only - no exit placed.
-        const lEntryDefinition = TestProject.entryPoint;
-        const lDocument = new PotatnoDocument(TestProject);
+        const lEntryDefinition = PotatnoHelper.TestProject.entryPoint;
+        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
         const lFunction = lDocument.newFunction({
             definitionId: lEntryDefinition.id,
             id: 'no-exits', label: 'no-exits', isSystem: true
@@ -612,7 +611,7 @@ Deno.test('PotatnoDocumentFunction.getExitNodes()', async (pContext) => {
 Deno.test('Error: PotatnoDocumentFunction.getExitNodes() on missing definition', async (pContext) => {
     await pContext.step('Throws when the function definition cannot be found', () => {
         // Setup.
-        const lDocument = new PotatnoDocument(TestProject);
+        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
         const lFunction = lDocument.newFunction({
             definitionId: 'no-such-definition',
             id: 'orphan', label: 'orphan', isSystem: true
@@ -647,7 +646,7 @@ Deno.test('PotatnoDocumentFunction - Validation', async (pContext) => {
 
     await pContext.step('Missing function definition', () => {
         // Setup.
-        const lDocument = new PotatnoDocument(TestProject);
+        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
         const lFunction = lDocument.newFunction({
             definitionId: 'no-such-definition',
             id: 'orphan', label: 'orphan', isSystem: true

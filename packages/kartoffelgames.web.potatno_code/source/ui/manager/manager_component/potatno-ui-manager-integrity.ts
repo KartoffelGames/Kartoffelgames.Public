@@ -1,7 +1,8 @@
 import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-item.interface.ts';
 import { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoCodeUiManagerChangeType, PotatnoProjectTypesDefinition, type PotatnoUiManager } from '../potatno-ui-manager.ts';
+import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
+import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatno-ui-manager.ts';
 
 /**
  * Ui manager integrity component.

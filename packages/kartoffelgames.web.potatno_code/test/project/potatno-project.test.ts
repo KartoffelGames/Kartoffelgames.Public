@@ -7,11 +7,7 @@ import { PotatnoImportDefinition } from '../../source/project/potatno-import-def
 import { PotatnoProjectTypesDefinition } from '../../source/project/potatno-project-types-definition.ts';
 import { PotatnoProject } from '../../source/project/potatno-project.ts';
 
-type TestProjectTypeMapping = {
-    number: number;
-}
-
-const lNewBareProject = (): PotatnoProject<PotatnoProjectTypesDefinition<TestProjectTypeMapping>> => {
+const lNewBareProject = (): PotatnoProject<PotatnoProjectTypesDefinition> => {
     const lTypes = new PotatnoProjectTypesDefinition({
         number: {
             default: { string: ['0'], value: 0 },
@@ -256,8 +252,8 @@ Deno.test('PotatnoProject.imports', async (pContext) => {
     await pContext.step('Contains added imports in insertion order', () => {
         // Setup.
         const lProject = lNewBareProject();
-        const lImportOne = new PotatnoImportDefinition<typeof lProject>('one', 'one');
-        const lImportTwo = new PotatnoImportDefinition<typeof lProject>('two', 'two');
+        const lImportOne = new PotatnoImportDefinition<PotatnoProjectTypesDefinition>('one', 'one');
+        const lImportTwo = new PotatnoImportDefinition<PotatnoProjectTypesDefinition>('two', 'two');
 
         // Process.
         lProject.addImport(lImportOne);
@@ -340,7 +336,7 @@ Deno.test('PotatnoProject.addImport()', async (pContext) => {
     await pContext.step('Appends a single import', () => {
         // Setup.
         const lProject = lNewBareProject();
-        const lImport = new PotatnoImportDefinition<typeof lProject>('lib', 'lib');
+        const lImport = new PotatnoImportDefinition<PotatnoProjectTypesDefinition>('lib', 'lib');
 
         // Process.
         lProject.addImport(lImport);
@@ -353,9 +349,9 @@ Deno.test('PotatnoProject.addImport()', async (pContext) => {
     await pContext.step('Appends multiple imports in call order', () => {
         // Setup.
         const lProject = lNewBareProject();
-        const lImportOne = new PotatnoImportDefinition<typeof lProject>('one', 'one');
-        const lImportTwo = new PotatnoImportDefinition<typeof lProject>('two', 'two');
-        const lImportThree = new PotatnoImportDefinition<typeof lProject>('three', 'three');
+        const lImportOne = new PotatnoImportDefinition<PotatnoProjectTypesDefinition>('one', 'one');
+        const lImportTwo = new PotatnoImportDefinition<PotatnoProjectTypesDefinition>('two', 'two');
+        const lImportThree = new PotatnoImportDefinition<PotatnoProjectTypesDefinition>('three', 'three');
 
         // Process.
         lProject.addImport(lImportOne);

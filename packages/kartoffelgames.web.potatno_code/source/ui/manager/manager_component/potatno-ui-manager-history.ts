@@ -1,8 +1,10 @@
 import { PotatnoDocument } from "../../../document/potatno-document.ts";
+import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
+import { PotatnoProject } from "../../../project/potatno-project.ts";
 import { PotatnoDeserializer } from "../../../serialization/potatno-deserializer.ts";
 import { PotatnoCodeFileSerializationResult } from "../../../serialization/potatno-serialization.type.ts";
 import { PotatnoSerializer } from "../../../serialization/potatno-serializer.ts";
-import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoProjectTypesDefinition } from "../potatno-ui-manager.ts";
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from "../potatno-ui-manager.ts";
 
 /**
  * History component of the UI manager.
@@ -135,7 +137,7 @@ export class PotatnoUiManagerHistory {
      * @param pSnapshot - Snapshot to deserialize and display.
      */
     private restoreHistory(pSnapshot: PotatnoCodeFileSerializationResult): void {
-        const lProject: PotatnoProjectTypesDefinition | null = this.mManager.project;
+        const lProject: PotatnoProject<PotatnoProjectTypesDefinition> | null = this.mManager.project;
         if (!lProject) {
             return;
         }

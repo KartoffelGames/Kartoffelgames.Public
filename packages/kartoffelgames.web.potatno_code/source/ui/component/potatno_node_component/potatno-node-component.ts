@@ -2,13 +2,15 @@ import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentEventEmitter, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEvent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoProjectTypesDefinition } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPreviewModule } from "../../module/potatno-preview.module.ts";
 import { NodeCategory, NodeCategoryMeta } from "../../node/node-category.enum.ts";
 import { PotatnoPortComponent, type PortInteractionDetail } from '../potatno_port/potatno-port.ts';
 import nodeCss from './potatno-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
 import { PotatnoPreviewDriver } from "../../../preview/potatno-preview-driver.ts";
+import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
+import { PotatnoProject } from "../../../project/potatno-project.ts";
 
 /**
  * Node component for the potatno-code visual editor.
@@ -135,7 +137,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
             return [];
         }
 
-        const lProject: PotatnoProjectTypesDefinition = this.nodeData.project;
+        const lProject: PotatnoProject<PotatnoProjectTypesDefinition> = this.nodeData.project;
         const lFunctionDefinition = lProject.getFunction(this.nodeData.function.definitionId);
         if (!lFunctionDefinition) {
             return [];

@@ -2,19 +2,18 @@ import { expect } from '@kartoffelgames/core-test';
 import { PotatnoDocumentFunction } from '../../source/document/potatno-document-function.ts';
 import { PotatnoDocumentNode } from '../../source/document/potatno-document-node.ts';
 import { PotatnoDocument } from '../../source/document/potatno-document.ts';
-import { PotatnoProjectTypesDefinition } from "../../source/project/potatno-project-types-definition.ts";
 import { PotatnoSerializer } from '../../source/serialization/potatno-serializer.ts';
 import { PotatnoHelper } from '../helper/potatno-helper.ts';
-import { TestProject } from '../helper/test-project.ts';
+import { PotatnoTestProjectTypesDefinition } from "../helper/potatno_test_project/potatno-test-project-types-definition.ts";
 
 // Structural equivalence helper. Compares functions, nodes, ports, and the
 // connection multiset without depending on node-identity equality (the
 // deserializer creates fresh instances).
-const lExpectDocumentsEquivalent = (pActual: PotatnoDocument<PotatnoProjectTypesDefinition>, pExpected: PotatnoDocument<PotatnoProjectTypesDefinition>): void => {
+const lExpectDocumentsEquivalent = (pActual: PotatnoDocument<PotatnoTestProjectTypesDefinition>, pExpected: PotatnoDocument<PotatnoTestProjectTypesDefinition>): void => {
     expect(pActual.functions.size).toBe(pExpected.functions.size);
 
-    const lExpectedFunctions: Array<PotatnoDocumentFunction<PotatnoProjectTypesDefinition>> = [...pExpected.functions];
-    const lActualFunctions: Array<PotatnoDocumentFunction<PotatnoProjectTypesDefinition>> = [...pActual.functions];
+    const lExpectedFunctions: Array<PotatnoDocumentFunction<PotatnoTestProjectTypesDefinition>> = [...pExpected.functions];
+    const lActualFunctions: Array<PotatnoDocumentFunction<PotatnoTestProjectTypesDefinition>> = [...pActual.functions];
 
     for (let lIndex: number = 0; lIndex < lExpectedFunctions.length; lIndex++) {
         const lExpectedFunction = lExpectedFunctions[lIndex];
@@ -31,8 +30,8 @@ const lExpectDocumentsEquivalent = (pActual: PotatnoDocument<PotatnoProjectTypes
 
         // Compare nodes by definitionId in order. Node id is regenerated each
         // serialize pass so identity comparisons are unreliable.
-        const lExpectedNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = [...lExpectedFunction.nodes];
-        const lActualNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = [...lActualFunction.nodes];
+        const lExpectedNodes: Array<PotatnoDocumentNode<PotatnoTestProjectTypesDefinition>> = [...lExpectedFunction.nodes];
+        const lActualNodes: Array<PotatnoDocumentNode<PotatnoTestProjectTypesDefinition>> = [...lActualFunction.nodes];
         expect(lActualNodes.length).toBe(lExpectedNodes.length);
 
         for (let lNodeIndex: number = 0; lNodeIndex < lExpectedNodes.length; lNodeIndex++) {
@@ -63,7 +62,7 @@ const lExpectDocumentsEquivalent = (pActual: PotatnoDocument<PotatnoProjectTypes
         const lConnectionKey = (pSourceNodeDef: string, pSourcePortId: string, pTargetNodeDef: string, pTargetPortId: string): string =>
             `${pSourceNodeDef}.${pSourcePortId} -> ${pTargetNodeDef}.${pTargetPortId}`;
 
-        const lCollectConnections = (pFunc: PotatnoDocumentFunction<PotatnoProjectTypesDefinition>): Array<string> => {
+        const lCollectConnections = (pFunc: PotatnoDocumentFunction<PotatnoTestProjectTypesDefinition>): Array<string> => {
             const lEntries: Array<string> = [];
             for (const lNode of pFunc.nodes) {
                 for (const lOutputPort of lNode.outputs.list) {
@@ -83,7 +82,7 @@ const lExpectDocumentsEquivalent = (pActual: PotatnoDocument<PotatnoProjectTypes
 Deno.test('PotatnoSerializer.constructor()', async (pContext) => {
     await pContext.step('Construct without arguments', () => {
         // Setup. Process.
-        const lSerializer = new PotatnoSerializer<PotatnoProjectTypesDefinition>();
+        const lSerializer = new PotatnoSerializer<PotatnoTestProjectTypesDefinition>();
 
         // Evaluation.
         expect(lSerializer).toBeDefined();
@@ -94,7 +93,7 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
     await pContext.step('Document Shape', async (pContext) => {
         await pContext.step('Empty document', () => {
             // Setup.
-            const lDocument = new PotatnoDocument(TestProject);
+            const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
 
             // Process.
             const lRoundTripped = PotatnoHelper.roundTrip(lDocument);
@@ -105,9 +104,9 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
 
         await pContext.step('Document with a single empty function', () => {
             // Setup.
-            const lDocument = new PotatnoDocument(TestProject);
+            const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
             lDocument.newFunction({
-                definitionId: TestProject.entryPoint.id,
+                definitionId: PotatnoHelper.TestProject.entryPoint.id,
                 id: 'one', label: 'one', isSystem: false
             });
 
@@ -120,9 +119,9 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
 
         await pContext.step('Document with multiple functions', () => {
             // Setup.
-            const lDocument = new PotatnoDocument(TestProject);
-            lDocument.newFunction({ definitionId: TestProject.entryPoint.id, id: 'a', label: 'a', isSystem: false });
-            lDocument.newFunction({ definitionId: TestProject.entryPoint.id, id: 'b', label: 'b', isSystem: false });
+            const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+            lDocument.newFunction({ definitionId: PotatnoHelper.TestProject.entryPoint.id, id: 'a', label: 'a', isSystem: false });
+            lDocument.newFunction({ definitionId: PotatnoHelper.TestProject.entryPoint.id, id: 'b', label: 'b', isSystem: false });
 
             // Process.
             const lRoundTripped = PotatnoHelper.roundTrip(lDocument);
@@ -146,9 +145,9 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
 
         await pContext.step('Function isSystem flag preserved', () => {
             // Setup. Two functions, one system, one not.
-            const lDocument = new PotatnoDocument(TestProject);
-            lDocument.newFunction({ definitionId: TestProject.entryPoint.id, id: 'sys', label: 'sys', isSystem: true });
-            lDocument.newFunction({ definitionId: TestProject.entryPoint.id, id: 'usr', label: 'usr', isSystem: false });
+            const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+            lDocument.newFunction({ definitionId: PotatnoHelper.TestProject.entryPoint.id, id: 'sys', label: 'sys', isSystem: true });
+            lDocument.newFunction({ definitionId: PotatnoHelper.TestProject.entryPoint.id, id: 'usr', label: 'usr', isSystem: false });
 
             // Process.
             const lRoundTripped = PotatnoHelper.roundTrip(lDocument);
@@ -159,10 +158,10 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
 
         await pContext.step('Function definitionId preserved', () => {
             // Setup.
-            const lDocument = new PotatnoDocument(TestProject);
-            lDocument.newFunction({ definitionId: TestProject.entryPoint.id, id: 'a', label: 'a', isSystem: true });
+            const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+            lDocument.newFunction({ definitionId: PotatnoHelper.TestProject.entryPoint.id, id: 'a', label: 'a', isSystem: true });
             lDocument.newFunction({
-                definitionId: [...TestProject.userFunctions.values()][0].id,
+                definitionId: [...PotatnoHelper.TestProject.userFunctions.values()][0].id,
                 id: 'b', label: 'helperOne', isSystem: false
             });
 
@@ -175,9 +174,9 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
 
         await pContext.step('Function inputs in insertion order', () => {
             // Setup.
-            const lDocument = new PotatnoDocument(TestProject);
+            const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
             const lFunction = lDocument.newFunction({
-                definitionId: TestProject.entryPoint.id, id: 'a', label: 'a', isSystem: false
+                definitionId: PotatnoHelper.TestProject.entryPoint.id, id: 'a', label: 'a', isSystem: false
             });
             lFunction.addInput({ label: 'first', dataType: 'number' as never });
             lFunction.addInput({ label: 'second', dataType: 'string' as never });
@@ -193,9 +192,9 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
 
         await pContext.step('Function outputs in insertion order', () => {
             // Setup.
-            const lDocument = new PotatnoDocument(TestProject);
+            const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
             const lFunction = lDocument.newFunction({
-                definitionId: TestProject.entryPoint.id, id: 'a', label: 'a', isSystem: false
+                definitionId: PotatnoHelper.TestProject.entryPoint.id, id: 'a', label: 'a', isSystem: false
             });
             lFunction.addOutput({ label: 'first', dataType: 'number' as never });
             lFunction.addOutput({ label: 'second', dataType: 'string' as never });
@@ -210,9 +209,9 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
 
         await pContext.step('Function imports in insertion order', () => {
             // Setup.
-            const lDocument = new PotatnoDocument(TestProject);
+            const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
             const lFunction = lDocument.newFunction({
-                definitionId: TestProject.entryPoint.id, id: 'a', label: 'a', isSystem: false
+                definitionId: PotatnoHelper.TestProject.entryPoint.id, id: 'a', label: 'a', isSystem: false
             });
             lFunction.addImport('First');
             lFunction.addImport('Second');
@@ -255,7 +254,7 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
         await pContext.step('Node transformation preserved', () => {
             // Setup.
             const { document, function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-            const lDefinition = TestProject.nodeDefinitions.find((pDef) => pDef.id === 'Add')!;
+            const lDefinition = PotatnoHelper.TestProject.nodeDefinitions.find((pDef) => pDef.id === 'Add')!;
             lFunction.addNodeByDefinition(lDefinition, { x: 99, y: 88, width: 77, height: 66 });
 
             // Process.
@@ -357,8 +356,8 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
         });
     });
 
-    await pContext.step('Full TestProject', async (pContext) => {
-        await pContext.step('Full TestProject calculator scenario', () => {
+    await pContext.step('Full PotatnoHelper.TestProject', async (pContext) => {
+        await pContext.step('Full PotatnoHelper.TestProject calculator scenario', () => {
             // Setup. Realistic graph with helper call, GlobalMultiplier, and If/else.
             const { document, function: lFunction, defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
 
@@ -377,7 +376,7 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
 
             // Add helper function instance and a call site in the main graph.
             const lHelper = document.newFunction({
-                definitionId: [...TestProject.userFunctions.values()][0].id,
+                definitionId: [...PotatnoHelper.TestProject.userFunctions.values()][0].id,
                 id: 'helperOne', label: 'helperOne', isSystem: false
             });
             const lHelperNodeDef = document.nodeDefinitions.find((pDef) => /^USERFUNCTION_helperOne$/.test(pDef.id));

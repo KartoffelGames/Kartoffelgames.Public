@@ -389,7 +389,7 @@ const gMainFunction = new PotatnoFunctionDefinition({
  * use it, but it is exercised by serializer / parser tests via the project
  * generator surface.
  */
-export const TestProject: PotatnoProject<typeof gProjectTypes> = new PotatnoProject(gProjectTypes, gMainFunction, {
+export const TestProject = new PotatnoProject(gProjectTypes, gMainFunction, {
     generator: {
         code: (pContext): string => {
             // Concatenate dependency function bodies first so the entry

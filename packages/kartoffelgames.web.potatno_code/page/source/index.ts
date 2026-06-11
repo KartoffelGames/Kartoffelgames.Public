@@ -1,271 +1,39 @@
 import { PotatnoDocument } from '../../source/document/potatno-document.ts';
 import { PotatnoCodeApplication } from '../../source/potatno-code-application.ts';
-import { PotatnoPreviewDisplay, type PotatnoPreviewDisplayExecutorCallable } from "../../source/preview/potatno-preview-display.ts";
-import { PotatnoPreviewFunctionExecutor } from "../../source/preview/potatno-preview-function-executor.ts";
-import { PotatnoNodeDefinition } from "../../source/project/node_definition/potatno-node-definition.ts";
-import { PotatnoStaticNodeDefinition } from "../../source/project/node_definition/potatno-static-node-definition.ts";
-import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from "../../source/project/potatno-function-definition.ts";
-import { PotatnoImportDefinition } from '../../source/project/potatno-import-definition.ts';
-import { PotatnoProjectTypesDefinition } from "../../source/project/potatno-project-types-definition.ts";
-import { PotatnoProject } from '../../source/project/potatno-project.ts';
+import { PotatnoPreviewDisplay, type PotatnoPreviewDisplayExecutorCallable } from '../../source/preview/potatno-preview-display.ts';
+import { PotatnoPreviewFunctionExecutor } from '../../source/preview/potatno-preview-function-executor.ts';
+import { CanvasProjectMathImportDefinition } from "./project/canvas-project-math-import-definition.ts";
+import { CanvasProjectTimeImportDefinition } from "./project/canvas-project-time-import-definition.ts";
+import { CanvasProject } from './project/canvas-project.ts';
 
-/*
- * Define Project types. 
- */
-const lProjectTypes = new PotatnoProjectTypesDefinition({
-    number: {
-        default: {
-            string: ['0'],
-            value: 0
-        },
-        convert: (pValues: Array<string>) => {
-            const lNumberString: string = pValues[0];
-            const lNumber: number = parseFloat(lNumberString);
-            if (isNaN(lNumber)) {
-                throw new Error(`Invalid number: "${lNumberString}"`);
-            }
-            return lNumber.toString();
-        },
-        inputs: [
-            { name: 'value', type: 'number' }
-        ]
-    },
-    string: {
-        default: {
-            string: [''],
-            value: ''
-        },
-        convert: (pValues: Array<string>) => {
-            return pValues[0];
-        },
-        inputs: [
-            { name: 'value', type: 'string' }
-        ]
-    },
-    boolean: {
-        default: {
-            string: ['false'],
-            value: false
-        },
-        convert: (pValues: Array<string>) => {
-            const lBooleanString: string = pValues[0].toLowerCase();
-            if (lBooleanString === 'true') {
-                return 'true';
-            } else if (lBooleanString === 'false') {
-                return 'false';
-            } else {
-                throw new Error(`Invalid boolean: "${pValues[0]}"`);
-            }
-        },
-        inputs: [
-            { name: 'value', type: 'boolean' }
-        ]
-    }
-});
+const lProject = new CanvasProject();
 
-/*
- * Define project functions. 
- */
-const lEntryFunction = new PotatnoFunctionDefinition({
-    id: 'pixelShader',
-    label: 'Pixel Shader',
-    statics: PotatnoFunctionDefinitionStatics.imports | PotatnoFunctionDefinitionStatics.inputs,
-    nodes: {
-        entry: (pAddNode) => {
-            // OnPixel: provides normalized x/y coordinates (0-1 range) as the function's
-            // parameters. Wraps every downstream node's code into an arrow-function body.
-            pAddNode(new PotatnoStaticNodeDefinition({
-                id: 'OnPixel',
-                label: 'OnPixel',
-                category: 'event',
-                ports: {
-                    inputs: [],
-                    outputs: [
-                        { label: 'exec', id: 'exec', portType: 'flow' },
-                        { label: 'x', id: 'x', portType: 'value', dataType: 'number' },
-                        { label: 'y', id: 'y', portType: 'value', dataType: 'number' }
-                    ]
-                },
-                generators: {
-                    code: (pContext) => {
-                        // x and y become the function parameters; the exec flow output's
-                        // inner code is every node downstream of OnPixel, ending with
-                        // PixelResult's `return [...]` statement.
-                        const lX: string = pContext.outputs['x'].value;
-                        const lY: string = pContext.outputs['y'].value;
-                        return `(${lX}, ${lY}) => { ${pContext.outputs['exec'].code.inner} }`;
-                    }
-                }
-            }));
-        },
-        exit: (pAddNode) => {
-            // PixelResult: receives RGB and emits the function's `return [r, g, b];` statement.
-            pAddNode(new PotatnoStaticNodeDefinition({
-                id: 'PixelResult',
-                label: 'PixelResult',
-                category: "Output",
-                ports: {
-                    inputs: [
-                        { label: 'exec', id: 'exec', portType: 'flow' },
-                        { label: 'red', id: 'red', portType: 'value', dataType: 'number' },
-                        { label: 'green', id: 'green', portType: 'value', dataType: 'number' },
-                        { label: 'blue', id: 'blue', portType: 'value', dataType: 'number' }
-                    ],
-                    outputs: []
-                },
-                generators: {
-                    code: (pContext) => {
-                        return `return [${pContext.inputs["red"].value}, ${pContext.inputs["green"].value}, ${pContext.inputs["blue"].value}];`;
-                    }
-                }
-            }));
-        }
-    },
-    generator: {
-        code: {
-            body: (pResult) => {
-                // Build the function declaration. Use the function's `definitionId` (an
-                // identifier-safe slug) — `label` can contain spaces and would be invalid JS.
-                const lGraph = pResult.graphResultOf('OnPixel');
-                return `const ${pResult.function.definitionId} = ${lGraph?.code ?? '() => [0, 0, 0]'};`;
-            },
-            value: (pContext) => {
-                // Call-site expression when this function is used as a node in another graph.
-                // Not exercised by the function-level pixel-shader preview itself.
-                return `${pContext.function.definitionId}()`;
-            }
-        }
-    },
-});
-
-const lUserFunction = new PotatnoFunctionDefinition({
-    id: 'Helper Function',
-    label: 'Helper Function',
-    statics: PotatnoFunctionDefinitionStatics.none,
-    nodes: {
-        entry: (pAddNode, pFunction) => {
-            // HelperFunctionEntry: provides entry point for the helper function
-            pAddNode(new PotatnoNodeDefinition({
-                id: 'HelperFunctionEntry',
-                label: 'Entry',
-                category: 'event',
-                generators: {
-                    ports: {
-                        outputs: (pAddPort) => {
-                            // Add single execution output port.
-                            pAddPort({ label: 'exec', id: 'exec', portType: 'flow' });
-
-                            // Add all function outputs as ports on the entry node.
-                            for (const output of pFunction.inputs) {
-                                pAddPort({ label: output.label, id: output.label, portType: 'value', dataType: output.dataType });
-                            }
-                        },
-                        inputs: () => { }
-                    },
-                    code: (pContext) => {
-                        // Wrap the downstream flow in an arrow function whose parameters are this
-                        // entry node's value outputs (i.e. the function inputs).
-                        const lParameters: string = Object.entries(pContext.outputs)
-                            .filter(([lId]) => lId !== 'exec')
-                            .map(([, lOutput]) => lOutput.value)
-                            .join(', ');
-                        return `(${lParameters}) => { ${pContext.outputs['exec'].code.inner} }`;
-                    }
-                }
-            }));
-        },
-        exit: (pAddNode, pFunction) => {
-            // HelperFunctionReturn: provides exit point for the helper function
-            pAddNode(new PotatnoNodeDefinition({
-                id: 'HelperFunctionReturn',
-                label: 'Return',
-                category: 'event',
-                generators: {
-                    ports: {
-                        outputs: () => { },
-                        inputs: (pAddPort) => {
-                            // Add single execution output port.
-                            pAddPort({ label: 'exec', id: 'exec', portType: 'flow' });
-
-                            // Add all function outputs as ports on the return node.
-                            for (const output of pFunction.outputs) {
-                                pAddPort({ label: output.label, id: output.label, portType: 'value', dataType: output.dataType });
-                            }
-                        }
-                    },
-                    code: (pContext) => {
-                        // Emit a single return of an object keyed by output label (this node's
-                        // value inputs are the function outputs). Flow inputs are not in pContext.inputs.
-                        const lReturnFields: string = Object.entries(pContext.inputs)
-                            .map(([lId, lInput]) => `${lId}: (${lInput.value})`)
-                            .join(', ');
-                        return `return { ${lReturnFields} };`;
-                    }
-                }
-            }));
-        }
-    },
-    generator: {
-        code: {
-            body: (pResult) => {
-                // Declare the function as `const <fnName> = (params) => { ...; return {...}; };`.
-                // The name is a JS-safe identifier derived from the function instance id so
-                // multiple instances of the same definition never collide.
-                const lFunctionName: string = `__fn_${pResult.function.id.replaceAll('-', '_')}`;
-                const lGraph = pResult.graphResultOf('HelperFunctionEntry');
-                return `const ${lFunctionName} = ${lGraph?.code ?? '() => ({})'};`;
-            },
-            value: (pContext) => {
-                // Call site: invoke the function and destructure its returned object into the call
-                // node's value outputs (keyed by output label). The trailing flow output continues
-                // the surrounding graph.
-                const lFunctionName: string = `__fn_${pContext.function.id.replaceAll('-', '_')}`;
-                const lArgs: string = Object.entries(pContext.inputs)
-                    .map(([, lInput]) => lInput.value)
-                    .join(', ');
-                const lDestructure: string = Object.entries(pContext.outputs)
-                    .filter(([lId]) => lId !== 'Output')
-                    .map(([lId, lOutput]) => `${lId}: ${lOutput.value}`)
-                    .join(', ');
-                const lFlowNext: string = pContext.outputs['Output']?.code.inner ?? '';
-
-                if (lDestructure === '') {
-                    return `${lFunctionName}(${lArgs}); ${lFlowNext}`;
-                }
-
-                return `const { ${lDestructure} } = ${lFunctionName}(${lArgs}); ${lFlowNext}`;
-            }
-        }
-    }
-});
+lProject.addImport(new CanvasProjectMathImportDefinition());
+lProject.addImport(new CanvasProjectTimeImportDefinition());
 
 /*
  * Define function executors for previews.
  */
 
-// Resolution of the canvas preview surface. Iteration cost scales with width * height, so keep
-// it small for the demo — 48x48 fills in a couple of milliseconds and gives a recognisable image.
+// Resolution of the canvas preview surface. Iteration cost scales with width * height.
 const gPreviewWidth: number = 48;
 const gPreviewHeight: number = 48;
 
 /**
- * Shape of the compiled function-level callable: takes the pixel coords and returns an
- * `[r, g, b]` triple, each component in the `[0, 1]` range. Defined once so both the build
- * callback and the display loop reference the same contract.
+ * Shape of the compiled function-level callable.
  */
 type PixelCallable = (pX: number, pY: number) => [number, number, number];
+type CanvasProjectType = 'number' | 'string' | 'boolean';
+type CanvasPreviewResultType = CanvasProjectType | typeof PotatnoPreviewFunctionExecutor.MAIN;
 
-const lEntryFunctionExecutor = new PotatnoPreviewFunctionExecutor(lEntryFunction, {
-    defaultParameters: { x: 0, y: 0 }, // Iteration parameter defaults; the display overrides them per call.
+const lEntryFunctionExecutor = new PotatnoPreviewFunctionExecutor<CanvasProject, { x: number; y: number; }, CanvasPreviewResultType>(lProject.entryPoint, {
+    defaultParameters: { x: 0, y: 0 },
     types: [PotatnoPreviewFunctionExecutor.MAIN, 'number', 'string', 'boolean'],
     build: (pExecutor, pGeneratorResult, pPortTarget) => {
         const lFunctionCode: string = pGeneratorResult.code;
         const lFunctionName: string = pExecutor.function.id;
 
-        // Function-level path (no port target). `pGeneratorResult.code` is a full
-        // `const pixelShader = (x, y) => {...};` declaration. Compile inside a wrapper and grab the
-        // named function back out — its natural return is the `[r, g, b]` array. The reported type
-        // `rgb` has no per-type adapter, so the driver passes the triple straight to the display.
+        // Compile the whole function preview when no port is targeted.
         if (!pPortTarget) {
             const lCompiled: PixelCallable = new Function(`${lFunctionCode}\nreturn ${lFunctionName};`)() as PixelCallable;
             return {
@@ -274,49 +42,38 @@ const lEntryFunctionExecutor = new PotatnoPreviewFunctionExecutor(lEntryFunction
             };
         }
 
-        // Per-node path. `pGeneratorResult.code` is the FULL function declaration (with deps), so
-        // the input node already supplies the (x, y) interface and the previewed value is computed
-        // in context. Replace the targeted output port's valueId hook with a `return` so the
-        // function yields that intermediate value; the display's adapter for the port's data type
-        // then coerces it. Code after the injected return is dead.
+        // Replace the targeted value hook with an early return for per-node previews.
         const lHookMarker: string = `/*[${pPortTarget.value}]*/`;
         const lInstrumented: string = lFunctionCode.includes(lHookMarker)
             ? lFunctionCode.replace(lHookMarker, `; return ${pPortTarget.value};`)
             : lFunctionCode;
         const lNodeFn: (pX: number, pY: number) => unknown = new Function(`${lInstrumented}\nreturn ${lFunctionName};`)() as (pX: number, pY: number) => unknown;
         return {
-            type: pPortTarget.documentPort.resolvedDataType,
+            type: getCanvasPreviewResultType(pPortTarget.documentPort.resolvedDataType),
             execute: (pParameters: { x: number; y: number; }): unknown => lNodeFn(pParameters.x, pParameters.y)
         };
     }
 });
 
 /**
- * Executor for previewing a USER function's output. The function is evaluated once with every input
- * at its type default; the targeted exit input port's definition id keys the function's returned
- * object, and that field is rendered via the display's adapter for the port's data type.
+ * Executor for previewing a user function output.
  */
-const lUserFunctionExecutor = new PotatnoPreviewFunctionExecutor(lUserFunction, {
-    defaultParameters: { x: 0, y: 0 }, // Match the display; coordinates are ignored (output is constant).
+const lUserFunctionExecutor = new PotatnoPreviewFunctionExecutor<CanvasProject, { x: number; y: number; }, CanvasProjectType>(lProject.userFunction, {
+    defaultParameters: { x: 0, y: 0 },
     types: ['number', 'string', 'boolean'],
     build: (pExecutor, pGeneratorResult, pPortTarget) => {
-        // User-function previews always target a specific port; without a port target there is
-        // nothing to show.
         if (!pPortTarget) {
-            return { type: 'number', execute: (): number => 0 };
+            return { type: 'number' as const, execute: (): number => 0 };
         }
 
-        // `pGeneratorResult.code` declares `const __fn_<instanceId> = (in0, in1, ...) => { ...; return { out: ... }; };`.
-        // Call it with each input at its type default and return the selected output field.
         const lFunction = pGeneratorResult.entryPoint.function;
         const lFunctionName: string = `__fn_${lFunction.id.replaceAll('-', '_')}`;
-        const lLooseTypes = pExecutor.projectTypes as PotatnoProjectTypesDefinition<string>;
-        const lDefaultArguments: Array<unknown> = lFunction.inputs.map((pInput) => lLooseTypes.getDefaultValue(pInput.dataType));
+        const lDefaultArguments: Array<unknown> = lFunction.inputs.map((pInput) => pExecutor.projectTypes.getDefaultValue(getCanvasProjectType(pInput.dataType)));
         const lOutputKey: string = pPortTarget.value;
 
         const lCompiled: (...pArgs: Array<unknown>) => Record<string, unknown> = new Function(`${pGeneratorResult.code}\nreturn ${lFunctionName};`)() as (...pArgs: Array<unknown>) => Record<string, unknown>;
         return {
-            type: pPortTarget.documentPort.resolvedDataType,
+            type: getCanvasProjectType(pPortTarget.documentPort.resolvedDataType),
             execute: (): unknown => {
                 const lResult: Record<string, unknown> = lCompiled(...lDefaultArguments);
                 return lResult ? lResult[lOutputKey] : undefined;
@@ -332,7 +89,6 @@ const lUserFunctionExecutor = new PotatnoPreviewFunctionExecutor(lUserFunction, 
 const lEntryCanvas2dPreviewDisplay = new PotatnoPreviewDisplay(lEntryFunctionExecutor, {
     id: '2dCanvas',
     generate: (): HTMLCanvasElement => {
-        // Off-DOM canvas — the preview panel re-parents this element into its content area.
         const lCanvas: HTMLCanvasElement = document.createElement('canvas');
         lCanvas.width = gPreviewWidth;
         lCanvas.height = gPreviewHeight;
@@ -346,9 +102,6 @@ const lEntryCanvas2dPreviewDisplay = new PotatnoPreviewDisplay(lEntryFunctionExe
             return pInputValue;
         },
         'number': (pInputValue: number): [number, number, number] => {
-            // `pInputValue` is inferred as `number` from lProjectTypes.number.default.value.
-            // Per-node previews evaluate a single number; this adapter widens that into a
-            // grayscale RGB triple so the canvas can paint it uniformly.
             return [pInputValue, pInputValue, pInputValue];
         },
         'boolean': (pInputValue: boolean): [number, number, number] => {
@@ -357,37 +110,7 @@ const lEntryCanvas2dPreviewDisplay = new PotatnoPreviewDisplay(lEntryFunctionExe
         }
     },
     update: async (pElement, pExecutor: PotatnoPreviewDisplayExecutorCallable<{ x: number; y: number; }, [number, number, number]>) => {
-        // The executor annotation declares the display's iteration parameter and result shapes —
-        // they must match the paired executor's `parameters` at registration time. The display
-        // owns the outer iteration loop; adapter coercion is already applied.
-        const lContext: CanvasRenderingContext2D | null = pElement.getContext('2d');
-        if (!lContext) {
-            return;
-        }
-
-        const lWidth: number = pElement.width;
-        const lHeight: number = pElement.height;
-        const lImageData: ImageData = lContext.createImageData(lWidth, lHeight);
-        const lPixels: Uint8ClampedArray = lImageData.data;
-
-        for (let lY = 0; lY < lHeight; lY++) {
-            for (let lX = 0; lX < lWidth; lX++) {
-                // Normalise to [0, 1] so the shader code can stay resolution-agnostic.
-                const lNormalizedX: number = lX / lWidth;
-                const lNormalizedY: number = lY / lHeight;
-                const lRgb: [number, number, number] = await Promise.resolve(pExecutor({ x: lNormalizedX, y: lNormalizedY }));
-
-                const lOffset: number = (lY * lWidth + lX) * 4;
-                // Clamp each component, scale to 8-bit, and write RGBA. Out-of-range or NaN
-                // values from the user's graph fall back to black so the preview never crashes.
-                lPixels[lOffset] = Math.floor(Math.max(0, Math.min(1, lRgb[0] || 0)) * 255);
-                lPixels[lOffset + 1] = Math.floor(Math.max(0, Math.min(1, lRgb[1] || 0)) * 255);
-                lPixels[lOffset + 2] = Math.floor(Math.max(0, Math.min(1, lRgb[2] || 0)) * 255);
-                lPixels[lOffset + 3] = 255;
-            }
-        }
-
-        lContext.putImageData(lImageData, 0, 0);
+        await updateCanvasPreview(pElement, pExecutor);
     }
 });
 
@@ -412,575 +135,24 @@ const lUserCanvas2dPreviewDisplay = new PotatnoPreviewDisplay(lUserFunctionExecu
         }
     },
     update: async (pElement, pExecutor: PotatnoPreviewDisplayExecutorCallable<{ x: number; y: number; }, [number, number, number]>) => {
-        const lContext: CanvasRenderingContext2D | null = pElement.getContext('2d');
-        if (!lContext) {
-            return;
-        }
-
-        const lWidth: number = pElement.width;
-        const lHeight: number = pElement.height;
-        const lImageData: ImageData = lContext.createImageData(lWidth, lHeight);
-        const lPixels: Uint8ClampedArray = lImageData.data;
-
-        for (let lY = 0; lY < lHeight; lY++) {
-            for (let lX = 0; lX < lWidth; lX++) {
-                const lNormalizedX: number = lX / lWidth;
-                const lNormalizedY: number = lY / lHeight;
-                const lRgb: [number, number, number] = await Promise.resolve(pExecutor({ x: lNormalizedX, y: lNormalizedY }));
-
-                const lOffset: number = (lY * lWidth + lX) * 4;
-                lPixels[lOffset] = Math.floor(Math.max(0, Math.min(1, lRgb[0] || 0)) * 255);
-                lPixels[lOffset + 1] = Math.floor(Math.max(0, Math.min(1, lRgb[1] || 0)) * 255);
-                lPixels[lOffset + 2] = Math.floor(Math.max(0, Math.min(1, lRgb[2] || 0)) * 255);
-                lPixels[lOffset + 3] = 255;
-            }
-        }
-
-        lContext.putImageData(lImageData, 0, 0);
+        await updateCanvasPreview(pElement, pExecutor);
     }
 });
 
-/*
- * Project configuration. 
- */
-
-const lProject = new PotatnoProject(lProjectTypes, lEntryFunction, {
-    generator: {
-        code: (pContext) => {
-            let lCodeResult: string = '';
-
-            // Append dependency function declarations first so the entry point can call them.
-            for (const lDependency of pContext.dependencies) {
-                lCodeResult += `${lDependency.code}\n`;
-            }
-
-            // Then the entry point function declaration itself.
-            lCodeResult += pContext.entryPoint.code;
-
-            return lCodeResult;
-        },
-        values: {
-            valueId: (pValueIndex: number) => {
-                return `v_${pValueIndex}`;
-            },
-            hook: (pValueId: string) => {
-                return `/*[${pValueId}]*/`;
-            }
-        }
-
-    }
-});
-
-lProject.setDynamicFunction(lUserFunction);
 lProject.preview.addDisplay(lEntryCanvas2dPreviewDisplay);
 lProject.preview.addDisplay(lUserCanvas2dPreviewDisplay);
 
-// --- Imports ---
-const lMathImport = new PotatnoImportDefinition<typeof lProject>('Math', 'Math');
-lMathImport.addNode(new PotatnoStaticNodeDefinition({
-    id: 'Math.PI',
-    label: 'Math.PI',
-    category: 'value',
-    ports: {
-        inputs: [],
-        outputs: [
-            { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `const ${pContext.outputs["value"].value} = Math.PI;`
-    }
-}));
-lMathImport.addNode(new PotatnoStaticNodeDefinition({
-    id: 'Math.E',
-    label: 'Math.E',
-    category: 'value',
-    ports: {
-        inputs: [],
-        outputs: [
-            { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `const ${pContext.outputs["value"].value} = Math.E;`
-    }
-}));
-lMathImport.addNode(new PotatnoStaticNodeDefinition({
-    id: 'Math.abs',
-    label: 'Math.abs',
-    category: 'Function',
-    ports: {
-        inputs: [
-            { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
-        ],
-        outputs: [
-            { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].value} = Math.abs(${pContext.inputs["value"].value});`
-    }
-}));
-lMathImport.addNode(new PotatnoStaticNodeDefinition({
-    id: 'Math.floor',
-    label: 'Math.floor',
-    category: 'Function',
-    ports: {
-        inputs: [
-            { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
-        ],
-        outputs: [
-            { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].value} = Math.floor(${pContext.inputs["value"].value});`
-    }
-}));
-lMathImport.addNode(new PotatnoStaticNodeDefinition({
-    id: 'Math.random',
-    label: 'Math.random',
-    category: 'Function',
-    ports: {
-        inputs: [],
-        outputs: [
-            { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].value} = Math.random();`
-    }
-}));
-lMathImport.addNode(new PotatnoStaticNodeDefinition({
-    id: 'Math.sin',
-    label: 'Math.sin',
-    category: 'Function',
-    ports: {
-        inputs: [
-            { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
-        ],
-        outputs: [
-            { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].value} = Math.sin(${pContext.inputs["value"].value});`
-    }
-}));
-lMathImport.addNode(new PotatnoStaticNodeDefinition({
-    id: 'Math.cos',
-    label: 'Math.cos',
-    category: 'Function',
-    ports: {
-        inputs: [
-            { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
-        ],
-        outputs: [
-            { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].value} = Math.cos(${pContext.inputs["value"].value});`
-    }
-}));
-lProject.addImport(lMathImport);
-
-const lTimeImport = new PotatnoImportDefinition<typeof lProject>('Time', 'Time');
-lTimeImport.addNode(new PotatnoStaticNodeDefinition({
-    id: 'CurrentTime',
-    label: 'CurrentTime',
-    category: 'value',
-    ports: {
-        inputs: [],
-        outputs: [
-            { label: 'seconds', id: 'seconds', portType: 'value', dataType: 'number' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `const ${pContext.outputs["seconds"].value} = (performance.now() / 1000);`
-    }
-}));
-lProject.addImport(lTimeImport);
-
-// --- Operator Nodes: Arithmetic ---
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
-    id: 'Add',
-    label: 'Add',
-    category: 'operator',
-    ports: {
-        inputs: [
-            { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
-            { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
-        ],
-        outputs: [
-            { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} + ${pContext.inputs["b"].value};`
-    }
-}));
-
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
-    id: 'Subtract',
-    label: 'Subtract',
-    category: 'operator',
-    ports: {
-        inputs: [
-            { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
-            { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
-        ],
-        outputs: [
-            { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} - ${pContext.inputs["b"].value};`
-    }
-}));
-
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
-    id: 'Multiply',
-    label: 'Multiply',
-    category: 'operator',
-    ports: {
-        inputs: [
-            { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
-            { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
-        ],
-        outputs: [
-            { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
-        ]
-    },
-    generators: {
-        code: (pContext) => {
-            return `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} * ${pContext.inputs["b"].value};` +
-                `/*MULTIPLYHOOK_${pContext.outputs["result"].value}*/`;
-        }
-    }
-}));
-
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
-    id: 'Divide',
-    label: 'Divide',
-    category: 'operator',
-    ports: {
-        inputs: [
-            { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
-            { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
-        ],
-        outputs: [
-            { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
-        ]
-    },
-    generators: {
-        code: (pContext) => {
-            return `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} / ${pContext.inputs["b"].value};`;
-        }
-    }
-}));
-
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
-    id: 'Modulo',
-    label: 'Modulo',
-    category: 'operator',
-    ports: {
-        inputs: [
-            { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
-            { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
-        ],
-        outputs: [
-            { label: 'result', id: 'result', portType: 'value', dataType: 'number' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} % ${pContext.inputs["b"].value};`
-    }
-}));
-
-// --- Operator Nodes: Comparison ---
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
-    id: 'Equal',
-    label: 'Equal',
-    category: 'operator',
-    ports: {
-        inputs: [
-            { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
-            { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
-        ],
-        outputs: [
-            { label: 'result', id: 'result', portType: 'value', dataType: 'boolean' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} === ${pContext.inputs["b"].value};`
-    }
-}));
-
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
-    id: 'Not Equal',
-    label: 'Not Equal',
-    category: 'operator',
-    ports: {
-        inputs: [
-            { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
-            { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
-        ],
-        outputs: [
-            { label: 'result', id: 'result', portType: 'value', dataType: 'boolean' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} !== ${pContext.inputs["b"].value};`
-    }
-}));
-
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
-    id: 'Less Than',
-    label: 'Less Than',
-    category: 'operator',
-    ports: {
-        inputs: [
-            { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
-            { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
-        ],
-        outputs: [
-            { label: 'result', id: 'result', portType: 'value', dataType: 'boolean' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} < ${pContext.inputs["b"].value};`
-    }
-}));
-
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
-    id: 'Greater Than',
-    label: 'Greater Than',
-    category: 'operator',
-    ports: {
-        inputs: [
-            { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
-            { label: 'b', id: 'b', portType: 'value', dataType: 'number' }
-        ],
-        outputs: [
-            { label: 'result', id: 'result', portType: 'value', dataType: 'boolean' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} > ${pContext.inputs["b"].value};`
-    }
-}));
-
-// --- Operator Nodes: Logic ---
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
-    id: 'And',
-    label: 'And',
-    category: 'operator',
-    ports: {
-        inputs: [
-            { label: 'a', id: 'a', portType: 'value', dataType: 'boolean' },
-            { label: 'b', id: 'b', portType: 'value', dataType: 'boolean' }
-        ],
-        outputs: [
-            { label: 'result', id: 'result', portType: 'value', dataType: 'boolean' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} && ${pContext.inputs["b"].value};`
-    }
-}));
-
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
-    id: 'Or',
-    label: 'Or',
-    category: 'operator',
-    ports: {
-        inputs: [
-            { label: 'a', id: 'a', portType: 'value', dataType: 'boolean' },
-            { label: 'b', id: 'b', portType: 'value', dataType: 'boolean' }
-        ],
-        outputs: [
-            { label: 'result', id: 'result', portType: 'value', dataType: 'boolean' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} || ${pContext.inputs["b"].value};`
-    }
-}));
-
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
-    id: 'Not',
-    label: 'Not',
-    category: 'operator',
-    ports: {
-        inputs: [
-            { label: 'a', id: 'a', portType: 'value', dataType: 'boolean' }
-        ],
-        outputs: [
-            { label: 'result', id: 'result', portType: 'value', dataType: 'boolean' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].value} = !${pContext.inputs["a"].value};`
-    }
-}));
-
-// --- Type Conversion Nodes ---
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
-    id: 'Number to String',
-    label: 'Number to String',
-    category: 'type-conversion',
-    ports: {
-        inputs: [
-            { label: 'input', id: 'input', portType: 'value', dataType: 'number' }
-        ],
-        outputs: [
-            { label: 'output', id: 'output', portType: 'value', dataType: 'string' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `const ${pContext.outputs["output"].value} = String(${pContext.inputs["input"].value});`
-    }
-}));
-
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
-    id: 'String to Number',
-    label: 'String to Number',
-    category: 'type-conversion',
-    ports: {
-        inputs: [
-            { label: 'input', id: 'input', portType: 'value', dataType: 'string' }
-        ],
-        outputs: [
-            { label: 'output', id: 'output', portType: 'value', dataType: 'number' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `const ${pContext.outputs["output"].value} = Number(${pContext.inputs["input"].value});`
-    }
-}));
-
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
-    id: 'Boolean to String',
-    label: 'Boolean to String',
-    category: 'type-conversion',
-    ports: {
-        inputs: [
-            { label: 'input', id: 'input', portType: 'value', dataType: 'boolean' }
-        ],
-        outputs: [
-            { label: 'output', id: 'output', portType: 'value', dataType: 'string' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `const ${pContext.outputs["output"].value} = String(${pContext.inputs["input"].value});`
-    }
-}));
-
-// --- Flow Nodes ---
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
-    id: 'If',
-    label: 'If',
-    category: 'flow',
-    ports: {
-        inputs: [
-            { label: 'exec', id: 'exec', portType: 'flow' },
-            { label: 'condition', id: 'condition', portType: 'value', dataType: 'boolean' }
-        ],
-        outputs: [
-            { label: 'then', id: 'then', portType: 'flow' },
-            { label: 'else', id: 'else', portType: 'flow' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `if (${pContext.inputs["condition"].value}) {\n${pContext.outputs["then"].code.inner}\n} else {\n${pContext.outputs["else"].code.inner}\n}`
-    }
-}));
-
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
-    id: 'While',
-    label: 'While',
-    category: 'flow',
-    ports: {
-        inputs: [
-            { label: 'exec', id: 'exec', portType: 'flow' },
-            { label: 'condition', id: 'condition', portType: 'value', dataType: 'boolean' }
-        ],
-        outputs: [
-            { label: 'body', id: 'body', portType: 'flow' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `while (${pContext.inputs["condition"].value}) {\n${pContext.outputs["body"].code.inner}\n}`
-    }
-}));
-
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
-    id: 'For Loop',
-    label: 'For Loop',
-    category: 'flow',
-    ports: {
-        inputs: [
-            { label: 'exec', id: 'exec', portType: 'flow' },
-            { label: 'count', id: 'count', portType: 'value', dataType: 'number' }
-        ],
-        outputs: [
-            { label: 'exec', id: 'exec', portType: 'flow' },
-            { label: 'index', id: 'index', portType: 'value', dataType: 'number' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `for (let ${pContext.outputs["index"].value} = 0; ${pContext.outputs["index"].value} < ${pContext.inputs["count"].value}; ${pContext.outputs["index"].value}++) {\n${pContext.outputs["exec"].code.inner}\n}`
-    }
-}));
-
-// --- Function Nodes ---
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
-    id: 'Console Log',
-    label: 'Console Log',
-    category: 'Function',
-    ports: {
-        inputs: [{ label: 'message', id: 'message', portType: 'value', dataType: 'string' }],
-        outputs: []
-    },
-    generators: {
-        code: ({ inputs }) => `console.log(${inputs["message"].value});`
-    }
-}));
-
-lProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
-    id: 'String Concat',
-    label: 'String Concat',
-    category: 'Function',
-    ports: {
-        inputs: [
-            { label: 'a', id: 'a', portType: 'value', dataType: 'string' },
-            { label: 'b', id: 'b', portType: 'value', dataType: 'string' }
-        ],
-        outputs: [
-            { label: 'result', id: 'result', portType: 'value', dataType: 'string' }
-        ]
-    },
-    generators: {
-        code: (pContext) => `const ${pContext.outputs["result"].value} = ${pContext.inputs["a"].value} + ${pContext.inputs["b"].value};`
-    }
-}));
-
-// --- Create application and open an empty file ---
+// Create application and open an empty file.
 const lApp = new PotatnoCodeApplication(lProject);
 lApp.appendTo(document.body);
 lApp.document = new PotatnoDocument(lProject);
 
-// --- Pixel shader render loop ---
+void renderFrame();
+
+/**
+ * Render all node previews on every animation frame.
+ */
 async function renderFrame(): Promise<void> {
-    // Update node element previews once per frame. Awaited so a slow render pass (previews paint
-    // per-pixel via microtasks) cannot overlap the next frame's pass and snowball the queue.
-    //
-    // The await must never let an error stop the loop: per-driver failures are already isolated
-    // inside the manager, but a rejection escaping that (e.g. a scripting error in a preview)
-    // would otherwise skip the requestAnimationFrame below and permanently freeze every preview.
-    // Swallow it here so the next frame is always scheduled; the underlying error is already
-    // logged by the manager.
     try {
         await lApp.update();
     } catch (lError) {
@@ -990,4 +162,66 @@ async function renderFrame(): Promise<void> {
     requestAnimationFrame(renderFrame);
 }
 
-void renderFrame();
+/**
+ * Paint a canvas preview by executing the preview callback for every pixel.
+ *
+ * @param pElement - Canvas element to paint.
+ * @param pExecutor - Preview executor callable.
+ */
+async function updateCanvasPreview(pElement: HTMLCanvasElement, pExecutor: PotatnoPreviewDisplayExecutorCallable<{ x: number; y: number; }, [number, number, number]>): Promise<void> {
+    const lContext: CanvasRenderingContext2D | null = pElement.getContext('2d');
+    if (!lContext) {
+        return;
+    }
+
+    const lWidth: number = pElement.width;
+    const lHeight: number = pElement.height;
+    const lImageData: ImageData = lContext.createImageData(lWidth, lHeight);
+    const lPixels: Uint8ClampedArray = lImageData.data;
+
+    for (let lY = 0; lY < lHeight; lY++) {
+        for (let lX = 0; lX < lWidth; lX++) {
+            const lNormalizedX: number = lX / lWidth;
+            const lNormalizedY: number = lY / lHeight;
+            const lRgb: [number, number, number] = await Promise.resolve(pExecutor({ x: lNormalizedX, y: lNormalizedY }));
+
+            const lOffset: number = (lY * lWidth + lX) * 4;
+            lPixels[lOffset] = Math.floor(Math.max(0, Math.min(1, lRgb[0] || 0)) * 255);
+            lPixels[lOffset + 1] = Math.floor(Math.max(0, Math.min(1, lRgb[1] || 0)) * 255);
+            lPixels[lOffset + 2] = Math.floor(Math.max(0, Math.min(1, lRgb[2] || 0)) * 255);
+            lPixels[lOffset + 3] = 255;
+        }
+    }
+
+    lContext.putImageData(lImageData, 0, 0);
+}
+
+/**
+ * Convert a resolved type into a canvas project type.
+ *
+ * @param pType - Resolved type name.
+ *
+ * @returns The narrowed canvas project type.
+ */
+function getCanvasProjectType(pType: string): CanvasProjectType {
+    if (pType === 'number' || pType === 'string' || pType === 'boolean') {
+        return pType;
+    }
+
+    throw new Error(`Unsupported canvas project type: "${pType}".`);
+}
+
+/**
+ * Convert a resolved type into a canvas preview result type.
+ *
+ * @param pType - Resolved type name.
+ *
+ * @returns The narrowed canvas preview result type.
+ */
+function getCanvasPreviewResultType(pType: string): CanvasPreviewResultType {
+    if (pType === PotatnoPreviewFunctionExecutor.MAIN) {
+        return pType;
+    }
+
+    return getCanvasProjectType(pType);
+}

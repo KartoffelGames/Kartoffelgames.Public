@@ -13,19 +13,19 @@ import { PotatnoProjectTypesDefinition } from "./potatno-project-types-definitio
  * Contains all registered node types, main function definitions, imports,
  * and callback configurations. Does not hold document state.
  */
-export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<string> = any> {
-    private readonly mCodeGenerator: PotatnoProjectCodeGenerator<this>;
-    private readonly mEntryPoint: PotatnoFunctionDefinition<this>;
-    private readonly mImports: Array<PotatnoImportDefinition<this>>;
-    private readonly mNodeDefinitions: Map<string, PotatnoNodeDefinition<this>>;
-    private readonly mPreview: PotatnoPreview<PotatnoProject<TProjectType>>;
+export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<string> = any, TProject extends PotatnoProject<TProjectType, any> = any> {
+    private readonly mCodeGenerator: PotatnoProjectCodeGenerator<TProject>;
+    private readonly mEntryPoint: PotatnoFunctionDefinition<TProject>;
+    private readonly mImports: Array<PotatnoImportDefinition<TProject>>;
+    private readonly mNodeDefinitions: Map<string, PotatnoNodeDefinition<TProject>>;
+    private readonly mPreview: PotatnoPreview<TProject>;
     private readonly mTypes: TProjectType;
-    private readonly mUserFunctions: Map<string, PotatnoFunctionDefinition<this>>;
+    private readonly mUserFunctions: Map<string, PotatnoFunctionDefinition<TProject>>;
 
     /**
      * Code generator callback that produces the code string from a typed context.
      */
-    public get generator(): PotatnoProjectCodeGenerator<this> {
+    public get generator(): PotatnoProjectCodeGenerator<TProject> {
         return this.mCodeGenerator;
     }
 
@@ -33,28 +33,28 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
      * Get the registered entry point definition.
      * The main entry point to start the code generation from.
      */
-    public get entryPoint(): PotatnoFunctionDefinition<this> {
+    public get entryPoint(): PotatnoFunctionDefinition<TProject> {
         return this.mEntryPoint;
     }
 
     /**
      * Get the list of registered import definitions.
      */
-    public get imports(): ReadonlyArray<PotatnoImportDefinition<this>> {
+    public get imports(): ReadonlyArray<PotatnoImportDefinition<TProject>> {
         return this.mImports;
     }
 
     /**
      * Get the map of registered node definitions keyed by node definitions id.
      */
-    public get nodeDefinitions(): ReadonlyArray<PotatnoNodeDefinition<this>> {
+    public get nodeDefinitions(): ReadonlyArray<PotatnoNodeDefinition<TProject>> {
         return Array.from(this.mNodeDefinitions.values());
     }
 
     /**
      * Get the project's preview registry.
      */
-    public get preview(): PotatnoPreview<PotatnoProject<TProjectType>> {
+    public get preview(): PotatnoPreview<TProject> {
         return this.mPreview;
     }
 
@@ -68,7 +68,7 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
     /**
      * Get the map of registered user function definitions.
      */
-    public get userFunctions(): ReadonlyMap<string, PotatnoFunctionDefinition<this>> {
+    public get userFunctions(): ReadonlyMap<string, PotatnoFunctionDefinition<TProject>> {
         return this.mUserFunctions;
     }
 
@@ -79,19 +79,19 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
      * @param pEntryFunction - Registered entry point function definition.
      * @param pParameter - Configuration providing code generator and optional preview registry.
      */
-    public constructor(pTypes: TProjectType, pEntryFunction: PotatnoFunctionDefinition<PotatnoProject<NoInfer<TProjectType>>>, pParameter: PotatnoProjectConstructorParameter<TProjectType>) {
+    public constructor(pTypes: TProjectType, pEntryFunction: PotatnoFunctionDefinition<TProject>, pParameter: PotatnoProjectConstructorParameter<TProject>) {
         // Init parameter.
         this.mTypes = pTypes;
         this.mCodeGenerator = pParameter.generator;
-        this.mPreview = new PotatnoPreview<PotatnoProject<TProjectType>>();
+        this.mPreview = new PotatnoPreview<TProject>();
 
         // Initialize empty arrays and maps for project definitions.
-        this.mNodeDefinitions = new Map<string, PotatnoStaticNodeDefinition<this>>();
-        this.mImports = new Array<PotatnoImportDefinition<this>>();
-        this.mUserFunctions = new Map<string, PotatnoFunctionDefinition<this>>();
+        this.mNodeDefinitions = new Map<string, PotatnoStaticNodeDefinition<TProject>>();
+        this.mImports = new Array<PotatnoImportDefinition<TProject>>();
+        this.mUserFunctions = new Map<string, PotatnoFunctionDefinition<TProject>>();
 
         // Add endpoint function definition.
-        this.mEntryPoint = pEntryFunction as unknown as PotatnoFunctionDefinition<this>;
+        this.mEntryPoint = pEntryFunction;
 
         // Built-in conjunction pass-through nodes are always available in every project.
         this.addNodeDefinition(new FlowConjunctionNodeDefinition());
@@ -103,7 +103,7 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
      *
      * @param pDefinition - The import definition to register. Must have a unique label and contain valid node definitions.
      */
-    public addImport(pDefinition: PotatnoImportDefinition<this>): void {
+    public addImport(pDefinition: PotatnoImportDefinition<TProject>): void {
         this.mImports.push(pDefinition);
     }
 
@@ -112,7 +112,7 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
      *
      * @param pDefinition - The node definition to register. Must have a unique id and use valid type identifiers for its ports.
      */
-    public addNodeDefinition(pDefinition: PotatnoStaticNodeDefinition<this>): void {
+    public addNodeDefinition(pDefinition: PotatnoStaticNodeDefinition<TProject>): void {
         this.mNodeDefinitions.set(pDefinition.id, pDefinition);
     }
 
@@ -121,7 +121,7 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
      *
      * @param pId - The function definition id to look up.
      */
-    public getFunction(pId: string): PotatnoFunctionDefinition<this> | undefined {
+    public getFunction(pId: string): PotatnoFunctionDefinition<TProject> | undefined {
         if (this.mEntryPoint.id === pId) {
             return this.mEntryPoint;
         }
@@ -134,13 +134,13 @@ export class PotatnoProject<TProjectType extends PotatnoProjectTypesDefinition<s
      *
      * @param pDefinition - The dynamic function definition to register.
      */
-    public setDynamicFunction(pDefinition: PotatnoFunctionDefinition<PotatnoProject<NoInfer<TProjectType>>>): void {
-        this.mUserFunctions.set(pDefinition.id, pDefinition as unknown as PotatnoFunctionDefinition<this>);
+    public setDynamicFunction(pDefinition: PotatnoFunctionDefinition<TProject>): void {
+        this.mUserFunctions.set(pDefinition.id, pDefinition);
     }
 }
 
-type PotatnoProjectConstructorParameter<TProjectType extends PotatnoProjectTypesDefinition<string>> = {
-    generator: PotatnoProjectCodeGenerator<PotatnoProject<TProjectType>>;
+type PotatnoProjectConstructorParameter<TProject extends PotatnoProject> = {
+    generator: PotatnoProjectCodeGenerator<TProject>;
 };
 
 /**

@@ -1,14 +1,13 @@
-import { PotatnoProjectGenericType, PotatnoProjectType } from "./potatno-project-types-definition.ts";
-import { PotatnoProject } from "./potatno-project.ts";
+import { PotatnoProjectGenericType, PotatnoProjectTypeNames, PotatnoProjectTypesDefinition } from "./potatno-project-types-definition.ts";
 
 /**
  * Definition of a port on a node, used for type checking and code generation.
  */
-export class PotatnoPortDefinition<TProject extends PotatnoProject> {
+export class PotatnoPortDefinition<TProjectTypes extends PotatnoProjectTypesDefinition> {
 	private readonly mLabel: string;
 	private readonly mId: string;
 	private readonly mPortType: PotatnoPortDefinitionType;
-	private readonly mDataType: PotatnoProjectType<TProject> | PotatnoProjectGenericType | null;
+	private readonly mDataType: PotatnoProjectTypeNames<TProjectTypes> | PotatnoProjectGenericType | null;
 	private readonly mRegions: PotatnoPortDefinitionRegions;
 
 	/**
@@ -35,7 +34,7 @@ export class PotatnoPortDefinition<TProject extends PotatnoProject> {
 	/**
 	 * Data type identifier when the port carries a typed value.
 	 */
-	public get dataType(): PotatnoProjectType<TProject> | PotatnoProjectGenericType | null {
+	public get dataType(): PotatnoProjectTypeNames<TProjectTypes> | PotatnoProjectGenericType | null {
 		return this.mDataType;
 	}
 
@@ -51,7 +50,7 @@ export class PotatnoPortDefinition<TProject extends PotatnoProject> {
 	 *
 	 * @param pPortDefinition - Raw port definition data.
 	 */
-	public constructor(pPortDefinition: PotatnoPortDefinitionConfiguration<TProject>) {
+	public constructor(pPortDefinition: PotatnoPortDefinitionConfiguration<TProjectTypes>) {
 		this.mLabel = pPortDefinition.label;
 		this.mId = pPortDefinition.id;
 		this.mPortType = pPortDefinition.portType;
@@ -86,7 +85,7 @@ export type PotatnoPortDefinitionRegions = {
  * Definition of a port type used when registering node definitions.
  */
 
-export type PotatnoPortDefinitionConfiguration<TProject extends PotatnoProject> = {
+export type PotatnoPortDefinitionConfiguration<TProjectTypes extends PotatnoProjectTypesDefinition> = {
 	/**
 	 * Display label for the port.
 	 */
@@ -116,5 +115,5 @@ export type PotatnoPortDefinitionConfiguration<TProject extends PotatnoProject> 
 	/**
 	 * Data type identifier for the port.
 	 */
-	dataType: PotatnoProjectType<TProject> | PotatnoProjectGenericType;
+	dataType: PotatnoProjectTypeNames<TProjectTypes> | PotatnoProjectGenericType;
 });

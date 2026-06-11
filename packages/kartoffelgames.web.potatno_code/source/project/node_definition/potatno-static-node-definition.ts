@@ -1,5 +1,5 @@
 import { PotatnoPortDefinitionConfiguration } from "../potatno-port-definition.ts";
-import { PotatnoProject } from "../potatno-project.ts";
+import { PotatnoProjectTypesDefinition } from "../potatno-project-types-definition.ts";
 import { PotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeDefinitionRegions } from "./potatno-node-definition.ts";
 
 /**
@@ -11,13 +11,13 @@ import { PotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeD
  * @template TOutputs - Object type mapping output port names to their definitions.
  * @template TPreviewElement - The type of the HTMLElement used for node previews for this node definition.
  */
-export class PotatnoStaticNodeDefinition<TProject extends PotatnoProject> extends PotatnoNodeDefinition<TProject> {
+export class PotatnoStaticNodeDefinition<TProjectTypes extends PotatnoProjectTypesDefinition> extends PotatnoNodeDefinition<TProjectTypes> {
     /**
      * Constructor.
      *
      * @param pParameters - Constructor parameters.
      */
-    public constructor(pParameters: PotatnoStaticNodeDefinitionConstructorParameter<TProject>) {
+    public constructor(pParameters: PotatnoStaticNodeDefinitionConstructorParameter<TProjectTypes>) {
         // Set id and label. Label defaults to id if not provided.
         super({
             id: pParameters.id,
@@ -43,14 +43,14 @@ export class PotatnoStaticNodeDefinition<TProject extends PotatnoProject> extend
     }
 }
 
-type PotatnoStaticNodeDefinitionConstructorParameter<TProject extends PotatnoProject> = {
+type PotatnoStaticNodeDefinitionConstructorParameter<TProjectTypes extends PotatnoProjectTypesDefinition> = {
     id: string;
     label: string;
     category: string;
     regions?: Partial<PotatnoNodeDefinitionRegions> | null;
     ports: {
-        inputs: Array<PotatnoPortDefinitionConfiguration<TProject>>;
-        outputs: Array<PotatnoPortDefinitionConfiguration<TProject>>;
+        inputs: Array<PotatnoPortDefinitionConfiguration<TProjectTypes>>;
+        outputs: Array<PotatnoPortDefinitionConfiguration<TProjectTypes>>;
     };
     generators: {
         code: PotatnoNodeDefinitionCodeGenerator;

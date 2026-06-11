@@ -1,7 +1,6 @@
 import { PotatnoDocumentFunction, PotatnoDocumentFunctionPort } from "../../document/potatno-document-function.ts";
 import { PotatnoFunctionDefinition } from "../potatno-function-definition.ts";
-import { PotatnoProjectType } from "../potatno-project-types-definition.ts";
-import { PotatnoProject } from "../potatno-project.ts";
+import { PotatnoProjectTypesDefinition } from "../potatno-project-types-definition.ts";
 import { PotatnoNodeDefinition, PotatnoNodeDefinitionPortGeneratorFunction } from "./potatno-node-definition.ts";
 
 /**
@@ -16,13 +15,13 @@ import { PotatnoNodeDefinition, PotatnoNodeDefinitionPortGeneratorFunction } fro
  * The stable id comes from PotatnoDocumentFunction.id, ensuring that nodes
  * referencing this definition keep their identity across sessions.
  */
-export class PotatnoFunctionNodeDefinition<TProject extends PotatnoProject> extends PotatnoNodeDefinition<TProject> {
-    private readonly mFunction: PotatnoDocumentFunction<TProject>;
+export class PotatnoFunctionNodeDefinition<TProjectTypes extends PotatnoProjectTypesDefinition> extends PotatnoNodeDefinition<TProjectTypes> {
+    private readonly mFunction: PotatnoDocumentFunction<TProjectTypes>;
 
     /**
      * Get the document function this definition mirrors.
      */
-    public get function(): PotatnoDocumentFunction<TProject> {
+    public get function(): PotatnoDocumentFunction<TProjectTypes> {
         return this.mFunction;
     }
 
@@ -40,8 +39,8 @@ export class PotatnoFunctionNodeDefinition<TProject extends PotatnoProject> exte
      *
      * @param pFunction - The document function this definition mirrors.
      */
-    public constructor(pFunction: PotatnoDocumentFunction<TProject>) {
-        const lPortGenerator = (pDirectionName: string, pFunctionPorts: ReadonlyArray<PotatnoDocumentFunctionPort<TProject>>): PotatnoNodeDefinitionPortGeneratorFunction<TProject> => {
+    public constructor(pFunction: PotatnoDocumentFunction<TProjectTypes>) {
+        const lPortGenerator = (pDirectionName: string, pFunctionPorts: ReadonlyArray<PotatnoDocumentFunctionPort<TProjectTypes>>): PotatnoNodeDefinitionPortGeneratorFunction<TProjectTypes> => {
             return (pAddPort): void => {
                 // Add an additional flow port for function call chaining.
                 pAddPort({ label: pDirectionName, id: pDirectionName, portType: 'flow' });
@@ -52,14 +51,14 @@ export class PotatnoFunctionNodeDefinition<TProject extends PotatnoProject> exte
                         label: lPort.label,
                         id: lPort.label,
                         portType: 'value',
-                        dataType: lPort.dataType as PotatnoProjectType<TProject>
+                        dataType: lPort.dataType
                     });
                 }
             };
         };
 
         // Get the function definition from the document function.
-        const lFunctionDefinition: PotatnoFunctionDefinition<TProject> | undefined = pFunction.project.getFunction(pFunction.definitionId);
+        const lFunctionDefinition: PotatnoFunctionDefinition<TProjectTypes> | undefined = pFunction.project.getFunction(pFunction.definitionId);
 
         // Set id and label. Label defaults to id if not provided.
         super({

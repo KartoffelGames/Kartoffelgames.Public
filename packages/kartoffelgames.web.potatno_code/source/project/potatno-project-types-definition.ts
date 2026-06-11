@@ -82,7 +82,12 @@ export class PotatnoProjectTypesDefinition<TValueMap extends PotatnoProjectTypeM
      *
      * @returns `true` when the identifier is in `<...>` form.
      */
-    public isGenericType(pType: string): pType is PotatnoProjectGenericType {
+    public isGenericType(pType: unknown): pType is PotatnoProjectGenericType {
+        // Type must be of type string.
+        if (typeof pType !== 'string') {
+            return false;
+        }
+
         return /^<[^>]+>$/.test(pType);
     }
 }
@@ -133,12 +138,13 @@ type PotatnoProjectTypeInputElement = {
     type: 'string' | 'number' | 'boolean';
 };
 
+type PotatnoProjectTypeName<TValueMap extends PotatnoProjectTypeMapping<TValueMap>> = Extract<keyof TValueMap, string>;
+
 export type PotatnoProjectTypeDefinition<TValueMap extends Record<string, unknown>> = {
     name: PotatnoProjectTypeName<TValueMap>;
 } & PotatnoProjectTypesItem<TValueMap>;
 
 export type PotatnoProjectGenericType = `<${string}>`;
 
-export type PotatnoProjectTypeMapping<TValueMap extends Record<string, unknown> = Record<string, unknown>> = Record<PotatnoProjectTypeName<TValueMap>, unknown>
-export type PotatnoProjectTypeName<TValueMap extends PotatnoProjectTypeMapping<TValueMap>> = Extract<keyof TValueMap, string>;
+export type PotatnoProjectTypeMapping<TValueMap extends Record<string, unknown> = Record<string, unknown>> = Record<PotatnoProjectTypeName<TValueMap>, unknown>;
 export type PotatnoProjectTypeNames<TType extends PotatnoProjectTypesDefinition> = TType['typeNames'][number];

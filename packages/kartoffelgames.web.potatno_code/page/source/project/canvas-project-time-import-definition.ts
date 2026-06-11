@@ -1,11 +1,12 @@
 import { PotatnoStaticNodeDefinition } from '../../../source/project/node_definition/potatno-static-node-definition.ts';
 import { PotatnoImportDefinition } from '../../../source/project/potatno-import-definition.ts';
+import { CanvasProjectTypesDefinition } from "./canvas-project-types-definition.ts";
 import type { CanvasProject } from './canvas-project.ts';
 
 /**
  * Time import definition for the canvas shader playground.
  */
-export class CanvasProjectTimeImportDefinition extends PotatnoImportDefinition<CanvasProject> {
+export class CanvasProjectTimeImportDefinition extends PotatnoImportDefinition<CanvasProjectTypesDefinition> {
     /**
      * Create the time import definition.
      */
@@ -13,7 +14,7 @@ export class CanvasProjectTimeImportDefinition extends PotatnoImportDefinition<C
         super('Time', 'Time');
 
         // Register time value nodes.
-        this.addNode(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNode(new PotatnoStaticNodeDefinition({
             id: 'CurrentTime',
             label: 'CurrentTime',
             category: 'value',

@@ -1,11 +1,11 @@
 import { PotatnoStaticNodeDefinition } from '../../../source/project/node_definition/potatno-static-node-definition.ts';
 import { PotatnoImportDefinition } from '../../../source/project/potatno-import-definition.ts';
-import type { CanvasProject } from './canvas-project.ts';
+import { CanvasProjectTypesDefinition } from "./canvas-project-types-definition.ts";
 
 /**
  * Math import definition for the canvas shader playground.
  */
-export class CanvasProjectMathImportDefinition extends PotatnoImportDefinition<CanvasProject> {
+export class CanvasProjectMathImportDefinition extends PotatnoImportDefinition<CanvasProjectTypesDefinition> {
     /**
      * Create the math import definition.
      */
@@ -13,7 +13,7 @@ export class CanvasProjectMathImportDefinition extends PotatnoImportDefinition<C
         super('Math', 'Math');
 
         // Register math constants and functions.
-        this.addNode(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNode(new PotatnoStaticNodeDefinition({
             id: 'Math.PI',
             label: 'Math.PI',
             category: 'value',
@@ -27,7 +27,7 @@ export class CanvasProjectMathImportDefinition extends PotatnoImportDefinition<C
                 code: (pContext): string => `const ${pContext.outputs['value'].value} = Math.PI;`
             }
         }));
-        this.addNode(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNode(new PotatnoStaticNodeDefinition({
             id: 'Math.E',
             label: 'Math.E',
             category: 'value',
@@ -41,7 +41,7 @@ export class CanvasProjectMathImportDefinition extends PotatnoImportDefinition<C
                 code: (pContext): string => `const ${pContext.outputs['value'].value} = Math.E;`
             }
         }));
-        this.addNode(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNode(new PotatnoStaticNodeDefinition({
             id: 'Math.abs',
             label: 'Math.abs',
             category: 'Function',
@@ -57,7 +57,7 @@ export class CanvasProjectMathImportDefinition extends PotatnoImportDefinition<C
                 code: (pContext): string => `const ${pContext.outputs['result'].value} = Math.abs(${pContext.inputs['value'].value});`
             }
         }));
-        this.addNode(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNode(new PotatnoStaticNodeDefinition({
             id: 'Math.floor',
             label: 'Math.floor',
             category: 'Function',
@@ -73,7 +73,7 @@ export class CanvasProjectMathImportDefinition extends PotatnoImportDefinition<C
                 code: (pContext): string => `const ${pContext.outputs['result'].value} = Math.floor(${pContext.inputs['value'].value});`
             }
         }));
-        this.addNode(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNode(new PotatnoStaticNodeDefinition({
             id: 'Math.random',
             label: 'Math.random',
             category: 'Function',
@@ -87,7 +87,7 @@ export class CanvasProjectMathImportDefinition extends PotatnoImportDefinition<C
                 code: (pContext): string => `const ${pContext.outputs['result'].value} = Math.random();`
             }
         }));
-        this.addNode(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNode(new PotatnoStaticNodeDefinition({
             id: 'Math.sin',
             label: 'Math.sin',
             category: 'Function',
@@ -103,7 +103,7 @@ export class CanvasProjectMathImportDefinition extends PotatnoImportDefinition<C
                 code: (pContext): string => `const ${pContext.outputs['result'].value} = Math.sin(${pContext.inputs['value'].value});`
             }
         }));
-        this.addNode(new PotatnoStaticNodeDefinition<CanvasProject>({
+        this.addNode(new PotatnoStaticNodeDefinition({
             id: 'Math.cos',
             label: 'Math.cos',
             category: 'Function',

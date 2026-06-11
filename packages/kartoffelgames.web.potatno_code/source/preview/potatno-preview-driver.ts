@@ -2,7 +2,7 @@ import type { PotatnoDocumentFunction } from '../document/potatno-document-funct
 import { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import { PotatnoCodeGenerator } from '../parser/potatno-code-generator.ts';
 import type { PotatnoCodeGeneratorDocumentResult } from '../parser/result/potatno-code-generator-document-result.ts';
-import type { PotatnoProject } from '../project/potatno-project.ts';
+import { PotatnoProjectTypesDefinition } from "../project/potatno-project-types-definition.ts";
 import type { PotatnoPreviewFunctionExecutorBuildResult, PotatnoPreviewFunctionExecutorPortTarget, PotatnoPreviewResultType } from './potatno-preview-function-executor.ts';
 import type { PotatnoPreviewEntryDisplay, PotatnoPreviewEntryExecutor } from './potatno-preview.ts';
 
@@ -19,13 +19,13 @@ import type { PotatnoPreviewEntryDisplay, PotatnoPreviewEntryExecutor } from './
  *
  * @typeParam TProject - The project type the driver targets.
  */
-export class PotatnoPreviewDriver<TProject extends PotatnoProject> {
+export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefinition> {
     private mCachedCallable: PotatnoPreviewDriverCallable | null;
-    private readonly mDisplay: PotatnoPreviewEntryDisplay<TProject>;
+    private readonly mDisplay: PotatnoPreviewEntryDisplay<TProjectTypes>;
     private mElement: Element | null;
-    private readonly mExecutor: PotatnoPreviewEntryExecutor<TProject>;
+    private readonly mExecutor: PotatnoPreviewEntryExecutor<TProjectTypes>;
     private mSpecifiedParameters: Record<string, unknown>;
-    private readonly mTarget: PotatnoDocumentFunction<TProject> | PotatnoDocumentPort<TProject>;
+    private readonly mTarget: PotatnoDocumentFunction<TProjectTypes> | PotatnoDocumentPort<TProjectTypes>;
 
     /**
      * The element the display renders into. Lazily created on first access.
@@ -45,7 +45,7 @@ export class PotatnoPreviewDriver<TProject extends PotatnoProject> {
      * @param pExecutor - Preview code executor.
      * @param pTarget - The previewed document port or document function.
      */
-    public constructor(pDisplay: PotatnoPreviewEntryDisplay<TProject>, pExecutor: PotatnoPreviewEntryExecutor<TProject>, pTarget: PotatnoDocumentFunction<TProject> | PotatnoDocumentPort<TProject>) {
+    public constructor(pDisplay: PotatnoPreviewEntryDisplay<TProjectTypes>, pExecutor: PotatnoPreviewEntryExecutor<TProjectTypes>, pTarget: PotatnoDocumentFunction<TProjectTypes> | PotatnoDocumentPort<TProjectTypes>) {
         this.mDisplay = pDisplay;
         this.mExecutor = pExecutor;
         this.mTarget = pTarget;
@@ -76,17 +76,17 @@ export class PotatnoPreviewDriver<TProject extends PotatnoProject> {
      * reported value type, the cached callable is cleared so `execute` no-ops.
      */
     public refresh(): void {
-        const lTarget: PotatnoDocumentFunction<TProject> | PotatnoDocumentPort<TProject> = this.mTarget;
+        const lTarget: PotatnoDocumentFunction<TProjectTypes> | PotatnoDocumentPort<TProjectTypes> = this.mTarget;
 
         // Resolve the previewed function from the target and regenerate its full document result.
-        const lFunction: PotatnoDocumentFunction<TProject> = lTarget instanceof PotatnoDocumentPort ? lTarget.node.function : lTarget;
-        const lGeneratorResult: PotatnoCodeGeneratorDocumentResult<TProject> = new PotatnoCodeGenerator<TProject>(lFunction.project).generateFunction(lFunction, true);
+        const lFunction: PotatnoDocumentFunction<TProjectTypes> = lTarget instanceof PotatnoDocumentPort ? lTarget.node.function : lTarget;
+        const lGeneratorResult: PotatnoCodeGeneratorDocumentResult<TProjectTypes> = new PotatnoCodeGenerator<TProjectTypes>(lFunction.project).generateFunction(lFunction, true);
 
         // Resolve the executor port target. Output ports resolve to their generated valueId.
         // Input ports carry their definition id instead — their value has no own valueId and is
         // named at the consuming side, like the output label keying a function's returned object.
         // Function targets preview the function's complete output and need no port target.
-        let lPortTarget: PotatnoPreviewFunctionExecutorPortTarget<TProject> | null = null;
+        let lPortTarget: PotatnoPreviewFunctionExecutorPortTarget<TProjectTypes> | null = null;
         if (lTarget instanceof PotatnoDocumentPort) {
             const lValue: string | null = lTarget.direction === 'input' ? lTarget.definitionId : this.resolvePortValueId(lGeneratorResult, lTarget);
             if (lValue === null) {
@@ -97,7 +97,7 @@ export class PotatnoPreviewDriver<TProject extends PotatnoProject> {
             lPortTarget = { documentPort: lTarget, value: lValue };
         }
 
-        const lBuildResult: PotatnoPreviewFunctionExecutorBuildResult<Record<string, unknown>, PotatnoPreviewResultType<TProject>> = this.mExecutor.compile(lGeneratorResult, lPortTarget);
+        const lBuildResult: PotatnoPreviewFunctionExecutorBuildResult<Record<string, unknown>, PotatnoPreviewResultType<TProjectTypes>> = this.mExecutor.compile(lGeneratorResult, lPortTarget);
 
         // The adapter record defines every type the display can render — no adapter, no preview.
         if (!this.mDisplay.allowsType(lBuildResult.type)) {
@@ -134,7 +134,7 @@ export class PotatnoPreviewDriver<TProject extends PotatnoProject> {
      *
      * @returns The valueId, or `null` when the port's value was not emitted.
      */
-    private resolvePortValueId(pGeneratorResult: PotatnoCodeGeneratorDocumentResult<TProject>, pPort: PotatnoDocumentPort<TProject>): string | null {
+    private resolvePortValueId(pGeneratorResult: PotatnoCodeGeneratorDocumentResult<TProjectTypes>, pPort: PotatnoDocumentPort<TProjectTypes>): string | null {
         for (const lFunctionResult of [pGeneratorResult.entryPoint, ...pGeneratorResult.dependencies]) {
             for (const lGraph of lFunctionResult.graphs) {
                 const lValueId: string | undefined = lGraph.ports.get(pPort);

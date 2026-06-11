@@ -1,11 +1,11 @@
 import { PotatnoNodeDefinition } from '../../../source/project/node_definition/potatno-node-definition.ts';
 import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from '../../../source/project/potatno-function-definition.ts';
-import type { CanvasProject } from './canvas-project.ts';
+import { CanvasProjectTypesDefinition } from "./canvas-project-types-definition.ts";
 
 /**
  * User function definition for the canvas shader playground.
  */
-export class CanvasProjectUserFunctionDefinition extends PotatnoFunctionDefinition<CanvasProject> {
+export class CanvasProjectUserFunctionDefinition extends PotatnoFunctionDefinition<CanvasProjectTypesDefinition> {
     /**
      * Create the canvas user function definition.
      */
@@ -16,7 +16,7 @@ export class CanvasProjectUserFunctionDefinition extends PotatnoFunctionDefiniti
             statics: PotatnoFunctionDefinitionStatics.none,
             nodes: {
                 entry: (pAddNode, pFunction): void => {
-                    pAddNode(new PotatnoNodeDefinition<CanvasProject>({
+                    pAddNode(new PotatnoNodeDefinition({
                         id: 'HelperFunctionEntry',
                         label: 'Entry',
                         category: 'event',
@@ -43,7 +43,7 @@ export class CanvasProjectUserFunctionDefinition extends PotatnoFunctionDefiniti
                     }));
                 },
                 exit: (pAddNode, pFunction): void => {
-                    pAddNode(new PotatnoNodeDefinition<CanvasProject>({
+                    pAddNode(new PotatnoNodeDefinition({
                         id: 'HelperFunctionReturn',
                         label: 'Return',
                         category: 'event',

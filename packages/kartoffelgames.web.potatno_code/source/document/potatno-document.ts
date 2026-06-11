@@ -1,30 +1,31 @@
 import { Exception } from "@kartoffelgames/core";
 import { PotatnoFunctionNodeDefinition } from "../project/node_definition/potatno-function-node-definition.ts";
 import { PotatnoNodeDefinition } from "../project/node_definition/potatno-node-definition.ts";
+import { PotatnoProjectTypesDefinition } from "../project/potatno-project-types-definition.ts";
 import { PotatnoProject } from "../project/potatno-project.ts";
-import { PotatnoDocumentFunction, PotatnoDocumentFunctionConstructorParameter } from './potatno-document-function.ts';
 import { IPotatnoDocumentItem } from "./i-potatno-document-item.interface.ts";
+import { PotatnoDocumentFunction, PotatnoDocumentFunctionConstructorParameter } from './potatno-document-function.ts';
 
 /**
  * Represents the mutable document state of a PotatnoCode file.
  * Contains all functions and their graphs.
  */
-export class PotatnoDocument<TProject extends PotatnoProject> {
-    private readonly mFunctions: Set<PotatnoDocumentFunction<TProject>>;
-    private readonly mFunctionNodeDefinitions: Map<string, PotatnoFunctionNodeDefinition<TProject>>;
-    private readonly mProject: TProject;
+export class PotatnoDocument<TProjectTypes extends PotatnoProjectTypesDefinition> {
+    private readonly mFunctions: Set<PotatnoDocumentFunction<TProjectTypes>>;
+    private readonly mFunctionNodeDefinitions: Map<string, PotatnoFunctionNodeDefinition<TProjectTypes>>;
+    private readonly mProject: PotatnoProject<TProjectTypes>;
 
     /**
      * Get the read-only set of all functions in this file.
      */
-    public get functions(): ReadonlySet<PotatnoDocumentFunction<TProject>> {
+    public get functions(): ReadonlySet<PotatnoDocumentFunction<TProjectTypes>> {
         return this.mFunctions;
     }
 
     /**
      * Get all available node definitions for this document, including both project-level and function node definitions.
      */
-    public get nodeDefinitions(): ReadonlyArray<PotatnoNodeDefinition<TProject>> {
+    public get nodeDefinitions(): ReadonlyArray<PotatnoNodeDefinition<TProjectTypes>> {
         return [
             ...this.mFunctionNodeDefinitions.values(),
             ...this.mProject.nodeDefinitions.values()
@@ -34,17 +35,17 @@ export class PotatnoDocument<TProject extends PotatnoProject> {
     /**
      * Get the project this document belongs to.
      */
-    public get project(): TProject {
+    public get project(): PotatnoProject<TProjectTypes> {
         return this.mProject;
     }
 
     /**
      * Create an empty code file with no functions.
      */
-    public constructor(pProject: TProject) {
+    public constructor(pProject: PotatnoProject<TProjectTypes>) {
         this.mProject = pProject;
-        this.mFunctions = new Set<PotatnoDocumentFunction<TProject>>();
-        this.mFunctionNodeDefinitions = new Map<string, PotatnoFunctionNodeDefinition<TProject>>();
+        this.mFunctions = new Set<PotatnoDocumentFunction<TProjectTypes>>();
+        this.mFunctionNodeDefinitions = new Map<string, PotatnoFunctionNodeDefinition<TProjectTypes>>();
     }
 
     /**
@@ -54,11 +55,11 @@ export class PotatnoDocument<TProject extends PotatnoProject> {
      *
      * @param pFunction - The function to add.
      */
-    public addFunction(pFunction: PotatnoDocumentFunction<TProject>): void {
+    public addFunction(pFunction: PotatnoDocumentFunction<TProjectTypes>): void {
         this.mFunctions.add(pFunction);
 
         // Create and register a corresponding node definition for this function.
-        const lNodeDefinition: PotatnoFunctionNodeDefinition<TProject> = new PotatnoFunctionNodeDefinition(pFunction);
+        const lNodeDefinition: PotatnoFunctionNodeDefinition<TProjectTypes> = new PotatnoFunctionNodeDefinition(pFunction);
         this.mFunctionNodeDefinitions.set(lNodeDefinition.id, lNodeDefinition);
     }
 
@@ -69,14 +70,14 @@ export class PotatnoDocument<TProject extends PotatnoProject> {
      *
      * @param pConstructionParameter - The parameters to construct the function.
      */
-    public newFunction(pConstructionParameter: PotatnoDocumentFunctionConstructorParameter): PotatnoDocumentFunction<TProject> {
+    public newFunction(pConstructionParameter: PotatnoDocumentFunctionConstructorParameter): PotatnoDocumentFunction<TProjectTypes> {
         // Create the function instance.
-        const lFunction: PotatnoDocumentFunction<TProject> = new PotatnoDocumentFunction(this.mProject, this, pConstructionParameter);
+        const lFunction: PotatnoDocumentFunction<TProjectTypes> = new PotatnoDocumentFunction(this.mProject, this, pConstructionParameter);
 
         this.mFunctions.add(lFunction);
 
         // Create and register a corresponding node definition for this function.
-        const lNodeDefinition: PotatnoFunctionNodeDefinition<TProject> = new PotatnoFunctionNodeDefinition(lFunction);
+        const lNodeDefinition: PotatnoFunctionNodeDefinition<TProjectTypes> = new PotatnoFunctionNodeDefinition(lFunction);
         this.mFunctionNodeDefinitions.set(lNodeDefinition.id, lNodeDefinition);
 
         return lFunction;
@@ -90,7 +91,7 @@ export class PotatnoDocument<TProject extends PotatnoProject> {
      *
      * @returns True if the function was removed, false otherwise.
      */
-    public removeFunction(pFunction: PotatnoDocumentFunction<TProject>): boolean {
+    public removeFunction(pFunction: PotatnoDocumentFunction<TProjectTypes>): boolean {
         if (!this.mFunctions.has(pFunction)) {
             return false;
         }
@@ -102,7 +103,7 @@ export class PotatnoDocument<TProject extends PotatnoProject> {
         this.mFunctions.delete(pFunction);
 
         // Find the corresponding node definition.
-        const lFunctionNodeDefinition: PotatnoFunctionNodeDefinition<TProject> | undefined = this.mFunctionNodeDefinitions.values().find((nodeDef) => {
+        const lFunctionNodeDefinition: PotatnoFunctionNodeDefinition<TProjectTypes> | undefined = this.mFunctionNodeDefinitions.values().find((nodeDef) => {
             return nodeDef.function === pFunction;
         });
 
@@ -119,8 +120,8 @@ export class PotatnoDocument<TProject extends PotatnoProject> {
      * Also rejects cross-function recursion (A → B → A) so the code
      * generator can assume an acyclic function-call graph.
      */
-    public validate(): Array<PotatnoDocumentPortValidationError<TProject>> {
-        const lErrors: Array<PotatnoDocumentPortValidationError<TProject>> = [];
+    public validate(): Array<PotatnoDocumentPortValidationError<TProjectTypes>> {
+        const lErrors: Array<PotatnoDocumentPortValidationError<TProjectTypes>> = [];
 
         const lEntryPointDefinitionId: string = this.mProject.entryPoint.id;
 
@@ -151,17 +152,17 @@ export class PotatnoDocument<TProject extends PotatnoProject> {
      * Build the function-call dependency graph from PotatnoFunctionNodeDefinition
      * usages and report any cycles found.
      */
-    private detectCrossFunctionRecursion(): Array<PotatnoDocumentPortValidationError<TProject>> {
-        const lErrors: Array<PotatnoDocumentPortValidationError<TProject>> = [];
+    private detectCrossFunctionRecursion(): Array<PotatnoDocumentPortValidationError<TProjectTypes>> {
+        const lErrors: Array<PotatnoDocumentPortValidationError<TProjectTypes>> = [];
 
         // Create a mapping of which functions call which other functions based on the function nodes used in their graphs.
         // The function call only searches for the requested function and caches the result, so each function's called functions are only computed once.
-        const lFunctionsUsedFunctions: Map<PotatnoDocumentFunction<TProject>, Set<PotatnoDocumentFunction<TProject>>> = new Map<PotatnoDocumentFunction<TProject>, Set<PotatnoDocumentFunction<TProject>>>();
-        const lGetUsedFunctions = (pFunction: PotatnoDocumentFunction<TProject>): Set<PotatnoDocumentFunction<TProject>> => {
+        const lFunctionsUsedFunctions: Map<PotatnoDocumentFunction<TProjectTypes>, Set<PotatnoDocumentFunction<TProjectTypes>>> = new Map<PotatnoDocumentFunction<TProjectTypes>, Set<PotatnoDocumentFunction<TProjectTypes>>>();
+        const lGetUsedFunctions = (pFunction: PotatnoDocumentFunction<TProjectTypes>): Set<PotatnoDocumentFunction<TProjectTypes>> => {
             // Create new mapping entry for this function if it doesn't exist yet.
             if (!lFunctionsUsedFunctions.has(pFunction)) {
                 // Create new set of called functions for this function and populate it by searching through all nodes in the function.
-                const lUsedFunctions: Set<PotatnoDocumentFunction<TProject>> = new Set<PotatnoDocumentFunction<TProject>>();
+                const lUsedFunctions: Set<PotatnoDocumentFunction<TProjectTypes>> = new Set<PotatnoDocumentFunction<TProjectTypes>>();
                 for (const lNode of pFunction.nodes) {
                     // If this node is a function node, add the corresponding function to the called set.
                     if (this.mFunctionNodeDefinitions.has(lNode.definitionId)) {
@@ -177,11 +178,11 @@ export class PotatnoDocument<TProject extends PotatnoProject> {
         };
 
         // Search buffer lists.
-        const lProcessedFunctions: Set<PotatnoDocumentFunction<TProject>> = new Set<PotatnoDocumentFunction<TProject>>();
-        const lFunctionCallStack: Set<PotatnoDocumentFunction<TProject>> = new Set<PotatnoDocumentFunction<TProject>>();
+        const lProcessedFunctions: Set<PotatnoDocumentFunction<TProjectTypes>> = new Set<PotatnoDocumentFunction<TProjectTypes>>();
+        const lFunctionCallStack: Set<PotatnoDocumentFunction<TProjectTypes>> = new Set<PotatnoDocumentFunction<TProjectTypes>>();
 
         // Recursive deep search function to explore the call graph.
-        const lVisit = (pFunction: PotatnoDocumentFunction<TProject>): void => {
+        const lVisit = (pFunction: PotatnoDocumentFunction<TProjectTypes>): void => {
             // Skip already fully explored functions.
             // That way each function is only processed once, even if there are multiple paths to it.
             if (lProcessedFunctions.has(pFunction)) {
@@ -217,9 +218,9 @@ export class PotatnoDocument<TProject extends PotatnoProject> {
 /**
  * A validation error for a document port.
  */
-export class PotatnoDocumentPortValidationError<TProject extends PotatnoProject> {
+export class PotatnoDocumentPortValidationError<TProjectTypes extends PotatnoProjectTypesDefinition> {
     private readonly mMessage: string;
-    private readonly mItem: IPotatnoDocumentItem<TProject>;
+    private readonly mItem: IPotatnoDocumentItem<TProjectTypes>;
 
     /**
      * Get the error message describing the validation error.
@@ -231,7 +232,7 @@ export class PotatnoDocumentPortValidationError<TProject extends PotatnoProject>
     /**
      * Get the item that caused the validation error.
      */
-    public get item(): IPotatnoDocumentItem<TProject> {
+    public get item(): IPotatnoDocumentItem<TProjectTypes> {
         return this.mItem;
     }
 
@@ -241,7 +242,7 @@ export class PotatnoDocumentPortValidationError<TProject extends PotatnoProject>
      * @param pMessage - The error message describing the validation error.
      * @param pItem - The item that caused the validation error.
      */
-    public constructor(pMessage: string, pItem: IPotatnoDocumentItem<TProject>) {
+    public constructor(pMessage: string, pItem: IPotatnoDocumentItem<TProjectTypes>) {
         this.mMessage = pMessage;
         this.mItem = pItem;
     }

@@ -11,7 +11,7 @@ type TestProjectTypeMapping = {
     number: number;
 }
 
-const lNewBareProject = (): PotatnoProject<PotatnoProjectTypesDefinition<'number'>> => {
+const lNewBareProject = (): PotatnoProject<PotatnoProjectTypesDefinition<TestProjectTypeMapping>> => {
     const lTypes = new PotatnoProjectTypesDefinition({
         number: {
             default: { string: ['0'], value: 0 },

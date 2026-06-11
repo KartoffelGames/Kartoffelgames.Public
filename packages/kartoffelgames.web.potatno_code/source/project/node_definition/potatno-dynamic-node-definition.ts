@@ -1,16 +1,16 @@
-import { PotatnoProject } from "../potatno-project.ts";
+import { PotatnoProjectTypesDefinition } from "../potatno-project-types-definition.ts";
 import { PotatnoNodeDefinition, PotatnoNodeDefinitionCodeGenerator, PotatnoNodeDefinitionPortGenerator, PotatnoNodeDefinitionRegions } from "./potatno-node-definition.ts";
 
 /**
  * Potatno node definition that changes dynamically based on the provided context.
  */
-export class PotatnoDynamicNodeDefinition<TProject extends PotatnoProject> extends PotatnoNodeDefinition<TProject> {
+export class PotatnoDynamicNodeDefinition<TProjectTypes extends PotatnoProjectTypesDefinition> extends PotatnoNodeDefinition<TProjectTypes> {
     /**
      * Constructor.
      *
      * @param pParameters - Constructor parameters.
      */
-    public constructor(pParameters: PotatnoDynamicNodeDefinitionConstructorParameter<TProject>) {
+    public constructor(pParameters: PotatnoDynamicNodeDefinitionConstructorParameter<TProjectTypes>) {
         super({
             id: pParameters.id,
             label: pParameters.label,
@@ -27,13 +27,13 @@ export class PotatnoDynamicNodeDefinition<TProject extends PotatnoProject> exten
     }
 }
 
-type PotatnoDynamicNodeDefinitionConstructorParameter<TProject extends PotatnoProject> = {
+type PotatnoDynamicNodeDefinitionConstructorParameter<TProjectTypes extends PotatnoProjectTypesDefinition> = {
     id: string;
     label: string;
     category: string;
     regions?: Partial<PotatnoNodeDefinitionRegions> | null;
     generators: {
-        ports: PotatnoNodeDefinitionPortGenerator<TProject>;
+        ports: PotatnoNodeDefinitionPortGenerator<TProjectTypes>;
         code: PotatnoNodeDefinitionCodeGenerator;
     };
 };

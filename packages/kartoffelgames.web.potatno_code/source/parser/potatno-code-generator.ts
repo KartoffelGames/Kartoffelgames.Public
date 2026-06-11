@@ -11,6 +11,7 @@ import type { PotatnoProject } from '../project/potatno-project.ts';
 import { PotatnoCodeGeneratorDocumentResult } from './result/potatno-code-generator-document-result.ts';
 import { PotatnoCodeGeneratorFunctionResult } from './result/potatno-code-generator-function-result.ts';
 import { PotatnoCodeGeneratorNodeResult } from './result/potatno-code-generator-node-result.ts';
+import { PotatnoProjectTypesDefinition } from "../project/potatno-project-types-definition.ts";
 
 /**
  * Code generator for Potatno documents.
@@ -20,15 +21,15 @@ import { PotatnoCodeGeneratorNodeResult } from './result/potatno-code-generator-
  * and aggregates the per-graph results into function-level and document-level outputs.
  * It only chains the strings node generators return, never emits syntax of its own.
  */
-export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
-    private readonly mProject: TProject;
+export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefinition> {
+    private readonly mProject: PotatnoProject<TProjectTypes>;
 
     /**
      * Constructor.
      *
      * @param pProject - The project providing node definitions and code generation settings.
      */
-    public constructor(pProject: TProject) {
+    public constructor(pProject: PotatnoProject<TProjectTypes>) {
         this.mProject = pProject;
     }
 
@@ -43,9 +44,9 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @returns A DocumentResult with the entry-point function result and all transitive dependencies.
      */
-    public generateDocument(pDocument: PotatnoDocument<TProject>, pDebug: boolean = false): PotatnoCodeGeneratorDocumentResult<TProject> {
+    public generateDocument(pDocument: PotatnoDocument<TProjectTypes>, pDebug: boolean = false): PotatnoCodeGeneratorDocumentResult<TProjectTypes> {
         // Locate the entry-point function (the system function in the document).
-        const lEntryPointFunction: PotatnoDocumentFunction<TProject> | undefined = [...pDocument.functions].find((pFunction) => {
+        const lEntryPointFunction: PotatnoDocumentFunction<TProjectTypes> | undefined = [...pDocument.functions].find((pFunction) => {
             return pFunction.isSystem;
         });
 
@@ -66,7 +67,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @returns A DocumentResult with pFunction's result as the entry point plus all transitive dependencies.
      */
-    public generateFunction(pFunction: PotatnoDocumentFunction<TProject>, pDebug: boolean = false): PotatnoCodeGeneratorDocumentResult<TProject> {
+    public generateFunction(pFunction: PotatnoDocumentFunction<TProjectTypes>, pDebug: boolean = false): PotatnoCodeGeneratorDocumentResult<TProjectTypes> {
         return this.buildDocumentResult(pFunction.document, pFunction.getExitNodes(), pDebug);
     }
 
@@ -79,7 +80,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @returns A DocumentResult with the single-graph FunctionResult as the entry point plus all transitive dependencies.
      */
-    public generateNode(pExitNode: PotatnoDocumentNode<TProject>, pDebug: boolean = false): PotatnoCodeGeneratorDocumentResult<TProject> {
+    public generateNode(pExitNode: PotatnoDocumentNode<TProjectTypes>, pDebug: boolean = false): PotatnoCodeGeneratorDocumentResult<TProjectTypes> {
         return this.buildDocumentResult(pExitNode.document, [pExitNode], pDebug);
     }
 
@@ -93,22 +94,22 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * @param pExitNodes - The exit nodes whose subgraphs are walked into the entry FunctionResult.
      * @param pDebug - Debug flag for the whole pass.
      */
-    private buildDocumentResult(pDocument: PotatnoDocument<TProject>, pExitNodes: Array<PotatnoDocumentNode<TProject>>, pDebug: boolean): PotatnoCodeGeneratorDocumentResult<TProject> {
+    private buildDocumentResult(pDocument: PotatnoDocument<TProjectTypes>, pExitNodes: Array<PotatnoDocumentNode<TProjectTypes>>, pDebug: boolean): PotatnoCodeGeneratorDocumentResult<TProjectTypes> {
         // Validate document before generation.
-        const lValidationResult: Array<PotatnoDocumentPortValidationError<TProject>> = pDocument.validate();
+        const lValidationResult: Array<PotatnoDocumentPortValidationError<TProjectTypes>> = pDocument.validate();
         if (lValidationResult.length > 0) {
             throw new Exception('Code generation exited. Code graph validation failed.', this);
         }
 
-        const lPassData: PotatnoCodeGeneratorPassData<TProject> = {
+        const lPassData: PotatnoCodeGeneratorPassData<TProjectTypes> = {
             counter: { valueIndex: 0 },
             debug: pDebug,
-            nodeDefinitions: new Map<PotatnoDocumentFunction<TProject>, Map<string, PotatnoNodeDefinition<TProject>>>()
+            nodeDefinitions: new Map<PotatnoDocumentFunction<TProjectTypes>, Map<string, PotatnoNodeDefinition<TProjectTypes>>>()
         };
 
         // Generate everything. The last entry is the requested entry function result.
-        const lFunctionGenerationResults: Array<PotatnoCodeGeneratorFunctionResult<TProject>> = this.generateFunctionWithDependencies(lPassData, pExitNodes, new Set<PotatnoDocumentFunction<TProject>>());
-        const lEntryPointResult: PotatnoCodeGeneratorFunctionResult<TProject> = lFunctionGenerationResults.shift()!;
+        const lFunctionGenerationResults: Array<PotatnoCodeGeneratorFunctionResult<TProjectTypes>> = this.generateFunctionWithDependencies(lPassData, pExitNodes, new Set<PotatnoDocumentFunction<TProjectTypes>>());
+        const lEntryPointResult: PotatnoCodeGeneratorFunctionResult<TProjectTypes> = lFunctionGenerationResults.shift()!;
 
         return new PotatnoCodeGeneratorDocumentResult(pDocument, lEntryPointResult, lFunctionGenerationResults);
     }
@@ -120,9 +121,9 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * @param pPassData - Shared pass state (counter, debug).
      * @param pFunctionExitNodes - Staring nodes of the first function that should be generated. 
      */
-    private generateFunctionWithDependencies(pPassData: PotatnoCodeGeneratorPassData<TProject>, pFunctionExitNodes: Array<PotatnoDocumentNode<TProject>>, pFunctionBuffer: Set<PotatnoDocumentFunction<TProject>>): Array<PotatnoCodeGeneratorFunctionResult<TProject>> {
+    private generateFunctionWithDependencies(pPassData: PotatnoCodeGeneratorPassData<TProjectTypes>, pFunctionExitNodes: Array<PotatnoDocumentNode<TProjectTypes>>, pFunctionBuffer: Set<PotatnoDocumentFunction<TProjectTypes>>): Array<PotatnoCodeGeneratorFunctionResult<TProjectTypes>> {
         // Result list of generated functions.
-        const lGeneratedFunctions: Array<PotatnoCodeGeneratorFunctionResult<TProject>> = new Array<PotatnoCodeGeneratorFunctionResult<TProject>>();
+        const lGeneratedFunctions: Array<PotatnoCodeGeneratorFunctionResult<TProjectTypes>> = new Array<PotatnoCodeGeneratorFunctionResult<TProjectTypes>>();
 
         // Validate that something has been generated.
         if (pFunctionExitNodes.length === 0) {
@@ -130,19 +131,19 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         }
 
         // Read the document function by looking at the first exit node. 
-        const lFunction: PotatnoDocumentFunction<TProject> = pFunctionExitNodes.at(0)!.function;
+        const lFunction: PotatnoDocumentFunction<TProjectTypes> = pFunctionExitNodes.at(0)!.function;
 
         // Define current function as "generated" to preempty skip endless recursion.
         // This buffer is passthough to all function generations by reference and is shared among them.
         pFunctionBuffer.add(lFunction);
 
         // Create an empty function result and store it directly. The reference will be filled later.
-        const lFunctionResult: PotatnoCodeGeneratorFunctionResult<TProject> = new PotatnoCodeGeneratorFunctionResult(lFunction);
+        const lFunctionResult: PotatnoCodeGeneratorFunctionResult<TProjectTypes> = new PotatnoCodeGeneratorFunctionResult(lFunction);
         lGeneratedFunctions.push(lFunctionResult);
 
         // Walk every requested exit node's subgraph (defaults to all of the function's exits) and attach the produced NodeResult.
         for (const lExitNode of pFunctionExitNodes) {
-            const lGeneratedGraph: PotatnoCodeGeneratorNodeResult<TProject> = this.generateNodeCode(pPassData, lExitNode);
+            const lGeneratedGraph: PotatnoCodeGeneratorNodeResult<TProjectTypes> = this.generateNodeCode(pPassData, lExitNode);
             lFunctionResult.addGraph(lGeneratedGraph);
 
             // Add each dependency into the task list.
@@ -172,15 +173,15 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * 
      * @returns A NodeResult capturing the subgraph's body code, entry/exit nodes, and function-call dependencies.
      */
-    private generateNodeCode(pPassData: PotatnoCodeGeneratorPassData<TProject>, pExitNode: PotatnoDocumentNode<TProject>): PotatnoCodeGeneratorNodeResult<TProject> {
+    private generateNodeCode(pPassData: PotatnoCodeGeneratorPassData<TProjectTypes>, pExitNode: PotatnoDocumentNode<TProjectTypes>): PotatnoCodeGeneratorNodeResult<TProjectTypes> {
         // Build a fresh cursor with the top-level scope and a pass-wide dependencies accumulator.
-        const lCursor: PotatnoCodeGeneratorPassCursor<TProject> = {
-            dependencies: new Array<PotatnoDocumentFunction<TProject>>(),
+        const lCursor: PotatnoCodeGeneratorPassCursor<TProjectTypes> = {
+            dependencies: new Array<PotatnoDocumentFunction<TProjectTypes>>(),
             scope: this.createScope(pExitNode, null)
         };
 
         // Walk the exit node. The walk returns the collected code and the entry node it reached.
-        const lGenerationResult: PotatnoCodeGeneratorEmitResult<TProject> = this.walkBackward(pPassData, lCursor, pExitNode, null);
+        const lGenerationResult: PotatnoCodeGeneratorEmitResult<TProjectTypes> = this.walkBackward(pPassData, lCursor, pExitNode, null);
 
         // Compose the body code in execution order.
         const lBodyCode: string = lGenerationResult.codeOutput.join(' ');
@@ -192,7 +193,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             exitNode: pExitNode,
 
             // Copy current value ids so the current scope cant be changed outside.
-            portValues: new Map<PotatnoDocumentPort<TProject>, string>(lCursor.scope.values)
+            portValues: new Map<PotatnoDocumentPort<TProjectTypes>, string>(lCursor.scope.values)
         });
     }
 
@@ -202,9 +203,9 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * @param pStartNode - The node the walk will start from.
      * @param pEndNode - The walk's stop sentinel (null at top-level).
      */
-    private createScope(pStartNode: PotatnoDocumentNode<TProject>, pEndNode: PotatnoDocumentNode<TProject> | null): PotatnoCodeGeneratorPassCursorScope<TProject> {
+    private createScope(pStartNode: PotatnoDocumentNode<TProjectTypes>, pEndNode: PotatnoDocumentNode<TProjectTypes> | null): PotatnoCodeGeneratorPassCursorScope<TProjectTypes> {
         return {
-            values: new Map<PotatnoDocumentPort<TProject>, string>(),
+            values: new Map<PotatnoDocumentPort<TProjectTypes>, string>(),
             remaining: this.countNodeEncounter(pStartNode, pEndNode)
         };
     }
@@ -219,9 +220,9 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @returns the resolved input surface plus the emit result of any pure-value producer generated while resolving (null when none was emitted).
      */
-    private resolveInputValue(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pInputPort: PotatnoDocumentPort<TProject>): PotatnoCodeGeneratorResolvedInput<TProject> {
+    private resolveInputValue(pPassData: PotatnoCodeGeneratorPassData<TProjectTypes>, pCursor: PotatnoCodeGeneratorPassCursor<TProjectTypes>, pInputPort: PotatnoDocumentPort<TProjectTypes>): PotatnoCodeGeneratorResolvedInput<TProjectTypes> {
         // Resolve the input ports connection.
-        const lIncomingPort: PotatnoDocumentPort<TProject> | null = this.resolveValueConjunctions(pInputPort);
+        const lIncomingPort: PotatnoDocumentPort<TProjectTypes> | null = this.resolveValueConjunctions(pInputPort);
 
         // Unconnected. Return an inline literal from the project type's converter (or '' when the data type can't be resolved). No producer is emitted.
         if (!lIncomingPort) {
@@ -231,7 +232,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
 
             return {
                 inputPort: {
-                    value: this.mProject.types.getType(pInputPort.dataType).convert([...pInputPort.directValue]),
+                    value: this.mProject.types.getType(pInputPort.dataType!).convert([...pInputPort.directValue]),
                     isDirectValue: true
                 },
                 emitResult: null
@@ -239,10 +240,10 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         }
 
         // Connected. Walk through value conjunctions to the real producer's output port.
-        const lProducerNode: PotatnoDocumentNode<TProject> = lIncomingPort.node;
+        const lProducerNode: PotatnoDocumentNode<TProjectTypes> = lIncomingPort.node;
 
         // If the producer is a pure-value node, tick its refcount. Emit on depletion.
-        const lProducerEmit: PotatnoCodeGeneratorEmitResult<TProject> | null = (() => {
+        const lProducerEmit: PotatnoCodeGeneratorEmitResult<TProjectTypes> | null = (() => {
             if (!lProducerNode.hasFlowPorts) {
                 // Remaining in scope should allways be set otherwise something is broken in this code.
                 const lRemaining: number = pCursor.scope.remaining.get(lProducerNode)!;
@@ -276,7 +277,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * 
      * @returns the value id for a port.
      */
-    private getPortValue(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pPort: PotatnoDocumentPort<TProject>): string {
+    private getPortValue(pPassData: PotatnoCodeGeneratorPassData<TProjectTypes>, pCursor: PotatnoCodeGeneratorPassCursor<TProjectTypes>, pPort: PotatnoDocumentPort<TProjectTypes>): string {
         // Allocate a fresh valueId on first encounter in this scope.
         if (!pCursor.scope.values.has(pPort)) {
             pCursor.scope.values.set(pPort, this.mProject.generator.values.valueId(pPassData.counter.valueIndex++));
@@ -293,8 +294,8 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @returns the distinct list of upstream non-conjunction flow output ports. Each port's `.node` gives the upstream node.
      */
-    private getNodesInputFlowPorts(pNode: PotatnoDocumentNode<TProject>): Array<PotatnoDocumentPort<TProject>> {
-        const lResult: Array<PotatnoDocumentPort<TProject>> = new Array<PotatnoDocumentPort<TProject>>();
+    private getNodesInputFlowPorts(pNode: PotatnoDocumentNode<TProjectTypes>): Array<PotatnoDocumentPort<TProjectTypes>> {
+        const lResult: Array<PotatnoDocumentPort<TProjectTypes>> = new Array<PotatnoDocumentPort<TProjectTypes>>();
 
         for (const lInputPort of pNode.inputs.flow) {
             lResult.push(...this.resolveFlowConjunctions(lInputPort));
@@ -312,8 +313,8 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @return The actual, conjunction-cleared upstream output flow ports.
      */
-    private resolveFlowConjunctions(pInputPort: PotatnoDocumentPort<TProject>): Array<PotatnoDocumentPort<TProject>> {
-        const lResults: Array<PotatnoDocumentPort<TProject>> = new Array<PotatnoDocumentPort<TProject>>();
+    private resolveFlowConjunctions(pInputPort: PotatnoDocumentPort<TProjectTypes>): Array<PotatnoDocumentPort<TProjectTypes>> {
+        const lResults: Array<PotatnoDocumentPort<TProjectTypes>> = new Array<PotatnoDocumentPort<TProjectTypes>>();
 
         for (const lOutputPort of pInputPort.connectedPorts) {
             // Port does not belong to a conjunction. Push the real upstream output port directly.
@@ -323,7 +324,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             }
 
             // Read the conjunction's single flow input port. When it has no connection, the chain dead-ends here.
-            const lInputPort: PotatnoDocumentPort<TProject> | undefined = lOutputPort.node.inputs.flow[0];
+            const lInputPort: PotatnoDocumentPort<TProjectTypes> | undefined = lOutputPort.node.inputs.flow[0];
             if (!lInputPort || lInputPort.connectedPorts.size === 0) {
                 continue;
             }
@@ -343,14 +344,14 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @return The actual, conjunction-cleared upstream output value port.
      */
-    private resolveValueConjunctions(pInputPort: PotatnoDocumentPort<TProject>): PotatnoDocumentPort<TProject> | null {
+    private resolveValueConjunctions(pInputPort: PotatnoDocumentPort<TProjectTypes>): PotatnoDocumentPort<TProjectTypes> | null {
         // Check if input port has any connection.
         if (pInputPort.connectedPorts.size === 0) {
             return null;
         }
 
         // Get the first connection.
-        const lIncommingConnection: PotatnoDocumentPort<TProject> = pInputPort.connectedPorts.values().next().value!;
+        const lIncommingConnection: PotatnoDocumentPort<TProjectTypes> = pInputPort.connectedPorts.values().next().value!;
 
         // Port does not belong to a conjunction. Return it.
         if (lIncommingConnection.node.definitionId !== ValueConjunctionNodeDefinition.DEFINITION_ID) {
@@ -358,7 +359,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         }
 
         // Read the conjunction's single value input port. When it has no connection, the chain dead-ends here.
-        const lConjunctionInputPort: PotatnoDocumentPort<TProject> | undefined = lIncommingConnection.node.inputs.value[0];
+        const lConjunctionInputPort: PotatnoDocumentPort<TProjectTypes> | undefined = lIncommingConnection.node.inputs.value[0];
         if (!lConjunctionInputPort || lConjunctionInputPort.connectedPorts.size === 0) {
             return null;
         }
@@ -375,14 +376,14 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      * 
      * @returns the mapping between the document nodes and the encounter counter.
      */
-    private countNodeEncounter(pStartNode: PotatnoDocumentNode<TProject>, pEndNode: PotatnoDocumentNode<TProject> | null): Map<PotatnoDocumentNode<TProject>, number> {
-        const lRemaining: Map<PotatnoDocumentNode<TProject>, number> = new Map<PotatnoDocumentNode<TProject>, number>();
+    private countNodeEncounter(pStartNode: PotatnoDocumentNode<TProjectTypes>, pEndNode: PotatnoDocumentNode<TProjectTypes> | null): Map<PotatnoDocumentNode<TProjectTypes>, number> {
+        const lRemaining: Map<PotatnoDocumentNode<TProjectTypes>, number> = new Map<PotatnoDocumentNode<TProjectTypes>, number>();
 
-        const lCheckedNodes: Set<PotatnoDocumentNode<TProject>> = new Set<PotatnoDocumentNode<TProject>>();
-        const lNodeTasks: Array<PotatnoDocumentNode<TProject>> = new Array<PotatnoDocumentNode<TProject>>(pStartNode);
+        const lCheckedNodes: Set<PotatnoDocumentNode<TProjectTypes>> = new Set<PotatnoDocumentNode<TProjectTypes>>();
+        const lNodeTasks: Array<PotatnoDocumentNode<TProjectTypes>> = new Array<PotatnoDocumentNode<TProjectTypes>>(pStartNode);
         while (lNodeTasks.length > 0) {
             // Get next flow node task from stack. Skip if node should not be checked or the node was already checked.
-            const lNode: PotatnoDocumentNode<TProject> = lNodeTasks.pop()!;
+            const lNode: PotatnoDocumentNode<TProjectTypes> = lNodeTasks.pop()!;
 
             // Count any incomming connection, even when a node port has multiple connections to the same node.
             lRemaining.set(lNode, (lRemaining.get(lNode) ?? 0) + 1);
@@ -404,7 +405,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
 
             // Move backwards for each value node.
             for (const lInputValuePort of lNode.inputs.value) {
-                const lIncomingValuePort: PotatnoDocumentPort<TProject> | null = this.resolveValueConjunctions(lInputValuePort);
+                const lIncomingValuePort: PotatnoDocumentPort<TProjectTypes> | null = this.resolveValueConjunctions(lInputValuePort);
                 if (lIncomingValuePort) {
                     lNodeTasks.push(lIncomingValuePort.node);
                 }
@@ -428,17 +429,17 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @returns the collected code and the last (most upstream) node generated.
      */
-    private walkBackward(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pStartNode: PotatnoDocumentNode<TProject>, pEndNode: PotatnoDocumentNode<TProject> | null): PotatnoCodeGeneratorEmitResult<TProject> {
+    private walkBackward(pPassData: PotatnoCodeGeneratorPassData<TProjectTypes>, pCursor: PotatnoCodeGeneratorPassCursor<TProjectTypes>, pStartNode: PotatnoDocumentNode<TProjectTypes>, pEndNode: PotatnoDocumentNode<TProjectTypes> | null): PotatnoCodeGeneratorEmitResult<TProjectTypes> {
         // Iteration values.
-        let lEmitResult: PotatnoCodeGeneratorEmitResult<TProject> = {
+        let lEmitResult: PotatnoCodeGeneratorEmitResult<TProjectTypes> = {
             codeOutput: new Array<string>(),
             lastGeneratedNode: null!, // Must be handled.
             endFlowPort: null
         };
-        let lActivePort: PotatnoDocumentPort<TProject> | null = null;
+        let lActivePort: PotatnoDocumentPort<TProjectTypes> | null = null;
 
         // Skip when no node is iterated or the node is a ending node.
-        let lCursorNode: PotatnoDocumentNode<TProject> | null = pStartNode;
+        let lCursorNode: PotatnoDocumentNode<TProjectTypes> | null = pStartNode;
         while (lCursorNode !== null && lCursorNode !== pEndNode) {
             // Emit the current node, folding the active port's downstream code into its inner.
             // Only the flow output that leads to the already-emitted downstream gets the collected code; other flow outputs get empty inner.
@@ -455,7 +456,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
             lEmitResult.codeOutput = [...lEmitResult.codeOutput, ...lPreEmitCodeOutput];
 
             // Resolve flow-input predecessors of the emitted node and skip when on dead end.
-            let lPredecessorPorts: Array<PotatnoDocumentPort<TProject>> = this.getNodesInputFlowPorts(lCursorNode);
+            let lPredecessorPorts: Array<PotatnoDocumentPort<TProjectTypes>> = this.getNodesInputFlowPorts(lCursorNode);
             if (lPredecessorPorts.length === 0) {
                 break;
             }
@@ -495,15 +496,15 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @param pMergeNode - A node with ≥2 flow-input connections.
      */
-    private findBranchStartPoint(pMergeNode: PotatnoDocumentNode<TProject>): PotatnoDocumentNode<TProject> {
+    private findBranchStartPoint(pMergeNode: PotatnoDocumentNode<TProjectTypes>): PotatnoDocumentNode<TProjectTypes> {
         // Each fan-in branch seeds a distinct tag; the first node that accumulates every tag is the common branch point.
-        const lBranchPorts: Array<PotatnoDocumentPort<TProject>> = this.getNodesInputFlowPorts(pMergeNode);
+        const lBranchPorts: Array<PotatnoDocumentPort<TProjectTypes>> = this.getNodesInputFlowPorts(pMergeNode);
         const lMaxBrachCount: number = lBranchPorts.length;
 
         // Union pTags into pNode's tag set, creating it on first encounter, and enqueue pNode whenever it gained a tag.
-        const lNodeTags: Map<PotatnoDocumentNode<TProject>, Set<number>> = new Map<PotatnoDocumentNode<TProject>, Set<number>>();
-        const lQueue: Array<PotatnoDocumentNode<TProject>> = new Array<PotatnoDocumentNode<TProject>>();
-        const lMergeTags = (pNode: PotatnoDocumentNode<TProject>, pAddingTags: Iterable<number>): Set<number> => {
+        const lNodeTags: Map<PotatnoDocumentNode<TProjectTypes>, Set<number>> = new Map<PotatnoDocumentNode<TProjectTypes>, Set<number>>();
+        const lQueue: Array<PotatnoDocumentNode<TProjectTypes>> = new Array<PotatnoDocumentNode<TProjectTypes>>();
+        const lMergeTags = (pNode: PotatnoDocumentNode<TProjectTypes>, pAddingTags: Iterable<number>): Set<number> => {
             // Read or create the current tags of the node.
             const lTags: Set<number> = (()=>{
                 if(!lNodeTags.has(pNode)) {
@@ -534,7 +535,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
 
         // Propagate tags backward. The first node holding every tag is the branch point.
         while (lQueue.length > 0) {
-            const lNode: PotatnoDocumentNode<TProject> = lQueue.shift()!;
+            const lNode: PotatnoDocumentNode<TProjectTypes> = lQueue.shift()!;
             const lTags: Set<number> = lNodeTags.get(lNode)!;
 
             // Union this node's tags into each flow predecessor.
@@ -561,23 +562,23 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @returns the branch point's emit result (= last node emitted here and the code collected in this call).
      */
-    private handleFlowMerge(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pMergeNode: PotatnoDocumentNode<TProject>, pPredecessorPorts: Array<PotatnoDocumentPort<TProject>>, pMergeCode: Array<string>): PotatnoCodeGeneratorEmitResult<TProject> {
+    private handleFlowMerge(pPassData: PotatnoCodeGeneratorPassData<TProjectTypes>, pCursor: PotatnoCodeGeneratorPassCursor<TProjectTypes>, pMergeNode: PotatnoDocumentNode<TProjectTypes>, pPredecessorPorts: Array<PotatnoDocumentPort<TProjectTypes>>, pMergeCode: Array<string>): PotatnoCodeGeneratorEmitResult<TProjectTypes> {
         // The merge node's emitted code (with the downstream folded into its inner) is the branch point's `next`.
         const lNextCode: string = pMergeCode.join(' ');
 
         // Find the flow branching point of the flow merge. 
-        const lBranchPoint: PotatnoDocumentNode<TProject> = this.findBranchStartPoint(pMergeNode);
+        const lBranchPoint: PotatnoDocumentNode<TProjectTypes> = this.findBranchStartPoint(pMergeNode);
 
         // Run a sub-walk per fan-in branch into a fresh scope. Each sub-walk starts at the predecessor node with the predecessor port as its initial active port.
         const lFlowPortOutputCode: Record<string, string> = {};
-        const lParentScope: PotatnoCodeGeneratorPassCursorScope<TProject> = pCursor.scope;
+        const lParentScope: PotatnoCodeGeneratorPassCursorScope<TProjectTypes> = pCursor.scope;
         try {
             for (const lPredecessorPort of pPredecessorPorts) {
                 pCursor.scope = this.createScope(lPredecessorPort.node, lBranchPoint);
 
                 // The walk ended on the branch point so the port it ended on is the branch point's flow output that initiated this branch.
                 // Map this branch's code back to that output port. The end flow port MUST be set when a end node is specified in a walk.
-                const lBranchEmitResult: PotatnoCodeGeneratorEmitResult<TProject> = this.walkBackward(pPassData, pCursor, lPredecessorPort.node, lBranchPoint);
+                const lBranchEmitResult: PotatnoCodeGeneratorEmitResult<TProjectTypes> = this.walkBackward(pPassData, pCursor, lPredecessorPort.node, lBranchPoint);
                 lFlowPortOutputCode[lBranchEmitResult.endFlowPort!.definitionId] = lBranchEmitResult.codeOutput.join(' ');
             }
         } finally {
@@ -604,10 +605,10 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
      *
      * @returns this node's emit result (its code plus any value-producer code) with the node as last-generated.
      */
-    private emitNode(pPassData: PotatnoCodeGeneratorPassData<TProject>, pCursor: PotatnoCodeGeneratorPassCursor<TProject>, pNode: PotatnoDocumentNode<TProject>, pFlowPortCodeOutput: Record<string, string>, pNextCode?: string): PotatnoCodeGeneratorEmitResult<TProject> {
+    private emitNode(pPassData: PotatnoCodeGeneratorPassData<TProjectTypes>, pCursor: PotatnoCodeGeneratorPassCursor<TProjectTypes>, pNode: PotatnoDocumentNode<TProjectTypes>, pFlowPortCodeOutput: Record<string, string>, pNextCode?: string): PotatnoCodeGeneratorEmitResult<TProjectTypes> {
         // Initialize missing node definition lookups for this function.
         if (!pPassData.nodeDefinitions.get(pNode.function)) {
-            const lNodeLookup: Map<string, PotatnoNodeDefinition<TProject>> = new Map<string, PotatnoNodeDefinition<TProject>>();
+            const lNodeLookup: Map<string, PotatnoNodeDefinition<TProjectTypes>> = new Map<string, PotatnoNodeDefinition<TProjectTypes>>();
             for (const lDefinition of pNode.function.nodeDefinitions) {
                 lNodeLookup.set(lDefinition.id, lDefinition);
             }
@@ -615,7 +616,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         }
 
         // Resolve the live node definition for this node via the per-function cache.
-        const lNodeDefinition: PotatnoNodeDefinition<TProject> | undefined = pPassData.nodeDefinitions.get(pNode.function)!.get(pNode.definitionId);
+        const lNodeDefinition: PotatnoNodeDefinition<TProjectTypes> | undefined = pPassData.nodeDefinitions.get(pNode.function)!.get(pNode.definitionId);
         if (!lNodeDefinition) {
             throw new Exception(`Node definition "${pNode.definitionId}" not found for node "${pNode.label}".`, this);
         }
@@ -628,9 +629,9 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
         // Build the input port surfaces. Only value inputs make it into pContext.inputs.
         // A pure-value producer resolved here hands back its own emit result; collect them in input order.
         const lInputs: Record<string, PotatnoCodeGeneratorInputPort> = {};
-        const lProducerEmits: Array<PotatnoCodeGeneratorEmitResult<TProject>> = new Array<PotatnoCodeGeneratorEmitResult<TProject>>();
+        const lProducerEmits: Array<PotatnoCodeGeneratorEmitResult<TProjectTypes>> = new Array<PotatnoCodeGeneratorEmitResult<TProjectTypes>>();
         for (const lPort of pNode.inputs.value) {
-            const lResolvedInput: PotatnoCodeGeneratorResolvedInput<TProject> = this.resolveInputValue(pPassData, pCursor, lPort);
+            const lResolvedInput: PotatnoCodeGeneratorResolvedInput<TProjectTypes> = this.resolveInputValue(pPassData, pCursor, lPort);
             lInputs[lPort.definitionId] = lResolvedInput.inputPort;
 
             if (lResolvedInput.emitResult) {
@@ -684,7 +685,7 @@ export class PotatnoCodeGenerator<TProject extends PotatnoProject> {
 /**
  * Pass state shared across every walk in a single generation pass.
  */
-type PotatnoCodeGeneratorPassData<TProject extends PotatnoProject> = {
+type PotatnoCodeGeneratorPassData<TProjectTypes extends PotatnoProjectTypesDefinition> = {
     /**
      * Monotonic source of fresh valueId strings.
      */
@@ -700,7 +701,7 @@ type PotatnoCodeGeneratorPassData<TProject extends PotatnoProject> = {
     /**
      * Per-function cache of node-definition lookups, keyed by document function and then by definition id.
      */
-    nodeDefinitions: Map<PotatnoDocumentFunction<TProject>, Map<string, PotatnoNodeDefinition<TProject>>>;
+    nodeDefinitions: Map<PotatnoDocumentFunction<TProjectTypes>, Map<string, PotatnoNodeDefinition<TProjectTypes>>>;
 };
 
 /**
@@ -709,40 +710,40 @@ type PotatnoCodeGeneratorPassData<TProject extends PotatnoProject> = {
  * The `scope` slot is swapped per backward walk (one per top-level call, plus one per sub-walk spawned at a merge).
  * Everything else is shared across all scopes within a single walk.
  */
-type PotatnoCodeGeneratorPassCursor<TProject extends PotatnoProject> = {
+type PotatnoCodeGeneratorPassCursor<TProjectTypes extends PotatnoProjectTypesDefinition> = {
     /**
      * Dependent document functions discovered during the walk via PotatnoFunctionNodeDefinition usages.
      * Sub-walks share the same array. The generation of these dependency functions is deferred to generateAllDependencies; the walker only records appearance order here.
      */
-    dependencies: Array<PotatnoDocumentFunction<TProject>>;
+    dependencies: Array<PotatnoDocumentFunction<TProjectTypes>>;
 
     /**
      * The current scope. Replaced when entering a sub-walk and restored when the sub-walk returns.
      */
-    scope: PotatnoCodeGeneratorPassCursorScope<TProject>;
+    scope: PotatnoCodeGeneratorPassCursorScope<TProjectTypes>;
 };
 
 /**
  * State scoped to one backward walk frame.
  */
-type PotatnoCodeGeneratorPassCursorScope<TProject extends PotatnoProject> = {
+type PotatnoCodeGeneratorPassCursorScope<TProjectTypes extends PotatnoProjectTypesDefinition> = {
     /**
      * Output ports allocated WITHIN this scope, mapped to their valueIds.
      */
-    values: Map<PotatnoDocumentPort<TProject>, string>;
+    values: Map<PotatnoDocumentPort<TProjectTypes>, string>;
 
     /**
      * Refcount for each pure-value producer used in this scope.
      * Initialised by preCountConsumers. Decremented in resolveValueInput as flow nodes are emitted.
      */
-    remaining: Map<PotatnoDocumentNode<TProject>, number>;
+    remaining: Map<PotatnoDocumentNode<TProjectTypes>, number>;
 };
 
 /**
  * Code emitted by a single walk step, sub-walk, or merge handler.
  * Returned up the call chain so callers can merge fragments together instead of sharing a mutable buffer.
  */
-type PotatnoCodeGeneratorEmitResult<TProject extends PotatnoProject> = {
+type PotatnoCodeGeneratorEmitResult<TProjectTypes extends PotatnoProjectTypesDefinition> = {
     /**
      * Emitted code fragments in execution order (front = earliest).
      */
@@ -751,18 +752,18 @@ type PotatnoCodeGeneratorEmitResult<TProject extends PotatnoProject> = {
     /**
      * The last node generated in this emit (the most upstream node of a walk, or the emitted node itself).
      */
-    lastGeneratedNode: PotatnoDocumentNode<TProject>;
+    lastGeneratedNode: PotatnoDocumentNode<TProjectTypes>;
 
     /**
      * The flow-output port the walk or emit ended on.
      */
-    endFlowPort: PotatnoDocumentPort<TProject> | null;
+    endFlowPort: PotatnoDocumentPort<TProjectTypes> | null;
 };
 
 /**
  * Result of resolving a single value input port.
  */
-type PotatnoCodeGeneratorResolvedInput<TProject extends PotatnoProject> = {
+type PotatnoCodeGeneratorResolvedInput<TProjectTypes extends PotatnoProjectTypesDefinition> = {
     /**
      * The resolved input surface handed to the node code generator (value id or inline literal).
      */
@@ -771,5 +772,5 @@ type PotatnoCodeGeneratorResolvedInput<TProject extends PotatnoProject> = {
     /**
      * Emit result of the pure-value producer generated while resolving this input, or null when none was emitted.
      */
-    emitResult: PotatnoCodeGeneratorEmitResult<TProject> | null;
+    emitResult: PotatnoCodeGeneratorEmitResult<TProjectTypes> | null;
 };

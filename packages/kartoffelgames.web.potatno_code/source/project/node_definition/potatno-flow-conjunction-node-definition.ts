@@ -1,8 +1,8 @@
 import { Exception } from "@kartoffelgames/core";
-import { PotatnoProject } from '../potatno-project.ts';
+import { PotatnoProjectTypesDefinition } from "../potatno-project-types-definition.ts";
 import { PotatnoNodeDefinition } from './potatno-node-definition.ts';
 
-export class FlowConjunctionNodeDefinition<TProject extends PotatnoProject> extends PotatnoNodeDefinition<TProject> {
+export class FlowConjunctionNodeDefinition<TProjectTypes extends PotatnoProjectTypesDefinition> extends PotatnoNodeDefinition<TProjectTypes> {
     /**
      * Stable definition id for this built-in node. Exposed so the code
      * generator can detect conjunction nodes and skip them during walks.

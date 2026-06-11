@@ -1,14 +1,14 @@
 import type { PotatnoStaticNodeDefinition } from './node_definition/potatno-static-node-definition.ts';
-import type { PotatnoProject } from './potatno-project.ts';
+import { PotatnoProjectTypesDefinition } from "./potatno-project-types-definition.ts";
 
 /**
  * Definition of an import group.
  * When a function enables this import, the contained node definitions become available in that function's node library.
  */
-export class PotatnoImportDefinition<TProject extends PotatnoProject> {
+export class PotatnoImportDefinition<TProjectTypes extends PotatnoProjectTypesDefinition> {
     private readonly mId: string;
     private readonly mLabel: string;
-    private readonly mNodes: Array<PotatnoStaticNodeDefinition<TProject>>;
+    private readonly mNodes: Array<PotatnoStaticNodeDefinition<TProjectTypes>>;
 
     /**
      * Unique identifier of the import group.
@@ -27,7 +27,7 @@ export class PotatnoImportDefinition<TProject extends PotatnoProject> {
     /**
      * Node definitions that become available when this import is enabled.
      */
-    public get nodes(): ReadonlyArray<PotatnoStaticNodeDefinition<TProject>> {
+    public get nodes(): ReadonlyArray<PotatnoStaticNodeDefinition<TProjectTypes>> {
         return this.mNodes;
     }
 
@@ -43,7 +43,7 @@ export class PotatnoImportDefinition<TProject extends PotatnoProject> {
         this.mLabel = pLabel;
 
         // Initialize empty node definition list.
-        this.mNodes = new Array<PotatnoStaticNodeDefinition<TProject>>();
+        this.mNodes = new Array<PotatnoStaticNodeDefinition<TProjectTypes>>();
     }
 
     /**
@@ -51,7 +51,7 @@ export class PotatnoImportDefinition<TProject extends PotatnoProject> {
      *
      * @param pDefinition - The node definition to add.
      */
-    public addNode(pDefinition: PotatnoStaticNodeDefinition<TProject>): void {
+    public addNode(pDefinition: PotatnoStaticNodeDefinition<TProjectTypes>): void {
         this.mNodes.push(pDefinition);
     }
 }

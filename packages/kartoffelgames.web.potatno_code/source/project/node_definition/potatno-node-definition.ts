@@ -1,17 +1,17 @@
 import { Exception } from "@kartoffelgames/core";
 import { PotatnoPortDefinition, PotatnoPortDefinitionConfiguration } from "../potatno-port-definition.ts";
-import { PotatnoProject } from "../potatno-project.ts";
+import { PotatnoProjectTypesDefinition } from "../potatno-project-types-definition.ts";
 
 /**
  * Potatno node definition that changes dynamically based on the provided context.
  */
-export class PotatnoNodeDefinition<TProject extends PotatnoProject> {
+export class PotatnoNodeDefinition<TProjectTypes extends PotatnoProjectTypesDefinition> {
     private readonly mId: string;
     private readonly mCategory: string;
     private readonly mLabel: string;
     private readonly mRegions: PotatnoNodeDefinitionRegions;
     private readonly mCodeGenerator: PotatnoNodeDefinitionCodeGenerator;
-    private readonly mPortProvider: PotatnoNodeDefinitionPortGenerator<TProject>;
+    private readonly mPortProvider: PotatnoNodeDefinitionPortGenerator<TProjectTypes>;
 
     /**
      *  Unique id for this node definition. 
@@ -30,14 +30,14 @@ export class PotatnoNodeDefinition<TProject extends PotatnoProject> {
     /** 
      * Data input port definitions. 
      */
-    public get inputs(): ReadonlyArray<PotatnoPortDefinition<TProject>> {
+    public get inputs(): ReadonlyArray<PotatnoPortDefinition<TProjectTypes>> {
         // Flag to check that a node can only have a single input flow port.
         let lHasFlowPort: boolean = false;
 
         // Reads port configuration and converts it into PotatnoPortDefinition.
-        const lPorts: Array<PotatnoPortDefinition<TProject>> = [];
+        const lPorts: Array<PotatnoPortDefinition<TProjectTypes>> = [];
         this.mPortProvider.inputs((pConfiguration) => {
-            lPorts.push(new PotatnoPortDefinition<TProject>(pConfiguration));
+            lPorts.push(new PotatnoPortDefinition<TProjectTypes>(pConfiguration));
 
             // Check that there is only a single flow port.
             if (pConfiguration.portType === 'flow') {
@@ -62,11 +62,11 @@ export class PotatnoNodeDefinition<TProject extends PotatnoProject> {
     /**
      * Data output port definitions.
      */
-    public get outputs(): ReadonlyArray<PotatnoPortDefinition<TProject>> {
+    public get outputs(): ReadonlyArray<PotatnoPortDefinition<TProjectTypes>> {
         // Reads port configuration and converts it into PotatnoPortDefinition.
-        const lPorts: Array<PotatnoPortDefinition<TProject>> = [];
+        const lPorts: Array<PotatnoPortDefinition<TProjectTypes>> = [];
         this.mPortProvider.outputs((pConfiguration) => {
-            lPorts.push(new PotatnoPortDefinition<TProject>(pConfiguration));
+            lPorts.push(new PotatnoPortDefinition<TProjectTypes>(pConfiguration));
         });
 
         return lPorts;
@@ -91,7 +91,7 @@ export class PotatnoNodeDefinition<TProject extends PotatnoProject> {
      *
      * @param pName - The port name to look up.
      */
-    public getPort(pName: string): PotatnoPortDefinition<TProject> | undefined {
+    public getPort(pName: string): PotatnoPortDefinition<TProjectTypes> | undefined {
         return [...this.inputs, ...this.outputs].find((pPort) => pPort.id === pName);
     }
 
@@ -100,7 +100,7 @@ export class PotatnoNodeDefinition<TProject extends PotatnoProject> {
      *
      * @param pParameters - Constructor parameters.
      */
-    public constructor(pParameters: PotatnoNodeDefinitionConstructorParameter<TProject>) {
+    public constructor(pParameters: PotatnoNodeDefinitionConstructorParameter<TProjectTypes>) {
         // Set id and label.
         this.mId = pParameters.id;
         this.mLabel = pParameters.label;
@@ -119,13 +119,13 @@ export class PotatnoNodeDefinition<TProject extends PotatnoProject> {
     }
 }
 
-type PotatnoNodeDefinitionConstructorParameter<TProject extends PotatnoProject> = {
+type PotatnoNodeDefinitionConstructorParameter<TProjectTypes extends PotatnoProjectTypesDefinition> = {
     id: string;
     label: string;
     category: string;
     regions?: Partial<PotatnoNodeDefinitionRegions> | null;
     generators: {
-        ports: PotatnoNodeDefinitionPortGenerator<TProject>;
+        ports: PotatnoNodeDefinitionPortGenerator<TProjectTypes>;
         code: PotatnoNodeDefinitionCodeGenerator;
     };
 };
@@ -155,12 +155,12 @@ export type PotatnoNodeDefinitionRegions = {
  * Port generator.
  */
 
-export type PotatnoNodeDefinitionPortGenerator<TProject extends PotatnoProject> = {
-    inputs: PotatnoNodeDefinitionPortGeneratorFunction<TProject>;
-    outputs: PotatnoNodeDefinitionPortGeneratorFunction<TProject>;
+export type PotatnoNodeDefinitionPortGenerator<TProjectTypes extends PotatnoProjectTypesDefinition> = {
+    inputs: PotatnoNodeDefinitionPortGeneratorFunction<TProjectTypes>;
+    outputs: PotatnoNodeDefinitionPortGeneratorFunction<TProjectTypes>;
 };
 
-export type PotatnoNodeDefinitionPortGeneratorFunction<TProject extends PotatnoProject> = (pAddPort: (pConfiguration: PotatnoPortDefinitionConfiguration<TProject>) => void) => void;
+export type PotatnoNodeDefinitionPortGeneratorFunction<TProjectTypes extends PotatnoProjectTypesDefinition> = (pAddPort: (pConfiguration: PotatnoPortDefinitionConfiguration<TProjectTypes>) => void) => void;
 
 /*
  * Code generator ports.
@@ -184,7 +184,7 @@ export type PotatnoCodeGeneratorInputPort = {
      * Input value is a direct value.
      * Determinates that this input port is not connected to any output.
      */
-    isDirectValue: boolean; 
+    isDirectValue: boolean;
 };
 
 /**

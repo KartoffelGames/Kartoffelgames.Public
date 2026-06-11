@@ -1,11 +1,11 @@
-import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from '../../../source/project/potatno-function-definition.ts';
 import { PotatnoStaticNodeDefinition } from '../../../source/project/node_definition/potatno-static-node-definition.ts';
-import type { CanvasProject } from './canvas-project.ts';
+import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from '../../../source/project/potatno-function-definition.ts';
+import { CanvasProjectTypesDefinition } from "./canvas-project-types-definition.ts";
 
 /**
  * Entry point function definition for the canvas shader playground.
  */
-export class CanvasProjectEntryFunctionDefinition extends PotatnoFunctionDefinition<CanvasProject> {
+export class CanvasProjectEntryFunctionDefinition extends PotatnoFunctionDefinition<CanvasProjectTypesDefinition> {
     /**
      * Create the canvas entry point function definition.
      */
@@ -16,7 +16,7 @@ export class CanvasProjectEntryFunctionDefinition extends PotatnoFunctionDefinit
             statics: PotatnoFunctionDefinitionStatics.imports | PotatnoFunctionDefinitionStatics.inputs,
             nodes: {
                 entry: (pAddNode): void => {
-                    pAddNode(new PotatnoStaticNodeDefinition<CanvasProject>({
+                    pAddNode(new PotatnoStaticNodeDefinition({
                         id: 'OnPixel',
                         label: 'OnPixel',
                         category: 'event',
@@ -38,7 +38,7 @@ export class CanvasProjectEntryFunctionDefinition extends PotatnoFunctionDefinit
                     }));
                 },
                 exit: (pAddNode): void => {
-                    pAddNode(new PotatnoStaticNodeDefinition<CanvasProject>({
+                    pAddNode(new PotatnoStaticNodeDefinition({
                         id: 'PixelResult',
                         label: 'PixelResult',
                         category: 'Output',

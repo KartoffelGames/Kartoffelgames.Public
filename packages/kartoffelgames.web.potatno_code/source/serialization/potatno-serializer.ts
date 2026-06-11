@@ -1,7 +1,7 @@
 import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
 import type { PotatnoDocument } from '../document/potatno-document.ts';
-import { PotatnoProject } from "../project/potatno-project.ts";
+import { PotatnoProjectTypesDefinition } from "../project/potatno-project-types-definition.ts";
 import type { PotatnoCodeFileSerializationResult, SerializedConnection, SerializedFunction, SerializedFunctionPort, SerializedNode, SerializedNodePort, SerializedNodePreview } from './potatno-serialization.type.ts';
 
 /**
@@ -15,7 +15,7 @@ import type { PotatnoCodeFileSerializationResult, SerializedConnection, Serializ
  * using source (output) → target (input) references. Both endpoints are stored
  * explicitly for stability.
  */
-export class PotatnoSerializer<TProject extends PotatnoProject> {
+export class PotatnoSerializer<TProjectTypes extends PotatnoProjectTypesDefinition> {
     /**
      * Constructor.
      */
@@ -29,7 +29,7 @@ export class PotatnoSerializer<TProject extends PotatnoProject> {
      * @returns Serialization result containing the metadata JSON.
      *          The code field is reserved for a separate code-generation step.
      */
-    public serialize(pDocument: PotatnoDocument<TProject>): PotatnoCodeFileSerializationResult {
+    public serialize(pDocument: PotatnoDocument<TProjectTypes>): PotatnoCodeFileSerializationResult {
         // Serialize all functions in the document.
         return {
             functions: [...pDocument.functions].map((pFunction) => {
@@ -41,9 +41,9 @@ export class PotatnoSerializer<TProject extends PotatnoProject> {
     /**
      * Serialize a single function including all its nodes and port connections.
      */
-    private serializeFunction(pFunction: PotatnoDocumentFunction<TProject>): SerializedFunction {
+    private serializeFunction(pFunction: PotatnoDocumentFunction<TProjectTypes>): SerializedFunction {
         // Build a temporary node to id map for this serialization pass.
-        const lNodeIdMap = new Map<PotatnoDocumentNode<TProject>, string>();
+        const lNodeIdMap = new Map<PotatnoDocumentNode<TProjectTypes>, string>();
 
         // Assign stable nodeIds based on the order of nodes in the function's graph.
         [...pFunction.nodes].forEach((pNode, pIndex) => {
@@ -106,7 +106,7 @@ export class PotatnoSerializer<TProject extends PotatnoProject> {
     /**
      * Serialize a single node with all its ports.
      */
-    private serializeNode(pNode: PotatnoDocumentNode<TProject>, pNodeId: string): SerializedNode {
+    private serializeNode(pNode: PotatnoDocumentNode<TProjectTypes>, pNodeId: string): SerializedNode {
         const lPorts: Array<SerializedNodePort> = [...pNode.inputs.list, ...pNode.outputs.list].map((pPort) => {
             return {
                 definitionId: pPort.definitionId,

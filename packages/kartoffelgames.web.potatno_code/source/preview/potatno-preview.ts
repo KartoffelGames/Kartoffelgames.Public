@@ -1,7 +1,7 @@
 import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
-import type { PotatnoProject } from '../project/potatno-project.ts';
+import { PotatnoProjectTypesDefinition } from "../project/potatno-project-types-definition.ts";
 import type { PotatnoPreviewDisplay } from './potatno-preview-display.ts';
 import { PotatnoPreviewDriver } from './potatno-preview-driver.ts';
 import type { PotatnoPreviewFunctionExecutor, PotatnoPreviewResultType } from './potatno-preview-function-executor.ts';
@@ -13,13 +13,13 @@ import type { PotatnoPreviewFunctionExecutor, PotatnoPreviewResultType } from '.
  *
  * @typeParam TProject - The project this registry targets.
  */
-export class PotatnoPreview<TProject extends PotatnoProject> {
-    private readonly mEntries: Array<PotatnoPreviewEntry<TProject>>;
+export class PotatnoPreview<TProjectTypes extends PotatnoProjectTypesDefinition> {
+    private readonly mEntries: Array<PotatnoPreviewEntry<TProjectTypes>>;
 
     /**
      * Every registered display entry in insertion order.
      */
-    public get entries(): ReadonlyArray<PotatnoPreviewEntry<TProject>> {
+    public get entries(): ReadonlyArray<PotatnoPreviewEntry<TProjectTypes>> {
         return this.mEntries;
     }
 
@@ -28,7 +28,7 @@ export class PotatnoPreview<TProject extends PotatnoProject> {
      *
      */
     public constructor() {
-        this.mEntries = new Array<PotatnoPreviewEntry<TProject>>();
+        this.mEntries = new Array<PotatnoPreviewEntry<TProjectTypes>>();
     }
 
     /**
@@ -42,10 +42,10 @@ export class PotatnoPreview<TProject extends PotatnoProject> {
      *
      * @param pDisplay - The display to register.
      */
-    public addDisplay<TElement extends Element, TParams extends Record<string, unknown>, TResult, TResultType extends PotatnoPreviewResultType<TProject>>(pDisplay: PotatnoPreviewDisplay<TProject, TElement, TParams, TResult, TResultType>): void {
+    public addDisplay<TElement extends Element, TParams extends Record<string, unknown>, TResult, TResultType extends PotatnoPreviewResultType<TProjectTypes>>(pDisplay: PotatnoPreviewDisplay<TProjectTypes, TElement, TParams, TResult, TResultType>): void {
         // "Convert" display and executor into a more flexibly type
-        const lDisplay: PotatnoPreviewEntryDisplay<TProject> = pDisplay as unknown as PotatnoPreviewEntryDisplay<TProject>;
-        const lExecutor: PotatnoPreviewEntryExecutor<TProject> = pDisplay.executor as unknown as PotatnoPreviewEntryExecutor<TProject>;
+        const lDisplay: PotatnoPreviewEntryDisplay<TProjectTypes> = pDisplay as unknown as PotatnoPreviewEntryDisplay<TProjectTypes>;
+        const lExecutor: PotatnoPreviewEntryExecutor<TProjectTypes> = pDisplay.executor as unknown as PotatnoPreviewEntryExecutor<TProjectTypes>;
 
         // Append new entry.
         this.mEntries.push({
@@ -53,8 +53,8 @@ export class PotatnoPreview<TProject extends PotatnoProject> {
             executor: lExecutor,
 
             // Dynamic preview driver generator.
-            createDriver: <TTargetProject extends PotatnoProject>(pTarget: PotatnoDocumentFunction<TTargetProject> | PotatnoDocumentPort<TTargetProject>): PotatnoPreviewDriver<TTargetProject> => {
-                return lDisplay.createDriver<TTargetProject>(pTarget);
+            createDriver: (pTarget: PotatnoDocumentFunction<TProjectTypes> | PotatnoDocumentPort<TProjectTypes>): PotatnoPreviewDriver<TProjectTypes> => {
+                return lDisplay.createDriver(pTarget);
             }
         });
     }
@@ -68,7 +68,7 @@ export class PotatnoPreview<TProject extends PotatnoProject> {
      *
      * @returns The matching entries, in registration order.
      */
-    public availablePreviews(pFunctionDefinition: PotatnoFunctionDefinition<PotatnoProject>, pProjectType: string): Array<PotatnoPreviewEntry<TProject>> {
+    public availablePreviews(pFunctionDefinition: PotatnoFunctionDefinition<TProjectTypes>, pProjectType: string): Array<PotatnoPreviewEntry<TProjectTypes>> {
         return this.mEntries.filter((pEntry) => {
             return pEntry.executor.function.id === pFunctionDefinition.id
                 && pEntry.executor.types.includes(pProjectType)
@@ -85,7 +85,7 @@ export class PotatnoPreview<TProject extends PotatnoProject> {
      *
      * @returns The matching display ids.
      */
-    public availablePreviewTypes(pFunctionDefinition: PotatnoFunctionDefinition<PotatnoProject>, pProjectType: string | null = null): Array<string> {
+    public availablePreviewTypes(pFunctionDefinition: PotatnoFunctionDefinition<TProjectTypes>, pProjectType: string | null = null): Array<string> {
         const lDisplays: Set<string> = new Set<string>();
         for (const lEntry of this.mEntries) {
             if (lEntry.executor.function.id === pFunctionDefinition.id && (pProjectType === null || (lEntry.executor.types.includes(pProjectType) && lEntry.display.allowsType(pProjectType)))) {
@@ -103,16 +103,16 @@ export class PotatnoPreview<TProject extends PotatnoProject> {
  *
  * @typeParam TProject - The project the registry targets.
  */
-export type PotatnoPreviewEntry<TProject extends PotatnoProject> = {
+export type PotatnoPreviewEntry<TProjectTypes extends PotatnoProjectTypesDefinition> = {
     /**
      * Preview display, widened to an existential.
      */
-    readonly display: PotatnoPreviewEntryDisplay<TProject>;
+    readonly display: PotatnoPreviewEntryDisplay<TProjectTypes>;
 
     /**
      * Preview code executor, widened to an existential.
      */
-    readonly executor: PotatnoPreviewEntryExecutor<TProject>;
+    readonly executor: PotatnoPreviewEntryExecutor<TProjectTypes>;
 
     /**
      * Build a {@link PotatnoPreviewDriver} bound to this entry's display and executor.
@@ -123,7 +123,7 @@ export type PotatnoPreviewEntry<TProject extends PotatnoProject> = {
      *
      * @returns The freshly constructed driver.
      */
-    createDriver<TTargetProject extends PotatnoProject>(pTarget: PotatnoDocumentFunction<TTargetProject> | PotatnoDocumentPort<TTargetProject>): PotatnoPreviewDriver<TTargetProject>;
+    createDriver(pTarget: PotatnoDocumentFunction<TProjectTypes> | PotatnoDocumentPort<TProjectTypes>): PotatnoPreviewDriver<TProjectTypes>;
 };
 
 /**
@@ -131,11 +131,11 @@ export type PotatnoPreviewEntry<TProject extends PotatnoProject> = {
  *
  * @typeParam TProject - The project the registry targets.
  */
-export type PotatnoPreviewEntryDisplay<TProject extends PotatnoProject> = PotatnoPreviewDisplay<TProject, Element, Record<string, unknown>, unknown, PotatnoPreviewResultType<TProject>>;
+export type PotatnoPreviewEntryDisplay<TProjectTypes extends PotatnoProjectTypesDefinition> = PotatnoPreviewDisplay<TProjectTypes, Element, Record<string, unknown>, unknown, PotatnoPreviewResultType<TProjectTypes>>;
 
 /**
  * Existential executor type of a registry entry — parameter and result type shapes widened.
  *
  * @typeParam TProject - The project the registry targets.
  */
-export type PotatnoPreviewEntryExecutor<TProject extends PotatnoProject> = PotatnoPreviewFunctionExecutor<TProject, Record<string, unknown>, PotatnoPreviewResultType<TProject>>;
+export type PotatnoPreviewEntryExecutor<TProjectTypes extends PotatnoProjectTypesDefinition> = PotatnoPreviewFunctionExecutor<TProjectTypes, Record<string, unknown>, PotatnoPreviewResultType<TProjectTypes>>;

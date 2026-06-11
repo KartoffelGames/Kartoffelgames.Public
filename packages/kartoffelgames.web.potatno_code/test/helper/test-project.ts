@@ -745,7 +745,7 @@ TestProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
  * static flag) gain `GreaterOrEqual` and `SmallerOrEqual` in their node
  * library.
  */
-const gExtraComparisonImport = new PotatnoImportDefinition<typeof TestProject>('ExtraComparison', 'Extra Comparison');
+const gExtraComparisonImport = new PotatnoImportDefinition<typeof gProjectTypes>('ExtraComparison', 'Extra Comparison');
 gExtraComparisonImport.addNode(new PotatnoStaticNodeDefinition({
     id: 'GreaterOrEqual',
     label: 'greaterOrEqual',

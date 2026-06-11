@@ -1,4 +1,4 @@
-import { PotatnoProjectTypesDefinition } from '../../../source/project/potatno-project-types-definition.ts';
+import { PotatnoProjectTypeNames, PotatnoProjectTypesDefinition } from '../../../source/project/potatno-project-types-definition.ts';
 
 /**
  * Project type configuration for the canvas shader playground.
@@ -60,6 +60,8 @@ export class CanvasProjectTypesDefinition extends PotatnoProjectTypesDefinition<
                 ]
             }
         });
+
+        const aaa: PotatnoProjectTypeNames<this> = this.typeNames
     }
 }
 

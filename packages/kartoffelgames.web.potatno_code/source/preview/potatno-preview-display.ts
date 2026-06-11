@@ -1,10 +1,10 @@
 import { Exception } from '@kartoffelgames/core';
 import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
-import type { PotatnoProject } from '../project/potatno-project.ts';
+import { PotatnoProjectTypesDefinition } from "../project/potatno-project-types-definition.ts";
 import { PotatnoPreviewDriver } from './potatno-preview-driver.ts';
-import type { PotatnoPreviewEntryDisplay, PotatnoPreviewEntryExecutor } from './potatno-preview.ts';
 import type { PotatnoPreviewFunctionExecutor, PotatnoPreviewResultType } from './potatno-preview-function-executor.ts';
+import type { PotatnoPreviewEntryDisplay, PotatnoPreviewEntryExecutor } from './potatno-preview.ts';
 
 /**
  * One pluggable preview display.
@@ -22,8 +22,8 @@ import type { PotatnoPreviewFunctionExecutor, PotatnoPreviewResultType } from '.
  * @typeParam TResult - The result shape every type adapter produces.
  * @typeParam TResultType - Union of executor result type names this display may adapt.
  */
-export class PotatnoPreviewDisplay<TProject extends PotatnoProject, TElement extends Element, TParams extends Record<string, unknown>, TResult, TResultType extends PotatnoPreviewResultType<TProject>> {
-    private readonly mExecutor: PotatnoPreviewFunctionExecutor<TProject, TParams, TResultType>;
+export class PotatnoPreviewDisplay<TProjectTypes extends PotatnoProjectTypesDefinition, TElement extends Element, TParams extends Record<string, unknown>, TResult, TResultType extends PotatnoPreviewResultType<TProjectTypes>> {
+    private readonly mExecutor: PotatnoPreviewFunctionExecutor<TProjectTypes, TParams, TResultType>;
     private readonly mGenerate: () => TElement;
     private readonly mId: string;
     private readonly mTypeAdapter: PotatnoPreviewDisplayTypeAdapter<TResult, TResultType>;
@@ -39,7 +39,7 @@ export class PotatnoPreviewDisplay<TProject extends PotatnoProject, TElement ext
     /**
      * Executor this display renders.
      */
-    public get executor(): PotatnoPreviewFunctionExecutor<TProject, TParams, TResultType> {
+    public get executor(): PotatnoPreviewFunctionExecutor<TProjectTypes, TParams, TResultType> {
         return this.mExecutor;
     }
 
@@ -49,7 +49,7 @@ export class PotatnoPreviewDisplay<TProject extends PotatnoProject, TElement ext
      * @param pExecutor - Executor this display renders.
      * @param pParameters - Display configuration.
      */
-    public constructor(pExecutor: PotatnoPreviewFunctionExecutor<TProject, TParams, TResultType>, pParameters: PotatnoPreviewDisplayConstructorParameter<TElement, TParams, TResult, TResultType>) {
+    public constructor(pExecutor: PotatnoPreviewFunctionExecutor<TProjectTypes, TParams, TResultType>, pParameters: PotatnoPreviewDisplayConstructorParameter<TElement, TParams, TResult, TResultType>) {
         this.mExecutor = pExecutor;
         this.mGenerate = pParameters.generate;
         this.mId = pParameters.id;
@@ -101,10 +101,10 @@ export class PotatnoPreviewDisplay<TProject extends PotatnoProject, TElement ext
      *
      * @returns The freshly constructed driver.
      */
-    public createDriver<TTargetProject extends PotatnoProject>(pTarget: PotatnoDocumentFunction<TTargetProject> | PotatnoDocumentPort<TTargetProject>): PotatnoPreviewDriver<TTargetProject> {
-        return new PotatnoPreviewDriver<TTargetProject>(
-            this as unknown as PotatnoPreviewEntryDisplay<TTargetProject>,
-            this.mExecutor as unknown as PotatnoPreviewEntryExecutor<TTargetProject>,
+    public createDriver<TProjectTypes extends PotatnoProjectTypesDefinition>(pTarget: PotatnoDocumentFunction<TProjectTypes> | PotatnoDocumentPort<TProjectTypes>): PotatnoPreviewDriver<TProjectTypes> {
+        return new PotatnoPreviewDriver<TProjectTypes>(
+            this as unknown as PotatnoPreviewEntryDisplay<TProjectTypes>,
+            this.mExecutor as unknown as PotatnoPreviewEntryExecutor<TProjectTypes>,
             pTarget
         );
     }

@@ -3,6 +3,7 @@ import type { PotatnoDocumentFunction } from '../../document/potatno-document-fu
 import { PotatnoFunctionDefinition } from "../../project/potatno-function-definition.ts";
 import type { PotatnoProject } from '../../project/potatno-project.ts';
 import type { PotatnoCodeGeneratorNodeResult } from './potatno-code-generator-node-result.ts';
+import { PotatnoProjectTypesDefinition } from "../../project/potatno-project-types-definition.ts";
 
 /**
  * Function code generation results.
@@ -10,16 +11,16 @@ import type { PotatnoCodeGeneratorNodeResult } from './potatno-code-generator-no
  * Owns the list of Graphs produced by a generation pass and exposes a uniform retrieval surface (graphResultOf, imports).
  * The class is declared abstract to block direct instantiation. Callers always receive one of the concrete subclasses.
  */
-export class PotatnoCodeGeneratorFunctionResult<TProject extends PotatnoProject> {
-    private readonly mFunction: PotatnoDocumentFunction<TProject>;
-    private readonly mGraphs: Map<string, PotatnoCodeGeneratorNodeResult<TProject>>;
+export class PotatnoCodeGeneratorFunctionResult<TProjectTypes extends PotatnoProjectTypesDefinition> {
+    private readonly mFunction: PotatnoDocumentFunction<TProjectTypes>;
+    private readonly mGraphs: Map<string, PotatnoCodeGeneratorNodeResult<TProjectTypes>>;
 
     /**
      * Calls the underlying function definitions code generator to convert the function graphs into a single string.
      */
     public get code(): string {
         // Get the functions definition.
-        const lFunctionDefinition: PotatnoFunctionDefinition<TProject> | undefined = this.mFunction.project.getFunction(this.mFunction.definitionId);
+        const lFunctionDefinition: PotatnoFunctionDefinition<TProjectTypes> | undefined = this.mFunction.project.getFunction(this.mFunction.definitionId);
         if(!lFunctionDefinition) {
             throw new Exception('Function result has an invalid function definition id.', this);
         }
@@ -31,14 +32,14 @@ export class PotatnoCodeGeneratorFunctionResult<TProject extends PotatnoProject>
     /**
      * The document function the contained graphs belong to.
      */
-    public get function(): PotatnoDocumentFunction<TProject> {
+    public get function(): PotatnoDocumentFunction<TProjectTypes> {
         return this.mFunction;
     }
 
     /**
      * Read-only view of the contained graphs.
      */
-    public get graphs(): ReadonlyArray<PotatnoCodeGeneratorNodeResult<TProject>> {
+    public get graphs(): ReadonlyArray<PotatnoCodeGeneratorNodeResult<TProjectTypes>> {
         return Array.from(this.mGraphs.values());
     }
 
@@ -48,9 +49,9 @@ export class PotatnoCodeGeneratorFunctionResult<TProject extends PotatnoProject>
      * @param pFunctionName - Display name of the owning function.
      * @param pFunction - The document function the graphs will belong to.
      */
-    public constructor(pFunction: PotatnoDocumentFunction<TProject>) {
+    public constructor(pFunction: PotatnoDocumentFunction<TProjectTypes>) {
         this.mFunction = pFunction;
-        this.mGraphs = new Map<string, PotatnoCodeGeneratorNodeResult<TProject>>();
+        this.mGraphs = new Map<string, PotatnoCodeGeneratorNodeResult<TProjectTypes>>();
     }
 
     /**
@@ -58,7 +59,7 @@ export class PotatnoCodeGeneratorFunctionResult<TProject extends PotatnoProject>
      *
      * @param pNodeResult - The graph to add.
      */
-    public addGraph(pNodeResult: PotatnoCodeGeneratorNodeResult<TProject>): void {
+    public addGraph(pNodeResult: PotatnoCodeGeneratorNodeResult<TProjectTypes>): void {
         this.mGraphs.set(pNodeResult.entryNode.definitionId, pNodeResult);
     }
 
@@ -69,7 +70,7 @@ export class PotatnoCodeGeneratorFunctionResult<TProject extends PotatnoProject>
      *
      * @returns The matching graph, or undefined.
      */
-    public graphResultOf(pEntryDefinitionId: string): PotatnoCodeGeneratorNodeResult<TProject> | undefined {
+    public graphResultOf(pEntryDefinitionId: string): PotatnoCodeGeneratorNodeResult<TProjectTypes> | undefined {
         return this.mGraphs.get(pEntryDefinitionId);
     }
 }

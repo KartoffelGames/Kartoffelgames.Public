@@ -56,9 +56,9 @@ export class PotatnoDeserializer<TProjectTypes extends PotatnoProjectTypesDefini
             isSystem: pData.isSystem
         });
 
-        // Restore imports.
-        for (const lImport of pData.imports) {
-            lFunction.addImport(lImport);
+        // Restore import ids.
+        for (const lImportId of pData.imports) {
+            lFunction.addImport(lImportId);
         }
 
         // Restore function-signature I/O port definitions.

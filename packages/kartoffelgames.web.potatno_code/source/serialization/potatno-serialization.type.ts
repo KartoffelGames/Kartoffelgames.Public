@@ -43,7 +43,7 @@ export type SerializedFunction = {
     outputs: Array<SerializedFunctionPort>;
 
     /**
-     * Import strings active for this function.
+     * Import ids active for this function.
      */
     imports: Array<string>;
 

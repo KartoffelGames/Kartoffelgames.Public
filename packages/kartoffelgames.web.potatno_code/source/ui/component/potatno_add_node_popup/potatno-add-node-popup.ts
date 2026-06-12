@@ -243,48 +243,20 @@ export class PotatnoAddNodePopup implements IComponentOnConnect, IComponentOnUpd
      * @returns Ordered node definition entries available to the function.
      */
     private buildAvailableNodeDefinitionEntries(pActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null): Array<PotatnoAddNodePopupEntry> {
-        const lEntries: Array<PotatnoAddNodePopupEntry> = [];
-        const lAddedIds: Set<string> = new Set<string>();
-
+        // No function is active so no nodes are available.
         if (!pActiveFunction) {
-            return lEntries;
+            return new Array<PotatnoAddNodePopupEntry>();
         }
 
-        // Add a definition if it was not already listed by an earlier source.
-        const addDefinition = (pDefinition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition>): void => {
-            if (lAddedIds.has(pDefinition.id)) {
-                return;
-            }
-
-            lAddedIds.add(pDefinition.id);
-            lEntries.push({
-                category: pDefinition.category,
-                definition: pDefinition,
-                id: pDefinition.id,
-                name: pDefinition.label
-            });
-        };
-
-        for (const lDefinition of pActiveFunction.project.nodeDefinitions) {
-            addDefinition(lDefinition);
-        }
-
-        for (const lDefinition of pActiveFunction.nodeDefinitions) {
-            addDefinition(lDefinition);
-        }
-
-        const lEnabledImports: Set<string> = new Set<string>(pActiveFunction.imports);
-        for (const lImport of pActiveFunction.project.imports) {
-            if (!lEnabledImports.has(lImport.label)) {
-                continue;
-            }
-
-            for (const lDefinition of lImport.nodes) {
-                addDefinition(lDefinition);
-            }
-        }
-
-        return lEntries;
+        // Map all dynamic functions of the current active function.
+        return pActiveFunction.dynamicNodeDefinitions.map((pNodeDefinition) => {
+            return {
+                category: pNodeDefinition.category,
+                definition: pNodeDefinition,
+                id: pNodeDefinition.id,
+                name: pNodeDefinition.label
+            };
+        });
     }
 
     /**

@@ -109,7 +109,7 @@ Deno.test('PotatnoDocumentFunction.constructor()', async (pContext) => {
         });
 
         // Evaluation.
-        expect(lFunction.imports.length).toBe(0);
+        expect(lFunction.imports.size).toBe(0);
     });
 });
 
@@ -237,7 +237,7 @@ Deno.test('PotatnoDocumentFunction.imports', async (pContext) => {
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(lFunction.imports.length).toBe(0);
+        expect(lFunction.imports.size).toBe(0);
     });
 
     await pContext.step('Contains added imports', () => {
@@ -321,6 +321,31 @@ Deno.test('PotatnoDocumentFunction.nodeDefinitions', async (pContext) => {
             expect(lFunctionIds.has(lProjectId)).toBe(true);
         }
     });
+
+    await pContext.step('Includes node definitions from enabled import ids', () => {
+        // Setup.
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+        lFunction.addImport('ExtraComparison');
+
+        // Process.
+        const lFunctionIds: Set<string> = new Set(lFunction.nodeDefinitions.map((pDef) => pDef.id));
+
+        // Evaluation.
+        expect(lFunctionIds.has('GreaterOrEqual')).toBe(true);
+        expect(lFunctionIds.has('SmallerOrEqual')).toBe(true);
+    });
+
+    await pContext.step('Does not resolve imported node definitions by import label', () => {
+        // Setup.
+        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+        lFunction.addImport('Extra Comparison');
+
+        // Process.
+        const lFunctionIds: Set<string> = new Set(lFunction.nodeDefinitions.map((pDef) => pDef.id));
+
+        // Evaluation.
+        expect(lFunctionIds.has('GreaterOrEqual')).toBe(false);
+    });
 });
 
 Deno.test('PotatnoDocumentFunction.addImport()', async (pContext) => {
@@ -358,7 +383,7 @@ Deno.test('PotatnoDocumentFunction.removeImport()', async (pContext) => {
         lFunction.removeImport('Math');
 
         // Evaluation.
-        expect(lFunction.imports.length).toBe(0);
+        expect(lFunction.imports.size).toBe(0);
     });
 
     await pContext.step('No-op for unknown import', () => {

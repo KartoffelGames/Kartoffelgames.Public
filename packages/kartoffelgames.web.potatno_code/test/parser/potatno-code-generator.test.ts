@@ -224,6 +224,23 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
             );
         });
 
+        await pContext.step('Imported value-producer is resolved by code generation', () => {
+            // Setup. Place a node from an enabled import. The node is intentionally read from
+            // project.imports, matching how the UI can place imported nodes.
+            const { function: lFunction, defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
+            lFunction.addImport('ExtraComparison');
+            const lImportDefinition = PotatnoHelper.TestProject.imports.find((pImportDefinition) => pImportDefinition.id === 'ExtraComparison')!;
+            const lGreaterOrEqualDefinition = lImportDefinition.nodes.find((pDefinition) => pDefinition.id === 'GreaterOrEqual')!;
+            const lGreaterOrEqualNode = lFunction.addNodeByDefinition(lGreaterOrEqualDefinition, { x: 0, y: 0, width: 6, height: 4 });
+            PotatnoHelper.connectFlow(defaultEntry, defaultExit);
+
+            // Process.
+            const lResult = new PotatnoCodeGenerator(PotatnoHelper.TestProject).generateNode(lGreaterOrEqualNode);
+
+            // Evaluation.
+            expect(lResult.entryPoint.graphs[0].code).toBe('const v_0 = 0 >= 0;');
+        });
+
         await pContext.step('Two-node arithmetic chain', () => {
             // Setup. Entry.a/b -> Add -> Multiply(other Entry.b) -> Exit.
             const { function: lFunction, defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();

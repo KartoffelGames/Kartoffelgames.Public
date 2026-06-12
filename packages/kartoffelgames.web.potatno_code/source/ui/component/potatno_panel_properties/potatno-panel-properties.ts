@@ -1,6 +1,7 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
+import { PotatnoFunctionDefinitionStatics } from '../../../project/potatno-function-definition.ts';
 import { PotatnoUiManager, PotatnoCodeUiManagerChangeType, type PotatnoCodeUiManagerPortView } from '../../manager/potatno-ui-manager.ts';
 import templateCss from './potatno-panel-properties.css' with { type: 'text' };
 import propertiesTemplate from './potatno-panel-properties.html' with { type: 'text' };
@@ -22,14 +23,17 @@ import { PotatnoProject } from "../../../project/potatno-project.ts";
 export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOnDeconstruct {
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
-    private mSelectedImport: string;
+    private mSelectedImportId: string;
     private mUnsubscribe: (() => void) | null;
 
     /**
-     * Available import names registered by the project.
+     * Available import ids registered by the project.
      */
-    public get availableImports(): Array<string> {
-        return this.mManager.project?.imports.map((pImport) => pImport.label) ?? [];
+    public get availableImports(): Array<ImportEntry> {
+        return this.mManager.project?.imports.map((pImportDefinition) => ({
+            id: pImportDefinition.id,
+            label: pImportDefinition.label
+        })) ?? [];
     }
 
     /**
@@ -50,18 +54,18 @@ export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOn
     }
 
     /**
-     * Whether the system function allows user editing of ports/imports.
+     * Import ids used by the active function.
      */
-    public get editableByUser(): boolean {
-        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
-        return lActiveFunction !== null && !lActiveFunction.isSystem;
+    public get functionImportIds(): Array<string> {
+        return [...(this.mManager.activeFunction?.imports ?? [])];
     }
 
     /**
-     * Import names used by the active function.
+     * Imports used by the active function.
      */
-    public get functionImports(): Array<string> {
-        return [...(this.mManager.activeFunction?.imports ?? [])];
+    public get functionImports(): Array<ImportEntry> {
+        const lAvailableImports: Map<string, ImportEntry> = new Map<string, ImportEntry>(this.availableImports.map((pImportEntry) => [pImportEntry.id, pImportEntry]));
+        return this.functionImportIds.map((pImportId) => lAvailableImports.get(pImportId) ?? { id: pImportId, label: pImportId });
     }
 
     /**
@@ -100,18 +104,32 @@ export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOn
     }
 
     /**
-     * Whether port/import editing is disabled.
+     * Whether import editing is disabled.
      */
-    public get portsDisabled(): boolean {
-        return this.isSystem && !this.editableByUser;
+    public get importsDisabled(): boolean {
+        return this.hasStaticFlag(PotatnoFunctionDefinitionStatics.imports);
     }
 
     /**
-     * Import names available to add (registered but not yet used).
+     * Whether input editing is disabled.
      */
-    public get unusedImports(): Array<string> {
-        const lUsed: Set<string> = new Set<string>(this.functionImports);
-        return this.availableImports.filter((pImport) => !lUsed.has(pImport));
+    public get inputsDisabled(): boolean {
+        return this.hasStaticFlag(PotatnoFunctionDefinitionStatics.inputs);
+    }
+
+    /**
+     * Whether output editing is disabled.
+     */
+    public get outputsDisabled(): boolean {
+        return this.hasStaticFlag(PotatnoFunctionDefinitionStatics.outputs);
+    }
+
+    /**
+     * Import ids available to add (registered but not yet used).
+     */
+    public get unusedImports(): Array<ImportEntry> {
+        const lUsed: Set<string> = new Set<string>(this.functionImportIds);
+        return this.availableImports.filter((pImportEntry) => !lUsed.has(pImportEntry.id));
     }
 
     /**
@@ -123,7 +141,7 @@ export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOn
     public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mComponent = pComponent;
         this.mManager = pManager;
-        this.mSelectedImport = '';
+        this.mSelectedImportId = '';
         this.mUnsubscribe = null;
     }
 
@@ -151,14 +169,14 @@ export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOn
      * Add the currently selected import from the dropdown.
      */
     public onAddSelectedImport(): void {
-        const lUnused: Array<string> = this.unusedImports;
-        const lImportName: string = this.mSelectedImport || (lUnused.length > 0 ? lUnused[0] : '');
-        if (!lImportName) {
+        const lUnused: Array<ImportEntry> = this.unusedImports;
+        const lImportId: string = this.mSelectedImportId || (lUnused.length > 0 ? lUnused[0].id : '');
+        if (!lImportId) {
             return;
         }
 
-        this.mManager.updateFunctionProperties({ imports: [...this.functionImports, lImportName] });
-        this.mSelectedImport = '';
+        this.mManager.updateFunctionProperties({ imports: [...this.functionImportIds, lImportId] });
+        this.mSelectedImportId = '';
     }
 
     /**
@@ -183,9 +201,9 @@ export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOn
      * @param pIndex - Index of the import to remove.
      */
     public onDeleteImport(pIndex: number): void {
-        const lImports: Array<string> = [...this.functionImports];
-        lImports.splice(pIndex, 1);
-        this.mManager.updateFunctionProperties({ imports: lImports });
+        const lImportIds: Array<string> = [...this.functionImportIds];
+        lImportIds.splice(pIndex, 1);
+        this.mManager.updateFunctionProperties({ imports: lImportIds });
     }
 
     /**
@@ -216,7 +234,7 @@ export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOn
      * @param pEvent - Change event from the select element.
      */
     public onImportSelectChange(pEvent: Event): void {
-        this.mSelectedImport = (pEvent.target as HTMLSelectElement).value;
+        this.mSelectedImportId = (pEvent.target as HTMLSelectElement).value;
     }
 
     /**
@@ -328,6 +346,25 @@ export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOn
     }
 
     /**
+     * Check whether the active function definition declares a static property flag.
+     *
+     * @param pFlag - Static flag to check.
+     */
+    private hasStaticFlag(pFlag: number): boolean {
+        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
+        if (!lActiveFunction) {
+            return true;
+        }
+
+        const lFunctionDefinition = lActiveFunction.project.getFunction(lActiveFunction.definitionId);
+        if (!lFunctionDefinition) {
+            return true;
+        }
+
+        return (lFunctionDefinition.statics & pFlag) !== 0;
+    }
+
+    /**
      * Produce a port name that does not collide with the function name or any existing port.
      *
      * @param pBase - The base name to start from.
@@ -363,3 +400,11 @@ export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOn
  * Port definition for function inputs and outputs.
  */
 type PortEntry = PotatnoCodeUiManagerPortView;
+
+/**
+ * Import option shown by the properties panel.
+ */
+type ImportEntry = {
+    id: string;
+    label: string;
+};

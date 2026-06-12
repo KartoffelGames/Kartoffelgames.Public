@@ -2,7 +2,7 @@ import { Exception } from "@kartoffelgames/core";
 import type { PotatnoNodeDefinition } from "../project/node_definition/potatno-node-definition.ts";
 import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionNodes } from "../project/potatno-function-definition.ts";
 import { PotatnoPortDefinition } from "../project/potatno-port-definition.ts";
-import { PotatnoProjectGenericType, PotatnoProjectTypeNames, PotatnoProjectTypesDefinition } from "../project/potatno-project-types-definition.ts";
+import { PotatnoProjectTypeNames, PotatnoProjectTypesDefinition } from "../project/potatno-project-types-definition.ts";
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { IPotatnoDocumentItem } from './i-potatno-document-item.interface.ts';
 import { PotatnoDocumentNode, PotatnoDocumentNodePortConfiguration, PotatnoDocumentNodeTransformation } from "./potatno-document-node.ts";
@@ -16,7 +16,7 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
     private readonly mDefinitionId: string;
     private readonly mDocument: PotatnoDocument<TProjectTypes>;
     private readonly mId: string;
-    private readonly mImports: Array<string>;
+    private readonly mImportIds: Set<string>;
     private readonly mInputs: Array<PotatnoDocumentFunctionPort<TProjectTypes>>;
     private readonly mIsSystem: boolean;
     private readonly mNodes: Set<PotatnoDocumentNode<TProjectTypes>>;
@@ -53,36 +53,51 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
 
     /**
      * Get all available node definitions for this function.
-     *
-     * Concatenates the document's project-wide definitions with the function definition's
-     * own entry, exit, and dynamic node definitions. Entry/exit definitions belong here
-     * because they are the only sources for the system-placed nodes (e.g. `OnPixel`,
-     * `PixelResult`) — the code generator looks every node up via this list and previously
-     * threw on those entries because only `dynamic` was included.
      */
     public get nodeDefinitions(): ReadonlyArray<PotatnoNodeDefinition<TProjectTypes>> {
+        // Read the function definition from project.
+        const lFunctionDefinition: PotatnoFunctionDefinition<TProjectTypes> | undefined = this.mProject.getFunction(this.definitionId);
+        if (!lFunctionDefinition) {
+            return this.dynamicNodeDefinitions;
+        }
+
+        // Read all function nodes from definition.
+        const lFunctionNodes = lFunctionDefinition.getNodeDefinitions(this);
+
+        return [
+            ...this.dynamicNodeDefinitions,
+            ...lFunctionNodes.entry,
+            ...lFunctionNodes.exit,
+        ];
+    }
+
+    /**
+     * Get all node definitions that can be dynamicly added or deleted by the user into this function.
+     */
+    public get dynamicNodeDefinitions(): ReadonlyArray<PotatnoNodeDefinition<TProjectTypes>> {
         // Read the function definition from project.
         const lFunctionDefinition: PotatnoFunctionDefinition<TProjectTypes> | undefined = this.mProject.getFunction(this.definitionId);
         if (!lFunctionDefinition) {
             return [...this.mDocument.nodeDefinitions];
         }
 
-        // TODO: Must be a better solution. There must be a diff access between public and internal nodes.
-
         const lFunctionNodes = lFunctionDefinition.getNodeDefinitions(this);
+        const lImportedNodeDefinitions: Array<PotatnoNodeDefinition<TProjectTypes>> = this.mProject.imports
+            .filter((pImportDefinition) => this.mImportIds.has(pImportDefinition.id))
+            .flatMap((pImportDefinition) => pImportDefinition.nodes);
+
         return [
             ...this.mDocument.nodeDefinitions,
-            ...lFunctionNodes.entry,
-            ...lFunctionNodes.exit,
+            ...lImportedNodeDefinitions,
             ...lFunctionNodes.dynamic
         ];
     }
 
     /**
-     * Get the list of imports for this function.
+     * Get the list of import ids for this function.
      */
-    public get imports(): ReadonlyArray<string> {
-        return this.mImports;
+    public get imports(): ReadonlySet<string> {
+        return this.mImportIds;
     }
 
     /**
@@ -141,18 +156,26 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
         this.mNodes = new Set<PotatnoDocumentNode<TProjectTypes>>();
         this.mInputs = new Array<PotatnoDocumentFunctionPort<TProjectTypes>>();
         this.mOutputs = new Array<PotatnoDocumentFunctionPort<TProjectTypes>>();
-        this.mImports = new Array<string>();
+        this.mImportIds = new Set<string>();
     }
 
     /**
-     * Add an import to the function if it does not already exist.
+     * Add an import id to the function if it does not already exist.
      *
-     * @param pImport - The import string to add.
+     * @param pImportId - The import id to add.
      */
-    public addImport(pImport: string): void {
-        if (!this.mImports.includes(pImport)) {
-            this.mImports.push(pImport);
+    public addImport(pImportId: string): void {
+        // Check if project has available import.
+        const lContainsImport: boolean = this.project.imports.some((pImport) => {
+            return pImport.id === pImportId;
+        });
+
+        // Throw if not.
+        if(!lContainsImport){
+            throw new Exception(`Project does not contain import ${pImportId}`, this);
         }
+
+        this.mImportIds.add(pImportId);
     }
 
     /**
@@ -264,15 +287,12 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
     }
 
     /**
-     * Remove an import from the function.
+     * Remove an import id from the function.
      *
-     * @param pImport - The import string to remove.
+     * @param pImportId - The import id to remove.
      */
-    public removeImport(pImport: string): void {
-        const index = this.mImports.indexOf(pImport);
-        if (index !== -1) {
-            this.mImports.splice(index, 1);
-        }
+    public removeImport(pImportId: string): void {
+        this.mImportIds.delete(pImportId);
     }
 
     /**

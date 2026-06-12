@@ -5,12 +5,13 @@ import { PotatnoDocumentFunction } from '../../document/potatno-document-functio
 import { PotatnoDocumentNode } from '../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../document/potatno-document-port.ts';
 import { PotatnoDocument } from '../../document/potatno-document.ts';
+import { type PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from '../../project/potatno-function-definition.ts';
 import { PotatnoProjectTypesDefinition } from "../../project/potatno-project-types-definition.ts";
+import { PotatnoProject } from "../../project/potatno-project.ts";
 import { PotatnoUiManagerGraph } from './manager_component/potatno-ui-manager-graph.ts';
 import { PotatnoUiManagerHistory } from './manager_component/potatno-ui-manager-history.ts';
 import { PotatnoUiManagerIntegrity } from './manager_component/potatno-ui-manager-integrity.ts';
 import { PotatnoUiManagerPreview } from './manager_component/potatno-ui-manager-preview.ts';
-import { PotatnoProject } from "../../project/potatno-project.ts";
 
 /**
  * Central, shared state owner for the whole Potatno-code editor UI.
@@ -239,11 +240,14 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
             return;
         }
 
+        const lFunctionDefinition: PotatnoFunctionDefinition<PotatnoProjectTypesDefinition> | undefined = lActiveFunction.project.getFunction(lActiveFunction.definitionId);
+        const lStatics: number = lFunctionDefinition?.statics ?? (PotatnoFunctionDefinitionStatics.imports | PotatnoFunctionDefinitionStatics.inputs | PotatnoFunctionDefinitionStatics.outputs);
+
         if (pData.name !== undefined) {
             lActiveFunction.label = pData.name;
         }
 
-        if (pData.inputs !== undefined) {
+        if (pData.inputs !== undefined && (lStatics & PotatnoFunctionDefinitionStatics.inputs) === 0) {
             // Rebuild the input list from the panel's desired state so renames and type changes
             // apply, not just additions and removals. Entry/exit node ports resync during validation.
             for (const lPort of [...lActiveFunction.inputs]) {
@@ -254,7 +258,7 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
             }
         }
 
-        if (pData.outputs !== undefined) {
+        if (pData.outputs !== undefined && (lStatics & PotatnoFunctionDefinitionStatics.outputs) === 0) {
             for (const lPort of [...lActiveFunction.outputs]) {
                 lActiveFunction.removeOutput(lPort);
             }
@@ -263,17 +267,17 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
             }
         }
 
-        if (pData.imports !== undefined) {
-            const lExistingImports: Set<string> = new Set<string>(lActiveFunction.imports);
-            const lNewImports: Set<string> = new Set<string>(pData.imports);
-            for (const lImport of [...lActiveFunction.imports]) {
-                if (!lNewImports.has(lImport)) {
-                    lActiveFunction.removeImport(lImport);
+        if (pData.imports !== undefined && (lStatics & PotatnoFunctionDefinitionStatics.imports) === 0) {
+            const lExistingImportIds: Set<string> = new Set<string>(lActiveFunction.imports);
+            const lNewImportIds: Set<string> = new Set<string>(pData.imports);
+            for (const lImportId of [...lActiveFunction.imports]) {
+                if (!lNewImportIds.has(lImportId)) {
+                    lActiveFunction.removeImport(lImportId);
                 }
             }
-            for (const lImport of pData.imports) {
-                if (!lExistingImports.has(lImport)) {
-                    lActiveFunction.addImport(lImport);
+            for (const lImportId of pData.imports) {
+                if (!lExistingImportIds.has(lImportId)) {
+                    lActiveFunction.addImport(lImportId);
                 }
             }
         }
@@ -356,6 +360,9 @@ export type PotatnoCodeUiManagerPortView = {
  * Property changes applied to the active function.
  */
 export type PotatnoCodeUiManagerPropertiesChange = {
+    /**
+     * Import ids used by the function.
+     */
     imports?: Array<string>;
     inputs?: Array<PotatnoCodeUiManagerPortView>;
     name?: string;

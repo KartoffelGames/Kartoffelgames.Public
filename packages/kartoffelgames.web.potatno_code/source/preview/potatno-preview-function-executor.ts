@@ -18,7 +18,7 @@ import type { PotatnoProjectTypeNames, PotatnoProjectTypesDefinition } from '../
  * @typeParam TParams - The iteration parameter shape supplied by the paired display per call.
  * @typeParam TResultType - Union of type names this executor can report.
  */
-export class PotatnoPreviewFunctionExecutor<TProjectTypes extends PotatnoProjectTypesDefinition, TParams extends Record<string, unknown>, TResultType extends PotatnoPreviewResultType<TProjectTypes> = PotatnoPreviewResultType<TProjectTypes>> {
+export class PotatnoPreviewFunctionExecutor<TProjectTypes extends PotatnoProjectTypesDefinition, TParams extends Record<string, unknown>, TResultType extends PotatnoPreviewResultType<TProjectTypes>> {
     /**
      * Full-function preview type.
      */
@@ -177,7 +177,7 @@ export type PotatnoPreviewFunctionExecutorConstructorParameter<TProjectTypes ext
     /**
      * Result type names supported by this executor. Display adapters must be a subset of this list.
      */
-    types: ReadonlyArray<TResultType>;
+    types: Array<TResultType>;
 
     /**
      * Build callback turning a generator result (and optional port target) into a callable plus

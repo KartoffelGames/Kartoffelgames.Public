@@ -25,9 +25,8 @@ const gPreviewHeight: number = 48;
  */
 type PixelCallable = (pX: number, pY: number) => [number, number, number];
 type CanvasProjectType = 'number' | 'string' | 'boolean';
-type CanvasPreviewResultType = CanvasProjectType | typeof PotatnoPreviewFunctionExecutor.MAIN;
 
-const lEntryFunctionExecutor = new PotatnoPreviewFunctionExecutor<CanvasProjectTypesDefinition, { x: number; y: number; }, CanvasPreviewResultType>(lProject.entryPoint, {
+const lEntryFunctionExecutor = new PotatnoPreviewFunctionExecutor(lProject.entryPoint, {
     defaultParameters: { x: 0, y: 0 },
     types: [PotatnoPreviewFunctionExecutor.MAIN, 'number', 'string', 'boolean'],
     build: (pExecutor, pGeneratorResult, pPortTarget) => {
@@ -50,7 +49,7 @@ const lEntryFunctionExecutor = new PotatnoPreviewFunctionExecutor<CanvasProjectT
             : lFunctionCode;
         const lNodeFn: (pX: number, pY: number) => unknown = new Function(`${lInstrumented}\nreturn ${lFunctionName};`)() as (pX: number, pY: number) => unknown;
         return {
-            type: getCanvasPreviewResultType(pPortTarget.documentPort.resolvedDataType),
+            type: pPortTarget.documentPort.resolvedDataType,
             execute: (pParameters: { x: number; y: number; }): unknown => lNodeFn(pParameters.x, pParameters.y)
         };
     }
@@ -59,7 +58,7 @@ const lEntryFunctionExecutor = new PotatnoPreviewFunctionExecutor<CanvasProjectT
 /**
  * Executor for previewing a user function output.
  */
-const lUserFunctionExecutor = new PotatnoPreviewFunctionExecutor<CanvasProjectTypesDefinition, { x: number; y: number; }, CanvasProjectType>(lProject.userFunction, {
+const lUserFunctionExecutor = new PotatnoPreviewFunctionExecutor(lProject.userFunction, {
     defaultParameters: { x: 0, y: 0 },
     types: ['number', 'string', 'boolean'],
     build: (pExecutor, pGeneratorResult, pPortTarget) => {
@@ -69,12 +68,12 @@ const lUserFunctionExecutor = new PotatnoPreviewFunctionExecutor<CanvasProjectTy
 
         const lFunction = pGeneratorResult.entryPoint.function;
         const lFunctionName: string = `__fn_${lFunction.id.replaceAll('-', '_')}`;
-        const lDefaultArguments: Array<unknown> = lFunction.inputs.map((pInput) => pExecutor.projectTypes.getDefaultValue(getCanvasProjectType(pInput.dataType)));
+        const lDefaultArguments: Array<unknown> = lFunction.inputs.map((pInput) => pExecutor.projectTypes.getDefaultValue(pInput.dataType));
         const lOutputKey: string = pPortTarget.value;
 
         const lCompiled: (...pArgs: Array<unknown>) => Record<string, unknown> = new Function(`${pGeneratorResult.code}\nreturn ${lFunctionName};`)() as (...pArgs: Array<unknown>) => Record<string, unknown>;
         return {
-            type: getCanvasProjectType(pPortTarget.documentPort.resolvedDataType),
+            type: pPortTarget.documentPort.resolvedDataType,
             execute: (): unknown => {
                 const lResult: Record<string, unknown> = lCompiled(...lDefaultArguments);
                 return lResult ? lResult[lOutputKey] : undefined;
@@ -195,34 +194,4 @@ async function updateCanvasPreview(pElement: HTMLCanvasElement, pExecutor: Potat
     }
 
     lContext.putImageData(lImageData, 0, 0);
-}
-
-/**
- * Convert a resolved type into a canvas project type.
- *
- * @param pType - Resolved type name.
- *
- * @returns The narrowed canvas project type.
- */
-function getCanvasProjectType(pType: string): CanvasProjectType {
-    if (pType === 'number' || pType === 'string' || pType === 'boolean') {
-        return pType;
-    }
-
-    throw new Error(`Unsupported canvas project type: "${pType}".`);
-}
-
-/**
- * Convert a resolved type into a canvas preview result type.
- *
- * @param pType - Resolved type name.
- *
- * @returns The narrowed canvas preview result type.
- */
-function getCanvasPreviewResultType(pType: string): CanvasPreviewResultType {
-    if (pType === PotatnoPreviewFunctionExecutor.MAIN) {
-        return pType;
-    }
-
-    return getCanvasProjectType(pType);
 }

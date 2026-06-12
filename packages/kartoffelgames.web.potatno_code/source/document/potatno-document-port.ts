@@ -98,22 +98,22 @@ export class PotatnoDocumentPort<TProjectTypes extends PotatnoProjectTypesDefini
      * Get the resolved data type of the port. 
      * For generic ports, this is the type of the connected port on the opposite side of the generic.
      */
-    public get resolvedDataType(): PotatnoProjectTypeNames<TProjectTypes> | PotatnoProjectGenericType {
+    public get resolvedDataType(): PotatnoProjectTypeNames<TProjectTypes> | null {
         // For none value ports, resolved type is always empty string.
         if (this.mPortType !== 'value') {
-            return '';
+            return null;
         }
 
         // Resolved type is the same as dataType for non-generic ports.
         if (!this.mProject.types.isGenericType(this.mDataType ?? '')) {
-            return this.mDataType!;
+            return this.mDataType;
         }
 
         // When it is a output generic port, use the type of the connected input port with the same generic to resolve the generic type.
         if (this.mDirection === 'output') {
             const lResolvingInputPort: PotatnoDocumentPort<TProjectTypes> | undefined = this.mNode.inputs.value.find((pInputPort) => pInputPort.dataType === this.mDataType);
             if (!lResolvingInputPort) {
-                return this.mDataType!;
+                return null;
             }
 
             return lResolvingInputPort.resolvedDataType;
@@ -123,14 +123,14 @@ export class PotatnoDocumentPort<TProjectTypes extends PotatnoProjectTypesDefini
         if (this.mDirection === 'input') {
             // No connections, no type.
             if (this.mConnectedPorts.size === 0) {
-                return this.mDataType!;
+                return null;
             }
 
             const lConnectedPort: PotatnoDocumentPort<TProjectTypes> = this.mConnectedPorts.values().next().value!;
             return lConnectedPort.resolvedDataType;
         }
 
-        return this.mDataType!;
+        return this.mDataType;
     }
 
     /**

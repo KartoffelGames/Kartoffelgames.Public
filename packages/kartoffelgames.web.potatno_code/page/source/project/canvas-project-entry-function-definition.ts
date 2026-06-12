@@ -13,7 +13,7 @@ export class CanvasProjectEntryFunctionDefinition extends PotatnoFunctionDefinit
         super({
             id: 'pixelShader',
             label: 'Pixel Shader',
-            statics: PotatnoFunctionDefinitionStatics.imports | PotatnoFunctionDefinitionStatics.inputs,
+            statics: PotatnoFunctionDefinitionStatics.inputs | PotatnoFunctionDefinitionStatics.outputs,
             nodes: {
                 entry: (pAddNode): void => {
                     pAddNode(new PotatnoStaticNodeDefinition({

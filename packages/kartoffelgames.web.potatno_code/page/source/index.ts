@@ -20,12 +20,6 @@ lProject.addImport(new CanvasProjectTimeImportDefinition());
 const gPreviewWidth: number = 48;
 const gPreviewHeight: number = 48;
 
-/**
- * Shape of the compiled function-level callable.
- */
-type PixelCallable = (pX: number, pY: number) => [number, number, number];
-type CanvasProjectType = 'number' | 'string' | 'boolean';
-
 const lEntryFunctionExecutor = new PotatnoPreviewFunctionExecutor(lProject.entryPoint, {
     defaultParameters: { x: 0, y: 0 },
     types: [PotatnoPreviewFunctionExecutor.MAIN, 'number', 'string', 'boolean'],
@@ -35,6 +29,7 @@ const lEntryFunctionExecutor = new PotatnoPreviewFunctionExecutor(lProject.entry
 
         // Compile the whole function preview when no port is targeted.
         if (!pPortTarget) {
+            type PixelCallable = (pX: number, pY: number) => [number, number, number];
             const lCompiled: PixelCallable = new Function(`${lFunctionCode}\nreturn ${lFunctionName};`)() as PixelCallable;
             return {
                 type: PotatnoPreviewFunctionExecutor.MAIN,

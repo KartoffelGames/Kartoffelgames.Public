@@ -516,5 +516,5 @@ export type PotatnoDocumentFunctionConstructorParameter = {
 
 export type PotatnoDocumentFunctionPort<TProjectTypes extends PotatnoProjectTypesDefinition> = {
     label: string;
-    dataType: PotatnoProjectTypeNames<TProjectTypes> | PotatnoProjectGenericType;
+    dataType: PotatnoProjectTypeNames<TProjectTypes>;
 };

@@ -581,16 +581,18 @@ Deno.test('PotatnoDocumentPort.resolvedDataType', async (pContext) => {
         expect(lResult).toBe('number');
     });
 
-    await pContext.step('Returns empty string for flow ports', () => {
+    await pContext.step('Throws for flow ports', () => {
         // Setup.
         const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
         const lPort = defaultEntry.outputs.flow[0];
 
         // Process.
-        const lResult = lPort.resolvedDataType;
+        const lAction = (): string => {
+            return lPort.resolvedDataType;
+        };
 
         // Evaluation.
-        expect(lResult).toBe('');
+        expect(lAction).toThrow("Port data type couldn't be resolved as it is no value port.");
     });
 
     await pContext.step('Output generic port resolves via connected input port on the same node with the same generic', () => {
@@ -607,16 +609,18 @@ Deno.test('PotatnoDocumentPort.resolvedDataType', async (pContext) => {
         expect(lResult).toBe('number');
     });
 
-    await pContext.step('Output generic port returns the generic when no resolving input exists', () => {
+    await pContext.step('Output generic port throws when no resolving input exists', () => {
         // Setup. Pick with no inputs connected.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
         const lPickNode = PotatnoHelper.addProjectNode(lFunction, 'Pick');
 
         // Process.
-        const lResult = lPickNode.outputs.value.find((pPort) => pPort.definitionId === 'result')!.resolvedDataType;
+        const lAction = (): string => {
+            return lPickNode.outputs.value.find((pPort) => pPort.definitionId === 'result')!.resolvedDataType;
+        };
 
         // Evaluation.
-        expect(lResult).toBe('<T>');
+        expect(lAction).toThrow("Port type couldn't be resolved as it has no resolving input port");
     });
 
     await pContext.step('Input generic port resolves via its connected output port', () => {
@@ -633,17 +637,19 @@ Deno.test('PotatnoDocumentPort.resolvedDataType', async (pContext) => {
         expect(lResult).toBe('number');
     });
 
-    await pContext.step('Input generic port returns the generic when not connected', () => {
+    await pContext.step('Input generic port throws when not connected', () => {
         // Setup.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
         const lPickNode = PotatnoHelper.addProjectNode(lFunction, 'Pick');
         const lPickAInput = lPickNode.inputs.value.find((pPort) => pPort.definitionId === 'a')!;
 
         // Process.
-        const lResult = lPickAInput.resolvedDataType;
+        const lAction = (): string => {
+            return lPickAInput.resolvedDataType;
+        };
 
         // Evaluation.
-        expect(lResult).toBe('<T>');
+        expect(lAction).toThrow("Port type couldn't be resolved as it has no resolving input port");
     });
 });
 

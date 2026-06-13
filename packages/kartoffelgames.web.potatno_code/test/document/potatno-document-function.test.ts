@@ -245,11 +245,10 @@ Deno.test('PotatnoDocumentFunction.imports', async (pContext) => {
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
-        lFunction.addImport('A');
-        lFunction.addImport('B');
+        lFunction.addImport('ExtraComparison');
 
         // Evaluation.
-        expect([...lFunction.imports]).toEqual(['A', 'B']);
+        expect([...lFunction.imports]).toEqual(['ExtraComparison']);
     });
 });
 
@@ -335,15 +334,18 @@ Deno.test('PotatnoDocumentFunction.nodeDefinitions', async (pContext) => {
         expect(lFunctionIds.has('SmallerOrEqual')).toBe(true);
     });
 
-    await pContext.step('Does not resolve imported node definitions by import label', () => {
+    await pContext.step('Rejects imported node definitions by import label', () => {
         // Setup.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        lFunction.addImport('Extra Comparison');
 
         // Process.
-        const lFunctionIds: Set<string> = new Set(lFunction.nodeDefinitions.map((pDef) => pDef.id));
+        const lAction = (): void => {
+            lFunction.addImport('Extra Comparison');
+        };
 
         // Evaluation.
+        expect(lAction).toThrow('Project does not contain import Extra Comparison');
+        const lFunctionIds: Set<string> = new Set(lFunction.nodeDefinitions.map((pDef) => pDef.id));
         expect(lFunctionIds.has('GreaterOrEqual')).toBe(false);
     });
 });
@@ -354,10 +356,10 @@ Deno.test('PotatnoDocumentFunction.addImport()', async (pContext) => {
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
-        lFunction.addImport('Math');
+        lFunction.addImport('ExtraComparison');
 
         // Evaluation.
-        expect([...lFunction.imports]).toEqual(['Math']);
+        expect([...lFunction.imports]).toEqual(['ExtraComparison']);
     });
 
     await pContext.step('No-op for duplicate import', () => {
@@ -365,11 +367,11 @@ Deno.test('PotatnoDocumentFunction.addImport()', async (pContext) => {
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
-        lFunction.addImport('Math');
-        lFunction.addImport('Math');
+        lFunction.addImport('ExtraComparison');
+        lFunction.addImport('ExtraComparison');
 
         // Evaluation.
-        expect([...lFunction.imports]).toEqual(['Math']);
+        expect([...lFunction.imports]).toEqual(['ExtraComparison']);
     });
 });
 
@@ -377,10 +379,10 @@ Deno.test('PotatnoDocumentFunction.removeImport()', async (pContext) => {
     await pContext.step('Removes an existing import', () => {
         // Setup.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        lFunction.addImport('Math');
+        lFunction.addImport('ExtraComparison');
 
         // Process.
-        lFunction.removeImport('Math');
+        lFunction.removeImport('ExtraComparison');
 
         // Evaluation.
         expect(lFunction.imports.size).toBe(0);
@@ -389,13 +391,13 @@ Deno.test('PotatnoDocumentFunction.removeImport()', async (pContext) => {
     await pContext.step('No-op for unknown import', () => {
         // Setup.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        lFunction.addImport('Math');
+        lFunction.addImport('ExtraComparison');
 
         // Process.
         lFunction.removeImport('Unknown');
 
         // Evaluation.
-        expect([...lFunction.imports]).toEqual(['Math']);
+        expect([...lFunction.imports]).toEqual(['ExtraComparison']);
     });
 });
 

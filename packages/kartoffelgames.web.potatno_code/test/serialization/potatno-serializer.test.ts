@@ -207,21 +207,20 @@ Deno.test('PotatnoSerializer.serialize()', async (pContext) => {
             expect(lRtFunction.outputs.map((pPort) => pPort.label)).toEqual(['first', 'second']);
         });
 
-        await pContext.step('Function imports in insertion order', () => {
+        await pContext.step('Function imports', () => {
             // Setup.
             const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
             const lFunction = lDocument.newFunction({
                 definitionId: PotatnoHelper.TestProject.entryPoint.id, id: 'a', label: 'a', isSystem: false
             });
-            lFunction.addImport('First');
-            lFunction.addImport('Second');
+            lFunction.addImport('ExtraComparison');
 
             // Process.
             const lRoundTripped = PotatnoHelper.roundTrip(lDocument);
 
             // Evaluation.
             const lRtFunction = [...lRoundTripped.functions][0];
-            expect([...lRtFunction.imports]).toEqual(['First', 'Second']);
+            expect([...lRtFunction.imports]).toEqual(['ExtraComparison']);
         });
     });
 

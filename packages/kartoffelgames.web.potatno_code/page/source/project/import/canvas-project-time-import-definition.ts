@@ -1,7 +1,6 @@
-import { PotatnoStaticNodeDefinition } from '../../../source/project/node_definition/potatno-static-node-definition.ts';
-import { PotatnoImportDefinition } from '../../../source/project/potatno-import-definition.ts';
-import { CanvasProjectTypesDefinition } from "./canvas-project-types-definition.ts";
-import type { CanvasProject } from './canvas-project.ts';
+import { PotatnoStaticNodeDefinition } from '../../../../source/project/node_definition/potatno-static-node-definition.ts';
+import { PotatnoImportDefinition } from '../../../../source/project/potatno-import-definition.ts';
+import { CanvasProjectTypesDefinition } from "../canvas-project-types-definition.ts";
 
 /**
  * Time import definition for the canvas shader playground.

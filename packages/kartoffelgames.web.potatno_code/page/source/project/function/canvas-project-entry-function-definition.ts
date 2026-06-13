@@ -1,6 +1,6 @@
-import { PotatnoStaticNodeDefinition } from '../../../source/project/node_definition/potatno-static-node-definition.ts';
-import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from '../../../source/project/potatno-function-definition.ts';
-import { CanvasProjectTypesDefinition } from "./canvas-project-types-definition.ts";
+import { PotatnoStaticNodeDefinition } from '../../../../source/project/node_definition/potatno-static-node-definition.ts';
+import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from '../../../../source/project/potatno-function-definition.ts';
+import { CanvasProjectTypesDefinition } from "../canvas-project-types-definition.ts";
 
 /**
  * Entry point function definition for the canvas shader playground.

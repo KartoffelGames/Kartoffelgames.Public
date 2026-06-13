@@ -1,6 +1,6 @@
-import { PotatnoNodeDefinition } from '../../../source/project/node_definition/potatno-node-definition.ts';
-import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from '../../../source/project/potatno-function-definition.ts';
-import { CanvasProjectTypesDefinition } from "./canvas-project-types-definition.ts";
+import { PotatnoNodeDefinition } from '../../../../source/project/node_definition/potatno-node-definition.ts';
+import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from '../../../../source/project/potatno-function-definition.ts';
+import { CanvasProjectTypesDefinition } from "../canvas-project-types-definition.ts";
 
 /**
  * User function definition for the canvas shader playground.

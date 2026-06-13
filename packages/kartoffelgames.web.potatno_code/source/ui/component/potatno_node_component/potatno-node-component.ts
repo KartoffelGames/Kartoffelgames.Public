@@ -146,12 +146,12 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
         const lBinding = this.nodeData.preview;
         const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = lBinding ? this.nodeData.outputs.map.get(lBinding.portId) : undefined;
         if (lPort && lPort.portType === 'value') {
-            return lProject.preview.availablePreviewTypes(lFunctionDefinition, lPort.resolvedDataType);
+            return lProject.preview.availableDisplays(lFunctionDefinition, lPort.resolvedDataType);
         }
 
         const lDisplays: Set<string> = new Set<string>();
         for (const lPort of this.valueOutputPorts) {
-            for (const lDisplay of lProject.preview.availablePreviewTypes(lFunctionDefinition, lPort.resolvedDataType)) {
+            for (const lDisplay of lProject.preview.availableDisplays(lFunctionDefinition, lPort.resolvedDataType)) {
                 lDisplays.add(lDisplay);
             }
         }
@@ -379,7 +379,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
             return [];
         }
 
-        return this.nodeData.project.preview.availablePreviewTypes(lFunctionDefinition, pPort.resolvedDataType);
+        return this.nodeData.project.preview.availableDisplays(lFunctionDefinition, pPort.resolvedDataType);
     }
 
     /**

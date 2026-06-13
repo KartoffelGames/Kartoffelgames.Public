@@ -58,24 +58,24 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
     /**
      * Display ("style") id options for the display selector, from the project's preview registry.
      */
-    public get displayOptions(): ReadonlyArray<string> {
+    public get displayOptions(): Array<string> {
         const lFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
         const lProject: PotatnoProject<PotatnoProjectTypesDefinition> | null = this.mManager.project;
         const lFunctionDefinition = lFunction && lProject ? lProject.getFunction(lFunction.definitionId) : undefined;
         if (!lFunction || !lProject || !lFunctionDefinition) {
-            return [];
+            return new Array<string>();
         }
 
         if (this.selectedOutputId === PotatnoPreviewFunctionExecutor.MAIN) {
-            return lProject.preview.availablePreviewTypes(lFunctionDefinition, PotatnoPreviewFunctionExecutor.MAIN);
+            return lProject.preview.availableDisplays(lFunctionDefinition, PotatnoPreviewFunctionExecutor.MAIN);
         }
 
         const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.findFunctionOutputPort(lFunction, this.selectedOutputId);
         if (lPort) {
-            return lProject.preview.availablePreviewTypes(lFunctionDefinition, lPort.resolvedDataType);
+            return lProject.preview.availableDisplays(lFunctionDefinition, lPort.resolvedDataType);
         }
 
-        return lProject.preview.availablePreviewTypes(lFunctionDefinition);
+        return lProject.preview.availableDisplays(lFunctionDefinition);
     }
 
     /**
@@ -104,7 +104,7 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
         }
 
         const lOptions: Array<PotatnoPreviewOutputOption> = new Array<PotatnoPreviewOutputOption>();
-        if (lProject.preview.availablePreviewTypes(lFunctionDefinition, PotatnoPreviewFunctionExecutor.MAIN).length > 0) {
+        if (lProject.preview.availableDisplays(lFunctionDefinition, PotatnoPreviewFunctionExecutor.MAIN).length > 0) {
             lOptions.push({ id: PotatnoPreviewFunctionExecutor.MAIN, label: 'Main' });
         }
 
@@ -115,7 +115,7 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
                     continue;
                 }
 
-                if (lProject.preview.availablePreviewTypes(lFunctionDefinition, lPort.resolvedDataType).length === 0) {
+                if (lProject.preview.availableDisplays(lFunctionDefinition, lPort.resolvedDataType).length === 0) {
                     continue;
                 }
 
@@ -144,11 +144,11 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      * Currently selected display id, falling back to the first available.
      */
     public get selectedDisplayId(): string {
-        const lOptions: ReadonlyArray<string> = this.displayOptions;
+        const lOptions: Array<string> = this.displayOptions;
         if (this.mSelectedDisplayId !== '' && lOptions.includes(this.mSelectedDisplayId)) {
             return this.mSelectedDisplayId;
         }
-        return lOptions[0] ?? '';
+        return lOptions.at(0) ?? '';
     }
 
     /**

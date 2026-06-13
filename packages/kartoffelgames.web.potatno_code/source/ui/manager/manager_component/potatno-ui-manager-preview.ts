@@ -93,8 +93,11 @@ export class PotatnoUiManagerPreview {
             }
 
             if (lTarget === PotatnoPreviewFunctionExecutor.MAIN) {
-                const lEntry = lProject.preview.availablePreviews(lFunctionDefinition, PotatnoPreviewFunctionExecutor.MAIN).find((pEntry) => pEntry.display.id === pDisplayId);
-                return lEntry?.createDriver(pFunction) ?? null;
+                if (!lProject.preview.availableDisplays(lFunctionDefinition, PotatnoPreviewFunctionExecutor.MAIN).includes(pDisplayId)) {
+                    return null;
+                }
+
+                return lProject.preview.getDisplay(pDisplayId)?.createDriver(pFunction) ?? null;
             }
 
             const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.findFunctionOutputPort(pFunction, lTarget);
@@ -102,8 +105,11 @@ export class PotatnoUiManagerPreview {
                 return null;
             }
 
-            const lEntry = lProject.preview.availablePreviews(lFunctionDefinition, lPort.resolvedDataType).find((pEntry) => pEntry.display.id === pDisplayId);
-            return lEntry?.createDriver(lPort) ?? null;
+            if (!lProject.preview.availableDisplays(lFunctionDefinition, lPort.resolvedDataType).includes(pDisplayId)) {
+                return null;
+            }
+
+            return lProject.preview.getDisplay(pDisplayId)?.createDriver(lPort) ?? null;
         });
     }
 
@@ -130,9 +136,11 @@ export class PotatnoUiManagerPreview {
             }
 
             // Only entries whose display allows the port's value type can render it.
-            const lEntry = lProject.preview.availablePreviews(lFunctionDefinition, lPort.resolvedDataType).find((pEntry) => pEntry.display.id === lBinding.displayId);
+            if (!lProject.preview.availableDisplays(lFunctionDefinition, lPort.resolvedDataType).includes(lBinding.displayId)) {
+                return null;
+            }
 
-            return lEntry?.createDriver(lPort) ?? null;
+            return lProject.preview.getDisplay(lBinding.displayId)?.createDriver(lPort) ?? null;
         });
     }
 

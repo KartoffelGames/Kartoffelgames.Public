@@ -1,8 +1,8 @@
 import { PotatnoStaticNodeDefinition } from '../../../source/project/node_definition/potatno-static-node-definition.ts';
 import { PotatnoProject } from '../../../source/project/potatno-project.ts';
-import { CanvasProjectEntryFunctionDefinition } from './canvas-project-entry-function-definition.ts';
+import { CanvasProjectEntryFunctionDefinition } from './function/canvas-project-entry-function-definition.ts';
 import { CanvasProjectTypesDefinition } from './canvas-project-types-definition.ts';
-import { CanvasProjectUserFunctionDefinition } from './canvas-project-user-function-definition.ts';
+import { CanvasProjectUserFunctionDefinition } from './function/canvas-project-user-function-definition.ts';
 
 /**
  * Project configuration for the canvas shader playground.

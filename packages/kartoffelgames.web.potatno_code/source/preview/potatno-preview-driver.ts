@@ -3,8 +3,8 @@ import { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import { PotatnoCodeGenerator } from '../parser/potatno-code-generator.ts';
 import type { PotatnoCodeGeneratorDocumentResult } from '../parser/result/potatno-code-generator-document-result.ts';
 import { PotatnoProjectTypesDefinition } from "../project/potatno-project-types-definition.ts";
-import type { PotatnoPreviewFunctionExecutorBuildResult, PotatnoPreviewFunctionExecutorPortTarget, PotatnoPreviewResultType } from './potatno-preview-function-executor.ts';
-import type { PotatnoPreviewEntryDisplay, PotatnoPreviewEntryExecutor } from './potatno-preview.ts';
+import type { PotatnoPreviewFunctionExecutor, PotatnoPreviewFunctionExecutorBuildResult, PotatnoPreviewFunctionExecutorPortTarget, PotatnoPreviewResultType } from './potatno-preview-function-executor.ts';
+import type { PotatnoPreviewEntryDisplay } from './potatno-preview.ts';
 
 /**
  * Self-contained runtime object behind one visible preview, created via a registry entry's
@@ -23,7 +23,7 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
     private mCachedCallable: PotatnoPreviewDriverCallable | null;
     private readonly mDisplay: PotatnoPreviewEntryDisplay<TProjectTypes>;
     private mElement: Element | null;
-    private readonly mExecutor: PotatnoPreviewEntryExecutor<TProjectTypes>;
+    private readonly mExecutor: PotatnoPreviewFunctionExecutor<TProjectTypes>;
     private mSpecifiedParameters: Record<string, unknown>;
     private readonly mTarget: PotatnoDocumentFunction<TProjectTypes> | PotatnoDocumentPort<TProjectTypes>;
 
@@ -39,13 +39,20 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
     }
 
     /**
+     * Executor of this driver.
+     */
+    public get executor(): PotatnoPreviewFunctionExecutor<TProjectTypes> {
+        return this.mExecutor;
+    }
+
+    /**
      * Constructor. Usually called through a registry entry's `createDriver`.
      *
      * @param pDisplay - Preview display.
      * @param pExecutor - Preview code executor.
      * @param pTarget - The previewed document port or document function.
      */
-    public constructor(pDisplay: PotatnoPreviewEntryDisplay<TProjectTypes>, pExecutor: PotatnoPreviewEntryExecutor<TProjectTypes>, pTarget: PotatnoDocumentFunction<TProjectTypes> | PotatnoDocumentPort<TProjectTypes>) {
+    public constructor(pDisplay: PotatnoPreviewEntryDisplay<TProjectTypes>, pExecutor: PotatnoPreviewFunctionExecutor<TProjectTypes>, pTarget: PotatnoDocumentFunction<TProjectTypes> | PotatnoDocumentPort<TProjectTypes>) {
         this.mDisplay = pDisplay;
         this.mExecutor = pExecutor;
         this.mTarget = pTarget;

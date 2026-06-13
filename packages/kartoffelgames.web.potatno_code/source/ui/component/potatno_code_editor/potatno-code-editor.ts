@@ -13,6 +13,7 @@ import '../potatno_function_list/potatno-function-list.ts';
 import '../potatno_node_graph/potatno-node-graph.ts';
 import '../potatno_panel_properties/potatno-panel-properties.ts';
 import '../potatno_preview/potatno-preview.ts';
+import { PotatnoFunctionDefinition } from "../../../project/potatno-function-definition.ts";
 
 
 /**
@@ -59,13 +60,13 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
             return false;
         }
 
-        for (const lEntry of lProject.preview.entries) {
-            if (lEntry.executor.function.id === lActiveFunction.definitionId) {
-                return true;
-            }
+        // Get definition of active function.
+        const lActiveFunctionDefintion: PotatnoFunctionDefinition<PotatnoProjectTypesDefinition> | undefined = lProject.getFunction(lActiveFunction.definitionId);
+        if (!lActiveFunctionDefintion) {
+            return false;
         }
 
-        return false;
+        return lProject.preview.availableDisplays(lActiveFunctionDefintion).length > 0;
     }
 
     /**

@@ -4,7 +4,7 @@ import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import { PotatnoProjectTypesDefinition } from "../project/potatno-project-types-definition.ts";
 import { PotatnoPreviewDriver } from './potatno-preview-driver.ts';
 import type { PotatnoPreviewFunctionExecutor, PotatnoPreviewResultType } from './potatno-preview-function-executor.ts';
-import type { PotatnoPreviewEntryDisplay, PotatnoPreviewEntryExecutor } from './potatno-preview.ts';
+import { PotatnoPreviewEntryDisplay } from "./potatno-preview.ts";
 
 /**
  * One pluggable preview display.
@@ -22,11 +22,11 @@ import type { PotatnoPreviewEntryDisplay, PotatnoPreviewEntryExecutor } from './
  * @typeParam TResult - The result shape every type adapter produces.
  * @typeParam TResultType - Union of executor result type names this display may adapt.
  */
-export class PotatnoPreviewDisplay<TProjectTypes extends PotatnoProjectTypesDefinition, TElement extends Element, TParams extends Record<string, unknown>, TResult, TResultType extends PotatnoPreviewResultType<TProjectTypes>> {
+export class PotatnoPreviewDisplay<TProjectTypes extends PotatnoProjectTypesDefinition, TElement extends Element, TParams extends Record<string, unknown>, TResultType extends PotatnoPreviewResultType<TProjectTypes>, TResult> {
     private readonly mExecutor: PotatnoPreviewFunctionExecutor<TProjectTypes, TParams, TResultType>;
     private readonly mGenerate: () => TElement;
     private readonly mId: string;
-    private readonly mTypeAdapter: PotatnoPreviewDisplayTypeAdapter<TResult, TResultType>;
+    private readonly mTypeAdapter: PotatnoPreviewDisplayTypeAdapter<TResultType, TResult>;
     private readonly mUpdate: PotatnoPreviewDisplayUpdate<TElement, TParams, TResult>;
 
     /**
@@ -49,7 +49,7 @@ export class PotatnoPreviewDisplay<TProjectTypes extends PotatnoProjectTypesDefi
      * @param pExecutor - Executor this display renders.
      * @param pParameters - Display configuration.
      */
-    public constructor(pExecutor: PotatnoPreviewFunctionExecutor<TProjectTypes, TParams, TResultType>, pParameters: PotatnoPreviewDisplayConstructorParameter<TElement, TParams, TResult, TResultType>) {
+    public constructor(pExecutor: PotatnoPreviewFunctionExecutor<TProjectTypes, TParams, TResultType>, pParameters: PotatnoPreviewDisplayConstructorParameter<TElement, TParams, TResultType, TResult>) {
         this.mExecutor = pExecutor;
         this.mGenerate = pParameters.generate;
         this.mId = pParameters.id;
@@ -101,10 +101,10 @@ export class PotatnoPreviewDisplay<TProjectTypes extends PotatnoProjectTypesDefi
      *
      * @returns The freshly constructed driver.
      */
-    public createDriver<TProjectTypes extends PotatnoProjectTypesDefinition>(pTarget: PotatnoDocumentFunction<TProjectTypes> | PotatnoDocumentPort<TProjectTypes>): PotatnoPreviewDriver<TProjectTypes> {
+    public createDriver(pTarget: PotatnoDocumentFunction<TProjectTypes> | PotatnoDocumentPort<TProjectTypes>): PotatnoPreviewDriver<TProjectTypes> {
         return new PotatnoPreviewDriver<TProjectTypes>(
             this as unknown as PotatnoPreviewEntryDisplay<TProjectTypes>,
-            this.mExecutor as unknown as PotatnoPreviewEntryExecutor<TProjectTypes>,
+            this.mExecutor as unknown as PotatnoPreviewFunctionExecutor<TProjectTypes>,
             pTarget
         );
     }
@@ -141,15 +141,15 @@ export class PotatnoPreviewDisplay<TProjectTypes extends PotatnoProjectTypesDefi
  * @typeParam TResult - The shared result shape every adapter must produce.
  * @typeParam TResultType - Union of supported result type names.
  */
-export type PotatnoPreviewDisplayTypeAdapter<TResult, TResultType extends string> = Partial<{
+export type PotatnoPreviewDisplayTypeAdapter<TResultType extends string, TResult> = {
     [K in TResultType]: (pValue: never) => TResult;
-}>;
+};
 
 /**
  * Driver-wrapped iteration callable handed to the display's `update` loop. Adapter coercion is
  * already baked in.
  */
-export type PotatnoPreviewDisplayExecutorCallable<TParams, TResult> = (pParameters: TParams) => TResult | Promise<TResult>;
+export type PotatnoPreviewDisplayExecutorCallable<TParams, TResult> = (pParameters: TParams) => Promise<TResult>;
 
 /**
  * Display update callback. Owns the per-render iteration loop and writes results into the element.
@@ -164,7 +164,7 @@ export type PotatnoPreviewDisplayUpdate<TElement extends Element, TParams, TResu
  * @typeParam TResult - The result shape every adapter produces and every `pExecutor` call yields.
  * @typeParam TResultType - Union of supported result type names.
  */
-export type PotatnoPreviewDisplayConstructorParameter<TElement extends Element, TParams extends Record<string, unknown>, TResult, TResultType extends string> = {
+export type PotatnoPreviewDisplayConstructorParameter<TElement extends Element, TParams extends Record<string, unknown>, TResultType extends string, TResult> = {
     /**
      * Stable id for this display. Persisted with per-node preview bindings.
      */
@@ -173,7 +173,7 @@ export type PotatnoPreviewDisplayConstructorParameter<TElement extends Element, 
     /**
      * Per-type adapter record. Defines every type this display can render.
      */
-    typeAdapter: PotatnoPreviewDisplayTypeAdapter<TResult, TResultType>;
+    typeAdapter: PotatnoPreviewDisplayTypeAdapter<TResultType, TResult>;
 
     /**
      * Build the element. Called once per driver, on first `element` access.

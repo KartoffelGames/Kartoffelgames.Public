@@ -40,10 +40,12 @@ export class PotatnoFunctionNodeDefinition<TProjectTypes extends PotatnoProjectT
      * @param pFunction - The document function this definition mirrors.
      */
     public constructor(pFunction: PotatnoDocumentFunction<TProjectTypes>) {
-        const lPortGenerator = (pDirectionName: string, pFunctionPorts: ReadonlyArray<PotatnoDocumentFunctionPort<TProjectTypes>>): PotatnoNodeDefinitionPortGeneratorFunction<TProjectTypes> => {
+        const lPortGenerator = (pDirectionName: string, pFunctionPorts: ReadonlyArray<PotatnoDocumentFunctionPort<TProjectTypes>>, pOutputPorts: ReadonlyArray<unknown>): PotatnoNodeDefinitionPortGeneratorFunction<TProjectTypes> => {
             return (pAddPort): void => {
-                // Add an additional flow port for function call chaining.
-                pAddPort({ label: pDirectionName, id: pDirectionName, portType: 'flow' });
+                // Add an additional flow port for function call chaining when the function has no outputs.
+                if (pOutputPorts.length === 0) {
+                    pAddPort({ label: pDirectionName, id: pDirectionName, portType: 'flow' });
+                }
 
                 // Generate ports definitions based on the function inputs.
                 for (const lPort of pFunctionPorts) {
@@ -67,8 +69,8 @@ export class PotatnoFunctionNodeDefinition<TProjectTypes extends PotatnoProjectT
             category: 'user function',
             generators: {
                 ports: {
-                    inputs: lPortGenerator('Input', pFunction.inputs),
-                    outputs: lPortGenerator('Output', pFunction.outputs),
+                    inputs: lPortGenerator('Input', pFunction.inputs, pFunction.outputs),
+                    outputs: lPortGenerator('Output', pFunction.outputs, pFunction.outputs),
                 },
                 code: (pNodeContext) => {
                     if (!lFunctionDefinition) {

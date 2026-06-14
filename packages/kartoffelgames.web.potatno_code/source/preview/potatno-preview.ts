@@ -1,5 +1,5 @@
 import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
-import { PotatnoProjectTypesDefinition } from "../project/potatno-project-types-definition.ts";
+import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
 import type { PotatnoPreviewDisplay } from './potatno-preview-display.ts';
 import type { PotatnoPreviewResultType } from './potatno-preview-function-executor.ts';
 
@@ -31,20 +31,9 @@ export class PotatnoPreview<TProjectTypes extends PotatnoProjectTypesDefinition>
      *
      * @param pDisplay - The display to register.
      */
-    public addDisplay(pDisplay: PotatnoPreviewDisplay<TProjectTypes, any, any, any, any>): void {
+    public addDisplay(pDisplay: PotatnoPreviewDisplay<TProjectTypes, any, any, any, any, any>): void {
         // Append new entry. "Convert" display and executor into a more flexibly type
         this.mDisplays.set(pDisplay.id, pDisplay);
-    }
-
-    /**
-     * Get a display of this previews container by id.
-     * 
-     * @param pDisplayId - Id of display.
-     * 
-     * @returns the display instance.
-     */
-    public getDisplay(pDisplayId: string): PotatnoPreviewEntryDisplay<TProjectTypes> | null {
-        return this.mDisplays.get(pDisplayId) ?? null;
     }
 
     /**
@@ -71,6 +60,17 @@ export class PotatnoPreview<TProjectTypes extends PotatnoProjectTypesDefinition>
 
         return lDisplays;
     }
+
+    /**
+     * Get a display of this previews container by id.
+     * 
+     * @param pDisplayId - Id of display.
+     * 
+     * @returns the display instance.
+     */
+    public getDisplay(pDisplayId: string): PotatnoPreviewEntryDisplay<TProjectTypes> | null {
+        return this.mDisplays.get(pDisplayId) ?? null;
+    }
 }
 
 /**
@@ -78,4 +78,4 @@ export class PotatnoPreview<TProjectTypes extends PotatnoProjectTypesDefinition>
  *
  * @typeParam TProject - The project the registry targets.
  */
-export type PotatnoPreviewEntryDisplay<TProjectTypes extends PotatnoProjectTypesDefinition> = PotatnoPreviewDisplay<TProjectTypes, Element, Record<string, unknown>, PotatnoPreviewResultType<TProjectTypes>, unknown>;
+export type PotatnoPreviewEntryDisplay<TProjectTypes extends PotatnoProjectTypesDefinition> = PotatnoPreviewDisplay<TProjectTypes, Element, Record<string, unknown>, PotatnoPreviewResultType<TProjectTypes>, PotatnoPreviewResultType<TProjectTypes>, unknown>;

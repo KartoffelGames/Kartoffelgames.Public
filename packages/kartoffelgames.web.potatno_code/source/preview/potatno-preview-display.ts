@@ -1,10 +1,10 @@
 import { Exception } from '@kartoffelgames/core';
 import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
-import { PotatnoProjectTypesDefinition } from "../project/potatno-project-types-definition.ts";
+import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
 import { PotatnoPreviewDriver } from './potatno-preview-driver.ts';
 import type { PotatnoPreviewFunctionExecutor, PotatnoPreviewResultType } from './potatno-preview-function-executor.ts';
-import { PotatnoPreviewEntryDisplay } from "./potatno-preview.ts";
+import type { PotatnoPreviewEntryDisplay } from './potatno-preview.ts';
 
 /**
  * One pluggable preview display.
@@ -22,12 +22,19 @@ import { PotatnoPreviewEntryDisplay } from "./potatno-preview.ts";
  * @typeParam TResult - The result shape every type adapter produces.
  * @typeParam TResultType - Union of executor result type names this display may adapt.
  */
-export class PotatnoPreviewDisplay<TProjectTypes extends PotatnoProjectTypesDefinition, TElement extends Element, TParams extends Record<string, unknown>, TResultType extends PotatnoPreviewResultType<TProjectTypes>, TResult> {
-    private readonly mExecutor: PotatnoPreviewFunctionExecutor<TProjectTypes, TParams, TResultType>;
+export class PotatnoPreviewDisplay<TProjectTypes extends PotatnoProjectTypesDefinition, TElement extends Element, TParams extends Record<string, unknown>, TExecutorResultType extends PotatnoPreviewResultType<TProjectTypes>, TDisplayResultType extends PotatnoPreviewResultType<TProjectTypes>, TResult> {
+    private readonly mExecutor: PotatnoPreviewFunctionExecutor<TProjectTypes, TParams, TExecutorResultType>;
     private readonly mGenerate: () => TElement;
     private readonly mId: string;
-    private readonly mTypeAdapter: PotatnoPreviewDisplayTypeAdapter<TResultType, TResult>;
+    private readonly mTypeAdapters: Map<TDisplayResultType, PotatnoPreviewDisplayTypeAdapter<TResult>>;
     private readonly mUpdate: PotatnoPreviewDisplayUpdate<TElement, TParams, TResult>;
+
+    /**
+     * Executor this display renders.
+     */
+    public get executor(): PotatnoPreviewFunctionExecutor<TProjectTypes, TParams, TExecutorResultType> {
+        return this.mExecutor;
+    }
 
     /**
      * Stable identifier of this display. Persisted with per-node preview bindings.
@@ -37,29 +44,26 @@ export class PotatnoPreviewDisplay<TProjectTypes extends PotatnoProjectTypesDefi
     }
 
     /**
-     * Executor this display renders.
-     */
-    public get executor(): PotatnoPreviewFunctionExecutor<TProjectTypes, TParams, TResultType> {
-        return this.mExecutor;
-    }
-
-    /**
      * Constructor.
      *
      * @param pExecutor - Executor this display renders.
      * @param pParameters - Display configuration.
      */
-    public constructor(pExecutor: PotatnoPreviewFunctionExecutor<TProjectTypes, TParams, TResultType>, pParameters: PotatnoPreviewDisplayConstructorParameter<TElement, TParams, TResultType, TResult>) {
+    public constructor(pExecutor: PotatnoPreviewFunctionExecutor<TProjectTypes, TParams, TExecutorResultType>, pParameters: PotatnoPreviewDisplayConstructorParameter<TElement, TParams, TDisplayResultType, TResult>) {
         this.mExecutor = pExecutor;
         this.mGenerate = pParameters.generate;
         this.mId = pParameters.id;
-        this.mTypeAdapter = pParameters.typeAdapter;
         this.mUpdate = pParameters.update;
 
-        for (const lTypeName of Object.keys(this.mTypeAdapter)) {
-            if (!this.mExecutor.types.includes(lTypeName as TResultType)) {
-                throw new Exception(`Display "${this.mId}" declares type "${lTypeName}" that executor "${this.mExecutor.function.id}" does not support.`, this);
+        // Convert type adapters into a mapping of it.
+        this.mTypeAdapters = new Map<TDisplayResultType, PotatnoPreviewDisplayTypeAdapter<TResult>>();
+        for (const [lTypeName, lAdapter] of Object.entries(this.mTypeAdapters)) {
+            // Skip any adapter that is not supported by the executor.
+            if (!this.mExecutor.types.has(lTypeName as TExecutorResultType)) {
+                continue;
             }
+
+            this.mTypeAdapters.set(lTypeName as TDisplayResultType, lAdapter);
         }
     }
 
@@ -73,14 +77,16 @@ export class PotatnoPreviewDisplay<TProjectTypes extends PotatnoProjectTypesDefi
      *
      * @throws {@link Exception} - When no adapter is registered for the type.
      */
-    public adapterFor(pTypeName: string): (pValue: unknown) => TResult {
+    public adapterFor(pTypeName: string): PotatnoPreviewDisplayTypeAdapter<TResult> {
+        // "Convert" typename into "correct" type.
+        const lTypeName: TDisplayResultType = pTypeName as TDisplayResultType;
+
         // Cast through unknown so the per-key narrowed types collapse to a single callable shape.
-        const lAdapter: unknown = (this.mTypeAdapter as Record<string, unknown>)[pTypeName];
-        if (lAdapter === undefined) {
+        if (!this.mTypeAdapters.has(lTypeName)) {
             throw new Exception(`Display "${this.mId}" has no type adapter for type "${pTypeName}".`, this);
         }
 
-        return lAdapter as (pValue: unknown) => TResult;
+        return this.mTypeAdapters.get(lTypeName)!;
     }
 
     /**
@@ -91,7 +97,7 @@ export class PotatnoPreviewDisplay<TProjectTypes extends PotatnoProjectTypesDefi
      * @returns `true` when an adapter is registered for the type.
      */
     public allowsType(pTypeName: string): boolean {
-        return (this.mTypeAdapter as Record<string, unknown>)[pTypeName] !== undefined;
+        return this.mTypeAdapters.has(pTypeName as TDisplayResultType);
     }
 
     /**
@@ -134,16 +140,15 @@ export class PotatnoPreviewDisplay<TProjectTypes extends PotatnoProjectTypesDefi
 
 /**
  * Per-type adapter record contract — the union of types a display can render.
- *
- * Keys are executor-supported result types. Adapter input values are typed as `never` so display
- * authors can annotate each adapter with the concrete runtime value shape they expect.
- *
- * @typeParam TResult - The shared result shape every adapter must produce.
- * @typeParam TResultType - Union of supported result type names.
  */
-export type PotatnoPreviewDisplayTypeAdapter<TResultType extends string, TResult> = {
-    [K in TResultType]: (pValue: never) => TResult;
+export type PotatnoPreviewDisplayTypeAdapters<TResultType extends string, TResult> = {
+    [K in TResultType]: PotatnoPreviewDisplayTypeAdapter<TResult>;
 };
+
+/**
+ * Type adapter function, converting a value into a predefined displayable type.
+ */
+export type PotatnoPreviewDisplayTypeAdapter<TResult> = (pValue: any) => TResult;
 
 /**
  * Driver-wrapped iteration callable handed to the display's `update` loop. Adapter coercion is
@@ -173,7 +178,7 @@ export type PotatnoPreviewDisplayConstructorParameter<TElement extends Element, 
     /**
      * Per-type adapter record. Defines every type this display can render.
      */
-    typeAdapter: PotatnoPreviewDisplayTypeAdapter<TResultType, TResult>;
+    typeAdapter: PotatnoPreviewDisplayTypeAdapters<TResultType, TResult>;
 
     /**
      * Build the element. Called once per driver, on first `element` access.

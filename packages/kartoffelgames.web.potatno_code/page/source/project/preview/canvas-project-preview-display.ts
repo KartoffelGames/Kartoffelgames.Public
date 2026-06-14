@@ -1,23 +1,23 @@
-import { PotatnoPreviewDisplay, PotatnoPreviewDisplayExecutorCallable } from "../../../../source/preview/potatno-preview-display.ts";
-import { PotatnoPreviewFunctionExecutor } from "../../../../source/preview/potatno-preview-function-executor.ts";
-import { CanvasProjectTypesDefinition } from "../canvas-project-types-definition.ts";
+import { PotatnoPreviewDisplay, type PotatnoPreviewDisplayExecutorCallable } from '../../../../source/preview/potatno-preview-display.ts';
+import { PotatnoPreviewFunctionExecutor, type PotatnoPreviewResultType } from '../../../../source/preview/potatno-preview-function-executor.ts';
+import type { CanvasProjectTypesDefinition } from '../canvas-project-types-definition.ts';
 
-export class CanvasProjectPreviewDisplay extends PotatnoPreviewDisplay<CanvasProjectTypesDefinition, HTMLCanvasElement, CanvasProjectPreViewDisplayParameter, CanvasProjectPreViewDisplayResultTypes, CanvasProjectPreViewDisplayResult> {
-    private static PreviewWidth: number = 48;
-    private static PreviewHeight: number = 48;
+export class CanvasProjectPreviewDisplay<TExecutorResultType extends PotatnoPreviewResultType<CanvasProjectTypesDefinition>> extends PotatnoPreviewDisplay<CanvasProjectTypesDefinition, HTMLCanvasElement, CanvasProjectPreViewDisplayParameter, TExecutorResultType, CanvasProjectPreViewDisplayResultTypes, CanvasProjectPreViewDisplayResult> {
+    private static readonly PREVIEW_HEIGHT: number = 48;
+    private static readonly PREVIEW_WIDTH: number = 48;
 
     /**
      * Construtor.
      * 
      * @param pExecutor - Executor for this display.
      */
-    public constructor(pExecutor: PotatnoPreviewFunctionExecutor<CanvasProjectTypesDefinition, CanvasProjectPreViewDisplayParameter, CanvasProjectPreViewDisplayResultTypes>) {
+    public constructor(pExecutor: PotatnoPreviewFunctionExecutor<CanvasProjectTypesDefinition, CanvasProjectPreViewDisplayParameter, TExecutorResultType>) {
         super(pExecutor, {
             id: '2dCanvas',
             generate: (): HTMLCanvasElement => {
                 const lCanvas: HTMLCanvasElement = document.createElement('canvas');
-                lCanvas.width = CanvasProjectPreviewDisplay.PreviewWidth;
-                lCanvas.height = CanvasProjectPreviewDisplay.PreviewHeight;
+                lCanvas.width = CanvasProjectPreviewDisplay.PREVIEW_WIDTH;
+                lCanvas.height = CanvasProjectPreviewDisplay.PREVIEW_HEIGHT;
                 lCanvas.style.width = '100%';
                 lCanvas.style.height = '100%';
                 lCanvas.style.imageRendering = 'pixelated';
@@ -83,4 +83,4 @@ type CanvasProjectPreViewDisplayParameter = {
 
 type CanvasProjectPreViewDisplayResult = [number, number, number];
 
-type CanvasProjectPreViewDisplayResultTypes = "MAIN" | 'number' | 'boolean';
+type CanvasProjectPreViewDisplayResultTypes = 'MAIN' | 'number' | 'boolean';

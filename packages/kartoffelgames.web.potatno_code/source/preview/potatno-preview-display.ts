@@ -46,6 +46,13 @@ export class PotatnoPreviewDisplay<TProjectTypes extends PotatnoProjectTypesDefi
     }
 
     /**
+     * Display name shown in preview selectors.
+     */
+    public get name(): string {
+        return this.mName;
+    }
+
+    /**
      * Constructor.
      *
      * @param pExecutor - Executor this display renders.
@@ -60,13 +67,13 @@ export class PotatnoPreviewDisplay<TProjectTypes extends PotatnoProjectTypesDefi
 
         // Convert type adapters into a mapping of it.
         this.mTypeAdapters = new Map<TDisplayResultType, PotatnoPreviewDisplayTypeAdapter<TResult>>();
-        for (const [lTypeName, lAdapter] of Object.entries(this.mTypeAdapters)) {
+        for (const [lTypeName, lAdapter] of Object.entries(pParameters.typeAdapter)) {
             // Skip any adapter that is not supported by the executor.
             if (!this.mExecutor.types.has(lTypeName as TExecutorResultType)) {
                 continue;
             }
 
-            this.mTypeAdapters.set(lTypeName as TDisplayResultType, lAdapter);
+            this.mTypeAdapters.set(lTypeName as TDisplayResultType, lAdapter as PotatnoPreviewDisplayTypeAdapter<TResult>);
         }
     }
 

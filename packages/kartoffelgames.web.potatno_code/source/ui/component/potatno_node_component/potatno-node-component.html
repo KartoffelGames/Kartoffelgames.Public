@@ -103,7 +103,7 @@ $if(this.nodeData) {
                 <div class="preview-style-bar">
                     <select class="preview-style-select" (change)="this.onSelectPreviewStyle($event)">
                         $for(display of this.previewDisplays) {
-                            <option [value]="this.display" [selected]="this.display === this.selectedDisplayId">{{this.display}}</option>
+                            <option [value]="this.display.id" [selected]="this.display.id === this.selectedDisplayId">{{this.display.label}}</option>
                         }
                     </select>
                 </div>

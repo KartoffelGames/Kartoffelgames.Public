@@ -1,9 +1,10 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, ComponentState, PwbChild, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { Component, PwbChild, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
 import { PotatnoPreviewFunctionExecutor } from '../../../preview/potatno-preview-function-executor.ts';
+import type { PotatnoFunctionDefinition } from '../../../project/potatno-function-definition.ts';
 import type { PotatnoCodeUiManagerIntegrityError } from '../../manager/manager_component/potatno-ui-manager-integrity.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPreviewModule } from '../../module/potatno-preview.module.ts';
@@ -37,17 +38,8 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
     private mTrackedFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null;
     private mUnsubscribe: (() => void) | null;
 
-    /**
-     * Display id chosen in the display selector. Empty falls back to the first available display.
-     */
-    @ComponentState.state()
-    private accessor mSelectedDisplayId: string = '';
-
-    /**
-     * Output label chosen in the output selector. Empty falls back to the first available output.
-     */
-    @ComponentState.state()
-    private accessor mSelectedOutputId: string = '';
+    private mSelectedDisplayId: string;
+    private mSelectedOutputId: string;
 
     /**
      * Reference to the preview container for resize operations.
@@ -58,24 +50,15 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
     /**
      * Display ("style") id options for the display selector, from the project's preview registry.
      */
-    public get displayOptions(): Array<string> {
+    public get displayOptions(): Array<PotatnoPreviewDisplayOption> {
         const lFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
         const lProject: PotatnoProject<PotatnoProjectTypesDefinition> | null = this.mManager.project;
         const lFunctionDefinition = lFunction && lProject ? lProject.getFunction(lFunction.definitionId) : undefined;
         if (!lFunction || !lProject || !lFunctionDefinition) {
-            return new Array<string>();
+            return new Array<PotatnoPreviewDisplayOption>();
         }
 
-        if (this.selectedOutputId === PotatnoPreviewFunctionExecutor.MAIN) {
-            return lProject.preview.availableDisplays(lFunctionDefinition, PotatnoPreviewFunctionExecutor.MAIN);
-        }
-
-        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.findFunctionOutputPort(lFunction, this.selectedOutputId);
-        if (lPort) {
-            return lProject.preview.availableDisplays(lFunctionDefinition, lPort.resolvedDataType);
-        }
-
-        return lProject.preview.availableDisplays(lFunctionDefinition);
+        return this.createDisplayOptions(lProject, this.availableDisplayIds(lProject, lFunctionDefinition, lFunction, this.selectedOutputId));
     }
 
     /**
@@ -144,11 +127,11 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      * Currently selected display id, falling back to the first available.
      */
     public get selectedDisplayId(): string {
-        const lOptions: Array<string> = this.displayOptions;
-        if (this.mSelectedDisplayId !== '' && lOptions.includes(this.mSelectedDisplayId)) {
+        const lOptions: Array<PotatnoPreviewDisplayOption> = this.displayOptions;
+        if (this.mSelectedDisplayId !== '' && lOptions.some((pOption) => pOption.id === this.mSelectedDisplayId)) {
             return this.mSelectedDisplayId;
         }
-        return lOptions.at(0) ?? '';
+        return lOptions.at(0)?.id ?? '';
     }
 
     /**
@@ -172,7 +155,7 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
             return false;
         }
 
-        return this.outputOptions.length > 1;
+        return this.outputOptions.length > 0;
     }
 
     /**
@@ -185,6 +168,8 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
         this.mComponent = pComponent;
         this.mDragging = false;
         this.mManager = pManager;
+        this.mSelectedDisplayId = '';
+        this.mSelectedOutputId = '';
         this.mStartHeight = 0;
         this.mStartWidth = 0;
         this.mStartX = 0;
@@ -223,6 +208,7 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      */
     public onDisplaySelect(pEvent: Event): void {
         this.mSelectedDisplayId = (pEvent.target as HTMLSelectElement).value;
+        this.mComponent.updater.update();
     }
 
     /**
@@ -232,6 +218,7 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      */
     public onOutputSelect(pEvent: Event): void {
         this.mSelectedOutputId = (pEvent.target as HTMLSelectElement).value;
+        this.mComponent.updater.update();
     }
 
     /**
@@ -301,6 +288,42 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
     }
 
     /**
+     * Get display ids that can render the selected output.
+     *
+     * @param pProject - Project owning the preview registry.
+     * @param pFunctionDefinition - Active function definition.
+     * @param pFunction - Active document function.
+     * @param pOutputId - Selected output id.
+     */
+    private availableDisplayIds(pProject: PotatnoProject<PotatnoProjectTypesDefinition>, pFunctionDefinition: PotatnoFunctionDefinition<PotatnoProjectTypesDefinition>, pFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition>, pOutputId: string): Array<string> {
+        if (pOutputId === PotatnoPreviewFunctionExecutor.MAIN) {
+            return pProject.preview.availableDisplays(pFunctionDefinition, PotatnoPreviewFunctionExecutor.MAIN);
+        }
+
+        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.findFunctionOutputPort(pFunction, pOutputId);
+        if (lPort) {
+            return pProject.preview.availableDisplays(pFunctionDefinition, lPort.resolvedDataType);
+        }
+
+        return pProject.preview.availableDisplays(pFunctionDefinition);
+    }
+
+    /**
+     * Convert registry ids to selector options using display names.
+     *
+     * @param pProject - Project owning the preview registry.
+     * @param pDisplayIds - Display ids to convert.
+     */
+    private createDisplayOptions(pProject: PotatnoProject<PotatnoProjectTypesDefinition>, pDisplayIds: Array<string>): Array<PotatnoPreviewDisplayOption> {
+        return pDisplayIds.map((pDisplayId) => {
+            return {
+                id: pDisplayId,
+                label: pProject.preview.getDisplay(pDisplayId)?.name ?? pDisplayId
+            };
+        });
+    }
+
+    /**
      * Find the exit-node value input matching a selectable output id.
      *
      * @param pFunction - Function whose exit nodes should be searched.
@@ -322,6 +345,14 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
  * One selectable output for a user function's main preview.
  */
 type PotatnoPreviewOutputOption = {
+    readonly id: string;
+    readonly label: string;
+};
+
+/**
+ * One selectable display for a preview output.
+ */
+type PotatnoPreviewDisplayOption = {
     readonly id: string;
     readonly label: string;
 };

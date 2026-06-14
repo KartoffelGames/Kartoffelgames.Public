@@ -132,7 +132,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     /**
      * Display ("style") ids registered for the node's function, from the project's preview registry.
      */
-    public get previewDisplays(): Array<string> {
+    public get previewDisplays(): Array<PotatnoNodeComponentPreviewDisplayOption> {
         if (!this.nodeData) {
             return [];
         }
@@ -146,7 +146,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
         const lBinding = this.nodeData.preview;
         const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = lBinding ? this.nodeData.outputs.map.get(lBinding.portId) : undefined;
         if (lPort && lPort.portType === 'value') {
-            return lProject.preview.availableDisplays(lFunctionDefinition, lPort.resolvedDataType);
+            return this.createDisplayOptions(lProject, lProject.preview.availableDisplays(lFunctionDefinition, lPort.resolvedDataType));
         }
 
         const lDisplays: Set<string> = new Set<string>();
@@ -156,7 +156,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
             }
         }
 
-        return [...lDisplays];
+        return this.createDisplayOptions(lProject, [...lDisplays]);
     }
 
     /**
@@ -411,6 +411,21 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     }
 
     /**
+     * Convert registry ids to selector options using display names.
+     *
+     * @param pProject - Project owning the preview registry.
+     * @param pDisplayIds - Display ids to convert.
+     */
+    private createDisplayOptions(pProject: PotatnoProject<PotatnoProjectTypesDefinition>, pDisplayIds: Array<string>): Array<PotatnoNodeComponentPreviewDisplayOption> {
+        return pDisplayIds.map((pDisplayId) => {
+            return {
+                id: pDisplayId,
+                label: pProject.preview.getDisplay(pDisplayId)?.name ?? pDisplayId
+            };
+        });
+    }
+
+    /**
      * Open the document function represented by this function node.
      *
      * @param pEvent - Click event from the open button.
@@ -466,4 +481,9 @@ export type ResizeStartDetail = {
     node: PotatnoDocumentNode<PotatnoProjectTypesDefinition>;
     startX: number;
     startY: number;
+};
+
+type PotatnoNodeComponentPreviewDisplayOption = {
+    readonly id: string;
+    readonly label: string;
 };

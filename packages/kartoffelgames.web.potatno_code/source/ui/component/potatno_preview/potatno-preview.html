@@ -9,7 +9,7 @@
             <div class="preview-selectors">
                 <select class="preview-select" (change)="this.onDisplaySelect($event)">
                     $for(display of this.displayOptions) {
-                        <option [value]="this.display" [selected]="this.display === this.selectedDisplayId">{{this.display}}</option>
+                        <option [value]="this.display.id" [selected]="this.display.id === this.selectedDisplayId">{{this.display.label}}</option>
                     }
                 </select>
                 $if(this.showOutputSelector) {

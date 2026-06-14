@@ -3,25 +3,18 @@ import { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import { PotatnoCodeGenerator } from '../parser/potatno-code-generator.ts';
 import type { PotatnoCodeGeneratorDocumentResult } from '../parser/result/potatno-code-generator-document-result.ts';
 import { PotatnoProjectTypesDefinition } from "../project/potatno-project-types-definition.ts";
+import { PotatnoPreviewDisplay } from "./potatno-preview-display.ts";
 import type { PotatnoPreviewFunctionExecutor, PotatnoPreviewFunctionExecutorBuildResult, PotatnoPreviewFunctionExecutorPortTarget, PotatnoPreviewResultType } from './potatno-preview-function-executor.ts';
-import type { PotatnoPreviewEntryDisplay } from './potatno-preview.ts';
 
 /**
- * Self-contained runtime object behind one visible preview, created via a registry entry's
- * `createDriver`. Builds the preview element, regenerates and compiles the document code and
- * renders — the caller only decides when `refresh()` (graph changed) and `execute()` (render tick)
- * run; the driver never triggers either on its own.
- *
- * The target is either a document port — a value output identified by its generated valueId, or a
- * value input identified by its definition id, like an exit node's output-carrying inputs — or a
- * whole document function, which previews the function's complete output under an
- * executor-reported type like `'rgb'`.
+ * Self-contained runtime object of a preview element.
+ * Capable to update itself without further external resources.
  *
  * @typeParam TProject - The project type the driver targets.
  */
 export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefinition> {
     private mCachedCallable: PotatnoPreviewDriverCallable | null;
-    private readonly mDisplay: PotatnoPreviewEntryDisplay<TProjectTypes>;
+    private readonly mDisplay: PotatnoPreviewDriverDisplay<TProjectTypes>;
     private mElement: Element | null;
     private readonly mExecutor: PotatnoPreviewFunctionExecutor<TProjectTypes>;
     private mSpecifiedParameters: Record<string, unknown>;
@@ -52,7 +45,7 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
      * @param pExecutor - Preview code executor.
      * @param pTarget - The previewed document port or document function.
      */
-    public constructor(pDisplay: PotatnoPreviewEntryDisplay<TProjectTypes>, pExecutor: PotatnoPreviewFunctionExecutor<TProjectTypes>, pTarget: PotatnoDocumentFunction<TProjectTypes> | PotatnoDocumentPort<TProjectTypes>) {
+    public constructor(pDisplay: PotatnoPreviewDriverDisplay<TProjectTypes>, pExecutor: PotatnoPreviewFunctionExecutor<TProjectTypes>, pTarget: PotatnoDocumentFunction<TProjectTypes> | PotatnoDocumentPort<TProjectTypes>) {
         this.mDisplay = pDisplay;
         this.mExecutor = pExecutor;
         this.mTarget = pTarget;
@@ -160,3 +153,6 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
  * coercion baked in.
  */
 type PotatnoPreviewDriverCallable = (pParameters: Record<string, unknown>) => Promise<unknown>;
+
+export type PotatnoPreviewDriverDisplay<TProjectTypes extends PotatnoProjectTypesDefinition> = PotatnoPreviewDisplay<TProjectTypes, Element, any, any, any, any>
+

@@ -2,9 +2,8 @@ import { Exception } from '@kartoffelgames/core';
 import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
-import { PotatnoPreviewDriver } from './potatno-preview-driver.ts';
+import { PotatnoPreviewDriver, PotatnoPreviewDriverDisplay } from './potatno-preview-driver.ts';
 import type { PotatnoPreviewFunctionExecutor, PotatnoPreviewResultType } from './potatno-preview-function-executor.ts';
-import type { PotatnoPreviewEntryDisplay } from './potatno-preview.ts';
 
 /**
  * One pluggable preview display.
@@ -119,7 +118,7 @@ export class PotatnoPreviewDisplay<TProjectTypes extends PotatnoProjectTypesDefi
      */
     public createDriver(pTarget: PotatnoDocumentFunction<TProjectTypes> | PotatnoDocumentPort<TProjectTypes>): PotatnoPreviewDriver<TProjectTypes> {
         return new PotatnoPreviewDriver<TProjectTypes>(
-            this as unknown as PotatnoPreviewEntryDisplay<TProjectTypes>,
+            this as unknown as PotatnoPreviewDriverDisplay<TProjectTypes>,
             this.mExecutor as unknown as PotatnoPreviewFunctionExecutor<TProjectTypes>,
             pTarget
         );

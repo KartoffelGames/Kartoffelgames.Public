@@ -1,7 +1,6 @@
 import type { PotatnoFunctionDefinition } from '../project/potatno-function-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
 import type { PotatnoPreviewDisplay } from './potatno-preview-display.ts';
-import type { PotatnoPreviewResultType } from './potatno-preview-function-executor.ts';
 
 /**
  * Project-wide preview registry.
@@ -10,7 +9,7 @@ import type { PotatnoPreviewResultType } from './potatno-preview-function-execut
  * @typeParam TProject - The project this registry targets.
  */
 export class PotatnoPreview<TProjectTypes extends PotatnoProjectTypesDefinition> {
-    private readonly mDisplays: Map<string, PotatnoPreviewEntryDisplay<TProjectTypes>>;
+    private readonly mDisplays: Map<string, PotatnoPreviewDisplayItem<TProjectTypes>>;
 
     /**
      * Every registered display entry id.
@@ -23,7 +22,7 @@ export class PotatnoPreview<TProjectTypes extends PotatnoProjectTypesDefinition>
      * Constructor.
      */
     public constructor() {
-        this.mDisplays = new Map<string, PotatnoPreviewEntryDisplay<TProjectTypes>>();
+        this.mDisplays = new Map<string, PotatnoPreviewDisplayItem<TProjectTypes>>();
     }
 
     /**
@@ -68,14 +67,9 @@ export class PotatnoPreview<TProjectTypes extends PotatnoProjectTypesDefinition>
      * 
      * @returns the display instance.
      */
-    public getDisplay(pDisplayId: string): PotatnoPreviewEntryDisplay<TProjectTypes> | null {
+    public getDisplay(pDisplayId: string): PotatnoPreviewDisplayItem<TProjectTypes> | null {
         return this.mDisplays.get(pDisplayId) ?? null;
     }
 }
 
-/**
- * Existential display type of a registry entry — element, parameter and result shapes widened.
- *
- * @typeParam TProject - The project the registry targets.
- */
-export type PotatnoPreviewEntryDisplay<TProjectTypes extends PotatnoProjectTypesDefinition> = PotatnoPreviewDisplay<TProjectTypes, Element, Record<string, unknown>, PotatnoPreviewResultType<TProjectTypes>, PotatnoPreviewResultType<TProjectTypes>, unknown>;
+export type PotatnoPreviewDisplayItem<TProjectTypes extends PotatnoProjectTypesDefinition> = PotatnoPreviewDisplay<TProjectTypes, Element, any, any, any, any>;

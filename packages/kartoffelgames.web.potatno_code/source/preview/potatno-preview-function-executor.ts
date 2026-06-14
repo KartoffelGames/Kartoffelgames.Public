@@ -4,15 +4,8 @@ import type { PotatnoFunctionDefinition } from '../project/potatno-function-defi
 import type { PotatnoProjectTypeNames, PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
 
 /**
- * Runs a single function definition for a preview.
- *
- * Binds a `PotatnoFunctionDefinition` together with the iteration parameter spec and a `build`
- * callback. The callback receives an optional port target — `null` previews the whole function,
- * otherwise the targeted port's intermediate value — and returns the per-iteration callable plus
- * the type name of the value it yields.
- *
- * `TResultType` is inferred from the configured `types` array. It is the union of project type
- * names plus `MAIN`, the full-function preview type.
+ * Runs a single function definition for a preview based on a target port.
+ * When no port is specified, the whole function should be executed with the special type "MAIN".
  *
  * @typeParam TProject - The project the executor targets.
  * @typeParam TParams - The iteration parameter shape supplied by the paired display per call.

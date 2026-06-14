@@ -26,6 +26,7 @@ export class PotatnoPreviewDisplay<TProjectTypes extends PotatnoProjectTypesDefi
     private readonly mExecutor: PotatnoPreviewFunctionExecutor<TProjectTypes, TParams, TExecutorResultType>;
     private readonly mGenerate: () => TElement;
     private readonly mId: string;
+    private readonly mName: string;
     private readonly mTypeAdapters: Map<TDisplayResultType, PotatnoPreviewDisplayTypeAdapter<TResult>>;
     private readonly mUpdate: PotatnoPreviewDisplayUpdate<TElement, TParams, TResult>;
 
@@ -37,10 +38,11 @@ export class PotatnoPreviewDisplay<TProjectTypes extends PotatnoProjectTypesDefi
     }
 
     /**
-     * Stable identifier of this display. Persisted with per-node preview bindings.
+     * Stable identifier of this display.
+     * Persisted with per-node preview bindings.
      */
     public get id(): string {
-        return this.mId;
+        return `${this.mId}-${this.mExecutor.function.id}`;
     }
 
     /**
@@ -50,9 +52,10 @@ export class PotatnoPreviewDisplay<TProjectTypes extends PotatnoProjectTypesDefi
      * @param pParameters - Display configuration.
      */
     public constructor(pExecutor: PotatnoPreviewFunctionExecutor<TProjectTypes, TParams, TExecutorResultType>, pParameters: PotatnoPreviewDisplayConstructorParameter<TElement, TParams, TDisplayResultType, TResult>) {
+        this.mId = pParameters.id;
+        this.mName = pParameters.name;
         this.mExecutor = pExecutor;
         this.mGenerate = pParameters.generate;
-        this.mId = pParameters.id;
         this.mUpdate = pParameters.update;
 
         // Convert type adapters into a mapping of it.
@@ -171,9 +174,15 @@ export type PotatnoPreviewDisplayUpdate<TElement extends Element, TParams, TResu
  */
 export type PotatnoPreviewDisplayConstructorParameter<TElement extends Element, TParams extends Record<string, unknown>, TResultType extends string, TResult> = {
     /**
-     * Stable id for this display. Persisted with per-node preview bindings.
+     * Stable id for this display.
+     * Is merged with the executors function definition id to form a stable display id.
      */
     id: string;
+
+    /**
+     * Display name of this display.
+     */
+    name: string;
 
     /**
      * Per-type adapter record. Defines every type this display can render.

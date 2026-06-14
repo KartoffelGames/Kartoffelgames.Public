@@ -14,6 +14,7 @@ export class CanvasProjectPreviewDisplay<TExecutorResultType extends PotatnoPrev
     public constructor(pExecutor: PotatnoPreviewFunctionExecutor<CanvasProjectTypesDefinition, CanvasProjectPreViewDisplayParameter, TExecutorResultType>) {
         super(pExecutor, {
             id: '2dCanvas',
+            name: 'Canvas 2D',
             generate: (): HTMLCanvasElement => {
                 const lCanvas: HTMLCanvasElement = document.createElement('canvas');
                 lCanvas.width = CanvasProjectPreviewDisplay.PREVIEW_WIDTH;

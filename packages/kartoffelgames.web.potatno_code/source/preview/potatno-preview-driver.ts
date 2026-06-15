@@ -76,27 +76,42 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
      * reported value type, the cached callable is cleared so `execute` no-ops.
      */
     public refresh(): void {
-        const lTarget: PotatnoDocumentFunction<TProjectTypes> | PotatnoDocumentPort<TProjectTypes> = this.mTarget;
-
         // Resolve the previewed function from the target and regenerate its full document result.
-        const lFunction: PotatnoDocumentFunction<TProjectTypes> = lTarget instanceof PotatnoDocumentPort ? lTarget.node.function : lTarget;
-        const lGeneratorResult: PotatnoCodeGeneratorDocumentResult<TProjectTypes> = new PotatnoCodeGenerator<TProjectTypes>(lFunction.project).generateFunction(lFunction, true);
-
-        // Resolve the executor port target. Output ports resolve to their generated valueId.
-        // Input ports carry their definition id instead — their value has no own valueId and is
-        // named at the consuming side, like the output label keying a function's returned object.
-        // Function targets preview the function's complete output and need no port target.
-        let lPortTarget: PotatnoPreviewFunctionExecutorPortTarget<TProjectTypes> | null = null;
-        if (lTarget instanceof PotatnoDocumentPort) {
-            const lValue: string | null = lTarget.direction === 'input' ? lTarget.definitionId : this.resolvePortValueId(lGeneratorResult, lTarget);
-            if (lValue === null) {
-                this.mCachedCallable = null;
-                return;
+        const lFunction = (() => {
+            if (this.mTarget instanceof PotatnoDocumentPort) {
+                return this.mTarget.node.function;
             }
 
-            lPortTarget = { documentPort: lTarget, value: lValue };
-        }
+            return this.mTarget;
+        })();
 
+        const lGeneratorResult: PotatnoCodeGeneratorDocumentResult<TProjectTypes> = new PotatnoCodeGenerator<TProjectTypes>(lFunction.project).generateFunction(lFunction, true);
+
+        // Resolve the executor port target. 
+        // - Output ports resolve to their generated valueId.
+        // - Input ports should eighter be resolved to the connected input port or the static input value.
+        const lPortTarget: PotatnoPreviewFunctionExecutorPortTarget<TProjectTypes> | null = (() => {
+            // No port specified.
+            if (!(this.mTarget instanceof PotatnoDocumentPort)) {
+                return null;
+            }
+
+            // Resolve value based on the targets direction.
+            if (this.mTarget.direction === 'output') {
+                return {
+                    documentPort: this.mTarget,
+                    value: this.resolvePortValue(lGeneratorResult, this.mTarget)
+                };
+            }
+
+            // TODO:
+
+            return { documentPort: lTarget, value: lValue };
+
+        })();
+
+
+        // TODO: Try catch that shit.
         const lBuildResult: PotatnoPreviewFunctionExecutorBuildResult<Record<string, unknown>, PotatnoPreviewResultType<TProjectTypes>> = this.mExecutor.compile(lGeneratorResult, lPortTarget);
 
         // The adapter record defines every type the display can render — no adapter, no preview.
@@ -134,7 +149,7 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
      *
      * @returns The valueId, or `null` when the port's value was not emitted.
      */
-    private resolvePortValueId(pGeneratorResult: PotatnoCodeGeneratorDocumentResult<TProjectTypes>, pPort: PotatnoDocumentPort<TProjectTypes>): string | null {
+    private resolvePortValue(pGeneratorResult: PotatnoCodeGeneratorDocumentResult<TProjectTypes>, pPort: PotatnoDocumentPort<TProjectTypes>): string | null {
         for (const lFunctionResult of [pGeneratorResult.entryPoint, ...pGeneratorResult.dependencies]) {
             for (const lGraph of lFunctionResult.graphs) {
                 const lValueId: string | undefined = lGraph.ports.get(pPort);

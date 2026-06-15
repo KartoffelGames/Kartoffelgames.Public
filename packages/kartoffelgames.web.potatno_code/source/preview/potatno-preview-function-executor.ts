@@ -138,9 +138,7 @@ export type PotatnoPreviewFunctionExecutorPortTarget<TProjectTypes extends Potat
     };
 
     /**
-     * The identifier of the targeted value. Output ports carry the valueId allocated during code
-     * generation; input ports carry their definition id — e.g. the output label keying a
-     * function's returned object.
+     * Value of the target port. Can be eighter a port value id or the actual value as a string representation.
      */
     value: string;
 };

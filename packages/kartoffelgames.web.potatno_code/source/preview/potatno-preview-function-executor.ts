@@ -138,6 +138,11 @@ export type PotatnoPreviewFunctionExecutorPortTarget<TProjectTypes extends Potat
     };
 
     /**
+     * Debug hook marker that can be replaced by the executor when previewing this target.
+     */
+    nodeHook: string;
+
+    /**
      * Value of the target port. Can be eighter a port value id or the actual value as a string representation.
      */
     value: string;

@@ -429,7 +429,7 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
     });
 
     await pContext.step('Hooks', async (pContext) => {
-        await pContext.step('Appended for every output valueId', () => {
+        await pContext.step('Wrapped around every generated node', () => {
             // Setup. A single Add fed by entry.a/b with all-default-value inputs.
             const { function: lFunction, defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
             const lAddNode = PotatnoHelper.addProjectNode(lFunction, 'Add');
@@ -438,19 +438,25 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
             PotatnoHelper.connectValue(lAddNode, 'result', defaultExit, 'result');
             PotatnoHelper.connectFlow(defaultEntry, defaultExit);
 
-            // Process. pDebug=true enables the per-node hook auto-append.
+            // Process. pDebug=true enables the per-node hook wrapping.
             const lResult = new PotatnoCodeGenerator(PotatnoHelper.TestProject).generateNode(defaultExit, true);
+            const lGraph = lResult.entryPoint.graphs[0];
 
-            // Evaluation. Hooks append after each node's emitted code: Add gets
-            // /*[v_1]*//*[v_2]*//*[v_3]*/, the exit gets /*[v_3]*/, the entry gets
-            // /*[v_1]*//*[v_2]*/ (flow ports have empty valueIds and are skipped).
-            expect(lResult.entryPoint.graphs[0].code).toBe(
-                '(v_0, v_1) => { '
+            // Evaluation.
+            expect(lGraph.code).toBe(
+                '/*[start-00000003]*/(v_0, v_1) => { '
                 + 'let __globalMultiplier = 1; '
-                + 'const v_2 = v_0 + v_1;/*[v_2]*/ '
-                + 'return (v_2) * __globalMultiplier; '
-                + '}/*[v_3]*//*[v_0]*//*[v_1]*/'
+                + '/*[start-00000001]*/const v_2 = v_0 + v_1;/*[end-00000001]*/ '
+                + '/*[start-00000002]*/return (v_2) * __globalMultiplier;/*[end-00000002]*/ '
+                + '}/*[end-00000003]*/'
             );
+            expect(lGraph.nodes.get(lAddNode)).toBe('00000001');
+            expect(lGraph.nodes.get(defaultExit)).toBe('00000002');
+            expect(lGraph.nodes.get(defaultEntry)).toBe('00000003');
+            expect(lGraph.ports.get(defaultEntry.outputs.map.get('a')!)).toBe('v_0');
+            expect(lGraph.ports.get(defaultEntry.outputs.map.get('b')!)).toBe('v_1');
+            expect(lGraph.ports.get(lAddNode.outputs.map.get('result')!)).toBe('v_2');
+            expect(lGraph.ports.get(defaultExit.inputs.map.get('result')!)).toBe('v_2');
         });
 
         await pContext.step('Custom hook generator is honoured', () => {
@@ -523,15 +529,14 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
             const lLocalExit = lLocalFunction.addNodeByDefinition(lLocalNodes.exit[0], { x: 4, y: 0, width: 4, height: 2 });
             lLocalEntry.outputs.flow[0].connect(lLocalExit.inputs.flow[0]);
 
-            // Process. pDebug=true enables the per-node hook auto-append.
+            // Process. pDebug=true enables the per-node hook wrapping.
             const lResult = new PotatnoCodeGenerator(lLocalProject).generateNode(lLocalExit, true);
 
-            // Evaluation. End's `val` input is unconnected, so its resolved value
-            // is the literal `0` (the type's convert(['0']) output). The custom
-            // hook is called with that literal and emits `<<0>>` after End's code.
+            // Evaluation.
             expect(lResult.entryPoint.graphs[0].code).toBe(
-                'START(); END(0);<<v_0>>'
+                '<<start-00000002>>START(); <<start-00000001>>END(0);<<end-00000001>><<end-00000002>>'
             );
+            expect(lResult.entryPoint.graphs[0].ports.get(lLocalExit.inputs.map.get('val')!)).toBe('0');
         });
     });
 

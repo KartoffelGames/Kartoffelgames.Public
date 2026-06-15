@@ -32,11 +32,8 @@ const lEntryFunctionExecutor = new PotatnoPreviewFunctionExecutor(lProject.entry
             };
         }
 
-        // Replace the targeted value hook with an early return for per-node previews.
-        const lHookMarker: string = `/*[${pPortTarget.value}]*/`;
-        const lInstrumented: string = lFunctionCode.includes(lHookMarker)
-            ? lFunctionCode.replace(lHookMarker, `; return ${pPortTarget.value};`)
-            : lFunctionCode;
+        // Replace the targeted node hook with an early return for per-node previews.
+        const lInstrumented: string = lFunctionCode.replace(pPortTarget.nodeHook, `; return ${pPortTarget.value};`);
         const lNodeFn: (pX: number, pY: number) => unknown = new Function(`${lInstrumented}\nreturn ${lFunctionName};`)() as (pX: number, pY: number) => unknown;
         return {
             type: pPortTarget.documentPort.resolvedDataType,
@@ -59,14 +56,13 @@ const lUserFunctionExecutor = new PotatnoPreviewFunctionExecutor(lProject.userFu
         const lFunction = pGeneratorResult.entryPoint.function;
         const lFunctionName: string = `__fn_${lFunction.id.replaceAll('-', '_')}`;
         const lDefaultArguments: Array<unknown> = lFunction.inputs.map((pInput) => pExecutor.projectTypes.getDefaultValue(pInput.dataType));
-        const lOutputKey: string = pPortTarget.value;
+        const lInstrumented: string = pGeneratorResult.code.replace(pPortTarget.nodeHook, `return ${pPortTarget.value};`);
 
-        const lCompiled: (...pArgs: Array<unknown>) => Record<string, unknown> = new Function(`${pGeneratorResult.code}\nreturn ${lFunctionName};`)() as (...pArgs: Array<unknown>) => Record<string, unknown>;
+        const lCompiled: (...pArgs: Array<unknown>) => unknown = new Function(`${lInstrumented}\nreturn ${lFunctionName};`)() as (...pArgs: Array<unknown>) => unknown;
         return {
             type: pPortTarget.documentPort.resolvedDataType,
             execute: (): unknown => {
-                const lResult: Record<string, unknown> = lCompiled(...lDefaultArguments);
-                return lResult ? lResult[lOutputKey] : undefined;
+                return lCompiled(...lDefaultArguments);
             }
         };
     }

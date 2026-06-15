@@ -102,7 +102,7 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
         }
 
         const lPassData: PotatnoCodeGeneratorPassData<TProjectTypes> = {
-            counter: { valueIndex: 0 },
+            counter: { nodeIndex: 0, portIndex: 0 },
             debug: pDebug,
             nodeDefinitions: new Map<PotatnoDocumentFunction<TProjectTypes>, Map<string, PotatnoNodeDefinition<TProjectTypes>>>()
         };
@@ -177,6 +177,8 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
         // Build a fresh cursor with the top-level scope and a pass-wide dependencies accumulator.
         const lCursor: PotatnoCodeGeneratorPassCursor<TProjectTypes> = {
             dependencies: new Array<PotatnoDocumentFunction<TProjectTypes>>(),
+            nodes: new Map<PotatnoDocumentNode<TProjectTypes>, string>(),
+            ports: new Map<PotatnoDocumentPort<TProjectTypes>, string>(),
             scope: this.createScope(pExitNode, null)
         };
 
@@ -191,9 +193,9 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
             dependencies: lCursor.dependencies,
             entryNode: lGenerationResult.lastGeneratedNode,
             exitNode: pExitNode,
-
-            // Copy current value ids so the current scope cant be changed outside.
-            portValues: new Map<PotatnoDocumentPort<TProjectTypes>, string>(lCursor.scope.values)
+            // Copy current nodes and ports so the current scope cant be changed outside.
+            nodeIds: new Map<PotatnoDocumentNode<TProjectTypes>, string>(lCursor.nodes),
+            portValues: new Map<PotatnoDocumentPort<TProjectTypes>, string>(lCursor.ports)
         });
     }
 
@@ -205,7 +207,6 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
      */
     private createScope(pStartNode: PotatnoDocumentNode<TProjectTypes>, pEndNode: PotatnoDocumentNode<TProjectTypes> | null): PotatnoCodeGeneratorPassCursorScope<TProjectTypes> {
         return {
-            values: new Map<PotatnoDocumentPort<TProjectTypes>, string>(),
             remaining: this.countNodeEncounter(pStartNode, pEndNode)
         };
     }
@@ -278,12 +279,44 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
      * @returns the value id for a port.
      */
     private getPortValue(pPassData: PotatnoCodeGeneratorPassData<TProjectTypes>, pCursor: PotatnoCodeGeneratorPassCursor<TProjectTypes>, pPort: PotatnoDocumentPort<TProjectTypes>): string {
-        // Allocate a fresh valueId on first encounter in this scope.
-        if (!pCursor.scope.values.has(pPort)) {
-            pCursor.scope.values.set(pPort, this.mProject.generator.values.valueId(pPassData.counter.valueIndex++));
+        // Allocate a fresh valueId on first encounter in this graph.
+        if (!pCursor.ports.has(pPort)) {
+            pCursor.ports.set(pPort, this.mProject.generator.values.valueId(pPassData.counter.portIndex++));
         }
 
-        return pCursor.scope.values.get(pPort)!;
+        return pCursor.ports.get(pPort)!;
+    }
+
+    /**
+     * Get the generated debug id for a document node.
+     *
+     * @param pPassData - Shared pass state.
+     * @param pCursor - The pass cursor.
+     * @param pNode - Node the id is requested for.
+     *
+     * @returns The generated eight-character uppercase hex id.
+     */
+    private getGeneratedNodeId(pPassData: PotatnoCodeGeneratorPassData<TProjectTypes>, pCursor: PotatnoCodeGeneratorPassCursor<TProjectTypes>, pNode: PotatnoDocumentNode<TProjectTypes>): string {
+        // Allocate a fresh node id on first encounter in this graph.
+        if (!pCursor.nodes.has(pNode)) {
+            const lNewNodeIndex: number = ++pPassData.counter.nodeIndex;
+            const lNodeId: string = lNewNodeIndex.toString(16).toUpperCase().padStart(8, '0');
+
+            pCursor.nodes.set(pNode, lNodeId);
+        }
+
+        return pCursor.nodes.get(pNode)!;
+    }
+
+    /**
+     * Store the resolved value of a generated port.
+     *
+     * @param pCursor - The pass cursor.
+     * @param pPort - Port to store.
+     * @param pValue - Resolved value for the port.
+     */
+    private storePortValue(pCursor: PotatnoCodeGeneratorPassCursor<TProjectTypes>, pPort: PotatnoDocumentPort<TProjectTypes>, pValue: string): void {
+        pCursor.ports.set(pPort, pValue);
     }
 
     /**
@@ -506,20 +539,20 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
         const lQueue: Array<PotatnoDocumentNode<TProjectTypes>> = new Array<PotatnoDocumentNode<TProjectTypes>>();
         const lMergeTags = (pNode: PotatnoDocumentNode<TProjectTypes>, pAddingTags: Iterable<number>): Set<number> => {
             // Read or create the current tags of the node.
-            const lTags: Set<number> = (()=>{
-                if(!lNodeTags.has(pNode)) {
+            const lTags: Set<number> = (() => {
+                if (!lNodeTags.has(pNode)) {
                     lNodeTags.set(pNode, new Set<number>());
                 }
 
                 return lNodeTags.get(pNode)!;
             })();
-            
+
             // Save the current tag count to check for growth after the union.
             const lSizeBefore: number = lTags.size;
             for (const lNewTag of pAddingTags) {
                 lTags.add(lNewTag);
             }
-            
+
             // Check for new tags on node and enqueue if it gained any.
             if (lTags.size > lSizeBefore) {
                 lQueue.push(pNode);
@@ -633,6 +666,7 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
         for (const lPort of pNode.inputs.value) {
             const lResolvedInput: PotatnoCodeGeneratorResolvedInput<TProjectTypes> = this.resolveInputValue(pPassData, pCursor, lPort);
             lInputs[lPort.definitionId] = lResolvedInput.inputPort;
+            this.storePortValue(pCursor, lPort, lResolvedInput.inputPort.value);
 
             if (lResolvedInput.emitResult) {
                 lProducerEmits.push(lResolvedInput.emitResult);
@@ -642,8 +676,11 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
         // Build the output port surfaces. Value outputs get freshly allocated valueIds. Flow outputs get the caller-supplied inner code, defaulting to empty when the port is not present in pInnerByPort.
         const lOutputs: Record<string, PotatnoCodeGeneratorOutputPort> = {};
         for (const lPort of pNode.outputs.list) {
+            const lPortValue: string = this.getPortValue(pPassData, pCursor, lPort);
+            this.storePortValue(pCursor, lPort, lPortValue);
+
             lOutputs[lPort.definitionId] = {
-                value: this.getPortValue(pPassData, pCursor, lPort),
+                value: lPortValue,
                 code: {
                     inner: pFlowPortCodeOutput[lPort.definitionId] ?? ''
                 }
@@ -657,11 +694,12 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
             code: { next: pNextCode ?? '' }
         });
 
-        // Attach each output value id as hook after the generated code. But only on debug :)
+        // Wrap generated node code with debug hooks.
+        const lNodeId: string = this.getGeneratedNodeId(pPassData, pCursor, pNode);
         if (pPassData.debug) {
-            lNodeCode += Object.values(lOutputs).reduce((pCurrent, pNext) => {
-                return pCurrent + this.mProject.generator.values.hook(pNext.value);
-            }, '');
+            lNodeCode = this.mProject.generator.values.hook(`start-${lNodeId}`)
+                + lNodeCode
+                + this.mProject.generator.values.hook(`end-${lNodeId}`);
         }
 
         // Assemble this node's contribution in execution order: each value producer's code first (in input order),
@@ -690,7 +728,8 @@ type PotatnoCodeGeneratorPassData<TProjectTypes extends PotatnoProjectTypesDefin
      * Monotonic source of fresh valueId strings.
      */
     counter: {
-        valueIndex: number;
+        nodeIndex: number;
+        portIndex: number;
     };
 
     /**
@@ -718,6 +757,16 @@ type PotatnoCodeGeneratorPassCursor<TProjectTypes extends PotatnoProjectTypesDef
     dependencies: Array<PotatnoDocumentFunction<TProjectTypes>>;
 
     /**
+     * Generated debug node ids discovered during the walk.
+     */
+    nodes: Map<PotatnoDocumentNode<TProjectTypes>, string>;
+
+    /**
+     * Generated port values discovered during the walk.
+     */
+    ports: Map<PotatnoDocumentPort<TProjectTypes>, string>;
+
+    /**
      * The current scope. Replaced when entering a sub-walk and restored when the sub-walk returns.
      */
     scope: PotatnoCodeGeneratorPassCursorScope<TProjectTypes>;
@@ -727,11 +776,6 @@ type PotatnoCodeGeneratorPassCursor<TProjectTypes extends PotatnoProjectTypesDef
  * State scoped to one backward walk frame.
  */
 type PotatnoCodeGeneratorPassCursorScope<TProjectTypes extends PotatnoProjectTypesDefinition> = {
-    /**
-     * Output ports allocated WITHIN this scope, mapped to their valueIds.
-     */
-    values: Map<PotatnoDocumentPort<TProjectTypes>, string>;
-
     /**
      * Refcount for each pure-value producer used in this scope.
      * Initialised by preCountConsumers. Decremented in resolveValueInput as flow nodes are emitted.

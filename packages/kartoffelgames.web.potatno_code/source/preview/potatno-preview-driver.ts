@@ -96,20 +96,13 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
                 return null;
             }
 
-            // Resolve value based on the targets direction.
-            if (this.mTarget.direction === 'output') {
-                return {
-                    documentPort: this.mTarget,
-                    value: this.resolvePortValue(lGeneratorResult, this.mTarget)
-                };
-            }
-
-            // TODO:
-
-            return { documentPort: lTarget, value: lValue };
-
+            return this.resolvePortTarget(lGeneratorResult, this.mTarget);
         })();
 
+        if (this.mTarget instanceof PotatnoDocumentPort && lPortTarget === null) {
+            this.mCachedCallable = null;
+            return;
+        }
 
         // TODO: Try catch that shit.
         const lBuildResult: PotatnoPreviewFunctionExecutorBuildResult<Record<string, unknown>, PotatnoPreviewResultType<TProjectTypes>> = this.mExecutor.compile(lGeneratorResult, lPortTarget);
@@ -142,24 +135,47 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
     }
 
     /**
-     * Find the valueId allocated to an output port across every graph of a generation result.
+     * Find the generated value and node id allocated to a port across every graph of a generation result.
      *
      * @param pGeneratorResult - The generation result to search.
-     * @param pPort - The port whose valueId to find.
+     * @param pPort - The port whose generated data to find.
      *
-     * @returns The valueId, or `null` when the port's value was not emitted.
+     * @returns The generated data, or `null` when the port was not emitted.
      */
-    private resolvePortValue(pGeneratorResult: PotatnoCodeGeneratorDocumentResult<TProjectTypes>, pPort: PotatnoDocumentPort<TProjectTypes>): string | null {
+    private resolveGeneratedPort(pGeneratorResult: PotatnoCodeGeneratorDocumentResult<TProjectTypes>, pPort: PotatnoDocumentPort<TProjectTypes>): PotatnoPreviewDriverResolvedPort | null {
         for (const lFunctionResult of [pGeneratorResult.entryPoint, ...pGeneratorResult.dependencies]) {
             for (const lGraph of lFunctionResult.graphs) {
-                const lValueId: string | undefined = lGraph.ports.get(pPort);
-                if (lValueId !== undefined) {
-                    return lValueId;
+                const lPortValue: string | undefined = lGraph.ports.get(pPort);
+                const lNodeId: string | undefined = lGraph.nodes.get(pPort.node);
+                if (lPortValue !== undefined && lNodeId !== undefined) {
+                    return { nodeId: lNodeId, value: lPortValue };
                 }
             }
         }
 
         return null;
+    }
+
+    /**
+     * Resolve the executor target for a generated document port.
+     *
+     * @param pGeneratorResult - The generation result to search.
+     * @param pPort - The target document port.
+     *
+     * @returns The executor port target, or `null` when the port was not emitted.
+     */
+    private resolvePortTarget(pGeneratorResult: PotatnoCodeGeneratorDocumentResult<TProjectTypes>, pPort: PotatnoDocumentPort<TProjectTypes>): PotatnoPreviewFunctionExecutorPortTarget<TProjectTypes> | null {
+        const lResolvedPort: PotatnoPreviewDriverResolvedPort | null = this.resolveGeneratedPort(pGeneratorResult, pPort);
+        if (!lResolvedPort) {
+            return null;
+        }
+
+        const lHookPosition: string = pPort.direction === 'input' ? 'start' : 'end';
+        return {
+            documentPort: pPort,
+            nodeHook: pPort.project.generator.values.hook(`${lHookPosition}-${lResolvedPort.nodeId}`),
+            value: lResolvedPort.value
+        };
     }
 }
 
@@ -169,5 +185,10 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
  */
 type PotatnoPreviewDriverCallable = (pParameters: Record<string, unknown>) => Promise<unknown>;
 
-export type PotatnoPreviewDriverDisplay<TProjectTypes extends PotatnoProjectTypesDefinition> = PotatnoPreviewDisplay<TProjectTypes, Element, any, any, any, any>
+export type PotatnoPreviewDriverDisplay<TProjectTypes extends PotatnoProjectTypesDefinition> = PotatnoPreviewDisplay<TProjectTypes, Element, any, any, any, any>;
+
+type PotatnoPreviewDriverResolvedPort = {
+    nodeId: string;
+    value: string;
+};
 

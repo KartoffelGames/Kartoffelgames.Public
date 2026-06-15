@@ -1,8 +1,7 @@
-import { PotatnoDocumentFunction } from "../../document/potatno-document-function.ts";
+import type { PotatnoDocumentFunction } from "../../document/potatno-document-function.ts";
 import type { PotatnoDocumentNode } from '../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../document/potatno-document-port.ts';
 import { PotatnoProjectTypesDefinition } from "../../project/potatno-project-types-definition.ts";
-import type { PotatnoProject } from '../../project/potatno-project.ts';
 
 /**
  * Per-graph generation output produced by the code generator.
@@ -13,6 +12,7 @@ export class PotatnoCodeGeneratorNodeResult<TProjectTypes extends PotatnoProject
     private readonly mDependencies: ReadonlyArray<PotatnoDocumentFunction<TProjectTypes>>;
     private readonly mEntryNode: PotatnoDocumentNode<TProjectTypes>;
     private readonly mExitNode: PotatnoDocumentNode<TProjectTypes>;
+    private readonly mNodeIds: Map<PotatnoDocumentNode<TProjectTypes>, string>;
     private readonly mPorts: Map<PotatnoDocumentPort<TProjectTypes>, string>;
 
     /**
@@ -46,8 +46,15 @@ export class PotatnoCodeGeneratorNodeResult<TProjectTypes extends PotatnoProject
     }
 
     /**
+     * Mapping from each generated node to its generated debug id.
+     */
+    public get nodes(): ReadonlyMap<PotatnoDocumentNode<TProjectTypes>, string> {
+        return this.mNodeIds;
+    }
+
+    /**
      * Mapping from each port that participated in this grapths generation.
-     * Mapping of port to its internal value id.
+     * Mapping of port to its resolved generation value.
      */
     public get ports(): ReadonlyMap<PotatnoDocumentPort<TProjectTypes>, string> {
         return this.mPorts;
@@ -63,6 +70,7 @@ export class PotatnoCodeGeneratorNodeResult<TProjectTypes extends PotatnoProject
         this.mDependencies = [...pParameter.dependencies];
         this.mEntryNode = pParameter.entryNode;
         this.mExitNode = pParameter.exitNode;
+        this.mNodeIds = pParameter.nodeIds;
         this.mPorts = pParameter.portValues;
     }
 }
@@ -95,20 +103,9 @@ export type PotatnoCodeGeneratorGraphConstructorParameter<TProjectTypes extends 
      * Mapping from each port emitted in this pass to its allocated valueId.
      */
     portValues: Map<PotatnoDocumentPort<TProjectTypes>, string>;
-};
-
-/**
- * Reference to a port plus the valueId or literal expression resolved for it during a generation pass.
- */
-export type PotatnoCodeGeneratorNodeResultPort = {
-    /**
-     * The port definition id.
-     */
-    definitionId: string;
 
     /**
-     * The valueId or literal expression resolved for this port in the
-     * current generation pass.
+     * Mapping from each node emitted in this pass to its generated debug id.
      */
-    value: string;
+    nodeIds: Map<PotatnoDocumentNode<TProjectTypes>, string>;
 };

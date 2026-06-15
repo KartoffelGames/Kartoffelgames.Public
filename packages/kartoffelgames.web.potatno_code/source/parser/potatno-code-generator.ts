@@ -261,7 +261,7 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
 
         return {
             inputPort: {
-                value: this.getPortValue(pPassData, pCursor, lIncomingPort),
+                value: this.generatePortValue(pPassData, pCursor, lIncomingPort),
                 isDirectValue: false
             },
             emitResult: lProducerEmit
@@ -269,7 +269,7 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
     }
 
     /**
-     * Get a valueId from the pass counter to a document port.
+     * Get a generated valueId from the pass counter to a document port.
      * Auto generates a new value id when none exists. 
      * 
      * @param pPassData - Shared pass state.
@@ -278,10 +278,10 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
      * 
      * @returns the value id for a port.
      */
-    private getPortValue(pPassData: PotatnoCodeGeneratorPassData<TProjectTypes>, pCursor: PotatnoCodeGeneratorPassCursor<TProjectTypes>, pPort: PotatnoDocumentPort<TProjectTypes>): string {
+    private generatePortValue(pPassData: PotatnoCodeGeneratorPassData<TProjectTypes>, pCursor: PotatnoCodeGeneratorPassCursor<TProjectTypes>, pPort: PotatnoDocumentPort<TProjectTypes>): string {
         // Allocate a fresh valueId on first encounter in this graph.
         if (!pCursor.ports.has(pPort)) {
-            pCursor.ports.set(pPort, this.mProject.generator.values.valueId(pPassData.counter.portIndex++));
+            this.setPortValue(pCursor, pPort, this.mProject.generator.values.valueId(pPassData.counter.portIndex++));
         }
 
         return pCursor.ports.get(pPort)!;
@@ -309,13 +309,13 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
     }
 
     /**
-     * Store the resolved value of a generated port.
+     * Set a resolved value of a generated port.
      *
      * @param pCursor - The pass cursor.
      * @param pPort - Port to store.
      * @param pValue - Resolved value for the port.
      */
-    private storePortValue(pCursor: PotatnoCodeGeneratorPassCursor<TProjectTypes>, pPort: PotatnoDocumentPort<TProjectTypes>, pValue: string): void {
+    private setPortValue(pCursor: PotatnoCodeGeneratorPassCursor<TProjectTypes>, pPort: PotatnoDocumentPort<TProjectTypes>, pValue: string): void {
         pCursor.ports.set(pPort, pValue);
     }
 
@@ -664,9 +664,12 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
         const lInputs: Record<string, PotatnoCodeGeneratorInputPort> = {};
         const lProducerEmits: Array<PotatnoCodeGeneratorEmitResult<TProjectTypes>> = new Array<PotatnoCodeGeneratorEmitResult<TProjectTypes>>();
         for (const lPort of pNode.inputs.value) {
+            // Resolve the input value of the port.
             const lResolvedInput: PotatnoCodeGeneratorResolvedInput<TProjectTypes> = this.resolveInputValue(pPassData, pCursor, lPort);
             lInputs[lPort.definitionId] = lResolvedInput.inputPort;
-            this.storePortValue(pCursor, lPort, lResolvedInput.inputPort.value);
+
+            // Set the resolved port value as value... yeaaaa
+            this.setPortValue(pCursor, lPort, lResolvedInput.inputPort.value);
 
             if (lResolvedInput.emitResult) {
                 lProducerEmits.push(lResolvedInput.emitResult);
@@ -676,11 +679,9 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
         // Build the output port surfaces. Value outputs get freshly allocated valueIds. Flow outputs get the caller-supplied inner code, defaulting to empty when the port is not present in pInnerByPort.
         const lOutputs: Record<string, PotatnoCodeGeneratorOutputPort> = {};
         for (const lPort of pNode.outputs.list) {
-            const lPortValue: string = this.getPortValue(pPassData, pCursor, lPort);
-            this.storePortValue(pCursor, lPort, lPortValue);
-
+            // Get port value already sets the value.
             lOutputs[lPort.definitionId] = {
-                value: lPortValue,
+                value: this.generatePortValue(pPassData, pCursor, lPort),
                 code: {
                     inner: pFlowPortCodeOutput[lPort.definitionId] ?? ''
                 }

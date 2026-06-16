@@ -119,7 +119,6 @@ export class PotatnoPreviewDisplay<TProjectTypes extends PotatnoProjectTypesDefi
     public createDriver(pTarget: PotatnoDocumentFunction<TProjectTypes> | PotatnoDocumentPort<TProjectTypes>): PotatnoPreviewDriver<TProjectTypes> {
         return new PotatnoPreviewDriver<TProjectTypes>(
             this as unknown as PotatnoPreviewDriverDisplay<TProjectTypes>,
-            this.mExecutor as unknown as PotatnoPreviewFunctionExecutor<TProjectTypes>,
             pTarget
         );
     }

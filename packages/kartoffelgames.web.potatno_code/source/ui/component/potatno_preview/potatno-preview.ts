@@ -186,11 +186,8 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
             PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.ActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection,
             null,
             () => {
-                this.releaseSupersededDriver();
                 this.mComponent.updater.update();
             });
-
-        this.releaseSupersededDriver();
     }
 
     /**
@@ -266,25 +263,6 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
 
         document.addEventListener('pointermove', lOnPointerMove);
         document.addEventListener('pointerup', lOnPointerUp);
-    }
-
-    /**
-     * When the active function changed, drop the previous function's driver (only one main preview
-     * is active at a time) and reset the local selection so the new function picks its defaults.
-     */
-    private releaseSupersededDriver(): void {
-        const lFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
-        if (lFunction === this.mTrackedFunction) {
-            return;
-        }
-
-        if (this.mTrackedFunction) {
-            this.mManager.preview.release(this.mTrackedFunction);
-        }
-
-        this.mTrackedFunction = lFunction;
-        this.mSelectedDisplayId = '';
-        this.mSelectedOutputId = '';
     }
 
     /**

@@ -17,7 +17,6 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
     private mCachedCallable: PotatnoPreviewDriverCallable | null;
     private readonly mDisplay: PotatnoPreviewDriverDisplay<TProjectTypes>;
     private mElement: Element | null;
-    private readonly mExecutor: PotatnoPreviewFunctionExecutor<TProjectTypes>;
     private mSpecifiedParameters: Record<string, unknown>;
     private readonly mTarget: PotatnoDocumentFunction<TProjectTypes> | PotatnoDocumentPort<TProjectTypes>;
 
@@ -33,10 +32,10 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
     }
 
     /**
-     * Executor of this driver.
+     * Display of this driver.
      */
-    public get executor(): PotatnoPreviewFunctionExecutor<TProjectTypes> {
-        return this.mExecutor;
+    public get display(): PotatnoPreviewDriverDisplay<TProjectTypes> {
+        return this.mDisplay;
     }
 
     /**
@@ -46,15 +45,14 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
      * @param pExecutor - Preview code executor.
      * @param pTarget - The previewed document port or document function.
      */
-    public constructor(pDisplay: PotatnoPreviewDriverDisplay<TProjectTypes>, pExecutor: PotatnoPreviewFunctionExecutor<TProjectTypes>, pTarget: PotatnoDocumentFunction<TProjectTypes> | PotatnoDocumentPort<TProjectTypes>) {
+    public constructor(pDisplay: PotatnoPreviewDriverDisplay<TProjectTypes>, pTarget: PotatnoDocumentFunction<TProjectTypes> | PotatnoDocumentPort<TProjectTypes>) {
         this.mDisplay = pDisplay;
-        this.mExecutor = pExecutor;
         this.mTarget = pTarget;
         this.mCachedCallable = null;
         this.mElement = null;
 
         // Insert default parameters of executor.
-        this.mSpecifiedParameters = { ...this.mExecutor.defaultParameters };
+        this.mSpecifiedParameters = { ...this.mDisplay.executor.defaultParameters };
     }
 
     /**
@@ -113,7 +111,7 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
         })();
 
         // Build the result.
-        const lBuildResult: PotatnoPreviewFunctionExecutorBuildResult<Record<string, unknown>, PotatnoPreviewResultType<TProjectTypes>> = this.mExecutor.compile(lGeneratorResult, lPortTarget);
+        const lBuildResult: PotatnoPreviewFunctionExecutorBuildResult<Record<string, unknown>, PotatnoPreviewResultType<TProjectTypes>> = this.mDisplay.executor.compile(lGeneratorResult, lPortTarget);
 
         // The adapter record defines every type the display can render — no adapter, no preview.
         if (!this.mDisplay.allowsType(lBuildResult.type)) {
@@ -125,7 +123,7 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
         // Per-call parameters: executor defaults, overlaid by user-specified values, overlaid by
         // whatever the display supplies for the iteration.
         this.mCachedCallable = async (pParameters: Record<string, unknown>): Promise<unknown> => {
-            return lAdapter(await lBuildResult.execute({ ...this.mExecutor.defaultParameters, ...this.mSpecifiedParameters, ...pParameters }));
+            return lAdapter(await lBuildResult.execute({ ...this.mDisplay.executor.defaultParameters, ...this.mSpecifiedParameters, ...pParameters }));
         };
     }
 

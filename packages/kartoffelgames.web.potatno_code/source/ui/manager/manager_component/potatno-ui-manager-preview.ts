@@ -1,9 +1,11 @@
+import { Exception } from "@kartoffelgames/core";
 import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-item.interface.ts';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
 import { PotatnoPreviewFunctionExecutor } from '../../../preview/potatno-preview-function-executor.ts';
+import { PotatnoPreviewDisplayItem } from "../../../preview/potatno-preview.ts";
 import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
 import { PotatnoProject } from "../../../project/potatno-project.ts";
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatno-ui-manager.ts';
@@ -21,8 +23,12 @@ import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatn
  */
 export class PotatnoUiManagerPreview {
     private readonly mDriverList: Array<WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>>;
-    private readonly mDrivers: WeakMap<IPotatnoDocumentItem<PotatnoProjectTypesDefinition>, PotatnoUiManagerPreviewBinding>;
+    private readonly mElementDriver: WeakMap<Element, WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>>;
+    private readonly mDriverElements: WeakMap<WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>, Element>;
+    private readonly mDriverActivity: WeakMap<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>, boolean>;
+    private readonly mDrivers: WeakMap<IPotatnoDocumentItem<PotatnoProjectTypesDefinition>, PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>;
     private readonly mManager: PotatnoUiManager;
+    private readonly mPreviewIntersection: IntersectionObserver;
 
     /**
      * Constructor.
@@ -31,8 +37,17 @@ export class PotatnoUiManagerPreview {
      */
     public constructor(pManager: PotatnoUiManager) {
         this.mManager = pManager;
-        this.mDrivers = new WeakMap<IPotatnoDocumentItem<PotatnoProjectTypesDefinition>, PotatnoUiManagerPreviewBinding>();
+
+        // A iterative list preview drivers without interfering garbage collection. 
         this.mDriverList = new Array<WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>>();
+
+        // Different mappings
+        this.mDrivers = new WeakMap<IPotatnoDocumentItem<PotatnoProjectTypesDefinition>, PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>();
+        this.mDriverActivity = new WeakMap<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>, boolean>();
+
+        // Mapping between elements and driver.
+        this.mDriverElements = new WeakMap<WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>, Element>();
+        this.mElementDriver = new WeakMap<Element, WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>>();
 
         // A new document instance replaces every item; drop the drivers so components re-request
         // fresh ones against the live graph.
@@ -47,6 +62,26 @@ export class PotatnoUiManagerPreview {
             globalThis.clearTimeout(lDebounce);
             lDebounce = globalThis.setTimeout(() => this.refresh(), 1000) as unknown as number;
         });
+
+        // Register a intersection observer that listens on preview elements in view.
+        this.mPreviewIntersection = new IntersectionObserver((pEntries) => {
+            for (const lEntry of pEntries) {
+                // Get driver of intersection.
+                const lDriverReference: WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>> | undefined = this.mElementDriver.get(lEntry.target);
+                if (!lDriverReference) {
+                    continue;
+                }
+
+                // Defref the driver.
+                const lDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | undefined = lDriverReference.deref();
+                if (!lDriver) {
+                    return;
+                }
+
+                // Update activity of driver.
+                this.mDriverActivity.set(lDriver, lEntry.isIntersecting);
+            }
+        });
     }
 
     /**
@@ -56,92 +91,29 @@ export class PotatnoUiManagerPreview {
      * @returns A promise resolving once every driver finished its render pass.
      */
     public async execute(): Promise<void> {
-        await Promise.all(this.liveDrivers().map(async (pDriver) => {
+        const lExecutionList: Array<Promise<void>> = this.mDriverList.map(async (pDriverReference) => {
+            // Deref the driver reference
+            const lDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | undefined = pDriverReference.deref();
+            if (!lDriver) {
+                return;
+            }
+
+            // Skip drivers not in view.
+            if (!this.mDriverActivity.get(lDriver)) {
+                return;
+            }
+
+            // Execute driver and ignore errors.
             try {
-                await pDriver.execute();
+                await lDriver.execute();
             } catch (pError) {
                 // eslint-disable-next-line no-console
                 console.error('[PotatnoUiManagerPreview] Driver render failed:', pError);
             }
-        }));
-    }
-
-    /**
-     * Get or create the main-panel driver for a document function under the chosen display and
-     * output target. `MAIN` previews the whole function; any other target previews the matching
-     * exit-node value input.
-     *
-     * @param pFunction - The document function to preview.
-     * @param pDisplayId - The chosen display id.
-     * @param pOutputId - The chosen output label for user functions; ignored for the entry function.
-     *
-     * @returns The driver, or `null` when no matching preview is registered.
-     */
-    public functionDriver(pFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition>, pDisplayId: string, pOutputId: string): PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | null {
-        const lProject: PotatnoProject<PotatnoProjectTypesDefinition> | null = this.mManager.project;
-        if (!lProject) {
-            this.release(pFunction);
-            return null;
-        }
-
-        const lTarget: string = pOutputId;
-
-        return this.acquire(pFunction, pDisplayId, lTarget, (): PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | null => {
-            const lFunctionDefinition = lProject.getFunction(pFunction.definitionId);
-            if (!lFunctionDefinition) {
-                return null;
-            }
-
-            if (lTarget === PotatnoPreviewFunctionExecutor.MAIN) {
-                if (!lProject.preview.availableDisplays(lFunctionDefinition, PotatnoPreviewFunctionExecutor.MAIN).includes(pDisplayId)) {
-                    return null;
-                }
-
-                return lProject.preview.getDisplay(pDisplayId)?.createDriver(pFunction) ?? null;
-            }
-
-            const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.findFunctionOutputPort(pFunction, lTarget);
-            if (!lPort) {
-                return null;
-            }
-
-            if (!lProject.preview.availableDisplays(lFunctionDefinition, lPort.resolvedDataType).includes(pDisplayId)) {
-                return null;
-            }
-
-            return lProject.preview.getDisplay(pDisplayId)?.createDriver(lPort) ?? null;
         });
-    }
 
-    /**
-     * Get or create the inline driver for a node's preview opt-in.
-     *
-     * @param pNode - The node whose inline preview to resolve.
-     *
-     * @returns The driver, or `null` when the node has no opt-in or no matching display.
-     */
-    public nodeDriver(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | null {
-        const lBinding = pNode.preview;
-        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = lBinding ? pNode.outputs.map.get(lBinding.portId) : undefined;
-        if (!lBinding || !lPort || lPort.portType !== 'value') {
-            this.release(pNode);
-            return null;
-        }
-
-        return this.acquire(pNode, lBinding.displayId, lBinding.portId, (): PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | null => {
-            const lProject: PotatnoProject<PotatnoProjectTypesDefinition> | null = this.mManager.project;
-            const lFunctionDefinition = lProject?.getFunction(pNode.function.definitionId);
-            if (!lProject || !lFunctionDefinition) {
-                return null;
-            }
-
-            // Only entries whose display allows the port's value type can render it.
-            if (!lProject.preview.availableDisplays(lFunctionDefinition, lPort.resolvedDataType).includes(lBinding.displayId)) {
-                return null;
-            }
-
-            return lProject.preview.getDisplay(lBinding.displayId)?.createDriver(lPort) ?? null;
-        });
+        // Wait for all driver executions to finish.
+        await Promise.all(lExecutionList);
     }
 
     /**
@@ -149,122 +121,100 @@ export class PotatnoUiManagerPreview {
      * drivers keep their last value instead of re-running the failing generator.
      */
     public refresh(): void {
+        // Only refresh when the build has the probability to succeed.
         if (!this.mManager.integrity.isValid) {
             return;
         }
 
-        for (const lDriver of this.liveDrivers()) {
+        // Iterate all driver reverse to delete and update unreferenced drivers in one go.
+        for (let lIndex: number = this.mDriverList.length - 1; lIndex >= 0; lIndex--) {
+            const lDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | undefined = this.mDriverList[lIndex].deref();
+
+            // Remove the driver when its not referenced any more.
+            if (!lDriver) {
+                this.unregister(this.mDriverList[lIndex]);
+
+                continue;
+            }
+
             lDriver.refresh();
         }
     }
 
     /**
-     * Drop the driver bound to a document item, if any.
-     *
-     * @param pItem - The document item whose driver to release.
+     * Unregister a driver by its reference. Removes the driver from the driver list and unobserves its preview element.
+     * 
+     * @param pDriverReference - Driver reference hold by the driver list. 
      */
-    public release(pItem: IPotatnoDocumentItem<PotatnoProjectTypesDefinition>): void {
-        const lExisting: PotatnoUiManagerPreviewBinding | undefined = this.mDrivers.get(pItem);
-        if (lExisting) {
-            this.mDrivers.delete(pItem);
-            this.removeFromList(lExisting.driver);
+    private unregister(pDriverReference: WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>): void {
+        // Find the index of the driver reference.
+        const lReferenceIndex: number = this.mDriverList.indexOf(pDriverReference);
+        if (lReferenceIndex === -1) {
+            return;
         }
+
+        // Remove driver reference from driver list.
+        this.mDriverList.splice(lReferenceIndex, 1);
+
+        // Get the element of the driver.
+        const lPreviewElement: Element | undefined = this.mDriverElements.get(pDriverReference);
+        if (!lPreviewElement) {
+            return;
+        }
+
+        // Unobserve element when the driver is garbage collected.
+        this.mPreviewIntersection.unobserve(lPreviewElement);
     }
 
     /**
-     * Return the cached driver when the display and target still match, otherwise build a fresh one
-     * (superseding the previous), register it and compile it once so it can render immediately.
-     *
-     * @param pItem - The document item the driver belongs to.
-     * @param pDisplayId - The display the driver renders with.
-     * @param pTarget - Target identifier (port id, output label, or `''` for function-level).
-     * @param pBuild - Factory constructing the driver when a new one is needed.
-     *
-     * @returns The cached or freshly built driver, or `null` when the factory yielded none.
+     * Register the driver in all mappings and observe the preview element for intersections.
+     * 
+     * @param pDriver - The driver to register.
      */
-    private acquire(pItem: IPotatnoDocumentItem<PotatnoProjectTypesDefinition>, pDisplayId: string, pTarget: string, pBuild: () => PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | null): PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | null {
-        const lExisting: PotatnoUiManagerPreviewBinding | undefined = this.mDrivers.get(pItem);
-        if (lExisting && lExisting.displayId === pDisplayId && lExisting.target === pTarget) {
-            return lExisting.driver;
+    private register(pDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition>): void {
+        // Create a weak reference for the driver.
+        const lDriverReference: WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>> = new WeakRef(pDriver);
+
+        // Append the driver reference to the driver list.
+        this.mDriverList.push(lDriverReference);
+
+        // Read the drivers element.
+        const lPreviewElement: Element = pDriver.element;
+
+        // Link the driver with his element.
+        this.mDriverElements.set(lDriverReference, lPreviewElement);
+        this.mElementDriver.set(lPreviewElement, lDriverReference);
+
+        // Observe the preview element for view intersections.
+        this.mPreviewIntersection.observe(lPreviewElement);
+    }
+
+    /**
+     * Generate and register new driver for a target and display.
+     * 
+     * @param pTarget - Target function or port.
+     * @param pDisplayId - Requested preview display.
+     * 
+     * @returns a already generated or new driver for the target. 
+     */
+    public requestDriver(pTarget: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pDisplayId: string): PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | null {
+        // Try to read the current driver from target hoping the correct display.
+        const lCurrentDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | undefined = this.mDrivers.get(pTarget);
+        if (lCurrentDriver && lCurrentDriver.display.id === pDisplayId) {
+            return lCurrentDriver;
         }
 
-        const lDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | null = pBuild();
-        if (!lDriver) {
-            this.release(pItem);
+        // For the next step a project must be setup.
+        if (!this.mManager.project) {
             return null;
         }
 
-        if (lExisting) {
-            this.removeFromList(lExisting.driver);
-        }
-        this.mDrivers.set(pItem, { driver: lDriver, displayId: pDisplayId, target: pTarget });
-        this.mDriverList.push(new WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>(lDriver));
-
-        // Compile immediately when the graph is valid so the first frame already renders.
-        if (this.mManager.integrity.isValid) {
-            lDriver.refresh();
+        // If it not, generate a new driver.
+        const lPreviewDisplay: PotatnoPreviewDisplayItem<PotatnoProjectTypesDefinition> | null = this.mManager.project.preview.getDisplay(pDisplayId);
+        if(!lPreviewDisplay) {
+            throw new Exception(`Preview has no display for "${pDisplayId}".`, this);
         }
 
-        return lDriver;
-    }
-
-    /**
-     * Find the exit node's value input port carrying a function output, by output label.
-     *
-     * @param pFunction - The function whose exit nodes to search.
-     * @param pOutputId - The output port label to match.
-     *
-     * @returns The matching value input port, or `null`.
-     */
-    private findFunctionOutputPort(pFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition>, pOutputId: string): PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null {
-        for (const lExitNode of pFunction.getExitNodes()) {
-            const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = lExitNode.inputs.map.get(pOutputId);
-            if (lPort && lPort.portType === 'value') {
-                return lPort;
-            }
-        }
-
-        return null;
-    }
-
-    /**
-     * The currently live drivers, pruning collected weak references along the way.
-     *
-     * @returns Every still-referenced driver.
-     */
-    private liveDrivers(): Array<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>> {
-        const lDrivers: Array<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>> = [];
-        for (let lIndex: number = this.mDriverList.length - 1; lIndex >= 0; lIndex--) {
-            const lDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | undefined = this.mDriverList[lIndex].deref();
-            if (lDriver) {
-                lDrivers.push(lDriver);
-            } else {
-                this.mDriverList.splice(lIndex, 1);
-            }
-        }
-
-        return lDrivers;
-    }
-
-    /**
-     * Remove a driver from the weak iteration list.
-     *
-     * @param pDriver - The driver to remove.
-     */
-    private removeFromList(pDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition>): void {
-        const lIndex: number = this.mDriverList.findIndex((pRef) => pRef.deref() === pDriver);
-        if (lIndex !== -1) {
-            this.mDriverList.splice(lIndex, 1);
-        }
+        return lPreviewDisplay.createDriver(pTarget);
     }
 }
-
-/**
- * Stored driver together with the display and target it was built for, so a repeat request can be
- * matched against the live binding.
- */
-type PotatnoUiManagerPreviewBinding = {
-    driver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition>;
-    displayId: string;
-    target: string;
-};

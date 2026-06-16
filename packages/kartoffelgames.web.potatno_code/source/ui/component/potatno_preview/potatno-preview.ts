@@ -120,7 +120,16 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
             return null;
         }
 
-        return this.mManager.preview.functionDriver(lFunction, this.selectedDisplayId, this.selectedOutputId);
+        if (this.selectedOutputId === PotatnoPreviewFunctionExecutor.MAIN) {
+            return this.mManager.preview.requestDriver(lFunction, this.selectedDisplayId);
+        }
+
+        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.findFunctionOutputPort(lFunction, this.selectedOutputId);
+        if (!lPort) {
+            return null;
+        }
+
+        return this.mManager.preview.requestDriver(lPort, this.selectedDisplayId);
     }
 
     /**

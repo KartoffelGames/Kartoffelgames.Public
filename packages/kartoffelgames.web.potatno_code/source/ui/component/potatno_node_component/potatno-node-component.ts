@@ -165,10 +165,17 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      * clears the container.
      */
     public get previewDriver(): PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | null {
-        if (!this.nodeData) {
+        const lPreview = this.nodeData?.preview;
+        if (!this.nodeData || !lPreview) {
             return null;
         }
-        return this.mManager.preview.nodeDriver(this.nodeData);
+
+        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = this.nodeData.outputs.map.get(lPreview.portId);
+        if (!lPort) {
+            return null;
+        }
+
+        return this.mManager.preview.requestDriver(lPort, lPreview.displayId);
     }
 
     /**

@@ -150,15 +150,14 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
      * @returns The executor port target, or `null` when the port was not emitted.
      */
     private resolvePortTarget(pGeneratorResult: PotatnoCodeGeneratorDocumentResult<TProjectTypes>, pPort: PotatnoDocumentPort<TProjectTypes>): PotatnoPreviewFunctionExecutorPortTarget<TProjectTypes> {
-        const lResolvedPort: PotatnoPreviewDriverResolvedPort = (() => { 
-            // TODO: Thats totally shit. Is there anything better?
-            for (const lFunctionResult of [pGeneratorResult.entryPoint, ...pGeneratorResult.dependencies]) {
-                for (const lGraph of lFunctionResult.graphs) {
-                    const lPortValue: string | undefined = lGraph.ports.get(pPort);
-                    const lNodeId: string | undefined = lGraph.nodes.get(pPort.node);
-                    if (lPortValue !== undefined && lNodeId !== undefined) {
-                        return { nodeId: lNodeId, value: lPortValue };
-                    }
+        // Resolve targets port into its value and node hook id. 
+        const [lPortValue, lNodeId] = (() => {
+            // Each each graph of the main entry function.
+            for (const lGraph of pGeneratorResult.entryPoint.graphs) {
+                // Read port and node from graph.
+                if (lGraph.ports.has(pPort) && lGraph.nodes.has(pPort.node)) {
+                    // Return ports node and value when it has been found.
+                    return [lGraph.nodes.get(pPort.node)!, lGraph.ports.get(pPort)!];
                 }
             }
 
@@ -170,13 +169,14 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
             if (pPort.direction === 'input') {
                 return 'start';
             }
+
             return 'end';
         })();
 
         return {
             documentPort: pPort,
-            nodeHook: pPort.project.generator.values.hook(`${lHookPosition}-${lResolvedPort.nodeId}`),
-            value: lResolvedPort.value
+            nodeHook: pPort.project.generator.values.hook(`${lHookPosition}-${lNodeId}`),
+            value: lPortValue
         };
     }
 }
@@ -188,9 +188,3 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
 type PotatnoPreviewDriverCallable = (pParameters: Record<string, unknown>) => Promise<unknown>;
 
 export type PotatnoPreviewDriverDisplay<TProjectTypes extends PotatnoProjectTypesDefinition> = PotatnoPreviewDisplay<TProjectTypes, Element, any, any, any, any>;
-
-type PotatnoPreviewDriverResolvedPort = {
-    nodeId: string;
-    value: string;
-};
-

@@ -75,7 +75,7 @@ export class PotatnoUiManagerPreview {
                 // Defref the driver.
                 const lDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | undefined = lDriverReference.deref();
                 if (!lDriver) {
-                    return;
+                    continue;
                 }
 
                 // Update activity of driver.
@@ -171,7 +171,10 @@ export class PotatnoUiManagerPreview {
      * 
      * @param pDriver - The driver to register.
      */
-    private register(pDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition>): void {
+    private register(pTarget: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition>): void {
+        // Save the new driver as the main preview of the target.
+        this.mDrivers.set(pTarget, pDriver);
+        
         // Create a weak reference for the driver.
         const lDriverReference: WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>> = new WeakRef(pDriver);
 
@@ -215,6 +218,10 @@ export class PotatnoUiManagerPreview {
             throw new Exception(`Preview has no display for "${pDisplayId}".`, this);
         }
 
-        return lPreviewDisplay.createDriver(pTarget);
+        // Create and register driver.
+        const lDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition> =  lPreviewDisplay.createDriver(pTarget);
+        this.register(pTarget, lDriver);
+
+        return lDriver;
     }
 }

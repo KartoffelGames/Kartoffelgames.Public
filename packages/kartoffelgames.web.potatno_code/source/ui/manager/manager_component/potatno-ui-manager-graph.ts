@@ -134,6 +134,7 @@ export class PotatnoUiManagerGraph {
 
         // And add the function.
         lDocument.addFunction(lFunction);
+        lDocument.validate();
 
         // Dispatch function add event.
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.FunctionAdd, lFunction);

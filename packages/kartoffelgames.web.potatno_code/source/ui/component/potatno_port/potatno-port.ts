@@ -2,7 +2,7 @@ import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentEventEmitter, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoProjectTypeDefinition, PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
+import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPortRegistry } from '../../potatno-port-registry.ts';
 import portCss from './potatno-port.css' with { type: 'text' };
@@ -23,6 +23,7 @@ import portTemplate from './potatno-port.html' with { type: 'text' };
 })
 export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDeconstruct, IComponentOnUpdate {
     private readonly mComponent: Component;
+    private mLastRegisteredElement: HTMLElement | null;
     private mLastRegisteredPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null;
     private readonly mManager: PotatnoUiManager;
     private readonly mPortRegistry: PotatnoPortRegistry;
@@ -162,6 +163,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      */
     public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager), pPortRegistry: PotatnoPortRegistry = Injection.use(PotatnoPortRegistry)) {
         this.mComponent = pComponent;
+        this.mLastRegisteredElement = null;
         this.mLastRegisteredPort = null;
         this.mManager = pManager;
         this.mPortRegistry = pPortRegistry;
@@ -189,6 +191,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
 
         if (this.mLastRegisteredPort) {
             this.mPortRegistry.unregister(this.mLastRegisteredPort);
+            this.mLastRegisteredElement = null;
             this.mLastRegisteredPort = null;
         }
     }
@@ -201,7 +204,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     public onUpdate(): void {
         const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.port;
         const lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null = this.ownerNode;
-        if (!lPort || !lNode || lPort === this.mLastRegisteredPort) {
+        if (!lPort || !lNode) {
             return;
         }
 
@@ -212,11 +215,16 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
             return;
         }
 
+        if (lPort === this.mLastRegisteredPort && lCircleEl === this.mLastRegisteredElement) {
+            return;
+        }
+
         // Drop the previous port's registration when this component is recycled for another port.
         if (this.mLastRegisteredPort && this.mLastRegisteredPort !== lPort) {
             this.mPortRegistry.unregister(this.mLastRegisteredPort);
         }
 
+        this.mLastRegisteredElement = lCircleEl;
         this.mLastRegisteredPort = lPort;
         this.mPortRegistry.register(lPort, lCircleEl);
 

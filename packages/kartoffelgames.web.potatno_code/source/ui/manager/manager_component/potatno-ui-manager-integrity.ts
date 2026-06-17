@@ -1,4 +1,5 @@
 import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-item.interface.ts';
+import { PotatnoDocumentFunction } from "../../../document/potatno-document-function.ts";
 import { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoDocumentValidationResult } from "../../../document/potatno-document-validation-result.ts";
@@ -66,13 +67,21 @@ export class PotatnoUiManagerIntegrity {
 
         // Register "all"-Listener and set dirtly. After a debounce validate automaticly.
         let lDebounce: number = 0;
-        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Any, null, ()=>{
+        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Any, null, () => {
             this.mIsDirty = true;
 
             // Debounce: Clear and set a new timeout before pushing new history.
             globalThis.clearTimeout(lDebounce);
             lDebounce = globalThis.setTimeout(() => {
+                // If its not dirty, no need to reevaluate.
+                if (!this.mIsDirty) {
+                    return;
+                }
+
                 this.revalidate();
+
+                // Reset dirty flag.
+                this.mIsDirty = false;
             }, 1000) as unknown as number;
         });
     }
@@ -81,14 +90,6 @@ export class PotatnoUiManagerIntegrity {
      * Re-run document validation and refresh the cached error list and highlight sets.
      */
     public revalidate(): void {
-        // If its not dirty, no need to reevaluate.
-        if(!this.mIsDirty){
-            return;
-        }
-
-        // Reset dirty flag.
-        this.mIsDirty = false;
-
         // Do nothing if document is not set.
         if (!this.mManager.graph.document) {
             return;
@@ -107,13 +108,31 @@ export class PotatnoUiManagerIntegrity {
             this.mErrorItems.add(lError.item);
 
             // Add error messages to display to the user based on the item type.
-            switch(true){
+            switch (true) {
                 case lError.item instanceof PotatnoDocumentPort: {
                     this.mErrorList.push({ location: `Node "${lError.item.node.label}"`, message: lError.message });
                     break;
                 }
                 case lError.item instanceof PotatnoDocumentNode: {
                     this.mErrorList.push({ location: `Node "${lError.item.label}"`, message: lError.message });
+                    break;
+                }
+            }
+        }
+
+        // Trigger change events for affected items.
+        for (const lAffectedItem of lValidationResult.affectedItems) {
+            switch (true) {
+                case lAffectedItem instanceof PotatnoDocumentPort: {
+                    this.mManager.dispatch(PotatnoCodeUiManagerChangeType.PortAdd | PotatnoCodeUiManagerChangeType.PortUpdate | PotatnoCodeUiManagerChangeType.PortDelete, lAffectedItem);
+                    break;
+                }
+                case lAffectedItem instanceof PotatnoDocumentNode: {
+                    this.mManager.dispatch(PotatnoCodeUiManagerChangeType.NodeAdd | PotatnoCodeUiManagerChangeType.NodeUpdate | PotatnoCodeUiManagerChangeType.NodeDelete, lAffectedItem);
+                    break;
+                }
+                case lAffectedItem instanceof PotatnoDocumentFunction: {
+                    this.mManager.dispatch(PotatnoCodeUiManagerChangeType.FunctionAdd | PotatnoCodeUiManagerChangeType.FunctionUpdate | PotatnoCodeUiManagerChangeType.FunctionDelete, lAffectedItem);
                     break;
                 }
             }

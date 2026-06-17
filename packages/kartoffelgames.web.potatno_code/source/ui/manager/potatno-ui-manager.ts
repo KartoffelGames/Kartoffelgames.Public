@@ -334,12 +334,13 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
  * Event types fired by {@link PotatnoUiManager}.
  */
 export const PotatnoCodeUiManagerChangeType = {
-    Any: 0xFFFFF,
+    Any: 0xFFFFFF,
 
     // Connections #F
     Connection: 0xF,
     ConnectionAdd: 0x1,
-    ConnectionDelete: 0x2,
+    ConnectionUpdate: 0x2,
+    ConnectionDelete: 0x4,
 
     // Document #F0
     Document: 0xF0,
@@ -357,9 +358,15 @@ export const PotatnoCodeUiManagerChangeType = {
     NodeDelete: 0x4000,
     NodeTransform: 0x8000,
 
-    // Specials #F0000
-    Special: 0xF0000,
-    SpecialActiveFunction: 0x10000,
+    // Port: #F0000
+    Port: 0xF0000,
+    PortAdd: 0x10000,
+    PortUpdate: 0x20000,
+    PortDelete: 0x40000,
+    
+    // Specials #F00000
+    Special: 0xF00000,
+    SpecialActiveFunction: 0x100000,
 } as const;
 export type PotatnoCodeUiManagerChangeType = typeof PotatnoCodeUiManagerChangeType[keyof typeof PotatnoCodeUiManagerChangeType] | number;
 

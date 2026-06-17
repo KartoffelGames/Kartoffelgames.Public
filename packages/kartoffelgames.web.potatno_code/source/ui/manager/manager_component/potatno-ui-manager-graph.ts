@@ -42,8 +42,8 @@ export class PotatnoUiManagerGraph {
         // Set document and dispatch change event.
         this.mDocument = pDocument;
 
-        // Before signaling the document, validate it.
-        this.mManager.integrity.revalidate();
+        // Before signaling the document, validate it to initialize any nodes and ports.
+        this.mDocument.validate();
 
         // Then signal it.
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.Document, this.mDocument);

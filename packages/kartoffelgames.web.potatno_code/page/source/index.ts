@@ -4,6 +4,7 @@ import { PotatnoPreviewFunctionExecutor } from '../../source/preview/potatno-pre
 import { CanvasProject } from './project/canvas-project.ts';
 import { CanvasProjectMathImportDefinition } from './project/import/canvas-project-math-import-definition.ts';
 import { CanvasProjectTimeImportDefinition } from './project/import/canvas-project-time-import-definition.ts';
+import { CanvasProjectMatrixPreviewDisplay } from './project/preview/canvas-project-matrix-preview-display.ts';
 import { CanvasProjectPreviewDisplay } from './project/preview/canvas-project-preview-display.ts';
 
 const gProject = new CanvasProject();
@@ -70,6 +71,8 @@ const gUserFunctionExecutor = new PotatnoPreviewFunctionExecutor(gProject.userFu
 
 gProject.preview.addDisplay(new CanvasProjectPreviewDisplay(gEntryFunctionExecutor));
 gProject.preview.addDisplay(new CanvasProjectPreviewDisplay(gUserFunctionExecutor));
+gProject.preview.addDisplay(new CanvasProjectMatrixPreviewDisplay(gEntryFunctionExecutor));
+gProject.preview.addDisplay(new CanvasProjectMatrixPreviewDisplay(gUserFunctionExecutor));
 
 // Create application and open an empty file.
 const gApp = new PotatnoCodeApplication(gProject);

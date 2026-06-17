@@ -248,10 +248,10 @@ Deno.test('PotatnoDocument - Validation', async (pContext) => {
         const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
 
         // Process.
-        const lErrors = lDocument.validate();
+        const lValidationResult = lDocument.validate();
 
         // Evaluation.
-        expect(lErrors.length).toBe(2); // Two not connected flow ports of the entry point.
+        expect(lValidationResult.errors.length).toBe(2); // Two not connected flow ports of the entry point.
         expect(lDocument.functions.size).toBe(1);
     });
 
@@ -264,10 +264,10 @@ Deno.test('PotatnoDocument - Validation', async (pContext) => {
         lHelper.addNodeByDefinition(lSelfNodeDef, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
-        const lErrors = lDocument.validate();
+        const lValidationResult = lDocument.validate();
 
         // Evaluation.
-        expect(lErrors.some((pError) => /cross-function recursion/.test(pError.message))).toBe(true);
+        expect(lValidationResult.errors.some((pError) => /cross-function recursion/.test(pError.message))).toBe(true);
     });
 
     await pContext.step('Cross-function recursion: A -> B -> A', () => {
@@ -283,10 +283,10 @@ Deno.test('PotatnoDocument - Validation', async (pContext) => {
         lHelperB.addNodeByDefinition(lDefA, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
-        const lErrors = lDocument.validate();
+        const lValidationResult = lDocument.validate();
 
         // Evaluation. At least one cycle error - both participants typically flagged.
-        const lCycleErrors = lErrors.filter((pError) => /cross-function recursion/.test(pError.message));
+        const lCycleErrors = lValidationResult.errors.filter((pError) => /cross-function recursion/.test(pError.message));
         expect(lCycleErrors.length).toBeGreaterThan(0);
     });
 
@@ -304,10 +304,10 @@ Deno.test('PotatnoDocument - Validation', async (pContext) => {
         lB.addNodeByDefinition(lDefC, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
-        const lErrors = lDocument.validate();
+        const lValidationResult = lDocument.validate();
 
         // Evaluation.
-        const lCycleErrors = lErrors.filter((pError) => /cross-function recursion/.test(pError.message));
+        const lCycleErrors = lValidationResult.errors.filter((pError) => /cross-function recursion/.test(pError.message));
         expect(lCycleErrors.length).toBe(0);
     });
 
@@ -320,11 +320,24 @@ Deno.test('PotatnoDocument - Validation', async (pContext) => {
         lHelper.addNodeByDefinition(lSelfNodeDef, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
-        const lErrors = lDocument.validate();
+        const lValidationResult = lDocument.validate();
 
         // Evaluation.
-        const lCycleError = lErrors.find((pError) => /cross-function recursion/.test(pError.message));
+        const lCycleError = lValidationResult.errors.find((pError) => /cross-function recursion/.test(pError.message));
         expect(lCycleError).toBeDefined();
         expect(lCycleError!.item).toBe(lHelper);
+    });
+
+    await pContext.step('Affected items include synced entry function and system nodes', () => {
+        // Setup.
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
+
+        // Process.
+        const lValidationResult = lDocument.validate();
+
+        // Evaluation.
+        const lFunction = [...lDocument.functions][0];
+        expect(lValidationResult.affectedItems.has(lFunction)).toBe(true);
+        expect([...lFunction.nodes].every((pNode) => lValidationResult.affectedItems.has(pNode))).toBe(true);
     });
 });

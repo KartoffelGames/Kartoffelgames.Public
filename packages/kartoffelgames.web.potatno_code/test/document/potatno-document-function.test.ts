@@ -665,10 +665,10 @@ Deno.test('PotatnoDocumentFunction - Validation', async (pContext) => {
         lAddNode.outputs.value[0].connect(lDefaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!);
 
         // Process.
-        const lErrors = lFunction.validate();
+        const lValidationResult = lFunction.validate();
 
         // Evaluation.
-        expect(lErrors.length).toBe(0);
+        expect(lValidationResult.errors.length).toBe(0);
     });
 
     await pContext.step('Missing function definition', () => {
@@ -680,10 +680,10 @@ Deno.test('PotatnoDocumentFunction - Validation', async (pContext) => {
         });
 
         // Process.
-        const lErrors = lFunction.validate();
+        const lValidationResult = lFunction.validate();
 
         // Evaluation.
-        expect(lErrors.some((pError) => pError.message === 'Function "orphan" definition "no-such-definition" could not be found.')).toBe(true);
+        expect(lValidationResult.errors.some((pError) => pError.message === 'Function "orphan" definition "no-such-definition" could not be found.')).toBe(true);
     });
 
     await pContext.step('Flow input not connected', () => {
@@ -691,10 +691,10 @@ Deno.test('PotatnoDocumentFunction - Validation', async (pContext) => {
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
-        const lErrors = lFunction.validate();
+        const lValidationResult = lFunction.validate();
 
         // Evaluation.
-        expect(lErrors.some((pError) => /Flow input port/.test(pError.message))).toBe(true);
+        expect(lValidationResult.errors.some((pError) => /Flow input port/.test(pError.message))).toBe(true);
     });
 
     await pContext.step('Connection cycle in graph', () => {
@@ -706,10 +706,10 @@ Deno.test('PotatnoDocumentFunction - Validation', async (pContext) => {
         lPassB.outputs.flow[0].connect(lPassA.inputs.flow[0]);
 
         // Process.
-        const lErrors = lFunction.validate();
+        const lValidationResult = lFunction.validate();
 
         // Evaluation.
-        expect(lErrors.some((pError) => /is part of a connection cycle/.test(pError.message))).toBe(true);
+        expect(lValidationResult.errors.some((pError) => /is part of a connection cycle/.test(pError.message))).toBe(true);
     });
 
     await pContext.step('Node reachable from multiple entry nodes', () => {
@@ -720,10 +720,10 @@ Deno.test('PotatnoDocumentFunction - Validation', async (pContext) => {
         lX10Entry.outputs.flow[0].connect(lSharedPass.inputs.flow[0]);
 
         // Process.
-        const lErrors = lFunction.validate();
+        const lValidationResult = lFunction.validate();
 
         // Evaluation.
-        expect(lErrors.some((pError) => pError.message === `Node "${lSharedPass.label}" is reachable from multiple entry nodes.`)).toBe(true);
+        expect(lValidationResult.errors.some((pError) => pError.message === `Node "${lSharedPass.label}" is reachable from multiple entry nodes.`)).toBe(true);
     });
 
     await pContext.step('Validation errors include item references', () => {
@@ -735,11 +735,26 @@ Deno.test('PotatnoDocumentFunction - Validation', async (pContext) => {
         lPassB.outputs.flow[0].connect(lPassA.inputs.flow[0]);
 
         // Process.
-        const lErrors = lFunction.validate();
+        const lValidationResult = lFunction.validate();
 
         // Evaluation. The cycle error's item is one of the two pass nodes.
-        const lCycleError = lErrors.find((pError) => /is part of a connection cycle/.test(pError.message));
+        const lCycleError = lValidationResult.errors.find((pError) => /is part of a connection cycle/.test(pError.message));
         expect(lCycleError).toBeDefined();
         expect([lPassA.definitionId, lPassB.definitionId]).toContain(lCycleError!.item.definitionId);
+    });
+
+    await pContext.step('Affected items include re-added system nodes', () => {
+        // Setup.
+        const { function: lFunction, defaultExit: lDefaultExit } = PotatnoHelper.setupCalculatorDocument();
+        lFunction.removeNode(lDefaultExit);
+
+        // Process.
+        const lValidationResult = lFunction.validate();
+
+        // Evaluation.
+        const lSyncedExit = [...lFunction.nodes].find((pNode) => pNode.definitionId === lDefaultExit.definitionId);
+        expect(lSyncedExit).toBeDefined();
+        expect(lSyncedExit).not.toBe(lDefaultExit);
+        expect(lValidationResult.affectedItems.has(lSyncedExit!)).toBe(true);
     });
 });

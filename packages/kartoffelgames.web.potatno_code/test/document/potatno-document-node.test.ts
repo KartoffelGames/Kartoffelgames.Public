@@ -1,7 +1,32 @@
 import { expect } from '@kartoffelgames/core-test';
 import { PotatnoStaticNodeDefinition } from '../../source/project/node_definition/potatno-static-node-definition.ts';
+import { PotatnoFunctionNodeDefinition } from '../../source/project/node_definition/potatno-function-node-definition.ts';
+import type { PotatnoDocumentFunction } from '../../source/document/potatno-document-function.ts';
+import type { PotatnoDocumentNode } from '../../source/document/potatno-document-node.ts';
 import { PotatnoHelper } from '../helper/potatno-helper.ts';
 import type { PotatnoTestProjectTypesDefinition } from '../helper/potatno_test_project/potatno-test-project-types-definition.ts';
+
+function gSetupHelperFunctionCallNode(pParameter?: SetupHelperFunctionCallNodeParameter): SetupHelperFunctionCallNodeResult {
+    // Create document with a caller function and a helper function.
+    const { document: lDocument, function: lCallerFunction } = PotatnoHelper.setupCalculatorDocument();
+    const lHelperFunction = PotatnoHelper.newHelperFunction(lDocument, crypto.randomUUID(), 'helperFunction');
+
+    // Configure helper function signature.
+    for (const lInput of pParameter?.inputs ?? new Array<SetupHelperFunctionCallNodePort>()) {
+        lHelperFunction.addInput(lInput);
+    }
+    for (const lOutput of pParameter?.outputs ?? new Array<SetupHelperFunctionCallNodePort>()) {
+        lHelperFunction.addOutput(lOutput);
+    }
+
+    // Add a function-call node from the live helper function node definition.
+    const lHelperNodeDefinition = lDocument.nodeDefinitions.find((pDefinition) => {
+        return pDefinition instanceof PotatnoFunctionNodeDefinition && pDefinition.function === lHelperFunction;
+    })!;
+    const lNode = lCallerFunction.addNodeByDefinition(lHelperNodeDefinition, { x: 0, y: 0, width: 4, height: 2 });
+
+    return { helperFunction: lHelperFunction, node: lNode };
+}
 
 Deno.test('PotatnoDocumentNode.constructor()', async (pContext) => {
     await pContext.step('Sets category snapshot from constructor', () => {
@@ -394,11 +419,11 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
         (PotatnoHelper.TEST_PROJECT as any).mNodeDefinitions.delete('TempMissing');
 
         // Process.
-        const lErrors = lNode.validate(new Set<string>());
+        const lValidationResult = lNode.validate(new Set<string>());
 
         // Evaluation.
-        expect(lErrors.length).toBeGreaterThan(0);
-        expect(lErrors[0].message).toBe(`Node "${lNode.label}" definition "TempMissing" could not be found.`);
+        expect(lValidationResult.errors.length).toBeGreaterThan(0);
+        expect(lValidationResult.errors[0].message).toBe(`Node "${lNode.label}" definition "TempMissing" could not be found.`);
     });
 
     await pContext.step('Region required and present', () => {
@@ -414,10 +439,10 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
         const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
-        const lErrors = lNode.validate(new Set<string>(['X']));
+        const lValidationResult = lNode.validate(new Set<string>(['X']));
 
         // Evaluation.
-        expect(lErrors.length).toBe(0);
+        expect(lValidationResult.errors.length).toBe(0);
 
         // Cleanup.
         (PotatnoHelper.TEST_PROJECT as any).mNodeDefinitions.delete('RequiresXOnly');
@@ -436,10 +461,10 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
         const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
-        const lErrors = lNode.validate(new Set<string>());
+        const lValidationResult = lNode.validate(new Set<string>());
 
         // Evaluation.
-        expect(lErrors.some((pError) => pError.message === `Node "${lNode.label}" requires region "X" but it is not active.`)).toBe(true);
+        expect(lValidationResult.errors.some((pError) => pError.message === `Node "${lNode.label}" requires region "X" but it is not active.`)).toBe(true);
 
         // Cleanup.
         (PotatnoHelper.TEST_PROJECT as any).mNodeDefinitions.delete('RequiresMissing');
@@ -458,10 +483,10 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
         const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
-        const lErrors = lNode.validate(new Set<string>(['X']));
+        const lValidationResult = lNode.validate(new Set<string>(['X']));
 
         // Evaluation.
-        expect(lErrors.length).toBe(0);
+        expect(lValidationResult.errors.length).toBe(0);
 
         // Cleanup.
         (PotatnoHelper.TEST_PROJECT as any).mNodeDefinitions.delete('AllowsXOnly');
@@ -480,10 +505,10 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
         const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
-        const lErrors = lNode.validate(new Set<string>(['Y']));
+        const lValidationResult = lNode.validate(new Set<string>(['Y']));
 
         // Evaluation.
-        expect(lErrors.some((pError) => pError.message === `Node "${lNode.label}" does not allow region "Y".`)).toBe(true);
+        expect(lValidationResult.errors.some((pError) => pError.message === `Node "${lNode.label}" does not allow region "Y".`)).toBe(true);
 
         // Cleanup.
         (PotatnoHelper.TEST_PROJECT as any).mNodeDefinitions.delete('ForbidsY');
@@ -494,9 +519,77 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
         const { defaultExit: lDefaultExit } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
-        const lErrors = lDefaultExit.validate(new Set<string>());
+        const lValidationResult = lDefaultExit.validate(new Set<string>());
 
         // Evaluation.
-        expect(lErrors.some((pError) => /Flow input port/.test(pError.message))).toBe(true);
+        expect(lValidationResult.errors.some((pError) => /Flow input port/.test(pError.message))).toBe(true);
+    });
+
+    await pContext.step('Affected items include added ports', () => {
+        // Setup.
+        const { helperFunction: lHelperFunction, node: lNode } = gSetupHelperFunctionCallNode();
+        lHelperFunction.addInput({ label: 'value', dataType: 'number' });
+
+        // Process.
+        const lValidationResult = lNode.validate(new Set<string>());
+
+        // Evaluation.
+        const lAddedPort = lNode.inputs.map.get('value');
+        expect(lAddedPort).toBeDefined();
+        expect(lValidationResult.affectedItems.has(lAddedPort!)).toBe(true);
+    });
+
+    await pContext.step('Affected items include removed ports', () => {
+        // Setup.
+        const { helperFunction: lHelperFunction, node: lNode } = gSetupHelperFunctionCallNode({
+            outputs: [
+                { label: 'result', dataType: 'number' }
+            ]
+        });
+        const lRemovedPort = lNode.outputs.map.get('result')!;
+        lHelperFunction.removeOutput({ label: 'result', dataType: 'number' });
+
+        // Process.
+        const lValidationResult = lNode.validate(new Set<string>());
+
+        // Evaluation.
+        expect(lNode.outputs.map.has('result')).toBe(false);
+        expect(lValidationResult.affectedItems.has(lRemovedPort)).toBe(true);
+    });
+
+    await pContext.step('Affected items include replaced ports', () => {
+        // Setup.
+        const { helperFunction: lHelperFunction, node: lNode } = gSetupHelperFunctionCallNode({
+            inputs: [
+                { label: 'value', dataType: 'number' }
+            ]
+        });
+        const lOldPort = lNode.inputs.map.get('value')!;
+        lHelperFunction.removeInput({ label: 'value', dataType: 'number' });
+        lHelperFunction.addInput({ label: 'value', dataType: 'string' });
+
+        // Process.
+        const lValidationResult = lNode.validate(new Set<string>());
+
+        // Evaluation.
+        const lNewPort = lNode.inputs.map.get('value')!;
+        expect(lNewPort).not.toBe(lOldPort);
+        expect(lValidationResult.affectedItems.has(lOldPort)).toBe(true);
+        expect(lValidationResult.affectedItems.has(lNewPort)).toBe(true);
     });
 });
+
+type SetupHelperFunctionCallNodeParameter = {
+    inputs?: Array<SetupHelperFunctionCallNodePort>;
+    outputs?: Array<SetupHelperFunctionCallNodePort>;
+};
+
+type SetupHelperFunctionCallNodePort = {
+    dataType: 'number' | 'string';
+    label: string;
+};
+
+type SetupHelperFunctionCallNodeResult = {
+    helperFunction: PotatnoDocumentFunction<PotatnoTestProjectTypesDefinition>;
+    node: PotatnoDocumentNode<PotatnoTestProjectTypesDefinition>;
+};

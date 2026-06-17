@@ -661,10 +661,11 @@ Deno.test('PotatnoDocumentPort - Validation', async (pContext) => {
         lPort.connect(lDefaultExit.inputs.flow[0]);
 
         // Process.
-        const lErrors = lPort.validate();
+        const lValidationResult = lPort.validate();
 
         // Evaluation.
-        expect(lErrors.length).toBe(0);
+        expect(lValidationResult.errors.length).toBe(0);
+        expect(lValidationResult.affectedItems.size).toBe(0);
     });
 
     await pContext.step('Output flow with multiple connections', () => {
@@ -678,11 +679,12 @@ Deno.test('PotatnoDocumentPort - Validation', async (pContext) => {
         lFlowOutput.connectedPorts.add(lPassTwo.inputs.flow[0]);
 
         // Process.
-        const lErrors = lFlowOutput.validate();
+        const lValidationResult = lFlowOutput.validate();
 
         // Evaluation.
-        expect(lErrors.length).toBe(1);
-        expect(lErrors[0].message).toBe(`Flow output port "${lFlowOutput.definitionId}" on node "${lDefaultEntry.label}" can only have one connection.`);
+        expect(lValidationResult.errors.length).toBe(1);
+        expect(lValidationResult.errors[0].message).toBe(`Flow output port "${lFlowOutput.definitionId}" on node "${lDefaultEntry.label}" can only have one connection.`);
+        expect(lValidationResult.affectedItems.size).toBe(0);
     });
 
     await pContext.step('Output value generic resolved', () => {
@@ -695,10 +697,11 @@ Deno.test('PotatnoDocumentPort - Validation', async (pContext) => {
             .connect(lPickNode.inputs.value.find((pPort) => pPort.definitionId === 'b')!);
 
         // Process.
-        const lErrors = lPickNode.outputs.value.find((pPort) => pPort.definitionId === 'result')!.validate();
+        const lValidationResult = lPickNode.outputs.value.find((pPort) => pPort.definitionId === 'result')!.validate();
 
         // Evaluation.
-        expect(lErrors.length).toBe(0);
+        expect(lValidationResult.errors.length).toBe(0);
+        expect(lValidationResult.affectedItems.size).toBe(0);
     });
 
     await pContext.step('Output value generic unresolved', () => {
@@ -710,11 +713,12 @@ Deno.test('PotatnoDocumentPort - Validation', async (pContext) => {
 
         // Process.
         const lOutput = lPickNode.outputs.value.find((pPort) => pPort.definitionId === 'result')!;
-        const lErrors = lOutput.validate();
+        const lValidationResult = lOutput.validate();
 
         // Evaluation.
-        expect(lErrors.length).toBe(1);
-        expect(lErrors[0].message).toBe(`Generic output port "${lOutput.definitionId}" on node "${lPickNode.label}" cannot resolve generic type "<T>" because its input port "b" is not connected.`);
+        expect(lValidationResult.errors.length).toBe(1);
+        expect(lValidationResult.errors[0].message).toBe(`Generic output port "${lOutput.definitionId}" on node "${lPickNode.label}" cannot resolve generic type "<T>" because its input port "b" is not connected.`);
+        expect(lValidationResult.affectedItems.size).toBe(0);
     });
 
     await pContext.step('Input flow connected', () => {
@@ -723,10 +727,11 @@ Deno.test('PotatnoDocumentPort - Validation', async (pContext) => {
         lDefaultEntry.outputs.flow[0].connect(lDefaultExit.inputs.flow[0]);
 
         // Process.
-        const lErrors = lDefaultExit.inputs.flow[0].validate();
+        const lValidationResult = lDefaultExit.inputs.flow[0].validate();
 
         // Evaluation.
-        expect(lErrors.length).toBe(0);
+        expect(lValidationResult.errors.length).toBe(0);
+        expect(lValidationResult.affectedItems.size).toBe(0);
     });
 
     await pContext.step('Input flow unconnected', () => {
@@ -735,11 +740,12 @@ Deno.test('PotatnoDocumentPort - Validation', async (pContext) => {
         const lPort = lDefaultExit.inputs.flow[0];
 
         // Process.
-        const lErrors = lPort.validate();
+        const lValidationResult = lPort.validate();
 
         // Evaluation.
-        expect(lErrors.length).toBe(1);
-        expect(lErrors[0].message).toBe(`Flow input port "${lPort.definitionId}" on node "${lDefaultExit.label}" must have at least one connection.`);
+        expect(lValidationResult.errors.length).toBe(1);
+        expect(lValidationResult.errors[0].message).toBe(`Flow input port "${lPort.definitionId}" on node "${lDefaultExit.label}" must have at least one connection.`);
+        expect(lValidationResult.affectedItems.size).toBe(0);
     });
 
     await pContext.step('Input value with single matching connection', () => {
@@ -749,10 +755,11 @@ Deno.test('PotatnoDocumentPort - Validation', async (pContext) => {
             .connect(lDefaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!);
 
         // Process.
-        const lErrors = lDefaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!.validate();
+        const lValidationResult = lDefaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!.validate();
 
         // Evaluation.
-        expect(lErrors.length).toBe(0);
+        expect(lValidationResult.errors.length).toBe(0);
+        expect(lValidationResult.affectedItems.size).toBe(0);
     });
 
     await pContext.step('Input value with multiple connections', () => {
@@ -766,11 +773,12 @@ Deno.test('PotatnoDocumentPort - Validation', async (pContext) => {
         lTarget.connectedPorts.add(lSecondSource);
 
         // Process.
-        const lErrors = lTarget.validate();
+        const lValidationResult = lTarget.validate();
 
         // Evaluation.
-        expect(lErrors.length).toBe(1);
-        expect(lErrors[0].message).toBe(`Value input port "${lTarget.definitionId}" on node "${lDefaultExit.label}" can only have one connection.`);
+        expect(lValidationResult.errors.length).toBe(1);
+        expect(lValidationResult.errors[0].message).toBe(`Value input port "${lTarget.definitionId}" on node "${lDefaultExit.label}" can only have one connection.`);
+        expect(lValidationResult.affectedItems.size).toBe(0);
     });
 
     await pContext.step('Input value with type mismatch', () => {
@@ -785,11 +793,12 @@ Deno.test('PotatnoDocumentPort - Validation', async (pContext) => {
         lGreaterNode.outputs.value[0].connect(lTarget);
 
         // Process.
-        const lErrors = lTarget.validate();
+        const lValidationResult = lTarget.validate();
 
         // Evaluation.
-        expect(lErrors.length).toBe(1);
-        expect(lErrors[0].message).toBe(`Value input port "${lTarget.definitionId}" on node "${lDefaultExit.label}" expects type "number" but is connected to type "boolean".`);
+        expect(lValidationResult.errors.length).toBe(1);
+        expect(lValidationResult.errors[0].message).toBe(`Value input port "${lTarget.definitionId}" on node "${lDefaultExit.label}" expects type "number" but is connected to type "boolean".`);
+        expect(lValidationResult.affectedItems.size).toBe(0);
     });
 
     await pContext.step('Input value unconnected', () => {
@@ -798,9 +807,10 @@ Deno.test('PotatnoDocumentPort - Validation', async (pContext) => {
         const lPort = lDefaultExit.inputs.value.find((pPort) => pPort.definitionId === 'result')!;
 
         // Process.
-        const lErrors = lPort.validate();
+        const lValidationResult = lPort.validate();
 
         // Evaluation. No errors - direct value will be used.
-        expect(lErrors.length).toBe(0);
+        expect(lValidationResult.errors.length).toBe(0);
+        expect(lValidationResult.affectedItems.size).toBe(0);
     });
 });

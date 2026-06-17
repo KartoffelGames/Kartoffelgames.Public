@@ -4,7 +4,8 @@ import type { PotatnoProjectGenericType, PotatnoProjectTypeNames, PotatnoProject
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { IPotatnoDocumentItem } from './i-potatno-document-item.interface.ts';
 import type { PotatnoDocumentNode } from './potatno-document-node.ts';
-import { type PotatnoDocument, PotatnoDocumentPortValidationError } from './potatno-document.ts';
+import { PotatnoDocumentPortValidationError, PotatnoDocumentValidationResult } from "./potatno-document-validation-result.ts";
+import { type PotatnoDocument } from './potatno-document.ts';
 
 /**
  * A data port instance on a node.
@@ -253,8 +254,8 @@ export class PotatnoDocumentPort<TProjectTypes extends PotatnoProjectTypesDefini
     /**
      * Validate this port and return any errors found.
      */
-    public validate(): Array<PotatnoDocumentPortValidationError<TProjectTypes>> {
-        const lErrors: Array<PotatnoDocumentPortValidationError<TProjectTypes>> = new Array<PotatnoDocumentPortValidationError<TProjectTypes>>();
+    public validate(): PotatnoDocumentValidationResult<TProjectTypes> {
+        const lValidationResult: PotatnoDocumentValidationResult<TProjectTypes> = new PotatnoDocumentValidationResult<TProjectTypes>();
 
         // Output ports.
         if (this.mDirection === 'output') {
@@ -262,7 +263,7 @@ export class PotatnoDocumentPort<TProjectTypes extends PotatnoProjectTypesDefini
             if (this.mPortType === 'flow') {
                 // Flow output ports can have a single connection.
                 if (this.mConnectedPorts.size > 1) {
-                    lErrors.push(new PotatnoDocumentPortValidationError(`Flow output port "${this.mDefinitionId}" on node "${this.mNode.label}" can only have one connection.`, this));
+                    lValidationResult.pushError(new PotatnoDocumentPortValidationError(`Flow output port "${this.mDefinitionId}" on node "${this.mNode.label}" can only have one connection.`, this));
                 }
             }
 
@@ -276,12 +277,12 @@ export class PotatnoDocumentPort<TProjectTypes extends PotatnoProjectTypesDefini
                 // Check that all these ports are connected, otherwise the generic type cannot be resolved.
                 for (const lGenericInputPort of lGenericInputPorts) {
                     if (lGenericInputPort.connectedPorts.size === 0) {
-                        lErrors.push(new PotatnoDocumentPortValidationError(`Generic output port "${this.mDefinitionId}" on node "${this.mNode.label}" cannot resolve generic type "${this.mDataType}" because its input port "${lGenericInputPort.definitionId}" is not connected.`, this));
+                        lValidationResult.pushError(new PotatnoDocumentPortValidationError(`Generic output port "${this.mDefinitionId}" on node "${this.mNode.label}" cannot resolve generic type "${this.mDataType}" because its input port "${lGenericInputPort.definitionId}" is not connected.`, this));
                     }
                 }
             }
 
-            return lErrors;
+            return lValidationResult;
         }
 
         // Input ports.
@@ -290,31 +291,31 @@ export class PotatnoDocumentPort<TProjectTypes extends PotatnoProjectTypesDefini
             if (this.mPortType === 'flow') {
                 // Flow input ports must have at least one connection.
                 if (this.mConnectedPorts.size === 0) {
-                    lErrors.push(new PotatnoDocumentPortValidationError(`Flow input port "${this.mDefinitionId}" on node "${this.mNode.label}" must have at least one connection.`, this));
+                    lValidationResult.pushError(new PotatnoDocumentPortValidationError(`Flow input port "${this.mDefinitionId}" on node "${this.mNode.label}" must have at least one connection.`, this));
                 }
 
-                return lErrors;
+                return lValidationResult;
             }
 
             // Value input ports.
             if (this.mPortType === 'value') {
                 // Only one connection allowed for value input ports.
                 if (this.mConnectedPorts.size > 1) {
-                    lErrors.push(new PotatnoDocumentPortValidationError(`Value input port "${this.mDefinitionId}" on node "${this.mNode.label}" can only have one connection.`, this));
+                    lValidationResult.pushError(new PotatnoDocumentPortValidationError(`Value input port "${this.mDefinitionId}" on node "${this.mNode.label}" can only have one connection.`, this));
                 }
 
                 // Value input port must have the same type. Skip when either side is a generic.
                 for (const lConnectedPort of this.mConnectedPorts) {
                     if (lConnectedPort.resolvedDataType !== this.resolvedDataType) {
-                        lErrors.push(new PotatnoDocumentPortValidationError(`Value input port "${this.mDefinitionId}" on node "${this.mNode.label}" expects type "${this.resolvedDataType}" but is connected to type "${lConnectedPort.resolvedDataType}".`, this));
+                        lValidationResult.pushError(new PotatnoDocumentPortValidationError(`Value input port "${this.mDefinitionId}" on node "${this.mNode.label}" expects type "${this.resolvedDataType}" but is connected to type "${lConnectedPort.resolvedDataType}".`, this));
                     }
                 }
 
-                return lErrors;
+                return lValidationResult;
             }
         }
 
-        return lErrors;
+        return lValidationResult;
     }
 }
 

@@ -1,6 +1,7 @@
 import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-item.interface.ts';
 import { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
+import { PotatnoDocumentValidationResult } from "../../../document/potatno-document-validation-result.ts";
 import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatno-ui-manager.ts';
 
@@ -97,8 +98,11 @@ export class PotatnoUiManagerIntegrity {
         this.mErrorList.splice(0, this.mErrorList.length);
         this.mErrorItems.clear();
 
+        // Validate the document.
+        const lValidationResult: PotatnoDocumentValidationResult<PotatnoProjectTypesDefinition> = this.mManager.graph.document.validate();
+
         // Validate and track all errors.
-        for (const lError of this.mManager.graph.document.validate()) {
+        for (const lError of lValidationResult.errors) {
             // Register as error item.
             this.mErrorItems.add(lError.item);
 

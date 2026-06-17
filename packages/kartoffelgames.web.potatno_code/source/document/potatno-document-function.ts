@@ -6,7 +6,8 @@ import type { PotatnoProjectTypeNames, PotatnoProjectTypesDefinition } from '../
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { IPotatnoDocumentItem } from './i-potatno-document-item.interface.ts';
 import { PotatnoDocumentNode, type PotatnoDocumentNodePortConfiguration, type PotatnoDocumentNodeTransformation } from './potatno-document-node.ts';
-import { type PotatnoDocument, PotatnoDocumentPortValidationError } from './potatno-document.ts';
+import { PotatnoDocumentPortValidationError, PotatnoDocumentValidationResult } from "./potatno-document-validation-result.ts";
+import { type PotatnoDocument } from './potatno-document.ts';
 
 /**
  * Represents a user-editable function containing a sub-graph.
@@ -327,13 +328,13 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
      * 1. Fill a region map for every node via memoized backward recursion over all incoming connections.
      * 2. Validate each node with its computed incoming region set.
      */
-    public validate(): Array<PotatnoDocumentPortValidationError<TProjectTypes>> {
-        const lErrors: Array<PotatnoDocumentPortValidationError<TProjectTypes>> = [];
+    public validate(): PotatnoDocumentValidationResult<TProjectTypes> {
+        const lValidationResult: PotatnoDocumentValidationResult<TProjectTypes> = new PotatnoDocumentValidationResult<TProjectTypes>();
 
         // Check if this function's definition can still be found.
         const lDefinition: PotatnoFunctionDefinition<TProjectTypes> | undefined = this.mProject.getFunction(this.mDefinitionId);
         if (!lDefinition) {
-            lErrors.push(new PotatnoDocumentPortValidationError(`Function "${this.mLabel}" definition "${this.mDefinitionId}" could not be found.`, this));
+            lValidationResult.pushError(new PotatnoDocumentPortValidationError(`Function "${this.mLabel}" definition "${this.mDefinitionId}" could not be found.`, this));
         }
 
         // Read node definitions once.
@@ -341,11 +342,11 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
 
         // Resync function nodes.
         if (lNodeDefinitions) {
-            this.resyncFunction(lNodeDefinitions);
+            this.resyncFunction(lNodeDefinitions, lValidationResult);
         }
 
         // Compute incoming region set for every node.
-        const lNodeRegions: Map<PotatnoDocumentNode<TProjectTypes>, Set<string>> = this.collectRegions(this.mNodes, lErrors);
+        const lNodeRegions: Map<PotatnoDocumentNode<TProjectTypes>, Set<string>> = this.collectRegions(this.mNodes, lValidationResult);
 
         // Get all definition ids of entry nodes defined by the function definition.
         const lEntryNodeDefinitionIds = new Set(lNodeDefinitions?.entry.map((pNodeDefinition) => {
@@ -355,14 +356,14 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
         // Second pass: validate every node with its computed incoming regions and entry domains.
         const lEntryNodeDomainBuffer: Map<PotatnoDocumentNode<TProjectTypes>, Set<PotatnoDocumentNode<TProjectTypes>>> = new Map<PotatnoDocumentNode<TProjectTypes>, Set<PotatnoDocumentNode<TProjectTypes>>>();
         for (const lNode of this.mNodes) {
-            lErrors.push(...lNode.validate(lNodeRegions.get(lNode)!));
+            lValidationResult.merge(lNode.validate(lNodeRegions.get(lNode)!));
 
             if (this.collectEntryDomains(lNode, lEntryNodeDefinitionIds, lEntryNodeDomainBuffer).size > 1) {
-                lErrors.push(new PotatnoDocumentPortValidationError(`Node "${lNode.label}" is reachable from multiple entry nodes.`, lNode));
+                lValidationResult.pushError(new PotatnoDocumentPortValidationError(`Node "${lNode.label}" is reachable from multiple entry nodes.`, lNode));
             }
         }
 
-        return lErrors;
+        return lValidationResult;
     }
 
     /**
@@ -418,7 +419,7 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
      *
      * @returns The accumulated incoming region set for every node.
      */
-    private collectRegions(pNodes: Iterable<PotatnoDocumentNode<TProjectTypes>>, pErrors: Array<PotatnoDocumentPortValidationError<TProjectTypes>>): Map<PotatnoDocumentNode<TProjectTypes>, Set<string>> {
+    private collectRegions(pNodes: Iterable<PotatnoDocumentNode<TProjectTypes>>, pValidationResult: PotatnoDocumentValidationResult<TProjectTypes>): Map<PotatnoDocumentNode<TProjectTypes>, Set<string>> {
         // Cache node and port definitions for fast connection traversal.
         const lNodeDefinitions: Map<string, PotatnoNodeDefinition<TProjectTypes>> = new Map<string, PotatnoNodeDefinition<TProjectTypes>>();
         for (const lNodeDefinition of this.nodeDefinitions) {
@@ -462,7 +463,7 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
 
                 // Cycle detected: this node is already on the current recursion path.
                 if (pVisitedNodes.has(pNode)) {
-                    pErrors.push(new PotatnoDocumentPortValidationError(`Node "${pNode.label}" is part of a connection cycle.`, pNode));
+                    pValidationResult.pushError(new PotatnoDocumentPortValidationError(`Node "${pNode.label}" is part of a connection cycle.`, pNode));
                     return new Set<string>();
                 }
 
@@ -514,7 +515,7 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
      * 
      * @param pNodeDefinitions - node definitions of this function. 
      */
-    private resyncFunction(pNodeDefinitions: PotatnoFunctionDefinitionNodes<TProjectTypes>): void {
+    private resyncFunction(pNodeDefinitions: PotatnoFunctionDefinitionNodes<TProjectTypes>, pValidationResult: PotatnoDocumentValidationResult<TProjectTypes>): void {
         // Find all entry and output node definitions.
         const lSystemNodes = [...pNodeDefinitions.entry, ...pNodeDefinitions.exit];
 
@@ -536,7 +537,8 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
                 continue;
             }
 
-            this.addNodeByDefinition(lSystemNodeDefinition, {
+            // Generate a new node.
+            const lNewNode = this.addNodeByDefinition(lSystemNodeDefinition, {
                 // First half left (x:2) second half right (x: 20).
                 x: (Math.floor(lNodeCounter / (lSystemNodes.length / 2)) * lItemSpacing) + 2,
 
@@ -545,6 +547,9 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
 
                 width: 0, height: 0
             });
+
+            // Add new node as affected item.
+            pValidationResult.addAffectedItem(lNewNode);
 
             lNodeCounter++;
         }

@@ -5,7 +5,8 @@ import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { IPotatnoDocumentItem } from './i-potatno-document-item.interface.ts';
 import type { PotatnoDocumentFunction } from './potatno-document-function.ts';
 import { PotatnoDocumentPort } from './potatno-document-port.ts';
-import { type PotatnoDocument, PotatnoDocumentPortValidationError } from './potatno-document.ts';
+import { PotatnoDocumentPortValidationError, PotatnoDocumentValidationResult } from "./potatno-document-validation-result.ts";
+import { type PotatnoDocument } from './potatno-document.ts';
 
 /**
  * A node instance in the graph.
@@ -197,26 +198,29 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
      *
      * @return An array of validation errors found on this node's ports.
      */
-    public validate(pIncomingRegions: ReadonlySet<string>): Array<PotatnoDocumentPortValidationError<TProjectTypes>> {
-        const lErrors: Array<PotatnoDocumentPortValidationError<TProjectTypes>> = new Array<PotatnoDocumentPortValidationError<TProjectTypes>>();
+    public validate(pIncomingRegions?: ReadonlySet<string>): PotatnoDocumentValidationResult<TProjectTypes> {
+        const lValidationResult: PotatnoDocumentValidationResult<TProjectTypes> = new PotatnoDocumentValidationResult<TProjectTypes>();
+
+        // Setup regions.
+        const lNodeRegions: ReadonlySet<string> = pIncomingRegions ?? new Set<string>();
 
         // Find the definition in the function's available node definitions.
         const lNodeDefinition = this.mFunction.nodeDefinitions.find((pDef) => pDef.id === this.mDefinitionId);
         if (!lNodeDefinition) {
-            lErrors.push(new PotatnoDocumentPortValidationError(`Node "${this.mLabel}" definition "${this.mDefinitionId}" could not be found.`, this));
+            lValidationResult.pushError(new PotatnoDocumentPortValidationError(`Node "${this.mLabel}" definition "${this.mDefinitionId}" could not be found.`, this));
         } else {
             // Resync inputs and outputs against the current definition.
-            lErrors.push(...this.resyncPorts(this.mInputs, lNodeDefinition.inputs));
-            lErrors.push(...this.resyncPorts(this.mOutputs, lNodeDefinition.outputs));
+            lValidationResult.merge(this.resyncPorts(this.mInputs, lNodeDefinition.inputs));
+            lValidationResult.merge(this.resyncPorts(this.mOutputs, lNodeDefinition.outputs));
 
             // Validate region constraints.
             const lAllowedRegions = new Set<string>([...lNodeDefinition.regions.requires, ...lNodeDefinition.regions.allows]);
 
             // Every region that is active but not allowed by this node is an error.
             if (lAllowedRegions.size > 0) {
-                for (const lRegion of pIncomingRegions) {
+                for (const lRegion of lNodeRegions) {
                     if (!lAllowedRegions.has(lRegion)) {
-                        lErrors.push(new PotatnoDocumentPortValidationError(`Node "${this.mLabel}" does not allow region "${lRegion}".`, this));
+                        lValidationResult.pushError(new PotatnoDocumentPortValidationError(`Node "${this.mLabel}" does not allow region "${lRegion}".`, this));
                     }
                 }
             }
@@ -224,8 +228,8 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
             // Every required region must be present in the incoming set.
             if (lNodeDefinition.regions.requires.length > 0) {
                 for (const lRequiredRegion of lNodeDefinition.regions.requires) {
-                    if (!pIncomingRegions.has(lRequiredRegion)) {
-                        lErrors.push(new PotatnoDocumentPortValidationError(`Node "${this.mLabel}" requires region "${lRequiredRegion}" but it is not active.`, this));
+                    if (!lNodeRegions.has(lRequiredRegion)) {
+                        lValidationResult.pushError(new PotatnoDocumentPortValidationError(`Node "${this.mLabel}" requires region "${lRequiredRegion}" but it is not active.`, this));
                     }
                 }
             }
@@ -233,10 +237,10 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
 
         // Run port-level validation.
         for (const lPort of [...this.mInputs.list, ...this.mOutputs.list]) {
-            lErrors.push(...lPort.validate());
+            lValidationResult.merge(lPort.validate());
         }
 
-        return lErrors;
+        return lValidationResult;
     }
 
     /**
@@ -344,8 +348,8 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
      *
      * @returns An array of validation errors found during resync.
      */
-    private resyncPorts(pCurrentPorts: PotatnoDocumentNodePortsInternal<TProjectTypes>, pPortDefinitions: ReadonlyArray<PotatnoPortDefinition<TProjectTypes>>): Array<PotatnoDocumentPortValidationError<TProjectTypes>> {
-        const lErrors: Array<PotatnoDocumentPortValidationError<TProjectTypes>> = new Array<PotatnoDocumentPortValidationError<TProjectTypes>>();
+    private resyncPorts(pCurrentPorts: PotatnoDocumentNodePortsInternal<TProjectTypes>, pPortDefinitions: ReadonlyArray<PotatnoPortDefinition<TProjectTypes>>): PotatnoDocumentValidationResult<TProjectTypes> {
+        const lValidationResult: PotatnoDocumentValidationResult<TProjectTypes> = new PotatnoDocumentValidationResult<TProjectTypes>();
 
         // Create a set of existing port definition ids.
         const lExistingPortDefinitionIds = new Set(pPortDefinitions.map((pPort) => pPort.id));
@@ -356,7 +360,11 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
 
             // Port is new,add silently.
             if (!pCurrentPorts.map.has(lPortDefinition.id)) {
-                this.addPort(pCurrentPorts, lPortDefinition, lPortDefinitionIndex);
+                // Create new port from definition.
+                const lNewPort: PotatnoDocumentPort<TProjectTypes> = this.addPort(pCurrentPorts, lPortDefinition, lPortDefinitionIndex);
+
+                // And add new port as affected item.
+                lValidationResult.addAffectedItem(lNewPort);
                 continue;
             }
 
@@ -373,12 +381,16 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
 
             // Connected and portType changed and cannot safely replace. Add validation error and keep as-is.
             if (lExistingPort.connectedPorts.size > 0 && lPortTypeChanged) {
-                lErrors.push(new PotatnoDocumentPortValidationError(`Port "${lExistingPort.label}" on node "${this.mLabel}" has a changed type.`, lExistingPort));
+                lValidationResult.pushError(new PotatnoDocumentPortValidationError(`Port "${lExistingPort.label}" on node "${this.mLabel}" has a changed type.`, lExistingPort));
                 continue;
             }
 
             // Port config has changed but can be safely replaced without risking broken connections.
-            this.replacePort(pCurrentPorts, lExistingPort, lPortDefinition);
+            const lNewPort: PotatnoDocumentPort<TProjectTypes> = this.replacePort(pCurrentPorts, lExistingPort, lPortDefinition);
+
+            // Add both, new and removed port, as affected item.
+            lValidationResult.addAffectedItem(lExistingPort);
+            lValidationResult.addAffectedItem(lNewPort);
         }
 
         // Process ports on the node that are no longer in the definition.
@@ -390,15 +402,19 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
 
             // Silently remove unconnected ports that are no longer in the definition.
             if (lPort.connectedPorts.size === 0) {
+                // Add removed port as affected item.
+                lValidationResult.addAffectedItem(lPort);
+
+                // And remove it.
                 this.removePort(pCurrentPorts, lPort);
                 continue;
             }
 
             // The ports are connected. Add validation error and keep as-is.
-            lErrors.push(new PotatnoDocumentPortValidationError(`Port "${lPort.label}" on node "${this.mLabel}" no longer exists in its definition.`, lPort));
+            lValidationResult.pushError(new PotatnoDocumentPortValidationError(`Port "${lPort.label}" on node "${this.mLabel}" no longer exists in its definition.`, lPort));
         }
 
-        return lErrors;
+        return lValidationResult;
     }
 
 }

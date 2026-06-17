@@ -1,5 +1,6 @@
 import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
+import { PotatnoDocumentValidationResult } from "./potatno-document-validation-result.ts";
 import type { PotatnoDocument } from './potatno-document.ts';
 
 /**
@@ -27,4 +28,9 @@ export interface IPotatnoDocumentItem<TProjectTypes extends PotatnoProjectTypesD
      * The document this item belongs to, used for resolving other items and definitions within the same document.
      */
     readonly document: PotatnoDocument<TProjectTypes>;
+
+    /**
+     * Validation function of the item.
+     */
+    validate(): PotatnoDocumentValidationResult<TProjectTypes>;
 }

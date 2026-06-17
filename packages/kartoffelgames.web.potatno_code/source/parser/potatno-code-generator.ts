@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
-import type { PotatnoDocument, PotatnoDocumentPortValidationError } from '../document/potatno-document.ts';
+import type { PotatnoDocument } from '../document/potatno-document.ts';
 import { FlowConjunctionNodeDefinition } from '../project/node_definition/potatno-flow-conjunction-node-definition.ts';
 import { PotatnoFunctionNodeDefinition } from '../project/node_definition/potatno-function-node-definition.ts';
 import type { PotatnoCodeGeneratorInputPort, PotatnoCodeGeneratorOutputPort, PotatnoNodeDefinition } from '../project/node_definition/potatno-node-definition.ts';
@@ -12,6 +12,7 @@ import { PotatnoCodeGeneratorDocumentResult } from './result/potatno-code-genera
 import { PotatnoCodeGeneratorFunctionResult } from './result/potatno-code-generator-function-result.ts';
 import { PotatnoCodeGeneratorNodeResult } from './result/potatno-code-generator-node-result.ts';
 import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
+import { PotatnoDocumentValidationResult } from "../document/potatno-document-validation-result.ts";
 
 /**
  * Code generator for Potatno documents.
@@ -96,8 +97,8 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
      */
     private buildDocumentResult(pDocument: PotatnoDocument<TProjectTypes>, pExitNodes: Array<PotatnoDocumentNode<TProjectTypes>>, pDebug: boolean): PotatnoCodeGeneratorDocumentResult<TProjectTypes> {
         // Validate document before generation.
-        const lValidationResult: Array<PotatnoDocumentPortValidationError<TProjectTypes>> = pDocument.validate();
-        if (lValidationResult.length > 0) {
+        const lValidationResult: PotatnoDocumentValidationResult<TProjectTypes> = pDocument.validate();
+        if (lValidationResult.errors.length > 0) {
             throw new Exception('Code generation exited. Code graph validation failed.', this);
         }
 

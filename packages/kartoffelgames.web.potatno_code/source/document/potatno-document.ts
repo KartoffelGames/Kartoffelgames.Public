@@ -5,6 +5,7 @@ import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-t
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { IPotatnoDocumentItem } from './i-potatno-document-item.interface.ts';
 import { PotatnoDocumentFunction, type PotatnoDocumentFunctionConstructorParameter } from './potatno-document-function.ts';
+import { PotatnoDocumentPortValidationError, PotatnoDocumentValidationResult } from "./potatno-document-validation-result.ts";
 
 /**
  * Represents the mutable document state of a PotatnoCode file.
@@ -117,35 +118,38 @@ export class PotatnoDocument<TProjectTypes extends PotatnoProjectTypesDefinition
 
     /**
      * Validate all functions in this document and return any errors found.
-     * Also rejects cross-function recursion (A → B → A) so the code
-     * generator can assume an acyclic function-call graph.
+     * Also rejects cross-function recursion (A → B → A) so the code generator can assume an acyclic function-call graph.
      */
-    public validate(): Array<PotatnoDocumentPortValidationError<TProjectTypes>> {
-        const lErrors: Array<PotatnoDocumentPortValidationError<TProjectTypes>> = [];
+    public validate(): PotatnoDocumentValidationResult<TProjectTypes> {
+        // Create new validation item.
+        const lValidationItem: PotatnoDocumentValidationResult<TProjectTypes> = new PotatnoDocumentValidationResult<TProjectTypes>();
 
         const lEntryPointDefinitionId: string = this.mProject.entryPoint.id;
 
         // Check for the entry point function and initialize of not added yet.
         if (!this.mFunctions.values().some((pFunction) => pFunction.definitionId === lEntryPointDefinitionId)) {
-            this.newFunction({
+            const lNewFunction: PotatnoDocumentFunction<TProjectTypes> = this.newFunction({
                 definitionId: lEntryPointDefinitionId,
                 id: crypto.randomUUID(),
                 isSystem: true,
                 label: this.mProject.entryPoint.label
             });
+
+            // Add the new function as affected item.
+            lValidationItem.addAffectedItem(lNewFunction);
         }
 
         // TODO: Validation is in wrong order. Validate in correct dependency order.
 
         // Per-function validation: flow/value cycles, region constraints, port resync.
         for (const lFunction of this.mFunctions) {
-            lErrors.push(...lFunction.validate());
+            lValidationItem.merge(lFunction.validate());
         }
 
         // Cross-function recursion detection over the function-call graph.
-        lErrors.push(...this.detectCrossFunctionRecursion());
+        lValidationItem.pushError(...this.detectCrossFunctionRecursion());
 
-        return lErrors;
+        return lValidationItem;
     }
 
     /**
@@ -212,38 +216,5 @@ export class PotatnoDocument<TProjectTypes extends PotatnoProjectTypesDefinition
         }
 
         return lErrors;
-    }
-}
-
-/**
- * A validation error for a document port.
- */
-export class PotatnoDocumentPortValidationError<TProjectTypes extends PotatnoProjectTypesDefinition> {
-    private readonly mItem: IPotatnoDocumentItem<TProjectTypes>;
-    private readonly mMessage: string;
-
-    /**
-     * Get the item that caused the validation error.
-     */
-    public get item(): IPotatnoDocumentItem<TProjectTypes> {
-        return this.mItem;
-    }
-
-    /**
-     * Get the error message describing the validation error.
-     */
-    public get message(): string {
-        return this.mMessage;
-    }
-
-    /**
-     * Create a new validation error for a document item.
-     * 
-     * @param pMessage - The error message describing the validation error.
-     * @param pItem - The item that caused the validation error.
-     */
-    public constructor(pMessage: string, pItem: IPotatnoDocumentItem<TProjectTypes>) {
-        this.mMessage = pMessage;
-        this.mItem = pItem;
     }
 }

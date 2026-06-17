@@ -7,7 +7,7 @@ import { PotatnoImportDefinition } from '../../source/project/potatno-import-def
 import { PotatnoProjectTypesDefinition } from '../../source/project/potatno-project-types-definition.ts';
 import { PotatnoProject } from '../../source/project/potatno-project.ts';
 
-const lNewBareProject = (): PotatnoProject<PotatnoProjectTypesDefinition> => {
+const gNewBareProject = (): PotatnoProject<PotatnoProjectTypesDefinition> => {
     const lTypes = new PotatnoProjectTypesDefinition({
         number: {
             default: { string: ['0'], value: 0 },
@@ -47,7 +47,7 @@ const lNewBareProject = (): PotatnoProject<PotatnoProjectTypesDefinition> => {
 Deno.test('new PotatnoProject()', async (pContext) => {
     await pContext.step('Construct with minimal config', () => {
         // Setup. Process.
-        const lProject = lNewBareProject();
+        const lProject = gNewBareProject();
 
         // Evaluation.
         expect(lProject).toBeDefined();
@@ -99,7 +99,7 @@ Deno.test('new PotatnoProject()', async (pContext) => {
 
     await pContext.step('Construct registers built-in conjunction nodes', () => {
         // Setup. Process.
-        const lProject = lNewBareProject();
+        const lProject = gNewBareProject();
         const lIds: Array<string> = lProject.nodeDefinitions.map((pDef) => pDef.id);
 
         // Evaluation.
@@ -185,7 +185,7 @@ Deno.test('PotatnoProject.entryPoint', async (pContext) => {
 Deno.test('PotatnoProject.userFunctions', async (pContext) => {
     await pContext.step('Empty when none provided', () => {
         // Setup. Process.
-        const lProject = lNewBareProject();
+        const lProject = gNewBareProject();
 
         // Evaluation.
         expect(lProject.userFunctions.size).toBe(0);
@@ -243,7 +243,7 @@ Deno.test('PotatnoProject.userFunctions', async (pContext) => {
 Deno.test('PotatnoProject.imports', async (pContext) => {
     await pContext.step('Empty when none added', () => {
         // Setup. Process.
-        const lProject = lNewBareProject();
+        const lProject = gNewBareProject();
 
         // Evaluation.
         expect(lProject.imports.length).toBe(0);
@@ -251,7 +251,7 @@ Deno.test('PotatnoProject.imports', async (pContext) => {
 
     await pContext.step('Contains added imports in insertion order', () => {
         // Setup.
-        const lProject = lNewBareProject();
+        const lProject = gNewBareProject();
         const lImportOne = new PotatnoImportDefinition<PotatnoProjectTypesDefinition>('one', 'one');
         const lImportTwo = new PotatnoImportDefinition<PotatnoProjectTypesDefinition>('two', 'two');
 
@@ -269,7 +269,7 @@ Deno.test('PotatnoProject.imports', async (pContext) => {
 Deno.test('PotatnoProject.nodeDefinitions', async (pContext) => {
     await pContext.step('Returns conjunction nodes when no nodes added', () => {
         // Setup. Process.
-        const lProject = lNewBareProject();
+        const lProject = gNewBareProject();
 
         // Evaluation. Two built-in conjunction nodes are always present.
         expect(lProject.nodeDefinitions.length).toBe(2);
@@ -277,7 +277,7 @@ Deno.test('PotatnoProject.nodeDefinitions', async (pContext) => {
 
     await pContext.step('Returns added node definitions plus conjunctions', () => {
         // Setup.
-        const lProject = lNewBareProject();
+        const lProject = gNewBareProject();
         const lAddedDefinition = new PotatnoStaticNodeDefinition({
             id: 'Marker',
             label: 'Marker',
@@ -335,7 +335,7 @@ Deno.test('PotatnoProject.generator', async (pContext) => {
 Deno.test('PotatnoProject.addImport()', async (pContext) => {
     await pContext.step('Appends a single import', () => {
         // Setup.
-        const lProject = lNewBareProject();
+        const lProject = gNewBareProject();
         const lImport = new PotatnoImportDefinition<PotatnoProjectTypesDefinition>('lib', 'lib');
 
         // Process.
@@ -348,7 +348,7 @@ Deno.test('PotatnoProject.addImport()', async (pContext) => {
 
     await pContext.step('Appends multiple imports in call order', () => {
         // Setup.
-        const lProject = lNewBareProject();
+        const lProject = gNewBareProject();
         const lImportOne = new PotatnoImportDefinition<PotatnoProjectTypesDefinition>('one', 'one');
         const lImportTwo = new PotatnoImportDefinition<PotatnoProjectTypesDefinition>('two', 'two');
         const lImportThree = new PotatnoImportDefinition<PotatnoProjectTypesDefinition>('three', 'three');
@@ -366,7 +366,7 @@ Deno.test('PotatnoProject.addImport()', async (pContext) => {
 Deno.test('PotatnoProject.addNodeDefinition()', async (pContext) => {
     await pContext.step('Registers a node definition by id', () => {
         // Setup.
-        const lProject = lNewBareProject();
+        const lProject = gNewBareProject();
         const lDefinition = new PotatnoStaticNodeDefinition({
             id: 'TestDefinition',
             label: 'TestDefinition',
@@ -384,7 +384,7 @@ Deno.test('PotatnoProject.addNodeDefinition()', async (pContext) => {
 
     await pContext.step('Re-registering the same id overwrites the previous definition', () => {
         // Setup.
-        const lProject = lNewBareProject();
+        const lProject = gNewBareProject();
         const lFirst = new PotatnoStaticNodeDefinition({
             id: 'Same',
             label: 'first',
@@ -414,7 +414,7 @@ Deno.test('PotatnoProject.addNodeDefinition()', async (pContext) => {
 Deno.test('PotatnoProject.getFunction()', async (pContext) => {
     await pContext.step('Returns the entry function when its id matches', () => {
         // Setup. Process.
-        const lProject = lNewBareProject();
+        const lProject = gNewBareProject();
 
         // Evaluation.
         expect(lProject.getFunction('entry')).toBe(lProject.entryPoint);
@@ -462,7 +462,7 @@ Deno.test('PotatnoProject.getFunction()', async (pContext) => {
 
     await pContext.step('Returns undefined for unknown id', () => {
         // Setup. Process.
-        const lProject = lNewBareProject();
+        const lProject = gNewBareProject();
 
         // Evaluation.
         expect(lProject.getFunction('does-not-exist')).toBeUndefined();

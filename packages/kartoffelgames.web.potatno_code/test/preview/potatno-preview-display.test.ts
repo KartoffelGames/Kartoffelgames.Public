@@ -4,7 +4,7 @@ import { PotatnoPreviewFunctionExecutor } from '../../source/preview/potatno-pre
 import { PotatnoHelper } from '../helper/potatno-helper.ts';
 
 const gNewExecutor = (): PotatnoPreviewFunctionExecutor<any, Record<string, unknown>, 'number'> => {
-    return new PotatnoPreviewFunctionExecutor(PotatnoHelper.TestProject.entryPoint, {
+    return new PotatnoPreviewFunctionExecutor(PotatnoHelper.TEST_PROJECT.entryPoint, {
         defaultParameters: {},
         types: ['number'],
         build: (): { execute: () => number; type: 'number' } => {
@@ -81,7 +81,7 @@ Deno.test('PotatnoPreviewDisplay.id', async (pContext) => {
         const lResult: string = lDisplay.id;
 
         // Evaluation.
-        expect(lResult).toBe(`TestDisplay-${PotatnoHelper.TestProject.entryPoint.id}`);
+        expect(lResult).toBe(`TestDisplay-${PotatnoHelper.TEST_PROJECT.entryPoint.id}`);
     });
 });
 

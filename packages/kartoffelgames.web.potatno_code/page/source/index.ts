@@ -6,16 +6,16 @@ import { CanvasProjectMathImportDefinition } from './project/import/canvas-proje
 import { CanvasProjectTimeImportDefinition } from './project/import/canvas-project-time-import-definition.ts';
 import { CanvasProjectPreviewDisplay } from './project/preview/canvas-project-preview-display.ts';
 
-const lProject = new CanvasProject();
+const gProject = new CanvasProject();
 
-lProject.addImport(new CanvasProjectMathImportDefinition());
-lProject.addImport(new CanvasProjectTimeImportDefinition());
+gProject.addImport(new CanvasProjectMathImportDefinition());
+gProject.addImport(new CanvasProjectTimeImportDefinition());
 
 /*
  * Define function executors for previews.
  */
 
-const lEntryFunctionExecutor = new PotatnoPreviewFunctionExecutor(lProject.entryPoint, {
+const gEntryFunctionExecutor = new PotatnoPreviewFunctionExecutor(gProject.entryPoint, {
     defaultParameters: { x: 0, y: 0 },
     types: [PotatnoPreviewFunctionExecutor.MAIN, 'number', 'string', 'boolean'],
     build: (pExecutor, pGeneratorResult, pPortTarget) => {
@@ -45,7 +45,7 @@ const lEntryFunctionExecutor = new PotatnoPreviewFunctionExecutor(lProject.entry
 /**
  * Executor for previewing a user function output.
  */
-const lUserFunctionExecutor = new PotatnoPreviewFunctionExecutor(lProject.userFunction, {
+const gUserFunctionExecutor = new PotatnoPreviewFunctionExecutor(gProject.userFunction, {
     defaultParameters: { x: 0, y: 0 },
     types: ['number', 'string', 'boolean'],
     build: (pExecutor, pGeneratorResult, pPortTarget) => {
@@ -68,25 +68,26 @@ const lUserFunctionExecutor = new PotatnoPreviewFunctionExecutor(lProject.userFu
     }
 });
 
-lProject.preview.addDisplay(new CanvasProjectPreviewDisplay(lEntryFunctionExecutor));
-lProject.preview.addDisplay(new CanvasProjectPreviewDisplay(lUserFunctionExecutor));
+gProject.preview.addDisplay(new CanvasProjectPreviewDisplay(gEntryFunctionExecutor));
+gProject.preview.addDisplay(new CanvasProjectPreviewDisplay(gUserFunctionExecutor));
 
 // Create application and open an empty file.
-const lApp = new PotatnoCodeApplication(lProject);
-lApp.appendTo(document.body);
-lApp.document = new PotatnoDocument(lProject);
+const gApp = new PotatnoCodeApplication(gProject);
+gApp.appendTo(document.body);
+gApp.document = new PotatnoDocument(gProject);
 
-void renderFrame();
+void gRenderFrame();
 
 /**
  * Render all node previews on every animation frame.
  */
-async function renderFrame(): Promise<void> {
+async function gRenderFrame(): Promise<void> {
     try {
-        await lApp.update();
+        await gApp.update();
     } catch (lError) {
-        console.error('[Page] Preview render pass failed:', lError);
+        void lError;
     }
 
-    requestAnimationFrame(renderFrame);
+    requestAnimationFrame(gRenderFrame);
 }
+

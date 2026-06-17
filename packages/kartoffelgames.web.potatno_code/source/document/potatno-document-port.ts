@@ -10,16 +10,16 @@ import { type PotatnoDocument, PotatnoDocumentPortValidationError } from './pota
  * A data port instance on a node.
  */
 export class PotatnoDocumentPort<TProjectTypes extends PotatnoProjectTypesDefinition> implements IPotatnoDocumentItem<TProjectTypes> {
-    private mLabel: string;
     private readonly mConnectedPorts: Set<PotatnoDocumentPort<TProjectTypes>>;
+    private readonly mDataType: PotatnoProjectTypeNames<TProjectTypes> | PotatnoProjectGenericType | null;
     private readonly mDefinitionId: string;
-    private readonly mDirection: PotatnoPortDefinitionDirection;
     private readonly mDirectValue: Array<string>;
+    private readonly mDirection: PotatnoPortDefinitionDirection;
     private readonly mDocument: PotatnoDocument<TProjectTypes>;
+    private mLabel: string;
     private readonly mNode: PotatnoDocumentNode<TProjectTypes>;
     private readonly mPortType: PotatnoPortDefinitionType;
     private readonly mProject: PotatnoProject<TProjectTypes>;
-    private readonly mDataType: PotatnoProjectTypeNames<TProjectTypes> | PotatnoProjectGenericType | null;
 
     /**
      * The connected port.
@@ -29,10 +29,18 @@ export class PotatnoDocumentPort<TProjectTypes extends PotatnoProjectTypesDefini
     }
 
     /**
-     * Get the direction of the port.
+     * Get the data type of the port.
+     * For generic output ports, resolves the generic by finding a connected input port on this node with the same generic type.
      */
-    public get direction(): PotatnoPortDefinitionDirection {
-        return this.mDirection;
+    public get dataType(): PotatnoProjectTypeNames<TProjectTypes> | PotatnoProjectGenericType | null {
+        return this.mDataType;
+    }
+
+    /**
+     * Get the definition id of the port.
+     */
+    public get definitionId(): string {
+        return this.mDefinitionId;
     }
 
     /**
@@ -43,10 +51,10 @@ export class PotatnoDocumentPort<TProjectTypes extends PotatnoProjectTypesDefini
     }
 
     /**
-     * Get the definition id of the port.
+     * Get the direction of the port.
      */
-    public get definitionId(): string {
-        return this.mDefinitionId;
+    public get direction(): PotatnoPortDefinitionDirection {
+        return this.mDirection;
     }
 
     /**
@@ -84,14 +92,6 @@ export class PotatnoDocumentPort<TProjectTypes extends PotatnoProjectTypesDefini
      */
     public get project(): PotatnoProject<TProjectTypes> {
         return this.mProject;
-    }
-
-    /**
-     * Get the data type of the port.
-     * For generic output ports, resolves the generic by finding a connected input port on this node with the same generic type.
-     */
-    public get dataType(): PotatnoProjectTypeNames<TProjectTypes> | PotatnoProjectGenericType | null {
-        return this.mDataType;
     }
 
     /**
@@ -193,8 +193,8 @@ export class PotatnoDocumentPort<TProjectTypes extends PotatnoProjectTypesDefini
 
         // Flow inputs and value outputs can fan out. The opposite sides are limited to one connection.
         if (!lAllowsMultipleConnections) {
-            for (const connectedPort of Array.from(this.mConnectedPorts)) {
-                this.disconnect(connectedPort);
+            for (const lConnectedPort of Array.from(this.mConnectedPorts)) {
+                this.disconnect(lConnectedPort);
             }
         }
 

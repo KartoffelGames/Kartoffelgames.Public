@@ -2,7 +2,7 @@ import { expect } from '@kartoffelgames/core-test';
 import { PotatnoStaticNodeDefinition } from '../../source/project/node_definition/potatno-static-node-definition.ts';
 import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from '../../source/project/potatno-function-definition.ts';
 
-const lEmptyGenerator = {
+const gEmptyGenerator = {
     code: { body: (): string => '', value: (): string => '' }
 };
 
@@ -12,7 +12,7 @@ Deno.test('new PotatnoFunctionDefinition()', async (pContext) => {
         const lFunction = new PotatnoFunctionDefinition({
             id: 'a', label: 'a',
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
-            generator: lEmptyGenerator
+            generator: gEmptyGenerator
         });
 
         // Evaluation.
@@ -28,7 +28,7 @@ Deno.test('new PotatnoFunctionDefinition()', async (pContext) => {
         const lFunction = new PotatnoFunctionDefinition({
             id: 'a', label: 'a',
             statics: lCombined, nodes: {},
-            generator: lEmptyGenerator
+            generator: gEmptyGenerator
         });
 
         // Evaluation.
@@ -40,7 +40,7 @@ Deno.test('new PotatnoFunctionDefinition()', async (pContext) => {
         const lFunction = new PotatnoFunctionDefinition({
             id: 'myId', label: 'myLabel',
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
-            generator: lEmptyGenerator
+            generator: gEmptyGenerator
         });
 
         // Evaluation.
@@ -55,7 +55,7 @@ Deno.test('PotatnoFunctionDefinition.id', async (pContext) => {
         const lFunction = new PotatnoFunctionDefinition({
             id: 'fancyId', label: 'l',
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
-            generator: lEmptyGenerator
+            generator: gEmptyGenerator
         });
 
         // Process.
@@ -72,7 +72,7 @@ Deno.test('PotatnoFunctionDefinition.label', async (pContext) => {
         const lFunction = new PotatnoFunctionDefinition({
             id: 'i', label: 'fancyLabel',
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
-            generator: lEmptyGenerator
+            generator: gEmptyGenerator
         });
 
         // Process.
@@ -92,7 +92,7 @@ Deno.test('PotatnoFunctionDefinition.statics', async (pContext) => {
         const lFunction = new PotatnoFunctionDefinition({
             id: 'a', label: 'a',
             statics: lMask, nodes: {},
-            generator: lEmptyGenerator
+            generator: gEmptyGenerator
         });
 
         // Process.
@@ -107,7 +107,7 @@ Deno.test('PotatnoFunctionDefinition.statics', async (pContext) => {
         const lFunction = new PotatnoFunctionDefinition({
             id: 'a', label: 'a',
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
-            generator: lEmptyGenerator
+            generator: gEmptyGenerator
         });
 
         // Process.
@@ -147,7 +147,7 @@ Deno.test('PotatnoFunctionDefinition.getNodeDefinitions()', async (pContext) => 
         const lFunction = new PotatnoFunctionDefinition({
             id: 'a', label: 'a',
             statics: PotatnoFunctionDefinitionStatics.none, nodes: {},
-            generator: lEmptyGenerator
+            generator: gEmptyGenerator
         });
 
         // Process.
@@ -171,7 +171,7 @@ Deno.test('PotatnoFunctionDefinition.getNodeDefinitions()', async (pContext) => 
             nodes: {
                 entry: (pAddNode): void => { pAddNode(lEntryNode); }
             },
-            generator: lEmptyGenerator
+            generator: gEmptyGenerator
         });
 
         // Process.
@@ -194,7 +194,7 @@ Deno.test('PotatnoFunctionDefinition.getNodeDefinitions()', async (pContext) => 
             nodes: {
                 exit: (pAddNode): void => { pAddNode(lExitNode); }
             },
-            generator: lEmptyGenerator
+            generator: gEmptyGenerator
         });
 
         // Process.
@@ -217,7 +217,7 @@ Deno.test('PotatnoFunctionDefinition.getNodeDefinitions()', async (pContext) => 
             nodes: {
                 dynamic: (pAddNode): void => { pAddNode(lDynamicNode); }
             },
-            generator: lEmptyGenerator
+            generator: gEmptyGenerator
         });
 
         // Process.
@@ -237,14 +237,14 @@ Deno.test('PotatnoFunctionDefinition.getNodeDefinitions()', async (pContext) => 
             nodes: {
                 entry: (): void => { lCallCount++; }
             },
-            generator: lEmptyGenerator
+            generator: gEmptyGenerator
         });
 
         // Process.
         const lNodes = lFunction.getNodeDefinitions(null as any);
         // Access twice.
-        const _first = lNodes.entry;
-        const _second = lNodes.entry;
+        void lNodes.entry;
+        void lNodes.entry;
 
         // Evaluation. Provider runs once per access.
         expect(lCallCount).toBe(2);

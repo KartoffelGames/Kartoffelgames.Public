@@ -388,7 +388,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
                 outputs: []
             },
             generators: {
-                code: ({ inputs }): string => `console.log(${inputs['message'].value});`
+                code: (pContext): string => `console.log(${pContext.inputs['message'].value});`
             }
         }));
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({

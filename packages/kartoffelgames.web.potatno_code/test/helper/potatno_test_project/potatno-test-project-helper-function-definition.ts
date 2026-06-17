@@ -61,8 +61,8 @@ export class PotatnoTestProjectHelperFunctionDefinition extends PotatnoFunctionD
                             },
                             code: (pContext): string => {
                                 const lReturnFields: string = Object.entries(pContext.inputs)
-                                    .filter(([lId]) => lId !== 'exec')
-                                    .map(([lId, lInput]) => `${lId}: (${lInput.value}) * ${PotatnoTestProjectGlobalMultiplierVariable}`)
+                                    .filter(([pId]) => pId !== 'exec')
+                                    .map(([pId, pInput]) => `${pId}: (${pInput.value}) * ${PotatnoTestProjectGlobalMultiplierVariable}`)
                                     .join(', ');
 
                                 return `return { ${lReturnFields} };`;
@@ -83,15 +83,15 @@ export class PotatnoTestProjectHelperFunctionDefinition extends PotatnoFunctionD
                             .map((pInput) => pInput.value)
                             .join(', ');
                         const lOutputEntries: Array<[string, string]> = Object.entries(pContext.outputs)
-                            .filter(([lId, lOutput]) => lId !== 'exec' && lOutput.value !== '')
-                            .map(([lId, lOutput]) => [lId, lOutput.value]);
+                            .filter(([pId, pOutput]) => pId !== 'exec' && pOutput.value !== '')
+                            .map(([pId, pOutput]) => [pId, pOutput.value]);
 
                         if (lOutputEntries.length === 0) {
                             return `${lFunctionName}(${lArgs}); ${pContext.outputs['exec']?.code.inner ?? ''}`;
                         }
 
                         const lDestructure: string = lOutputEntries
-                            .map(([lId, lValueId]) => `${lId}: ${lValueId}`)
+                            .map(([pId, pValueId]) => `${pId}: ${pValueId}`)
                             .join(', ');
 
                         return `const { ${lDestructure} } = ${lFunctionName}(${lArgs}); ${pContext.outputs['exec']?.code.inner ?? ''}`;

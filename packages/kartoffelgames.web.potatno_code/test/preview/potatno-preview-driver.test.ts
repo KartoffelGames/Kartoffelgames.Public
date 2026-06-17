@@ -100,7 +100,7 @@ Deno.test('PotatnoPreviewDriver.execute()', async (pContext) => {
         PotatnoHelper.connectFlow(lDefaultEntry, lDefaultExit);
         PotatnoHelper.connectValue(lDefaultEntry, 'a', lDefaultExit, 'result');
 
-        const lExecutor = new PotatnoPreviewFunctionExecutor<PotatnoTestProjectTypesDefinition, Record<string, unknown>, 'number'>(PotatnoHelper.TestProject.entryPoint, {
+        const lExecutor = new PotatnoPreviewFunctionExecutor<PotatnoTestProjectTypesDefinition, Record<string, unknown>, 'number'>(PotatnoHelper.TEST_PROJECT.entryPoint, {
             defaultParameters: { base: 1 },
             types: ['number'],
             build: (): { execute: (pParameters: Record<string, unknown>) => number; type: 'number' } => {
@@ -153,7 +153,7 @@ Deno.test('PotatnoPreviewDriver.refresh()', async (pContext) => {
         PotatnoHelper.connectValue(lDefaultEntry, 'b', lAddNode, 'b');
         PotatnoHelper.connectValue(lAddNode, 'result', lDefaultExit, 'result');
 
-        const lExecutor = new PotatnoPreviewFunctionExecutor<PotatnoTestProjectTypesDefinition, Record<string, unknown>, 'number'>(PotatnoHelper.TestProject.entryPoint, {
+        const lExecutor = new PotatnoPreviewFunctionExecutor<PotatnoTestProjectTypesDefinition, Record<string, unknown>, 'number'>(PotatnoHelper.TEST_PROJECT.entryPoint, {
             defaultParameters: {},
             types: ['number'],
             build: (pExecutor, pGeneratorResult, pPortTarget) => {
@@ -202,7 +202,7 @@ Deno.test('PotatnoPreviewDriver.refresh()', async (pContext) => {
         PotatnoHelper.connectFlow(lDefaultEntry, lDefaultExit);
         PotatnoHelper.connectValue(lDefaultEntry, 'a', lDefaultExit, 'result');
 
-        const lExecutor = new PotatnoPreviewFunctionExecutor<PotatnoTestProjectTypesDefinition, Record<string, unknown>, 'number'>(PotatnoHelper.TestProject.entryPoint, {
+        const lExecutor = new PotatnoPreviewFunctionExecutor<PotatnoTestProjectTypesDefinition, Record<string, unknown>, 'number'>(PotatnoHelper.TEST_PROJECT.entryPoint, {
             defaultParameters: {},
             types: ['number'],
             build: (): { execute: () => number; type: 'number' } => {
@@ -244,7 +244,7 @@ Deno.test('PotatnoPreviewDriver.specifyParameters()', async (pContext) => {
         PotatnoHelper.connectFlow(lDefaultEntry, lDefaultExit);
         PotatnoHelper.connectValue(lDefaultEntry, 'a', lDefaultExit, 'result');
 
-        const lExecutor = new PotatnoPreviewFunctionExecutor<PotatnoTestProjectTypesDefinition, Record<string, unknown>, 'number'>(PotatnoHelper.TestProject.entryPoint, {
+        const lExecutor = new PotatnoPreviewFunctionExecutor<PotatnoTestProjectTypesDefinition, Record<string, unknown>, 'number'>(PotatnoHelper.TEST_PROJECT.entryPoint, {
             defaultParameters: { base: 1, value: 2 },
             types: ['number'],
             build: (): { execute: (pParameters: Record<string, unknown>) => number; type: 'number' } => {

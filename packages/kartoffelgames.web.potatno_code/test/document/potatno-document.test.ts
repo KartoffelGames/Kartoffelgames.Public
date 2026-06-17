@@ -7,7 +7,7 @@ import { PotatnoHelper } from '../helper/potatno-helper.ts';
 Deno.test('PotatnoDocument.constructor()', async (pContext) => {
     await pContext.step('Creates document with empty functions set', () => {
         // Setup. Process.
-        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
 
         // Evaluation.
         expect(lDocument.functions.size).toBe(0);
@@ -15,30 +15,30 @@ Deno.test('PotatnoDocument.constructor()', async (pContext) => {
 
     await pContext.step('Creates document referencing the provided project', () => {
         // Setup. Process.
-        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
 
         // Evaluation.
-        expect(lDocument.project).toBe(PotatnoHelper.TestProject);
+        expect(lDocument.project).toBe(PotatnoHelper.TEST_PROJECT);
     });
 });
 
 Deno.test('PotatnoDocument.project', async (pContext) => {
     await pContext.step('Returns the project passed in', () => {
         // Setup.
-        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
 
         // Process.
         const lResult = lDocument.project;
 
         // Evaluation.
-        expect(lResult).toBe(PotatnoHelper.TestProject);
+        expect(lResult).toBe(PotatnoHelper.TEST_PROJECT);
     });
 });
 
 Deno.test('PotatnoDocument.functions', async (pContext) => {
     await pContext.step('Empty when no functions added', () => {
         // Setup. Process.
-        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
 
         // Evaluation.
         expect(lDocument.functions.size).toBe(0);
@@ -46,15 +46,15 @@ Deno.test('PotatnoDocument.functions', async (pContext) => {
 
     await pContext.step('Contains added function instances', () => {
         // Setup. Process.
-        const { document, function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+        const { document: lDocument, function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(document.functions.has(lFunction)).toBe(true);
+        expect(lDocument.functions.has(lFunction)).toBe(true);
     });
 
     await pContext.step('Does not include removed functions', () => {
         // Setup.
-        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
         const lHelper = PotatnoHelper.newHelperFunction(lDocument, 'h1', 'helperOne');
 
         // Process.
@@ -68,20 +68,20 @@ Deno.test('PotatnoDocument.functions', async (pContext) => {
 Deno.test('PotatnoDocument.nodeDefinitions', async (pContext) => {
     await pContext.step('Returns project definitions when no functions are present', () => {
         // Setup.
-        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
 
         // Process.
         const lDefinitions = lDocument.nodeDefinitions;
 
         // Evaluation. With no functions present, only the project's definitions are returned.
-        const lProjectIds: Set<string> = new Set(PotatnoHelper.TestProject.nodeDefinitions.map((pDefinition) => pDefinition.id));
+        const lProjectIds: Set<string> = new Set(PotatnoHelper.TEST_PROJECT.nodeDefinitions.map((pDefinition) => pDefinition.id));
         const lDocumentIds: Set<string> = new Set(lDefinitions.map((pDefinition) => pDefinition.id));
         expect(lProjectIds.difference(lDocumentIds).size).toBe(0);
     });
 
     await pContext.step('Returns project plus function-node definitions when functions exist', () => {
         // Setup.
-        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
         PotatnoHelper.newHelperFunction(lDocument, 'h1', 'helperOne');
 
         // Process.
@@ -96,11 +96,11 @@ Deno.test('PotatnoDocument.nodeDefinitions', async (pContext) => {
 Deno.test('PotatnoDocument.newFunction()', async (pContext) => {
     await pContext.step('Creates and returns a function', () => {
         // Setup.
-        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
 
         // Process.
         const lFunction = lDocument.newFunction({
-            definitionId: PotatnoHelper.TestProject.entryPoint.id,
+            definitionId: PotatnoHelper.TEST_PROJECT.entryPoint.id,
             id: 'fn', label: 'fn', isSystem: false
         });
 
@@ -111,11 +111,11 @@ Deno.test('PotatnoDocument.newFunction()', async (pContext) => {
 
     await pContext.step('Adds the function to the functions set', () => {
         // Setup.
-        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
 
         // Process.
         const lFunction = lDocument.newFunction({
-            definitionId: PotatnoHelper.TestProject.entryPoint.id,
+            definitionId: PotatnoHelper.TEST_PROJECT.entryPoint.id,
             id: 'fn', label: 'fn', isSystem: false
         });
 
@@ -125,11 +125,11 @@ Deno.test('PotatnoDocument.newFunction()', async (pContext) => {
 
     await pContext.step('Registers a corresponding PotatnoFunctionNodeDefinition', () => {
         // Setup.
-        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
 
         // Process.
         const lFunction = lDocument.newFunction({
-            definitionId: PotatnoHelper.TestProject.entryPoint.id,
+            definitionId: PotatnoHelper.TEST_PROJECT.entryPoint.id,
             id: 'fn', label: 'fn', isSystem: false
         });
 
@@ -143,9 +143,9 @@ Deno.test('PotatnoDocument.newFunction()', async (pContext) => {
 Deno.test('PotatnoDocument.addFunction()', async (pContext) => {
     await pContext.step('Adds an externally constructed function', () => {
         // Setup.
-        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
-        const lFunction = new PotatnoDocumentFunction(PotatnoHelper.TestProject, lDocument, {
-            definitionId: PotatnoHelper.TestProject.entryPoint.id,
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
+        const lFunction = new PotatnoDocumentFunction(PotatnoHelper.TEST_PROJECT, lDocument, {
+            definitionId: PotatnoHelper.TEST_PROJECT.entryPoint.id,
             id: 'fn', label: 'fn', isSystem: false
         });
 
@@ -158,9 +158,9 @@ Deno.test('PotatnoDocument.addFunction()', async (pContext) => {
 
     await pContext.step('Registers a corresponding PotatnoFunctionNodeDefinition', () => {
         // Setup.
-        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
-        const lFunction = new PotatnoDocumentFunction(PotatnoHelper.TestProject, lDocument, {
-            definitionId: PotatnoHelper.TestProject.entryPoint.id,
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
+        const lFunction = new PotatnoDocumentFunction(PotatnoHelper.TEST_PROJECT, lDocument, {
+            definitionId: PotatnoHelper.TEST_PROJECT.entryPoint.id,
             id: 'fn', label: 'fn', isSystem: false
         });
 
@@ -177,7 +177,7 @@ Deno.test('PotatnoDocument.addFunction()', async (pContext) => {
 Deno.test('PotatnoDocument.removeFunction()', async (pContext) => {
     await pContext.step('Returns true when the function existed', () => {
         // Setup.
-        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
         const lHelper = PotatnoHelper.newHelperFunction(lDocument, 'h1', 'helperOne');
 
         // Process.
@@ -189,9 +189,9 @@ Deno.test('PotatnoDocument.removeFunction()', async (pContext) => {
 
     await pContext.step('Returns false for a function that was never added', () => {
         // Setup.
-        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
-        const lDisconnected = new PotatnoDocumentFunction(PotatnoHelper.TestProject, lDocument, {
-            definitionId: PotatnoHelper.TestProject.entryPoint.id,
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
+        const lDisconnected = new PotatnoDocumentFunction(PotatnoHelper.TEST_PROJECT, lDocument, {
+            definitionId: PotatnoHelper.TEST_PROJECT.entryPoint.id,
             id: 'disconnected', label: 'disconnected', isSystem: false
         });
 
@@ -204,7 +204,7 @@ Deno.test('PotatnoDocument.removeFunction()', async (pContext) => {
 
     await pContext.step('Removes the function from the set', () => {
         // Setup.
-        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
         const lHelper = PotatnoHelper.newHelperFunction(lDocument, 'h1', 'helperOne');
 
         // Process.
@@ -216,7 +216,7 @@ Deno.test('PotatnoDocument.removeFunction()', async (pContext) => {
 
     await pContext.step('Removes the corresponding function-node definition', () => {
         // Setup.
-        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
         const lHelper = PotatnoHelper.newHelperFunction(lDocument, 'h1', 'helperOne');
 
         // Process.
@@ -232,10 +232,10 @@ Deno.test('PotatnoDocument.removeFunction()', async (pContext) => {
 Deno.test('Error: PotatnoDocument.removeFunction() on system function', async (pContext) => {
     await pContext.step('Throws when attempting to remove a system function', () => {
         // Setup.
-        const { document, function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+        const { document: lDocument, function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
-        const lAction = (): void => { document.removeFunction(lFunction); };
+        const lAction = (): void => { lDocument.removeFunction(lFunction); };
 
         // Evaluation.
         expect(lAction).toThrow('Cannot remove a system function.');
@@ -245,7 +245,7 @@ Deno.test('Error: PotatnoDocument.removeFunction() on system function', async (p
 Deno.test('PotatnoDocument - Validation', async (pContext) => {
     await pContext.step('Empty document initialize with entry points', () => {
         // Setup.
-        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
 
         // Process.
         const lErrors = lDocument.validate();
@@ -257,7 +257,7 @@ Deno.test('PotatnoDocument - Validation', async (pContext) => {
 
     await pContext.step('Cross-function recursion: A -> A', () => {
         // Setup. Helper function whose graph contains a function-call to itself.
-        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
         const lHelper = PotatnoHelper.newHelperFunction(lDocument, 'h-self', 'helperSelf');
         const lSelfNodeDef = lDocument.nodeDefinitions.find((pDefinition) =>
             pDefinition instanceof PotatnoFunctionNodeDefinition && pDefinition.function === lHelper)!;
@@ -272,7 +272,7 @@ Deno.test('PotatnoDocument - Validation', async (pContext) => {
 
     await pContext.step('Cross-function recursion: A -> B -> A', () => {
         // Setup. Two helper instances that call each other.
-        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
         const lHelperA = PotatnoHelper.newHelperFunction(lDocument, 'a', 'helperA');
         const lHelperB = PotatnoHelper.newHelperFunction(lDocument, 'b', 'helperB');
         const lDefA = lDocument.nodeDefinitions.find((pDefinition) =>
@@ -292,7 +292,7 @@ Deno.test('PotatnoDocument - Validation', async (pContext) => {
 
     await pContext.step('Acyclic A -> B -> C', () => {
         // Setup. Three helpers: A calls B, B calls C. No cycle.
-        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
         const lA = PotatnoHelper.newHelperFunction(lDocument, 'a', 'helperA');
         const lB = PotatnoHelper.newHelperFunction(lDocument, 'b', 'helperB');
         const lC = PotatnoHelper.newHelperFunction(lDocument, 'c', 'helperC');
@@ -313,7 +313,7 @@ Deno.test('PotatnoDocument - Validation', async (pContext) => {
 
     await pContext.step('Recursion error item points at the offending function', () => {
         // Setup. Self-recursive helper.
-        const lDocument = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
         const lHelper = PotatnoHelper.newHelperFunction(lDocument, 'h-self', 'helperSelf');
         const lSelfNodeDef = lDocument.nodeDefinitions.find((pDefinition) =>
             pDefinition instanceof PotatnoFunctionNodeDefinition && pDefinition.function === lHelper)!;

@@ -4,17 +4,17 @@ import type { PotatnoProjectGenericType, PotatnoProjectTypeNames, PotatnoProject
  * Definition of a port on a node, used for type checking and code generation.
  */
 export class PotatnoPortDefinition<TProjectTypes extends PotatnoProjectTypesDefinition> {
-	private readonly mLabel: string;
-	private readonly mId: string;
-	private readonly mPortType: PotatnoPortDefinitionType;
 	private readonly mDataType: PotatnoProjectTypeNames<TProjectTypes> | PotatnoProjectGenericType | null;
+	private readonly mId: string;
+	private readonly mLabel: string;
+	private readonly mPortType: PotatnoPortDefinitionType;
 	private readonly mRegions: PotatnoPortDefinitionRegions;
 
 	/**
-	 * Display label for this port.
+	 * Data type identifier when the port carries a typed value.
 	 */
-	public get label(): string {
-		return this.mLabel;
+	public get dataType(): PotatnoProjectTypeNames<TProjectTypes> | PotatnoProjectGenericType | null {
+		return this.mDataType;
 	}
 
 	/**
@@ -25,17 +25,17 @@ export class PotatnoPortDefinition<TProjectTypes extends PotatnoProjectTypesDefi
 	}
 
 	/**
+	 * Display label for this port.
+	 */
+	public get label(): string {
+		return this.mLabel;
+	}
+
+	/**
 	 * Port kind discriminator.
 	 */
 	public get portType(): PotatnoPortDefinitionType {
 		return this.mPortType;
-	}
-
-	/**
-	 * Data type identifier when the port carries a typed value.
-	 */
-	public get dataType(): PotatnoProjectTypeNames<TProjectTypes> | PotatnoProjectGenericType | null {
-		return this.mDataType;
 	}
 
 	/**

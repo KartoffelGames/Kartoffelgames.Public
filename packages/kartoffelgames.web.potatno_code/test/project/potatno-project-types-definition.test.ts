@@ -1,7 +1,7 @@
 import { expect } from '@kartoffelgames/core-test';
 import { PotatnoProjectTypesDefinition } from '../../source/project/potatno-project-types-definition.ts';
 
-const lSingleTypeConfig = {
+const gSingleTypeConfig = {
     number: {
         default: { string: ['0'], value: 0 },
         convert: (pValues: Array<string>): string => pValues[0],
@@ -9,7 +9,7 @@ const lSingleTypeConfig = {
     }
 };
 
-const lMultiTypeConfig = {
+const gMultiTypeConfig = {
     number: {
         default: { string: ['0'], value: 0 },
         convert: (pValues: Array<string>): string => pValues[0],
@@ -30,7 +30,7 @@ const lMultiTypeConfig = {
 Deno.test('new PotatnoProjectTypesDefinition()', async (pContext) => {
     await pContext.step('Construct with single type', () => {
         // Setup. Process.
-        const lTypes = new PotatnoProjectTypesDefinition(lSingleTypeConfig);
+        const lTypes = new PotatnoProjectTypesDefinition(gSingleTypeConfig);
 
         // Evaluation.
         expect(lTypes).toBeDefined();
@@ -39,7 +39,7 @@ Deno.test('new PotatnoProjectTypesDefinition()', async (pContext) => {
 
     await pContext.step('Construct with multiple types', () => {
         // Setup. Process.
-        const lTypes = new PotatnoProjectTypesDefinition(lMultiTypeConfig);
+        const lTypes = new PotatnoProjectTypesDefinition(gMultiTypeConfig);
 
         // Evaluation.
         expect(lTypes.types.size).toBe(3);
@@ -49,7 +49,7 @@ Deno.test('new PotatnoProjectTypesDefinition()', async (pContext) => {
 Deno.test('PotatnoProjectTypesDefinition.types', async (pContext) => {
     await pContext.step('Returns a readonly map keyed by type name', () => {
         // Setup.
-        const lTypes = new PotatnoProjectTypesDefinition(lMultiTypeConfig);
+        const lTypes = new PotatnoProjectTypesDefinition(gMultiTypeConfig);
 
         // Process.
         const lResult = lTypes.types;
@@ -62,7 +62,7 @@ Deno.test('PotatnoProjectTypesDefinition.types', async (pContext) => {
 
     await pContext.step('Map size matches type count', () => {
         // Setup.
-        const lTypes = new PotatnoProjectTypesDefinition(lMultiTypeConfig);
+        const lTypes = new PotatnoProjectTypesDefinition(gMultiTypeConfig);
 
         // Process.
         const lResult: number = lTypes.types.size;
@@ -75,7 +75,7 @@ Deno.test('PotatnoProjectTypesDefinition.types', async (pContext) => {
 Deno.test('PotatnoProjectTypesDefinition.typeNames', async (pContext) => {
     await pContext.step('Returns the configured type names', () => {
         // Setup.
-        const lTypes = new PotatnoProjectTypesDefinition(lMultiTypeConfig);
+        const lTypes = new PotatnoProjectTypesDefinition(gMultiTypeConfig);
 
         // Process.
         const lResult = lTypes.typeNames;
@@ -88,7 +88,7 @@ Deno.test('PotatnoProjectTypesDefinition.typeNames', async (pContext) => {
 
     await pContext.step('Order matches insertion', () => {
         // Setup.
-        const lTypes = new PotatnoProjectTypesDefinition(lMultiTypeConfig);
+        const lTypes = new PotatnoProjectTypesDefinition(gMultiTypeConfig);
 
         // Process.
         const lResult = lTypes.typeNames;
@@ -103,7 +103,7 @@ Deno.test('PotatnoProjectTypesDefinition.typeNames', async (pContext) => {
 Deno.test('PotatnoProjectTypesDefinition.getType()', async (pContext) => {
     await pContext.step('Returns the definition for an existing type', () => {
         // Setup.
-        const lTypes = new PotatnoProjectTypesDefinition(lSingleTypeConfig);
+        const lTypes = new PotatnoProjectTypesDefinition(gSingleTypeConfig);
 
         // Process.
         const lDefinition = lTypes.getType('number');
@@ -114,7 +114,7 @@ Deno.test('PotatnoProjectTypesDefinition.getType()', async (pContext) => {
 
     await pContext.step('Type definition has a name field matching the lookup key', () => {
         // Setup.
-        const lTypes = new PotatnoProjectTypesDefinition(lMultiTypeConfig);
+        const lTypes = new PotatnoProjectTypesDefinition(gMultiTypeConfig);
 
         // Process.
         const lDefinition = lTypes.getType('boolean');
@@ -127,7 +127,7 @@ Deno.test('PotatnoProjectTypesDefinition.getType()', async (pContext) => {
 Deno.test('PotatnoProjectTypesDefinition.isGenericType()', async (pContext) => {
     await pContext.step('Returns true for <T>', () => {
         // Setup.
-        const lTypes = new PotatnoProjectTypesDefinition(lSingleTypeConfig);
+        const lTypes = new PotatnoProjectTypesDefinition(gSingleTypeConfig);
 
         // Process.
         const lResult: boolean = lTypes.isGenericType('<T>');
@@ -138,7 +138,7 @@ Deno.test('PotatnoProjectTypesDefinition.isGenericType()', async (pContext) => {
 
     await pContext.step('Returns true for <TValue>', () => {
         // Setup.
-        const lTypes = new PotatnoProjectTypesDefinition(lSingleTypeConfig);
+        const lTypes = new PotatnoProjectTypesDefinition(gSingleTypeConfig);
 
         // Process.
         const lResult: boolean = lTypes.isGenericType('<TValue>');
@@ -149,7 +149,7 @@ Deno.test('PotatnoProjectTypesDefinition.isGenericType()', async (pContext) => {
 
     await pContext.step('Returns false for plain identifier', () => {
         // Setup.
-        const lTypes = new PotatnoProjectTypesDefinition(lSingleTypeConfig);
+        const lTypes = new PotatnoProjectTypesDefinition(gSingleTypeConfig);
 
         // Process.
         const lResult: boolean = lTypes.isGenericType('number');
@@ -160,7 +160,7 @@ Deno.test('PotatnoProjectTypesDefinition.isGenericType()', async (pContext) => {
 
     await pContext.step('Returns false for empty string', () => {
         // Setup.
-        const lTypes = new PotatnoProjectTypesDefinition(lSingleTypeConfig);
+        const lTypes = new PotatnoProjectTypesDefinition(gSingleTypeConfig);
 
         // Process.
         const lResult: boolean = lTypes.isGenericType('');
@@ -171,7 +171,7 @@ Deno.test('PotatnoProjectTypesDefinition.isGenericType()', async (pContext) => {
 
     await pContext.step('Returns false for string with leading bracket but no closing', () => {
         // Setup.
-        const lTypes = new PotatnoProjectTypesDefinition(lSingleTypeConfig);
+        const lTypes = new PotatnoProjectTypesDefinition(gSingleTypeConfig);
 
         // Process.
         const lResult: boolean = lTypes.isGenericType('<T');
@@ -182,7 +182,7 @@ Deno.test('PotatnoProjectTypesDefinition.isGenericType()', async (pContext) => {
 
     await pContext.step('Returns false for string with only closing bracket', () => {
         // Setup.
-        const lTypes = new PotatnoProjectTypesDefinition(lSingleTypeConfig);
+        const lTypes = new PotatnoProjectTypesDefinition(gSingleTypeConfig);
 
         // Process.
         const lResult: boolean = lTypes.isGenericType('T>');
@@ -195,7 +195,7 @@ Deno.test('PotatnoProjectTypesDefinition.isGenericType()', async (pContext) => {
 Deno.test('Error: PotatnoProjectTypesDefinition.getType() on unknown type', async (pContext) => {
     await pContext.step('Throws on lookup of unregistered type', () => {
         // Setup.
-        const lTypes = new PotatnoProjectTypesDefinition(lSingleTypeConfig);
+        const lTypes = new PotatnoProjectTypesDefinition(gSingleTypeConfig);
 
         // Process.
         const lAction = (): void => {

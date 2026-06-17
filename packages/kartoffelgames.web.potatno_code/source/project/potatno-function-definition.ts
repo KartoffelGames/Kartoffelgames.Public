@@ -8,11 +8,19 @@ import type { PotatnoProjectTypesDefinition } from './potatno-project-types-defi
  * Of of these blueprints eighter the main entry point or secondary user created entry points can be instantiated in the editor.
  */
 export class PotatnoFunctionDefinition<TProjectTypes extends PotatnoProjectTypesDefinition> {
+    private readonly mCodeGenerator: PotatnoFunctionDefinitionGenerator<TProjectTypes>;
     private readonly mId: string;
     private readonly mLabel: string;
-    private readonly mStatics: PotatnoFunctionDefinitionStatics;
     private readonly mNodesProvider: PotatnoFunctionDefinitionNodeProvider<TProjectTypes>;
-    private readonly mCodeGenerator: PotatnoFunctionDefinitionGenerator<TProjectTypes>;
+    private readonly mStatics: PotatnoFunctionDefinitionStatics;
+
+    /**
+     * Get the code generator configuration for this function definition.
+     * Contains both the function-level code wrapper and the call-site value generator.
+     */
+    public get codeGenerator(): Readonly<PotatnoFunctionDefinitionGenerator<TProjectTypes>> {
+        return this.mCodeGenerator;
+    }
 
     /**
      * Unique id for this entry point definition.
@@ -26,14 +34,6 @@ export class PotatnoFunctionDefinition<TProjectTypes extends PotatnoProjectTypes
      */
     public get label(): string {
         return this.mLabel;
-    }
-
-    /**
-     * Get the code generator configuration for this function definition.
-     * Contains both the function-level code wrapper and the call-site value generator.
-     */
-    public get codeGenerator(): Readonly<PotatnoFunctionDefinitionGenerator<TProjectTypes>> {
-        return this.mCodeGenerator;
     }
 
     /**
@@ -79,8 +79,8 @@ export class PotatnoFunctionDefinition<TProjectTypes extends PotatnoProjectTypes
 
             // Create a temporary array to collect the dynamic nodes provided by the function definition.
             const lNodes: Array<PotatnoNodeDefinition<TProjectTypes>> = new Array<PotatnoNodeDefinition<TProjectTypes>>();
-            pProviderFunction((node: PotatnoNodeDefinition<TProjectTypes>) => {
-                lNodes.push(node);
+            pProviderFunction((pNode: PotatnoNodeDefinition<TProjectTypes>) => {
+                lNodes.push(pNode);
             }, pDocumentFunction);
 
             return lNodes;

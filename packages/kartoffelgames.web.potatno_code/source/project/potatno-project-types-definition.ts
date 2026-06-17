@@ -14,17 +14,17 @@ export class PotatnoProjectTypesDefinition<TValueMap extends PotatnoProjectTypeM
     private readonly mTypes: Map<string, PotatnoProjectTypeDefinition<TValueMap>>;
 
     /**
-     * Get all registered type definitions as a readonly map keyed by type name.
-     */
-    public get types(): ReadonlyMap<string, PotatnoProjectTypeDefinition<TValueMap>> {
-        return this.mTypes;
-    }
-
-    /**
      * Get all registered type names as a readonly array.
      */
     public get typeNames(): Array<PotatnoProjectTypeName<TValueMap>> {
         return Array.from(this.mTypes.keys()) as Array<PotatnoProjectTypeName<TValueMap>>;
+    }
+
+    /**
+     * Get all registered type definitions as a readonly map keyed by type name.
+     */
+    public get types(): ReadonlyMap<string, PotatnoProjectTypeDefinition<TValueMap>> {
+        return this.mTypes;
     }
 
     /**

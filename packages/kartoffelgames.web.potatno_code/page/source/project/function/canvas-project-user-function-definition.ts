@@ -33,8 +33,8 @@ export class CanvasProjectUserFunctionDefinition extends PotatnoFunctionDefiniti
                             },
                             code: (pContext): string => {
                                 const lParameters: string = Object.entries(pContext.outputs)
-                                    .filter(([lId]) => lId !== 'exec')
-                                    .map(([, lOutput]) => lOutput.value)
+                                    .filter(([pId]) => pId !== 'exec')
+                                    .map(([, pOutput]) => pOutput.value)
                                     .join(', ');
 
                                 return `(${lParameters}) => { ${pContext.outputs['exec'].code.inner} }`;
@@ -60,7 +60,7 @@ export class CanvasProjectUserFunctionDefinition extends PotatnoFunctionDefiniti
                             },
                             code: (pContext): string => {
                                 const lReturnFields: string = Object.entries(pContext.inputs)
-                                    .map(([lId, lInput]) => `${lId}: (${lInput.value})`)
+                                    .map(([pId, pInput]) => `${pId}: (${pInput.value})`)
                                     .join(', ');
 
                                 return `return { ${lReturnFields} };`;
@@ -79,11 +79,11 @@ export class CanvasProjectUserFunctionDefinition extends PotatnoFunctionDefiniti
                     value: (pContext): string => {
                         const lFunctionName: string = `__fn_${pContext.function.id.replaceAll('-', '_')}`;
                         const lArgs: string = Object.entries(pContext.inputs)
-                            .map(([, lInput]) => lInput.value)
+                            .map(([, pInput]) => pInput.value)
                             .join(', ');
                         const lDestructure: string = Object.entries(pContext.outputs)
-                            .filter(([lId]) => lId !== 'Output')
-                            .map(([lId, lOutput]) => `${lId}: ${lOutput.value}`)
+                            .filter(([pId]) => pId !== 'Output')
+                            .map(([pId, pOutput]) => `${pId}: ${pOutput.value}`)
                             .join(', ');
                         const lFlowNext: string = pContext.outputs['Output']?.code.inner ?? '';
 

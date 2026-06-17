@@ -19,8 +19,15 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
     private mLabel: string;
     private readonly mOutputs: PotatnoDocumentNodePortsInternal<TProjectTypes>;
     private mPreview: PotatnoDocumentNodePreviewBinding | null;
-    private readonly mTransformation: PotatnoDocumentNodeTransformation;
     private readonly mProject: PotatnoProject<TProjectTypes>;
+    private readonly mTransformation: PotatnoDocumentNodeTransformation;
+
+    /**
+     * Get the category of the node's definition. Uses the snapshot set at creation time.
+     */
+    public get category(): string {
+        return this.mCategory;
+    }
 
     /**
      * Get the stable id of the definition this node was created from.
@@ -44,38 +51,24 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
     }
 
     /**
+     * If node has any flow ports.
+     */
+    public get hasFlowPorts(): boolean {
+        return this.mOutputs.flow.length > 0 || this.mInputs.flow.length > 0;
+    }
+
+    /**
+     * If node has any flow ports.
+     */
+    public get hasValuePorts(): boolean {
+        return this.mOutputs.value.length > 0 || this.mInputs.value.length > 0;
+    }
+
+    /**
      * Get the data input ports of the node.
      */
     public get inputs(): PotatnoDocumentNodePorts<TProjectTypes> {
         return this.mInputs;
-    }
-
-    /**
-     * Get the data output ports of the node.
-     */
-    public get outputs(): PotatnoDocumentNodePorts<TProjectTypes> {
-        return this.mOutputs;
-    }
-
-    /**
-     * Get the project this node belongs to.
-     */
-    public get project(): PotatnoProject<TProjectTypes> {
-        return this.mProject;
-    }
-
-    /**
-     * Get the grid position and size of the node.
-     */
-    public get transformation(): Readonly<PotatnoDocumentNodeTransformation> {
-        return this.mTransformation;
-    }
-
-    /**
-     * Get the category of the node's definition. Uses the snapshot set at creation time.
-     */
-    public get category(): string {
-        return this.mCategory;
     }
 
     /**
@@ -85,6 +78,13 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
         return this.mLabel;
     } set label(pLabel: string) {
         this.mLabel = pLabel;
+    }
+
+    /**
+     * Get the data output ports of the node.
+     */
+    public get outputs(): PotatnoDocumentNodePorts<TProjectTypes> {
+        return this.mOutputs;
     }
 
     /**
@@ -99,17 +99,17 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
     }
 
     /**
-     * If node has any flow ports.
+     * Get the project this node belongs to.
      */
-    public get hasFlowPorts() {
-        return this.mOutputs.flow.length > 0 || this.mInputs.flow.length > 0; 
+    public get project(): PotatnoProject<TProjectTypes> {
+        return this.mProject;
     }
 
     /**
-     * If node has any flow ports.
+     * Get the grid position and size of the node.
      */
-    public get hasValuePorts() {
-        return this.mOutputs.value.length > 0 || this.mInputs.value.length > 0; 
+    public get transformation(): Readonly<PotatnoDocumentNodeTransformation> {
+        return this.mTransformation;
     }
 
     /**
@@ -240,80 +240,11 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
     }
 
     /**
-     * Synchronise a port map (inputs or outputs) against the current definition ports.
-     * - New definition ports are added silently.
-     * - Changed ports (portType or dataType differs) are replaced when safe; a validation error is added when a type-changed port still has connections.
-     * - Ports absent from the definition are removed silently when unconnected, or kept with a validation error when connected.
-     * 
-     * @param pPortMap - The port map to resync (inputs or outputs).
-     * @param pPortDefinitions - The current definition ports to sync against.
-     * @param pDirection - The direction of the ports (input or output).
-     * 
-     * @returns An array of validation errors found during resync.
-     */
-    private resyncPorts(pCurrentPorts: PotatnoDocumentNodePortsInternal<TProjectTypes>, pPortDefinitions: ReadonlyArray<PotatnoPortDefinition<TProjectTypes>>): Array<PotatnoDocumentPortValidationError<TProjectTypes>> {
-        const lErrors: Array<PotatnoDocumentPortValidationError<TProjectTypes>> = new Array<PotatnoDocumentPortValidationError<TProjectTypes>>();
-
-        // Create a set of existing port definition ids.
-        const lExistingPortDefinitionIds = new Set(pPortDefinitions.map((pPort) => pPort.id));
-
-        // Process ports present in the definition (new or potentially changed).
-        for (let lPortDefinitionIndex: number = 0; lPortDefinitionIndex < pPortDefinitions.length; lPortDefinitionIndex++) {
-            const lPortDefinition: PotatnoPortDefinition<TProjectTypes> = pPortDefinitions[lPortDefinitionIndex];
-
-            // Port is new,add silently.
-            if (!pCurrentPorts.map.has(lPortDefinition.id)) {
-                this.addPort(pCurrentPorts, lPortDefinition, lPortDefinitionIndex);
-                continue;
-            }
-
-            const lExistingPort: PotatnoDocumentPort<TProjectTypes> = pCurrentPorts.map.get(lPortDefinition.id)!;
-
-            // Compare portType and dataType. dataType is '' for flow ports on the document port side.
-            const lPortTypeChanged: boolean = lExistingPort.portType !== lPortDefinition.portType;
-            const lDataTypeChanged: boolean = lExistingPort.dataType !== lPortDefinition.dataType;
-
-            // Port is unchanged.
-            if (!lPortTypeChanged && !lDataTypeChanged) {
-                continue;
-            }
-
-            // Connected and portType changed and cannot safely replace. Add validation error and keep as-is.
-            if (lExistingPort.connectedPorts.size > 0 && lPortTypeChanged) {
-                lErrors.push(new PotatnoDocumentPortValidationError(`Port "${lExistingPort.label}" on node "${this.mLabel}" has a changed type.`, lExistingPort));
-                continue;
-            }
-
-            // Port config has changed but can be safely replaced without risking broken connections.
-            this.replacePort(pCurrentPorts, lExistingPort, lPortDefinition);
-        }
-
-        // Process ports on the node that are no longer in the definition.
-        for (const lPort of pCurrentPorts.list) {
-            // Skip ports that are still present in the definition.
-            if (lExistingPortDefinitionIds.has(lPort.definitionId)) {
-                continue;
-            }
-
-            // Silently remove unconnected ports that are no longer in the definition.
-            if (lPort.connectedPorts.size === 0) {
-                this.removePort(pCurrentPorts, lPort);
-                continue;
-            }
-
-            // The ports are connected. Add validation error and keep as-is.
-            lErrors.push(new PotatnoDocumentPortValidationError(`Port "${lPort.label}" on node "${this.mLabel}" no longer exists in its definition.`, lPort));
-        }
-
-        return lErrors;
-    }
-
-    /**
      * Add a new port. Hopefully in the correct order.
-     * 
+     *
      * @param pPortMapping - Port mapping of node. 
      * @param pPortDefinition - Port definition of new node.
-     * 
+     *
      * @returns the created document port.
      */
     private addPort(pPortMapping: PotatnoDocumentNodePortsInternal<TProjectTypes>, pPortDefinition: PotatnoPortDefinition<TProjectTypes>, pOrderIndex: number): PotatnoDocumentPort<TProjectTypes> {
@@ -400,6 +331,76 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
 
         return lNewPort;
     }
+
+    /**
+     * Synchronise a port map (inputs or outputs) against the current definition ports.
+     * - New definition ports are added silently.
+     * - Changed ports (portType or dataType differs) are replaced when safe; a validation error is added when a type-changed port still has connections.
+     * - Ports absent from the definition are removed silently when unconnected, or kept with a validation error when connected.
+     *
+     * @param pPortMap - The port map to resync (inputs or outputs).
+     * @param pPortDefinitions - The current definition ports to sync against.
+     * @param pDirection - The direction of the ports (input or output).
+     *
+     * @returns An array of validation errors found during resync.
+     */
+    private resyncPorts(pCurrentPorts: PotatnoDocumentNodePortsInternal<TProjectTypes>, pPortDefinitions: ReadonlyArray<PotatnoPortDefinition<TProjectTypes>>): Array<PotatnoDocumentPortValidationError<TProjectTypes>> {
+        const lErrors: Array<PotatnoDocumentPortValidationError<TProjectTypes>> = new Array<PotatnoDocumentPortValidationError<TProjectTypes>>();
+
+        // Create a set of existing port definition ids.
+        const lExistingPortDefinitionIds = new Set(pPortDefinitions.map((pPort) => pPort.id));
+
+        // Process ports present in the definition (new or potentially changed).
+        for (let lPortDefinitionIndex: number = 0; lPortDefinitionIndex < pPortDefinitions.length; lPortDefinitionIndex++) {
+            const lPortDefinition: PotatnoPortDefinition<TProjectTypes> = pPortDefinitions[lPortDefinitionIndex];
+
+            // Port is new,add silently.
+            if (!pCurrentPorts.map.has(lPortDefinition.id)) {
+                this.addPort(pCurrentPorts, lPortDefinition, lPortDefinitionIndex);
+                continue;
+            }
+
+            const lExistingPort: PotatnoDocumentPort<TProjectTypes> = pCurrentPorts.map.get(lPortDefinition.id)!;
+
+            // Compare portType and dataType. dataType is '' for flow ports on the document port side.
+            const lPortTypeChanged: boolean = lExistingPort.portType !== lPortDefinition.portType;
+            const lDataTypeChanged: boolean = lExistingPort.dataType !== lPortDefinition.dataType;
+
+            // Port is unchanged.
+            if (!lPortTypeChanged && !lDataTypeChanged) {
+                continue;
+            }
+
+            // Connected and portType changed and cannot safely replace. Add validation error and keep as-is.
+            if (lExistingPort.connectedPorts.size > 0 && lPortTypeChanged) {
+                lErrors.push(new PotatnoDocumentPortValidationError(`Port "${lExistingPort.label}" on node "${this.mLabel}" has a changed type.`, lExistingPort));
+                continue;
+            }
+
+            // Port config has changed but can be safely replaced without risking broken connections.
+            this.replacePort(pCurrentPorts, lExistingPort, lPortDefinition);
+        }
+
+        // Process ports on the node that are no longer in the definition.
+        for (const lPort of pCurrentPorts.list) {
+            // Skip ports that are still present in the definition.
+            if (lExistingPortDefinitionIds.has(lPort.definitionId)) {
+                continue;
+            }
+
+            // Silently remove unconnected ports that are no longer in the definition.
+            if (lPort.connectedPorts.size === 0) {
+                this.removePort(pCurrentPorts, lPort);
+                continue;
+            }
+
+            // The ports are connected. Add validation error and keep as-is.
+            lErrors.push(new PotatnoDocumentPortValidationError(`Port "${lPort.label}" on node "${this.mLabel}" no longer exists in its definition.`, lPort));
+        }
+
+        return lErrors;
+    }
+
 }
 
 /**

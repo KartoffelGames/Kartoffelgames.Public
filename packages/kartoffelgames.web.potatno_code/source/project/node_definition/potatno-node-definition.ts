@@ -6,25 +6,32 @@ import type { PotatnoProjectTypesDefinition } from '../potatno-project-types-def
  * Potatno node definition that changes dynamically based on the provided context.
  */
 export class PotatnoNodeDefinition<TProjectTypes extends PotatnoProjectTypesDefinition> {
-    private readonly mId: string;
     private readonly mCategory: string;
-    private readonly mLabel: string;
-    private readonly mRegions: PotatnoNodeDefinitionRegions;
     private readonly mCodeGenerator: PotatnoNodeDefinitionCodeGenerator;
+    private readonly mId: string;
+    private readonly mLabel: string;
     private readonly mPortProvider: PotatnoNodeDefinitionPortGenerator<TProjectTypes>;
+    private readonly mRegions: PotatnoNodeDefinitionRegions;
 
     /**
-     *  Unique id for this node definition. 
-     */
-    public get id(): string {
-        return this.mId;
-    }
-
-    /** 
      * Category classification determining which subclass is instantiated for code generation.
      */
     public get category(): string {
         return this.mCategory;
+    }
+
+    /**
+     * Code generator callback that produces the code string from a typed context.
+     */
+    public get codeGenerator(): PotatnoNodeDefinitionCodeGenerator {
+        return this.mCodeGenerator;
+    }
+
+    /**
+     *  Unique id for this node definition.
+     */
+    public get id(): string {
+        return this.mId;
     }
 
     /** 
@@ -80,22 +87,6 @@ export class PotatnoNodeDefinition<TProjectTypes extends PotatnoProjectTypesDefi
     }
 
     /**
-     * Code generator callback that produces the code string from a typed context.
-     */
-    public get codeGenerator(): PotatnoNodeDefinitionCodeGenerator {
-        return this.mCodeGenerator;
-    }
-
-    /**
-     * Get a port definition by its name. Searches both input and output ports.
-     *
-     * @param pName - The port name to look up.
-     */
-    public getPort(pName: string): PotatnoPortDefinition<TProjectTypes> | undefined {
-        return [...this.inputs, ...this.outputs].find((pPort) => pPort.id === pName);
-    }
-
-    /**
      * Constructor.
      *
      * @param pParameters - Constructor parameters.
@@ -116,6 +107,15 @@ export class PotatnoNodeDefinition<TProjectTypes extends PotatnoProjectTypesDefi
             allows: pParameters.regions?.allows ?? new Array<string>(),
             requires: pParameters.regions?.requires ?? new Array<string>(),
         };
+    }
+
+    /**
+     * Get a port definition by its name. Searches both input and output ports.
+     *
+     * @param pName - The port name to look up.
+     */
+    public getPort(pName: string): PotatnoPortDefinition<TProjectTypes> | undefined {
+        return [...this.inputs, ...this.outputs].find((pPort) => pPort.id === pName);
     }
 }
 

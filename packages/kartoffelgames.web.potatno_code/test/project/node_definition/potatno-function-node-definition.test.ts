@@ -7,7 +7,7 @@ import type { PotatnoTestProjectTypesDefinition } from '../../helper/potatno_tes
 Deno.test('new PotatnoFunctionNodeDefinition()', async (pContext) => {
     await pContext.step('Constructs from document function identity', () => {
         // Setup.
-        const lDocument = new PotatnoDocument<PotatnoTestProjectTypesDefinition>(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument<PotatnoTestProjectTypesDefinition>(PotatnoHelper.TEST_PROJECT);
         const lFunction = PotatnoHelper.newHelperFunction(lDocument, 'FunctionOne', 'Function One');
 
         // Process.
@@ -22,7 +22,7 @@ Deno.test('new PotatnoFunctionNodeDefinition()', async (pContext) => {
 
     await pContext.step('Creates value ports from function signature', () => {
         // Setup.
-        const lDocument = new PotatnoDocument<PotatnoTestProjectTypesDefinition>(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument<PotatnoTestProjectTypesDefinition>(PotatnoHelper.TEST_PROJECT);
         const lFunction = PotatnoHelper.newHelperFunction(lDocument, 'FunctionOne', 'Function One');
         lFunction.addInput({ label: 'inputNumber', dataType: 'number' });
         lFunction.addOutput({ label: 'outputNumber', dataType: 'number' });
@@ -43,7 +43,7 @@ Deno.test('new PotatnoFunctionNodeDefinition()', async (pContext) => {
 
     await pContext.step('Creates flow ports when function has no outputs', () => {
         // Setup.
-        const lDocument = new PotatnoDocument<PotatnoTestProjectTypesDefinition>(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument<PotatnoTestProjectTypesDefinition>(PotatnoHelper.TEST_PROJECT);
         const lFunction = PotatnoHelper.newHelperFunction(lDocument, 'FunctionOne', 'Function One');
 
         // Process.
@@ -62,7 +62,7 @@ Deno.test('new PotatnoFunctionNodeDefinition()', async (pContext) => {
 Deno.test('PotatnoFunctionNodeDefinition.function', async (pContext) => {
     await pContext.step('Returns mirrored document function', () => {
         // Setup.
-        const lDocument = new PotatnoDocument<PotatnoTestProjectTypesDefinition>(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument<PotatnoTestProjectTypesDefinition>(PotatnoHelper.TEST_PROJECT);
         const lFunction = PotatnoHelper.newHelperFunction(lDocument, 'FunctionOne', 'Function One');
         const lDefinition = new PotatnoFunctionNodeDefinition(lFunction);
 
@@ -77,7 +77,7 @@ Deno.test('PotatnoFunctionNodeDefinition.function', async (pContext) => {
 Deno.test('PotatnoFunctionNodeDefinition.label', async (pContext) => {
     await pContext.step('Returns current document function label', () => {
         // Setup.
-        const lDocument = new PotatnoDocument<PotatnoTestProjectTypesDefinition>(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument<PotatnoTestProjectTypesDefinition>(PotatnoHelper.TEST_PROJECT);
         const lFunction = PotatnoHelper.newHelperFunction(lDocument, 'FunctionOne', 'Function One');
         const lDefinition = new PotatnoFunctionNodeDefinition(lFunction);
         lFunction.label = 'Renamed Function';
@@ -93,7 +93,7 @@ Deno.test('PotatnoFunctionNodeDefinition.label', async (pContext) => {
 Deno.test('PotatnoFunctionNodeDefinition.codeGenerator', async (pContext) => {
     await pContext.step('Delegates to mirrored function definition value generator', () => {
         // Setup.
-        const lDocument = new PotatnoDocument<PotatnoTestProjectTypesDefinition>(PotatnoHelper.TestProject);
+        const lDocument = new PotatnoDocument<PotatnoTestProjectTypesDefinition>(PotatnoHelper.TEST_PROJECT);
         const lFunction = PotatnoHelper.newHelperFunction(lDocument, 'FunctionOne', 'FunctionOne');
         const lDefinition = new PotatnoFunctionNodeDefinition(lFunction);
 

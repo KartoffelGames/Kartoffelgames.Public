@@ -12,23 +12,16 @@ import { type PotatnoDocument, PotatnoDocumentPortValidationError } from './pota
  * Represents a user-editable function containing a sub-graph.
  */
 export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDefinition> implements IPotatnoDocumentItem<TProjectTypes> {
-    private mLabel: string;
     private readonly mDefinitionId: string;
     private readonly mDocument: PotatnoDocument<TProjectTypes>;
     private readonly mId: string;
     private readonly mImportIds: Set<string>;
     private readonly mInputs: Array<PotatnoDocumentFunctionPort<TProjectTypes>>;
     private readonly mIsSystem: boolean;
+    private mLabel: string;
     private readonly mNodes: Set<PotatnoDocumentNode<TProjectTypes>>;
     private readonly mOutputs: Array<PotatnoDocumentFunctionPort<TProjectTypes>>;
     private readonly mProject: PotatnoProject<TProjectTypes>;
-
-    /**
-     * Unique identifier for this function instance. Stable across sessions so it can be referenced as a node in other graphs.
-     */
-    public get id(): string {
-        return this.mId;
-    }
 
     /**
      * The stable id of the function definition this function was created from.
@@ -42,33 +35,6 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
      */
     public get document(): PotatnoDocument<TProjectTypes> {
         return this.mDocument;
-    }
-
-    /**
-     * Read-only set of all nodes in the graph.
-     */
-    public get nodes(): ReadonlySet<PotatnoDocumentNode<TProjectTypes>> {
-        return this.mNodes;
-    }
-
-    /**
-     * Get all available node definitions for this function.
-     */
-    public get nodeDefinitions(): ReadonlyArray<PotatnoNodeDefinition<TProjectTypes>> {
-        // Read the function definition from project.
-        const lFunctionDefinition: PotatnoFunctionDefinition<TProjectTypes> | undefined = this.mProject.getFunction(this.definitionId);
-        if (!lFunctionDefinition) {
-            return this.dynamicNodeDefinitions;
-        }
-
-        // Read all function nodes from definition.
-        const lFunctionNodes = lFunctionDefinition.getNodeDefinitions(this);
-
-        return [
-            ...this.dynamicNodeDefinitions,
-            ...lFunctionNodes.entry,
-            ...lFunctionNodes.exit,
-        ];
     }
 
     /**
@@ -94,6 +60,13 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
     }
 
     /**
+     * Unique identifier for this function instance. Stable across sessions so it can be referenced as a node in other graphs.
+     */
+    public get id(): string {
+        return this.mId;
+    }
+
+    /**
      * Get the list of import ids for this function.
      */
     public get imports(): ReadonlySet<string> {
@@ -108,6 +81,13 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
     }
 
     /**
+     * Get whether the function is a system-defined function.
+     */
+    public get isSystem(): boolean {
+        return this.mIsSystem;
+    }
+
+    /**
      * Get the label of this function.
      */
     public get label(): string {
@@ -117,17 +97,37 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
     }
 
     /**
+     * Get all available node definitions for this function.
+     */
+    public get nodeDefinitions(): ReadonlyArray<PotatnoNodeDefinition<TProjectTypes>> {
+        // Read the function definition from project.
+        const lFunctionDefinition: PotatnoFunctionDefinition<TProjectTypes> | undefined = this.mProject.getFunction(this.definitionId);
+        if (!lFunctionDefinition) {
+            return this.dynamicNodeDefinitions;
+        }
+
+        // Read all function nodes from definition.
+        const lFunctionNodes = lFunctionDefinition.getNodeDefinitions(this);
+
+        return [
+            ...this.dynamicNodeDefinitions,
+            ...lFunctionNodes.entry,
+            ...lFunctionNodes.exit,
+        ];
+    }
+
+    /**
+     * Read-only set of all nodes in the graph.
+     */
+    public get nodes(): ReadonlySet<PotatnoDocumentNode<TProjectTypes>> {
+        return this.mNodes;
+    }
+
+    /**
      * Get the output port definitions for this function.
      */
     public get outputs(): ReadonlyArray<PotatnoDocumentFunctionPort<TProjectTypes>> {
         return this.mOutputs;
-    }
-
-    /**
-     * Get whether the function is a system-defined function.
-     */
-    public get isSystem(): boolean {
-        return this.mIsSystem;
     }
 
     /**
@@ -185,25 +185,11 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
      */
     public addInput(pPort: PotatnoDocumentFunctionPort<TProjectTypes>): void {
         // Skip if port label already exists.
-        if (this.mInputs.some((existingPort) => existingPort.label === pPort.label)) {
+        if (this.mInputs.some((pExistingPort) => pExistingPort.label === pPort.label)) {
             return;
         }
 
         this.mInputs.push(pPort);
-    }
-
-    /**
-     * Add an output port definition to the function.
-     *
-     * @param pPort - The port definition.
-     */
-    public addOutput(pPort: PotatnoDocumentFunctionPort<TProjectTypes>): void {
-        // Skip if port label already exists.
-        if (this.mOutputs.some((existingPort) => existingPort.label === pPort.label)) {
-            return;
-        }
-
-        this.mOutputs.push(pPort);
     }
 
     /**
@@ -250,6 +236,20 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
     }
 
     /**
+     * Add an output port definition to the function.
+     *
+     * @param pPort - The port definition.
+     */
+    public addOutput(pPort: PotatnoDocumentFunctionPort<TProjectTypes>): void {
+        // Skip if port label already exists.
+        if (this.mOutputs.some((pExistingPort) => pExistingPort.label === pPort.label)) {
+            return;
+        }
+
+        this.mOutputs.push(pPort);
+    }
+
+    /**
      * Get document functions exit nodes.
      * Exit nodes are the starting point for every code generation.
      * 
@@ -273,20 +273,6 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
     }
 
     /**
-     * Remove a node and disconnect all its ports from the graph.
-     */
-    public removeNode(pNode: PotatnoDocumentNode<TProjectTypes>): void {
-        // Disconnect all ports of the node.
-        for (const lPort of [...pNode.inputs.list, ...pNode.outputs.list]) {
-            for (const lConnectedPort of Array.from(lPort.connectedPorts)) {
-                lPort.disconnect(lConnectedPort);
-            }
-        }
-
-        this.mNodes.delete(pNode);
-    }
-
-    /**
      * Remove an import id from the function.
      *
      * @param pImportId - The import id to remove.
@@ -301,10 +287,24 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
      * @param pPort - The port definition to remove.
      */
     public removeInput(pPort: PotatnoDocumentFunctionPort<TProjectTypes>): void {
-        const index = this.mInputs.findIndex((existingPort) => existingPort.label === pPort.label);
-        if (index !== -1) {
-            this.mInputs.splice(index, 1);
+        const lIndex = this.mInputs.findIndex((pExistingPort) => pExistingPort.label === pPort.label);
+        if (lIndex !== -1) {
+            this.mInputs.splice(lIndex, 1);
         }
+    }
+
+    /**
+     * Remove a node and disconnect all its ports from the graph.
+     */
+    public removeNode(pNode: PotatnoDocumentNode<TProjectTypes>): void {
+        // Disconnect all ports of the node.
+        for (const lPort of [...pNode.inputs.list, ...pNode.outputs.list]) {
+            for (const lConnectedPort of Array.from(lPort.connectedPorts)) {
+                lPort.disconnect(lConnectedPort);
+            }
+        }
+
+        this.mNodes.delete(pNode);
     }
 
     /**
@@ -313,9 +313,9 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
      * @param pPort - The port definition to remove.
      */
     public removeOutput(pPort: PotatnoDocumentFunctionPort<TProjectTypes>): void {
-        const index = this.mOutputs.findIndex((existingPort) => existingPort.label === pPort.label);
-        if (index !== -1) {
-            this.mOutputs.splice(index, 1);
+        const lIndex = this.mOutputs.findIndex((pExistingPort) => pExistingPort.label === pPort.label);
+        if (lIndex !== -1) {
+            this.mOutputs.splice(lIndex, 1);
         }
     }
 
@@ -363,6 +363,46 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
         }
 
         return lErrors;
+    }
+
+    /**
+     * Recursively accumulate the set of entry node ids that can reach pNode by walking backwards
+     * through all incoming connections. Memoized; cycles are silently skipped (already caught by accumulateRegions).
+     *
+     * @param pNode - The node whose entry domains should be computed.
+     * @param pEntryNodesDefinitionIds - Set of definition ids that are considered entry nodes.
+     * @param pBuffer - Memoization map shared across the entire validation pass.
+     */
+    private collectEntryDomains(pNode: PotatnoDocumentNode<TProjectTypes>, pEntryNodesDefinitionIds: Set<string>, pBuffer: Map<PotatnoDocumentNode<TProjectTypes>, Set<PotatnoDocumentNode<TProjectTypes>>>): Set<PotatnoDocumentNode<TProjectTypes>> {
+        // Return cached result if this node was already resolved.
+        // This also serves for terminating before recursion check, as buffered nodes are added after recursion has finished.
+        if (pBuffer.has(pNode)) {
+            return pBuffer.get(pNode)!;
+        }
+
+        const lDomains = new Set<PotatnoDocumentNode<TProjectTypes>>();
+
+        // Set the node into buffer before recursing so that that cycles are exited and dont run endlessly.
+        pBuffer.set(pNode, lDomains);
+
+        // Walk all incoming connections (flow inputs and value inputs).
+        for (const lInputPort of pNode.inputs.list) {
+            for (const lConnectedPort of lInputPort.connectedPorts) {
+                const lPredecessor = lConnectedPort.node;
+
+                // If the predecessor is an entry node, register its domain.
+                if (pEntryNodesDefinitionIds.has(lPredecessor.definitionId)) {
+                    lDomains.add(lPredecessor);
+                }
+
+                // Inherit all entry node domains accumulated by the predecessor.
+                for (const lEntryDomainNode of this.collectEntryDomains(lPredecessor, pEntryNodesDefinitionIds, pBuffer)) {
+                    lDomains.add(lEntryDomainNode);
+                }
+            }
+        }
+
+        return lDomains;
     }
 
     /**
@@ -466,46 +506,6 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
         }
 
         return lNodeRegions;
-    }
-
-    /**
-     * Recursively accumulate the set of entry node ids that can reach pNode by walking backwards
-     * through all incoming connections. Memoized; cycles are silently skipped (already caught by accumulateRegions).
-     * 
-     * @param pNode - The node whose entry domains should be computed.
-     * @param pEntryNodesDefinitionIds - Set of definition ids that are considered entry nodes.
-     * @param pBuffer - Memoization map shared across the entire validation pass.
-     */
-    private collectEntryDomains(pNode: PotatnoDocumentNode<TProjectTypes>, pEntryNodesDefinitionIds: Set<string>, pBuffer: Map<PotatnoDocumentNode<TProjectTypes>, Set<PotatnoDocumentNode<TProjectTypes>>>): Set<PotatnoDocumentNode<TProjectTypes>> {
-        // Return cached result if this node was already resolved.
-        // This also serves for terminating before recursion check, as buffered nodes are added after recursion has finished.
-        if (pBuffer.has(pNode)) {
-            return pBuffer.get(pNode)!;
-        }
-
-        const lDomains = new Set<PotatnoDocumentNode<TProjectTypes>>();
-
-        // Set the node into buffer before recursing so that that cycles are exited and dont run endlessly.
-        pBuffer.set(pNode, lDomains);
-
-        // Walk all incoming connections (flow inputs and value inputs).
-        for (const lInputPort of pNode.inputs.list) {
-            for (const lConnectedPort of lInputPort.connectedPorts) {
-                const lPredecessor = lConnectedPort.node;
-
-                // If the predecessor is an entry node, register its domain.
-                if (pEntryNodesDefinitionIds.has(lPredecessor.definitionId)) {
-                    lDomains.add(lPredecessor);
-                }
-
-                // Inherit all entry node domains accumulated by the predecessor.
-                for (const lEntryDomainNode of this.collectEntryDomains(lPredecessor, pEntryNodesDefinitionIds, pBuffer)) {
-                    lDomains.add(lEntryDomainNode);
-                }
-            }
-        }
-
-        return lDomains;
     }
 
     /**

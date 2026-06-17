@@ -10,12 +10,12 @@ import { PotatnoTestProject } from './potatno_test_project/potatno-test-project.
  * Shared test helper for the PotatnoCode test suite.
  *
  * Bundles the document-building, node-wiring and serialization boilerplate that
- * every {@link TestProject}-based test file would otherwise redefine at the top
+ * every {@link TEST_PROJECT}-based test file would otherwise redefine at the top
  * of the file. All members are static; the class is never instantiated and only
  * exists to group the helpers into a single tree-shakeable unit.
  */
 export class PotatnoHelper {
-    public static readonly TestProject: PotatnoTestProject = new PotatnoTestProject();
+    public static readonly TEST_PROJECT: PotatnoTestProject = new PotatnoTestProject();
 
     /**
      * Place a project node definition on a function by its definition id.
@@ -28,7 +28,7 @@ export class PotatnoHelper {
      * @throws When the project has no node definition with the given id.
      */
     public static addProjectNode(pFunction: PotatnoDocumentFunction<PotatnoTestProjectTypesDefinition>, pDefinitionId: string): PotatnoDocumentNode<PotatnoTestProjectTypesDefinition> {
-        const lDefinition = PotatnoHelper.TestProject.nodeDefinitions.find((pDefinition) => pDefinition.id === pDefinitionId);
+        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDefinition) => pDefinition.id === pDefinitionId);
         if (!lDefinition) {
             throw new Error(`No project node definition with id "${pDefinitionId}"`);
         }
@@ -71,7 +71,7 @@ export class PotatnoHelper {
      * @returns The newly created, non-system document function.
      */
     public static newHelperFunction(pDocument: PotatnoDocument<PotatnoTestProjectTypesDefinition>, pId: string, pLabel: string): PotatnoDocumentFunction<PotatnoTestProjectTypesDefinition> {
-        const lHelperDefinition = [...PotatnoHelper.TestProject.userFunctions.values()][0];
+        const lHelperDefinition = [...PotatnoHelper.TEST_PROJECT.userFunctions.values()][0];
         return pDocument.newFunction({
             definitionId: lHelperDefinition.id,
             id: pId,
@@ -89,7 +89,7 @@ export class PotatnoHelper {
      */
     public static roundTrip(pDocument: PotatnoDocument<PotatnoTestProjectTypesDefinition>): PotatnoDocument<PotatnoTestProjectTypesDefinition> {
         const lSerializer = new PotatnoSerializer<PotatnoTestProjectTypesDefinition>();
-        const lDeserializer = new PotatnoDeserializer<PotatnoTestProjectTypesDefinition>(PotatnoHelper.TestProject);
+        const lDeserializer = new PotatnoDeserializer<PotatnoTestProjectTypesDefinition>(PotatnoHelper.TEST_PROJECT);
         return lDeserializer.deserialize(lSerializer.serialize(pDocument));
     }
 
@@ -117,13 +117,13 @@ export class PotatnoHelper {
      */
     public static setupCalculatorDocument(): PotatnoHelperCalculatorDocument {
         // Validate once so the function's system entry / exit nodes are synced into the graph.
-        const lDocument: PotatnoDocument<PotatnoTestProjectTypesDefinition> = new PotatnoDocument(PotatnoHelper.TestProject);
+        const lDocument: PotatnoDocument<PotatnoTestProjectTypesDefinition> = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
         lDocument.validate();
 
         // Get the first function as entry point.
         const lFunction: PotatnoDocumentFunction<PotatnoTestProjectTypesDefinition> = [...lDocument.functions].at(0)!;
 
-        const lEntryDefinition = PotatnoHelper.TestProject.entryPoint;
+        const lEntryDefinition = PotatnoHelper.TEST_PROJECT.entryPoint;
 
         // Resolve the synced system nodes by their definition ids.
         const lNodeDefinitions = lEntryDefinition.getNodeDefinitions(lFunction);

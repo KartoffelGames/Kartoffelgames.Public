@@ -6,36 +6,36 @@ import type { PotatnoTestProjectTypesDefinition } from '../helper/potatno_test_p
 Deno.test('PotatnoDocumentNode.constructor()', async (pContext) => {
     await pContext.step('Sets category snapshot from constructor', () => {
         // Setup. Process.
-        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultEntry: lDefaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(defaultEntry.category).toBe('event');
+        expect(lDefaultEntry.category).toBe('event');
     });
 
     await pContext.step('Sets definitionId', () => {
         // Setup.
-        const lEntryDefinition = PotatnoHelper.TestProject.entryPoint;
-        const { defaultEntry, function: lFunction } = PotatnoHelper.setupCalculatorDocument();
+        const lEntryDefinition = PotatnoHelper.TEST_PROJECT.entryPoint;
+        const { defaultEntry: lDefaultEntry, function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
         const lExpectedId = lEntryDefinition.getNodeDefinitions(lFunction).entry[0].id;
 
         // Evaluation.
-        expect(defaultEntry.definitionId).toBe(lExpectedId);
+        expect(lDefaultEntry.definitionId).toBe(lExpectedId);
     });
 
     await pContext.step('Sets label', () => {
         // Setup. Process.
-        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultEntry: lDefaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation. Label is sourced from the entry node definition's label.
-        expect(defaultEntry.label).toBeDefined();
+        expect(lDefaultEntry.label).toBeDefined();
     });
 
     await pContext.step('Stores transformation', () => {
         // Setup. The node stores whatever transformation it is created with.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lDefinition = PotatnoHelper.TestProject.nodeDefinitions.find((pDef) => pDef.id === 'Add')!;
+        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDef) => pDef.id === 'Add')!;
 
         // Process.
         const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 5, y: 6, width: 7, height: 8 });
@@ -46,46 +46,46 @@ Deno.test('PotatnoDocumentNode.constructor()', async (pContext) => {
 
     await pContext.step('Builds input ports from configuration', () => {
         // Setup. Process. The Default Exit node has one flow input plus one value input.
-        const { defaultExit } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultExit: lDefaultExit } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(defaultExit.inputs.list.length).toBe(2);
+        expect(lDefaultExit.inputs.list.length).toBe(2);
     });
 
     await pContext.step('Builds output ports from configuration', () => {
         // Setup. Process. The Default Entry node has one flow output plus two value outputs.
-        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultEntry: lDefaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(defaultEntry.outputs.list.length).toBe(3);
+        expect(lDefaultEntry.outputs.list.length).toBe(3);
     });
 
     await pContext.step('Buckets flow ports into inputs.flow / outputs.flow', () => {
         // Setup. Process.
-        const { defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultEntry: lDefaultEntry, defaultExit: lDefaultExit } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(defaultEntry.outputs.flow.length).toBe(1);
-        expect(defaultExit.inputs.flow.length).toBe(1);
+        expect(lDefaultEntry.outputs.flow.length).toBe(1);
+        expect(lDefaultExit.inputs.flow.length).toBe(1);
     });
 
     await pContext.step('Buckets value ports into inputs.value / outputs.value', () => {
         // Setup. Process.
-        const { defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultEntry: lDefaultEntry, defaultExit: lDefaultExit } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(defaultEntry.outputs.value.length).toBe(2);
-        expect(defaultExit.inputs.value.length).toBe(1);
+        expect(lDefaultEntry.outputs.value.length).toBe(2);
+        expect(lDefaultExit.inputs.value.length).toBe(1);
     });
 
     await pContext.step('Builds the inputs.map / outputs.map keyed by definitionId', () => {
         // Setup. Process.
-        const { defaultEntry, defaultExit } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultEntry: lDefaultEntry, defaultExit: lDefaultExit } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(defaultEntry.outputs.map.has('a')).toBe(true);
-        expect(defaultEntry.outputs.map.has('b')).toBe(true);
-        expect(defaultExit.inputs.map.has('result')).toBe(true);
+        expect(lDefaultEntry.outputs.map.has('a')).toBe(true);
+        expect(lDefaultEntry.outputs.map.has('b')).toBe(true);
+        expect(lDefaultExit.inputs.map.has('result')).toBe(true);
     });
 });
 
@@ -106,30 +106,30 @@ Deno.test('PotatnoDocumentNode.definitionId', async (pContext) => {
 Deno.test('PotatnoDocumentNode.document', async (pContext) => {
     await pContext.step('Returns the provided document', () => {
         // Setup. Process.
-        const { document, defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const { document: lDocument, defaultEntry: lDefaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(defaultEntry.document).toBe(document);
+        expect(lDefaultEntry.document).toBe(lDocument);
     });
 });
 
 Deno.test('PotatnoDocumentNode.function', async (pContext) => {
     await pContext.step('Returns the provided function', () => {
         // Setup. Process.
-        const { function: lFunction, defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const { function: lFunction, defaultEntry: lDefaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(defaultEntry.function).toBe(lFunction);
+        expect(lDefaultEntry.function).toBe(lFunction);
     });
 });
 
 Deno.test('PotatnoDocumentNode.project', async (pContext) => {
     await pContext.step('Returns the provided project', () => {
         // Setup. Process.
-        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultEntry: lDefaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(defaultEntry.project).toBe(PotatnoHelper.TestProject);
+        expect(lDefaultEntry.project).toBe(PotatnoHelper.TEST_PROJECT);
     });
 });
 
@@ -139,7 +139,7 @@ Deno.test('PotatnoDocumentNode.category', async (pContext) => {
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
         const lAddNode = PotatnoHelper.addProjectNode(lFunction, 'Add');
         const lOriginalCategory: string = lAddNode.category;
-        PotatnoHelper.TestProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+        PotatnoHelper.TEST_PROJECT.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Add', label: 'Add', category: 'new-category',
             ports: { inputs: [], outputs: [] }, generators: { code: (): string => '' }
         }));
@@ -151,7 +151,7 @@ Deno.test('PotatnoDocumentNode.category', async (pContext) => {
         expect(lResult).toBe(lOriginalCategory);
 
         // Cleanup. Re-register the original Add so other tests in the suite are not polluted.
-        PotatnoHelper.TestProject.addNodeDefinition(new PotatnoStaticNodeDefinition({
+        PotatnoHelper.TEST_PROJECT.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Add', label: 'Add', category: 'operator',
             ports: {
                 inputs: [
@@ -196,7 +196,7 @@ Deno.test('PotatnoDocumentNode.transformation', async (pContext) => {
     await pContext.step('Returns the stored transformation', () => {
         // Setup. Process.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lDefinition = PotatnoHelper.TestProject.nodeDefinitions.find((pDef) => pDef.id === 'Add')!;
+        const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDef) => pDef.id === 'Add')!;
         const lAddNode = lFunction.addNodeByDefinition(lDefinition, { x: 5, y: 6, width: 7, height: 8 });
 
         // Evaluation.
@@ -207,89 +207,89 @@ Deno.test('PotatnoDocumentNode.transformation', async (pContext) => {
 Deno.test('PotatnoDocumentNode.inputs', async (pContext) => {
     await pContext.step('Returns an ordered list', () => {
         // Setup. Process.
-        const { defaultExit } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultExit: lDefaultExit } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation. Default exit has [exec (flow), result (value)] in that order.
-        expect(defaultExit.inputs.list[0].definitionId).toBe('exec');
-        expect(defaultExit.inputs.list[1].definitionId).toBe('result');
+        expect(lDefaultExit.inputs.list[0].definitionId).toBe('exec');
+        expect(lDefaultExit.inputs.list[1].definitionId).toBe('result');
     });
 
     await pContext.step('Map lookup by definitionId returns the port', () => {
         // Setup. Process.
-        const { defaultExit } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultExit: lDefaultExit } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(defaultExit.inputs.map.get('result')).toBe(defaultExit.inputs.list[1]);
+        expect(lDefaultExit.inputs.map.get('result')).toBe(lDefaultExit.inputs.list[1]);
     });
 
     await pContext.step('Flow array contains only flow ports', () => {
         // Setup. Process.
-        const { defaultExit } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultExit: lDefaultExit } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(defaultExit.inputs.flow.every((pPort) => pPort.portType === 'flow')).toBe(true);
+        expect(lDefaultExit.inputs.flow.every((pPort) => pPort.portType === 'flow')).toBe(true);
     });
 
     await pContext.step('Value array contains only value ports', () => {
         // Setup. Process.
-        const { defaultExit } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultExit: lDefaultExit } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(defaultExit.inputs.value.every((pPort) => pPort.portType === 'value')).toBe(true);
+        expect(lDefaultExit.inputs.value.every((pPort) => pPort.portType === 'value')).toBe(true);
     });
 });
 
 Deno.test('PotatnoDocumentNode.outputs', async (pContext) => {
     await pContext.step('Returns an ordered list', () => {
         // Setup. Process.
-        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultEntry: lDefaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation. Default entry outputs are [exec, a, b] in that order.
-        expect(defaultEntry.outputs.list[0].definitionId).toBe('exec');
-        expect(defaultEntry.outputs.list[1].definitionId).toBe('a');
-        expect(defaultEntry.outputs.list[2].definitionId).toBe('b');
+        expect(lDefaultEntry.outputs.list[0].definitionId).toBe('exec');
+        expect(lDefaultEntry.outputs.list[1].definitionId).toBe('a');
+        expect(lDefaultEntry.outputs.list[2].definitionId).toBe('b');
     });
 
     await pContext.step('Map lookup by definitionId returns the port', () => {
         // Setup. Process.
-        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultEntry: lDefaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(defaultEntry.outputs.map.get('a')).toBe(defaultEntry.outputs.list[1]);
+        expect(lDefaultEntry.outputs.map.get('a')).toBe(lDefaultEntry.outputs.list[1]);
     });
 
     await pContext.step('Flow array contains only flow ports', () => {
         // Setup. Process.
-        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultEntry: lDefaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(defaultEntry.outputs.flow.every((pPort) => pPort.portType === 'flow')).toBe(true);
+        expect(lDefaultEntry.outputs.flow.every((pPort) => pPort.portType === 'flow')).toBe(true);
     });
 
     await pContext.step('Value array contains only value ports', () => {
         // Setup. Process.
-        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultEntry: lDefaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(defaultEntry.outputs.value.every((pPort) => pPort.portType === 'value')).toBe(true);
+        expect(lDefaultEntry.outputs.value.every((pPort) => pPort.portType === 'value')).toBe(true);
     });
 });
 
 Deno.test('PotatnoDocumentNode.hasFlowPorts', async (pContext) => {
     await pContext.step('True when input flow port present', () => {
         // Setup. Process.
-        const { defaultExit } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultExit: lDefaultExit } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(defaultExit.hasFlowPorts).toBe(true);
+        expect(lDefaultExit.hasFlowPorts).toBe(true);
     });
 
     await pContext.step('True when output flow port present', () => {
         // Setup. Process.
-        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultEntry: lDefaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(defaultEntry.hasFlowPorts).toBe(true);
+        expect(lDefaultEntry.hasFlowPorts).toBe(true);
     });
 
     await pContext.step('False when no flow ports', () => {
@@ -305,18 +305,18 @@ Deno.test('PotatnoDocumentNode.hasFlowPorts', async (pContext) => {
 Deno.test('PotatnoDocumentNode.hasValuePorts', async (pContext) => {
     await pContext.step('True when input value port present', () => {
         // Setup. Process.
-        const { defaultExit } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultExit: lDefaultExit } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(defaultExit.hasValuePorts).toBe(true);
+        expect(lDefaultExit.hasValuePorts).toBe(true);
     });
 
     await pContext.step('True when output value port present', () => {
         // Setup. Process.
-        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultEntry: lDefaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(defaultEntry.hasValuePorts).toBe(true);
+        expect(lDefaultEntry.hasValuePorts).toBe(true);
     });
 
     await pContext.step('False when no value ports', () => {
@@ -332,50 +332,50 @@ Deno.test('PotatnoDocumentNode.hasValuePorts', async (pContext) => {
 Deno.test('PotatnoDocumentNode.moveTo()', async (pContext) => {
     await pContext.step('Updates transformation.x and transformation.y', () => {
         // Setup.
-        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultEntry: lDefaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
-        defaultEntry.moveTo(50, 60);
+        lDefaultEntry.moveTo(50, 60);
 
         // Evaluation.
-        expect(defaultEntry.transformation.x).toBe(50);
-        expect(defaultEntry.transformation.y).toBe(60);
+        expect(lDefaultEntry.transformation.x).toBe(50);
+        expect(lDefaultEntry.transformation.y).toBe(60);
     });
 });
 
 Deno.test('PotatnoDocumentNode.resizeTo()', async (pContext) => {
     await pContext.step('Updates width and height', () => {
         // Setup.
-        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultEntry: lDefaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
-        defaultEntry.resizeTo(20, 30);
+        lDefaultEntry.resizeTo(20, 30);
 
         // Evaluation.
-        expect(defaultEntry.transformation.width).toBe(20);
-        expect(defaultEntry.transformation.height).toBe(30);
+        expect(lDefaultEntry.transformation.width).toBe(20);
+        expect(lDefaultEntry.transformation.height).toBe(30);
     });
 
     await pContext.step('Clamps width to minimum 4', () => {
         // Setup.
-        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultEntry: lDefaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
-        defaultEntry.resizeTo(1, 10);
+        lDefaultEntry.resizeTo(1, 10);
 
         // Evaluation.
-        expect(defaultEntry.transformation.width).toBe(4);
+        expect(lDefaultEntry.transformation.width).toBe(4);
     });
 
     await pContext.step('Clamps height to minimum 4', () => {
         // Setup.
-        const { defaultEntry } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultEntry: lDefaultEntry } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
-        defaultEntry.resizeTo(10, 1);
+        lDefaultEntry.resizeTo(10, 1);
 
         // Evaluation.
-        expect(defaultEntry.transformation.height).toBe(4);
+        expect(lDefaultEntry.transformation.height).toBe(4);
     });
 });
 
@@ -388,10 +388,10 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
             ports: { inputs: [], outputs: [] },
             generators: { code: (): string => '' }
         });
-        PotatnoHelper.TestProject.addNodeDefinition(lDefinition);
+        PotatnoHelper.TEST_PROJECT.addNodeDefinition(lDefinition);
         const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
         // Make the project forget the definition by swapping it for a different id.
-        (PotatnoHelper.TestProject as any).mNodeDefinitions.delete('TempMissing');
+        (PotatnoHelper.TEST_PROJECT as any).mNodeDefinitions.delete('TempMissing');
 
         // Process.
         const lErrors = lNode.validate(new Set<string>());
@@ -410,7 +410,7 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
             ports: { inputs: [], outputs: [] },
             generators: { code: (): string => '' }
         });
-        PotatnoHelper.TestProject.addNodeDefinition(lDefinition);
+        PotatnoHelper.TEST_PROJECT.addNodeDefinition(lDefinition);
         const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
@@ -420,7 +420,7 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
         expect(lErrors.length).toBe(0);
 
         // Cleanup.
-        (PotatnoHelper.TestProject as any).mNodeDefinitions.delete('RequiresXOnly');
+        (PotatnoHelper.TEST_PROJECT as any).mNodeDefinitions.delete('RequiresXOnly');
     });
 
     await pContext.step('Region required and absent', () => {
@@ -432,7 +432,7 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
             ports: { inputs: [], outputs: [] },
             generators: { code: (): string => '' }
         });
-        PotatnoHelper.TestProject.addNodeDefinition(lDefinition);
+        PotatnoHelper.TEST_PROJECT.addNodeDefinition(lDefinition);
         const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
@@ -442,7 +442,7 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
         expect(lErrors.some((pError) => pError.message === `Node "${lNode.label}" requires region "X" but it is not active.`)).toBe(true);
 
         // Cleanup.
-        (PotatnoHelper.TestProject as any).mNodeDefinitions.delete('RequiresMissing');
+        (PotatnoHelper.TEST_PROJECT as any).mNodeDefinitions.delete('RequiresMissing');
     });
 
     await pContext.step('Region allowed pass-through', () => {
@@ -454,7 +454,7 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
             ports: { inputs: [], outputs: [] },
             generators: { code: (): string => '' }
         });
-        PotatnoHelper.TestProject.addNodeDefinition(lDefinition);
+        PotatnoHelper.TEST_PROJECT.addNodeDefinition(lDefinition);
         const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
@@ -464,7 +464,7 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
         expect(lErrors.length).toBe(0);
 
         // Cleanup.
-        (PotatnoHelper.TestProject as any).mNodeDefinitions.delete('AllowsXOnly');
+        (PotatnoHelper.TEST_PROJECT as any).mNodeDefinitions.delete('AllowsXOnly');
     });
 
     await pContext.step('Region forbidden', () => {
@@ -476,7 +476,7 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
             ports: { inputs: [], outputs: [] },
             generators: { code: (): string => '' }
         });
-        PotatnoHelper.TestProject.addNodeDefinition(lDefinition);
+        PotatnoHelper.TEST_PROJECT.addNodeDefinition(lDefinition);
         const lNode = lFunction.addNodeByDefinition(lDefinition, { x: 0, y: 0, width: 4, height: 2 });
 
         // Process.
@@ -486,15 +486,15 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
         expect(lErrors.some((pError) => pError.message === `Node "${lNode.label}" does not allow region "Y".`)).toBe(true);
 
         // Cleanup.
-        (PotatnoHelper.TestProject as any).mNodeDefinitions.delete('ForbidsY');
+        (PotatnoHelper.TEST_PROJECT as any).mNodeDefinitions.delete('ForbidsY');
     });
 
     await pContext.step('Resync delegates to ports', () => {
         // Setup. Default exit has an unconnected flow input; that port-level error must surface from node.validate().
-        const { defaultExit } = PotatnoHelper.setupCalculatorDocument();
+        const { defaultExit: lDefaultExit } = PotatnoHelper.setupCalculatorDocument();
 
         // Process.
-        const lErrors = defaultExit.validate(new Set<string>());
+        const lErrors = lDefaultExit.validate(new Set<string>());
 
         // Evaluation.
         expect(lErrors.some((pError) => /Flow input port/.test(pError.message))).toBe(true);

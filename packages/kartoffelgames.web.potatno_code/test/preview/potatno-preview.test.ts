@@ -30,8 +30,8 @@ Deno.test('PotatnoPreview.displayIds', async (pContext) => {
     await pContext.step('Returns registered display ids', () => {
         // Setup.
         const lPreview = new PotatnoPreview<PotatnoTestProjectTypesDefinition>();
-        lPreview.addDisplay(gNewDisplay('DisplayOne', PotatnoHelper.TestProject.entryPoint.id, ['number']));
-        lPreview.addDisplay(gNewDisplay('DisplayTwo', PotatnoHelper.TestProject.entryPoint.id, ['boolean']));
+        lPreview.addDisplay(gNewDisplay('DisplayOne', PotatnoHelper.TEST_PROJECT.entryPoint.id, ['number']));
+        lPreview.addDisplay(gNewDisplay('DisplayTwo', PotatnoHelper.TEST_PROJECT.entryPoint.id, ['boolean']));
 
         // Process.
         const lResult: Array<string> = lPreview.displayIds;
@@ -45,7 +45,7 @@ Deno.test('PotatnoPreview.addDisplay()', async (pContext) => {
     await pContext.step('Registers display by id', () => {
         // Setup.
         const lPreview = new PotatnoPreview<PotatnoTestProjectTypesDefinition>();
-        const lDisplay = gNewDisplay('DisplayOne', PotatnoHelper.TestProject.entryPoint.id, ['number']);
+        const lDisplay = gNewDisplay('DisplayOne', PotatnoHelper.TEST_PROJECT.entryPoint.id, ['number']);
 
         // Process.
         lPreview.addDisplay(lDisplay);
@@ -59,11 +59,11 @@ Deno.test('PotatnoPreview.availableDisplays()', async (pContext) => {
     await pContext.step('Returns displays for matching function', () => {
         // Setup.
         const lPreview = new PotatnoPreview<PotatnoTestProjectTypesDefinition>();
-        lPreview.addDisplay(gNewDisplay('DisplayOne', PotatnoHelper.TestProject.entryPoint.id, ['number']));
+        lPreview.addDisplay(gNewDisplay('DisplayOne', PotatnoHelper.TEST_PROJECT.entryPoint.id, ['number']));
         lPreview.addDisplay(gNewDisplay('DisplayTwo', 'OtherFunction', ['number']));
 
         // Process.
-        const lResult: Array<string> = lPreview.availableDisplays(PotatnoHelper.TestProject.entryPoint);
+        const lResult: Array<string> = lPreview.availableDisplays(PotatnoHelper.TEST_PROJECT.entryPoint);
 
         // Evaluation.
         expect(lResult).toEqual(['DisplayOne']);
@@ -72,11 +72,11 @@ Deno.test('PotatnoPreview.availableDisplays()', async (pContext) => {
     await pContext.step('Filters by allowed type', () => {
         // Setup.
         const lPreview = new PotatnoPreview<PotatnoTestProjectTypesDefinition>();
-        lPreview.addDisplay(gNewDisplay('DisplayOne', PotatnoHelper.TestProject.entryPoint.id, ['number']));
-        lPreview.addDisplay(gNewDisplay('DisplayTwo', PotatnoHelper.TestProject.entryPoint.id, ['boolean']));
+        lPreview.addDisplay(gNewDisplay('DisplayOne', PotatnoHelper.TEST_PROJECT.entryPoint.id, ['number']));
+        lPreview.addDisplay(gNewDisplay('DisplayTwo', PotatnoHelper.TEST_PROJECT.entryPoint.id, ['boolean']));
 
         // Process.
-        const lResult: Array<string> = lPreview.availableDisplays(PotatnoHelper.TestProject.entryPoint, 'boolean');
+        const lResult: Array<string> = lPreview.availableDisplays(PotatnoHelper.TEST_PROJECT.entryPoint, 'boolean');
 
         // Evaluation.
         expect(lResult).toEqual(['DisplayTwo']);
@@ -87,7 +87,7 @@ Deno.test('PotatnoPreview.getDisplay()', async (pContext) => {
     await pContext.step('Returns display for registered id', () => {
         // Setup.
         const lPreview = new PotatnoPreview<PotatnoTestProjectTypesDefinition>();
-        const lDisplay = gNewDisplay('DisplayOne', PotatnoHelper.TestProject.entryPoint.id, ['number']);
+        const lDisplay = gNewDisplay('DisplayOne', PotatnoHelper.TEST_PROJECT.entryPoint.id, ['number']);
         lPreview.addDisplay(lDisplay);
 
         // Process.

@@ -23,18 +23,18 @@ export class PotatnoProject<TProjectTypes extends PotatnoProjectTypesDefinition>
     private readonly mUserFunctions: Map<string, PotatnoFunctionDefinition<TProjectTypes>>;
 
     /**
-     * Code generator callback that produces the code string from a typed context.
-     */
-    public get generator(): PotatnoProjectCodeGenerator<TProjectTypes> {
-        return this.mCodeGenerator;
-    }
-
-    /**
      * Get the registered entry point definition.
      * The main entry point to start the code generation from.
      */
     public get entryPoint(): PotatnoFunctionDefinition<TProjectTypes> {
         return this.mEntryPoint;
+    }
+
+    /**
+     * Code generator callback that produces the code string from a typed context.
+     */
+    public get generator(): PotatnoProjectCodeGenerator<TProjectTypes> {
+        return this.mCodeGenerator;
     }
 
     /**

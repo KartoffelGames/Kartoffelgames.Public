@@ -6,8 +6,8 @@ import type { PotatnoCodeGeneratorFunctionResult } from './potatno-code-generato
  * Document code generation result for a entry point.
  */
 export class PotatnoCodeGeneratorDocumentResult<TProjectTypes extends PotatnoProjectTypesDefinition> {
-    private readonly mDocument: PotatnoDocument<TProjectTypes>;
     private readonly mDependencies: Array<PotatnoCodeGeneratorFunctionResult<TProjectTypes>>;
+    private readonly mDocument: PotatnoDocument<TProjectTypes>;
     private readonly mEntryPoint: PotatnoCodeGeneratorFunctionResult<TProjectTypes>;
 
     /**

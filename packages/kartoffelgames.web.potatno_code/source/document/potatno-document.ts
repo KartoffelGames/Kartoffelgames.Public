@@ -11,8 +11,8 @@ import { PotatnoDocumentFunction, type PotatnoDocumentFunctionConstructorParamet
  * Contains all functions and their graphs.
  */
 export class PotatnoDocument<TProjectTypes extends PotatnoProjectTypesDefinition> {
-    private readonly mFunctions: Set<PotatnoDocumentFunction<TProjectTypes>>;
     private readonly mFunctionNodeDefinitions: Map<string, PotatnoFunctionNodeDefinition<TProjectTypes>>;
+    private readonly mFunctions: Set<PotatnoDocumentFunction<TProjectTypes>>;
     private readonly mProject: PotatnoProject<TProjectTypes>;
 
     /**
@@ -103,8 +103,8 @@ export class PotatnoDocument<TProjectTypes extends PotatnoProjectTypesDefinition
         this.mFunctions.delete(pFunction);
 
         // Find the corresponding node definition.
-        const lFunctionNodeDefinition: PotatnoFunctionNodeDefinition<TProjectTypes> | undefined = this.mFunctionNodeDefinitions.values().find((nodeDef) => {
-            return nodeDef.function === pFunction;
+        const lFunctionNodeDefinition: PotatnoFunctionNodeDefinition<TProjectTypes> | undefined = this.mFunctionNodeDefinitions.values().find((pNodeDefinition) => {
+            return pNodeDefinition.function === pFunction;
         });
 
         // When the function has a node definition, remove it.
@@ -219,21 +219,21 @@ export class PotatnoDocument<TProjectTypes extends PotatnoProjectTypesDefinition
  * A validation error for a document port.
  */
 export class PotatnoDocumentPortValidationError<TProjectTypes extends PotatnoProjectTypesDefinition> {
-    private readonly mMessage: string;
     private readonly mItem: IPotatnoDocumentItem<TProjectTypes>;
-
-    /**
-     * Get the error message describing the validation error.
-     */
-    public get message(): string {
-        return this.mMessage;
-    }
+    private readonly mMessage: string;
 
     /**
      * Get the item that caused the validation error.
      */
     public get item(): IPotatnoDocumentItem<TProjectTypes> {
         return this.mItem;
+    }
+
+    /**
+     * Get the error message describing the validation error.
+     */
+    public get message(): string {
+        return this.mMessage;
     }
 
     /**

@@ -1,7 +1,6 @@
 import { Exception } from '@kartoffelgames/core';
 import type { PotatnoDocumentFunction } from '../../document/potatno-document-function.ts';
 import type { PotatnoFunctionDefinition } from '../../project/potatno-function-definition.ts';
-import type { PotatnoProject } from '../../project/potatno-project.ts';
 import type { PotatnoCodeGeneratorNodeResult } from './potatno-code-generator-node-result.ts';
 import type { PotatnoProjectTypesDefinition } from '../../project/potatno-project-types-definition.ts';
 

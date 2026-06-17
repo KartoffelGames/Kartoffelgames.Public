@@ -1,11 +1,11 @@
-import { Exception } from "@kartoffelgames/core";
+import { Exception } from '@kartoffelgames/core';
 import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
 import { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import { PotatnoCodeGenerator } from '../parser/potatno-code-generator.ts';
 import type { PotatnoCodeGeneratorDocumentResult } from '../parser/result/potatno-code-generator-document-result.ts';
-import { PotatnoProjectTypesDefinition } from "../project/potatno-project-types-definition.ts";
-import { PotatnoPreviewDisplay } from "./potatno-preview-display.ts";
-import type { PotatnoPreviewFunctionExecutor, PotatnoPreviewFunctionExecutorBuildResult, PotatnoPreviewFunctionExecutorPortTarget, PotatnoPreviewResultType } from './potatno-preview-function-executor.ts';
+import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
+import type { PotatnoPreviewDisplay } from './potatno-preview-display.ts';
+import type { PotatnoPreviewFunctionExecutorBuildResult, PotatnoPreviewFunctionExecutorPortTarget, PotatnoPreviewResultType } from './potatno-preview-function-executor.ts';
 
 /**
  * Self-contained runtime object of a preview element.
@@ -21,6 +21,13 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
     private readonly mTarget: PotatnoDocumentFunction<TProjectTypes> | PotatnoDocumentPort<TProjectTypes>;
 
     /**
+     * Display of this driver.
+     */
+    public get display(): PotatnoPreviewDriverDisplay<TProjectTypes> {
+        return this.mDisplay;
+    }
+
+    /**
      * The element the display renders into. Lazily created on first access.
      */
     public get element(): Element {
@@ -29,13 +36,6 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
         }
 
         return this.mElement;
-    }
-
-    /**
-     * Display of this driver.
-     */
-    public get display(): PotatnoPreviewDriverDisplay<TProjectTypes> {
-        return this.mDisplay;
     }
 
     /**
@@ -101,7 +101,7 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
         // Resolve the executor port target. 
         // - Output ports resolve to their generated valueId.
         // - Input ports should eighter be resolved to the connected input port or the static input value.
-        let lPortTarget: PotatnoPreviewFunctionExecutorPortTarget<TProjectTypes> | null = (() => {
+        const lPortTarget: PotatnoPreviewFunctionExecutorPortTarget<TProjectTypes> | null = (() => {
             // No port specified use the funcitons "MAIN" preview.
             if (!(this.mTarget instanceof PotatnoDocumentPort)) {
                 return null;
@@ -154,8 +154,8 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
             for (const lGraph of pGeneratorResult.entryPoint.graphs) {
                 // Read port and node from graph.
                 if (lGraph.ports.has(pPort) && lGraph.nodes.has(pPort.node)) {
-                    // Return ports node and value when it has been found.
-                    return [lGraph.nodes.get(pPort.node)!, lGraph.ports.get(pPort)!];
+                    // Return port value and node id when they have been found.
+                    return [lGraph.ports.get(pPort)!, lGraph.nodes.get(pPort.node)!];
                 }
             }
 

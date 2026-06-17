@@ -33,6 +33,9 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
     private mActiveFunctionId: string;
     private mProject: PotatnoProject<PotatnoProjectTypesDefinition> | null;
 
+    private mEventBufferDispatchRequest: number;
+    private readonly mEventBuffer: Map<PotatnoUiManagerChangeEventTarget | null, PotatnoCodeUiManagerChangeType>;
+
     // Manager components.
     private readonly mGraph: PotatnoUiManagerGraph;
     private readonly mHistory: PotatnoUiManagerHistory;
@@ -114,6 +117,10 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
 
         this.mActiveFunctionId = '';
         this.mProject = null;
+
+        // Setup event buffer.
+        this.mEventBuffer = new Map<PotatnoUiManagerChangeEventTarget | null, PotatnoCodeUiManagerChangeType>();
+        this.mEventBufferDispatchRequest = -1;
     }
 
     /**
@@ -215,17 +222,23 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
      * @param pFunctionId - Id of the function to activate.
      */
     public setActiveFunction(pFunctionId: string): void {
+        // Only switch when a document is setup and the function is not already selected.
         const lDocument: PotatnoDocument<PotatnoProjectTypesDefinition> | null = this.mGraph.document;
         if (!lDocument || this.mActiveFunctionId === pFunctionId) {
             return;
         }
 
+        // Find the document by id.
         for (const lFunction of lDocument.functions) {
-            if (lFunction.id === pFunctionId) {
-                this.mActiveFunctionId = pFunctionId;
-                this.dispatch(PotatnoCodeUiManagerChangeType.SpecialActiveFunction, lFunction);
-                return;
+            // Not the right function, skip it.
+            if (lFunction.id !== pFunctionId) {
+                continue;
             }
+
+            // set active function and dispatch change event.
+            this.mActiveFunctionId = pFunctionId;
+            this.dispatch(PotatnoCodeUiManagerChangeType.SpecialActiveFunction, lFunction);
+            return;
         }
     }
 
@@ -282,7 +295,7 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
             }
         }
 
-        this.dispatch(PotatnoCodeUiManagerChangeType.Function, lActiveFunction);
+        this.dispatch(PotatnoCodeUiManagerChangeType.FunctionUpdate, lActiveFunction);
     }
 
     /**
@@ -292,10 +305,28 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
      * @param pItem - The document item the change refers to, or `null` when no single item applies.
      */
     public dispatch(pType: PotatnoCodeUiManagerChangeType, pItem: PotatnoUiManagerChangeEventTarget | null): void {
-        // TODO: Catch all change types for a item and dispatch a single merged event flag for each unique item. 
+        // Add or merge the current type of the item.
+        const lType: PotatnoCodeUiManagerChangeType = this.mEventBuffer.get(pItem) ?? 0;
+        this.mEventBuffer.set(pItem, lType | pType);
 
-        // Create and dispatch custom change event.
-        this.dispatchEvent(new PotatnoUiManagerChangeEvent(pType, pItem));
+        // Cancel the last dispatch request.
+        if (this.mEventBufferDispatchRequest !== -1) {
+            globalThis.cancelAnimationFrame(this.mEventBufferDispatchRequest);
+        }
+
+        // Wait for the next frame before dispatching all collected event.
+        this.mEventBufferDispatchRequest = requestAnimationFrame(() => {
+            // Reset current request.
+            this.mEventBufferDispatchRequest = -1;
+
+            for (const [lItem, lType] of this.mEventBuffer) {
+                // Create and dispatch custom change event.
+                this.dispatchEvent(new PotatnoUiManagerChangeEvent(lType, lItem));
+            }
+
+            // And clear all events.
+            this.mEventBuffer.clear();
+        });
     }
 }
 
@@ -307,28 +338,30 @@ export const PotatnoCodeUiManagerChangeType = {
 
     // Connections #F
     Connection: 0xF,
+    ConnectionAdd: 0x1,
+    ConnectionDelete: 0x2,
 
-    // Document #0F
-    Document: 0x0F,
+    // Document #F0
+    Document: 0xF0,
 
-    // Function #00F
-    Function: 0x00F,
-    FunctionAdd: 0x001,
-    FunctionUpdate: 0x002,
-    FunctionDelete: 0x004,
+    // Function #F00
+    Function: 0xF00,
+    FunctionAdd: 0x100,
+    FunctionUpdate: 0x200,
+    FunctionDelete: 0x400,
 
-    // Node #000F
-    Node: 0x000F,
-    NodeAdd: 0x0001,
-    NodeUpdate: 0x0002,
-    NodeDelete: 0x0004,
-    NodeTransform: 0x0008,
+    // Node #F000
+    Node: 0xF000,
+    NodeAdd: 0x1000,
+    NodeUpdate: 0x2000,
+    NodeDelete: 0x4000,
+    NodeTransform: 0x8000,
 
-    // Specials #0000F
-    Special: 0x0000F,
-    SpecialActiveFunction: 0x00001,
+    // Specials #F0000
+    Special: 0xF0000,
+    SpecialActiveFunction: 0x10000,
 } as const;
-export type PotatnoCodeUiManagerChangeType = typeof PotatnoCodeUiManagerChangeType[keyof typeof PotatnoCodeUiManagerChangeType];
+export type PotatnoCodeUiManagerChangeType = typeof PotatnoCodeUiManagerChangeType[keyof typeof PotatnoCodeUiManagerChangeType] | number;
 
 /**
  * Custom change event dispatched by the {@link PotatnoUiManager}

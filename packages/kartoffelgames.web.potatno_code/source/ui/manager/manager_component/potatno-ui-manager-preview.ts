@@ -174,7 +174,7 @@ export class PotatnoUiManagerPreview {
     private register(pTarget: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition>): void {
         // Save the new driver as the main preview of the target.
         this.mDrivers.set(pTarget, pDriver);
-        
+
         // Create a weak reference for the driver.
         const lDriverReference: WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>> = new WeakRef(pDriver);
 
@@ -214,13 +214,18 @@ export class PotatnoUiManagerPreview {
 
         // If it not, generate a new driver.
         const lPreviewDisplay: PotatnoPreviewDisplayItem<PotatnoProjectTypesDefinition> | null = this.mManager.project.preview.getDisplay(pDisplayId);
-        if(!lPreviewDisplay) {
+        if (!lPreviewDisplay) {
             throw new Exception(`Preview has no display for "${pDisplayId}".`, this);
         }
 
         // Create and register driver.
-        const lDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition> =  lPreviewDisplay.createDriver(pTarget);
+        const lDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition> = lPreviewDisplay.createDriver(pTarget);
         this.register(pTarget, lDriver);
+
+        // Try to refresh the drivers code when the current documents integrity allows it.
+        if (this.mManager.integrity.isValid) {
+            lDriver.refresh();
+        }
 
         return lDriver;
     }

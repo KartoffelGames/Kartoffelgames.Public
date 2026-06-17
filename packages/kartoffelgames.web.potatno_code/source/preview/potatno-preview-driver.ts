@@ -95,26 +95,35 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
 
         // Something happens. Do nothing.
         if (!lGeneratorResult) {
+            // Stop execution of updates and cancel refresh.
+            this.mCachedCallable = null;
             return;
         }
 
         // Resolve the executor port target. 
         // - Output ports resolve to their generated valueId.
         // - Input ports should eighter be resolved to the connected input port or the static input value.
-        const lPortTarget: PotatnoPreviewFunctionExecutorPortTarget<TProjectTypes> | null = (() => {
-            // No port specified use the funcitons "MAIN" preview.
-            if (!(this.mTarget instanceof PotatnoDocumentPort)) {
-                return null;
+        let lPortTarget: PotatnoPreviewFunctionExecutorPortTarget<TProjectTypes> | null = null;
+
+        // No port specified use the funcitons "MAIN" preview.
+        if (this.mTarget instanceof PotatnoDocumentPort) {
+            lPortTarget = this.resolvePortTarget(lGeneratorResult, this.mTarget);
+
+            // When no port was found, abort!
+            if(!lPortTarget) {
+                // Stop execution of updates and cancel refresh.
+                this.mCachedCallable = null;
+                return;
             }
-
-            return this.resolvePortTarget(lGeneratorResult, this.mTarget);
-        })();
-
+        }
+        
         // Build the result.
         const lBuildResult: PotatnoPreviewFunctionExecutorBuildResult<Record<string, unknown>, PotatnoPreviewResultType<TProjectTypes>> = this.mDisplay.executor.compile(lGeneratorResult, lPortTarget);
 
-        // The adapter record defines every type the display can render — no adapter, no preview.
+        // The adapter record defines every type the display can render, no adapter, no preview.
         if (!this.mDisplay.allowsType(lBuildResult.type)) {
+            // Stop execution of updates and cancel refresh.
+            this.mCachedCallable = null;
             return;
         }
 
@@ -147,7 +156,7 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
      *
      * @returns The executor port target, or `null` when the port was not emitted.
      */
-    private resolvePortTarget(pGeneratorResult: PotatnoCodeGeneratorDocumentResult<TProjectTypes>, pPort: PotatnoDocumentPort<TProjectTypes>): PotatnoPreviewFunctionExecutorPortTarget<TProjectTypes> {
+    private resolvePortTarget(pGeneratorResult: PotatnoCodeGeneratorDocumentResult<TProjectTypes>, pPort: PotatnoDocumentPort<TProjectTypes>): PotatnoPreviewFunctionExecutorPortTarget<TProjectTypes> | null {
         // Resolve targets port into its value and node hook id. 
         const [lPortValue, lNodeId] = (() => {
             // Each each graph of the main entry function.
@@ -159,8 +168,14 @@ export class PotatnoPreviewDriver<TProjectTypes extends PotatnoProjectTypesDefin
                 }
             }
 
-            throw new Exception(`Port target "${pPort.label}" could not be found.`, this);
+            // This can happend when the node is not connected.
+            return [null, null];
         })();
+
+        // Nothing was found, return nothing.
+        if (!lPortValue || !lNodeId) {
+            return null;
+        }
 
         // Set position of nodes hook position.
         const lHookPosition: string = (() => {

@@ -77,7 +77,7 @@ export class PotatnoUiManagerGraph {
         }
 
         // Notify for the removed function and for the newly active one.
-        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.Function, lRemovedFunction);
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.FunctionDelete, lRemovedFunction);
 
         // Set a default function for the changed document.
         this.setDefaultActiveFunction();
@@ -136,7 +136,7 @@ export class PotatnoUiManagerGraph {
         lDocument.addFunction(lFunction);
 
         // Dispatch function add event.
-        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.Function, lFunction);
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.FunctionAdd, lFunction);
 
         // Set the function as new active.
         this.mManager.setActiveFunction(lFunction.id);
@@ -154,7 +154,7 @@ export class PotatnoUiManagerGraph {
     public addNode(pFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition>, pDefinition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition>, pTransformation: PotatnoDocumentNodeTransformation): PotatnoDocumentNode<PotatnoProjectTypesDefinition> {
         // Add node to function.
         const lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = pFunction.addNodeByDefinition(pDefinition, pTransformation);
-        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.Node, lNode);
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.NodeAdd, lNode);
 
         return lNode;
     }
@@ -168,7 +168,7 @@ export class PotatnoUiManagerGraph {
         lNode.function.removeNode(lNode);
 
         // Notify per removed node.
-        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.Node, lNode);
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.NodeDelete, lNode);
     }
 
     /**
@@ -188,8 +188,8 @@ export class PotatnoUiManagerGraph {
         }
 
         // Dispatch for from-node as well as to-node.
-        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.Connection, pSource);
-        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.Connection, pTarget);
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.ConnectionAdd, pSource);
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.ConnectionAdd, pTarget);
 
         return true;
     }
@@ -204,8 +204,8 @@ export class PotatnoUiManagerGraph {
         pSource.disconnect(pTarget);
 
         // Dispatch for from-node as well as to-node.
-        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.Connection, pSource);
-        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.Connection, pTarget);
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.ConnectionDelete, pSource);
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.ConnectionDelete, pTarget);
     }
 
     /**
@@ -217,7 +217,7 @@ export class PotatnoUiManagerGraph {
     public setPortDirectValue(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pValues: Array<string>): void {
         pPort.setDirectValue(pValues);
 
-        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.Node, pPort);
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.NodeUpdate, pPort);
     }
 
     /**
@@ -236,7 +236,7 @@ export class PotatnoUiManagerGraph {
         pUpdater(pNode);
 
         // Dispatch changes.
-        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.Node, pNode);
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.NodeUpdate, pNode);
     }
 
     /**

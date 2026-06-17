@@ -1,10 +1,10 @@
-import { Exception } from "@kartoffelgames/core";
-import { PotatnoFunctionNodeDefinition } from "../project/node_definition/potatno-function-node-definition.ts";
-import { PotatnoNodeDefinition } from "../project/node_definition/potatno-node-definition.ts";
-import { PotatnoProjectTypesDefinition } from "../project/potatno-project-types-definition.ts";
-import { PotatnoProject } from "../project/potatno-project.ts";
-import { IPotatnoDocumentItem } from "./i-potatno-document-item.interface.ts";
-import { PotatnoDocumentFunction, PotatnoDocumentFunctionConstructorParameter } from './potatno-document-function.ts';
+import { Exception } from '@kartoffelgames/core';
+import { PotatnoFunctionNodeDefinition } from '../project/node_definition/potatno-function-node-definition.ts';
+import type { PotatnoNodeDefinition } from '../project/node_definition/potatno-node-definition.ts';
+import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
+import type { PotatnoProject } from '../project/potatno-project.ts';
+import type { IPotatnoDocumentItem } from './i-potatno-document-item.interface.ts';
+import { PotatnoDocumentFunction, type PotatnoDocumentFunctionConstructorParameter } from './potatno-document-function.ts';
 
 /**
  * Represents the mutable document state of a PotatnoCode file.

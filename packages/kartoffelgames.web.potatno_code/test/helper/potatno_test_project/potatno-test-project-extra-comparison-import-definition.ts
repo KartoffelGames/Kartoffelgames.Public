@@ -1,6 +1,6 @@
 import { PotatnoStaticNodeDefinition } from '../../../source/project/node_definition/potatno-static-node-definition.ts';
 import { PotatnoImportDefinition } from '../../../source/project/potatno-import-definition.ts';
-import { PotatnoTestProjectTypesDefinition } from './potatno-test-project-types-definition.ts';
+import type { PotatnoTestProjectTypesDefinition } from './potatno-test-project-types-definition.ts';
 
 /**
  * Extra comparison import definition for the PotatnoCode test project.

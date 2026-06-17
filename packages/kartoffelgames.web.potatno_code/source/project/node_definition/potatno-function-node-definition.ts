@@ -1,7 +1,7 @@
-import { PotatnoDocumentFunction, PotatnoDocumentFunctionPort } from "../../document/potatno-document-function.ts";
-import { PotatnoFunctionDefinition } from "../potatno-function-definition.ts";
-import { PotatnoProjectTypesDefinition } from "../potatno-project-types-definition.ts";
-import { PotatnoNodeDefinition, PotatnoNodeDefinitionPortGeneratorFunction } from "./potatno-node-definition.ts";
+import type { PotatnoDocumentFunction, PotatnoDocumentFunctionPort } from '../../document/potatno-document-function.ts';
+import type { PotatnoFunctionDefinition } from '../potatno-function-definition.ts';
+import type { PotatnoProjectTypesDefinition } from '../potatno-project-types-definition.ts';
+import { PotatnoNodeDefinition, type PotatnoNodeDefinitionPortGeneratorFunction } from './potatno-node-definition.ts';
 
 /**
  * A live node definition derived from a PotatnoDocumentFunction.

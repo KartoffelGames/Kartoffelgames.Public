@@ -2,9 +2,9 @@ import { PotatnoDocument } from '../../source/document/potatno-document.ts';
 import { PotatnoCodeApplication } from '../../source/potatno-code-application.ts';
 import { PotatnoPreviewFunctionExecutor } from '../../source/preview/potatno-preview-function-executor.ts';
 import { CanvasProject } from './project/canvas-project.ts';
-import { CanvasProjectMathImportDefinition } from "./project/import/canvas-project-math-import-definition.ts";
-import { CanvasProjectTimeImportDefinition } from "./project/import/canvas-project-time-import-definition.ts";
-import { CanvasProjectPreviewDisplay } from "./project/preview/canvas-project-preview-display.ts";
+import { CanvasProjectMathImportDefinition } from './project/import/canvas-project-math-import-definition.ts';
+import { CanvasProjectTimeImportDefinition } from './project/import/canvas-project-time-import-definition.ts';
+import { CanvasProjectPreviewDisplay } from './project/preview/canvas-project-preview-display.ts';
 
 const lProject = new CanvasProject();
 

@@ -1,6 +1,6 @@
-import { PotatnoDocument } from "../../document/potatno-document.ts";
-import { PotatnoProjectTypesDefinition } from "../../project/potatno-project-types-definition.ts";
-import { PotatnoCodeGeneratorFunctionResult } from "./potatno-code-generator-function-result.ts";
+import type { PotatnoDocument } from '../../document/potatno-document.ts';
+import type { PotatnoProjectTypesDefinition } from '../../project/potatno-project-types-definition.ts';
+import type { PotatnoCodeGeneratorFunctionResult } from './potatno-code-generator-function-result.ts';
 
 /**
  * Document code generation result for a entry point.

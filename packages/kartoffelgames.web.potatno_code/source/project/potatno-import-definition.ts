@@ -1,5 +1,5 @@
 import type { PotatnoStaticNodeDefinition } from './node_definition/potatno-static-node-definition.ts';
-import { PotatnoProjectTypesDefinition } from "./potatno-project-types-definition.ts";
+import type { PotatnoProjectTypesDefinition } from './potatno-project-types-definition.ts';
 
 /**
  * Definition of an import group.

@@ -1,6 +1,6 @@
-import { Exception } from "@kartoffelgames/core";
-import { PotatnoPortDefinition, PotatnoPortDefinitionConfiguration } from "../potatno-port-definition.ts";
-import { PotatnoProjectTypesDefinition } from "../potatno-project-types-definition.ts";
+import { Exception } from '@kartoffelgames/core';
+import { PotatnoPortDefinition, type PotatnoPortDefinitionConfiguration } from '../potatno-port-definition.ts';
+import type { PotatnoProjectTypesDefinition } from '../potatno-project-types-definition.ts';
 
 /**
  * Potatno node definition that changes dynamically based on the provided context.

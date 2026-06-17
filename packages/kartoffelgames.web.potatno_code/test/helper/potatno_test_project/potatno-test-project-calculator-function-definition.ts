@@ -1,7 +1,7 @@
 import { PotatnoStaticNodeDefinition } from '../../../source/project/node_definition/potatno-static-node-definition.ts';
 import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from '../../../source/project/potatno-function-definition.ts';
 import { PotatnoTestProjectGlobalMultiplierVariable } from './potatno-test-project-global-multiplier-variable.ts';
-import { PotatnoTestProjectTypesDefinition } from './potatno-test-project-types-definition.ts';
+import type { PotatnoTestProjectTypesDefinition } from './potatno-test-project-types-definition.ts';
 
 /**
  * Main calculator function definition for the PotatnoCode test project.

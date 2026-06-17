@@ -2,7 +2,7 @@ import { expect } from '@kartoffelgames/core-test';
 import { PotatnoStaticNodeDefinition } from '../../source/project/node_definition/potatno-static-node-definition.ts';
 import { PotatnoImportDefinition } from '../../source/project/potatno-import-definition.ts';
 import type { PotatnoProject } from '../../source/project/potatno-project.ts';
-import { PotatnoTestProjectTypesDefinition } from "../helper/potatno_test_project/potatno-test-project-types-definition.ts";
+import type { PotatnoTestProjectTypesDefinition } from '../helper/potatno_test_project/potatno-test-project-types-definition.ts';
 
 Deno.test('new PotatnoImportDefinition()', async (pContext) => {
     await pContext.step('Construct with id and label', () => {

@@ -5,13 +5,13 @@ import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import type { PotatnoDocument, PotatnoDocumentPortValidationError } from '../document/potatno-document.ts';
 import { FlowConjunctionNodeDefinition } from '../project/node_definition/potatno-flow-conjunction-node-definition.ts';
 import { PotatnoFunctionNodeDefinition } from '../project/node_definition/potatno-function-node-definition.ts';
-import { type PotatnoCodeGeneratorInputPort, type PotatnoCodeGeneratorOutputPort, PotatnoNodeDefinition } from '../project/node_definition/potatno-node-definition.ts';
+import type { PotatnoCodeGeneratorInputPort, PotatnoCodeGeneratorOutputPort, PotatnoNodeDefinition } from '../project/node_definition/potatno-node-definition.ts';
 import { ValueConjunctionNodeDefinition } from '../project/node_definition/potatno-value-conjunction-node-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import { PotatnoCodeGeneratorDocumentResult } from './result/potatno-code-generator-document-result.ts';
 import { PotatnoCodeGeneratorFunctionResult } from './result/potatno-code-generator-function-result.ts';
 import { PotatnoCodeGeneratorNodeResult } from './result/potatno-code-generator-node-result.ts';
-import { PotatnoProjectTypesDefinition } from "../project/potatno-project-types-definition.ts";
+import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
 
 /**
  * Code generator for Potatno documents.

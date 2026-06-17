@@ -1,4 +1,4 @@
-import { PotatnoPortDefinitionDirection, PotatnoPortDefinitionType } from "../project/potatno-port-definition.ts";
+import type { PotatnoPortDefinitionDirection, PotatnoPortDefinitionType } from '../project/potatno-port-definition.ts';
 
 /**
  * Top-level metadata structure for serialization.

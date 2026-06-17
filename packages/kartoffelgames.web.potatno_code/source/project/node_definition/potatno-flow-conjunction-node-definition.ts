@@ -1,5 +1,5 @@
-import { Exception } from "@kartoffelgames/core";
-import { PotatnoProjectTypesDefinition } from "../potatno-project-types-definition.ts";
+import { Exception } from '@kartoffelgames/core';
+import type { PotatnoProjectTypesDefinition } from '../potatno-project-types-definition.ts';
 import { PotatnoNodeDefinition } from './potatno-node-definition.ts';
 
 export class FlowConjunctionNodeDefinition<TProjectTypes extends PotatnoProjectTypesDefinition> extends PotatnoNodeDefinition<TProjectTypes> {

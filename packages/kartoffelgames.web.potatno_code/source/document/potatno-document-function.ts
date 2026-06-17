@@ -1,12 +1,12 @@
-import { Exception } from "@kartoffelgames/core";
-import type { PotatnoNodeDefinition } from "../project/node_definition/potatno-node-definition.ts";
-import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionNodes } from "../project/potatno-function-definition.ts";
-import { PotatnoPortDefinition } from "../project/potatno-port-definition.ts";
-import { PotatnoProjectTypeNames, PotatnoProjectTypesDefinition } from "../project/potatno-project-types-definition.ts";
+import { Exception } from '@kartoffelgames/core';
+import type { PotatnoNodeDefinition } from '../project/node_definition/potatno-node-definition.ts';
+import type { PotatnoFunctionDefinition, PotatnoFunctionDefinitionNodes } from '../project/potatno-function-definition.ts';
+import type { PotatnoPortDefinition } from '../project/potatno-port-definition.ts';
+import type { PotatnoProjectTypeNames, PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { IPotatnoDocumentItem } from './i-potatno-document-item.interface.ts';
-import { PotatnoDocumentNode, PotatnoDocumentNodePortConfiguration, PotatnoDocumentNodeTransformation } from "./potatno-document-node.ts";
-import { PotatnoDocument, PotatnoDocumentPortValidationError } from "./potatno-document.ts";
+import { PotatnoDocumentNode, type PotatnoDocumentNodePortConfiguration, type PotatnoDocumentNodeTransformation } from './potatno-document-node.ts';
+import { type PotatnoDocument, PotatnoDocumentPortValidationError } from './potatno-document.ts';
 
 /**
  * Represents a user-editable function containing a sub-graph.

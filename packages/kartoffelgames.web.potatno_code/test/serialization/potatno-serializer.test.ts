@@ -1,10 +1,10 @@
 import { expect } from '@kartoffelgames/core-test';
-import { PotatnoDocumentFunction } from '../../source/document/potatno-document-function.ts';
-import { PotatnoDocumentNode } from '../../source/document/potatno-document-node.ts';
+import type { PotatnoDocumentFunction } from '../../source/document/potatno-document-function.ts';
+import type { PotatnoDocumentNode } from '../../source/document/potatno-document-node.ts';
 import { PotatnoDocument } from '../../source/document/potatno-document.ts';
 import { PotatnoSerializer } from '../../source/serialization/potatno-serializer.ts';
 import { PotatnoHelper } from '../helper/potatno-helper.ts';
-import { PotatnoTestProjectTypesDefinition } from "../helper/potatno_test_project/potatno-test-project-types-definition.ts";
+import type { PotatnoTestProjectTypesDefinition } from '../helper/potatno_test_project/potatno-test-project-types-definition.ts';
 
 // Structural equivalence helper. Compares functions, nodes, ports, and the
 // connection multiset without depending on node-identity equality (the

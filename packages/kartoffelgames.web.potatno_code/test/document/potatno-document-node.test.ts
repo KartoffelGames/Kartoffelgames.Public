@@ -1,7 +1,7 @@
 import { expect } from '@kartoffelgames/core-test';
 import { PotatnoStaticNodeDefinition } from '../../source/project/node_definition/potatno-static-node-definition.ts';
 import { PotatnoHelper } from '../helper/potatno-helper.ts';
-import { PotatnoTestProjectTypesDefinition } from "../helper/potatno_test_project/potatno-test-project-types-definition.ts";
+import type { PotatnoTestProjectTypesDefinition } from '../helper/potatno_test_project/potatno-test-project-types-definition.ts';
 
 Deno.test('PotatnoDocumentNode.constructor()', async (pContext) => {
     await pContext.step('Sets category snapshot from constructor', () => {

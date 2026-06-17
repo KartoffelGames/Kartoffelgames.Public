@@ -1,7 +1,7 @@
 import { PotatnoNodeDefinition } from '../../../source/project/node_definition/potatno-node-definition.ts';
 import { PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from '../../../source/project/potatno-function-definition.ts';
 import { PotatnoTestProjectGlobalMultiplierVariable } from './potatno-test-project-global-multiplier-variable.ts';
-import { PotatnoTestProjectTypesDefinition } from './potatno-test-project-types-definition.ts';
+import type { PotatnoTestProjectTypesDefinition } from './potatno-test-project-types-definition.ts';
 
 /**
  * Dynamic helper function definition for the PotatnoCode test project.

@@ -1,11 +1,11 @@
 import { PwbApplication } from '@kartoffelgames/web-potato-web-builder';
 import { PotatnoDocument } from './document/potatno-document.ts';
-import { PotatnoProject } from './project/potatno-project.ts';
+import type { PotatnoProject } from './project/potatno-project.ts';
 import { PotatnoCodeEditor } from './ui/component/potatno_code_editor/potatno-code-editor.ts';
 
 import applicationCss from './potatno-code-application.css' with { type: 'text' };
 import themeCss from './ui/component/potatno-theme.css' with { type: 'text' };
-import { PotatnoProjectTypesDefinition } from "./project/potatno-project-types-definition.ts";
+import type { PotatnoProjectTypesDefinition } from './project/potatno-project-types-definition.ts';
 
 /*
  * TODO: UI
@@ -18,7 +18,7 @@ import { PotatnoProjectTypesDefinition } from "./project/potatno-project-types-d
  * backed by a PotatnoProject (configuration) and a PotatnoCodeFile (document state).
  */
 export class PotatnoCodeApplication<TProjectTypes extends PotatnoProjectTypesDefinition> extends PwbApplication {
-    private mCodeEditor: PotatnoCodeEditor;
+    private readonly mCodeEditor: PotatnoCodeEditor;
     private readonly mProject: PotatnoProject<TProjectTypes>;
 
     /**
@@ -67,7 +67,7 @@ export class PotatnoCodeApplication<TProjectTypes extends PotatnoProjectTypesDef
      * @returns A promise resolving once the current render pass finishes, so a frame loop can
      * await it and avoid overlapping renders.
      */
-    public update(): Promise<void> {
+    public async update(): Promise<void> {
         return this.mCodeEditor.triggerPreviewUpdate();
     }
 }

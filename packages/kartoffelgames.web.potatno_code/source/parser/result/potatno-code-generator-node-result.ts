@@ -1,7 +1,7 @@
-import type { PotatnoDocumentFunction } from "../../document/potatno-document-function.ts";
+import type { PotatnoDocumentFunction } from '../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../document/potatno-document-port.ts';
-import { PotatnoProjectTypesDefinition } from "../../project/potatno-project-types-definition.ts";
+import type { PotatnoProjectTypesDefinition } from '../../project/potatno-project-types-definition.ts';
 
 /**
  * Per-graph generation output produced by the code generator.

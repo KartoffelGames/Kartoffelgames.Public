@@ -2,7 +2,7 @@ import { Exception } from '@kartoffelgames/core';
 import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
-import { PotatnoPreviewDriver, PotatnoPreviewDriverDisplay } from './potatno-preview-driver.ts';
+import { PotatnoPreviewDriver, type PotatnoPreviewDriverDisplay } from './potatno-preview-driver.ts';
 import type { PotatnoPreviewFunctionExecutor, PotatnoPreviewResultType } from './potatno-preview-function-executor.ts';
 
 /**

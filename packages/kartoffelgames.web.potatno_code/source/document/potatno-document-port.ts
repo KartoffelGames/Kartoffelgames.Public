@@ -1,10 +1,10 @@
-import { Exception } from "@kartoffelgames/core";
-import { PotatnoPortDefinitionDirection, PotatnoPortDefinitionType } from "../project/potatno-port-definition.ts";
-import { PotatnoProjectGenericType, PotatnoProjectTypeNames, PotatnoProjectTypesDefinition } from "../project/potatno-project-types-definition.ts";
-import { PotatnoProject } from "../project/potatno-project.ts";
-import { IPotatnoDocumentItem } from "./i-potatno-document-item.interface.ts";
-import { PotatnoDocumentNode } from "./potatno-document-node.ts";
-import { PotatnoDocument, PotatnoDocumentPortValidationError } from "./potatno-document.ts";
+import { Exception } from '@kartoffelgames/core';
+import type { PotatnoPortDefinitionDirection, PotatnoPortDefinitionType } from '../project/potatno-port-definition.ts';
+import type { PotatnoProjectGenericType, PotatnoProjectTypeNames, PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
+import type { PotatnoProject } from '../project/potatno-project.ts';
+import type { IPotatnoDocumentItem } from './i-potatno-document-item.interface.ts';
+import type { PotatnoDocumentNode } from './potatno-document-node.ts';
+import { type PotatnoDocument, PotatnoDocumentPortValidationError } from './potatno-document.ts';
 
 /**
  * A data port instance on a node.

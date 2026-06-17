@@ -6,7 +6,7 @@ import { PotatnoFunctionDefinition } from '../../source/project/potatno-function
 import { PotatnoProjectTypesDefinition } from '../../source/project/potatno-project-types-definition.ts';
 import { PotatnoProject } from '../../source/project/potatno-project.ts';
 import { PotatnoHelper } from '../helper/potatno-helper.ts';
-import { PotatnoTestProjectTypesDefinition } from "../helper/potatno_test_project/potatno-test-project-types-definition.ts";
+import type { PotatnoTestProjectTypesDefinition } from '../helper/potatno_test_project/potatno-test-project-types-definition.ts';
 
 Deno.test('PotatnoCodeGenerator.generateDocument()', async (pContext) => {
     await pContext.step('Document', async (pContext) => {

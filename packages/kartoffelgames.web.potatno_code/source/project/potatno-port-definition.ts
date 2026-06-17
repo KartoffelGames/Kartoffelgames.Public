@@ -1,4 +1,4 @@
-import { PotatnoProjectGenericType, PotatnoProjectTypeNames, PotatnoProjectTypesDefinition } from "./potatno-project-types-definition.ts";
+import type { PotatnoProjectGenericType, PotatnoProjectTypeNames, PotatnoProjectTypesDefinition } from './potatno-project-types-definition.ts';
 
 /**
  * Definition of a port on a node, used for type checking and code generation.

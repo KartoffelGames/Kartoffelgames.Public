@@ -1,7 +1,7 @@
 import { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
-import { PotatnoDocumentNode, PotatnoDocumentNodePortConfiguration } from '../document/potatno-document-node.ts';
+import { PotatnoDocumentNode, type PotatnoDocumentNodePortConfiguration } from '../document/potatno-document-node.ts';
 import { PotatnoDocument } from '../document/potatno-document.ts';
-import { PotatnoProjectTypesDefinition } from "../project/potatno-project-types-definition.ts";
+import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { PotatnoCodeFileSerializationResult, SerializedFunction, SerializedNode } from './potatno-serialization.type.ts';
 

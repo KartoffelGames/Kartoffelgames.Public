@@ -3,8 +3,8 @@ import type { PotatnoDocumentNode } from '../../source/document/potatno-document
 import { PotatnoDocument } from '../../source/document/potatno-document.ts';
 import { PotatnoDeserializer } from '../../source/serialization/potatno-deserializer.ts';
 import { PotatnoSerializer } from '../../source/serialization/potatno-serializer.ts';
-import { PotatnoTestProjectTypesDefinition } from "./potatno_test_project/potatno-test-project-types-definition.ts";
-import { PotatnoTestProject } from "./potatno_test_project/potatno-test-project.ts";
+import type { PotatnoTestProjectTypesDefinition } from './potatno_test_project/potatno-test-project-types-definition.ts';
+import { PotatnoTestProject } from './potatno_test_project/potatno-test-project.ts';
 
 /**
  * Shared test helper for the PotatnoCode test suite.

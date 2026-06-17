@@ -1,7 +1,7 @@
-import { PotatnoDocumentFunction } from "../document/potatno-document-function.ts";
-import { PotatnoCodeGeneratorFunctionResult } from "../parser/result/potatno-code-generator-function-result.ts";
-import { PotatnoNodeDefinition, PotatnoNodeDefinitionGeneratorContext } from "./node_definition/potatno-node-definition.ts";
-import { PotatnoProjectTypesDefinition } from "./potatno-project-types-definition.ts";
+import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
+import type { PotatnoCodeGeneratorFunctionResult } from '../parser/result/potatno-code-generator-function-result.ts';
+import type { PotatnoNodeDefinition, PotatnoNodeDefinitionGeneratorContext } from './node_definition/potatno-node-definition.ts';
+import type { PotatnoProjectTypesDefinition } from './potatno-project-types-definition.ts';
 
 /**
  * Definition of a entry point blueprint.

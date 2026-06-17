@@ -1,6 +1,6 @@
-import { PotatnoProjectTypesDefinition } from "../project/potatno-project-types-definition.ts";
+import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
-import { PotatnoDocument } from "./potatno-document.ts";
+import type { PotatnoDocument } from './potatno-document.ts';
 
 /**
  * General potatno document item.

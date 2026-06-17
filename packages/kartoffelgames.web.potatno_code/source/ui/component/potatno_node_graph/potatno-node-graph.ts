@@ -221,10 +221,10 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         // Refresh the graph whenever the document, active function, or graph structure changes.
         // A document load or function switch resets all interaction state first.
         this.mUnsubscribe = this.mManager.subscribe(
-            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.ActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection,
+            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection,
             null,
             (pEvent) => {
-                if (pEvent.changeType === PotatnoCodeUiManagerChangeType.Document || pEvent.changeType === PotatnoCodeUiManagerChangeType.Function || pEvent.changeType === PotatnoCodeUiManagerChangeType.ActiveFunction) {
+                if ((pEvent.changeType & PotatnoCodeUiManagerChangeType.Document) > 0 || (pEvent.changeType & PotatnoCodeUiManagerChangeType.Function) > 0 || (pEvent.changeType & PotatnoCodeUiManagerChangeType.SpecialActiveFunction) > 0) {
                     this.resetForActiveFunction();
                 }
 

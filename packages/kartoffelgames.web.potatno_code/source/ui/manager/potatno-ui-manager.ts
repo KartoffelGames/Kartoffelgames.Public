@@ -223,7 +223,7 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
         for (const lFunction of lDocument.functions) {
             if (lFunction.id === pFunctionId) {
                 this.mActiveFunctionId = pFunctionId;
-                this.dispatch(PotatnoCodeUiManagerChangeType.ActiveFunction, lFunction);
+                this.dispatch(PotatnoCodeUiManagerChangeType.SpecialActiveFunction, lFunction);
                 return;
             }
         }
@@ -292,6 +292,8 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
      * @param pItem - The document item the change refers to, or `null` when no single item applies.
      */
     public dispatch(pType: PotatnoCodeUiManagerChangeType, pItem: PotatnoUiManagerChangeEventTarget | null): void {
+        // TODO: Catch all change types for a item and dispatch a single merged event flag for each unique item. 
+
         // Create and dispatch custom change event.
         this.dispatchEvent(new PotatnoUiManagerChangeEvent(pType, pItem));
     }
@@ -301,17 +303,30 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
  * Event types fired by {@link PotatnoUiManager}.
  */
 export const PotatnoCodeUiManagerChangeType = {
-    Any: 0,
-    Connection: 1,
-    Document: 2,
-    Function: 4,
-    Node: 8,
-    NodeTransform: 16,
+    Any: 0xFFFFF,
 
-    // Specials 
-    // TODO: Mabe that can be changed?
-    Preview: 32,
-    ActiveFunction: 64
+    // Connections #F
+    Connection: 0xF,
+
+    // Document #0F
+    Document: 0x0F,
+
+    // Function #00F
+    Function: 0x00F,
+    FunctionAdd: 0x001,
+    FunctionUpdate: 0x002,
+    FunctionDelete: 0x004,
+
+    // Node #000F
+    Node: 0x000F,
+    NodeAdd: 0x0001,
+    NodeUpdate: 0x0002,
+    NodeDelete: 0x0004,
+    NodeTransform: 0x0008,
+
+    // Specials #0000F
+    Special: 0x0000F,
+    SpecialActiveFunction: 0x00001,
 } as const;
 export type PotatnoCodeUiManagerChangeType = typeof PotatnoCodeUiManagerChangeType[keyof typeof PotatnoCodeUiManagerChangeType];
 

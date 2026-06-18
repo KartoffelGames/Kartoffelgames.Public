@@ -9,8 +9,6 @@ export class PotatnoCanvasInteraction {
     private readonly mGridSize: number;
     private mPanX: number;
     private mPanY: number;
-    private mSelectionEnd: { x: number; y: number } | null;
-    private mSelectionStart: { x: number; y: number } | null;
     private mZoom: number;
 
     /**
@@ -35,20 +33,6 @@ export class PotatnoCanvasInteraction {
     }
 
     /**
-     * End point of the selection box in world coordinates, or null if no selection is active.
-     */
-    public get selectionEnd(): { x: number; y: number } | null {
-        return this.mSelectionEnd;
-    }
-
-    /**
-     * Start point of the selection box in world coordinates, or null if no selection is active.
-     */
-    public get selectionStart(): { x: number; y: number } | null {
-        return this.mSelectionStart;
-    }
-
-    /**
      * Current zoom level.
      */
     public get zoom(): number {
@@ -65,16 +49,6 @@ export class PotatnoCanvasInteraction {
         this.mPanX = 0;
         this.mPanY = 0;
         this.mZoom = 1.0;
-        this.mSelectionStart = null;
-        this.mSelectionEnd = null;
-    }
-
-    /**
-     * Clear the selection box state.
-     */
-    public clearSelection(): void {
-        this.mSelectionStart = null;
-        this.mSelectionEnd = null;
     }
 
     /**
@@ -138,26 +112,6 @@ export class PotatnoCanvasInteraction {
     }
 
     /**
-     * Set the end point of the selection box in world coordinates.
-     *
-     * @param pWorldX - X position in world coordinates.
-     * @param pWorldY - Y position in world coordinates.
-     */
-    public setSelectionEnd(pWorldX: number, pWorldY: number): void {
-        this.mSelectionEnd = { x: pWorldX, y: pWorldY };
-    }
-
-    /**
-     * Set the start point of the selection box in world coordinates.
-     *
-     * @param pWorldX - X position in world coordinates.
-     * @param pWorldY - Y position in world coordinates.
-     */
-    public setSelectionStart(pWorldX: number, pWorldY: number): void {
-        this.mSelectionStart = { x: pWorldX, y: pWorldY };
-    }
-
-    /**
      * Snap the given world coordinates to the nearest grid point.
      *
      * @param pWorldX - X position in world coordinates.
@@ -169,22 +123,6 @@ export class PotatnoCanvasInteraction {
         return {
             x: Math.round(pWorldX / this.mGridSize) * this.mGridSize,
             y: Math.round(pWorldY / this.mGridSize) * this.mGridSize
-        };
-    }
-
-    /**
-     * Convert world coordinates to screen coordinates by applying the
-     * pan and zoom transforms.
-     *
-     * @param pWorldX - X position in world coordinates.
-     * @param pWorldY - Y position in world coordinates.
-     *
-     * @returns Screen coordinates.
-     */
-    public worldToScreen(pWorldX: number, pWorldY: number): { x: number; y: number } {
-        return {
-            x: pWorldX * this.mZoom + this.mPanX,
-            y: pWorldY * this.mZoom + this.mPanY
         };
     }
 

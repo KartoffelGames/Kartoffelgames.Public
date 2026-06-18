@@ -1,5 +1,6 @@
 :host {
     display: block;
+    height: 100%;
     width: 100%;
     font-family: var(--pn-font-family);
     font-size: var(--pn-font-size);
@@ -8,6 +9,10 @@
 /* ── Standard node container ── */
 
 .node {
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    min-height: 100%;
     min-width: var(--pn-node-min-width);
     background: var(--pn-node-bg);
     border: 1px solid var(--pn-node-border);
@@ -34,12 +39,13 @@
     display: flex;
     align-items: center;
     height: var(--pn-node-header-height);
-    padding: 0 8px;
-    gap: 6px;
+    padding: 0 var(--pn-grid-size);
+    gap: var(--pn-grid-half-size);
     border-radius: var(--pn-node-border-radius) var(--pn-node-border-radius) 0 0;
     color: #fff;
     font-weight: 600;
-    font-size: var(--pn-font-size-sm);
+    font-size: var(--pn-node-font-size);
+    line-height: var(--pn-grid-size);
     cursor: grab;
     --port-label-color: rgba(255, 255, 255, 0.9);
 }
@@ -49,12 +55,14 @@
 }
 
 .node-icon {
-    font-size: var(--pn-font-size);
+    font-size: var(--pn-node-font-size);
     flex-shrink: 0;
+    line-height: var(--pn-grid-size);
 }
 
 .node-label {
     flex: 1;
+    line-height: var(--pn-grid-size);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -64,9 +72,10 @@
 
 .node-body {
     display: flex;
+    flex: 1 0 auto;
     justify-content: space-between;
-    padding: 4px 0;
-    min-height: 4px;
+    min-height: calc(100% - var(--pn-node-header-height));
+    padding: 0;
 }
 
 .node-inputs,
@@ -77,13 +86,13 @@
 
 .node-inputs {
     align-items: flex-start;
-    margin-left: -8px;
+    margin-left: var(--pn-node-port-cell-offset);
 }
 
 .node-outputs {
     align-items: flex-end;
     margin-left: auto;
-    margin-right: -8px;
+    margin-right: var(--pn-node-port-cell-offset);
 }
 
 /* ── Value node text input ── */
@@ -133,8 +142,10 @@
     border: 1px solid currentColor;
     border-radius: 3px;
     color: inherit;
-    font-size: 9px;
-    padding: 1px 4px;
+    font-size: var(--pn-node-button-font-size);
+    height: var(--pn-grid-size);
+    line-height: 1;
+    padding: 0 3px;
     cursor: pointer;
     opacity: 0.7;
     flex-shrink: 0;
@@ -149,9 +160,10 @@
     border: 1px solid currentColor;
     border-radius: 3px;
     color: inherit;
-    font-size: 9px;
+    font-size: var(--pn-node-button-font-size);
+    height: var(--pn-grid-size);
     line-height: 1;
-    padding: 1px 4px;
+    padding: 0 3px;
     cursor: pointer;
     opacity: 0.55;
     flex-shrink: 0;
@@ -229,6 +241,8 @@
 /* ── Comment node ── */
 
 .node-comment {
+    box-sizing: border-box;
+    height: 100%;
     background: rgba(108, 112, 134, 0.1);
     border: 1px dashed var(--pn-cat-comment);
     border-radius: var(--pn-node-border-radius);
@@ -246,9 +260,11 @@
     display: flex;
     align-items: center;
     gap: 4px;
-    padding: 6px 8px 2px 8px;
+    height: var(--pn-node-header-height);
+    padding: 0 var(--pn-grid-size);
     color: var(--pn-text-muted);
-    font-size: var(--pn-font-size-sm);
+    font-size: var(--pn-node-font-size);
+    line-height: var(--pn-grid-size);
     cursor: grab;
 }
 
@@ -257,10 +273,13 @@
 }
 
 .comment-body {
-    padding: 2px 8px 8px 8px;
+    box-sizing: border-box;
+    height: calc(100% - var(--pn-node-header-height));
+    padding: 0 var(--pn-grid-size) var(--pn-grid-size) var(--pn-grid-size);
 }
 
 .comment-body textarea {
+    height: 100%;
     width: 100%;
     min-height: 32px;
     background: transparent;
@@ -301,6 +320,7 @@
 /* ── Node inline preview ── */
 
 .node-preview {
+    background: var(--pn-bg-secondary);
     overflow: hidden;
 }
 
@@ -309,7 +329,7 @@
 }
 
 .node-preview:not(:empty) {
-    padding: 4px;
+    padding: 6px;
     border-top: 1px solid var(--pn-node-border);
 }
 
@@ -319,6 +339,7 @@
     display: flex;
     align-items: center;
     gap: 0;
+    height: 100%;
     user-select: none;
 }
 
@@ -327,8 +348,8 @@
 }
 
 .reroute-dot {
-    width: 12px;
-    height: 12px;
+    width: var(--pn-grid-size);
+    height: var(--pn-grid-size);
     background: var(--pn-text-muted);
     border-radius: 2px;
     transform: rotate(45deg);
@@ -341,9 +362,9 @@
 }
 
 .reroute-inputs {
-    margin-right: -4px;
+    margin-right: var(--pn-node-port-cell-offset);
 }
 
 .reroute-outputs {
-    margin-left: -4px;
+    margin-left: var(--pn-node-port-cell-offset);
 }

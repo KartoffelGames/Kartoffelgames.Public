@@ -1,5 +1,5 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, ComponentEventEmitter, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEvent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { Component, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEvent, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
@@ -8,9 +8,9 @@ import { NodeCategory, NodeCategoryMeta } from "../../node/node-category.enum.ts
 import { PotatnoPortComponent, type PortInteractionDetail } from '../potatno_port/potatno-port.ts';
 import nodeCss from './potatno-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
-import { PotatnoPreviewDriver } from "../../../preview/potatno-preview-driver.ts";
-import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
-import { PotatnoProject } from "../../../project/potatno-project.ts";
+import type { PotatnoPreviewDriver } from "../../../preview/potatno-preview-driver.ts";
+import type { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
+import type { PotatnoProject } from "../../../project/potatno-project.ts";
 
 /**
  * Node component for the potatno-code visual editor.
@@ -242,13 +242,12 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     }
 
     /**
-     * Inline CSS style for comment node sizing.
+     * Inline CSS style for grid-sized node layout.
      */
-    public get commentSizeStyle(): string {
-        if (!this.nodeData) {
-            return '';
-        }
-        return `height: ${this.nodeData.transformation.height * this.gridSize}px;`;
+    public get nodeGridStyle(): string {
+        const lGridSize: number = this.gridSize;
+
+        return `--pn-grid-size: ${lGridSize}px; --pn-grid-half-size: ${lGridSize / 2}px; --pn-node-port-cell-offset: ${lGridSize / 2 - 7}px; --pn-node-port-gap: ${lGridSize}px;`;
     }
 
     /**

@@ -28,8 +28,7 @@ $if(this.nodeData) {
     }
     $if(!this.isReroute) {
     $if(this.isComment) {
-        <div class="node-comment {{this.selectedClass}} {{this.hasErrorClass}}"
-             [style]="this.commentSizeStyle">
+        <div class="node-comment {{this.selectedClass}} {{this.hasErrorClass}}">
             <div class="comment-header">
                 <span class="node-icon">{{this.categoryIcon}}</span>
                 <span class="node-label">{{this.nodeName}}</span>

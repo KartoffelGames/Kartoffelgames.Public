@@ -4,15 +4,10 @@
     (wheel)="this.onCanvasWheel($event)"
     (contextmenu)="this.onContextMenu($event)">
     <div #gridLayer class="grid-layer" [style]="this.gridTransformStyle">
-        <potatno-connection-layer [interaction]="this.canvasInteraction"></potatno-connection-layer>
-        $if(this.showTempConnection) {
-            <svg class="temp-wire-layer" xmlns="http://www.w3.org/2000/svg">
-                <path class="temp-wire" fill="none" d="{{this.tempWirePath}}"></path>
-            </svg>
-        }
+        <potatno-connection-layer [interaction]="this.canvasInteraction" [tempConnection]="this.tempConnection"></potatno-connection-layer>
         <div class="node-layer">
             $for(nodeState of this.visibleNodes) {
-                <div class="node-position" style="left:{{this.nodeState.pixelX}}px;top:{{this.nodeState.pixelY}}px;width:{{this.nodeState.pixelW}}px">
+                <div class="node-position" style="left:{{this.nodeState.pixelX}}px;top:{{this.nodeState.pixelY}}px;width:{{this.nodeState.pixelW}}px;height:{{this.nodeState.pixelH}}px">
                     <potatno-node
                         [nodeData]="this.nodeState.node"
                         [selected]="this.nodeState.selected"

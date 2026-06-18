@@ -1,10 +1,9 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, ComponentEventEmitter, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
+import { Component, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
+import type { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
-import { PotatnoPortRegistry } from '../../potatno-port-registry.ts';
 import portCss from './potatno-port.css' with { type: 'text' };
 import portTemplate from './potatno-port.html' with { type: 'text' };
 
@@ -24,9 +23,9 @@ import portTemplate from './potatno-port.html' with { type: 'text' };
 export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDeconstruct, IComponentOnUpdate {
     private readonly mComponent: Component;
     private mLastRegisteredElement: HTMLElement | null;
+    private mLastRegisteredHitElement: HTMLElement | null;
     private mLastRegisteredPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null;
     private readonly mManager: PotatnoUiManager;
-    private readonly mPortRegistry: PotatnoPortRegistry;
     private mUnsubscribe: (() => void) | null;
 
     /**
@@ -57,6 +56,12 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      */
     @PwbChild('portCircle')
     public accessor portCircleElement!: HTMLElement;
+
+    /**
+     * Reference to the full port row DOM element for pointer hit tests.
+     */
+    @PwbChild('portWrapper')
+    public accessor portWrapperElement!: HTMLElement;
 
     /**
      * Whether this port currently has a validation error.
@@ -97,6 +102,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         const lClasses: Array<string> = ['port-circle'];
         lClasses.push(this.port.connectedPorts.size > 0 ? 'connected' : 'disconnected');
         lClasses.push(this.port.direction === 'output' ? 'direction-output' : 'direction-input');
+        lClasses.push(this.port.portType === 'value' ? 'port-type-value' : 'port-type-flow');
         if (this.hasError) {
             lClasses.push('has-error');
         }
@@ -161,12 +167,12 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      * @param pComponent - Injected component reference, used to trigger self-updates.
      * @param pManager - Injected shared UI manager singleton.
      */
-    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager), pPortRegistry: PotatnoPortRegistry = Injection.use(PotatnoPortRegistry)) {
+    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mComponent = pComponent;
         this.mLastRegisteredElement = null;
+        this.mLastRegisteredHitElement = null;
         this.mLastRegisteredPort = null;
         this.mManager = pManager;
-        this.mPortRegistry = pPortRegistry;
         this.mUnsubscribe = null;
     }
 
@@ -183,23 +189,16 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     }
 
     /**
-     * Detach the manager subscription and drop this port's element registration.
+     * Detach the manager subscription.
      */
     public onDeconstruct(): void {
         this.mUnsubscribe?.();
         this.mUnsubscribe = null;
-
-        if (this.mLastRegisteredPort) {
-            this.mPortRegistry.unregister(this.mLastRegisteredPort);
-            this.mLastRegisteredElement = null;
-            this.mLastRegisteredPort = null;
-        }
     }
 
     /**
-     * After each update, register this port's circle element with the shared port registry so the
-     * connection layer can anchor wires to it. Only re-registers when the port reference changes to
-     * avoid redundant work on every tick.
+     * After each update, register this port's anchor and hit elements with the shared grid manager.
+     * The connection layer anchors wires to the small handle, while interaction can use the full row.
      */
     public onUpdate(): void {
         const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.port;
@@ -209,24 +208,22 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         }
 
         let lCircleEl: HTMLElement;
+        let lWrapperEl: HTMLElement;
         try {
             lCircleEl = this.portCircleElement;
+            lWrapperEl = this.portWrapperElement;
         } catch {
             return;
         }
 
-        if (lPort === this.mLastRegisteredPort && lCircleEl === this.mLastRegisteredElement) {
+        if (lPort === this.mLastRegisteredPort && lCircleEl === this.mLastRegisteredElement && lWrapperEl === this.mLastRegisteredHitElement) {
             return;
         }
 
-        // Drop the previous port's registration when this component is recycled for another port.
-        if (this.mLastRegisteredPort && this.mLastRegisteredPort !== lPort) {
-            this.mPortRegistry.unregister(this.mLastRegisteredPort);
-        }
-
         this.mLastRegisteredElement = lCircleEl;
+        this.mLastRegisteredHitElement = lWrapperEl;
         this.mLastRegisteredPort = lPort;
-        this.mPortRegistry.register(lPort, lCircleEl);
+        this.mManager.grid.registerPortElement(lPort, lCircleEl, lWrapperEl);
 
         // The port element's real position is now known; nudge the connection layer to redraw any
         // wire that used an estimated anchor before this port mounted. An empty transformation
@@ -254,10 +251,8 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
 
     /**
      * Handle pointer enter on the port circle for connection drop targeting.
-     *
-     * @param _pEvent - Unused pointer event.
      */
-    public onPointerEnter(_pEvent: PointerEvent): void {
+    public onPointerEnter(): void {
         if (!this.port || !this.ownerNode) {
             return;
         }
@@ -270,10 +265,8 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
 
     /**
      * Handle pointer leave on the port circle.
-     *
-     * @param _pEvent - Unused pointer event.
      */
-    public onPointerLeave(_pEvent: PointerEvent): void {
+    public onPointerLeave(): void {
         this.mPortLeave.dispatchEvent(undefined as unknown as void);
     }
 

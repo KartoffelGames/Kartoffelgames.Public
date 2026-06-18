@@ -4,6 +4,7 @@
 }
 
 .port-wrapper {
+    cursor: crosshair;
     display: flex;
     align-items: center;
     gap: 6px;
@@ -16,84 +17,97 @@
 }
 
 .port-circle {
-    width: 16px;
-    height: 14px;
+    width: var(--pn-node-port-size);
+    height: var(--pn-node-port-size);
     position: relative;
-    cursor: crosshair;
     flex-shrink: 0;
     transition: transform 0.1s;
 }
 
-.port-circle:hover {
+.port-wrapper:hover .port-circle {
     transform: scale(1.3);
 }
 
 /* Rectangle body */
-.port-circle::before {
+.port-circle.port-type-flow::before {
     content: '';
     position: absolute;
     top: 0;
-    width: 9px;
+    width: var(--pn-node-port-body-size);
     height: 100%;
     background: var(--port-color, var(--pn-text-muted));
 }
 
 /* Triangle tip */
-.port-circle::after {
+.port-circle.port-type-flow::after {
     content: '';
     position: absolute;
     top: 0;
     width: 0;
     height: 0;
-    border-top: 7px solid transparent;
-    border-bottom: 7px solid transparent;
+    border-top: var(--pn-node-port-half-size) solid transparent;
+    border-bottom: var(--pn-node-port-half-size) solid transparent;
 }
 
 /* Output: arrow points right */
-.port-circle.direction-output::before {
+.port-circle.port-type-flow.direction-output::before {
     left: 0;
     border-radius: 3px 0 0 3px;
 }
-.port-circle.direction-output::after {
-    left: 9px;
-    border-left: 7px solid var(--port-color, var(--pn-text-muted));
+.port-circle.port-type-flow.direction-output::after {
+    left: var(--pn-node-port-body-size);
+    border-left: var(--pn-node-port-tip-size) solid var(--port-color, var(--pn-text-muted));
 }
 
 /* Input: arrow points left */
-.port-circle.direction-input::before {
+.port-circle.port-type-flow.direction-input::before {
     right: 0;
     border-radius: 0 3px 3px 0;
 }
-.port-circle.direction-input::after {
-    right: 9px;
-    border-right: 7px solid var(--port-color, var(--pn-text-muted));
+.port-circle.port-type-flow.direction-input::after {
+    right: var(--pn-node-port-body-size);
+    border-right: var(--pn-node-port-tip-size) solid var(--port-color, var(--pn-text-muted));
+}
+
+/* Value ports: smaller circular shape */
+.port-circle.port-type-value {
+    align-self: center;
+    background: var(--port-color, var(--pn-text-muted));
+    border-radius: 50%;
+    height: var(--pn-node-value-port-size);
+    width: var(--pn-node-value-port-size);
 }
 
 /* Connected: solid fill (default) */
-.port-circle.connected::before { background: var(--port-color, var(--pn-text-muted)); }
-.port-circle.connected.direction-output::after { border-left-color: var(--port-color, var(--pn-text-muted)); }
-.port-circle.connected.direction-input::after { border-right-color: var(--port-color, var(--pn-text-muted)); }
+.port-circle.port-type-flow.connected::before { background: var(--port-color, var(--pn-text-muted)); }
+.port-circle.port-type-flow.connected.direction-output::after { border-left-color: var(--port-color, var(--pn-text-muted)); }
+.port-circle.port-type-flow.connected.direction-input::after { border-right-color: var(--port-color, var(--pn-text-muted)); }
+.port-circle.port-type-value.connected { background: var(--port-color, var(--pn-text-muted)); }
 
 /* Disconnected: dimmed */
-.port-circle.disconnected::before { background: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg)); }
-.port-circle.disconnected.direction-output::after { border-left-color: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg)); }
-.port-circle.disconnected.direction-input::after { border-right-color: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg)); }
+.port-circle.port-type-flow.disconnected::before { background: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg)); }
+.port-circle.port-type-flow.disconnected.direction-output::after { border-left-color: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg)); }
+.port-circle.port-type-flow.disconnected.direction-input::after { border-right-color: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg)); }
+.port-circle.port-type-value.disconnected { background: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg)); }
 
 /* Invalid: red glow */
-.port-circle.invalid::before { background: var(--pn-accent-danger); }
-.port-circle.invalid.direction-output::after { border-left-color: var(--pn-accent-danger); }
-.port-circle.invalid.direction-input::after { border-right-color: var(--pn-accent-danger); }
+.port-circle.port-type-flow.invalid::before { background: var(--pn-accent-danger); }
+.port-circle.port-type-flow.invalid.direction-output::after { border-left-color: var(--pn-accent-danger); }
+.port-circle.port-type-flow.invalid.direction-input::after { border-right-color: var(--pn-accent-danger); }
+.port-circle.port-type-value.invalid { background: var(--pn-accent-danger); }
 .port-circle.invalid { filter: drop-shadow(0 0 4px var(--pn-accent-danger)); }
 
 /* Has-error: red glow (validation error from graph) */
-.port-circle.has-error::before { background: var(--pn-accent-danger, #f38ba8); }
-.port-circle.has-error.direction-output::after { border-left-color: var(--pn-accent-danger, #f38ba8); }
-.port-circle.has-error.direction-input::after { border-right-color: var(--pn-accent-danger, #f38ba8); }
+.port-circle.port-type-flow.has-error::before { background: var(--pn-accent-danger, #f38ba8); }
+.port-circle.port-type-flow.has-error.direction-output::after { border-left-color: var(--pn-accent-danger, #f38ba8); }
+.port-circle.port-type-flow.has-error.direction-input::after { border-right-color: var(--pn-accent-danger, #f38ba8); }
+.port-circle.port-type-value.has-error { background: var(--pn-accent-danger, #f38ba8); }
 .port-circle.has-error { filter: drop-shadow(0 0 4px var(--pn-accent-danger, #f38ba8)); }
 
 .port-label {
     color: var(--port-label-color, var(--pn-text-secondary));
     font-size: var(--pn-font-size-sm);
+    line-height: var(--pn-node-port-gap);
     white-space: nowrap;
     user-select: none;
 }

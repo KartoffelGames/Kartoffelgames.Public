@@ -1,3 +1,5 @@
+import { PotatnoUiManagerGrid } from "./manager/manager_component/potatno-ui-manager-grid.ts";
+
 /**
  * Pure logic class that manages viewport transform state, coordinate conversion,
  * grid snapping, and selection box tracking for the canvas.
@@ -6,17 +8,10 @@ export class PotatnoCanvasInteraction {
     private static readonly MAX_ZOOM: number = 2.0;
     private static readonly MIN_ZOOM: number = 0.25;
 
-    private readonly mGridSize: number;
     private mPanX: number;
     private mPanY: number;
     private mZoom: number;
 
-    /**
-     * Grid size in pixels.
-     */
-    public get gridSize(): number {
-        return this.mGridSize;
-    }
 
     /**
      * Horizontal pan offset in pixels.
@@ -41,11 +36,8 @@ export class PotatnoCanvasInteraction {
 
     /**
      * Constructor.
-     *
-     * @param pGridSize - Size of the grid in pixels. Defaults to 20.
      */
-    public constructor(pGridSize: number = 20) {
-        this.mGridSize = pGridSize;
+    public constructor() {
         this.mPanX = 0;
         this.mPanY = 0;
         this.mZoom = 1.0;
@@ -58,19 +50,16 @@ export class PotatnoCanvasInteraction {
      * @returns CSS background property value for the grid pattern.
      */
     public getGridBackgroundCss(): string {
-        const lScaledGrid: number = this.mGridSize * this.mZoom;
+        const lScaledGrid: number = PotatnoUiManagerGrid.GRID_SIZE * this.mZoom;
         const lOffsetX: number = this.mPanX % lScaledGrid;
         const lOffsetY: number = this.mPanY % lScaledGrid;
 
-        // Two layers: major grid lines (every 5 cells) and minor grid lines.
-        const lMajorGrid: number = lScaledGrid * 5;
-        const lMajorOffsetX: number = this.mPanX % lMajorGrid;
-        const lMajorOffsetY: number = this.mPanY % lMajorGrid;
+        const lPlusGridSvg: string = '%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 viewBox%3D%220 0 100 100%22%3E%3Cpath d%3D%22M0 0h18M0 0v18M100 0H82M100 0v18M0 100h18M0 100V82M100 100H82M100 100V82%22 stroke%3D%22%23313244%22 stroke-width%3D%225%22 stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E';
 
         return [
-            `background-size: ${lScaledGrid}px ${lScaledGrid}px, ${lMajorGrid}px ${lMajorGrid}px`,
-            `background-position: ${lOffsetX}px ${lOffsetY}px, ${lMajorOffsetX}px ${lMajorOffsetY}px`,
-            `background-image: radial-gradient(circle, var(--pn-grid-color) 1px, transparent 1px), radial-gradient(circle, var(--pn-grid-color) 1.5px, transparent 1.5px)`
+            `background-size: ${lScaledGrid}px ${lScaledGrid}px`,
+            `background-position: ${lOffsetX}px ${lOffsetY}px`,
+            `background-image: url("data:image/svg+xml,${lPlusGridSvg}")`
         ].join('; ');
     }
 
@@ -121,8 +110,8 @@ export class PotatnoCanvasInteraction {
      */
     public snapToGrid(pWorldX: number, pWorldY: number): { x: number; y: number } {
         return {
-            x: Math.round(pWorldX / this.mGridSize) * this.mGridSize,
-            y: Math.round(pWorldY / this.mGridSize) * this.mGridSize
+            x: Math.round(pWorldX / PotatnoUiManagerGrid.GRID_SIZE) * PotatnoUiManagerGrid.GRID_SIZE,
+            y: Math.round(pWorldY / PotatnoUiManagerGrid.GRID_SIZE) * PotatnoUiManagerGrid.GRID_SIZE
         };
     }
 

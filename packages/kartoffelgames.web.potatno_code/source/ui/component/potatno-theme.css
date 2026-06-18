@@ -33,7 +33,9 @@
 
     /* Canvas */
     --pn-grid-color: #313244;
-    --pn-grid-size: 20px;
+    --pn-grid-half-size: 5px;
+    --pn-grid-line-color: rgba(69, 71, 90, 0.22);
+    --pn-grid-size: 25px;
     --pn-connection-width: 2px;
     --pn-selection-color: rgba(137, 180, 250, 0.2);
 
@@ -51,10 +53,17 @@
     --pn-node-border: #45475a;
     --pn-node-border-selected: #89b4fa;
     --pn-node-shadow: rgba(0, 0, 0, 0.3);
-    --pn-node-header-height: 28px;
-    --pn-node-port-size: 12px;
-    --pn-node-port-gap: 24px;
+    --pn-node-button-font-size: 9px;
+    --pn-node-font-size: var(--pn-font-size-sm);
+    --pn-node-header-height: var(--pn-grid-size);
     --pn-node-min-width: 160px;
+    --pn-node-port-body-size: 9px;
+    --pn-node-port-cell-offset: -10px;
+    --pn-node-port-gap: var(--pn-grid-size);
+    --pn-node-port-half-size: 7px;
+    --pn-node-port-size: 14px;
+    --pn-node-port-tip-size: 5px;
+    --pn-node-value-port-size: 10px;
     --pn-node-border-radius: 6px;
 
     /* Font */

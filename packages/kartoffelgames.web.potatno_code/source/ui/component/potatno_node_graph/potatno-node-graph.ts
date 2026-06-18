@@ -7,7 +7,7 @@ import type { PotatnoNodeDefinition } from '../../../project/node_definition/pot
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import { PotatnoClipboard } from '../../potatno-clipboard.ts';
-import { PotatnoPortRegistry } from '../../potatno-port-registry.ts';
+import type { PotatnoConnectionLayerTempConnection } from '../potatno_connection_layer/potatno-connection-layer.ts';
 import type { ResizeStartDetail } from '../potatno_node_component/potatno-node-component.ts';
 import type { PortInteractionDetail } from '../potatno_port/potatno-port.ts';
 import graphCss from './potatno-node-graph.css' with { type: 'text' };
@@ -19,7 +19,8 @@ import '../potatno_add_node_popup/potatno-add-node-popup.ts';
 import '../potatno_connection_layer/potatno-connection-layer.ts';
 import '../potatno_node_component/potatno-node-component.ts';
 import '../potatno_port/potatno-port.ts';
-import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
+import type { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
+import { PotatnoUiManagerGrid } from "../../manager/manager_component/potatno-ui-manager-grid.ts";
 
 /**
  * Interactive node graph for the active Potatno document function.
@@ -42,7 +43,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     private readonly mComponent: Component;
     private readonly mInteraction: PotatnoCanvasInteraction;
     private readonly mManager: PotatnoUiManager;
-    private readonly mPortRegistry: PotatnoPortRegistry;
     private readonly mSelectedNodes: Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>;
     private mDocumentPointerMoveHandler: ((pEvent: PointerEvent) => void) | null;
     private mDocumentPointerUpHandler: ((pEvent: PointerEvent) => void) | null;
@@ -100,20 +100,18 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      *
      * @param pComponent - Injected component reference, used to trigger self-updates.
      * @param pManager - Injected shared UI manager singleton.
-     * @param pPortRegistry - Injected shared port-element registry, used for wire-drop hit-testing.
      */
-    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager), pPortRegistry: PotatnoPortRegistry = Injection.use(PotatnoPortRegistry)) {
+    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mCachedGraphData = { visibleNodes: [] };
         this.mClipboard = new PotatnoClipboard();
         this.mComponent = pComponent;
         this.mDocumentPointerMoveHandler = null;
         this.mDocumentPointerUpHandler = null;
         this.mHoveredPort = null;
-        this.mInteraction = new PotatnoCanvasInteraction(20);
+        this.mInteraction = new PotatnoCanvasInteraction();
         this.mInteractionState = { mode: 'idle' };
         this.mKeyboardHandler = null;
         this.mManager = pManager;
-        this.mPortRegistry = pPortRegistry;
         this.mSelectedNodes = new Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>();
         this.mUnsubscribe = null;
     }
@@ -123,25 +121,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      */
     public get canvasInteraction(): PotatnoCanvasInteraction {
         return this.mInteraction;
-    }
-
-    /**
-     * Whether a transient drag wire is currently being drawn.
-     */
-    public get showTempConnection(): boolean {
-        return this.mTempConnection !== null;
-    }
-
-    /**
-     * The bezier `d` attribute for the transient drag wire, or an empty string when none.
-     */
-    public get tempWirePath(): string {
-        const lTemp: GraphTempConnection | null = this.mTempConnection;
-        if (!lTemp) {
-            return '';
-        }
-
-        return this.generateBezierPath(lTemp.start.x, lTemp.start.y, lTemp.end.x, lTemp.end.y);
     }
 
     /**
@@ -164,7 +143,14 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * Grid size in pixels passed to node components.
      */
     public get gridSize(): number {
-        return this.mInteraction.gridSize;
+        return PotatnoUiManagerGrid.GRID_SIZE;
+    }
+
+    /**
+     * Transient drag wire shown by the connection layer.
+     */
+    public get tempConnection(): PotatnoConnectionLayerTempConnection | null {
+        return this.mTempConnection;
     }
 
     /**
@@ -353,7 +339,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
 
         this.invalidateNodeVisuals();
 
-        const lGridSize: number = this.mInteraction.gridSize;
+        const lGridSize: number = PotatnoUiManagerGrid.GRID_SIZE;
         const lOrigins: Map<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, NodeDragOrigin> = new Map<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, NodeDragOrigin>();
 
         for (const lNode of this.mSelectedNodes) {
@@ -490,7 +476,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         }
 
         if (lState.mode === 'resizing-comment') {
-            const lGridSize: number = this.mInteraction.gridSize;
+            const lGridSize: number = PotatnoUiManagerGrid.GRID_SIZE;
             const lDx: number = (pEvent.clientX - lState.startX) / this.mInteraction.zoom;
             const lDy: number = (pEvent.clientY - lState.startY) / this.mInteraction.zoom;
 
@@ -577,7 +563,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             return;
         }
 
-        const lGridSize: number = this.mInteraction.gridSize;
+        const lGridSize: number = PotatnoUiManagerGrid.GRID_SIZE;
         const lCommentLeft: number = pCommentNode.transformation.x * lGridSize;
         const lCommentTop: number = pCommentNode.transformation.y * lGridSize;
         const lCommentRight: number = lCommentLeft + pCommentNode.transformation.width * lGridSize;
@@ -647,14 +633,27 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * @returns The port under the point, or `null` when none matches.
      */
     private hitTestPort(pClientX: number, pClientY: number): PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null {
-        for (const [lPort, lElement] of this.mPortRegistry.entries()) {
-            const lRect: DOMRect = lElement.getBoundingClientRect();
-            if (pClientX >= lRect.left && pClientX <= lRect.right && pClientY >= lRect.top && pClientY <= lRect.bottom) {
-                return lPort;
-            }
+        return this.mManager.grid.getPortFromPosition(pClientX, pClientY);
+    }
+
+    /**
+     * Calculate the minimum rendered height of a node in grid cells.
+     *
+     * @param pNode - Node whose layout height should be calculated.
+     *
+     * @returns The minimum height in grid cells.
+     */
+    private calculateNodeGridHeight(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): number {
+        if (pNode.category === NodeCategory.Comment) {
+            return pNode.transformation.height;
         }
 
-        return null;
+        if (pNode.category === NodeCategory.Reroute) {
+            return 2;
+        }
+
+        const lPortRows: number = Math.max(pNode.inputs.list.length, pNode.outputs.list.length, 1);
+        return 1 + lPortRows;
     }
 
     /**
@@ -662,8 +661,8 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * System entry/exit nodes can be deleted too; they are re-synced automatically on the next validation.
      */
     private deleteSelectedNodes(): void {
-        for(const lNode of this.mSelectedNodes){
-            this.mManager.graph.removeNode(lNode)
+        for (const lNode of this.mSelectedNodes) {
+            this.mManager.graph.removeNode(lNode);
         }
 
         this.mSelectedNodes.clear();
@@ -677,7 +676,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      */
     private dragSelectedNodes(pEvent: PointerEvent, pState: Extract<GraphInteractionState, { mode: 'dragging-node'; }>): void {
         const lZoom: number = this.mInteraction.zoom;
-        const lGridSize: number = this.mInteraction.gridSize;
+        const lGridSize: number = PotatnoUiManagerGrid.GRID_SIZE;
         const lDx: number = (pEvent.clientX - pState.startX) / lZoom;
         const lDy: number = (pEvent.clientY - pState.startY) / lZoom;
 
@@ -705,21 +704,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         }
 
         return false;
-    }
-
-    /**
-     * Generate a cubic bezier `d` attribute between two world points for the transient drag wire.
-     *
-     * @param pX1 - Source X coordinate.
-     * @param pY1 - Source Y coordinate.
-     * @param pX2 - Target X coordinate.
-     * @param pY2 - Target Y coordinate.
-     *
-     * @returns SVG path "d" attribute string.
-     */
-    private generateBezierPath(pX1: number, pY1: number, pX2: number, pY2: number): string {
-        const lOffset: number = Math.max(Math.abs(pX2 - pX1) * 0.4, 50);
-        return `M ${pX1} ${pY1} C ${pX1 + lOffset} ${pY1}, ${pX2 - lOffset} ${pY2}, ${pX2} ${pY2}`;
     }
 
     /**
@@ -792,7 +776,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             return;
         }
 
-        const lGridSize: number = this.mInteraction.gridSize;
+        const lGridSize: number = PotatnoUiManagerGrid.GRID_SIZE;
         const lSnappedPosition: Point = this.mInteraction.snapToGrid(pWorldPosition.x, pWorldPosition.y);
         const lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = this.mManager.graph.addNode(this.mManager.activeFunction, pDefinition, {
             height: 4,
@@ -883,10 +867,12 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
 
         if (lActiveFunction) {
-            const lGridSize: number = this.mInteraction.gridSize;
+            const lGridSize: number = PotatnoUiManagerGrid.GRID_SIZE;
             for (const lNode of lActiveFunction.nodes) {
+                const lHeight: number = Math.max(lNode.transformation.height, this.calculateNodeGridHeight(lNode));
                 lVisibleNodes.push({
                     node: lNode,
+                    pixelH: lHeight * lGridSize,
                     pixelW: lNode.transformation.width * lGridSize,
                     pixelX: lNode.transformation.x * lGridSize,
                     pixelY: lNode.transformation.y * lGridSize,
@@ -902,10 +888,11 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * Rebuild only cached node positions after a layout interaction.
      */
     private rebuildVisibleNodePositions(): void {
-        const lGridSize: number = this.mInteraction.gridSize;
+        const lGridSize: number = PotatnoUiManagerGrid.GRID_SIZE;
         this.mCachedGraphData = {
             visibleNodes: this.mCachedGraphData.visibleNodes.map((pState: NodeViewState) => ({
                 node: pState.node,
+                pixelH: Math.max(pState.node.transformation.height, this.calculateNodeGridHeight(pState.node)) * lGridSize,
                 pixelW: pState.node.transformation.width * lGridSize,
                 pixelX: pState.node.transformation.x * lGridSize,
                 pixelY: pState.node.transformation.y * lGridSize,
@@ -957,7 +944,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             Math.max(this.mSelectionBoxScreen.x1, this.mSelectionBoxScreen.x2),
             Math.max(this.mSelectionBoxScreen.y1, this.mSelectionBoxScreen.y2)
         );
-        const lGridSize: number = this.mInteraction.gridSize;
+        const lGridSize: number = PotatnoUiManagerGrid.GRID_SIZE;
 
         for (const lNode of lActiveFunction.nodes) {
             const lNodeX: number = lNode.transformation.x * lGridSize;
@@ -1002,6 +989,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
 
 export type NodeViewState = {
     node: PotatnoDocumentNode<PotatnoProjectTypesDefinition>;
+    pixelH: number;
     pixelW: number;
     pixelX: number;
     pixelY: number;

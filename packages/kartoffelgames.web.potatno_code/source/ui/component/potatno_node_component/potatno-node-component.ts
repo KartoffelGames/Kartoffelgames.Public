@@ -1,5 +1,5 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEvent, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { Component, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPreviewDriver } from "../../../preview/potatno-preview-driver.ts";
@@ -46,9 +46,6 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     @PwbExport
     @ComponentState.state()
     public accessor selected: boolean = false;
-
-    @PwbComponentEvent('port-drag-start')
-    private accessor mPortDragStart!: ComponentEventEmitter<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>;
 
     @PwbComponentEvent('resize-start')
     private accessor mResizeStart!: ComponentEventEmitter<ResizeStartDetail>;
@@ -304,15 +301,6 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     public onDeconstruct(): void {
         this.mUnsubscribe?.();
         this.mUnsubscribe = null;
-    }
-
-    /**
-     * Re-emit a port-drag-start event from a child port component.
-     *
-     * @param pEvent - Port interaction event from the port component.
-     */
-    public onPortDragStart(pEvent: ComponentEvent<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>): void {
-        this.mPortDragStart.dispatchEvent(pEvent.value);
     }
 
     /**

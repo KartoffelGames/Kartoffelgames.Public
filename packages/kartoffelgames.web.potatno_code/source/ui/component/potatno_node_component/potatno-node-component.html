@@ -4,8 +4,7 @@ $if(this.nodeData) {
             <div class="reroute-inputs">
                 $for(inPort of this.inputPorts) {
                     <potatno-port
-                        [port]="this.inPort"
-                        (port-drag-start)="this.onPortDragStart($event)">
+                        [port]="this.inPort">
                     </potatno-port>
                 }
             </div>
@@ -13,8 +12,7 @@ $if(this.nodeData) {
             <div class="reroute-outputs">
                 $for(outPort of this.outputPorts) {
                     <potatno-port
-                        [port]="this.outPort"
-                        (port-drag-start)="this.onPortDragStart($event)">
+                        [port]="this.outPort">
                     </potatno-port>
                 }
             </div>
@@ -71,9 +69,7 @@ $if(this.nodeData) {
                     <div class="node-ports">    
                         $for(inPort of this.inputPorts) {
                             <potatno-port
-                                [port]="this.inPort"
-                                (port-drag-start)="this.onPortDragStart($event)"
-                                (port-element-ready)="this.onPortElementReady($event)">
+                                [port]="this.inPort">
                             </potatno-port>
                         }   
                     </div>
@@ -83,9 +79,7 @@ $if(this.nodeData) {
                     <div class="node-ports">
                         $for(outPort of this.outputPorts) {
                             <potatno-port
-                                [port]="this.outPort"
-                                (port-drag-start)="this.onPortDragStart($event)"
-                                (port-element-ready)="this.onPortElementReady($event)">
+                                [port]="this.outPort">
                             </potatno-port>
                         }
                     </div>

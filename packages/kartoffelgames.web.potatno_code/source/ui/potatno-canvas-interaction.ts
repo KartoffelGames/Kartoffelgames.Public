@@ -1,5 +1,3 @@
-import { PotatnoUiManagerGrid } from "./manager/manager_component/potatno-ui-manager-grid.ts";
-
 /**
  * Pure logic class that manages viewport transform state, coordinate conversion,
  * grid snapping, and selection box tracking for the canvas.
@@ -10,6 +8,7 @@ export class PotatnoCanvasInteraction {
 
     private mPanX: number;
     private mPanY: number;
+    private readonly mGridSize: number;
     private mZoom: number;
 
 
@@ -36,8 +35,11 @@ export class PotatnoCanvasInteraction {
 
     /**
      * Constructor.
+     *
+     * @param pGridSize - Grid size in pixels.
      */
-    public constructor() {
+    public constructor(pGridSize: number) {
+        this.mGridSize = pGridSize;
         this.mPanX = 0;
         this.mPanY = 0;
         this.mZoom = 1.0;
@@ -50,7 +52,7 @@ export class PotatnoCanvasInteraction {
      * @returns CSS background property value for the grid pattern.
      */
     public getGridBackgroundCss(): string {
-        const lScaledGrid: number = PotatnoUiManagerGrid.GRID_SIZE * this.mZoom;
+        const lScaledGrid: number = this.mGridSize * this.mZoom;
         const lOffsetX: number = this.mPanX % lScaledGrid;
         const lOffsetY: number = this.mPanY % lScaledGrid;
 
@@ -110,8 +112,8 @@ export class PotatnoCanvasInteraction {
      */
     public snapToGrid(pWorldX: number, pWorldY: number): { x: number; y: number } {
         return {
-            x: Math.round(pWorldX / PotatnoUiManagerGrid.GRID_SIZE) * PotatnoUiManagerGrid.GRID_SIZE,
-            y: Math.round(pWorldY / PotatnoUiManagerGrid.GRID_SIZE) * PotatnoUiManagerGrid.GRID_SIZE
+            x: Math.round(pWorldX / this.mGridSize) * this.mGridSize,
+            y: Math.round(pWorldY / this.mGridSize) * this.mGridSize
         };
     }
 

@@ -1,17 +1,15 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { ComponentState, PwbChild, PwbComponent, PwbExport, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
+import { PwbChild, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-item.interface.ts';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import type { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import connectionLayerCss from './potatno-connection-layer.css' with { type: 'text' };
 import connectionLayerTemplate from './potatno-connection-layer.html' with { type: 'text' };
 
 const gHitAreaStrokeWidth: number = 12;
 const gSvgNamespace: string = 'http://www.w3.org/2000/svg';
-const gTempConnectionAttribute: string = 'data-temp-connection';
 
 /**
  * SVG connection layer for the node graph.
@@ -25,26 +23,11 @@ const gTempConnectionAttribute: string = 'data-temp-connection';
     template: connectionLayerTemplate,
     style: connectionLayerCss,
 })
-export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOnDeconstruct, IComponentOnUpdate {
+export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOnDeconstruct {
     private readonly mConnectionRegistry: Map<string, PotatnoConnectionLayerRecord>;
     private readonly mManager: PotatnoUiManager;
     private mPendingRenderFrame: number;
     private mUnsubscribe: (() => void) | null;
-
-    /**
-     * The graph's interaction state, read for the current zoom when converting screen anchor
-     * positions to graph world coordinates.
-     */
-    @PwbExport
-    @ComponentState.state()
-    public accessor interaction: PotatnoCanvasInteraction | null = null;
-
-    /**
-     * Temporary connection path rendered while a wire is dragged.
-     */
-    @PwbExport
-    @ComponentState.state({ complexValue: true })
-    public accessor tempConnection: PotatnoConnectionLayerTempConnection | null = null;
 
     /**
      * SVG element that hosts the connection paths.
@@ -92,13 +75,6 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
     }
 
     /**
-     * Redraw the transient connection when the graph updates it.
-     */
-    public onUpdate(): void {
-        this.renderTempConnection();
-    }
-
-    /**
      * Delete the connection under a right-click on its hit path.
      *
      * @param pEvent - Context menu event from the SVG layer.
@@ -122,11 +98,9 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
      * Clear connection paths from the SVG layer.
      *
      * @param pSvg - SVG layer to clear.
-     * @param pIncludeTemporary - Whether the temporary path should be removed too.
      */
-    private clearPaths(pSvg: SVGSVGElement, pIncludeTemporary: boolean): void {
-        const lSelector: string = pIncludeTemporary ? 'path' : `path:not([${gTempConnectionAttribute}])`;
-        const lPaths: NodeListOf<Element> = pSvg.querySelectorAll(lSelector);
+    private clearPaths(pSvg: SVGSVGElement): void {
+        const lPaths: NodeListOf<Element> = pSvg.querySelectorAll('path');
         for (const lPath of lPaths) {
             lPath.remove();
         }
@@ -149,108 +123,6 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
     }
 
     /**
-     * Generate an orthogonal grid-routed path between two points.
-     *
-     * @param pStart - Start point.
-     * @param pEnd - End point.
-     *
-     * @returns SVG path data.
-     */
-    private generateGridPath(pStart: Point, pEnd: Point, pSourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null): string {
-        const lGridSize: number = this.mManager.grid.gridSize;
-        const lDirection: number = pEnd.x >= pStart.x ? 1 : -1;
-        const lStartRoute: Point = {
-            x: this.snapToGridCenter(pStart.x + lDirection * lGridSize),
-            y: this.snapToGridCenter(pStart.y)
-        };
-        const lEndRoute: Point = {
-            x: this.snapToGridCenter(pEnd.x - lDirection * lGridSize),
-            y: this.snapToGridCenter(pEnd.y)
-        };
-        const lMinRouteX: number = Math.min(lStartRoute.x, lEndRoute.x);
-        const lMaxRouteX: number = Math.max(lStartRoute.x, lEndRoute.x);
-        const lBaseMidX: number = this.snapToGridCenter(lStartRoute.x + (lEndRoute.x - lStartRoute.x) / 2);
-        const lLaneOffset: number = this.getSourceConnectionLaneOffset(pSourcePort) * lDirection;
-        const lMidX: number = Math.max(lMinRouteX, Math.min(lMaxRouteX, this.snapToGridCenter(lBaseMidX + lLaneOffset)));
-
-        return this.generateRoundedPath([
-            pStart,
-            lStartRoute,
-            { x: lMidX, y: lStartRoute.y },
-            { x: lMidX, y: lEndRoute.y },
-            lEndRoute,
-            pEnd
-        ]);
-    }
-
-    /**
-     * Calculate the horizontal lane offset for a source port.
-     *
-     * @param pSourcePort - Source port of the connection.
-     *
-     * @returns Lane offset in pixels.
-     */
-    private getSourceConnectionLaneOffset(pSourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null): number {
-        if (!pSourcePort || pSourcePort.direction !== 'output') {
-            return 0;
-        }
-
-        const lOutputPorts: ReadonlyArray<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> = pSourcePort.node.outputs.list;
-        const lPortIndex: number = lOutputPorts.indexOf(pSourcePort);
-        if (lPortIndex === -1) {
-            return 0;
-        }
-
-        return (lOutputPorts.length - lPortIndex - 1) * this.mManager.grid.gridSize;
-    }
-
-    /**
-     * Generate a rounded path through a set of orthogonal route points.
-     *
-     * @param pPoints - Route points.
-     *
-     * @returns SVG path data.
-     */
-    private generateRoundedPath(pPoints: Array<Point>): string {
-        const lGridSize: number = this.mManager.grid.gridSize;
-        const lRadius: number = Math.min(8, lGridSize / 3);
-        const lPoints: Array<Point> = [];
-
-        for (const lPoint of pPoints) {
-            const lPreviousPoint: Point | undefined = lPoints[lPoints.length - 1];
-            if (!lPreviousPoint || lPreviousPoint.x !== lPoint.x || lPreviousPoint.y !== lPoint.y) {
-                lPoints.push(lPoint);
-            }
-        }
-
-        if (lPoints.length < 2) {
-            return '';
-        }
-
-        let lPath: string = `M ${lPoints[0].x} ${lPoints[0].y}`;
-        for (let lIndex: number = 1; lIndex < lPoints.length - 1; lIndex++) {
-            const lPreviousPoint: Point = lPoints[lIndex - 1];
-            const lCurrentPoint: Point = lPoints[lIndex];
-            const lNextPoint: Point = lPoints[lIndex + 1];
-            const lPreviousDistance: number = Math.hypot(lCurrentPoint.x - lPreviousPoint.x, lCurrentPoint.y - lPreviousPoint.y);
-            const lNextDistance: number = Math.hypot(lNextPoint.x - lCurrentPoint.x, lNextPoint.y - lCurrentPoint.y);
-            const lCornerRadius: number = Math.min(lRadius, lPreviousDistance / 2, lNextDistance / 2);
-
-            if (lCornerRadius <= 0) {
-                lPath += ` L ${lCurrentPoint.x} ${lCurrentPoint.y}`;
-                continue;
-            }
-
-            const lBeforeCorner: Point = this.moveTowards(lCurrentPoint, lPreviousPoint, lCornerRadius);
-            const lAfterCorner: Point = this.moveTowards(lCurrentPoint, lNextPoint, lCornerRadius);
-            lPath += ` L ${lBeforeCorner.x} ${lBeforeCorner.y} Q ${lCurrentPoint.x} ${lCurrentPoint.y} ${lAfterCorner.x} ${lAfterCorner.y}`;
-        }
-
-        const lLastPoint: Point = lPoints[lPoints.length - 1];
-        return `${lPath} L ${lLastPoint.x} ${lLastPoint.y}`;
-    }
-
-    /**
      * Calculate the rendered port anchor position in graph world coordinates.
      *
      * @param pPort - Port whose anchor should be located.
@@ -258,7 +130,7 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
      * @returns World position for the port.
      */
     private getPortPosition(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): Point {
-        const lZoom: number = this.interaction?.zoom ?? 1;
+        const lZoom: number = this.mManager.grid.interaction.zoom;
         const lGridSize: number = this.mManager.grid.gridSize;
         const lPortElement: Element | undefined = this.mManager.grid.getPortElement(pPort);
         const lSvg: SVGSVGElement | null = this.getSvgLayerOrNull();
@@ -268,8 +140,8 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
             const lPortRect: DOMRect = lPortElement.getBoundingClientRect();
             const lPortAnchorX: number = pPort.direction === 'output' ? lPortRect.right : lPortRect.left;
             return {
-                x: this.snapToGridCenter((lPortAnchorX - lSvgRect.left) / lZoom),
-                y: this.snapToGridCenter((lPortRect.top + lPortRect.height / 2 - lSvgRect.top) / lZoom)
+                x: this.mManager.grid.snapToGridCenter((lPortAnchorX - lSvgRect.left) / lZoom),
+                y: this.mManager.grid.snapToGridCenter((lPortRect.top + lPortRect.height / 2 - lSvgRect.top) / lZoom)
             };
         }
 
@@ -307,27 +179,6 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
     }
 
     /**
-     * Move from one point toward another by a distance.
-     *
-     * @param pPoint - Origin point.
-     * @param pTarget - Target point.
-     * @param pDistance - Distance to move.
-     *
-     * @returns Moved point.
-     */
-    private moveTowards(pPoint: Point, pTarget: Point, pDistance: number): Point {
-        const lDistance: number = Math.hypot(pTarget.x - pPoint.x, pTarget.y - pPoint.y);
-        if (lDistance === 0) {
-            return pPoint;
-        }
-
-        return {
-            x: pPoint.x + (pTarget.x - pPoint.x) / lDistance * pDistance,
-            y: pPoint.y + (pTarget.y - pPoint.y) / lDistance * pDistance
-        };
-    }
-
-    /**
      * Render the current graph connections into the SVG layer.
      */
     private renderConnections(): void {
@@ -338,12 +189,12 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
 
         const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
         if (!lActiveFunction) {
-            this.clearPaths(lSvg, true);
+            this.clearPaths(lSvg);
             this.mConnectionRegistry.clear();
             return;
         }
 
-        this.clearPaths(lSvg, false);
+        this.clearPaths(lSvg);
         this.mConnectionRegistry.clear();
 
         const lErrorItems: ReadonlySet<IPotatnoDocumentItem<PotatnoProjectTypesDefinition>> = this.mManager.integrity.errorItems;
@@ -366,7 +217,6 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
             }
         }
 
-        this.renderTempConnection();
     }
 
     /**
@@ -379,7 +229,7 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
      * @param pValid - Whether the connection is valid.
      */
     private renderConnectionPath(pSvg: SVGSVGElement, pId: string, pSourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pStart: Point, pEnd: Point, pValid: boolean): void {
-        const lPathData: string = this.generateGridPath(pStart, pEnd, pSourcePort);
+        const lPathData: string = this.mManager.grid.createConnectionPath(pStart, pEnd, pSourcePort);
 
         const lHitPath: SVGPathElement = document.createElementNS(gSvgNamespace, 'path') as SVGPathElement;
         lHitPath.setAttribute('d', lPathData);
@@ -412,39 +262,6 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
     }
 
     /**
-     * Render or clear the temporary drag connection path.
-     */
-    private renderTempConnection(): void {
-        const lSvg: SVGSVGElement | null = this.getSvgLayerOrNull();
-        if (!lSvg) {
-            return;
-        }
-
-        const lExisting: Element | null = lSvg.querySelector(`[${gTempConnectionAttribute}]`);
-        if (lExisting) {
-            lExisting.remove();
-        }
-
-        const lConnection: PotatnoConnectionLayerTempConnection | null = this.tempConnection;
-        if (!lConnection) {
-            return;
-        }
-
-        const lPath: SVGPathElement = document.createElementNS(gSvgNamespace, 'path') as SVGPathElement;
-        lPath.setAttribute('d', this.generateGridPath(lConnection.start, lConnection.end, null));
-        lPath.setAttribute('fill', 'none');
-        lPath.setAttribute(gTempConnectionAttribute, 'true');
-        lPath.style.opacity = '0.6';
-        lPath.style.pointerEvents = 'none';
-        lPath.style.stroke = '#bac2de';
-        lPath.style.strokeDasharray = '8 4';
-        lPath.style.strokeLinecap = 'round';
-        lPath.style.strokeLinejoin = 'round';
-        lPath.style.strokeWidth = '2';
-        lSvg.appendChild(lPath);
-    }
-
-    /**
      * Schedule a connection render for the next animation frame.
      */
     private scheduleRender(): void {
@@ -458,23 +275,7 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
         });
     }
 
-    /**
-     * Snap a coordinate to the center lane of a grid cell.
-     *
-     * @param pValue - Coordinate value.
-     *
-     * @returns Snapped value.
-     */
-    private snapToGridCenter(pValue: number): number {
-        const lGridSize: number = this.mManager.grid.gridSize;
-        return Math.round((pValue - lGridSize / 2) / lGridSize) * lGridSize + lGridSize / 2;
-    }
 }
-
-export type PotatnoConnectionLayerTempConnection = {
-    end: Point;
-    start: Point;
-};
 
 type PotatnoConnectionLayerRecord = {
     sourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>;

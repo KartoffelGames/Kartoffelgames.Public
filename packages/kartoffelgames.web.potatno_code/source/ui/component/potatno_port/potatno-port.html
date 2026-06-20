@@ -1,12 +1,14 @@
-<div class="port-wrapper {{this.portDirection}}" style="--type-color: {{this.portColor}}">
+<div class="port-wrapper {{this.portDirection}}" style="--type-color: {{this.portColor}}" (dragover)="this.onDragOver($event)" (drop)="this.onDrop($event)">
 
     <!-- Actual port handle. -->
-    <div class="port" [title]="this.portType" (pointerdown)="this.onPointerDown($event)">
+    <div class="port" draggable="true" [title]="this.portType" (dragstart)="this.onDragStart($event)" (drag)="this.onDrag($event)" (dragend)="this.onDragEnd($event)" (pointerdown)="this.onPointerDown($event)">
         <div class="port__handle">
             <div class="port-handle {{this.portHandleClasses}}"></div>
         </div>
         <div class="port__label">{{this.portName}}</div>
     </div>
+
+    <svg #dragWire class="port-drag-wire" xmlns="http://www.w3.org/2000/svg"></svg>
 
     $if(this.showValueInput) {
         <div class="port-values" (pointerdown)="$event.stopImmediatePropagation()">

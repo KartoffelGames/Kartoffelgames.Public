@@ -2,11 +2,8 @@ import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentState, PwbChild, PwbComponent, type ComponentEvent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
-import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
-import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
-import type { PotatnoConnectionLayerTempConnection } from '../potatno_connection_layer/potatno-connection-layer.ts';
 import type { ResizeStartDetail } from '../potatno_node_component/potatno-node-component.ts';
 import graphCss from './potatno-node-graph.css' with { type: 'text' };
 import graphTemplate from './potatno-node-graph.html' with { type: 'text' };
@@ -37,7 +34,6 @@ import type { PotatnoProjectTypesDefinition } from "../../../project/potatno-pro
 })
 export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDeconstruct {
     private readonly mComponent: Component;
-    private readonly mInteraction: PotatnoCanvasInteraction;
     private readonly mManager: PotatnoUiManager;
     private readonly mSelectedNodes: Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>;
     private mDocumentPointerMoveHandler: ((pEvent: PointerEvent) => void) | null;
@@ -78,13 +74,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     private accessor mAddNodePopup: AddNodePopupState | null = null;
 
     /**
-     * The transient drag wire, in world coordinates, drawn while a connection is being dragged from
-     * a port. `null` when no wire is in progress.
-     */
-    @ComponentState.state({ complexValue: true })
-    private accessor mTempConnection: GraphTempConnection | null = null;
-
-    /**
      * Root graph wrapper used for pointer coordinate calculations.
      */
     @PwbChild('canvasWrapper')
@@ -101,7 +90,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         this.mComponent = pComponent;
         this.mDocumentPointerMoveHandler = null;
         this.mDocumentPointerUpHandler = null;
-        this.mInteraction = new PotatnoCanvasInteraction();
         this.mInteractionState = { mode: 'idle' };
         this.mKeyboardHandler = null;
         this.mManager = pManager;
@@ -110,18 +98,11 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * The graph's interaction state, passed to the connection layer so it can read the current zoom.
-     */
-    public get canvasInteraction(): PotatnoCanvasInteraction {
-        return this.mInteraction;
-    }
-
-    /**
      * Grid background style for the current graph transform.
      */
     public get gridBackgroundStyle(): string {
         void this.mTransformVersion;
-        return this.mInteraction.getGridBackgroundCss();
+        return this.mManager.grid.interaction.getGridBackgroundCss();
     }
 
     /**
@@ -129,7 +110,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      */
     public get gridTransformStyle(): string {
         void this.mTransformVersion;
-        return 'transform: ' + this.mInteraction.getTransformCss();
+        return 'transform: ' + this.mManager.grid.interaction.getTransformCss();
     }
 
     /**
@@ -137,13 +118,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      */
     public get gridSize(): number {
         return this.mManager.grid.gridSize;
-    }
-
-    /**
-     * Transient drag wire shown by the connection layer.
-     */
-    public get tempConnection(): PotatnoConnectionLayerTempConnection | null {
-        return this.mTempConnection;
     }
 
     /**
@@ -271,7 +245,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     public onCanvasWheel(pEvent: WheelEvent): void {
         pEvent.preventDefault();
         const lLocalPosition: Point = this.getLocalPointerPosition(pEvent.clientX, pEvent.clientY);
-        this.mInteraction.zoomAt(
+        this.mManager.grid.interaction.zoomAt(
             lLocalPosition.x,
             lLocalPosition.y,
             pEvent.deltaY > 0 ? -0.1 : 0.1
@@ -354,34 +328,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Start dragging a wire from a port.
-     *
-     * @param pEvent - Component event with port interaction data.
-     */
-    public onPortDragStart(pEvent: ComponentEvent<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>): void {
-        // Get port element of port.
-        const lPortElement: Element | undefined = this.mManager.grid.getPortElement(pEvent.value);
-        if (!lPortElement) {
-            return;
-        }
-
-        const lCanvasRect: DOMRect = this.canvasWrapper.getBoundingClientRect();
-        const lPortRect: DOMRect = lPortElement.getBoundingClientRect();
-        const lPortAnchorX: number = pEvent.value.direction === 'output' ? lPortRect.right : lPortRect.left;
-        const lStartX: number = (lPortAnchorX - lCanvasRect.left - this.mInteraction.panX) / this.mInteraction.zoom;
-        const lStartY: number = (lPortRect.top + lPortRect.height / 2 - lCanvasRect.top - this.mInteraction.panY) / this.mInteraction.zoom;
-
-        this.closeAddNodePopup();
-        this.mInteractionState = {
-            mode: 'dragging-wire',
-            sourcePort: pEvent.value,
-            startX: lStartX,
-            startY: lStartY
-        };
-        this.startDocumentPointerTracking();
-    }
-
-    /**
      * Start resizing a comment node.
      *
      * @param pEvent - Component event with resize start data.
@@ -424,7 +370,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         const lState: GraphInteractionState = this.mInteractionState;
 
         if (lState.mode === 'panning') {
-            this.mInteraction.pan(pEvent.clientX - lState.startX, pEvent.clientY - lState.startY);
+            this.mManager.grid.interaction.pan(pEvent.clientX - lState.startX, pEvent.clientY - lState.startY);
             lState.startX = pEvent.clientX;
             lState.startY = pEvent.clientY;
             this.mTransformVersion++;
@@ -433,11 +379,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
 
         if (lState.mode === 'dragging-node') {
             this.dragSelectedNodes(pEvent, lState);
-            return;
-        }
-
-        if (lState.mode === 'dragging-wire') {
-            this.renderDraggedWire(pEvent, lState);
             return;
         }
 
@@ -456,8 +397,8 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
 
         if (lState.mode === 'resizing-comment') {
             const lGridSize: number = this.mManager.grid.gridSize;
-            const lDx: number = (pEvent.clientX - lState.startX) / this.mInteraction.zoom;
-            const lDy: number = (pEvent.clientY - lState.startY) / this.mInteraction.zoom;
+            const lDx: number = (pEvent.clientX - lState.startX) / this.mManager.grid.interaction.zoom;
+            const lDy: number = (pEvent.clientY - lState.startY) / this.mManager.grid.interaction.zoom;
 
             // Resize through the manager so the change is announced and the connection layer redraws.
             this.mManager.graph.transformNode(lState.node, {
@@ -471,15 +412,11 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
 
     /**
      * Finish the active document-level pointer interaction.
-     *
-     * @param pEvent - Pointer up event from the document.
      */
-    private onDocumentPointerUp(pEvent: PointerEvent): void {
+    private onDocumentPointerUp(): void {
         const lState: GraphInteractionState = this.mInteractionState;
 
-        if (lState.mode === 'dragging-wire') {
-            this.completeWireDrag(pEvent);
-        } else if (lState.mode === 'selecting') {
+        if (lState.mode === 'selecting') {
             this.mShowSelectionBox = false;
             this.selectNodesInBox();
         }
@@ -570,46 +507,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Complete a wire drag and create a connection when the drop target is valid.
-     *
-     * @param pEvent - The pointer-up event whose coordinates locate the drop target.
-     */
-    private completeWireDrag(pEvent: PointerEvent): void {
-        // Clear the transient wire from the connection layer.
-        this.mTempConnection = null;
-
-        if (this.mInteractionState.mode !== 'dragging-wire') {
-            return;
-        }
-
-        // Resolve the drop target from the registered port elements.
-        const lSource: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = this.mInteractionState.sourcePort;
-        const lTarget: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.hitTestPort(pEvent.clientX, pEvent.clientY);
-
-        if (!lTarget || lSource === lTarget) {
-            return;
-        }
-
-        if (lSource.direction === lTarget.direction || lSource.portType !== lTarget.portType) {
-            return;
-        }
-
-        this.mManager.graph.connectPorts(lSource, lTarget);
-    }
-
-    /**
-     * Find a port whose registered component element contains the given viewport point.
-     *
-     * @param pClientX - Viewport X coordinate of the drop.
-     * @param pClientY - Viewport Y coordinate of the drop.
-     *
-     * @returns The port under the point, or `null` when none matches.
-     */
-    private hitTestPort(pClientX: number, pClientY: number): PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null {
-        return this.mManager.grid.getPortFromPosition(pClientX, pClientY);
-    }
-
-    /**
      * Calculate the minimum rendered height of a node in grid cells.
      *
      * @param pNode - Node whose layout height should be calculated.
@@ -648,14 +545,14 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * @param pState - Active node drag state.
      */
     private dragSelectedNodes(pEvent: PointerEvent, pState: Extract<GraphInteractionState, { mode: 'dragging-node'; }>): void {
-        const lZoom: number = this.mInteraction.zoom;
+        const lZoom: number = this.mManager.grid.interaction.zoom;
         const lGridSize: number = this.mManager.grid.gridSize;
         const lDx: number = (pEvent.clientX - pState.startX) / lZoom;
         const lDy: number = (pEvent.clientY - pState.startY) / lZoom;
 
         // Move each dragged node through the manager so the connection layer redraws its wires to follow.
         for (const [lNode, lOrigin] of pState.origins) {
-            const lSnapped: Point = this.mInteraction.snapToGrid(lOrigin.originX + lDx, lOrigin.originY + lDy);
+            const lSnapped: Point = this.mManager.grid.interaction.snapToGrid(lOrigin.originX + lDx, lOrigin.originY + lDy);
             this.mManager.graph.transformNode(lNode, { x: Math.round(lSnapped.x / lGridSize), y: Math.round(lSnapped.y / lGridSize) });
         }
 
@@ -711,19 +608,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Convert viewport coordinates to graph world coordinates.
-     *
-     * @param pClientX - Viewport X coordinate.
-     * @param pClientY - Viewport Y coordinate.
-     *
-     * @returns Graph world coordinates.
-     */
-    private getWorldPointerPosition(pClientX: number, pClientY: number): Point {
-        const lLocalPosition: Point = this.getLocalPointerPosition(pClientX, pClientY);
-        return this.mInteraction.screenToWorld(lLocalPosition.x, lLocalPosition.y);
-    }
-
-    /**
      * Rebuild the cached node data. The connection layer redraws itself from the same manager
      * events, so the graph no longer drives connection rendering here.
      */
@@ -750,7 +634,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         }
 
         const lGridSize: number = this.mManager.grid.gridSize;
-        const lSnappedPosition: Point = this.mInteraction.snapToGrid(pWorldPosition.x, pWorldPosition.y);
+        const lSnappedPosition: Point = this.mManager.grid.interaction.snapToGrid(pWorldPosition.x, pWorldPosition.y);
         const lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = this.mManager.graph.addNode(this.mManager.activeFunction, pDefinition, {
             height: 4,
             width: 10,
@@ -798,7 +682,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     private openAddNodePopupAtPointer(pClientX: number, pClientY: number): void {
         const lWrapper: HTMLElement | null = this.getCanvasWrapperOrNull();
         const lLocalPosition: Point = this.getLocalPointerPosition(pClientX, pClientY);
-        const lWorldPosition: Point = this.mInteraction.screenToWorld(lLocalPosition.x, lLocalPosition.y);
+        const lWorldPosition: Point = this.mManager.grid.interaction.screenToWorld(lLocalPosition.x, lLocalPosition.y);
         const lPopupWidth: number = 280;
         const lPopupHeight: number = 320;
         const lMaxX: number = Math.max(0, (lWrapper?.clientWidth ?? lPopupWidth) - lPopupWidth - 8);
@@ -875,26 +759,11 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Update the transient drag wire pushed to the connection layer while a wire is being dragged.
-     *
-     * @param pEvent - Pointer event from the document.
-     * @param pState - Active wire drag state.
-     */
-    private renderDraggedWire(pEvent: PointerEvent, pState: Extract<GraphInteractionState, { mode: 'dragging-wire'; }>): void {
-        const lEndPosition: Point = this.getWorldPointerPosition(pEvent.clientX, pEvent.clientY);
-        this.mTempConnection = {
-            start: { x: pState.startX, y: pState.startY },
-            end: lEndPosition
-        };
-    }
-
-    /**
      * Reset all interaction state when the rendered function changes (document load or switch).
      */
     private resetForActiveFunction(): void {
         this.mInteractionState = { mode: 'idle' };
         this.mSelectedNodes.clear();
-        this.mTempConnection = null;
         this.stopDocumentPointerTracking();
         this.closeAddNodePopup();
     }
@@ -908,11 +777,11 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             return;
         }
 
-        const lTopLeft: Point = this.mInteraction.screenToWorld(
+        const lTopLeft: Point = this.mManager.grid.interaction.screenToWorld(
             Math.min(this.mSelectionBoxScreen.x1, this.mSelectionBoxScreen.x2),
             Math.min(this.mSelectionBoxScreen.y1, this.mSelectionBoxScreen.y2)
         );
-        const lBottomRight: Point = this.mInteraction.screenToWorld(
+        const lBottomRight: Point = this.mManager.grid.interaction.screenToWorld(
             Math.max(this.mSelectionBoxScreen.x1, this.mSelectionBoxScreen.x2),
             Math.max(this.mSelectionBoxScreen.y1, this.mSelectionBoxScreen.y2)
         );
@@ -938,7 +807,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     private startDocumentPointerTracking(): void {
         this.stopDocumentPointerTracking();
         this.mDocumentPointerMoveHandler = (pEvent: PointerEvent) => this.onDocumentPointerMove(pEvent);
-        this.mDocumentPointerUpHandler = (pEvent: PointerEvent) => this.onDocumentPointerUp(pEvent);
+        this.mDocumentPointerUpHandler = () => this.onDocumentPointerUp();
         document.addEventListener('pointermove', this.mDocumentPointerMoveHandler);
         document.addEventListener('pointerup', this.mDocumentPointerUpHandler);
     }
@@ -976,7 +845,6 @@ type GraphInteractionState =
     | { mode: 'idle'; }
     | { mode: 'panning'; startX: number; startY: number; }
     | { mode: 'dragging-node'; startX: number; startY: number; origins: Map<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, NodeDragOrigin>; }
-    | { mode: 'dragging-wire'; sourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>; startX: number; startY: number; }
     | { mode: 'selecting'; }
     | { mode: 'resizing-comment'; node: PotatnoDocumentNode<PotatnoProjectTypesDefinition>; startX: number; startY: number; originalW: number; originalH: number; };
 
@@ -985,11 +853,6 @@ type AddNodePopupState = {
     screenY: number;
     worldX: number;
     worldY: number;
-};
-
-type GraphTempConnection = {
-    start: Point;
-    end: Point;
 };
 
 type NodeDragOrigin = {

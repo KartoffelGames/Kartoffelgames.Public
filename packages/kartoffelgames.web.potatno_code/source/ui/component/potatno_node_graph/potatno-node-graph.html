@@ -4,7 +4,7 @@
     (wheel)="this.onCanvasWheel($event)"
     (contextmenu)="this.onContextMenu($event)">
     <div #gridLayer class="grid-layer" [style]="this.gridTransformStyle">
-        <potatno-connection-layer [interaction]="this.canvasInteraction" [tempConnection]="this.tempConnection"></potatno-connection-layer>
+        <potatno-connection-layer></potatno-connection-layer>
         <div class="node-layer">
             $for(nodeState of this.visibleNodes) {
                 <div class="node-position" style="left:{{this.nodeState.pixelX}}px;top:{{this.nodeState.pixelY}}px;width:{{this.nodeState.pixelW}}px;height:{{this.nodeState.pixelH}}px">
@@ -12,7 +12,6 @@
                         [nodeData]="this.nodeState.node"
                         [selected]="this.nodeState.selected"
                         (pointerdown)="this.onNodePointerDown($event, this.nodeState.node)"
-                        (port-drag-start)="this.onPortDragStart($event)"
                         (resize-start)="this.onNodeResizeStart($event)">
                     </potatno-node>
                 </div>

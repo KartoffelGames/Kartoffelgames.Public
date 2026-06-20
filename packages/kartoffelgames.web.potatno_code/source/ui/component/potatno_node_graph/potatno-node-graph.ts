@@ -6,7 +6,6 @@ import type { PotatnoDocumentPort } from '../../../document/potatno-document-por
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
-import { PotatnoClipboard } from '../../potatno-clipboard.ts';
 import type { PotatnoConnectionLayerTempConnection } from '../potatno_connection_layer/potatno-connection-layer.ts';
 import type { ResizeStartDetail } from '../potatno_node_component/potatno-node-component.ts';
 import type { PortInteractionDetail } from '../potatno_port/potatno-port.ts';
@@ -39,7 +38,6 @@ import { PotatnoUiManagerGrid } from "../../manager/manager_component/potatno-ui
     style: graphCss,
 })
 export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDeconstruct {
-    private readonly mClipboard: PotatnoClipboard;
     private readonly mComponent: Component;
     private readonly mInteraction: PotatnoCanvasInteraction;
     private readonly mManager: PotatnoUiManager;
@@ -103,7 +101,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      */
     public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mCachedGraphData = { visibleNodes: [] };
-        this.mClipboard = new PotatnoClipboard();
         this.mComponent = pComponent;
         this.mDocumentPointerMoveHandler = null;
         this.mDocumentPointerUpHandler = null;
@@ -541,7 +538,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         }
 
         if (pEvent.ctrlKey && pEvent.key === 'c') {
-            this.mClipboard.copy(this.mSelectedNodes);
+            this.mManager.clipboard.copy(this.mSelectedNodes);
             return;
         }
 
@@ -848,7 +845,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             return;
         }
 
-        const lNewNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = this.mClipboard.paste(lActiveFunction, lActiveFunction.document, 2, 2);
+        const lNewNodes: Array<PotatnoDocumentNode<PotatnoProjectTypesDefinition>> = this.mManager.clipboard.paste();
         if (lNewNodes.length === 0) {
             return;
         }

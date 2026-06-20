@@ -8,6 +8,7 @@ import type { PotatnoDocument } from '../../document/potatno-document.ts';
 import { type PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from '../../project/potatno-function-definition.ts';
 import type { PotatnoProjectTypesDefinition } from "../../project/potatno-project-types-definition.ts";
 import type { PotatnoProject } from "../../project/potatno-project.ts";
+import { PotatnoUiManagerClipboard } from './manager_component/potatno-ui-manager-clipboard.ts';
 import { PotatnoUiManagerGrid } from './manager_component/potatno-ui-manager-grid.ts';
 import { PotatnoUiManagerGraph } from './manager_component/potatno-ui-manager-graph.ts';
 import { PotatnoUiManagerHistory } from './manager_component/potatno-ui-manager-history.ts';
@@ -31,18 +32,23 @@ import { PotatnoUiManagerPreview } from './manager_component/potatno-ui-manager-
  */
 @Injection.injectable('singleton')
 export class PotatnoUiManager extends EventTarget implements IDeconstructable {
-    private mActiveFunctionId: string;
-    private mProject: PotatnoProject<PotatnoProjectTypesDefinition> | null;
-
-    private mEventBufferDispatchRequest: number;
+    private readonly mClipboard: PotatnoUiManagerClipboard;
     private readonly mEventBuffer: Map<PotatnoUiManagerChangeEventTarget | null, PotatnoCodeUiManagerChangeType>;
-
-    // Manager components.
-    private readonly mGrid: PotatnoUiManagerGrid;
     private readonly mGraph: PotatnoUiManagerGraph;
+    private readonly mGrid: PotatnoUiManagerGrid;
     private readonly mHistory: PotatnoUiManagerHistory;
     private readonly mIntegrity: PotatnoUiManagerIntegrity;
     private readonly mPreview: PotatnoUiManagerPreview;
+    private mActiveFunctionId: string;
+    private mEventBufferDispatchRequest: number;
+    private mProject: PotatnoProject<PotatnoProjectTypesDefinition> | null;
+
+    /**
+     * UI manager clipboard component.
+     */
+    public get clipboard(): PotatnoUiManagerClipboard {
+        return this.mClipboard;
+    }
 
     /**
      * UI manager grid component.
@@ -119,6 +125,7 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
         super();
 
         // Create manager components.
+        this.mClipboard = new PotatnoUiManagerClipboard(this);
         this.mIntegrity = new PotatnoUiManagerIntegrity(this);
         this.mGrid = new PotatnoUiManagerGrid();
         this.mGraph = new PotatnoUiManagerGraph(this);

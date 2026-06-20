@@ -130,7 +130,7 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
         this.mLabel = pParameter.label;
         this.mPreview = pParameter.preview ?? null;
         this.mProject = pProject;
-        this.mTransformation = pParameter.transformation;
+        this.mTransformation = { ...pParameter.transformation };
 
         const lCreatePortMapping = (pPorts: Array<PotatnoDocumentNodePortConfiguration<TProjectTypes>>, pDirection: PotatnoPortDefinitionDirection): PotatnoDocumentNodePortsInternal<TProjectTypes> => {
             const lNodePorts: PotatnoDocumentNodePortsInternal<TProjectTypes> = {

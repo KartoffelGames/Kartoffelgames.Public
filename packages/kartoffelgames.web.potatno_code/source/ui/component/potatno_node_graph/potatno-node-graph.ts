@@ -363,9 +363,10 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      */
     public onPortDragStart(pEvent: ComponentEvent<PortInteractionDetail>): void {
         const lCanvasRect: DOMRect = this.canvasWrapper.getBoundingClientRect();
-        const lHandleRect: DOMRect = pEvent.value.element.getBoundingClientRect();
-        const lStartX: number = (lHandleRect.left + lHandleRect.width / 2 - lCanvasRect.left - this.mInteraction.panX) / this.mInteraction.zoom;
-        const lStartY: number = (lHandleRect.top + lHandleRect.height / 2 - lCanvasRect.top - this.mInteraction.panY) / this.mInteraction.zoom;
+        const lPortRect: DOMRect = pEvent.value.element.getBoundingClientRect();
+        const lPortAnchorX: number = pEvent.value.port.direction === 'output' ? lPortRect.right : lPortRect.left;
+        const lStartX: number = (lPortAnchorX - lCanvasRect.left - this.mInteraction.panX) / this.mInteraction.zoom;
+        const lStartY: number = (lPortRect.top + lPortRect.height / 2 - lCanvasRect.top - this.mInteraction.panY) / this.mInteraction.zoom;
 
         this.closeAddNodePopup();
         this.mInteractionState = {

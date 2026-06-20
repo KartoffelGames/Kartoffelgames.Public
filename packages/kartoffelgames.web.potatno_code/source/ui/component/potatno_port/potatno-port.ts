@@ -45,12 +45,6 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     private accessor mPortDragStart!: ComponentEventEmitter<PortInteractionDetail>;
 
     /**
-     * Reference to the port handle DOM element for position calculations.
-     */
-    @PwbChild('portHandle')
-    public accessor portHandleElement!: HTMLElement;
-
-    /**
      * Reference to the full port row DOM element for pointer hit tests.
      */
     @PwbChild('portWrapper')
@@ -210,9 +204,9 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     }
 
     /**
-     * Handle pointer down on the port handle to initiate connection dragging.
+     * Handle pointer down on the port to initiate connection dragging.
      *
-     * @param pEvent - Pointer event from the port handle.
+     * @param pEvent - Pointer event from the port.
      */
     public onPointerDown(pEvent: PointerEvent): void {
         pEvent.stopPropagation();
@@ -223,7 +217,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         this.mPortDragStart.dispatchEvent({
             node: this.ownerNode,
             port: this.port,
-            element: this.portHandleElement
+            element: this.mComponent.element
         });
     }
 

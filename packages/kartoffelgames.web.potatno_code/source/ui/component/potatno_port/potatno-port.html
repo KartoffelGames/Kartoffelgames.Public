@@ -1,5 +1,5 @@
 <div #portWrapper [className]="this.portWrapperClasses" [title]="this.portTypeLabel" style="--port-color: {{this.portColor}}" (pointerdown)="this.onPointerDown($event)">
-    <div #portHandle [className]="this.portHandleClasses"></div>
+    <div [className]="this.portHandleClasses"></div>
     <span class="port-label">{{this.portName}}</span>
 </div>
 

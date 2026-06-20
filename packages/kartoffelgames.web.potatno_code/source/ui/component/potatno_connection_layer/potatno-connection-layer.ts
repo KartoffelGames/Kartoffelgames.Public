@@ -251,24 +251,6 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
     }
 
     /**
-     * Resolve the visual anchor element inside a registered port component.
-     *
-     * @param pPortElement - Registered port component element.
-     *
-     * @returns The visible port handle element, or the component element when the handle is unavailable.
-     */
-    private getPortAnchorElement(pPortElement: Element): Element {
-        if (pPortElement instanceof HTMLElement) {
-            const lPortHandleElement: Element | null = pPortElement.shadowRoot?.querySelector('.port-handle') ?? null;
-            if (lPortHandleElement) {
-                return lPortHandleElement;
-            }
-        }
-
-        return pPortElement;
-    }
-
-    /**
      * Calculate the rendered port anchor position in graph world coordinates.
      *
      * @param pPort - Port whose anchor should be located.
@@ -282,12 +264,12 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
         const lSvg: SVGSVGElement | null = this.getSvgLayerOrNull();
 
         if (lPortElement && lSvg) {
-            const lAnchorElement: Element = this.getPortAnchorElement(lPortElement);
             const lSvgRect: DOMRect = lSvg.getBoundingClientRect();
-            const lAnchorRect: DOMRect = lAnchorElement.getBoundingClientRect();
+            const lPortRect: DOMRect = lPortElement.getBoundingClientRect();
+            const lPortAnchorX: number = pPort.direction === 'output' ? lPortRect.right : lPortRect.left;
             return {
-                x: this.snapToGridCenter((lAnchorRect.left + lAnchorRect.width / 2 - lSvgRect.left) / lZoom),
-                y: this.snapToGridCenter((lAnchorRect.top + lAnchorRect.height / 2 - lSvgRect.top) / lZoom)
+                x: this.snapToGridCenter((lPortAnchorX - lSvgRect.left) / lZoom),
+                y: this.snapToGridCenter((lPortRect.top + lPortRect.height / 2 - lSvgRect.top) / lZoom)
             };
         }
 
@@ -378,6 +360,8 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
                         sourcePort: lOutputPort,
                         targetPort: lConnectedPort
                     });
+
+                    console.log(lSourcePosition, lTargetPosition)
 
                     this.renderConnectionPath(lSvg, lId, lOutputPort, lSourcePosition, lTargetPosition, !lHasError);
                 }

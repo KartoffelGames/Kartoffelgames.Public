@@ -23,7 +23,6 @@ import portTemplate from './potatno-port.html' with { type: 'text' };
 export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDeconstruct, IComponentOnUpdate {
     private readonly mComponent: Component;
     private mLastRegisteredElement: HTMLElement | null;
-    private mLastRegisteredHitElement: HTMLElement | null;
     private mLastRegisteredPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null;
     private readonly mManager: PotatnoUiManager;
     private mUnsubscribe: (() => void) | null;
@@ -170,7 +169,6 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mComponent = pComponent;
         this.mLastRegisteredElement = null;
-        this.mLastRegisteredHitElement = null;
         this.mLastRegisteredPort = null;
         this.mManager = pManager;
         this.mUnsubscribe = null;
@@ -207,23 +205,15 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
             return;
         }
 
-        let lCircleEl: HTMLElement;
-        let lWrapperEl: HTMLElement;
-        try {
-            lCircleEl = this.portCircleElement;
-            lWrapperEl = this.portWrapperElement;
-        } catch {
-            return;
-        }
+        let lCircleEl: HTMLElement = this.portCircleElement;
 
-        if (lPort === this.mLastRegisteredPort && lCircleEl === this.mLastRegisteredElement && lWrapperEl === this.mLastRegisteredHitElement) {
+        if (lPort === this.mLastRegisteredPort && lCircleEl === this.mLastRegisteredElement ) {
             return;
         }
 
         this.mLastRegisteredElement = lCircleEl;
-        this.mLastRegisteredHitElement = lWrapperEl;
         this.mLastRegisteredPort = lPort;
-        this.mManager.grid.registerPortElement(lPort, lCircleEl, lWrapperEl);
+        this.mManager.grid.registerPortElement(lPort, lCircleEl);
 
         // The port element's real position is now known; nudge the connection layer to redraw any
         // wire that used an estimated anchor before this port mounted. An empty transformation

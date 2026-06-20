@@ -273,7 +273,7 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
     private getPortPosition(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): Point {
         const lZoom: number = this.interaction?.zoom ?? 1;
         const lGridSize: number = this.mManager.grid.gridSize;
-        const lCircleElement: HTMLElement | undefined = this.mManager.grid.getPortElement(pPort);
+        const lCircleElement: Element | undefined = this.mManager.grid.getPortElement(pPort);
         const lSvg: SVGSVGElement | null = this.getSvgLayerOrNull();
 
         if (lCircleElement && lSvg) {

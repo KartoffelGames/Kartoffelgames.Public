@@ -5,13 +5,14 @@
 }
 
 .svg-layer {
-    height: 100%;
+    position: absolute;
+    height: 0;
+    width: 0;
+    top: 0;
     left: 0;
+
     overflow: visible;
     pointer-events: none;
-    position: absolute;
-    top: 0;
-    width: 100%;
 }
 
 .svg-layer path[data-hit-area] {

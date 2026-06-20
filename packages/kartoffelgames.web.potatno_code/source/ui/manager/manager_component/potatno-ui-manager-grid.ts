@@ -8,10 +8,8 @@ import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-pro
 export class PotatnoUiManagerGrid {
     public static readonly GRID_SIZE: number = 25;
 
-    private readonly mElementPorts: WeakMap<HTMLElement, PotatnoDocumentPort<PotatnoProjectTypesDefinition>>;
-    private readonly mHitElementPorts: WeakMap<HTMLElement, PotatnoDocumentPort<PotatnoProjectTypesDefinition>>;
-    private readonly mPortElements: WeakMap<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, HTMLElement>;
-    private readonly mPortHitElements: WeakMap<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, HTMLElement>;
+    private readonly mElementPorts: WeakMap<Element, PotatnoDocumentPort<PotatnoProjectTypesDefinition>>;
+    private readonly mPortElements: WeakMap<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, Element>;
 
     /**
      * Grid size in pixels.
@@ -24,10 +22,8 @@ export class PotatnoUiManagerGrid {
      * Constructor.
      */
     public constructor() {
-        this.mElementPorts = new WeakMap<HTMLElement, PotatnoDocumentPort<PotatnoProjectTypesDefinition>>();
-        this.mHitElementPorts = new WeakMap<HTMLElement, PotatnoDocumentPort<PotatnoProjectTypesDefinition>>();
-        this.mPortElements = new WeakMap<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, HTMLElement>();
-        this.mPortHitElements = new WeakMap<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, HTMLElement>();
+        this.mElementPorts = new WeakMap<Element, PotatnoDocumentPort<PotatnoProjectTypesDefinition>>();
+        this.mPortElements = new WeakMap<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, Element>();
     }
 
     /**
@@ -37,8 +33,8 @@ export class PotatnoUiManagerGrid {
      *
      * @returns The live port element, or undefined when it is not currently registered.
      */
-    public getPortElement(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): HTMLElement | undefined {
-        const lElement: HTMLElement | undefined = this.mPortElements.get(pPort);
+    public getPortElement(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): Element | undefined {
+        const lElement: Element | undefined = this.mPortElements.get(pPort);
         if (!lElement || this.mElementPorts.get(lElement) !== pPort) {
             return undefined;
         }
@@ -56,13 +52,8 @@ export class PotatnoUiManagerGrid {
      */
     public getPortFromPosition(pClientX: number, pClientY: number): PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null {
         for (const lElement of document.elementsFromPoint(pClientX, pClientY)) {
-            if (!(lElement instanceof HTMLElement)) {
+            if (!(lElement instanceof Element)) {
                 continue;
-            }
-
-            const lHitPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = this.mHitElementPorts.get(lElement);
-            if (lHitPort && this.mPortHitElements.get(lHitPort) === lElement) {
-                return lHitPort;
             }
 
             const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = this.mElementPorts.get(lElement);
@@ -81,13 +72,8 @@ export class PotatnoUiManagerGrid {
      * @param pElement - Rendered port element.
      * @param pHitElement - Optional larger rendered element used for pointer hit tests.
      */
-    public registerPortElement(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pElement: HTMLElement, pHitElement?: HTMLElement): void {
+    public registerPortElement(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pElement: Element): void {
         this.mElementPorts.set(pElement, pPort);
         this.mPortElements.set(pPort, pElement);
-
-        if (pHitElement) {
-            this.mHitElementPorts.set(pHitElement, pPort);
-            this.mPortHitElements.set(pPort, pHitElement);
-        }
     }
 }

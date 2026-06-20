@@ -34,12 +34,7 @@ export class PotatnoUiManagerGrid {
      * @returns The live port component element, or undefined when it is not currently registered.
      */
     public getPortElement(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): Element | undefined {
-        const lElement: Element | undefined = this.mPortElements.get(pPort);
-        if (!lElement || this.mElementPorts.get(lElement) !== pPort) {
-            return undefined;
-        }
-
-        return lElement;
+        return this.mPortElements.get(pPort);
     }
 
     /**
@@ -51,15 +46,26 @@ export class PotatnoUiManagerGrid {
      * @returns The port under the position, or null when none exists.
      */
     public getPortFromPosition(pClientX: number, pClientY: number): PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null {
-        for (const lElement of this.getElementsFromPosition(document, pClientX, pClientY)) {
-            const lRegisteredElement: Element = this.getRegisteredElementFromHitElement(lElement);
-            const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = this.mElementPorts.get(lRegisteredElement);
-            if (lPort && this.mPortElements.get(lPort) === lRegisteredElement) {
-                return lPort;
-            }
+        // Read element from position.
+        const lElement: Element | null = this.getElementFromPosition(pClientX, pClientY);
+        if (!lElement) {
+            return null;
         }
 
-        return null;
+        // When a element is hit, try to get the component host element from it.
+        const lComponentElement: Element = (() => {
+            const lRoot: Node = lElement.getRootNode();
+
+            // Root must be a shadow root to exclude window elements.
+            if (lRoot instanceof ShadowRoot && lRoot.host instanceof Element) {
+                return lRoot.host;
+            }
+
+            return lElement;
+        })();
+
+        // Try to return the registered components port.
+        return this.mElementPorts.get(lComponentElement) ?? null;
     }
 
     /**
@@ -74,7 +80,7 @@ export class PotatnoUiManagerGrid {
     }
 
     /**
-     * Find all elements under a viewport position, including elements inside open shadow roots.
+     * Find the top most element under a viewport position, including elements inside open shadow roots.
      *
      * @param pRoot - Document or shadow root to inspect.
      * @param pClientX - Viewport x coordinate.
@@ -82,33 +88,26 @@ export class PotatnoUiManagerGrid {
      *
      * @returns Elements under the position.
      */
-    private getElementsFromPosition(pRoot: Document | ShadowRoot, pClientX: number, pClientY: number): Array<Element> {
-        const lElements: Array<Element> = [];
-
-        for (const lElement of pRoot.elementsFromPoint(pClientX, pClientY)) {
-            lElements.push(lElement);
-
-            if (lElement.shadowRoot) {
-                lElements.push(...this.getElementsFromPosition(lElement.shadowRoot, pClientX, pClientY));
+    private getElementFromPosition(pClientX: number, pClientY: number): Element | null {
+        // Recursive function that finds element from a position nexted in shadow roots.
+        const lReadElementInRoot = (pRoot: Document | ShadowRoot, pClientX: number, pClientY: number): Element | null => {
+            // Try to read the hit element inside the current root.
+            const lElement: Element | null = pRoot.elementFromPoint(pClientX, pClientY);
+            if (!lElement) {
+                return null;
             }
-        }
 
-        return lElements;
-    }
+            // If the element has a shadow root, look into that shadow root.
+            if (lElement.shadowRoot) {
+                const lShadowRootElement: Element | null = lReadElementInRoot(lElement.shadowRoot, pClientX, pClientY);
+                if (lShadowRootElement) {
+                    return lShadowRootElement;
+                }
+            }
 
-    /**
-     * Resolve shadow DOM hit elements back to their registered host element.
-     *
-     * @param pElement - Element returned by the browser hit test.
-     *
-     * @returns The element that can be looked up in the registration map.
-     */
-    private getRegisteredElementFromHitElement(pElement: Element): Element {
-        const lRoot: Node = pElement.getRootNode();
-        if (lRoot instanceof ShadowRoot && lRoot.host instanceof Element) {
-            return lRoot.host;
-        }
+            return lElement;
+        };
 
-        return pElement;
+        return lReadElementInRoot(document, pClientX, pClientY);
     }
 }

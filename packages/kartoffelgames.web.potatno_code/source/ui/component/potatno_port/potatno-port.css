@@ -17,10 +17,11 @@
 }
 
 .port-handle {
+    position: relative;
     width: 10px;
     height: 10px;
-    position: relative;
-    flex-shrink: 0;
+
+    /* Hover transition */
     transition: transform 0.1s;
 }
 
@@ -108,7 +109,6 @@
 .port-label {
     color: var(--port-label-color, var(--pn-text-secondary));
     font-size: var(--pn-font-size-sm);
-    line-height: var(--pn-node-port-gap);
     white-space: nowrap;
     user-select: none;
 }
@@ -116,27 +116,27 @@
 /* ── Direct value inputs ──────────────────────────────────────────────── */
 
 .direct-value-inputs {
+    /* Place the right edge of this element at the left edge of the port handle so the inputs body does not overlap the port handle at all. */
     position: absolute;
-    /* Place the right edge of this element at the left edge of the port handle
-       so the inputs body does not overlap the port handle at all. */
     right: 100%;
     top: 50%;
     transform: translateY(-50%);
+
     display: flex;
+    height: 100%;
     flex-direction: column;
-    gap: 2px;
     align-items: flex-end;
+    gap: 2px;
+    
     padding-right: 10px;
     pointer-events: all;
     z-index: 10;
-    height: 100%;
 }
 
 .direct-value-field {
     display: flex;
-    align-items: center;
     gap: 3px;
-    background: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 12%, var(--pn-node-bg));
+    background: color-mix(in srgb, var(--port-color) 12%, var(--pn-node-bg));
     border: 1px solid var(--port-color);
     border-radius: 2px;
     padding: 2px 6px 2px 4px;
@@ -159,15 +159,15 @@
 
 .direct-value-label {
     font-size: var(--pn-font-size-xs, 10px);
-    color: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 80%, var(--pn-text-secondary));
+    color: color-mix(in srgb, var(--port-color) 80%, var(--pn-text-secondary));
     white-space: nowrap;
     user-select: none;
     flex-shrink: 0;
 }
 
 .direct-value-input {
-    background: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 8%, var(--pn-node-bg, #1e1e1e));
-    border: 1px solid color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 35%, transparent);
+    background: color-mix(in srgb, var(--port-color) 8%, var(--pn-node-bg, #1e1e1e));
+    border: 1px solid color-mix(in srgb, var(--port-color) 35%, transparent);
     border-radius: 2px;
     color: var(--pn-text-primary);
     font-size: var(--pn-font-size-sm);
@@ -181,14 +181,14 @@
 
 .direct-value-input:focus {
     outline: none;
-    border-color: var(--port-color, var(--pn-text-muted));
-    box-shadow: 0 0 0 1px color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, transparent);
+    border-color: var(--port-color);
+    box-shadow: 0 0 0 1px color-mix(in srgb, var(--port-color) 30%, transparent);
 }
 
 .direct-value-input[type='checkbox'] {
     width: auto;
     min-width: auto;
-    accent-color: var(--port-color, var(--pn-text-muted));
+    accent-color: var(--port-color);
     cursor: pointer;
     margin: 0px;
 }

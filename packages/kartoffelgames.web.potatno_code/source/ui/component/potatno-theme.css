@@ -1,4 +1,15 @@
 :host {
+    /* Globals */
+    --potatno-grid-size: 25px;
+    --potatno-font-size: 12px;
+
+    /* Main colors */
+    --potatno-color-text: #a6adc8;
+
+
+
+
+
     /* Background */
     --pn-bg-primary: #1e1e2e;
     --pn-bg-secondary: #181825;

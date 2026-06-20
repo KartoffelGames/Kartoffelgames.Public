@@ -4,12 +4,34 @@
 }
 
 .port-wrapper {
-    cursor: crosshair;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    height: var(--pn-node-port-gap);
-    position: relative;
+    /* Provide a port wide color */
+    --port-color: var(--type-color, #f00);
+
+    height: var(--potatno-grid-size);
+
+    .port {
+        cursor: crosshair;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        height: var(--pn-node-port-gap);
+        position: relative;
+
+        .port__label {
+            color: var(--potatno-color-text);
+            font-size: var(--potatno-font-size);
+            white-space: nowrap;
+            user-select: none;
+        }
+
+        .port__handle {
+            
+        }
+
+
+    }
+
+    .port__values {}
 }
 
 .port-wrapper.direction-output {
@@ -55,6 +77,7 @@
     left: 0;
     border-radius: 1px 0 0 1px;
 }
+
 .port-handle.port-type-flow.direction-output::after {
     left: var(--pn-node-port-body-size);
     border-left: var(--pn-node-port-tip-size) solid var(--port-color, var(--pn-text-muted));
@@ -65,6 +88,7 @@
     right: 0;
     border-radius: 0 1px 1px 0;
 }
+
 .port-handle.port-type-flow.direction-input::after {
     right: var(--pn-node-port-body-size);
     border-right: var(--pn-node-port-tip-size) solid var(--port-color, var(--pn-text-muted));
@@ -81,37 +105,81 @@
 }
 
 /* Connected: solid fill (default) */
-.port-handle.port-type-flow.connected::before { background: var(--port-color, var(--pn-text-muted)); }
-.port-handle.port-type-flow.connected.direction-output::after { border-left-color: var(--port-color, var(--pn-text-muted)); }
-.port-handle.port-type-flow.connected.direction-input::after { border-right-color: var(--port-color, var(--pn-text-muted)); }
-.port-handle.port-type-value.connected { background: var(--port-color, var(--pn-text-muted)); }
+.port-handle.port-type-flow.connected::before {
+    background: var(--port-color, var(--pn-text-muted));
+}
+
+.port-handle.port-type-flow.connected.direction-output::after {
+    border-left-color: var(--port-color, var(--pn-text-muted));
+}
+
+.port-handle.port-type-flow.connected.direction-input::after {
+    border-right-color: var(--port-color, var(--pn-text-muted));
+}
+
+.port-handle.port-type-value.connected {
+    background: var(--port-color, var(--pn-text-muted));
+}
 
 /* Disconnected: dimmed */
-.port-handle.port-type-flow.disconnected::before { background: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg)); }
-.port-handle.port-type-flow.disconnected.direction-output::after { border-left-color: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg)); }
-.port-handle.port-type-flow.disconnected.direction-input::after { border-right-color: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg)); }
-.port-handle.port-type-value.disconnected { background: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg)); }
+.port-handle.port-type-flow.disconnected::before {
+    background: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg));
+}
+
+.port-handle.port-type-flow.disconnected.direction-output::after {
+    border-left-color: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg));
+}
+
+.port-handle.port-type-flow.disconnected.direction-input::after {
+    border-right-color: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg));
+}
+
+.port-handle.port-type-value.disconnected {
+    background: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg));
+}
 
 /* Invalid: red glow */
-.port-handle.port-type-flow.invalid::before { background: var(--pn-accent-danger); }
-.port-handle.port-type-flow.invalid.direction-output::after { border-left-color: var(--pn-accent-danger); }
-.port-handle.port-type-flow.invalid.direction-input::after { border-right-color: var(--pn-accent-danger); }
-.port-handle.port-type-value.invalid { background: var(--pn-accent-danger); }
-.port-handle.invalid { filter: drop-shadow(0 0 4px var(--pn-accent-danger)); }
+.port-handle.port-type-flow.invalid::before {
+    background: var(--pn-accent-danger);
+}
+
+.port-handle.port-type-flow.invalid.direction-output::after {
+    border-left-color: var(--pn-accent-danger);
+}
+
+.port-handle.port-type-flow.invalid.direction-input::after {
+    border-right-color: var(--pn-accent-danger);
+}
+
+.port-handle.port-type-value.invalid {
+    background: var(--pn-accent-danger);
+}
+
+.port-handle.invalid {
+    filter: drop-shadow(0 0 4px var(--pn-accent-danger));
+}
 
 /* Has-error: red glow (validation error from graph) */
-.port-handle.port-type-flow.has-error::before { background: var(--pn-accent-danger, #f38ba8); }
-.port-handle.port-type-flow.has-error.direction-output::after { border-left-color: var(--pn-accent-danger, #f38ba8); }
-.port-handle.port-type-flow.has-error.direction-input::after { border-right-color: var(--pn-accent-danger, #f38ba8); }
-.port-handle.port-type-value.has-error { background: var(--pn-accent-danger, #f38ba8); }
-.port-handle.has-error { filter: drop-shadow(0 0 4px var(--pn-accent-danger, #f38ba8)); }
-
-.port-label {
-    color: var(--port-label-color, var(--pn-text-secondary));
-    font-size: var(--pn-font-size-sm);
-    white-space: nowrap;
-    user-select: none;
+.port-handle.port-type-flow.has-error::before {
+    background: var(--pn-accent-danger, #f38ba8);
 }
+
+.port-handle.port-type-flow.has-error.direction-output::after {
+    border-left-color: var(--pn-accent-danger, #f38ba8);
+}
+
+.port-handle.port-type-flow.has-error.direction-input::after {
+    border-right-color: var(--pn-accent-danger, #f38ba8);
+}
+
+.port-handle.port-type-value.has-error {
+    background: var(--pn-accent-danger, #f38ba8);
+}
+
+.port-handle.has-error {
+    filter: drop-shadow(0 0 4px var(--pn-accent-danger, #f38ba8));
+}
+
 
 /* ── Direct value inputs ──────────────────────────────────────────────── */
 
@@ -127,7 +195,7 @@
     flex-direction: column;
     align-items: flex-end;
     gap: 2px;
-    
+
     padding-right: 10px;
     pointer-events: all;
     z-index: 10;

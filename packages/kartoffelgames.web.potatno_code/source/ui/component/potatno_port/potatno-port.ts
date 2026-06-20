@@ -6,6 +6,7 @@ import type { PotatnoProjectTypesDefinition } from "../../../project/potatno-pro
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import portCss from './potatno-port.css' with { type: 'text' };
 import portTemplate from './potatno-port.html' with { type: 'text' };
+import { PotatnoPortDefinitionDirection } from "../../../project/potatno-port-definition.ts";
 
 /**
  * Port component for the potatno-code visual editor.
@@ -45,12 +46,6 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     private accessor mPortDragStart!: ComponentEventEmitter<PortInteractionDetail>;
 
     /**
-     * Reference to the full port row DOM element for pointer hit tests.
-     */
-    @PwbChild('portWrapper')
-    public accessor portWrapperElement!: HTMLElement;
-
-    /**
      * Whether this port currently has a validation error.
      */
     public get hasError(): boolean {
@@ -69,6 +64,13 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      */
     public get portTypeLabel(): string {
         return this.port?.dataType ?? '';
+    }
+
+    /**
+     * Port direction name.
+     */
+    public get portDirection(): PotatnoPortDefinitionDirection {
+        return this.port?.direction ?? 'output'
     }
 
     /**

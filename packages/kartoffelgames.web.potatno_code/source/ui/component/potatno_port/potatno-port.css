@@ -17,8 +17,8 @@
 }
 
 .port-circle {
-    width: var(--pn-node-port-size);
-    height: var(--pn-node-port-size);
+    width: 10px;
+    height: 10px;
     position: relative;
     flex-shrink: 0;
     transition: transform 0.1s;
@@ -45,14 +45,14 @@
     top: 0;
     width: 0;
     height: 0;
-    border-top: var(--pn-node-port-half-size) solid transparent;
-    border-bottom: var(--pn-node-port-half-size) solid transparent;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
 }
 
 /* Output: arrow points right */
 .port-circle.port-type-flow.direction-output::before {
     left: 0;
-    border-radius: 3px 0 0 3px;
+    border-radius: 1px 0 0 1px;
 }
 .port-circle.port-type-flow.direction-output::after {
     left: var(--pn-node-port-body-size);
@@ -62,7 +62,7 @@
 /* Input: arrow points left */
 .port-circle.port-type-flow.direction-input::before {
     right: 0;
-    border-radius: 0 3px 3px 0;
+    border-radius: 0 1px 1px 0;
 }
 .port-circle.port-type-flow.direction-input::after {
     right: var(--pn-node-port-body-size);
@@ -125,9 +125,10 @@
     flex-direction: column;
     gap: 2px;
     align-items: flex-end;
-    padding-right: 4px;
+    padding-right: 10px;
     pointer-events: all;
     z-index: 10;
+    height: 100%;
 }
 
 .direct-value-field {
@@ -136,8 +137,7 @@
     gap: 3px;
     background: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 12%, var(--pn-node-bg));
     border: 1px solid color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 40%, transparent);
-    border-radius: 3px 0 0 3px;
-    border-right: none;
+    border-radius: 2px;
     padding: 2px 6px 2px 4px;
     position: relative;
     white-space: nowrap;
@@ -147,14 +147,12 @@
 .direct-value-field::after {
     content: '';
     position: absolute;
-    right: -7px;
+    right: -11px;
     top: 50%;
     transform: translateY(-50%);
-    width: 0;
-    height: 0;
-    border-top: 7px solid transparent;
-    border-bottom: 7px solid transparent;
-    border-left: 7px solid color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 40%, transparent);
+    width: 11px;
+    height: 1;
+    background-color: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 40%, transparent);
     pointer-events: none;
 }
 
@@ -177,6 +175,7 @@
     min-width: 30px;
     max-width: 90px;
     box-sizing: border-box;
+    appearance: textfield;
 }
 
 .direct-value-input:focus {

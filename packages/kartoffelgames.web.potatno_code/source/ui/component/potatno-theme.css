@@ -58,10 +58,8 @@
     --pn-node-header-height: var(--pn-grid-size);
     --pn-node-min-width: 160px;
     --pn-node-port-body-size: 9px;
-    --pn-node-port-cell-offset: -10px;
+    --pn-node-port-cell-offset: -5.5px;
     --pn-node-port-gap: var(--pn-grid-size);
-    --pn-node-port-half-size: 7px;
-    --pn-node-port-size: 14px;
     --pn-node-port-tip-size: 5px;
     --pn-node-value-port-size: 10px;
     --pn-node-border-radius: 6px;

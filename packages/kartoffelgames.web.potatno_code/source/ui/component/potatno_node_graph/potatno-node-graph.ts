@@ -138,7 +138,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * Grid size in pixels passed to node components.
      */
     public get gridSize(): number {
-        return PotatnoUiManagerGrid.GRID_SIZE;
+        return this.mManager.grid.gridSize;
     }
 
     /**
@@ -334,7 +334,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
 
         this.invalidateNodeVisuals();
 
-        const lGridSize: number = PotatnoUiManagerGrid.GRID_SIZE;
+        const lGridSize: number = this.mManager.grid.gridSize;
         const lOrigins: Map<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, NodeDragOrigin> = new Map<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, NodeDragOrigin>();
 
         for (const lNode of this.mSelectedNodes) {
@@ -452,7 +452,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         }
 
         if (lState.mode === 'resizing-comment') {
-            const lGridSize: number = PotatnoUiManagerGrid.GRID_SIZE;
+            const lGridSize: number = this.mManager.grid.gridSize;
             const lDx: number = (pEvent.clientX - lState.startX) / this.mInteraction.zoom;
             const lDy: number = (pEvent.clientY - lState.startY) / this.mInteraction.zoom;
 
@@ -539,7 +539,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             return;
         }
 
-        const lGridSize: number = PotatnoUiManagerGrid.GRID_SIZE;
+        const lGridSize: number = this.mManager.grid.gridSize;
         const lCommentLeft: number = pCommentNode.transformation.x * lGridSize;
         const lCommentTop: number = pCommentNode.transformation.y * lGridSize;
         const lCommentRight: number = lCommentLeft + pCommentNode.transformation.width * lGridSize;
@@ -646,7 +646,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      */
     private dragSelectedNodes(pEvent: PointerEvent, pState: Extract<GraphInteractionState, { mode: 'dragging-node'; }>): void {
         const lZoom: number = this.mInteraction.zoom;
-        const lGridSize: number = PotatnoUiManagerGrid.GRID_SIZE;
+        const lGridSize: number = this.mManager.grid.gridSize;
         const lDx: number = (pEvent.clientX - pState.startX) / lZoom;
         const lDy: number = (pEvent.clientY - pState.startY) / lZoom;
 
@@ -746,7 +746,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             return;
         }
 
-        const lGridSize: number = PotatnoUiManagerGrid.GRID_SIZE;
+        const lGridSize: number = this.mManager.grid.gridSize;
         const lSnappedPosition: Point = this.mInteraction.snapToGrid(pWorldPosition.x, pWorldPosition.y);
         const lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = this.mManager.graph.addNode(this.mManager.activeFunction, pDefinition, {
             height: 4,
@@ -837,7 +837,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
 
         if (lActiveFunction) {
-            const lGridSize: number = PotatnoUiManagerGrid.GRID_SIZE;
+            const lGridSize: number = this.mManager.grid.gridSize;
             for (const lNode of lActiveFunction.nodes) {
                 const lHeight: number = Math.max(lNode.transformation.height, this.calculateNodeGridHeight(lNode));
                 lVisibleNodes.push({
@@ -858,7 +858,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * Rebuild only cached node positions after a layout interaction.
      */
     private rebuildVisibleNodePositions(): void {
-        const lGridSize: number = PotatnoUiManagerGrid.GRID_SIZE;
+        const lGridSize: number = this.mManager.grid.gridSize;
         this.mCachedGraphData = {
             visibleNodes: this.mCachedGraphData.visibleNodes.map((pState: NodeViewState) => ({
                 node: pState.node,
@@ -913,7 +913,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             Math.max(this.mSelectionBoxScreen.x1, this.mSelectionBoxScreen.x2),
             Math.max(this.mSelectionBoxScreen.y1, this.mSelectionBoxScreen.y2)
         );
-        const lGridSize: number = PotatnoUiManagerGrid.GRID_SIZE;
+        const lGridSize: number = this.mManager.grid.gridSize;
 
         for (const lNode of lActiveFunction.nodes) {
             const lNodeX: number = lNode.transformation.x * lGridSize;

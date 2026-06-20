@@ -47,13 +47,6 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     @ComponentState.state()
     public accessor selected: boolean = false;
 
-    /**
-     * Grid size in pixels. Used to convert grid-unit positions to pixel values.
-     */
-    @PwbExport
-    @ComponentState.state()
-    public accessor gridSize: number = 20;
-
     @PwbComponentEvent('port-drag-start')
     private accessor mPortDragStart!: ComponentEventEmitter<PortInteractionDetail>;
 
@@ -239,7 +232,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      * Inline CSS style for grid-sized node layout.
      */
     public get nodeGridStyle(): string {
-        const lGridSize: number = this.gridSize;
+        const lGridSize: number = this.mManager.grid.gridSize;
 
         return `--pn-grid-size: ${lGridSize}px; --pn-grid-half-size: ${lGridSize / 2}px; --pn-node-port-cell-offset: ${lGridSize / 2 - 7}px; --pn-node-port-gap: ${lGridSize}px;`;
     }

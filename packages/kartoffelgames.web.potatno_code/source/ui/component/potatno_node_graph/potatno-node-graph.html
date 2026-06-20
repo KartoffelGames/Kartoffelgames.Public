@@ -11,7 +11,6 @@
                     <potatno-node
                         [nodeData]="this.nodeState.node"
                         [selected]="this.nodeState.selected"
-                        [gridSize]="this.gridSize"
                         (pointerdown)="this.onNodePointerDown($event, this.nodeState.node)"
                         (port-drag-start)="this.onPortDragStart($event)"
                         (resize-start)="this.onNodeResizeStart($event)">

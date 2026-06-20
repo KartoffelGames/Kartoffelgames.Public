@@ -127,12 +127,9 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      * Subscribe to the manager so the preview panel toggles with preview availability.
      */
     public onConnect(): void {
-        this.mUnsubscribe = this.mManager.subscribe(
-            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction,
-            null,
-            () => {
-                this.mComponent.updater.update();
-            });
+        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, null, () => {
+            this.mComponent.updater.updateAsync();
+        });
     }
 
     /**

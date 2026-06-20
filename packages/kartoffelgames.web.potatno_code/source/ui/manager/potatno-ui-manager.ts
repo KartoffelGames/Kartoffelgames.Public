@@ -260,11 +260,35 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
     }
 
     /**
+     * Generate a deterministic HSL color from a type string.
+     *
+     * @param pType - Type identifier to derive a colour from.
+     *
+     * @returns A CSS HSL color string.
+     */
+    public generateTypeColor(pType: string): string {
+        // Convert the type name into a hash.
+        const lTypeHash: number = (() => {
+            let lHash: number = 0;
+            for (let lIndex: number = 0; lIndex < pType.length; lIndex++) {
+                lHash = pType.charCodeAt(lIndex) + ((lHash << 5) - lHash);
+            }
+
+            return lHash;
+        })();
+
+        // Dont ask, just take it.
+        const lHue: number = (Math.abs(lTypeHash) * 137.508) % 360;
+        return `hsl(${lHue}, 70%, 60%)`;
+    }
+
+    /**
      * Apply right-panel property changes to the active function.
      *
      * @param pData - The changed function properties.
      */
     public updateFunctionProperties(pData: PotatnoCodeUiManagerPropertiesChange): void {
+        // TODO: all of this shit to graph ui component.
         const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.activeFunction;
         if (!lActiveFunction) {
             return;
@@ -380,7 +404,7 @@ export const PotatnoCodeUiManagerChangeType = {
     PortAdd: 0x10000,
     PortUpdate: 0x20000,
     PortDelete: 0x40000,
-    
+
     // Specials #F00000
     Special: 0xF00000,
     SpecialActiveFunction: 0x100000,

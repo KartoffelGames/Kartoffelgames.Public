@@ -1,14 +1,14 @@
 <div class="port-wrapper {{this.portDirection}}" style="--type-color: {{this.portColor}}">
 
     <!-- Actual port handle. -->
-    <div class="port" [title]="this.portTypeLabel" (pointerdown)="this.onPointerDown($event)">
+    <div class="port" [title]="this.portType" (pointerdown)="this.onPointerDown($event)">
         <div class="port__handle">
             <div class="port-handle {{this.portHandleClasses}}"></div>
         </div>
         <div class="port__label">{{this.portName}}</div>
     </div>
 
-    $if(this.showDirectValueInput) {
+    $if(this.showValueInput) {
         <div class="port-values" (pointerdown)="$event.stopImmediatePropagation()">
 
             <div class="port-values__field">

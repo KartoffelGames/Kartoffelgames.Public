@@ -1,6 +1,6 @@
+import { Exception } from "@kartoffelgames/core";
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
-import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
+import { Component, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPortDefinitionDirection } from '../../../project/potatno-port-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
@@ -21,10 +21,9 @@ import portTemplate from './potatno-port.html' with { type: 'text' };
     template: portTemplate,
     style: portCss,
 })
-export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDeconstruct, IComponentOnUpdate {
+export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDeconstruct {
     private readonly mComponent: Component;
-    private mLastRegisteredElement: HTMLElement | null;
-    private mLastRegisteredPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null;
+    private mPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null;
     private readonly mManager: PotatnoUiManager;
     private mUnsubscribe: (() => void) | null;
 
@@ -32,37 +31,73 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      * The domain port object to render.
      */
     @PwbExport
-    @ComponentState.state()
-    public accessor port: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = null;
+    public get port(): PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null {
+        return this.mPort;
+    } set port(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null) {
+        // Skip reassigning the port.
+        if (this.mPort === pPort) {
+            return;
+        }
+
+        // A nullport should never be assigned.
+        if (pPort === null) {
+            throw new Exception('A null port cant be assigned.', this);
+        }
+
+        this.mPort = pPort;
+        this.mManager.grid.registerPortElement(pPort, this.mComponent.element);
+
+        // Manually update.
+        this.mComponent.updater.updateAsync();
+    }
 
     @PwbComponentEvent('port-drag-start')
-    private accessor mPortDragStart!: ComponentEventEmitter<PortInteractionDetail>;
+    private accessor mPortDragStart!: ComponentEventEmitter<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>;
 
     /**
      * Input element descriptors for the direct-value fields, derived from the port's type definition.
      */
     public get inputDefinitions(): Array<PotatnoPortValueDefinition> {
-        if (!this.port || this.port.portType !== 'value') {
-            return [];
+        // Must be set.
+        if (!this.port) {
+            return new Array<PotatnoPortValueDefinition>();
         }
-        if (this.port.node.project.types.isGenericType(this.port.dataType ?? '')) {
-            return [];
-        }
-        const lTypeDefinition = this.port.project.types.getType(this.port.dataType ?? '');
-        return lTypeDefinition.inputs.map((pInput, pIndex) => ({
-            htmlType: pInput.type === 'number' ? 'number' : pInput.type === 'boolean' ? 'checkbox' : 'text',
-            index: pIndex,
-            name: pInput.name,
-            value: this.port!.directValue[pIndex] ?? '',
-            totalCount: lTypeDefinition.inputs.length
-        }));
+
+        // No further checks a this property is guarded by showValueInput.
+
+        // Read the type definition.
+        const lTypeDefinition = this.port.project.types.getType(this.port.resolvedDataType);
+
+        // Map types input definitions with more information.
+        return lTypeDefinition.inputs.map((pInput, pIndex) => {
+            // Map input type to ... aahm.. input type i guess.
+            const lInputType: string = (() => {
+                switch (pInput.type) {
+                    case 'boolean': return 'checkbox';
+                    case 'number': return 'number';
+                    case 'string': return 'text';
+                }
+            })();
+
+            return {
+                htmlType: lInputType,
+                index: pIndex,
+                name: pInput.name,
+                value: this.port!.directValue[pIndex] ?? '',
+                totalCount: lTypeDefinition.inputs.length
+            };
+        });
     }
 
     /**
      * Whether this port currently has a validation error.
      */
     public get hasError(): boolean {
-        return this.port !== null && this.mManager.integrity.errorItems.has(this.port);
+        if (this.port === null) {
+            return false;
+        }
+
+        return this.mManager.integrity.errorItems.has(this.port);
     }
 
     /**
@@ -76,7 +111,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
             return 'var(--potatno-color-text)';
         }
 
-        return this.getTypeColor(this.port.resolvedDataType);
+        return this.mManager.generateTypeColor(this.port.resolvedDataType);
     }
 
     /**
@@ -91,14 +126,18 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      */
     public get portHandleClasses(): string {
         if (!this.port) {
-            return 'port-handle--disconnected';
+            return '';
         }
-        const lClasses: Array<string> = new Array<string>();
-        lClasses.push(this.port.connectedPorts.size > 0 ? 'port-handle--connected' : 'port-handle--disconnected');
-        lClasses.push(this.port.portType === 'value' ? 'port-handle--type-value' : 'port-handle--type-flow');
+
+        // Create array with port type, connected state and error state.
+        const lClasses: Array<string> = [this.port.portType]
+        if (this.port.connectedPorts.size > 0) {
+            lClasses.push('connected');
+        }
         if (this.hasError) {
-            lClasses.push('port-handle--has-error');
+            lClasses.push('error');
         }
+
         return lClasses.join(' ');
     }
 
@@ -110,24 +149,37 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     }
 
     /**
-     * Port type label (shown as tooltip).
+     * Port type name (shown as tooltip).
      */
-    public get portTypeLabel(): string {
-        return this.port?.dataType ?? '';
+    public get portType(): string {
+        if (!this.port || this.port.portType !== 'value') {
+            return '';
+        }
+
+        return this.port.resolvedDataType ?? '';
     }
 
     /**
      * Whether to show the direct-value input fields.
      * Only for unconnected, non-generic value input ports.
      */
-    public get showDirectValueInput(): boolean {
+    public get showValueInput(): boolean {
         if (!this.port) {
             return false;
         }
-        return this.port.portType === 'value'
-            && this.port.direction === 'input'
-            && this.port.connectedPorts.size === 0
-            && !this.port.node.project.types.isGenericType(this.port.dataType ?? '');
+
+        // Must be a value port and an be an input.
+        if (this.port.portType !== 'value' || this.port.direction !== 'input') {
+            return false;
+        }
+
+        // Must be without connection.
+        if (this.port.connectedPorts.size > 0) {
+            return false;
+        }
+
+        // And lastly. Should not be generic.
+        return !this.port.node.project.types.isGenericType(this.port.dataType ?? '');
     }
 
     /**
@@ -138,8 +190,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      */
     public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mComponent = pComponent;
-        this.mLastRegisteredElement = null;
-        this.mLastRegisteredPort = null;
+        this.mPort = null;
         this.mManager = pManager;
         this.mUnsubscribe = null;
     }
@@ -148,12 +199,9 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      * Subscribe to manager events that change this port's connection-dependent visuals.
      */
     public onConnect(): void {
-        this.mUnsubscribe = this.mManager.subscribe(
-            PotatnoCodeUiManagerChangeType.Connection | PotatnoCodeUiManagerChangeType.Node,
-            null,
-            () => {
-                this.mComponent.updater.update();
-            });
+        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Connection | PotatnoCodeUiManagerChangeType.Node, null, () => {
+            this.mComponent.updater.updateAsync();
+        });
     }
 
     /**
@@ -175,9 +223,22 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
             return;
         }
         const lTarget: HTMLInputElement = pEvent.target as HTMLInputElement;
-        const lNewValues: Array<string> = [...this.port.directValue];
-        lNewValues[pIndex] = lTarget.type === 'checkbox' ? (lTarget.checked ? 'true' : 'false') : lTarget.value;
-        this.mManager.graph.setPortDirectValue(this.port, lNewValues);
+
+        // Read and copy the current port values.
+        const lCurrentValues: Array<string> = [...this.port.directValue];
+
+        // Update single value.
+        lCurrentValues[pIndex] = (() => {
+            // If its a checkbox, convert the checked state.
+            if (lTarget.type === 'checkbox') {
+                return lTarget.checked ? 'true' : 'false';
+            }
+
+            return lTarget.value;
+        })();
+
+        // Update port values.
+        this.mManager.graph.setPortDirectValue(this.port, lCurrentValues);
     }
 
     /**
@@ -189,54 +250,12 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         // Skip anything when clicking the port.
         pEvent.stopPropagation();
         pEvent.preventDefault();
-        
+
         // Dispatch a drag start event.
         // When the port is displayed, the port should be initialized. 
-        this.mPortDragStart.dispatchEvent({
-            port: this.port!
-        });
-    }
-
-    /**
-     * After each update, register this port component with the shared grid manager.
-     */
-    public onUpdate(): void {
-        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.port;
-        if (!lPort) {
-            return;
-        }
-
-        const lPortElement: HTMLElement = this.mComponent.element;
-
-        if (lPort === this.mLastRegisteredPort && lPortElement === this.mLastRegisteredElement) {
-            return;
-        }
-
-        this.mLastRegisteredElement = lPortElement;
-        this.mLastRegisteredPort = lPort;
-        this.mManager.grid.registerPortElement(lPort, lPortElement);
-    }
-
-    /**
-     * Generate a deterministic HSL color from a type string.
-     *
-     * @param pType - Type identifier to derive a colour from.
-     *
-     * @returns A CSS HSL color string.
-     */
-    private getTypeColor(pType: string): string {
-        let lHash: number = 0;
-        for (let lIndex: number = 0; lIndex < pType.length; lIndex++) {
-            lHash = pType.charCodeAt(lIndex) + ((lHash << 5) - lHash);
-        }
-        const lHue: number = (Math.abs(lHash) * 137.508) % 360;
-        return `hsl(${lHue}, 70%, 60%)`;
+        this.mPortDragStart.dispatchEvent(this.port!);
     }
 }
-
-export type PortInteractionDetail = {
-    port: PotatnoDocumentPort<PotatnoProjectTypesDefinition>;
-};
 
 type PotatnoPortValueDefinition = {
     htmlType: string;

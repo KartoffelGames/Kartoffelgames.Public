@@ -41,10 +41,9 @@ export class NodeCategoryMeta {
         }
 
         // Generate a deterministic HSL color from the category string hash.
-        const lHue: number = NodeCategoryMeta.hashStringToHue(pCategory);
         return {
             icon: '◆',
-            cssColor: `hsl(${lHue}, 60%, 55%)`,
+            cssColor:  NodeCategoryMeta.hashStringToHue(pCategory),
             label: pCategory.charAt(0).toUpperCase() + pCategory.slice(1)
         };
     }
@@ -52,12 +51,19 @@ export class NodeCategoryMeta {
     /**
      * Hash a string to a hue value (0-360) for deterministic color generation.
      */
-    private static hashStringToHue(pStr: string): number {
-        let lHash: number = 0;
-        for (let lI: number = 0; lI < pStr.length; lI++) {
-            lHash = ((lHash << 5) - lHash) + pStr.charCodeAt(lI);
-            lHash = lHash & lHash; // Convert to 32-bit integer.
-        }
-        return Math.abs(lHash) % 360;
+    private static hashStringToHue(pStr: string): string {
+        // Convert the type name into a hash.
+        const lTypeHash: number = (() => {
+            let lHash: number = 0;
+            for (let lIndex: number = 0; lIndex < pStr.length; lIndex++) {
+                lHash = pStr.charCodeAt(lIndex) + ((lHash << 5) - lHash);
+            }
+
+            return lHash;
+        })();
+
+        // Dont ask, just take it. ()
+        const lHue: number = (Math.abs(lTypeHash) * 137.508) % 360;
+        return `hsl(${lHue}, 70%, 60%)`;
     }
 }

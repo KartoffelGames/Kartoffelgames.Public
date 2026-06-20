@@ -148,7 +148,7 @@
             position: relative;
             transition: transform 0.1s ease-in-out;
 
-            &.port-handle--type-flow {
+            &.flow {
                 display: flex;
 
                 &::before {
@@ -171,15 +171,15 @@
                     border-top: calc(var(--potatno-port-flow-size) / 3) solid transparent;
                 }
 
-                &.port-handle--connected::before {
+                &.connected::before {
                     background: var(---potatno-port-color);
                 }
 
-                &.port-handle--disconnected::before {
+                &:not(.connected)::before {
                     background: color-mix(in srgb, var(---potatno-port-color) 30%, var(--potatno-color-background));
                 }
 
-                &.port-handle--has-error::before {
+                &.error::before {
                     background: var(--potatno-color-error);
                 }
 
@@ -189,15 +189,15 @@
                         border-left: var(--pn-node-port-tip-size) solid var(---potatno-port-color);
                     }
 
-                    &.port-handle--connected::after {
+                    &.connected::after {
                         border-left-color: var(---potatno-port-color);
                     }
 
-                    &.port-handle--disconnected::after {
+                    &:not(.connected)::after {
                         border-left-color: color-mix(in srgb, var(---potatno-port-color) 30%, var(--potatno-color-background));
                     }
 
-                    &.port-handle--has-error::after {
+                    &.error::after {
                         border-left-color: var(--potatno-color-error);
                     }
                 }
@@ -210,41 +210,41 @@
                         border-right: var(--pn-node-port-tip-size) solid var(---potatno-port-color);
                     }
 
-                    &.port-handle--connected::after {
+                    &.connected::after {
                         border-right-color: var(---potatno-port-color);
                     }
 
-                    &.port-handle--disconnected::after {
+                    &:not(.connected)::after {
                         border-right-color: color-mix(in srgb, var(---potatno-port-color, ) 30%, var(--potatno-color-background));
                     }
 
-                    &.port-handle--has-error::after {
+                    &.error::after {
                         border-right-color: var(--potatno-color-error);
                     }
                 }
             }
 
-            &.port-handle--type-value {
+            &.value {
                 background: var(---potatno-port-color);
                 border: 1px solid var(---potatno-port-color);
                 border-radius: 50%;
                 height: calc(var(--potatno-port-value-size) - 1px);
                 width: calc(var(--potatno-port-value-size) - 1px);
 
-                &.port-handle--connected {
+                &.connected {
                     background: var(---potatno-port-color);
                 }
 
-                &.port-handle--disconnected {
+                &:not(.connected) {
                     background: color-mix(in srgb, var(---potatno-port-color) 30%, var(--potatno-color-background));
                 }
 
-                &.port-handle--has-error {
+                &.error {
                     background: var(--potatno-color-error);
                 }
             }
 
-            &.port-handle--has-error {
+            &.error {
                 filter: drop-shadow(0 0 4px var(--potatno-color-error));
             }
         }

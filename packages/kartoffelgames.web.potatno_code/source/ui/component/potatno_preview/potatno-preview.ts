@@ -191,12 +191,9 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      * Subscribe to manager events affecting the preview content and validation list.
      */
     public onConnect(): void {
-        this.mUnsubscribe = this.mManager.subscribe(
-            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection,
-            null,
-            () => {
-                this.mComponent.updater.update();
-            });
+        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection, null, () => {
+            this.mComponent.updater.updateAsync();
+        });
     }
 
     /**
@@ -214,7 +211,7 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      */
     public onDisplaySelect(pEvent: Event): void {
         this.mSelectedDisplayId = (pEvent.target as HTMLSelectElement).value;
-        this.mComponent.updater.update();
+        this.mComponent.updater.updateAsync();
     }
 
     /**
@@ -224,7 +221,7 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      */
     public onOutputSelect(pEvent: Event): void {
         this.mSelectedOutputId = (pEvent.target as HTMLSelectElement).value;
-        this.mComponent.updater.update();
+        this.mComponent.updater.updateAsync();
     }
 
     /**

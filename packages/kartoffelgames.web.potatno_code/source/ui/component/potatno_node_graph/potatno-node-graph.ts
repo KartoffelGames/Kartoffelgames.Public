@@ -8,7 +8,6 @@ import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import type { PotatnoConnectionLayerTempConnection } from '../potatno_connection_layer/potatno-connection-layer.ts';
 import type { ResizeStartDetail } from '../potatno_node_component/potatno-node-component.ts';
-import type { PortInteractionDetail } from '../potatno_port/potatno-port.ts';
 import graphCss from './potatno-node-graph.css' with { type: 'text' };
 import graphTemplate from './potatno-node-graph.html' with { type: 'text' };
 
@@ -200,17 +199,15 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
 
         // Refresh the graph whenever the document, active function, or graph structure changes.
         // A document load or function switch resets all interaction state first.
-        this.mUnsubscribe = this.mManager.subscribe(
-            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection,
-            null,
-            (pEvent) => {
-                if ((pEvent.changeType & PotatnoCodeUiManagerChangeType.Document) > 0 || (pEvent.changeType & PotatnoCodeUiManagerChangeType.Function) > 0 || (pEvent.changeType & PotatnoCodeUiManagerChangeType.SpecialActiveFunction) > 0) {
-                    this.resetForActiveFunction();
-                }
+        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection, null, (pEvent) => {
+            if ((pEvent.changeType & PotatnoCodeUiManagerChangeType.Document) > 0 || (pEvent.changeType & PotatnoCodeUiManagerChangeType.Function) > 0 || (pEvent.changeType & PotatnoCodeUiManagerChangeType.SpecialActiveFunction) > 0) {
+                this.resetForActiveFunction();
+            }
 
-                this.invalidateGraphContent();
-                this.mComponent.updater.update();
-            });
+            this.invalidateGraphContent();
+
+            this.mComponent.updater.updateAsync();
+        });
 
         this.invalidateGraphContent();
     }
@@ -361,23 +358,23 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      *
      * @param pEvent - Component event with port interaction data.
      */
-    public onPortDragStart(pEvent: ComponentEvent<PortInteractionDetail>): void {
+    public onPortDragStart(pEvent: ComponentEvent<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>): void {
         // Get port element of port.
-        const lPortElement: Element| undefined = this.mManager.grid.getPortElement(pEvent.value.port);
-        if(!lPortElement){
+        const lPortElement: Element | undefined = this.mManager.grid.getPortElement(pEvent.value);
+        if (!lPortElement) {
             return;
         }
 
         const lCanvasRect: DOMRect = this.canvasWrapper.getBoundingClientRect();
         const lPortRect: DOMRect = lPortElement.getBoundingClientRect();
-        const lPortAnchorX: number = pEvent.value.port.direction === 'output' ? lPortRect.right : lPortRect.left;
+        const lPortAnchorX: number = pEvent.value.direction === 'output' ? lPortRect.right : lPortRect.left;
         const lStartX: number = (lPortAnchorX - lCanvasRect.left - this.mInteraction.panX) / this.mInteraction.zoom;
         const lStartY: number = (lPortRect.top + lPortRect.height / 2 - lCanvasRect.top - this.mInteraction.panY) / this.mInteraction.zoom;
 
         this.closeAddNodePopup();
         this.mInteractionState = {
             mode: 'dragging-wire',
-            sourcePort: pEvent.value.port,
+            sourcePort: pEvent.value,
             startX: lStartX,
             startY: lStartY
         };

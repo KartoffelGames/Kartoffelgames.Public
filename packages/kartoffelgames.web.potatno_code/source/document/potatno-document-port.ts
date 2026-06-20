@@ -124,7 +124,7 @@ export class PotatnoDocumentPort<TProjectTypes extends PotatnoProjectTypesDefini
 
         // No connections, no type.
         if (this.mConnectedPorts.size === 0) {
-            throw new Exception(`Port type couldn't be resolved as it has no resolving input port`, this);
+            return this.mDataType!;
         }
 
         const lConnectedPort: PotatnoDocumentPort<TProjectTypes> = this.mConnectedPorts.values().next().value!;

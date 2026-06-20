@@ -2,15 +2,15 @@ import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEvent, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
-import { PotatnoPreviewModule } from "../../module/potatno-preview.module.ts";
-import { NodeCategory, NodeCategoryMeta } from "../../node/node-category.enum.ts";
-import { PotatnoPortComponent, type PortInteractionDetail } from '../potatno_port/potatno-port.ts';
-import nodeCss from './potatno-node-component.css' with { type: 'text' };
-import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
 import type { PotatnoPreviewDriver } from "../../../preview/potatno-preview-driver.ts";
 import type { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
 import type { PotatnoProject } from "../../../project/potatno-project.ts";
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoPreviewModule } from "../../module/potatno-preview.module.ts";
+import { NodeCategory, NodeCategoryMeta } from "../../node/node-category.enum.ts";
+import { PotatnoPortComponent } from '../potatno_port/potatno-port.ts';
+import nodeCss from './potatno-node-component.css' with { type: 'text' };
+import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
 
 /**
  * Node component for the potatno-code visual editor.
@@ -48,7 +48,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     public accessor selected: boolean = false;
 
     @PwbComponentEvent('port-drag-start')
-    private accessor mPortDragStart!: ComponentEventEmitter<PortInteractionDetail>;
+    private accessor mPortDragStart!: ComponentEventEmitter<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>;
 
     @PwbComponentEvent('resize-start')
     private accessor mResizeStart!: ComponentEventEmitter<ResizeStartDetail>;
@@ -293,12 +293,9 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      * Subscribe to manager events that affect this node's rendering.
      */
     public onConnect(): void {
-        this.mUnsubscribe = this.mManager.subscribe(
-            PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection,
-            null,
-            () => {
-                this.mComponent.updater.update();
-            });
+        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection, null, () => {
+            this.mComponent.updater.updateAsync();
+        });
     }
 
     /**
@@ -314,7 +311,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      *
      * @param pEvent - Port interaction event from the port component.
      */
-    public onPortDragStart(pEvent: ComponentEvent<PortInteractionDetail>): void {
+    public onPortDragStart(pEvent: ComponentEvent<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>): void {
         this.mPortDragStart.dispatchEvent(pEvent.value);
     }
 

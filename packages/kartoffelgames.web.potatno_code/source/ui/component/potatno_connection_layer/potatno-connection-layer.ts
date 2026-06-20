@@ -251,16 +251,21 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
     }
 
     /**
-     * Find the SVG layer if it is already connected.
+     * Resolve the visual anchor element inside a registered port component.
      *
-     * @returns SVG layer or null before render.
+     * @param pPortElement - Registered port component element.
+     *
+     * @returns The visible port handle element, or the component element when the handle is unavailable.
      */
-    private getSvgLayerOrNull(): SVGSVGElement | null {
-        try {
-            return this.svgLayer;
-        } catch {
-            return null;
+    private getPortAnchorElement(pPortElement: Element): Element {
+        if (pPortElement instanceof HTMLElement) {
+            const lPortCircleElement: Element | null = pPortElement.shadowRoot?.querySelector('.port-circle') ?? null;
+            if (lPortCircleElement) {
+                return lPortCircleElement;
+            }
         }
+
+        return pPortElement;
     }
 
     /**
@@ -273,15 +278,16 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
     private getPortPosition(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): Point {
         const lZoom: number = this.interaction?.zoom ?? 1;
         const lGridSize: number = this.mManager.grid.gridSize;
-        const lCircleElement: Element | undefined = this.mManager.grid.getPortElement(pPort);
+        const lPortElement: Element | undefined = this.mManager.grid.getPortElement(pPort);
         const lSvg: SVGSVGElement | null = this.getSvgLayerOrNull();
 
-        if (lCircleElement && lSvg) {
+        if (lPortElement && lSvg) {
+            const lAnchorElement: Element = this.getPortAnchorElement(lPortElement);
             const lSvgRect: DOMRect = lSvg.getBoundingClientRect();
-            const lCircleRect: DOMRect = lCircleElement.getBoundingClientRect();
+            const lAnchorRect: DOMRect = lAnchorElement.getBoundingClientRect();
             return {
-                x: this.snapToGridCenter((lCircleRect.left + lCircleRect.width / 2 - lSvgRect.left) / lZoom),
-                y: this.snapToGridCenter((lCircleRect.top + lCircleRect.height / 2 - lSvgRect.top) / lZoom)
+                x: this.snapToGridCenter((lAnchorRect.left + lAnchorRect.width / 2 - lSvgRect.left) / lZoom),
+                y: this.snapToGridCenter((lAnchorRect.top + lAnchorRect.height / 2 - lSvgRect.top) / lZoom)
             };
         }
 
@@ -303,6 +309,19 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
             x: pPort.direction === 'output' ? lNodeX + lNodeW - lGridSize / 2 : lNodeX + lGridSize / 2,
             y: lNodeY + lGridSize + (lIndex + 0.5) * lGridSize
         };
+    }
+
+    /**
+     * Find the SVG layer if it is already connected.
+     *
+     * @returns SVG layer or null before render.
+     */
+    private getSvgLayerOrNull(): SVGSVGElement | null {
+        try {
+            return this.svgLayer;
+        } catch {
+            return null;
+        }
     }
 
     /**

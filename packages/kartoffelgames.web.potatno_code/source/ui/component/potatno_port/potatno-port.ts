@@ -195,8 +195,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     }
 
     /**
-     * After each update, register this port's anchor and hit elements with the shared grid manager.
-     * The connection layer anchors wires to the small handle, while interaction can use the full row.
+     * After each update, register this port component with the shared grid manager.
      */
     public onUpdate(): void {
         const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.port;
@@ -205,20 +204,15 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
             return;
         }
 
-        let lCircleEl: HTMLElement = this.portCircleElement;
+        const lPortElement: HTMLElement = this.mComponent.element;
 
-        if (lPort === this.mLastRegisteredPort && lCircleEl === this.mLastRegisteredElement ) {
+        if (lPort === this.mLastRegisteredPort && lPortElement === this.mLastRegisteredElement) {
             return;
         }
 
-        this.mLastRegisteredElement = lCircleEl;
+        this.mLastRegisteredElement = lPortElement;
         this.mLastRegisteredPort = lPort;
-        this.mManager.grid.registerPortElement(lPort, lCircleEl);
-
-        // The port element's real position is now known; nudge the connection layer to redraw any
-        // wire that used an estimated anchor before this port mounted. An empty transformation
-        // re-applies the node's current geometry, so this only fires the redraw notification.
-        this.mManager.graph.transformNode(lNode, {});
+        this.mManager.grid.registerPortElement(lPort, lPortElement);
     }
 
     /**

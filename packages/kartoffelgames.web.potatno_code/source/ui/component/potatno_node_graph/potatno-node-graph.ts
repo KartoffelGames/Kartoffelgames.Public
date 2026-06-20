@@ -621,7 +621,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Find a port whose registered circle element contains the given viewport point. Used as a
+     * Find a port whose registered component element contains the given viewport point. Used as a
      * drop-target fallback when hover tracking missed the target (see `completeWireDrag`).
      *
      * @param pClientX - Viewport X coordinate of the drop.

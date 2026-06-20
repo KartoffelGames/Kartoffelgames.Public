@@ -3,7 +3,7 @@ import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-pro
 
 /**
  * Ui manager grid component.
- * Owns grid sizing and rendered port element lookup for the graph UI.
+ * Owns grid sizing and rendered port component lookup for the graph UI.
  */
 export class PotatnoUiManagerGrid {
     public static readonly GRID_SIZE: number = 25;
@@ -27,11 +27,11 @@ export class PotatnoUiManagerGrid {
     }
 
     /**
-     * Resolve the rendered element for a document port.
+     * Resolve the rendered component element for a document port.
      *
      * @param pPort - Port whose element should be returned.
      *
-     * @returns The live port element, or undefined when it is not currently registered.
+     * @returns The live port component element, or undefined when it is not currently registered.
      */
     public getPortElement(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): Element | undefined {
         const lElement: Element | undefined = this.mPortElements.get(pPort);
@@ -57,7 +57,7 @@ export class PotatnoUiManagerGrid {
             }
 
             const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = this.mElementPorts.get(lElement);
-            if (lPort && this.mPortElements.get(lPort) === lElement) {
+            if (lPort) {
                 return lPort;
             }
         }
@@ -66,11 +66,10 @@ export class PotatnoUiManagerGrid {
     }
 
     /**
-     * Register a rendered port element.
+     * Register a rendered port component element.
      *
      * @param pPort - Port represented by the element.
-     * @param pElement - Rendered port element.
-     * @param pHitElement - Optional larger rendered element used for pointer hit tests.
+     * @param pElement - Rendered port component element.
      */
     public registerPortElement(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pElement: Element): void {
         this.mElementPorts.set(pElement, pPort);

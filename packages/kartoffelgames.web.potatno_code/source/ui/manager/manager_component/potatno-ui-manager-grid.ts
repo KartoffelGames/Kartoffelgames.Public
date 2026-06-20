@@ -51,13 +51,10 @@ export class PotatnoUiManagerGrid {
      * @returns The port under the position, or null when none exists.
      */
     public getPortFromPosition(pClientX: number, pClientY: number): PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null {
-        for (const lElement of document.elementsFromPoint(pClientX, pClientY)) {
-            if (!(lElement instanceof Element)) {
-                continue;
-            }
-
-            const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = this.mElementPorts.get(lElement);
-            if (lPort) {
+        for (const lElement of this.getElementsFromPosition(document, pClientX, pClientY)) {
+            const lRegisteredElement: Element = this.getRegisteredElementFromHitElement(lElement);
+            const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = this.mElementPorts.get(lRegisteredElement);
+            if (lPort && this.mPortElements.get(lPort) === lRegisteredElement) {
                 return lPort;
             }
         }
@@ -74,5 +71,44 @@ export class PotatnoUiManagerGrid {
     public registerPortElement(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pElement: Element): void {
         this.mElementPorts.set(pElement, pPort);
         this.mPortElements.set(pPort, pElement);
+    }
+
+    /**
+     * Find all elements under a viewport position, including elements inside open shadow roots.
+     *
+     * @param pRoot - Document or shadow root to inspect.
+     * @param pClientX - Viewport x coordinate.
+     * @param pClientY - Viewport y coordinate.
+     *
+     * @returns Elements under the position.
+     */
+    private getElementsFromPosition(pRoot: Document | ShadowRoot, pClientX: number, pClientY: number): Array<Element> {
+        const lElements: Array<Element> = [];
+
+        for (const lElement of pRoot.elementsFromPoint(pClientX, pClientY)) {
+            lElements.push(lElement);
+
+            if (lElement.shadowRoot) {
+                lElements.push(...this.getElementsFromPosition(lElement.shadowRoot, pClientX, pClientY));
+            }
+        }
+
+        return lElements;
+    }
+
+    /**
+     * Resolve shadow DOM hit elements back to their registered host element.
+     *
+     * @param pElement - Element returned by the browser hit test.
+     *
+     * @returns The element that can be looked up in the registration map.
+     */
+    private getRegisteredElementFromHitElement(pElement: Element): Element {
+        const lRoot: Node = pElement.getRootNode();
+        if (lRoot instanceof ShadowRoot && lRoot.host instanceof Element) {
+            return lRoot.host;
+        }
+
+        return pElement;
     }
 }

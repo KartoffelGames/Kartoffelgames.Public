@@ -2,7 +2,7 @@
      [title]="this.portTypeLabel"
      style="--port-color: {{this.portColor}}"
      (pointerdown)="this.onPointerDown($event)">
-    <div #portCircle [className]="this.portCircleClasses">
+    <div #portHandle [className]="this.portHandleClasses">
     </div>
     <span class="port-label">{{this.portName}}</span>
     $if(this.showDirectValueInput) {

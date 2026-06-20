@@ -16,7 +16,7 @@
     flex-direction: row-reverse;
 }
 
-.port-circle {
+.port-handle {
     width: 10px;
     height: 10px;
     position: relative;
@@ -24,12 +24,12 @@
     transition: transform 0.1s;
 }
 
-.port-wrapper:hover .port-circle {
-    transform: scale(1.3);
+.port-wrapper:hover .port-handle {
+    transform: translateX(-2px);
 }
 
 /* Rectangle body */
-.port-circle.port-type-flow::before {
+.port-handle.port-type-flow::before {
     content: '';
     position: absolute;
     top: 0;
@@ -39,7 +39,7 @@
 }
 
 /* Triangle tip */
-.port-circle.port-type-flow::after {
+.port-handle.port-type-flow::after {
     content: '';
     position: absolute;
     top: 0;
@@ -50,59 +50,60 @@
 }
 
 /* Output: arrow points right */
-.port-circle.port-type-flow.direction-output::before {
+.port-handle.port-type-flow.direction-output::before {
     left: 0;
     border-radius: 1px 0 0 1px;
 }
-.port-circle.port-type-flow.direction-output::after {
+.port-handle.port-type-flow.direction-output::after {
     left: var(--pn-node-port-body-size);
     border-left: var(--pn-node-port-tip-size) solid var(--port-color, var(--pn-text-muted));
 }
 
 /* Input: arrow points left */
-.port-circle.port-type-flow.direction-input::before {
+.port-handle.port-type-flow.direction-input::before {
     right: 0;
     border-radius: 0 1px 1px 0;
 }
-.port-circle.port-type-flow.direction-input::after {
+.port-handle.port-type-flow.direction-input::after {
     right: var(--pn-node-port-body-size);
     border-right: var(--pn-node-port-tip-size) solid var(--port-color, var(--pn-text-muted));
 }
 
 /* Value ports: smaller circular shape */
-.port-circle.port-type-value {
+.port-handle.port-type-value {
     align-self: center;
     background: var(--port-color, var(--pn-text-muted));
     border-radius: 50%;
-    height: var(--pn-node-value-port-size);
-    width: var(--pn-node-value-port-size);
+    height: calc(var(--pn-node-value-port-size) - 1px);
+    width: calc(var(--pn-node-value-port-size) - 1px);
+    border: 1px solid var(--port-color);
 }
 
 /* Connected: solid fill (default) */
-.port-circle.port-type-flow.connected::before { background: var(--port-color, var(--pn-text-muted)); }
-.port-circle.port-type-flow.connected.direction-output::after { border-left-color: var(--port-color, var(--pn-text-muted)); }
-.port-circle.port-type-flow.connected.direction-input::after { border-right-color: var(--port-color, var(--pn-text-muted)); }
-.port-circle.port-type-value.connected { background: var(--port-color, var(--pn-text-muted)); }
+.port-handle.port-type-flow.connected::before { background: var(--port-color, var(--pn-text-muted)); }
+.port-handle.port-type-flow.connected.direction-output::after { border-left-color: var(--port-color, var(--pn-text-muted)); }
+.port-handle.port-type-flow.connected.direction-input::after { border-right-color: var(--port-color, var(--pn-text-muted)); }
+.port-handle.port-type-value.connected { background: var(--port-color, var(--pn-text-muted)); }
 
 /* Disconnected: dimmed */
-.port-circle.port-type-flow.disconnected::before { background: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg)); }
-.port-circle.port-type-flow.disconnected.direction-output::after { border-left-color: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg)); }
-.port-circle.port-type-flow.disconnected.direction-input::after { border-right-color: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg)); }
-.port-circle.port-type-value.disconnected { background: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg)); }
+.port-handle.port-type-flow.disconnected::before { background: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg)); }
+.port-handle.port-type-flow.disconnected.direction-output::after { border-left-color: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg)); }
+.port-handle.port-type-flow.disconnected.direction-input::after { border-right-color: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg)); }
+.port-handle.port-type-value.disconnected { background: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 30%, var(--pn-node-bg)); }
 
 /* Invalid: red glow */
-.port-circle.port-type-flow.invalid::before { background: var(--pn-accent-danger); }
-.port-circle.port-type-flow.invalid.direction-output::after { border-left-color: var(--pn-accent-danger); }
-.port-circle.port-type-flow.invalid.direction-input::after { border-right-color: var(--pn-accent-danger); }
-.port-circle.port-type-value.invalid { background: var(--pn-accent-danger); }
-.port-circle.invalid { filter: drop-shadow(0 0 4px var(--pn-accent-danger)); }
+.port-handle.port-type-flow.invalid::before { background: var(--pn-accent-danger); }
+.port-handle.port-type-flow.invalid.direction-output::after { border-left-color: var(--pn-accent-danger); }
+.port-handle.port-type-flow.invalid.direction-input::after { border-right-color: var(--pn-accent-danger); }
+.port-handle.port-type-value.invalid { background: var(--pn-accent-danger); }
+.port-handle.invalid { filter: drop-shadow(0 0 4px var(--pn-accent-danger)); }
 
 /* Has-error: red glow (validation error from graph) */
-.port-circle.port-type-flow.has-error::before { background: var(--pn-accent-danger, #f38ba8); }
-.port-circle.port-type-flow.has-error.direction-output::after { border-left-color: var(--pn-accent-danger, #f38ba8); }
-.port-circle.port-type-flow.has-error.direction-input::after { border-right-color: var(--pn-accent-danger, #f38ba8); }
-.port-circle.port-type-value.has-error { background: var(--pn-accent-danger, #f38ba8); }
-.port-circle.has-error { filter: drop-shadow(0 0 4px var(--pn-accent-danger, #f38ba8)); }
+.port-handle.port-type-flow.has-error::before { background: var(--pn-accent-danger, #f38ba8); }
+.port-handle.port-type-flow.has-error.direction-output::after { border-left-color: var(--pn-accent-danger, #f38ba8); }
+.port-handle.port-type-flow.has-error.direction-input::after { border-right-color: var(--pn-accent-danger, #f38ba8); }
+.port-handle.port-type-value.has-error { background: var(--pn-accent-danger, #f38ba8); }
+.port-handle.has-error { filter: drop-shadow(0 0 4px var(--pn-accent-danger, #f38ba8)); }
 
 .port-label {
     color: var(--port-label-color, var(--pn-text-secondary));
@@ -116,8 +117,8 @@
 
 .direct-value-inputs {
     position: absolute;
-    /* Place the right edge of this element at the left edge of the port circle
-       so the inputs body does not overlap the port circle at all. */
+    /* Place the right edge of this element at the left edge of the port handle
+       so the inputs body does not overlap the port handle at all. */
     right: 100%;
     top: 50%;
     transform: translateY(-50%);
@@ -136,23 +137,23 @@
     align-items: center;
     gap: 3px;
     background: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 12%, var(--pn-node-bg));
-    border: 1px solid color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 40%, transparent);
+    border: 1px solid var(--port-color);
     border-radius: 2px;
     padding: 2px 6px 2px 4px;
     position: relative;
     white-space: nowrap;
 }
 
-/* Arrow tip pointing right toward the port circle */
+/* Arrow tip pointing right toward the port handle */
 .direct-value-field::after {
     content: '';
     position: absolute;
-    right: -11px;
+    right: -12px;
     top: 50%;
     transform: translateY(-50%);
     width: 11px;
     height: 1;
-    background-color: color-mix(in srgb, var(--port-color, var(--pn-text-muted)) 40%, transparent);
+    background-color: var(--port-color);
     pointer-events: none;
 }
 
@@ -189,4 +190,5 @@
     min-width: auto;
     accent-color: var(--port-color, var(--pn-text-muted));
     cursor: pointer;
+    margin: 0px;
 }

@@ -259,9 +259,9 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
      */
     private getPortAnchorElement(pPortElement: Element): Element {
         if (pPortElement instanceof HTMLElement) {
-            const lPortCircleElement: Element | null = pPortElement.shadowRoot?.querySelector('.port-circle') ?? null;
-            if (lPortCircleElement) {
-                return lPortCircleElement;
+            const lPortHandleElement: Element | null = pPortElement.shadowRoot?.querySelector('.port-handle') ?? null;
+            if (lPortHandleElement) {
+                return lPortHandleElement;
             }
         }
 

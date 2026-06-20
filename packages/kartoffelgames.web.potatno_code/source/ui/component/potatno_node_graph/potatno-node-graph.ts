@@ -19,7 +19,6 @@ import '../potatno_connection_layer/potatno-connection-layer.ts';
 import '../potatno_node_component/potatno-node-component.ts';
 import '../potatno_port/potatno-port.ts';
 import type { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
-import { PotatnoUiManagerGrid } from "../../manager/manager_component/potatno-ui-manager-grid.ts";
 
 /**
  * Interactive node graph for the active Potatno document function.
@@ -364,9 +363,9 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      */
     public onPortDragStart(pEvent: ComponentEvent<PortInteractionDetail>): void {
         const lCanvasRect: DOMRect = this.canvasWrapper.getBoundingClientRect();
-        const lCircleRect: DOMRect = pEvent.value.element.getBoundingClientRect();
-        const lStartX: number = (lCircleRect.left + lCircleRect.width / 2 - lCanvasRect.left - this.mInteraction.panX) / this.mInteraction.zoom;
-        const lStartY: number = (lCircleRect.top + lCircleRect.height / 2 - lCanvasRect.top - this.mInteraction.panY) / this.mInteraction.zoom;
+        const lHandleRect: DOMRect = pEvent.value.element.getBoundingClientRect();
+        const lStartX: number = (lHandleRect.left + lHandleRect.width / 2 - lCanvasRect.left - this.mInteraction.panX) / this.mInteraction.zoom;
+        const lStartY: number = (lHandleRect.top + lHandleRect.height / 2 - lCanvasRect.top - this.mInteraction.panY) / this.mInteraction.zoom;
 
         this.closeAddNodePopup();
         this.mInteractionState = {

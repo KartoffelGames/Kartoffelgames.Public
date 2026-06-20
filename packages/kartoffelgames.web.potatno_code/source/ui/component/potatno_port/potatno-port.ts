@@ -45,10 +45,10 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     private accessor mPortDragStart!: ComponentEventEmitter<PortInteractionDetail>;
 
     /**
-     * Reference to the port circle DOM element for position calculations.
+     * Reference to the port handle DOM element for position calculations.
      */
-    @PwbChild('portCircle')
-    public accessor portCircleElement!: HTMLElement;
+    @PwbChild('portHandle')
+    public accessor portHandleElement!: HTMLElement;
 
     /**
      * Reference to the full port row DOM element for pointer hit tests.
@@ -86,13 +86,13 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     }
 
     /**
-     * CSS class string for the port circle element.
+     * CSS class string for the port handle element.
      */
-    public get portCircleClasses(): string {
+    public get portHandleClasses(): string {
         if (!this.port) {
-            return 'port-circle disconnected direction-input';
+            return 'port-handle disconnected direction-input';
         }
-        const lClasses: Array<string> = ['port-circle'];
+        const lClasses: Array<string> = ['port-handle'];
         lClasses.push(this.port.connectedPorts.size > 0 ? 'connected' : 'disconnected');
         lClasses.push(this.port.direction === 'output' ? 'direction-output' : 'direction-input');
         lClasses.push(this.port.portType === 'value' ? 'port-type-value' : 'port-type-flow');
@@ -103,7 +103,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     }
 
     /**
-     * Computed color for the port circle.
+     * Computed color for the port handle.
      * Flow ports use the primary text color; value ports use a type-derived hue.
      * Generic value ports use the connected port's resolved type color, or muted when unconnected.
      */
@@ -210,9 +210,9 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     }
 
     /**
-     * Handle pointer down on the port circle to initiate connection dragging.
+     * Handle pointer down on the port handle to initiate connection dragging.
      *
-     * @param pEvent - Pointer event from the port circle.
+     * @param pEvent - Pointer event from the port handle.
      */
     public onPointerDown(pEvent: PointerEvent): void {
         pEvent.stopPropagation();
@@ -223,7 +223,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         this.mPortDragStart.dispatchEvent({
             node: this.ownerNode,
             port: this.port,
-            element: this.portCircleElement
+            element: this.portHandleElement
         });
     }
 

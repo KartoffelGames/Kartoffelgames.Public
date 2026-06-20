@@ -78,13 +78,13 @@
 
 .preview-tab:hover {
     color: var(--pn-text-primary);
-    border-color: var(--pn-accent-primary);
+    border-color: var(--potatno-color-accent);
 }
 
 .preview-tab.selected {
     color: var(--pn-text-primary);
-    background: var(--pn-accent-primary);
-    border-color: var(--pn-accent-primary);
+    background: var(--potatno-color-accent);
+    border-color: var(--potatno-color-accent);
 }
 
 .preview-content {
@@ -131,11 +131,11 @@
 }
 
 .resize-handle:hover::before {
-    border-color: var(--pn-accent-primary);
+    border-color: var(--potatno-color-accent);
 }
 
 .error-title {
-    color: var(--pn-accent-danger) !important;
+    color: var(--potatno-color-error) !important;
 }
 
 .error-list {
@@ -161,7 +161,7 @@
     width: 18px;
     height: 18px;
     border-radius: 50%;
-    background: var(--pn-accent-danger);
+    background: var(--potatno-color-error);
     color: white;
     display: flex;
     align-items: center;

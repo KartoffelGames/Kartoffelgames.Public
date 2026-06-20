@@ -37,7 +37,7 @@
 }
 
 .resize-handle-left:hover {
-    background: var(--pn-accent-primary);
+    background: var(--potatno-color-accent);
 }
 
 .center-area {
@@ -72,7 +72,7 @@ potatno-node-graph {
 }
 
 .resize-handle-right:hover {
-    background: var(--pn-accent-primary);
+    background: var(--potatno-color-accent);
 }
 
 .panel-right {

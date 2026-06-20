@@ -59,7 +59,7 @@
     background: var(--pn-bg-surface);
     border: 1px solid var(--pn-border-default);
     border-radius: 4px;
-    color: var(--pn-text-primary);
+    color: var(--potatno-color-accent);
     font-family: var(--pn-font-family);
     font-size: var(--pn-font-size);
     padding: 5px 8px;
@@ -69,12 +69,12 @@
 }
 
 .name-input:focus {
-    border-color: var(--pn-accent-primary);
+    border-color: var(--potatno-color-accent);
 }
 
 .name-input:invalid {
-    border-color: var(--pn-accent-danger);
-    outline-color: var(--pn-accent-danger);
+    border-color: var(--potatno-color-error);
+    outline-color: var(--potatno-color-error);
 }
 
 .name-input:disabled {
@@ -110,12 +110,12 @@
 }
 
 .port-name-input:focus {
-    border-color: var(--pn-accent-primary);
+    border-color: var(--potatno-color-accent);
 }
 
 .port-name-input:invalid {
-    border-color: var(--pn-accent-danger);
-    outline-color: var(--pn-accent-danger);
+    border-color: var(--potatno-color-error);
+    outline-color: var(--potatno-color-error);
 }
 
 .port-name-input:disabled {
@@ -139,7 +139,7 @@
 }
 
 .port-type-input:focus {
-    border-color: var(--pn-accent-primary);
+    border-color: var(--potatno-color-accent);
 }
 
 .port-type-input:disabled {
@@ -167,7 +167,7 @@
 }
 
 .port-delete-button:hover {
-    background: var(--pn-accent-danger);
+    background: var(--potatno-color-error);
     color: var(--pn-text-primary);
 }
 
@@ -203,7 +203,7 @@
 }
 
 .import-select:focus {
-    border-color: var(--pn-accent-primary);
+    border-color: var(--potatno-color-accent);
 }
 
 .add-import-row {
@@ -242,7 +242,7 @@
 
 .add-button:hover {
     background: var(--pn-bg-elevated);
-    border-color: var(--pn-accent-primary);
+    border-color: var(--potatno-color-accent);
     color: var(--pn-text-primary);
 }
 

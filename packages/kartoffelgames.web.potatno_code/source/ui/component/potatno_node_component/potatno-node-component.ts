@@ -234,27 +234,29 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     public get nodeGridStyle(): string {
         const lGridSize: number = this.mManager.grid.gridSize;
 
-        return `--pn-grid-size: ${lGridSize}px; --pn-grid-half-size: ${lGridSize / 2}px; --pn-node-port-cell-offset: ${lGridSize / 2 - 7}px; --pn-node-port-gap: ${lGridSize}px;`;
+        return `--pn-grid-size: ${lGridSize}px; --pn-grid-half-size: ${lGridSize / 2}px; --pn-node-port-gap: ${lGridSize}px;`;
     }
 
     /**
      * All input ports in definition order (flow and value).
      */
-    public get inputPorts(): Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> {
+    public get inputPorts(): ReadonlyArray<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> {
         if (!this.nodeData) {
-            return [];
+            return new Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>();
         }
-        return [...this.nodeData.inputs.list];
+
+        return this.nodeData.inputs.list;
     }
 
     /**
      * All output ports in definition order (flow and value).
      */
-    public get outputPorts(): Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> {
+    public get outputPorts(): ReadonlyArray<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> {
         if (!this.nodeData) {
-            return [];
+            return new Array<PotatnoDocumentPort<PotatnoProjectTypesDefinition>>();
         }
-        return [...this.nodeData.outputs.list];
+
+        return this.nodeData.outputs.list;
     }
 
     /**

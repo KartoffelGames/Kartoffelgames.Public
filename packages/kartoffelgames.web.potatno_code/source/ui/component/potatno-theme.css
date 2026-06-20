@@ -4,7 +4,13 @@
     --potatno-font-size: 12px;
 
     /* Main colors */
+    --potatno-color-background: #1e1e2e;
     --potatno-color-text: #a6adc8;
+    --potatno-color-accent: #89b4fa;
+
+    /* Supporting colors */
+    --potatno-color-error: #f38ba8;
+
 
 
 
@@ -24,13 +30,6 @@
     /* Borders */
     --pn-border-default: #45475a;
     --pn-border-active: #89b4fa;
-
-    /* Accent */
-    --pn-accent-primary: #89b4fa;
-    --pn-accent-secondary: #74c7ec;
-    --pn-accent-danger: #f38ba8;
-    --pn-accent-warning: #fab387;
-    --pn-accent-success: #a6e3a1;
 
     /* Node category colors */
     --pn-cat-input: #a6e3a1;
@@ -60,7 +59,6 @@
     --pn-scrollbar-track: transparent;
 
     /* Node */
-    --pn-node-bg: #1e1e2e;
     --pn-node-border: #45475a;
     --pn-node-border-selected: #89b4fa;
     --pn-node-shadow: rgba(0, 0, 0, 0.3);
@@ -69,10 +67,8 @@
     --pn-node-header-height: var(--pn-grid-size);
     --pn-node-min-width: 160px;
     --pn-node-port-body-size: 9px;
-    --pn-node-port-cell-offset: -5.5px;
     --pn-node-port-gap: var(--pn-grid-size);
     --pn-node-port-tip-size: 5px;
-    --pn-node-value-port-size: 10px;
     --pn-node-border-radius: 6px;
 
     /* Font */

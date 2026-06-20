@@ -1,22 +1,29 @@
-<!-- Main port. Defining dimensions and -->
-<div class="port-wrapper {{this.portDirection}}" style="--port-color: {{this.portColor}}">
+<div class="port-wrapper {{this.portDirection}}" style="--type-color: {{this.portColor}}">
 
-    <div class="port {{this.portWrapperClasses}}" [title]="this.portTypeLabel" (pointerdown)="this.onPointerDown($event)">
-        <div class="port__handle {{this.portHandleClasses}}"></div>
+    <!-- Actual port handle. -->
+    <div class="port" [title]="this.portTypeLabel" (pointerdown)="this.onPointerDown($event)">
+        <div class="port__handle">
+            <div class="port-handle {{this.portHandleClasses}}"></div>
+        </div>
         <div class="port__label">{{this.portName}}</div>
     </div>
 
     $if(this.showDirectValueInput) {
-        <div class="direct-value-inputs" (pointerdown)="$event.stopImmediatePropagation()">
-            $for(inputDef of this.directValueInputDefs) {
-                <div class="direct-value-field">
-                    <span class="direct-value-label">{{this.inputDef.name}}</span>
-                    <input [type]="this.inputDef.htmlType" class="direct-value-input" [value]="this.inputDef.value" (change)="this.onDirectValueInput($event, this.inputDef.index)"/>
-                </div>
-            }
+        <div class="port-values" (pointerdown)="$event.stopImmediatePropagation()">
+
+            <div class="port-values__field">
+                $for(inputDefinition of this.inputDefinitions) {
+                    
+                    <!-- Skip labels when its the only label -->
+                    $if(this.inputDefinition.totalCount > 1) {
+                        <span class="port-values__label">{{this.inputDefinition.name}}</span>
+                    }
+                    <input [type]="this.inputDefinition.htmlType" class="port-values__input" [value]="this.inputDefinition.value" (change)="this.onDirectValueInput($event, this.inputDefinition.index)"/>
+                    
+                }
+            </div>
+
         </div>
     }
 
 </div>
-
-

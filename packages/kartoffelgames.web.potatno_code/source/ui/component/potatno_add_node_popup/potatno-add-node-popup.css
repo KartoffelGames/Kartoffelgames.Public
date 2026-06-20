@@ -20,7 +20,7 @@
     border: none;
     border-bottom: 1px solid var(--pn-border-default);
     box-sizing: border-box;
-    color: var(--pn-text-primary);
+    color: var(--potatno-color-accent);
     font-family: var(--pn-font-family);
     font-size: var(--pn-font-size);
     outline: none;
@@ -29,7 +29,7 @@
 }
 
 .add-node-search:focus {
-    border-bottom-color: var(--pn-accent-primary);
+    border-bottom-color: var(--potatno-color-accent);
 }
 
 .add-node-results {
@@ -44,7 +44,7 @@
     background: transparent;
     border: none;
     box-sizing: border-box;
-    color: var(--pn-text-primary);
+    color: var(--potatno-color-accent);
     cursor: pointer;
     display: flex;
     font-family: var(--pn-font-family);

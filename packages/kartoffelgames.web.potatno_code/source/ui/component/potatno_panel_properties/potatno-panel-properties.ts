@@ -247,7 +247,7 @@ export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOn
         const lInput: HTMLInputElement = pEvent.target as HTMLInputElement;
         const lNewName: string = lInput.value;
         const lIsInvalid: boolean = !this.validateName(lNewName) || this.isNameDuplicate(lNewName, 'input', pIndex);
-        lInput.style.borderColor = lIsInvalid ? 'var(--pn-accent-danger)' : '';
+        lInput.style.borderColor = lIsInvalid ? 'var(--potatno-color-error)' : '';
         const lInputs: Array<PortEntry> = [...this.functionInputs];
         lInputs[pIndex] = { ...lInputs[pIndex], name: lNewName };
         this.mManager.updateFunctionProperties({ inputs: lInputs });
@@ -275,7 +275,7 @@ export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOn
         const lInput: HTMLInputElement = pEvent.target as HTMLInputElement;
         const lNewName: string = lInput.value;
         const lIsInvalid: boolean = !this.validateName(lNewName) || this.isNameDuplicate(lNewName, 'function');
-        lInput.style.borderColor = lIsInvalid ? 'var(--pn-accent-danger)' : '';
+        lInput.style.borderColor = lIsInvalid ? 'var(--potatno-color-error)' : '';
         this.mManager.updateFunctionProperties({ name: lNewName });
     }
 
@@ -289,7 +289,7 @@ export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOn
         const lInput: HTMLInputElement = pEvent.target as HTMLInputElement;
         const lNewName: string = lInput.value;
         const lIsInvalid: boolean = !this.validateName(lNewName) || this.isNameDuplicate(lNewName, 'output', pIndex);
-        lInput.style.borderColor = lIsInvalid ? 'var(--pn-accent-danger)' : '';
+        lInput.style.borderColor = lIsInvalid ? 'var(--potatno-color-error)' : '';
         const lOutputs: Array<PortEntry> = [...this.functionOutputs];
         lOutputs[pIndex] = { ...lOutputs[pIndex], name: lNewName };
         this.mManager.updateFunctionProperties({ outputs: lOutputs });

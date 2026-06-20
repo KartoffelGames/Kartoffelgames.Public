@@ -5,7 +5,6 @@ $if(this.nodeData) {
                 $for(inPort of this.inputPorts) {
                     <potatno-port
                         [port]="this.inPort"
-                        [ownerNode]="this.nodeData"
                         (port-drag-start)="this.onPortDragStart($event)">
                     </potatno-port>
                 }
@@ -15,7 +14,6 @@ $if(this.nodeData) {
                 $for(outPort of this.outputPorts) {
                     <potatno-port
                         [port]="this.outPort"
-                        [ownerNode]="this.nodeData"
                         (port-drag-start)="this.onPortDragStart($event)">
                     </potatno-port>
                 }
@@ -69,26 +67,29 @@ $if(this.nodeData) {
                 }
             </div>
             <div class="node-body">
-                <div class="node-inputs">
-                    $for(inPort of this.inputPorts) {
-                        <potatno-port
-                            [port]="this.inPort"
-                            [ownerNode]="this.nodeData"
-                            (port-drag-start)="this.onPortDragStart($event)"
-                            (port-element-ready)="this.onPortElementReady($event)">
-                        </potatno-port>
-                    }
-                </div>
-                <div class="node-outputs">
-                    $for(outPort of this.outputPorts) {
-                        <potatno-port
-                            [port]="this.outPort"
-                            [ownerNode]="this.nodeData"
-                            (port-drag-start)="this.onPortDragStart($event)"
-                            (port-element-ready)="this.onPortElementReady($event)">
-                        </potatno-port>
-                    }
-                </div>
+                $if(this.inputPorts.length > 0) {
+                    <div class="node-ports">    
+                        $for(inPort of this.inputPorts) {
+                            <potatno-port
+                                [port]="this.inPort"
+                                (port-drag-start)="this.onPortDragStart($event)"
+                                (port-element-ready)="this.onPortElementReady($event)">
+                            </potatno-port>
+                        }   
+                    </div>
+                }
+
+                $if(this.outputPorts.length > 0) {
+                    <div class="node-ports">
+                        $for(outPort of this.outputPorts) {
+                            <potatno-port
+                                [port]="this.outPort"
+                                (port-drag-start)="this.onPortDragStart($event)"
+                                (port-element-ready)="this.onPortElementReady($event)">
+                            </potatno-port>
+                        }
+                    </div>
+                }
             </div>
             $if(this.isPreviewActive) {
                 <div class="preview-style-bar">

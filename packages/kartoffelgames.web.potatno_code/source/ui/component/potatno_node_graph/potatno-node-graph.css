@@ -35,7 +35,7 @@
 
 .selection-box {
     background: var(--pn-selection-color);
-    border: 1px solid var(--pn-accent-primary);
+    border: 1px solid var(--potatno-color-accent);
     pointer-events: none;
     position: absolute;
     z-index: 1000;

@@ -1,12 +1,12 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
+import { Component, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnDeconstruct, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import type { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
+import type { PotatnoPortDefinitionDirection } from '../../../project/potatno-port-definition.ts';
+import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import portCss from './potatno-port.css' with { type: 'text' };
 import portTemplate from './potatno-port.html' with { type: 'text' };
-import { PotatnoPortDefinitionDirection } from "../../../project/potatno-port-definition.ts";
 
 /**
  * Port component for the potatno-code visual editor.
@@ -35,21 +35,71 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     @ComponentState.state()
     public accessor port: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = null;
 
-    /**
-     * The node that owns this port — included in all emitted events.
-     */
-    @PwbExport
-    @ComponentState.state()
-    public accessor ownerNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null = null;
-
     @PwbComponentEvent('port-drag-start')
     private accessor mPortDragStart!: ComponentEventEmitter<PortInteractionDetail>;
+
+    /**
+     * Input element descriptors for the direct-value fields, derived from the port's type definition.
+     */
+    public get inputDefinitions(): Array<PotatnoPortValueDefinition> {
+        if (!this.port || this.port.portType !== 'value') {
+            return [];
+        }
+        if (this.port.node.project.types.isGenericType(this.port.dataType ?? '')) {
+            return [];
+        }
+        const lTypeDefinition = this.port.project.types.getType(this.port.dataType ?? '');
+        return lTypeDefinition.inputs.map((pInput, pIndex) => ({
+            htmlType: pInput.type === 'number' ? 'number' : pInput.type === 'boolean' ? 'checkbox' : 'text',
+            index: pIndex,
+            name: pInput.name,
+            value: this.port!.directValue[pIndex] ?? '',
+            totalCount: lTypeDefinition.inputs.length
+        }));
+    }
 
     /**
      * Whether this port currently has a validation error.
      */
     public get hasError(): boolean {
         return this.port !== null && this.mManager.integrity.errorItems.has(this.port);
+    }
+
+    /**
+     * Computed color for the port handle.
+     * Flow ports use the primary text color; value ports use a type-derived hue.
+     * Generic value ports use the connected port's resolved type color, or muted when unconnected.
+     */
+    public get portColor(): string {
+        // Color for flow ports. Also catch a port null with this.
+        if (!this.port || this.port.portType === 'flow') {
+            return 'var(--potatno-color-text)';
+        }
+
+        return this.getTypeColor(this.port.resolvedDataType);
+    }
+
+    /**
+     * Port direction name.
+     */
+    public get portDirection(): PotatnoPortDefinitionDirection {
+        return this.port?.direction ?? 'output';
+    }
+
+    /**
+     * CSS class string for the port handle element.
+     */
+    public get portHandleClasses(): string {
+        if (!this.port) {
+            return 'port-handle--disconnected';
+        }
+        const lClasses: Array<string> = new Array<string>();
+        lClasses.push(this.port.connectedPorts.size > 0 ? 'port-handle--connected' : 'port-handle--disconnected');
+        lClasses.push(this.port.portType === 'value' ? 'port-handle--type-value' : 'port-handle--type-flow');
+        if (this.hasError) {
+            lClasses.push('port-handle--has-error');
+        }
+        return lClasses.join(' ');
     }
 
     /**
@@ -67,57 +117,6 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     }
 
     /**
-     * Port direction name.
-     */
-    public get portDirection(): PotatnoPortDefinitionDirection {
-        return this.port?.direction ?? 'output'
-    }
-
-    /**
-     * CSS class string for the wrapper div.
-     */
-    public get portWrapperClasses(): string {
-        const lDir: string = this.port?.direction === 'output' ? 'direction-output' : 'direction-input';
-        return `port-wrapper ${lDir}`;
-    }
-
-    /**
-     * CSS class string for the port handle element.
-     */
-    public get portHandleClasses(): string {
-        if (!this.port) {
-            return 'port-handle disconnected direction-input';
-        }
-        const lClasses: Array<string> = ['port-handle'];
-        lClasses.push(this.port.connectedPorts.size > 0 ? 'connected' : 'disconnected');
-        lClasses.push(this.port.direction === 'output' ? 'direction-output' : 'direction-input');
-        lClasses.push(this.port.portType === 'value' ? 'port-type-value' : 'port-type-flow');
-        if (this.hasError) {
-            lClasses.push('has-error');
-        }
-        return lClasses.join(' ');
-    }
-
-    /**
-     * Computed color for the port handle.
-     * Flow ports use the primary text color; value ports use a type-derived hue.
-     * Generic value ports use the connected port's resolved type color, or muted when unconnected.
-     */
-    public get portColor(): string {
-        if (!this.port || this.port.portType === 'flow') {
-            return 'var(--pn-text-primary)';
-        }
-        if (this.port.node.project.types.isGenericType(this.port.dataType ?? '')) {
-            if (this.port.connectedPorts.size > 0) {
-                const lConnected = [...this.port.connectedPorts][0];
-                return this.getTypeColor(lConnected.dataType ?? '');
-            }
-            return 'var(--pn-text-muted)';
-        }
-        return this.getTypeColor(this.port.dataType ?? '');
-    }
-
-    /**
      * Whether to show the direct-value input fields.
      * Only for unconnected, non-generic value input ports.
      */
@@ -129,25 +128,6 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
             && this.port.direction === 'input'
             && this.port.connectedPorts.size === 0
             && !this.port.node.project.types.isGenericType(this.port.dataType ?? '');
-    }
-
-    /**
-     * Input element descriptors for the direct-value fields, derived from the port's type definition.
-     */
-    public get directValueInputDefs(): Array<DirectValueInputDef> {
-        if (!this.port || this.port.portType !== 'value') {
-            return [];
-        }
-        if (this.port.node.project.types.isGenericType(this.port.dataType ?? '')) {
-            return [];
-        }
-        const lTypeDef = this.port.project.types.getType(this.port.dataType ?? '');
-        return lTypeDef.inputs.map((lInput, lIndex) => ({
-            htmlType: lInput.type === 'number' ? 'number' : lInput.type === 'boolean' ? 'checkbox' : 'text',
-            index: lIndex,
-            name: lInput.name,
-            value: this.port!.directValue[lIndex] ?? ''
-        }));
     }
 
     /**
@@ -185,45 +165,6 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     }
 
     /**
-     * After each update, register this port component with the shared grid manager.
-     */
-    public onUpdate(): void {
-        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.port;
-        const lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> | null = this.ownerNode;
-        if (!lPort || !lNode) {
-            return;
-        }
-
-        const lPortElement: HTMLElement = this.mComponent.element;
-
-        if (lPort === this.mLastRegisteredPort && lPortElement === this.mLastRegisteredElement) {
-            return;
-        }
-
-        this.mLastRegisteredElement = lPortElement;
-        this.mLastRegisteredPort = lPort;
-        this.mManager.grid.registerPortElement(lPort, lPortElement);
-    }
-
-    /**
-     * Handle pointer down on the port to initiate connection dragging.
-     *
-     * @param pEvent - Pointer event from the port.
-     */
-    public onPointerDown(pEvent: PointerEvent): void {
-        pEvent.stopPropagation();
-        pEvent.preventDefault();
-        if (!this.port || !this.ownerNode) {
-            return;
-        }
-        this.mPortDragStart.dispatchEvent({
-            node: this.ownerNode,
-            port: this.port,
-            element: this.mComponent.element
-        });
-    }
-
-    /**
      * Handle input changes on a direct-value input field.
      *
      * @param pEvent - Input event.
@@ -237,6 +178,43 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         const lNewValues: Array<string> = [...this.port.directValue];
         lNewValues[pIndex] = lTarget.type === 'checkbox' ? (lTarget.checked ? 'true' : 'false') : lTarget.value;
         this.mManager.graph.setPortDirectValue(this.port, lNewValues);
+    }
+
+    /**
+     * Handle pointer down on the port to initiate connection dragging.
+     *
+     * @param pEvent - Pointer event from the port.
+     */
+    public onPointerDown(pEvent: PointerEvent): void {
+        // Skip anything when clicking the port.
+        pEvent.stopPropagation();
+        pEvent.preventDefault();
+        
+        // Dispatch a drag start event.
+        // When the port is displayed, the port should be initialized. 
+        this.mPortDragStart.dispatchEvent({
+            port: this.port!
+        });
+    }
+
+    /**
+     * After each update, register this port component with the shared grid manager.
+     */
+    public onUpdate(): void {
+        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.port;
+        if (!lPort) {
+            return;
+        }
+
+        const lPortElement: HTMLElement = this.mComponent.element;
+
+        if (lPort === this.mLastRegisteredPort && lPortElement === this.mLastRegisteredElement) {
+            return;
+        }
+
+        this.mLastRegisteredElement = lPortElement;
+        this.mLastRegisteredPort = lPort;
+        this.mManager.grid.registerPortElement(lPort, lPortElement);
     }
 
     /**
@@ -257,14 +235,13 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
 }
 
 export type PortInteractionDetail = {
-    node: PotatnoDocumentNode<PotatnoProjectTypesDefinition>;
     port: PotatnoDocumentPort<PotatnoProjectTypesDefinition>;
-    element: HTMLElement;
 };
 
-type DirectValueInputDef = {
+type PotatnoPortValueDefinition = {
     htmlType: string;
     index: number;
     name: string;
     value: string;
+    totalCount: number;
 };

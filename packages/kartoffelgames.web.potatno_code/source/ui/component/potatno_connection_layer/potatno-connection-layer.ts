@@ -361,8 +361,6 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
                         targetPort: lConnectedPort
                     });
 
-                    console.log(lSourcePosition, lTargetPosition)
-
                     this.renderConnectionPath(lSvg, lId, lOutputPort, lSourcePosition, lTargetPosition, !lHasError);
                 }
             }

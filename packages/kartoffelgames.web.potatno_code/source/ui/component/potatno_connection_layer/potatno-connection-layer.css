@@ -1,20 +1,26 @@
 :host {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
+    height: 1px;
+    width: 1px;
+    overflow: visible;
     pointer-events: none;
 }
 
 .svg-layer {
     position: absolute;
-    height: 0;
-    width: 0;
     top: 0;
     left: 0;
 
+    /* For chrome the svg needs at least one pixel to show the drawn inner paths */
+    height: 1px;
+    width: 1px;
+
     overflow: visible;
     pointer-events: none;
-}
 
-.svg-layer path[data-hit-area] {
-    pointer-events: stroke;
+    path[data-hit-area] {
+        pointer-events: stroke;
+    }
 }

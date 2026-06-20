@@ -6,9 +6,7 @@ $if(this.nodeData) {
                     <potatno-port
                         [port]="this.inPort"
                         [ownerNode]="this.nodeData"
-                        (port-drag-start)="this.onPortDragStart($event)"
-                        (port-hover)="this.onPortHover($event)"
-                        (port-leave)="this.onPortLeave($event)">
+                        (port-drag-start)="this.onPortDragStart($event)">
                     </potatno-port>
                 }
             </div>
@@ -18,9 +16,7 @@ $if(this.nodeData) {
                     <potatno-port
                         [port]="this.outPort"
                         [ownerNode]="this.nodeData"
-                        (port-drag-start)="this.onPortDragStart($event)"
-                        (port-hover)="this.onPortHover($event)"
-                        (port-leave)="this.onPortLeave($event)">
+                        (port-drag-start)="this.onPortDragStart($event)">
                     </potatno-port>
                 }
             </div>
@@ -79,8 +75,6 @@ $if(this.nodeData) {
                             [port]="this.inPort"
                             [ownerNode]="this.nodeData"
                             (port-drag-start)="this.onPortDragStart($event)"
-                            (port-hover)="this.onPortHover($event)"
-                            (port-leave)="this.onPortLeave($event)"
                             (port-element-ready)="this.onPortElementReady($event)">
                         </potatno-port>
                     }
@@ -91,8 +85,6 @@ $if(this.nodeData) {
                             [port]="this.outPort"
                             [ownerNode]="this.nodeData"
                             (port-drag-start)="this.onPortDragStart($event)"
-                            (port-hover)="this.onPortHover($event)"
-                            (port-leave)="this.onPortLeave($event)"
                             (port-element-ready)="this.onPortElementReady($event)">
                         </potatno-port>
                     }

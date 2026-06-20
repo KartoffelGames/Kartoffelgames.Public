@@ -44,12 +44,6 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     @PwbComponentEvent('port-drag-start')
     private accessor mPortDragStart!: ComponentEventEmitter<PortInteractionDetail>;
 
-    @PwbComponentEvent('port-hover')
-    private accessor mPortHover!: ComponentEventEmitter<PortInteractionDetail>;
-
-    @PwbComponentEvent('port-leave')
-    private accessor mPortLeave!: ComponentEventEmitter<void>;
-
     /**
      * Reference to the port circle DOM element for position calculations.
      */
@@ -231,27 +225,6 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
             port: this.port,
             element: this.portCircleElement
         });
-    }
-
-    /**
-     * Handle pointer enter on the port circle for connection drop targeting.
-     */
-    public onPointerEnter(): void {
-        if (!this.port || !this.ownerNode) {
-            return;
-        }
-        this.mPortHover.dispatchEvent({
-            node: this.ownerNode,
-            port: this.port,
-            element: this.portCircleElement
-        });
-    }
-
-    /**
-     * Handle pointer leave on the port circle.
-     */
-    public onPointerLeave(): void {
-        this.mPortLeave.dispatchEvent(undefined as unknown as void);
     }
 
     /**

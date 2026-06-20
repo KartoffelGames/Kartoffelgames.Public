@@ -44,7 +44,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     private readonly mSelectedNodes: Set<PotatnoDocumentNode<PotatnoProjectTypesDefinition>>;
     private mDocumentPointerMoveHandler: ((pEvent: PointerEvent) => void) | null;
     private mDocumentPointerUpHandler: ((pEvent: PointerEvent) => void) | null;
-    private mHoveredPort: PortHoverRecord | null;
     private mInteractionState: GraphInteractionState;
     private mKeyboardHandler: ((pEvent: KeyboardEvent) => void) | null;
     private mUnsubscribe: (() => void) | null;
@@ -104,7 +103,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         this.mComponent = pComponent;
         this.mDocumentPointerMoveHandler = null;
         this.mDocumentPointerUpHandler = null;
-        this.mHoveredPort = null;
         this.mInteraction = new PotatnoCanvasInteraction();
         this.mInteractionState = { mode: 'idle' };
         this.mKeyboardHandler = null;
@@ -381,25 +379,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Record the current hovered port for wire completion.
-     *
-     * @param pEvent - Component event with port interaction data.
-     */
-    public onPortHover(pEvent: ComponentEvent<PortInteractionDetail>): void {
-        this.mHoveredPort = {
-            node: pEvent.value.node,
-            port: pEvent.value.port
-        };
-    }
-
-    /**
-     * Clear the current hovered port.
-     */
-    public onPortLeave(): void {
-        this.mHoveredPort = null;
-    }
-
-    /**
      * Start resizing a comment node.
      *
      * @param pEvent - Component event with resize start data.
@@ -600,14 +579,9 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             return;
         }
 
-        // Resolve the drop target. Prefer the hover-tracked port, but fall back to a geometric
-        // hit-test against the registered port elements. Relying on `pointerenter` alone is
-        // fragile: when the graph re-renders mid-drag the `$for` re-creates the port element under
-        // the (stationary) cursor, and the browser never fires `pointerenter` on an element that
-        // appears beneath a pointer that did not move — leaving `mHoveredPort` null even though the
-        // cursor sits squarely on a valid port. The hit-test recovers the target in that case.
+        // Resolve the drop target from the registered port elements.
         const lSource: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = this.mInteractionState.sourcePort;
-        const lTarget: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.mHoveredPort?.port ?? this.hitTestPort(pEvent.clientX, pEvent.clientY);
+        const lTarget: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.hitTestPort(pEvent.clientX, pEvent.clientY);
 
         if (!lTarget || lSource === lTarget) {
             return;
@@ -621,8 +595,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     }
 
     /**
-     * Find a port whose registered component element contains the given viewport point. Used as a
-     * drop-target fallback when hover tracking missed the target (see `completeWireDrag`).
+     * Find a port whose registered component element contains the given viewport point.
      *
      * @param pClientX - Viewport X coordinate of the drop.
      * @param pClientY - Viewport Y coordinate of the drop.
@@ -916,7 +889,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * Reset all interaction state when the rendered function changes (document load or switch).
      */
     private resetForActiveFunction(): void {
-        this.mHoveredPort = null;
         this.mInteractionState = { mode: 'idle' };
         this.mSelectedNodes.clear();
         this.mTempConnection = null;
@@ -1025,11 +997,6 @@ type NodeDragOrigin = {
 type Point = {
     x: number;
     y: number;
-};
-
-type PortHoverRecord = {
-    node: PotatnoDocumentNode<PotatnoProjectTypesDefinition>;
-    port: PotatnoDocumentPort<PotatnoProjectTypesDefinition>;
 };
 
 type SelectionBoxScreen = {

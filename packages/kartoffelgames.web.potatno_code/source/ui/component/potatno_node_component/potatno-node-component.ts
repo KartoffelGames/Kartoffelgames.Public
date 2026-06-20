@@ -57,12 +57,6 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     @PwbComponentEvent('port-drag-start')
     private accessor mPortDragStart!: ComponentEventEmitter<PortInteractionDetail>;
 
-    @PwbComponentEvent('port-hover')
-    private accessor mPortHover!: ComponentEventEmitter<PortInteractionDetail>;
-
-    @PwbComponentEvent('port-leave')
-    private accessor mPortLeave!: ComponentEventEmitter<void>;
-
     @PwbComponentEvent('resize-start')
     private accessor mResizeStart!: ComponentEventEmitter<ResizeStartDetail>;
 
@@ -327,22 +321,6 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      */
     public onPortDragStart(pEvent: ComponentEvent<PortInteractionDetail>): void {
         this.mPortDragStart.dispatchEvent(pEvent.value);
-    }
-
-    /**
-     * Re-emit a port-hover event from a child port component.
-     *
-     * @param pEvent - Port interaction event from the port component.
-     */
-    public onPortHover(pEvent: ComponentEvent<PortInteractionDetail>): void {
-        this.mPortHover.dispatchEvent(pEvent.value);
-    }
-
-    /**
-     * Re-emit a port-leave event from a child port component.
-     */
-    public onPortLeave(): void {
-        this.mPortLeave.dispatchEvent(undefined as unknown as void);
     }
 
     /**

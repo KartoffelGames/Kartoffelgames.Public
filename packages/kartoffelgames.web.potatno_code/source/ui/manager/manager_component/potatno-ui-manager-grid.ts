@@ -51,30 +51,8 @@ export class PotatnoUiManagerGrid {
      * @returns SVG path data.
      */
     public createConnectionPath(pStart: PotatnoUiManagerGridPoint, pEnd: PotatnoUiManagerGridPoint, pSourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): string {
-        const lDirection: number = pSourcePort.direction === 'output' ? 1 : -1;
-        const lStartRoute: PotatnoUiManagerGridPoint = {
-            x: pStart.x + lDirection,
-            y: pStart.y
-        };
-        const lEndRoute: PotatnoUiManagerGridPoint = {
-            x: pEnd.x - lDirection,
-            y: pEnd.y
-        };
-        const lMinRouteX: number = Math.min(lStartRoute.x, lEndRoute.x);
-        const lMaxRouteX: number = Math.max(lStartRoute.x, lEndRoute.x);
-        const lBaseMidX: number = Math.round(lStartRoute.x + (lEndRoute.x - lStartRoute.x) / 2);
-        const lLaneOffset: number = this.getSourceConnectionLaneOffset(pSourcePort) * lDirection;
-        const lMidX: number = Math.max(lMinRouteX, Math.min(lMaxRouteX, lBaseMidX + lLaneOffset));
-        const lEndDirection: PotatnoPortDefinitionDirection = this.getOppositePortDirection(pSourcePort.direction);
-
-        return this.generateRoundedPath([
-            this.getGridPointSide(pStart, pSourcePort.direction),
-            this.getGridPointCenter(lStartRoute),
-            this.getGridPointCenter({ x: lMidX, y: lStartRoute.y }),
-            this.getGridPointCenter({ x: lMidX, y: lEndRoute.y }),
-            this.getGridPointCenter(lEndRoute),
-            this.getGridPointSide(pEnd, lEndDirection)
-        ]);
+        const lGridPath: Array<PotatnoUiManagerGridPoint> = this.createGridPath(pStart, pEnd, pSourcePort);
+        return this.createSvgPath(lGridPath);
     }
 
     /**
@@ -158,6 +136,51 @@ export class PotatnoUiManagerGrid {
         this.mElementPorts.set(pElement, pPort);
     }
 
+    private appendGridLine(pPath: Array<PotatnoUiManagerGridPoint>, pTarget: PotatnoUiManagerGridPoint): void {
+        const lLastPoint: PotatnoUiManagerGridPoint = pPath[pPath.length - 1];
+        const lStepX: number = Math.sign(pTarget.x - lLastPoint.x);
+        const lStepY: number = Math.sign(pTarget.y - lLastPoint.y);
+
+        for (let lX: number = lLastPoint.x + lStepX; lStepX !== 0 && (lStepX > 0 ? lX <= pTarget.x : lX >= pTarget.x); lX += lStepX) {
+            pPath.push({ x: lX, y: lLastPoint.y });
+        }
+
+        const lLineStart: PotatnoUiManagerGridPoint = pPath[pPath.length - 1];
+        for (let lY: number = lLineStart.y + lStepY; lStepY !== 0 && (lStepY > 0 ? lY <= pTarget.y : lY >= pTarget.y); lY += lStepY) {
+            pPath.push({ x: lLineStart.x, y: lY });
+        }
+    }
+
+    private createGridPath(pStart: PotatnoUiManagerGridPoint, pEnd: PotatnoUiManagerGridPoint, pSourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): Array<PotatnoUiManagerGridPoint> {
+        let lStart: PotatnoUiManagerGridPoint = pSourcePort.direction === 'input' ? pEnd : pStart;
+        let lEnd: PotatnoUiManagerGridPoint = pSourcePort.direction === 'input' ? pStart : pEnd;
+
+        if (lStart.x > lEnd.x) {
+            const lSwapStart: PotatnoUiManagerGridPoint = lStart;
+            lStart = lEnd;
+            lEnd = lSwapStart;
+        }
+
+        const lPath: Array<PotatnoUiManagerGridPoint> = [{ ...lStart }];
+        if (lEnd.x <= lStart.x + 1) {
+            this.appendGridLine(lPath, { x: lStart.x, y: lEnd.y });
+            this.appendGridLine(lPath, lEnd);
+            return lPath;
+        }
+
+        const lStartRoute: PotatnoUiManagerGridPoint = { x: lStart.x + 1, y: lStart.y };
+        const lEndRoute: PotatnoUiManagerGridPoint = { x: lEnd.x - 1, y: lEnd.y };
+        const lBaseMidX: number = Math.round(lStartRoute.x + (lEndRoute.x - lStartRoute.x) / 2);
+        const lMidX: number = Math.max(lStartRoute.x, Math.min(lEndRoute.x, lBaseMidX + this.getSourceConnectionLaneOffset(pSourcePort)));
+
+        this.appendGridLine(lPath, lStartRoute);
+        this.appendGridLine(lPath, { x: lMidX, y: lStartRoute.y });
+        this.appendGridLine(lPath, { x: lMidX, y: lEndRoute.y });
+        this.appendGridLine(lPath, lEndRoute);
+        this.appendGridLine(lPath, lEnd);
+        return lPath;
+    }
+
     private getElementFromPosition(pClientX: number, pClientY: number): Element | null {
         // Recursive function that finds element from a position nexted in shadow roots.
         const lReadElementInRoot = (pRoot: Document | ShadowRoot, pClientX: number, pClientY: number): Element | null => {
@@ -195,6 +218,22 @@ export class PotatnoUiManagerGrid {
         return lOutputPorts.length - lPortIndex - 1;
     }
 
+    private createSvgPath(pGridPath: Array<PotatnoUiManagerGridPoint>): string {
+        if (pGridPath.length === 0) {
+            return '';
+        }
+
+        const lPixelPath: Array<Point> = [this.getGridPointSide(pGridPath[0], 'output')];
+        for (let lIndex: number = 1; lIndex < pGridPath.length - 1; lIndex++) {
+            lPixelPath.push(this.getGridPointCenter(pGridPath[lIndex]));
+        }
+
+        const lEndPoint: PotatnoUiManagerGridPoint = pGridPath[pGridPath.length - 1];
+        lPixelPath.push(this.getGridPointSide(lEndPoint, 'input'));
+
+        return this.generateRoundedPath(lPixelPath);
+    }
+
     private getGridPointCenter(pPoint: PotatnoUiManagerGridPoint): Point {
         return {
             x: pPoint.x * this.gridSize + this.gridSize / 2,
@@ -207,10 +246,6 @@ export class PotatnoUiManagerGrid {
             x: (pPoint.x + (pDirection === 'output' ? 1 : 0)) * this.gridSize,
             y: pPoint.y * this.gridSize + this.gridSize / 2
         };
-    }
-
-    private getOppositePortDirection(pDirection: PotatnoPortDefinitionDirection): PotatnoPortDefinitionDirection {
-        return pDirection === 'output' ? 'input' : 'output';
     }
 
     private generateRoundedPath(pPoints: Array<Point>): string {
@@ -236,8 +271,16 @@ export class PotatnoUiManagerGrid {
             const lPreviousDistance: number = Math.hypot(lCurrentPoint.x - lPreviousPoint.x, lCurrentPoint.y - lPreviousPoint.y);
             const lNextDistance: number = Math.hypot(lNextPoint.x - lCurrentPoint.x, lNextPoint.y - lCurrentPoint.y);
             const lCornerRadius: number = Math.min(lRadius, lPreviousDistance / 2, lNextDistance / 2);
+            const lPreviousDirection: Point = {
+                x: Math.sign(lCurrentPoint.x - lPreviousPoint.x),
+                y: Math.sign(lCurrentPoint.y - lPreviousPoint.y)
+            };
+            const lNextDirection: Point = {
+                x: Math.sign(lNextPoint.x - lCurrentPoint.x),
+                y: Math.sign(lNextPoint.y - lCurrentPoint.y)
+            };
 
-            if (lCornerRadius <= 0) {
+            if (lCornerRadius <= 0 || lPreviousDirection.x === lNextDirection.x && lPreviousDirection.y === lNextDirection.y) {
                 lPath += ` L ${lCurrentPoint.x} ${lCurrentPoint.y}`;
                 continue;
             }

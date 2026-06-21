@@ -16,7 +16,6 @@
 .port-drag-connetion {
     position: absolute;
     top: 0;
-    left: 0;
     height: 1px;
     width: 1px;
     overflow: visible;
@@ -24,6 +23,14 @@
 
     /* While dragging should stay above all nodes. */
     z-index: 200;
+
+    .output & {
+        right: 0;
+    }
+
+    .input & {
+        left: 0;
+    }
 
     path {
         fill: none;
@@ -141,7 +148,7 @@
 
         .input & {
             text-align: start;
-        }        
+        }
     }
 
     /* Small hover animation for ports, hover values excluded */

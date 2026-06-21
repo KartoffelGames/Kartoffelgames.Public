@@ -4,6 +4,7 @@ import { Component, PwbChild, PwbComponent, PwbExport, type IComponentOnConnect,
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPortDefinitionDirection } from '../../../project/potatno-port-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
+import type { PotatnoUiManagerGridPoint } from '../../manager/manager_component/potatno-ui-manager-grid.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import portCss from './potatno-port.css' with { type: 'text' };
 import portTemplate from './potatno-port.html' with { type: 'text' };
@@ -343,7 +344,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
 
         // Read dragged port. 
         const lSourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.mManager.grid.draggedPort;
-        if(!this.port || !lSourcePort){
+        if (!this.port || !lSourcePort) {
             return;
         }
 
@@ -371,10 +372,10 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      */
     private draggedPortCanConnect(pDataTransfer: DataTransfer | null): boolean {
         // Current port must be loaded.
-        if(!this.port) {
+        if (!this.port) {
             return false;
         }
-        
+
         // Datatransfer must include drag type.
         if (!pDataTransfer || !pDataTransfer.types.includes(PotatnoPortComponent.DRAG_MIME_TYPE)) {
             return false;
@@ -382,7 +383,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
 
         // Read current dragged port.
         const lDraggedPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.mManager.grid.draggedPort;
-        if(!lDraggedPort) {
+        if (!lDraggedPort) {
             return false;
         }
 
@@ -398,24 +399,21 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      * @returns SVG path data in local port coordinates.
      */
     private createDragPath(pClientX: number, pClientY: number): string {
-        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.port;
-        if (!lPort) {
+        if (!this.port) {
             return '';
         }
 
-        // Convert viewport coordinates into this port's transformed local coordinates.
+        // Convert viewport coordinates into this port's grid-local coordinates.
+        const lSourceElementPosition: DOMRect = this.dragConnectionSvg.getBoundingClientRect();
         const lZoom: number = this.mManager.grid.interaction.zoom;
-        const lRect: DOMRect = this.mComponent.element.getBoundingClientRect();
-        const lStart: Point = {
-            x: lPort.direction === 'output' ? lRect.width / lZoom : 0,
-            y: lRect.height / 2 / lZoom
-        };
-        const lEnd: Point = {
-            x: (pClientX - lRect.left) / lZoom,
-            y: (pClientY - lRect.top) / lZoom
+        const lEnd: PotatnoUiManagerGridPoint = this.mManager.grid.pixelToGridSpace((pClientX - lSourceElementPosition.left) / lZoom, (pClientY - lSourceElementPosition.top) / lZoom);
+
+        const lStart: PotatnoUiManagerGridPoint = {
+            x: this.port.direction === 'output' ? -1 : 0,
+            y: 0
         };
 
-        return this.mManager.grid.createConnectionPath(lStart, lEnd, lPort);
+        return this.mManager.grid.createConnectionPath(lStart, lEnd, this.port);
     }
 
     /**
@@ -438,11 +436,6 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         lDragConnectionElement.setAttribute('d', this.createDragPath(pClientX, pClientY));
     }
 }
-
-type Point = {
-    x: number;
-    y: number;
-};
 
 type PotatnoPortValueDefinition = {
     htmlType: string;

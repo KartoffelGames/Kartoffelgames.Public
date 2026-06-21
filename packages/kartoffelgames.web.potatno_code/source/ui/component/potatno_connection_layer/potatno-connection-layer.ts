@@ -4,6 +4,7 @@ import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
+import type { PotatnoUiManagerGridPoint } from '../../manager/manager_component/potatno-ui-manager-grid.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import connectionLayerCss from './potatno-connection-layer.css' with { type: 'text' };
 import connectionLayerTemplate from './potatno-connection-layer.html' with { type: 'text' };
@@ -123,49 +124,6 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
     }
 
     /**
-     * Calculate the rendered port anchor position in graph world coordinates.
-     *
-     * @param pPort - Port whose anchor should be located.
-     *
-     * @returns World position for the port.
-     */
-    private getPortPosition(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): Point {
-        const lZoom: number = this.mManager.grid.interaction.zoom;
-        const lGridSize: number = this.mManager.grid.gridSize;
-        const lPortElement: Element | undefined = this.mManager.grid.getPortElement(pPort);
-        const lSvg: SVGSVGElement | null = this.getSvgLayerOrNull();
-
-        if (lPortElement && lSvg) {
-            const lSvgRect: DOMRect = lSvg.getBoundingClientRect();
-            const lPortRect: DOMRect = lPortElement.getBoundingClientRect();
-            const lPortAnchorX: number = pPort.direction === 'output' ? lPortRect.right : lPortRect.left;
-            return {
-                x: this.mManager.grid.snapToGridCenter((lPortAnchorX - lSvgRect.left) / lZoom),
-                y: this.mManager.grid.snapToGridCenter((lPortRect.top + lPortRect.height / 2 - lSvgRect.top) / lZoom)
-            };
-        }
-
-        const lNode = pPort.node;
-        const lNodeX: number = lNode.transformation.x * lGridSize;
-        const lNodeY: number = lNode.transformation.y * lGridSize;
-        const lNodeW: number = lNode.transformation.width * lGridSize;
-        const lPortList: ReadonlyArray<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> = pPort.direction === 'output' ? lNode.outputs.list : lNode.inputs.list;
-        let lIndex: number = 0;
-
-        for (const lCandidatePort of lPortList) {
-            if (lCandidatePort === pPort) {
-                break;
-            }
-            lIndex++;
-        }
-
-        return {
-            x: pPort.direction === 'output' ? lNodeX + lNodeW - lGridSize / 2 : lNodeX + lGridSize / 2,
-            y: lNodeY + lGridSize + (lIndex + 0.5) * lGridSize
-        };
-    }
-
-    /**
      * Find the SVG layer if it is already connected.
      *
      * @returns SVG layer or null before render.
@@ -203,8 +161,8 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
             for (const lOutputPort of lNode.outputs.list) {
                 for (const lConnectedPort of lOutputPort.connectedPorts) {
                     const lId: string = `c${lConnectionIndex++}`;
-                    const lSourcePosition: Point = this.getPortPosition(lOutputPort);
-                    const lTargetPosition: Point = this.getPortPosition(lConnectedPort);
+                    const lSourcePosition: PotatnoUiManagerGridPoint = this.mManager.grid.getPortGridPoint(lOutputPort);
+                    const lTargetPosition: PotatnoUiManagerGridPoint = this.mManager.grid.getPortGridPoint(lConnectedPort);
                     const lHasError: boolean = lErrorItems.has(lOutputPort) || lErrorItems.has(lConnectedPort);
 
                     this.mConnectionRegistry.set(lId, {
@@ -224,11 +182,12 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
      *
      * @param pSvg - SVG layer to render into.
      * @param pId - Connection id.
+     * @param pSourcePort - Source port of the connection.
      * @param pStart - Start anchor.
      * @param pEnd - End anchor.
      * @param pValid - Whether the connection is valid.
      */
-    private renderConnectionPath(pSvg: SVGSVGElement, pId: string, pSourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pStart: Point, pEnd: Point, pValid: boolean): void {
+    private renderConnectionPath(pSvg: SVGSVGElement, pId: string, pSourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pStart: PotatnoUiManagerGridPoint, pEnd: PotatnoUiManagerGridPoint, pValid: boolean): void {
         const lPathData: string = this.mManager.grid.createConnectionPath(pStart, pEnd, pSourcePort);
 
         const lHitPath: SVGPathElement = document.createElementNS(gSvgNamespace, 'path') as SVGPathElement;
@@ -280,9 +239,4 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
 type PotatnoConnectionLayerRecord = {
     sourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>;
     targetPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>;
-};
-
-type Point = {
-    x: number;
-    y: number;
 };

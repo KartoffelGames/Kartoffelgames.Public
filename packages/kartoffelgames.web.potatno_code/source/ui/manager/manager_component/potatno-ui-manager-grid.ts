@@ -1,5 +1,5 @@
+import { Exception } from "@kartoffelgames/core";
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import type { PotatnoPortDefinitionDirection } from '../../../project/potatno-port-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 
@@ -218,95 +218,105 @@ export class PotatnoUiManagerGrid {
         return lOutputPorts.length - lPortIndex - 1;
     }
 
-    private createSvgPath(pGridPath: Array<PotatnoUiManagerGridPoint>): string {
-        if (pGridPath.length === 0) {
-            return '';
-        }
-
-        const lPixelPath: Array<Point> = [this.getGridPointSide(pGridPath[0], 'output')];
-        for (let lIndex: number = 1; lIndex < pGridPath.length - 1; lIndex++) {
-            lPixelPath.push(this.getGridPointCenter(pGridPath[lIndex]));
-        }
-
-        const lEndPoint: PotatnoUiManagerGridPoint = pGridPath[pGridPath.length - 1];
-        lPixelPath.push(this.getGridPointSide(lEndPoint, 'input'));
-
-        return this.generateRoundedPath(lPixelPath);
-    }
-
-    private getGridPointCenter(pPoint: PotatnoUiManagerGridPoint): Point {
-        return {
+    /**
+     * Get the absolute grid pixel position of a point and the direction.
+     * 
+     * @param pPoint - Grid point.
+     * @param pOrientation - Orientation in the grid cell.
+     * 
+     * @returns the pixel point of the grid point. 
+     */
+    private getGridPosition(pPoint: PotatnoUiManagerGridPoint, pOrientation: PotatnoUiManagerGridDirection): Point {
+        // Create middle point.
+        const lPoint: Point = {
             x: pPoint.x * this.gridSize + this.gridSize / 2,
             y: pPoint.y * this.gridSize + this.gridSize / 2
         };
+
+        // Calculate half grid length.
+        const lHalfLength: number = this.gridSize / 2;
+
+        // Move point toward orientation.
+        switch (pOrientation) {
+            case 'top': lPoint.y -= lHalfLength; break;
+            case 'right': lPoint.x += lHalfLength; break;
+            case 'bottom': lPoint.y += lHalfLength; break;
+            case 'left': lPoint.x -= lHalfLength; break;
+        }
+
+        return lPoint;
     }
 
-    private getGridPointSide(pPoint: PotatnoUiManagerGridPoint, pDirection: PotatnoPortDefinitionDirection): Point {
-        return {
-            x: (pPoint.x + (pDirection === 'output' ? 1 : 0)) * this.gridSize,
-            y: pPoint.y * this.gridSize + this.gridSize / 2
-        };
-    }
+    /**
+     * Create path svg by the given path.
+     * This function assumes that previous and next path points of the current are a direct neighbors.
+     *  
+     * @param pPath - Grid point array representing a path.
+     * 
+     * @returns a svg path string. 
+     */
+    private createSvgPath(pPath: Array<PotatnoUiManagerGridPoint>): string {
+        // Get point direction from origin and target points.
+        const lPointDirection = (pOriginPoint: PotatnoUiManagerGridPoint, pTargetPoint: PotatnoUiManagerGridPoint): PotatnoUiManagerGridDirection => {
+            const lDistanceX = pTargetPoint.x - pOriginPoint.x;
+            const lDistanceY = pTargetPoint.y - pOriginPoint.y;
 
-    private generateRoundedPath(pPoints: Array<Point>): string {
-        const lRadius: number = Math.min(8, this.gridSize / 3);
-        const lPoints: Array<Point> = [];
-
-        for (const lPoint of pPoints) {
-            const lPreviousPoint: Point | undefined = lPoints[lPoints.length - 1];
-            if (!lPreviousPoint || lPreviousPoint.x !== lPoint.x || lPreviousPoint.y !== lPoint.y) {
-                lPoints.push(lPoint);
+            switch (true) {
+                case lDistanceX == 0 && lDistanceY == 1: return 'bottom';
+                case lDistanceX == 0 && lDistanceY == -1: return 'top';
+                case lDistanceX == -1 && lDistanceY == 0: return 'left';
+                case lDistanceX == 1 && lDistanceY == 0: return 'right';
+                default: throw new Exception('Missformed path. Path points are not directly next to each other.', this);
             }
+        };
+
+        // Recursivly create path.
+        let lPath: string = '';
+        for (let lPathIndex: number = 0; lPathIndex < pPath.length; lPathIndex++) {
+            const lPathPoint: PotatnoUiManagerGridPoint = pPath[lPathIndex];
+
+            // Get previous point, when its not available, its ALLWAYS the direct left point.
+            // Get next point , when its not available, its ALLWAYS the direct right point.
+            const lPreviousPoint: PotatnoUiManagerGridPoint = pPath[lPathIndex - 1] ?? { x: lPathPoint.x - 1, y: lPathPoint.y };
+            const lNextPoint: PotatnoUiManagerGridPoint = pPath[lPathIndex + 1] ?? { x: lPathPoint.x + 1, y: lPathPoint.y };
+
+            // Create directions for previous and next point.
+            const lFromDirection: PotatnoUiManagerGridDirection = lPointDirection(lPathPoint, lPreviousPoint);
+            const lToDirection: PotatnoUiManagerGridDirection = lPointDirection(lPathPoint, lNextPoint);
+
+            // And then draw everything.
+            lPath += this.createGridCellPath(lPathPoint, lFromDirection, lToDirection);
         }
 
-        if (lPoints.length < 2) {
-            return '';
-        }
-
-        let lPath: string = `M ${lPoints[0].x} ${lPoints[0].y}`;
-        for (let lIndex: number = 1; lIndex < lPoints.length - 1; lIndex++) {
-            const lPreviousPoint: Point = lPoints[lIndex - 1];
-            const lCurrentPoint: Point = lPoints[lIndex];
-            const lNextPoint: Point = lPoints[lIndex + 1];
-            const lPreviousDistance: number = Math.hypot(lCurrentPoint.x - lPreviousPoint.x, lCurrentPoint.y - lPreviousPoint.y);
-            const lNextDistance: number = Math.hypot(lNextPoint.x - lCurrentPoint.x, lNextPoint.y - lCurrentPoint.y);
-            const lCornerRadius: number = Math.min(lRadius, lPreviousDistance / 2, lNextDistance / 2);
-            const lPreviousDirection: Point = {
-                x: Math.sign(lCurrentPoint.x - lPreviousPoint.x),
-                y: Math.sign(lCurrentPoint.y - lPreviousPoint.y)
-            };
-            const lNextDirection: Point = {
-                x: Math.sign(lNextPoint.x - lCurrentPoint.x),
-                y: Math.sign(lNextPoint.y - lCurrentPoint.y)
-            };
-
-            if (lCornerRadius <= 0 || lPreviousDirection.x === lNextDirection.x && lPreviousDirection.y === lNextDirection.y) {
-                lPath += ` L ${lCurrentPoint.x} ${lCurrentPoint.y}`;
-                continue;
-            }
-
-            const lBeforeCorner: Point = this.moveTowards(lCurrentPoint, lPreviousPoint, lCornerRadius);
-            const lAfterCorner: Point = this.moveTowards(lCurrentPoint, lNextPoint, lCornerRadius);
-            lPath += ` L ${lBeforeCorner.x} ${lBeforeCorner.y} Q ${lCurrentPoint.x} ${lCurrentPoint.y} ${lAfterCorner.x} ${lAfterCorner.y}`;
-        }
-
-        const lLastPoint: Point = lPoints[lPoints.length - 1];
-        return `${lPath} L ${lLastPoint.x} ${lLastPoint.y}`;
+        return lPath;
     }
 
-    private moveTowards(pPoint: Point, pTarget: Point, pDistance: number): Point {
-        const lDistance: number = Math.hypot(pTarget.x - pPoint.x, pTarget.y - pPoint.y);
-        if (lDistance === 0) {
-            return pPoint;
-        }
+    /**
+     * Draw a curved line for a grid point.
+     * 
+     * @param pPoint 
+     * @param pDirection 
+     */
+    private createGridCellPath(pPoint: PotatnoUiManagerGridPoint, pFromDirection: PotatnoUiManagerGridDirection, pToDirection: PotatnoUiManagerGridDirection) {
+        // Create end and start points.
+        const lStartPoint: Point = this.getGridPosition(pPoint, pFromDirection);
+        const lEndPoint: Point = this.getGridPosition(pPoint, pToDirection);
 
-        return {
-            x: pPoint.x + (pTarget.x - pPoint.x) / lDistance * pDistance,
-            y: pPoint.y + (pTarget.y - pPoint.y) / lDistance * pDistance
+        // Create a bezier control point by using the x of start and y of end.
+        // When its a straight line, the control point does nothing. 
+        const lControlPoint: Point = {
+            x: pFromDirection === 'bottom' || pFromDirection === 'top' ? lStartPoint.x : lEndPoint.x,
+            y: pFromDirection === 'left' || pFromDirection === 'right' ? lStartPoint.y : lEndPoint.y,
         };
+
+        // Create a path between two points with a bezier curve.
+        // Move to start point. Draw to endpoint. And use the control point.
+        return `M ${lStartPoint.x},${lStartPoint.y} Q ${lControlPoint.x},${lControlPoint.y} ${lEndPoint.x},${lEndPoint.y}`;
     }
 
 }
+
+type PotatnoUiManagerGridDirection = 'top' | 'right' | 'bottom' | 'left';
 
 export type PotatnoUiManagerGridPoint = {
     x: number;

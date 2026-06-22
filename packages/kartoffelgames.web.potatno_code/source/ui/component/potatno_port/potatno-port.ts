@@ -27,8 +27,16 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
 
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
+    private mDragPositionEventHandler: PotatnoPortComponentGlobalDragoverHandler;
     private mPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null;
     private mUnsubscribe: (() => void) | null;
+
+    /**
+     * Drag position event handler.
+     */
+    public get dragPositionEventHandler(): PotatnoPortComponentGlobalDragoverHandler {
+        return this.mDragPositionEventHandler;
+    }
 
     /**
      * The domain port object to render.
@@ -204,6 +212,15 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         this.mManager = pManager;
         this.mPort = null;
         this.mUnsubscribe = null;
+
+        // Create the document wide drag handler, as firefox cant fix a 16 year old bug.
+        this.mDragPositionEventHandler = (pEvent: DragEvent) => {
+            if (this.mManager.grid.draggedPort !== this.port || !this.port || pEvent.clientX === 0 && pEvent.clientY === 0) {
+                return;
+            }
+
+            this.renderDragWire(pEvent.clientX, pEvent.clientY);
+        };
     }
 
     /**
@@ -213,6 +230,10 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Connection | PotatnoCodeUiManagerChangeType.Node, null, () => {
             this.mComponent.updater.updateAsync();
         });
+
+        // Add global drag handler that draws the drag wire.
+        // Capture drag movement before drop targets can stop bubbling.
+        document.addEventListener('dragover', this.mDragPositionEventHandler, { capture: true });
     }
 
     /**
@@ -221,6 +242,9 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     public onDeconstruct(): void {
         this.mUnsubscribe?.();
         this.mUnsubscribe = null;
+
+        // Remove the global dragover handler when the port gets removed.
+        document.removeEventListener('dragover', this.mDragPositionEventHandler, { capture: true });
     }
 
     /**
@@ -250,20 +274,6 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
 
         // Update port values.
         this.mManager.graph.setPortDirectValue(this.port, lCurrentValues);
-    }
-
-    /**
-     * Handle drag movement on the port source.
-     *
-     * @param pEvent - Drag event.
-     */
-    public onDrag(pEvent: DragEvent): void {
-        if (this.mManager.grid.draggedPort !== this.port || !this.port || pEvent.clientX === 0 && pEvent.clientY === 0) {
-            return;
-        }
-
-        // Update the temporary wire path.
-        this.renderDragWire(pEvent.clientX, pEvent.clientY);
     }
 
     /**
@@ -444,3 +454,5 @@ type PotatnoPortValueDefinition = {
     value: string;
     totalCount: number;
 };
+
+type PotatnoPortComponentGlobalDragoverHandler = (pEvent: DragEvent) => void;

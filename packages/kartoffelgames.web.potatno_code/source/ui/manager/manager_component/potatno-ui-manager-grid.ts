@@ -168,8 +168,8 @@ export class PotatnoUiManagerGrid {
             return lPath;
         }
 
-        const lStartRoute: PotatnoUiManagerGridPoint = { x: lStart.x + 1, y: lStart.y };
-        const lEndRoute: PotatnoUiManagerGridPoint = { x: lEnd.x - 1, y: lEnd.y };
+        const lStartRoute: PotatnoUiManagerGridPoint = { x: lStart.x , y: lStart.y };
+        const lEndRoute: PotatnoUiManagerGridPoint = { x: lEnd.x , y: lEnd.y };
         const lBaseMidX: number = Math.round(lStartRoute.x + (lEndRoute.x - lStartRoute.x) / 2);
         const lMidX: number = Math.max(lStartRoute.x, Math.min(lEndRoute.x, lBaseMidX + this.getSourceConnectionLaneOffset(pSourcePort)));
 

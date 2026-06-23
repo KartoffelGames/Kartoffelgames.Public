@@ -1,7 +1,9 @@
 import { Exception } from "@kartoffelgames/core";
-import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
+import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
+import { PotatnoDocumentNode, PotatnoDocumentNodePorts } from "../../../document/potatno-document-node.ts";
+import { PotatnoPortDefinitionDirection } from "../../../project/potatno-port-definition.ts";
 
 /**
  * Ui manager grid component.
@@ -44,14 +46,13 @@ export class PotatnoUiManagerGrid {
     /**
      * Create an orthogonal grid-routed SVG path between two grid cells.
      *
-     * @param pStart - Start grid cell.
-     * @param pEnd - End grid cell.
-     * @param pSourcePort - Source port of the connection.
+     * @param pStart - Start position or port of connection path.
+     * @param pEnd - End  position or port of connection path.
      *
      * @returns SVG path data.
      */
-    public createConnectionPath(pStart: PotatnoUiManagerGridPoint, pEnd: PotatnoUiManagerGridPoint, pSourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): string {
-        const lGridPath: Array<PotatnoUiManagerGridPoint> = this.createGridPath(pStart, pEnd, pSourcePort);
+    public createConnectionPath(pStart: GridPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEnd: GridPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>): string {
+        const lGridPath: Array<GridPoint> = this.createGridPath(pStart, pEnd);
         return this.createSvgPath(lGridPath);
     }
 
@@ -93,21 +94,47 @@ export class PotatnoUiManagerGrid {
      *
      * @returns Grid cell for the port.
      */
-    public getPortGridPoint(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): PotatnoUiManagerGridPoint {
-        const lNode = pPort.node;
-        const lPortList: ReadonlyArray<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> = pPort.direction === 'output' ? lNode.outputs.list : lNode.inputs.list;
-        let lIndex: number = 0;
+    public getPortGridPoint(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): GridPoint {
+        // Read node of port.
+        const lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = pPort.node;
 
-        for (const lCandidatePort of lPortList) {
-            if (lCandidatePort === pPort) {
-                break;
+        // Dependent on port direction, either read input or output port list from node.
+        const lNodePortList: ReadonlyArray<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> = (() => {
+            if (pPort.direction === 'input') {
+                return lNode.inputs.list;
             }
-            lIndex++;
-        }
+
+            return lNode.outputs.list;
+        })();
+
+        // Find index of port in the node port list.
+        const lPortIndex: number = (() => {
+            // Count index until found, or port is not found i guess.
+            let lIndex: number = 0;
+            for (; lIndex < lNodePortList.length; lIndex++) {
+                if (lNodePortList[lIndex] === pPort) {
+                    break;
+                }
+            }
+
+            return lIndex;
+        })();
+
+        // Get the X coordinate based on the node and port direction.
+        const lPointX: number = (() => {
+            if (pPort.direction === 'input') {
+                return lNode.transformation.x;
+            }
+
+            // Move x coorinate to right side of node, if its an output. 
+            return lNode.transformation.x + lNode.transformation.width - 2;
+        })();
 
         return {
-            x: pPort.direction === 'output' ? lNode.transformation.x + lNode.transformation.width - 1 : lNode.transformation.x,
-            y: lNode.transformation.y + 1 + lIndex
+            // Nodes ports start after the 1 height header. 
+            y: lNode.transformation.y + 1 + lPortIndex,
+
+            x: lPointX
         };
     }
 
@@ -119,10 +146,20 @@ export class PotatnoUiManagerGrid {
      *
      * @returns Grid point.
      */
-    public pixelToGridSpace(pX: number, pY: number): PotatnoUiManagerGridPoint {
+    public pixelToGridSpace(pX: number, pY: number): GridPoint {
+        let lPointX: number = pX;
+        let lPointY: number = pY;
+
+        // Move by panning.
+        lPointX -= this.mInteraction.panX;
+        lPointY -= this.mInteraction.panY;
+
+        lPointX /= this.mInteraction.zoom;
+        lPointY /= this.mInteraction.zoom;
+
         return {
-            x: Math.floor(pX / this.gridSize),
-            y: Math.floor(pY / this.gridSize)
+            x: Math.floor(lPointX / this.gridSize) ,
+            y: Math.floor(lPointY / this.gridSize) 
         };
     }
 
@@ -136,51 +173,15 @@ export class PotatnoUiManagerGrid {
         this.mElementPorts.set(pElement, pPort);
     }
 
-    private appendGridLine(pPath: Array<PotatnoUiManagerGridPoint>, pTarget: PotatnoUiManagerGridPoint): void {
-        const lLastPoint: PotatnoUiManagerGridPoint = pPath[pPath.length - 1];
-        const lStepX: number = Math.sign(pTarget.x - lLastPoint.x);
-        const lStepY: number = Math.sign(pTarget.y - lLastPoint.y);
-
-        for (let lX: number = lLastPoint.x + lStepX; lStepX !== 0 && (lStepX > 0 ? lX <= pTarget.x : lX >= pTarget.x); lX += lStepX) {
-            pPath.push({ x: lX, y: lLastPoint.y });
-        }
-
-        const lLineStart: PotatnoUiManagerGridPoint = pPath[pPath.length - 1];
-        for (let lY: number = lLineStart.y + lStepY; lStepY !== 0 && (lStepY > 0 ? lY <= pTarget.y : lY >= pTarget.y); lY += lStepY) {
-            pPath.push({ x: lLineStart.x, y: lY });
-        }
-    }
-
-    private createGridPath(pStart: PotatnoUiManagerGridPoint, pEnd: PotatnoUiManagerGridPoint, pSourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): Array<PotatnoUiManagerGridPoint> {
-        let lStart: PotatnoUiManagerGridPoint = pSourcePort.direction === 'input' ? pEnd : pStart;
-        let lEnd: PotatnoUiManagerGridPoint = pSourcePort.direction === 'input' ? pStart : pEnd;
-
-        if (lStart.x > lEnd.x) {
-            const lSwapStart: PotatnoUiManagerGridPoint = lStart;
-            lStart = lEnd;
-            lEnd = lSwapStart;
-        }
-
-        const lPath: Array<PotatnoUiManagerGridPoint> = [{ ...lStart }];
-        if (lEnd.x <= lStart.x + 1) {
-            this.appendGridLine(lPath, { x: lStart.x, y: lEnd.y });
-            this.appendGridLine(lPath, lEnd);
-            return lPath;
-        }
-
-        const lStartRoute: PotatnoUiManagerGridPoint = { x: lStart.x , y: lStart.y };
-        const lEndRoute: PotatnoUiManagerGridPoint = { x: lEnd.x , y: lEnd.y };
-        const lBaseMidX: number = Math.round(lStartRoute.x + (lEndRoute.x - lStartRoute.x) / 2);
-        const lMidX: number = Math.max(lStartRoute.x, Math.min(lEndRoute.x, lBaseMidX + this.getSourceConnectionLaneOffset(pSourcePort)));
-
-        this.appendGridLine(lPath, lStartRoute);
-        this.appendGridLine(lPath, { x: lMidX, y: lStartRoute.y });
-        this.appendGridLine(lPath, { x: lMidX, y: lEndRoute.y });
-        this.appendGridLine(lPath, lEndRoute);
-        this.appendGridLine(lPath, lEnd);
-        return lPath;
-    }
-
+    /**
+     * Get element by pixel position.
+     * Does look recursivly into shadow roots to find the actual top element.
+     * 
+     * @param pClientX - Pixel position x.
+     * @param pClientY - Pixel position y.
+     * 
+     * @returns the top most element of the pixel position 
+     */
     private getElementFromPosition(pClientX: number, pClientY: number): Element | null {
         // Recursive function that finds element from a position nexted in shadow roots.
         const lReadElementInRoot = (pRoot: Document | ShadowRoot, pClientX: number, pClientY: number): Element | null => {
@@ -204,20 +205,6 @@ export class PotatnoUiManagerGrid {
         return lReadElementInRoot(document, pClientX, pClientY);
     }
 
-    private getSourceConnectionLaneOffset(pSourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): number {
-        if (pSourcePort.direction !== 'output') {
-            return 0;
-        }
-
-        const lOutputPorts: ReadonlyArray<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> = pSourcePort.node.outputs.list;
-        const lPortIndex: number = lOutputPorts.indexOf(pSourcePort);
-        if (lPortIndex === -1) {
-            return 0;
-        }
-
-        return lOutputPorts.length - lPortIndex - 1;
-    }
-
     /**
      * Get the absolute grid pixel position of a point and the direction.
      * 
@@ -226,7 +213,7 @@ export class PotatnoUiManagerGrid {
      * 
      * @returns the pixel point of the grid point. 
      */
-    private getGridPosition(pPoint: PotatnoUiManagerGridPoint, pOrientation: PotatnoUiManagerGridDirection): Point {
+    private getGridPosition(pPoint: GridPoint, pOrientation: PotatnoUiManagerGridDirection): Point {
         // Create middle point.
         const lPoint: Point = {
             x: pPoint.x * this.gridSize + this.gridSize / 2,
@@ -255,9 +242,9 @@ export class PotatnoUiManagerGrid {
      * 
      * @returns a svg path string. 
      */
-    private createSvgPath(pPath: Array<PotatnoUiManagerGridPoint>): string {
+    private createSvgPath(pPath: Array<GridPoint>): string {
         // Get point direction from origin and target points.
-        const lPointDirection = (pOriginPoint: PotatnoUiManagerGridPoint, pTargetPoint: PotatnoUiManagerGridPoint): PotatnoUiManagerGridDirection => {
+        const lPointDirection = (pOriginPoint: GridPoint, pTargetPoint: GridPoint): PotatnoUiManagerGridDirection => {
             const lDistanceX = pTargetPoint.x - pOriginPoint.x;
             const lDistanceY = pTargetPoint.y - pOriginPoint.y;
 
@@ -273,12 +260,12 @@ export class PotatnoUiManagerGrid {
         // Recursivly create path.
         let lPath: string = '';
         for (let lPathIndex: number = 0; lPathIndex < pPath.length; lPathIndex++) {
-            const lPathPoint: PotatnoUiManagerGridPoint = pPath[lPathIndex];
+            const lPathPoint: GridPoint = pPath[lPathIndex];
 
             // Get previous point, when its not available, its ALLWAYS the direct left point.
             // Get next point , when its not available, its ALLWAYS the direct right point.
-            const lPreviousPoint: PotatnoUiManagerGridPoint = pPath[lPathIndex - 1] ?? { x: lPathPoint.x - 1, y: lPathPoint.y };
-            const lNextPoint: PotatnoUiManagerGridPoint = pPath[lPathIndex + 1] ?? { x: lPathPoint.x + 1, y: lPathPoint.y };
+            const lPreviousPoint: GridPoint = pPath[lPathIndex - 1] ?? { x: lPathPoint.x - 1, y: lPathPoint.y };
+            const lNextPoint: GridPoint = pPath[lPathIndex + 1] ?? { x: lPathPoint.x + 1, y: lPathPoint.y };
 
             // Create directions for previous and next point.
             const lFromDirection: PotatnoUiManagerGridDirection = lPointDirection(lPathPoint, lPreviousPoint);
@@ -297,7 +284,7 @@ export class PotatnoUiManagerGrid {
      * @param pPoint 
      * @param pDirection 
      */
-    private createGridCellPath(pPoint: PotatnoUiManagerGridPoint, pFromDirection: PotatnoUiManagerGridDirection, pToDirection: PotatnoUiManagerGridDirection) {
+    private createGridCellPath(pPoint: GridPoint, pFromDirection: PotatnoUiManagerGridDirection, pToDirection: PotatnoUiManagerGridDirection) {
         // Create end and start points.
         const lStartPoint: Point = this.getGridPosition(pPoint, pFromDirection);
         const lEndPoint: Point = this.getGridPosition(pPoint, pToDirection);
@@ -314,11 +301,157 @@ export class PotatnoUiManagerGrid {
         return `M ${lStartPoint.x},${lStartPoint.y} Q ${lControlPoint.x},${lControlPoint.y} ${lEndPoint.x},${lEndPoint.y}`;
     }
 
+
+    // --------------------- REWORK ----------------------------
+
+    private createGridPath(pStart: GridPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEnd: GridPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>): Array<GridPoint> {
+        // Convert both points into a restricting values.
+        let lStart: PotatnoUiManagerGridPointRestriction = this.readPointRestriction(pStart);
+        let lEnd: PotatnoUiManagerGridPointRestriction = this.readPointRestriction(pEnd);
+
+        // Based on the ports direction or, when no port is set, swap the start with the end.
+        if (!lStart.direction && !lEnd.direction) {
+            if (lStart.origin.x > lEnd.origin.x) {
+                // Swap.
+                [lStart, lEnd] = [lEnd, lStart];
+            }
+        } else {
+            if (lStart.direction === 'input' || lEnd.direction === 'output') {
+                // Swap.
+                [lStart, lEnd] = [lEnd, lStart];
+            }
+        }
+
+        console.log(lStart, lEnd);
+
+        // Set current point to start.
+        let lCurrentPoint: GridPoint = { x: lStart.origin.x, y: lStart.origin.y };
+        let lRestriction: PotatnoUiManagerGridPointRestriction = lStart;
+
+        // Calculate meta data for the path.
+        const lPathLength: number = Math.abs(lStart.origin.x - lEnd.origin.y) + Math.abs(lStart.origin.y - lEnd.origin.y);
+
+        // Iterate as long as end is not reached.
+        const lPath: Array<GridPoint> = new Array<GridPoint>();
+        while (lCurrentPoint.x !== lEnd.origin.x || lCurrentPoint.y !== lEnd.origin.y) {
+            // Set current point into path.
+            lPath.push({ x: lCurrentPoint.x, y: lCurrentPoint.y });
+
+
+            // TODO:
+            // Move 
+            if (lCurrentPoint.x != lEnd.origin.x) {
+                lCurrentPoint.x += (lEnd.origin.x - lCurrentPoint.x) / Math.abs((lEnd.origin.x - lCurrentPoint.x));
+            } else {
+                lCurrentPoint.y += (lEnd.origin.y - lCurrentPoint.y) / Math.abs((lEnd.origin.y - lCurrentPoint.y));
+            }
+
+        }
+
+        return lPath;
+    }
+
+    /**
+     * Read the restricting parameters of a point or port for the path generation.
+     * 
+     * @param pPoint - Point or port.
+     * 
+     * @returns restriction parameters of the point. 
+     */
+    private readPointRestriction(pPoint: GridPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>): PotatnoUiManagerGridPointRestriction {
+        // When point is not a port, it has no restrictions.
+        if (!(pPoint instanceof PotatnoDocumentPort)) {
+            return {
+                origin: pPoint,
+                direction: null,
+                restriction: {
+                    up: 0, down: 0,
+                    rectangle: {
+                        origin: { x: 0, y: 0 },
+                        width: 0, height: 0
+                    }
+                }
+            };
+        }
+
+        // Read node of port.
+        const lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = pPoint.node;
+
+        // Dependent on port direction, either read input or output port list from node.
+        const lNodePortList: ReadonlyArray<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> = (() => {
+            if (pPoint.direction === 'input') {
+                return lNode.inputs.list;
+            }
+
+            return lNode.outputs.list;
+        })();
+
+        // Count ports before and after target port.
+        let lPortBeforeCount: number = 0;
+        let lPortAfterCount: number = -1;
+        for (const lNodePort of lNodePortList) {
+            // Allways count after count.
+            lPortAfterCount++;
+
+            // When port was hit, move count value in before count and reset after.
+            if (lNodePort === pPoint) {
+                lPortBeforeCount = lPortAfterCount;
+                lPortAfterCount = 0;
+            }
+        }
+
+        // Get point of port.
+        const lPortGridPoint: GridPoint = this.getPortGridPoint(pPoint);
+
+        return {
+            origin: lPortGridPoint,
+            direction: pPoint.direction,
+            restriction: {
+                up: lPortBeforeCount,
+                down: lPortAfterCount,
+
+                // Rectangle is simple the node transformation.
+                rectangle: {
+                    origin: {
+                        x: lNode.transformation.x,
+                        y: lNode.transformation.y,
+                    },
+                    width: lNode.transformation.width,
+                    height: lNode.transformation.height
+                }
+            }
+        };
+    }
 }
 
 type PotatnoUiManagerGridDirection = 'top' | 'right' | 'bottom' | 'left';
 
-export type PotatnoUiManagerGridPoint = {
+type PotatnoUiManagerGridPointRestriction = {
+    origin: GridPoint;
+    direction: PotatnoPortDefinitionDirection | null;
+    restriction: {
+        /**
+         * Grid count horizontal from origin that the path is not allowed to move up.
+         */
+        up: number;
+
+        /**
+         * Grid count horizontal from origin that the path is not allowed to move down.
+         */
+        down: number;
+
+        rectangle: {
+            origin: GridPoint;
+            width: number;
+            height: number;
+        };
+    };
+
+
+
+};
+
+export type GridPoint = {
     x: number;
     y: number;
 };

@@ -4,7 +4,7 @@ import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import type { PotatnoUiManagerGridPoint } from '../../manager/manager_component/potatno-ui-manager-grid.ts';
+import type { GridPoint } from '../../manager/manager_component/potatno-ui-manager-grid.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import connectionLayerCss from './potatno-connection-layer.css' with { type: 'text' };
 import connectionLayerTemplate from './potatno-connection-layer.html' with { type: 'text' };
@@ -161,8 +161,6 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
             for (const lOutputPort of lNode.outputs.list) {
                 for (const lConnectedPort of lOutputPort.connectedPorts) {
                     const lId: string = `c${lConnectionIndex++}`;
-                    const lSourcePosition: PotatnoUiManagerGridPoint = this.mManager.grid.getPortGridPoint(lOutputPort);
-                    const lTargetPosition: PotatnoUiManagerGridPoint = this.mManager.grid.getPortGridPoint(lConnectedPort);
                     const lHasError: boolean = lErrorItems.has(lOutputPort) || lErrorItems.has(lConnectedPort);
 
                     this.mConnectionRegistry.set(lId, {
@@ -170,7 +168,7 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
                         targetPort: lConnectedPort
                     });
 
-                    this.renderConnectionPath(lSvg, lId, lOutputPort, lSourcePosition, lTargetPosition, !lHasError);
+                    this.renderConnectionPath(lSvg, lId, lOutputPort, lConnectedPort, !lHasError);
                 }
             }
         }
@@ -187,8 +185,8 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
      * @param pEnd - End anchor.
      * @param pValid - Whether the connection is valid.
      */
-    private renderConnectionPath(pSvg: SVGSVGElement, pId: string, pSourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pStart: PotatnoUiManagerGridPoint, pEnd: PotatnoUiManagerGridPoint, pValid: boolean): void {
-        const lPathData: string = this.mManager.grid.createConnectionPath(pStart, pEnd, pSourcePort);
+    private renderConnectionPath(pSvg: SVGSVGElement, pId: string, pSourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pTargetPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pValid: boolean): void {
+        const lPathData: string = this.mManager.grid.createConnectionPath(pSourcePort, pTargetPort);
 
         const lHitPath: SVGPathElement = document.createElementNS(gSvgNamespace, 'path') as SVGPathElement;
         lHitPath.setAttribute('d', lPathData);

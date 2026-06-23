@@ -4,7 +4,7 @@ import { Component, PwbChild, PwbComponent, PwbExport, type IComponentOnConnect,
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPortDefinitionDirection } from '../../../project/potatno-port-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import type { PotatnoUiManagerGridPoint } from '../../manager/manager_component/potatno-ui-manager-grid.ts';
+import type { GridPoint } from '../../manager/manager_component/potatno-ui-manager-grid.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import portCss from './potatno-port.css' with { type: 'text' };
 import portTemplate from './potatno-port.html' with { type: 'text' };
@@ -413,17 +413,12 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
             return '';
         }
 
-        // Convert viewport coordinates into this port's grid-local coordinates.
         const lSourceElementPosition: DOMRect = this.dragConnectionSvg.getBoundingClientRect();
-        const lZoom: number = this.mManager.grid.interaction.zoom;
-        const lEnd: PotatnoUiManagerGridPoint = this.mManager.grid.pixelToGridSpace((pClientX - lSourceElementPosition.left) / lZoom, (pClientY - lSourceElementPosition.top) / lZoom);
 
-        const lStart: PotatnoUiManagerGridPoint = {
-            x: this.port.direction === 'output' ? -1 : 0,
-            y: 0
-        };
+        // Convert viewport coordinates into this port's grid-local coordinates.
+        const lEnd: GridPoint = this.mManager.grid.pixelToGridSpace((pClientX - lSourceElementPosition.left), (pClientY - lSourceElementPosition.top));
 
-        return this.mManager.grid.createConnectionPath(lStart, lEnd, this.port);
+        return this.mManager.grid.createConnectionPath(this.port, lEnd);
     }
 
     /**
@@ -440,7 +435,15 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
             this.dragConnectionSvg.appendChild(lDragConnectionElement);
         }
 
-        // TODO: Store start and end on path.
+        // TODO: That seems slow as hell.
+
+        // Calculate offset to grids [0, 0] point.
+        const lPortPosition = this.mManager.grid.getPortGridPoint(this.port!);
+        const lPortX = lPortPosition.x * this.mManager.grid.gridSize;
+        const lPortY = lPortPosition.y * this.mManager.grid.gridSize;
+
+        // Update svg transformation to meet current grid interaction.
+        this.dragConnectionSvg.style.setProperty('transform', `translate(${-lPortX}px, ${-lPortY}px)`);
 
         // Update drag connection path.
         lDragConnectionElement.setAttribute('d', this.createDragPath(pClientX, pClientY));

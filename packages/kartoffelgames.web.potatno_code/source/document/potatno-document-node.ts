@@ -130,7 +130,11 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
         this.mLabel = pParameter.label;
         this.mPreview = pParameter.preview ?? null;
         this.mProject = pProject;
-        this.mTransformation = { ...pParameter.transformation };
+        this.mTransformation = { x: 0, y: 0, width: 0, height: 0 };
+
+        // Apply transformation.
+        this.resizeTo(pParameter.transformation.width, pParameter.transformation.height);
+        this.moveTo(pParameter.transformation.x, pParameter.transformation.y);
 
         const lCreatePortMapping = (pPorts: Array<PotatnoDocumentNodePortConfiguration<TProjectTypes>>, pDirection: PotatnoPortDefinitionDirection): PotatnoDocumentNodePortsInternal<TProjectTypes> => {
             const lNodePorts: PotatnoDocumentNodePortsInternal<TProjectTypes> = {
@@ -182,8 +186,8 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
      */
     public resizeTo(pWidth: number, pHeight: number): void {
         // Min size to [4, 4] so the UI cant break for [0, 0] sized nodes.
-        this.mTransformation.width = Math.max(4, pWidth);
-        this.mTransformation.height = Math.max(4, pHeight);
+        this.mTransformation.width = Math.max(6, pWidth);
+        this.mTransformation.height = Math.max(2, pHeight);
     }
 
     /**

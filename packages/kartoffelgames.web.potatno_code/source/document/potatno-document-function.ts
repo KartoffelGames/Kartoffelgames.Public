@@ -545,6 +545,7 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
                 // First half and second half both start at (y: 2)
                 y: (lNodeCounter * lItemSpacing) + 2 - (Math.floor(lNodeCounter / (lSystemNodes.length / 2)) * ((lSystemNodes.length / 2) * lItemSpacing)),
 
+                // Undefined, should be auto set by node constructor.
                 width: 0, height: 0
             });
 

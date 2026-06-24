@@ -344,13 +344,7 @@ export class PotatnoUiManagerGrid {
             return {
                 origin: pPoint,
                 direction: null,
-                restriction: {
-                    up: 0, down: 0,
-                    rectangle: {
-                        origin: { x: 0, y: 0 },
-                        width: 0, height: 0
-                    }
-                }
+                restrictions: new Set<GridNodePoint>()
             };
         }
 
@@ -383,23 +377,13 @@ export class PotatnoUiManagerGrid {
         // Get point of port.
         const lPortGridPoint: GridPoint = this.getPortGridPoint(pPoint);
 
+        // TODO: Calculate custom node grid restrictions.
+        const lNodeGridRestriction: Set<GridNodePoint> = new Set<GridNodePoint>();
+
         return {
             origin: lPortGridPoint,
             direction: pPoint.direction,
-            restriction: {
-                up: lPortBeforeCount,
-                down: lPortAfterCount,
-
-                // Rectangle is simple the node transformation.
-                rectangle: {
-                    origin: {
-                        x: lNode.transformation.x,
-                        y: lNode.transformation.y,
-                    },
-                    width: lNode.transformation.width,
-                    height: lNode.transformation.height
-                }
-            }
+            restrictions: lNodeGridRestriction
         };
     }
 
@@ -464,26 +448,7 @@ type PotatnoUiManagerGridDirection = 'top' | 'right' | 'bottom' | 'left';
 type PotatnoUiManagerGridPointRestriction = {
     origin: GridPoint;
     direction: PotatnoPortDefinitionDirection | null;
-    restriction: {
-        /**
-         * Grid count horizontal from origin that the path is not allowed to move up.
-         */
-        up: number;
-
-        /**
-         * Grid count horizontal from origin that the path is not allowed to move down.
-         */
-        down: number;
-
-        rectangle: {
-            origin: GridPoint;
-            width: number;
-            height: number;
-        };
-    };
-
-
-
+    restrictions: Set<GridNodePoint>;
 };
 
 export type GridPoint = {

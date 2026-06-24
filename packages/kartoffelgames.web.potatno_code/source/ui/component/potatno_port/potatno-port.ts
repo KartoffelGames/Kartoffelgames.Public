@@ -472,6 +472,8 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
             this.dragConnectionSvg.appendChild(lDragConnectionElement);
         }
 
+        // TODO: Only update when actual grid position has changed. Save "lastPointerGridPosition" in mDraggedPortInformation.
+
         // Calculate offset to grids [0, 0] point.
         const lPortPosition: GridPoint = PotatnoPortComponent.mDraggedPortInformation.portPosition;
         const lPortX: number = lPortPosition.x * this.mManager.grid.gridSize;

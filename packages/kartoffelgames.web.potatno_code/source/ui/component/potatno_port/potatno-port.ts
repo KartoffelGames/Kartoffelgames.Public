@@ -221,7 +221,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         // Create the document wide drag handler, as firefox cant fix a 16 year old bug.
         this.mDragPositionEventHandler = (pEvent: DragEvent) => {
             // When nothing is dragged, just stop.
-            if(!PotatnoPortComponent.mDraggedPortInformation) {
+            if (!PotatnoPortComponent.mDraggedPortInformation) {
                 return;
             }
 
@@ -344,10 +344,19 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         // Get port position of dragged port.
         const lPortPosition = this.mManager.grid.getPortGridPoint(this.port!);
 
+        // Adjust port position by offsetting one cell to the right for input ports.
+        // Thats because the svg is left aligned in the input port. For output port that is correct as the svg is right aligned.
+        if(this.port.direction === 'input'){
+            lPortPosition.x -= 1;
+        }
+
         // Set this port as global draggin port information.
         PotatnoPortComponent.mDraggedPortInformation = {
             port: this.port,
-            portPosition: lPortPosition
+            portPosition: {
+                x: lPortPosition.x + 1,
+                y: lPortPosition.y
+            }
         };
 
         // Trigger update to remove potential direct values.

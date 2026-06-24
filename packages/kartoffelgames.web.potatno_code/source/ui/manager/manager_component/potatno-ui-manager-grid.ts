@@ -98,7 +98,7 @@ export class PotatnoUiManagerGrid {
             }
 
             // Move x coorinate to right side of node, if its an output. 
-            return lNode.transformation.x + lNode.transformation.width - 2;
+            return lNode.transformation.x + lNode.transformation.width - 1;
         })();
 
         return {
@@ -193,15 +193,15 @@ export class PotatnoUiManagerGrid {
             }
         };
 
-        // Recursivly create path.
         let lPath: string = '';
-        for (let lPathIndex: number = 0; lPathIndex < pPath.length; lPathIndex++) {
+
+        // Recursivly create path. The first and last path is not rendered but used to guide the paths direction.
+        for (let lPathIndex: number = 1; lPathIndex < (pPath.length - 1); lPathIndex++) {
             const lPathPoint: GridPoint = pPath[lPathIndex];
 
-            // Get previous point, when its not available, its ALLWAYS the direct left point.
-            // Get next point , when its not available, its ALLWAYS the direct right point.
-            const lPreviousPoint: GridPoint = pPath[lPathIndex - 1] ?? { x: lPathPoint.x - 1, y: lPathPoint.y };
-            const lNextPoint: GridPoint = pPath[lPathIndex + 1] ?? { x: lPathPoint.x + 1, y: lPathPoint.y };
+            // Get previous and next point.
+            const lPreviousPoint: GridPoint = pPath[lPathIndex - 1];
+            const lNextPoint: GridPoint = pPath[lPathIndex + 1];
 
             // Create directions for previous and next point.
             const lFromDirection: PotatnoUiManagerGridDirection = lPointDirection(lPathPoint, lPreviousPoint);
@@ -269,9 +269,10 @@ export class PotatnoUiManagerGrid {
 
         // Iterate as long as end is not reached.
         const lPath: Array<GridPoint> = new Array<GridPoint>();
-        while (lCurrentPoint.x !== lEnd.origin.x || lCurrentPoint.y !== lEnd.origin.y) {
-            // Set current point into path.
-            lPath.push({ x: lCurrentPoint.x, y: lCurrentPoint.y });
+        lPath.push({ x: lCurrentPoint.x, y: lCurrentPoint.y });
+
+        while (true) {
+
 
 
             // TODO:
@@ -281,6 +282,15 @@ export class PotatnoUiManagerGrid {
             } else {
                 lCurrentPoint.y += (lEnd.origin.y - lCurrentPoint.y) / Math.abs((lEnd.origin.y - lCurrentPoint.y));
             }
+
+            // Set current point into path.
+            lPath.push({ x: lCurrentPoint.x, y: lCurrentPoint.y });
+
+            if (lCurrentPoint.x === lEnd.origin.x && lCurrentPoint.y === lEnd.origin.y) {
+                break;
+            }
+
+
 
         }
 

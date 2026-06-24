@@ -29,7 +29,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     /**
      * Currently dragged port. Global for all instances, but that should not be an issue.
      */
-    private static mDraggedPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null;
+    private static mDraggedPortInformation: PotatnoPortComponentDragPortInformation | null;
 
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
@@ -77,10 +77,10 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     /**
      * Input element descriptors for the direct-value fields, derived from the port's type definition.
      */
-    public get inputDefinitions(): Array<PotatnoPortValueDefinition> {
+    public get inputDefinitions(): Array<PotatnoPortComponentValueDefinition> {
         // Must be set.
         if (!this.port) {
-            return new Array<PotatnoPortValueDefinition>();
+            return new Array<PotatnoPortComponentValueDefinition>();
         }
 
         // No further checks a this property is guarded by showValueInput.
@@ -199,7 +199,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         }
 
         // Hide value input while this port owns a native drag.
-        if (PotatnoPortComponent.mDraggedPort === this.port) {
+        if (PotatnoPortComponent.mDraggedPortInformation && PotatnoPortComponent.mDraggedPortInformation.port === this.port) {
             return false;
         }
 
@@ -221,7 +221,13 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
 
         // Create the document wide drag handler, as firefox cant fix a 16 year old bug.
         this.mDragPositionEventHandler = (pEvent: DragEvent) => {
-            if (PotatnoPortComponent.mDraggedPort !== this.port || !this.port || pEvent.clientX === 0 && pEvent.clientY === 0) {
+            // When nothing is dragged, just stop.
+            if(!PotatnoPortComponent.mDraggedPortInformation) {
+                return;
+            }
+
+            // Only fire event when the port is matched.
+            if (PotatnoPortComponent.mDraggedPortInformation.port !== this.port) {
                 return;
             }
 
@@ -336,8 +342,14 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         // Hide the native drag ghost.
         pEvent.dataTransfer.setDragImage(document.createElement('div'), 0, 0);
 
-        // Set this port as global draggin port.
-        PotatnoPortComponent.mDraggedPort = this.port;
+        // Get port position of dragged port.
+        const lPortPosition = this.mManager.grid.getPortGridPoint(this.port!);
+
+        // Set this port as global draggin port information.
+        PotatnoPortComponent.mDraggedPortInformation = {
+            port: this.port,
+            portPosition: lPortPosition
+        };
 
         // Trigger update to remove potential direct values.
         this.mComponent.updater.updateAsync();
@@ -358,11 +370,17 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         pEvent.preventDefault();
         pEvent.stopPropagation();
 
-        // Read dragged port. 
-        const lSourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = PotatnoPortComponent.mDraggedPort;
-        if (!this.port || !lSourcePort) {
+        // Check if something is dragged.
+        if (!PotatnoPortComponent.mDraggedPortInformation) {
             return;
         }
+
+        if (!this.port) {
+            return;
+        }
+
+        // Read dragged port. 
+        const lSourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = PotatnoPortComponent.mDraggedPortInformation.port;
 
         // Connect ports.
         this.mManager.graph.connectPorts(lSourcePort, this.port);
@@ -392,16 +410,18 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
             return false;
         }
 
+        // Check if something is dragged.
+        if (!PotatnoPortComponent.mDraggedPortInformation) {
+            return false;
+        }
+
         // Datatransfer must include drag type.
         if (!pDataTransfer || !pDataTransfer.types.includes(PotatnoPortComponent.DRAG_MIME_TYPE)) {
             return false;
         }
 
         // Read current dragged port.
-        const lDraggedPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = PotatnoPortComponent.mDraggedPort;
-        if (!lDraggedPort) {
-            return false;
-        }
+        const lDraggedPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = PotatnoPortComponent.mDraggedPortInformation.port;
 
         return lDraggedPort !== this.port && lDraggedPort.direction !== this.port.direction && lDraggedPort.portType === this.port.portType;
     }
@@ -419,10 +439,8 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
             return '';
         }
 
-        const lSourceElementPosition: DOMRect = this.dragConnectionSvg.getBoundingClientRect();
-
         // Convert viewport coordinates into this port's grid-local coordinates.
-        const lEnd: GridPoint = this.mManager.grid.pixelToGridSpace((pClientX - lSourceElementPosition.left), (pClientY - lSourceElementPosition.top));
+        const lEnd: GridPoint = this.mManager.grid.pixelToGridSpace(pClientX, pClientY);
 
         return this.mManager.grid.createConnectionPath(this.port, lEnd);
     }
@@ -434,6 +452,11 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      * @param pClientY - Viewport y coordinate.
      */
     private renderDragWire(pClientX: number, pClientY: number): void {
+        // Check if something is dragged.
+        if (!PotatnoPortComponent.mDraggedPortInformation) {
+            return;
+        }
+
         // Try to read first element of svg element or create a new.
         let lDragConnectionElement: SVGPathElement | null = this.dragConnectionSvg.firstChild as SVGPathElement | null;
         if (!lDragConnectionElement) {
@@ -441,12 +464,10 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
             this.dragConnectionSvg.appendChild(lDragConnectionElement);
         }
 
-        // TODO: That seems slow as hell.
-
         // Calculate offset to grids [0, 0] point.
-        const lPortPosition = this.mManager.grid.getPortGridPoint(this.port!);
-        const lPortX = lPortPosition.x * this.mManager.grid.gridSize;
-        const lPortY = lPortPosition.y * this.mManager.grid.gridSize;
+        const lPortPosition: GridPoint = PotatnoPortComponent.mDraggedPortInformation.portPosition;
+        const lPortX: number = lPortPosition.x * this.mManager.grid.gridSize;
+        const lPortY: number = lPortPosition.y * this.mManager.grid.gridSize;
 
         // Update svg transformation to meet current grid interaction.
         this.dragConnectionSvg.style.setProperty('transform', `translate(${-lPortX}px, ${-lPortY}px)`);
@@ -456,7 +477,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     }
 }
 
-type PotatnoPortValueDefinition = {
+export type PotatnoPortComponentValueDefinition = {
     htmlType: string;
     index: number;
     name: string;
@@ -465,3 +486,8 @@ type PotatnoPortValueDefinition = {
 };
 
 type PotatnoPortComponentGlobalDragoverHandler = (pEvent: DragEvent) => void;
+
+type PotatnoPortComponentDragPortInformation = {
+    port: PotatnoDocumentPort<PotatnoProjectTypesDefinition>;
+    portPosition: GridPoint;
+};

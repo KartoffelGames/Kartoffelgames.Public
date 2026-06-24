@@ -13,13 +13,16 @@
     display: flex;
     flex-direction: column;
     min-height: 100%;
-    min-width: var(--pn-node-min-width);
     background: var(--potatno-color-background);
-    border: 1px solid var(--pn-node-border);
+    
     border-radius: var(--pn-node-border-radius);
     box-shadow: 0 2px 8px var(--pn-node-shadow);
     overflow: visible;
     user-select: none;
+
+    /* Add border and adjust global position for it. */
+    border: 1px solid var(--pn-node-border);
+    transform: translate(-1px, -1px);
 }
 
 .node.selected {

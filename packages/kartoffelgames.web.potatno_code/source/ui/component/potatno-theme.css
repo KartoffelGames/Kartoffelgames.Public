@@ -65,7 +65,6 @@
     --pn-node-button-font-size: 9px;
     --pn-node-font-size: var(--pn-font-size-sm);
     --pn-node-header-height: var(--pn-grid-size);
-    --pn-node-min-width: 160px;
     --pn-node-port-body-size: 9px;
     --pn-node-port-gap: var(--pn-grid-size);
     --pn-node-port-tip-size: 5px;

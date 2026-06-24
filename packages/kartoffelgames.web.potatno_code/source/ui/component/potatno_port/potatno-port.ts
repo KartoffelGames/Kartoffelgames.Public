@@ -62,7 +62,6 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         }
 
         this.mPort = pPort;
-        this.mManager.grid.registerPortElement(pPort, this.mComponent.element);
 
         // Manually update.
         this.mComponent.updater.updateAsync();

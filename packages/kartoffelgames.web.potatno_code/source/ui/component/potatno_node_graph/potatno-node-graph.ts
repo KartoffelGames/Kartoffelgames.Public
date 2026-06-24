@@ -168,6 +168,9 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * Register global graph listeners and subscribe to manager changes.
      */
     public onConnect(): void {
+        // Set this element as main grid element.
+        this.mManager.grid.gridElement = this.mComponent.element;
+
         this.mKeyboardHandler = (pEvent: KeyboardEvent) => this.onKeyDown(pEvent);
         document.addEventListener('keydown', this.mKeyboardHandler);
 

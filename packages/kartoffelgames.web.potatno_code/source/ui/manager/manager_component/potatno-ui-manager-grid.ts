@@ -12,14 +12,22 @@ import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 export class PotatnoUiManagerGrid {
     private static readonly GRID_SIZE: number = 25;
 
-    private readonly mElementPorts: WeakMap<Element, PotatnoDocumentPort<PotatnoProjectTypesDefinition>>;
     private readonly mInteraction: PotatnoCanvasInteraction;
+    private mGridElement: Element | null;
 
     /**
      * Grid size in pixels.
      */
     public get gridSize(): number {
         return PotatnoUiManagerGrid.GRID_SIZE;
+    }
+
+    /**
+     * Set only grid element.
+     * Used to position by pixel space.
+     */
+    public set gridElement(pGridElement: Element) {
+        this.mGridElement = pGridElement;
     }
 
     /**
@@ -33,8 +41,8 @@ export class PotatnoUiManagerGrid {
      * Constructor.
      */
     public constructor() {
-        this.mElementPorts = new WeakMap<Element, PotatnoDocumentPort<PotatnoProjectTypesDefinition>>();
         this.mInteraction = new PotatnoCanvasInteraction(PotatnoUiManagerGrid.GRID_SIZE);
+        this.mGridElement = null;
     }
 
     /**
@@ -48,37 +56,6 @@ export class PotatnoUiManagerGrid {
     public createConnectionPath(pStart: GridPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEnd: GridPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>): string {
         const lGridPath: Array<GridPoint> = this.createGridPath(pStart, pEnd);
         return this.createSvgPath(lGridPath);
-    }
-
-    /**
-     * Find the registered port under a viewport position.
-     *
-     * @param pClientX - Viewport x coordinate.
-     * @param pClientY - Viewport y coordinate.
-     *
-     * @returns The port under the position, or null when none exists.
-     */
-    public getPortFromPosition(pClientX: number, pClientY: number): PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null {
-        // Read element from position.
-        const lElement: Element | null = this.getElementFromPosition(pClientX, pClientY);
-        if (!lElement) {
-            return null;
-        }
-
-        // When a element is hit, try to get the component host element from it.
-        const lComponentElement: Element = (() => {
-            const lRoot: Node = lElement.getRootNode();
-
-            // Root must be a shadow root to exclude window elements.
-            if (lRoot instanceof ShadowRoot && lRoot.host instanceof Element) {
-                return lRoot.host;
-            }
-
-            return lElement;
-        })();
-
-        // Try to return the registered components port.
-        return this.mElementPorts.get(lComponentElement) ?? null;
     }
 
     /**
@@ -144,6 +121,13 @@ export class PotatnoUiManagerGrid {
         let lPointX: number = pX;
         let lPointY: number = pY;
 
+        // Move the pixel point related to the grid element.
+        if (this.mGridElement) {
+            const lGridPosition: DOMRect = this.mGridElement.getBoundingClientRect();
+            lPointX -= lGridPosition.left;
+            lPointY -= lGridPosition.top;
+        }
+
         // Move by panning.
         lPointX -= this.mInteraction.panX;
         lPointY -= this.mInteraction.panY;
@@ -152,51 +136,9 @@ export class PotatnoUiManagerGrid {
         lPointY /= this.mInteraction.zoom;
 
         return {
-            x: Math.floor(lPointX / this.gridSize) ,
-            y: Math.floor(lPointY / this.gridSize) 
+            x: Math.floor(lPointX / this.gridSize),
+            y: Math.floor(lPointY / this.gridSize)
         };
-    }
-
-    /**
-     * Register a rendered port component element.
-     *
-     * @param pPort - Port represented by the element.
-     * @param pElement - Rendered port component element.
-     */
-    public registerPortElement(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pElement: Element): void {
-        this.mElementPorts.set(pElement, pPort);
-    }
-
-    /**
-     * Get element by pixel position.
-     * Does look recursivly into shadow roots to find the actual top element.
-     * 
-     * @param pClientX - Pixel position x.
-     * @param pClientY - Pixel position y.
-     * 
-     * @returns the top most element of the pixel position 
-     */
-    private getElementFromPosition(pClientX: number, pClientY: number): Element | null {
-        // Recursive function that finds element from a position nexted in shadow roots.
-        const lReadElementInRoot = (pRoot: Document | ShadowRoot, pClientX: number, pClientY: number): Element | null => {
-            // Try to read the hit element inside the current root.
-            const lElement: Element | null = pRoot.elementFromPoint(pClientX, pClientY);
-            if (!lElement) {
-                return null;
-            }
-
-            // If the element has a shadow root, look into that shadow root.
-            if (lElement.shadowRoot) {
-                const lShadowRootElement: Element | null = lReadElementInRoot(lElement.shadowRoot, pClientX, pClientY);
-                if (lShadowRootElement) {
-                    return lShadowRootElement;
-                }
-            }
-
-            return lElement;
-        };
-
-        return lReadElementInRoot(document, pClientX, pClientY);
     }
 
     /**

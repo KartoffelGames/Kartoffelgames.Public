@@ -1,9 +1,9 @@
 import { Exception } from "@kartoffelgames/core";
+import { PotatnoDocumentNode } from "../../../document/potatno-document-node.ts";
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
+import { PotatnoPortDefinitionDirection } from "../../../project/potatno-port-definition.ts";
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
-import { PotatnoDocumentNode, PotatnoDocumentNodePorts } from "../../../document/potatno-document-node.ts";
-import { PotatnoPortDefinitionDirection } from "../../../project/potatno-port-definition.ts";
 
 /**
  * Ui manager grid component.
@@ -14,11 +14,6 @@ export class PotatnoUiManagerGrid {
 
     private readonly mElementPorts: WeakMap<Element, PotatnoDocumentPort<PotatnoProjectTypesDefinition>>;
     private readonly mInteraction: PotatnoCanvasInteraction;
-
-    /**
-     * Currently dragged port.
-     */
-    public draggedPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null;
 
     /**
      * Grid size in pixels.
@@ -40,7 +35,6 @@ export class PotatnoUiManagerGrid {
     public constructor() {
         this.mElementPorts = new WeakMap<Element, PotatnoDocumentPort<PotatnoProjectTypesDefinition>>();
         this.mInteraction = new PotatnoCanvasInteraction(PotatnoUiManagerGrid.GRID_SIZE);
-        this.draggedPort = null;
     }
 
     /**

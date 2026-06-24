@@ -4,6 +4,7 @@ import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts'
 import { PotatnoPortDefinitionDirection } from "../../../project/potatno-port-definition.ts";
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoUiManagerChangeEvent } from "../potatno-ui-manager.ts";
 
 /**
  * Ui manager grid component.
@@ -12,8 +13,13 @@ import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 export class PotatnoUiManagerGrid {
     private static readonly GRID_SIZE: number = 25;
 
-    private readonly mInteraction: PotatnoCanvasInteraction;
     private mGridElement: Element | null;
+    private readonly mInteraction: PotatnoCanvasInteraction;
+    private readonly mManager: PotatnoUiManager;
+
+    private mGridNodeArea: WeakMap<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, Array<GridNodePoint>>;
+    private mGridArea: Map<GridNodePoint, number>;
+
 
     /**
      * Grid size in pixels.
@@ -39,10 +45,40 @@ export class PotatnoUiManagerGrid {
 
     /**
      * Constructor.
+     * 
+     * @param pManager - Parents ui manager.
      */
-    public constructor() {
+    public constructor(pManager: PotatnoUiManager) {
+        this.mManager = pManager;
         this.mInteraction = new PotatnoCanvasInteraction(PotatnoUiManagerGrid.GRID_SIZE);
         this.mGridElement = null;
+
+        this.mGridNodeArea = new WeakMap<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, Array<GridNodePoint>>();
+        this.mGridArea = new Map<GridNodePoint, number>();
+
+        // Register node transformation change event.
+        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.NodeTransform | PotatnoCodeUiManagerChangeType.NodeAdd | PotatnoCodeUiManagerChangeType.NodeDelete | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, null, (pEvent: PotatnoUiManagerChangeEvent) => {
+            // Update ever node when document is set.
+            if ((pEvent.changeType & PotatnoCodeUiManagerChangeType.SpecialActiveFunction) > 0) {
+                // Can only be processed with a active function.
+                if (!this.mManager.activeFunction) {
+                    return;
+                }
+
+                // Update every node.
+                for (const lNode of this.mManager.activeFunction.nodes) {
+                    this.updateGridNodeArea(lNode, false);
+                }
+
+                return;
+            }
+
+            // When node is deleted, only delete it.
+            const lDeleteNode: boolean = (pEvent.changeType & PotatnoCodeUiManagerChangeType.NodeDelete) > 0;
+
+            // Update grid node area.
+            this.updateGridNodeArea(pEvent.item as PotatnoDocumentNode<PotatnoProjectTypesDefinition>, lDeleteNode);
+        });
     }
 
     /**
@@ -258,8 +294,6 @@ export class PotatnoUiManagerGrid {
             }
         }
 
-        console.log(lStart, lEnd);
-
         // Set current point to start.
         let lCurrentPoint: GridPoint = { x: lStart.origin.x, y: lStart.origin.y };
         let lRestriction: PotatnoUiManagerGridPointRestriction = lStart;
@@ -368,6 +402,61 @@ export class PotatnoUiManagerGrid {
             }
         };
     }
+
+    /**
+     * Update the grid node area of a node.
+     * 
+     * @param pNode - Node area to update.
+     * @param pDelete - Only delete node.
+     */
+    private updateGridNodeArea(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>, pDelete: boolean): void {
+        // Try to get old grid area.
+        const lOldGridArea: Array<GridNodePoint> | null = this.mGridNodeArea.get(pNode) ?? null;
+        if (lOldGridArea) {
+            // Remove old grid area.
+            for (const lGridPoint of lOldGridArea) {
+                // Read current count. Update count or delete if count is zero.
+                const lGridPointCount: number = (this.mGridArea.get(lGridPoint) ?? 0) - 1;
+                if (lGridPointCount < 1) {
+                    this.mGridArea.delete(lGridPoint);
+                } else {
+                    this.mGridArea.set(lGridPoint, lGridPointCount);
+                }
+            }
+        }
+
+        // Only delete node area.
+        if (pDelete) {
+            return;
+        }
+
+        // Read node position and dimension.
+        const lPositionX: number = pNode.transformation.x;
+        const lPositionY: number = pNode.transformation.y;
+        const lWidth: number = pNode.transformation.width;
+        const lHeight: number = pNode.transformation.height;
+
+        // Create area array for node only.
+        const lNodeArea: Array<GridNodePoint> = new Array<GridNodePoint>();
+
+        // Iterate over each node area.
+        for (let lX: number = 0; lX < lWidth; lX++) {
+            for (let lY: number = 0; lY < lHeight; lY++) {
+                // Construct grid point.
+                const lGridNodePoint: GridNodePoint = `${lX + lPositionX}|${lY + lPositionY}`;
+
+                // Increase grid point count.
+                const lGridPointCount: number = (this.mGridArea.get(lGridNodePoint) ?? 0) + 1;
+                this.mGridArea.set(lGridNodePoint, lGridPointCount);
+
+                // Add point to node area.
+                lNodeArea.push(lGridNodePoint);
+            }
+        }
+
+        // Update nodes area.
+        this.mGridNodeArea.set(pNode, lNodeArea);
+    }
 }
 
 type PotatnoUiManagerGridDirection = 'top' | 'right' | 'bottom' | 'left';
@@ -406,3 +495,5 @@ type Point = {
     x: number;
     y: number;
 };
+
+type GridNodePoint = `${number}|${number}`;

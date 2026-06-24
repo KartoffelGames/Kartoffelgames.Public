@@ -132,10 +132,6 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
         this.mProject = pProject;
         this.mTransformation = { x: 0, y: 0, width: 0, height: 0 };
 
-        // Apply transformation.
-        this.resizeTo(pParameter.transformation.width, pParameter.transformation.height);
-        this.moveTo(pParameter.transformation.x, pParameter.transformation.y);
-
         const lCreatePortMapping = (pPorts: Array<PotatnoDocumentNodePortConfiguration<TProjectTypes>>, pDirection: PotatnoPortDefinitionDirection): PotatnoDocumentNodePortsInternal<TProjectTypes> => {
             const lNodePorts: PotatnoDocumentNodePortsInternal<TProjectTypes> = {
                 direction: pDirection,
@@ -171,6 +167,10 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
         // Create ports from input configurations.
         this.mInputs = lCreatePortMapping(pParameter.ports.input, 'input');
         this.mOutputs = lCreatePortMapping(pParameter.ports.output, 'output');
+
+        // Apply transformation.
+        this.resizeTo(pParameter.transformation.width, pParameter.transformation.height);
+        this.moveTo(pParameter.transformation.x, pParameter.transformation.y);
     }
 
     /**
@@ -187,7 +187,10 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
     public resizeTo(pWidth: number, pHeight: number): void {
         // Min size to [4, 4] so the UI cant break for [0, 0] sized nodes.
         this.mTransformation.width = Math.max(6, pWidth);
-        this.mTransformation.height = Math.max(2, pHeight);
+
+        // Restrict min height to 1 + max port count.
+        const lMinHeight = 1 + Math.max(this.mInputs.list.length, this.mOutputs.list.length);
+        this.mTransformation.height = Math.max(lMinHeight, pHeight);
     }
 
     /**
@@ -243,6 +246,9 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
         for (const lPort of [...this.mInputs.list, ...this.mOutputs.list]) {
             lValidationResult.merge(lPort.validate());
         }
+
+        // After validation, try to reset the transformation, updating all restrictions.
+        this.resizeTo(this.transformation.width, this.transformation.height);
 
         return lValidationResult;
     }

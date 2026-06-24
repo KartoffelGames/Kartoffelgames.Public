@@ -127,7 +127,7 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
         // Create manager components.
         this.mClipboard = new PotatnoUiManagerClipboard(this);
         this.mIntegrity = new PotatnoUiManagerIntegrity(this);
-        this.mGrid = new PotatnoUiManagerGrid();
+        this.mGrid = new PotatnoUiManagerGrid(this);
         this.mGraph = new PotatnoUiManagerGraph(this);
         this.mHistory = new PotatnoUiManagerHistory(this);
         this.mPreview = new PotatnoUiManagerPreview(this);
@@ -414,7 +414,7 @@ export type PotatnoCodeUiManagerChangeType = typeof PotatnoCodeUiManagerChangeTy
 /**
  * Custom change event dispatched by the {@link PotatnoUiManager}
  */
-class PotatnoUiManagerChangeEvent extends Event {
+export class PotatnoUiManagerChangeEvent extends Event {
     public static readonly EVENT_TYPE: string = 'PotatnoUiManagerChangeEvent';
 
     private readonly mChangeType: PotatnoCodeUiManagerChangeType;

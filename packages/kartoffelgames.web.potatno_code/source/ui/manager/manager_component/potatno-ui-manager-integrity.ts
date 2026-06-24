@@ -124,15 +124,16 @@ export class PotatnoUiManagerIntegrity {
         for (const lAffectedItem of lValidationResult.affectedItems) {
             switch (true) {
                 case lAffectedItem instanceof PotatnoDocumentPort: {
-                    this.mManager.dispatch(PotatnoCodeUiManagerChangeType.PortAdd | PotatnoCodeUiManagerChangeType.PortUpdate | PotatnoCodeUiManagerChangeType.PortDelete, lAffectedItem);
+                    // Missing the delete, but that should be fine.
+                    this.mManager.dispatch(PotatnoCodeUiManagerChangeType.PortAdd | PotatnoCodeUiManagerChangeType.PortUpdate, lAffectedItem);
                     break;
                 }
                 case lAffectedItem instanceof PotatnoDocumentNode: {
-                    this.mManager.dispatch(PotatnoCodeUiManagerChangeType.NodeAdd | PotatnoCodeUiManagerChangeType.NodeUpdate | PotatnoCodeUiManagerChangeType.NodeDelete, lAffectedItem);
+                    this.mManager.dispatch(PotatnoCodeUiManagerChangeType.NodeAdd | PotatnoCodeUiManagerChangeType.NodeUpdate | PotatnoCodeUiManagerChangeType.NodeTransform, lAffectedItem);
                     break;
                 }
                 case lAffectedItem instanceof PotatnoDocumentFunction: {
-                    this.mManager.dispatch(PotatnoCodeUiManagerChangeType.FunctionAdd | PotatnoCodeUiManagerChangeType.FunctionUpdate | PotatnoCodeUiManagerChangeType.FunctionDelete, lAffectedItem);
+                    this.mManager.dispatch(PotatnoCodeUiManagerChangeType.FunctionAdd | PotatnoCodeUiManagerChangeType.FunctionUpdate, lAffectedItem);
                     break;
                 }
             }

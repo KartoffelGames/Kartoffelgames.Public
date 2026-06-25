@@ -343,8 +343,9 @@ export class PotatnoUiManagerGrid {
                 return true;
             }
 
-            // Priorize horizontal movement.
-            if (lCurrentPoint.x !== pTarget.x && (pBlockedDirections & 8) === 0) {
+            // Priorize horizontal movement. 
+            // TODO: Correct restriction based on blocked directions.
+            if (lCurrentPoint.x !== pTarget.x && (pBlockedDirections & 10) === 0) {
                 lCurrentPoint.x += (pTarget.x - lCurrentPoint.x) / Math.abs((pTarget.x - lCurrentPoint.x));
             } else if (lCurrentPoint.y !== pTarget.y) {
                 lCurrentPoint.y += (pTarget.y - lCurrentPoint.y) / Math.abs((pTarget.y - lCurrentPoint.y));
@@ -405,6 +406,8 @@ export class PotatnoUiManagerGrid {
 
         // Create combined path from start and Endpoint.
         const lCombinedPath: Array<GridPoint> = [...lStartPoint.path.items, ...lEndPoint.path.items.reverse()];
+
+        // TODO: Check path for merges and cleanup.
 
         console.log(lStartPoint.path.items, lEndPoint.path.items);
         console.log(lCombinedPath);

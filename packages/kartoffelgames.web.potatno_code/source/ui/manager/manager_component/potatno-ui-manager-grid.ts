@@ -294,41 +294,122 @@ export class PotatnoUiManagerGrid {
             }
         }
 
-        // Set current point to start.
-        let lCurrentPoint: GridPoint = { x: lStart.origin.x, y: lStart.origin.y };
-        let lRestriction: PotatnoUiManagerGridPointRestriction = lStart;
+        type PathPoint = {
+            direction: PotatnoPortDefinitionDirection;
+            restriction: Set<GridNodePoint>;
+            path: {
+                currentPoint: GridPoint;
+                items: Array<GridPoint>;
+            };
+        };
 
-        // Calculate meta data for the path.
-        const lPathLength: number = Math.abs(lStart.origin.x - lEnd.origin.y) + Math.abs(lStart.origin.y - lEnd.origin.y);
+        // Create staring point path. Initialize with first path point with the starting point.
+        const lStartPoint: PathPoint = {
+            direction: 'output',
+            restriction: lStart.restrictions,
+            path: {
+                currentPoint: { x: lStart.origin.x, y: lStart.origin.y },
+                items: [{ x: lStart.origin.x, y: lStart.origin.y }]
+            }
+        };
 
-        // Iterate as long as end is not reached.
-        const lPath: Array<GridPoint> = new Array<GridPoint>();
-        lPath.push({ x: lCurrentPoint.x, y: lCurrentPoint.y });
+        // Create end point path. Initialize with first path point with the starting point.
+        const lEndPoint: PathPoint = {
+            direction: 'input',
+            restriction: lStart.restrictions,
+            path: {
+                currentPoint: { x: lEnd.origin.x, y: lEnd.origin.y },
+                items: [{ x: lEnd.origin.x, y: lEnd.origin.y }]
+            }
+        };
 
-        while (true) {
+        const lDirection = {
+            none: 0,
+            top: 1,
+            right: 2,
+            bottom: 4,
+            left: 8
+        } as const;
 
+        const lMoveToward = (pPathPoint: PathPoint, pTarget: GridPoint, pBlockedDirections: number): boolean => {
+            // Construct new point.
+            const lCurrentPoint: GridPoint = {
+                x: pPathPoint.path.currentPoint.x,
+                y: pPathPoint.path.currentPoint.y,
+            };
 
-
-            // TODO:
-            // Move 
-            if (lCurrentPoint.x != lEnd.origin.x) {
-                lCurrentPoint.x += (lEnd.origin.x - lCurrentPoint.x) / Math.abs((lEnd.origin.x - lCurrentPoint.x));
-            } else {
-                lCurrentPoint.y += (lEnd.origin.y - lCurrentPoint.y) / Math.abs((lEnd.origin.y - lCurrentPoint.y));
+            // Check if current point does align with target. If so, return path end.
+            if (lCurrentPoint.x === pTarget.x && lCurrentPoint.y === pTarget.y) {
+                return true;
             }
 
-            // Set current point into path.
-            lPath.push({ x: lCurrentPoint.x, y: lCurrentPoint.y });
+            // Priorize horizontal movement.
+            if (lCurrentPoint.x !== pTarget.x && (pBlockedDirections & 8) === 0) {
+                lCurrentPoint.x += (pTarget.x - lCurrentPoint.x) / Math.abs((pTarget.x - lCurrentPoint.x));
+            } else if (lCurrentPoint.y !== pTarget.y) {
+                lCurrentPoint.y += (pTarget.y - lCurrentPoint.y) / Math.abs((pTarget.y - lCurrentPoint.y));
+            }
 
-            if (lCurrentPoint.x === lEnd.origin.x && lCurrentPoint.y === lEnd.origin.y) {
+            // Build GridNodePoint for the current point.
+            const lGridNodePoint: GridNodePoint = `${lCurrentPoint.x}|${lCurrentPoint.y}`;
+            if (this.mGridArea.has(lGridNodePoint)) {
+                // Calculate the direction of the movement.
+                const lMoveDirection: number = (() => {
+                    const lDistanceX = pPathPoint.path.currentPoint.x - lCurrentPoint.x;
+                    const lDistanceY = pPathPoint.path.currentPoint.y - lCurrentPoint.y;
+
+                    switch (true) {
+                        case lDistanceX == 0 && lDistanceY == 1: return lDirection.bottom;
+                        case lDistanceX == 0 && lDistanceY == -1: return lDirection.top;
+                        case lDistanceX == -1 && lDistanceY == 0: return lDirection.left;
+                        case lDistanceX == 1 && lDistanceY == 0: return lDirection.right;
+                        default: throw new Exception('Missformed path. Path points are not directly next to each other.', this);
+                    }
+                })();
+
+                return lMoveToward(pPathPoint, pTarget, lMoveDirection | pBlockedDirections);
+            }
+
+            // Check if current point does align with target. If so, return path end.
+            if (lCurrentPoint.x === pTarget.x && lCurrentPoint.y === pTarget.y) {
+                return true;
+            }
+
+            // Update current path point.
+            pPathPoint.path.currentPoint.x = lCurrentPoint.x;
+            pPathPoint.path.currentPoint.y = lCurrentPoint.y;
+
+            // Push point to path and signal that the path is not finished.
+            pPathPoint.path.items.push(lCurrentPoint);
+            return false;
+        };
+
+        // TODO: Shit counter. Prevents endless loops in testing.
+        let lShitCounter: number = 0;
+
+        while (true) {
+            // Move start point towards end point.
+            if (lMoveToward(lStartPoint, lEndPoint.path.currentPoint, lDirection.none)) {
                 break;
             }
 
+            // And move end point towards start point.
+            if (lMoveToward(lEndPoint, lStartPoint.path.currentPoint, lDirection.none)) {
+                break;
+            }
 
-
+            if (++lShitCounter > 100) {
+                break;
+            }
         }
 
-        return lPath;
+        // Create combined path from start and Endpoint.
+        const lCombinedPath: Array<GridPoint> = [...lStartPoint.path.items, ...lEndPoint.path.items.reverse()];
+
+        console.log(lStartPoint.path.items, lEndPoint.path.items);
+        console.log(lCombinedPath);
+
+        return lCombinedPath;
     }
 
     /**

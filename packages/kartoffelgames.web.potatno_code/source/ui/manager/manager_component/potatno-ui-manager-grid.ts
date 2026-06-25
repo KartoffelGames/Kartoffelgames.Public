@@ -338,36 +338,64 @@ export class PotatnoUiManagerGrid {
                 y: pPathPoint.path.currentPoint.y,
             };
 
+            // Calculate distance between current and target point.
+            const lDistanceX: number = pTarget.x - lCurrentPoint.x;
+            const lDistanceY: number = pTarget.y - lCurrentPoint.y;
+
             // Check if current point does align with target. If so, return path end.
-            if (lCurrentPoint.x === pTarget.x && lCurrentPoint.y === pTarget.y) {
+            if (lDistanceX === 0 && lDistanceY === 0) {
                 return true;
             }
 
-            // Priorize horizontal movement. 
-            // TODO: Correct restriction based on blocked directions.
-            if (lCurrentPoint.x !== pTarget.x && (pBlockedDirections & 10) === 0) {
-                lCurrentPoint.x += (pTarget.x - lCurrentPoint.x) / Math.abs((pTarget.x - lCurrentPoint.x));
-            } else if (lCurrentPoint.y !== pTarget.y) {
-                lCurrentPoint.y += (pTarget.y - lCurrentPoint.y) / Math.abs((pTarget.y - lCurrentPoint.y));
+            // Calculate the direction of the movement.
+            const lMoveDirection: number = (() => {
+                // Calculate possible directions.
+                let lDirectionX: number = lDistanceX !== 0 ? lDistanceX / Math.abs(lDistanceX) : 0;
+                let lDirectionY: number = lDistanceY !== 0 ? lDistanceY / Math.abs(lDistanceY) : 0;
+
+                // Reset direction when direction is blocked.
+                if ((pBlockedDirections & lDirection.left) !== 0 && lDirectionX < 0) {
+                    lDirectionX = 0;
+                }
+                if ((pBlockedDirections & lDirection.right) !== 0 && lDirectionX > 0) {
+                    lDirectionX = 0;
+                }
+                if ((pBlockedDirections & lDirection.top) !== 0 && lDirectionY < 0) {
+                    lDirectionY = 0;
+                }
+                if ((pBlockedDirections & lDirection.bottom) !== 0 && lDirectionY > 0) {
+                    lDirectionY = 0;
+                }
+
+                // Priorize horizontal movement.
+                if (lDirectionX !== 0) {
+                    lDirectionY = 0;
+                }
+
+                switch (true) {
+                    case lDirectionX == 0 && lDirectionY == 1: return lDirection.bottom;
+                    case lDirectionX == 0 && lDirectionY == -1: return lDirection.top;
+                    case lDirectionX == -1 && lDirectionY == 0: return lDirection.left;
+                    case lDirectionX == 1 && lDirectionY == 0: return lDirection.right;
+                    default: return lDirection.none;
+                }
+            })();
+
+            // Move into direction.
+            switch (lMoveDirection) {
+                case lDirection.top: lCurrentPoint.y--; break;
+                case lDirection.right: lCurrentPoint.x++; break;
+                case lDirection.bottom: lCurrentPoint.y++; break;
+                case lDirection.left: lCurrentPoint.x--; break;
+
+                // When no movement can be made, skip movement till the other side has a better position.
+                case lDirection.none: return false;
             }
 
             // Build GridNodePoint for the current point.
             const lGridNodePoint: GridNodePoint = `${lCurrentPoint.x}|${lCurrentPoint.y}`;
             if (this.mGridArea.has(lGridNodePoint)) {
-                // Calculate the direction of the movement.
-                const lMoveDirection: number = (() => {
-                    const lDistanceX = pPathPoint.path.currentPoint.x - lCurrentPoint.x;
-                    const lDistanceY = pPathPoint.path.currentPoint.y - lCurrentPoint.y;
-
-                    switch (true) {
-                        case lDistanceX == 0 && lDistanceY == 1: return lDirection.bottom;
-                        case lDistanceX == 0 && lDistanceY == -1: return lDirection.top;
-                        case lDistanceX == -1 && lDistanceY == 0: return lDirection.left;
-                        case lDistanceX == 1 && lDistanceY == 0: return lDirection.right;
-                        default: throw new Exception('Missformed path. Path points are not directly next to each other.', this);
-                    }
-                })();
-
+                // Recursive call with extended direction block.
                 return lMoveToward(pPathPoint, pTarget, lMoveDirection | pBlockedDirections);
             }
 
@@ -382,6 +410,7 @@ export class PotatnoUiManagerGrid {
 
             // Push point to path and signal that the path is not finished.
             pPathPoint.path.items.push(lCurrentPoint);
+
             return false;
         };
 
@@ -408,8 +437,6 @@ export class PotatnoUiManagerGrid {
         const lCombinedPath: Array<GridPoint> = [...lStartPoint.path.items, ...lEndPoint.path.items.reverse()];
 
         // TODO: Check path for merges and cleanup.
-
-        console.log(lStartPoint.path.items, lEndPoint.path.items);
         console.log(lCombinedPath);
 
         return lCombinedPath;

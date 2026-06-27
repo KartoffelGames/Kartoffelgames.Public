@@ -1,4 +1,4 @@
-import { Exception } from '@kartoffelgames/core';
+import { Astar, AstarPathInformation, AstarResult, Exception } from '@kartoffelgames/core';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPortDefinitionDirection } from '../../../project/potatno-port-definition.ts';
@@ -16,9 +16,9 @@ export class PotatnoUiManagerGrid {
     private mGridElement: Element | null;
     private readonly mInteraction: PotatnoCanvasInteraction;
     private readonly mManager: PotatnoUiManager;
+    private readonly mPathFinder: PotatnoUiManagerGridPathFinding;
 
-    private readonly mGridNodeArea: WeakMap<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, Array<GridNodePoint>>;
-    private readonly mGridArea: Map<GridNodePoint, number>;
+
 
 
     /**
@@ -52,9 +52,7 @@ export class PotatnoUiManagerGrid {
         this.mManager = pManager;
         this.mInteraction = new PotatnoCanvasInteraction(PotatnoUiManagerGrid.GRID_SIZE);
         this.mGridElement = null;
-
-        this.mGridNodeArea = new WeakMap<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, Array<GridNodePoint>>();
-        this.mGridArea = new Map<GridNodePoint, number>();
+        this.mPathFinder = new PotatnoUiManagerGridPathFinding();
 
         // Register node transformation change event.
         this.mManager.subscribe(PotatnoCodeUiManagerChangeType.NodeTransform | PotatnoCodeUiManagerChangeType.NodeAdd | PotatnoCodeUiManagerChangeType.NodeDelete | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, null, (pEvent: PotatnoUiManagerChangeEvent) => {
@@ -67,7 +65,7 @@ export class PotatnoUiManagerGrid {
 
                 // Update every node.
                 for (const lNode of this.mManager.activeFunction.nodes) {
-                    this.updateGridNodeArea(lNode, false);
+                    this.mPathFinder.updateNodeArea(lNode);
                 }
 
                 return;
@@ -77,7 +75,11 @@ export class PotatnoUiManagerGrid {
             const lDeleteNode: boolean = (pEvent.changeType & PotatnoCodeUiManagerChangeType.NodeDelete) > 0;
 
             // Update grid node area.
-            this.updateGridNodeArea(pEvent.item as PotatnoDocumentNode<PotatnoProjectTypesDefinition>, lDeleteNode);
+            if (lDeleteNode) {
+                this.mPathFinder.removeNodeArea(pEvent.item as PotatnoDocumentNode<PotatnoProjectTypesDefinition>);
+            } else {
+                this.mPathFinder.updateNodeArea(pEvent.item as PotatnoDocumentNode<PotatnoProjectTypesDefinition>);
+            }
         });
     }
 
@@ -277,280 +279,24 @@ export class PotatnoUiManagerGrid {
     // --------------------- REWORK ----------------------------
 
     private createGridPath(pStart: GridPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEnd: GridPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>): Array<GridPoint> {
+        // Convert entry items to grid points.
+        const lItemToPoint = (pItem: GridPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>) => {
+            if (pItem instanceof PotatnoDocumentPort) {
+                return this.getPortGridPoint(pItem);
+            }
+
+            return pItem;
+        };
+
         // Convert both points into a restricting values.
-        let lStart: PotatnoUiManagerGridPointRestriction = this.readPointRestriction(pStart);
-        let lEnd: PotatnoUiManagerGridPointRestriction = this.readPointRestriction(pEnd);
+        const lStart: GridPoint = lItemToPoint(pStart);
+        const lEnd: GridPoint = lItemToPoint(pEnd);
 
-        // Based on the ports direction or, when no port is set, swap the start with the end.
-        if (!lStart.direction && !lEnd.direction) {
-            if (lStart.origin.x > lEnd.origin.x) {
-                // Swap.
-                [lStart, lEnd] = [lEnd, lStart];
-            }
-        } else {
-            if (lStart.direction === 'input' || lEnd.direction === 'output') {
-                // Swap.
-                [lStart, lEnd] = [lEnd, lStart];
-            }
-        }
+        // Swap point when 
+        // TODO:
 
-        type PathPoint = {
-            direction: PotatnoPortDefinitionDirection;
-            restriction: Set<GridNodePoint>;
-            path: {
-                currentPoint: GridPoint;
-                items: Array<GridPoint>;
-            };
-        };
-
-        // Create staring point path. Initialize with first path point with the starting point.
-        const lStartPoint: PathPoint = {
-            direction: 'output',
-            restriction: lStart.restrictions,
-            path: {
-                currentPoint: { x: lStart.origin.x, y: lStart.origin.y },
-                items: [{ x: lStart.origin.x, y: lStart.origin.y }]
-            }
-        };
-
-        // Create end point path. Initialize with first path point with the starting point.
-        const lEndPoint: PathPoint = {
-            direction: 'input',
-            restriction: lStart.restrictions,
-            path: {
-                currentPoint: { x: lEnd.origin.x, y: lEnd.origin.y },
-                items: [{ x: lEnd.origin.x, y: lEnd.origin.y }]
-            }
-        };
-
-        const lDirection = {
-            none: 0,
-            top: 1,
-            right: 2,
-            bottom: 4,
-            left: 8
-        } as const;
-
-        const lMoveToward = (pPathPoint: PathPoint, pTarget: GridPoint, pBlockedDirections: number): boolean => {
-            // Construct new point.
-            const lCurrentPoint: GridPoint = {
-                x: pPathPoint.path.currentPoint.x,
-                y: pPathPoint.path.currentPoint.y,
-            };
-
-            // Calculate distance between current and target point.
-            const lDistanceX: number = pTarget.x - lCurrentPoint.x;
-            const lDistanceY: number = pTarget.y - lCurrentPoint.y;
-
-            // Check if current point does align with target. If so, return path end.
-            if (lDistanceX === 0 && lDistanceY === 0) {
-                return true;
-            }
-
-            // Calculate the direction of the movement.
-            const lMoveDirection: number = (() => {
-                // Calculate possible directions.
-                let lDirectionX: number = lDistanceX !== 0 ? lDistanceX / Math.abs(lDistanceX) : 0;
-                let lDirectionY: number = lDistanceY !== 0 ? lDistanceY / Math.abs(lDistanceY) : 0;
-
-                // Reset direction when direction is blocked.
-                if ((pBlockedDirections & lDirection.left) !== 0 && lDirectionX < 0) {
-                    lDirectionX = 0;
-                }
-                if ((pBlockedDirections & lDirection.right) !== 0 && lDirectionX > 0) {
-                    lDirectionX = 0;
-                }
-                if ((pBlockedDirections & lDirection.top) !== 0 && lDirectionY < 0) {
-                    lDirectionY = 0;
-                }
-                if ((pBlockedDirections & lDirection.bottom) !== 0 && lDirectionY > 0) {
-                    lDirectionY = 0;
-                }
-
-                // Priorize horizontal movement.
-                if (lDirectionX !== 0) {
-                    lDirectionY = 0;
-                }
-
-                switch (true) {
-                    case lDirectionX === 0 && lDirectionY === 1: return lDirection.bottom;
-                    case lDirectionX === 0 && lDirectionY === -1: return lDirection.top;
-                    case lDirectionX === -1 && lDirectionY === 0: return lDirection.left;
-                    case lDirectionX === 1 && lDirectionY === 0: return lDirection.right;
-                    default: return lDirection.none;
-                }
-            })();
-
-            // Move into direction.
-            switch (lMoveDirection) {
-                case lDirection.top: lCurrentPoint.y--; break;
-                case lDirection.right: lCurrentPoint.x++; break;
-                case lDirection.bottom: lCurrentPoint.y++; break;
-                case lDirection.left: lCurrentPoint.x--; break;
-
-                // When no movement can be made, skip movement till the other side has a better position.
-                case lDirection.none: return false;
-            }
-
-            // Build GridNodePoint for the current point.
-            const lGridNodePoint: GridNodePoint = `${lCurrentPoint.x}|${lCurrentPoint.y}`;
-            if (this.mGridArea.has(lGridNodePoint)) {
-                // Recursive call with extended direction block.
-                return lMoveToward(pPathPoint, pTarget, lMoveDirection | pBlockedDirections);
-            }
-
-            // Check if current point does align with target. If so, return path end.
-            if (lCurrentPoint.x === pTarget.x && lCurrentPoint.y === pTarget.y) {
-                return true;
-            }
-
-            // Update current path point.
-            pPathPoint.path.currentPoint.x = lCurrentPoint.x;
-            pPathPoint.path.currentPoint.y = lCurrentPoint.y;
-
-            // Push point to path and signal that the path is not finished.
-            pPathPoint.path.items.push(lCurrentPoint);
-
-            return false;
-        };
-
-        // TODO: Shit counter. Prevents endless loops in testing.
-        let lShitCounter: number = 0;
-
-        while (true) {
-            // Move start point towards end point.
-            if (lMoveToward(lStartPoint, lEndPoint.path.currentPoint, lDirection.none)) {
-                break;
-            }
-
-            // And move end point towards start point.
-            if (lMoveToward(lEndPoint, lStartPoint.path.currentPoint, lDirection.none)) {
-                break;
-            }
-
-            if (++lShitCounter > 100) {
-                break;
-            }
-        }
-
-        // Create combined path from start and Endpoint.
-        const lCombinedPath: Array<GridPoint> = [...lStartPoint.path.items, ...lEndPoint.path.items.reverse()];
-
-        // TODO: Check path for merges and cleanup.
-        console.log(lCombinedPath);
-
-        return lCombinedPath;
-    }
-
-    /**
-     * Read the restricting parameters of a point or port for the path generation.
-     * 
-     * @param pPoint - Point or port.
-     * 
-     * @returns restriction parameters of the point. 
-     */
-    private readPointRestriction(pPoint: GridPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>): PotatnoUiManagerGridPointRestriction {
-        // When point is not a port, it has no restrictions.
-        if (!(pPoint instanceof PotatnoDocumentPort)) {
-            return {
-                origin: pPoint,
-                direction: null,
-                restrictions: new Set<GridNodePoint>()
-            };
-        }
-
-        // Read node of port.
-        const lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = pPoint.node;
-
-        // Dependent on port direction, either read input or output port list from node.
-        const lNodePortList: ReadonlyArray<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> = (() => {
-            if (pPoint.direction === 'input') {
-                return lNode.inputs.list;
-            }
-
-            return lNode.outputs.list;
-        })();
-
-        // Count ports before and after target port.
-        let lPortBeforeCount: number = 0;
-        let lPortAfterCount: number = -1;
-        for (const lNodePort of lNodePortList) {
-            // Allways count after count.
-            lPortAfterCount++;
-
-            // When port was hit, move count value in before count and reset after.
-            if (lNodePort === pPoint) {
-                lPortBeforeCount = lPortAfterCount;
-                lPortAfterCount = 0;
-            }
-        }
-
-        // Get point of port.
-        const lPortGridPoint: GridPoint = this.getPortGridPoint(pPoint);
-
-        // TODO: Calculate custom node grid restrictions.
-        const lNodeGridRestriction: Set<GridNodePoint> = new Set<GridNodePoint>();
-
-        return {
-            origin: lPortGridPoint,
-            direction: pPoint.direction,
-            restrictions: lNodeGridRestriction
-        };
-    }
-
-    /**
-     * Update the grid node area of a node.
-     * 
-     * @param pNode - Node area to update.
-     * @param pDelete - Only delete node.
-     */
-    private updateGridNodeArea(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>, pDelete: boolean): void {
-        // Try to get old grid area.
-        const lOldGridArea: Array<GridNodePoint> | null = this.mGridNodeArea.get(pNode) ?? null;
-        if (lOldGridArea) {
-            // Remove old grid area.
-            for (const lGridPoint of lOldGridArea) {
-                // Read current count. Update count or delete if count is zero.
-                const lGridPointCount: number = (this.mGridArea.get(lGridPoint) ?? 0) - 1;
-                if (lGridPointCount < 1) {
-                    this.mGridArea.delete(lGridPoint);
-                } else {
-                    this.mGridArea.set(lGridPoint, lGridPointCount);
-                }
-            }
-        }
-
-        // Only delete node area.
-        if (pDelete) {
-            return;
-        }
-
-        // Read node position and dimension.
-        const lPositionX: number = pNode.transformation.x;
-        const lPositionY: number = pNode.transformation.y;
-        const lWidth: number = pNode.transformation.width;
-        const lHeight: number = pNode.transformation.height;
-
-        // Create area array for node only.
-        const lNodeArea: Array<GridNodePoint> = new Array<GridNodePoint>();
-
-        // Iterate over each node area.
-        for (let lX: number = 0; lX < lWidth; lX++) {
-            for (let lY: number = 0; lY < lHeight; lY++) {
-                // Construct grid point.
-                const lGridNodePoint: GridNodePoint = `${lX + lPositionX}|${lY + lPositionY}`;
-
-                // Increase grid point count.
-                const lGridPointCount: number = (this.mGridArea.get(lGridNodePoint) ?? 0) + 1;
-                this.mGridArea.set(lGridNodePoint, lGridPointCount);
-
-                // Add point to node area.
-                lNodeArea.push(lGridNodePoint);
-            }
-        }
-
-        // Update nodes area.
-        this.mGridNodeArea.set(pNode, lNodeArea);
+        // Execute path finding.
+        return this.mPathFinder.start(lStart, lEnd).path;
     }
 }
 
@@ -558,8 +304,6 @@ type PotatnoUiManagerGridDirection = 'top' | 'right' | 'bottom' | 'left';
 
 type PotatnoUiManagerGridPointRestriction = {
     origin: GridPoint;
-    direction: PotatnoPortDefinitionDirection | null;
-    restrictions: Set<GridNodePoint>;
 };
 
 export type GridPoint = {
@@ -573,3 +317,247 @@ type Point = {
 };
 
 type GridNodePoint = `${number}|${number}`;
+
+
+export class PotatnoUiManagerGridPathFinding extends Astar<GridPoint> {
+
+    private readonly mPathArea: Map<GridNodePoint, number>;
+    private readonly mForecourtArea: Map<GridNodePoint, number>;
+    private readonly mNodeCache: Map<GridNodePoint, GridPoint>;
+
+    private readonly mGridNodeArea: WeakMap<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridPathFindingNodeArea>;
+    private readonly mNodeArea: Map<GridNodePoint, number>;
+
+    public constructor() {
+        super();
+        // Initialize node area configurations.
+        this.mGridNodeArea = new WeakMap<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridPathFindingNodeArea>();
+
+        // Initialize new node cache so the node reference for each coordinate stays the same.
+        this.mNodeCache = new Map<GridNodePoint, GridPoint>();
+
+        // Different node areas and their count of how many entities are present.
+        this.mNodeArea = new Map<GridNodePoint, number>();
+        this.mForecourtArea = new Map<GridNodePoint, number>();
+        this.mPathArea = new Map<GridNodePoint, number>();
+    }
+
+    public updateNodeArea(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): void {
+        // Remove old areas.
+        this.removeNodeArea(pNode);
+
+        // Read node position and dimension.
+        const lPositionX: number = pNode.transformation.x;
+        const lPositionY: number = pNode.transformation.y;
+        const lWidth: number = pNode.transformation.width;
+        const lHeight: number = pNode.transformation.height;
+
+        // Read current grid area.
+        const lCurrentNodeArea: PotatnoUiManagerGridPathFindingNodeArea = this.mGridNodeArea.get(pNode) ?? {
+            area: new Array<GridNodePoint>(),
+            forecourt: new Array<GridNodePoint>()
+        };
+
+        // Iterate over each node area.
+        for (let lX: number = 0; lX < lWidth; lX++) {
+            for (let lY: number = 0; lY < lHeight; lY++) {
+                // Construct grid point.
+                const lGridNodePoint: GridNodePoint = `${lX + lPositionX}|${lY + lPositionY}`;
+
+                // Increase grid point count.
+                const lGridPointCount: number = (this.mNodeArea.get(lGridNodePoint) ?? 0) + 1;
+                this.mNodeArea.set(lGridNodePoint, lGridPointCount);
+
+                // Add point to node area.
+                lCurrentNodeArea.area.push(lGridNodePoint);
+            }
+        }
+
+        // TODO: calculate port forecourt.
+
+        // Update nodes area.
+        this.mGridNodeArea.set(pNode, lCurrentNodeArea);
+    }
+
+    public removeNodeArea(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): void {
+        // When nothing to remove, remove nothing. Yes. That comment makes sense.
+        if (!this.mGridNodeArea.has(pNode)) {
+            return;
+        }
+
+        // Read current grid area.
+        const lCurrentNodeArea: PotatnoUiManagerGridPathFindingNodeArea = this.mGridNodeArea.get(pNode)!;
+
+        // Remove old node area.
+        for (const lNodeAreaPoint of lCurrentNodeArea.area) {
+            // Read current count. Update count or delete if count is zero.
+            const lAreaPointCount: number = (this.mNodeArea.get(lNodeAreaPoint) ?? 0) - 1;
+            if (lAreaPointCount < 1) {
+                this.mNodeArea.delete(lNodeAreaPoint);
+            } else {
+                this.mNodeArea.set(lNodeAreaPoint, lAreaPointCount);
+            }
+        }
+
+        // Reset old area.
+        lCurrentNodeArea.area = new Array<GridNodePoint>();
+
+        // Remove old node forecourt.
+        for (const lNodeForecourtPoint of lCurrentNodeArea.forecourt) {
+            // Read current count. Update count or delete if count is zero.
+            const lAreaPointCount: number = (this.mForecourtArea.get(lNodeForecourtPoint) ?? 0) - 1;
+            if (lAreaPointCount < 1) {
+                this.mForecourtArea.delete(lNodeForecourtPoint);
+            } else {
+                this.mForecourtArea.set(lNodeForecourtPoint, lAreaPointCount);
+            }
+        }
+
+        // Reset old forecourt.
+        lCurrentNodeArea.forecourt = new Array<GridNodePoint>();
+    }
+
+    /**
+     * Calculate the cost of the traversal between two adjacent nodes.
+     * Cost is usually one, but can be different for each node.
+     * 
+     * @param pNode - Node the path wants to traverse.
+     * @param pPathInformation - Path information that leads to the current node.
+     */
+    protected override costOfTraversal(pNode: GridPoint, pPathInformation: AstarPathInformation<GridPoint>): number {
+        // Convert node point into grid point.
+        const lGridPoint: GridNodePoint = `${pNode.x}|${pNode.y}`;
+
+        // Start and end node should never have a cost.
+        if(pNode.x === pPathInformation.startNode.x && pNode.y === pPathInformation.startNode.y) {
+            return 0;
+        }
+        if(pNode.x === pPathInformation.endNode.x && pNode.y === pPathInformation.endNode.y) {
+            return 0;
+        }
+
+        // Never go inside node areas unless no other path can be used.
+        if (this.mNodeArea.has(lGridPoint)) {
+            // FYI: dont make it 1000. It kills the site when the user hovers over a node.
+            return 10;
+        }
+
+        // Preferr not to cross ports starting areas.
+        if (this.mPathArea.has(lGridPoint)) {
+            return 1.5;
+        }
+
+        // Preferr not to cross other paths.
+        if (this.mForecourtArea.has(lGridPoint)) {
+            return 1.2;
+        }
+
+        // Default cost of each node.
+        return 1;
+    }
+
+    /**
+     * Heuristic calculation.
+     * Priorize x movement.
+     * Try to stay on the y level of the start node on the first half and on the y level of the end node on the second.
+     * 
+     * @param pNode - Current node where the heuristic should be calculated for.
+     * @param pPathInformation - Path information that leads to the current node.
+     * 
+     * @return cost of the path between the current and end node.
+     */
+    protected override heuristic(pNode: GridPoint, pPathInformation: AstarPathInformation<GridPoint>): number {
+        // Calculate the middle point x between the start and end node.
+        const mMiddleXCoordinate = Math.abs(pPathInformation.endNode.x - pPathInformation.startNode.x) >> 1;
+
+        let lNavigationCost = (() => {
+            const previous: GridPoint | undefined = pPathInformation.path.next().value as GridPoint | undefined;
+            const previousPrevious: GridPoint | undefined = pPathInformation.path.next().value as GridPoint | undefined;
+
+            // Use the default cost when the new point is behind the previous node.
+            // Pushing the path forward. 
+            if (!previous || previous.x > pNode.x) {
+                return 1;
+            }
+
+            // Preferr steight paths. Discouraging curves.
+            if (previousPrevious && (pNode.x === previousPrevious.x || pNode.y === previousPrevious.y)) {
+                return 0.9;
+            }
+
+            // Preferr movement on the x axis.
+            if (pNode.x > previous.x && previous.y === pNode.y) {
+                return 0.9;
+            }
+
+            return 1;
+        })();
+
+        // Prefer middle paths.
+        if (pNode.x === mMiddleXCoordinate) {
+            lNavigationCost *= 0.5;
+        }
+
+        // Culculate the distance to the end point.
+        let lPathDistance: number = Math.abs(pNode.x - pPathInformation.endNode.x) + Math.abs(pNode.y - pPathInformation.endNode.y);
+
+        // Add the navigation cost to the path cost and use it as a rougth path cost.
+        lPathDistance += lNavigationCost;
+
+        // Add weighing.
+        lPathDistance *= 2; 
+
+        // Add the navigation cost to the path cost and use it as a rougth path cost.
+        return lPathDistance;
+    }
+
+    /**
+     * Get all neighbor nodes of the center node.
+     * 
+     * @param pNode - Center node.
+     * 
+     * @returns All neighbor nodes. 
+     */
+    protected override neighborNodes(pNode: GridPoint): Array<GridPoint> {
+        // Collect grid neighbors.
+        const lNeighborNodes: Array<GridPoint> = new Array<GridPoint>();
+        const lNeighborCoordinates: Array<GridPoint> = [
+            { x: pNode.x, y: pNode.y - 1 },
+            { x: pNode.x - 1, y: pNode.y },
+            { x: pNode.x + 1, y: pNode.y },
+            { x: pNode.x, y: pNode.y + 1 }
+        ];
+
+        // Filter invalid and blocked neighbors.
+        for (const lNeighborNode of lNeighborCoordinates) {
+            const lKey: GridNodePoint = `${lNeighborNode.x}|${lNeighborNode.y}`;
+
+            // Reuse node references so Astar maps remain stable.
+            if (this.mNodeCache.has(lKey)) {
+                lNeighborNodes.push(lNeighborNode);
+                continue;
+            }
+
+            this.mNodeCache.set(lKey, lNeighborNode);
+        }
+
+        return lNeighborNodes;
+    }
+
+    /**
+     * Compare two nodes for equality.
+     * 
+     * @param pNodeA - Node a.
+     * @param pNodeB - Node b.
+     * 
+     * @returns comparison result.
+     */
+    protected override nodesAreEqual(pNodeA: GridPoint, pNodeB: GridPoint): boolean {
+        return pNodeA.x === pNodeB.x && pNodeA.y === pNodeB.y;
+    }
+}
+
+type PotatnoUiManagerGridPathFindingNodeArea = {
+    area: Array<GridNodePoint>;
+    forecourt: Array<GridNodePoint>;
+};

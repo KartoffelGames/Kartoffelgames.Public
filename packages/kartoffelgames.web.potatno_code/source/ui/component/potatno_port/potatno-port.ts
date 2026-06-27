@@ -346,7 +346,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
 
         // Adjust port position by offsetting one cell to the right for input ports.
         // Thats because the svg is left aligned in the input port. For output port that is correct as the svg is right aligned.
-        if(this.port.direction === 'input'){
+        if (this.port.direction === 'input') {
             lPortPosition.x -= 1;
         }
 
@@ -356,6 +356,9 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
             portPosition: {
                 x: lPortPosition.x + 1,
                 y: lPortPosition.y
+            },
+            lastPointerGridPosition: {
+                x: 0, y: 0
             }
         };
 
@@ -472,7 +475,11 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
             this.dragConnectionSvg.appendChild(lDragConnectionElement);
         }
 
-        // TODO: Only update when actual grid position has changed. Save "lastPointerGridPosition" in mDraggedPortInformation.
+        //Only update when actual grid position has changed.
+        const lPointerPosition: GridPoint = this.mManager.grid.pixelToGridSpace(pClientX, pClientY);
+        if(lPointerPosition.x === PotatnoPortComponent.mDraggedPortInformation.lastPointerGridPosition.x && lPointerPosition.y === PotatnoPortComponent.mDraggedPortInformation.lastPointerGridPosition.y) {
+            return;
+        }
 
         // Calculate offset to grids [0, 0] point.
         const lPortPosition: GridPoint = PotatnoPortComponent.mDraggedPortInformation.portPosition;
@@ -500,4 +507,5 @@ type PotatnoPortComponentGlobalDragoverHandler = (pEvent: DragEvent) => void;
 type PotatnoPortComponentDragPortInformation = {
     port: PotatnoDocumentPort<PotatnoProjectTypesDefinition>;
     portPosition: GridPoint;
+    lastPointerGridPosition: GridPoint;
 };

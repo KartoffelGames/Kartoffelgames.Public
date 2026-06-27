@@ -58,7 +58,14 @@ export abstract class Astar<TNode> {
             // Get all neighbors of the current node.
             for (const lNeighbor of this.neighborNodes(lCurrentNode)) {
                 // Get the path cost with the neighbor for the path of current node and the cost of the best path with the neighbor.
-                const lTentativePathCost: number = (lNodePathCost.get(lCurrentNode) ?? Number.MAX_SAFE_INTEGER) + this.costOfTraversal(lNeighbor, lCurrentNode);
+                const lTentativePathCost: number = (lNodePathCost.get(lCurrentNode) ?? Number.MAX_SAFE_INTEGER) + this.costOfTraversal(lNeighbor, {
+                    startNode: pStartNode,
+                    endNode: pEndNode,
+
+                    // Path that ends with the previous node.
+                    path: this.pathTracer(lCurrentNode, lBestParentNodeMap)
+                });
+
                 const lNeighborPathCost: number = lNodePathCost.get(lNeighbor) ?? Number.MAX_SAFE_INTEGER;
 
                 // Tentative cost is smaller, when either the neighbor had no calculated cost,
@@ -73,15 +80,14 @@ export abstract class Astar<TNode> {
                 // Save new, better path costs.
                 lNodePathCost.set(lNeighbor, lTentativePathCost);
 
-                // Create path information.
-                const lPathInformation: AstarPathInformation<TNode> = {
+                // Save the new updated path cost guess.
+                lNodePathCostGuess.set(lNeighbor, lTentativePathCost + this.heuristic(lNeighbor, {
                     startNode: pStartNode,
                     endNode: pEndNode,
-                    path: this.pathTracer(lCurrentNode, lBestParentNodeMap)
-                };
 
-                // Save the new updated path cost guess.
-                lNodePathCostGuess.set(lNeighbor, lTentativePathCost + this.heuristic(lNeighbor, lPathInformation));
+                    // Path that ends with the previous node.
+                    path: this.pathTracer(lCurrentNode, lBestParentNodeMap)
+                }));
 
                 // Add node when it does not exist any more.
                 if (!lOpenNodesSet.has(lNeighbor)) {
@@ -173,9 +179,11 @@ export abstract class Astar<TNode> {
      * Cost is usually one, but can be different for each node.
      * 
      * @param pNode - Node the path wants to traverse.
-     * @param pPreviousNode - The node from which the path wants to travers the node.
+     * @param pPathInformation - Path information that leads to the current node.
+     * 
+     * @return cost of node.
      */
-    protected abstract costOfTraversal(pNode: TNode, pPreviousNode: TNode): number;
+    protected abstract costOfTraversal(pNode: TNode, pPathInformation: AstarPathInformation<TNode>): number;
 
     /**
      * Calculate a cost that describes the cost for a direct path from the current node to the end node.  

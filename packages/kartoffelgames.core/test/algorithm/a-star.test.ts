@@ -2,26 +2,6 @@ import { expect } from '@kartoffelgames/core-test';
 import { Astar, AstarPathInformation, type AstarResult } from '../../source/algorithm/a-star.ts';
 
 class TestAstar extends Astar<TestNode> {
-
-    private readonly mNodeMap: Map<TestNodeId, TestNode>;
-
-    public constructor() {
-        super();
-
-        // Assign node cache.
-        this.mNodeMap = new Map<TestNodeId, TestNode>();
-    }
-
-    /**
-     * Start path finding.
-     */
-    public override start(pStart: TestNode, pEnd: TestNode): AstarResult<TestNode> {
-        this.mNodeMap.set(`${pStart.x}|${pStart.y}`, pStart);
-        this.mNodeMap.set(`${pEnd.x}|${pEnd.y}`, pEnd);
-
-        return super.start(pStart, pEnd);
-    }
-
     /**
      * Return fixed traversal cost of 1.
      */
@@ -51,19 +31,13 @@ class TestAstar extends Astar<TestNode> {
 
         for (const lCoordinate of lNeighborCoordinates) {
             // Build node id.
-            const lKey: TestNodeId = `${lCoordinate.x}|${lCoordinate.y}`;
+            const lKey: TestNodeId = this.nodeId(lCoordinate);
 
             // Skip node when out out bounds or a obstacle.
             if (lCoordinate.x < 0 || lCoordinate.x >= 20 || lCoordinate.y < 0 || lCoordinate.y >= 20 || gObstacleNodeKeys.has(lKey)) {
                 continue;
             }
 
-            if (this.mNodeMap.has(lKey)) {
-                lNeighborNodes.push(this.mNodeMap.get(lKey)!);
-                continue;
-            }
-
-            this.mNodeMap.set(lKey, lCoordinate);
             lNeighborNodes.push(lCoordinate);
         }
 
@@ -71,10 +45,12 @@ class TestAstar extends Astar<TestNode> {
     }
 
     /**
-     * Compare node coordinates for equality.
+     * Create a deterministic id for a node.
+     *
+     * @param pNode - Node.
      */
-    protected override nodesAreEqual(pNodeA: TestNode, pNodeB: TestNode): boolean {
-        return pNodeA.x === pNodeB.x && pNodeA.y === pNodeB.y;
+    protected override nodeId(pNode: TestNode): TestNodeId {
+        return `${pNode.x}|${pNode.y}`;
     }
 }
 

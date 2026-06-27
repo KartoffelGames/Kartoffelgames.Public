@@ -3,31 +3,45 @@
  * Graph search version.
  */
 export abstract class Astar<TNode> {
+    private readonly mNodeCache: Map<PropertyKey, TNode>;
+
+    /**
+     * Constructor.
+     * Initializes new node cache.
+     */
+    public constructor() {
+        this.mNodeCache = new Map<PropertyKey, TNode>();
+    }
+
     /**
      * Start pathfinding from start to end node.
      * 
-     * @param pStartNode - Start node. 
-     * @param pEndNode - End node.
+     * @param lStartNode - Start node. 
+     * @param lEndNode - End node.
      *  
      * @returns the path finding result. 
      */
     public start(pStartNode: TNode, pEndNode: TNode): AstarResult<TNode> {
+        // Read start and end node from cache or cache them.
+        const lStartNode: TNode = this.readFromCache(pStartNode);
+        const lEndNode: TNode = this.readFromCache(pEndNode);
+
         // Create open nodes list and initialize it with the starting point.
         // The list should allways be sorted from highest to lowest guessed cost where the highest cost is on index [0].
         const lOpenNodes: Array<TNode> = new Array<TNode>();
         const lOpenNodesSet: Set<TNode> = new Set<TNode>();
-        lOpenNodes.push(pStartNode);
-        lOpenNodesSet.add(pStartNode);
+        lOpenNodes.push(lStartNode);
+        lOpenNodesSet.add(lStartNode);
 
         // Cost for a path that goes from start to this node. Initialize with the starting node as zero cost.
         const lNodePathCost: Map<TNode, number> = new Map<TNode, number>();
-        lNodePathCost.set(pStartNode, 0);
+        lNodePathCost.set(lStartNode, 0);
 
         // Maping for the guesses of a path cost between the node and the end node.
         const lNodePathCostGuess: Map<TNode, number> = new Map<TNode, number>();
-        lNodePathCostGuess.set(pStartNode, this.heuristic(pStartNode, {
-            startNode: pStartNode,
-            endNode: pEndNode,
+        lNodePathCostGuess.set(lStartNode, this.heuristic(lStartNode, {
+            startNode: lStartNode,
+            endNode: lEndNode,
             path: new Array<TNode>().values()
         }));
 
@@ -47,7 +61,7 @@ export abstract class Astar<TNode> {
             lProcessedNodes.push(lCurrentNode);
 
             // When current node is the end node. Rebuild path.
-            if (this.nodesAreEqual(lCurrentNode, pEndNode)) {
+            if (lCurrentNode === lEndNode) {
                 // Create path from current node to the start node.
                 return {
                     path: [...this.pathTracer(lCurrentNode, lBestParentNodeMap)].reverse(),
@@ -56,11 +70,11 @@ export abstract class Astar<TNode> {
             }
 
             // Get all neighbors of the current node.
-            for (const lNeighbor of this.neighborNodes(lCurrentNode)) {
+            for (const lNeighbor of this.getNeighborNodes(lCurrentNode)) {
                 // Get the path cost with the neighbor for the path of current node and the cost of the best path with the neighbor.
                 const lTentativePathCost: number = (lNodePathCost.get(lCurrentNode) ?? Number.MAX_SAFE_INTEGER) + this.costOfTraversal(lNeighbor, {
-                    startNode: pStartNode,
-                    endNode: pEndNode,
+                    startNode: lStartNode,
+                    endNode: lEndNode,
 
                     // Path that ends with the previous node.
                     path: this.pathTracer(lCurrentNode, lBestParentNodeMap)
@@ -82,8 +96,8 @@ export abstract class Astar<TNode> {
 
                 // Save the new updated path cost guess.
                 lNodePathCostGuess.set(lNeighbor, lTentativePathCost + this.heuristic(lNeighbor, {
-                    startNode: pStartNode,
-                    endNode: pEndNode,
+                    startNode: lStartNode,
+                    endNode: lEndNode,
 
                     // Path that ends with the previous node.
                     path: this.pathTracer(lCurrentNode, lBestParentNodeMap)
@@ -104,6 +118,21 @@ export abstract class Astar<TNode> {
             path: new Array<TNode>(),
             processedNodes: lProcessedNodes
         };
+    }
+
+    /**
+     * Get all neighbors of a node.
+     * Uses cached nodes when possible to keep the references straight.
+     * 
+     * @param pNode - Target node with neighbors.
+     * 
+     * @return all neighbors of the node. 
+     */
+    public getNeighborNodes(pNode: TNode): Array<TNode> {
+        // Read neighbor nodes. When a node is iterated that has the same id as a cached, use the cached.
+        return this.neighborNodes(pNode).map((lNode) => {
+            return this.readFromCache(lNode);
+        });
     }
 
     /**
@@ -168,10 +197,39 @@ export abstract class Astar<TNode> {
     private *pathTracer(pEndNode: TNode, pParentMap: Map<TNode, TNode>): Generator<TNode, void, unknown> {
         // Traverse back until start is reached.
         let lCurrentNode: TNode | undefined = pEndNode;
-        do {
+        while (true) {
             // Add node to path.
             yield lCurrentNode;
-        } while (!!(lCurrentNode = pParentMap.get(lCurrentNode)));
+
+            // Skip yielding when no parent is found
+            if (!pParentMap.has(lCurrentNode)) {
+                break;
+            }
+
+            // Read next parent.
+            lCurrentNode = pParentMap.get(lCurrentNode)!;
+        }
+    }
+
+    /**
+     * Read the internal reference of a node from cache.
+     * Caches this reference when it is not already cached.
+     * 
+     * @param pNode - Node with a possible different internal reference.
+     * 
+     * @returns the internal reference of the node.
+     */
+    private readFromCache(pNode: TNode): TNode {
+        const lNodeId: PropertyKey = this.nodeId(pNode);
+
+        // Read from cache when node id is already cached.
+        if (this.mNodeCache.has(lNodeId)) {
+            return this.mNodeCache.get(lNodeId)!;
+        }
+
+        // Use new node and cache it.
+        this.mNodeCache.set(lNodeId, pNode);
+        return pNode;
     }
 
     /**
@@ -205,15 +263,17 @@ export abstract class Astar<TNode> {
     protected abstract neighborNodes(pNode: TNode): Array<TNode>;
 
     /**
-     * Compare two nodes for equality.
+     * Create a deterministic id for a node.
      * 
-     * @param pNodeA - Node a.
-     * @param pNodeB - Node b.
-     * 
-     * @returns comparison result.
+     * @param pNode - Node.
      */
-    protected abstract nodesAreEqual(pNodeA: TNode, pNodeB: TNode): boolean;
+    protected abstract nodeId(pNode: TNode): PropertyKey;
 }
+
+export type AstarNeighborNode<TNode> = {
+    node: TNode,
+    id: PropertyKey;
+};
 
 export type AstarResult<TNode> = {
     path: Array<TNode>;

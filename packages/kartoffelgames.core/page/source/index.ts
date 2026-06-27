@@ -1,4 +1,4 @@
-import { Astar, type AstarPathInformation, type AstarResult } from '../../source/algorithm/a-star.ts';
+import { Astar, AstarNeighborNode, type AstarPathInformation, type AstarResult } from '../../source/algorithm/a-star.ts';
 
 /**
  * Astar adapter for the rendered grid.
@@ -6,7 +6,6 @@ import { Astar, type AstarPathInformation, type AstarResult } from '../../source
 class PageAstar extends Astar<AstarGridNode> {
     private readonly mCostOfTraversal: PageAstarTraversalCostFunction;
     private readonly mHeuristic: PageAstarHeuristicFunction;
-    private readonly mNodeMap: Map<string, AstarGridNode>;
     private readonly mObstacleKeys: Set<string>;
 
     /**
@@ -20,7 +19,6 @@ class PageAstar extends Astar<AstarGridNode> {
         // Assign configuration.
         this.mCostOfTraversal = pParameter.costOfTraversal;
         this.mHeuristic = pParameter.heuristic;
-        this.mNodeMap = pParameter.nodeMap;
         this.mObstacleKeys = pParameter.obstacleKeys;
     }
 
@@ -59,7 +57,6 @@ class PageAstar extends Astar<AstarGridNode> {
      */
     protected override neighborNodes(pNode: AstarGridNode): Array<AstarGridNode> {
         // Collect grid neighbors.
-        const lNeighborNodes: Array<AstarGridNode> = new Array<AstarGridNode>();
         const lNeighborCoordinates: Array<AstarGridNode> = [
             { x: pNode.x, y: pNode.y - 1 },
             { x: pNode.x - 1, y: pNode.y },
@@ -68,36 +65,26 @@ class PageAstar extends Astar<AstarGridNode> {
         ];
 
         // Filter invalid and blocked neighbors.
+        const lNeighborNodes: Array<AstarGridNode> = new Array<AstarGridNode>();
         for (const lCoordinate of lNeighborCoordinates) {
             const lKey: string = AstarGrid.nodeKey(lCoordinate);
             if (lCoordinate.x < 0 || lCoordinate.x >= AstarGrid.GRID_SIZE || lCoordinate.y < 0 || lCoordinate.y >= AstarGrid.GRID_SIZE || this.mObstacleKeys.has(lKey)) {
                 continue;
             }
 
-            // Reuse node references so Astar maps remain stable.
-            let lNode: AstarGridNode | undefined = this.mNodeMap.get(lKey);
-            if (!lNode) {
-                lNode = lCoordinate;
-                this.mNodeMap.set(lKey, lNode);
-            }
-
-            lNeighborNodes.push(lNode);
+            lNeighborNodes.push(lCoordinate);
         }
 
         return lNeighborNodes;
     }
 
     /**
-     * Compare two nodes by coordinate.
-     *
-     * @param pNodeA - First node.
-     * @param pNodeB - Second node.
-     *
-     * @returns True when both nodes share coordinates.
+     * Create a deterministic id for a node.
+     * 
+     * @param pNode - Node.
      */
-    protected override nodesAreEqual(pNodeA: AstarGridNode, pNodeB: AstarGridNode): boolean {
-        // Compare node coordinates.
-        return pNodeA.x === pNodeB.x && pNodeA.y === pNodeB.y;
+    protected override nodeId(pNode: AstarGridNode): PropertyKey {
+        return AstarGrid.nodeKey(pNode);
     }
 }
 

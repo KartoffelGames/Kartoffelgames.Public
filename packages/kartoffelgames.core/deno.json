@@ -29,7 +29,7 @@
                 "mimeTypeMapping": {}
             },
             "page": {
-                "enabled": false,
+                "enabled": true,
                 "mainBundleRequired": false,
                 "port": 8088,
                 "mimeTypeMapping": {}

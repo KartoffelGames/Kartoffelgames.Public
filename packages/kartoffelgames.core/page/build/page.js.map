@@ -1,0 +1,7 @@
+{
+  "version": 3,
+  "sources": ["packages/kartoffelgames.core/page/source/2046144f51a8331.bundle-entry.ts"],
+  "sourcesContent": ["(() => {\n    const socket = new WebSocket('ws://127.0.0.1:8088');\n    socket.addEventListener('open', () => {\n        console.log('Refresh connection established');\n    });\n    socket.addEventListener('message', (event) => {\n        console.log('Bundle finished. Start refresh');\n        if (event.data === 'REFRESH') {\n            window.location.reload();\n        }\n    });\n})();console.log('Hello World!!!');"],
+  "mappings": "OAAC,IAAA,CACG,IAAMA,EAAS,IAAI,UAAU,qBAAA,EAC7BA,EAAO,iBAAiB,OAAQ,IAAA,CAC5B,QAAQ,IAAI,gCAAA,CAChB,CAAA,EACAA,EAAO,iBAAiB,UAAYC,GAAA,CAChC,QAAQ,IAAI,gCAAA,EACRA,EAAM,OAAS,WACf,OAAO,SAAS,OAAM,CAE9B,CAAA,CACJ,GAAC,EAAI,QAAQ,IAAI,gBAAA",
+  "names": ["socket", "event"]
+}

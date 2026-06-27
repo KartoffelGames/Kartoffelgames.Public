@@ -139,7 +139,7 @@ export type UpdateCycle = {
     readonly runner: UpdateCycleRunner;
 };
 
-export type UpdateCycleRunner = Symbol;
+export type UpdateCycleRunner = symbol;
 
 export type CoreEntityUpdateCycleConfig = {
     updater: CoreEntityUpdater,

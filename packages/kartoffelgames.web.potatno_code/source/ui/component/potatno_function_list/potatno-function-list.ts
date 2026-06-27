@@ -4,8 +4,8 @@ import type { PotatnoDocument } from '../../../document/potatno-document.ts';
 import { PotatnoUiManager, PotatnoCodeUiManagerChangeType } from '../../manager/potatno-ui-manager.ts';
 import templateCss from './potatno-function-list.css' with { type: 'text' };
 import functionListTemplate from './potatno-function-list.html' with { type: 'text' };
-import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
-import { PotatnoProject } from "../../../project/potatno-project.ts";
+import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
+import type { PotatnoProject } from '../../../project/potatno-project.ts';
 
 /**
  * Function list component for the potatno-code visual editor.

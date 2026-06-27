@@ -33,7 +33,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
 
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
-    private mDragPositionEventHandler: PotatnoPortComponentGlobalDragoverHandler;
+    private readonly mDragPositionEventHandler: PotatnoPortComponentGlobalDragoverHandler;
     private mPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null;
     private mUnsubscribe: (() => void) | null;
 

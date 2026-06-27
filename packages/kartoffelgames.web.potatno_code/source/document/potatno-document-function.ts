@@ -6,8 +6,8 @@ import type { PotatnoProjectTypeNames, PotatnoProjectTypesDefinition } from '../
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { IPotatnoDocumentItem } from './i-potatno-document-item.interface.ts';
 import { PotatnoDocumentNode, type PotatnoDocumentNodePortConfiguration, type PotatnoDocumentNodeTransformation } from './potatno-document-node.ts';
-import { PotatnoDocumentPortValidationError, PotatnoDocumentValidationResult } from "./potatno-document-validation-result.ts";
-import { type PotatnoDocument } from './potatno-document.ts';
+import { PotatnoDocumentPortValidationError, PotatnoDocumentValidationResult } from './potatno-document-validation-result.ts';
+import type { PotatnoDocument } from './potatno-document.ts';
 
 /**
  * Represents a user-editable function containing a sub-graph.

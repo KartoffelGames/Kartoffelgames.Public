@@ -1,5 +1,5 @@
-import { InteractionZoneEvent } from "@kartoffelgames/core-interaction-zone";
-import { ComponentState } from "../component_state/component-state.ts";
+import type { InteractionZoneEvent } from '@kartoffelgames/core-interaction-zone';
+import type { ComponentState } from '../component_state/component-state.ts';
 
 export class UpdateLoopError extends Error {
     private readonly mChain: Array<InteractionZoneEvent<ComponentState>>;

@@ -1,4 +1,4 @@
-import { IPwbTemplateNode } from './i-pwb-template-node.interface.ts';
+import type { IPwbTemplateNode } from './i-pwb-template-node.interface.ts';
 
 /**
  * Multiplicator node.

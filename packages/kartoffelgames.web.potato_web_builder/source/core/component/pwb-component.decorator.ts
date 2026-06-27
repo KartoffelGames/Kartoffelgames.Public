@@ -1,6 +1,6 @@
 import type { ClassDecorator } from '@kartoffelgames/core';
 import { Injection, type InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
-import { CoreEntityProcessorConstructor } from "../core_entity/core-entity.ts";
+import type { CoreEntityProcessorConstructor } from '../core_entity/core-entity.ts';
 import type { IPwbAttributeModuleProcessorConstructor } from '../module/attribute_module/attribute-module.ts';
 import type { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module.ts';
 import type { IPwbInstructionModuleProcessorConstructor } from '../module/instruction_module/instruction-module.ts';

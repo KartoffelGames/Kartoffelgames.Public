@@ -1,8 +1,8 @@
-import { ClassAccessorDecorator, Exception } from "@kartoffelgames/core";
-import { InteractionZone, InteractionZoneEvent } from "@kartoffelgames/core-interaction-zone";
-import { ComponentStateType } from "./component-state-type.enum.ts";
-import { ComponentStateProxy } from "./component-state-proxy.ts";
-import { ComponentProcessor } from "../../component/component.ts";
+import { type ClassAccessorDecorator, Exception } from '@kartoffelgames/core';
+import { InteractionZone, type InteractionZoneEvent } from '@kartoffelgames/core-interaction-zone';
+import { ComponentStateType } from './component-state-type.enum.ts';
+import { ComponentStateProxy } from './component-state-proxy.ts';
+import type { ComponentProcessor } from '../../component/component.ts';
 
 /**
  * State of a component.
@@ -87,8 +87,8 @@ export class ComponentState<TValue = unknown> {
         };
     }
 
-    private mLinkedZones: Set<InteractionZone>;
-    private mLinkedZonesArray: Array<InteractionZone>;
+    private readonly mLinkedZones: Set<InteractionZone>;
+    private readonly mLinkedZonesArray: Array<InteractionZone>;
     private readonly mConfiguration: ComponentStateConfiguration;
     private mValue: TValue;
 

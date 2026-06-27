@@ -6,8 +6,8 @@ import { PwbTemplateTextNode } from '../nodes/pwb-template-text-node.ts';
 import { PwbTemplateXmlNode } from '../nodes/pwb-template-xml-node.ts';
 import { PwbTemplate } from '../nodes/pwb-template.ts';
 import { PwbTemplateExpression } from '../nodes/values/pwb-template-expression.ts';
-import { PwbTemplateLexer } from "./pwb-template-lexer.ts";
-import { PwbTemplateToken } from "./pwb-template-token.enum.ts";
+import { PwbTemplateLexer } from './pwb-template-lexer.ts';
+import { PwbTemplateToken } from './pwb-template-token.enum.ts';
 
 /**
  * Parser for parsing pwb xml template strings.

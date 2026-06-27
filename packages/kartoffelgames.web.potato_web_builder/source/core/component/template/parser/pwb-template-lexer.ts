@@ -1,5 +1,5 @@
-import { Lexer, LexerPattern, LexerPatternType } from "@kartoffelgames/core-parser";
-import { PwbTemplateToken } from "./pwb-template-token.enum.ts";
+import { Lexer, type LexerPattern, type LexerPatternType } from '@kartoffelgames/core-parser';
+import { PwbTemplateToken } from './pwb-template-token.enum.ts';
 
 /**
  * Pwb template lexer. Defines all token patterns for template parsing.

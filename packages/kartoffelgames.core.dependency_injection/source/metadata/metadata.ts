@@ -1,4 +1,4 @@
-import { type ClassDecorator } from '@kartoffelgames/core';
+import type { ClassDecorator } from '@kartoffelgames/core';
 import type { InjectionConstructor, InjectionInstance } from '../type.ts';
 import { ConstructorMetadata } from './constructor-metadata.ts';
 

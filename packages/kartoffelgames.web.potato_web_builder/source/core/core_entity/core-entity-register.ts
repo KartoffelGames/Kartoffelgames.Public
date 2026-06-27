@@ -1,4 +1,4 @@
-import { CoreEntity, CoreEntityProcessor, type CoreEntityProcessorConstructor } from './core-entity.ts';
+import { CoreEntity, type CoreEntityProcessor, type CoreEntityProcessorConstructor } from './core-entity.ts';
 
 /**
  * Createable core entity register. 

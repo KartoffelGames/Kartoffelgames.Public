@@ -1,13 +1,13 @@
-import { Exception } from "@kartoffelgames/core";
+import { Exception } from '@kartoffelgames/core';
 import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-item.interface.ts';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
 import { PotatnoPreviewFunctionExecutor } from '../../../preview/potatno-preview-function-executor.ts';
-import { PotatnoPreviewDisplayItem } from "../../../preview/potatno-preview.ts";
-import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
-import { PotatnoProject } from "../../../project/potatno-project.ts";
+import type { PotatnoPreviewDisplayItem } from '../../../preview/potatno-preview.ts';
+import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
+import { PotatnoProject } from '../../../project/potatno-project.ts';
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatno-ui-manager.ts';
 
 /**

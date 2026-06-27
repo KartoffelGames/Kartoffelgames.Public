@@ -6,7 +6,7 @@ export type { IComponentOnAttributeChange, IComponentOnConnect, IComponentOnDeco
 export { PwbComponent } from './core/component/pwb-component.decorator.ts';
 
 // Component state
-export { ComponentState } from "./core/core_entity/component_state/component-state.ts";
+export { ComponentState } from './core/core_entity/component_state/component-state.ts';
 
 // Module Injections
 export { ModuleDataLevel as ModuleValues } from './core/data/module-data-level.ts';

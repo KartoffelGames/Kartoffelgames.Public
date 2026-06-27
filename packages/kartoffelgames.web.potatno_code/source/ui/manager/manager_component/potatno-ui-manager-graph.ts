@@ -1,11 +1,11 @@
-import { PotatnoDocumentFunction } from "../../../document/potatno-document-function.ts";
-import { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from "../../../document/potatno-document-node.ts";
-import { PotatnoDocumentPort } from "../../../document/potatno-document-port.ts";
-import { PotatnoDocument } from "../../../document/potatno-document.ts";
-import { PotatnoNodeDefinition } from "../../../project/node_definition/potatno-node-definition.ts";
-import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
-import { PotatnoProject } from "../../../project/potatno-project.ts";
-import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from "../potatno-ui-manager.ts";
+import { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
+import type { PotatnoDocumentNode, PotatnoDocumentNodeTransformation } from '../../../document/potatno-document-node.ts';
+import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
+import type { PotatnoDocument } from '../../../document/potatno-document.ts';
+import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
+import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
+import type { PotatnoProject } from '../../../project/potatno-project.ts';
+import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatno-ui-manager.ts';
 
 /**
  * Ui manager graph component.

@@ -5,8 +5,8 @@ import { PotatnoFunctionDefinitionStatics } from '../../../project/potatno-funct
 import { PotatnoUiManager, PotatnoCodeUiManagerChangeType, type PotatnoCodeUiManagerPortView } from '../../manager/potatno-ui-manager.ts';
 import templateCss from './potatno-panel-properties.css' with { type: 'text' };
 import propertiesTemplate from './potatno-panel-properties.html' with { type: 'text' };
-import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
-import { PotatnoProject } from "../../../project/potatno-project.ts";
+import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
+import type { PotatnoProject } from '../../../project/potatno-project.ts';
 
 /**
  * Properties panel component for the potatno-code visual editor.

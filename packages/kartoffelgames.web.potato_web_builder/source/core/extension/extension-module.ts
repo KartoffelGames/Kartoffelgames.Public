@@ -1,6 +1,6 @@
 import type { IDeconstructable } from '@kartoffelgames/core';
 import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
-import { CoreEntity, CoreEntityProcessor, type CoreEntityProcessorConstructor } from '../core_entity/core-entity.ts';
+import { CoreEntity, type CoreEntityProcessor, type CoreEntityProcessorConstructor } from '../core_entity/core-entity.ts';
 import type { AccessMode } from '../enum/access-mode.enum.ts';
 
 export class ExtensionModule extends CoreEntity<IPwbExtensionModuleProcessor> implements IDeconstructable {

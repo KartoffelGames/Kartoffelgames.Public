@@ -1,12 +1,12 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { ComponentEventEmitter, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type IComponentOnConnect, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
+import { type ComponentEventEmitter, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type IComponentOnConnect, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import { PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import { NodeCategoryMeta } from '../../node/node-category.enum.ts';
 import addNodePopupCss from './potatno-add-node-popup.css' with { type: 'text' };
 import addNodePopupTemplate from './potatno-add-node-popup.html' with { type: 'text' };
-import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
+import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 
 /**
  * Searchable popup listing every node definition available to the active function.

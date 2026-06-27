@@ -6,7 +6,7 @@ import { ModuleTargetNode } from '../../core/module/injection_reference/module-t
 import type { LevelProcedure } from '../../core/data/level-procedure.ts';
 import { ModuleDataLevel } from '../../core/data/module-data-level.ts';
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component } from "../../core/component/component.ts";
+import { Component } from '../../core/component/component.ts';
 
 @PwbAttributeModule({
     access: AccessMode.ReadWrite,
@@ -49,7 +49,7 @@ export class TwoWayBindingAttributeModule implements IAttributeOnUpdate {
             }
 
             pComponent.updater.updateAsync();
-        }
+        };
         this.mTargetNode.addEventListener('input', (_pEvent: Event) => {
             lUpdateListener(Reflect.get(this.mTargetNode, this.mAttributeKey));
         });

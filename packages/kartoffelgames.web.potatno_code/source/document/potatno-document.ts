@@ -5,7 +5,7 @@ import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-t
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { IPotatnoDocumentItem } from './i-potatno-document-item.interface.ts';
 import { PotatnoDocumentFunction, type PotatnoDocumentFunctionConstructorParameter } from './potatno-document-function.ts';
-import { PotatnoDocumentPortValidationError, PotatnoDocumentValidationResult } from "./potatno-document-validation-result.ts";
+import { PotatnoDocumentPortValidationError, PotatnoDocumentValidationResult } from './potatno-document-validation-result.ts';
 
 /**
  * Represents the mutable document state of a PotatnoCode file.

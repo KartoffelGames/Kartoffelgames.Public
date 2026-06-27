@@ -138,7 +138,7 @@ export abstract class Astar<TNode> {
 
             while (lMinIndex <= lMaxIndex) {
                 // Find middle index between min and max index.
-                let lCenterIndex = (lMaxIndex + lMinIndex) >> 1;
+                const lCenterIndex = (lMaxIndex + lMinIndex) >> 1;
 
                 if (lNodeCost < lCostOfIndex(lCenterIndex)) {
                     lMinIndex = lCenterIndex + 1;

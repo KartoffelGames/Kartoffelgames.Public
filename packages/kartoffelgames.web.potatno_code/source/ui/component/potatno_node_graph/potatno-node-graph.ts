@@ -9,12 +9,12 @@ import graphCss from './potatno-node-graph.css' with { type: 'text' };
 import graphTemplate from './potatno-node-graph.html' with { type: 'text' };
 
 // Import child components to ensure they are registered.
-import { NodeCategory } from "../../node/node-category.enum.ts";
+import { NodeCategory } from '../../node/node-category.enum.ts';
 import '../potatno_add_node_popup/potatno-add-node-popup.ts';
 import '../potatno_connection_layer/potatno-connection-layer.ts';
 import '../potatno_node_component/potatno-node-component.ts';
 import '../potatno_port/potatno-port.ts';
-import type { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
+import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 
 /**
  * Interactive node graph for the active Potatno document function.

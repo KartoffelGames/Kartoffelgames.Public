@@ -1,4 +1,4 @@
-import { IPwbTemplateValue } from './i-pwb-template-value.interface.ts';
+import type { IPwbTemplateValue } from './i-pwb-template-value.interface.ts';
 
 /**
  * Pwb template expression.

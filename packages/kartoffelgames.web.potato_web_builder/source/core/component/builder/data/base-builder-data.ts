@@ -256,7 +256,7 @@ export abstract class BaseBuilderData {
     private insertAfter(pSourceNode: ChildNode, pTarget: BuilderContent): void {
         // Get node of target where source node can be attached after.
         // If target is a builder, get the end bound node of it.
-        let lTargetNode: Node = (() => {
+        const lTargetNode: Node = (() => {
             if (pTarget instanceof BaseBuilder) {
                 return pTarget.content.getBoundary().end;
             }

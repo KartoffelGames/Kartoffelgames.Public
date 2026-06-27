@@ -1,5 +1,5 @@
-import { PwbApplication, PwbComponent } from "@kartoffelgames/web-potato-web-builder";
-import { ComponentState } from "../../source/core/core_entity/component_state/component-state.ts";
+import { PwbApplication, PwbComponent } from '@kartoffelgames/web-potato-web-builder';
+import { ComponentState } from '../../source/core/core_entity/component_state/component-state.ts';
 
 @PwbComponent({
     selector: 'test-component',

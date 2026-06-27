@@ -1,7 +1,7 @@
-import { InteractionZone } from "@kartoffelgames/core-interaction-zone";
-import { CoreEntityExtendable, CoreEntityExtendableConstructorParameter } from "./core-entity-extendable.ts";
-import { CoreEntityProcessor } from "./core-entity.ts";
-import { CoreEntityUpdater } from "./updater/core-entity-updater.ts";
+import { InteractionZone } from '@kartoffelgames/core-interaction-zone';
+import { CoreEntityExtendable, type CoreEntityExtendableConstructorParameter } from './core-entity-extendable.ts';
+import type { CoreEntityProcessor } from './core-entity.ts';
+import { CoreEntityUpdater } from './updater/core-entity-updater.ts';
 
 /**
  * Core entity with a internal interaction zone that triggers an update on interaction.

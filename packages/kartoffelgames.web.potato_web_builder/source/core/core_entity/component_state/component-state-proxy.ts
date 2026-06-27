@@ -1,5 +1,5 @@
-import { availableMemory } from "node:process";
-import { ComponentStateType } from "./component-state-type.enum.ts";
+import { availableMemory } from 'node:process';
+import { ComponentStateType } from './component-state-type.enum.ts';
 
 /**
  * Interaction detection proxy. Detects synchron calls and interactions on the proxy object.

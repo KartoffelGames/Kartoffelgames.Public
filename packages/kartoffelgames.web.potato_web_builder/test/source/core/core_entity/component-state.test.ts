@@ -1,5 +1,5 @@
 import { expect } from '@kartoffelgames/core-test';
-import { InteractionZone, InteractionZoneEvent } from '@kartoffelgames/core-interaction-zone';
+import { InteractionZone, type InteractionZoneEvent } from '@kartoffelgames/core-interaction-zone';
 import { ComponentState } from '../../../../source/core/core_entity/component_state/component-state.ts';
 import { ComponentStateType } from '../../../../source/core/core_entity/component_state/component-state-type.enum.ts';
 

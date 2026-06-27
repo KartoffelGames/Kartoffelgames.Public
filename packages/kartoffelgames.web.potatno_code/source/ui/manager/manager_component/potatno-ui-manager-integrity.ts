@@ -1,9 +1,9 @@
 import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-item.interface.ts';
-import { PotatnoDocumentFunction } from "../../../document/potatno-document-function.ts";
+import { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoDocumentValidationResult } from "../../../document/potatno-document-validation-result.ts";
-import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
+import type { PotatnoDocumentValidationResult } from '../../../document/potatno-document-validation-result.ts';
+import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatno-ui-manager.ts';
 
 /**

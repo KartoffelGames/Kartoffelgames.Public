@@ -4,18 +4,28 @@ import { Astar } from '../../source/algorithm/a-star.ts';
 class TestAstar extends Astar<TestNode> {
     private readonly mNodeMap: Map<TestNodeId, TestNode>;
 
-    public constructor(pNodeMap: Map<TestNodeId, TestNode>) {
+    public constructor() {
         super();
 
         // Assign node cache.
-        this.mNodeMap = pNodeMap;
+        this.mNodeMap = new Map<TestNodeId, TestNode>();
+    }
+
+    /**
+     * Start path finding.
+     */
+    public override start(pStart: TestNode, pEnd: TestNode): Array<TestNode> {
+        this.mNodeMap.set(`${pStart.x}|${pStart.y}`, pStart);
+        this.mNodeMap.set(`${pEnd.x}|${pEnd.y}`, pEnd);
+
+        return super.start(pStart, pEnd);
     }
 
     /**
      * Compare node coordinates for equality.
      */
     protected override nodesAreEqual(pNodeA: TestNode, pNodeB: TestNode): boolean {
-        return pNodeA.x === pNodeB.x && pNodeA.y === pNodeB.y
+        return pNodeA.x === pNodeB.x && pNodeA.y === pNodeB.y;
     }
 
     /**
@@ -32,6 +42,9 @@ class TestAstar extends Astar<TestNode> {
         return Math.abs(pCurrentNode.x - pEndNode.x) + Math.abs(pCurrentNode.y - pEndNode.y);
     }
 
+    /**
+     * Find neighbors.
+     */
     protected override neighborNodes(pNode: TestNode): Array<TestNode> {
         // Collect valid direct neighbors.
         const lNeighborNodes: Array<TestNode> = new Array<TestNode>();
@@ -77,13 +90,10 @@ const gObstacleNodeKeys: Set<TestNodeId> = new Set<TestNodeId>([
 Deno.test('Astar.start()', async (pContext) => {
     await pContext.step('Find path through obstacle gap', () => {
         // Setup.
-        const lNodeMap: Map<TestNodeId, TestNode> = new Map<TestNodeId, TestNode>();
         const lStartNode: TestNode = { x: 0, y: 0 };
         const lEndNode: TestNode = { x: 19, y: 19 };
-        lNodeMap.set(`${lStartNode.x}|${lStartNode.y}`, lStartNode);
-        lNodeMap.set(`${lEndNode.x}|${lEndNode.y}`, lEndNode);
 
-        const lAstar: TestAstar = new TestAstar(lNodeMap);
+        const lAstar: TestAstar = new TestAstar();
 
         // Process.
         const lPath: Array<TestNode> = lAstar.start(lStartNode, lEndNode);

@@ -1,6 +1,6 @@
 import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../project/potatno-project.ts';
-import { PotatnoDocumentValidationResult } from "./potatno-document-validation-result.ts";
+import type { PotatnoDocumentValidationResult } from './potatno-document-validation-result.ts';
 import type { PotatnoDocument } from './potatno-document.ts';
 
 /**

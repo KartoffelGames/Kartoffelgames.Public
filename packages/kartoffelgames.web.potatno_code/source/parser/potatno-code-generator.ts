@@ -12,7 +12,7 @@ import { PotatnoCodeGeneratorDocumentResult } from './result/potatno-code-genera
 import { PotatnoCodeGeneratorFunctionResult } from './result/potatno-code-generator-function-result.ts';
 import { PotatnoCodeGeneratorNodeResult } from './result/potatno-code-generator-node-result.ts';
 import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
-import { PotatnoDocumentValidationResult } from "../document/potatno-document-validation-result.ts";
+import type { PotatnoDocumentValidationResult } from '../document/potatno-document-validation-result.ts';
 
 /**
  * Code generator for Potatno documents.

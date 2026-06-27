@@ -4,8 +4,8 @@ import type { PotatnoProjectGenericType, PotatnoProjectTypeNames, PotatnoProject
 import type { PotatnoProject } from '../project/potatno-project.ts';
 import type { IPotatnoDocumentItem } from './i-potatno-document-item.interface.ts';
 import type { PotatnoDocumentNode } from './potatno-document-node.ts';
-import { PotatnoDocumentPortValidationError, PotatnoDocumentValidationResult } from "./potatno-document-validation-result.ts";
-import { type PotatnoDocument } from './potatno-document.ts';
+import { PotatnoDocumentPortValidationError, PotatnoDocumentValidationResult } from './potatno-document-validation-result.ts';
+import type { PotatnoDocument } from './potatno-document.ts';
 
 /**
  * A data port instance on a node.

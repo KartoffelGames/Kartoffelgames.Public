@@ -1,4 +1,4 @@
-import { IPwbTemplateNode } from './i-pwb-template-node.interface.ts';
+import type { IPwbTemplateNode } from './i-pwb-template-node.interface.ts';
 
 /**
  * Pwb template document. Root object of every template.
@@ -83,7 +83,7 @@ export class PwbTemplate implements IPwbTemplateNode {
         // Search for node index and skip if node is not found.
         const lIndex: number = this.mBodyElementList.indexOf(pNode);
         if (lIndex === -1) {
-            return undefined
+            return undefined;
         }
 
         // If xml node remove parent connection.

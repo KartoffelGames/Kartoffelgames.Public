@@ -1,6 +1,6 @@
 import { Dictionary } from '@kartoffelgames/core';
-import { CoreEntityUpdateable } from "../core_entity/core-entity-updateable.ts";
-import { CoreEntityProcessor } from "../core_entity/core-entity.ts";
+import { CoreEntityUpdateable } from '../core_entity/core-entity-updateable.ts';
+import type { CoreEntityProcessor } from '../core_entity/core-entity.ts';
 import { ComponentDataLevel } from '../data/component-data-level.ts';
 import { DataLevel } from '../data/data-level.ts';
 import type { IPwbExpressionModuleProcessorConstructor } from '../module/expression_module/expression-module.ts';

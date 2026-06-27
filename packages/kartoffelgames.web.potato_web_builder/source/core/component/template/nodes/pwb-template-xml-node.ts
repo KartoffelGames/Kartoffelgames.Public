@@ -1,4 +1,4 @@
-import { IPwbTemplateNode } from './i-pwb-template-node.interface.ts';
+import type { IPwbTemplateNode } from './i-pwb-template-node.interface.ts';
 import type { PwbTemplateTextNode } from './pwb-template-text-node.ts';
 import { PwbTemplateAttribute } from './values/pwb-template-attribute.ts';
 
@@ -151,7 +151,7 @@ export class PwbTemplateXmlNode implements IPwbTemplateNode {
         // Search for node index and skip if node is not found.
         const lIndex: number = this.mChildList.indexOf(pNode);
         if(lIndex === -1) {
-            return undefined
+            return undefined;
         }
 
         // Remove index from list and return removed child.

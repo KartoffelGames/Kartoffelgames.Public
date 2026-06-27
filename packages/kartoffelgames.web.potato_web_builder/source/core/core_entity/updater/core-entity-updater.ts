@@ -1,7 +1,7 @@
 import { Stack } from '@kartoffelgames/core';
 import { InteractionZone, InteractionZoneEvent } from '@kartoffelgames/core-interaction-zone';
-import { ComponentStateType } from "../component_state/component-state-type.enum.ts";
-import { ComponentState } from "../component_state/component-state.ts";
+import { ComponentStateType } from '../component_state/component-state-type.enum.ts';
+import { ComponentState } from '../component_state/component-state.ts';
 import { CoreEntityUpdateCycle, type UpdateCycle, type UpdateCycleRunner } from './core-entiy-update-cycle.ts';
 import { UpdateLoopError } from './update-loop-error.ts';
 
@@ -37,7 +37,7 @@ export class CoreEntityUpdater {
     private readonly mUpdateFunction: UpdateListener;
     private readonly mUpdateRunCache: WeakMap<UpdateCycleRunner, boolean>;
     private readonly mUpdateStates: UpdateInformation;
-    private readonly mManualComponentState: ComponentState<Symbol>;
+    private readonly mManualComponentState: ComponentState<symbol>;
 
     /**
      * Updater zone.
@@ -58,7 +58,7 @@ export class CoreEntityUpdater {
         this.mUpdateFunction = pParameter.onUpdate;
 
         // Create isolated or default zone from found parent interaction zone.
-        this.mManualComponentState = new ComponentState<Symbol>(Symbol('Manual Update'));
+        this.mManualComponentState = new ComponentState<symbol>(Symbol('Manual Update'));
 
         // Init loop detection values.
         this.mUpdateStates = {

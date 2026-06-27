@@ -2,7 +2,7 @@ import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, PwbChild, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
+import type { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
 import { PotatnoPreviewFunctionExecutor } from '../../../preview/potatno-preview-function-executor.ts';
 import type { PotatnoFunctionDefinition } from '../../../project/potatno-function-definition.ts';
 import type { PotatnoCodeUiManagerIntegrityError } from '../../manager/manager_component/potatno-ui-manager-integrity.ts';
@@ -10,8 +10,8 @@ import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/
 import { PotatnoPreviewModule } from '../../module/potatno-preview.module.ts';
 import templateCss from './potatno-preview.css' with { type: 'text' };
 import previewTemplate from './potatno-preview.html' with { type: 'text' };
-import { PotatnoProjectTypesDefinition } from "../../../project/potatno-project-types-definition.ts";
-import { PotatnoProject } from "../../../project/potatno-project.ts";
+import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
+import type { PotatnoProject } from '../../../project/potatno-project.ts';
 
 /**
  * Preview panel hosting the active function's main preview driver.
@@ -35,7 +35,7 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
     private mStartWidth: number;
     private mStartX: number;
     private mStartY: number;
-    private mTrackedFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null;
+    private readonly mTrackedFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null;
     private mUnsubscribe: (() => void) | null;
 
     private mSelectedDisplayId: string;

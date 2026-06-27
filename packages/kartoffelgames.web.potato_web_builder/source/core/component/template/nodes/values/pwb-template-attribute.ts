@@ -1,5 +1,5 @@
 import { PwbTemplateTextNode } from '../pwb-template-text-node.ts';
-import { IPwbTemplateValue } from './i-pwb-template-value.interface.ts';
+import type { IPwbTemplateValue } from './i-pwb-template-value.interface.ts';
 
 /**
  * Pwb xml template attribute.

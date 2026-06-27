@@ -1,10 +1,10 @@
-import { Exception } from "@kartoffelgames/core";
-import { PotatnoDocumentNode } from "../../../document/potatno-document-node.ts";
+import { Exception } from '@kartoffelgames/core';
+import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import { PotatnoPortDefinitionDirection } from "../../../project/potatno-port-definition.ts";
+import type { PotatnoPortDefinitionDirection } from '../../../project/potatno-port-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
-import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, PotatnoUiManagerChangeEvent } from "../potatno-ui-manager.ts";
+import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager, type PotatnoUiManagerChangeEvent } from '../potatno-ui-manager.ts';
 
 /**
  * Ui manager grid component.
@@ -17,8 +17,8 @@ export class PotatnoUiManagerGrid {
     private readonly mInteraction: PotatnoCanvasInteraction;
     private readonly mManager: PotatnoUiManager;
 
-    private mGridNodeArea: WeakMap<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, Array<GridNodePoint>>;
-    private mGridArea: Map<GridNodePoint, number>;
+    private readonly mGridNodeArea: WeakMap<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, Array<GridNodePoint>>;
+    private readonly mGridArea: Map<GridNodePoint, number>;
 
 
     /**

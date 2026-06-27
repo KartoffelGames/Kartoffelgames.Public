@@ -1,5 +1,5 @@
-import { PotatnoProjectTypesDefinition } from "../project/potatno-project-types-definition.ts";
-import { IPotatnoDocumentItem } from "./i-potatno-document-item.interface.ts";
+import type { PotatnoProjectTypesDefinition } from '../project/potatno-project-types-definition.ts';
+import type { IPotatnoDocumentItem } from './i-potatno-document-item.interface.ts';
 
 /**
  * Validation result of a potatno document item.

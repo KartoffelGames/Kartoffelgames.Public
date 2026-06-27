@@ -2,7 +2,7 @@ import type { IDeconstructable } from '@kartoffelgames/core';
 import { AccessMode } from '../enum/access-mode.enum.ts';
 import { ExtensionModule, type ExtensionModuleConfiguration } from '../extension/extension-module.ts';
 import { CoreEntityRegister, type CoreEntityProcessorConstructorSetup } from './core-entity-register.ts';
-import { CoreEntity, CoreEntityProcessor, type CoreEntityConstructorParameter, type CoreEntityProcessorConstructor } from './core-entity.ts';
+import { CoreEntity, type CoreEntityProcessor, type CoreEntityConstructorParameter, type CoreEntityProcessorConstructor } from './core-entity.ts';
 
 /**
  * Core entity that initializes extensions.

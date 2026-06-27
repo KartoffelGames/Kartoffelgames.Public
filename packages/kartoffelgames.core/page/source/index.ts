@@ -1,4 +1,4 @@
-import { Astar, type AstarResult } from '../../source/algorithm/a-star.ts';
+import { Astar, AstarPathInformation, type AstarResult } from '../../source/algorithm/a-star.ts';
 
 /**
  * Astar adapter for the rendered grid.
@@ -32,9 +32,9 @@ class PageAstar extends Astar<AstarGridNode> {
      *
      * @returns Traversal cost.
      */
-    protected override costOfTraversal(pNode: AstarGridNode, pCurrentNode: AstarGridNode): number {
+    protected override costOfTraversal(pNode: AstarGridNode, pPreviousNode: AstarGridNode): number {
         // Execute custom traversal cost.
-        return this.mCostOfTraversal(pNode, pCurrentNode);
+        return this.mCostOfTraversal(pNode, pPreviousNode);
     }
 
     /**
@@ -45,9 +45,9 @@ class PageAstar extends Astar<AstarGridNode> {
      *
      * @returns Heuristic cost.
      */
-    protected override heuristic(pCurrentNode: AstarGridNode, pEndNode: AstarGridNode): number {
+    protected override heuristic(pCurrentNode: AstarGridNode, pPathInformation: AstarPathInformation<AstarGridNode>): number {
         // Execute custom heuristic.
-        return this.mHeuristic(pCurrentNode, pEndNode);
+        return this.mHeuristic(pCurrentNode, pPathInformation);
     }
 
     /**
@@ -107,7 +107,7 @@ class PageAstar extends Astar<AstarGridNode> {
 class AstarGrid {
     public static readonly COST_OF_TRAVERSAL_CODE: string = 'return 1;';
     public static readonly GRID_SIZE: number = 51;
-    public static readonly HEURISTIC_CODE: string = 'return Math.abs(currentNode.x - endNode.x) + Math.abs(currentNode.y - endNode.y);';
+    public static readonly HEURISTIC_CODE: string = 'return Math.abs(node.x - pathInformation.endNode.x) + Math.abs(node.y - pathInformation.endNode.y);';
 
     /**
      * Build the stable key of a node.
@@ -186,7 +186,7 @@ class AstarGrid {
      */
     private compileHeuristic(pCode: string): PageAstarHeuristicFunction {
         // Compile heuristic code.
-        return Function('currentNode', 'endNode', pCode) as PageAstarHeuristicFunction;
+        return Function('node', 'pathInformation', pCode) as PageAstarHeuristicFunction;
     }
 
     /**
@@ -198,7 +198,7 @@ class AstarGrid {
      */
     private compileTraversalCost(pCode: string): PageAstarTraversalCostFunction {
         // Compile traversal cost code.
-        return Function('node', 'currentNode', pCode) as PageAstarTraversalCostFunction;
+        return Function('node', 'previousNode', pCode) as PageAstarTraversalCostFunction;
     }
 
     /**
@@ -362,5 +362,5 @@ type PageAstarConstructorParameter = {
     obstacleKeys: Set<string>;
 };
 
-type PageAstarHeuristicFunction = (pCurrentNode: AstarGridNode, pEndNode: AstarGridNode) => number;
-type PageAstarTraversalCostFunction = (pNode: AstarGridNode, pCurrentNode: AstarGridNode) => number;
+type PageAstarHeuristicFunction = (pCurrentNode: AstarGridNode, pPathInformation: AstarPathInformation<AstarGridNode>) => number;
+type PageAstarTraversalCostFunction = (pNode: AstarGridNode, pPreviousNode: AstarGridNode) => number;

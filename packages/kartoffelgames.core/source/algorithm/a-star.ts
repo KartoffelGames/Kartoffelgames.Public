@@ -1,21 +1,35 @@
-
+/**
+ * A* search algorithm.
+ * Graph search version.
+ */
 export abstract class Astar<TNode> {
-
-    public start(pStart: TNode, pEnd: TNode): AstarResult<TNode> {
+    /**
+     * Start pathfinding from start to end node.
+     * 
+     * @param pStartNode - Start node. 
+     * @param pEndNode - End node.
+     *  
+     * @returns the path finding result. 
+     */
+    public start(pStartNode: TNode, pEndNode: TNode): AstarResult<TNode> {
         // Create open nodes list and initialize it with the starting point.
         // The list should allways be sorted from highest to lowest guessed cost where the highest cost is on index [0].
         const lOpenNodes: Array<TNode> = new Array<TNode>();
         const lOpenNodesSet: Set<TNode> = new Set<TNode>();
-        lOpenNodes.push(pStart);
-        lOpenNodesSet.add(pStart);
+        lOpenNodes.push(pStartNode);
+        lOpenNodesSet.add(pStartNode);
 
         // Cost for a path that goes from start to this node. Initialize with the starting node as zero cost.
         const lNodePathCost: Map<TNode, number> = new Map<TNode, number>();
-        lNodePathCost.set(pStart, 0);
+        lNodePathCost.set(pStartNode, 0);
 
         // Maping for the guesses of a path cost between the node and the end node.
         const lNodePathCostGuess: Map<TNode, number> = new Map<TNode, number>();
-        lNodePathCostGuess.set(pStart, this.heuristic(pStart, pEnd));
+        lNodePathCostGuess.set(pStartNode, this.heuristic(pStartNode, {
+            startNode: pStartNode,
+            endNode: pEndNode,
+            path: new Array<TNode>().values()
+        }));
 
         // Map to trace back nodes.
         const lBestParentNodeMap: Map<TNode, TNode> = new Map<TNode, TNode>();
@@ -33,10 +47,10 @@ export abstract class Astar<TNode> {
             lProcessedNodes.push(lCurrentNode);
 
             // When current node is the end node. Rebuild path.
-            if (this.nodesAreEqual(lCurrentNode, pEnd)) {
+            if (this.nodesAreEqual(lCurrentNode, pEndNode)) {
                 // Create path from current node to the start node.
                 return {
-                    path: this.rebuildPath(lCurrentNode, lBestParentNodeMap),
+                    path: [...this.pathTracer(lCurrentNode, lBestParentNodeMap)].reverse(),
                     processedNodes: lProcessedNodes
                 };
             }
@@ -59,8 +73,15 @@ export abstract class Astar<TNode> {
                 // Save new, better path costs.
                 lNodePathCost.set(lNeighbor, lTentativePathCost);
 
+                // Create path information.
+                const lPathInformation: AstarPathInformation<TNode> = {
+                    startNode: pStartNode,
+                    endNode: pEndNode,
+                    path: this.pathTracer(lCurrentNode, lBestParentNodeMap)
+                };
+
                 // Save the new updated path cost guess.
-                lNodePathCostGuess.set(lNeighbor, lTentativePathCost + this.heuristic(lNeighbor, pEnd));
+                lNodePathCostGuess.set(lNeighbor, lTentativePathCost + this.heuristic(lNeighbor, lPathInformation));
 
                 // Add node when it does not exist any more.
                 if (!lOpenNodesSet.has(lNeighbor)) {
@@ -131,44 +152,40 @@ export abstract class Astar<TNode> {
     }
 
     /**
-     * Rebuild path back until start.
+     * Rebuild path back until start the start node is reached.
      * 
      * @param pEndNode - End node of path.
      * @param pParentMap - Backwards mapping of node to parent for each traversed node.
      * 
      * @returns the path from start to end. 
      */
-    private rebuildPath(pEndNode: TNode, pParentMap: Map<TNode, TNode>): Array<TNode> {
-        const lReversePath: Array<TNode> = new Array<TNode>();
-
+    private *pathTracer(pEndNode: TNode, pParentMap: Map<TNode, TNode>): Generator<TNode, void, unknown> {
         // Traverse back until start is reached.
         let lCurrentNode: TNode | undefined = pEndNode;
         do {
             // Add node to path.
-            lReversePath.push(lCurrentNode);
+            yield lCurrentNode;
         } while (!!(lCurrentNode = pParentMap.get(lCurrentNode)));
-
-        return lReversePath.reverse();
     }
 
     /**
      * Calculate the cost of the traversal between two adjacent nodes.
-     * Cost is usually one, but can be different for each nodex.
+     * Cost is usually one, but can be different for each node.
      * 
      * @param pNode - Node the path wants to traverse.
-     * @param pCurrentNode - Node the path currently stands.
+     * @param pPreviousNode - The node from which the path wants to travers the node.
      */
-    protected abstract costOfTraversal(pNode: TNode, pCurrentNode: TNode): number;
+    protected abstract costOfTraversal(pNode: TNode, pPreviousNode: TNode): number;
 
     /**
      * Calculate a cost that describes the cost for a direct path from the current node to the end node.  
      * 
-     * @param pCurrentNode - Current node where the heuristic should be calculated for.
-     * @param pEndNode - End node of path.
+     * @param pNode - Current node where the heuristic should be calculated for.
+     * @param pPathInformation - Path information that leads to the current node.
      * 
      * @return cost of the path between the current and end node.
      */
-    protected abstract heuristic(pCurrentNode: TNode, pEndNode: TNode): number;
+    protected abstract heuristic(pNode: TNode, pPathInformation: AstarPathInformation<TNode>): number;
 
     /**
      * Get all neighbors of a node.
@@ -193,4 +210,10 @@ export abstract class Astar<TNode> {
 export type AstarResult<TNode> = {
     path: Array<TNode>;
     processedNodes: Array<TNode>;
+};
+
+export type AstarPathInformation<TNode> = {
+    startNode: TNode;
+    endNode: TNode;
+    path: Iterator<TNode, void, unknown>;
 };

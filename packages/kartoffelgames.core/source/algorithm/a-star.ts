@@ -94,14 +94,17 @@ export abstract class Astar<TNode> {
                 // Save new, better path costs.
                 lNodePathCost.set(lNeighbor, lTentativePathCost);
 
-                // Save the new updated path cost guess.
-                lNodePathCostGuess.set(lNeighbor, lTentativePathCost + this.heuristic(lNeighbor, {
+                // Calculaze the cost of the path to the neighbor.
+                const lNeighborCostGuess: number = lTentativePathCost + this.heuristic(lNeighbor, {
                     startNode: lStartNode,
                     endNode: lEndNode,
 
                     // Path that ends with the previous node.
                     path: this.pathTracer(lCurrentNode, lBestParentNodeMap)
-                }));
+                });
+
+                // Save the new updated path cost guess.
+                lNodePathCostGuess.set(lNeighbor, lNeighborCostGuess);
 
                 // Add node when it does not exist any more.
                 if (!lOpenNodesSet.has(lNeighbor)) {
@@ -269,6 +272,52 @@ export abstract class Astar<TNode> {
      */
     protected abstract nodeId(pNode: TNode): PropertyKey;
 }
+
+/**
+ * Runtime optimized version for list, searchable by the lowest value.
+ */
+class AstarPriorityList<TNode> {
+    private readonly mExistingNode: Set<TNode>;
+    private readonly mList: Array<AstarPriorityListItem<TNode>>;
+    private mLowestCost: number;
+    private mLowestCostCounter: number;
+
+    /**
+     * Length of list.
+     */
+    public get length(): number {
+        return this.mList.length;
+    }
+
+    public constructor() {
+        this.mList = new Array<AstarPriorityListItem<TNode>>();
+        this.mExistingNode = new Set<TNode>();
+
+        // Initialize lowest cost as with max value.
+        this.mLowestCost = Number.MAX_SAFE_INTEGER;
+        this.mLowestCostCounter = 0;
+    }
+
+    public add(pNode: TNode, pCost: number) {
+        // TODO: When node does exist, just update cost value.
+        // TODO: Update lowest cost when its lower. Increase mLowestCostCounter.
+    }
+
+    public getNext(): TNode {
+        // TODO: Reverse search list to the lowest cost.
+        // TODO: When cost counter is zero, search for the whole array for the lowest value, also count how many lowest values exist.
+
+        // TODO: decrease mLowestCostCounter.
+
+        // TODO: remove found value item from mList and mExistingNode.
+        // TODO: Return found value
+    }
+}
+
+type AstarPriorityListItem<TNode> = {
+    node: TNode;
+    cost: number;
+};
 
 export type AstarResult<TNode> = {
     path: Array<TNode>;

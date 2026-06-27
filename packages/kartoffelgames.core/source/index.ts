@@ -26,7 +26,7 @@ export { type IDeconstructable } from './interface/i-deconstructable.ts';
 export { type IBoundable } from './interface/i-boundable.ts';
 
 // Support types.
-export { 
+export {
     type Readonly, type Writeable,
 
     // Decorator types.
@@ -42,6 +42,7 @@ export {
 // Algorythms
 export { ChangeState, MyersDiff, type HistoryItem } from './algorithm/myers-diff.ts';
 export { XxHash } from './algorithm/xx-hash.ts';
+export { Astar, type AstarResult } from './algorithm/a-star.ts';
 
 // Math
 export { Euler } from './math/euler.ts';

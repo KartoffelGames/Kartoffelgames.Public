@@ -1,7 +1,7 @@
 
 export abstract class Astar<TNode> {
 
-    public start(pStart: TNode, pEnd: TNode): Array<TNode> {
+    public start(pStart: TNode, pEnd: TNode): AstarResult<TNode> {
         // Create open nodes list and initialize it with the starting point.
         // The list should allways be sorted from highest to lowest guessed cost where the highest cost is on index [0].
         const lOpenNodes: Array<TNode> = new Array<TNode>();
@@ -20,16 +20,25 @@ export abstract class Astar<TNode> {
         // Map to trace back nodes.
         const lBestParentNodeMap: Map<TNode, TNode> = new Map<TNode, TNode>();
 
+        // Save processed nodes for monitoring reasons.
+        const lProcessedNodes: Array<TNode> = new Array<TNode>();
+
         // Let the pathing begin.
         while (lOpenNodes.length !== 0) {
             // Get the node with the lowest guessed cost. Should be easy as the open paths are 
             const lCurrentNode: TNode = lOpenNodes.pop()!;
             lOpenNodesSet.delete(lCurrentNode);
 
+            // Add node to processed list.
+            lProcessedNodes.push(lCurrentNode);
+
             // When current node is the end node. Rebuild path.
             if (this.nodesAreEqual(lCurrentNode, pEnd)) {
                 // Create path from current node to the start node.
-                return this.rebuildPath(lCurrentNode, lBestParentNodeMap);
+                return {
+                    path: this.rebuildPath(lCurrentNode, lBestParentNodeMap),
+                    processedNodes: lProcessedNodes
+                };
             }
 
             // Get all neighbors of the current node.
@@ -64,7 +73,10 @@ export abstract class Astar<TNode> {
         }
 
         // A path could not be found.
-        return new Array<TNode>();
+        return {
+            path: new Array<TNode>(),
+            processedNodes: lProcessedNodes
+        };
     }
 
     /**
@@ -177,3 +189,8 @@ export abstract class Astar<TNode> {
      */
     protected abstract nodesAreEqual(pNodeA: TNode, pNodeB: TNode): boolean;
 }
+
+export type AstarResult<TNode> = {
+    path: Array<TNode>;
+    processedNodes: Array<TNode>;
+};

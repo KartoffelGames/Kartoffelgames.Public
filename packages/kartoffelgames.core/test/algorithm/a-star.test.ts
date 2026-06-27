@@ -1,5 +1,5 @@
 import { expect } from '@kartoffelgames/core-test';
-import { Astar } from '../../source/algorithm/a-star.ts';
+import { Astar, AstarResult } from '../../source/algorithm/a-star.ts';
 
 class TestAstar extends Astar<TestNode> {
     private readonly mNodeMap: Map<TestNodeId, TestNode>;
@@ -14,7 +14,7 @@ class TestAstar extends Astar<TestNode> {
     /**
      * Start path finding.
      */
-    public override start(pStart: TestNode, pEnd: TestNode): Array<TestNode> {
+    public override start(pStart: TestNode, pEnd: TestNode): AstarResult<TestNode> {
         this.mNodeMap.set(`${pStart.x}|${pStart.y}`, pStart);
         this.mNodeMap.set(`${pEnd.x}|${pEnd.y}`, pEnd);
 
@@ -96,15 +96,15 @@ Deno.test('Astar.start()', async (pContext) => {
         const lAstar: TestAstar = new TestAstar();
 
         // Process.
-        const lPath: Array<TestNode> = lAstar.start(lStartNode, lEndNode);
+        const lPathfindingResult: AstarResult<TestNode> = lAstar.start(lStartNode, lEndNode);
 
         // Evaluation.
-        expect(lPath).toHaveLength(39);
-        expect(lPath.at(0)).toBe(lStartNode);
-        expect(lPath.at(-1)).toBe(lEndNode);
+        expect(lPathfindingResult.path).toHaveLength(39);
+        expect(lPathfindingResult.path.at(0)).toBe(lStartNode);
+        expect(lPathfindingResult.path.at(-1)).toBe(lEndNode);
 
-        for (let lIndex: number = 0; lIndex < lPath.length; lIndex++) {
-            const lCurrentNode: TestNode = lPath[lIndex];
+        for (let lIndex: number = 0; lIndex < lPathfindingResult.path.length; lIndex++) {
+            const lCurrentNode: TestNode = lPathfindingResult.path[lIndex];
             expect(gObstacleNodeKeys.has(`${lCurrentNode.x}|${lCurrentNode.y}`)).toBe(false);
 
             // First element has no parent item. Skip parent item tests.
@@ -113,7 +113,7 @@ Deno.test('Astar.start()', async (pContext) => {
             }
 
             // Distance between each path item must be 1 because only four directional movement is allowed.
-            const lPreviousNode: TestNode = lPath[lIndex - 1];
+            const lPreviousNode: TestNode = lPathfindingResult.path[lIndex - 1];
             const lDistance: number = Math.abs(lCurrentNode.x - lPreviousNode.x) + Math.abs(lCurrentNode.y - lPreviousNode.y);
             expect(lDistance).toBe(1);
         }

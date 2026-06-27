@@ -1,4 +1,4 @@
-import { Astar, AstarNeighborNode, type AstarPathInformation, type AstarResult } from '../../source/algorithm/a-star.ts';
+import { Astar, type AstarPathInformation, type AstarResult } from '../../source/algorithm/a-star.ts';
 
 /**
  * Astar adapter for the rendered grid.

@@ -16,8 +16,8 @@ export abstract class Astar<TNode> {
     /**
      * Start pathfinding from start to end node.
      * 
-     * @param lStartNode - Start node. 
-     * @param lEndNode - End node.
+     * @param pStartNode - Start node. 
+     * @param pEndNode - End node.
      *  
      * @returns the path finding result. 
      */
@@ -179,7 +179,7 @@ export abstract class Astar<TNode> {
                 }
             }
 
-            return -lMinIndex - 1;
+            return lMinIndex;
         })();
 
         // Insert node at target index.
@@ -269,11 +269,6 @@ export abstract class Astar<TNode> {
      */
     protected abstract nodeId(pNode: TNode): PropertyKey;
 }
-
-export type AstarNeighborNode<TNode> = {
-    node: TNode,
-    id: PropertyKey;
-};
 
 export type AstarResult<TNode> = {
     path: Array<TNode>;

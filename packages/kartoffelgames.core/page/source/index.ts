@@ -1,4 +1,4 @@
-import { Astar, AstarPathInformation, type AstarResult } from '../../source/algorithm/a-star.ts';
+import { Astar, type AstarPathInformation, type AstarResult } from '../../source/algorithm/a-star.ts';
 
 /**
  * Astar adapter for the rendered grid.
@@ -28,20 +28,20 @@ class PageAstar extends Astar<AstarGridNode> {
      * Calculate traversal cost between two neighbor nodes.
      *
      * @param pNode - Target node.
-     * @param pCurrentNode - Current node.
+     * @param pPathInformation - Path information that leads to the node. 
      *
      * @returns Traversal cost.
      */
-    protected override costOfTraversal(pNode: AstarGridNode, pPreviousNode: AstarGridNode): number {
+    protected override costOfTraversal(pNode: AstarGridNode, pPathInformation: AstarPathInformation<AstarGridNode>): number {
         // Execute custom traversal cost.
-        return this.mCostOfTraversal(pNode, pPreviousNode);
+        return this.mCostOfTraversal(pNode, pPathInformation);
     }
 
     /**
      * Calculate the heuristic between two nodes.
      *
      * @param pCurrentNode - Current node.
-     * @param pEndNode - End node.
+     * @param pPathInformation - Path information that leads to the node. 
      *
      * @returns Heuristic cost.
      */
@@ -198,7 +198,7 @@ class AstarGrid {
      */
     private compileTraversalCost(pCode: string): PageAstarTraversalCostFunction {
         // Compile traversal cost code.
-        return Function('node', 'previousNode', pCode) as PageAstarTraversalCostFunction;
+        return Function('node', 'pathInformation', pCode) as PageAstarTraversalCostFunction;
     }
 
     /**
@@ -363,4 +363,4 @@ type PageAstarConstructorParameter = {
 };
 
 type PageAstarHeuristicFunction = (pCurrentNode: AstarGridNode, pPathInformation: AstarPathInformation<AstarGridNode>) => number;
-type PageAstarTraversalCostFunction = (pNode: AstarGridNode, pPreviousNode: AstarGridNode) => number;
+type PageAstarTraversalCostFunction = (pNode: AstarGridNode, pPathInformation: AstarPathInformation<AstarGridNode>) => number;

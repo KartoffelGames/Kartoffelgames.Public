@@ -1,7 +1,8 @@
 import { expect } from '@kartoffelgames/core-test';
-import { Astar, AstarResult } from '../../source/algorithm/a-star.ts';
+import { Astar, AstarPathInformation, type AstarResult } from '../../source/algorithm/a-star.ts';
 
 class TestAstar extends Astar<TestNode> {
+
     private readonly mNodeMap: Map<TestNodeId, TestNode>;
 
     public constructor() {
@@ -24,15 +25,15 @@ class TestAstar extends Astar<TestNode> {
     /**
      * Return fixed traversal cost of 1.
      */
-    protected override costOfTraversal(..._pNodes: Array<TestNode>): number {
+    protected override costOfTraversal(_pNode: TestNode, _pPathInformation: AstarPathInformation<TestNode>): number {
         return 1;
     }
 
     /**
      * Calculate manhattan distance.
      */
-    protected override heuristic(pCurrentNode: TestNode, pEndNode: TestNode): number {
-        return Math.abs(pCurrentNode.x - pEndNode.x) + Math.abs(pCurrentNode.y - pEndNode.y);
+    protected override heuristic(pNode: TestNode, pPathInformation: AstarPathInformation<TestNode>): number {
+        return Math.abs(pNode.x - pPathInformation.endNode.x) + Math.abs(pNode.y - pPathInformation.endNode.y);
     }
 
     /**

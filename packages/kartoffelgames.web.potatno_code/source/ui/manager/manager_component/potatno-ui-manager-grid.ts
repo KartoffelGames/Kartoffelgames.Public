@@ -1,4 +1,4 @@
-import { Astar, AstarPathInformation, AstarResult, Exception } from '@kartoffelgames/core';
+import { Astar, type AstarPathInformation, AstarResult, Exception } from '@kartoffelgames/core';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPortDefinitionDirection } from '../../../project/potatno-port-definition.ts';

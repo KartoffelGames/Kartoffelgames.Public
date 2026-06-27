@@ -31,15 +31,6 @@ export class PotatnoDocumentValidationResult<TProjectTypes extends PotatnoProjec
     }
 
     /**
-     * Push a new validation error.
-     * 
-     * @param pError - Error.
-     */
-    public pushError(...pError: Array<PotatnoDocumentPortValidationError<TProjectTypes>>): void {
-        this.mErrors.push(...pError);
-    }
-
-    /**
      * Add a new affected item.
      * Affected items are document items that got changed, deleted or added during validation.
      * 
@@ -66,6 +57,15 @@ export class PotatnoDocumentValidationResult<TProjectTypes extends PotatnoProjec
         }
 
         return this;
+    }
+
+    /**
+     * Push a new validation error.
+     * 
+     * @param pError - Error.
+     */
+    public pushError(...pError: Array<PotatnoDocumentPortValidationError<TProjectTypes>>): void {
+        this.mErrors.push(...pError);
     }
 }
 

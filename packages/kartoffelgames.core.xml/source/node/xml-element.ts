@@ -1,4 +1,4 @@
-import { Dictionary, List } from '@kartoffelgames/core';
+import { Dictionary } from '@kartoffelgames/core';
 import { XmlAttribute } from '../attribute/xml-attribute.ts';
 import { BaseXmlNode } from './base-xml-node.ts';
 

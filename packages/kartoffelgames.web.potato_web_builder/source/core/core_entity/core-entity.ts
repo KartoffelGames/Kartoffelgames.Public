@@ -60,27 +60,6 @@ export abstract class CoreEntity<TProcessor extends CoreEntityProcessor = CoreEn
     }
 
     /**
-     * Call function of processor in updater zone.
-     * When the function is not found nothing will be called.
-     * 
-     * @param pProperyKey - Propertykey of processor leading to a function.
-     * @param pParameter - Parameter of function of {@link pProperyKey}.
-     * 
-     * 
-     * @returns function call result or null when processor is not created and {@link pForceCreate} is not set.
-     */
-    protected call<TTargetInterface extends object, TProperty extends keyof TTargetInterface>(pProperyKey: TProperty, ...pParameter: PropertyFunctionParameter<TTargetInterface, TProperty>): PropertyFunctionResult<TTargetInterface, TProperty> | null {
-        // Try to get property function.
-        const lPropertyFunction: ((...pArgs: Array<any>) => any) | undefined = Reflect.get(this.processor, pProperyKey) as ((...pArgs: Array<any>) => any) | undefined;
-        if (typeof lPropertyFunction !== 'function') {
-            return null;
-        }
-
-        // Call function in update trigger zone.
-        return lPropertyFunction.apply(this.processor, pParameter);
-    }
-
-    /**
      * Deconstruct update zone.
      */
     public deconstruct(): void { }
@@ -134,6 +113,27 @@ export abstract class CoreEntity<TProcessor extends CoreEntityProcessor = CoreEn
         this.mHooks.create.push(pHook);
 
         return this;
+    }
+
+    /**
+     * Call function of processor in updater zone.
+     * When the function is not found nothing will be called.
+     * 
+     * @param pProperyKey - Propertykey of processor leading to a function.
+     * @param pParameter - Parameter of function of {@link pProperyKey}.
+     * 
+     * 
+     * @returns function call result or null when processor is not created and {@link pForceCreate} is not set.
+     */
+    protected call<TTargetInterface extends object, TProperty extends keyof TTargetInterface>(pProperyKey: TProperty, ...pParameter: PropertyFunctionParameter<TTargetInterface, TProperty>): PropertyFunctionResult<TTargetInterface, TProperty> | null {
+        // Try to get property function.
+        const lPropertyFunction: ((...pArgs: Array<any>) => any) | undefined = Reflect.get(this.processor, pProperyKey) as ((...pArgs: Array<any>) => any) | undefined;
+        if (typeof lPropertyFunction !== 'function') {
+            return null;
+        }
+
+        // Call function in update trigger zone.
+        return lPropertyFunction.apply(this.processor, pParameter);
     }
 
     /**

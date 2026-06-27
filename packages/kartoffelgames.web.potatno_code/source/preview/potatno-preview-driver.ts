@@ -1,4 +1,3 @@
-import { Exception } from '@kartoffelgames/core';
 import type { PotatnoDocumentFunction } from '../document/potatno-document-function.ts';
 import { PotatnoDocumentPort } from '../document/potatno-document-port.ts';
 import { PotatnoCodeGenerator } from '../parser/potatno-code-generator.ts';

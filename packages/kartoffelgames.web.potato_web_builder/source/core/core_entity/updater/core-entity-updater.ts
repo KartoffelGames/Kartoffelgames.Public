@@ -12,17 +12,8 @@ import { UpdateLoopError } from './update-loop-error.ts';
  * @internal
  */
 export class CoreEntityUpdater {
-    private static mStackCap: number = 100;
     private static mFrameTime: number = 100;
-
-    /**
-     * Stack cap for update loop detection. When the update stack exceeds this value, an UpdateLoopError is thrown.
-     */
-    public static get stackCap(): number {
-        return CoreEntityUpdater.mStackCap;
-    } static set stackCap(pValue: number) {
-        CoreEntityUpdater.mStackCap = pValue;
-    }
+    private static mStackCap: number = 100;
 
     /**
      * Frame time for update reshedule. When a update takes longer than this value, it is resheduled to the next frame. Value in milliseconds.
@@ -32,12 +23,22 @@ export class CoreEntityUpdater {
     } static set frameTime(pValue: number) {
         CoreEntityUpdater.mFrameTime = pValue;
     }
+    
+    /**
+     * Stack cap for update loop detection. When the update stack exceeds this value, an UpdateLoopError is thrown.
+     */
+    public static get stackCap(): number {
+        return CoreEntityUpdater.mStackCap;
+    } static set stackCap(pValue: number) {
+        CoreEntityUpdater.mStackCap = pValue;
+    }
 
     private readonly mInteractionZone: InteractionZone;
+    private readonly mManualComponentState: ComponentState<symbol>;
     private readonly mUpdateFunction: UpdateListener;
     private readonly mUpdateRunCache: WeakMap<UpdateCycleRunner, boolean>;
     private readonly mUpdateStates: UpdateInformation;
-    private readonly mManualComponentState: ComponentState<symbol>;
+    
 
     /**
      * Updater zone.
@@ -98,30 +99,6 @@ export class CoreEntityUpdater {
     }
 
     /**
-     * Resolve promise after the update cycle completes.
-     * Promise is rejected with any update error.
-     * 
-     * @returns true when anything was updated.
-     */
-    public async waitForUpdate(): Promise<boolean> {
-        // When nothing is sheduled, nothing will be updated.
-        if (!this.mUpdateStates.async.hasSheduledTask) {
-            return false;
-        }
-
-        // Add new callback to waiter line.
-        return new Promise<boolean>((pResolve, pReject) => {
-            this.mUpdateStates.chainCompleteHooks.push((pWasUpdated: boolean, pError: any) => {
-                if (pError) {
-                    pReject(pError);
-                } else {
-                    pResolve(pWasUpdated);
-                }
-            });
-        });
-    }
-
-    /**
      * Execute function with inside updater context.
      * Registers any changes made with the set trigger type of this updater.
      * 
@@ -152,6 +129,30 @@ export class CoreEntityUpdater {
 
         // Run synchron update.
         this.runUpdateAsynchron(lManualUpdateEvent, null);
+    }
+
+    /**
+     * Resolve promise after the update cycle completes.
+     * Promise is rejected with any update error.
+     * 
+     * @returns true when anything was updated.
+     */
+    public async waitForUpdate(): Promise<boolean> {
+        // When nothing is sheduled, nothing will be updated.
+        if (!this.mUpdateStates.async.hasSheduledTask) {
+            return false;
+        }
+
+        // Add new callback to waiter line.
+        return new Promise<boolean>((pResolve, pReject) => {
+            this.mUpdateStates.chainCompleteHooks.push((pWasUpdated: boolean, pError: any) => {
+                if (pError) {
+                    pReject(pError);
+                } else {
+                    pResolve(pWasUpdated);
+                }
+            });
+        });
     }
 
     /**

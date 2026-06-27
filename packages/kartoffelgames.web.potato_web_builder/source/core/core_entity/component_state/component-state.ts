@@ -87,9 +87,9 @@ export class ComponentState<TValue = unknown> {
         };
     }
 
+    private readonly mConfiguration: ComponentStateConfiguration;
     private readonly mLinkedZones: Set<InteractionZone>;
     private readonly mLinkedZonesArray: Array<InteractionZone>;
-    private readonly mConfiguration: ComponentStateConfiguration;
     private mValue: TValue;
 
     public constructor(pValue: TValue, pConfiguration?: Partial<ComponentStateConfiguration>) {

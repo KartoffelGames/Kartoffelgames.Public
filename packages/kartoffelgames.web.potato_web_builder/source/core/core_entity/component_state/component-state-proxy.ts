@@ -1,4 +1,3 @@
-import { availableMemory } from 'node:process';
 import { ComponentStateType } from './component-state-type.enum.ts';
 
 /**

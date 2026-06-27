@@ -1,4 +1,4 @@
-import { Exception, List } from '@kartoffelgames/core';
+import { Exception } from '@kartoffelgames/core';
 import type { PwbTemplate } from '../../component/template/nodes/pwb-template.ts';
 import type { DataLevel } from '../../data/data-level.ts';
 
@@ -8,9 +8,9 @@ import type { DataLevel } from '../../data/data-level.ts';
  * @public
  */
 export class InstructionResult {
+    private readonly mDataLevels: Set<DataLevel>;
     private readonly mElementList: Array<InstructionResultElement>;
     private readonly mTemplates: Set<PwbTemplate>;
-    private readonly mDataLevels: Set<DataLevel>;
 
     /**
      * Get list of created elements.

@@ -1,4 +1,3 @@
-import { InteractionZone } from '@kartoffelgames/core-interaction-zone';
 import { CoreEntityExtendable, type CoreEntityExtendableConstructorParameter } from './core-entity-extendable.ts';
 import type { CoreEntityProcessor } from './core-entity.ts';
 import { CoreEntityUpdater } from './updater/core-entity-updater.ts';

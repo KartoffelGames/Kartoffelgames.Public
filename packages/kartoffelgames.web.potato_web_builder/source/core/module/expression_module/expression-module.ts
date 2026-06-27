@@ -81,4 +81,4 @@ export interface IPwbExpressionModuleProcessorConstructor extends IPwbModuleProc
 /**
  * Register configuration.
  */
-export type ExpressionModuleConfiguration = {};
+export type ExpressionModuleConfiguration = object;

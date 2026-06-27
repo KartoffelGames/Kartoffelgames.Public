@@ -71,22 +71,6 @@ export class InteractionZone {
     }
 
     /**
-     * set trigger restriction for this zone. Only events with matching trigger bitmap are dispatched to this zone.
-     * Listener are not executed when bitmap is set to zero.
-     * 
-     * @param pTriggerBitmap - All allowed trigger bits as number.
-     * 
-     * @returns itself. 
-     */
-    public setTriggerRestriction(pTriggerBitmap: number): this {
-        // Add or override trigger bitmap.
-        this.mTriggerFilterBitmap = pTriggerBitmap;
-
-        // Chainable.
-        return this;
-    }
-
-    /**
      * Executes function in this execution zone.
      * 
      * @param pFunction - Function.
@@ -160,6 +144,22 @@ export class InteractionZone {
 
         // Remove single listener from type.
         this.mInteractionListener.delete(pListener);
+
+        // Chainable.
+        return this;
+    }
+
+    /**
+     * set trigger restriction for this zone. Only events with matching trigger bitmap are dispatched to this zone.
+     * Listener are not executed when bitmap is set to zero.
+     * 
+     * @param pTriggerBitmap - All allowed trigger bits as number.
+     * 
+     * @returns itself. 
+     */
+    public setTriggerRestriction(pTriggerBitmap: number): this {
+        // Add or override trigger bitmap.
+        this.mTriggerFilterBitmap = pTriggerBitmap;
 
         // Chainable.
         return this;

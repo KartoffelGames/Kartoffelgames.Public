@@ -25,6 +25,13 @@ export abstract class BaseBuilder<TTemplates extends IPwbTemplateNode = IPwbTemp
     }
 
     /**
+     * Get component content of builder.
+     */
+    public get content(): TContent {
+        return this.mContent;
+    }
+
+    /**
      * Component modules of builder.
      */
     public get modules(): ComponentModules {
@@ -43,13 +50,6 @@ export abstract class BaseBuilder<TTemplates extends IPwbTemplateNode = IPwbTemp
      */
     public get values(): DataLevel {
         return this.mComponentValues;
-    }
-
-    /**
-     * Get component content of builder.
-     */
-    public get content(): TContent {
-        return this.mContent;
     }
 
     /**

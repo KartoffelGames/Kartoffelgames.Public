@@ -221,10 +221,10 @@ export class PotatnoUiManagerGrid {
             const lDistanceY = pTargetPoint.y - pOriginPoint.y;
 
             switch (true) {
-                case lDistanceX == 0 && lDistanceY == 1: return 'bottom';
-                case lDistanceX == 0 && lDistanceY == -1: return 'top';
-                case lDistanceX == -1 && lDistanceY == 0: return 'left';
-                case lDistanceX == 1 && lDistanceY == 0: return 'right';
+                case lDistanceX === 0 && lDistanceY === 1: return 'bottom';
+                case lDistanceX === 0 && lDistanceY === -1: return 'top';
+                case lDistanceX === -1 && lDistanceY === 0: return 'left';
+                case lDistanceX === 1 && lDistanceY === 0: return 'right';
                 default: throw new Exception('Missformed path. Path points are not directly next to each other.', this);
             }
         };
@@ -373,10 +373,10 @@ export class PotatnoUiManagerGrid {
                 }
 
                 switch (true) {
-                    case lDirectionX == 0 && lDirectionY == 1: return lDirection.bottom;
-                    case lDirectionX == 0 && lDirectionY == -1: return lDirection.top;
-                    case lDirectionX == -1 && lDirectionY == 0: return lDirection.left;
-                    case lDirectionX == 1 && lDirectionY == 0: return lDirection.right;
+                    case lDirectionX === 0 && lDirectionY === 1: return lDirection.bottom;
+                    case lDirectionX === 0 && lDirectionY === -1: return lDirection.top;
+                    case lDirectionX === -1 && lDirectionY === 0: return lDirection.left;
+                    case lDirectionX === 1 && lDirectionY === 0: return lDirection.right;
                     default: return lDirection.none;
                 }
             })();

@@ -6,9 +6,9 @@ export class PotatnoCanvasInteraction {
     private static readonly MAX_ZOOM: number = 2.0;
     private static readonly MIN_ZOOM: number = 0.25;
 
+    private readonly mGridSize: number;
     private mPanX: number;
     private mPanY: number;
-    private readonly mGridSize: number;
     private mZoom: number;
 
 

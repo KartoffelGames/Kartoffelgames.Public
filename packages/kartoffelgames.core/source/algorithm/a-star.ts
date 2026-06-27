@@ -68,44 +68,6 @@ export abstract class Astar<TNode> {
     }
 
     /**
-     * Compare two nodes for equality.
-     * 
-     * @param pNodeA - Node a.
-     * @param pNodeB - Node b.
-     * 
-     * @returns comparison result.
-     */
-    protected abstract nodesAreEqual(pNodeA: TNode, pNodeB: TNode): boolean;
-
-    /**
-     * Calculate the cost of the traversal between two adjacent nodes.
-     * Cost is usually one, but can be different for each nodex.
-     * 
-     * @param pNode - Node the path wants to traverse.
-     * @param pCurrentNode - Node the path currently stands.
-     */
-    protected abstract costOfTraversal(pNode: TNode, pCurrentNode: TNode): number;
-
-    /**
-     * Calculate a cost that describes the cost for a direct path from the current node to the end node.  
-     * 
-     * @param pCurrentNode - Current node where the heuristic should be calculated for.
-     * @param pEndNode - End node of path.
-     * 
-     * @return cost of the path between the current and end node.
-     */
-    protected abstract heuristic(pCurrentNode: TNode, pEndNode: TNode): number;
-
-    /**
-     * Get all neighbors of a node.
-     * 
-     * @param pNode - Target node with neighbors.
-     * 
-     * @return all neighbors of the node. 
-     */
-    protected abstract neighborNodes(pNode: TNode): Array<TNode>;
-
-    /**
      * Add node into an array in order from highest to lowest cost where the highest cost is on index [0].
      * 
      * @param pTargetArray - Target array.
@@ -176,4 +138,42 @@ export abstract class Astar<TNode> {
 
         return lReversePath.reverse();
     }
+
+    /**
+     * Calculate the cost of the traversal between two adjacent nodes.
+     * Cost is usually one, but can be different for each nodex.
+     * 
+     * @param pNode - Node the path wants to traverse.
+     * @param pCurrentNode - Node the path currently stands.
+     */
+    protected abstract costOfTraversal(pNode: TNode, pCurrentNode: TNode): number;
+
+    /**
+     * Calculate a cost that describes the cost for a direct path from the current node to the end node.  
+     * 
+     * @param pCurrentNode - Current node where the heuristic should be calculated for.
+     * @param pEndNode - End node of path.
+     * 
+     * @return cost of the path between the current and end node.
+     */
+    protected abstract heuristic(pCurrentNode: TNode, pEndNode: TNode): number;
+
+    /**
+     * Get all neighbors of a node.
+     * 
+     * @param pNode - Target node with neighbors.
+     * 
+     * @return all neighbors of the node. 
+     */
+    protected abstract neighborNodes(pNode: TNode): Array<TNode>;
+
+    /**
+     * Compare two nodes for equality.
+     * 
+     * @param pNodeA - Node a.
+     * @param pNodeB - Node b.
+     * 
+     * @returns comparison result.
+     */
+    protected abstract nodesAreEqual(pNodeA: TNode, pNodeB: TNode): boolean;
 }

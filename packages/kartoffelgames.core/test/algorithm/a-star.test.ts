@@ -22,13 +22,6 @@ class TestAstar extends Astar<TestNode> {
     }
 
     /**
-     * Compare node coordinates for equality.
-     */
-    protected override nodesAreEqual(pNodeA: TestNode, pNodeB: TestNode): boolean {
-        return pNodeA.x === pNodeB.x && pNodeA.y === pNodeB.y;
-    }
-
-    /**
      * Return fixed traversal cost of 1.
      */
     protected override costOfTraversal(..._pNodes: Array<TestNode>): number {
@@ -74,6 +67,13 @@ class TestAstar extends Astar<TestNode> {
         }
 
         return lNeighborNodes;
+    }
+
+    /**
+     * Compare node coordinates for equality.
+     */
+    protected override nodesAreEqual(pNodeA: TestNode, pNodeB: TestNode): boolean {
+        return pNodeA.x === pNodeB.x && pNodeA.y === pNodeB.y;
     }
 }
 

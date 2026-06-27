@@ -5,9 +5,9 @@ import type { IPotatnoDocumentItem } from './i-potatno-document-item.interface.t
  * Validation result of a potatno document item.
  */
 export class PotatnoDocumentValidationResult<TProjectTypes extends PotatnoProjectTypesDefinition> {
-    private readonly mErrors: Array<PotatnoDocumentPortValidationError<TProjectTypes>>;
     private readonly mAffectedItems: Set<IPotatnoDocumentItem<TProjectTypes>>;
-
+    private readonly mErrors: Array<PotatnoDocumentPortValidationError<TProjectTypes>>;
+    
     /**
      * Items that got changed, deleted or added during validation.
      */

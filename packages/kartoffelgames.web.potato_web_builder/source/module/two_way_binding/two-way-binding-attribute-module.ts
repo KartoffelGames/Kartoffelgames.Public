@@ -1,12 +1,12 @@
+import { Injection } from '@kartoffelgames/core-dependency-injection';
+import { Component } from '../../core/component/component.ts';
+import type { LevelProcedure } from '../../core/data/level-procedure.ts';
+import { ModuleDataLevel } from '../../core/data/module-data-level.ts';
 import { AccessMode } from '../../core/enum/access-mode.enum.ts';
-import { AttributeModule, type IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module.ts';
+import type { IAttributeOnUpdate } from '../../core/module/attribute_module/attribute-module.ts';
 import { PwbAttributeModule } from '../../core/module/attribute_module/pwb-attribute-module.decorator.ts';
 import { ModuleAttribute } from '../../core/module/injection_reference/module-attribute.ts';
 import { ModuleTargetNode } from '../../core/module/injection_reference/module-target-node.ts';
-import type { LevelProcedure } from '../../core/data/level-procedure.ts';
-import { ModuleDataLevel } from '../../core/data/module-data-level.ts';
-import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component } from '../../core/component/component.ts';
 
 @PwbAttributeModule({
     access: AccessMode.ReadWrite,

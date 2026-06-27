@@ -27,7 +27,7 @@ export abstract class Astar<TNode> {
             lOpenNodesSet.delete(lCurrentNode);
 
             // When current node is the end node. Rebuild path.
-            if (this.compareNode(lCurrentNode, pEnd) === 0) {
+            if (this.nodesAreEqual(lCurrentNode, pEnd)) {
                 // Create path from current node to the start node.
                 return this.rebuildPath(lCurrentNode, lBestParentNodeMap);
             }
@@ -68,17 +68,14 @@ export abstract class Astar<TNode> {
     }
 
     /**
-     * Compare two nodes.
-     * When node a is greater than b return 1.
-     * When node a is smaller than b return -1-
-     * Otherwise both are equal, return 0;
+     * Compare two nodes for equality.
      * 
      * @param pNodeA - Node a.
      * @param pNodeB - Node b.
      * 
      * @returns comparison result.
      */
-    protected abstract compareNode(pNodeA: TNode, pNodeB: TNode): number;
+    protected abstract nodesAreEqual(pNodeA: TNode, pNodeB: TNode): boolean;
 
     /**
      * Calculate the cost of the traversal between two adjacent nodes.
@@ -171,11 +168,11 @@ export abstract class Astar<TNode> {
         const lReversePath: Array<TNode> = new Array<TNode>();
 
         // Traverse back until start is reached.
-        let lCurrentNode: TNode | undefined;
-        while (!!(lCurrentNode = pParentMap.get(pEndNode))) {
+        let lCurrentNode: TNode | undefined = pEndNode;
+        do {
             // Add node to path.
             lReversePath.push(lCurrentNode);
-        }
+        } while (!!(lCurrentNode = pParentMap.get(lCurrentNode)));
 
         return lReversePath.reverse();
     }

@@ -1,5 +1,5 @@
 import { expect } from '@kartoffelgames/core-test';
-import { Astar, AstarPathInformation, type AstarResult } from '../../source/algorithm/a-star.ts';
+import { Astar, type AstarPathInformation, type AstarResult } from '../../source/algorithm/a-star.ts';
 
 class TestAstar extends Astar<TestNode> {
     /**

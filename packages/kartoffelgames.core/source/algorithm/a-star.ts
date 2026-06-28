@@ -1,4 +1,4 @@
-import { Exception } from "../exception/exception.ts";
+import { Exception } from '../exception/exception.ts';
 
 /**
  * A* search algorithm.
@@ -35,14 +35,6 @@ export abstract class Astar<TNode> {
         // Cost for a path that goes from start to this node. Initialize with the starting node as zero cost.
         const lNodePathCost: Map<TNode, number> = new Map<TNode, number>();
         lNodePathCost.set(lStartNode, 0);
-
-        // Maping for the guesses of a path cost between the node and the end node.
-        const lNodePathCostGuess: Map<TNode, number> = new Map<TNode, number>();
-        lNodePathCostGuess.set(lStartNode, this.heuristic(lStartNode, {
-            startNode: lStartNode,
-            endNode: lEndNode,
-            path: new Array<TNode>().values()
-        }));
 
         // Map to trace back nodes.
         const lBestParentNodeMap: Map<TNode, TNode> = new Map<TNode, TNode>();
@@ -101,9 +93,6 @@ export abstract class Astar<TNode> {
                     path: this.pathTracer(lCurrentNode, lBestParentNodeMap)
                 });
 
-                // Save the new updated path cost guess.
-                lNodePathCostGuess.set(lNeighbor, lNeighborCostGuess);
-
                 // Add node to potential path nodes. Does not dublicate.
                 lOpenNodes.set(lNeighbor, lNeighborCostGuess);
             }
@@ -124,62 +113,11 @@ export abstract class Astar<TNode> {
      * 
      * @return all neighbors of the node. 
      */
-    public getNeighborNodes(pNode: TNode): Array<TNode> {
+    private getNeighborNodes(pNode: TNode): Array<TNode> {
         // Read neighbor nodes. When a node is iterated that has the same id as a cached, use the cached.
-        return this.neighborNodes(pNode).map((lNode) => {
-            return this.readFromCache(lNode);
+        return this.neighborNodes(pNode).map((pNeighborNode) => {
+            return this.readFromCache(pNeighborNode);
         });
-    }
-
-    /**
-     * Add node into an array in order from highest to lowest cost where the highest cost is on index [0].
-     * 
-     * @param pTargetArray - Target array.
-     * @param pNode - Node to add.
-     * @param pCostMapping - The cost mapping for each node.
-     */
-    private insertNodeSorted(pTargetArray: Array<TNode>, pNode: TNode, pCostMapping: Map<TNode, number>): void {
-        // Get nodes cost.
-        const lNodeCost: number = pCostMapping.get(pNode) ?? Number.POSITIVE_INFINITY;
-
-        const lCostOfIndex = (pIndex: number) => {
-            return pCostMapping.get(pTargetArray[pIndex]) ?? Number.POSITIVE_INFINITY;
-        };
-
-        // Binary search sorted array for the target index.
-        const lTargetIndex: number = (() => {
-            // Array is empty or cost is higher than anything. Insert at bottom.
-            if (pTargetArray.length === 0 || lNodeCost > lCostOfIndex(0)) {
-                return 0;
-            }
-
-            // Cost is lowest, insert at top.
-            if (lNodeCost < lCostOfIndex(pTargetArray.length - 1)) {
-                return pTargetArray.length;
-            }
-
-            // Start searching in full range.
-            let lMinIndex = 0;
-            let lMaxIndex = pTargetArray.length - 1;
-
-            while (lMinIndex <= lMaxIndex) {
-                // Find middle index between min and max index.
-                const lCenterIndex = (lMaxIndex + lMinIndex) >> 1;
-
-                if (lNodeCost < lCostOfIndex(lCenterIndex)) {
-                    lMinIndex = lCenterIndex + 1;
-                } else if (lNodeCost > lCostOfIndex(lCenterIndex)) {
-                    lMaxIndex = lCenterIndex - 1;
-                } else {
-                    return lCenterIndex;
-                }
-            }
-
-            return lMinIndex;
-        })();
-
-        // Insert node at target index.
-        pTargetArray.splice(lTargetIndex, 0, pNode);
     }
 
     /**
@@ -295,40 +233,6 @@ class AstarPriorityList<TNode> {
     }
 
     /**
-     * Add or update existing node with the specified cost.
-     * 
-     * @param pNode - Node. 
-     * @param pCost - Node cost.
-     */
-    public set(pNode: TNode, pCost: number): void {
-        // Update lowest cost.
-        if (pCost < this.mLowestCost) {
-            // Set lowest cost and reset counter.
-            this.mLowestCost = pCost;
-            this.mLowestCostCounter = 0;
-        }
-
-        // Increase counter when nodes cost is current lowest.
-        if (pCost === this.mLowestCost) {
-            this.mLowestCostCounter++;
-        }
-
-        // When node does exist, just update cost value.
-        if (this.mExistingNodes.has(pNode)) {
-            const lItemIndex: number = this.mExistingNodes.get(pNode)!;
-            this.mList[lItemIndex].cost = pCost;
-            return;
-        }
-
-        // Insert new item and store its index.
-        this.mList.push({
-            cost: pCost,
-            node: pNode
-        });
-        this.mExistingNodes.set(pNode, this.mList.length - 1);
-    }
-
-    /**
      * Pop off lowest cost item from list.
      * 
      * @returns the lowest cost item of the list.
@@ -349,7 +253,7 @@ class AstarPriorityList<TNode> {
                 const lItem: AstarPriorityListItem<TNode> = this.mList[lItemIndex];
 
                 // When a list global lowest cost is set, return the first occurrence. 
-                if (this.mLowestCostCounter > 0 && lItem.cost === this.mLowestCost) {
+                if (lItem.cost === this.mLowestCost) {
                     return [lItem, 0];
                 }
 
@@ -384,8 +288,8 @@ class AstarPriorityList<TNode> {
             this.mLowestCostCounter--;
         }
 
-        // Reset lowest cost.
-        if (this.mLowestCostCounter < 0) {
+        // Invalidate lowest cost cache.
+        if (this.mLowestCostCounter < 1) {
             this.mLowestCost = Number.POSITIVE_INFINITY;
             this.mLowestCostCounter = 0;
         }
@@ -405,6 +309,49 @@ class AstarPriorityList<TNode> {
         // Rmove found value item from mList and mExistingNode.
         this.mExistingNodes.delete(lLowestItem.node);
         return this.mList.pop()!.node;
+    }
+
+    /**
+     * Add or update existing node with the specified cost.
+     * 
+     * @param pNode - Node. 
+     * @param pCost - Node cost.
+     */
+    public set(pNode: TNode, pCost: number): void {
+        // Update lowest cost.
+        if (this.mLowestCostCounter > 0 && pCost < this.mLowestCost) {
+            // Set lowest cost and reset counter.
+            this.mLowestCost = pCost;
+            this.mLowestCostCounter = 0;
+        }
+
+        // Increase counter when nodes cost is current lowest.
+        if (pCost === this.mLowestCost) {
+            this.mLowestCostCounter++;
+        }
+
+        // When node does exist, just update cost value.
+        if (this.mExistingNodes.has(pNode)) {
+            // Read current index of existing item.
+            const lItemIndex: number = this.mExistingNodes.get(pNode)!;
+            const lItem: AstarPriorityListItem<TNode> = this.mList[lItemIndex];
+
+            // Skip if nothing has changed.
+            if (lItem.cost === pCost) {
+                // Because we prviously incremented the lowest cost counter, we need to decrease it again because the actual count has not changed.
+                if (pCost === this.mLowestCost) {
+                    this.mLowestCostCounter--;
+                }
+                return;
+            }
+
+            lItem.cost = pCost;
+            return;
+        }
+
+        // Insert new item and store its index.
+        this.mList.push({ cost: pCost, node: pNode });
+        this.mExistingNodes.set(pNode, this.mList.length - 1);
     }
 }
 

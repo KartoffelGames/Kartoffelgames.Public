@@ -1,10 +1,10 @@
-import { Astar, type AstarPathInformation, AstarResult, Exception } from '@kartoffelgames/core';
+import { Exception } from '@kartoffelgames/core';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import type { PotatnoPortDefinitionDirection } from '../../../project/potatno-port-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager, type PotatnoUiManagerChangeEvent } from '../potatno-ui-manager.ts';
+import { type PotatnoUiManagerGridPathFindingPoint, PotatnoUiGridPathFinding } from '../helper/potatno-ui-grid-path-finding.ts';
 
 /**
  * Ui manager grid component.
@@ -16,7 +16,7 @@ export class PotatnoUiManagerGrid {
     private mGridElement: Element | null;
     private readonly mInteraction: PotatnoCanvasInteraction;
     private readonly mManager: PotatnoUiManager;
-    private readonly mPathFinder: PotatnoUiManagerGridPathFinding;
+    private readonly mPathFinder: PotatnoUiGridPathFinding;
 
     /**
      * Grid size in pixels.
@@ -49,7 +49,7 @@ export class PotatnoUiManagerGrid {
         this.mManager = pManager;
         this.mInteraction = new PotatnoCanvasInteraction(PotatnoUiManagerGrid.GRID_SIZE);
         this.mGridElement = null;
-        this.mPathFinder = new PotatnoUiManagerGridPathFinding();
+        this.mPathFinder = new PotatnoUiGridPathFinding();
 
         // Register node transformation change event.
         this.mManager.subscribe(PotatnoCodeUiManagerChangeType.NodeTransform | PotatnoCodeUiManagerChangeType.NodeAdd | PotatnoCodeUiManagerChangeType.NodeDelete | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, null, (pEvent: PotatnoUiManagerChangeEvent) => {
@@ -88,8 +88,23 @@ export class PotatnoUiManagerGrid {
      *
      * @returns SVG path data.
      */
-    public createConnectionPath(pStart: GridPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEnd: GridPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>): string {
-        const lGridPath: Array<GridPoint> = this.createGridPath(pStart, pEnd);
+    public createConnectionPath(pStart: PotatnoUiManagerGridPathFindingPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEnd: PotatnoUiManagerGridPathFindingPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>): string {
+        // Convert entry items to grid points.
+        const lItemToPoint = (pItem: PotatnoUiManagerGridPathFindingPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>) => {
+            if (pItem instanceof PotatnoDocumentPort) {
+                return this.getPortGridPoint(pItem);
+            }
+
+            return pItem;
+        };
+
+        // Convert both points into a restricting values.
+        const lStart: PotatnoUiManagerGridPathFindingPoint = lItemToPoint(pStart);
+        const lEnd: PotatnoUiManagerGridPathFindingPoint = lItemToPoint(pEnd);
+
+        // Execute path finding.
+        const lGridPath: Array<PotatnoUiManagerGridPathFindingPoint> = this.mPathFinder.start(lStart, lEnd).path;
+
         return this.createSvgPath(lGridPath);
     }
 
@@ -100,7 +115,7 @@ export class PotatnoUiManagerGrid {
      *
      * @returns Grid cell for the port.
      */
-    public getPortGridPoint(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): GridPoint {
+    public getPortGridPoint(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): PotatnoUiManagerGridPathFindingPoint {
         // Read node of port.
         const lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = pPort.node;
 
@@ -152,7 +167,7 @@ export class PotatnoUiManagerGrid {
      *
      * @returns Grid point.
      */
-    public pixelToGridSpace(pX: number, pY: number): GridPoint {
+    public pixelToGridSpace(pX: number, pY: number): PotatnoUiManagerGridPathFindingPoint {
         let lPointX: number = pX;
         let lPointY: number = pY;
 
@@ -184,9 +199,9 @@ export class PotatnoUiManagerGrid {
      * 
      * @returns the pixel point of the grid point. 
      */
-    private getGridPosition(pPoint: GridPoint, pOrientation: PotatnoUiManagerGridDirection): Point {
+    private getGridPosition(pPoint: PotatnoUiManagerGridPathFindingPoint, pOrientation: PotatnoUiManagerGridDirection): PotatnoUiManagerGridPixelPoint {
         // Create middle point.
-        const lPoint: Point = {
+        const lPoint: PotatnoUiManagerGridPixelPoint = {
             x: pPoint.x * this.gridSize + this.gridSize / 2,
             y: pPoint.y * this.gridSize + this.gridSize / 2
         };
@@ -213,9 +228,9 @@ export class PotatnoUiManagerGrid {
      * 
      * @returns a svg path string. 
      */
-    private createSvgPath(pPath: Array<GridPoint>): string {
+    private createSvgPath(pPath: Array<PotatnoUiManagerGridPathFindingPoint>): string {
         // Get point direction from origin and target points.
-        const lPointDirection = (pOriginPoint: GridPoint, pTargetPoint: GridPoint): PotatnoUiManagerGridDirection => {
+        const lPointDirection = (pOriginPoint: PotatnoUiManagerGridPathFindingPoint, pTargetPoint: PotatnoUiManagerGridPathFindingPoint): PotatnoUiManagerGridDirection => {
             const lDistanceX = pTargetPoint.x - pOriginPoint.x;
             const lDistanceY = pTargetPoint.y - pOriginPoint.y;
 
@@ -232,11 +247,11 @@ export class PotatnoUiManagerGrid {
 
         // Recursivly create path. The first and last path is not rendered but used to guide the paths direction.
         for (let lPathIndex: number = 1; lPathIndex < (pPath.length - 1); lPathIndex++) {
-            const lPathPoint: GridPoint = pPath[lPathIndex];
+            const lPathPoint: PotatnoUiManagerGridPathFindingPoint = pPath[lPathIndex];
 
             // Get previous and next point.
-            const lPreviousPoint: GridPoint = pPath[lPathIndex - 1];
-            const lNextPoint: GridPoint = pPath[lPathIndex + 1];
+            const lPreviousPoint: PotatnoUiManagerGridPathFindingPoint = pPath[lPathIndex - 1];
+            const lNextPoint: PotatnoUiManagerGridPathFindingPoint = pPath[lPathIndex + 1];
 
             // Create directions for previous and next point.
             const lFromDirection: PotatnoUiManagerGridDirection = lPointDirection(lPathPoint, lPreviousPoint);
@@ -255,14 +270,14 @@ export class PotatnoUiManagerGrid {
      * @param pPoint 
      * @param pDirection 
      */
-    private createGridCellPath(pPoint: GridPoint, pFromDirection: PotatnoUiManagerGridDirection, pToDirection: PotatnoUiManagerGridDirection) {
+    private createGridCellPath(pPoint: PotatnoUiManagerGridPathFindingPoint, pFromDirection: PotatnoUiManagerGridDirection, pToDirection: PotatnoUiManagerGridDirection) {
         // Create end and start points.
-        const lStartPoint: Point = this.getGridPosition(pPoint, pFromDirection);
-        const lEndPoint: Point = this.getGridPosition(pPoint, pToDirection);
+        const lStartPoint: PotatnoUiManagerGridPixelPoint = this.getGridPosition(pPoint, pFromDirection);
+        const lEndPoint: PotatnoUiManagerGridPixelPoint = this.getGridPosition(pPoint, pToDirection);
 
         // Create a bezier control point by using the x of start and y of end.
         // When its a straight line, the control point does nothing. 
-        const lControlPoint: Point = {
+        const lControlPoint: PotatnoUiManagerGridPixelPoint = {
             x: pFromDirection === 'bottom' || pFromDirection === 'top' ? lStartPoint.x : lEndPoint.x,
             y: pFromDirection === 'left' || pFromDirection === 'right' ? lStartPoint.y : lEndPoint.y,
         };
@@ -271,278 +286,11 @@ export class PotatnoUiManagerGrid {
         // Move to start point. Draw to endpoint. And use the control point.
         return `M ${lStartPoint.x},${lStartPoint.y} Q ${lControlPoint.x},${lControlPoint.y} ${lEndPoint.x},${lEndPoint.y}`;
     }
-
-
-    // --------------------- REWORK ----------------------------
-
-    private createGridPath(pStart: GridPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEnd: GridPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>): Array<GridPoint> {
-        // Convert entry items to grid points.
-        const lItemToPoint = (pItem: GridPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>) => {
-            if (pItem instanceof PotatnoDocumentPort) {
-                return this.getPortGridPoint(pItem);
-            }
-
-            return pItem;
-        };
-
-        // Convert both points into a restricting values.
-        const lStart: GridPoint = lItemToPoint(pStart);
-        const lEnd: GridPoint = lItemToPoint(pEnd);
-
-        // Swap point when 
-        // TODO:
-
-        // Execute path finding.
-        return this.mPathFinder.start(lStart, lEnd).path;
-    }
 }
 
 type PotatnoUiManagerGridDirection = 'top' | 'right' | 'bottom' | 'left';
 
-type PotatnoUiManagerGridPointRestriction = {
-    origin: GridPoint;
-};
-
-export type GridPoint = {
+type PotatnoUiManagerGridPixelPoint = {
     x: number;
     y: number;
-};
-
-type Point = {
-    x: number;
-    y: number;
-};
-
-type GridNodePoint = `${number}|${number}`;
-
-
-export class PotatnoUiManagerGridPathFinding extends Astar<GridPoint> {
-    private readonly mPathArea: Map<GridNodePoint, number>;
-    private readonly mForecourtArea: Map<GridNodePoint, number>;
-
-    private readonly mGridNodeArea: WeakMap<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridPathFindingNodeArea>;
-    private readonly mNodeArea: Map<GridNodePoint, number>;
-
-    public constructor() {
-        super();
-        // Initialize node area configurations.
-        this.mGridNodeArea = new WeakMap<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridPathFindingNodeArea>();
-
-        // Different node areas and their count of how many entities are present.
-        this.mNodeArea = new Map<GridNodePoint, number>();
-        this.mForecourtArea = new Map<GridNodePoint, number>();
-        this.mPathArea = new Map<GridNodePoint, number>();
-    }
-
-    public updateNodeArea(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): void {
-        // Remove old areas.
-        this.removeNodeArea(pNode);
-
-        // Read node position and dimension.
-        const lPositionX: number = pNode.transformation.x;
-        const lPositionY: number = pNode.transformation.y;
-        const lWidth: number = pNode.transformation.width;
-        const lHeight: number = pNode.transformation.height;
-
-        // Read current grid area.
-        const lCurrentNodeArea: PotatnoUiManagerGridPathFindingNodeArea = this.mGridNodeArea.get(pNode) ?? {
-            area: new Array<GridNodePoint>(),
-            forecourt: new Array<GridNodePoint>()
-        };
-
-        // Iterate over each node area.
-        for (let lX: number = 0; lX < lWidth; lX++) {
-            for (let lY: number = 0; lY < lHeight; lY++) {
-                // Construct grid point.
-                const lGridNodePoint: GridNodePoint = `${lX + lPositionX}|${lY + lPositionY}`;
-
-                // Increase grid point count.
-                const lGridPointCount: number = (this.mNodeArea.get(lGridNodePoint) ?? 0) + 1;
-                this.mNodeArea.set(lGridNodePoint, lGridPointCount);
-
-                // Add point to node area.
-                lCurrentNodeArea.area.push(lGridNodePoint);
-            }
-        }
-
-        // TODO: calculate port forecourt.
-
-        // Update nodes area.
-        this.mGridNodeArea.set(pNode, lCurrentNodeArea);
-    }
-
-    public removeNodeArea(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): void {
-        // When nothing to remove, remove nothing. Yes. That comment makes sense.
-        if (!this.mGridNodeArea.has(pNode)) {
-            return;
-        }
-
-        // Read current grid area.
-        const lCurrentNodeArea: PotatnoUiManagerGridPathFindingNodeArea = this.mGridNodeArea.get(pNode)!;
-
-        // Remove old node area.
-        for (const lNodeAreaPoint of lCurrentNodeArea.area) {
-            // Read current count. Update count or delete if count is zero.
-            const lAreaPointCount: number = (this.mNodeArea.get(lNodeAreaPoint) ?? 0) - 1;
-            if (lAreaPointCount < 1) {
-                this.mNodeArea.delete(lNodeAreaPoint);
-            } else {
-                this.mNodeArea.set(lNodeAreaPoint, lAreaPointCount);
-            }
-        }
-
-        // Reset old area.
-        lCurrentNodeArea.area = new Array<GridNodePoint>();
-
-        // Remove old node forecourt.
-        for (const lNodeForecourtPoint of lCurrentNodeArea.forecourt) {
-            // Read current count. Update count or delete if count is zero.
-            const lAreaPointCount: number = (this.mForecourtArea.get(lNodeForecourtPoint) ?? 0) - 1;
-            if (lAreaPointCount < 1) {
-                this.mForecourtArea.delete(lNodeForecourtPoint);
-            } else {
-                this.mForecourtArea.set(lNodeForecourtPoint, lAreaPointCount);
-            }
-        }
-
-        // Reset old forecourt.
-        lCurrentNodeArea.forecourt = new Array<GridNodePoint>();
-    }
-
-    /**
-     * Calculate the cost of the traversal between two adjacent nodes.
-     * Cost is usually one, but can be different for each node.
-     * 
-     * @param pNode - Node the path wants to traverse.
-     * @param pPathInformation - Path information that leads to the current node.
-     */
-    protected override costOfTraversal(pNode: GridPoint, pPathInformation: AstarPathInformation<GridPoint>): number {
-        // Convert node point into grid point.
-        const lGridPoint: GridNodePoint = `${pNode.x}|${pNode.y}`;
-
-        // Start and end node should never have a cost.
-        if (pNode.x === pPathInformation.startNode.x && pNode.y === pPathInformation.startNode.y) {
-            return 1;
-        }
-        if (pNode.x === pPathInformation.endNode.x && pNode.y === pPathInformation.endNode.y) {
-            return 1;
-        }
-
-        // Never go inside node areas unless no other path can be used.
-        if (this.mNodeArea.has(lGridPoint)) {
-            // FYI: dont make it 1000. It kills the site when the user hovers over a node.
-            return 10;
-        }
-
-        // Preferr not to cross ports starting areas.
-        if (this.mPathArea.has(lGridPoint)) {
-            return 1.5;
-        }
-
-        // Preferr not to cross other paths.
-        if (this.mForecourtArea.has(lGridPoint)) {
-            return 1.2;
-        }
-
-        // Default cost of each node.
-        return 1;
-    }
-
-    /**
-     * Heuristic calculation.
-     * Priorize x movement.
-     * Try to stay on the y level of the start node on the first half and on the y level of the end node on the second.
-     * 
-     * @param pNode - Current node where the heuristic should be calculated for.
-     * @param pPathInformation - Path information that leads to the current node.
-     * 
-     * @return cost of the path between the current and end node.
-     */
-    protected override heuristic(pNode: GridPoint, pPathInformation: AstarPathInformation<GridPoint>): number {
-        // Calculate the middle point x between the start and end node.
-        const mMiddleXCoordinate = (pPathInformation.endNode.x + pPathInformation.startNode.x) >> 1;
-
-        let lNavigationCost = (() => {
-            const previous: GridPoint | undefined = pPathInformation.path.next().value as GridPoint | undefined;
-            const previousPrevious: GridPoint | undefined = pPathInformation.path.next().value as GridPoint | undefined;
-
-            // Comming or going from a start or end node, only x navigation is allowed.
-            if (previous) {
-                if (previous === pPathInformation.startNode && pNode.y !== previous.y) {
-                    return 5;
-                }
-                if (pNode === pPathInformation.endNode && pNode.y !== previous.y) {
-                    return 5;
-                }
-            }
-
-            // Use the default cost when the new point is behind the previous node.
-            // Pushing the path forward. 
-            if (!previous || previous.x > pNode.x) {
-                return 1;
-            }
-
-            // Preferr steight paths. Discouraging curves.
-            if (previousPrevious && (pNode.x === previousPrevious.x || pNode.y === previousPrevious.y)) {
-                return 0.9;
-            }
-
-            // Preferr movement on the x axis.
-            if (pNode.x > previous.x && previous.y === pNode.y) {
-                return 0.9;
-            }
-
-            return 1;
-        })();
-
-        // Prefer middle paths.
-        if (pNode.x === mMiddleXCoordinate) {
-            lNavigationCost *= 0.5;
-        }
-
-        // Culculate the distance to the end point.
-        let lPathDistance: number = Math.abs(pNode.x - pPathInformation.endNode.x) + Math.abs(pNode.y - pPathInformation.endNode.y);
-
-        // Add the navigation cost to the path cost and use it as a rougth path cost.
-        lPathDistance += lNavigationCost;
-
-        // Add weighing.
-        lPathDistance *= 2;
-
-        // Add the navigation cost to the path cost and use it as a rougth path cost.
-        return lPathDistance;
-    }
-
-    /**
-     * Get all neighbor nodes of the center node.
-     * 
-     * @param pNode - Center node.
-     * 
-     * @returns All neighbor nodes. 
-     */
-    protected override neighborNodes(pNode: GridPoint): Array<GridPoint> {
-        // Collect grid neighbors.
-        return [
-            { x: pNode.x, y: pNode.y - 1 },
-            { x: pNode.x - 1, y: pNode.y },
-            { x: pNode.x + 1, y: pNode.y },
-            { x: pNode.x, y: pNode.y + 1 }
-        ];
-    }
-
-    /**
-     * Create a deterministic id for a node.
-     * 
-     * @param pNode - Node.
-     *
-     * @return node id. 
-     */
-    protected override nodeId(pNode: GridPoint): GridNodePoint {
-        return `${pNode.x}|${pNode.y}`;
-    }
-}
-
-type PotatnoUiManagerGridPathFindingNodeArea = {
-    area: Array<GridNodePoint>;
-    forecourt: Array<GridNodePoint>;
 };

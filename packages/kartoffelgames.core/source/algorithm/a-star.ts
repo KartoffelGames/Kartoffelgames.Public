@@ -3,6 +3,8 @@ import { Exception } from '../exception/exception.ts';
 /**
  * A* search algorithm.
  * Graph search version.
+ * 
+ * Nodes are cached between calls. THATS A FEATURE!!!!
  */
 export abstract class Astar<TNode> {
     private readonly mNodeCache: Map<PropertyKey, TNode>;

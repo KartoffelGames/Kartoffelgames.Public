@@ -18,9 +18,6 @@ export class PotatnoUiManagerGrid {
     private readonly mManager: PotatnoUiManager;
     private readonly mPathFinder: PotatnoUiManagerGridPathFinding;
 
-
-
-
     /**
      * Grid size in pixels.
      */
@@ -320,10 +317,8 @@ type GridNodePoint = `${number}|${number}`;
 
 
 export class PotatnoUiManagerGridPathFinding extends Astar<GridPoint> {
-
     private readonly mPathArea: Map<GridNodePoint, number>;
     private readonly mForecourtArea: Map<GridNodePoint, number>;
-    private readonly mNodeCache: Map<GridNodePoint, GridPoint>;
 
     private readonly mGridNodeArea: WeakMap<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridPathFindingNodeArea>;
     private readonly mNodeArea: Map<GridNodePoint, number>;
@@ -332,9 +327,6 @@ export class PotatnoUiManagerGridPathFinding extends Astar<GridPoint> {
         super();
         // Initialize node area configurations.
         this.mGridNodeArea = new WeakMap<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridPathFindingNodeArea>();
-
-        // Initialize new node cache so the node reference for each coordinate stays the same.
-        this.mNodeCache = new Map<GridNodePoint, GridPoint>();
 
         // Different node areas and their count of how many entities are present.
         this.mNodeArea = new Map<GridNodePoint, number>();
@@ -429,11 +421,11 @@ export class PotatnoUiManagerGridPathFinding extends Astar<GridPoint> {
         const lGridPoint: GridNodePoint = `${pNode.x}|${pNode.y}`;
 
         // Start and end node should never have a cost.
-        if(pNode.x === pPathInformation.startNode.x && pNode.y === pPathInformation.startNode.y) {
-            return 0;
+        if (pNode.x === pPathInformation.startNode.x && pNode.y === pPathInformation.startNode.y) {
+            return 1;
         }
-        if(pNode.x === pPathInformation.endNode.x && pNode.y === pPathInformation.endNode.y) {
-            return 0;
+        if (pNode.x === pPathInformation.endNode.x && pNode.y === pPathInformation.endNode.y) {
+            return 1;
         }
 
         // Never go inside node areas unless no other path can be used.
@@ -468,11 +460,21 @@ export class PotatnoUiManagerGridPathFinding extends Astar<GridPoint> {
      */
     protected override heuristic(pNode: GridPoint, pPathInformation: AstarPathInformation<GridPoint>): number {
         // Calculate the middle point x between the start and end node.
-        const mMiddleXCoordinate = Math.abs(pPathInformation.endNode.x - pPathInformation.startNode.x) >> 1;
+        const mMiddleXCoordinate = (pPathInformation.endNode.x + pPathInformation.startNode.x) >> 1;
 
         let lNavigationCost = (() => {
             const previous: GridPoint | undefined = pPathInformation.path.next().value as GridPoint | undefined;
             const previousPrevious: GridPoint | undefined = pPathInformation.path.next().value as GridPoint | undefined;
+
+            // Comming or going from a start or end node, only x navigation is allowed.
+            if (previous) {
+                if (previous === pPathInformation.startNode && pNode.y !== previous.y) {
+                    return 5;
+                }
+                if (pNode === pPathInformation.endNode && pNode.y !== previous.y) {
+                    return 5;
+                }
+            }
 
             // Use the default cost when the new point is behind the previous node.
             // Pushing the path forward. 
@@ -505,7 +507,7 @@ export class PotatnoUiManagerGridPathFinding extends Astar<GridPoint> {
         lPathDistance += lNavigationCost;
 
         // Add weighing.
-        lPathDistance *= 2; 
+        lPathDistance *= 2;
 
         // Add the navigation cost to the path cost and use it as a rougth path cost.
         return lPathDistance;
@@ -520,40 +522,23 @@ export class PotatnoUiManagerGridPathFinding extends Astar<GridPoint> {
      */
     protected override neighborNodes(pNode: GridPoint): Array<GridPoint> {
         // Collect grid neighbors.
-        const lNeighborNodes: Array<GridPoint> = new Array<GridPoint>();
-        const lNeighborCoordinates: Array<GridPoint> = [
+        return [
             { x: pNode.x, y: pNode.y - 1 },
             { x: pNode.x - 1, y: pNode.y },
             { x: pNode.x + 1, y: pNode.y },
             { x: pNode.x, y: pNode.y + 1 }
         ];
-
-        // Filter invalid and blocked neighbors.
-        for (const lNeighborNode of lNeighborCoordinates) {
-            const lKey: GridNodePoint = `${lNeighborNode.x}|${lNeighborNode.y}`;
-
-            // Reuse node references so Astar maps remain stable.
-            if (this.mNodeCache.has(lKey)) {
-                lNeighborNodes.push(lNeighborNode);
-                continue;
-            }
-
-            this.mNodeCache.set(lKey, lNeighborNode);
-        }
-
-        return lNeighborNodes;
     }
 
     /**
-     * Compare two nodes for equality.
+     * Create a deterministic id for a node.
      * 
-     * @param pNodeA - Node a.
-     * @param pNodeB - Node b.
-     * 
-     * @returns comparison result.
+     * @param pNode - Node.
+     *
+     * @return node id. 
      */
-    protected override nodesAreEqual(pNodeA: GridPoint, pNodeB: GridPoint): boolean {
-        return pNodeA.x === pNodeB.x && pNodeA.y === pNodeB.y;
+    protected override nodeId(pNode: GridPoint): GridNodePoint {
+        return `${pNode.x}|${pNode.y}`;
     }
 }
 

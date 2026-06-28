@@ -25,7 +25,6 @@ import portTemplate from './potatno-port.html' with { type: 'text' };
 export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDeconstruct {
     private static readonly DRAG_MIME_TYPE: string = 'application/x-potatno-port';
 
-
     /**
      * Currently dragged port. Global for all instances, but that should not be an issue.
      */
@@ -475,11 +474,15 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
             this.dragConnectionSvg.appendChild(lDragConnectionElement);
         }
 
-        //Only update when actual grid position has changed.
+        // Only update when actual grid position has changed.
         const lPointerPosition: GridPoint = this.mManager.grid.pixelToGridSpace(pClientX, pClientY);
         if(lPointerPosition.x === PotatnoPortComponent.mDraggedPortInformation.lastPointerGridPosition.x && lPointerPosition.y === PotatnoPortComponent.mDraggedPortInformation.lastPointerGridPosition.y) {
             return;
         }
+
+        // Update pointer position.
+        PotatnoPortComponent.mDraggedPortInformation.lastPointerGridPosition.x = lPointerPosition.x;
+        PotatnoPortComponent.mDraggedPortInformation.lastPointerGridPosition.y = lPointerPosition.y;
 
         // Calculate offset to grids [0, 0] point.
         const lPortPosition: GridPoint = PotatnoPortComponent.mDraggedPortInformation.portPosition;

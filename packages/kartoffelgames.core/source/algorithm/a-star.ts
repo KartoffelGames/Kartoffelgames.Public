@@ -1,3 +1,5 @@
+import { Exception } from "../exception/exception.ts";
+
 /**
  * A* search algorithm.
  * Graph search version.
@@ -27,11 +29,8 @@ export abstract class Astar<TNode> {
         const lEndNode: TNode = this.readFromCache(pEndNode);
 
         // Create open nodes list and initialize it with the starting point.
-        // The list should allways be sorted from highest to lowest guessed cost where the highest cost is on index [0].
-        const lOpenNodes: Array<TNode> = new Array<TNode>();
-        const lOpenNodesSet: Set<TNode> = new Set<TNode>();
-        lOpenNodes.push(lStartNode);
-        lOpenNodesSet.add(lStartNode);
+        const lOpenNodes: AstarPriorityList<TNode> = new AstarPriorityList<TNode>();
+        lOpenNodes.set(lStartNode, 0);
 
         // Cost for a path that goes from start to this node. Initialize with the starting node as zero cost.
         const lNodePathCost: Map<TNode, number> = new Map<TNode, number>();
@@ -54,8 +53,7 @@ export abstract class Astar<TNode> {
         // Let the pathing begin.
         while (lOpenNodes.length !== 0) {
             // Get the node with the lowest guessed cost. Should be easy as the open paths are 
-            const lCurrentNode: TNode = lOpenNodes.pop()!;
-            lOpenNodesSet.delete(lCurrentNode);
+            const lCurrentNode: TNode = lOpenNodes.popLowest();
 
             // Add node to processed list.
             lProcessedNodes.push(lCurrentNode);
@@ -72,7 +70,7 @@ export abstract class Astar<TNode> {
             // Get all neighbors of the current node.
             for (const lNeighbor of this.getNeighborNodes(lCurrentNode)) {
                 // Get the path cost with the neighbor for the path of current node and the cost of the best path with the neighbor.
-                const lTentativePathCost: number = (lNodePathCost.get(lCurrentNode) ?? Number.MAX_SAFE_INTEGER) + this.costOfTraversal(lNeighbor, {
+                const lTentativePathCost: number = (lNodePathCost.get(lCurrentNode) ?? Number.POSITIVE_INFINITY) + this.costOfTraversal(lNeighbor, {
                     startNode: lStartNode,
                     endNode: lEndNode,
 
@@ -80,7 +78,7 @@ export abstract class Astar<TNode> {
                     path: this.pathTracer(lCurrentNode, lBestParentNodeMap)
                 });
 
-                const lNeighborPathCost: number = lNodePathCost.get(lNeighbor) ?? Number.MAX_SAFE_INTEGER;
+                const lNeighborPathCost: number = lNodePathCost.get(lNeighbor) ?? Number.POSITIVE_INFINITY;
 
                 // Tentative cost is smaller, when either the neighbor had no calculated cost,
                 // Or a better path with this neighbor was previously traversed.
@@ -106,13 +104,8 @@ export abstract class Astar<TNode> {
                 // Save the new updated path cost guess.
                 lNodePathCostGuess.set(lNeighbor, lNeighborCostGuess);
 
-                // Add node when it does not exist any more.
-                if (!lOpenNodesSet.has(lNeighbor)) {
-                    lOpenNodesSet.add(lNeighbor);
-
-                    // Add node into open node list in order.
-                    this.insertNodeSorted(lOpenNodes, lNeighbor, lNodePathCostGuess);
-                }
+                // Add node to potential path nodes. Does not dublicate.
+                lOpenNodes.set(lNeighbor, lNeighborCostGuess);
             }
         }
 
@@ -147,10 +140,10 @@ export abstract class Astar<TNode> {
      */
     private insertNodeSorted(pTargetArray: Array<TNode>, pNode: TNode, pCostMapping: Map<TNode, number>): void {
         // Get nodes cost.
-        const lNodeCost: number = pCostMapping.get(pNode) ?? Number.MAX_SAFE_INTEGER;
+        const lNodeCost: number = pCostMapping.get(pNode) ?? Number.POSITIVE_INFINITY;
 
         const lCostOfIndex = (pIndex: number) => {
-            return pCostMapping.get(pTargetArray[pIndex]) ?? Number.MAX_SAFE_INTEGER;
+            return pCostMapping.get(pTargetArray[pIndex]) ?? Number.POSITIVE_INFINITY;
         };
 
         // Binary search sorted array for the target index.
@@ -277,7 +270,7 @@ export abstract class Astar<TNode> {
  * Runtime optimized version for list, searchable by the lowest value.
  */
 class AstarPriorityList<TNode> {
-    private readonly mExistingNode: Set<TNode>;
+    private readonly mExistingNodes: Map<TNode, number>;
     private readonly mList: Array<AstarPriorityListItem<TNode>>;
     private mLowestCost: number;
     private mLowestCostCounter: number;
@@ -289,28 +282,129 @@ class AstarPriorityList<TNode> {
         return this.mList.length;
     }
 
+    /**
+     * Constructor.
+     */
     public constructor() {
         this.mList = new Array<AstarPriorityListItem<TNode>>();
-        this.mExistingNode = new Set<TNode>();
+        this.mExistingNodes = new Map<TNode, number>();
 
         // Initialize lowest cost as with max value.
-        this.mLowestCost = Number.MAX_SAFE_INTEGER;
+        this.mLowestCost = Number.POSITIVE_INFINITY;
         this.mLowestCostCounter = 0;
     }
 
-    public add(pNode: TNode, pCost: number) {
-        // TODO: When node does exist, just update cost value.
-        // TODO: Update lowest cost when its lower. Increase mLowestCostCounter.
+    /**
+     * Add or update existing node with the specified cost.
+     * 
+     * @param pNode - Node. 
+     * @param pCost - Node cost.
+     */
+    public set(pNode: TNode, pCost: number): void {
+        // Update lowest cost.
+        if (pCost < this.mLowestCost) {
+            // Set lowest cost and reset counter.
+            this.mLowestCost = pCost;
+            this.mLowestCostCounter = 0;
+        }
+
+        // Increase counter when nodes cost is current lowest.
+        if (pCost === this.mLowestCost) {
+            this.mLowestCostCounter++;
+        }
+
+        // When node does exist, just update cost value.
+        if (this.mExistingNodes.has(pNode)) {
+            const lItemIndex: number = this.mExistingNodes.get(pNode)!;
+            this.mList[lItemIndex].cost = pCost;
+            return;
+        }
+
+        // Insert new item and store its index.
+        this.mList.push({
+            cost: pCost,
+            node: pNode
+        });
+        this.mExistingNodes.set(pNode, this.mList.length - 1);
     }
 
-    public getNext(): TNode {
-        // TODO: Reverse search list to the lowest cost.
-        // TODO: When cost counter is zero, search for the whole array for the lowest value, also count how many lowest values exist.
+    /**
+     * Pop off lowest cost item from list.
+     * 
+     * @returns the lowest cost item of the list.
+     */
+    public popLowest(): TNode {
+        // Validate priority list.
+        if (this.mList.length === 0) {
+            throw new Exception('Can not read next node from an empty priority list.', this);
+        }
 
-        // TODO: decrease mLowestCostCounter.
+        // Reverse search list to the lowest cost.
+        const [lLowestItem, lFoundLowestCostCounter] = (() => {
+            let lCurrentLowest: AstarPriorityListItem<TNode> | null = null;
+            let lCurrentLowestCount: number = 0;
 
-        // TODO: remove found value item from mList and mExistingNode.
-        // TODO: Return found value
+            for (let lItemIndex: number = this.mList.length - 1; lItemIndex > -1; lItemIndex--) {
+                // Read current item.
+                const lItem: AstarPriorityListItem<TNode> = this.mList[lItemIndex];
+
+                // When a list global lowest cost is set, return the first occurrence. 
+                if (this.mLowestCostCounter > 0 && lItem.cost === this.mLowestCost) {
+                    return [lItem, 0];
+                }
+
+                // Update lowest. Reset counting of lowest.
+                if (lCurrentLowest === null || lItem.cost < lCurrentLowest.cost) {
+                    lCurrentLowest = lItem;
+                    lCurrentLowestCount = 0;
+                }
+
+                // Count up item count with the same lowest cost.
+                if (lItem.cost === lCurrentLowest.cost) {
+                    lCurrentLowestCount++;
+                }
+            }
+
+            if (lCurrentLowest === null) {
+                throw new Exception('Lowest could not be found. Data is corrupted.', this);
+            }
+
+            return [lCurrentLowest, lCurrentLowestCount];
+        })();
+
+        // Update lowest cost. Cost can only be lower when no lowest cost was previously set.
+        if (lLowestItem.cost < this.mLowestCost) {
+            // Set lowest cost and reset counter.
+            this.mLowestCost = lLowestItem.cost;
+            this.mLowestCostCounter = lFoundLowestCostCounter;
+        }
+
+        // Decrease counter when nodes cost is current lowest.
+        if (lLowestItem.cost === this.mLowestCost) {
+            this.mLowestCostCounter--;
+        }
+
+        // Reset lowest cost.
+        if (this.mLowestCostCounter < 0) {
+            this.mLowestCost = Number.POSITIVE_INFINITY;
+            this.mLowestCostCounter = 0;
+        }
+
+        // Get index of item.
+        const lItemIndex: number = this.mExistingNodes.get(lLowestItem.node)!;
+
+        // Get top item index and item.
+        const lTopItemIndex: number = this.mList.length - 1;
+        const lTopItem: AstarPriorityListItem<TNode> = this.mList[lTopItemIndex];
+
+        // Switch with the top item.
+        this.mList[lTopItemIndex] = lLowestItem;
+        this.mList[lItemIndex] = lTopItem;
+        this.mExistingNodes.set(lTopItem.node, lItemIndex);
+
+        // Rmove found value item from mList and mExistingNode.
+        this.mExistingNodes.delete(lLowestItem.node);
+        return this.mList.pop()!.node;
     }
 }
 

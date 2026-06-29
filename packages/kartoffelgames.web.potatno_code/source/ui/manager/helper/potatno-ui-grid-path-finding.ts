@@ -15,7 +15,7 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
      */
     public constructor() {
         super();
-        
+
         // Initialize node area configurations.
         this.mGridNodeArea = new WeakMap<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridPathFindingNodeArea>();
 
@@ -94,52 +94,80 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
 
     /**
      * Calculate the cost of the traversal between two adjacent nodes.
-     * Cost is usually one, but can be different for each node.
+     * Cost starts with one and gets shaped with modifiers for the visual path.
      * 
      * @param pNode - Node the path wants to traverse.
      * @param pPathInformation - Path information that leads to the current node.
      */
     protected override costOfTraversal(pNode: PotatnoUiManagerGridPathFindingPoint, pPathInformation: AstarPathInformation<PotatnoUiManagerGridPathFindingPoint>): number {
-        // Start node allways has default cost. Ignore any node areas.
-        if (pNode === pPathInformation.startNode) {
-            return 1;
-        }
-
-        // End node is only viable when its comes from a direct x navigation.
-        if (pNode === pPathInformation.endNode) {
-            // Read previous node.
-            const lPreviousNode: PotatnoUiManagerGridPathFindingPoint | undefined = pPathInformation.path.next().value as PotatnoUiManagerGridPathFindingPoint | undefined;
-
-            // Discourage y movements.
-            if (lPreviousNode && lPreviousNode.y !== pNode.y) {
-                return 6;
-            }
-
-            return 1;
-        }
-
         // Convert node point into grid point.
         const lGridPoint: PotatnoUiManagerGridPathFindingNodeId = `${pNode.x}|${pNode.y}`;
 
-        // Never go inside node areas unless no other path can be used.
-        if (this.mNodeArea.has(lGridPoint)) {
-            // FYI: dont make it 1000. It kills the site when the user hovers over a node.
-            return 10;
+        let lCost: number = 1;
+
+        // Node bodies are hard barriers. Ports are handled above as the start or end node.
+        if (this.mNodeArea.has(lGridPoint) && pNode !== pPathInformation.endNode) {
+            lCost *= 20;
         }
 
-        // Preferr not to cross other paths.
+        // Existing path cells are allowed, but make crossing them more expensive than using a free lane.
         if (this.mPathArea.has(lGridPoint)) {
-            return 1.5;
+            lCost *= 1.5;
         }
 
-        // Default cost of each node.
-        return 1;
+        // Read previous path nodes once so all path-shaping stays in traversal cost.
+        const lPreviousNode: PotatnoUiManagerGridPathFindingPoint | undefined = pPathInformation.path.next().value as PotatnoUiManagerGridPathFindingPoint | undefined;
+        if (lPreviousNode) {
+            // End node can be inside a node area, but the connection should enter the port horizontally.
+            if (pNode === pPathInformation.endNode && lPreviousNode.y !== pNode.y) {
+                // Keep the final port entry horizontal instead of approaching the node from top or bottom.
+                lCost *= 6;
+            }
+
+            const lIsHorizontalMovement: boolean = pNode.y === lPreviousNode.y;
+
+            // Horizontal movement keeps the wire in predictable lanes, so vertical movement pays extra.
+            if (!lIsHorizontalMovement) {
+                lCost *= 1.5;
+            }
+
+            // The first step out of the start port should leave the node horizontally.
+            if (lPreviousNode === pPathInformation.startNode && !lIsHorizontalMovement) {
+                lCost *= 6;
+            }
+
+            // Continue in the same direction when possible to avoid unnecessary bends.
+            const lPreviousPreviousNode: PotatnoUiManagerGridPathFindingPoint | undefined = pPathInformation.path.next().value as PotatnoUiManagerGridPathFindingPoint | undefined;
+            if (lPreviousPreviousNode && (pNode.x === lPreviousPreviousNode.x || pNode.y === lPreviousPreviousNode.y)) {
+                lCost *= 0.9;
+            }
+        }
+
+        // Prefer the start y-lane before the midpoint and the end y-lane after the midpoint.
+        const lMiddleCoordinateX: number = (pPathInformation.endNode.x + pPathInformation.startNode.x) >> 1;
+        const lIsFirstHalf: boolean = (() => {
+            if (pPathInformation.startNode.x <= pPathInformation.endNode.x) {
+                return pNode.x < lMiddleCoordinateX;
+            }
+
+            return pNode.x > lMiddleCoordinateX;
+        })();
+        if (lIsFirstHalf && pNode.y === pPathInformation.startNode.y) {
+            lCost *= 0.5;
+        } else if (!lIsFirstHalf && pNode.y === pPathInformation.endNode.y) {
+            lCost *= 0.5;
+        }
+
+        if(pNode.x === lMiddleCoordinateX) {
+            lCost *= 0.5;
+        }
+
+        return lCost;
     }
 
     /**
      * Heuristic calculation.
-     * Priorize x movement.
-     * Try to stay on the y level of the start node on the first half and on the y level of the end node on the second.
+     * Only estimates remaining distance. Path-shaping costs live in {@link costOfTraversal}.
      * 
      * @param pNode - Current node where the heuristic should be calculated for.
      * @param pPathInformation - Path information that leads to the current node.
@@ -147,50 +175,10 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
      * @return cost of the path between the current and end node.
      */
     protected override heuristic(pNode: PotatnoUiManagerGridPathFindingPoint, pPathInformation: AstarPathInformation<PotatnoUiManagerGridPathFindingPoint>): number {
-        // Calculate additional navigation cost for each node.
-        let lNavigationCost = (() => {
-            // Set default navigation cost.
-            let lCost: number = 5;
+        const lWeighting: number = 1;
 
-            const lPrevious: PotatnoUiManagerGridPathFindingPoint | undefined = pPathInformation.path.next().value as PotatnoUiManagerGridPathFindingPoint | undefined;
-            if (lPrevious) {
-                // Comming from a start node, x navigation should by highly preferred.
-                if (lPrevious === pPathInformation.startNode && (pNode.y !== lPrevious.y || pNode.x !== (lPrevious.x + 1))) {
-                    lCost *= 6;
-                }
-
-                // TODO: Maybe more?
-            }
-
-            // Read pre previous node, mainly to detect curves. Preferr steight paths. Discouraging curves.
-            const lPreviousPrevious: PotatnoUiManagerGridPathFindingPoint | undefined = pPathInformation.path.next().value as PotatnoUiManagerGridPathFindingPoint | undefined;
-            if (lPreviousPrevious && (pNode.x === lPreviousPrevious.x || pNode.y === lPreviousPrevious.y)) {
-                lCost *= 0.8;
-            }
-
-            // Calculate the middle point x between the start and end node.
-            const lMiddleCoordinateX = (pPathInformation.endNode.x + pPathInformation.startNode.x) >> 1;
-
-            // Prefer middle paths.
-            if (pNode.x !== lMiddleCoordinateX) {
-                lCost *= 0.1;
-            }
-
-            return lCost;
-        })();
-
-
-        // Culculate the distance to the end point.
-        let lPathDistance: number = Math.abs(pNode.x - pPathInformation.endNode.x) + Math.abs(pNode.y - pPathInformation.endNode.y);
-
-        // Add the navigation cost to the path cost and use it as a rougth path cost.
-        lPathDistance += lNavigationCost;
-
-        // Add weighing. That speeds up path finding but reduces accuracy.
-        lPathDistance *= 5;
-
-        // Add the navigation cost to the path cost and use it as a rougth path cost.
-        return lPathDistance;
+        // Calculate plain Manhattan distance so the heuristic does not predict preferred path shapes.
+        return (Math.abs(pNode.x - pPathInformation.endNode.x) + Math.abs(pNode.y - pPathInformation.endNode.y)) * lWeighting;
     }
 
     /**

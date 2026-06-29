@@ -1,10 +1,3 @@
-import { Exception } from '@kartoffelgames/core';
-import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
-import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
-import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import { PotatnoCanvasInteraction } from '../../potatno-canvas-interaction.ts';
-import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager, type PotatnoUiManagerChangeEvent } from '../potatno-ui-manager.ts';
-import { type PotatnoUiManagerGridPathFindingPoint, PotatnoUiGridPathFinding } from '../helper/potatno-ui-grid-path-finding.ts';
 
 /**
  * Ui manager grid component.
@@ -12,11 +5,12 @@ import { type PotatnoUiManagerGridPathFindingPoint, PotatnoUiGridPathFinding } f
  */
 export class PotatnoUiManagerGrid {
     private static readonly GRID_SIZE: number = 25;
+    private static readonly MAX_ZOOM: number = 2.0;
+    private static readonly MIN_ZOOM: number = 0.25;
 
-    private mGridElement: Element | null;
-    private readonly mInteraction: PotatnoCanvasInteraction;
-    private readonly mManager: PotatnoUiManager;
-    private readonly mPathFinder: PotatnoUiGridPathFinding;
+    private mPanX: number;
+    private mPanY: number;
+    private mZoom: number;
 
     /**
      * Grid size in pixels.
@@ -26,271 +20,137 @@ export class PotatnoUiManagerGrid {
     }
 
     /**
-     * Set only grid element.
-     * Used to position by pixel space.
+     * Horizontal pan offset in pixels.
      */
-    public set gridElement(pGridElement: Element) {
-        this.mGridElement = pGridElement;
+    public get panX(): number {
+        return this.mPanX;
     }
 
     /**
-     * Shared canvas pan and zoom interaction state.
+     * Vertical pan offset in pixels.
      */
-    public get interaction(): PotatnoCanvasInteraction {
-        return this.mInteraction;
+    public get panY(): number {
+        return this.mPanY;
+    }
+
+    /**
+     * Current zoom level.
+     */
+    public get zoom(): number {
+        return this.mZoom;
     }
 
     /**
      * Constructor.
-     * 
-     * @param pManager - Parents ui manager.
+     *
+     * @param pGridSize - Grid size in pixels.
      */
-    public constructor(pManager: PotatnoUiManager) {
-        this.mManager = pManager;
-        this.mInteraction = new PotatnoCanvasInteraction(PotatnoUiManagerGrid.GRID_SIZE);
-        this.mGridElement = null;
-        this.mPathFinder = new PotatnoUiGridPathFinding();
-
-        // Register node transformation change event.
-        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.NodeTransform | PotatnoCodeUiManagerChangeType.NodeAdd | PotatnoCodeUiManagerChangeType.NodeDelete | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, null, (pEvent: PotatnoUiManagerChangeEvent) => {
-            // Update ever node when document is set.
-            if ((pEvent.changeType & PotatnoCodeUiManagerChangeType.SpecialActiveFunction) > 0) {
-                // Can only be processed with a active function.
-                if (!this.mManager.activeFunction) {
-                    return;
-                }
-
-                // Update every node.
-                for (const lNode of this.mManager.activeFunction.nodes) {
-                    this.mPathFinder.updateNodeArea(lNode);
-                }
-
-                return;
-            }
-
-            // When node is deleted, only delete it.
-            const lDeleteNode: boolean = (pEvent.changeType & PotatnoCodeUiManagerChangeType.NodeDelete) > 0;
-
-            // Update grid node area.
-            if (lDeleteNode) {
-                this.mPathFinder.removeNodeArea(pEvent.item as PotatnoDocumentNode<PotatnoProjectTypesDefinition>);
-            } else {
-                this.mPathFinder.updateNodeArea(pEvent.item as PotatnoDocumentNode<PotatnoProjectTypesDefinition>);
-            }
-        });
+    public constructor() {
+        this.mPanX = 0;
+        this.mPanY = 0;
+        this.mZoom = 1.0;
     }
 
     /**
-     * Create an orthogonal grid-routed SVG path between two grid cells.
+     * Get a CSS background style string that renders the grid pattern.
+     * The grid accounts for the current pan and zoom values.
      *
-     * @param pStart - Start position or port of connection path.
-     * @param pEnd - End  position or port of connection path.
-     *
-     * @returns SVG path data.
+     * @returns CSS background property value for the grid pattern.
      */
-    public createConnectionPath(pStart: PotatnoUiManagerGridPathFindingPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEnd: PotatnoUiManagerGridPathFindingPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>): string {
-        // Convert entry items to grid points.
-        const lItemToPoint = (pItem: PotatnoUiManagerGridPathFindingPoint | PotatnoDocumentPort<PotatnoProjectTypesDefinition>) => {
-            if (pItem instanceof PotatnoDocumentPort) {
-                return this.getPortGridPoint(pItem);
-            }
+    public getGridBackgroundCss(): string {
+        const lScaledGrid: number = PotatnoUiManagerGrid.GRID_SIZE * this.mZoom;
+        const lOffsetX: number = this.mPanX % lScaledGrid;
+        const lOffsetY: number = this.mPanY % lScaledGrid;
 
-            return pItem;
-        };
+        const lPlusGridSvg: string = '%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 viewBox%3D%220 0 100 100%22%3E%3Cpath d%3D%22M0 0h18M0 0v18M100 0H82M100 0v18M0 100h18M0 100V82M100 100H82M100 100V82%22 stroke%3D%22%23313244%22 stroke-width%3D%225%22 stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E';
 
-        // Convert both points into a restricting values.
-        const lStart: PotatnoUiManagerGridPathFindingPoint = lItemToPoint(pStart);
-        const lEnd: PotatnoUiManagerGridPathFindingPoint = lItemToPoint(pEnd);
-
-        // Execute path finding.
-        const lGridPath: Array<PotatnoUiManagerGridPathFindingPoint> = this.mPathFinder.start(lStart, lEnd).path;
-
-        return this.createSvgPath(lGridPath);
+        return [
+            `background-size: ${lScaledGrid}px ${lScaledGrid}px`,
+            `background-position: ${lOffsetX}px ${lOffsetY}px`,
+            `background-image: url("data:image/svg+xml,${lPlusGridSvg}")`
+        ].join('; ');
     }
 
     /**
-     * Calculate the port anchor grid cell.
+     * Get a CSS transform string representing the current pan and zoom state.
+     * Intended for use on the grid/content container.
      *
-     * @param pPort - Port whose anchor should be located.
-     *
-     * @returns Grid cell for the port.
+     * @returns CSS transform value string.
      */
-    public getPortGridPoint(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): PotatnoUiManagerGridPathFindingPoint {
-        // Read node of port.
-        const lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = pPort.node;
+    public getTransformCss(): string {
+        return `translate(${this.mPanX}px, ${this.mPanY}px) scale(${this.mZoom})`;
+    }
 
-        // Dependent on port direction, either read input or output port list from node.
-        const lNodePortList: ReadonlyArray<PotatnoDocumentPort<PotatnoProjectTypesDefinition>> = (() => {
-            if (pPort.direction === 'input') {
-                return lNode.inputs.list;
-            }
+    /**
+     * Update pan offset by the given deltas.
+     *
+     * @param pDeltaX - Horizontal delta in screen pixels.
+     * @param pDeltaY - Vertical delta in screen pixels.
+     */
+    public pan(pDeltaX: number, pDeltaY: number): void {
+        this.mPanX += pDeltaX;
+        this.mPanY += pDeltaY;
+    }
 
-            return lNode.outputs.list;
-        })();
-
-        // Find index of port in the node port list.
-        const lPortIndex: number = (() => {
-            // Count index until found, or port is not found i guess.
-            let lIndex: number = 0;
-            for (; lIndex < lNodePortList.length; lIndex++) {
-                if (lNodePortList[lIndex] === pPort) {
-                    break;
-                }
-            }
-
-            return lIndex;
-        })();
-
-        // Get the X coordinate based on the node and port direction.
-        const lPointX: number = (() => {
-            if (pPort.direction === 'input') {
-                return lNode.transformation.x;
-            }
-
-            // Move x coorinate to right side of node, if its an output. 
-            return lNode.transformation.x + lNode.transformation.width - 1;
-        })();
-
+    /**
+     * Convert screen coordinates to world coordinates by reversing the
+     * pan and zoom transforms.
+     *
+     * @param pScreenX - X position in screen pixels.
+     * @param pScreenY - Y position in screen pixels.
+     *
+     * @returns World coordinates.
+     */
+    public screenToWorld(pScreenX: number, pScreenY: number): { x: number; y: number; } {
         return {
-            // Nodes ports start after the 1 height header. 
-            y: lNode.transformation.y + 1 + lPortIndex,
-
-            x: lPointX
+            x: (pScreenX - this.mPanX) / this.mZoom,
+            y: (pScreenY - this.mPanY) / this.mZoom
         };
     }
 
     /**
-     * Convert pixel coordinates to grid space.
+     * Snap the given world coordinates to the nearest grid point.
      *
-     * @param pX - Pixel x coordinate.
-     * @param pY - Pixel y coordinate.
+     * @param pWorldX - X position in world coordinates.
+     * @param pWorldY - Y position in world coordinates.
      *
-     * @returns Grid point.
+     * @returns Snapped world coordinates.
      */
-    public pixelToGridSpace(pX: number, pY: number): PotatnoUiManagerGridPathFindingPoint {
-        let lPointX: number = pX;
-        let lPointY: number = pY;
-
-        // Move the pixel point related to the grid element.
-        if (this.mGridElement) {
-            const lGridPosition: DOMRect = this.mGridElement.getBoundingClientRect();
-            lPointX -= lGridPosition.left;
-            lPointY -= lGridPosition.top;
-        }
-
-        // Move by panning.
-        lPointX -= this.mInteraction.panX;
-        lPointY -= this.mInteraction.panY;
-
-        lPointX /= this.mInteraction.zoom;
-        lPointY /= this.mInteraction.zoom;
-
+    public snapToGrid(pWorldX: number, pWorldY: number): { x: number; y: number; } {
         return {
-            x: Math.floor(lPointX / this.gridSize),
-            y: Math.floor(lPointY / this.gridSize)
+            x: Math.round(pWorldX / PotatnoUiManagerGrid.GRID_SIZE) * PotatnoUiManagerGrid.GRID_SIZE,
+            y: Math.round(pWorldY / PotatnoUiManagerGrid.GRID_SIZE) * PotatnoUiManagerGrid.GRID_SIZE
         };
     }
 
     /**
-     * Get the absolute grid pixel position of a point and the direction.
-     * 
-     * @param pPoint - Grid point.
-     * @param pOrientation - Orientation in the grid cell.
-     * 
-     * @returns the pixel point of the grid point. 
+     * Zoom toward or away from a specific screen position.
+     * The zoom is clamped between MIN_ZOOM and MAX_ZOOM.
+     * The pan is adjusted so that the point under the mouse stays fixed.
+     *
+     * @param pScreenX - X position of the zoom focus in screen pixels.
+     * @param pScreenY - Y position of the zoom focus in screen pixels.
+     * @param pDelta - Zoom delta. Negative values zoom in, positive zoom out.
      */
-    private getGridPosition(pPoint: PotatnoUiManagerGridPathFindingPoint, pOrientation: PotatnoUiManagerGridDirection): PotatnoUiManagerGridPixelPoint {
-        // Create middle point.
-        const lPoint: PotatnoUiManagerGridPixelPoint = {
-            x: pPoint.x * this.gridSize + this.gridSize / 2,
-            y: pPoint.y * this.gridSize + this.gridSize / 2
-        };
+    public zoomAt(pScreenX: number, pScreenY: number, pDelta: number): void {
+        const lOldZoom: number = this.mZoom;
 
-        // Calculate half grid length.
-        const lHalfLength: number = this.gridSize / 2;
+        // Compute the zoom factor from the scroll delta.
+        const lZoomFactor: number = 1 + pDelta;
+        let lNewZoom: number = this.mZoom * lZoomFactor;
 
-        // Move point toward orientation.
-        switch (pOrientation) {
-            case 'top': lPoint.y -= lHalfLength; break;
-            case 'right': lPoint.x += lHalfLength; break;
-            case 'bottom': lPoint.y += lHalfLength; break;
-            case 'left': lPoint.x -= lHalfLength; break;
-        }
+        // Clamp to allowed range.
+        lNewZoom = Math.max(PotatnoUiManagerGrid.MIN_ZOOM, Math.min(PotatnoUiManagerGrid.MAX_ZOOM, lNewZoom));
 
-        return lPoint;
-    }
+        // Compute the world point under the mouse before zoom.
+        const lWorldX: number = (pScreenX - this.mPanX) / lOldZoom;
+        const lWorldY: number = (pScreenY - this.mPanY) / lOldZoom;
 
-    /**
-     * Create path svg by the given path.
-     * This function assumes that previous and next path points of the current are a direct neighbors.
-     *  
-     * @param pPath - Grid point array representing a path.
-     * 
-     * @returns a svg path string. 
-     */
-    private createSvgPath(pPath: Array<PotatnoUiManagerGridPathFindingPoint>): string {
-        // Get point direction from origin and target points.
-        const lPointDirection = (pOriginPoint: PotatnoUiManagerGridPathFindingPoint, pTargetPoint: PotatnoUiManagerGridPathFindingPoint): PotatnoUiManagerGridDirection => {
-            const lDistanceX = pTargetPoint.x - pOriginPoint.x;
-            const lDistanceY = pTargetPoint.y - pOriginPoint.y;
+        // Update zoom.
+        this.mZoom = lNewZoom;
 
-            switch (true) {
-                case lDistanceX === 0 && lDistanceY === 1: return 'bottom';
-                case lDistanceX === 0 && lDistanceY === -1: return 'top';
-                case lDistanceX === -1 && lDistanceY === 0: return 'left';
-                case lDistanceX === 1 && lDistanceY === 0: return 'right';
-                default: throw new Exception('Missformed path. Path points are not directly next to each other.', this);
-            }
-        };
-
-        let lPath: string = '';
-
-        // Recursivly create path. The first and last path is not rendered but used to guide the paths direction.
-        for (let lPathIndex: number = 1; lPathIndex < (pPath.length - 1); lPathIndex++) {
-            const lPathPoint: PotatnoUiManagerGridPathFindingPoint = pPath[lPathIndex];
-
-            // Get previous and next point.
-            const lPreviousPoint: PotatnoUiManagerGridPathFindingPoint = pPath[lPathIndex - 1];
-            const lNextPoint: PotatnoUiManagerGridPathFindingPoint = pPath[lPathIndex + 1];
-
-            // Create directions for previous and next point.
-            const lFromDirection: PotatnoUiManagerGridDirection = lPointDirection(lPathPoint, lPreviousPoint);
-            const lToDirection: PotatnoUiManagerGridDirection = lPointDirection(lPathPoint, lNextPoint);
-
-            // And then draw everything.
-            lPath += this.createGridCellPath(lPathPoint, lFromDirection, lToDirection);
-        }
-
-        return lPath;
-    }
-
-    /**
-     * Draw a curved line for a grid point.
-     * 
-     * @param pPoint 
-     * @param pDirection 
-     */
-    private createGridCellPath(pPoint: PotatnoUiManagerGridPathFindingPoint, pFromDirection: PotatnoUiManagerGridDirection, pToDirection: PotatnoUiManagerGridDirection) {
-        // Create end and start points.
-        const lStartPoint: PotatnoUiManagerGridPixelPoint = this.getGridPosition(pPoint, pFromDirection);
-        const lEndPoint: PotatnoUiManagerGridPixelPoint = this.getGridPosition(pPoint, pToDirection);
-
-        // Create a bezier control point by using the x of start and y of end.
-        // When its a straight line, the control point does nothing. 
-        const lControlPoint: PotatnoUiManagerGridPixelPoint = {
-            x: pFromDirection === 'bottom' || pFromDirection === 'top' ? lStartPoint.x : lEndPoint.x,
-            y: pFromDirection === 'left' || pFromDirection === 'right' ? lStartPoint.y : lEndPoint.y,
-        };
-
-        // Create a path between two points with a bezier curve.
-        // Move to start point. Draw to endpoint. And use the control point.
-        return `M ${lStartPoint.x},${lStartPoint.y} Q ${lControlPoint.x},${lControlPoint.y} ${lEndPoint.x},${lEndPoint.y}`;
+        // Adjust pan so that the world point remains under the same screen position.
+        this.mPanX = pScreenX - lWorldX * this.mZoom;
+        this.mPanY = pScreenY - lWorldY * this.mZoom;
     }
 }
-
-type PotatnoUiManagerGridDirection = 'top' | 'right' | 'bottom' | 'left';
-
-type PotatnoUiManagerGridPixelPoint = {
-    x: number;
-    y: number;
-};

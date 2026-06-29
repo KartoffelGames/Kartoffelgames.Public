@@ -4,10 +4,10 @@ import { Component, PwbChild, PwbComponent, PwbExport, type IComponentOnConnect,
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPortDefinitionDirection } from '../../../project/potatno-port-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import type { GridPoint } from '../../manager/manager_component/potatno-ui-manager-grid.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import portCss from './potatno-port.css' with { type: 'text' };
 import portTemplate from './potatno-port.html' with { type: 'text' };
+import { PotatnoUiManagerGridPathFindingPoint } from "../../manager/helper/potatno-ui-grid-path-finding.ts";
 
 /**
  * Port component for the potatno-code visual editor.
@@ -341,7 +341,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         pEvent.dataTransfer.setDragImage(document.createElement('div'), 0, 0);
 
         // Get port position of dragged port.
-        const lPortPosition = this.mManager.grid.getPortGridPoint(this.port!);
+        const lPortPosition = this.mManager.connections.getPortGridPoint(this.port!);
 
         // Adjust port position by offsetting one cell to the right for input ports.
         // Thats because the svg is left aligned in the input port. For output port that is correct as the svg is right aligned.
@@ -450,9 +450,9 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         }
 
         // Convert viewport coordinates into this port's grid-local coordinates.
-        const lEnd: GridPoint = this.mManager.grid.pixelToGridSpace(pClientX, pClientY);
+        const lEnd: PotatnoUiManagerGridPathFindingPoint = this.mManager.connections.pixelToGridSpace(pClientX, pClientY);
 
-        return this.mManager.grid.createConnectionPath(this.port, lEnd);
+        return this.mManager.connections.createTemporaryPath(this.port, lEnd);
     }
 
     /**
@@ -475,7 +475,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         }
 
         // Only update when actual grid position has changed.
-        const lPointerPosition: GridPoint = this.mManager.grid.pixelToGridSpace(pClientX, pClientY);
+        const lPointerPosition: PotatnoUiManagerGridPathFindingPoint = this.mManager.connections.pixelToGridSpace(pClientX, pClientY);
         if(lPointerPosition.x === PotatnoPortComponent.mDraggedPortInformation.lastPointerGridPosition.x && lPointerPosition.y === PotatnoPortComponent.mDraggedPortInformation.lastPointerGridPosition.y) {
             return;
         }
@@ -485,7 +485,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         PotatnoPortComponent.mDraggedPortInformation.lastPointerGridPosition.y = lPointerPosition.y;
 
         // Calculate offset to grids [0, 0] point.
-        const lPortPosition: GridPoint = PotatnoPortComponent.mDraggedPortInformation.portPosition;
+        const lPortPosition: PotatnoUiManagerGridPathFindingPoint = PotatnoPortComponent.mDraggedPortInformation.portPosition;
         const lPortX: number = lPortPosition.x * this.mManager.grid.gridSize;
         const lPortY: number = lPortPosition.y * this.mManager.grid.gridSize;
 
@@ -509,6 +509,6 @@ type PotatnoPortComponentGlobalDragoverHandler = (pEvent: DragEvent) => void;
 
 type PotatnoPortComponentDragPortInformation = {
     port: PotatnoDocumentPort<PotatnoProjectTypesDefinition>;
-    portPosition: GridPoint;
-    lastPointerGridPosition: GridPoint;
+    portPosition: PotatnoUiManagerGridPathFindingPoint;
+    lastPointerGridPosition: PotatnoUiManagerGridPathFindingPoint;
 };

@@ -102,7 +102,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      */
     public get gridBackgroundStyle(): string {
         void this.mTransformVersion;
-        return this.mManager.grid.interaction.getGridBackgroundCss();
+        return this.mManager.grid.getGridBackgroundCss();
     }
 
     /**
@@ -110,7 +110,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      */
     public get gridTransformStyle(): string {
         void this.mTransformVersion;
-        return 'transform: ' + this.mManager.grid.interaction.getTransformCss();
+        return 'transform: ' + this.mManager.grid.getTransformCss();
     }
 
     /**
@@ -169,7 +169,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      */
     public onConnect(): void {
         // Set this element as main grid element.
-        this.mManager.grid.gridElement = this.mComponent.element;
+        this.mManager.connections.gridElement = this.mComponent.element;
 
         this.mKeyboardHandler = (pEvent: KeyboardEvent) => this.onKeyDown(pEvent);
         document.addEventListener('keydown', this.mKeyboardHandler);
@@ -248,7 +248,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     public onCanvasWheel(pEvent: WheelEvent): void {
         pEvent.preventDefault();
         const lLocalPosition: Point = this.getLocalPointerPosition(pEvent.clientX, pEvent.clientY);
-        this.mManager.grid.interaction.zoomAt(
+        this.mManager.grid.zoomAt(
             lLocalPosition.x,
             lLocalPosition.y,
             pEvent.deltaY > 0 ? -0.1 : 0.1
@@ -373,7 +373,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         const lState: GraphInteractionState = this.mInteractionState;
 
         if (lState.mode === 'panning') {
-            this.mManager.grid.interaction.pan(pEvent.clientX - lState.startX, pEvent.clientY - lState.startY);
+            this.mManager.grid.pan(pEvent.clientX - lState.startX, pEvent.clientY - lState.startY);
             lState.startX = pEvent.clientX;
             lState.startY = pEvent.clientY;
             this.mTransformVersion++;
@@ -400,8 +400,8 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
 
         if (lState.mode === 'resizing-comment') {
             const lGridSize: number = this.mManager.grid.gridSize;
-            const lDx: number = (pEvent.clientX - lState.startX) / this.mManager.grid.interaction.zoom;
-            const lDy: number = (pEvent.clientY - lState.startY) / this.mManager.grid.interaction.zoom;
+            const lDx: number = (pEvent.clientX - lState.startX) / this.mManager.grid.zoom;
+            const lDy: number = (pEvent.clientY - lState.startY) / this.mManager.grid.zoom;
 
             // Resize through the manager so the change is announced and the connection layer redraws.
             this.mManager.graph.transformNode(lState.node, {
@@ -548,14 +548,14 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * @param pState - Active node drag state.
      */
     private dragSelectedNodes(pEvent: PointerEvent, pState: Extract<GraphInteractionState, { mode: 'dragging-node'; }>): void {
-        const lZoom: number = this.mManager.grid.interaction.zoom;
+        const lZoom: number = this.mManager.grid.zoom;
         const lGridSize: number = this.mManager.grid.gridSize;
         const lDx: number = (pEvent.clientX - pState.startX) / lZoom;
         const lDy: number = (pEvent.clientY - pState.startY) / lZoom;
 
         // Move each dragged node through the manager so the connection layer redraws its wires to follow.
         for (const [lNode, lOrigin] of pState.origins) {
-            const lSnapped: Point = this.mManager.grid.interaction.snapToGrid(lOrigin.originX + lDx, lOrigin.originY + lDy);
+            const lSnapped: Point = this.mManager.grid.snapToGrid(lOrigin.originX + lDx, lOrigin.originY + lDy);
             this.mManager.graph.transformNode(lNode, { x: Math.round(lSnapped.x / lGridSize), y: Math.round(lSnapped.y / lGridSize) });
         }
 
@@ -637,7 +637,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         }
 
         const lGridSize: number = this.mManager.grid.gridSize;
-        const lSnappedPosition: Point = this.mManager.grid.interaction.snapToGrid(pWorldPosition.x, pWorldPosition.y);
+        const lSnappedPosition: Point = this.mManager.grid.snapToGrid(pWorldPosition.x, pWorldPosition.y);
         const lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = this.mManager.graph.addNode(this.mManager.activeFunction, pDefinition, {
             height: 4,
             width: 10,
@@ -685,7 +685,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     private openAddNodePopupAtPointer(pClientX: number, pClientY: number): void {
         const lWrapper: HTMLElement | null = this.getCanvasWrapperOrNull();
         const lLocalPosition: Point = this.getLocalPointerPosition(pClientX, pClientY);
-        const lWorldPosition: Point = this.mManager.grid.interaction.screenToWorld(lLocalPosition.x, lLocalPosition.y);
+        const lWorldPosition: Point = this.mManager.grid.screenToWorld(lLocalPosition.x, lLocalPosition.y);
         const lPopupWidth: number = 280;
         const lPopupHeight: number = 320;
         const lMaxX: number = Math.max(0, (lWrapper?.clientWidth ?? lPopupWidth) - lPopupWidth - 8);
@@ -780,11 +780,11 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             return;
         }
 
-        const lTopLeft: Point = this.mManager.grid.interaction.screenToWorld(
+        const lTopLeft: Point = this.mManager.grid.screenToWorld(
             Math.min(this.mSelectionBoxScreen.x1, this.mSelectionBoxScreen.x2),
             Math.min(this.mSelectionBoxScreen.y1, this.mSelectionBoxScreen.y2)
         );
-        const lBottomRight: Point = this.mManager.grid.interaction.screenToWorld(
+        const lBottomRight: Point = this.mManager.grid.screenToWorld(
             Math.max(this.mSelectionBoxScreen.x1, this.mSelectionBoxScreen.x2),
             Math.max(this.mSelectionBoxScreen.y1, this.mSelectionBoxScreen.y2)
         );

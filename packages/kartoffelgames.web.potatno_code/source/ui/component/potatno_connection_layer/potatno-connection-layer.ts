@@ -4,7 +4,6 @@ import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import type { GridPoint } from '../../manager/manager_component/potatno-ui-manager-grid.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import connectionLayerCss from './potatno-connection-layer.css' with { type: 'text' };
 import connectionLayerTemplate from './potatno-connection-layer.html' with { type: 'text' };
@@ -186,7 +185,7 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
      * @param pValid - Whether the connection is valid.
      */
     private renderConnectionPath(pSvg: SVGSVGElement, pId: string, pSourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pTargetPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pValid: boolean): void {
-        const lPathData: string = this.mManager.grid.createConnectionPath(pSourcePort, pTargetPort);
+        const lPathData: string = this.mManager.connections.createTemporaryPath(pSourcePort, pTargetPort);
 
         const lHitPath: SVGPathElement = document.createElementNS(gSvgNamespace, 'path') as SVGPathElement;
         lHitPath.setAttribute('d', lPathData);

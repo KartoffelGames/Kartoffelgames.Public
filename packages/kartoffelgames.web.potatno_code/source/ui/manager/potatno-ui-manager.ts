@@ -9,8 +9,9 @@ import { type PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from
 import type { PotatnoProjectTypesDefinition } from '../../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../../project/potatno-project.ts';
 import { PotatnoUiManagerClipboard } from './manager_component/potatno-ui-manager-clipboard.ts';
-import { PotatnoUiManagerGrid } from './manager_component/potatno-ui-manager-grid.ts';
+import { PotatnoUiManagerConnections } from './manager_component/potatno-ui-manager-connections.ts';
 import { PotatnoUiManagerGraph } from './manager_component/potatno-ui-manager-graph.ts';
+import { PotatnoUiManagerGrid } from "./manager_component/potatno-ui-manager-grid.ts";
 import { PotatnoUiManagerHistory } from './manager_component/potatno-ui-manager-history.ts';
 import { PotatnoUiManagerIntegrity } from './manager_component/potatno-ui-manager-integrity.ts';
 import { PotatnoUiManagerPreview } from './manager_component/potatno-ui-manager-preview.ts';
@@ -35,6 +36,7 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
     private readonly mClipboard: PotatnoUiManagerClipboard;
     private readonly mEventBuffer: Map<PotatnoUiManagerChangeEventTarget | null, PotatnoCodeUiManagerChangeType>;
     private readonly mGraph: PotatnoUiManagerGraph;
+    private readonly mConnections: PotatnoUiManagerConnections;
     private readonly mGrid: PotatnoUiManagerGrid;
     private readonly mHistory: PotatnoUiManagerHistory;
     private readonly mIntegrity: PotatnoUiManagerIntegrity;
@@ -55,6 +57,13 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
      */
     public get grid(): PotatnoUiManagerGrid {
         return this.mGrid;
+    }
+
+    /**
+     * UI manager connections component.
+     */
+    public get connections(): PotatnoUiManagerConnections {
+        return this.mConnections;
     }
 
     /**
@@ -127,10 +136,11 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
         // Create manager components.
         this.mClipboard = new PotatnoUiManagerClipboard(this);
         this.mIntegrity = new PotatnoUiManagerIntegrity(this);
-        this.mGrid = new PotatnoUiManagerGrid(this);
+        this.mConnections = new PotatnoUiManagerConnections(this);
         this.mGraph = new PotatnoUiManagerGraph(this);
         this.mHistory = new PotatnoUiManagerHistory(this);
         this.mPreview = new PotatnoUiManagerPreview(this);
+        this.mGrid = new PotatnoUiManagerGrid();
 
         this.mActiveFunctionId = '';
         this.mProject = null;

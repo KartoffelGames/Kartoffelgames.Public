@@ -24,6 +24,11 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
         this.mPathArea = new Map<PotatnoUiManagerGridPathFindingNodeId, number>();
     }
 
+    public clear(): void {
+        this.mNodeArea.clear();
+        this.mPathArea.clear();
+    }
+
     /**
      * Remove any node area from path finding.
      * 
@@ -158,7 +163,7 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
             lCost *= 0.5;
         }
 
-        if(pNode.x === lMiddleCoordinateX) {
+        if (pNode.x === lMiddleCoordinateX) {
             lCost *= 0.5;
         }
 
@@ -175,7 +180,7 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
      * @return cost of the path between the current and end node.
      */
     protected override heuristic(pNode: PotatnoUiManagerGridPathFindingPoint, pPathInformation: AstarPathInformation<PotatnoUiManagerGridPathFindingPoint>): number {
-        const lWeighting: number = 1;
+        const lWeighting: number = 5;
 
         // Calculate plain Manhattan distance so the heuristic does not predict preferred path shapes.
         return (Math.abs(pNode.x - pPathInformation.endNode.x) + Math.abs(pNode.y - pPathInformation.endNode.y)) * lWeighting;

@@ -68,7 +68,6 @@
     --pn-node-port-body-size: 9px;
     --pn-node-port-gap: var(--pn-grid-size);
     --pn-node-port-tip-size: 5px;
-    --pn-node-border-radius: 6px;
 
     /* Font */
     --pn-font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;

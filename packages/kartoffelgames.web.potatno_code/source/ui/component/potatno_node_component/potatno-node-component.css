@@ -4,6 +4,8 @@
     width: 100%;
     font-family: var(--pn-font-family);
     font-size: var(--pn-font-size);
+
+    --node-border-radius: 2px;
 }
 
 /* ── Standard node container ── */
@@ -15,7 +17,7 @@
     min-height: 100%;
     background: var(--potatno-color-background);
     
-    border-radius: var(--pn-node-border-radius);
+    border-radius: var(--node-border-radius);
     box-shadow: 0 2px 8px var(--pn-node-shadow);
     overflow: visible;
     user-select: none;
@@ -44,7 +46,7 @@
     height: var(--pn-node-header-height);
     padding: 0 var(--pn-grid-size);
     gap: var(--pn-grid-half-size);
-    border-radius: var(--pn-node-border-radius) var(--pn-node-border-radius) 0 0;
+    border-radius: var(--node-border-radius) var(--node-border-radius) 0 0;
     color: #fff;
     font-weight: 600;
     font-size: var(--pn-node-font-size);
@@ -240,7 +242,7 @@
     height: 100%;
     background: rgba(108, 112, 134, 0.1);
     border: 1px dashed var(--pn-cat-comment);
-    border-radius: var(--pn-node-border-radius);
+    border-radius: var(--node-border-radius);
     min-width: 120px;
     min-height: 60px;
     position: relative;

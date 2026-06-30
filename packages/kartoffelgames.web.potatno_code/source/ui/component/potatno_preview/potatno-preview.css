@@ -12,7 +12,6 @@
     min-height: 150px;
     background: var(--pn-bg-secondary);
     border: 1px solid var(--pn-border-default);
-    border-radius: var(--pn-node-border-radius);
     box-shadow: 0 4px 12px var(--pn-node-shadow);
     overflow: hidden;
 }
@@ -71,7 +70,6 @@
     font-family: var(--pn-font-family);
     font-size: var(--pn-font-size-sm);
     padding: 2px 8px;
-    border-radius: var(--pn-node-border-radius);
     cursor: pointer;
     white-space: nowrap;
 }

@@ -1,14 +1,16 @@
-import { Astar, type AstarPathInformation } from '@kartoffelgames/core';
+import { Astar, Exception, type AstarPathInformation } from '@kartoffelgames/core';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
+import { PotatnoDocumentPort } from "../../../document/potatno-document-port.ts";
 
 /**
  * A* path finding for grid connections.
  */
 export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFindingPoint> {
-    private readonly mGridNodeArea: WeakMap<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridPathFindingNodeArea>;
+    private readonly mGridNodeArea: WeakMap<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, Array<PotatnoUiManagerGridPathFindingNodeId>>;
     private readonly mNodeArea: Map<PotatnoUiManagerGridPathFindingNodeId, number>;
-    private readonly mPathArea: Map<PotatnoUiManagerGridPathFindingNodeId, number>;
+    private readonly mGridPaths: WeakMap<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, Array<PotatnoUiManagerGridPathFindingNodeId>>;
+    private readonly mPathArea: Map<PotatnoUiManagerGridPathFindingNodeId, PotatnoUiManagerGridPathFindingPathAreaCell>;
 
     /**
      * Constructor.
@@ -17,13 +19,16 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
         super();
 
         // Initialize node area configurations.
-        this.mGridNodeArea = new WeakMap<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridPathFindingNodeArea>();
-
-        // Different node areas and their count of how many entities are present.
+        this.mGridNodeArea = new WeakMap<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, Array<PotatnoUiManagerGridPathFindingNodeId>>();
         this.mNodeArea = new Map<PotatnoUiManagerGridPathFindingNodeId, number>();
-        this.mPathArea = new Map<PotatnoUiManagerGridPathFindingNodeId, number>();
+
+        this.mGridPaths = new WeakMap<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, Array<PotatnoUiManagerGridPathFindingNodeId>>;
+        this.mPathArea = new Map<PotatnoUiManagerGridPathFindingNodeId, PotatnoUiManagerGridPathFindingPathAreaCell>();
     }
 
+    /**
+     * Clear current registered areas.
+     */
     public clear(): void {
         this.mNodeArea.clear();
         this.mPathArea.clear();
@@ -41,10 +46,10 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
         }
 
         // Read current grid area.
-        const lCurrentNodeArea: PotatnoUiManagerGridPathFindingNodeArea = this.mGridNodeArea.get(pNode)!;
+        const lCurrentNodeArea: Array<PotatnoUiManagerGridPathFindingNodeId> = this.mGridNodeArea.get(pNode)!;
 
         // Remove old node area.
-        for (const lNodeAreaPoint of lCurrentNodeArea.area) {
+        for (const lNodeAreaPoint of lCurrentNodeArea) {
             // Read current count. Update count or delete if count is zero.
             const lAreaPointCount: number = (this.mNodeArea.get(lNodeAreaPoint) ?? 0) - 1;
             if (lAreaPointCount < 1) {
@@ -55,7 +60,44 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
         }
 
         // Reset old area.
-        lCurrentNodeArea.area = new Array<PotatnoUiManagerGridPathFindingNodeId>();
+        this.mGridNodeArea.delete(pNode);
+    }
+
+    /**
+     * Remove any port area from path finding.
+     * 
+     * @param pStartPort - Starting port of path.
+     * @param pEndPort - Ending port of path.
+     */
+    public removePath(pStartPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEndPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): void {
+        // Start port must be an input-value or an output-flow node.
+        const lStartPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = (() => {
+            if (pStartPort.direction === 'input' && pStartPort.portType === 'value' || pStartPort.direction === 'output' && pStartPort.portType === 'flow') {
+                return pStartPort;
+            }
+
+            return pEndPort;
+        })();
+
+        // Remove old area.
+        this.removePathArea(lStartPort);
+    }
+
+    public updatePathArea(pStartPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pStartPortPoint: PotatnoUiManagerGridPathFindingPoint, pEndPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEndPortPoint: PotatnoUiManagerGridPathFindingPoint): void {
+        // Start port must be an input-value or an output-flow node.
+        const [lStartPort, lStartPortPoint, lEndPort, lEndPortPoint] = (() => {
+            if (pStartPort.direction === 'input' && pStartPort.portType === 'value' || pStartPort.direction === 'output' && pStartPort.portType === 'flow') {
+                return [pStartPort, pStartPortPoint, pEndPort, pEndPortPoint];
+            }
+
+            return [pEndPort, pEndPortPoint, pStartPort, pStartPortPoint];
+        })();
+
+        // Remove old area.
+        this.removePathArea(lStartPort);
+
+        // Calculate path.
+        const lPath = this.start(lStartPortPoint, lEndPortPoint);
     }
 
     /**
@@ -74,9 +116,7 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
         const lHeight: number = pNode.transformation.height;
 
         // Read current grid area.
-        const lCurrentNodeArea: PotatnoUiManagerGridPathFindingNodeArea = this.mGridNodeArea.get(pNode) ?? {
-            area: new Array<PotatnoUiManagerGridPathFindingNodeId>(),
-        };
+        const lNewNodeArea: Array<PotatnoUiManagerGridPathFindingNodeId> = new Array<PotatnoUiManagerGridPathFindingNodeId>();
 
         // Iterate over each node area.
         for (let lX: number = 0; lX < lWidth; lX++) {
@@ -89,12 +129,12 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
                 this.mNodeArea.set(lGridNodePoint, lGridPointCount);
 
                 // Add point to node area.
-                lCurrentNodeArea.area.push(lGridNodePoint);
+                lNewNodeArea.push(lGridNodePoint);
             }
         }
 
         // Update nodes area.
-        this.mGridNodeArea.set(pNode, lCurrentNodeArea);
+        this.mGridNodeArea.set(pNode, lNewNodeArea);
     }
 
     /**
@@ -213,13 +253,65 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
     protected override nodeId(pNode: PotatnoUiManagerGridPathFindingPoint): PotatnoUiManagerGridPathFindingNodeId {
         return `${pNode.x}|${pNode.y}`;
     }
+
+    /**
+     * Remove any port area from path finding.
+     * 
+     * @param pPort - Port.
+     */
+    private removePathArea(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): void {
+        // When nothing to remove, remove nothing. Yes. That comment makes sense.
+        if (!this.mGridPaths.has(pPort)) {
+            return;
+        }
+
+        // Read current grid area.
+        const lCurrentPathArea: Array<PotatnoUiManagerGridPathFindingNodeId> = this.mGridPaths.get(pPort)!;
+
+        // Remove old port area.
+        for (const lPortAreaPoint of lCurrentPathArea) {
+            // Read current count. Update count or delete if count is zero.
+            const lAreaPointCount: PotatnoUiManagerGridPathFindingPathAreaCell | undefined = this.mPathArea.get(lPortAreaPoint);
+            if (!lAreaPointCount) {
+                continue;
+            }
+
+            // Read port start point for this port.
+            const lPortPoint: PotatnoUiManagerGridPathFindingNodeId | undefined = lAreaPointCount.ports.get(pPort);
+            if (!lPortPoint) {
+                continue;
+            }
+
+            // Remove port from point.
+            lAreaPointCount.ports.delete(pPort);
+            lAreaPointCount.startPoints.delete(lPortPoint);
+
+            // When no port occupies this point, remove the whole cell referrence.
+            if (lAreaPointCount.startPoints.size < 1) {
+                this.mPathArea.delete(lPortAreaPoint);
+            } else {
+                this.mPathArea.set(lPortAreaPoint, lAreaPointCount);
+            }
+        }
+
+        // Reset old area.
+        this.mGridPaths.delete(pPort);
+    }
 }
 
-type PotatnoUiManagerGridPathFindingNodeArea = {
-    area: Array<PotatnoUiManagerGridPathFindingNodeId>;
-};
-
 type PotatnoUiManagerGridPathFindingNodeId = `${number}|${number}`;
+
+type PotatnoUiManagerGridPathFindingPathAreaCell = {
+    /**
+     * Mapping of ports to their start point.
+     */
+    ports: Map<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, PotatnoUiManagerGridPathFindingNodeId>;
+
+    /**
+     * Mapping for a start point to their ports.
+     */
+    startPoints: Set<PotatnoUiManagerGridPathFindingNodeId>;
+};
 
 export type PotatnoUiManagerGridPathFindingPoint = {
     x: number;

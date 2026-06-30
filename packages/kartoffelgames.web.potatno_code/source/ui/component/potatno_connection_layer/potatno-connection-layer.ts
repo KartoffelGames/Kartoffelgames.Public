@@ -185,7 +185,7 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
      * @param pValid - Whether the connection is valid.
      */
     private renderConnectionPath(pSvg: SVGSVGElement, pId: string, pSourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pTargetPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pValid: boolean): void {
-        const lPathData: string = this.mManager.connections.createTemporaryPath(pSourcePort, pTargetPort);
+        const lPathData: string = this.mManager.connections.createPath(pSourcePort, pTargetPort);
 
         const lHitPath: SVGPathElement = document.createElementNS(gSvgNamespace, 'path') as SVGPathElement;
         lHitPath.setAttribute('d', lPathData);

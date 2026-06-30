@@ -4,6 +4,7 @@ import { TestUtil } from '../../utility/test-util.ts';
 // Functional imports after mock.
 import { expect } from '@kartoffelgames/core-test';
 import { PwbComponent } from '../../../source/core/component/pwb-component.decorator.ts';
+import { ComponentState } from '../../../source/core/core_entity/component_state/component-state.ts';
 import { PwbExport } from '../../../source/module/export/pwb-export.decorator.ts';
 import { PwbChild } from '../../../source/module/pwb_child/pwb-child.decorator.ts';
 
@@ -130,6 +131,44 @@ Deno.test('PwbChild--Functionality: Read inherited id child', async (pContext) =
 
         // Evaluation. Two Anchors. Static-Root => Manipulator => No Childs, no anchors.
         expect(lComponentIdChild).toBe(lRealIdChild);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
+});
+
+Deno.test('PwbChild--Functionality: Remove id child', async (pContext) => {
+    await pContext.step('Remove id child', async () => {
+        // Setup. Values.
+        const lIdName: string = 'IdChildId';
+
+        // Setup. Define component.
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+            template: `$if(this.showChild) {
+                <div #${lIdName}/>
+            }`
+        })
+        class TestComponent {
+            @PwbExport
+            @PwbChild(lIdName)
+            public accessor idChild!: HTMLDivElement;
+
+            @PwbExport
+            @ComponentState.state()
+            public accessor showChild: boolean = true;
+        }
+
+        // Setup. Create element and remove child.
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        lComponent.showChild = false;
+        await TestUtil.waitForUpdate(lComponent);
+        const lErrorFunction = () => {
+            return lComponent.idChild;
+        };
+
+        // Evaluation.
+        expect(lErrorFunction).toThrow(`Can't find child "${lIdName}".`);
 
         // Wait for any update to finish to prevent timer leaks.
         await TestUtil.waitForUpdate(lComponent);

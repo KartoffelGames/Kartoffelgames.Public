@@ -871,4 +871,47 @@ Deno.test('ForInstruction--Functionality: Deconstruct', async (pContext) => {
         // Wait for any update to finish to prevent timer leaks.
         await TestUtil.waitForUpdate(lComponent);
     });
+
+    await pContext.step('Child component', async () => {
+        // Setup. Values.
+        const lChildSelector: string = TestUtil.randomSelector();
+        let lDeconstructCount: number = 0;
+
+        // Setup. Define child component.
+        @PwbComponent({
+            selector: lChildSelector,
+            template: `<div/>`
+        })
+        class TestChildComponent {
+            public onDeconstruct(): void {
+                lDeconstructCount++;
+            }
+        }
+        const lChildComponentConstructor: typeof TestChildComponent = TestChildComponent;
+
+        // Setup. Define parent component.
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+            template: `$for(item of this.list) {
+                <${lChildSelector}/>
+            }`
+        })
+        class TestComponent {
+            @PwbExport
+            @ComponentState.state({ proxy: true })
+            public accessor list: Array<number> = [1, 2];
+        }
+
+        // Setup. Create element and remove child component.
+        const lComponent: HTMLElement & TestComponent = await <any>TestUtil.createComponent(TestComponent);
+        lComponent.list.pop();
+        await TestUtil.waitForUpdate(lComponent);
+
+        // Evaluation.
+        expect(lChildComponentConstructor).toBe(TestChildComponent);
+        expect(lDeconstructCount).toBe(1);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lComponent);
+    });
 });

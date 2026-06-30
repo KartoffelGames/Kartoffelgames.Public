@@ -42,6 +42,16 @@ export class DataLevel {
     }
 
     /**
+     * Delete a temporary value in this level.
+     *
+     * @param pKey - Key of value.
+     */
+    public deleteTemporaryValue(pKey: string): void {
+        // Delete value from current level.
+        this.mTemporaryValues.delete(pKey);
+    }
+
+    /**
      * Add or replaces temporary value in this level.
      * 
      * @param pKey - Key of value.

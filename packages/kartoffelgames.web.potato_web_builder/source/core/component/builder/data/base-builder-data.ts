@@ -1,4 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
+import { ComponentRegister } from '../../component-register.ts';
 import type { Component } from '../../component.ts';
 import { BaseBuilder } from '../base-builder.ts';
 
@@ -156,6 +157,8 @@ export abstract class BaseBuilderData {
         // Add to builder or component storage.
         if (pSource instanceof BaseBuilder) {
             this.mChildBuilderList.push(pSource);
+        } else {
+            this.addChildComponent(pSource);
         }
 
         // Read new parent of source node and current builder.
@@ -245,6 +248,21 @@ export abstract class BaseBuilderData {
      */
     public setCoreBuilder(pCoreBuilder: BaseBuilder): void {
         this.mLinkedContent.add(pCoreBuilder);
+    }
+
+    /**
+     * Link a component element with this builder.
+     *
+     * @param pContent - Possible component content.
+     */
+    private addChildComponent(pContent: ChildNode): void {
+        // Only html elements can be PWB component elements.
+        if (!ComponentRegister.elementIsComponent(pContent)) {
+            return;
+        }
+
+        // Store registered components for deconstruction.
+        this.mChildComponents.set(pContent, ComponentRegister.ofElement(pContent).component);
     }
 
     /**

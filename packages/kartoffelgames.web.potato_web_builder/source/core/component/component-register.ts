@@ -2,10 +2,25 @@ import { Exception } from '@kartoffelgames/core';
 import type { InjectionConstructor } from '@kartoffelgames/core-dependency-injection';
 import type { Component, ComponentProcessor, ComponentProcessorConstructor } from './component.ts';
 
+/**
+ * Global register for pwb components and their data, element and selectors.
+ */
 export class ComponentRegister {
     private static readonly mComponents: WeakMap<HTMLElement | ComponentProcessor, Component> = new WeakMap<HTMLElement | ComponentProcessor, Component>();
     private static readonly mConstructorSelector: WeakMap<InjectionConstructor, string> = new WeakMap<InjectionConstructor, string>();
     private static readonly mElements: WeakMap<Component, HTMLElement> = new WeakMap<Component, HTMLElement>();
+
+    /**
+     * Check if element is a component.
+     * 
+     * @param pElement - Potential component element.
+     * 
+     * @returns true when the element is a pwb component element. 
+     */
+    public static elementIsComponent(pElement: Node): pElement is HTMLElement {
+        // Casting to any, because it doesnt make any difference what is tested.
+        return ComponentRegister.mComponents.has(pElement as any);
+    }
 
     /**
      * Get the component information of a component.

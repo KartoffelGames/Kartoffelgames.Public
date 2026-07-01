@@ -1,4 +1,5 @@
 import { Exception } from '@kartoffelgames/core';
+import { PotatnoDocumentFunction } from "../../../document/potatno-document-function.ts";
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
@@ -42,7 +43,7 @@ export class PotatnoUiManagerConnections {
                 }
 
                 // Clear path finder caches.
-                this.mPathFinder.clear();
+                this.mPathFinder.clear('all');
 
                 // Update every node.
                 for (const lNode of this.mManager.activeFunction.nodes) {
@@ -61,6 +62,9 @@ export class PotatnoUiManagerConnections {
             } else {
                 this.mPathFinder.updateNodeArea(pEvent.item as PotatnoDocumentNode<PotatnoProjectTypesDefinition>);
             }
+
+            // And at the end... redo anything :(
+            this.updatePaths();
         });
     }
 
@@ -92,15 +96,12 @@ export class PotatnoUiManagerConnections {
         return this.createSvgPath(lGridPath);
     }
 
-    public createPath(pStart: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEnd: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): string {
-        // Convert both points into a restricting values.
-        const lStart: PotatnoUiManagerGridPathFindingPoint = this.getPortGridPoint(pStart);
-        const lEnd: PotatnoUiManagerGridPathFindingPoint = this.getPortGridPoint(pEnd);
+    public getConnectionPath(pStartPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEndPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): string {
+        // Read current generated path.
+        const lPath: Array<PotatnoUiManagerGridPathFindingPoint> = this.mPathFinder.getPath(pStartPort, pEndPort);
 
-        // Execute path finding.
-        const lGridPath: Array<PotatnoUiManagerGridPathFindingPoint> = this.mPathFinder.start(lStart, lEnd).path;
-
-        return this.createSvgPath(lGridPath);
+        
+        return this.createSvgPath(lPath);
     }
 
     /**
@@ -280,6 +281,59 @@ export class PotatnoUiManagerConnections {
         // Create a path between two points with a bezier curve.
         // Move to start point. Draw to endpoint. And use the control point.
         return `M ${lStartPoint.x},${lStartPoint.y} Q ${lControlPoint.x},${lControlPoint.y} ${lEndPoint.x},${lEndPoint.y}`;
+    }
+
+    /**
+     * Update paths for all nodes in the current active function.
+     */
+    private updatePaths(): void {
+        // Clear path finder caches.
+        this.mPathFinder.clear('path');
+
+        // Read current active function.
+        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
+        if (!lActiveFunction) {
+            return;
+        }
+
+        for (const lNode of lActiveFunction.nodes) {
+            // First generate flow ports. Flow ports have a single connection on output ports.
+            for (const lStartPort of lNode.outputs.flow) {
+                // Read single end port.
+                const lEndPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = lStartPort.connectedPorts.values().next().value;
+                if (!lEndPort) {
+                    continue;
+                }
+
+                this.createPath(lStartPort, lEndPort);
+            }
+
+            // Then generate value ports. Value ports have a single connection on input ports.
+            for (const lStartPort of lNode.inputs.value) {
+                // Read single end port.
+                const lEndPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = lStartPort.connectedPorts.values().next().value;
+                if (!lEndPort) {
+                    continue;
+                }
+
+                this.createPath(lStartPort, lEndPort);
+            }
+        }
+    }
+
+    /**
+     * Create a persistent path.
+     * 
+     * @param pStart - Start port.
+     * @param pEnd - End port.
+     */
+    private createPath(pStart: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEnd: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): void {
+        // Convert both points into a restricting values.
+        const lStartPoint: PotatnoUiManagerGridPathFindingPoint = this.getPortGridPoint(pStart);
+        const lEndPoint: PotatnoUiManagerGridPathFindingPoint = this.getPortGridPoint(pEnd);
+
+        // Execute path finding.
+        this.mPathFinder.updatePath(pStart, lStartPoint, pEnd, lEndPoint);
     }
 }
 

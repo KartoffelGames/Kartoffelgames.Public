@@ -1,5 +1,5 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { PwbChild, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { PwbChild, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-item.interface.ts';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
@@ -7,9 +7,6 @@ import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-pro
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import connectionLayerCss from './potatno-connection-layer.css' with { type: 'text' };
 import connectionLayerTemplate from './potatno-connection-layer.html' with { type: 'text' };
-
-const gHitAreaStrokeWidth: number = 12;
-const gSvgNamespace: string = 'http://www.w3.org/2000/svg';
 
 /**
  * SVG connection layer for the node graph.
@@ -23,11 +20,10 @@ const gSvgNamespace: string = 'http://www.w3.org/2000/svg';
     template: connectionLayerTemplate,
     style: connectionLayerCss,
 })
-export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOnDeconstruct {
+export class PotatnoConnectionLayer implements IComponentOnDeconstruct {
     private readonly mConnectionRegistry: Map<string, PotatnoConnectionLayerRecord>;
     private readonly mManager: PotatnoUiManager;
-    private mPendingRenderFrame: number;
-    private mUnsubscribe: (() => void) | null;
+    private mUnsubscribe: () => void;
 
     /**
      * SVG element that hosts the connection paths.
@@ -43,35 +39,27 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
     public constructor(pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mConnectionRegistry = new Map<string, PotatnoConnectionLayerRecord>();
         this.mManager = pManager;
-        this.mPendingRenderFrame = 0;
-        this.mUnsubscribe = null;
-    }
 
-    /**
-     * Subscribe to the manager events that change the rendered connection set and draw once.
-     */
-    public onConnect(): void {
-        this.mUnsubscribe = this.mManager.subscribe(
-            PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.NodeTransform | PotatnoCodeUiManagerChangeType.Connection,
-            null,
-            () => {
-                this.scheduleRender();
+        // debounced svg redraw.
+        let renderConnectionFrame: number = 0;
+        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.NodeTransform | PotatnoCodeUiManagerChangeType.Connection, null, () => {
+            if (renderConnectionFrame !== 0) {
+                return;
+            }
+
+            renderConnectionFrame = requestAnimationFrame(() => {
+                renderConnectionFrame = 0;
+                this.renderConnections();
             });
-
-        this.scheduleRender();
+        });
     }
+
 
     /**
      * Detach the manager subscription and cancel any pending render frame.
      */
     public onDeconstruct(): void {
-        this.mUnsubscribe?.();
-        this.mUnsubscribe = null;
-
-        if (this.mPendingRenderFrame !== 0) {
-            cancelAnimationFrame(this.mPendingRenderFrame);
-            this.mPendingRenderFrame = 0;
-        }
+        this.mUnsubscribe();
     }
 
     /**
@@ -123,35 +111,17 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
     }
 
     /**
-     * Find the SVG layer if it is already connected.
-     *
-     * @returns SVG layer or null before render.
-     */
-    private getSvgLayerOrNull(): SVGSVGElement | null {
-        try {
-            return this.svgLayer;
-        } catch {
-            return null;
-        }
-    }
-
-    /**
      * Render the current graph connections into the SVG layer.
      */
     private renderConnections(): void {
-        const lSvg: SVGSVGElement | null = this.getSvgLayerOrNull();
-        if (!lSvg) {
-            return;
-        }
-
         const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
         if (!lActiveFunction) {
-            this.clearPaths(lSvg);
+            this.clearPaths(this.svgLayer);
             this.mConnectionRegistry.clear();
             return;
         }
 
-        this.clearPaths(lSvg);
+        this.clearPaths(this.svgLayer);
         this.mConnectionRegistry.clear();
 
         const lErrorItems: ReadonlySet<IPotatnoDocumentItem<PotatnoProjectTypesDefinition>> = this.mManager.integrity.errorItems;
@@ -167,7 +137,7 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
                         targetPort: lConnectedPort
                     });
 
-                    this.renderConnectionPath(lSvg, lId, lOutputPort, lConnectedPort, !lHasError);
+                    this.renderConnectionPath(this.svgLayer, lId, lOutputPort, lConnectedPort, !lHasError);
                 }
             }
         }
@@ -187,7 +157,9 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
     private renderConnectionPath(pSvg: SVGSVGElement, pId: string, pSourcePort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pTargetPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pValid: boolean): void {
         const lPathData: string = this.mManager.connections.getConnectionPath(pSourcePort, pTargetPort);
 
-        const lHitPath: SVGPathElement = document.createElementNS(gSvgNamespace, 'path') as SVGPathElement;
+        const lSvgNamespace: string = 'http://www.w3.org/2000/svg';
+
+        const lHitPath: SVGPathElement = document.createElementNS(lSvgNamespace, 'path') as SVGPathElement;
         lHitPath.setAttribute('d', lPathData);
         lHitPath.setAttribute('data-connection-id', pId);
         lHitPath.setAttribute('data-hit-area', 'true');
@@ -197,10 +169,10 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
         lHitPath.style.stroke = 'transparent';
         lHitPath.style.strokeLinecap = 'round';
         lHitPath.style.strokeLinejoin = 'round';
-        lHitPath.style.strokeWidth = `${gHitAreaStrokeWidth}`;
+        lHitPath.style.strokeWidth = '12';
         pSvg.appendChild(lHitPath);
 
-        const lPath: SVGPathElement = document.createElementNS(gSvgNamespace, 'path') as SVGPathElement;
+        const lPath: SVGPathElement = document.createElementNS(lSvgNamespace, 'path') as SVGPathElement;
         lPath.setAttribute('d', lPathData);
         lPath.setAttribute('data-connection-id', pId);
         lPath.setAttribute('fill', 'none');
@@ -216,21 +188,6 @@ export class PotatnoConnectionLayer implements IComponentOnConnect, IComponentOn
 
         pSvg.appendChild(lPath);
     }
-
-    /**
-     * Schedule a connection render for the next animation frame.
-     */
-    private scheduleRender(): void {
-        if (this.mPendingRenderFrame !== 0) {
-            return;
-        }
-
-        this.mPendingRenderFrame = requestAnimationFrame(() => {
-            this.mPendingRenderFrame = 0;
-            this.renderConnections();
-        });
-    }
-
 }
 
 type PotatnoConnectionLayerRecord = {

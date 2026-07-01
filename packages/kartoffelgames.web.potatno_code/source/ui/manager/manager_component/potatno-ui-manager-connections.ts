@@ -34,7 +34,7 @@ export class PotatnoUiManagerConnections {
         this.mPathFinder = new PotatnoUiGridPathFinding();
 
         // Register node transformation change event.
-        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.NodeTransform | PotatnoCodeUiManagerChangeType.NodeAdd | PotatnoCodeUiManagerChangeType.NodeDelete | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, null, (pEvent: PotatnoUiManagerChangeEvent) => {
+        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, null, (pEvent: PotatnoUiManagerChangeEvent) => {
             // Update ever node when document is set.
             if ((pEvent.changeType & PotatnoCodeUiManagerChangeType.SpecialActiveFunction) > 0) {
                 // Can only be processed with a active function.
@@ -52,7 +52,7 @@ export class PotatnoUiManagerConnections {
 
                 // And at the end... redo anything :(
                 this.updatePaths();
-                
+
                 return;
             }
 
@@ -67,6 +67,10 @@ export class PotatnoUiManagerConnections {
             }
 
             // And at the end... redo anything :(
+            this.updatePaths();
+        });
+
+        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Connection, null, () => {
             this.updatePaths();
         });
     }
@@ -103,7 +107,7 @@ export class PotatnoUiManagerConnections {
         // Read current generated path.
         const lPath: Array<PotatnoUiManagerGridPathFindingPoint> = this.mPathFinder.getPath(pStartPort, pEndPort);
 
-        
+
         return this.createSvgPath(lPath);
     }
 

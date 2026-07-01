@@ -27,6 +27,18 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
     }
 
     /**
+     * Clear current registered areas.
+     */
+    public clear(pMode: 'all' | 'path'): void {
+        // Skip node clear on path only clears.
+        if (pMode === 'all') {
+            this.mNodeArea.clear();
+        }
+
+        this.mPathArea.clear();
+    }
+
+    /**
      * Get already calculated path.
      * 
      * @param pStartPort - Starting port of path.
@@ -46,18 +58,6 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
 
         // Try to read path data.
         return this.mGridPaths.get(lStartPort) ?? new Array<PotatnoUiManagerGridPathFindingPoint>();
-    }
-
-    /**
-     * Clear current registered areas.
-     */
-    public clear(pMode: 'all' | 'path'): void {
-        // Skip node clear on path only clears.
-        if (pMode === 'all') {
-            this.mNodeArea.clear();
-        }
-
-        this.mPathArea.clear();
     }
 
     /**
@@ -213,7 +213,7 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
      */
     protected override costOfTraversal(pNode: PotatnoUiManagerGridPathFindingPoint, pPathInformation: AstarPathInformation<PotatnoUiManagerGridPathFindingPoint>): number {
         // Convert node point into grid point.
-        const lGridPoint: PotatnoUiManagerGridPathFindingNodeId = `${pNode.x}|${pNode.y}`;
+        const lGridPoint: PotatnoUiManagerGridPathFindingNodeId = this.nodeId(pNode);
 
         let lCost: number = 1;
 
@@ -224,52 +224,49 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
 
         // Existing path cells are allowed, but make crossing them more expensive than using a free lane.
         if (this.mPathArea.has(lGridPoint)) {
-            lCost *= 5;
+            const lEntryPoints: PotatnoUiManagerGridPathFindingPathAreaCell = this.mPathArea.get(lGridPoint)!;
+
+            // If this path share one of the entry point, guid the path over it.
+            const lStartPoint: PotatnoUiManagerGridPathFindingNodeId = this.nodeId(pPathInformation.startNode);
+            const lEndPoint: PotatnoUiManagerGridPathFindingNodeId = this.nodeId(pPathInformation.endNode);
+            if (lEntryPoints.entryPoints.has(lStartPoint) || lEntryPoints.entryPoints.has(lEndPoint)) {
+                lCost *= 0.2;
+            } else {
+                lCost *= 5;
+            }
         }
 
         // Read previous path nodes once so all path-shaping stays in traversal cost.
         const lPreviousNode: PotatnoUiManagerGridPathFindingPoint | undefined = pPathInformation.path.next().value as PotatnoUiManagerGridPathFindingPoint | undefined;
         if (lPreviousNode) {
             const lIsHorizontalMovement: boolean = pNode.y === lPreviousNode.y;
-            
-            // End node can be inside a node area, but the connection should enter the port horizontally.
-            if (pNode === pPathInformation.endNode && !lIsHorizontalMovement) {
-                // Keep the final port entry horizontal instead of approaching the node from top or bottom.
-                lCost *= 100;
-            }
 
-            // The first step out of the start port should leave the node horizontally.
-            if (lPreviousNode === pPathInformation.startNode && !lIsHorizontalMovement) {
+            // Keep the port entry or exit horizontal instead of approaching the node from top or bottom.
+            if ((pNode === pPathInformation.endNode || lPreviousNode === pPathInformation.startNode) && !lIsHorizontalMovement) {
                 lCost *= 100;
-            }
-
-                        // Horizontal movement keeps the wire in predictable lanes, so vertical movement pays extra.
-            if (!lIsHorizontalMovement) {
-                lCost *= 1.5;
             }
 
             // Continue in the same direction when possible to avoid unnecessary bends.
             const lPreviousPreviousNode: PotatnoUiManagerGridPathFindingPoint | undefined = pPathInformation.path.next().value as PotatnoUiManagerGridPathFindingPoint | undefined;
             if (lPreviousPreviousNode && (pNode.x === lPreviousPreviousNode.x || pNode.y === lPreviousPreviousNode.y)) {
-                lCost *= 0.9;
+                lCost *= 0.7;
             }
+        }
+
+        // Calculate if the current point is closer to start or end port.
+        const lDistanceStartX: number = Math.abs(pNode.x - pPathInformation.startNode.x);
+        const lDistanceEndX: number = Math.abs(pNode.x - pPathInformation.endNode.x);
+        const lIsStartSide: boolean = lDistanceStartX <= lDistanceEndX;
+
+        // Depending on the current distance to the entry or exit, preferr to stay on the same height.
+        if (lIsStartSide && pNode.y === pPathInformation.startNode.y) {
+            lCost *= 0.5;
+        } else if (!lIsStartSide && pNode.y === pPathInformation.endNode.y) {
+            lCost *= 0.5;
         }
 
         // Prefer the start y-lane before the midpoint and the end y-lane after the midpoint.
         const lMiddleCoordinateX: number = (pPathInformation.endNode.x + pPathInformation.startNode.x) >> 1;
-        const lIsFirstHalf: boolean = (() => {
-            if (pPathInformation.startNode.x <= pPathInformation.endNode.x) {
-                return pNode.x < lMiddleCoordinateX;
-            }
-
-            return pNode.x > lMiddleCoordinateX;
-        })();
-        if (lIsFirstHalf && pNode.y === pPathInformation.startNode.y) {
-            lCost *= 0.5;
-        } else if (!lIsFirstHalf && pNode.y === pPathInformation.endNode.y) {
-            lCost *= 0.5;
-        }
-
         if (pNode.x === lMiddleCoordinateX) {
             lCost *= 0.5;
         }

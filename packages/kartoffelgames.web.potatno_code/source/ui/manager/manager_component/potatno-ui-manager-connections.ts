@@ -50,6 +50,9 @@ export class PotatnoUiManagerConnections {
                     this.mPathFinder.updateNodeArea(lNode);
                 }
 
+                // And at the end... redo anything :(
+                this.updatePaths();
+                
                 return;
             }
 

@@ -224,28 +224,28 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
 
         // Existing path cells are allowed, but make crossing them more expensive than using a free lane.
         if (this.mPathArea.has(lGridPoint)) {
-            lCost *= 1.5;
+            lCost *= 5;
         }
 
         // Read previous path nodes once so all path-shaping stays in traversal cost.
         const lPreviousNode: PotatnoUiManagerGridPathFindingPoint | undefined = pPathInformation.path.next().value as PotatnoUiManagerGridPathFindingPoint | undefined;
         if (lPreviousNode) {
-            // End node can be inside a node area, but the connection should enter the port horizontally.
-            if (pNode === pPathInformation.endNode && lPreviousNode.y !== pNode.y) {
-                // Keep the final port entry horizontal instead of approaching the node from top or bottom.
-                lCost *= 6;
-            }
-
             const lIsHorizontalMovement: boolean = pNode.y === lPreviousNode.y;
-
-            // Horizontal movement keeps the wire in predictable lanes, so vertical movement pays extra.
-            if (!lIsHorizontalMovement) {
-                lCost *= 1.5;
+            
+            // End node can be inside a node area, but the connection should enter the port horizontally.
+            if (pNode === pPathInformation.endNode && !lIsHorizontalMovement) {
+                // Keep the final port entry horizontal instead of approaching the node from top or bottom.
+                lCost *= 100;
             }
 
             // The first step out of the start port should leave the node horizontally.
             if (lPreviousNode === pPathInformation.startNode && !lIsHorizontalMovement) {
-                lCost *= 6;
+                lCost *= 100;
+            }
+
+                        // Horizontal movement keeps the wire in predictable lanes, so vertical movement pays extra.
+            if (!lIsHorizontalMovement) {
+                lCost *= 1.5;
             }
 
             // Continue in the same direction when possible to avoid unnecessary bends.
@@ -287,7 +287,7 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
      * @return cost of the path between the current and end node.
      */
     protected override heuristic(pNode: PotatnoUiManagerGridPathFindingPoint, pPathInformation: AstarPathInformation<PotatnoUiManagerGridPathFindingPoint>): number {
-        const lWeighting: number = 5;
+        const lWeighting: number = 0.5;
 
         // Calculate plain Manhattan distance so the heuristic does not predict preferred path shapes.
         return (Math.abs(pNode.x - pPathInformation.endNode.x) + Math.abs(pNode.y - pPathInformation.endNode.y)) * lWeighting;
@@ -358,7 +358,7 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
             lPathAreaCell.entryPoints.delete(lPortEntryPoints[1]);
 
             // When no port occupies this point, remove the whole cell referrence.
-            if (lPathAreaCell.entryPoints.size === 0) {
+            if (lPathAreaCell.ports.size === 0) {
                 this.mPathArea.delete(lPortAreaPoint);
             } else {
                 this.mPathArea.set(lPortAreaPoint, lPathAreaCell);

@@ -218,7 +218,7 @@ export class PotatnoUiManagerGraph {
     public setPortDirectValue(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pValues: Array<string>): void {
         pPort.setDirectValue(pValues);
 
-        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.NodeUpdate, pPort);
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.NodeUpdate, pPort.node);
     }
 
     /**

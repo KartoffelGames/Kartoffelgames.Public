@@ -56,14 +56,17 @@ export class PotatnoUiManagerConnections {
                 return;
             }
 
-            // When node is deleted, only delete it.
-            const lDeleteNode: boolean = (pEvent.changeType & PotatnoCodeUiManagerChangeType.NodeDelete) > 0;
+            // On node changes recalculate area.
+            if ((pEvent.changeType & PotatnoCodeUiManagerChangeType.Node) > 0) {
+                // When node is deleted, only delete it.
+                const lDeleteNode: boolean = (pEvent.changeType & PotatnoCodeUiManagerChangeType.NodeDelete) > 0;
 
-            // Update grid node area.
-            if (lDeleteNode) {
-                this.mPathFinder.removeNodeArea(pEvent.item as PotatnoDocumentNode<PotatnoProjectTypesDefinition>);
-            } else {
-                this.mPathFinder.updateNodeArea(pEvent.item as PotatnoDocumentNode<PotatnoProjectTypesDefinition>);
+                // Update grid node area.
+                if (lDeleteNode) {
+                    this.mPathFinder.removeNodeArea(pEvent.item as PotatnoDocumentNode<PotatnoProjectTypesDefinition>);
+                } else {
+                    this.mPathFinder.updateNodeArea(pEvent.item as PotatnoDocumentNode<PotatnoProjectTypesDefinition>);
+                }
             }
 
             // And at the end... redo anything :(

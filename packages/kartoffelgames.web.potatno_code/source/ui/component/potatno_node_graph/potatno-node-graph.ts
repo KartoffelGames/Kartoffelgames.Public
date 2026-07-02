@@ -639,10 +639,12 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         const lGridSize: number = this.mManager.grid.gridSize;
         const lSnappedPosition: Point = this.mManager.grid.snapToGrid(pWorldPosition.x, pWorldPosition.y);
         const lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = this.mManager.graph.addNode(this.mManager.activeFunction, pDefinition, {
-            height: 4,
-            width: 10,
             x: Math.round(lSnappedPosition.x / lGridSize),
-            y: Math.round(lSnappedPosition.y / lGridSize)
+            y: Math.round(lSnappedPosition.y / lGridSize),
+
+            // let the auto min size do the work.
+            height: 0,
+            width: 0
         });
 
         this.mSelectedNodes.clear();

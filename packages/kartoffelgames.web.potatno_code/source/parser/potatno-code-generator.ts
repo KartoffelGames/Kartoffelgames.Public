@@ -170,6 +170,7 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
      */
     private createScope(pStartNode: PotatnoDocumentNode<TProjectTypes>, pEndNode: PotatnoDocumentNode<TProjectTypes> | null): PotatnoCodeGeneratorPassCursorScope<TProjectTypes> {
         return {
+            emittedNodes: new Set<PotatnoDocumentNode<TProjectTypes>>(),
             remaining: this.countNodeEncounter(pStartNode, pEndNode)
         };
     }
@@ -211,7 +212,7 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
         }
 
         // Build the input port surfaces. Only value inputs make it into pContext.inputs.
-        // A pure-value producer resolved here hands back its own emit result; collect them in input order.
+        // A pure-value producer resolved here hands back its own emit result. Collect them in input order.
         const lInputs: Record<string, PotatnoCodeGeneratorInputPort> = {};
         const lProducerEmits: Array<PotatnoCodeGeneratorEmitResult<TProjectTypes>> = new Array<PotatnoCodeGeneratorEmitResult<TProjectTypes>>();
         for (const lPort of pNode.inputs.value) {
@@ -577,15 +578,30 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
 
         // Connected. Walk through value conjunctions to the real producer's output port.
         const lProducerNode: PotatnoDocumentNode<TProjectTypes> = lIncomingPort.node;
+        const lIsValueNode: boolean = !lProducerNode.hasFlowPorts;
 
         // If the producer is a pure-value node, tick its refcount. Emit on depletion.
         const lProducerEmit: PotatnoCodeGeneratorEmitResult<TProjectTypes> | null = (() => {
             if (!lProducerNode.hasFlowPorts) {
-                // Remaining in scope should allways be set otherwise something is broken in this code.
-                const lRemaining: number = pCursor.scope.remaining.get(lProducerNode)!;
-                pCursor.scope.remaining.set(lProducerNode, lRemaining - 1);
+                if (pCursor.scope.emittedNodes.has(lProducerNode)) {
+                    return null;
+                }
 
-                if (lRemaining <= 1) {
+                // Remaining in scope should allways be set otherwise something is broken in this code.
+                let lRemaining: number = pCursor.scope.remaining.get(lProducerNode)!;
+
+                // When the node has no flow ports, the node must be emitted immediately because value nodes are emitted front to back unless flow nodes.
+                if (lIsValueNode) {
+                    lRemaining = 0;
+                }
+
+                // Save remaining node encounter.
+                pCursor.scope.remaining.set(lProducerNode, lRemaining);
+
+                if (lRemaining <= 0) {
+                    // Save node as already emitted so its not emitted again.       
+                    pCursor.scope.emittedNodes.add(lProducerNode);
+
                     // Pure-value producer: no flow outputs, so no inner-by-port mapping required.
                     return this.emitNode(pPassData, pCursor, lProducerNode, {});
                 }
@@ -780,8 +796,13 @@ type PotatnoCodeGeneratorPassCursor<TProjectTypes extends PotatnoProjectTypesDef
  */
 type PotatnoCodeGeneratorPassCursorScope<TProjectTypes extends PotatnoProjectTypesDefinition> = {
     /**
-     * Refcount for each pure-value producer used in this scope.
-     * Initialised by preCountConsumers. Decremented in resolveValueInput as flow nodes are emitted.
+     * Pure-value Nodes emitted in this scope.
+     */
+    emittedNodes: Set<PotatnoDocumentNode<TProjectTypes>>;
+
+    /**
+     * Reference count for each pure-value producer used in this scope.
+     * Initialised by countNodeEncounter. Decremented in resolveInputValue as nodes consume pure values.
      */
     remaining: Map<PotatnoDocumentNode<TProjectTypes>, number>;
 };

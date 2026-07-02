@@ -3,7 +3,7 @@ import { PotatnoDocumentFunction } from "../../../document/potatno-document-func
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import { PotatnoUiGridPathFinding, type PotatnoUiManagerGridPathFindingPoint } from '../helper/potatno-ui-grid-path-finding.ts';
+import { PotatnoUiGridPathFinding, PotatnoUiManagerGridPathFindingPoint } from '../helper/potatno-ui-grid-path-finding.ts';
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager, type PotatnoUiManagerChangeEvent } from '../potatno-ui-manager.ts';
 
 /**
@@ -334,13 +334,22 @@ export class PotatnoUiManagerConnections {
      * @param pStart - Start port.
      * @param pEnd - End port.
      */
-    private createPath(pStart: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEnd: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): void {
+    private createPath(pStartPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEndPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): void {
+        // Start port must be an input-value or an output-flow node.
+        const [lStartPort, lEndPort] = (() => {
+            if (pStartPort.direction === 'input' && pStartPort.portType === 'value' || pStartPort.direction === 'output' && pStartPort.portType === 'flow') {
+                return [pStartPort, pEndPort];
+            }
+
+            return [pEndPort, pStartPort];
+        })();
+
         // Convert both points into a restricting values.
-        const lStartPoint: PotatnoUiManagerGridPathFindingPoint = this.getPortGridPoint(pStart);
-        const lEndPoint: PotatnoUiManagerGridPathFindingPoint = this.getPortGridPoint(pEnd);
+        const lStartPoint: PotatnoUiManagerGridPathFindingPoint = this.getPortGridPoint(lStartPort);
+        const lEndPoint: PotatnoUiManagerGridPathFindingPoint = this.getPortGridPoint(lEndPort);
 
         // Execute path finding.
-        this.mPathFinder.updatePath(pStart, lStartPoint, pEnd, lEndPoint);
+        this.mPathFinder.updatePath(lStartPort, lStartPoint, lEndPoint);
     }
 }
 

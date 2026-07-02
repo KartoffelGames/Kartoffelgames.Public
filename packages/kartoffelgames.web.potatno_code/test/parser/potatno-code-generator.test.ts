@@ -426,6 +426,36 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
                 + '}'
             );
         });
+
+        await pContext.step('Pure-value producer shared by parent and child value nodes', () => {
+            // Setup. SharedConst feeds Add.a and Multiply.b; Add.result feeds Multiply.a.
+            const { function: lFunction, defaultEntry: lDefaultEntry, defaultExit: lDefaultExit } = PotatnoHelper.setupCalculatorDocument();
+            const lSharedConst = PotatnoHelper.addProjectNode(lFunction, 'Const');
+            const lAddNode = PotatnoHelper.addProjectNode(lFunction, 'Add');
+            const lMultiplyNode = PotatnoHelper.addProjectNode(lFunction, 'Multiply');
+            PotatnoHelper.setInputValue(lSharedConst, 'value', ['7']);
+            PotatnoHelper.connectValue(lSharedConst, 'result', lAddNode, 'a');
+            PotatnoHelper.connectValue(lDefaultEntry, 'a', lAddNode, 'b');
+            PotatnoHelper.connectValue(lAddNode, 'result', lMultiplyNode, 'a');
+            PotatnoHelper.connectValue(lSharedConst, 'result', lMultiplyNode, 'b');
+            PotatnoHelper.connectValue(lMultiplyNode, 'result', lDefaultExit, 'result');
+            PotatnoHelper.connectFlow(lDefaultEntry, lDefaultExit);
+
+            // Process.
+            const lResult = new PotatnoCodeGenerator(PotatnoHelper.TEST_PROJECT).generateNode(lDefaultExit);
+
+            // Evaluation. SharedConst must emit before Add because Add already
+            // references it, even though Multiply consumes SharedConst later.
+            expect(lResult.entryPoint.graphs[0].code).toBe(
+                '(v_1, v_5) => { '
+                + 'let __globalMultiplier = 1; '
+                + 'const v_0 = 7; '
+                + 'const v_2 = v_0 + v_1; '
+                + 'const v_3 = v_2 * v_0; '
+                + 'return (v_3) * __globalMultiplier; '
+                + '}'
+            );
+        });
     });
 
     await pContext.step('Hooks', async (pContext) => {

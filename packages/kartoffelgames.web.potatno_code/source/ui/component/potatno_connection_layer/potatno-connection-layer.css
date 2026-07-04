@@ -20,7 +20,26 @@
     overflow: visible;
     pointer-events: none;
 
-    path[data-hit-area] {
-        pointer-events: stroke;
+    .path {
+        /* Color set in code. When not set, its a flow port*/
+        stroke: var(--path-color, var(--potatno-color-text));
+
+        fill: none;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-width: 2px;
+        pointer-events: none;
+        
+        &.path--invalid {
+            stroke: var(--potatno-color-error) !important;
+            stroke-dasharray: 6 3;
+        }
+
+        &.path--mouse-target {
+            stroke: transparent;
+            stroke-width: 12px;
+            pointer-events: stroke;
+            cursor: pointer;
+        }
     }
 }

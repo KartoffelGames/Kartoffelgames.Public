@@ -28,7 +28,8 @@ export class PwbApplication {
     }
 
     private readonly mContent: Array<Component>;
-    private readonly mElement: HTMLElement;
+    private readonly mFragment: DocumentFragment;
+    private mCurrentTarget: Element | null;
 
     /**
      * Constructor.
@@ -40,9 +41,11 @@ export class PwbApplication {
         // Create list of all content.
         this.mContent = new Array<Component>();
 
-        // Create a own div with shadow root for this applications.
-        this.mElement = document.createElement('div');
-        this.mElement.attachShadow({ mode: 'open' });
+        // Create a fragment for all content.
+        this.mFragment = document.createDocumentFragment()
+
+        // Current target is not set.
+        this.mCurrentTarget = null;
     }
 
     /**
@@ -62,7 +65,8 @@ export class PwbApplication {
         this.mContent.push(lComponentInformation.component);
 
         // Append component to shadow root.
-        this.mElement.shadowRoot!.appendChild(lComponentInformation.element);
+        this.mFragment.appendChild(lComponentInformation.element);
+        this.updateTarget();
 
         // Return processor of component.
         return lComponentInformation.processor as TComponent;
@@ -80,7 +84,7 @@ export class PwbApplication {
         lStyleElement.textContent = pStyle;
 
         // Add style element to shadow root.
-        this.mElement.shadowRoot!.prepend(lStyleElement);
+        this.mFragment.prepend(lStyleElement);
     }
 
     /**
@@ -89,7 +93,25 @@ export class PwbApplication {
      * @param pElement - Element.
      */
     public appendTo(pElement: Element): void {
-        // Append app element to specified element.
-        pElement.appendChild(this.mElement);
+        // Set target and update with current content.
+        this.mCurrentTarget = pElement;
+        this.updateTarget();
+    }
+
+    /**
+     * Update targets content by appending a shadow root and reappending the content fragment. 
+     */
+    private updateTarget(): void {
+        if(!this.mCurrentTarget){
+            return;
+        }
+
+        // Check if target has a shadow root. Attach one if not.
+        if(!this.mCurrentTarget.shadowRoot) {
+            this.mCurrentTarget.attachShadow({ mode: 'open' });
+        }
+
+        // Update content by reappending the fragment.
+        this.mCurrentTarget.shadowRoot!.appendChild(this.mFragment);
     }
 }

@@ -1,4 +1,3 @@
-import type { IDeconstructable } from '@kartoffelgames/core';
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import type { IPotatnoDocumentItem } from '../../document/i-potatno-document-item.interface.ts';
 import { PotatnoDocumentFunction } from '../../document/potatno-document-function.ts';
@@ -11,7 +10,7 @@ import type { PotatnoProject } from '../../project/potatno-project.ts';
 import { PotatnoUiManagerClipboard } from './manager_component/potatno-ui-manager-clipboard.ts';
 import { PotatnoUiManagerConnections } from './manager_component/potatno-ui-manager-connections.ts';
 import { PotatnoUiManagerGraph } from './manager_component/potatno-ui-manager-graph.ts';
-import { PotatnoUiManagerGrid } from "./manager_component/potatno-ui-manager-grid.ts";
+import { PotatnoUiManagerGrid } from './manager_component/potatno-ui-manager-grid.ts';
 import { PotatnoUiManagerHistory } from './manager_component/potatno-ui-manager-history.ts';
 import { PotatnoUiManagerIntegrity } from './manager_component/potatno-ui-manager-integrity.ts';
 import { PotatnoUiManagerPreview } from './manager_component/potatno-ui-manager-preview.ts';
@@ -32,60 +31,18 @@ import { PotatnoUiManagerPreview } from './manager_component/potatno-ui-manager-
  * keep fragmented component state in sync.
  */
 @Injection.injectable('singleton')
-export class PotatnoUiManager extends EventTarget implements IDeconstructable {
+export class PotatnoUiManager extends EventTarget {
+    private mActiveFunctionId: string;
     private readonly mClipboard: PotatnoUiManagerClipboard;
-    private readonly mEventBuffer: Map<PotatnoUiManagerChangeEventTarget | null, PotatnoCodeUiManagerChangeType>;
-    private readonly mGraph: PotatnoUiManagerGraph;
     private readonly mConnections: PotatnoUiManagerConnections;
+    private readonly mEventBuffer: Map<PotatnoUiManagerChangeEventTarget | null, PotatnoCodeUiManagerChangeType>;
+    private mEventBufferDispatchRequest: number;
+    private readonly mGraph: PotatnoUiManagerGraph;
     private readonly mGrid: PotatnoUiManagerGrid;
     private readonly mHistory: PotatnoUiManagerHistory;
     private readonly mIntegrity: PotatnoUiManagerIntegrity;
     private readonly mPreview: PotatnoUiManagerPreview;
-    private mActiveFunctionId: string;
-    private mEventBufferDispatchRequest: number;
     private mProject: PotatnoProject<PotatnoProjectTypesDefinition> | null;
-
-    /**
-     * UI manager clipboard component.
-     */
-    public get clipboard(): PotatnoUiManagerClipboard {
-        return this.mClipboard;
-    }
-
-    /**
-     * UI manager grid component.
-     */
-    public get grid(): PotatnoUiManagerGrid {
-        return this.mGrid;
-    }
-
-    /**
-     * UI manager connections component.
-     */
-    public get connections(): PotatnoUiManagerConnections {
-        return this.mConnections;
-    }
-
-    /**
-     * UI manager document component.
-     */
-    public get graph(): PotatnoUiManagerGraph {
-        return this.mGraph;
-    }
-
-    /**
-     * UI manager history component.
-     */
-    public get history(): PotatnoUiManagerHistory {
-        return this.mHistory;
-    }
-
-    /**
-     * UI manager integrity component.
-     */
-    public get integrity(): PotatnoUiManagerIntegrity {
-        return this.mIntegrity;
-    }
 
     /**
      * The currently active document function, or `null` when none is resolvable.
@@ -113,10 +70,45 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
     }
 
     /**
-     * The current project, or `null` before initialization.
+     * UI manager clipboard component.
      */
-    public get project(): PotatnoProject<PotatnoProjectTypesDefinition> | null {
-        return this.mProject;
+    public get clipboard(): PotatnoUiManagerClipboard {
+        return this.mClipboard;
+    }
+
+    /**
+     * UI manager connections component.
+     */
+    public get connections(): PotatnoUiManagerConnections {
+        return this.mConnections;
+    }
+
+    /**
+     * UI manager document component.
+     */
+    public get graph(): PotatnoUiManagerGraph {
+        return this.mGraph;
+    }
+
+    /**
+     * UI manager grid component.
+     */
+    public get grid(): PotatnoUiManagerGrid {
+        return this.mGrid;
+    }
+
+    /**
+     * UI manager history component.
+     */
+    public get history(): PotatnoUiManagerHistory {
+        return this.mHistory;
+    }
+
+    /**
+     * UI manager integrity component.
+     */
+    public get integrity(): PotatnoUiManagerIntegrity {
+        return this.mIntegrity;
     }
 
     /**
@@ -125,6 +117,13 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
      */
     public get preview(): PotatnoUiManagerPreview {
         return this.mPreview;
+    }
+
+    /**
+     * The current project, or `null` before initialization.
+     */
+    public get project(): PotatnoProject<PotatnoProjectTypesDefinition> | null {
+        return this.mProject;
     }
 
     /**
@@ -151,11 +150,57 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
     }
 
     /**
-     * Tear-down hook. The manager's components subscribe for the editor's lifetime, so there is
-     * nothing to release.
+     * Dispatch a manager event with an optional detail payload.
+     *
+     * @param pType - Change type to dispatch.
+     * @param pItem - The document item the change refers to, or `null` when no single item applies.
      */
-    public deconstruct(): void {
-        // Nothing to release.
+    public dispatch(pType: PotatnoCodeUiManagerChangeType, pItem: PotatnoUiManagerChangeEventTarget | null): void {
+        // Add or merge the current type of the item.
+        const lType: PotatnoCodeUiManagerChangeType = this.mEventBuffer.get(pItem) ?? 0;
+        this.mEventBuffer.set(pItem, lType | pType);
+
+        // Cancel the last dispatch request.
+        if (this.mEventBufferDispatchRequest !== -1) {
+            globalThis.cancelAnimationFrame(this.mEventBufferDispatchRequest);
+        }
+
+        // Wait for the next frame before dispatching all collected event.
+        this.mEventBufferDispatchRequest = requestAnimationFrame(() => {
+            // Reset current request.
+            this.mEventBufferDispatchRequest = -1;
+
+            for (const [lItem, lType] of this.mEventBuffer) {
+                // Create and dispatch custom change event.
+                this.dispatchEvent(new PotatnoUiManagerChangeEvent(lType, lItem));
+            }
+
+            // And clear all events.
+            this.mEventBuffer.clear();
+        });
+    }
+
+    /**
+     * Generate a deterministic HSL color from a type string.
+     *
+     * @param pType - Type identifier to derive a colour from.
+     *
+     * @returns A CSS HSL color string.
+     */
+    public generateTypeColor(pType: string): string {
+        // Convert the type name into a hash.
+        const lTypeHash: number = (() => {
+            let lHash: number = 0;
+            for (let lIndex: number = 0; lIndex < pType.length; lIndex++) {
+                lHash = pType.charCodeAt(lIndex) + ((lHash << 5) - lHash);
+            }
+
+            return lHash;
+        })();
+
+        // Dont ask, just take it.
+        const lHue: number = (Math.abs(lTypeHash) * 137.508) % 360;
+        return `hsl(${lHue}, 70%, 60%)`;
     }
 
     /**
@@ -169,6 +214,32 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
         // Adopt the document. The manager's own document event notifies listeners and the preview
         // component drops its stale drivers.
         this.mGraph.setDocument(pDocument);
+    }
+
+    /**
+     * Activate a function by id.
+     *
+     * @param pFunctionId - Id of the function to activate.
+     */
+    public setActiveFunction(pFunctionId: string): void {
+        // Only switch when a document is setup and the function is not already selected.
+        const lDocument: PotatnoDocument<PotatnoProjectTypesDefinition> | null = this.mGraph.document;
+        if (!lDocument || this.mActiveFunctionId === pFunctionId) {
+            return;
+        }
+
+        // Find the document by id.
+        for (const lFunction of lDocument.functions) {
+            // Not the right function, skip it.
+            if (lFunction.id !== pFunctionId) {
+                continue;
+            }
+
+            // set active function and dispatch change event.
+            this.mActiveFunctionId = pFunctionId;
+            this.dispatch(PotatnoCodeUiManagerChangeType.SpecialActiveFunction, lFunction);
+            return;
+        }
     }
 
     /**
@@ -244,55 +315,6 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
     }
 
     /**
-     * Activate a function by id.
-     *
-     * @param pFunctionId - Id of the function to activate.
-     */
-    public setActiveFunction(pFunctionId: string): void {
-        // Only switch when a document is setup and the function is not already selected.
-        const lDocument: PotatnoDocument<PotatnoProjectTypesDefinition> | null = this.mGraph.document;
-        if (!lDocument || this.mActiveFunctionId === pFunctionId) {
-            return;
-        }
-
-        // Find the document by id.
-        for (const lFunction of lDocument.functions) {
-            // Not the right function, skip it.
-            if (lFunction.id !== pFunctionId) {
-                continue;
-            }
-
-            // set active function and dispatch change event.
-            this.mActiveFunctionId = pFunctionId;
-            this.dispatch(PotatnoCodeUiManagerChangeType.SpecialActiveFunction, lFunction);
-            return;
-        }
-    }
-
-    /**
-     * Generate a deterministic HSL color from a type string.
-     *
-     * @param pType - Type identifier to derive a colour from.
-     *
-     * @returns A CSS HSL color string.
-     */
-    public generateTypeColor(pType: string): string {
-        // Convert the type name into a hash.
-        const lTypeHash: number = (() => {
-            let lHash: number = 0;
-            for (let lIndex: number = 0; lIndex < pType.length; lIndex++) {
-                lHash = pType.charCodeAt(lIndex) + ((lHash << 5) - lHash);
-            }
-
-            return lHash;
-        })();
-
-        // Dont ask, just take it.
-        const lHue: number = (Math.abs(lTypeHash) * 137.508) % 360;
-        return `hsl(${lHue}, 70%, 60%)`;
-    }
-
-    /**
      * Apply right-panel property changes to the active function.
      *
      * @param pData - The changed function properties.
@@ -347,37 +369,6 @@ export class PotatnoUiManager extends EventTarget implements IDeconstructable {
         }
 
         this.dispatch(PotatnoCodeUiManagerChangeType.FunctionUpdate, lActiveFunction);
-    }
-
-    /**
-     * Dispatch a manager event with an optional detail payload.
-     *
-     * @param pType - Change type to dispatch.
-     * @param pItem - The document item the change refers to, or `null` when no single item applies.
-     */
-    public dispatch(pType: PotatnoCodeUiManagerChangeType, pItem: PotatnoUiManagerChangeEventTarget | null): void {
-        // Add or merge the current type of the item.
-        const lType: PotatnoCodeUiManagerChangeType = this.mEventBuffer.get(pItem) ?? 0;
-        this.mEventBuffer.set(pItem, lType | pType);
-
-        // Cancel the last dispatch request.
-        if (this.mEventBufferDispatchRequest !== -1) {
-            globalThis.cancelAnimationFrame(this.mEventBufferDispatchRequest);
-        }
-
-        // Wait for the next frame before dispatching all collected event.
-        this.mEventBufferDispatchRequest = requestAnimationFrame(() => {
-            // Reset current request.
-            this.mEventBufferDispatchRequest = -1;
-
-            for (const [lItem, lType] of this.mEventBuffer) {
-                // Create and dispatch custom change event.
-                this.dispatchEvent(new PotatnoUiManagerChangeEvent(lType, lItem));
-            }
-
-            // And clear all events.
-            this.mEventBuffer.clear();
-        });
     }
 }
 

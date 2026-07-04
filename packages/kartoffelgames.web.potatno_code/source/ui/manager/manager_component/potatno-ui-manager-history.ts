@@ -14,8 +14,8 @@ export class PotatnoUiManagerHistory {
     private static readonly MAX_HISTORY_ITEMS: number = 100;
 
     private readonly mManager: PotatnoUiManager;
-    private readonly mSnapshots: Array<string>;
     private mSnapshotIndex: number;
+    private readonly mSnapshots: Array<string>;
 
     /**
      * Whether there are any snapshots available to redo.
@@ -55,20 +55,11 @@ export class PotatnoUiManagerHistory {
     }
 
     /**
-     * Step back one snapshot and restore the document.
+     * Clear all history.
      */
-    public undo(): void {
-        // Skip if not possible.
-        if (!this.canUndo) {
-            return;
-        }
-
-        // Update snapshot index and read the snapshot string.
-        const lSnapshotString: string = this.mSnapshots[--this.mSnapshotIndex];
-
-        // Parse snapshot serialisation and restore.
-        const lSnapshotSerializationResult: PotatnoCodeFileSerializationResult = JSON.parse(lSnapshotString);
-        this.restoreHistory(lSnapshotSerializationResult);
+    public clear(): void {
+        this.mSnapshots.length = 0;
+        this.mSnapshotIndex = -1;
     }
 
     /**
@@ -89,11 +80,20 @@ export class PotatnoUiManagerHistory {
     }
 
     /**
-     * Clear all history.
+     * Step back one snapshot and restore the document.
      */
-    public clear(): void {
-        this.mSnapshots.length = 0;
-        this.mSnapshotIndex = -1;
+    public undo(): void {
+        // Skip if not possible.
+        if (!this.canUndo) {
+            return;
+        }
+
+        // Update snapshot index and read the snapshot string.
+        const lSnapshotString: string = this.mSnapshots[--this.mSnapshotIndex];
+
+        // Parse snapshot serialisation and restore.
+        const lSnapshotSerializationResult: PotatnoCodeFileSerializationResult = JSON.parse(lSnapshotString);
+        this.restoreHistory(lSnapshotSerializationResult);
     }
 
     /**

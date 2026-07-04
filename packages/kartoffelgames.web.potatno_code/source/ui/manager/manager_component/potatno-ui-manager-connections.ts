@@ -1,9 +1,9 @@
 import { Exception } from '@kartoffelgames/core';
-import { PotatnoDocumentFunction } from "../../../document/potatno-document-function.ts";
+import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import { PotatnoUiGridPathFinding, PotatnoUiManagerGridPathFindingPoint } from '../helper/potatno-ui-grid-path-finding.ts';
+import { PotatnoUiGridPathFinding, type PotatnoUiManagerGridPathFindingPoint } from '../helper/potatno-ui-grid-path-finding.ts';
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager, type PotatnoUiManagerChangeEvent } from '../potatno-ui-manager.ts';
 
 /**
@@ -198,32 +198,50 @@ export class PotatnoUiManagerConnections {
     }
 
     /**
-     * Get the absolute grid pixel position of a point and the direction.
+     * Draw a curved line for a grid point.
      * 
-     * @param pPoint - Grid point.
-     * @param pOrientation - Orientation in the grid cell.
-     * 
-     * @returns the pixel point of the grid point. 
+     * @param pPoint 
+     * @param pDirection 
      */
-    private getGridPosition(pPoint: PotatnoUiManagerGridPathFindingPoint, pOrientation: PotatnoUiManagerGridDirection): PotatnoUiManagerGridPixelPoint {
-        // Create middle point.
-        const lPoint: PotatnoUiManagerGridPixelPoint = {
-            x: pPoint.x * this.mManager.grid.gridSize + this.mManager.grid.gridSize / 2,
-            y: pPoint.y * this.mManager.grid.gridSize + this.mManager.grid.gridSize / 2
+    private createGridCellPath(pPoint: PotatnoUiManagerGridPathFindingPoint, pFromDirection: PotatnoUiManagerGridDirection, pToDirection: PotatnoUiManagerGridDirection) {
+        // Create end and start points.
+        const lStartPoint: PotatnoUiManagerGridPixelPoint = this.getGridPosition(pPoint, pFromDirection);
+        const lEndPoint: PotatnoUiManagerGridPixelPoint = this.getGridPosition(pPoint, pToDirection);
+
+        // Create a bezier control point by using the x of start and y of end.
+        // When its a straight line, the control point does nothing. 
+        const lControlPoint: PotatnoUiManagerGridPixelPoint = {
+            x: pFromDirection === 'bottom' || pFromDirection === 'top' ? lStartPoint.x : lEndPoint.x,
+            y: pFromDirection === 'left' || pFromDirection === 'right' ? lStartPoint.y : lEndPoint.y,
         };
 
-        // Calculate half grid length.
-        const lHalfLength: number = this.mManager.grid.gridSize / 2;
+        // Create a path between two points with a bezier curve.
+        // Move to start point. Draw to endpoint. And use the control point.
+        return `M ${lStartPoint.x},${lStartPoint.y} Q ${lControlPoint.x},${lControlPoint.y} ${lEndPoint.x},${lEndPoint.y}`;
+    }
 
-        // Move point toward orientation.
-        switch (pOrientation) {
-            case 'top': lPoint.y -= lHalfLength; break;
-            case 'right': lPoint.x += lHalfLength; break;
-            case 'bottom': lPoint.y += lHalfLength; break;
-            case 'left': lPoint.x -= lHalfLength; break;
-        }
+    /**
+     * Create a persistent path.
+     * 
+     * @param pStart - Start port.
+     * @param pEnd - End port.
+     */
+    private createPath(pStartPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEndPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): void {
+        // Start port must be an input-value or an output-flow node.
+        const [lStartPort, lEndPort] = (() => {
+            if (pStartPort.direction === 'input' && pStartPort.portType === 'value' || pStartPort.direction === 'output' && pStartPort.portType === 'flow') {
+                return [pStartPort, pEndPort];
+            }
 
-        return lPoint;
+            return [pEndPort, pStartPort];
+        })();
+
+        // Convert both points into a restricting values.
+        const lStartPoint: PotatnoUiManagerGridPathFindingPoint = this.getPortGridPoint(lStartPort);
+        const lEndPoint: PotatnoUiManagerGridPathFindingPoint = this.getPortGridPoint(lEndPort);
+
+        // Execute path finding.
+        this.mPathFinder.updatePath(lStartPort, lStartPoint, lEndPoint);
     }
 
     /**
@@ -271,26 +289,32 @@ export class PotatnoUiManagerConnections {
     }
 
     /**
-     * Draw a curved line for a grid point.
+     * Get the absolute grid pixel position of a point and the direction.
      * 
-     * @param pPoint 
-     * @param pDirection 
+     * @param pPoint - Grid point.
+     * @param pOrientation - Orientation in the grid cell.
+     * 
+     * @returns the pixel point of the grid point. 
      */
-    private createGridCellPath(pPoint: PotatnoUiManagerGridPathFindingPoint, pFromDirection: PotatnoUiManagerGridDirection, pToDirection: PotatnoUiManagerGridDirection) {
-        // Create end and start points.
-        const lStartPoint: PotatnoUiManagerGridPixelPoint = this.getGridPosition(pPoint, pFromDirection);
-        const lEndPoint: PotatnoUiManagerGridPixelPoint = this.getGridPosition(pPoint, pToDirection);
-
-        // Create a bezier control point by using the x of start and y of end.
-        // When its a straight line, the control point does nothing. 
-        const lControlPoint: PotatnoUiManagerGridPixelPoint = {
-            x: pFromDirection === 'bottom' || pFromDirection === 'top' ? lStartPoint.x : lEndPoint.x,
-            y: pFromDirection === 'left' || pFromDirection === 'right' ? lStartPoint.y : lEndPoint.y,
+    private getGridPosition(pPoint: PotatnoUiManagerGridPathFindingPoint, pOrientation: PotatnoUiManagerGridDirection): PotatnoUiManagerGridPixelPoint {
+        // Create middle point.
+        const lPoint: PotatnoUiManagerGridPixelPoint = {
+            x: pPoint.x * this.mManager.grid.gridSize + this.mManager.grid.gridSize / 2,
+            y: pPoint.y * this.mManager.grid.gridSize + this.mManager.grid.gridSize / 2
         };
 
-        // Create a path between two points with a bezier curve.
-        // Move to start point. Draw to endpoint. And use the control point.
-        return `M ${lStartPoint.x},${lStartPoint.y} Q ${lControlPoint.x},${lControlPoint.y} ${lEndPoint.x},${lEndPoint.y}`;
+        // Calculate half grid length.
+        const lHalfLength: number = this.mManager.grid.gridSize / 2;
+
+        // Move point toward orientation.
+        switch (pOrientation) {
+            case 'top': lPoint.y -= lHalfLength; break;
+            case 'right': lPoint.x += lHalfLength; break;
+            case 'bottom': lPoint.y += lHalfLength; break;
+            case 'left': lPoint.x -= lHalfLength; break;
+        }
+
+        return lPoint;
     }
 
     /**
@@ -329,30 +353,6 @@ export class PotatnoUiManagerConnections {
                 this.createPath(lStartPort, lEndPort);
             }
         }
-    }
-
-    /**
-     * Create a persistent path.
-     * 
-     * @param pStart - Start port.
-     * @param pEnd - End port.
-     */
-    private createPath(pStartPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pEndPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): void {
-        // Start port must be an input-value or an output-flow node.
-        const [lStartPort, lEndPort] = (() => {
-            if (pStartPort.direction === 'input' && pStartPort.portType === 'value' || pStartPort.direction === 'output' && pStartPort.portType === 'flow') {
-                return [pStartPort, pEndPort];
-            }
-
-            return [pEndPort, pStartPort];
-        })();
-
-        // Convert both points into a restricting values.
-        const lStartPoint: PotatnoUiManagerGridPathFindingPoint = this.getPortGridPoint(lStartPort);
-        const lEndPoint: PotatnoUiManagerGridPathFindingPoint = this.getPortGridPoint(lEndPort);
-
-        // Execute path finding.
-        this.mPathFinder.updatePath(lStartPort, lStartPoint, lEndPoint);
     }
 }
 

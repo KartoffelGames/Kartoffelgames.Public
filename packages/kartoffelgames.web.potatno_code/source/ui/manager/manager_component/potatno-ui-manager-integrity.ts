@@ -11,22 +11,10 @@ import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatn
  * Handles document integrity.
  */
 export class PotatnoUiManagerIntegrity {
-    private readonly mErrorList: Array<PotatnoCodeUiManagerIntegrityError>;
     private readonly mErrorItems: Set<IPotatnoDocumentItem<PotatnoProjectTypesDefinition>>;
+    private readonly mErrorList: Array<PotatnoCodeUiManagerIntegrityError>;
     private mIsDirty: boolean;
     private readonly mManager: PotatnoUiManager;
-
-    /**
-     * Validation errors for the preview panel.
-     */
-    public get errors(): ReadonlyArray<PotatnoCodeUiManagerIntegrityError> {
-        // Retrigger validation on dirty state.
-        if (this.mIsDirty) {
-            this.revalidate();
-        }
-
-        return this.mErrorList;
-    }
 
     /**
      * Nodes flagged by the last validation pass. Used by the graph for error highlighting.
@@ -38,6 +26,18 @@ export class PotatnoUiManagerIntegrity {
         }
 
         return this.mErrorItems;
+    }
+
+    /**
+     * Validation errors for the preview panel.
+     */
+    public get errors(): ReadonlyArray<PotatnoCodeUiManagerIntegrityError> {
+        // Retrigger validation on dirty state.
+        if (this.mIsDirty) {
+            this.revalidate();
+        }
+
+        return this.mErrorList;
     }
 
     /**

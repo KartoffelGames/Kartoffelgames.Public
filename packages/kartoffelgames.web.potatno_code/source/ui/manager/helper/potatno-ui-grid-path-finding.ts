@@ -1,6 +1,6 @@
-import { Astar, AstarResult, Exception, type AstarPathInformation } from '@kartoffelgames/core';
+import { Astar, type AstarResult, Exception, type AstarPathInformation } from '@kartoffelgames/core';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
-import { PotatnoDocumentPort } from "../../../document/potatno-document-port.ts";
+import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 
 /**
@@ -8,8 +8,8 @@ import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-pro
  */
 export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFindingPoint> {
     private readonly mGridNodeArea: WeakMap<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, Array<PotatnoUiManagerGridPathFindingNodeId>>;
-    private readonly mNodeArea: Map<PotatnoUiManagerGridPathFindingNodeId, number>;
     private readonly mGridPaths: WeakMap<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, Array<PotatnoUiManagerGridPathFindingPoint>>;
+    private readonly mNodeArea: Map<PotatnoUiManagerGridPathFindingNodeId, number>;
     private readonly mPathArea: Map<PotatnoUiManagerGridPathFindingNodeId, PotatnoUiManagerGridPathFindingPathAreaCell>;
 
     /**
@@ -22,7 +22,7 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
         this.mGridNodeArea = new WeakMap<PotatnoDocumentNode<PotatnoProjectTypesDefinition>, Array<PotatnoUiManagerGridPathFindingNodeId>>();
         this.mNodeArea = new Map<PotatnoUiManagerGridPathFindingNodeId, number>();
 
-        this.mGridPaths = new WeakMap<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, Array<PotatnoUiManagerGridPathFindingPoint>>;
+        this.mGridPaths = new WeakMap<PotatnoDocumentPort<PotatnoProjectTypesDefinition>, Array<PotatnoUiManagerGridPathFindingPoint>>();
         this.mPathArea = new Map<PotatnoUiManagerGridPathFindingNodeId, PotatnoUiManagerGridPathFindingPathAreaCell>();
     }
 
@@ -90,6 +90,43 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
     }
 
     /**
+     * Add or update the node areas for a node.
+     * 
+     * @param pNode - Node.
+     */
+    public updateNodeArea(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): void {
+        // Remove old areas.
+        this.removeNodeArea(pNode);
+
+        // Read node position and dimension.
+        const lPositionX: number = pNode.transformation.x;
+        const lPositionY: number = pNode.transformation.y;
+        const lWidth: number = pNode.transformation.width;
+        const lHeight: number = pNode.transformation.height;
+
+        // Read current grid area.
+        const lNewNodeArea: Array<PotatnoUiManagerGridPathFindingNodeId> = new Array<PotatnoUiManagerGridPathFindingNodeId>();
+
+        // Iterate over each node area.
+        for (let lX: number = 0; lX < lWidth; lX++) {
+            for (let lY: number = 0; lY < lHeight; lY++) {
+                // Construct grid point.
+                const lGridNodePoint: PotatnoUiManagerGridPathFindingNodeId = `${lX + lPositionX}|${lY + lPositionY}`;
+
+                // Increase grid point count.
+                const lGridPointCount: number = (this.mNodeArea.get(lGridNodePoint) ?? 0) + 1;
+                this.mNodeArea.set(lGridNodePoint, lGridPointCount);
+
+                // Add point to node area.
+                lNewNodeArea.push(lGridNodePoint);
+            }
+        }
+
+        // Update nodes area.
+        this.mGridNodeArea.set(pNode, lNewNodeArea);
+    }
+
+    /**
      * Update the path between two ports.
      * 
      * @param pStartPort - Starting port. 
@@ -141,43 +178,6 @@ export class PotatnoUiGridPathFinding extends Astar<PotatnoUiManagerGridPathFind
             // Update path area cell.
             this.mPathArea.set(lPortAreaPoint, lPathAreaCell);
         }
-    }
-
-    /**
-     * Add or update the node areas for a node.
-     * 
-     * @param pNode - Node.
-     */
-    public updateNodeArea(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): void {
-        // Remove old areas.
-        this.removeNodeArea(pNode);
-
-        // Read node position and dimension.
-        const lPositionX: number = pNode.transformation.x;
-        const lPositionY: number = pNode.transformation.y;
-        const lWidth: number = pNode.transformation.width;
-        const lHeight: number = pNode.transformation.height;
-
-        // Read current grid area.
-        const lNewNodeArea: Array<PotatnoUiManagerGridPathFindingNodeId> = new Array<PotatnoUiManagerGridPathFindingNodeId>();
-
-        // Iterate over each node area.
-        for (let lX: number = 0; lX < lWidth; lX++) {
-            for (let lY: number = 0; lY < lHeight; lY++) {
-                // Construct grid point.
-                const lGridNodePoint: PotatnoUiManagerGridPathFindingNodeId = `${lX + lPositionX}|${lY + lPositionY}`;
-
-                // Increase grid point count.
-                const lGridPointCount: number = (this.mNodeArea.get(lGridNodePoint) ?? 0) + 1;
-                this.mNodeArea.set(lGridNodePoint, lGridPointCount);
-
-                // Add point to node area.
-                lNewNodeArea.push(lGridNodePoint);
-            }
-        }
-
-        // Update nodes area.
-        this.mGridNodeArea.set(pNode, lNewNodeArea);
     }
 
     /**
@@ -367,8 +367,6 @@ type PotatnoUiManagerGridPathFindingPathAreaCell = {
      */
     entryPoints: Set<PotatnoUiManagerGridPathFindingNodeId>;
 };
-
-type PotatnoUiManagerGridPathFindingPointDirection = 'top' | 'right' | 'bottom' | 'left';
 
 export type PotatnoUiManagerGridPathFindingPoint = {
     x: number;

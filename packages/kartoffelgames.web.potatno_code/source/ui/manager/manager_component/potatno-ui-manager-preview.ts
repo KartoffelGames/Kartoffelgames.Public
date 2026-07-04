@@ -1,13 +1,10 @@
 import { Exception } from '@kartoffelgames/core';
 import type { IPotatnoDocumentItem } from '../../../document/i-potatno-document-item.interface.ts';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
-import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
-import { PotatnoPreviewFunctionExecutor } from '../../../preview/potatno-preview-function-executor.ts';
 import type { PotatnoPreviewDisplayItem } from '../../../preview/potatno-preview.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import { PotatnoProject } from '../../../project/potatno-project.ts';
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatno-ui-manager.ts';
 
 /**
@@ -22,11 +19,11 @@ import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatn
  * refreshes and executes, and which driver belongs to which document item.
  */
 export class PotatnoUiManagerPreview {
-    private readonly mDriverList: Array<WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>>;
-    private readonly mElementDriver: WeakMap<Element, WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>>;
-    private readonly mDriverElements: WeakMap<WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>, Element>;
     private readonly mDriverActivity: WeakMap<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>, boolean>;
+    private readonly mDriverElements: WeakMap<WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>, Element>;
+    private readonly mDriverList: Array<WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>>;
     private readonly mDrivers: WeakMap<IPotatnoDocumentItem<PotatnoProjectTypesDefinition>, PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>;
+    private readonly mElementDriver: WeakMap<Element, WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>>;
     private readonly mManager: PotatnoUiManager;
     private readonly mPreviewIntersection: IntersectionObserver;
 
@@ -142,57 +139,6 @@ export class PotatnoUiManagerPreview {
     }
 
     /**
-     * Unregister a driver by its reference. Removes the driver from the driver list and unobserves its preview element.
-     * 
-     * @param pDriverReference - Driver reference hold by the driver list. 
-     */
-    private unregister(pDriverReference: WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>): void {
-        // Find the index of the driver reference.
-        const lReferenceIndex: number = this.mDriverList.indexOf(pDriverReference);
-        if (lReferenceIndex === -1) {
-            return;
-        }
-
-        // Remove driver reference from driver list.
-        this.mDriverList.splice(lReferenceIndex, 1);
-
-        // Get the element of the driver.
-        const lPreviewElement: Element | undefined = this.mDriverElements.get(pDriverReference);
-        if (!lPreviewElement) {
-            return;
-        }
-
-        // Unobserve element when the driver is garbage collected.
-        this.mPreviewIntersection.unobserve(lPreviewElement);
-    }
-
-    /**
-     * Register the driver in all mappings and observe the preview element for intersections.
-     * 
-     * @param pDriver - The driver to register.
-     */
-    private register(pTarget: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition>): void {
-        // Save the new driver as the main preview of the target.
-        this.mDrivers.set(pTarget, pDriver);
-
-        // Create a weak reference for the driver.
-        const lDriverReference: WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>> = new WeakRef(pDriver);
-
-        // Append the driver reference to the driver list.
-        this.mDriverList.push(lDriverReference);
-
-        // Read the drivers element.
-        const lPreviewElement: Element = pDriver.element;
-
-        // Link the driver with his element.
-        this.mDriverElements.set(lDriverReference, lPreviewElement);
-        this.mElementDriver.set(lPreviewElement, lDriverReference);
-
-        // Observe the preview element for view intersections.
-        this.mPreviewIntersection.observe(lPreviewElement);
-    }
-
-    /**
      * Generate and register new driver for a target and display.
      * 
      * @param pTarget - Target function or port.
@@ -228,5 +174,56 @@ export class PotatnoUiManagerPreview {
         }
 
         return lDriver;
+    }
+
+    /**
+     * Register the driver in all mappings and observe the preview element for intersections.
+     * 
+     * @param pDriver - The driver to register.
+     */
+    private register(pTarget: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pDriver: PotatnoPreviewDriver<PotatnoProjectTypesDefinition>): void {
+        // Save the new driver as the main preview of the target.
+        this.mDrivers.set(pTarget, pDriver);
+
+        // Create a weak reference for the driver.
+        const lDriverReference: WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>> = new WeakRef(pDriver);
+
+        // Append the driver reference to the driver list.
+        this.mDriverList.push(lDriverReference);
+
+        // Read the drivers element.
+        const lPreviewElement: Element = pDriver.element;
+
+        // Link the driver with his element.
+        this.mDriverElements.set(lDriverReference, lPreviewElement);
+        this.mElementDriver.set(lPreviewElement, lDriverReference);
+
+        // Observe the preview element for view intersections.
+        this.mPreviewIntersection.observe(lPreviewElement);
+    }
+
+    /**
+     * Unregister a driver by its reference. Removes the driver from the driver list and unobserves its preview element.
+     * 
+     * @param pDriverReference - Driver reference hold by the driver list. 
+     */
+    private unregister(pDriverReference: WeakRef<PotatnoPreviewDriver<PotatnoProjectTypesDefinition>>): void {
+        // Find the index of the driver reference.
+        const lReferenceIndex: number = this.mDriverList.indexOf(pDriverReference);
+        if (lReferenceIndex === -1) {
+            return;
+        }
+
+        // Remove driver reference from driver list.
+        this.mDriverList.splice(lReferenceIndex, 1);
+
+        // Get the element of the driver.
+        const lPreviewElement: Element | undefined = this.mDriverElements.get(pDriverReference);
+        if (!lPreviewElement) {
+            return;
+        }
+
+        // Unobserve element when the driver is garbage collected.
+        this.mPreviewIntersection.unobserve(lPreviewElement);
     }
 }

@@ -4,10 +4,10 @@ import { Component, PwbChild, PwbComponent, PwbExport, type IComponentOnConnect,
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPortDefinitionDirection } from '../../../project/potatno-port-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
+import type { PotatnoUiManagerGridPathFindingPoint } from '../../manager/helper/potatno-ui-grid-path-finding.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import portCss from './potatno-port.css' with { type: 'text' };
 import portTemplate from './potatno-port.html' with { type: 'text' };
-import { PotatnoUiManagerGridPathFindingPoint } from "../../manager/helper/potatno-ui-grid-path-finding.ts";
 
 /**
  * Port component for the potatno-code visual editor.
@@ -31,8 +31,8 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     private static mDraggedPortInformation: PotatnoPortComponentDragPortInformation | null;
 
     private readonly mComponent: Component;
-    private readonly mManager: PotatnoUiManager;
     private readonly mDragPositionEventHandler: PotatnoPortComponentGlobalDragoverHandler;
+    private readonly mManager: PotatnoUiManager;
     private mPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null;
     private mUnsubscribe: (() => void) | null;
 
@@ -44,33 +44,21 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     }
 
     /**
-     * The domain port object to render.
-     */
-    @PwbExport
-    public get port(): PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null {
-        return this.mPort;
-    } set port(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null) {
-        // Skip reassigning the port.
-        if (this.mPort === pPort) {
-            return;
-        }
-
-        // A nullport should never be assigned.
-        if (pPort === null) {
-            throw new Exception('A null port cant be assigned.', this);
-        }
-
-        this.mPort = pPort;
-
-        // Manually update.
-        this.mComponent.updater.updateAsync();
-    }
-
-    /**
      * SVG element used for the temporary drag wire.
      */
     @PwbChild('dragConnection')
     public accessor dragConnectionSvg!: SVGSVGElement;
+
+    /**
+     * Whether this port currently has a validation error.
+     */
+    public get hasError(): boolean {
+        if (this.port === null) {
+            return false;
+        }
+
+        return this.mManager.integrity.errorItems.has(this.port);
+    }
 
     /**
      * Input element descriptors for the direct-value fields, derived from the port's type definition.
@@ -108,14 +96,26 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     }
 
     /**
-     * Whether this port currently has a validation error.
+     * The domain port object to render.
      */
-    public get hasError(): boolean {
-        if (this.port === null) {
-            return false;
+    @PwbExport
+    public get port(): PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null {
+        return this.mPort;
+    } set port(pPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null) {
+        // Skip reassigning the port.
+        if (this.mPort === pPort) {
+            return;
         }
 
-        return this.mManager.integrity.errorItems.has(this.port);
+        // A nullport should never be assigned.
+        if (pPort === null) {
+            throw new Exception('A null port cant be assigned.', this);
+        }
+
+        this.mPort = pPort;
+
+        // Manually update.
+        this.mComponent.updater.updateAsync();
     }
 
     /**
@@ -406,6 +406,25 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     }
 
     /**
+     * Create the temporary connection path for a native drag position.
+     *
+     * @param pClientX - Viewport x coordinate.
+     * @param pClientY - Viewport y coordinate.
+     *
+     * @returns SVG path data in local port coordinates.
+     */
+    private createDragPath(pClientX: number, pClientY: number): string {
+        if (!this.port) {
+            return '';
+        }
+
+        // Convert viewport coordinates into this port's grid-local coordinates.
+        const lEnd: PotatnoUiManagerGridPathFindingPoint = this.mManager.connections.pixelToGridSpace(pClientX, pClientY);
+
+        return this.mManager.connections.createTemporaryPath(this.port, lEnd);
+    }
+
+    /**
      * Check whether the dragged port can be connected too this port.
      * Also check whether a native drag contains Potatno port data.
      * Cant check definition id of stored data transfer as its not allways a drop event.
@@ -434,25 +453,6 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         const lDraggedPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> = PotatnoPortComponent.mDraggedPortInformation.port;
 
         return lDraggedPort !== this.port && lDraggedPort.direction !== this.port.direction && lDraggedPort.portType === this.port.portType;
-    }
-
-    /**
-     * Create the temporary connection path for a native drag position.
-     *
-     * @param pClientX - Viewport x coordinate.
-     * @param pClientY - Viewport y coordinate.
-     *
-     * @returns SVG path data in local port coordinates.
-     */
-    private createDragPath(pClientX: number, pClientY: number): string {
-        if (!this.port) {
-            return '';
-        }
-
-        // Convert viewport coordinates into this port's grid-local coordinates.
-        const lEnd: PotatnoUiManagerGridPathFindingPoint = this.mManager.connections.pixelToGridSpace(pClientX, pClientY);
-
-        return this.mManager.connections.createTemporaryPath(this.port, lEnd);
     }
 
     /**

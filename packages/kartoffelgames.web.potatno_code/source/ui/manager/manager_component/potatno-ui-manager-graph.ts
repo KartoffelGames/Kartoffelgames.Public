@@ -12,8 +12,8 @@ import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatn
  * Handles document changes.
  */
 export class PotatnoUiManagerGraph {
-    private readonly mManager: PotatnoUiManager;
     private mDocument: PotatnoDocument<PotatnoProjectTypesDefinition> | null;
+    private readonly mManager: PotatnoUiManager;
 
     /**
      * Document.
@@ -30,81 +30,6 @@ export class PotatnoUiManagerGraph {
     public constructor(pManager: PotatnoUiManager) {
         this.mManager = pManager;
         this.mDocument = null;
-    }
-
-    /**
-     * Set a new document.
-     * Updates the active function to the first function of the document when the current active function cant be found.
-     * 
-     * @param pDocument - New document.
-     */
-    public setDocument(pDocument: PotatnoDocument<PotatnoProjectTypesDefinition>) {
-        // Set document and dispatch change event.
-        this.mDocument = pDocument;
-
-        // Before signaling the document, validate it to initialize any nodes and ports.
-        this.mDocument.validate();
-
-        // Then signal it.
-        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.Document, this.mDocument);
-
-        // Set a default function for the changed document.
-        this.setDefaultActiveFunction();
-    }
-
-    /**
-     * Remove a function from the document.
-     *
-     * @param pFunctionId - Id of the function to remove.
-     */
-    public removeFunction(pFunctionId: string): void {
-        const lDocument: PotatnoDocument<PotatnoProjectTypesDefinition> | null = this.mDocument;
-        if (!lDocument) {
-            return;
-        }
-
-        let lRemovedFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = null;
-        for (const lFunction of lDocument.functions) {
-            if (lFunction.id === pFunctionId) {
-                lRemovedFunction = lFunction;
-                lDocument.removeFunction(lFunction);
-                break;
-            }
-        }
-
-        if (!lRemovedFunction) {
-            return;
-        }
-
-        // Notify for the removed function and for the newly active one.
-        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.FunctionDelete, lRemovedFunction);
-
-        // Set a default function for the changed document.
-        this.setDefaultActiveFunction();
-    }
-
-    /**
-     * Announce a transient, in-place node geometry change (a live drag or resize) so the connection
-     * layer can redraw its wires. Carries no history/preview/validation side effects — those are
-     * committed separately on pointer-up via {@link commitNodeChange}.
-     */
-    public transformNode(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>, pTransformation: Partial<PotatnoDocumentNodeTransformation>): void {
-        // Build full transformation and override provided data.
-        const lTransformation: PotatnoDocumentNodeTransformation = {
-            x: pNode.transformation.x,
-            y: pNode.transformation.y,
-            width: pNode.transformation.width,
-            height: pNode.transformation.height,
-
-            // Override with provided data.
-            ...pTransformation
-        };
-
-        // Move and resize.
-        pNode.moveTo(lTransformation.x, lTransformation.y);
-        pNode.resizeTo(lTransformation.width, lTransformation.height);
-
-        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.NodeTransform, pNode);
     }
 
     /**
@@ -160,17 +85,6 @@ export class PotatnoUiManagerGraph {
         return lNode;
     }
 
-    /**
-     * Remove a node from the active function.
-     *
-     * @param pNode - The node to remove.
-     */
-    public removeNode(lNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): void {
-        lNode.function.removeNode(lNode);
-
-        // Notify per removed node.
-        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.NodeDelete, lNode);
-    }
 
     /**
      * Connect two ports and rebuild dependent state.
@@ -183,8 +97,7 @@ export class PotatnoUiManagerGraph {
     public connectPorts(pSource: PotatnoDocumentPort<PotatnoProjectTypesDefinition>, pTarget: PotatnoDocumentPort<PotatnoProjectTypesDefinition>): boolean {
         try {
             pSource.connect(pTarget);
-        } catch (pError) {
-            console.error('[PotatnoCodeUiManager] Connection failed:', pError);
+        } catch {
             return false;
         }
 
@@ -210,6 +123,69 @@ export class PotatnoUiManagerGraph {
     }
 
     /**
+     * Remove a function from the document.
+     *
+     * @param pFunctionId - Id of the function to remove.
+     */
+    public removeFunction(pFunctionId: string): void {
+        const lDocument: PotatnoDocument<PotatnoProjectTypesDefinition> | null = this.mDocument;
+        if (!lDocument) {
+            return;
+        }
+
+        let lRemovedFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = null;
+        for (const lFunction of lDocument.functions) {
+            if (lFunction.id === pFunctionId) {
+                lRemovedFunction = lFunction;
+                lDocument.removeFunction(lFunction);
+                break;
+            }
+        }
+
+        if (!lRemovedFunction) {
+            return;
+        }
+
+        // Notify for the removed function and for the newly active one.
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.FunctionDelete, lRemovedFunction);
+
+        // Set a default function for the changed document.
+        this.setDefaultActiveFunction();
+    }
+
+    /**
+     * Remove a node from the active function.
+     *
+     * @param pNode - The node to remove.
+     */
+    public removeNode(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): void {
+        pNode.function.removeNode(pNode);
+
+        // Notify per removed node.
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.NodeDelete, pNode);
+    }
+
+    /**
+     * Set a new document.
+     * Updates the active function to the first function of the document when the current active function cant be found.
+     * 
+     * @param pDocument - New document.
+     */
+    public setDocument(pDocument: PotatnoDocument<PotatnoProjectTypesDefinition>): void {
+        // Set document and dispatch change event.
+        this.mDocument = pDocument;
+
+        // Before signaling the document, validate it to initialize any nodes and ports.
+        this.mDocument.validate();
+
+        // Then signal it.
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.Document, this.mDocument);
+
+        // Set a default function for the changed document.
+        this.setDefaultActiveFunction();
+    }
+
+    /**
      * Set a port's direct value.
      *
      * @param pPort - The value port to set.
@@ -219,6 +195,30 @@ export class PotatnoUiManagerGraph {
         pPort.setDirectValue(pValues);
 
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.NodeUpdate, pPort.node);
+    }
+
+    /**
+     * Announce a transient, in-place node geometry change (a live drag or resize) so the connection
+     * layer can redraw its wires. Carries no history/preview/validation side effects — those are
+     * committed separately on pointer-up via {@link commitNodeChange}.
+     */
+    public transformNode(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>, pTransformation: Partial<PotatnoDocumentNodeTransformation>): void {
+        // Build full transformation and override provided data.
+        const lTransformation: PotatnoDocumentNodeTransformation = {
+            x: pNode.transformation.x,
+            y: pNode.transformation.y,
+            width: pNode.transformation.width,
+            height: pNode.transformation.height,
+
+            // Override with provided data.
+            ...pTransformation
+        };
+
+        // Move and resize.
+        pNode.moveTo(lTransformation.x, lTransformation.y);
+        pNode.resizeTo(lTransformation.width, lTransformation.height);
+
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.NodeTransform, pNode);
     }
 
     /**

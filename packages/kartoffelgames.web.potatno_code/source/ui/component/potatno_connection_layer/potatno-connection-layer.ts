@@ -23,7 +23,7 @@ import connectionLayerTemplate from './potatno-connection-layer.html' with { typ
 export class PotatnoConnectionLayer implements IComponentOnDeconstruct {
     private readonly mConnectionRegistry: Map<string, PotatnoConnectionLayerRecord>;
     private readonly mManager: PotatnoUiManager;
-    private mUnsubscribe: () => void;
+    private readonly mUnsubscribe: () => void;
 
     /**
      * SVG element that hosts the connection paths.

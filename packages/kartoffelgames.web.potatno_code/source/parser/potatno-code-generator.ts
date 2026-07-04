@@ -221,7 +221,7 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
             lInputs[lPort.definitionId] = lResolvedInput.inputPort;
 
             // Set the resolved port value as value... yeaaaa
-            this.setPortValue(pCursor, lPort, lResolvedInput.inputPort.value);
+            pCursor.ports.set(lPort, lResolvedInput.inputPort.value);
 
             if (lResolvedInput.emitResult) {
                 lProducerEmits.push(lResolvedInput.emitResult);
@@ -430,7 +430,7 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
     private generatePortValue(pPassData: PotatnoCodeGeneratorPassData<TProjectTypes>, pCursor: PotatnoCodeGeneratorPassCursor<TProjectTypes>, pPort: PotatnoDocumentPort<TProjectTypes>): string {
         // Allocate a fresh valueId on first encounter in this graph.
         if (!pCursor.ports.has(pPort)) {
-            this.setPortValue(pCursor, pPort, this.mProject.generator.values.valueId(pPassData.counter.portIndex++));
+            pCursor.ports.set(pPort, this.mProject.generator.values.valueId(pPassData.counter.portIndex++));
         }
 
         return pCursor.ports.get(pPort)!;
@@ -652,21 +652,9 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
     }
 
     /**
-     * Set a resolved value of a generated port.
-     *
-     * @param pCursor - The pass cursor.
-     * @param pPort - Port to store.
-     * @param pValue - Resolved value for the port.
-     */
-    private setPortValue(pCursor: PotatnoCodeGeneratorPassCursor<TProjectTypes>, pPort: PotatnoDocumentPort<TProjectTypes>, pValue: string): void {
-        pCursor.ports.set(pPort, pValue);
-    }
-
-    /**
-     * Iterative backward walk through a flow chain. Collects the emitted code for its frame and returns it as an emit result.
-     * Each node's code is merged in front of the code collected so far, keeping the result in execution order.
-     *
-     * The "active port" is the cursor's flow output that leads to the already-emitted downstream node; only that port receives the collected code as its inner. Sub-walks at merges run in a fresh scope and return their own emit result.
+     * Iterative backward walk through a flow chain until no parent node is found or the end node is reached.
+     * Emits each node while walking, including value nodes.
+     * End node is excluded and not generated.
      *
      * @param pPassData - Shared pass state.
      * @param pCursor - The pass cursor.
@@ -736,7 +724,6 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
 
         return lEmitResult;
     }
-
 }
 
 /**

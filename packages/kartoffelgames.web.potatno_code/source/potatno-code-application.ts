@@ -1,11 +1,14 @@
+import { Exception } from "@kartoffelgames/core";
 import { PwbApplication } from '@kartoffelgames/web-potato-web-builder';
 import { PotatnoDocument } from './document/potatno-document.ts';
-import type { PotatnoProject } from './project/potatno-project.ts';
-import { PotatnoCodeEditor } from './ui/component/potatno_code_editor/potatno-code-editor.ts';
-
 import applicationCss from './potatno-code-application.css' with { type: 'text' };
-import themeCss from './ui/component/potatno-theme.css' with { type: 'text' };
 import type { PotatnoProjectTypesDefinition } from './project/potatno-project-types-definition.ts';
+import type { PotatnoProject } from './project/potatno-project.ts';
+import { PotatnoDeserializer } from "./serialization/potatno-deserializer.ts";
+import { PotatnoCodeFileSerializationResult } from "./serialization/potatno-serialization.type.ts";
+import { PotatnoSerializer } from "./serialization/potatno-serializer.ts";
+import themeCss from './ui/component/potatno-theme.css' with { type: 'text' };
+import { PotatnoCodeEditor } from './ui/component/potatno_code_editor/potatno-code-editor.ts';
 
 /*
  * TODO: UI
@@ -25,9 +28,9 @@ export class PotatnoCodeApplication<TProjectTypes extends PotatnoProjectTypesDef
      * Get the current code file (document state).
      */
     public get document(): PotatnoDocument<TProjectTypes> {
-        return this.mCodeEditor.file! as unknown as PotatnoDocument<TProjectTypes>;
-    } set document(pFile: PotatnoDocument<TProjectTypes>) {
-        this.mCodeEditor.file = pFile as unknown as PotatnoDocument<PotatnoProjectTypesDefinition>;
+        return this.mCodeEditor.document! as unknown as PotatnoDocument<TProjectTypes>;
+    } set document(pDocument: PotatnoDocument<TProjectTypes>) {
+        this.mCodeEditor.document = pDocument as unknown as PotatnoDocument<PotatnoProjectTypesDefinition>;
     }
 
     /**
@@ -57,7 +60,37 @@ export class PotatnoCodeApplication<TProjectTypes extends PotatnoProjectTypesDef
 
         // Pass the project configuration into the editor, then seed it with an empty document.
         this.mCodeEditor.project = pProject as unknown as PotatnoProject<PotatnoProjectTypesDefinition>;
-        this.mCodeEditor.file = new PotatnoDocument(pProject) as unknown as PotatnoDocument<PotatnoProjectTypesDefinition>;
+        this.mCodeEditor.document = new PotatnoDocument(pProject) as unknown as PotatnoDocument<PotatnoProjectTypesDefinition>;
+    }
+
+    /**
+     * Load a new document from a string.
+     * 
+     * @param pDocumentString - Serialized document.
+     */
+    public load(pDocumentString: string): void {
+        // Try to deserialize document string.
+        const lParseResult: PotatnoCodeFileSerializationResult = JSON.parse(pDocumentString);
+
+        // Weak check for keys.
+        if (!Array.isArray(lParseResult.functions)) {
+            throw new Exception('Could not load document. Document has a wrong format.', this);
+        }
+
+        // Deseserialize document and store it.
+        const lDocument: PotatnoDocument<TProjectTypes> = new PotatnoDeserializer(this.mProject).deserialize(lParseResult);
+        this.document = lDocument;
+    }
+
+    /**
+     * Save current document as string.
+     * 
+     * @returns the current document state as string.
+     */
+    public save(): string {
+        // Serialize and stringify document.
+        const lSerializationResult: PotatnoCodeFileSerializationResult = new PotatnoSerializer<TProjectTypes>().serialize(this.document);
+        return JSON.stringify(lSerializationResult);
     }
 
     /**

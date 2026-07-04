@@ -72,7 +72,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
     /**
      * Current document state.
      */
-    public get file(): PotatnoDocument<PotatnoProjectTypesDefinition> | null {
+    public get document(): PotatnoDocument<PotatnoProjectTypesDefinition> | null {
         return this.mManager.graph.document;
     }
 
@@ -105,7 +105,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      * Document state backing the editor.
      */
     @PwbExport
-    public set file(pFile: PotatnoDocument<PotatnoProjectTypesDefinition>) {
+    public set document(pFile: PotatnoDocument<PotatnoProjectTypesDefinition>) {
         if (!this.mProject) {
             return;
         }

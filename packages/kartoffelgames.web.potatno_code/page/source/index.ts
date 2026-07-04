@@ -8,7 +8,6 @@ import { CanvasProjectMatrixPreviewDisplay } from './project/preview/canvas-proj
 import { CanvasProjectPreviewDisplay } from './project/preview/canvas-project-preview-display.ts';
 
 const gProject = new CanvasProject();
-
 gProject.addImport(new CanvasProjectMathImportDefinition());
 gProject.addImport(new CanvasProjectTimeImportDefinition());
 
@@ -75,8 +74,11 @@ gProject.preview.addDisplay(new CanvasProjectMatrixPreviewDisplay(gEntryFunction
 gProject.preview.addDisplay(new CanvasProjectMatrixPreviewDisplay(gUserFunctionExecutor));
 
 // Create application and open an empty file.
+const gApplicationRoot: HTMLElement = document.getElementById('application-root')!;
+
+
 const gApp = new PotatnoCodeApplication(gProject);
-gApp.appendTo(document.body);
+gApp.appendTo(gApplicationRoot);
 gApp.document = new PotatnoDocument(gProject);
 
 void gRenderFrame();
@@ -92,5 +94,62 @@ async function gRenderFrame(): Promise<void> {
     }
 
     requestAnimationFrame(gRenderFrame);
+}
+
+document.getElementById('load-button')!.addEventListener('click', () => void gLoadDocument());
+document.getElementById('save-button')!.addEventListener('click', () => void gSaveDocument());
+
+// Declare missing JS-API function.
+declare global {
+    function showOpenFilePicker(): Promise<Array<FileSystemFileHandle>>
+    function showSaveFilePicker(): Promise<FileSystemFileHandle>;
+}
+
+/**
+ * Load a document from a selected file.
+ */
+async function gLoadDocument(): Promise<void> {
+    try {
+        // Pick and load document file.
+        const [lFileHandle]: Array<FileSystemFileHandle> = await globalThis.showOpenFilePicker();
+        const lDocumentFile: File = await lFileHandle.getFile();
+
+        // Load document into application.
+        gApp.load(await lDocumentFile.text());
+    } catch (lError: unknown) {
+        // Ignore picker cancelation.
+        if (lError instanceof DOMException && lError.name === 'AbortError') {
+            return;
+        }
+
+        // eslint-disable-next-line no-console
+        console.error(lError)
+        window.alert('Could not load document.');
+    }
+}
+
+/**
+ * Save current document into a selected file.
+ */
+async function gSaveDocument(): Promise<void> {
+    try {
+        // Pick document file target.
+        const lFileHandle: FileSystemFileHandle = await globalThis.showSaveFilePicker();
+
+        // Store document content.
+        const lWritableFile: FileSystemWritableFileStream = await lFileHandle.createWritable();
+        await lWritableFile.write(gApp.save());
+        await lWritableFile.close();
+
+    } catch (lError: unknown) {
+        // Ignore picker cancelation.
+        if (lError instanceof DOMException && lError.name === 'AbortError') {
+            return;
+        }
+
+        // eslint-disable-next-line no-console
+        console.error(lError)
+        window.alert('Could not save document.');
+    }
 }
 

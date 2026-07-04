@@ -1,16 +1,35 @@
-html, body {
+html,
+body {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    width: 100%;
+
     margin: 0;
     padding: 0;
-    width: 100%;
-    height: 100%;
-    overflow: hidden;
-    background: #181825;
+    
     font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 }
 
-/* PwbApplication creates a plain <div> with a shadow root. */
-body > div {
-    display: block;
-    width: 100%;
-    height: 100%;
+.potatno-code-toolbar {
+    display: flex;
+    background: #181825;
+    border-bottom: 1px solid #45475a;
+
+    .potatno-code-toolbar-button {
+        color: #f0f0f8;
+        cursor: default;
+        font-size: 13px;
+        line-height: 17px;
+        padding: 4px 12px;
+        user-select: none;
+
+        &:hover {
+            background: #24243a;
+        }
+
+        &:active {
+            background: #10101a;
+        }
+    }
 }

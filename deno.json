@@ -35,7 +35,8 @@
             "DOM",
             "deno.ns",
             "DOM.asynciterable",
-            "DOM.iterable"
+            "DOM.iterable",
+            "deno.unstable"
         ],
         "noImplicitAny": true,
         "noImplicitOverride": true,

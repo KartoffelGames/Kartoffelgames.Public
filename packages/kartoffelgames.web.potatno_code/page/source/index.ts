@@ -76,7 +76,6 @@ gProject.preview.addDisplay(new CanvasProjectMatrixPreviewDisplay(gUserFunctionE
 // Create application and open an empty file.
 const gApplicationRoot: HTMLElement = document.getElementById('application-root')!;
 
-
 const gApp = new PotatnoCodeApplication(gProject);
 gApp.appendTo(gApplicationRoot);
 gApp.document = new PotatnoDocument(gProject);
@@ -96,60 +95,58 @@ async function gRenderFrame(): Promise<void> {
     requestAnimationFrame(gRenderFrame);
 }
 
-document.getElementById('load-button')!.addEventListener('click', () => void gLoadDocument());
-document.getElementById('save-button')!.addEventListener('click', () => void gSaveDocument());
+document.getElementById('load-button')!.addEventListener('click', gLoadDocument);
+document.getElementById('save-button')!.addEventListener('click', gSaveDocument);
 
-// Declare missing JS-API function.
 declare global {
-    function showOpenFilePicker(): Promise<Array<FileSystemFileHandle>>
-    function showSaveFilePicker(): Promise<FileSystemFileHandle>;
+    interface StorageManager {
+        getDirectory(): Promise<FileSystemDirectoryHandle>;
+    }
 }
 
+const gDocumentFileName: string = 'potatno-code-document.json';
+
 /**
- * Load a document from a selected file.
+ * Load document from browser storage.
  */
 async function gLoadDocument(): Promise<void> {
+    const lUserAnswer: boolean = window.confirm("Load saved document?");
+    if (!lUserAnswer) {
+        return 
+    }
+
     try {
-        // Pick and load document file.
-        const [lFileHandle]: Array<FileSystemFileHandle> = await globalThis.showOpenFilePicker();
+        // Load document file.
+        const lDirectoryHandle: FileSystemDirectoryHandle = await navigator.storage.getDirectory();
+        const lFileHandle: FileSystemFileHandle = await lDirectoryHandle.getFileHandle(gDocumentFileName);
         const lDocumentFile: File = await lFileHandle.getFile();
 
         // Load document into application.
         gApp.load(await lDocumentFile.text());
-    } catch (lError: unknown) {
-        // Ignore picker cancelation.
-        if (lError instanceof DOMException && lError.name === 'AbortError') {
-            return;
-        }
-
-        // eslint-disable-next-line no-console
-        console.error(lError)
+    } catch {
         window.alert('Could not load document.');
     }
 }
 
 /**
- * Save current document into a selected file.
+ * Save document into browser storage.
  */
 async function gSaveDocument(): Promise<void> {
+    const lUserAnswer: boolean = window.confirm("Override saved document?");
+    if (!lUserAnswer) {
+        return 
+    }
+
     try {
-        // Pick document file target.
-        const lFileHandle: FileSystemFileHandle = await globalThis.showSaveFilePicker();
+        // Create document file.
+        const lDirectoryHandle: FileSystemDirectoryHandle = await navigator.storage.getDirectory();
+        const lFileHandle: FileSystemFileHandle = await lDirectoryHandle.getFileHandle(gDocumentFileName, { create: true });
+        const lWritableFile: FileSystemWritableFileStream = await lFileHandle.createWritable();
 
         // Store document content.
-        const lWritableFile: FileSystemWritableFileStream = await lFileHandle.createWritable();
         await lWritableFile.write(gApp.save());
         await lWritableFile.close();
-
-    } catch (lError: unknown) {
-        // Ignore picker cancelation.
-        if (lError instanceof DOMException && lError.name === 'AbortError') {
-            return;
-        }
-
-        // eslint-disable-next-line no-console
-        console.error(lError)
+    } catch {
         window.alert('Could not save document.');
     }
 }
-

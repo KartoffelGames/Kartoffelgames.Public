@@ -50,6 +50,54 @@ Deno.test('ComponentEvent--Functionality: Correct event value', async (pContext)
     });
 });
 
+Deno.test('ComponentEvent--Functionality: Different instances dispatch on own element', async (pContext) => {
+    await pContext.step('Default', async () => {
+        // Setup. Values.
+        const lEventValueOne: string = 'EVENT-VALUE-ONE';
+        const lEventValueTwo: string = 'EVENT-VALUE-TWO';
+        const lEventName: string = 'custom-event';
+
+        // Setup. Define component.
+        @PwbComponent({
+            selector: TestUtil.randomSelector(),
+        })
+        class EventComponent {
+            @PwbComponentEvent(lEventName)
+            private accessor mEvent!: ComponentEventEmitter<string>;
+
+            @PwbExport
+            public callEvent(pValue: string): void {
+                this.mEvent.dispatchEvent(pValue);
+            }
+        }
+
+        // Setup. Create two component instances.
+        const lEventComponentOne: HTMLElement & EventComponent = await <any>TestUtil.createComponent(EventComponent);
+        const lEventComponentTwo: HTMLElement & EventComponent = await <any>TestUtil.createComponent(EventComponent);
+        const lReceivedValuesOne: Array<string> = new Array<string>();
+        const lReceivedValuesTwo: Array<string> = new Array<string>();
+
+        lEventComponentOne.addEventListener(lEventName, (pEvent: any) => {
+            lReceivedValuesOne.push(pEvent.value);
+        });
+        lEventComponentTwo.addEventListener(lEventName, (pEvent: any) => {
+            lReceivedValuesTwo.push(pEvent.value);
+        });
+
+        // Process. Call events on both component instances.
+        lEventComponentOne.callEvent(lEventValueOne);
+        lEventComponentTwo.callEvent(lEventValueTwo);
+
+        // Evaluation. Each instance should dispatch through its own host element.
+        expect(lReceivedValuesOne).toHaveOrderedItems([lEventValueOne]);
+        expect(lReceivedValuesTwo).toHaveOrderedItems([lEventValueTwo]);
+
+        // Wait for any update to finish to prevent timer leaks.
+        await TestUtil.waitForUpdate(lEventComponentOne);
+        await TestUtil.waitForUpdate(lEventComponentTwo);
+    });
+});
+
 Deno.test('ComponentEvent--Functionality: Forbidden static usage', async (pContext) => {
     await pContext.step('Default', () => {
         // Process. Define component.

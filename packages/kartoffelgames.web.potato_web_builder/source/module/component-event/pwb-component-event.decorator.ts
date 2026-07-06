@@ -14,13 +14,13 @@ export function PwbComponentEvent<TEventEmitter extends ComponentEventEmitter<an
             throw new Exception('Event target is not for a static property.', PwbComponentEvent);
         }
 
-        // Create component event emitter.
-        let lEventEmitter: TEventEmitter | null = null;
+        // Create component event emitter cache per component processor instance.
+        const lEventEmitters: WeakMap<ComponentProcessor, TEventEmitter> = new WeakMap<ComponentProcessor, TEventEmitter>();
 
         // Define getter accessor that returns id child.
         return {
             get(this: ComponentProcessor) {
-                if (!lEventEmitter) {
+                if (!lEventEmitters.has(this)) {
                     // Get component manager and exit if target is not a component.
                     const lComponent: Component = (() => {
                         try {
@@ -30,11 +30,11 @@ export function PwbComponentEvent<TEventEmitter extends ComponentEventEmitter<an
                         }
                     })();
 
-                    lEventEmitter = new ComponentEventEmitter(pEventName, lComponent.element) as TEventEmitter;
+                    lEventEmitters.set(this, new ComponentEventEmitter(pEventName, lComponent.element) as TEventEmitter);
                 }
 
                 // Override property with created component event emmiter getter.
-                return lEventEmitter;
+                return lEventEmitters.get(this)!;
             }
         };
     };

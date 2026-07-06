@@ -129,7 +129,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
             return 'var(--potatno-color-text)';
         }
 
-        return this.mManager.generateTypeColor(this.port.resolvedDataType);
+        return this.mManager.generateStringColor(this.port.resolvedDataType);
     }
 
     /**

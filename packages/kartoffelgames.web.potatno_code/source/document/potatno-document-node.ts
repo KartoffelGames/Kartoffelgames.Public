@@ -12,7 +12,6 @@ import type { PotatnoDocument } from './potatno-document.ts';
  * A node instance in the graph.
  */
 export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefinition> implements IPotatnoDocumentItem<TProjectTypes> {
-    private readonly mCategory: string;
     private readonly mDefinitionId: string;
     private readonly mDocument: PotatnoDocument<TProjectTypes>;
     private readonly mFunction: PotatnoDocumentFunction<TProjectTypes>;
@@ -22,13 +21,6 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
     private mPreview: PotatnoDocumentNodePreviewBinding | null;
     private readonly mProject: PotatnoProject<TProjectTypes>;
     private readonly mTransformation: PotatnoDocumentNodeTransformation;
-
-    /**
-     * Get the category of the node's definition. Uses the snapshot set at creation time.
-     */
-    public get category(): string {
-        return this.mCategory;
-    }
 
     /**
      * Get the stable id of the definition this node was created from.
@@ -123,7 +115,6 @@ export class PotatnoDocumentNode<TProjectTypes extends PotatnoProjectTypesDefini
      * @param pParameter - Constructor parameters.
      */
     public constructor(pProject: PotatnoProject<TProjectTypes>, pDocument: PotatnoDocument<TProjectTypes>, pFunction: PotatnoDocumentFunction<TProjectTypes>, pParameter: PotatnoDocumentNodeConstructorParameter<TProjectTypes>) {
-        this.mCategory = pParameter.category;
         this.mDocument = pDocument;
         this.mDefinitionId = pParameter.definitionId;
         this.mFunction = pFunction;
@@ -485,7 +476,6 @@ export type PotatnoDocumentNodePorts<TProjectTypes extends PotatnoProjectTypesDe
 };
 
 export type PotatnoDocumentNodeConstructorParameter<TProjectTypes extends PotatnoProjectTypesDefinition> = {
-    category: string,
     definitionId: string,
     label: string,
     ports: {

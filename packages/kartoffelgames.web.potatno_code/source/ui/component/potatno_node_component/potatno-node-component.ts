@@ -3,11 +3,12 @@ import { Component, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, 
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
+import { PotatnoNodeDefinition } from "../../../project/node_definition/potatno-node-definition.ts";
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../../../project/potatno-project.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPreviewModule } from '../../module/potatno-preview.module.ts';
-import { NodeCategory, NodeCategoryMeta } from '../../node/node-category.enum.ts';
+import { NodeCategory } from '../../node/node-category.enum.ts';
 import { PotatnoPortComponent } from '../potatno_port/potatno-port.ts';
 import nodeCss from './potatno-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
@@ -32,6 +33,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
     private mUnsubscribe: (() => void) | null;
+    private mNodeDefinition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition> | null;
 
     /**
      * The domain node object to render.
@@ -68,21 +70,21 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      * Whether this is a comment-category node.
      */
     public get isComment(): boolean {
-        return this.nodeData?.category === NodeCategory.Comment;
+        return this.nodeDefinition?.category.name === NodeCategory.Comment;
     }
 
     /**
      * Whether this is a reroute passthrough node.
      */
     public get isReroute(): boolean {
-        return this.nodeData?.category === NodeCategory.Reroute;
+        return this.nodeDefinition?.category.name === NodeCategory.Reroute;
     }
 
     /**
      * Whether this is a function-category node.
      */
     public get isFunction(): boolean {
-        return this.nodeData?.category === NodeCategory.Function;
+        return this.nodeDefinition?.category.name === NodeCategory.Function;
     }
 
     /**
@@ -193,7 +195,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
         if (!this.nodeData) {
             return '';
         }
-        return NodeCategoryMeta.get(this.nodeData.category).cssColor;
+        return this.mManager.generateStringColor(this.nodeDefinition?.category.name ?? '');
     }
 
     /**
@@ -203,7 +205,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
         if (!this.nodeData) {
             return '';
         }
-        return NodeCategoryMeta.get(this.nodeData.category).icon;
+        return this.nodeDefinition?.category.icon ?? '';
     }
 
     /**
@@ -257,6 +259,23 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
     }
 
     /**
+     * Get node definition of node component.
+     */
+    private get nodeDefinition(): PotatnoNodeDefinition<PotatnoProjectTypesDefinition> | null {
+        if (!this.nodeData) {
+            return null;
+        }
+
+        const lNodeData: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = this.nodeData;
+
+        if (!this.mNodeDefinition || this.mNodeDefinition.id !== lNodeData.definitionId) {
+            this.mNodeDefinition = lNodeData.project.nodeDefinitions.find((lNodeDef: { id: string; }) => lNodeDef.id === lNodeData.definitionId) ?? null;
+        }
+
+        return this.mNodeDefinition;
+    }
+
+    /**
      * Create the node component.
      *
      * @param pComponent - Injected component reference, used to trigger self-updates.
@@ -266,6 +285,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
         this.mComponent = pComponent;
         this.mManager = pManager;
         this.mUnsubscribe = null;
+        this.mNodeDefinition = null;
     }
 
     /**

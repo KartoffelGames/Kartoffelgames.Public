@@ -22,14 +22,14 @@ Deno.test('PotatnoImportDefinition.addNode()', async (pContext) => {
         const lNodeOne = new PotatnoStaticNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'NodeOne',
             label: 'Node One',
-            category: 'test',
+            category: { name: 'test' },
             ports: { inputs: [], outputs: [] },
             generators: { code: (): string => '' }
         });
         const lNodeTwo = new PotatnoStaticNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'NodeTwo',
             label: 'Node Two',
-            category: 'test',
+            category: { name: 'test' },
             ports: { inputs: [], outputs: [] },
             generators: { code: (): string => '' }
         });

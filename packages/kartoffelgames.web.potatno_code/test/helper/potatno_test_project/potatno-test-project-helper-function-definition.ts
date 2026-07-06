@@ -20,7 +20,9 @@ export class PotatnoTestProjectHelperFunctionDefinition extends PotatnoFunctionD
                     pAddNode(new PotatnoNodeDefinition({
                         id: 'HelperEntry',
                         label: 'Entry',
-                        category: 'event',
+                        category: {
+                            name: 'event'
+                        },
                         generators: {
                             ports: {
                                 inputs: (): void => { /* No inputs on entry nodes. */ },
@@ -47,7 +49,9 @@ export class PotatnoTestProjectHelperFunctionDefinition extends PotatnoFunctionD
                     pAddNode(new PotatnoNodeDefinition({
                         id: 'HelperExit',
                         label: 'Return',
-                        category: 'event',
+                        category: {
+                            name: 'event'
+                        },
                         generators: {
                             ports: {
                                 inputs: (pAddPort): void => {

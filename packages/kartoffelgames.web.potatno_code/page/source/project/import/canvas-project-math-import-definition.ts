@@ -16,7 +16,7 @@ export class CanvasProjectMathImportDefinition extends PotatnoImportDefinition<C
         this.addNode(new PotatnoStaticNodeDefinition({
             id: 'Math.PI',
             label: 'Math.PI',
-            category: 'value',
+            category: { name: 'value' },
             ports: {
                 inputs: [],
                 outputs: [
@@ -30,7 +30,7 @@ export class CanvasProjectMathImportDefinition extends PotatnoImportDefinition<C
         this.addNode(new PotatnoStaticNodeDefinition({
             id: 'Math.E',
             label: 'Math.E',
-            category: 'value',
+            category: { name: 'value' },
             ports: {
                 inputs: [],
                 outputs: [
@@ -44,7 +44,7 @@ export class CanvasProjectMathImportDefinition extends PotatnoImportDefinition<C
         this.addNode(new PotatnoStaticNodeDefinition({
             id: 'Math.abs',
             label: 'Math.abs',
-            category: 'Function',
+            category: { name: 'Function' },
             ports: {
                 inputs: [
                     { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
@@ -60,7 +60,7 @@ export class CanvasProjectMathImportDefinition extends PotatnoImportDefinition<C
         this.addNode(new PotatnoStaticNodeDefinition({
             id: 'Math.floor',
             label: 'Math.floor',
-            category: 'Function',
+            category: { name: 'Function' },
             ports: {
                 inputs: [
                     { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
@@ -76,7 +76,7 @@ export class CanvasProjectMathImportDefinition extends PotatnoImportDefinition<C
         this.addNode(new PotatnoStaticNodeDefinition({
             id: 'Math.random',
             label: 'Math.random',
-            category: 'Function',
+            category: { name: 'Function' },
             ports: {
                 inputs: [],
                 outputs: [
@@ -90,7 +90,7 @@ export class CanvasProjectMathImportDefinition extends PotatnoImportDefinition<C
         this.addNode(new PotatnoStaticNodeDefinition({
             id: 'Math.sin',
             label: 'Math.sin',
-            category: 'Function',
+            category: { name: 'Function' },
             ports: {
                 inputs: [
                     { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
@@ -106,7 +106,7 @@ export class CanvasProjectMathImportDefinition extends PotatnoImportDefinition<C
         this.addNode(new PotatnoStaticNodeDefinition({
             id: 'Math.cos',
             label: 'Math.cos',
-            category: 'Function',
+            category: { name: 'Function' },
             ports: {
                 inputs: [
                     { label: 'value', id: 'value', portType: 'value', dataType: 'number' }

@@ -162,7 +162,7 @@ Deno.test('PotatnoFunctionDefinition.getNodeDefinitions()', async (pContext) => 
     await pContext.step('Entry callback nodes are returned via .entry', () => {
         // Setup.
         const lEntryNode = new PotatnoStaticNodeDefinition({
-            id: 'EntryNode', label: 'EntryNode', category: 'event',
+            id: 'EntryNode', label: 'EntryNode', category: { name: 'event' },
             ports: { inputs: [], outputs: [] }, generators: { code: (): string => '' }
         });
         const lFunction = new PotatnoFunctionDefinition({
@@ -185,7 +185,7 @@ Deno.test('PotatnoFunctionDefinition.getNodeDefinitions()', async (pContext) => 
     await pContext.step('Exit callback nodes are returned via .exit', () => {
         // Setup.
         const lExitNode = new PotatnoStaticNodeDefinition({
-            id: 'ExitNode', label: 'ExitNode', category: 'output',
+            id: 'ExitNode', label: 'ExitNode', category: { name: 'output' },
             ports: { inputs: [], outputs: [] }, generators: { code: (): string => '' }
         });
         const lFunction = new PotatnoFunctionDefinition({
@@ -208,7 +208,7 @@ Deno.test('PotatnoFunctionDefinition.getNodeDefinitions()', async (pContext) => 
     await pContext.step('Dynamic callback nodes are returned via .dynamic', () => {
         // Setup.
         const lDynamicNode = new PotatnoStaticNodeDefinition({
-            id: 'DynamicNode', label: 'DynamicNode', category: 'operator',
+            id: 'DynamicNode', label: 'DynamicNode', category: { name: 'operator' },
             ports: { inputs: [], outputs: [] }, generators: { code: (): string => '' }
         });
         const lFunction = new PotatnoFunctionDefinition({

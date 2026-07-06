@@ -19,7 +19,7 @@ export class CanvasProjectEntryFunctionDefinition extends PotatnoFunctionDefinit
                     pAddNode(new PotatnoStaticNodeDefinition({
                         id: 'OnPixel',
                         label: 'OnPixel',
-                        category: 'event',
+                        category: { name: 'event' },
                         ports: {
                             inputs: [],
                             outputs: [
@@ -41,7 +41,7 @@ export class CanvasProjectEntryFunctionDefinition extends PotatnoFunctionDefinit
                     pAddNode(new PotatnoStaticNodeDefinition({
                         id: 'PixelResult',
                         label: 'PixelResult',
-                        category: 'Output',
+                        category: { name: 'Output' },
                         ports: {
                             inputs: [
                                 { label: 'exec', id: 'exec', portType: 'flow' },

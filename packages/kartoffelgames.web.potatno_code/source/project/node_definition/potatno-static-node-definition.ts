@@ -46,7 +46,10 @@ export class PotatnoStaticNodeDefinition<TProjectTypes extends PotatnoProjectTyp
 type PotatnoStaticNodeDefinitionConstructorParameter<TProjectTypes extends PotatnoProjectTypesDefinition> = {
     id: string;
     label: string;
-    category: string;
+    category: {
+        name: string;
+        icon?: string;
+    };
     regions?: Partial<PotatnoNodeDefinitionRegions> | null;
     ports: {
         inputs: Array<PotatnoPortDefinitionConfiguration<TProjectTypes>>;

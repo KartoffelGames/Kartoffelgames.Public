@@ -1,22 +1,14 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { type ComponentEventEmitter, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, PwbExport, type IComponentOnConnect, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
-import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
+import { ComponentState, IComponentOnUpdate, PwbChild, PwbComponent, PwbComponentEvent, type ComponentEventEmitter, type IComponentOnConnect } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
+import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
-import { NodeCategoryMeta } from '../../node/node-category.enum.ts';
 import addNodePopupCss from './potatno-add-node-popup.css' with { type: 'text' };
 import addNodePopupTemplate from './potatno-add-node-popup.html' with { type: 'text' };
-import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 
 /**
  * Searchable popup listing every node definition available to the active function.
- *
- * Owns only its own search/selection state; it builds its entry list straight from the shared
- * {@link PotatnoUiManager}'s active function and emits the chosen definition via `node-select`.
- * Placement is the host's concern — the node graph renders this popup at the context-menu position
- * and inserts the selected node at the matching world coordinate, so the popup itself stays
- * placement-agnostic. Pointer/wheel/context-menu events on the popup are stopped here so they never
- * reach the graph canvas behind it.
+ * Dispatches the "node-select" event on selecting a node.
  */
 @PwbComponent({
     selector: 'potatno-add-node-popup',
@@ -25,25 +17,12 @@ import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-pro
 })
 export class PotatnoAddNodePopup implements IComponentOnConnect, IComponentOnUpdate {
     private readonly mManager: PotatnoUiManager;
-    private mSearchQuery: string;
-    private mSelectedDefinitionId: string | null;
-    private mWasOpen: boolean;
 
     /**
-     * Whether the popup is currently shown. The host always renders this component (so its event
-     * bindings stay attached) and toggles visibility through this input; an `$if` would destroy and
-     * recreate the component, and PWB does not re-attach component-event listeners on the recreated
-     * instance — silently dropping `node-select`.
-     */
-    @PwbExport
-    @ComponentState.state()
-    public accessor open: boolean = false;
-
-    /**
-     * Filtered node definition entries shown in the result list.
+     * Filtered result entries shown in the list.
      */
     @ComponentState.state({ complexValue: true })
-    private accessor mFilteredEntries: Array<PotatnoAddNodePopupEntry> = [];
+    public accessor results: Array<PotatnoAddNodePopupEntry>;
 
     /**
      * Search field element, focused when the popup opens.
@@ -58,24 +37,16 @@ export class PotatnoAddNodePopup implements IComponentOnConnect, IComponentOnUpd
     private accessor mNodeSelect!: ComponentEventEmitter<PotatnoNodeDefinition<PotatnoProjectTypesDefinition>>;
 
     /**
-     * Emitted when the user dismisses the popup (Escape).
-     */
-    @PwbComponentEvent('close')
-    private accessor mClose!: ComponentEventEmitter<void>;
-
-    /**
-     * Filtered result entries shown in the list.
-     */
-    public get results(): Array<PotatnoAddNodePopupEntry> {
-        return this.mFilteredEntries;
-    }
-
-    /**
      * Current search field text.
      */
-    public get searchValue(): string {
-        return this.mSearchQuery;
-    }
+    @ComponentState.state()
+    public accessor searchValue: string;
+
+    /**
+     * Current selected definition id.
+     */
+    @ComponentState.state()
+    private accessor selectedDefinitionId: string | null;
 
     /**
      * Create the add-node popup.
@@ -84,90 +55,24 @@ export class PotatnoAddNodePopup implements IComponentOnConnect, IComponentOnUpd
      */
     public constructor(pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mManager = pManager;
-        this.mSearchQuery = '';
-        this.mSelectedDefinitionId = null;
-        this.mWasOpen = false;
-        this.mFilteredEntries = [];
+
+        this.selectedDefinitionId = null;
+        this.results = new Array<PotatnoAddNodePopupEntry>();
+        this.searchValue = '';
     }
 
     /**
-     * Return the CSS class for a result row.
-     *
-     * @param pEntry - Entry whose selected state should be checked.
-     *
-     * @returns CSS class for the result row.
-     */
-    public getEntryClass(pEntry: PotatnoAddNodePopupEntry): string {
-        return pEntry.id === this.mSelectedDefinitionId ? 'add-node-result selected' : 'add-node-result';
-    }
-
-    /**
-     * Resolve the category accent color for a result row.
-     *
-     * @param pEntry - Entry whose category color to resolve.
-     *
-     * @returns A CSS color string for the entry's category.
-     */
-    public getEntryColor(pEntry: PotatnoAddNodePopupEntry): string {
-        return NodeCategoryMeta.get(pEntry.category).cssColor;
-    }
-
-    /**
-     * Resolve the category icon glyph for a result row.
-     *
-     * @param pEntry - Entry whose category icon to resolve.
-     *
-     * @returns The category icon glyph.
-     */
-    public getEntryIcon(pEntry: PotatnoAddNodePopupEntry): string {
-        return NodeCategoryMeta.get(pEntry.category).icon;
-    }
-
-    /**
-     * Resolve the human-readable category label for a result row.
-     *
-     * @param pEntry - Entry whose category label to resolve.
-     *
-     * @returns The display label of the entry's category.
-     */
-    public getEntryCategoryLabel(pEntry: PotatnoAddNodePopupEntry): string {
-        return NodeCategoryMeta.get(pEntry.category).label;
-    }
-
-    /**
-     * Build the result list and focus the search field if the popup mounts already open.
+     * Focus the search field when the popup opens.
      */
     public onConnect(): void {
-        this.mWasOpen = this.open;
-        if (this.open) {
-            this.rebuildResults();
-            this.focusSearchInput();
-        }
+        this.searchInput.focus();
     }
 
     /**
-     * Rebuild the result list and focus the search field each time the popup transitions to open.
+     * Result search result list whenever the component is updated.
+     * That includes when something is typed into the searchbar. 
      */
     public onUpdate(): void {
-        if (this.open && !this.mWasOpen) {
-            this.rebuildResults();
-            this.focusSearchInput();
-        }
-
-        this.mWasOpen = this.open;
-    }
-
-    /**
-     * Handle search text changes.
-     *
-     * @param pEvent - Input event from the search field.
-     */
-    public onSearchInput(pEvent: Event): void {
-        if (!(pEvent.target instanceof HTMLInputElement)) {
-            return;
-        }
-
-        this.mSearchQuery = pEvent.target.value;
         this.rebuildResults();
     }
 
@@ -176,35 +81,38 @@ export class PotatnoAddNodePopup implements IComponentOnConnect, IComponentOnUpd
      *
      * @param pEvent - Keyboard event from the search field.
      */
-    public onSearchKeyDown(pEvent: KeyboardEvent): void {
-        if (pEvent.key === 'Escape') {
-            pEvent.preventDefault();
-            this.mClose.dispatchEvent(undefined as unknown as void);
+    public onKeyDown(pEvent: KeyboardEvent): void {
+        // Both, the send as well as the selected does not work when the search list is empty.
+        if (this.results.length === 0) {
             return;
         }
 
-        if (pEvent.key === 'Enter') {
-            pEvent.preventDefault();
-            this.emitSelectedEntry();
-            return;
-        }
-
+        // Select node on arrows.
         if (pEvent.key === 'ArrowDown' || pEvent.key === 'ArrowUp') {
             pEvent.preventDefault();
-            this.moveSelection(pEvent.key === 'ArrowDown' ? 1 : -1);
-        }
-    }
 
-    /**
-     * Insert a clicked result entry.
-     *
-     * @param pEvent - Pointer event from the result row.
-     * @param pEntry - Entry to insert.
-     */
-    public onEntryPointerDown(pEvent: PointerEvent, pEntry: PotatnoAddNodePopupEntry): void {
-        pEvent.preventDefault();
-        pEvent.stopPropagation();
-        this.mNodeSelect.dispatchEvent(pEntry.definition);
+            // Find list index of current selected definition.
+            let lEntryIndex = this.results.findIndex((pEntry: PotatnoAddNodePopupEntry) => {
+                return pEntry.definition.id === this.selectedDefinitionId;
+            });
+            lEntryIndex = Math.max(0, lEntryIndex);
+
+            // Direction based on pressed arrow.
+            const lDirection: number = pEvent.key === 'ArrowDown' ? 1 : -1;
+
+            // Move index into direction. Starting again from bottom or top.
+            const lNextIndex: number = (lEntryIndex + lDirection + this.results.length) % this.results.length;
+
+            // Set new definition index.
+            this.selectedDefinitionId = this.results[lNextIndex].definition.id;
+
+            return;
+        }
+
+        // Send node on enter.
+        if (pEvent.key === 'Enter') {
+            this.sendSelectedEntry(this.selectedDefinitionId);
+        }
     }
 
     /**
@@ -212,59 +120,27 @@ export class PotatnoAddNodePopup implements IComponentOnConnect, IComponentOnUpd
      *
      * @param pEvent - Pointer event from the popup root.
      */
-    public onRootPointerDown(pEvent: PointerEvent): void {
+    public stopPropagation(pEvent: PointerEvent): void {
         pEvent.stopPropagation();
-    }
-
-    /**
-     * Let the result list scroll on its own instead of the canvas zooming behind it.
-     *
-     * @param pEvent - Wheel event from the popup root.
-     */
-    public onRootWheel(pEvent: WheelEvent): void {
-        pEvent.stopPropagation();
-    }
-
-    /**
-     * Keep a right-click inside the popup from reopening the popup on the canvas behind it.
-     *
-     * @param pEvent - Context menu event from the popup root.
-     */
-    public onRootContextMenu(pEvent: MouseEvent): void {
-        pEvent.stopPropagation();
-    }
-
-    /**
-     * Build the available node definition list for the active function from project, document,
-     * function-specific, and enabled import definitions.
-     *
-     * @param pActiveFunction - Function whose node library context should be read.
-     *
-     * @returns Ordered node definition entries available to the function.
-     */
-    private buildAvailableNodeDefinitionEntries(pActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null): Array<PotatnoAddNodePopupEntry> {
-        // No function is active so no nodes are available.
-        if (!pActiveFunction) {
-            return new Array<PotatnoAddNodePopupEntry>();
-        }
-
-        // Map all dynamic functions of the current active function.
-        return pActiveFunction.dynamicNodeDefinitions.map((pNodeDefinition) => {
-            return {
-                category: pNodeDefinition.category,
-                definition: pNodeDefinition,
-                id: pNodeDefinition.id,
-                name: pNodeDefinition.label
-            };
-        });
     }
 
     /**
      * Emit the currently selected entry (or the first one) for insertion.
+     * 
+     * @param pSelectedIndex - Selected id.
      */
-    private emitSelectedEntry(): void {
-        const lEntry: PotatnoAddNodePopupEntry | undefined = this.mFilteredEntries.find((pEntry: PotatnoAddNodePopupEntry) => pEntry.id === this.mSelectedDefinitionId)
-            ?? this.mFilteredEntries[0];
+    private sendSelectedEntry(pSelectedIndex: string | null): void {
+        // Skip when nothing was selected.
+        if (pSelectedIndex === null) {
+            return;
+        }
+
+        // Find entry be selected definition id.
+        const lEntry: PotatnoAddNodePopupEntry | undefined = this.results.find((pEntry: PotatnoAddNodePopupEntry) => {
+            return pEntry.definition.id === pSelectedIndex;
+        });
+
+        // When still nothing is selected, the search has no result.
         if (!lEntry) {
             return;
         }
@@ -273,46 +149,37 @@ export class PotatnoAddNodePopup implements IComponentOnConnect, IComponentOnUpd
     }
 
     /**
-     * Focus and select the search field after it has rendered.
-     */
-    private focusSearchInput(): void {
-        requestAnimationFrame(() => {
-            try {
-                this.searchInput.focus();
-                this.searchInput.select();
-            } catch {
-                // The field is not in the DOM yet; ignore.
-            }
-        });
-    }
-
-    /**
-     * Move the result selection by an offset, wrapping around the list.
-     *
-     * @param pOffset - Direction to move in the result list.
-     */
-    private moveSelection(pOffset: number): void {
-        if (this.mFilteredEntries.length === 0) {
-            this.mSelectedDefinitionId = null;
-            return;
-        }
-
-        const lCurrentIndex: number = Math.max(0, this.mFilteredEntries.findIndex((pEntry: PotatnoAddNodePopupEntry) => pEntry.id === this.mSelectedDefinitionId));
-        const lNextIndex: number = (lCurrentIndex + pOffset + this.mFilteredEntries.length) % this.mFilteredEntries.length;
-        this.mSelectedDefinitionId = this.mFilteredEntries[lNextIndex].id;
-        this.mFilteredEntries = [...this.mFilteredEntries];
-    }
-
-    /**
      * Rebuild the result list from the active function and the current search query.
      */
     private rebuildResults(): void {
-        const lQuery: string = this.mSearchQuery.trim().toLowerCase();
-        this.mFilteredEntries = this.buildAvailableNodeDefinitionEntries(this.mManager.activeFunction)
-            .filter((pEntry: PotatnoAddNodePopupEntry) => !lQuery || pEntry.name.toLowerCase().includes(lQuery));
+        // No function, no results. Reset list.
+        if (!this.mManager.activeFunction) {
+            this.results = new Array<PotatnoAddNodePopupEntry>();
+            return;
+        }
 
-        if (!this.mFilteredEntries.some((pEntry: PotatnoAddNodePopupEntry) => pEntry.id === this.mSelectedDefinitionId)) {
-            this.mSelectedDefinitionId = this.mFilteredEntries[0]?.id ?? null;
+        // Build a entry list for all dynamic nodes.
+        const lEntryList: Array<PotatnoAddNodePopupEntry> = this.mManager.activeFunction.dynamicNodeDefinitions.map((pNodeDefinition) => {
+            return {
+                category: pNodeDefinition.category.name,
+                definition: pNodeDefinition,
+                label: pNodeDefinition.label.toLowerCase(),
+                color: this.mManager.generateStringColor(pNodeDefinition.category.name),
+                icon: pNodeDefinition.category.icon
+            };
+        });
+
+        // Normalize searchterm.
+        const lSearchTerm: string = this.searchValue.trim().toLowerCase();
+
+        // Filter entry list by searchterm.
+        this.results = lEntryList.filter((pEntry: PotatnoAddNodePopupEntry) => {
+            return pEntry.label.includes(lSearchTerm);
+        });
+
+        // Select the first result when the current selected definition is not in the search result.
+        if (!this.results.some((pEntry: PotatnoAddNodePopupEntry) => pEntry.definition.id === this.selectedDefinitionId)) {
+            this.selectedDefinitionId = this.results[0]?.definition.id ?? null;
         }
     }
 }
@@ -320,9 +187,10 @@ export class PotatnoAddNodePopup implements IComponentOnConnect, IComponentOnUpd
 /**
  * Display and insertion data for one available node definition shown in the popup.
  */
-export type PotatnoAddNodePopupEntry = {
-    readonly category: string;
-    readonly definition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition>;
-    readonly id: string;
-    readonly name: string;
+type PotatnoAddNodePopupEntry = {
+    category: string;
+    color: string;
+    definition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition>;
+    label: string;
+    icon: string;
 };

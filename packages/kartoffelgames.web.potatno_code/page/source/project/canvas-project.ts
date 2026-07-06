@@ -1,7 +1,7 @@
 import { PotatnoStaticNodeDefinition } from '../../../source/project/node_definition/potatno-static-node-definition.ts';
 import { PotatnoProject } from '../../../source/project/potatno-project.ts';
-import { CanvasProjectEntryFunctionDefinition } from './function/canvas-project-entry-function-definition.ts';
 import { CanvasProjectTypesDefinition } from './canvas-project-types-definition.ts';
+import { CanvasProjectEntryFunctionDefinition } from './function/canvas-project-entry-function-definition.ts';
 import { CanvasProjectUserFunctionDefinition } from './function/canvas-project-user-function-definition.ts';
 
 /**
@@ -63,7 +63,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Add',
             label: 'Add',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: {
                 inputs: [
                     { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
@@ -80,7 +80,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Subtract',
             label: 'Subtract',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: {
                 inputs: [
                     { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
@@ -97,7 +97,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Multiply',
             label: 'Multiply',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: {
                 inputs: [
                     { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
@@ -117,7 +117,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Divide',
             label: 'Divide',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: {
                 inputs: [
                     { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
@@ -136,7 +136,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Modulo',
             label: 'Modulo',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: {
                 inputs: [
                     { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
@@ -155,7 +155,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Equal',
             label: 'Equal',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: {
                 inputs: [
                     { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
@@ -172,7 +172,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Not Equal',
             label: 'Not Equal',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: {
                 inputs: [
                     { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
@@ -189,7 +189,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Less Than',
             label: 'Less Than',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: {
                 inputs: [
                     { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
@@ -206,7 +206,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Greater Than',
             label: 'Greater Than',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: {
                 inputs: [
                     { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
@@ -225,7 +225,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'And',
             label: 'And',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: {
                 inputs: [
                     { label: 'a', id: 'a', portType: 'value', dataType: 'boolean' },
@@ -242,7 +242,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Or',
             label: 'Or',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: {
                 inputs: [
                     { label: 'a', id: 'a', portType: 'value', dataType: 'boolean' },
@@ -259,7 +259,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Not',
             label: 'Not',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: {
                 inputs: [
                     { label: 'a', id: 'a', portType: 'value', dataType: 'boolean' }
@@ -277,7 +277,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Number to String',
             label: 'Number to String',
-            category: 'type-conversion',
+            category: { name: 'type-conversion' },
             ports: {
                 inputs: [
                     { label: 'input', id: 'input', portType: 'value', dataType: 'number' }
@@ -293,7 +293,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'String to Number',
             label: 'String to Number',
-            category: 'type-conversion',
+            category: { name: 'type-conversion' },
             ports: {
                 inputs: [
                     { label: 'input', id: 'input', portType: 'value', dataType: 'string' }
@@ -309,7 +309,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Boolean to String',
             label: 'Boolean to String',
-            category: 'type-conversion',
+            category: { name: 'type-conversion' },
             ports: {
                 inputs: [
                     { label: 'input', id: 'input', portType: 'value', dataType: 'boolean' }
@@ -327,7 +327,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'If',
             label: 'If',
-            category: 'flow',
+            category: { name: 'flow' },
             ports: {
                 inputs: [
                     { label: 'exec', id: 'exec', portType: 'flow' },
@@ -345,7 +345,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'While',
             label: 'While',
-            category: 'flow',
+            category: { name: 'flow' },
             ports: {
                 inputs: [
                     { label: 'exec', id: 'exec', portType: 'flow' },
@@ -362,7 +362,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'For Loop',
             label: 'For Loop',
-            category: 'flow',
+            category: { name: 'flow' },
             ports: {
                 inputs: [
                     { label: 'exec', id: 'exec', portType: 'flow' },
@@ -382,7 +382,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Console Log',
             label: 'Console Log',
-            category: 'Function',
+            category: { name: 'Function' },
             ports: {
                 inputs: [{ label: 'message', id: 'message', portType: 'value', dataType: 'string' }],
                 outputs: []
@@ -394,7 +394,7 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'String Concat',
             label: 'String Concat',
-            category: 'Function',
+            category: { name: 'Function' },
             ports: {
                 inputs: [
                     { label: 'a', id: 'a', portType: 'value', dataType: 'string' },

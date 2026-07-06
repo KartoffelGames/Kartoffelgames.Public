@@ -12,7 +12,9 @@ Deno.test('new PotatnoDynamicNodeDefinition()', async (pContext) => {
         const lDefinition = new PotatnoDynamicNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'DynamicNode',
             label: 'Dynamic Node',
-            category: 'DynamicCategory',
+            category: {
+                name: 'DynamicCategory'
+            },
             regions: { requires: ['RegionRequired'] },
             generators: {
                 ports: {

@@ -89,11 +89,6 @@ export type SerializedNode = {
     definitionId: string;
 
     /**
-     * Category of the node, used for organizational purposes in the editor.
-     */
-    category: string;
-
-    /**
      * User-set label of the node.
      */
     label: string;

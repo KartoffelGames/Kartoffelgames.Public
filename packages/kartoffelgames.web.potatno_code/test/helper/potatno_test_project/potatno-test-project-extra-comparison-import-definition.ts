@@ -16,7 +16,7 @@ export class PotatnoTestProjectExtraComparisonImportDefinition extends PotatnoIm
         this.addNode(new PotatnoStaticNodeDefinition({
             id: 'GreaterOrEqual',
             label: 'greaterOrEqual',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: {
                 inputs: [
                     { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
@@ -33,7 +33,7 @@ export class PotatnoTestProjectExtraComparisonImportDefinition extends PotatnoIm
         this.addNode(new PotatnoStaticNodeDefinition({
             id: 'SmallerOrEqual',
             label: 'smallerOrEqual',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: {
                 inputs: [
                     { label: 'a', id: 'a', portType: 'value', dataType: 'number' },

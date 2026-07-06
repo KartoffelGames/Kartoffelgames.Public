@@ -16,7 +16,10 @@ export class ValueConjunctionNodeDefinition<TProjectTypes extends PotatnoProject
         super({
             id: ValueConjunctionNodeDefinition.DEFINITION_ID,
             label: 'Value Conjunction',
-            category: 'Conjunction',
+            category: {
+                name: 'Conjunction',
+                icon: '◇'
+            },
             generators: {
                 ports: {
                     inputs: (pAddPort) => {

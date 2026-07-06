@@ -6,7 +6,7 @@ import type { PotatnoProjectTypesDefinition } from '../potatno-project-types-def
  * Potatno node definition that changes dynamically based on the provided context.
  */
 export class PotatnoNodeDefinition<TProjectTypes extends PotatnoProjectTypesDefinition> {
-    private readonly mCategory: string;
+    private readonly mCategory: PotatnoNodeDefinitionCategory;
     private readonly mCodeGenerator: PotatnoNodeDefinitionCodeGenerator;
     private readonly mId: string;
     private readonly mLabel: string;
@@ -16,7 +16,7 @@ export class PotatnoNodeDefinition<TProjectTypes extends PotatnoProjectTypesDefi
     /**
      * Category classification determining which subclass is instantiated for code generation.
      */
-    public get category(): string {
+    public get category(): PotatnoNodeDefinitionCategory {
         return this.mCategory;
     }
 
@@ -28,7 +28,7 @@ export class PotatnoNodeDefinition<TProjectTypes extends PotatnoProjectTypesDefi
     }
 
     /**
-     *  Unique id for this node definition.
+     * Unique id for this node definition.
      */
     public get id(): string {
         return this.mId;
@@ -92,12 +92,15 @@ export class PotatnoNodeDefinition<TProjectTypes extends PotatnoProjectTypesDefi
      * @param pParameters - Constructor parameters.
      */
     public constructor(pParameters: PotatnoNodeDefinitionConstructorParameter<TProjectTypes>) {
-        // Set id and label.
+        // Set id and label and category.
         this.mId = pParameters.id;
         this.mLabel = pParameters.label;
+        this.mCategory = {
+            name: pParameters.category.name,
+            icon: pParameters.category.icon ?? '◆'
+        };
 
-        // Set category, inputs, outputs, and code generator callback.
-        this.mCategory = pParameters.category;
+        // Set inputs, outputs, and code generator callback.
         this.mCodeGenerator = pParameters.generators.code;
         this.mPortProvider = pParameters.generators.ports;
 
@@ -122,12 +125,30 @@ export class PotatnoNodeDefinition<TProjectTypes extends PotatnoProjectTypesDefi
 type PotatnoNodeDefinitionConstructorParameter<TProjectTypes extends PotatnoProjectTypesDefinition> = {
     id: string;
     label: string;
-    category: string;
+    category: {
+        name: string;
+        icon?: string;
+    };
     regions?: Partial<PotatnoNodeDefinitionRegions> | null;
     generators: {
         ports: PotatnoNodeDefinitionPortGenerator<TProjectTypes>;
         code: PotatnoNodeDefinitionCodeGenerator;
     };
+};
+
+/**
+ * Node definitions id.
+ */
+export type PotatnoNodeDefinitionCategory = {
+    /**
+     * Name of category.
+     */
+    readonly name: string;
+
+    /**
+     * Icon of category.
+     */
+    readonly icon: string;
 };
 
 /*

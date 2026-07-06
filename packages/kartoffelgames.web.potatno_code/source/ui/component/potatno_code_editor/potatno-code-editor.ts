@@ -138,7 +138,6 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
     public onDeconstruct(): void {
         this.mUnsubscribe?.();
         this.mUnsubscribe = null;
-        this.mManager.deconstruct();
         this.stopPanelResize();
     }
 

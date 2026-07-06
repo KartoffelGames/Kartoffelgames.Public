@@ -16,7 +16,7 @@ export class CanvasProjectTimeImportDefinition extends PotatnoImportDefinition<C
         this.addNode(new PotatnoStaticNodeDefinition({
             id: 'CurrentTime',
             label: 'CurrentTime',
-            category: 'value',
+            category: { name: 'value' },
             ports: {
                 inputs: [],
                 outputs: [

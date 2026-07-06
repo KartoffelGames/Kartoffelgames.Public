@@ -29,14 +29,6 @@ function gSetupHelperFunctionCallNode(pParameter?: SetupHelperFunctionCallNodePa
 }
 
 Deno.test('PotatnoDocumentNode.constructor()', async (pContext) => {
-    await pContext.step('Sets category snapshot from constructor', () => {
-        // Setup. Process.
-        const { defaultEntry: lDefaultEntry } = PotatnoHelper.setupCalculatorDocument();
-
-        // Evaluation.
-        expect(lDefaultEntry.category).toBe('event');
-    });
-
     await pContext.step('Sets definitionId', () => {
         // Setup.
         const lEntryDefinition = PotatnoHelper.TEST_PROJECT.entryPoint;
@@ -155,42 +147,6 @@ Deno.test('PotatnoDocumentNode.project', async (pContext) => {
 
         // Evaluation.
         expect(lDefaultEntry.project).toBe(PotatnoHelper.TEST_PROJECT);
-    });
-});
-
-Deno.test('PotatnoDocumentNode.category', async (pContext) => {
-    await pContext.step('Returns the snapshot from construction even if the definition later changes', () => {
-        // Setup. Place an Add node, then re-register an Add definition under the same id with a different category.
-        const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
-        const lAddNode = PotatnoHelper.addProjectNode(lFunction, 'Add');
-        const lOriginalCategory: string = lAddNode.category;
-        PotatnoHelper.TEST_PROJECT.addNodeDefinition(new PotatnoStaticNodeDefinition({
-            id: 'Add', label: 'Add', category: 'new-category',
-            ports: { inputs: [], outputs: [] }, generators: { code: (): string => '' }
-        }));
-
-        // Process.
-        const lResult: string = lAddNode.category;
-
-        // Evaluation. The node's category is the snapshot at creation time, not the live category.
-        expect(lResult).toBe(lOriginalCategory);
-
-        // Cleanup. Re-register the original Add so other tests in the suite are not polluted.
-        PotatnoHelper.TEST_PROJECT.addNodeDefinition(new PotatnoStaticNodeDefinition({
-            id: 'Add', label: 'Add', category: 'operator',
-            ports: {
-                inputs: [
-                    { label: 'a', id: 'a', portType: 'value', dataType: 'number' as never },
-                    { label: 'b', id: 'b', portType: 'value', dataType: 'number' as never }
-                ],
-                outputs: [
-                    { label: 'result', id: 'result', portType: 'value', dataType: 'number' as never }
-                ]
-            },
-            generators: {
-                code: (pContext): string => `const ${pContext.outputs['result'].value} = ${pContext.inputs['a'].value} + ${pContext.inputs['b'].value};`
-            }
-        }));
     });
 });
 
@@ -409,7 +365,7 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
         // Setup. Place an Add node, then re-register Add to remove it from the project lookup.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
         const lDefinition = new PotatnoStaticNodeDefinition<PotatnoTestProjectTypesDefinition>({
-            id: 'TempMissing', label: 'TempMissing', category: 'operator',
+            id: 'TempMissing', label: 'TempMissing', category: { name: 'operator' },
             ports: { inputs: [], outputs: [] },
             generators: { code: (): string => '' }
         });
@@ -430,7 +386,7 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
         // Setup. Definition that requires region 'X'.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
         const lDefinition = new PotatnoStaticNodeDefinition<PotatnoTestProjectTypesDefinition>({
-            id: 'RequiresXOnly', label: 'RequiresXOnly', category: 'operator',
+            id: 'RequiresXOnly', label: 'RequiresXOnly', category: { name: 'operator' },
             regions: { requires: ['X'] },
             ports: { inputs: [], outputs: [] },
             generators: { code: (): string => '' }
@@ -452,7 +408,7 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
         // Setup.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
         const lDefinition = new PotatnoStaticNodeDefinition<PotatnoTestProjectTypesDefinition>({
-            id: 'RequiresMissing', label: 'RequiresMissing', category: 'operator',
+            id: 'RequiresMissing', label: 'RequiresMissing', category: { name: 'operator' },
             regions: { requires: ['X'] },
             ports: { inputs: [], outputs: [] },
             generators: { code: (): string => '' }
@@ -474,7 +430,7 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
         // Setup.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
         const lDefinition = new PotatnoStaticNodeDefinition<PotatnoTestProjectTypesDefinition>({
-            id: 'AllowsXOnly', label: 'AllowsXOnly', category: 'operator',
+            id: 'AllowsXOnly', label: 'AllowsXOnly', category: { name: 'operator' },
             regions: { allows: ['X'] },
             ports: { inputs: [], outputs: [] },
             generators: { code: (): string => '' }
@@ -496,7 +452,7 @@ Deno.test('PotatnoDocumentNode - Validation', async (pContext) => {
         // Setup. Definition allows X only, but incoming set contains Y.
         const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
         const lDefinition = new PotatnoStaticNodeDefinition<PotatnoTestProjectTypesDefinition>({
-            id: 'ForbidsY', label: 'ForbidsY', category: 'operator',
+            id: 'ForbidsY', label: 'ForbidsY', category: { name: 'operator' },
             regions: { allows: ['X'] },
             ports: { inputs: [], outputs: [] },
             generators: { code: (): string => '' }

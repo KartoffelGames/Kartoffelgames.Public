@@ -16,7 +16,10 @@ export class FlowConjunctionNodeDefinition<TProjectTypes extends PotatnoProjectT
         super({
             id: FlowConjunctionNodeDefinition.DEFINITION_ID,
             label: 'Flow Conjunction',
-            category: 'Conjunction',
+            category: {
+                name: 'Conjunction',
+                icon: '◇'
+            },
             generators: {
                 ports: {
                     inputs: (pAddPort) => {

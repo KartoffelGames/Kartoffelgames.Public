@@ -11,7 +11,7 @@ Deno.test('new PotatnoStaticNodeDefinition()', async (pContext) => {
         const lDefinition = new PotatnoStaticNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'StaticNode',
             label: 'Static Node',
-            category: 'StaticCategory',
+            category: { name: 'StaticCategory' },
             regions: { add: ['RegionAdd'] },
             ports: {
                 inputs: [

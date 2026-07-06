@@ -66,7 +66,7 @@ export class PotatnoTestProject extends PotatnoProject<PotatnoTestProjectTypesDe
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Pass',
             label: 'Pass',
-            category: 'flow',
+            category: { name: 'flow' },
             ports: {
                 inputs: [
                     { label: 'exec', id: 'exec', portType: 'flow' }
@@ -86,7 +86,7 @@ export class PotatnoTestProject extends PotatnoProject<PotatnoTestProjectTypesDe
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Const',
             label: 'Const',
-            category: 'value',
+            category: { name: 'value' },
             ports: {
                 inputs: [
                     { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
@@ -104,7 +104,7 @@ export class PotatnoTestProject extends PotatnoProject<PotatnoTestProjectTypesDe
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Add',
             label: 'Add',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: {
                 inputs: [
                     { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
@@ -121,7 +121,7 @@ export class PotatnoTestProject extends PotatnoProject<PotatnoTestProjectTypesDe
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Subtract',
             label: 'Subtract',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: {
                 inputs: [
                     { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
@@ -138,7 +138,7 @@ export class PotatnoTestProject extends PotatnoProject<PotatnoTestProjectTypesDe
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Multiply',
             label: 'Multiply',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: {
                 inputs: [
                     { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
@@ -155,7 +155,7 @@ export class PotatnoTestProject extends PotatnoProject<PotatnoTestProjectTypesDe
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Divide',
             label: 'Divide',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: {
                 inputs: [
                     { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
@@ -174,7 +174,7 @@ export class PotatnoTestProject extends PotatnoProject<PotatnoTestProjectTypesDe
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Equal',
             label: 'Equal',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: {
                 inputs: [
                     { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
@@ -191,7 +191,7 @@ export class PotatnoTestProject extends PotatnoProject<PotatnoTestProjectTypesDe
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Greater',
             label: 'Greater',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: {
                 inputs: [
                     { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
@@ -208,7 +208,7 @@ export class PotatnoTestProject extends PotatnoProject<PotatnoTestProjectTypesDe
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Smaller',
             label: 'Smaller',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: {
                 inputs: [
                     { label: 'a', id: 'a', portType: 'value', dataType: 'number' },
@@ -227,7 +227,7 @@ export class PotatnoTestProject extends PotatnoProject<PotatnoTestProjectTypesDe
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'Pick',
             label: 'Pick',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: {
                 inputs: [
                     { label: 'a', id: 'a', portType: 'value', dataType: '<T>' },
@@ -253,7 +253,7 @@ export class PotatnoTestProject extends PotatnoProject<PotatnoTestProjectTypesDe
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'NumberToString',
             label: 'toString',
-            category: 'parsing',
+            category: { name: 'parsing' },
             ports: {
                 inputs: [
                     { label: 'value', id: 'value', portType: 'value', dataType: 'number' }
@@ -269,7 +269,7 @@ export class PotatnoTestProject extends PotatnoProject<PotatnoTestProjectTypesDe
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'ParseStringToNumber',
             label: 'parseString',
-            category: 'parsing',
+            category: { name: 'parsing' },
             ports: {
                 inputs: [
                     { label: 'value', id: 'value', portType: 'value', dataType: 'string' }
@@ -287,7 +287,7 @@ export class PotatnoTestProject extends PotatnoProject<PotatnoTestProjectTypesDe
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'If',
             label: 'If',
-            category: 'flow',
+            category: { name: 'flow' },
             ports: {
                 inputs: [
                     { label: 'exec', id: 'exec', portType: 'flow' },
@@ -307,7 +307,7 @@ export class PotatnoTestProject extends PotatnoProject<PotatnoTestProjectTypesDe
         this.addNodeDefinition(new PotatnoStaticNodeDefinition({
             id: 'GlobalMultiplier',
             label: 'global multiplier',
-            category: 'global',
+            category: { name: 'global' },
             ports: {
                 inputs: [
                     { label: 'exec', id: 'exec', portType: 'flow' },

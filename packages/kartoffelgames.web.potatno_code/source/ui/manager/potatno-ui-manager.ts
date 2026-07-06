@@ -187,7 +187,7 @@ export class PotatnoUiManager extends EventTarget {
      *
      * @returns A CSS HSL color string.
      */
-    public generateTypeColor(pType: string): string {
+    public generateStringColor(pType: string): string {
         // Convert the type name into a hash.
         const lTypeHash: number = (() => {
             let lHash: number = 0;

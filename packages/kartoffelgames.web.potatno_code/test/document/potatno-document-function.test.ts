@@ -513,7 +513,6 @@ Deno.test('PotatnoDocumentFunction.addNode()', async (pContext) => {
         });
         const lDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDef) => pDef.id === 'Add')!;
         const lExternalNode = new PotatnoDocumentNode(PotatnoHelper.TEST_PROJECT, lDocument, lFunction, {
-            category: lDefinition.category,
             definitionId: lDefinition.id,
             label: lDefinition.label,
             transformation: { x: 0, y: 0, width: 4, height: 2 },

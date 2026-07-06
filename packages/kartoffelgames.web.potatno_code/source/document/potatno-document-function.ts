@@ -221,7 +221,6 @@ export class PotatnoDocumentFunction<TProjectTypes extends PotatnoProjectTypesDe
         };
 
         const lNode = new PotatnoDocumentNode<TProjectTypes>(this.mProject, this.mDocument, this, {
-            category: pDefinition.category,
             definitionId: pDefinition.id,
             ports: {
                 input: pDefinition.inputs.map(lNodeConverter),

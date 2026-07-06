@@ -1,19 +1,10 @@
-<div #canvasWrapper class="canvas-wrapper"
-    [style]="this.gridBackgroundStyle"
-    (pointerdown)="this.onCanvasPointerDown($event)"
-    (wheel)="this.onCanvasWheel($event)"
-    (contextmenu)="this.onContextMenu($event)">
+<div #canvasWrapper class="canvas-wrapper" [style]="this.gridBackgroundStyle" (pointerdown)="this.onCanvasPointerDown($event)" (wheel)="this.onCanvasWheel($event)" (contextmenu)="this.onContextMenu($event)">
     <div #gridLayer class="grid-layer" [style]="this.gridTransformStyle">
         <potatno-connection-layer></potatno-connection-layer>
         <div class="node-layer">
             $for(nodeState of this.visibleNodes) {
-                <div class="node-position" style="left:{{this.nodeState.pixelX}}px;top:{{this.nodeState.pixelY}}px;width:{{this.nodeState.pixelW}}px;height:{{this.nodeState.pixelH}}px">
-                    <potatno-node
-                        [nodeData]="this.nodeState.node"
-                        [selected]="this.nodeState.selected"
-                        (pointerdown)="this.onNodePointerDown($event, this.nodeState.node)"
-                        (resize-start)="this.onNodeResizeStart($event)">
-                    </potatno-node>
+                <div class="node-position" style="left:{{this.nodeState.pixelX}}px; top:{{this.nodeState.pixelY}}px; width:{{this.nodeState.pixelW}}px; height:{{this.nodeState.pixelH}}px;">
+                    <potatno-node [nodeData]="this.nodeState.node" [selected]="this.nodeState.selected" (pointerdown)="this.onNodePointerDown($event, this.nodeState.node)" (resize-start)="this.onNodeResizeStart($event)"/>
                 </div>
             }
         </div>
@@ -21,8 +12,8 @@
     $if(this.showSelectionBox) {
         <div class="selection-box" [style]="this.selectionBoxStyle"></div>
     }
-    <potatno-add-node-popup [open]="this.showAddNodePopup" [style]="this.addNodePopupStyle"
-        (node-select)="this.onAddNodePopupNodeSelect($event)"
-        (close)="this.onAddNodePopupClose()">
-    </potatno-add-node-popup>
+
+    $if(this.showAddNodePopup) {
+        <potatno-add-node-popup [style]="this.addNodePopupStyle" (node-select)="this.onAddNodePopupNodeSelect($event)"/>
+    }
 </div>

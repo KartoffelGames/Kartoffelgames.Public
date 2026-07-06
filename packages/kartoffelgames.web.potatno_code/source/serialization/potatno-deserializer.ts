@@ -132,7 +132,6 @@ export class PotatnoDeserializer<TProjectTypes extends PotatnoProjectTypesDefini
 
             // Create a new node.
             return new PotatnoDocumentNode<TProjectTypes>(this.mProject, pDocument, pFunction, {
-                category: pData.category,
                 definitionId: pData.definitionId,
                 ports: {
                     input: lInputPorts,

@@ -8,7 +8,7 @@ Deno.test('new PotatnoNodeDefinition()', async (pContext) => {
         const lDefinition = new PotatnoNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'TestNode',
             label: 'Test Node',
-            category: 'TestCategory',
+            category: { name: 'TestCategory' },
             regions: { add: ['RegionAdd'], allows: ['RegionAllowed'], requires: ['RegionRequired'] },
             generators: {
                 ports: {
@@ -37,7 +37,7 @@ Deno.test('new PotatnoNodeDefinition()', async (pContext) => {
         const lDefinition = new PotatnoNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'TestNode',
             label: 'Test Node',
-            category: 'TestCategory',
+            category: { name: 'TestCategory' },
             generators: {
                 ports: {
                     inputs: (): void => { },
@@ -60,7 +60,7 @@ Deno.test('PotatnoNodeDefinition.id', async (pContext) => {
         const lDefinition = new PotatnoNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'ProvidedId',
             label: 'Test Node',
-            category: 'TestCategory',
+            category: { name: 'TestCategory' },
             generators: {
                 ports: {
                     inputs: (): void => { },
@@ -84,7 +84,7 @@ Deno.test('PotatnoNodeDefinition.category', async (pContext) => {
         const lDefinition = new PotatnoNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'TestNode',
             label: 'Test Node',
-            category: 'ProvidedCategory',
+            category: { name: 'ProvidedCategory' },
             generators: {
                 ports: {
                     inputs: (): void => { },
@@ -95,7 +95,7 @@ Deno.test('PotatnoNodeDefinition.category', async (pContext) => {
         });
 
         // Process.
-        const lResult: string = lDefinition.category;
+        const lResult: string = lDefinition.category.name;
 
         // Evaluation.
         expect(lResult).toBe('ProvidedCategory');
@@ -108,7 +108,7 @@ Deno.test('PotatnoNodeDefinition.inputs', async (pContext) => {
         const lDefinition = new PotatnoNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'TestNode',
             label: 'Test Node',
-            category: 'TestCategory',
+            category: { name: 'TestCategory' },
             generators: {
                 ports: {
                     inputs: (pAddPort): void => {
@@ -138,7 +138,7 @@ Deno.test('PotatnoNodeDefinition.inputs', async (pContext) => {
         const lDefinition = new PotatnoNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'TestNode',
             label: 'Test Node',
-            category: 'TestCategory',
+            category: { name: 'TestCategory' },
             generators: {
                 ports: {
                     inputs: (): void => {
@@ -163,7 +163,7 @@ Deno.test('PotatnoNodeDefinition.inputs', async (pContext) => {
         const lDefinition = new PotatnoNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'TestNode',
             label: 'Test Node',
-            category: 'TestCategory',
+            category: { name: 'TestCategory' },
             generators: {
                 ports: {
                     inputs: (pAddPort): void => {
@@ -192,7 +192,7 @@ Deno.test('PotatnoNodeDefinition.label', async (pContext) => {
         const lDefinition = new PotatnoNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'TestNode',
             label: 'Provided Label',
-            category: 'TestCategory',
+            category: { name: 'TestCategory' },
             generators: {
                 ports: {
                     inputs: (): void => { },
@@ -216,7 +216,7 @@ Deno.test('PotatnoNodeDefinition.outputs', async (pContext) => {
         const lDefinition = new PotatnoNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'TestNode',
             label: 'Test Node',
-            category: 'TestCategory',
+            category: { name: 'TestCategory' },
             generators: {
                 ports: {
                     inputs: (): void => { },
@@ -247,7 +247,7 @@ Deno.test('PotatnoNodeDefinition.regions', async (pContext) => {
         const lDefinition = new PotatnoNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'TestNode',
             label: 'Test Node',
-            category: 'TestCategory',
+            category: { name: 'TestCategory' },
             regions: { add: ['RegionAdd'], allows: ['RegionAllowed'], requires: ['RegionRequired'] },
             generators: {
                 ports: {
@@ -278,7 +278,7 @@ Deno.test('PotatnoNodeDefinition.codeGenerator', async (pContext) => {
         const lDefinition = new PotatnoNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'TestNode',
             label: 'Test Node',
-            category: 'TestCategory',
+            category: { name: 'TestCategory' },
             generators: {
                 ports: {
                     inputs: (): void => { },
@@ -303,7 +303,7 @@ Deno.test('PotatnoNodeDefinition.getPort()', async (pContext) => {
         const lDefinition = new PotatnoNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'TestNode',
             label: 'Test Node',
-            category: 'TestCategory',
+            category: { name: 'TestCategory' },
             generators: {
                 ports: {
                     inputs: (pAddPort): void => {
@@ -329,7 +329,7 @@ Deno.test('PotatnoNodeDefinition.getPort()', async (pContext) => {
         const lDefinition = new PotatnoNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'TestNode',
             label: 'Test Node',
-            category: 'TestCategory',
+            category: { name: 'TestCategory' },
             generators: {
                 ports: {
                     inputs: (pAddPort): void => {
@@ -355,7 +355,7 @@ Deno.test('PotatnoNodeDefinition.getPort()', async (pContext) => {
         const lDefinition = new PotatnoNodeDefinition<PotatnoTestProjectTypesDefinition>({
             id: 'TestNode',
             label: 'Test Node',
-            category: 'TestCategory',
+            category: { name: 'TestCategory' },
             generators: {
                 ports: {
                     inputs: (): void => { },

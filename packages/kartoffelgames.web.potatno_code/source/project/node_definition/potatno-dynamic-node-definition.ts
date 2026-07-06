@@ -30,7 +30,10 @@ export class PotatnoDynamicNodeDefinition<TProjectTypes extends PotatnoProjectTy
 type PotatnoDynamicNodeDefinitionConstructorParameter<TProjectTypes extends PotatnoProjectTypesDefinition> = {
     id: string;
     label: string;
-    category: string;
+    category: {
+        name: string;
+        icon?: string;
+    };
     regions?: Partial<PotatnoNodeDefinitionRegions> | null;
     generators: {
         ports: PotatnoNodeDefinitionPortGenerator<TProjectTypes>;

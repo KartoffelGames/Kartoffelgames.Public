@@ -132,7 +132,6 @@ export class PotatnoSerializer<TProjectTypes extends PotatnoProjectTypesDefiniti
         return {
             id: pNodeId,
             definitionId: pNode.definitionId,
-            category: pNode.category,
             label: pNode.label,
             transformation: { ...pNode.transformation },
             ports: lPorts,

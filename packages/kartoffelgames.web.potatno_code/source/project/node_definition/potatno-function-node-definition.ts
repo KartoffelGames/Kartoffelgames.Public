@@ -66,7 +66,10 @@ export class PotatnoFunctionNodeDefinition<TProjectTypes extends PotatnoProjectT
         super({
             id: `USERFUNCTION_${pFunction.id}`,
             label: pFunction.label,
-            category: 'user function',
+            category: {
+                name: 'user function',
+                icon: 'ƒ'
+            },
             generators: {
                 ports: {
                     inputs: lPortGenerator('Input', pFunction.inputs, pFunction.outputs),

@@ -281,7 +281,7 @@ Deno.test('PotatnoProject.nodeDefinitions', async (pContext) => {
         const lAddedDefinition = new PotatnoStaticNodeDefinition({
             id: 'Marker',
             label: 'Marker',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: { inputs: [], outputs: [] },
             generators: { code: (): string => '' }
         });
@@ -370,7 +370,7 @@ Deno.test('PotatnoProject.addNodeDefinition()', async (pContext) => {
         const lDefinition = new PotatnoStaticNodeDefinition({
             id: 'TestDefinition',
             label: 'TestDefinition',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: { inputs: [], outputs: [] },
             generators: { code: (): string => '' }
         });
@@ -388,14 +388,14 @@ Deno.test('PotatnoProject.addNodeDefinition()', async (pContext) => {
         const lFirst = new PotatnoStaticNodeDefinition({
             id: 'Same',
             label: 'first',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: { inputs: [], outputs: [] },
             generators: { code: (): string => 'first' }
         });
         const lSecond = new PotatnoStaticNodeDefinition({
             id: 'Same',
             label: 'second',
-            category: 'operator',
+            category: { name: 'operator' },
             ports: { inputs: [], outputs: [] },
             generators: { code: (): string => 'second' }
         });

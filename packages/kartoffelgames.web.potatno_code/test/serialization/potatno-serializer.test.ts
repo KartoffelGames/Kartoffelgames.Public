@@ -40,7 +40,6 @@ const gExpectDocumentsEquivalent = (pActual: PotatnoDocument<PotatnoTestProjectT
 
             expect(lActualNode.definitionId).toBe(lExpectedNode.definitionId);
             expect(lActualNode.label).toBe(lExpectedNode.label);
-            expect(lActualNode.category).toBe(lExpectedNode.category);
             expect(lActualNode.transformation).toEqual(lExpectedNode.transformation);
 
             // Compare ports by definitionId.

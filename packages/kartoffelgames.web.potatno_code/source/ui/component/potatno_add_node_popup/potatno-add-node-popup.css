@@ -74,7 +74,7 @@
     text-align: center;
 }
 
-.add-node-result-name {
+.add-node-result-label {
     flex: 1;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -85,6 +85,7 @@
     color: var(--pn-text-muted);
     flex-shrink: 0;
     font-size: var(--pn-font-size-sm);
+    text-transform: capitalize;
 }
 
 .add-node-empty {

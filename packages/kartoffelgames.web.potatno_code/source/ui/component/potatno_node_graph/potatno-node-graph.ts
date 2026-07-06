@@ -317,9 +317,9 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             });
         }
 
-        if (pNode.category === NodeCategory.Comment) {
-            this.addCommentContainedNodeOrigins(pNode, lOrigins);
-        }
+        // if (pNode.category === NodeCategory.Comment) {
+        //     this.addCommentContainedNodeOrigins(pNode, lOrigins);
+        // }
 
         this.mInteractionState = {
             mode: 'dragging-node',
@@ -438,6 +438,10 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             return;
         }
 
+        if (pEvent.key === "Escape" && this.mAddNodePopup) {
+            this.closeAddNodePopup();
+        }
+
         if (pEvent.key === 'Delete') {
             this.deleteSelectedNodes();
             return;
@@ -489,7 +493,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
         const lCommentBottom: number = lCommentTop + pCommentNode.transformation.height * lGridSize;
 
         for (const lNode of lActiveFunction.nodes) {
-            if (lNode === pCommentNode || this.mSelectedNodes.has(lNode) || lNode.category === NodeCategory.Comment) {
+            if (lNode === pCommentNode || this.mSelectedNodes.has(lNode)) { // || lNode.category === NodeCategory.Comment
                 continue;
             }
 
@@ -517,14 +521,6 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
      * @returns The minimum height in grid cells.
      */
     private calculateNodeGridHeight(pNode: PotatnoDocumentNode<PotatnoProjectTypesDefinition>): number {
-        if (pNode.category === NodeCategory.Comment) {
-            return pNode.transformation.height;
-        }
-
-        if (pNode.category === NodeCategory.Reroute) {
-            return 2;
-        }
-
         const lPortRows: number = Math.max(pNode.inputs.list.length, pNode.outputs.list.length, 1);
         return 1 + lPortRows;
     }

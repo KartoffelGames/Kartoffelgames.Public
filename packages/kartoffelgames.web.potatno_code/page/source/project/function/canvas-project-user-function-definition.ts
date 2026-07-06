@@ -19,7 +19,7 @@ export class CanvasProjectUserFunctionDefinition extends PotatnoFunctionDefiniti
                     pAddNode(new PotatnoNodeDefinition({
                         id: 'HelperFunctionEntry',
                         label: 'Entry',
-                        category: 'event',
+                        category: { name: 'event' },
                         generators: {
                             ports: {
                                 outputs: (pAddPort): void => {
@@ -46,7 +46,7 @@ export class CanvasProjectUserFunctionDefinition extends PotatnoFunctionDefiniti
                     pAddNode(new PotatnoNodeDefinition({
                         id: 'HelperFunctionReturn',
                         label: 'Return',
-                        category: 'event',
+                        category: { name: 'event' },
                         generators: {
                             ports: {
                                 outputs: (): void => { },

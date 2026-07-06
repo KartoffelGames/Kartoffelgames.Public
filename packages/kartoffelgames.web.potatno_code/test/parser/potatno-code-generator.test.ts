@@ -376,7 +376,7 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
             // be invisible in the output - it produces the same code as a direct
             // Entry -> Pass -> Exit chain would.
             const { function: lFunction, defaultEntry: lDefaultEntry, defaultExit: lDefaultExit } = PotatnoHelper.setupCalculatorDocument();
-            const lConjunctionDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDefinition) => pDefinition.category === 'Conjunction' && pDefinition.inputs.some((pPort) => pPort.portType === 'flow'))!;
+            const lConjunctionDefinition = PotatnoHelper.TEST_PROJECT.nodeDefinitions.find((pDefinition) => pDefinition.category.name === 'Conjunction' && pDefinition.inputs.some((pPort) => pPort.portType === 'flow'))!;
             const lConjunction = lFunction.addNodeByDefinition(lConjunctionDefinition, { x: 0, y: 0, width: 4, height: 2 });
             const lPass = PotatnoHelper.addProjectNode(lFunction, 'Pass');
             PotatnoHelper.connectFlow(lDefaultEntry, lConjunction);
@@ -502,7 +502,7 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
             });
 
             const lSimpleEntry = new PotatnoStaticNodeDefinition({
-                id: 'Start', label: 'Start', category: 'event',
+                id: 'Start', label: 'Start', category: { name: 'event' },
                 ports: {
                     inputs: [],
                     outputs: [{ label: 'exec', id: 'exec', portType: 'flow' }]
@@ -511,7 +511,7 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
             });
 
             const lSimpleExit = new PotatnoStaticNodeDefinition({
-                id: 'End', label: 'End', category: 'output',
+                id: 'End', label: 'End', category: { name: 'output' },
                 ports: {
                     inputs: [
                         { label: 'exec', id: 'exec', portType: 'flow' },
@@ -575,7 +575,7 @@ Deno.test('PotatnoCodeGenerator.generateNode()', async (pContext) => {
             // Setup. Construct a node whose definitionId is not in the function's lookup.
             const { function: lFunction } = PotatnoHelper.setupCalculatorDocument();
             const lGhostDefinition = new PotatnoStaticNodeDefinition<PotatnoTestProjectTypesDefinition>({
-                id: 'GhostNode', label: 'GhostNode', category: 'event',
+                id: 'GhostNode', label: 'GhostNode', category: { name: 'event' },
                 ports: {
                     inputs: [{ label: 'exec', id: 'exec', portType: 'flow' }],
                     outputs: []

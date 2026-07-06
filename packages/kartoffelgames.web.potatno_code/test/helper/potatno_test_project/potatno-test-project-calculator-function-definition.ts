@@ -20,7 +20,7 @@ export class PotatnoTestProjectCalculatorFunctionDefinition extends PotatnoFunct
                     pAddNode(new PotatnoStaticNodeDefinition({
                         id: 'CalculatorDefaultEntry',
                         label: 'Default',
-                        category: 'event',
+                        category: { name: 'event' },
                         ports: {
                             inputs: [],
                             outputs: [
@@ -38,7 +38,7 @@ export class PotatnoTestProjectCalculatorFunctionDefinition extends PotatnoFunct
                     pAddNode(new PotatnoStaticNodeDefinition({
                         id: 'CalculatorX10Entry',
                         label: 'X10',
-                        category: 'event',
+                        category: { name: 'event' },
                         ports: {
                             inputs: [],
                             outputs: [
@@ -58,7 +58,7 @@ export class PotatnoTestProjectCalculatorFunctionDefinition extends PotatnoFunct
                     pAddNode(new PotatnoStaticNodeDefinition({
                         id: 'CalculatorDefaultExit',
                         label: 'Default',
-                        category: 'output',
+                        category: { name: 'output' },
                         ports: {
                             inputs: [
                                 { label: 'exec', id: 'exec', portType: 'flow' },
@@ -75,7 +75,7 @@ export class PotatnoTestProjectCalculatorFunctionDefinition extends PotatnoFunct
                     pAddNode(new PotatnoStaticNodeDefinition({
                         id: 'CalculatorX10Exit',
                         label: 'X10',
-                        category: 'output',
+                        category: { name: 'output' },
                         ports: {
                             inputs: [
                                 { label: 'exec', id: 'exec', portType: 'flow' },

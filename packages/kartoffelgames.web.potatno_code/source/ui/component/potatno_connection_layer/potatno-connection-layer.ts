@@ -108,7 +108,7 @@ export class PotatnoConnectionLayer implements IComponentOnDeconstruct {
 
         // Set type color as drawing color. Leave blank for flow ports. Css handles that.
         if (pSourcePort.portType === 'value') {
-            lVisiblePath.style.setProperty('--path-color', this.mManager.generateTypeColor(pSourcePort.resolvedDataType));
+            lVisiblePath.style.setProperty('--path-color', this.mManager.generateStringColor(pSourcePort.resolvedDataType));
         }
 
         // Create path that can be interacted with the mouse.

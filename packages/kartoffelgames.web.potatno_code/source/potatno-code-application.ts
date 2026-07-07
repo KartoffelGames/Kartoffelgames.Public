@@ -1,12 +1,12 @@
-import { Exception } from "@kartoffelgames/core";
+import { Exception } from '@kartoffelgames/core';
 import { PwbApplication } from '@kartoffelgames/web-potato-web-builder';
 import { PotatnoDocument } from './document/potatno-document.ts';
 import applicationCss from './potatno-code-application.css' with { type: 'text' };
 import type { PotatnoProjectTypesDefinition } from './project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from './project/potatno-project.ts';
-import { PotatnoDeserializer } from "./serialization/potatno-deserializer.ts";
-import { PotatnoCodeFileSerializationResult } from "./serialization/potatno-serialization.type.ts";
-import { PotatnoSerializer } from "./serialization/potatno-serializer.ts";
+import { PotatnoDeserializer } from './serialization/potatno-deserializer.ts';
+import type { PotatnoCodeFileSerializationResult } from './serialization/potatno-serialization.type.ts';
+import { PotatnoSerializer } from './serialization/potatno-serializer.ts';
 import themeCss from './ui/component/potatno-theme.css' with { type: 'text' };
 import { PotatnoCodeEditor } from './ui/component/potatno_code_editor/potatno-code-editor.ts';
 

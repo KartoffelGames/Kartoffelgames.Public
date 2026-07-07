@@ -28,9 +28,9 @@ export class PwbApplication {
     }
 
     private readonly mContent: Array<Component>;
-    private readonly mFragment: DocumentFragment;
     private mCurrentTarget: Element | null;
-
+    private readonly mFragment: DocumentFragment;
+    
     /**
      * Constructor.
      * Create a new application.
@@ -42,7 +42,7 @@ export class PwbApplication {
         this.mContent = new Array<Component>();
 
         // Create a fragment for all content.
-        this.mFragment = document.createDocumentFragment()
+        this.mFragment = document.createDocumentFragment();
 
         // Current target is not set.
         this.mCurrentTarget = null;

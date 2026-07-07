@@ -3,7 +3,7 @@ import { Component, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, 
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
-import { PotatnoNodeDefinition } from "../../../project/node_definition/potatno-node-definition.ts";
+import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../../../project/potatno-project.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
@@ -105,7 +105,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      * Whether this node currently has an active inline preview opt-in.
      */
     public get isPreviewActive(): boolean {
-        return this.nodeData?.preview != null;
+        return this.nodeData?.preview !== null;
     }
 
     /**

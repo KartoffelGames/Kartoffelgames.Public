@@ -5,8 +5,8 @@ import type { PotatnoDocumentNode } from '../../../document/potatno-document-nod
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
-import { PotatnoNodeSelectionPopup } from "../potatno-node-selection-popup/potatno-node-selection-popup.ts";
-import { PotatnoConnectionLayer } from "../potatno_connection_layer/potatno-connection-layer.ts";
+import { PotatnoNodeSelectionPopup } from '../potatno-node-selection-popup/potatno-node-selection-popup.ts';
+import { PotatnoConnectionLayer } from '../potatno_connection_layer/potatno-connection-layer.ts';
 import { PotatnoNodeComponent, type ResizeStartDetail } from '../potatno_node_component/potatno-node-component.ts';
 import graphCss from './potatno-node-graph.css' with { type: 'text' };
 import graphTemplate from './potatno-node-graph.html' with { type: 'text' };
@@ -434,7 +434,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
             return;
         }
 
-        if (pEvent.key === "Escape" && this.mAddNodePopup) {
+        if (pEvent.key === 'Escape' && this.mAddNodePopup) {
             this.closeAddNodePopup();
         }
 

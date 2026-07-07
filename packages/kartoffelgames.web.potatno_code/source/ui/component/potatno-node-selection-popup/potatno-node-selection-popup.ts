@@ -1,5 +1,5 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { ComponentState, IComponentOnUpdate, PwbChild, PwbComponent, PwbComponentEvent, type ComponentEventEmitter, type IComponentOnConnect } from '@kartoffelgames/web-potato-web-builder';
+import { ComponentState, PwbChild, PwbComponent, PwbComponentEvent, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
@@ -69,14 +69,6 @@ export class PotatnoNodeSelectionPopup implements IComponentOnConnect, IComponen
     }
 
     /**
-     * Result search result list whenever the component is updated.
-     * That includes when something is typed into the searchbar. 
-     */
-    public onUpdate(): void {
-        this.rebuildResults();
-    }
-
-    /**
      * Handle keyboard navigation in the search field.
      *
      * @param pEvent - Keyboard event from the search field.
@@ -116,36 +108,20 @@ export class PotatnoNodeSelectionPopup implements IComponentOnConnect, IComponen
     }
 
     /**
+     * Result search result list whenever the component is updated.
+     * That includes when something is typed into the searchbar. 
+     */
+    public onUpdate(): void {
+        this.rebuildResults();
+    }
+
+    /**
      * Stop pointer interaction from reaching the graph canvas behind the popup.
      *
      * @param pEvent - Pointer event from the popup root.
      */
     public stopPropagation(pEvent: PointerEvent): void {
         pEvent.stopPropagation();
-    }
-
-    /**
-     * Emit the currently selected entry (or the first one) for insertion.
-     * 
-     * @param pSelectedIndex - Selected id.
-     */
-    private sendSelectedEntry(pSelectedIndex: string | null): void {
-        // Skip when nothing was selected.
-        if (pSelectedIndex === null) {
-            return;
-        }
-
-        // Find entry be selected definition id.
-        const lEntry: PotatnoAddNodePopupEntry | undefined = this.results.find((pEntry: PotatnoAddNodePopupEntry) => {
-            return pEntry.definition.id === pSelectedIndex;
-        });
-
-        // When still nothing is selected, the search has no result.
-        if (!lEntry) {
-            return;
-        }
-
-        this.mNodeSelect.dispatchEvent(lEntry.definition);
     }
 
     /**
@@ -181,6 +157,30 @@ export class PotatnoNodeSelectionPopup implements IComponentOnConnect, IComponen
         if (!this.results.some((pEntry: PotatnoAddNodePopupEntry) => pEntry.definition.id === this.selectedDefinitionId)) {
             this.selectedDefinitionId = this.results[0]?.definition.id ?? null;
         }
+    }
+
+    /**
+     * Emit the currently selected entry (or the first one) for insertion.
+     * 
+     * @param pSelectedIndex - Selected id.
+     */
+    private sendSelectedEntry(pSelectedIndex: string | null): void {
+        // Skip when nothing was selected.
+        if (pSelectedIndex === null) {
+            return;
+        }
+
+        // Find entry be selected definition id.
+        const lEntry: PotatnoAddNodePopupEntry | undefined = this.results.find((pEntry: PotatnoAddNodePopupEntry) => {
+            return pEntry.definition.id === pSelectedIndex;
+        });
+
+        // When still nothing is selected, the search has no result.
+        if (!lEntry) {
+            return;
+        }
+
+        this.mNodeSelect.dispatchEvent(lEntry.definition);
     }
 }
 

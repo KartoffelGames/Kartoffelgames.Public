@@ -110,9 +110,9 @@ const gDocumentFileName: string = 'potatno-code-document.json';
  * Load document from browser storage.
  */
 async function gLoadDocument(): Promise<void> {
-    const lUserAnswer: boolean = window.confirm("Load saved document?");
+    const lUserAnswer: boolean = window.confirm('Load saved document?');
     if (!lUserAnswer) {
-        return 
+        return; 
     }
 
     try {
@@ -132,9 +132,9 @@ async function gLoadDocument(): Promise<void> {
  * Save document into browser storage.
  */
 async function gSaveDocument(): Promise<void> {
-    const lUserAnswer: boolean = window.confirm("Override saved document?");
+    const lUserAnswer: boolean = window.confirm('Override saved document?');
     if (!lUserAnswer) {
-        return 
+        return; 
     }
 
     try {

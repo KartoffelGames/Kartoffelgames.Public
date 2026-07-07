@@ -1,17 +1,17 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, PwbChild, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { Component, ComponentState, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
 import { PotatnoPreviewFunctionExecutor } from '../../../preview/potatno-preview-function-executor.ts';
 import type { PotatnoFunctionDefinition } from '../../../project/potatno-function-definition.ts';
+import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
+import type { PotatnoProject } from '../../../project/potatno-project.ts';
 import type { PotatnoCodeUiManagerIntegrityError } from '../../manager/manager_component/potatno-ui-manager-integrity.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPreviewModule } from '../../module/potatno-preview.module.ts';
 import templateCss from './potatno-preview.css' with { type: 'text' };
 import previewTemplate from './potatno-preview.html' with { type: 'text' };
-import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import type { PotatnoProject } from '../../../project/potatno-project.ts';
 
 /**
  * Preview panel hosting the active function's main preview driver.
@@ -27,25 +27,19 @@ import type { PotatnoProject } from '../../../project/potatno-project.ts';
     style: templateCss,
     modules: [PotatnoPreviewModule]
 })
-export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstruct {
+export class PotatnoPreview implements IComponentOnDeconstruct {
     private readonly mComponent: Component;
-    private mDragging: boolean;
     private readonly mManager: PotatnoUiManager;
-    private mStartHeight: number;
-    private mStartWidth: number;
-    private mStartX: number;
-    private mStartY: number;
-    private readonly mTrackedFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null;
-    private mUnsubscribe: (() => void) | null;
+    private mUnsubscribe: (() => void);
 
     private mSelectedDisplayId: string;
     private mSelectedOutputId: string;
 
     /**
-     * Reference to the preview container for resize operations.
+     * Preview window size.
      */
-    @PwbChild('PreviewContainer')
-    public accessor containerElement!: HTMLDivElement;
+    @ComponentState.state({ proxy: true })
+    public accessor windowSize: PotatnoPreviewSize;
 
     /**
      * Display ("style") id options for the display selector, from the project's preview registry.
@@ -175,33 +169,27 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
      */
     public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mComponent = pComponent;
-        this.mDragging = false;
         this.mManager = pManager;
         this.mSelectedDisplayId = '';
         this.mSelectedOutputId = '';
-        this.mStartHeight = 0;
-        this.mStartWidth = 0;
-        this.mStartX = 0;
-        this.mStartY = 0;
-        this.mTrackedFunction = null;
-        this.mUnsubscribe = null;
-    }
 
-    /**
-     * Subscribe to manager events affecting the preview content and validation list.
-     */
-    public onConnect(): void {
+        // Define the default window size.
+        this.windowSize = {
+            width: 320,
+            height: 240
+        };
+
         this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection, null, () => {
             this.mComponent.updater.updateAsync();
         });
     }
 
+
     /**
      * Detach the manager subscription.
      */
     public onDeconstruct(): void {
-        this.mUnsubscribe?.();
-        this.mUnsubscribe = null;
+        this.mUnsubscribe();
     }
 
     /**
@@ -233,42 +221,33 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
         pEvent.preventDefault();
         pEvent.stopPropagation();
 
-        this.mDragging = true;
-        this.mStartX = pEvent.clientX;
-        this.mStartY = pEvent.clientY;
+        // Save current size so the current pointer position determinates exactly this size.
+        const lStartingWidth: number = this.windowSize.width;
+        const lStartingHeight: number = this.windowSize.height;
+        const lStartX = pEvent.clientX;
+        const lStartY = pEvent.clientY;
 
-        const lContainer: HTMLElement = this.containerElement;
-        if (!lContainer) {
-            return;
-        }
-
-        this.mStartWidth = lContainer.offsetWidth;
-        this.mStartHeight = lContainer.offsetHeight;
-
-        (pEvent.target as HTMLElement).setPointerCapture(pEvent.pointerId);
-
-        const lOnPointerMove = (pMoveEvent: PointerEvent): void => {
-            if (!this.mDragging) {
-                return;
-            }
-
+        // Resize magic listener (●'◡'●)つ━☆・*。
+        const lPointerMoveListener = (pMoveEvent: PointerEvent): void => {
             // Resize from top-left corner: moving left/up increases size.
-            const lDeltaX: number = this.mStartX - pMoveEvent.clientX;
-            const lDeltaY: number = this.mStartY - pMoveEvent.clientY;
+            const lMovementChangeX: number = lStartX - pMoveEvent.clientX;
+            const lMovementChangeY: number = lStartY - pMoveEvent.clientY;
 
-            lContainer.style.width = Math.max(200, this.mStartWidth + lDeltaX) + 'px';
-            lContainer.style.height = Math.max(150, this.mStartHeight + lDeltaY) + 'px';
+            // Change window size but clamp it doen to a minimum size.
+            this.windowSize.width = Math.max(200, lStartingWidth + lMovementChangeX);
+            this.windowSize.height = Math.max(150, lStartingHeight + lMovementChangeY);
         };
 
-        const lOnPointerUp = (pUpEvent: PointerEvent): void => {
-            this.mDragging = false;
-            (pUpEvent.target as HTMLElement).releasePointerCapture(pUpEvent.pointerId);
-            document.removeEventListener('pointermove', lOnPointerMove);
-            document.removeEventListener('pointerup', lOnPointerUp);
+        // Pointer up listener, cleaning up temporary listener.
+        const lPointerUpListener = (): void => {
+            // Remove temporary mouse move listener.
+            document.removeEventListener('pointermove', lPointerMoveListener);
+            document.removeEventListener('pointerup', lPointerUpListener);
         };
 
-        document.addEventListener('pointermove', lOnPointerMove);
-        document.addEventListener('pointerup', lOnPointerUp);
+        // Add temporary mouse move listener.
+        document.addEventListener('pointermove', lPointerMoveListener);
+        document.addEventListener('pointerup', lPointerUpListener);
     }
 
     /**
@@ -324,6 +303,14 @@ export class PotatnoPreview implements IComponentOnConnect, IComponentOnDeconstr
         return null;
     }
 }
+
+/**
+ * Size of window.
+ */
+type PotatnoPreviewSize = {
+    width: number;
+    height: number;
+};
 
 /**
  * One selectable output for a user function's main preview.

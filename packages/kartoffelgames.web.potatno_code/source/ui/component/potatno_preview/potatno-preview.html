@@ -1,5 +1,6 @@
 <div class="resize-handle" (pointerdown)="this.onResizePointerDown($event)"></div>
-<div class="preview-container" #PreviewContainer>
+
+<div class="preview-container" style="height: {{this.windowSize.height}}px; width: {{this.windowSize.width}}px;">
     <div class="preview-header">
         $if(this.hasErrors) {
             <span class="preview-title error-title">Errors ({{this.errors.length}})</span>
@@ -22,6 +23,7 @@
             </div>
         }
     </div>
+
     $if(this.hasErrors) {
         <div class="error-list">
             $for(error of this.errors) {
@@ -35,6 +37,7 @@
             }
         </div>
     }
+
     $if(!this.hasErrors) {
         <div class="preview-content" potatno-preview="this.previewDriver"></div>
     }

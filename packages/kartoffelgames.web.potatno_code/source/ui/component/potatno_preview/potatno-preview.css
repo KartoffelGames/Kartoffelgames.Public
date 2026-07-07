@@ -3,6 +3,26 @@
     position: relative;
 }
 
+.resize-handle {
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    width: 8px;
+    height: 8px;
+    border-top: 2px solid color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
+    border-left: 2px solid color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
+    transition: border-color 0.15s;
+    cursor: nwse-resize;
+
+    &:hover {
+        border-color: var(--potatno-color-accent);
+    }
+}
+
+
+
+
+
 .preview-container {
     display: flex;
     flex-direction: column;
@@ -55,7 +75,7 @@
     background: var(--pn-bg-surface);
     border: 1px solid var(--pn-border-default);
     border-radius: 3px;
-    color: var(--pn-text-primary);
+    color: var(--potatno-color-text);
     font-family: var(--pn-font-family);
     font-size: var(--pn-font-size-sm);
     padding: 2px 4px;
@@ -75,12 +95,12 @@
 }
 
 .preview-tab:hover {
-    color: var(--pn-text-primary);
+    color: var(--potatno-color-text);
     border-color: var(--potatno-color-accent);
 }
 
 .preview-tab.selected {
-    color: var(--pn-text-primary);
+    color: var(--potatno-color-text);
     background: var(--potatno-color-accent);
     border-color: var(--potatno-color-accent);
 }
@@ -104,32 +124,6 @@
 .preview-content::-webkit-scrollbar-thumb {
     background: var(--pn-scrollbar-thumb);
     border-radius: 3px;
-}
-
-.resize-handle {
-    position: absolute;
-    top: -2px;
-    left: -2px;
-    width: 12px;
-    height: 12px;
-    cursor: nwse-resize;
-    z-index: 10;
-}
-
-.resize-handle::before {
-    content: '';
-    position: absolute;
-    bottom: 2px;
-    right: 2px;
-    width: 8px;
-    height: 8px;
-    border-top: 2px solid var(--pn-text-muted);
-    border-left: 2px solid var(--pn-text-muted);
-    transition: border-color 0.15s;
-}
-
-.resize-handle:hover::before {
-    border-color: var(--potatno-color-accent);
 }
 
 .error-title {
@@ -174,7 +168,7 @@
 }
 
 .error-message {
-    color: var(--pn-text-primary);
+    color: var(--potatno-color-text);
     font-size: var(--pn-font-size-sm);
     word-break: break-word;
 }

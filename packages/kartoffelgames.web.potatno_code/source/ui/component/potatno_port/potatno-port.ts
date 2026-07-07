@@ -34,7 +34,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     private readonly mDragPositionEventHandler: PotatnoPortComponentGlobalDragoverHandler;
     private readonly mManager: PotatnoUiManager;
     private mPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null;
-    private mUnsubscribe: (() => void) | null;
+    private mUnsubscribe: (() => void);
 
     /**
      * Drag position event handler.
@@ -215,7 +215,6 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         this.mComponent = pComponent;
         this.mManager = pManager;
         this.mPort = null;
-        this.mUnsubscribe = null;
 
         // Create the document wide drag handler, as firefox cant fix a 16 year old bug.
         this.mDragPositionEventHandler = (pEvent: DragEvent) => {
@@ -236,16 +235,17 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
 
             this.renderDragWire(pEvent.clientX, pEvent.clientY);
         };
+
+        // Update component on any connection change.
+        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Connection, null, () => {
+            this.mComponent.updater.updateAsync();
+        });
     }
 
     /**
      * Subscribe to manager events that change this port's connection-dependent visuals.
      */
     public onConnect(): void {
-        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Connection | PotatnoCodeUiManagerChangeType.Node, null, () => {
-            this.mComponent.updater.updateAsync();
-        });
-
         // Add global drag handler that draws the drag wire.
         // Capture drag movement before drop targets can stop bubbling.
         document.addEventListener('dragover', this.mDragPositionEventHandler, { capture: true });
@@ -255,8 +255,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
      * Detach the manager subscription.
      */
     public onDeconstruct(): void {
-        this.mUnsubscribe?.();
-        this.mUnsubscribe = null;
+        this.mUnsubscribe();
 
         // Remove the global dragover handler when the port gets removed.
         document.removeEventListener('dragover', this.mDragPositionEventHandler, { capture: true });

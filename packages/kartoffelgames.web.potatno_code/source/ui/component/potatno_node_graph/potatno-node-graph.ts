@@ -3,18 +3,13 @@ import { Component, ComponentState, PwbChild, PwbComponent, type ComponentEvent,
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
+import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
-import type { ResizeStartDetail } from '../potatno_node_component/potatno-node-component.ts';
+import { PotatnoNodeSelectionPopup } from "../potatno-node-selection-popup/potatno-node-selection-popup.ts";
+import { PotatnoConnectionLayer } from "../potatno_connection_layer/potatno-connection-layer.ts";
+import { PotatnoNodeComponent, type ResizeStartDetail } from '../potatno_node_component/potatno-node-component.ts';
 import graphCss from './potatno-node-graph.css' with { type: 'text' };
 import graphTemplate from './potatno-node-graph.html' with { type: 'text' };
-
-// Import child components to ensure they are registered.
-import { NodeCategory } from '../../node/node-category.enum.ts';
-import '../potatno_add_node_popup/potatno-add-node-popup.ts';
-import '../potatno_connection_layer/potatno-connection-layer.ts';
-import '../potatno_node_component/potatno-node-component.ts';
-import '../potatno_port/potatno-port.ts';
-import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 
 /**
  * Interactive node graph for the active Potatno document function.
@@ -31,6 +26,7 @@ import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-pro
     selector: 'potatno-node-graph',
     template: graphTemplate,
     style: graphCss,
+    components: [PotatnoNodeSelectionPopup, PotatnoNodeComponent, PotatnoConnectionLayer,]
 })
 export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDeconstruct {
     private readonly mComponent: Component;

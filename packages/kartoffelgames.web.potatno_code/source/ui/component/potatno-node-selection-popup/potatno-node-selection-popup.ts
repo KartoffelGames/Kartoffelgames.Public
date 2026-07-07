@@ -3,19 +3,19 @@ import { ComponentState, IComponentOnUpdate, PwbChild, PwbComponent, PwbComponen
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
-import addNodePopupCss from './potatno-add-node-popup.css' with { type: 'text' };
-import addNodePopupTemplate from './potatno-add-node-popup.html' with { type: 'text' };
+import addNodePopupCss from './potatno-node-selection-popup.css' with { type: 'text' };
+import addNodePopupTemplate from './potatno-node-selection-popup.html' with { type: 'text' };
 
 /**
  * Searchable popup listing every node definition available to the active function.
  * Dispatches the "node-select" event on selecting a node.
  */
 @PwbComponent({
-    selector: 'potatno-add-node-popup',
+    selector: 'potatno-node-selection-popup',
     template: addNodePopupTemplate,
     style: addNodePopupCss,
 })
-export class PotatnoAddNodePopup implements IComponentOnConnect, IComponentOnUpdate {
+export class PotatnoNodeSelectionPopup implements IComponentOnConnect, IComponentOnUpdate {
     private readonly mManager: PotatnoUiManager;
 
     /**

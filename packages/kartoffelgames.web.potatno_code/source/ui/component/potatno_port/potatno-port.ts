@@ -229,6 +229,11 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
                 return;
             }
 
+            // Play the gamble and skip event when the time differs too much.
+            if(performance.now() - pEvent.timeStamp > 100) {
+                return;
+            } 
+
             this.renderDragWire(pEvent.clientX, pEvent.clientY);
         };
     }

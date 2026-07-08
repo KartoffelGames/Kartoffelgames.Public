@@ -3,37 +3,15 @@
     position: relative;
 }
 
-.resize-handle {
-    position: absolute;
-    top: -2px;
-    left: -2px;
-    width: 8px;
-    height: 8px;
-    border-top: 2px solid color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
-    border-left: 2px solid color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
-    transition: border-color 0.15s;
-    cursor: nwse-resize;
-
-    &:hover {
-        border-color: var(--potatno-color-accent);
-    }
-}
-
-
-
-
-
 .preview-container {
-    display: flex;
-    flex-direction: column;
-    width: 320px;
-    height: 240px;
-    min-width: 200px;
-    min-height: 150px;
     background: var(--pn-bg-secondary);
     border: 1px solid var(--pn-border-default);
+    border-width: 0 1px 1px 0;
     box-shadow: 0 4px 12px var(--pn-node-shadow);
-    overflow: hidden;
+
+    /* Set min sizes to restrict resizing. */
+    min-height: 150px;
+    min-width: 200px;
 }
 
 .preview-header {

@@ -1,0 +1,97 @@
+:host {
+    display: block;
+    position: relative;
+}
+
+.resize-handle {
+    position: absolute;
+    transition: border-color 0.15s;
+
+    /*
+     * General handle size and cursor for any direction.
+     */
+
+    &.corner {
+        /* Handle size */
+        width: 10px;
+        height: 10px;
+
+        &.top.left,
+        &.bottom.right {
+            cursor: nwse-resize;
+        }
+
+        &.top.right,
+        &.bottom.left {
+            cursor: nesw-resize;
+        }
+    }
+
+    &.vertical {
+        /* Size by spanning top and bottom instead of height */
+        top: 0px;
+        bottom: 0px;
+
+        /* Handle size */
+        width: 10px;
+
+        cursor: ew-resize;
+
+        &.hasPrevious {
+            top: 15px;
+        }
+        &.hasNext {
+            bottom: 15px;
+        }
+    }
+
+    &.horizontal {
+        /* Size by spanning left and right instead of height */
+        left: 0px;
+        right: 0px;
+
+        /* Handle size */
+        height: 10px;
+
+        cursor: ns-resize;
+
+        &.hasPrevious {
+            left: 15px;
+        }
+        &.hasNext {
+            right: 15px;
+        }
+    }
+
+    /*
+     * Move border into direction.
+     */
+
+    &.top {
+        top: -2px;
+        border-top: 2px solid color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
+    }
+
+    &.right {
+        right: -2px;
+        border-right: 2px solid color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
+    }
+
+    &.bottom {
+        bottom: -2px;
+        border-bottom: 2px solid color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
+    }
+
+    &.left {
+        left: -2px;
+        border-left: 2px solid color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
+    }
+
+    /*
+     * Just animations.
+     */
+
+    &:hover {
+        border-color: var(--potatno-color-accent);
+    }
+}

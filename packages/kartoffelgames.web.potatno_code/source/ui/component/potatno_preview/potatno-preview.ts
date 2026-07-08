@@ -1,5 +1,5 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, ComponentState, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { Component, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
@@ -10,8 +10,9 @@ import type { PotatnoProject } from '../../../project/potatno-project.ts';
 import type { PotatnoCodeUiManagerIntegrityError } from '../../manager/manager_component/potatno-ui-manager-integrity.ts';
 import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPreviewModule } from '../../module/potatno-preview.module.ts';
-import templateCss from './potatno-preview.css' with { type: 'text' };
-import previewTemplate from './potatno-preview.html' with { type: 'text' };
+import { PotatnoResizeBox } from '../potatno-resize-box/potatno-resize-box.ts';
+import styles from './potatno-preview.css' with { type: 'text' };
+import template from './potatno-preview.html' with { type: 'text' };
 
 /**
  * Preview panel hosting the active function's main preview driver.
@@ -23,23 +24,17 @@ import previewTemplate from './potatno-preview.html' with { type: 'text' };
  */
 @PwbComponent({
     selector: 'potatno-preview',
-    template: previewTemplate,
-    style: templateCss,
-    modules: [PotatnoPreviewModule]
+    template: template,
+    style: styles,
+    modules: [PotatnoPreviewModule, PotatnoResizeBox]
 })
 export class PotatnoPreview implements IComponentOnDeconstruct {
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
-    private mUnsubscribe: (() => void);
+    private readonly mUnsubscribe: (() => void);
 
     private mSelectedDisplayId: string;
     private mSelectedOutputId: string;
-
-    /**
-     * Preview window size.
-     */
-    @ComponentState.state({ proxy: true })
-    public accessor windowSize: PotatnoPreviewSize;
 
     /**
      * Display ("style") id options for the display selector, from the project's preview registry.
@@ -173,17 +168,10 @@ export class PotatnoPreview implements IComponentOnDeconstruct {
         this.mSelectedDisplayId = '';
         this.mSelectedOutputId = '';
 
-        // Define the default window size.
-        this.windowSize = {
-            width: 320,
-            height: 240
-        };
-
         this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection, null, () => {
             this.mComponent.updater.updateAsync();
         });
     }
-
 
     /**
      * Detach the manager subscription.
@@ -210,44 +198,6 @@ export class PotatnoPreview implements IComponentOnDeconstruct {
     public onOutputSelect(pEvent: Event): void {
         this.mSelectedOutputId = (pEvent.target as HTMLSelectElement).value;
         this.mComponent.updater.updateAsync();
-    }
-
-    /**
-     * Handle pointer down on the resize handle to begin resizing.
-     *
-     * @param pEvent - Pointer event from the resize handle.
-     */
-    public onResizePointerDown(pEvent: PointerEvent): void {
-        pEvent.preventDefault();
-        pEvent.stopPropagation();
-
-        // Save current size so the current pointer position determinates exactly this size.
-        const lStartingWidth: number = this.windowSize.width;
-        const lStartingHeight: number = this.windowSize.height;
-        const lStartX = pEvent.clientX;
-        const lStartY = pEvent.clientY;
-
-        // Resize magic listener (●'◡'●)つ━☆・*。
-        const lPointerMoveListener = (pMoveEvent: PointerEvent): void => {
-            // Resize from top-left corner: moving left/up increases size.
-            const lMovementChangeX: number = lStartX - pMoveEvent.clientX;
-            const lMovementChangeY: number = lStartY - pMoveEvent.clientY;
-
-            // Change window size but clamp it doen to a minimum size.
-            this.windowSize.width = Math.max(200, lStartingWidth + lMovementChangeX);
-            this.windowSize.height = Math.max(150, lStartingHeight + lMovementChangeY);
-        };
-
-        // Pointer up listener, cleaning up temporary listener.
-        const lPointerUpListener = (): void => {
-            // Remove temporary mouse move listener.
-            document.removeEventListener('pointermove', lPointerMoveListener);
-            document.removeEventListener('pointerup', lPointerUpListener);
-        };
-
-        // Add temporary mouse move listener.
-        document.addEventListener('pointermove', lPointerMoveListener);
-        document.addEventListener('pointerup', lPointerUpListener);
     }
 
     /**

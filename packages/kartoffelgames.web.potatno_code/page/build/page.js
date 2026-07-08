@@ -149,6 +149,10 @@ potatno-code-editor {\r
     bottom: 12px;\r
     right: 12px;\r
     z-index: 100;\r
+\r
+    /* Preview should never overflow the graph window. Dont know why exactly that numbers but they are right. */\r
+    max-width: 98%;\r
+    max-height: 98%;\r
 }\r
 \r
 potatno-node-graph {\r
@@ -180,8 +184,7 @@ potatno-node-graph {\r
     flex-direction: column;\r
     overflow: hidden;\r
     flex-shrink: 0;\r
-}\r
-`;var vo=`<div class="editor-layout">
+}`;var vo=`<div class="editor-layout">
     <div #panelLeft class="panel-left">
         <potatno-function-list></potatno-function-list>
     </div>
@@ -191,9 +194,7 @@ potatno-node-graph {\r
     <div class="center-area">
         <potatno-node-graph></potatno-node-graph>
         $if(this.hasPreview) {
-            <div class="preview-wrapper">
-                <potatno-preview></potatno-preview>
-            </div>
+            <potatno-preview class="preview-wrapper"></potatno-preview>
         }
     </div>
     <div #resizeRight class="resize-handle-right"
@@ -1901,6 +1902,10 @@ $if(this.left) {
     /* Set min sizes to restrict resizing. */\r
     min-height: 150px;\r
     min-width: 200px;\r
+\r
+    /* Globaly restrict to max size of parent. */\r
+    max-width: 100%;\r
+    max-height: 100%;\r
 }\r
 \r
 .preview-header {\r

@@ -55,9 +55,9 @@
     right: 12px;
     z-index: 100;
 
-    /* Preview should never overflow the graph window. Dont know why exactly that numbers but they are right. */
-    max-width: 98%;
-    max-height: 98%;
+    /* Preview should never overflow the graph window. Set gap to 12px on all sides. */
+    max-width: calc(100% - 24px);
+    max-height: calc(100% - 24px);
 }
 
 potatno-node-graph {

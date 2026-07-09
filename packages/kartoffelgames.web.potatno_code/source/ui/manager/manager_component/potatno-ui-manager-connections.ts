@@ -34,7 +34,7 @@ export class PotatnoUiManagerConnections {
         this.mPathFinder = new PotatnoUiGridPathFinding();
 
         // Register node transformation change event.
-        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, null, (pEvent: PotatnoUiManagerChangeEvent) => {
+        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, (pEvent: PotatnoUiManagerChangeEvent) => {
             // Update ever node when document is set.
             if ((pEvent.changeType & PotatnoCodeUiManagerChangeType.SpecialActiveFunction) > 0) {
                 // Can only be processed with a active function.
@@ -73,7 +73,7 @@ export class PotatnoUiManagerConnections {
             this.updatePaths();
         });
 
-        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Connection, null, () => {
+        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Connection, () => {
             this.updatePaths();
         });
     }

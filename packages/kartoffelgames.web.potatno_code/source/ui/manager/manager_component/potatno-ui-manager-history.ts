@@ -45,7 +45,7 @@ export class PotatnoUiManagerHistory {
 
         // Register "all"-Listener that saves a debounced history item.
         let lDebounce: number = 0;
-        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Any, null, () => {
+        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Any, () => {
             // Debounce: Clear and set a new timeout before pushing new history.
             globalThis.clearTimeout(lDebounce);
             lDebounce = globalThis.setTimeout(() => {

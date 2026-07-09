@@ -6,6 +6,7 @@ import templateCss from './potatno-function-list.css' with { type: 'text' };
 import functionListTemplate from './potatno-function-list.html' with { type: 'text' };
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../../../project/potatno-project.ts';
+import { PotatnoDocumentFunction } from "../../../document/potatno-document-function.ts";
 
 /**
  * Function list component for the potatno-code visual editor.
@@ -34,7 +35,7 @@ export class PotatnoFunctionList implements IComponentOnConnect, IComponentOnDec
      * Id of the currently active function.
      */
     public get activeFunctionId(): string {
-        return this.mManager.activeFunctionId;
+        return this.mManager.activeFunction?.id ?? '';
     }
 
     /**
@@ -114,7 +115,7 @@ export class PotatnoFunctionList implements IComponentOnConnect, IComponentOnDec
      * Subscribe to manager function events.
      */
     public onConnect(): void {
-        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, null, () => {
+        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
             this.mComponent.updater.updateAsync();
         });
     }
@@ -164,10 +165,10 @@ export class PotatnoFunctionList implements IComponentOnConnect, IComponentOnDec
     /**
      * Handle function entry click to select it.
      *
-     * @param pId - The function id to select.
+     * @param pFunction - The function to select.
      */
-    public onFunctionSelect(pId: string): void {
-        this.mManager.setActiveFunction(pId);
+    public onFunctionSelect(pFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition>): void {
+        this.mManager.setActiveFunction(pFunction);
     }
 }
 

@@ -48,14 +48,14 @@ export class PotatnoUiManagerPreview {
 
         // A new document instance replaces every item; drop the drivers so components re-request
         // fresh ones against the live graph.
-        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document, null, () => {
+        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document, () => {
             this.mDriverList.splice(0, this.mDriverList.length);
         });
 
         // In-place edits keep the same items: recompile live drivers after a debounce.
         let lDebounce: number = 0;
         const lStructuralEvents: number = PotatnoCodeUiManagerChangeType.Connection | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.Node;
-        this.mManager.subscribe(lStructuralEvents, null, () => {
+        this.mManager.subscribe(lStructuralEvents, () => {
             globalThis.clearTimeout(lDebounce);
             lDebounce = globalThis.setTimeout(() => this.refresh(), 1000) as unknown as number;
         });

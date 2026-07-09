@@ -67,7 +67,7 @@ export class PotatnoUiManagerIntegrity {
 
         // Register "all"-Listener and set dirtly. After a debounce validate automaticly.
         let lDebounce: number = 0;
-        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Any, null, () => {
+        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Any, () => {
             this.mIsDirty = true;
 
             // Debounce: Clear and set a new timeout before pushing new history.

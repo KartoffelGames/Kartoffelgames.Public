@@ -12,6 +12,7 @@ import { NodeCategory } from '../../node/node-category.enum.ts';
 import { PotatnoPortComponent } from '../potatno_port/potatno-port.ts';
 import nodeCss from './potatno-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
+import { PotatnoFunctionNodeDefinition } from "../../../project/node_definition/potatno-function-node-definition.ts";
 
 /**
  * Node component for the potatno-code visual editor.
@@ -205,7 +206,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
         if (!this.nodeData) {
             return '';
         }
-        console.log(this.nodeDefinition, this.nodeDefinition?.category.icon)
+        
         return this.nodeDefinition?.category.icon ?? '';
     }
 
@@ -267,20 +268,20 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
             return null;
         }
 
-        if(this.mNodeDefinition && this.mNodeDefinition.id == this.nodeData.definitionId){
+        if (this.mNodeDefinition && this.mNodeDefinition.id == this.nodeData.definitionId) {
             return this.mNodeDefinition;
         }
 
-        if(!this.mManager.activeFunction) {
+        if (!this.mManager.activeFunction) {
             return null;
         }
 
         // Find node data.
-        const lNodeDefinition = this.mManager.activeFunction.nodeDefinitions.find((pNodeDefinition)=>{
+        const lNodeDefinition = this.mManager.activeFunction.nodeDefinitions.find((pNodeDefinition) => {
             return pNodeDefinition.id === this.nodeData!.definitionId;
         });
 
-        if(!lNodeDefinition){
+        if (!lNodeDefinition) {
             return null;
         }
 
@@ -325,7 +326,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      * Subscribe to manager events that affect this node's rendering.
      */
     public onConnect(): void {
-        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection, null, () => {
+        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection, () => {
             this.mComponent.updater.updateAsync();
         });
     }
@@ -431,15 +432,24 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
      */
     public onOpenFunction(pEvent: MouseEvent): void {
         pEvent.stopPropagation();
-        if (!this.nodeData) {
+
+        // Node data and document must be set for this function.
+        if (!this.nodeData || !this.mManager.graph.document) {
             return;
         }
 
-        const lDefinitionId: string = this.nodeData.definitionId;
-        const lFunctionId: string = lDefinitionId.startsWith('USERFUNCTION_')
-            ? lDefinitionId.slice('USERFUNCTION_'.length)
-            : lDefinitionId;
-        this.mManager.setActiveFunction(lFunctionId);
+        const lNodeDefinitionId: string = this.nodeData.definitionId;
+        const lNodeDefinition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition> | undefined = this.mManager.graph.document.nodeDefinitions.find((pNodeDefinition) => {
+            return pNodeDefinition.id === lNodeDefinitionId;
+        });
+
+        // Skip when the node definition is a function node definition.
+        if (!(lNodeDefinition instanceof PotatnoFunctionNodeDefinition)) {
+            return;
+        }
+
+        // Set nodes function.
+        this.mManager.setActiveFunction(lNodeDefinition.function);
     }
 
     /**

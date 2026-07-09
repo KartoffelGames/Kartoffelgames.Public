@@ -38,7 +38,7 @@ export class PotatnoConnectionLayer implements IComponentOnDeconstruct {
 
         // Debounced svg redraw.
         let lRenderConnectionFrame: number = 0;
-        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.SpecialActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection, null, () => {
+        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.SpecialActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection, () => {
             if (lRenderConnectionFrame !== 0) {
                 return;
             }

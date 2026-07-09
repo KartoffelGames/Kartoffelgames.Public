@@ -237,7 +237,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
         };
 
         // Update component on any connection change.
-        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Connection, null, () => {
+        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Connection, () => {
             this.mComponent.updater.updateAsync();
         });
     }

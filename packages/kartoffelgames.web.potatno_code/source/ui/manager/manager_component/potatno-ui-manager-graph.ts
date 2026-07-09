@@ -65,7 +65,7 @@ export class PotatnoUiManagerGraph {
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.FunctionAdd, lFunction);
 
         // Set the function as new active.
-        this.mManager.setActiveFunction(lFunction.id);
+        this.mManager.setActiveFunction(lFunction);
     }
 
     /**
@@ -250,22 +250,31 @@ export class PotatnoUiManagerGraph {
         }
 
         // Check the current active function and reset to the first if it is not there anymore.
-        const lActiveFunctionId: string = (() => {
+        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> = (() => {
             const lNewDocumentFunctions: Array<PotatnoDocumentFunction<PotatnoProjectTypesDefinition>> = [...this.mDocument.functions];
 
+            // Use the first function if currently no active is set.
+            if(!this.mManager.activeFunction){
+                return lNewDocumentFunctions[0];
+            }
+
             // Try to find the current active function id inside the snapshot function.
-            const lIsFunctionIdFound = lNewDocumentFunctions.some((pFunction) => pFunction.id === this.mManager.activeFunctionId);
-            if (lIsFunctionIdFound) {
-                return this.mManager.activeFunctionId;
+            const lFunctionWithSameId = lNewDocumentFunctions.find((pFunction) => {
+                pFunction.id === this.mManager.activeFunction!.id;
+            });
+
+            // When the current function still exists in the new document, use it.
+            if (lFunctionWithSameId) {
+                return lFunctionWithSameId;
             }
 
             // Just take the first function id when it can be found.
-            return lNewDocumentFunctions[0].id;
+            return lNewDocumentFunctions[0];
         })();
 
         // Update active function if that has changed.
-        if (this.mManager.activeFunctionId !== lActiveFunctionId) {
-            this.mManager.setActiveFunction(lActiveFunctionId);
+        if (this.mManager.activeFunction !== lActiveFunction) {
+            this.mManager.setActiveFunction(lActiveFunction);
         }
     }
 }

@@ -1,8 +1,6 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import type { IPotatnoDocumentItem } from '../../document/i-potatno-document-item.interface.ts';
 import { PotatnoDocumentFunction } from '../../document/potatno-document-function.ts';
-import { PotatnoDocumentNode } from '../../document/potatno-document-node.ts';
-import { PotatnoDocumentPort } from '../../document/potatno-document-port.ts';
 import type { PotatnoDocument } from '../../document/potatno-document.ts';
 import { type PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from '../../project/potatno-function-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../project/potatno-project-types-definition.ts';
@@ -32,8 +30,7 @@ import { PotatnoUiManagerPreview } from './manager_component/potatno-ui-manager-
  */
 @Injection.injectable('singleton')
 export class PotatnoUiManager extends EventTarget {
-    private mActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null;
-    private mActiveFunctionId: string;
+    private mActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null;;
     private readonly mClipboard: PotatnoUiManagerClipboard;
     private readonly mConnections: PotatnoUiManagerConnections;
     private readonly mEventBuffer: Map<PotatnoUiManagerChangeEventTarget | null, PotatnoCodeUiManagerChangeType>;
@@ -49,38 +46,7 @@ export class PotatnoUiManager extends EventTarget {
      * The currently active document function, or `null` when none is resolvable.
      */
     public get activeFunction(): PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null {
-        // When the current found and cached active function is still correct, return it.
-        if (this.mActiveFunction && this.mActiveFunction.id === this.mActiveFunctionId) {
-            return this.mActiveFunction;
-        }
-
-        // A document must be set.
-        const lDocument: PotatnoDocument<PotatnoProjectTypesDefinition> | null = this.mGraph.document;
-        if (!lDocument) {
-            return null;
-        }
-
-        // Search for the active function.
-        const lActiveFunction = lDocument.functions.find((pFunction) => {
-            return pFunction.id === this.mActiveFunctionId;
-        });
-
-        // Active function could not be found.
-        if(!lActiveFunction){
-            return null;
-        }
-
-        // Set active function buffer.
-        this.mActiveFunction = lActiveFunction;
-
-        return lActiveFunction;
-    }
-
-    /**
-     * Id of the active function.
-     */
-    public get activeFunctionId(): string {
-        return this.mActiveFunctionId;
+        return this.mActiveFunction;
     }
 
     /**
@@ -155,9 +121,9 @@ export class PotatnoUiManager extends EventTarget {
         this.mPreview = new PotatnoUiManagerPreview(this);
         this.mGrid = new PotatnoUiManagerGrid();
 
-        this.mActiveFunctionId = '';
-        this.mActiveFunction = null;
+        // Default values to "not set".
         this.mProject = null;
+        this.mActiveFunction = null;
 
         // Setup event buffer.
         this.mEventBuffer = new Map<PotatnoUiManagerChangeEventTarget | null, PotatnoCodeUiManagerChangeType>();
@@ -236,16 +202,15 @@ export class PotatnoUiManager extends EventTarget {
      *
      * @param pFunctionId - Id of the function to activate.
      */
-    public setActiveFunction(pFunctionId: string): void {
-        // Only switch when a document is setup and the function is not already selected.
-        const lDocument: PotatnoDocument<PotatnoProjectTypesDefinition> | null = this.mGraph.document;
-        if (!lDocument || this.mActiveFunctionId === pFunctionId) {
+    public setActiveFunction(pFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition>): void {
+        // Only switch when a document is setup.
+        if (!this.mGraph.document) {
             return;
         }
 
         // Search for the active function.
-        const lActiveFunction = lDocument.functions.find((pFunction) => {
-            return pFunction.id === pFunctionId;
+        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | undefined = this.mGraph.document.functions.find((pFunction) => {
+            return pFunction === pFunction;
         });
 
         // Skip if function could not be found.
@@ -254,8 +219,8 @@ export class PotatnoUiManager extends EventTarget {
         }
 
         // set active function and dispatch change event.
-        this.mActiveFunctionId = pFunctionId;
-        this.dispatch(PotatnoCodeUiManagerChangeType.SpecialActiveFunction, lActiveFunction);
+        this.mActiveFunction = pFunction;
+        this.dispatch(PotatnoCodeUiManagerChangeType.SpecialActiveFunction, pFunction);
     }
 
     /**
@@ -268,52 +233,11 @@ export class PotatnoUiManager extends EventTarget {
      *
      * @returns An unsubscribe function removing every registered listener.
      */
-    public subscribe(pTypes: PotatnoCodeUiManagerChangeType | number, pTargets: Set<PotatnoUiManagerChangeEventTarget> | null, pListener: (pEvent: PotatnoUiManagerChangeEvent) => void): () => void {
-        const lTargetMatched = (pItem: PotatnoUiManagerChangeEventTarget | null): boolean => {
-            if (!pTargets) {
-                return true;
-            }
-
-            // Intialize waterfall buffer.
-            let lItem: PotatnoUiManagerChangeEventTarget | null = pItem;
-            while (lItem !== null) {
-                // Check for a existing target.
-                if (pTargets.has(lItem)) {
-                    return true;
-                }
-
-                // Cascade down from port -> node -> function -> document to check all levels for targets.
-                switch (true) {
-                    case lItem instanceof PotatnoDocumentPort: {
-                        lItem = lItem.node;
-                        break;
-                    }
-                    case lItem instanceof PotatnoDocumentNode: {
-                        lItem = lItem.function;
-                        break;
-                    }
-                    case lItem instanceof PotatnoDocumentFunction: {
-                        lItem = lItem.document;
-                        break;
-                    }
-                    default: {
-                        lItem = null;
-                    }
-                }
-            }
-
-            return false;
-        };
-
+    public subscribe(pTypes: PotatnoCodeUiManagerChangeType | number, pListener: (pEvent: PotatnoUiManagerChangeEvent) => void): () => void {
         // Custom wrapper for scoping the actual event listener.
         const lEventHandler = (pEvent: PotatnoUiManagerChangeEvent): void => {
             // Skip event when handler is not "any" and the change type is not part of the subscribed bitmask.
             if (pTypes !== PotatnoCodeUiManagerChangeType.Any && (pEvent.changeType & pTypes) === 0) {
-                return;
-            }
-
-            // Skip if no target can be matched.
-            if (pTargets !== null && !lTargetMatched(pEvent.item)) {
                 return;
             }
 

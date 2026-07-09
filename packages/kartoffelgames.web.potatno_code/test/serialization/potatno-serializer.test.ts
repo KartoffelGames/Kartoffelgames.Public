@@ -10,7 +10,7 @@ import type { PotatnoTestProjectTypesDefinition } from '../helper/potatno_test_p
 // connection multiset without depending on node-identity equality (the
 // deserializer creates fresh instances).
 const gExpectDocumentsEquivalent = (pActual: PotatnoDocument<PotatnoTestProjectTypesDefinition>, pExpected: PotatnoDocument<PotatnoTestProjectTypesDefinition>): void => {
-    expect(pActual.functions.size).toBe(pExpected.functions.size);
+    expect(pActual.functions.length).toBe(pExpected.functions.length);
 
     const lExpectedFunctions: Array<PotatnoDocumentFunction<PotatnoTestProjectTypesDefinition>> = [...pExpected.functions];
     const lActualFunctions: Array<PotatnoDocumentFunction<PotatnoTestProjectTypesDefinition>> = [...pActual.functions];

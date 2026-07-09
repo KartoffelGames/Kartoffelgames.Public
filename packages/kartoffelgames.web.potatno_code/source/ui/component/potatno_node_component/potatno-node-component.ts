@@ -205,6 +205,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
         if (!this.nodeData) {
             return '';
         }
+        console.log(this.nodeDefinition, this.nodeDefinition?.category.icon)
         return this.nodeDefinition?.category.icon ?? '';
     }
 
@@ -266,13 +267,27 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
             return null;
         }
 
-        const lNodeData: PotatnoDocumentNode<PotatnoProjectTypesDefinition> = this.nodeData;
-
-        if (!this.mNodeDefinition || this.mNodeDefinition.id !== lNodeData.definitionId) {
-            this.mNodeDefinition = lNodeData.project.nodeDefinitions.find((lNodeDef: { id: string; }) => lNodeDef.id === lNodeData.definitionId) ?? null;
+        if(this.mNodeDefinition && this.mNodeDefinition.id == this.nodeData.definitionId){
+            return this.mNodeDefinition;
         }
 
-        return this.mNodeDefinition;
+        if(!this.mManager.activeFunction) {
+            return null;
+        }
+
+        // Find node data.
+        const lNodeDefinition = this.mManager.activeFunction.nodeDefinitions.find((pNodeDefinition)=>{
+            return pNodeDefinition.id === this.nodeData!.definitionId;
+        });
+
+        if(!lNodeDefinition){
+            return null;
+        }
+
+        // Buffer found node definition.
+        this.mNodeDefinition = lNodeDefinition;
+
+        return lNodeDefinition;
     }
 
     /**

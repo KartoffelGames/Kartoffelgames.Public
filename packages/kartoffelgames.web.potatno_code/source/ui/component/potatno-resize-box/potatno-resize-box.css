@@ -3,6 +3,11 @@
     position: relative;
 }
 
+.container {
+    height: 100%;
+    width: 100%;
+}
+
 .resize-handle {
     position: absolute;
     transition: border-color 0.15s;
@@ -40,6 +45,7 @@
         &.hasPrevious {
             top: 15px;
         }
+
         &.hasNext {
             bottom: 15px;
         }
@@ -58,6 +64,7 @@
         &.hasPrevious {
             left: 15px;
         }
+
         &.hasNext {
             right: 15px;
         }

@@ -32,6 +32,7 @@ import { PotatnoUiManagerPreview } from './manager_component/potatno-ui-manager-
  */
 @Injection.injectable('singleton')
 export class PotatnoUiManager extends EventTarget {
+    private mActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null;
     private mActiveFunctionId: string;
     private readonly mClipboard: PotatnoUiManagerClipboard;
     private readonly mConnections: PotatnoUiManagerConnections;
@@ -48,18 +49,31 @@ export class PotatnoUiManager extends EventTarget {
      * The currently active document function, or `null` when none is resolvable.
      */
     public get activeFunction(): PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null {
+        // When the current found and cached active function is still correct, return it.
+        if (this.mActiveFunction && this.mActiveFunction.id === this.mActiveFunctionId) {
+            return this.mActiveFunction;
+        }
+
+        // A document must be set.
         const lDocument: PotatnoDocument<PotatnoProjectTypesDefinition> | null = this.mGraph.document;
         if (!lDocument) {
             return null;
         }
 
-        for (const lFunction of lDocument.functions) {
-            if (lFunction.id === this.mActiveFunctionId) {
-                return lFunction;
-            }
+        // Search for the active function.
+        const lActiveFunction = lDocument.functions.find((pFunction) => {
+            return pFunction.id === this.mActiveFunctionId;
+        });
+
+        // Active function could not be found.
+        if(!lActiveFunction){
+            return null;
         }
 
-        return null;
+        // Set active function buffer.
+        this.mActiveFunction = lActiveFunction;
+
+        return lActiveFunction;
     }
 
     /**
@@ -142,6 +156,7 @@ export class PotatnoUiManager extends EventTarget {
         this.mGrid = new PotatnoUiManagerGrid();
 
         this.mActiveFunctionId = '';
+        this.mActiveFunction = null;
         this.mProject = null;
 
         // Setup event buffer.
@@ -228,18 +243,19 @@ export class PotatnoUiManager extends EventTarget {
             return;
         }
 
-        // Find the document by id.
-        for (const lFunction of lDocument.functions) {
-            // Not the right function, skip it.
-            if (lFunction.id !== pFunctionId) {
-                continue;
-            }
+        // Search for the active function.
+        const lActiveFunction = lDocument.functions.find((pFunction) => {
+            return pFunction.id === pFunctionId;
+        });
 
-            // set active function and dispatch change event.
-            this.mActiveFunctionId = pFunctionId;
-            this.dispatch(PotatnoCodeUiManagerChangeType.SpecialActiveFunction, lFunction);
+        // Skip if function could not be found.
+        if (!lActiveFunction) {
             return;
         }
+
+        // set active function and dispatch change event.
+        this.mActiveFunctionId = pFunctionId;
+        this.dispatch(PotatnoCodeUiManagerChangeType.SpecialActiveFunction, lActiveFunction);
     }
 
     /**

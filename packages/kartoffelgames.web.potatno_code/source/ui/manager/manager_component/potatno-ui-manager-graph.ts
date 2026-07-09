@@ -54,7 +54,7 @@ export class PotatnoUiManagerGraph {
             definitionId: pDefinitionId,
             id: crypto.randomUUID(),
             isSystem: false,
-            label: `Function ${lDocument.functions.size}`
+            label: `Function ${lDocument.functions.length}`
         });
 
         // And add the function.
@@ -245,7 +245,7 @@ export class PotatnoUiManagerGraph {
      */
     private setDefaultActiveFunction() {
         // Cant set active functions when neighter there is a document or a function to begin with.
-        if (!this.mDocument || this.mDocument.functions.size === 0) {
+        if (!this.mDocument || this.mDocument.functions.length === 0) {
             return;
         }
 

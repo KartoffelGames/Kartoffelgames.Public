@@ -12,13 +12,13 @@ import { PotatnoDocumentPortValidationError, PotatnoDocumentValidationResult } f
  */
 export class PotatnoDocument<TProjectTypes extends PotatnoProjectTypesDefinition> {
     private readonly mFunctionNodeDefinitions: Map<string, PotatnoFunctionNodeDefinition<TProjectTypes>>;
-    private readonly mFunctions: Set<PotatnoDocumentFunction<TProjectTypes>>;
+    private readonly mFunctions: Array<PotatnoDocumentFunction<TProjectTypes>>;
     private readonly mProject: PotatnoProject<TProjectTypes>;
 
     /**
      * Get the read-only set of all functions in this file.
      */
-    public get functions(): ReadonlySet<PotatnoDocumentFunction<TProjectTypes>> {
+    public get functions(): ReadonlyArray<PotatnoDocumentFunction<TProjectTypes>> {
         return this.mFunctions;
     }
 
@@ -44,7 +44,7 @@ export class PotatnoDocument<TProjectTypes extends PotatnoProjectTypesDefinition
      */
     public constructor(pProject: PotatnoProject<TProjectTypes>) {
         this.mProject = pProject;
-        this.mFunctions = new Set<PotatnoDocumentFunction<TProjectTypes>>();
+        this.mFunctions = new Array<PotatnoDocumentFunction<TProjectTypes>>();
         this.mFunctionNodeDefinitions = new Map<string, PotatnoFunctionNodeDefinition<TProjectTypes>>();
     }
 
@@ -55,12 +55,22 @@ export class PotatnoDocument<TProjectTypes extends PotatnoProjectTypesDefinition
      *
      * @param pFunction - The function to add.
      */
-    public addFunction(pFunction: PotatnoDocumentFunction<TProjectTypes>): void {
-        this.mFunctions.add(pFunction);
+    public addFunction(pFunction: PotatnoDocumentFunction<TProjectTypes>): PotatnoDocumentFunction<TProjectTypes> {
+        // Try to find the function by reference.
+        const lFunctionIndex: number = this.mFunctions.indexOf(pFunction);
+        if (lFunctionIndex !== -1) {
+            // Remove function so it can be added again at the end.
+            this.mFunctions.splice(lFunctionIndex, 1);
+        }
+
+        // Add function again.
+        this.mFunctions.push(pFunction);
 
         // Create and register a corresponding node definition for this function.
         const lNodeDefinition: PotatnoFunctionNodeDefinition<TProjectTypes> = new PotatnoFunctionNodeDefinition(pFunction);
         this.mFunctionNodeDefinitions.set(lNodeDefinition.id, lNodeDefinition);
+
+        return pFunction;
     }
 
     /**
@@ -71,16 +81,8 @@ export class PotatnoDocument<TProjectTypes extends PotatnoProjectTypesDefinition
      * @param pConstructionParameter - The parameters to construct the function.
      */
     public newFunction(pConstructionParameter: PotatnoDocumentFunctionConstructorParameter): PotatnoDocumentFunction<TProjectTypes> {
-        // Create the function instance.
-        const lFunction: PotatnoDocumentFunction<TProjectTypes> = new PotatnoDocumentFunction(this.mProject, this, pConstructionParameter);
-
-        this.mFunctions.add(lFunction);
-
-        // Create and register a corresponding node definition for this function.
-        const lNodeDefinition: PotatnoFunctionNodeDefinition<TProjectTypes> = new PotatnoFunctionNodeDefinition(lFunction);
-        this.mFunctionNodeDefinitions.set(lNodeDefinition.id, lNodeDefinition);
-
-        return lFunction;
+        // Create the function instance and add new function.
+        return this.addFunction(new PotatnoDocumentFunction(this.mProject, this, pConstructionParameter));
     }
 
     /**
@@ -92,24 +94,31 @@ export class PotatnoDocument<TProjectTypes extends PotatnoProjectTypesDefinition
      * @returns True if the function was removed, false otherwise.
      */
     public removeFunction(pFunction: PotatnoDocumentFunction<TProjectTypes>): boolean {
-        if (!this.mFunctions.has(pFunction)) {
-            return false;
-        }
-
+        // Restrict system function deletion.
         if (pFunction.isSystem) {
             throw new Exception(`Cannot remove a system function.`, this);
         }
 
-        this.mFunctions.delete(pFunction);
+        // Try to find the function by reference.
+        const lFunctionIndex: number = this.mFunctions.indexOf(pFunction);
 
-        // Find the corresponding node definition.
-        const lFunctionNodeDefinition: PotatnoFunctionNodeDefinition<TProjectTypes> | undefined = this.mFunctionNodeDefinitions.values().find((pNodeDefinition) => {
-            return pNodeDefinition.function === pFunction;
-        });
+        // Not found. do nothing just return failure.
+        if (lFunctionIndex === -1) {
+            return false;
+        }
 
-        // When the function has a node definition, remove it.
-        if (lFunctionNodeDefinition) {
-            this.mFunctionNodeDefinitions.delete(lFunctionNodeDefinition.id);
+        // Remove it inline.
+        this.mFunctions.splice(lFunctionIndex, 1);
+
+        // Find the corresponding node definition and delete them.
+        for (const pNodeDefinition of this.mFunctionNodeDefinitions.values()) {
+            // Check function by reference.
+            if (pNodeDefinition.function !== pFunction) {
+                continue;
+            }
+
+            // When the function has a node definition, remove it.
+            this.mFunctionNodeDefinitions.delete(pNodeDefinition.id);
         }
 
         return true;

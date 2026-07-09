@@ -10,7 +10,7 @@ Deno.test('PotatnoDocument.constructor()', async (pContext) => {
         const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
 
         // Evaluation.
-        expect(lDocument.functions.size).toBe(0);
+        expect(lDocument.functions).toHaveLength(0);
     });
 
     await pContext.step('Creates document referencing the provided project', () => {
@@ -41,7 +41,7 @@ Deno.test('PotatnoDocument.functions', async (pContext) => {
         const lDocument = new PotatnoDocument(PotatnoHelper.TEST_PROJECT);
 
         // Evaluation.
-        expect(lDocument.functions.size).toBe(0);
+        expect(lDocument.functions).toHaveLength(0);
     });
 
     await pContext.step('Contains added function instances', () => {
@@ -49,7 +49,7 @@ Deno.test('PotatnoDocument.functions', async (pContext) => {
         const { document: lDocument, function: lFunction } = PotatnoHelper.setupCalculatorDocument();
 
         // Evaluation.
-        expect(lDocument.functions.has(lFunction)).toBe(true);
+        expect(lDocument.functions).toContain(lFunction);
     });
 
     await pContext.step('Does not include removed functions', () => {
@@ -61,7 +61,7 @@ Deno.test('PotatnoDocument.functions', async (pContext) => {
         lDocument.removeFunction(lHelper);
 
         // Evaluation.
-        expect(lDocument.functions.has(lHelper)).toBe(false);
+        expect(lDocument.functions).not.toContain(lHelper);
     });
 });
 
@@ -120,7 +120,7 @@ Deno.test('PotatnoDocument.newFunction()', async (pContext) => {
         });
 
         // Evaluation.
-        expect(lDocument.functions.has(lFunction)).toBe(true);
+        expect(lDocument.functions).toContain(lFunction);
     });
 
     await pContext.step('Registers a corresponding PotatnoFunctionNodeDefinition', () => {
@@ -153,7 +153,7 @@ Deno.test('PotatnoDocument.addFunction()', async (pContext) => {
         lDocument.addFunction(lFunction);
 
         // Evaluation.
-        expect(lDocument.functions.has(lFunction)).toBe(true);
+        expect(lDocument.functions).toContain(lFunction);
     });
 
     await pContext.step('Registers a corresponding PotatnoFunctionNodeDefinition', () => {
@@ -211,7 +211,7 @@ Deno.test('PotatnoDocument.removeFunction()', async (pContext) => {
         lDocument.removeFunction(lHelper);
 
         // Evaluation.
-        expect(lDocument.functions.has(lHelper)).toBe(false);
+        expect(lDocument.functions).not.toContain(lHelper);
     });
 
     await pContext.step('Removes the corresponding function-node definition', () => {
@@ -251,8 +251,8 @@ Deno.test('PotatnoDocument - Validation', async (pContext) => {
         const lValidationResult = lDocument.validate();
 
         // Evaluation.
-        expect(lValidationResult.errors.length).toBe(2); // Two not connected flow ports of the entry point.
-        expect(lDocument.functions.size).toBe(1);
+        expect(lValidationResult.errors).toHaveLength(2); // Two not connected flow ports of the entry point.
+        expect(lDocument.functions).toHaveLength(1);
     });
 
     await pContext.step('Cross-function recursion: A -> A', () => {

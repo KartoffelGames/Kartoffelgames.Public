@@ -49,7 +49,13 @@ export class PotatnoFunctionList implements IComponentOnConnect, IComponentOnDec
 
         const lFunctionList: Array<PotatnoFunctionListEntry> = [];
         for (const lFunction of lDocument.functions) {
-            lFunctionList.push({ id: lFunction.id, label: lFunction.label, name: lFunction.label, system: lFunction.isSystem });
+            lFunctionList.push({
+                id: lFunction.id,
+                label: lFunction.label,
+                name: lFunction.label,
+                system: lFunction.isSystem,
+                function: lFunction
+            });
         }
 
         return lFunctionList;
@@ -180,6 +186,7 @@ type PotatnoFunctionListEntry = {
     label: string;
     name: string;
     system: boolean;
+    function: PotatnoDocumentFunction<PotatnoProjectTypesDefinition>;
 };
 
 /**

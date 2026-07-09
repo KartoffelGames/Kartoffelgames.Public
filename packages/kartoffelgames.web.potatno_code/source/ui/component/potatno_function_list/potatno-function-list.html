@@ -1,6 +1,6 @@
 <div class="function-list-content">
     $for(fn of this.functions) {
-        <div [className]="this.getEntryClass(this.fn.id)" (click)="this.onFunctionSelect(this.fn)">
+        <div [className]="this.getEntryClass(this.fn.id)" (click)="this.onFunctionSelect(this.fn.function)">
             <span class="function-icon">f</span>
             $if(this.fn.system) {
                 <span class="lock-icon">🔒</span>

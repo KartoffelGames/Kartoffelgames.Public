@@ -3,12 +3,7 @@
     position: relative;
 }
 
-.preview-container {
-    background: var(--pn-bg-secondary);
-    border: 1px solid var(--pn-border-default);
-    border-width: 0 1px 1px 0;
-    box-shadow: 0 4px 12px var(--pn-node-shadow);
-
+.resize-box {
     /* Set min sizes to restrict resizing. */
     min-height: 150px;
     min-width: 200px;
@@ -16,6 +11,18 @@
     /* Globaly restrict to max size of parent. */
     max-width: 100%;
     max-height: 100%;
+}
+
+.preview {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+
+    background: var(--pn-bg-secondary);
+    border: 1px solid var(--pn-border-default);
+    border-width: 0 1px 1px 0;
+    box-shadow: 0 4px 12px var(--pn-node-shadow);
 }
 
 .preview-header {
@@ -116,6 +123,7 @@
     overflow-y: auto;
     flex: 1;
     padding: 4px;
+    min-height: 120px;
 }
 
 .error-item {

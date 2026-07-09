@@ -1,44 +1,44 @@
-<potatno-resize-box class="preview-container" left="true" top="true">
-
-    <div class="preview-header">
-        $if(this.hasErrors) {
-            <span class="preview-title error-title">Errors ({{this.errors.length}})</span>
-        }
-        $if(!this.hasErrors) {
-            <span class="preview-title">Preview</span>
-            <div class="preview-selectors">
-                <select class="preview-select" (change)="this.onDisplaySelect($event)">
-                    $for(display of this.displayOptions) {
-                        <option [value]="this.display.id" [selected]="this.display.id === this.selectedDisplayId">{{this.display.label}}</option>
-                    }
-                </select>
-                $if(this.showOutputSelector) {
-                    <select class="preview-select" (change)="this.onOutputSelect($event)">
-                        $for(output of this.outputOptions) {
-                            <option [value]="this.output.id" [selected]="this.output.id === this.selectedOutputId">{{this.output.label}}</option>
+<potatno-resize-box class="resize-box" left="true" top="true">
+    <div class="preview">
+         <div class="preview-header">
+            $if(this.hasErrors) {
+                <span class="preview-title error-title">Errors ({{this.errors.length}})</span>
+            }
+            $if(!this.hasErrors) {
+                <span class="preview-title">Preview</span>
+                <div class="preview-selectors">
+                    <select class="preview-select" (change)="this.onDisplaySelect($event)">
+                        $for(display of this.displayOptions) {
+                            <option [value]="this.display.id" [selected]="this.display.id === this.selectedDisplayId">{{this.display.label}}</option>
                         }
                     </select>
-                }
-            </div>
-        }
-    </div>
-
-    $if(this.hasErrors) {
-        <div class="error-list">
-            $for(error of this.errors) {
-                <div class="error-item">
-                    <span class="error-icon">!</span>
-                    <div class="error-content">
-                        <div class="error-message">{{this.error.message}}</div>
-                        <div class="error-location">{{this.error.location}}</div>
-                    </div>
+                    $if(this.showOutputSelector) {
+                        <select class="preview-select" (change)="this.onOutputSelect($event)">
+                            $for(output of this.outputOptions) {
+                                <option [value]="this.output.id" [selected]="this.output.id === this.selectedOutputId">{{this.output.label}}</option>
+                            }
+                        </select>
+                    }
                 </div>
             }
         </div>
-    }
 
-    $if(!this.hasErrors) {
-        <div class="preview-content" potatno-preview="this.previewDriver"></div>
-    }
+        $if(this.hasErrors) {
+            <div class="error-list">
+                $for(error of this.errors) {
+                    <div class="error-item">
+                        <span class="error-icon">!</span>
+                        <div class="error-content">
+                            <div class="error-message">{{this.error.message}}</div>
+                            <div class="error-location">{{this.error.location}}</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
 
+        $if(!this.hasErrors) {
+            <div class="preview-content" potatno-preview="this.previewDriver"></div>
+        }
+    </div>
 </potatno-resize-box>

@@ -12,6 +12,8 @@ export class ComponentState<TValue = unknown> {
     /**
      * Creates a reaction that is called when a component state is set.
      * The callback is called in an interaction zone, so it can link to the state and be updated when the state is set.
+     * The callback is executed once on reaction creation.
+     * 
      * 
      * @param pReactionCallback - Callback that is called when a component state is set.
      */

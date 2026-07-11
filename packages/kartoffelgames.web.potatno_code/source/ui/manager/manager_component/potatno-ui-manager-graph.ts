@@ -39,18 +39,17 @@ export class PotatnoUiManagerGraph {
      */
     public addFunction(pDefinitionId: string): void {
         const lDocument: PotatnoDocument<PotatnoProjectTypesDefinition> | null = this.mDocument;
-        const lProject: PotatnoProject<PotatnoProjectTypesDefinition> | null = this.mManager.project;
-        if (!lDocument || !lProject) {
+        if (!lDocument) {
             return;
         }
 
         // Find the actual function definition based on the provided definition id.
-        if (!lProject.userFunctions.has(pDefinitionId)) {
+        if (!lDocument.project.userFunctions.has(pDefinitionId)) {
             return;
         }
 
         // Create new function.
-        const lFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> = new PotatnoDocumentFunction(lProject, lDocument, {
+        const lFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> = new PotatnoDocumentFunction(lDocument.project, lDocument, {
             definitionId: pDefinitionId,
             id: crypto.randomUUID(),
             isSystem: false,

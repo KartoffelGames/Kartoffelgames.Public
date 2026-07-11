@@ -153,13 +153,8 @@ export class PotatnoUiManagerPreview {
             return lCurrentDriver;
         }
 
-        // For the next step a project must be setup.
-        if (!this.mManager.project) {
-            return null;
-        }
-
         // If it not, generate a new driver.
-        const lPreviewDisplay: PotatnoPreviewDisplayItem<PotatnoProjectTypesDefinition> | null = this.mManager.project.preview.getDisplay(pDisplayId);
+        const lPreviewDisplay: PotatnoPreviewDisplayItem<PotatnoProjectTypesDefinition> | null = pTarget.project.preview.getDisplay(pDisplayId);
         if (!lPreviewDisplay) {
             throw new Exception(`Preview has no display for "${pDisplayId}".`, this);
         }

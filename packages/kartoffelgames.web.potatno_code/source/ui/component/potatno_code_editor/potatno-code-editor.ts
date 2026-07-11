@@ -54,19 +54,18 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
      * Whether the preview panel should currently be shown.
      */
     public get hasPreview(): boolean {
-        const lProject: PotatnoProject<PotatnoProjectTypesDefinition> | null = this.mManager.project;
         const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
-        if (!lProject || !lActiveFunction) {
+        if (!lActiveFunction) {
             return false;
         }
 
         // Get definition of active function.
-        const lActiveFunctionDefintion: PotatnoFunctionDefinition<PotatnoProjectTypesDefinition> | undefined = lProject.getFunction(lActiveFunction.definitionId);
+        const lActiveFunctionDefintion: PotatnoFunctionDefinition<PotatnoProjectTypesDefinition> | undefined = lActiveFunction.project.getFunction(lActiveFunction.definitionId);
         if (!lActiveFunctionDefintion) {
             return false;
         }
 
-        return lProject.preview.availableDisplays(lActiveFunctionDefintion).length > 0;
+        return lActiveFunction.project.preview.availableDisplays(lActiveFunctionDefintion).length > 0;
     }
 
     /**

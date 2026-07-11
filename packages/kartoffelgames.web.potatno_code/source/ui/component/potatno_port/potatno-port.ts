@@ -5,7 +5,7 @@ import type { PotatnoDocumentPort } from '../../../document/potatno-document-por
 import type { PotatnoPortDefinitionDirection } from '../../../project/potatno-port-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import type { PotatnoUiManagerGridPathFindingPoint } from '../../manager/helper/potatno-ui-grid-path-finding.ts';
-import { PotatnoCodeUiManagerChangeType, PotatnoCodeUiManagerUnsubscribe, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, type PotatnoCodeUiManagerUnsubscribe, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import portCss from './potatno-port.css' with { type: 'text' };
 import portTemplate from './potatno-port.html' with { type: 'text' };
 

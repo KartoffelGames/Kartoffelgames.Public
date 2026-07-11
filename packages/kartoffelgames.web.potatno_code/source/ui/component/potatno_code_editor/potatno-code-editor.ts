@@ -3,7 +3,7 @@ import { Component, PwbChild, PwbComponent, PwbExport, type IComponentOnConnect,
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocument } from '../../../document/potatno-document.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import { PotatnoCodeUiManagerChangeType, PotatnoCodeUiManagerUnsubscribe, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, type PotatnoCodeUiManagerUnsubscribe, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import editorCss from './potatno-code-editor.css' with { type: 'text' };
 import editorTemplate from './potatno-code-editor.html' with { type: 'text' };
 

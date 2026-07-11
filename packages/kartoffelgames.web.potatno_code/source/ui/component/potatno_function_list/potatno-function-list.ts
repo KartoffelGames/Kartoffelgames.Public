@@ -1,10 +1,10 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, ComponentState, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
-import { PotatnoDocumentFunction } from "../../../document/potatno-document-function.ts";
+import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocument } from '../../../document/potatno-document.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../../../project/potatno-project.ts';
-import { PotatnoCodeUiManagerChangeType, PotatnoCodeUiManagerUnsubscribe, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, type PotatnoCodeUiManagerUnsubscribe, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import templateCss from './potatno-function-list.css' with { type: 'text' };
 import functionListTemplate from './potatno-function-list.html' with { type: 'text' };
 

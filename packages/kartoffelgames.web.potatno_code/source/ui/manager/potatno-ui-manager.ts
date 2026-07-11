@@ -1,6 +1,6 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
 import type { IPotatnoDocumentItem } from '../../document/i-potatno-document-item.interface.ts';
-import { PotatnoDocumentFunction } from '../../document/potatno-document-function.ts';
+import type { PotatnoDocumentFunction } from '../../document/potatno-document-function.ts';
 import type { PotatnoDocument } from '../../document/potatno-document.ts';
 import { type PotatnoFunctionDefinition, PotatnoFunctionDefinitionStatics } from '../../project/potatno-function-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../project/potatno-project-types-definition.ts';

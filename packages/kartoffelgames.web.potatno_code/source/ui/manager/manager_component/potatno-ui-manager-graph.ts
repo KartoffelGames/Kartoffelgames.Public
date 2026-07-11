@@ -4,7 +4,6 @@ import type { PotatnoDocumentPort } from '../../../document/potatno-document-por
 import type { PotatnoDocument } from '../../../document/potatno-document.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import type { PotatnoProject } from '../../../project/potatno-project.ts';
 import { PotatnoCodeUiManagerChangeType, type PotatnoUiManager } from '../potatno-ui-manager.ts';
 
 /**
@@ -259,7 +258,7 @@ export class PotatnoUiManagerGraph {
 
             // Try to find the current active function id inside the snapshot function.
             const lFunctionWithSameId = lNewDocumentFunctions.find((pFunction) => {
-                pFunction.id === this.mManager.activeFunction!.id;
+                return pFunction.id === this.mManager.activeFunction!.id;
             });
 
             // When the current function still exists in the new document, use it.

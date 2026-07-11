@@ -4,7 +4,7 @@ import type { PotatnoDocumentFunction } from '../../../document/potatno-document
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoCodeUiManagerUnsubscribe, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoNodeSelectionPopup } from '../potatno-node-selection-popup/potatno-node-selection-popup.ts';
 import { PotatnoConnectionLayer } from '../potatno_connection_layer/potatno-connection-layer.ts';
 import { PotatnoNodeComponent, type ResizeStartDetail } from '../potatno_node_component/potatno-node-component.ts';
@@ -36,7 +36,7 @@ export class PotatnoNodeGraph implements IComponentOnConnect, IComponentOnDecons
     private mDocumentPointerUpHandler: ((pEvent: PointerEvent) => void) | null;
     private mInteractionState: GraphInteractionState;
     private mKeyboardHandler: ((pEvent: KeyboardEvent) => void) | null;
-    private mUnsubscribe: (() => void) | null;
+    private mUnsubscribe: PotatnoCodeUiManagerUnsubscribe | null;
 
     /**
      * Cached node data rendered by the graph template.

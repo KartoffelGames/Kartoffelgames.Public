@@ -3,17 +3,17 @@ import { Component, PwbChild, PwbComponent, PwbExport, type IComponentOnConnect,
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocument } from '../../../document/potatno-document.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoCodeUiManagerUnsubscribe, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import editorCss from './potatno-code-editor.css' with { type: 'text' };
 import editorTemplate from './potatno-code-editor.html' with { type: 'text' };
 
 // Import child components to ensure they are registered.
+import type { PotatnoFunctionDefinition } from '../../../project/potatno-function-definition.ts';
 import type { PotatnoProject } from '../../../project/potatno-project.ts';
 import '../potatno_function_list/potatno-function-list.ts';
 import '../potatno_node_graph/potatno-node-graph.ts';
 import '../potatno_panel_properties/potatno-panel-properties.ts';
 import '../potatno_preview/potatno-preview.ts';
-import type { PotatnoFunctionDefinition } from '../../../project/potatno-function-definition.ts';
 
 
 /**
@@ -36,7 +36,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
     private mResizeMoveHandler: ((pEvent: PointerEvent) => void) | null;
     private mResizeState: { panel: 'left' | 'right'; startX: number; startWidth: number; } | null;
     private mResizeUpHandler: (() => void) | null;
-    private mUnsubscribe: (() => void) | null;
+    private mUnsubscribe: PotatnoCodeUiManagerUnsubscribe | null;
 
     /**
      * Left panel DOM element used for resizing.

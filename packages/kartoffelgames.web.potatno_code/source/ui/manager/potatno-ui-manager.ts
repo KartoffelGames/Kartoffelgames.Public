@@ -233,7 +233,7 @@ export class PotatnoUiManager extends EventTarget {
      *
      * @returns An unsubscribe function removing every registered listener.
      */
-    public subscribe(pTypes: PotatnoCodeUiManagerChangeType | number, pListener: (pEvent: PotatnoUiManagerChangeEvent) => void): () => void {
+    public subscribe(pTypes: PotatnoCodeUiManagerChangeType | number, pListener: (pEvent: PotatnoUiManagerChangeEvent) => void): PotatnoCodeUiManagerUnsubscribe {
         // Custom wrapper for scoping the actual event listener.
         const lEventHandler = (pEvent: PotatnoUiManagerChangeEvent): void => {
             // Skip event when handler is not "any" and the change type is not part of the subscribed bitmask.
@@ -405,3 +405,6 @@ export type PotatnoCodeUiManagerPropertiesChange = {
     name?: string;
     outputs?: Array<PotatnoCodeUiManagerPortView>;
 };
+
+
+export type PotatnoCodeUiManagerUnsubscribe = () => void;

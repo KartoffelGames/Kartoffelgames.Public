@@ -2,11 +2,11 @@ import { Injection } from '@kartoffelgames/core-dependency-injection';
 import { Component, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import { PotatnoFunctionDefinitionStatics } from '../../../project/potatno-function-definition.ts';
-import { PotatnoUiManager, PotatnoCodeUiManagerChangeType, type PotatnoCodeUiManagerPortView } from '../../manager/potatno-ui-manager.ts';
-import templateCss from './potatno-panel-properties.css' with { type: 'text' };
-import propertiesTemplate from './potatno-panel-properties.html' with { type: 'text' };
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../../../project/potatno-project.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoCodeUiManagerUnsubscribe, PotatnoUiManager, type PotatnoCodeUiManagerPortView } from '../../manager/potatno-ui-manager.ts';
+import templateCss from './potatno-panel-properties.css' with { type: 'text' };
+import propertiesTemplate from './potatno-panel-properties.html' with { type: 'text' };
 
 /**
  * Properties panel component for the potatno-code visual editor.
@@ -24,7 +24,7 @@ export class PotatnoPanelProperties implements IComponentOnConnect, IComponentOn
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
     private mSelectedImportId: string;
-    private mUnsubscribe: (() => void) | null;
+    private mUnsubscribe: PotatnoCodeUiManagerUnsubscribe | null;
 
     /**
      * Available import ids registered by the project.

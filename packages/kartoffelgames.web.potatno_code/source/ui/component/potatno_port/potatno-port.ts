@@ -5,7 +5,7 @@ import type { PotatnoDocumentPort } from '../../../document/potatno-document-por
 import type { PotatnoPortDefinitionDirection } from '../../../project/potatno-port-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import type { PotatnoUiManagerGridPathFindingPoint } from '../../manager/helper/potatno-ui-grid-path-finding.ts';
-import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoCodeUiManagerUnsubscribe, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import portCss from './potatno-port.css' with { type: 'text' };
 import portTemplate from './potatno-port.html' with { type: 'text' };
 
@@ -34,7 +34,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
     private readonly mDragPositionEventHandler: PotatnoPortComponentGlobalDragoverHandler;
     private readonly mManager: PotatnoUiManager;
     private mPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null;
-    private readonly mUnsubscribe: (() => void);
+    private readonly mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
 
     /**
      * Drag position event handler.
@@ -229,9 +229,9 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
             }
 
             // Play the gamble and skip event when the time differs too much.
-            if(performance.now() - pEvent.timeStamp > 100) {
+            if (performance.now() - pEvent.timeStamp > 100) {
                 return;
-            } 
+            }
 
             this.renderDragWire(pEvent.clientX, pEvent.clientY);
         };
@@ -480,7 +480,7 @@ export class PotatnoPortComponent implements IComponentOnConnect, IComponentOnDe
 
         // Only update when actual grid position has changed.
         const lPointerPosition: PotatnoUiManagerGridPathFindingPoint = this.mManager.connections.pixelToGridSpace(pClientX, pClientY);
-        if(lPointerPosition.x === PotatnoPortComponent.mDraggedPortInformation.lastPointerGridPosition.x && lPointerPosition.y === PotatnoPortComponent.mDraggedPortInformation.lastPointerGridPosition.y) {
+        if (lPointerPosition.x === PotatnoPortComponent.mDraggedPortInformation.lastPointerGridPosition.x && lPointerPosition.y === PotatnoPortComponent.mDraggedPortInformation.lastPointerGridPosition.y) {
             return;
         }
 

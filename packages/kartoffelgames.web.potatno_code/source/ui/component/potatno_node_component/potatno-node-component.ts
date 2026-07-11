@@ -3,16 +3,16 @@ import { Component, ComponentState, PwbComponent, PwbComponentEvent, PwbExport, 
 import type { PotatnoDocumentNode } from '../../../document/potatno-document-node.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
+import { PotatnoFunctionNodeDefinition } from "../../../project/node_definition/potatno-function-node-definition.ts";
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../../../project/potatno-project.ts';
-import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoCodeUiManagerUnsubscribe, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPreviewModule } from '../../module/potatno-preview.module.ts';
 import { NodeCategory } from '../../node/node-category.enum.ts';
 import { PotatnoPortComponent } from '../potatno_port/potatno-port.ts';
 import nodeCss from './potatno-node-component.css' with { type: 'text' };
 import nodeTemplate from './potatno-node-component.html' with { type: 'text' };
-import { PotatnoFunctionNodeDefinition } from "../../../project/node_definition/potatno-function-node-definition.ts";
 
 /**
  * Node component for the potatno-code visual editor.
@@ -33,7 +33,7 @@ import { PotatnoFunctionNodeDefinition } from "../../../project/node_definition/
 export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDeconstruct {
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
-    private mUnsubscribe: (() => void) | null;
+    private mUnsubscribe: PotatnoCodeUiManagerUnsubscribe | null;
     private mNodeDefinition: PotatnoNodeDefinition<PotatnoProjectTypesDefinition> | null;
 
     /**
@@ -206,7 +206,7 @@ export class PotatnoNodeComponent implements IComponentOnConnect, IComponentOnDe
         if (!this.nodeData) {
             return '';
         }
-        
+
         return this.nodeDefinition?.category.icon ?? '';
     }
 

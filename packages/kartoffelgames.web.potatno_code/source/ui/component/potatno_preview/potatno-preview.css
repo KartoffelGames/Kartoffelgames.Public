@@ -110,7 +110,7 @@
         font-weight: bold;
         padding: 0 10px 0 10px;
 
-        border-left: 1px solid var(--potatno-color-error);
+        border-left: 3px solid var(--potatno-color-error);
     }
 
     .error-item__content {
@@ -126,7 +126,7 @@
         font-size: var(--potatno-font-size-small);
         margin-top: 2px;
 
-        /* Darken text color by mixing in the background colorl */
-        color: color-mix(in srgb, var(--potatno-color-text) 50%, var(--potatno-color-background-dark));
+        /* Darken text color by mixing in the background color */
+        color: color-mix(in srgb, var(--potatno-color-text) 50%, var(--potatno-color-background));
     }
 }

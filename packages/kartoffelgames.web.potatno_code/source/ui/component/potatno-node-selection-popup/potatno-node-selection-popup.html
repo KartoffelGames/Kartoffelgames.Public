@@ -1,16 +1,15 @@
-<div class="add-node-popup" (pointerdown)="this.stopPropagation($event)" (wheel)="this.stopPropagation($event)" (contextmenu)="this.stopPropagation($event)">
-    <input #searchInput type="text" placeholder="Search nodes..." class="add-node-search" [(value)]="this.searchValue" (keydown)="this.onKeyDown($event)" />
-    <div class="add-node-results">
+<div class="selection-popup" (pointerdown)="this.stopPropagation($event)" (wheel)="this.stopPropagation($event)" (contextmenu)="this.stopPropagation($event)">
+    <input #searchInput type="text" placeholder="Search nodes..." class="selection-popup__search" [(value)]="this.searchValue" (keydown)="this.onKeyDown($event)" />
+    <div class="selection-popup__results">
         $for(entry of this.results) {
-            <div class="add-node-result {{this.entry.definition.id === this.selectedDefinitionId ? 'selected' : ''}}" (click)="this.sendSelectedEntry(this.entry.definition.id)">
-                <span class="add-node-result-border" style="background: {{this.entry.color}}"></span>
-                <span class="add-node-result-icon">{{this.entry.icon}}</span>
-                <span class="add-node-result-label">{{this.entry.label}}</span>
-                <span class="add-node-result-category">{{this.entry.category}}</span>
+            <div class="selection-popup__result {{this.entry.definition.id === this.selectedDefinitionId ? 'selected' : ''}}" (click)="this.sendSelectedEntry(this.entry.definition.id)" style="--item-color: {{this.entry.color}}">
+                <span class="selection-popup__result-icon">{{this.entry.icon}}</span>
+                <span class="selection-popup__result-label">{{this.entry.label}}</span>
+                <span class="selection-popup__result-category">{{this.entry.category}}</span>
             </div>
         }
         $if(this.results.length === 0) {
-            <div class="add-node-empty">No matching nodes found.</div>
+            <div class="selection-popup__empty">No matching nodes found.</div>
         }
     </div>
 </div>

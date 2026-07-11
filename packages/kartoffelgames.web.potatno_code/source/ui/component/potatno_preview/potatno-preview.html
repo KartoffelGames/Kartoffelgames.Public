@@ -1,11 +1,16 @@
 <potatno-resize-box class="resize-box" left="true" top="true">
     <div class="header">
         $if(this.errors.length > 0) {
-            <span class="header__title header__title--title">Errors ({{this.errors.length}})</span>
+            <div class="header__tabs">
+                <div class="tab tab--error selected">Errors ({{this.errors.length}})</div>
+            </div>
         }
 
         $if(this.errors.length === 0) {
-            <span class="header__title">Preview</span>
+            <div class="header__tabs">
+                <div class="tab {{ this.selectedTab === 'preview' ? 'selected' : '' }}" (click)="this.selectedTab = 'preview'">Preview</div>
+                <div class="tab {{ this.selectedTab === 'code' ? 'selected' : '' }}" (click)="this.selectedTab = 'code'">Code</div>
+            </div>
             <div class="header__selectors">
 
                 $if(this.displayOptions.size > 0) {
@@ -29,7 +34,6 @@
     </div>
 
     <div class="content">
-
         $if(this.errors.length > 0) {
             $for(error of this.errors) {
                 <div class="error-item">
@@ -43,9 +47,16 @@
         }
 
         $if(this.errors.length === 0) {
-            <div potatno-preview="this.previewDriver"></div>
-        }
+            $if(this.selectedTab === 'preview') {
+                <div class="content__preview-display" potatno-preview="this.previewDriver"></div>
+            }
 
+            $if(this.selectedTab === 'code') {
+                <div class="content__preview-code">
+                    <pre><code>{{ this.previewCode }}</code></pre>
+                </div>
+            }
+        }
     </div>
     
 </potatno-resize-box>

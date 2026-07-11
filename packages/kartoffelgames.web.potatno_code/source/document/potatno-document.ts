@@ -111,14 +111,14 @@ export class PotatnoDocument<TProjectTypes extends PotatnoProjectTypesDefinition
         this.mFunctions.splice(lFunctionIndex, 1);
 
         // Find the corresponding node definition and delete them.
-        for (const pNodeDefinition of this.mFunctionNodeDefinitions.values()) {
+        for (const lNodeDefinition of this.mFunctionNodeDefinitions.values()) {
             // Check function by reference.
-            if (pNodeDefinition.function !== pFunction) {
+            if (lNodeDefinition.function !== pFunction) {
                 continue;
             }
 
             // When the function has a node definition, remove it.
-            this.mFunctionNodeDefinitions.delete(pNodeDefinition.id);
+            this.mFunctionNodeDefinitions.delete(lNodeDefinition.id);
         }
 
         return true;

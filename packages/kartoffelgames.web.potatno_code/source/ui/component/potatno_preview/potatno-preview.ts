@@ -12,6 +12,7 @@ import { PotatnoPreviewModule } from '../../module/potatno-preview.module.ts';
 import { PotatnoResizeBox } from '../potatno-resize-box/potatno-resize-box.ts';
 import styles from './potatno-preview.css' with { type: 'text' };
 import template from './potatno-preview.html' with { type: 'text' };
+import { PotatnoCodeGenerator } from '../../../parser/potatno-code-generator.ts';
 
 /**
  * Preview main panel for the active function preview.
@@ -34,6 +35,18 @@ export class PotatnoPreview implements IComponentOnDeconstruct {
 
     @ComponentState.state()
     private accessor mSelectedOutputId: string;
+
+    /**
+     * Selected tab. Ignored on errors.
+     */
+    @ComponentState.state()
+    public accessor selectedTab: PotatnoPreviewTab;
+
+    /**
+     * Generated preview code.
+     */
+    @ComponentState.state()
+    public accessor previewCode: string;
 
     /**
      * Preview display id options for the display selector.
@@ -129,6 +142,8 @@ export class PotatnoPreview implements IComponentOnDeconstruct {
 
         this.mSelectedDisplayId = '';
         this.mSelectedOutputId = '';
+        this.selectedTab = 'preview';
+        this.previewCode = '';
 
         const lNodeChangeTypes: number = PotatnoCodeUiManagerChangeType.NodeUpdate | PotatnoCodeUiManagerChangeType.NodeAdd | PotatnoCodeUiManagerChangeType.NodeDelete;
 
@@ -141,6 +156,16 @@ export class PotatnoPreview implements IComponentOnDeconstruct {
         // Listen for document, function, node and connection changes. Mainly for resolving the error lists.
         this.mUnsubscribeErrorResolve = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.SpecialActiveFunction | lNodeChangeTypes | PotatnoCodeUiManagerChangeType.Connection, () => {
             this.mComponent.updater.updateAsync();
+        });
+
+        // Register "all"-Listener to update generated code for the current function.
+        let lDebounce: number = 0;
+        this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Any, () => {
+            // Debounce: Clear and set a new timeout before pushing new history.
+            globalThis.clearTimeout(lDebounce);
+            lDebounce = globalThis.setTimeout(() => {
+                this.previewCode = this.generateFunctionCode();
+            }, 1000) as unknown as number;
         });
     }
 
@@ -160,7 +185,7 @@ export class PotatnoPreview implements IComponentOnDeconstruct {
      */
     private findFunctionPreviewTargets(): Map<string, PotatnoPreviewTarget> {
         const lOutputPorts: Map<string, PotatnoPreviewTarget> = new Map<string, PotatnoPreviewTarget>();
-        
+
         // When no active function is set, 
         if (!this.mManager.activeFunction) {
             return lOutputPorts;
@@ -224,6 +249,28 @@ export class PotatnoPreview implements IComponentOnDeconstruct {
 
         return lOutputPorts;
     }
+
+    /**
+     * Generate function code for the current active function without debug information.
+     * 
+     * @returns the generated function code.
+     */
+    private generateFunctionCode(): string {
+        // Only refresh when the build has the probability to succeed.
+        if (!this.mManager.integrity.isValid) {
+            return '';
+        }
+
+        // When no active function is set, 
+        if (!this.mManager.activeFunction) {
+            return '';
+        }
+
+        // Get the current active functions definition.
+        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> = this.mManager.activeFunction;
+
+        return new PotatnoCodeGenerator(lActiveFunction.project).generateFunction(lActiveFunction, false).code;
+    }
 }
 
 type PotatnoPreviewTarget = {
@@ -242,3 +289,5 @@ type PotatnoPreviewTarget = {
      */
     displays: Map<string, string>;
 };
+
+type PotatnoPreviewTab = 'preview' | 'code';

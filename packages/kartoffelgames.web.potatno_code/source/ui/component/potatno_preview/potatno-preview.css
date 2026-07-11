@@ -23,26 +23,53 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 6px 10px;
     border-bottom: 1px solid var(--potatno-color-border);
     background: var(--potatno-color-background-light);
     overflow: hidden;
 
-    .header__title {
+    .header__tabs {
+        display: flex;
+
+        /* Cascaded into childs. */
         font-family: var(--potatno-font-family);
         font-size: var(--potatno-font-size-small);
-        color: var(--potatno-color-text);
         text-transform: uppercase;
+        color: var(--potatno-color-text);
 
-        &.header__title--title {
-            color: var(--potatno-color-error) !important;
+        .tab {
+            --tab-selected-color: color-mix(in srgb, var(--potatno-color-accent) 25%, transparent);
+            --tab-selected-background: linear-gradient(1deg, var(--tab-selected-color) 0%, transparent 45%);
+
+            margin: 3px;
+            padding: 7px 15px 7px 15px;
+            border-radius: 2px;
+            cursor: pointer;
+            
+            &:hover {
+                background: var(--tab-selected-background);
+            }
+
+            &:active {
+                background: var(--tab-selected-color);
+            }
+
+            &.selected {
+                background: var(--tab-selected-color);
+
+                /* The background gets lighter, the color should too. */
+                color: color-mix(in srgb, var(--potatno-color-text) 75%, #fff);
+            }
+
+            &.tab--error {
+                color: var(--potatno-color-error);
+            }
         }
     }
 
     .header__selectors {
         display: flex;
         gap: 6px;
-        margin-left: 12px;
+        padding: 0px 12px;
 
         >select {
             padding: 4px 4px;

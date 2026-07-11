@@ -397,118 +397,120 @@ $if(this.hasUserFunctionDefinitions) {\r
 }\r
 `;function hs(){function f(l,n){return function(a){e(n,"addInitializer"),o(a,"An initializer"),l.push(a)}}function t(l,n,u,a,r,b,g,D,w){var p;switch(r){case 1:p="accessor";break;case 2:p="method";break;case 3:p="getter";break;case 4:p="setter";break;default:p="field"}var s={kind:p,name:g?"#"+n:n,static:b,private:g,metadata:D},d={v:!1};s.addInitializer=f(a,d);var i,h;r===0?g?(i=u.get,h=u.set):(i=function(){return this[n]},h=function(x){this[n]=x}):r===2?i=function(){return u.value}:((r===1||r===3)&&(i=function(){return u.get.call(this)}),(r===1||r===4)&&(h=function(x){u.set.call(this,x)})),s.access=i&&h?{get:i,set:h}:i?{get:i}:{set:h};try{return l(w,s)}finally{d.v=!0}}function e(l,n){if(l.v)throw new Error("attempted to call "+n+" after decoration was finished")}function o(l,n){if(typeof l!="function")throw new TypeError(n+" must be a function")}function c(l,n){var u=typeof n;if(l===1){if(u!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&o(n.get,"accessor.get"),n.set!==void 0&&o(n.set,"accessor.set"),n.init!==void 0&&o(n.init,"accessor.init")}else if(u!=="function"){var a;throw l===0?a="field":l===10?a="class":a="method",new TypeError(a+" decorators must return a function or void 0")}}function m(l,n,u,a,r,b,g,D,w){var p=u[0],s,d,i;g?r===0||r===1?s={get:u[3],set:u[4]}:r===3?s={get:u[3]}:r===4?s={set:u[3]}:s={value:u[3]}:r!==0&&(s=Object.getOwnPropertyDescriptor(n,a)),r===1?i={get:s.get,set:s.set}:r===2?i=s.value:r===3?i=s.get:r===4&&(i=s.set);var h,x,C;if(typeof p=="function")h=t(p,a,s,D,r,b,g,w,i),h!==void 0&&(c(r,h),r===0?d=h:r===1?(d=h.init,x=h.get||i.get,C=h.set||i.set,i={get:x,set:C}):i=h);else for(var P=p.length-1;P>=0;P--){var M=p[P];if(h=t(M,a,s,D,r,b,g,w,i),h!==void 0){c(r,h);var N;r===0?N=h:r===1?(N=h.init,x=h.get||i.get,C=h.set||i.set,i={get:x,set:C}):i=h,N!==void 0&&(d===void 0?d=N:typeof d=="function"?d=[d,N]:d.push(N))}}if(r===0||r===1){if(d===void 0)d=function(I,E){return E};else if(typeof d!="function"){var _=d;d=function(I,E){for(var L=E,R=0;R<_.length;R++)L=_[R].call(I,L);return L}}else{var j=d;d=function(I,E){return j.call(I,E)}}l.push(d)}r!==0&&(r===1?(s.get=i.get,s.set=i.set):r===2?s.value=i:r===3?s.get=i:r===4&&(s.set=i),g?r===1?(l.push(function(I,E){return i.get.call(I,E)}),l.push(function(I,E){return i.set.call(I,E)})):r===2?l.push(i):l.push(function(I,E){return i.call(I,E)}):Object.defineProperty(n,a,s))}function v(l,n,u){for(var a=[],r,b,g=new Map,D=new Map,w=0;w<n.length;w++){var p=n[w];if(Array.isArray(p)){var s=p[1],d=p[2],i=p.length>3,h=s>=5,x,C;if(h?(x=l,s=s-5,b=b||[],C=b):(x=l.prototype,r=r||[],C=r),s!==0&&!i){var P=h?D:g,M=P.get(d)||0;if(M===!0||M===3&&s!==4||M===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+d);!M&&s>2?P.set(d,s):P.set(d,!0)}m(a,x,p,d,s,h,i,C,u)}}return y(a,r),y(a,b),a}function y(l,n){n&&l.push(function(u){for(var a=0;a<n.length;a++)n[a].call(u);return u})}function T(l,n,u){if(n.length>0){for(var a=[],r=l,b=l.name,g=n.length-1;g>=0;g--){var D={v:!1};try{var w=n[g](r,{kind:"class",name:b,addInitializer:f(a,D),metadata:u})}finally{D.v=!0}w!==void 0&&(c(10,w),r=w)}return[S(r,u),function(){for(var p=0;p<a.length;p++)a[p].call(r)}]}}function S(l,n){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,u,a,r){if(r!==void 0)var b=r[Symbol.metadata||Symbol.for("Symbol.metadata")];var g=Object.create(b===void 0?null:b),D=v(n,u,g);return a.length||S(n,g),{e:D,get c(){return T(n,a,g)}}}}function Eo(f,t,e,o){return(Eo=hs())(f,t,e,o)}var Io,wo,So,xo,To,ds;Io=W({selector:"potatno-function-list",template:bo,style:yo}),So=B.state();var Do=class{static{({e:[xo,To],c:[ds,wo]}=Eo(this,[[So,1,"mShowPopup"]],[Io]))}constructor(t=O.use($),e=O.use(K)){this.mComponent=t,this.mManager=e,this.mUnsubscribe=null}mComponent;mManager;mUnsubscribe;#t=(To(this),xo(this,!1));get mShowPopup(){return this.#t}set mShowPopup(t){this.#t=t}get activeFunctionId(){return this.mManager.activeFunction?.id??""}get functions(){let t=this.mManager.graph.document;if(!t)return[];let e=[];for(let o of t.functions)e.push({id:o.id,label:o.label,name:o.label,system:o.isSystem,function:o});return e}get hasUserFunctionDefinitions(){return this.userFunctionDefinitions.length>0}get showPopup(){return this.mShowPopup}get userFunctionDefinitions(){let t=this.mManager.project;return t?[...t.userFunctions.values()].map(e=>({id:e.id})):[]}closePopup(){this.mShowPopup=!1}getEntryClass(t){return t===this.activeFunctionId?"function-entry active":"function-entry"}onConnect(){this.mUnsubscribe=this.mManager.subscribe(F.Document|F.Function|F.SpecialActiveFunction,()=>{this.mComponent.updater.updateAsync()})}onDeconstruct(){this.mUnsubscribe?.(),this.mUnsubscribe=null}onAddButtonClick(){let t=this.userFunctionDefinitions;t.length===1?this.mManager.graph.addFunction(t[0].id):this.mShowPopup=!this.mShowPopup}onDefinitionSelect(t){this.mShowPopup=!1,this.mManager.graph.addFunction(t)}onFunctionDelete(t,e){t.stopPropagation(),this.mManager.graph.removeFunction(e)}onFunctionSelect(t){this.mManager.setActiveFunction(t)}static{wo()}};var Co=`:host {
     position: absolute;
-    z-index: 1500;
+    z-index: 200;
 }
 
-.add-node-popup {
-    background: var(--potatno-color-background-dark);
-    border: 1px solid var(--potatno-color-border);
-    border-radius: 6px;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+.selection-popup {
     display: flex;
     flex-direction: column;
     max-height: 320px;
-    overflow: hidden;
     width: 280px;
-}
 
-.add-node-search {
-    background: var(--potatno-color-background-light);
-    border: none;
-    border-bottom: 1px solid var(--potatno-color-border);
-    box-sizing: border-box;
-    color: var(--potatno-color-accent);
-    font-family: var(--potatno-font-family);
-    font-size: var(--potatno-font-size);
-    outline: none;
-    padding: 8px 10px;
-    width: 100%;
-}
+    border: 1px solid var(--potatno-color-border);
+    border-radius: 6px;
 
-.add-node-search:focus {
-    border-bottom-color: var(--potatno-color-accent);
-}
-
-.add-node-results {
-    max-height: 280px;
-    overflow-x: hidden;
-    overflow-y: auto;
-    padding: 4px 0;
-}
-
-.add-node-result {
-    align-items: center;
-    background: transparent;
-    border: none;
-    box-sizing: border-box;
-    color: var(--potatno-color-accent);
-    cursor: pointer;
-    display: flex;
-    font-family: var(--potatno-font-family);
-    font-size: var(--potatno-font-size);
-    gap: 8px;
-    min-height: 28px;
-    padding: 6px 10px;
-    text-align: left;
-    width: 100%;
-}
-
-.add-node-result:hover,
-.add-node-result.selected {
-    background: var(--potatno-color-background-light);
-}
-
-.add-node-result-border {
-    width: 3px;
-    height: 14px;
-    border-radius: 2px;
-    flex-shrink: 0;
-}
-
-.add-node-result-icon {
-    flex-shrink: 0;
-    width: 16px;
-    text-align: center;
-}
-
-.add-node-result-label {
-    flex: 1;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+    background-color: var(--potatno-color-background-dark);
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
 
-.add-node-result-category {
-    color: var(--pn-text-muted);
-    flex-shrink: 0;
-    font-size: var(--potatno-font-size-small);
-    text-transform: capitalize;
-}
-
-.add-node-empty {
-    color: var(--pn-text-muted);
+    /* Font should cascade into child ... except inputs :( */
     font-family: var(--potatno-font-family);
-    font-size: var(--potatno-font-size-small);
-    padding: 14px 10px;
-    text-align: center;
-}
-`;var Po=`<div class="add-node-popup" (pointerdown)="this.stopPropagation($event)" (wheel)="this.stopPropagation($event)" (contextmenu)="this.stopPropagation($event)">
-    <input #searchInput type="text" placeholder="Search nodes..." class="add-node-search" [(value)]="this.searchValue" (keydown)="this.onKeyDown($event)" />
-    <div class="add-node-results">
+    font-size: var(--potatno-font-size);
+
+    .selection-popup__search {
+        width: 100%;
+        box-sizing: border-box;
+        padding: 8px 10px;
+        outline: none;
+
+        border: none;
+        border-bottom: 1px solid var(--potatno-color-border);
+
+        color: var(--potatno-color-accent);
+        background-color: var(--potatno-color-background-light);
+
+        font-family: var(--potatno-font-family);
+        font-size: var(--potatno-font-size);
+
+        &:focus {
+            border-bottom-color: var(--potatno-color-accent);
+        }
+    }
+
+    .selection-popup__results {
+        max-height: 280px;
+        overflow-x: hidden;
+        overflow-y: auto;
+        padding: 4px 0;
+    }
+
+    .selection-popup__result {
+        --item-color: var(--potatno-color-text);
+
+        display: flex;
+        box-sizing: border-box;
+        width: 100%;
+        padding: 5px 9px;
+        gap: 8px;
+        align-items: center;
+        color: var(--potatno-color-accent);
+        text-align: left;
+        cursor: pointer;
+
+        &:hover,
+        &.selected {
+            background-color: var(--potatno-color-background-light);
+        }
+
+        .selection-popup__result-icon {
+            flex-shrink: 0;
+            padding: 0 0 0 10px;
+            width: 16px;
+            
+            border-left: 3px solid var(--item-color);
+        }
+
+        .selection-popup__result-label {
+            flex: 1;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .selection-popup__result-category {
+            flex-shrink: 0;
+            font-size: var(--potatno-font-size-small);
+            text-transform: capitalize;
+
+            /* Darken text color by mixing in the background colorl */
+            color: color-mix(in srgb, var(--potatno-color-text) 50%, var(--potatno-color-background-dark));
+        }
+    }
+
+    .selection-popup__empty {
+        padding: 14px 10px;
+        text-align: center;
+        font-size: var(--potatno-font-size-small);
+
+        /* Darken text color by mixing in the background colorl */
+        color: color-mix(in srgb, var(--potatno-color-text) 50%, var(--potatno-color-background-dark));
+    }
+}`;var Po=`<div class="selection-popup" (pointerdown)="this.stopPropagation($event)" (wheel)="this.stopPropagation($event)" (contextmenu)="this.stopPropagation($event)">
+    <input #searchInput type="text" placeholder="Search nodes..." class="selection-popup__search" [(value)]="this.searchValue" (keydown)="this.onKeyDown($event)" />
+    <div class="selection-popup__results">
         $for(entry of this.results) {
-            <div class="add-node-result {{this.entry.definition.id === this.selectedDefinitionId ? 'selected' : ''}}" (click)="this.sendSelectedEntry(this.entry.definition.id)">
-                <span class="add-node-result-border" style="background: {{this.entry.color}}"></span>
-                <span class="add-node-result-icon">{{this.entry.icon}}</span>
-                <span class="add-node-result-label">{{this.entry.label}}</span>
-                <span class="add-node-result-category">{{this.entry.category}}</span>
+            <div class="selection-popup__result {{this.entry.definition.id === this.selectedDefinitionId ? 'selected' : ''}}" (click)="this.sendSelectedEntry(this.entry.definition.id)" style="--item-color: {{this.entry.color}}">
+                <span class="selection-popup__result-icon">{{this.entry.icon}}</span>
+                <span class="selection-popup__result-label">{{this.entry.label}}</span>
+                <span class="selection-popup__result-category">{{this.entry.category}}</span>
             </div>
         }
         $if(this.results.length === 0) {
-            <div class="add-node-empty">No matching nodes found.</div>
+            <div class="selection-popup__empty">No matching nodes found.</div>
         }
     </div>
 </div>
-`;function ps(){function f(l,n){return function(a){e(n,"addInitializer"),o(a,"An initializer"),l.push(a)}}function t(l,n,u,a,r,b,g,D,w){var p;switch(r){case 1:p="accessor";break;case 2:p="method";break;case 3:p="getter";break;case 4:p="setter";break;default:p="field"}var s={kind:p,name:g?"#"+n:n,static:b,private:g,metadata:D},d={v:!1};s.addInitializer=f(a,d);var i,h;r===0?g?(i=u.get,h=u.set):(i=function(){return this[n]},h=function(x){this[n]=x}):r===2?i=function(){return u.value}:((r===1||r===3)&&(i=function(){return u.get.call(this)}),(r===1||r===4)&&(h=function(x){u.set.call(this,x)})),s.access=i&&h?{get:i,set:h}:i?{get:i}:{set:h};try{return l(w,s)}finally{d.v=!0}}function e(l,n){if(l.v)throw new Error("attempted to call "+n+" after decoration was finished")}function o(l,n){if(typeof l!="function")throw new TypeError(n+" must be a function")}function c(l,n){var u=typeof n;if(l===1){if(u!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&o(n.get,"accessor.get"),n.set!==void 0&&o(n.set,"accessor.set"),n.init!==void 0&&o(n.init,"accessor.init")}else if(u!=="function"){var a;throw l===0?a="field":l===10?a="class":a="method",new TypeError(a+" decorators must return a function or void 0")}}function m(l,n,u,a,r,b,g,D,w){var p=u[0],s,d,i;g?r===0||r===1?s={get:u[3],set:u[4]}:r===3?s={get:u[3]}:r===4?s={set:u[3]}:s={value:u[3]}:r!==0&&(s=Object.getOwnPropertyDescriptor(n,a)),r===1?i={get:s.get,set:s.set}:r===2?i=s.value:r===3?i=s.get:r===4&&(i=s.set);var h,x,C;if(typeof p=="function")h=t(p,a,s,D,r,b,g,w,i),h!==void 0&&(c(r,h),r===0?d=h:r===1?(d=h.init,x=h.get||i.get,C=h.set||i.set,i={get:x,set:C}):i=h);else for(var P=p.length-1;P>=0;P--){var M=p[P];if(h=t(M,a,s,D,r,b,g,w,i),h!==void 0){c(r,h);var N;r===0?N=h:r===1?(N=h.init,x=h.get||i.get,C=h.set||i.set,i={get:x,set:C}):i=h,N!==void 0&&(d===void 0?d=N:typeof d=="function"?d=[d,N]:d.push(N))}}if(r===0||r===1){if(d===void 0)d=function(I,E){return E};else if(typeof d!="function"){var _=d;d=function(I,E){for(var L=E,R=0;R<_.length;R++)L=_[R].call(I,L);return L}}else{var j=d;d=function(I,E){return j.call(I,E)}}l.push(d)}r!==0&&(r===1?(s.get=i.get,s.set=i.set):r===2?s.value=i:r===3?s.get=i:r===4&&(s.set=i),g?r===1?(l.push(function(I,E){return i.get.call(I,E)}),l.push(function(I,E){return i.set.call(I,E)})):r===2?l.push(i):l.push(function(I,E){return i.call(I,E)}):Object.defineProperty(n,a,s))}function v(l,n,u){for(var a=[],r,b,g=new Map,D=new Map,w=0;w<n.length;w++){var p=n[w];if(Array.isArray(p)){var s=p[1],d=p[2],i=p.length>3,h=s>=5,x,C;if(h?(x=l,s=s-5,b=b||[],C=b):(x=l.prototype,r=r||[],C=r),s!==0&&!i){var P=h?D:g,M=P.get(d)||0;if(M===!0||M===3&&s!==4||M===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+d);!M&&s>2?P.set(d,s):P.set(d,!0)}m(a,x,p,d,s,h,i,C,u)}}return y(a,r),y(a,b),a}function y(l,n){n&&l.push(function(u){for(var a=0;a<n.length;a++)n[a].call(u);return u})}function T(l,n,u){if(n.length>0){for(var a=[],r=l,b=l.name,g=n.length-1;g>=0;g--){var D={v:!1};try{var w=n[g](r,{kind:"class",name:b,addInitializer:f(a,D),metadata:u})}finally{D.v=!0}w!==void 0&&(c(10,w),r=w)}return[S(r,u),function(){for(var p=0;p<a.length;p++)a[p].call(r)}]}}function S(l,n){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,u,a,r){if(r!==void 0)var b=r[Symbol.metadata||Symbol.for("Symbol.metadata")];var g=Object.create(b===void 0?null:b),D=v(n,u,g);return a.length||S(n,g),{e:D,get c(){return T(n,a,g)}}}}function zo(f,t,e,o){return(zo=ps())(f,t,e,o)}var jo,Mo,Vo,$o,Go,Bo,Uo,No,Ao,Lo,Ro,Oo,Fo,ur;jo=W({selector:"potatno-node-selection-popup",template:Po,style:Co}),Vo=B.state({complexValue:!0}),$o=ft("searchInput"),Go=qt("node-select"),Bo=B.state(),Uo=B.state();var _o=class{static{({e:[No,Ao,Lo,Ro,Oo,Fo],c:[ur,Mo]}=zo(this,[[Vo,1,"results"],[$o,1,"searchInput"],[Go,1,"mNodeSelect"],[Bo,1,"searchValue"],[Uo,1,"selectedDefinitionId"]],[jo]))}constructor(t=O.use(K)){this.mManager=t,this.selectedDefinitionId=null,this.results=new Array,this.searchValue=""}mManager;#t=(Fo(this),No(this));get results(){return this.#t}set results(t){this.#t=t}#e=Ao(this);get searchInput(){return this.#e}set searchInput(t){this.#e=t}#r=Lo(this);get mNodeSelect(){return this.#r}set mNodeSelect(t){this.#r=t}#o=Ro(this);get searchValue(){return this.#o}set searchValue(t){this.#o=t}#n=Oo(this);get selectedDefinitionId(){return this.#n}set selectedDefinitionId(t){this.#n=t}onConnect(){this.searchInput.focus()}onKeyDown(t){if(this.results.length!==0){if(t.key==="ArrowDown"||t.key==="ArrowUp"){t.preventDefault();let e=this.results.findIndex(m=>m.definition.id===this.selectedDefinitionId);e=Math.max(0,e);let o=t.key==="ArrowDown"?1:-1,c=(e+o+this.results.length)%this.results.length;this.selectedDefinitionId=this.results[c].definition.id;return}t.key==="Enter"&&this.sendSelectedEntry(this.selectedDefinitionId)}}onUpdate(){this.rebuildResults()}stopPropagation(t){t.stopPropagation()}rebuildResults(){if(!this.mManager.activeFunction){this.results=new Array;return}let t=this.mManager.activeFunction.dynamicNodeDefinitions.map(o=>({category:o.category.name,definition:o,label:o.label.toLowerCase(),color:this.mManager.generateStringColor(o.category.name),icon:o.category.icon})),e=this.searchValue.trim().toLowerCase();this.results=t.filter(o=>o.label.includes(e)),this.results.some(o=>o.definition.id===this.selectedDefinitionId)||(this.selectedDefinitionId=this.results[0]?.definition.id??null)}sendSelectedEntry(t){if(t===null)return;let e=this.results.find(o=>o.definition.id===t);e&&this.mNodeSelect.dispatchEvent(e.definition)}static{Mo()}};var Ho=`:host {\r
+`;function ps(){function f(l,n){return function(a){e(n,"addInitializer"),o(a,"An initializer"),l.push(a)}}function t(l,n,u,a,r,b,g,D,w){var p;switch(r){case 1:p="accessor";break;case 2:p="method";break;case 3:p="getter";break;case 4:p="setter";break;default:p="field"}var s={kind:p,name:g?"#"+n:n,static:b,private:g,metadata:D},d={v:!1};s.addInitializer=f(a,d);var i,h;r===0?g?(i=u.get,h=u.set):(i=function(){return this[n]},h=function(x){this[n]=x}):r===2?i=function(){return u.value}:((r===1||r===3)&&(i=function(){return u.get.call(this)}),(r===1||r===4)&&(h=function(x){u.set.call(this,x)})),s.access=i&&h?{get:i,set:h}:i?{get:i}:{set:h};try{return l(w,s)}finally{d.v=!0}}function e(l,n){if(l.v)throw new Error("attempted to call "+n+" after decoration was finished")}function o(l,n){if(typeof l!="function")throw new TypeError(n+" must be a function")}function c(l,n){var u=typeof n;if(l===1){if(u!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&o(n.get,"accessor.get"),n.set!==void 0&&o(n.set,"accessor.set"),n.init!==void 0&&o(n.init,"accessor.init")}else if(u!=="function"){var a;throw l===0?a="field":l===10?a="class":a="method",new TypeError(a+" decorators must return a function or void 0")}}function m(l,n,u,a,r,b,g,D,w){var p=u[0],s,d,i;g?r===0||r===1?s={get:u[3],set:u[4]}:r===3?s={get:u[3]}:r===4?s={set:u[3]}:s={value:u[3]}:r!==0&&(s=Object.getOwnPropertyDescriptor(n,a)),r===1?i={get:s.get,set:s.set}:r===2?i=s.value:r===3?i=s.get:r===4&&(i=s.set);var h,x,C;if(typeof p=="function")h=t(p,a,s,D,r,b,g,w,i),h!==void 0&&(c(r,h),r===0?d=h:r===1?(d=h.init,x=h.get||i.get,C=h.set||i.set,i={get:x,set:C}):i=h);else for(var P=p.length-1;P>=0;P--){var M=p[P];if(h=t(M,a,s,D,r,b,g,w,i),h!==void 0){c(r,h);var N;r===0?N=h:r===1?(N=h.init,x=h.get||i.get,C=h.set||i.set,i={get:x,set:C}):i=h,N!==void 0&&(d===void 0?d=N:typeof d=="function"?d=[d,N]:d.push(N))}}if(r===0||r===1){if(d===void 0)d=function(I,E){return E};else if(typeof d!="function"){var _=d;d=function(I,E){for(var L=E,R=0;R<_.length;R++)L=_[R].call(I,L);return L}}else{var j=d;d=function(I,E){return j.call(I,E)}}l.push(d)}r!==0&&(r===1?(s.get=i.get,s.set=i.set):r===2?s.value=i:r===3?s.get=i:r===4&&(s.set=i),g?r===1?(l.push(function(I,E){return i.get.call(I,E)}),l.push(function(I,E){return i.set.call(I,E)})):r===2?l.push(i):l.push(function(I,E){return i.call(I,E)}):Object.defineProperty(n,a,s))}function v(l,n,u){for(var a=[],r,b,g=new Map,D=new Map,w=0;w<n.length;w++){var p=n[w];if(Array.isArray(p)){var s=p[1],d=p[2],i=p.length>3,h=s>=5,x,C;if(h?(x=l,s=s-5,b=b||[],C=b):(x=l.prototype,r=r||[],C=r),s!==0&&!i){var P=h?D:g,M=P.get(d)||0;if(M===!0||M===3&&s!==4||M===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+d);!M&&s>2?P.set(d,s):P.set(d,!0)}m(a,x,p,d,s,h,i,C,u)}}return y(a,r),y(a,b),a}function y(l,n){n&&l.push(function(u){for(var a=0;a<n.length;a++)n[a].call(u);return u})}function T(l,n,u){if(n.length>0){for(var a=[],r=l,b=l.name,g=n.length-1;g>=0;g--){var D={v:!1};try{var w=n[g](r,{kind:"class",name:b,addInitializer:f(a,D),metadata:u})}finally{D.v=!0}w!==void 0&&(c(10,w),r=w)}return[S(r,u),function(){for(var p=0;p<a.length;p++)a[p].call(r)}]}}function S(l,n){return Object.defineProperty(l,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,u,a,r){if(r!==void 0)var b=r[Symbol.metadata||Symbol.for("Symbol.metadata")];var g=Object.create(b===void 0?null:b),D=v(n,u,g);return a.length||S(n,g),{e:D,get c(){return T(n,a,g)}}}}function zo(f,t,e,o){return(zo=ps())(f,t,e,o)}var jo,Mo,Vo,$o,Go,Bo,Uo,No,Ao,Lo,Ro,Oo,Fo,ur;jo=W({selector:"potatno-node-selection-popup",template:Po,style:Co}),Vo=B.state({complexValue:!0}),$o=ft("searchInput"),Go=qt("node-select"),Bo=B.state(),Uo=B.state();var _o=class{static{({e:[No,Ao,Lo,Ro,Oo,Fo],c:[ur,Mo]}=zo(this,[[Vo,1,"results"],[$o,1,"searchInput"],[Go,1,"mNodeSelect"],[Bo,1,"searchValue"],[Uo,1,"selectedDefinitionId"]],[jo]))}constructor(t=O.use($),e=O.use(K)){this.mManager=e,this.mComponent=t,this.selectedDefinitionId=null,this.results=new Array,this.searchValue=""}mComponent;mManager;#t=(Fo(this),No(this));get results(){return this.#t}set results(t){this.#t=t}#e=Ao(this);get searchInput(){return this.#e}set searchInput(t){this.#e=t}#r=Lo(this);get mNodeSelect(){return this.#r}set mNodeSelect(t){this.#r=t}#o=Ro(this);get searchValue(){return this.#o}set searchValue(t){this.#o=t}#n=Oo(this);get selectedDefinitionId(){return this.#n}set selectedDefinitionId(t){this.#n=t}onConnect(){this.searchInput.focus()}onKeyDown(t){if(this.results.length!==0){if(t.key==="ArrowDown"||t.key==="ArrowUp"){t.preventDefault();let e=this.results.findIndex(m=>m.definition.id===this.selectedDefinitionId);e=Math.max(0,e);let o=t.key==="ArrowDown"?1:-1,c=(e+o+this.results.length)%this.results.length;this.selectedDefinitionId=this.results[c].definition.id;return}t.key==="Enter"&&this.sendSelectedEntry(this.selectedDefinitionId)}}onUpdate(){this.rebuildResults();let t=this.mComponent.element.shadowRoot.querySelector(".selection-popup__result.selected");t&&t.scrollIntoView()}stopPropagation(t){t.stopPropagation()}rebuildResults(){if(!this.mManager.activeFunction){this.results=new Array;return}let t=this.mManager.activeFunction.dynamicNodeDefinitions.map(o=>({category:o.category.name,definition:o,label:o.label.toLowerCase(),color:this.mManager.generateStringColor(o.category.name),icon:o.category.icon})),e=this.searchValue.trim().toLowerCase();this.results=t.filter(o=>o.label.includes(e)),this.results.some(o=>o.definition.id===this.selectedDefinitionId)||(this.selectedDefinitionId=this.results[0]?.definition.id??null)}sendSelectedEntry(t){if(t===null)return;let e=this.results.find(o=>o.definition.id===t);e&&this.mNodeSelect.dispatchEvent(e.definition)}static{Mo()}};var Ho=`:host {\r
     position: absolute;\r
     top: 0;\r
     left: 0;\r
@@ -1969,7 +1971,7 @@ $if(this.left) {
         font-weight: bold;\r
         padding: 0 10px 0 10px;\r
 \r
-        border-left: 1px solid var(--potatno-color-error);\r
+        border-left: 3px solid var(--potatno-color-error);\r
     }\r
 \r
     .error-item__content {\r
@@ -1985,8 +1987,8 @@ $if(this.left) {
         font-size: var(--potatno-font-size-small);\r
         margin-top: 2px;\r
 \r
-        /* Darken text color by mixing in the background colorl */\r
-        color: color-mix(in srgb, var(--potatno-color-text) 50%, var(--potatno-color-background-dark));\r
+        /* Darken text color by mixing in the background color */\r
+        color: color-mix(in srgb, var(--potatno-color-text) 50%, var(--potatno-color-background));\r
     }\r
 }`;var si=`<potatno-resize-box class="resize-box" left="true" top="true">
     <div class="header">
@@ -2024,7 +2026,6 @@ $if(this.left) {
     </div>
 
     <div class="content">
-
         $if(this.errors.length > 0) {
             $for(error of this.errors) {
                 <div class="error-item">
@@ -2038,7 +2039,6 @@ $if(this.left) {
         }
 
         $if(this.errors.length === 0) {
-            
             $if(this.selectedTab === 'preview') {
                 <div class="content__preview-display" potatno-preview="this.previewDriver"></div>
             }
@@ -2048,9 +2048,7 @@ $if(this.left) {
                     <pre><code>{{ this.previewCode }}</code></pre>
                 </div>
             }
-
         }
-
     </div>
     
 </potatno-resize-box>

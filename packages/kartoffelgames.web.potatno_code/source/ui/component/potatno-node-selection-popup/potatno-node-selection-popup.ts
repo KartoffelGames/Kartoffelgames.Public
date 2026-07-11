@@ -1,5 +1,5 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { ComponentState, PwbChild, PwbComponent, PwbComponentEvent, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
+import { Component, ComponentState, PwbChild, PwbComponent, PwbComponentEvent, type ComponentEventEmitter, type IComponentOnConnect, type IComponentOnUpdate } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoNodeDefinition } from '../../../project/node_definition/potatno-node-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import { PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
@@ -16,6 +16,7 @@ import addNodePopupTemplate from './potatno-node-selection-popup.html' with { ty
     style: addNodePopupCss,
 })
 export class PotatnoNodeSelectionPopup implements IComponentOnConnect, IComponentOnUpdate {
+    private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
 
     /**
@@ -53,8 +54,9 @@ export class PotatnoNodeSelectionPopup implements IComponentOnConnect, IComponen
      *
      * @param pManager - Injected shared UI manager singleton.
      */
-    public constructor(pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
+    public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mManager = pManager;
+        this.mComponent = pComponent;
 
         this.selectedDefinitionId = null;
         this.results = new Array<PotatnoAddNodePopupEntry>();
@@ -113,6 +115,12 @@ export class PotatnoNodeSelectionPopup implements IComponentOnConnect, IComponen
      */
     public onUpdate(): void {
         this.rebuildResults();
+
+        // Look into shadow root to find the selected element and scroll into view.
+        const lSelectedElement = this.mComponent.element.shadowRoot!.querySelector('.selection-popup__result.selected');
+        if(lSelectedElement){
+            lSelectedElement.scrollIntoView();
+        }
     }
 
     /**

@@ -169,9 +169,6 @@ export interface IComponentOnDeconstruct {
 export interface IComponentOnUpdate {
     onUpdate(): void;
 }
-export interface IComponentOnUpdate {
-    onUpdate(): void;
-}
 export interface IComponentOnAttributeChange {
     onAttributeChange(pAttributeName: string, pOldValue: string | null, pNewValue: string | null): void;
 }

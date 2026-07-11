@@ -27,7 +27,7 @@ export class CanvasProjectMatrixPreviewDisplay<TExecutorResultType extends Potat
                 lElement.style.height = '100%';
                 lElement.style.width = '100%';
                 lElement.style.fontFamily = 'var(--potatno-font-family)';
-                lElement.style.fontSize = 'var(--pn-font-size-sm)';
+                lElement.style.fontSize = 'var(--potatno-font-size-small)';
                 return lElement;
             },
             typeAdapter: {

@@ -26,8 +26,9 @@
         }
     </div>
 
-    $if(this.hasErrors) {
-        <div class="error-list">
+    <div class="content">
+
+        $if(this.hasErrors) {
             $for(error of this.errors) {
                 <div class="error-item">
                     <div class="error-item__icon">!</div>
@@ -37,10 +38,12 @@
                     </div>
                 </div>
             }
-        </div>
-    }
+        }
 
-    $if(!this.hasErrors) {
-        <div class="preview-content" potatno-preview="this.previewDriver"></div>
-    }
+        $if(!this.hasErrors) {
+            <div potatno-preview="this.previewDriver"></div>
+        }
+
+    </div>
+    
 </potatno-resize-box>

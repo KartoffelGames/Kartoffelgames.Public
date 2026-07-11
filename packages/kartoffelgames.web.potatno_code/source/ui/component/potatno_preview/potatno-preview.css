@@ -1,10 +1,5 @@
 :host {
-    /*
-     * Column flex so the resize-box is a flex item that shrinks to this host's height.
-     * The host is abs-pos with an `auto` height (only clamped by max-height on .preview-wrapper),
-     * so the resize-box's `max-height: 100%` has no definite height to resolve against and is
-     * ignored. As a shrinkable flex item it gets clamped to the host's resolved height instead.
-     */
+    /* Somehow this needs to be flex or we get an nasty overflow. */
     display: flex;
     flex-direction: column;
     position: relative;
@@ -30,13 +25,9 @@
     align-items: center;
     justify-content: space-between;
     padding: 6px 10px;
-
     border-bottom: 1px solid var(--potatno-color-border);
-    flex-shrink: 0;
-    cursor: default;
-    user-select: none;
-
     background: var(--potatno-color-background-light);
+    overflow: hidden;
 
     .header__title {
         font-family: var(--potatno-font-family);
@@ -48,33 +39,33 @@
         &.header__title--title {
             color: var(--potatno-color-error) !important;
         }
-
     }
 
     .header__selectors {
         display: flex;
         gap: 6px;
         margin-left: 12px;
-        justify-content: flex-end;
 
-        select {
-            background: var(--potatno-color-background-light);
-            border: 1px solid var(--potatno-color-border);
-            border-radius: 3px;
-            color: var(--potatno-color-text);
+        >select {
+            padding: 4px 4px;
+
             font-family: var(--potatno-font-family);
             font-size: var(--potatno-font-size-small);
-            padding: 2px 4px;
-            max-width: 45%;
+
+            background: var(--potatno-color-background-light);
+            color: var(--potatno-color-text);
+
+            border: 1px solid var(--potatno-color-border);
+            border-radius: 3px;
         }
     }
 }
 
-.error-list {
-    overflow-y: auto;
+.content {
     flex: 1;
     padding: 4px;
-    min-height: 120px;
+    background: var(--potatno-color-background);
+    overflow: auto;
 
     scrollbar-color: var(--potatno-color-scrollbar-thumb) var(--potatno-color-scrollbar-track);
     scrollbar-width: thin;
@@ -113,12 +104,4 @@
         /* Darken text color by mixing in the background colorl */
         color: color-mix(in srgb, var(--potatno-color-text) 50%, var(--potatno-color-background-dark));
     }
-}
-
-.preview-content {
-    flex: 1;
-    padding: 5px;
-    background: var(--potatno-color-background);
-
-    overflow: hidden;
 }

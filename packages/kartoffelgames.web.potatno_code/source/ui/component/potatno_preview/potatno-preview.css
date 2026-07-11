@@ -2,7 +2,6 @@
     /* Somehow this needs to be flex or we get an nasty overflow. */
     display: flex;
     flex-direction: column;
-    position: relative;
 }
 
 .resize-box {
@@ -34,7 +33,6 @@
         font-size: var(--potatno-font-size-small);
         color: var(--potatno-color-text);
         text-transform: uppercase;
-        letter-spacing: 0.5px;
 
         &.header__title--title {
             color: var(--potatno-color-error) !important;
@@ -98,7 +96,7 @@
     }
 
     .error-item__location {
-        font-size: 10px;
+        font-size: var(--potatno-font-size-small);
         margin-top: 2px;
 
         /* Darken text color by mixing in the background colorl */

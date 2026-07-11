@@ -1,26 +1,20 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { Component, ComponentState, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocumentPort } from '../../../document/potatno-document-port.ts';
 import type { PotatnoPreviewDriver } from '../../../preview/potatno-preview-driver.ts';
 import { PotatnoPreviewFunctionExecutor } from '../../../preview/potatno-preview-function-executor.ts';
 import type { PotatnoFunctionDefinition } from '../../../project/potatno-function-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import type { PotatnoProject } from '../../../project/potatno-project.ts';
 import type { PotatnoCodeUiManagerIntegrityError } from '../../manager/manager_component/potatno-ui-manager-integrity.ts';
-import { PotatnoCodeUiManagerChangeType, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import { PotatnoPreviewModule } from '../../module/potatno-preview.module.ts';
 import { PotatnoResizeBox } from '../potatno-resize-box/potatno-resize-box.ts';
 import styles from './potatno-preview.css' with { type: 'text' };
 import template from './potatno-preview.html' with { type: 'text' };
 
 /**
- * Preview panel hosting the active function's main preview driver.
- *
- * Reads its validation errors and the available display/output options from the shared
- * {@link PotatnoUiManager}, owns the local display/output selection and requests the matching driver
- * from the preview component. Validation errors take priority — while the manager reports any, the
- * error list replaces the preview content.
+ * Preview main panel for the active function preview.
  */
 @PwbComponent({
     selector: 'potatno-preview',
@@ -31,23 +25,28 @@ import template from './potatno-preview.html' with { type: 'text' };
 export class PotatnoPreview implements IComponentOnDeconstruct {
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
-    private readonly mUnsubscribe: (() => void);
+    private mPreviewTargets: Map<string, PotatnoPreviewTarget>;
+    private readonly mUnsubscribeErrorResolve: PotatnoCodeUiManagerUnsubscribe;
+    private readonly mUnsubscribeOutputFetch: PotatnoCodeUiManagerUnsubscribe;
 
-    private mSelectedDisplayId: string;
-    private mSelectedOutputId: string;
+    @ComponentState.state()
+    private accessor mSelectedDisplayId: string;
+
+    @ComponentState.state()
+    private accessor mSelectedOutputId: string;
 
     /**
-     * Display ("style") id options for the display selector, from the project's preview registry.
+     * Preview display id options for the display selector.
      */
-    public get displayOptions(): Array<PotatnoPreviewDisplayOption> {
-        const lFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
-        const lProject: PotatnoProject<PotatnoProjectTypesDefinition> | null = this.mManager.project;
-        const lFunctionDefinition = lFunction && lProject ? lProject.getFunction(lFunction.definitionId) : undefined;
-        if (!lFunction || !lProject || !lFunctionDefinition) {
-            return new Array<PotatnoPreviewDisplayOption>();
+    public get displayOptions(): ReadonlyMap<string, string> {
+        // Read function definition of target function.
+        const lPreviewPort: PotatnoPreviewTarget | undefined = this.mPreviewTargets.get(this.selectedOutputId);
+        if (!lPreviewPort) {
+            return new Map<string, string>();
         }
 
-        return this.createDisplayOptions(lProject, this.availableDisplayIds(lProject, lFunctionDefinition, lFunction, this.selectedOutputId));
+        // Map display ids with its label.
+        return lPreviewPort.displays;
     }
 
     /**
@@ -58,102 +57,64 @@ export class PotatnoPreview implements IComponentOnDeconstruct {
     }
 
     /**
-     * Whether there are any validation errors to display.
-     */
-    public get hasErrors(): boolean {
-        return !this.mManager.integrity.isValid;
-    }
-
-    /**
      * Output options for the output selector (user functions only).
      */
-    public get outputOptions(): ReadonlyArray<PotatnoPreviewOutputOption> {
-        const lFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
-        const lProject: PotatnoProject<PotatnoProjectTypesDefinition> | null = this.mManager.project;
-        const lFunctionDefinition = lFunction && lProject ? lProject.getFunction(lFunction.definitionId) : undefined;
-        if (!lFunction || !lProject || !lFunctionDefinition) {
-            return [];
-        }
-
-        const lOptions: Array<PotatnoPreviewOutputOption> = new Array<PotatnoPreviewOutputOption>();
-        if (lProject.preview.availableDisplays(lFunctionDefinition, PotatnoPreviewFunctionExecutor.MAIN).length > 0) {
-            lOptions.push({ id: PotatnoPreviewFunctionExecutor.MAIN, label: 'Main' });
-        }
-
-        const lOutputIds: Set<string> = new Set<string>();
-        for (const lExitNode of lFunction.getExitNodes()) {
-            for (const lPort of lExitNode.inputs.value) {
-                if (lOutputIds.has(lPort.definitionId)) {
-                    continue;
-                }
-
-                if (lProject.preview.availableDisplays(lFunctionDefinition, lPort.resolvedDataType).length === 0) {
-                    continue;
-                }
-
-                lOutputIds.add(lPort.definitionId);
-                lOptions.push({ id: lPort.definitionId, label: lPort.label });
-            }
-        }
-
-        return lOptions;
+    public get outputOptions(): ReadonlyMap<string, PotatnoPreviewTarget> {
+        return this.mPreviewTargets;
     }
 
     /**
-     * The driver for the active function's main preview, bound by the template's `potatno-preview`
-     * module. `null` when no function is active or no matching preview is registered.
+     * The driver for the active function's main preview.
      */
     public get previewDriver(): PotatnoPreviewDriver<PotatnoProjectTypesDefinition> | null {
-        const lFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
-        if (!lFunction) {
+        // Read the available preview port by output id. Skip if the output has no preview.
+        const lPreviewTarget: PotatnoPreviewTarget | undefined = this.mPreviewTargets.get(this.selectedOutputId);
+        if (!lPreviewTarget) {
             return null;
         }
 
-        if (this.selectedOutputId === PotatnoPreviewFunctionExecutor.MAIN) {
-            return this.mManager.preview.requestDriver(lFunction, this.selectedDisplayId);
-        }
-
-        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.findFunctionOutputPort(lFunction, this.selectedOutputId);
-        if (!lPort) {
-            return null;
-        }
-
-        return this.mManager.preview.requestDriver(lPort, this.selectedDisplayId);
+        // Get driver of target.
+        return this.mManager.preview.requestDriver(lPreviewTarget.target, this.selectedDisplayId);
     }
 
     /**
      * Currently selected display id, falling back to the first available.
      */
     public get selectedDisplayId(): string {
-        const lOptions: Array<PotatnoPreviewDisplayOption> = this.displayOptions;
-        if (this.mSelectedDisplayId !== '' && lOptions.some((pOption) => pOption.id === this.mSelectedDisplayId)) {
-            return this.mSelectedDisplayId;
+        const lOptions: ReadonlyMap<string, string> = this.displayOptions;
+
+        // Check current selected if its a valid selection and reset it when its not.
+        if (!lOptions.has(this.mSelectedDisplayId)) {
+            // Try to get first value.
+            const lFirstValue: string | undefined = lOptions.keys().next().value;
+            if (typeof lFirstValue !== 'undefined') {
+                this.mSelectedDisplayId = lFirstValue;
+            }
         }
-        return lOptions.at(0)?.id ?? '';
+
+        return this.mSelectedDisplayId;
+    } set selectedDisplayId(pValue: string) {
+        this.mSelectedDisplayId = pValue;
     }
 
     /**
      * Currently selected output id, falling back to the first available.
      */
     public get selectedOutputId(): string {
-        const lOptions: ReadonlyArray<PotatnoPreviewOutputOption> = this.outputOptions;
-        if (this.mSelectedOutputId !== '' && lOptions.some((pOption) => pOption.id === this.mSelectedOutputId)) {
-            return this.mSelectedOutputId;
-        }
-        return lOptions[0]?.id ?? '';
-    }
+        const lOptions: ReadonlyMap<string, PotatnoPreviewTarget> = this.outputOptions;
 
-    /**
-     * Whether to show the output selector — only for user (non-entry) functions.
-     */
-    public get showOutputSelector(): boolean {
-        const lFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null = this.mManager.activeFunction;
-        const lProject: PotatnoProject<PotatnoProjectTypesDefinition> | null = this.mManager.project;
-        if (!lFunction || !lProject) {
-            return false;
+        // Check current selected if its a valid selection and reset it when its not.
+        if (!lOptions.has(this.mSelectedOutputId)) {
+            // Try to get first value.
+            const lFirstValue: string | undefined = lOptions.keys().next().value;
+            if (typeof lFirstValue !== 'undefined') {
+                this.mSelectedOutputId = lFirstValue;
+            }
         }
 
-        return this.outputOptions.length > 0;
+        return this.mSelectedOutputId;
+    } set selectedOutputId(pValue: string) {
+        this.mSelectedOutputId = pValue;
     }
 
     /**
@@ -165,10 +126,20 @@ export class PotatnoPreview implements IComponentOnDeconstruct {
     public constructor(pComponent: Component = Injection.use(Component), pManager: PotatnoUiManager = Injection.use(PotatnoUiManager)) {
         this.mComponent = pComponent;
         this.mManager = pManager;
+
         this.mSelectedDisplayId = '';
         this.mSelectedOutputId = '';
 
-        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction | PotatnoCodeUiManagerChangeType.Node | PotatnoCodeUiManagerChangeType.Connection, () => {
+        const lNodeChangeTypes: number = PotatnoCodeUiManagerChangeType.NodeUpdate | PotatnoCodeUiManagerChangeType.NodeAdd | PotatnoCodeUiManagerChangeType.NodeDelete;
+
+        // Update the preview port ONCE when the output ports can change.
+        this.mPreviewTargets = this.findFunctionPreviewTargets();
+        this.mUnsubscribeOutputFetch = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.SpecialActiveFunction | lNodeChangeTypes, () => {
+            this.mPreviewTargets = this.findFunctionPreviewTargets();
+        });
+
+        // Listen for document, function, node and connection changes. Mainly for resolving the error lists.
+        this.mUnsubscribeErrorResolve = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.SpecialActiveFunction | lNodeChangeTypes | PotatnoCodeUiManagerChangeType.Connection, () => {
             this.mComponent.updater.updateAsync();
         });
     }
@@ -177,103 +148,97 @@ export class PotatnoPreview implements IComponentOnDeconstruct {
      * Detach the manager subscription.
      */
     public onDeconstruct(): void {
-        this.mUnsubscribe();
+        this.mUnsubscribeErrorResolve();
+        this.mUnsubscribeOutputFetch();
     }
 
     /**
-     * Relay a display-selector ("style") change to the panel state.
-     *
-     * @param pEvent - Change event from the display `<select>`.
+     * Searches for all available preview targets of current active function.
+     * Skips any available target that has no preview displays.
+     * 
+     * @returns all available preview targets of current active function.
      */
-    public onDisplaySelect(pEvent: Event): void {
-        this.mSelectedDisplayId = (pEvent.target as HTMLSelectElement).value;
-        this.mComponent.updater.updateAsync();
-    }
-
-    /**
-     * Relay an output-selector change to the panel state.
-     *
-     * @param pEvent - Change event from the output `<select>`.
-     */
-    public onOutputSelect(pEvent: Event): void {
-        this.mSelectedOutputId = (pEvent.target as HTMLSelectElement).value;
-        this.mComponent.updater.updateAsync();
-    }
-
-    /**
-     * Get display ids that can render the selected output.
-     *
-     * @param pProject - Project owning the preview registry.
-     * @param pFunctionDefinition - Active function definition.
-     * @param pFunction - Active document function.
-     * @param pOutputId - Selected output id.
-     */
-    private availableDisplayIds(pProject: PotatnoProject<PotatnoProjectTypesDefinition>, pFunctionDefinition: PotatnoFunctionDefinition<PotatnoProjectTypesDefinition>, pFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition>, pOutputId: string): Array<string> {
-        if (pOutputId === PotatnoPreviewFunctionExecutor.MAIN) {
-            return pProject.preview.availableDisplays(pFunctionDefinition, PotatnoPreviewFunctionExecutor.MAIN);
+    private findFunctionPreviewTargets(): Map<string, PotatnoPreviewTarget> {
+        const lOutputPorts: Map<string, PotatnoPreviewTarget> = new Map<string, PotatnoPreviewTarget>();
+        
+        // When no active function is set, 
+        if (!this.mManager.activeFunction) {
+            return lOutputPorts;
         }
 
-        const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null = this.findFunctionOutputPort(pFunction, pOutputId);
-        if (lPort) {
-            return pProject.preview.availableDisplays(pFunctionDefinition, lPort.resolvedDataType);
+        // Get the current active functions definition.
+        const lActiveFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> = this.mManager.activeFunction;
+        const lActiveFunctionDefinition: PotatnoFunctionDefinition<PotatnoProjectTypesDefinition> | undefined = lActiveFunction.project.getFunction(lActiveFunction.definitionId);
+        if (!lActiveFunctionDefinition) {
+            return lOutputPorts;
         }
 
-        return pProject.preview.availableDisplays(pFunctionDefinition);
-    }
+        // Map displays id to id and label. 
+        const lMapDisplays = (pDisplayIds: Array<string>): Map<string, string> => {
+            const lDisplayMap: Map<string, string> = new Map<string, string>();
+            for (const lDisplayId of pDisplayIds) {
+                lDisplayMap.set(lDisplayId, lActiveFunction.project.preview.getDisplay(lDisplayId)!.name);
+            }
+            return lDisplayMap;
+        };
 
-    /**
-     * Convert registry ids to selector options using display names.
-     *
-     * @param pProject - Project owning the preview registry.
-     * @param pDisplayIds - Display ids to convert.
-     */
-    private createDisplayOptions(pProject: PotatnoProject<PotatnoProjectTypesDefinition>, pDisplayIds: Array<string>): Array<PotatnoPreviewDisplayOption> {
-        return pDisplayIds.map((pDisplayId) => {
-            return {
-                id: pDisplayId,
-                label: pProject.preview.getDisplay(pDisplayId)?.name ?? pDisplayId
-            };
-        });
-    }
+        // First we check if the MAIN output has available displays.
+        const lAvailableMainDisplays: Array<string> = lActiveFunction.project.preview.availableDisplays(lActiveFunctionDefinition, PotatnoPreviewFunctionExecutor.MAIN);
+        if (lAvailableMainDisplays.length > 0) {
+            lOutputPorts.set(PotatnoPreviewFunctionExecutor.MAIN, {
+                label: PotatnoPreviewFunctionExecutor.MAIN,
+                target: lActiveFunction,
+                displays: lMapDisplays(lAvailableMainDisplays)
+            });
+        }
 
-    /**
-     * Find the exit-node value input matching a selectable output id.
-     *
-     * @param pFunction - Function whose exit nodes should be searched.
-     * @param pOutputId - Selected output id.
-     */
-    private findFunctionOutputPort(pFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition>, pOutputId: string): PotatnoDocumentPort<PotatnoProjectTypesDefinition> | null {
-        for (const lExitNode of pFunction.getExitNodes()) {
-            const lPort: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | undefined = lExitNode.inputs.map.get(pOutputId);
-            if (lPort && lPort.portType === 'value') {
-                return lPort;
+        // Create a buffer for the available display lookup. Because that lookup is expensive.
+        const lTypeToDisplaysLookup: Map<string, Array<string>> = new Map<string, Array<string>>();
+
+        // Get exit nodes of the function. Can be multiple.
+        for (const lExitNode of lActiveFunction.getExitNodes()) {
+            // From there, iterate all value ports.
+            for (const lPort of lExitNode.inputs.value) {
+                // Read the port type.
+                const lPortType: string = lPort.resolvedDataType;
+
+                // Create type to display lookup when not there.
+                if (!lTypeToDisplaysLookup.has(lPortType)) {
+                    lTypeToDisplaysLookup.set(lPortType, lPort.project.preview.availableDisplays(lActiveFunctionDefinition, lPortType));
+                }
+
+                // Get types display ids.
+                const lDisplayIds: Array<string> = lTypeToDisplaysLookup.get(lPortType)!;
+                if (lDisplayIds.length === 0) {
+                    continue;
+                }
+
+                // When the port type as available displays, its a valid preview port.
+                lOutputPorts.set(lPort.definitionId, {
+                    label: lPort.label,
+                    target: lPort,
+                    displays: lMapDisplays(lDisplayIds)
+                });
             }
         }
 
-        return null;
+        return lOutputPorts;
     }
 }
 
-/**
- * Size of window.
- */
-type PotatnoPreviewSize = {
-    width: number;
-    height: number;
-};
+type PotatnoPreviewTarget = {
+    /**
+     * Label for preview target.
+     */
+    label: string;
 
-/**
- * One selectable output for a user function's main preview.
- */
-type PotatnoPreviewOutputOption = {
-    readonly id: string;
-    readonly label: string;
-};
+    /**
+     * Port reference, when null is means the MAIN output.
+     */
+    target: PotatnoDocumentPort<PotatnoProjectTypesDefinition> | PotatnoDocumentFunction<PotatnoProjectTypesDefinition>;
 
-/**
- * One selectable display for a preview output.
- */
-type PotatnoPreviewDisplayOption = {
-    readonly id: string;
-    readonly label: string;
+    /**
+     * Preview display options mapped by display id:  Map<id, label>.
+     */
+    displays: Map<string, string>;
 };

@@ -1,23 +1,25 @@
 <potatno-resize-box class="resize-box" left="true" top="true">
     <div class="header">
-        $if(this.hasErrors) {
+        $if(this.errors.length > 0) {
             <span class="header__title header__title--title">Errors ({{this.errors.length}})</span>
         }
 
-        $if(!this.hasErrors) {
+        $if(this.errors.length === 0) {
             <span class="header__title">Preview</span>
             <div class="header__selectors">
 
-                <select class="preview-select" (change)="this.onDisplaySelect($event)">
-                    $for(display of this.displayOptions) {
-                        <option [value]="this.display.id" [selected]="this.display.id === this.selectedDisplayId">{{this.display.label}}</option>
-                    }
-                </select>
+                $if(this.displayOptions.size > 0) {
+                    <select class="preview-select" (change)="this.selectedDisplayId = $event.target.value">
+                        $for(display of this.displayOptions) {
+                            <option [value]="this.display[0]" [selected]="this.display[0] === this.selectedDisplayId">{{this.display[1]}}</option>
+                        }
+                    </select>
+                }
 
-                $if(this.showOutputSelector) {
-                    <select class="preview-select" (change)="this.onOutputSelect($event)">
+                $if(this.outputOptions.size > 0) {
+                    <select class="preview-select" (change)="this.selectedOutputId = $event.target.value">
                         $for(output of this.outputOptions) {
-                            <option [value]="this.output.id" [selected]="this.output.id === this.selectedOutputId">{{this.output.label}}</option>
+                            <option [value]="this.output[0]" [selected]="this.output[0] === this.selectedOutputId">{{this.output[1].label}}</option>
                         }
                     </select>
                 }
@@ -28,7 +30,7 @@
 
     <div class="content">
 
-        $if(this.hasErrors) {
+        $if(this.errors.length > 0) {
             $for(error of this.errors) {
                 <div class="error-item">
                     <div class="error-item__icon">!</div>
@@ -40,7 +42,7 @@
             }
         }
 
-        $if(!this.hasErrors) {
+        $if(this.errors.length === 0) {
             <div potatno-preview="this.previewDriver"></div>
         }
 

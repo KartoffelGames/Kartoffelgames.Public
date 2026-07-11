@@ -126,6 +126,10 @@ export class PotatnoUiManagerIntegrity {
                 case lAffectedItem instanceof PotatnoDocumentPort: {
                     // Missing the delete, but that should be fine.
                     this.mManager.dispatch(PotatnoCodeUiManagerChangeType.PortAdd | PotatnoCodeUiManagerChangeType.PortUpdate, lAffectedItem);
+
+                    // Also trigger a node update.
+                    this.mManager.dispatch(PotatnoCodeUiManagerChangeType.NodeUpdate, lAffectedItem.node);
+
                     break;
                 }
                 case lAffectedItem instanceof PotatnoDocumentNode: {

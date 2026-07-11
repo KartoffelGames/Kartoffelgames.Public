@@ -101,10 +101,10 @@
         width: 40px;
         border: 1px solid color-mix(in srgb, var(--potatno-port-color) 35%, transparent);
         border-radius: 2px;
-        color: var(--pn-text-primary);
+        color: var(--potatno-color-text);
         background: color-mix(in srgb, var(--potatno-port-color) 8%, var(--potatno-color-background));
         box-sizing: border-box;
-        font-size: var(--pn-font-size-sm);
+        font-size: var(--potatno-font-size-small);
         appearance: textfield;
 
         &:focus {

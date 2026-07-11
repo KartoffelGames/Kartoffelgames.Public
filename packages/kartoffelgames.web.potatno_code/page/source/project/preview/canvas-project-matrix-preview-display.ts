@@ -26,7 +26,7 @@ export class CanvasProjectMatrixPreviewDisplay<TExecutorResultType extends Potat
                 lElement.style.gridTemplateColumns = `repeat(${CanvasProjectMatrixPreviewDisplay.MATRIX_SIZE}, minmax(0, 1fr))`;
                 lElement.style.height = '100%';
                 lElement.style.width = '100%';
-                lElement.style.fontFamily = 'var(--pn-font-mono)';
+                lElement.style.fontFamily = 'var(--potatno-font-family)';
                 lElement.style.fontSize = 'var(--pn-font-size-sm)';
                 return lElement;
             },
@@ -85,8 +85,8 @@ export class CanvasProjectMatrixPreviewDisplay<TExecutorResultType extends Potat
         while (pElement.children.length < CanvasProjectMatrixPreviewDisplay.MATRIX_SIZE * CanvasProjectMatrixPreviewDisplay.MATRIX_SIZE) {
             const lCellElement: HTMLDivElement = document.createElement('div');
             lCellElement.style.alignItems = 'center';
-            lCellElement.style.background = 'var(--pn-bg-secondary)';
-            lCellElement.style.border = '1px solid var(--pn-border-default)';
+            lCellElement.style.background = 'var(--potatno-color-background-dark)';
+            lCellElement.style.border = '1px solid var(--potatno-color-border)';
             lCellElement.style.boxSizing = 'border-box';
             lCellElement.style.color = 'var(--pn-text-primary)';
             lCellElement.style.display = 'flex';

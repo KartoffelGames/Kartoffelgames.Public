@@ -1,45 +1,38 @@
 :host {
     /* Globals */
     --potatno-grid-size: 25px;
-    --potatno-font-size: 12px;
+    
+    /* Font */
+    --potatno-font-size: 0.75rem;
+    --potatno-font-size-big: 0.8rem;
+    --potatno-font-size-small: 0.7rem;
+    --potatno-font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
 
     /* Main colors */
     --potatno-color-background: #1e1e2e;
+    --potatno-color-background-dark: #181825;
+    --potatno-color-background-light: #2a2a3c;
     --potatno-color-text: #a6adc8;
     --potatno-color-accent: #89b4fa;
+    --potatno-color-border: #45475a;
 
     /* Supporting colors */
     --potatno-color-error: #f38ba8;
+    --potatno-color-shadow: rgba(0, 0, 0, 0.3);
+
+    /* Scrollbar */
+    --potatno-color-scrollbar-thumb: #45475a;
+    --potatno-color-scrollbar-track: transparent;
 
 
 
 
-
-
-    /* Background */
-    --pn-bg-primary: #1e1e2e;
-    --pn-bg-secondary: #181825;
-    --pn-bg-surface: #252536;
-    --pn-bg-elevated: #2a2a3c;
 
     /* Text */
-    --pn-text-primary: #cdd6f4;
-    --pn-text-secondary: #a6adc8;
     --pn-text-muted: #6c7086;
 
-    /* Borders */
-    --pn-border-default: #45475a;
-    --pn-border-active: #89b4fa;
-
     /* Node category colors */
-    --pn-cat-input: #a6e3a1;
-    --pn-cat-output: #f38ba8;
-    --pn-cat-value: #f9e2af;
-    --pn-cat-function: #89b4fa;
-    --pn-cat-flow: #cba6f7;
     --pn-cat-comment: #6c7086;
-    --pn-cat-operator: #fab387;
-    --pn-cat-type-conversion: #74c7ec;
 
     /* Canvas */
     --pn-grid-color: #313244;
@@ -54,25 +47,11 @@
     --pn-panel-min-width: 200px;
     --pn-panel-max-width: 500px;
 
-    /* Scrollbar */
-    --pn-scrollbar-thumb: #45475a;
-    --pn-scrollbar-track: transparent;
-
     /* Node */
-    --pn-node-border: #45475a;
-    --pn-node-border-selected: #89b4fa;
-    --pn-node-shadow: rgba(0, 0, 0, 0.3);
     --pn-node-button-font-size: 9px;
-    --pn-node-font-size: var(--pn-font-size-sm);
+    --pn-node-font-size: var(--potatno-font-size-small);
     --pn-node-header-height: var(--pn-grid-size);
     --pn-node-port-body-size: 9px;
     --pn-node-port-gap: var(--pn-grid-size);
     --pn-node-port-tip-size: 5px;
-
-    /* Font */
-    --pn-font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-    --pn-font-mono: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;
-    --pn-font-size-sm: 11px;
-    --pn-font-size: 13px;
-    --pn-font-size-lg: 14px;
 }

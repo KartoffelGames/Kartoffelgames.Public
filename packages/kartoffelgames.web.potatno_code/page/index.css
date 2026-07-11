@@ -19,7 +19,7 @@ body {
     .potatno-code-toolbar-button {
         color: #f0f0f8;
         cursor: default;
-        font-size: 13px;
+        font-size: 0.75rem;
         line-height: 17px;
         padding: 4px 12px;
         user-select: none;

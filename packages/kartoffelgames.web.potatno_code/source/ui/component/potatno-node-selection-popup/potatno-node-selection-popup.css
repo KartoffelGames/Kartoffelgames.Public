@@ -4,8 +4,8 @@
 }
 
 .add-node-popup {
-    background: var(--pn-bg-secondary);
-    border: 1px solid var(--pn-border-default);
+    background: var(--potatno-color-background-dark);
+    border: 1px solid var(--potatno-color-border);
     border-radius: 6px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
     display: flex;
@@ -16,13 +16,13 @@
 }
 
 .add-node-search {
-    background: var(--pn-bg-surface);
+    background: var(--potatno-color-background-light);
     border: none;
-    border-bottom: 1px solid var(--pn-border-default);
+    border-bottom: 1px solid var(--potatno-color-border);
     box-sizing: border-box;
     color: var(--potatno-color-accent);
-    font-family: var(--pn-font-family);
-    font-size: var(--pn-font-size);
+    font-family: var(--potatno-font-family);
+    font-size: var(--potatno-font-size);
     outline: none;
     padding: 8px 10px;
     width: 100%;
@@ -47,8 +47,8 @@
     color: var(--potatno-color-accent);
     cursor: pointer;
     display: flex;
-    font-family: var(--pn-font-family);
-    font-size: var(--pn-font-size);
+    font-family: var(--potatno-font-family);
+    font-size: var(--potatno-font-size);
     gap: 8px;
     min-height: 28px;
     padding: 6px 10px;
@@ -58,7 +58,7 @@
 
 .add-node-result:hover,
 .add-node-result.selected {
-    background: var(--pn-bg-elevated);
+    background: var(--potatno-color-background-light);
 }
 
 .add-node-result-border {
@@ -84,14 +84,14 @@
 .add-node-result-category {
     color: var(--pn-text-muted);
     flex-shrink: 0;
-    font-size: var(--pn-font-size-sm);
+    font-size: var(--potatno-font-size-small);
     text-transform: capitalize;
 }
 
 .add-node-empty {
     color: var(--pn-text-muted);
-    font-family: var(--pn-font-family);
-    font-size: var(--pn-font-size-sm);
+    font-family: var(--potatno-font-family);
+    font-size: var(--potatno-font-size-small);
     padding: 14px 10px;
     text-align: center;
 }

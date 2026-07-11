@@ -2,8 +2,8 @@
     display: block;
     height: 100%;
     width: 100%;
-    font-family: var(--pn-font-family);
-    font-size: var(--pn-font-size);
+    font-family: var(--potatno-font-family);
+    font-size: var(--potatno-font-size);
 
     --node-border-radius: 2px;
 }
@@ -18,24 +18,24 @@
     background: var(--potatno-color-background);
     
     border-radius: var(--node-border-radius);
-    box-shadow: 0 2px 8px var(--pn-node-shadow);
+    box-shadow: 0 2px 8px var(--potatno-color-shadow);
     overflow: visible;
     user-select: none;
 
     /* Add border and adjust global position for it. */
-    border: 1px solid var(--pn-node-border);
+    border: 1px solid var(--potatno-color-border);
     transform: translate(-1px, -1px);
 }
 
 .node.selected {
-    border-color: var(--pn-node-border-selected);
-    box-shadow: 0 0 0 1px var(--pn-node-border-selected), 0 2px 8px var(--pn-node-shadow);
+      border-color: var(--potatno-color-accent);
+    box-shadow: 0 0 0 1px var(--potatno-color-accent), 0 2px 8px var(--potatno-color-shadow);
 }
 
 .node.has-error,
 .node.has-error.selected {
     border-color: var(--potatno-color-error, #f38ba8);
-    box-shadow: 0 0 0 1px var(--potatno-color-error, #f38ba8), 0 2px 8px var(--pn-node-shadow);
+    box-shadow: 0 0 0 1px var(--potatno-color-error, #f38ba8), 0 2px 8px var(--potatno-color-shadow);
 }
 
 /* ── Header bar ── */
@@ -117,19 +117,19 @@
 
 .node-value-input input {
     width: 100%;
-    background: var(--pn-bg-secondary);
-    border: 1px solid var(--pn-border-default);
+    background: var(--potatno-color-background-dark);
+    border: 1px solid var(--potatno-color-border);
     border-radius: 3px;
-    color: var(--pn-text-primary);
-    font-family: var(--pn-font-mono);
-    font-size: var(--pn-font-size-sm);
+    color: var(--potatno-color-text);
+    font-family: var(--potatno-font-family);
+    font-size: var(--potatno-font-size-small);
     padding: 2px 6px;
     outline: none;
     box-sizing: border-box;
 }
 
 .node-value-input input:focus {
-    border-color: var(--pn-border-active);
+    border-color: var(--potatno-color-accent);
 }
 
 /* ── Open-function button ── */
@@ -189,8 +189,8 @@
     z-index: 50;
     min-width: 96px;
     flex-direction: column;
-    background: var(--pn-bg-elevated);
-    border: 1px solid var(--pn-border-default);
+    background: var(--potatno-color-background-light);
+    border: 1px solid var(--potatno-color-border);
     border-radius: 4px;
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
     padding: 2px 0;
@@ -205,14 +205,14 @@
     border: none;
     color: var(--potatno-color-accent);
     cursor: pointer;
-    font-family: var(--pn-font-family);
-    font-size: var(--pn-font-size-sm);
+    font-family: var(--potatno-font-family);
+    font-size: var(--potatno-font-size-small);
     padding: 3px 8px;
     text-align: left;
 }
 
 .preview-port-item:hover {
-    background: var(--pn-bg-surface);
+    background: var(--potatno-color-background-light);
 }
 
 .preview-port-item.active {
@@ -226,12 +226,12 @@
 }
 
 .preview-style-select {
-    background: var(--pn-bg-surface);
-    border: 1px solid var(--pn-border-default);
+    background: var(--potatno-color-background-light);
+    border: 1px solid var(--potatno-color-border);
     border-radius: 3px;
-    color: var(--pn-text-secondary);
-    font-family: var(--pn-font-family);
-    font-size: var(--pn-font-size-sm);
+    color: var(--potatno-color-text);
+    font-family: var(--potatno-font-family);
+    font-size: var(--potatno-font-size-small);
     padding: 0 2px;
 }
 
@@ -250,7 +250,7 @@
 }
 
 .node-comment.selected {
-    border-color: var(--pn-node-border-selected);
+    border-color: var(--potatno-color-accent);
 }
 
 .comment-header {
@@ -281,9 +281,9 @@
     min-height: 32px;
     background: transparent;
     border: none;
-    color: var(--pn-text-secondary);
-    font-family: var(--pn-font-family);
-    font-size: var(--pn-font-size-sm);
+    color: var(--potatno-color-text);
+    font-family: var(--potatno-font-family);
+    font-size: var(--potatno-font-size-small);
     resize: none;
     outline: none;
     box-sizing: border-box;
@@ -317,7 +317,7 @@
 /* ── Node inline preview ── */
 
 .node-preview {
-    background: var(--pn-bg-secondary);
+    background: var(--potatno-color-background-dark);
     overflow: hidden;
 }
 
@@ -327,7 +327,7 @@
 
 .node-preview:not(:empty) {
     padding: 6px;
-    border-top: 1px solid var(--pn-node-border);
+    border-top: 1px solid var(--potatno-color-border);
 }
 
 /* ── Reroute node ── */
@@ -341,7 +341,7 @@
 }
 
 .node-reroute.selected .reroute-dot {
-    box-shadow: 0 0 0 2px var(--pn-node-border-selected);
+    box-shadow: 0 0 0 2px var(--potatno-color-accent);
 }
 
 .reroute-dot {

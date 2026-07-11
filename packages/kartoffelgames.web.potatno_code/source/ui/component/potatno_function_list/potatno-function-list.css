@@ -10,19 +10,9 @@
     overflow-y: auto;
     overflow-x: hidden;
     padding: 4px 0;
-}
 
-.function-list-content::-webkit-scrollbar {
-    width: 6px;
-}
-
-.function-list-content::-webkit-scrollbar-track {
-    background: var(--pn-scrollbar-track);
-}
-
-.function-list-content::-webkit-scrollbar-thumb {
-    background: var(--pn-scrollbar-thumb);
-    border-radius: 3px;
+    scrollbar-color: var(--potatno-color-scrollbar-thumb) var(--potatno-color-scrollbar-track);
+    scrollbar-width: thin;
 }
 
 .function-entry {
@@ -32,8 +22,8 @@
     padding: 6px 12px;
     cursor: pointer;
     user-select: none;
-    font-family: var(--pn-font-family);
-    font-size: var(--pn-font-size);
+    font-family: var(--potatno-font-family);
+    font-size: var(--potatno-font-size);
     color: var(--potatno-color-accent);
     background: transparent;
     border: none;
@@ -44,17 +34,17 @@
 }
 
 .function-entry:hover {
-    background: var(--pn-bg-elevated);
+    background: var(--potatno-color-background-light);
 }
 
 .function-entry.active {
-    background: var(--pn-bg-surface);
+    background: var(--potatno-color-background-light);
     border-left: 2px solid var(--potatno-color-accent);
     padding-left: 10px;
 }
 
 .function-icon {
-    font-size: var(--pn-font-size);
+    font-size: var(--potatno-font-size);
     color: var(--pn-cat-function);
     flex-shrink: 0;
     width: 16px;
@@ -62,7 +52,7 @@
 }
 
 .lock-icon {
-    font-size: var(--pn-font-size-sm);
+    font-size: var(--potatno-font-size-small);
     color: var(--pn-text-muted);
     flex-shrink: 0;
     width: 14px;
@@ -86,7 +76,7 @@
     border: none;
     border-radius: 3px;
     color: var(--pn-text-muted);
-    font-size: var(--pn-font-size-sm);
+    font-size: var(--potatno-font-size-small);
     cursor: pointer;
     flex-shrink: 0;
     transition: background 0.1s, color 0.1s;
@@ -96,13 +86,13 @@
 
 .delete-button:hover {
     background: var(--potatno-color-error);
-    color: var(--pn-text-primary);
+    color: var(--potatno-color-text);
 }
 
 .add-button-wrapper {
     flex-shrink: 0;
     padding: 8px;
-    border-top: 1px solid var(--pn-border-default);
+    border-top: 1px solid var(--potatno-color-border);
     position: relative;
 }
 
@@ -114,24 +104,24 @@
     box-sizing: border-box;
     width: 100%;
     padding: 6px 12px;
-    background: var(--pn-bg-surface);
-    border: 1px dashed var(--pn-border-default);
+    background: var(--potatno-color-background-light);
+    border: 1px dashed var(--potatno-color-border);
     border-radius: 4px;
-    color: var(--pn-text-secondary);
-    font-family: var(--pn-font-family);
-    font-size: var(--pn-font-size);
+    color: var(--potatno-color-text);
+    font-family: var(--potatno-font-family);
+    font-size: var(--potatno-font-size);
     cursor: pointer;
     transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
 .add-button:hover {
-    background: var(--pn-bg-elevated);
+    background: var(--potatno-color-background-light);
     border-color: var(--potatno-color-accent);
     color: var(--potatno-color-accent);
 }
 
 .add-icon {
-    font-size: var(--pn-font-size-lg);
+    font-size: var(--potatno-font-size-big);
     font-weight: bold;
 }
 
@@ -150,8 +140,8 @@
     left: 8px;
     right: 8px;
     margin-bottom: 4px;
-    background: var(--pn-bg-surface);
-    border: 1px solid var(--pn-border-default);
+    background: var(--potatno-color-background-light);
+    border: 1px solid var(--potatno-color-border);
     border-radius: 6px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
     z-index: 100;
@@ -160,10 +150,10 @@
 
 .popup-header {
     padding: 8px 12px;
-    font-family: var(--pn-font-family);
-    font-size: var(--pn-font-size-sm);
+    font-family: var(--potatno-font-family);
+    font-size: var(--potatno-font-size-small);
     color: var(--pn-text-muted);
-    border-bottom: 1px solid var(--pn-border-default);
+    border-bottom: 1px solid var(--potatno-color-border);
     user-select: none;
 }
 
@@ -175,14 +165,14 @@
     padding: 8px 12px;
     background: transparent;
     border: none;
-    color: var(--pn-text-primary);
-    font-family: var(--pn-font-family);
-    font-size: var(--pn-font-size);
+    color: var(--potatno-color-text);
+    font-family: var(--potatno-font-family);
+    font-size: var(--potatno-font-size);
     cursor: pointer;
     transition: background 0.1s;
     text-align: left;
 }
 
 .popup-item:hover {
-    background: var(--pn-bg-elevated);
+    background: var(--potatno-color-background-light);
 }

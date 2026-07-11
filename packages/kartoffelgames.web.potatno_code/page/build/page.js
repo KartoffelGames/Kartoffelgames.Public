@@ -19,45 +19,38 @@ potatno-code-editor {\r
 }`;var Jt=class{mProject;constructor(t){this.mProject=t}deserialize(t){let e=new Nt(this.mProject);for(let o of t.functions)e.addFunction(this.deserializeFunction(o,e));return e}deserializeFunction(t,e){let o=new bt(this.mProject,e,{definitionId:t.definitionId,id:t.id,label:t.label,isSystem:t.isSystem});for(let m of t.imports)o.addImport(m);for(let m of t.inputs)o.addInput({label:m.label,dataType:m.dataType});for(let m of t.outputs)o.addOutput({label:m.label,dataType:m.dataType});let l=new Map;for(let m of t.nodes)l.set(m.id,this.deserializeNode(m,o,e));for(let m of t.connections){if(!l.has(m.sourceNodeId)||!l.has(m.targetNodeId))continue;let v=l.get(m.sourceNodeId),y=l.get(m.targetNodeId),D=v.outputs.map.get(m.sourcePortId),S=y.inputs.map.get(m.targetPortId);!D||!S||D.connect(S)}return o}deserializeNode(t,e,o){let l=o.nodeDefinitions.find(v=>v.id===t.definitionId),m=(()=>{if(l)return e.addNodeByDefinition(l,t.transformation);let v=t.ports.filter(D=>D.direction==="input").map(D=>({dataType:D.dataType,definitionId:D.definitionId,label:D.label,portType:D.portType})),y=t.ports.filter(D=>D.direction==="output").map(D=>({dataType:D.dataType,definitionId:D.definitionId,label:D.label,portType:D.portType}));return new Dt(this.mProject,o,e,{definitionId:t.definitionId,ports:{input:v,output:y},label:t.label,transformation:{...t.transformation}})})();m.label=t.label,e.addNode(m);for(let v of t.ports)if(v.portType==="value"&&v.directValue.length>0){let y=m.inputs.map.get(v.definitionId);y&&y.setDirectValue(v.directValue)}return m.preview=t.preview??null,m}};var Kt=class{constructor(){}serialize(t){return{functions:[...t.functions].map(e=>this.serializeFunction(e))}}serializeFunction(t){let e=new Map;[...t.nodes].forEach((y,D)=>{e.set(y,`n${D}`)});let o=[...t.nodes].map(y=>this.serializeNode(y,e.get(y))),l=[];for(let y of t.nodes){let D=e.get(y);for(let S of y.outputs.list)for(let c of S.connectedPorts){let n=e.get(c.node);l.push({sourceNodeId:D,sourcePortId:S.definitionId,targetNodeId:n,targetPortId:c.definitionId})}}let m=t.inputs.map(y=>({label:y.label,dataType:y.dataType})),v=t.outputs.map(y=>({label:y.label,dataType:y.dataType}));return{id:t.id,label:t.label,isSystem:t.isSystem,definitionId:t.definitionId,inputs:m,outputs:v,imports:[...t.imports],nodes:o,connections:l}}serializeNode(t,e){let o=[...t.inputs.list,...t.outputs.list].map(m=>({definitionId:m.definitionId,label:m.label,direction:m.direction,portType:m.portType,dataType:m.portType==="value"?m.dataType:null,directValue:[...m.directValue]})),l=t.preview?structuredClone(t.preview):null;return{id:e,definitionId:t.definitionId,label:t.label,transformation:{...t.transformation},ports:o,preview:l}}};var co=`:host {\r
     /* Globals */\r
     --potatno-grid-size: 25px;\r
-    --potatno-font-size: 12px;\r
+    \r
+    /* Font */\r
+    --potatno-font-size: 0.75rem;\r
+    --potatno-font-size-big: 0.8rem;\r
+    --potatno-font-size-small: 0.7rem;\r
+    --potatno-font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;\r
 \r
     /* Main colors */\r
     --potatno-color-background: #1e1e2e;\r
+    --potatno-color-background-dark: #181825;\r
+    --potatno-color-background-light: #2a2a3c;\r
     --potatno-color-text: #a6adc8;\r
     --potatno-color-accent: #89b4fa;\r
+    --potatno-color-border: #45475a;\r
 \r
     /* Supporting colors */\r
     --potatno-color-error: #f38ba8;\r
+    --potatno-color-shadow: rgba(0, 0, 0, 0.3);\r
+\r
+    /* Scrollbar */\r
+    --potatno-color-scrollbar-thumb: #45475a;\r
+    --potatno-color-scrollbar-track: transparent;\r
 \r
 \r
 \r
 \r
-\r
-\r
-    /* Background */\r
-    --pn-bg-primary: #1e1e2e;\r
-    --pn-bg-secondary: #181825;\r
-    --pn-bg-surface: #252536;\r
-    --pn-bg-elevated: #2a2a3c;\r
 \r
     /* Text */\r
-    --pn-text-primary: #cdd6f4;\r
-    --pn-text-secondary: #a6adc8;\r
     --pn-text-muted: #6c7086;\r
 \r
-    /* Borders */\r
-    --pn-border-default: #45475a;\r
-    --pn-border-active: #89b4fa;\r
-\r
     /* Node category colors */\r
-    --pn-cat-input: #a6e3a1;\r
-    --pn-cat-output: #f38ba8;\r
-    --pn-cat-value: #f9e2af;\r
-    --pn-cat-function: #89b4fa;\r
-    --pn-cat-flow: #cba6f7;\r
     --pn-cat-comment: #6c7086;\r
-    --pn-cat-operator: #fab387;\r
-    --pn-cat-type-conversion: #74c7ec;\r
 \r
     /* Canvas */\r
     --pn-grid-color: #313244;\r
@@ -72,34 +65,20 @@ potatno-code-editor {\r
     --pn-panel-min-width: 200px;\r
     --pn-panel-max-width: 500px;\r
 \r
-    /* Scrollbar */\r
-    --pn-scrollbar-thumb: #45475a;\r
-    --pn-scrollbar-track: transparent;\r
-\r
     /* Node */\r
-    --pn-node-border: #45475a;\r
-    --pn-node-border-selected: #89b4fa;\r
-    --pn-node-shadow: rgba(0, 0, 0, 0.3);\r
     --pn-node-button-font-size: 9px;\r
-    --pn-node-font-size: var(--pn-font-size-sm);\r
+    --pn-node-font-size: var(--potatno-font-size-small);\r
     --pn-node-header-height: var(--pn-grid-size);\r
     --pn-node-port-body-size: 9px;\r
     --pn-node-port-gap: var(--pn-grid-size);\r
     --pn-node-port-tip-size: 5px;\r
-\r
-    /* Font */\r
-    --pn-font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;\r
-    --pn-font-mono: 'Cascadia Code', 'Fira Code', 'Consolas', monospace;\r
-    --pn-font-size-sm: 11px;\r
-    --pn-font-size: 13px;\r
-    --pn-font-size-lg: 14px;\r
 }`;var Qt=class{mCodeGenerator;mId;mLabel;mNodesProvider;mStatics;get codeGenerator(){return this.mCodeGenerator}get id(){return this.mId}get label(){return this.mLabel}get statics(){return this.mStatics}constructor(t){this.mId=t.id,this.mLabel=t.label,this.mNodesProvider=t.nodes,this.mStatics=t.statics,this.mCodeGenerator=t.generator.code}getNodeDefinitions(t){let e=l=>{if(!l)return new Array;let m=new Array;return l(v=>{m.push(v)},t),m},o={};return Object.defineProperty(o,"entry",{get:()=>e(this.mNodesProvider.entry)}),Object.defineProperty(o,"exit",{get:()=>e(this.mNodesProvider.exit)}),Object.defineProperty(o,"dynamic",{get:()=>e(this.mNodesProvider.dynamic)}),o}},nt={none:0,imports:1,inputs:2,outputs:4};var _e=class f{static PASTE_OFFSET=2;mClipboardNodes;mManager;constructor(t){this.mManager=t,this.mClipboardNodes=new Array}copy(t){if(t.size===0)return;let e=[...t],o=new Map;for(let l=0;l<e.length;l++){let m=e[l],v=m.inputs.value.map(D=>({definitionId:D.definitionId,values:[...D.directValue]})),y={...m.transformation};y.x+=f.PASTE_OFFSET,y.y+=f.PASTE_OFFSET,o.set(m,{connections:new Array,definitionId:m.definitionId,id:l,portDirectValues:v,label:m.label,transformation:y})}for(let[l,m]of o)for(let v of l.outputs.list)for(let y of v.connectedPorts){let D=o.get(y.node);D&&m.connections.push({sourcePortName:v.definitionId,targetNodeId:D.id,targetPortName:y.definitionId})}this.mClipboardNodes=[...o.values()]}paste(){if(this.mClipboardNodes.length===0)return new Array;let t=this.mManager.activeFunction;if(!t)return[];let e=new Map;for(let o of this.mClipboardNodes){let l=t.dynamicNodeDefinitions.find(v=>v.id===o.definitionId);if(!l)continue;let m=this.mManager.graph.addNode(t,l,o.transformation);this.mManager.graph.updateNode(m,v=>{v.label=o.label;for(let y of o.portDirectValues)v.inputs.map.has(y.definitionId)&&v.inputs.map.get(y.definitionId).setDirectValue(y.values)}),e.set(o.id,m)}for(let o of this.mClipboardNodes){let l=e.get(o.id);if(l)for(let m of o.connections){let v=e.get(m.targetNodeId);if(!v)continue;let y=l.outputs.map.get(m.sourcePortName),D=v.inputs.map.get(m.targetPortName);!y||!D||this.mManager.graph.connectPorts(y,D)}}return[...e.values()]}};var ze=class extends ie{mGridNodeArea;mGridPaths;mNodeArea;mPathArea;constructor(){super(),this.mGridNodeArea=new WeakMap,this.mNodeArea=new Map,this.mGridPaths=new WeakMap,this.mPathArea=new Map}clear(t){t==="all"&&this.mNodeArea.clear(),this.mPathArea.clear()}getPath(t,e){let o=t.direction==="input"&&t.portType==="value"||t.direction==="output"&&t.portType==="flow"?t:e;return this.mGridPaths.get(o)??new Array}removeNodeArea(t){if(!this.mGridNodeArea.has(t))return;let e=this.mGridNodeArea.get(t);for(let o of e){let l=(this.mNodeArea.get(o)??0)-1;l<1?this.mNodeArea.delete(o):this.mNodeArea.set(o,l)}this.mGridNodeArea.delete(t)}updateNodeArea(t){this.removeNodeArea(t);let e=t.transformation.x,o=t.transformation.y,l=t.transformation.width,m=t.transformation.height,v=new Array;for(let y=0;y<l;y++)for(let D=0;D<m;D++){let S=`${y+e}|${D+o}`,c=(this.mNodeArea.get(S)??0)+1;this.mNodeArea.set(S,c),v.push(S)}this.mGridNodeArea.set(t,v)}updatePath(t,e,o){if(t.direction==="input"&&t.portType!=="value"||t.direction==="output"&&t.portType!=="flow")throw new A("Start port must be an input-value or an output-flow node.",this);this.removePathArea(t);let l=this.start(e,o);this.mGridPaths.set(t,l.path);let m=this.nodeId(e),v=this.nodeId(o);for(let y of l.path){let D=this.nodeId(y),S=this.mPathArea.has(D)?this.mPathArea.get(D):{ports:new Map,entryPoints:new Set};S.ports.set(t,[m,v]),S.entryPoints.add(m),S.entryPoints.add(v),this.mPathArea.set(D,S)}}costOfTraversal(t,e){let o=this.nodeId(t),l=1;this.mNodeArea.has(o)&&t!==e.endNode&&(l*=20);let m=e.path.next().value;if(this.mPathArea.has(o)){let c=this.mPathArea.get(o),n=this.nodeId(e.startNode),u=this.nodeId(e.endNode);if(c.entryPoints.has(n)||c.entryPoints.has(u))l*=.2;else if(l*=5,m){let a=this.nodeId(m);this.mPathArea.has(a)&&(l*=20)}}if(m){let c=t.y===m.y;(t===e.endNode||m===e.startNode)&&!c&&(l*=100);let n=e.path.next().value;n&&(t.x===n.x||t.y===n.y)&&(l*=.7)}let v=Math.abs(t.x-e.startNode.x),y=Math.abs(t.x-e.endNode.x),D=v<=y;(D&&t.y===e.startNode.y||!D&&t.y===e.endNode.y)&&(l*=.5);let S=e.endNode.x+e.startNode.x>>1;return t.x===S&&(l*=.5),l}heuristic(t,e){return(Math.abs(t.x-e.endNode.x)+Math.abs(t.y-e.endNode.y))*.5}neighborNodes(t){return[{x:t.x,y:t.y-1},{x:t.x-1,y:t.y},{x:t.x+1,y:t.y},{x:t.x,y:t.y+1}]}nodeId(t){return`${t.x}|${t.y}`}removePathArea(t){if(!this.mGridPaths.has(t))return;let e=this.mGridPaths.get(t);for(let o of e){let l=this.nodeId(o),m=this.mPathArea.get(l);if(!m)continue;let v=m.ports.get(t);v&&(m.ports.delete(t),m.entryPoints.delete(v[0]),m.entryPoints.delete(v[1]),m.ports.size===0?this.mPathArea.delete(l):this.mPathArea.set(l,m))}this.mGridPaths.delete(t)}};var je=class{mGridElement;mManager;mPathFinder;set gridElement(t){this.mGridElement=t}constructor(t){this.mManager=t,this.mGridElement=null,this.mPathFinder=new ze,this.mManager.subscribe(F.Node|F.SpecialActiveFunction,e=>{if((e.changeType&F.SpecialActiveFunction)>0){if(!this.mManager.activeFunction)return;this.mPathFinder.clear("all");for(let o of this.mManager.activeFunction.nodes)this.mPathFinder.updateNodeArea(o);this.updatePaths();return}(e.changeType&F.Node)>0&&((e.changeType&F.NodeDelete)>0?this.mPathFinder.removeNodeArea(e.item):this.mPathFinder.updateNodeArea(e.item)),this.updatePaths()}),this.mManager.subscribe(F.Connection,()=>{this.updatePaths()})}createTemporaryPath(t,e){let o=y=>y instanceof ht?this.getPortGridPoint(y):y,l=o(t),m=o(e),v=this.mPathFinder.start(l,m).path;return this.createSvgPath(v)}getConnectionPath(t,e){let o=this.mPathFinder.getPath(t,e);return this.createSvgPath(o)}getPortGridPoint(t){let e=t.node,o=t.direction==="input"?e.inputs.list:e.outputs.list,l=(()=>{let v=0;for(;v<o.length&&o[v]!==t;v++);return v})(),m=t.direction==="input"?e.transformation.x:e.transformation.x+e.transformation.width-1;return{y:e.transformation.y+1+l,x:m}}pixelToGridSpace(t,e){let o=t,l=e;if(this.mGridElement){let m=this.mGridElement.getBoundingClientRect();o-=m.left,l-=m.top}return o-=this.mManager.grid.panX,l-=this.mManager.grid.panY,o/=this.mManager.grid.zoom,l/=this.mManager.grid.zoom,{x:Math.floor(o/this.mManager.grid.gridSize),y:Math.floor(l/this.mManager.grid.gridSize)}}createGridCellPath(t,e,o){let l=this.getGridPosition(t,e),m=this.getGridPosition(t,o),v={x:e==="bottom"||e==="top"?l.x:m.x,y:e==="left"||e==="right"?l.y:m.y};return`M ${l.x},${l.y} Q ${v.x},${v.y} ${m.x},${m.y}`}createPath(t,e){let[o,l]=t.direction==="input"&&t.portType==="value"||t.direction==="output"&&t.portType==="flow"?[t,e]:[e,t],m=this.getPortGridPoint(o),v=this.getPortGridPoint(l);this.mPathFinder.updatePath(o,m,v)}createSvgPath(t){let e=(l,m)=>{let v=m.x-l.x,y=m.y-l.y;switch(!0){case(v===0&&y===1):return"bottom";case(v===0&&y===-1):return"top";case(v===-1&&y===0):return"left";case(v===1&&y===0):return"right";default:throw new A("Missformed path. Path points are not directly next to each other.",this)}},o="";for(let l=1;l<t.length-1;l++){let m=t[l],v=t[l-1],y=t[l+1],D=e(m,v),S=e(m,y);o+=this.createGridCellPath(m,D,S)}return o}getGridPosition(t,e){let o={x:t.x*this.mManager.grid.gridSize+this.mManager.grid.gridSize/2,y:t.y*this.mManager.grid.gridSize+this.mManager.grid.gridSize/2},l=this.mManager.grid.gridSize/2;switch(e){case"top":o.y-=l;break;case"right":o.x+=l;break;case"bottom":o.y+=l;break;case"left":o.x-=l;break}return o}updatePaths(){this.mPathFinder.clear("path");let t=this.mManager.activeFunction;if(t)for(let e of t.nodes){for(let o of e.outputs.flow){let l=o.connectedPorts.values().next().value;l&&this.createPath(o,l)}for(let o of e.inputs.value){let l=o.connectedPorts.values().next().value;l&&this.createPath(o,l)}}}};var Ve=class{mDocument;mManager;get document(){return this.mDocument}constructor(t){this.mManager=t,this.mDocument=null}addFunction(t){let e=this.mDocument,o=this.mManager.project;if(!e||!o||!o.userFunctions.has(t))return;let l=new bt(o,e,{definitionId:t,id:crypto.randomUUID(),isSystem:!1,label:`Function ${e.functions.length}`});e.addFunction(l),e.validate(),this.mManager.dispatch(F.FunctionAdd,l),this.mManager.setActiveFunction(l)}addNode(t,e,o){let l=t.addNodeByDefinition(e,o);return this.mManager.dispatch(F.NodeAdd,l),l}connectPorts(t,e){try{t.connect(e)}catch{return!1}return this.mManager.dispatch(F.ConnectionAdd,t),this.mManager.dispatch(F.ConnectionAdd,e),!0}disconnectPorts(t,e){t.disconnect(e),this.mManager.dispatch(F.ConnectionDelete,t),this.mManager.dispatch(F.ConnectionDelete,e)}removeFunction(t){let e=this.mDocument;if(!e)return;let o=null;for(let l of e.functions)if(l.id===t){o=l,e.removeFunction(l);break}o&&(this.mManager.dispatch(F.FunctionDelete,o),this.setDefaultActiveFunction())}removeNode(t){t.function.removeNode(t),this.mManager.dispatch(F.NodeDelete,t)}setDocument(t){this.mDocument=t,this.mDocument.validate(),this.mManager.dispatch(F.Document,this.mDocument),this.setDefaultActiveFunction()}setPortDirectValue(t,e){t.setDirectValue(e),this.mManager.dispatch(F.NodeUpdate,t.node)}transformNode(t,e){let o={x:t.transformation.x,y:t.transformation.y,width:t.transformation.width,height:t.transformation.height,...e};t.moveTo(o.x,o.y),t.resizeTo(o.width,o.height),this.mManager.dispatch(F.NodeTransform,t)}updateNode(t,e){t&&(e(t),this.mManager.dispatch(F.NodeUpdate,t))}setDefaultActiveFunction(){if(!this.mDocument||this.mDocument.functions.length===0)return;let t=(()=>{let e=[...this.mDocument.functions];if(!this.mManager.activeFunction)return e[0];let o=e.find(l=>{l.id,this.mManager.activeFunction.id});return o||e[0]})();this.mManager.activeFunction!==t&&this.mManager.setActiveFunction(t)}};var $e=class f{static GRID_SIZE=25;static MAX_ZOOM=2;static MIN_ZOOM=.25;mPanX;mPanY;mZoom;get gridSize(){return f.GRID_SIZE}get panX(){return this.mPanX}get panY(){return this.mPanY}get zoom(){return this.mZoom}constructor(){this.mPanX=0,this.mPanY=0,this.mZoom=1}getGridBackgroundCss(){let t=f.GRID_SIZE*this.mZoom,e=this.mPanX%t,o=this.mPanY%t;return[`background-size: ${t}px ${t}px`,`background-position: ${e}px ${o}px`,'background-image: url("data:image/svg+xml,%3Csvg xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22 viewBox%3D%220 0 100 100%22%3E%3Cpath d%3D%22M0 0h18M0 0v18M100 0H82M100 0v18M0 100h18M0 100V82M100 100H82M100 100V82%22 stroke%3D%22%23313244%22 stroke-width%3D%225%22 stroke-linecap%3D%22round%22%2F%3E%3C%2Fsvg%3E")'].join("; ")}getTransformCss(){return`translate(${this.mPanX}px, ${this.mPanY}px) scale(${this.mZoom})`}pan(t,e){this.mPanX+=t,this.mPanY+=e}screenToWorld(t,e){return{x:(t-this.mPanX)/this.mZoom,y:(e-this.mPanY)/this.mZoom}}snapToGrid(t,e){return{x:Math.round(t/f.GRID_SIZE)*f.GRID_SIZE,y:Math.round(e/f.GRID_SIZE)*f.GRID_SIZE}}zoomAt(t,e,o){let l=this.mZoom,m=1+o,v=this.mZoom*m;v=Math.max(f.MIN_ZOOM,Math.min(f.MAX_ZOOM,v));let y=(t-this.mPanX)/l,D=(e-this.mPanY)/l;this.mZoom=v,this.mPanX=t-y*this.mZoom,this.mPanY=e-D*this.mZoom}};var Ge=class f{static MAX_HISTORY_ITEMS=100;mManager;mSnapshotIndex;mSnapshots;get canRedo(){return this.mSnapshotIndex<this.mSnapshots.length-1}get canUndo(){return this.mSnapshotIndex>0}constructor(t){this.mManager=t,this.mSnapshotIndex=-1,this.mSnapshots=new Array;let e=0;this.mManager.subscribe(F.Any,()=>{globalThis.clearTimeout(e),e=globalThis.setTimeout(()=>{this.pushHistory()},1e3)})}clear(){this.mSnapshots.length=0,this.mSnapshotIndex=-1}redo(){if(!this.canRedo)return;let t=this.mSnapshots[++this.mSnapshotIndex],e=JSON.parse(t);this.restoreHistory(e)}undo(){if(!this.canUndo)return;let t=this.mSnapshots[--this.mSnapshotIndex],e=JSON.parse(t);this.restoreHistory(e)}pushHistory(){let t=this.mManager.graph.document;if(!t)return;this.mSnapshots.splice(this.mSnapshotIndex+1);let e=new Kt().serialize(t),o=JSON.stringify(e);this.mSnapshots.length>0&&this.mSnapshots.at(-1)===o||(this.mSnapshotIndex=this.mSnapshots.push(o)-1,this.mSnapshots.length>f.MAX_HISTORY_ITEMS&&(this.mSnapshots.shift(),this.mSnapshotIndex--))}restoreHistory(t){let e=this.mManager.project;e&&this.mManager.graph.setDocument(new Jt(e).deserialize(t))}};var Be=class{mErrorItems;mErrorList;mIsDirty;mManager;get errorItems(){return this.mIsDirty&&this.revalidate(),this.mErrorItems}get errors(){return this.mIsDirty&&this.revalidate(),this.mErrorList}get isValid(){return this.mIsDirty&&this.revalidate(),this.mErrorItems.size===0}constructor(t){this.mManager=t,this.mErrorList=new Array,this.mErrorItems=new Set,this.mIsDirty=!0;let e=0;this.mManager.subscribe(F.Any,()=>{this.mIsDirty=!0,globalThis.clearTimeout(e),e=globalThis.setTimeout(()=>{this.mIsDirty&&(this.revalidate(),this.mIsDirty=!1)},1e3)})}revalidate(){if(!this.mManager.graph.document)return;this.mErrorList.splice(0,this.mErrorList.length),this.mErrorItems.clear();let t=this.mManager.graph.document.validate();for(let e of t.errors)switch(this.mErrorItems.add(e.item),!0){case e.item instanceof ht:{this.mErrorList.push({location:`Node "${e.item.node.label}"`,message:e.message});break}case e.item instanceof Dt:{this.mErrorList.push({location:`Node "${e.item.label}"`,message:e.message});break}}for(let e of t.affectedItems)switch(!0){case e instanceof ht:{this.mManager.dispatch(F.PortAdd|F.PortUpdate,e);break}case e instanceof Dt:{this.mManager.dispatch(F.NodeAdd|F.NodeUpdate|F.NodeTransform,e);break}case e instanceof bt:{this.mManager.dispatch(F.FunctionAdd|F.FunctionUpdate,e);break}}}};var Ue=class{mDriverActivity;mDriverElements;mDriverList;mDrivers;mElementDriver;mManager;mPreviewIntersection;constructor(t){this.mManager=t,this.mDriverList=new Array,this.mDrivers=new WeakMap,this.mDriverActivity=new WeakMap,this.mDriverElements=new WeakMap,this.mElementDriver=new WeakMap,this.mManager.subscribe(F.Document,()=>{this.mDriverList.splice(0,this.mDriverList.length)});let e=0,o=F.Connection|F.Function|F.Node;this.mManager.subscribe(o,()=>{globalThis.clearTimeout(e),e=globalThis.setTimeout(()=>this.refresh(),1e3)}),this.mPreviewIntersection=new IntersectionObserver(l=>{for(let m of l){let v=this.mElementDriver.get(m.target);if(!v)continue;let y=v.deref();y&&this.mDriverActivity.set(y,m.isIntersecting)}})}async execute(){let t=this.mDriverList.map(async e=>{let o=e.deref();if(o&&this.mDriverActivity.get(o))try{await o.execute()}catch(l){console.error("[PotatnoUiManagerPreview] Driver render failed:",l)}});await Promise.all(t)}refresh(){if(this.mManager.integrity.isValid)for(let t=this.mDriverList.length-1;t>=0;t--){let e=this.mDriverList[t].deref();if(!e){this.unregister(this.mDriverList[t]);continue}e.refresh()}}requestDriver(t,e){let o=this.mDrivers.get(t);if(o&&o.display.id===e)return o;if(!this.mManager.project)return null;let l=this.mManager.project.preview.getDisplay(e);if(!l)throw new A(`Preview has no display for "${e}".`,this);let m=l.createDriver(t);return this.register(t,m),this.mManager.integrity.isValid&&m.refresh(),m}register(t,e){this.mDrivers.set(t,e);let o=new WeakRef(e);this.mDriverList.push(o);let l=e.element;this.mDriverElements.set(o,l),this.mElementDriver.set(l,o),this.mPreviewIntersection.observe(l)}unregister(t){let e=this.mDriverList.indexOf(t);if(e===-1)return;this.mDriverList.splice(e,1);let o=this.mDriverElements.get(t);o&&this.mPreviewIntersection.unobserve(o)}};function Ki(){function f(c,n){return function(a){e(n,"addInitializer"),o(a,"An initializer"),c.push(a)}}function t(c,n,u,a,r,b,g,T,w){var p;switch(r){case 1:p="accessor";break;case 2:p="method";break;case 3:p="getter";break;case 4:p="setter";break;default:p="field"}var s={kind:p,name:g?"#"+n:n,static:b,private:g,metadata:T},d={v:!1};s.addInitializer=f(a,d);var i,h;r===0?g?(i=u.get,h=u.set):(i=function(){return this[n]},h=function(x){this[n]=x}):r===2?i=function(){return u.value}:((r===1||r===3)&&(i=function(){return u.get.call(this)}),(r===1||r===4)&&(h=function(x){u.set.call(this,x)})),s.access=i&&h?{get:i,set:h}:i?{get:i}:{set:h};try{return c(w,s)}finally{d.v=!0}}function e(c,n){if(c.v)throw new Error("attempted to call "+n+" after decoration was finished")}function o(c,n){if(typeof c!="function")throw new TypeError(n+" must be a function")}function l(c,n){var u=typeof n;if(c===1){if(u!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&o(n.get,"accessor.get"),n.set!==void 0&&o(n.set,"accessor.set"),n.init!==void 0&&o(n.init,"accessor.init")}else if(u!=="function"){var a;throw c===0?a="field":c===10?a="class":a="method",new TypeError(a+" decorators must return a function or void 0")}}function m(c,n,u,a,r,b,g,T,w){var p=u[0],s,d,i;g?r===0||r===1?s={get:u[3],set:u[4]}:r===3?s={get:u[3]}:r===4?s={set:u[3]}:s={value:u[3]}:r!==0&&(s=Object.getOwnPropertyDescriptor(n,a)),r===1?i={get:s.get,set:s.set}:r===2?i=s.value:r===3?i=s.get:r===4&&(i=s.set);var h,x,C;if(typeof p=="function")h=t(p,a,s,T,r,b,g,w,i),h!==void 0&&(l(r,h),r===0?d=h:r===1?(d=h.init,x=h.get||i.get,C=h.set||i.set,i={get:x,set:C}):i=h);else for(var P=p.length-1;P>=0;P--){var M=p[P];if(h=t(M,a,s,T,r,b,g,w,i),h!==void 0){l(r,h);var N;r===0?N=h:r===1?(N=h.init,x=h.get||i.get,C=h.set||i.set,i={get:x,set:C}):i=h,N!==void 0&&(d===void 0?d=N:typeof d=="function"?d=[d,N]:d.push(N))}}if(r===0||r===1){if(d===void 0)d=function(I,E){return E};else if(typeof d!="function"){var _=d;d=function(I,E){for(var L=E,R=0;R<_.length;R++)L=_[R].call(I,L);return L}}else{var j=d;d=function(I,E){return j.call(I,E)}}c.push(d)}r!==0&&(r===1?(s.get=i.get,s.set=i.set):r===2?s.value=i:r===3?s.get=i:r===4&&(s.set=i),g?r===1?(c.push(function(I,E){return i.get.call(I,E)}),c.push(function(I,E){return i.set.call(I,E)})):r===2?c.push(i):c.push(function(I,E){return i.call(I,E)}):Object.defineProperty(n,a,s))}function v(c,n,u){for(var a=[],r,b,g=new Map,T=new Map,w=0;w<n.length;w++){var p=n[w];if(Array.isArray(p)){var s=p[1],d=p[2],i=p.length>3,h=s>=5,x,C;if(h?(x=c,s=s-5,b=b||[],C=b):(x=c.prototype,r=r||[],C=r),s!==0&&!i){var P=h?T:g,M=P.get(d)||0;if(M===!0||M===3&&s!==4||M===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+d);!M&&s>2?P.set(d,s):P.set(d,!0)}m(a,x,p,d,s,h,i,C,u)}}return y(a,r),y(a,b),a}function y(c,n){n&&c.push(function(u){for(var a=0;a<n.length;a++)n[a].call(u);return u})}function D(c,n,u){if(n.length>0){for(var a=[],r=c,b=c.name,g=n.length-1;g>=0;g--){var T={v:!1};try{var w=n[g](r,{kind:"class",name:b,addInitializer:f(a,T),metadata:u})}finally{T.v=!0}w!==void 0&&(l(10,w),r=w)}return[S(r,u),function(){for(var p=0;p<a.length;p++)a[p].call(r)}]}}function S(c,n){return Object.defineProperty(c,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,u,a,r){if(r!==void 0)var b=r[Symbol.metadata||Symbol.for("Symbol.metadata")];var g=Object.create(b===void 0?null:b),T=v(n,u,g);return a.length||S(n,g),{e:T,get c(){return D(n,a,g)}}}}function fo(f,t,e,o){return(fo=Ki())(f,t,e,o)}var po,uo,ho,K;po=O.injectable("singleton");var mo=class extends(ho=EventTarget){static{({c:[K,uo]}=fo(this,[],[po],ho))}constructor(){super(),this.mClipboard=new _e(this),this.mIntegrity=new Be(this),this.mConnections=new je(this),this.mGraph=new Ve(this),this.mHistory=new Ge(this),this.mPreview=new Ue(this),this.mGrid=new $e,this.mProject=null,this.mActiveFunction=null,this.mEventBuffer=new Map,this.mEventBufferDispatchRequest=-1}mActiveFunction;mClipboard;mConnections;mEventBuffer;mEventBufferDispatchRequest;mGraph;mGrid;mHistory;mIntegrity;mPreview;mProject;get activeFunction(){return this.mActiveFunction}get clipboard(){return this.mClipboard}get connections(){return this.mConnections}get graph(){return this.mGraph}get grid(){return this.mGrid}get history(){return this.mHistory}get integrity(){return this.mIntegrity}get preview(){return this.mPreview}get project(){return this.mProject}dispatch(t,e){let o=this.mEventBuffer.get(e)??0;this.mEventBuffer.set(e,o|t),this.mEventBufferDispatchRequest!==-1&&globalThis.cancelAnimationFrame(this.mEventBufferDispatchRequest),this.mEventBufferDispatchRequest=requestAnimationFrame(()=>{this.mEventBufferDispatchRequest=-1;for(let[l,m]of this.mEventBuffer)this.dispatchEvent(new we(m,l));this.mEventBuffer.clear()})}generateStringColor(t){let e=(()=>{let l=0;for(let m=0;m<t.length;m++)l=t.charCodeAt(m)+((l<<5)-l);return l})();return`hsl(${Math.abs(e)*137.508%360}, 70%, 60%)`}initialize(t,e){this.mProject=t,this.mGraph.setDocument(e)}setActiveFunction(t){!this.mGraph.document||!this.mGraph.document.functions.find(o=>o===o)||(this.mActiveFunction=t,this.dispatch(F.SpecialActiveFunction,t))}subscribe(t,e){let o=l=>{t!==F.Any&&(l.changeType&t)===0||e(l)};return this.addEventListener(we.EVENT_TYPE,o),()=>{this.removeEventListener(we.EVENT_TYPE,o)}}updateFunctionProperties(t){let e=this.activeFunction;if(!e)return;let l=e.project.getFunction(e.definitionId)?.statics??nt.imports|nt.inputs|nt.outputs;if(t.name!==void 0&&(e.label=t.name),t.inputs!==void 0&&(l&nt.inputs)===0){for(let m of[...e.inputs])e.removeInput(m);for(let m of t.inputs)e.addInput({dataType:m.type,label:m.name})}if(t.outputs!==void 0&&(l&nt.outputs)===0){for(let m of[...e.outputs])e.removeOutput(m);for(let m of t.outputs)e.addOutput({dataType:m.type,label:m.name})}if(t.imports!==void 0&&(l&nt.imports)===0){let m=new Set(e.imports),v=new Set(t.imports);for(let y of[...e.imports])v.has(y)||e.removeImport(y);for(let y of t.imports)m.has(y)||e.addImport(y)}this.dispatch(F.FunctionUpdate,e)}static{uo()}},F={Any:16777215,Connection:15,ConnectionAdd:1,ConnectionUpdate:2,ConnectionDelete:4,Document:240,Function:3840,FunctionAdd:256,FunctionUpdate:512,FunctionDelete:1024,Node:61440,NodeAdd:4096,NodeUpdate:8192,NodeDelete:16384,NodeTransform:32768,Port:983040,PortAdd:65536,PortUpdate:131072,PortDelete:262144,Special:15728640,SpecialActiveFunction:1048576},we=class f extends Event{static EVENT_TYPE="PotatnoUiManagerChangeEvent";mChangeType;mEventItem;get changeType(){return this.mChangeType}get item(){return this.mEventItem}constructor(t,e){super(f.EVENT_TYPE),this.mChangeType=t,this.mEventItem=e}};var go=`:host {\r
     display: flex;\r
     width: 100%;\r
     height: 100%;\r
-    font-family: var(--pn-font-family);\r
-    color: var(--pn-text-primary);\r
-    background: var(--pn-bg-primary);\r
+    font-family: var(--potatno-font-family);\r
+    color: var(--potatno-color-text);\r
+    background: var(--potatno-color-background);\r
     overflow: hidden;\r
 }\r
 \r
@@ -114,8 +93,8 @@ potatno-code-editor {\r
     width: var(--pn-panel-width);\r
     min-width: var(--pn-panel-min-width);\r
     max-width: var(--pn-panel-max-width);\r
-    background: var(--pn-bg-secondary);\r
-    border-right: 1px solid var(--pn-border-default);\r
+    background: var(--potatno-color-background-dark);\r
+    border-right: 1px solid var(--potatno-color-border);\r
     display: flex;\r
     flex-direction: column;\r
     overflow: hidden;\r
@@ -178,8 +157,8 @@ potatno-node-graph {\r
     width: var(--pn-panel-width);\r
     min-width: var(--pn-panel-min-width);\r
     max-width: var(--pn-panel-max-width);\r
-    background: var(--pn-bg-secondary);\r
-    border-left: 1px solid var(--pn-border-default);\r
+    background: var(--potatno-color-background-dark);\r
+    border-left: 1px solid var(--potatno-color-border);\r
     display: flex;\r
     flex-direction: column;\r
     overflow: hidden;\r
@@ -216,19 +195,9 @@ potatno-node-graph {\r
     overflow-y: auto;\r
     overflow-x: hidden;\r
     padding: 4px 0;\r
-}\r
 \r
-.function-list-content::-webkit-scrollbar {\r
-    width: 6px;\r
-}\r
-\r
-.function-list-content::-webkit-scrollbar-track {\r
-    background: var(--pn-scrollbar-track);\r
-}\r
-\r
-.function-list-content::-webkit-scrollbar-thumb {\r
-    background: var(--pn-scrollbar-thumb);\r
-    border-radius: 3px;\r
+    scrollbar-color: var(--potatno-color-scrollbar-thumb) var(--potatno-color-scrollbar-track);\r
+    scrollbar-width: thin;\r
 }\r
 \r
 .function-entry {\r
@@ -238,8 +207,8 @@ potatno-node-graph {\r
     padding: 6px 12px;\r
     cursor: pointer;\r
     user-select: none;\r
-    font-family: var(--pn-font-family);\r
-    font-size: var(--pn-font-size);\r
+    font-family: var(--potatno-font-family);\r
+    font-size: var(--potatno-font-size);\r
     color: var(--potatno-color-accent);\r
     background: transparent;\r
     border: none;\r
@@ -250,17 +219,17 @@ potatno-node-graph {\r
 }\r
 \r
 .function-entry:hover {\r
-    background: var(--pn-bg-elevated);\r
+    background: var(--potatno-color-background-light);\r
 }\r
 \r
 .function-entry.active {\r
-    background: var(--pn-bg-surface);\r
+    background: var(--potatno-color-background-light);\r
     border-left: 2px solid var(--potatno-color-accent);\r
     padding-left: 10px;\r
 }\r
 \r
 .function-icon {\r
-    font-size: var(--pn-font-size);\r
+    font-size: var(--potatno-font-size);\r
     color: var(--pn-cat-function);\r
     flex-shrink: 0;\r
     width: 16px;\r
@@ -268,7 +237,7 @@ potatno-node-graph {\r
 }\r
 \r
 .lock-icon {\r
-    font-size: var(--pn-font-size-sm);\r
+    font-size: var(--potatno-font-size-small);\r
     color: var(--pn-text-muted);\r
     flex-shrink: 0;\r
     width: 14px;\r
@@ -292,7 +261,7 @@ potatno-node-graph {\r
     border: none;\r
     border-radius: 3px;\r
     color: var(--pn-text-muted);\r
-    font-size: var(--pn-font-size-sm);\r
+    font-size: var(--potatno-font-size-small);\r
     cursor: pointer;\r
     flex-shrink: 0;\r
     transition: background 0.1s, color 0.1s;\r
@@ -302,13 +271,13 @@ potatno-node-graph {\r
 \r
 .delete-button:hover {\r
     background: var(--potatno-color-error);\r
-    color: var(--pn-text-primary);\r
+    color: var(--potatno-color-text);\r
 }\r
 \r
 .add-button-wrapper {\r
     flex-shrink: 0;\r
     padding: 8px;\r
-    border-top: 1px solid var(--pn-border-default);\r
+    border-top: 1px solid var(--potatno-color-border);\r
     position: relative;\r
 }\r
 \r
@@ -320,24 +289,24 @@ potatno-node-graph {\r
     box-sizing: border-box;\r
     width: 100%;\r
     padding: 6px 12px;\r
-    background: var(--pn-bg-surface);\r
-    border: 1px dashed var(--pn-border-default);\r
+    background: var(--potatno-color-background-light);\r
+    border: 1px dashed var(--potatno-color-border);\r
     border-radius: 4px;\r
-    color: var(--pn-text-secondary);\r
-    font-family: var(--pn-font-family);\r
-    font-size: var(--pn-font-size);\r
+    color: var(--potatno-color-text);\r
+    font-family: var(--potatno-font-family);\r
+    font-size: var(--potatno-font-size);\r
     cursor: pointer;\r
     transition: background 0.15s, border-color 0.15s, color 0.15s;\r
 }\r
 \r
 .add-button:hover {\r
-    background: var(--pn-bg-elevated);\r
+    background: var(--potatno-color-background-light);\r
     border-color: var(--potatno-color-accent);\r
     color: var(--potatno-color-accent);\r
 }\r
 \r
 .add-icon {\r
-    font-size: var(--pn-font-size-lg);\r
+    font-size: var(--potatno-font-size-big);\r
     font-weight: bold;\r
 }\r
 \r
@@ -356,8 +325,8 @@ potatno-node-graph {\r
     left: 8px;\r
     right: 8px;\r
     margin-bottom: 4px;\r
-    background: var(--pn-bg-surface);\r
-    border: 1px solid var(--pn-border-default);\r
+    background: var(--potatno-color-background-light);\r
+    border: 1px solid var(--potatno-color-border);\r
     border-radius: 6px;\r
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);\r
     z-index: 100;\r
@@ -366,10 +335,10 @@ potatno-node-graph {\r
 \r
 .popup-header {\r
     padding: 8px 12px;\r
-    font-family: var(--pn-font-family);\r
-    font-size: var(--pn-font-size-sm);\r
+    font-family: var(--potatno-font-family);\r
+    font-size: var(--potatno-font-size-small);\r
     color: var(--pn-text-muted);\r
-    border-bottom: 1px solid var(--pn-border-default);\r
+    border-bottom: 1px solid var(--potatno-color-border);\r
     user-select: none;\r
 }\r
 \r
@@ -381,16 +350,16 @@ potatno-node-graph {\r
     padding: 8px 12px;\r
     background: transparent;\r
     border: none;\r
-    color: var(--pn-text-primary);\r
-    font-family: var(--pn-font-family);\r
-    font-size: var(--pn-font-size);\r
+    color: var(--potatno-color-text);\r
+    font-family: var(--potatno-font-family);\r
+    font-size: var(--potatno-font-size);\r
     cursor: pointer;\r
     transition: background 0.1s;\r
     text-align: left;\r
 }\r
 \r
 .popup-item:hover {\r
-    background: var(--pn-bg-elevated);\r
+    background: var(--potatno-color-background-light);\r
 }\r
 `;var bo=`<div class="function-list-content">\r
     $for(fn of this.functions) {\r
@@ -432,8 +401,8 @@ $if(this.hasUserFunctionDefinitions) {\r
 }
 
 .add-node-popup {
-    background: var(--pn-bg-secondary);
-    border: 1px solid var(--pn-border-default);
+    background: var(--potatno-color-background-dark);
+    border: 1px solid var(--potatno-color-border);
     border-radius: 6px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
     display: flex;
@@ -444,13 +413,13 @@ $if(this.hasUserFunctionDefinitions) {\r
 }
 
 .add-node-search {
-    background: var(--pn-bg-surface);
+    background: var(--potatno-color-background-light);
     border: none;
-    border-bottom: 1px solid var(--pn-border-default);
+    border-bottom: 1px solid var(--potatno-color-border);
     box-sizing: border-box;
     color: var(--potatno-color-accent);
-    font-family: var(--pn-font-family);
-    font-size: var(--pn-font-size);
+    font-family: var(--potatno-font-family);
+    font-size: var(--potatno-font-size);
     outline: none;
     padding: 8px 10px;
     width: 100%;
@@ -475,8 +444,8 @@ $if(this.hasUserFunctionDefinitions) {\r
     color: var(--potatno-color-accent);
     cursor: pointer;
     display: flex;
-    font-family: var(--pn-font-family);
-    font-size: var(--pn-font-size);
+    font-family: var(--potatno-font-family);
+    font-size: var(--potatno-font-size);
     gap: 8px;
     min-height: 28px;
     padding: 6px 10px;
@@ -486,7 +455,7 @@ $if(this.hasUserFunctionDefinitions) {\r
 
 .add-node-result:hover,
 .add-node-result.selected {
-    background: var(--pn-bg-elevated);
+    background: var(--potatno-color-background-light);
 }
 
 .add-node-result-border {
@@ -512,14 +481,14 @@ $if(this.hasUserFunctionDefinitions) {\r
 .add-node-result-category {
     color: var(--pn-text-muted);
     flex-shrink: 0;
-    font-size: var(--pn-font-size-sm);
+    font-size: var(--potatno-font-size-small);
     text-transform: capitalize;
 }
 
 .add-node-empty {
     color: var(--pn-text-muted);
-    font-family: var(--pn-font-family);
-    font-size: var(--pn-font-size-sm);
+    font-family: var(--potatno-font-family);
+    font-size: var(--potatno-font-size-small);
     padding: 14px 10px;
     text-align: center;
 }
@@ -688,10 +657,10 @@ $if(this.hasUserFunctionDefinitions) {\r
         width: 40px;\r
         border: 1px solid color-mix(in srgb, var(--potatno-port-color) 35%, transparent);\r
         border-radius: 2px;\r
-        color: var(--pn-text-primary);\r
+        color: var(--potatno-color-text);\r
         background: color-mix(in srgb, var(--potatno-port-color) 8%, var(--potatno-color-background));\r
         box-sizing: border-box;\r
-        font-size: var(--pn-font-size-sm);\r
+        font-size: var(--potatno-font-size-small);\r
         appearance: textfield;\r
 \r
         &:focus {\r
@@ -903,8 +872,8 @@ $if(this.hasUserFunctionDefinitions) {\r
     display: block;\r
     height: 100%;\r
     width: 100%;\r
-    font-family: var(--pn-font-family);\r
-    font-size: var(--pn-font-size);\r
+    font-family: var(--potatno-font-family);\r
+    font-size: var(--potatno-font-size);\r
 \r
     --node-border-radius: 2px;\r
 }\r
@@ -919,24 +888,24 @@ $if(this.hasUserFunctionDefinitions) {\r
     background: var(--potatno-color-background);\r
     \r
     border-radius: var(--node-border-radius);\r
-    box-shadow: 0 2px 8px var(--pn-node-shadow);\r
+    box-shadow: 0 2px 8px var(--potatno-color-shadow);\r
     overflow: visible;\r
     user-select: none;\r
 \r
     /* Add border and adjust global position for it. */\r
-    border: 1px solid var(--pn-node-border);\r
+    border: 1px solid var(--potatno-color-border);\r
     transform: translate(-1px, -1px);\r
 }\r
 \r
 .node.selected {\r
-    border-color: var(--pn-node-border-selected);\r
-    box-shadow: 0 0 0 1px var(--pn-node-border-selected), 0 2px 8px var(--pn-node-shadow);\r
+      border-color: var(--potatno-color-accent);\r
+    box-shadow: 0 0 0 1px var(--potatno-color-accent), 0 2px 8px var(--potatno-color-shadow);\r
 }\r
 \r
 .node.has-error,\r
 .node.has-error.selected {\r
     border-color: var(--potatno-color-error, #f38ba8);\r
-    box-shadow: 0 0 0 1px var(--potatno-color-error, #f38ba8), 0 2px 8px var(--pn-node-shadow);\r
+    box-shadow: 0 0 0 1px var(--potatno-color-error, #f38ba8), 0 2px 8px var(--potatno-color-shadow);\r
 }\r
 \r
 /* \u2500\u2500 Header bar \u2500\u2500 */\r
@@ -1018,19 +987,19 @@ $if(this.hasUserFunctionDefinitions) {\r
 \r
 .node-value-input input {\r
     width: 100%;\r
-    background: var(--pn-bg-secondary);\r
-    border: 1px solid var(--pn-border-default);\r
+    background: var(--potatno-color-background-dark);\r
+    border: 1px solid var(--potatno-color-border);\r
     border-radius: 3px;\r
-    color: var(--pn-text-primary);\r
-    font-family: var(--pn-font-mono);\r
-    font-size: var(--pn-font-size-sm);\r
+    color: var(--potatno-color-text);\r
+    font-family: var(--potatno-font-family);\r
+    font-size: var(--potatno-font-size-small);\r
     padding: 2px 6px;\r
     outline: none;\r
     box-sizing: border-box;\r
 }\r
 \r
 .node-value-input input:focus {\r
-    border-color: var(--pn-border-active);\r
+    border-color: var(--potatno-color-accent);\r
 }\r
 \r
 /* \u2500\u2500 Open-function button \u2500\u2500 */\r
@@ -1090,8 +1059,8 @@ $if(this.hasUserFunctionDefinitions) {\r
     z-index: 50;\r
     min-width: 96px;\r
     flex-direction: column;\r
-    background: var(--pn-bg-elevated);\r
-    border: 1px solid var(--pn-border-default);\r
+    background: var(--potatno-color-background-light);\r
+    border: 1px solid var(--potatno-color-border);\r
     border-radius: 4px;\r
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);\r
     padding: 2px 0;\r
@@ -1106,14 +1075,14 @@ $if(this.hasUserFunctionDefinitions) {\r
     border: none;\r
     color: var(--potatno-color-accent);\r
     cursor: pointer;\r
-    font-family: var(--pn-font-family);\r
-    font-size: var(--pn-font-size-sm);\r
+    font-family: var(--potatno-font-family);\r
+    font-size: var(--potatno-font-size-small);\r
     padding: 3px 8px;\r
     text-align: left;\r
 }\r
 \r
 .preview-port-item:hover {\r
-    background: var(--pn-bg-surface);\r
+    background: var(--potatno-color-background-light);\r
 }\r
 \r
 .preview-port-item.active {\r
@@ -1127,12 +1096,12 @@ $if(this.hasUserFunctionDefinitions) {\r
 }\r
 \r
 .preview-style-select {\r
-    background: var(--pn-bg-surface);\r
-    border: 1px solid var(--pn-border-default);\r
+    background: var(--potatno-color-background-light);\r
+    border: 1px solid var(--potatno-color-border);\r
     border-radius: 3px;\r
-    color: var(--pn-text-secondary);\r
-    font-family: var(--pn-font-family);\r
-    font-size: var(--pn-font-size-sm);\r
+    color: var(--potatno-color-text);\r
+    font-family: var(--potatno-font-family);\r
+    font-size: var(--potatno-font-size-small);\r
     padding: 0 2px;\r
 }\r
 \r
@@ -1151,7 +1120,7 @@ $if(this.hasUserFunctionDefinitions) {\r
 }\r
 \r
 .node-comment.selected {\r
-    border-color: var(--pn-node-border-selected);\r
+    border-color: var(--potatno-color-accent);\r
 }\r
 \r
 .comment-header {\r
@@ -1182,9 +1151,9 @@ $if(this.hasUserFunctionDefinitions) {\r
     min-height: 32px;\r
     background: transparent;\r
     border: none;\r
-    color: var(--pn-text-secondary);\r
-    font-family: var(--pn-font-family);\r
-    font-size: var(--pn-font-size-sm);\r
+    color: var(--potatno-color-text);\r
+    font-family: var(--potatno-font-family);\r
+    font-size: var(--potatno-font-size-small);\r
     resize: none;\r
     outline: none;\r
     box-sizing: border-box;\r
@@ -1218,7 +1187,7 @@ $if(this.hasUserFunctionDefinitions) {\r
 /* \u2500\u2500 Node inline preview \u2500\u2500 */\r
 \r
 .node-preview {\r
-    background: var(--pn-bg-secondary);\r
+    background: var(--potatno-color-background-dark);\r
     overflow: hidden;\r
 }\r
 \r
@@ -1228,7 +1197,7 @@ $if(this.hasUserFunctionDefinitions) {\r
 \r
 .node-preview:not(:empty) {\r
     padding: 6px;\r
-    border-top: 1px solid var(--pn-node-border);\r
+    border-top: 1px solid var(--potatno-color-border);\r
 }\r
 \r
 /* \u2500\u2500 Reroute node \u2500\u2500 */\r
@@ -1242,7 +1211,7 @@ $if(this.hasUserFunctionDefinitions) {\r
 }\r
 \r
 .node-reroute.selected .reroute-dot {\r
-    box-shadow: 0 0 0 2px var(--pn-node-border-selected);\r
+    box-shadow: 0 0 0 2px var(--potatno-color-accent);\r
 }\r
 \r
 .reroute-dot {\r
@@ -1368,7 +1337,7 @@ $if(this.hasUserFunctionDefinitions) {\r
 }\r
 \r
 .canvas-wrapper {\r
-    background: var(--pn-bg-primary);\r
+    background: var(--potatno-color-background);\r
     cursor: default;\r
     flex: 1;\r
     min-height: 0;\r
@@ -1431,12 +1400,12 @@ $if(this.hasUserFunctionDefinitions) {\r
 \r
 .properties-header {\r
     padding: 10px 12px;\r
-    font-family: var(--pn-font-family);\r
-    font-size: var(--pn-font-size-lg);\r
+    font-family: var(--potatno-font-family);\r
+    font-size: var(--potatno-font-size-big);\r
     font-weight: 600;\r
-    color: var(--pn-text-primary);\r
-    border-bottom: 1px solid var(--pn-border-default);\r
-    background: var(--pn-bg-secondary);\r
+    color: var(--potatno-color-text);\r
+    border-bottom: 1px solid var(--potatno-color-border);\r
+    background: var(--potatno-color-background-dark);\r
     flex-shrink: 0;\r
 }\r
 \r
@@ -1445,24 +1414,14 @@ $if(this.hasUserFunctionDefinitions) {\r
     overflow-y: auto;\r
     overflow-x: hidden;\r
     padding: 8px 0;\r
-}\r
 \r
-.properties-content::-webkit-scrollbar {\r
-    width: 6px;\r
-}\r
-\r
-.properties-content::-webkit-scrollbar-track {\r
-    background: var(--pn-scrollbar-track);\r
-}\r
-\r
-.properties-content::-webkit-scrollbar-thumb {\r
-    background: var(--pn-scrollbar-thumb);\r
-    border-radius: 3px;\r
+    scrollbar-color: var(--potatno-color-scrollbar-thumb) var(--potatno-color-scrollbar-track);\r
+    scrollbar-width: thin;\r
 }\r
 \r
 .section {\r
     padding: 8px 12px;\r
-    border-bottom: 1px solid var(--pn-border-default);\r
+    border-bottom: 1px solid var(--potatno-color-border);\r
 }\r
 \r
 .section:last-child {\r
@@ -1470,8 +1429,8 @@ $if(this.hasUserFunctionDefinitions) {\r
 }\r
 \r
 .section-label {\r
-    font-family: var(--pn-font-family);\r
-    font-size: var(--pn-font-size-sm);\r
+    font-family: var(--potatno-font-family);\r
+    font-size: var(--potatno-font-size-small);\r
     color: var(--pn-text-muted);\r
     text-transform: uppercase;\r
     letter-spacing: 0.5px;\r
@@ -1480,12 +1439,12 @@ $if(this.hasUserFunctionDefinitions) {\r
 \r
 .name-input {\r
     width: 100%;\r
-    background: var(--pn-bg-surface);\r
-    border: 1px solid var(--pn-border-default);\r
+    background: var(--potatno-color-background-light);\r
+    border: 1px solid var(--potatno-color-border);\r
     border-radius: 4px;\r
     color: var(--potatno-color-accent);\r
-    font-family: var(--pn-font-family);\r
-    font-size: var(--pn-font-size);\r
+    font-family: var(--potatno-font-family);\r
+    font-size: var(--potatno-font-size);\r
     padding: 5px 8px;\r
     outline: none;\r
     transition: border-color 0.15s;\r
@@ -1503,7 +1462,7 @@ $if(this.hasUserFunctionDefinitions) {\r
 \r
 .name-input:disabled {\r
     color: var(--pn-text-muted);\r
-    background: var(--pn-bg-secondary);\r
+    background: var(--potatno-color-background-dark);\r
     cursor: not-allowed;\r
 }\r
 \r
@@ -1521,12 +1480,12 @@ $if(this.hasUserFunctionDefinitions) {\r
 \r
 .port-name-input {\r
     flex: 1;\r
-    background: var(--pn-bg-surface);\r
-    border: 1px solid var(--pn-border-default);\r
+    background: var(--potatno-color-background-light);\r
+    border: 1px solid var(--potatno-color-border);\r
     border-radius: 4px;\r
-    color: var(--pn-text-primary);\r
-    font-family: var(--pn-font-family);\r
-    font-size: var(--pn-font-size-sm);\r
+    color: var(--potatno-color-text);\r
+    font-family: var(--potatno-font-family);\r
+    font-size: var(--potatno-font-size-small);\r
     padding: 4px 6px;\r
     outline: none;\r
     transition: border-color 0.15s;\r
@@ -1544,18 +1503,18 @@ $if(this.hasUserFunctionDefinitions) {\r
 \r
 .port-name-input:disabled {\r
     color: var(--pn-text-muted);\r
-    background: var(--pn-bg-secondary);\r
+    background: var(--potatno-color-background-dark);\r
     cursor: not-allowed;\r
 }\r
 \r
 .port-type-input {\r
     width: 70px;\r
-    background: var(--pn-bg-surface);\r
-    border: 1px solid var(--pn-border-default);\r
+    background: var(--potatno-color-background-light);\r
+    border: 1px solid var(--potatno-color-border);\r
     border-radius: 4px;\r
-    color: var(--pn-text-secondary);\r
-    font-family: var(--pn-font-mono);\r
-    font-size: var(--pn-font-size-sm);\r
+    color: var(--potatno-color-text);\r
+    font-family: var(--potatno-font-family);\r
+    font-size: var(--potatno-font-size-small);\r
     padding: 4px 6px;\r
     outline: none;\r
     transition: border-color 0.15s;\r
@@ -1568,7 +1527,7 @@ $if(this.hasUserFunctionDefinitions) {\r
 \r
 .port-type-input:disabled {\r
     color: var(--pn-text-muted);\r
-    background: var(--pn-bg-secondary);\r
+    background: var(--potatno-color-background-dark);\r
     cursor: not-allowed;\r
 }\r
 \r
@@ -1582,7 +1541,7 @@ $if(this.hasUserFunctionDefinitions) {\r
     border: none;\r
     border-radius: 3px;\r
     color: var(--pn-text-muted);\r
-    font-size: var(--pn-font-size-sm);\r
+    font-size: var(--potatno-font-size-small);\r
     cursor: pointer;\r
     flex-shrink: 0;\r
     transition: background 0.1s, color 0.1s;\r
@@ -1592,7 +1551,7 @@ $if(this.hasUserFunctionDefinitions) {\r
 \r
 .port-delete-button:hover {\r
     background: var(--potatno-color-error);\r
-    color: var(--pn-text-primary);\r
+    color: var(--potatno-color-text);\r
 }\r
 \r
 .import-entry {\r
@@ -1603,9 +1562,9 @@ $if(this.hasUserFunctionDefinitions) {\r
 \r
 .import-name {\r
     flex: 1;\r
-    font-family: var(--pn-font-mono);\r
-    font-size: var(--pn-font-size-sm);\r
-    color: var(--pn-text-primary);\r
+    font-family: var(--potatno-font-family);\r
+    font-size: var(--potatno-font-size-small);\r
+    color: var(--potatno-color-text);\r
     padding: 4px 6px;\r
     overflow: hidden;\r
     text-overflow: ellipsis;\r
@@ -1614,12 +1573,12 @@ $if(this.hasUserFunctionDefinitions) {\r
 \r
 .import-select {\r
     flex: 1;\r
-    background: var(--pn-bg-surface);\r
-    border: 1px solid var(--pn-border-default);\r
+    background: var(--potatno-color-background-light);\r
+    border: 1px solid var(--potatno-color-border);\r
     border-radius: 4px;\r
-    color: var(--pn-text-primary);\r
-    font-family: var(--pn-font-mono);\r
-    font-size: var(--pn-font-size-sm);\r
+    color: var(--potatno-color-text);\r
+    font-family: var(--potatno-font-family);\r
+    font-size: var(--potatno-font-size-small);\r
     padding: 4px 6px;\r
     outline: none;\r
     transition: border-color 0.15s;\r
@@ -1655,25 +1614,25 @@ $if(this.hasUserFunctionDefinitions) {\r
     margin-top: 6px;\r
     padding: 4px 8px;\r
     background: transparent;\r
-    border: 1px dashed var(--pn-border-default);\r
+    border: 1px dashed var(--potatno-color-border);\r
     border-radius: 4px;\r
-    color: var(--pn-text-secondary);\r
-    font-family: var(--pn-font-family);\r
-    font-size: var(--pn-font-size-sm);\r
+    color: var(--potatno-color-text);\r
+    font-family: var(--potatno-font-family);\r
+    font-size: var(--potatno-font-size-small);\r
     cursor: pointer;\r
     transition: background 0.15s, border-color 0.15s, color 0.15s;\r
 }\r
 \r
 .add-button:hover {\r
-    background: var(--pn-bg-elevated);\r
+    background: var(--potatno-color-background-light);\r
     border-color: var(--potatno-color-accent);\r
-    color: var(--pn-text-primary);\r
+    color: var(--potatno-color-text);\r
 }\r
 \r
 .empty-note {\r
     color: var(--pn-text-muted);\r
-    font-family: var(--pn-font-family);\r
-    font-size: var(--pn-font-size-sm);\r
+    font-family: var(--potatno-font-family);\r
+    font-size: var(--potatno-font-size-small);\r
     font-style: italic;\r
     padding: 4px 0;\r
 }\r
@@ -1769,6 +1728,9 @@ $if(this.hasUserFunctionDefinitions) {\r
 }\r
 \r
 .container {\r
+    display: flex;\r
+    flex-direction: column;\r
+\r
     height: 100%;\r
     width: 100%;\r
 }\r
@@ -1915,112 +1877,56 @@ $if(this.left) {
     /* Globaly restrict to max size of parent. */\r
     max-width: 100%;\r
     max-height: 100%;\r
-}\r
 \r
-.preview {\r
-    display: flex;\r
-    flex-direction: column;\r
-    width: 100%;\r
-    height: 100%;\r
-\r
-    background: var(--pn-bg-secondary);\r
-    border: 1px solid var(--pn-border-default);\r
+    background: var(--potatno-color-background);\r
+    border: 1px solid var(--potatno-color-border);\r
     border-width: 0 1px 1px 0;\r
-    box-shadow: 0 4px 12px var(--pn-node-shadow);\r
+    box-shadow: 0 4px 12px var(--potatno-color-shadow);\r
 }\r
 \r
-.preview-header {\r
+.header {\r
     display: flex;\r
     align-items: center;\r
+    justify-content: space-between;\r
     padding: 6px 10px;\r
-    background: var(--pn-bg-elevated);\r
-    border-bottom: 1px solid var(--pn-border-default);\r
+\r
+    border-bottom: 1px solid var(--potatno-color-border);\r
     flex-shrink: 0;\r
     cursor: default;\r
     user-select: none;\r
-}\r
 \r
-.preview-title {\r
-    font-family: var(--pn-font-family);\r
-    font-size: var(--pn-font-size-sm);\r
-    color: var(--pn-text-secondary);\r
-    text-transform: uppercase;\r
-    letter-spacing: 0.5px;\r
-}\r
+    background: var(--potatno-color-background-light);\r
 \r
-.preview-tabs {\r
-    display: flex;\r
-    flex: 1;\r
-    gap: 4px;\r
-    margin-left: 12px;\r
-    overflow-x: auto;\r
-}\r
+    .header__title {\r
+        font-family: var(--potatno-font-family);\r
+        font-size: var(--potatno-font-size-small);\r
+        color: var(--potatno-color-text);\r
+        text-transform: uppercase;\r
+        letter-spacing: 0.5px;\r
 \r
-.preview-selectors {\r
-    display: flex;\r
-    flex: 1;\r
-    gap: 6px;\r
-    margin-left: 12px;\r
-    justify-content: flex-end;\r
-}\r
+        &.header__title--title {\r
+            color: var(--potatno-color-error) !important;\r
+        }\r
 \r
-.preview-select {\r
-    background: var(--pn-bg-surface);\r
-    border: 1px solid var(--pn-border-default);\r
-    border-radius: 3px;\r
-    color: var(--potatno-color-text);\r
-    font-family: var(--pn-font-family);\r
-    font-size: var(--pn-font-size-sm);\r
-    padding: 2px 4px;\r
-    max-width: 45%;\r
-}\r
+    }\r
 \r
-.preview-tab {\r
-    appearance: none;\r
-    border: 1px solid var(--pn-border-default);\r
-    background: var(--pn-bg-primary);\r
-    color: var(--pn-text-secondary);\r
-    font-family: var(--pn-font-family);\r
-    font-size: var(--pn-font-size-sm);\r
-    padding: 2px 8px;\r
-    cursor: pointer;\r
-    white-space: nowrap;\r
-}\r
+    .header__selectors {\r
+        display: flex;\r
+        gap: 6px;\r
+        margin-left: 12px;\r
+        justify-content: flex-end;\r
 \r
-.preview-tab:hover {\r
-    color: var(--potatno-color-text);\r
-    border-color: var(--potatno-color-accent);\r
-}\r
-\r
-.preview-tab.selected {\r
-    color: var(--potatno-color-text);\r
-    background: var(--potatno-color-accent);\r
-    border-color: var(--potatno-color-accent);\r
-}\r
-\r
-.preview-content {\r
-    flex: 1;\r
-    overflow: auto;\r
-    padding: 8px;\r
-    background: var(--pn-bg-primary);\r
-}\r
-\r
-.preview-content::-webkit-scrollbar {\r
-    width: 6px;\r
-    height: 6px;\r
-}\r
-\r
-.preview-content::-webkit-scrollbar-track {\r
-    background: var(--pn-scrollbar-track);\r
-}\r
-\r
-.preview-content::-webkit-scrollbar-thumb {\r
-    background: var(--pn-scrollbar-thumb);\r
-    border-radius: 3px;\r
-}\r
-\r
-.error-title {\r
-    color: var(--potatno-color-error) !important;\r
+        select {\r
+            background: var(--potatno-color-background-light);\r
+            border: 1px solid var(--potatno-color-border);\r
+            border-radius: 3px;\r
+            color: var(--potatno-color-text);\r
+            font-family: var(--potatno-font-family);\r
+            font-size: var(--potatno-font-size-small);\r
+            padding: 2px 4px;\r
+            max-width: 45%;\r
+        }\r
+    }\r
 }\r
 \r
 .error-list {\r
@@ -2028,92 +1934,97 @@ $if(this.left) {
     flex: 1;\r
     padding: 4px;\r
     min-height: 120px;\r
+\r
+    scrollbar-color: var(--potatno-color-scrollbar-thumb) var(--potatno-color-scrollbar-track);\r
+    scrollbar-width: thin;\r
 }\r
 \r
 .error-item {\r
     display: flex;\r
-    align-items: flex-start;\r
-    gap: 8px;\r
-    padding: 6px 8px;\r
-    border-bottom: 1px solid var(--pn-border-color);\r
+    align-items: stretch;\r
+    padding: 5px;\r
+\r
+    .error-item__icon {\r
+        display: flex;\r
+        align-items: center;\r
+\r
+        color: var(--potatno-color-error);\r
+        font-size: 18px;\r
+        font-weight: bold;\r
+        padding: 0 10px 0 10px;\r
+\r
+        border-left: 1px solid var(--potatno-color-error);\r
+    }\r
+\r
+    .error-item__content {\r
+        flex: 1;\r
+    }\r
+\r
+    .error-item__message {\r
+        color: var(--potatno-color-text);\r
+        font-size: var(--potatno-font-size);\r
+    }\r
+\r
+    .error-item__location {\r
+        font-size: 10px;\r
+        margin-top: 2px;\r
+\r
+        /* Darken text color by mixing in the background colorl */\r
+        color: color-mix(in srgb, var(--potatno-color-text) 50%, var(--potatno-color-background-dark));\r
+    }\r
 }\r
 \r
-.error-item:last-child {\r
-    border-bottom: none;\r
-}\r
-\r
-.error-icon {\r
-    flex-shrink: 0;\r
-    width: 18px;\r
-    height: 18px;\r
-    border-radius: 50%;\r
-    background: var(--potatno-color-error);\r
-    color: white;\r
-    display: flex;\r
-    align-items: center;\r
-    justify-content: center;\r
-    font-size: 11px;\r
-    font-weight: bold;\r
-}\r
-\r
-.error-content {\r
+.preview-content {\r
     flex: 1;\r
-    min-width: 0;\r
-}\r
+    padding: 5px;\r
+    background: var(--potatno-color-background);\r
 \r
-.error-message {\r
-    color: var(--potatno-color-text);\r
-    font-size: var(--pn-font-size-sm);\r
-    word-break: break-word;\r
-}\r
-\r
-.error-location {\r
-    color: var(--pn-text-muted);\r
-    font-size: 10px;\r
-    margin-top: 2px;\r
+    overflow: hidden;\r
 }`;var si=`<potatno-resize-box class="resize-box" left="true" top="true">
-    <div class="preview">
-         <div class="preview-header">
-            $if(this.hasErrors) {
-                <span class="preview-title error-title">Errors ({{this.errors.length}})</span>
-            }
-            $if(!this.hasErrors) {
-                <span class="preview-title">Preview</span>
-                <div class="preview-selectors">
-                    <select class="preview-select" (change)="this.onDisplaySelect($event)">
-                        $for(display of this.displayOptions) {
-                            <option [value]="this.display.id" [selected]="this.display.id === this.selectedDisplayId">{{this.display.label}}</option>
-                        }
-                    </select>
-                    $if(this.showOutputSelector) {
-                        <select class="preview-select" (change)="this.onOutputSelect($event)">
-                            $for(output of this.outputOptions) {
-                                <option [value]="this.output.id" [selected]="this.output.id === this.selectedOutputId">{{this.output.label}}</option>
-                            }
-                        </select>
-                    }
-                </div>
-            }
-        </div>
-
+    <div class="header">
         $if(this.hasErrors) {
-            <div class="error-list">
-                $for(error of this.errors) {
-                    <div class="error-item">
-                        <span class="error-icon">!</span>
-                        <div class="error-content">
-                            <div class="error-message">{{this.error.message}}</div>
-                            <div class="error-location">{{this.error.location}}</div>
-                        </div>
-                    </div>
-                }
-            </div>
+            <span class="header__title header__title--title">Errors ({{this.errors.length}})</span>
         }
 
         $if(!this.hasErrors) {
-            <div class="preview-content" potatno-preview="this.previewDriver"></div>
+            <span class="header__title">Preview</span>
+            <div class="header__selectors">
+
+                <select class="preview-select" (change)="this.onDisplaySelect($event)">
+                    $for(display of this.displayOptions) {
+                        <option [value]="this.display.id" [selected]="this.display.id === this.selectedDisplayId">{{this.display.label}}</option>
+                    }
+                </select>
+
+                $if(this.showOutputSelector) {
+                    <select class="preview-select" (change)="this.onOutputSelect($event)">
+                        $for(output of this.outputOptions) {
+                            <option [value]="this.output.id" [selected]="this.output.id === this.selectedOutputId">{{this.output.label}}</option>
+                        }
+                    </select>
+                }
+
+            </div>
         }
     </div>
+
+    $if(this.hasErrors) {
+        <div class="error-list">
+            $for(error of this.errors) {
+                <div class="error-item">
+                    <div class="error-item__icon">!</div>
+                    <div class="error-item__content">
+                        <div class="error-item__message">{{this.error.message}}</div>
+                        <div class="error-item__location">{{this.error.location}}</div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+
+    $if(!this.hasErrors) {
+        <div class="preview-content" potatno-preview="this.previewDriver"></div>
+    }
 </potatno-resize-box>
 `;function As(){function f(c,n){return function(a){e(n,"addInitializer"),o(a,"An initializer"),c.push(a)}}function t(c,n,u,a,r,b,g,T,w){var p;switch(r){case 1:p="accessor";break;case 2:p="method";break;case 3:p="getter";break;case 4:p="setter";break;default:p="field"}var s={kind:p,name:g?"#"+n:n,static:b,private:g,metadata:T},d={v:!1};s.addInitializer=f(a,d);var i,h;r===0?g?(i=u.get,h=u.set):(i=function(){return this[n]},h=function(x){this[n]=x}):r===2?i=function(){return u.value}:((r===1||r===3)&&(i=function(){return u.get.call(this)}),(r===1||r===4)&&(h=function(x){u.set.call(this,x)})),s.access=i&&h?{get:i,set:h}:i?{get:i}:{set:h};try{return c(w,s)}finally{d.v=!0}}function e(c,n){if(c.v)throw new Error("attempted to call "+n+" after decoration was finished")}function o(c,n){if(typeof c!="function")throw new TypeError(n+" must be a function")}function l(c,n){var u=typeof n;if(c===1){if(u!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&o(n.get,"accessor.get"),n.set!==void 0&&o(n.set,"accessor.set"),n.init!==void 0&&o(n.init,"accessor.init")}else if(u!=="function"){var a;throw c===0?a="field":c===10?a="class":a="method",new TypeError(a+" decorators must return a function or void 0")}}function m(c,n,u,a,r,b,g,T,w){var p=u[0],s,d,i;g?r===0||r===1?s={get:u[3],set:u[4]}:r===3?s={get:u[3]}:r===4?s={set:u[3]}:s={value:u[3]}:r!==0&&(s=Object.getOwnPropertyDescriptor(n,a)),r===1?i={get:s.get,set:s.set}:r===2?i=s.value:r===3?i=s.get:r===4&&(i=s.set);var h,x,C;if(typeof p=="function")h=t(p,a,s,T,r,b,g,w,i),h!==void 0&&(l(r,h),r===0?d=h:r===1?(d=h.init,x=h.get||i.get,C=h.set||i.set,i={get:x,set:C}):i=h);else for(var P=p.length-1;P>=0;P--){var M=p[P];if(h=t(M,a,s,T,r,b,g,w,i),h!==void 0){l(r,h);var N;r===0?N=h:r===1?(N=h.init,x=h.get||i.get,C=h.set||i.set,i={get:x,set:C}):i=h,N!==void 0&&(d===void 0?d=N:typeof d=="function"?d=[d,N]:d.push(N))}}if(r===0||r===1){if(d===void 0)d=function(I,E){return E};else if(typeof d!="function"){var _=d;d=function(I,E){for(var L=E,R=0;R<_.length;R++)L=_[R].call(I,L);return L}}else{var j=d;d=function(I,E){return j.call(I,E)}}c.push(d)}r!==0&&(r===1?(s.get=i.get,s.set=i.set):r===2?s.value=i:r===3?s.get=i:r===4&&(s.set=i),g?r===1?(c.push(function(I,E){return i.get.call(I,E)}),c.push(function(I,E){return i.set.call(I,E)})):r===2?c.push(i):c.push(function(I,E){return i.call(I,E)}):Object.defineProperty(n,a,s))}function v(c,n,u){for(var a=[],r,b,g=new Map,T=new Map,w=0;w<n.length;w++){var p=n[w];if(Array.isArray(p)){var s=p[1],d=p[2],i=p.length>3,h=s>=5,x,C;if(h?(x=c,s=s-5,b=b||[],C=b):(x=c.prototype,r=r||[],C=r),s!==0&&!i){var P=h?T:g,M=P.get(d)||0;if(M===!0||M===3&&s!==4||M===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+d);!M&&s>2?P.set(d,s):P.set(d,!0)}m(a,x,p,d,s,h,i,C,u)}}return y(a,r),y(a,b),a}function y(c,n){n&&c.push(function(u){for(var a=0;a<n.length;a++)n[a].call(u);return u})}function D(c,n,u){if(n.length>0){for(var a=[],r=c,b=c.name,g=n.length-1;g>=0;g--){var T={v:!1};try{var w=n[g](r,{kind:"class",name:b,addInitializer:f(a,T),metadata:u})}finally{T.v=!0}w!==void 0&&(l(10,w),r=w)}return[S(r,u),function(){for(var p=0;p<a.length;p++)a[p].call(r)}]}}function S(c,n){return Object.defineProperty(c,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,u,a,r){if(r!==void 0)var b=r[Symbol.metadata||Symbol.for("Symbol.metadata")];var g=Object.create(b===void 0?null:b),T=v(n,u,g);return a.length||S(n,g),{e:T,get c(){return D(n,a,g)}}}}function ci(f,t,e,o){return(ci=As())(f,t,e,o)}var ui,ai,Ls;ui=W({selector:"potatno-preview",template:si,style:ii,modules:[xe,mr]});var li=class{static{({c:[Ls,ai]}=ci(this,[],[ui]))}constructor(t=O.use($),e=O.use(K)){this.mComponent=t,this.mManager=e,this.mSelectedDisplayId="",this.mSelectedOutputId="",this.mUnsubscribe=this.mManager.subscribe(F.Document|F.Function|F.SpecialActiveFunction|F.Node|F.Connection,()=>{this.mComponent.updater.updateAsync()})}mComponent;mManager;mUnsubscribe;mSelectedDisplayId;mSelectedOutputId;get displayOptions(){let t=this.mManager.activeFunction,e=this.mManager.project,o=t&&e?e.getFunction(t.definitionId):void 0;return!t||!e||!o?new Array:this.createDisplayOptions(e,this.availableDisplayIds(e,o,t,this.selectedOutputId))}get errors(){return this.mManager.integrity.errors}get hasErrors(){return!this.mManager.integrity.isValid}get outputOptions(){let t=this.mManager.activeFunction,e=this.mManager.project,o=t&&e?e.getFunction(t.definitionId):void 0;if(!t||!e||!o)return[];let l=new Array;e.preview.availableDisplays(o,et.MAIN).length>0&&l.push({id:et.MAIN,label:"Main"});let m=new Set;for(let v of t.getExitNodes())for(let y of v.inputs.value)m.has(y.definitionId)||e.preview.availableDisplays(o,y.resolvedDataType).length!==0&&(m.add(y.definitionId),l.push({id:y.definitionId,label:y.label}));return l}get previewDriver(){let t=this.mManager.activeFunction;if(!t)return null;if(this.selectedOutputId===et.MAIN)return this.mManager.preview.requestDriver(t,this.selectedDisplayId);let e=this.findFunctionOutputPort(t,this.selectedOutputId);return e?this.mManager.preview.requestDriver(e,this.selectedDisplayId):null}get selectedDisplayId(){let t=this.displayOptions;return this.mSelectedDisplayId!==""&&t.some(e=>e.id===this.mSelectedDisplayId)?this.mSelectedDisplayId:t.at(0)?.id??""}get selectedOutputId(){let t=this.outputOptions;return this.mSelectedOutputId!==""&&t.some(e=>e.id===this.mSelectedOutputId)?this.mSelectedOutputId:t[0]?.id??""}get showOutputSelector(){let t=this.mManager.activeFunction,e=this.mManager.project;return!t||!e?!1:this.outputOptions.length>0}onDeconstruct(){this.mUnsubscribe()}onDisplaySelect(t){this.mSelectedDisplayId=t.target.value,this.mComponent.updater.updateAsync()}onOutputSelect(t){this.mSelectedOutputId=t.target.value,this.mComponent.updater.updateAsync()}availableDisplayIds(t,e,o,l){if(l===et.MAIN)return t.preview.availableDisplays(e,et.MAIN);let m=this.findFunctionOutputPort(o,l);return m?t.preview.availableDisplays(e,m.resolvedDataType):t.preview.availableDisplays(e)}createDisplayOptions(t,e){return e.map(o=>({id:o,label:t.preview.getDisplay(o)?.name??o}))}findFunctionOutputPort(t,e){for(let o of t.getExitNodes()){let l=o.inputs.map.get(e);if(l&&l.portType==="value")return l}return null}static{ai()}};function Rs(){function f(c,n){return function(a){e(n,"addInitializer"),o(a,"An initializer"),c.push(a)}}function t(c,n,u,a,r,b,g,T,w){var p;switch(r){case 1:p="accessor";break;case 2:p="method";break;case 3:p="getter";break;case 4:p="setter";break;default:p="field"}var s={kind:p,name:g?"#"+n:n,static:b,private:g,metadata:T},d={v:!1};s.addInitializer=f(a,d);var i,h;r===0?g?(i=u.get,h=u.set):(i=function(){return this[n]},h=function(x){this[n]=x}):r===2?i=function(){return u.value}:((r===1||r===3)&&(i=function(){return u.get.call(this)}),(r===1||r===4)&&(h=function(x){u.set.call(this,x)})),s.access=i&&h?{get:i,set:h}:i?{get:i}:{set:h};try{return c(w,s)}finally{d.v=!0}}function e(c,n){if(c.v)throw new Error("attempted to call "+n+" after decoration was finished")}function o(c,n){if(typeof c!="function")throw new TypeError(n+" must be a function")}function l(c,n){var u=typeof n;if(c===1){if(u!=="object"||n===null)throw new TypeError("accessor decorators must return an object with get, set, or init properties or void 0");n.get!==void 0&&o(n.get,"accessor.get"),n.set!==void 0&&o(n.set,"accessor.set"),n.init!==void 0&&o(n.init,"accessor.init")}else if(u!=="function"){var a;throw c===0?a="field":c===10?a="class":a="method",new TypeError(a+" decorators must return a function or void 0")}}function m(c,n,u,a,r,b,g,T,w){var p=u[0],s,d,i;g?r===0||r===1?s={get:u[3],set:u[4]}:r===3?s={get:u[3]}:r===4?s={set:u[3]}:s={value:u[3]}:r!==0&&(s=Object.getOwnPropertyDescriptor(n,a)),r===1?i={get:s.get,set:s.set}:r===2?i=s.value:r===3?i=s.get:r===4&&(i=s.set);var h,x,C;if(typeof p=="function")h=t(p,a,s,T,r,b,g,w,i),h!==void 0&&(l(r,h),r===0?d=h:r===1?(d=h.init,x=h.get||i.get,C=h.set||i.set,i={get:x,set:C}):i=h);else for(var P=p.length-1;P>=0;P--){var M=p[P];if(h=t(M,a,s,T,r,b,g,w,i),h!==void 0){l(r,h);var N;r===0?N=h:r===1?(N=h.init,x=h.get||i.get,C=h.set||i.set,i={get:x,set:C}):i=h,N!==void 0&&(d===void 0?d=N:typeof d=="function"?d=[d,N]:d.push(N))}}if(r===0||r===1){if(d===void 0)d=function(I,E){return E};else if(typeof d!="function"){var _=d;d=function(I,E){for(var L=E,R=0;R<_.length;R++)L=_[R].call(I,L);return L}}else{var j=d;d=function(I,E){return j.call(I,E)}}c.push(d)}r!==0&&(r===1?(s.get=i.get,s.set=i.set):r===2?s.value=i:r===3?s.get=i:r===4&&(s.set=i),g?r===1?(c.push(function(I,E){return i.get.call(I,E)}),c.push(function(I,E){return i.set.call(I,E)})):r===2?c.push(i):c.push(function(I,E){return i.call(I,E)}):Object.defineProperty(n,a,s))}function v(c,n,u){for(var a=[],r,b,g=new Map,T=new Map,w=0;w<n.length;w++){var p=n[w];if(Array.isArray(p)){var s=p[1],d=p[2],i=p.length>3,h=s>=5,x,C;if(h?(x=c,s=s-5,b=b||[],C=b):(x=c.prototype,r=r||[],C=r),s!==0&&!i){var P=h?T:g,M=P.get(d)||0;if(M===!0||M===3&&s!==4||M===4&&s!==3)throw new Error("Attempted to decorate a public method/accessor that has the same name as a previously decorated public method/accessor. This is not currently supported by the decorators plugin. Property name was: "+d);!M&&s>2?P.set(d,s):P.set(d,!0)}m(a,x,p,d,s,h,i,C,u)}}return y(a,r),y(a,b),a}function y(c,n){n&&c.push(function(u){for(var a=0;a<n.length;a++)n[a].call(u);return u})}function D(c,n,u){if(n.length>0){for(var a=[],r=c,b=c.name,g=n.length-1;g>=0;g--){var T={v:!1};try{var w=n[g](r,{kind:"class",name:b,addInitializer:f(a,T),metadata:u})}finally{T.v=!0}w!==void 0&&(l(10,w),r=w)}return[S(r,u),function(){for(var p=0;p<a.length;p++)a[p].call(r)}]}}function S(c,n){return Object.defineProperty(c,Symbol.metadata||Symbol.for("Symbol.metadata"),{configurable:!0,enumerable:!0,value:n})}return function(n,u,a,r){if(r!==void 0)var b=r[Symbol.metadata||Symbol.for("Symbol.metadata")];var g=Object.create(b===void 0?null:b),T=v(n,u,g);return a.length||S(n,g),{e:T,get c(){return D(n,a,g)}}}}function gi(f,t,e,o){return(gi=Rs())(f,t,e,o)}var vi,hi,yi,bi,di,mi,fi,fr;vi=W({selector:"potatno-code-editor",template:vo,style:go}),yi=ft("panelLeft"),bi=ft("panelRight");var pi=class{static{({e:[di,mi,fi],c:[fr,hi]}=gi(this,[[yi,1,"panelLeft"],[bi,1,"panelRight"],[ot,4,"project"],[ot,4,"document"],[ot,2,"triggerPreviewUpdate"]],[vi]))}constructor(t=O.use($),e=O.use(K)){this.mComponent=t,this.mManager=e,this.mProject=null,this.mResizeMoveHandler=null,this.mResizeState=null,this.mResizeUpHandler=null,this.mUnsubscribe=null}mComponent;mManager;mProject;mResizeMoveHandler;mResizeState;mResizeUpHandler;mUnsubscribe;#t=(fi(this),di(this));get panelLeft(){return this.#t}set panelLeft(t){this.#t=t}#e=mi(this);get panelRight(){return this.#e}set panelRight(t){this.#e=t}get hasPreview(){let t=this.mManager.project,e=this.mManager.activeFunction;if(!t||!e)return!1;let o=t.getFunction(e.definitionId);return o?t.preview.availableDisplays(o).length>0:!1}get document(){return this.mManager.graph.document}set project(t){this.mProject=t}set document(t){this.mProject&&this.mManager.initialize(this.mProject,t)}async triggerPreviewUpdate(){return this.mManager.preview.execute()}onConnect(){this.mUnsubscribe=this.mManager.subscribe(F.Document|F.Function|F.SpecialActiveFunction,()=>{this.mComponent.updater.updateAsync()})}onDeconstruct(){this.mUnsubscribe?.(),this.mUnsubscribe=null,this.stopPanelResize()}onResizeLeftStart(t){t.preventDefault(),this.startPanelResize("left",t)}onResizeRightStart(t){t.preventDefault(),this.startPanelResize("right",t)}startPanelResize(t,e){this.stopPanelResize();let o=t==="left"?this.panelLeft:this.panelRight;this.mResizeState={panel:t,startWidth:o.offsetWidth,startX:e.clientX};let l=v=>{if(!this.mResizeState)return;let y=t==="left"?v.clientX-this.mResizeState.startX:this.mResizeState.startX-v.clientX;o.style.width=`${Math.max(200,Math.min(500,this.mResizeState.startWidth+y))}px`},m=()=>{document.removeEventListener("pointermove",l),document.removeEventListener("pointerup",m),this.mResizeMoveHandler=null,this.mResizeState=null,this.mResizeUpHandler=null};this.mResizeMoveHandler=l,this.mResizeUpHandler=m,document.addEventListener("pointermove",l),document.addEventListener("pointerup",m)}stopPanelResize(){this.mResizeMoveHandler&&(document.removeEventListener("pointermove",this.mResizeMoveHandler),this.mResizeMoveHandler=null),this.mResizeUpHandler&&(document.removeEventListener("pointerup",this.mResizeUpHandler),this.mResizeUpHandler=null),this.mResizeState=null}static{hi()}};var Xe=class extends ae{mCodeEditor;mProject;get document(){return this.mCodeEditor.document}set document(t){this.mCodeEditor.document=t}get project(){return this.mProject}constructor(t){super(),this.mProject=t,this.addStyle(co),this.addStyle(lo),this.mCodeEditor=this.addContent(fr),this.mCodeEditor.project=t,this.mCodeEditor.document=new Nt(t)}load(t){let e=JSON.parse(t);if(!Array.isArray(e.functions))throw new A("Could not load document. Document has a wrong format.",this);let o=new Jt(this.mProject).deserialize(e);this.document=o}save(){let t=new Kt().serialize(this.document);return JSON.stringify(t)}async update(){return this.mCodeEditor.triggerPreviewUpdate()}};var V=class extends ut{constructor(t){super({id:t.id,label:t.label,category:t.category,regions:t.regions??null,generators:{ports:{inputs:e=>{for(let o of t.ports.inputs)e(o)},outputs:e=>{for(let o of t.ports.outputs)e(o)}},code:t.generators.code}})}};var Ye=class{mDisplays;get displayIds(){return[...this.mDisplays.keys()]}constructor(){this.mDisplays=new Map}addDisplay(t){this.mDisplays.set(t.id,t)}availableDisplays(t,e=null){let o=new Array;for(let[l,m]of this.mDisplays)m.executor.function.id===t.id&&(e===null||m.allowsType(e))&&o.push(l);return o}getDisplay(t){return this.mDisplays.get(t)??null}};var te=class f extends ut{static DEFINITION_ID="23e9319b-3b62-4dd8-858a-17d97ddee94e";constructor(){super({id:f.DEFINITION_ID,label:"Flow Conjunction",category:{name:"Conjunction",icon:"\u25C7"},generators:{ports:{inputs:t=>{t({label:"in",id:"in",portType:"flow"})},outputs:t=>{t({label:"out",id:"out",portType:"flow"})}},code:()=>{throw new A("Conjunction node code generators should never be called.",f)}}})}};var ee=class f extends ut{static DEFINITION_ID="a579584d-5d35-42b5-b2ba-3daddee488e0";constructor(){super({id:f.DEFINITION_ID,label:"Value Conjunction",category:{name:"Conjunction",icon:"\u25C7"},generators:{ports:{inputs:t=>{t({label:"in",id:"in",portType:"value",dataType:"<T>"})},outputs:t=>{t({label:"out",id:"out",portType:"value",dataType:"<T>"})}},code:()=>{throw new A("Conjunction node code generators should never be called.",f)}}})}};var We=class{mCodeGenerator;mEntryPoint;mImports;mNodeDefinitions;mPreview;mTypes;mUserFunctions;get entryPoint(){return this.mEntryPoint}get generator(){return this.mCodeGenerator}get imports(){return this.mImports}get nodeDefinitions(){return Array.from(this.mNodeDefinitions.values())}get preview(){return this.mPreview}get types(){return this.mTypes}get userFunctions(){return this.mUserFunctions}constructor(t,e,o){this.mTypes=t,this.mCodeGenerator=o.generator,this.mPreview=new Ye,this.mNodeDefinitions=new Map,this.mImports=new Array,this.mUserFunctions=new Map,this.mEntryPoint=e,this.addNodeDefinition(new te),this.addNodeDefinition(new ee)}addImport(t){this.mImports.push(t)}addNodeDefinition(t){this.mNodeDefinitions.set(t.id,t)}getFunction(t){return this.mEntryPoint.id===t?this.mEntryPoint:this.mUserFunctions.get(t)}setDynamicFunction(t){this.mUserFunctions.set(t.id,t)}};var Ze=class{mTypes;get typeNames(){return Array.from(this.mTypes.keys())}get types(){return this.mTypes}constructor(t){this.mTypes=new Map;for(let[e,o]of Object.entries(t))this.mTypes.set(e,{name:e,...o})}getDefaultValue(t){return this.getType(t).default.value}getType(t){if(!this.mTypes.has(t))throw new Error(`Type "${t}" is not defined in the project types definition.`);return this.mTypes.get(t)}isGenericType(t){return typeof t!="string"?!1:/^<[^>]+>$/.test(t)}};var qe=class extends Ze{constructor(){super({number:{default:{string:["0"],value:0},convert:t=>{let e=t[0],o=parseFloat(e);if(isNaN(o))throw new Error(`Invalid number: "${e}"`);return o.toString()},inputs:[{name:"value",type:"number"}]},string:{default:{string:[""],value:""},convert:t=>t[0],inputs:[{name:"value",type:"string"}]},boolean:{default:{string:["false"],value:!1},convert:t=>{let e=t[0].toLowerCase();if(e==="true")return"true";if(e==="false")return"false";throw new Error(`Invalid boolean: "${t[0]}"`)},inputs:[{name:"value",type:"boolean"}]}})}};var Je=class extends Qt{constructor(){super({id:"pixelShader",label:"Pixel Shader",statics:nt.inputs|nt.outputs,nodes:{entry:t=>{t(new V({id:"OnPixel",label:"OnPixel",category:{name:"event"},ports:{inputs:[],outputs:[{label:"exec",id:"exec",portType:"flow"},{label:"x",id:"x",portType:"value",dataType:"number"},{label:"y",id:"y",portType:"value",dataType:"number"}]},generators:{code:e=>{let o=e.outputs.x.value,l=e.outputs.y.value;return`(${o}, ${l}) => { ${e.outputs.exec.code.inner} }`}}}))},exit:t=>{t(new V({id:"PixelResult",label:"PixelResult",category:{name:"Output"},ports:{inputs:[{label:"exec",id:"exec",portType:"flow"},{label:"red",id:"red",portType:"value",dataType:"number"},{label:"green",id:"green",portType:"value",dataType:"number"},{label:"blue",id:"blue",portType:"value",dataType:"number"}],outputs:[]},generators:{code:e=>`return [${e.inputs.red.value}, ${e.inputs.green.value}, ${e.inputs.blue.value}];`}}))}},generator:{code:{body:t=>{let e=t.graphResultOf("OnPixel");return`const ${t.function.definitionId} = ${e?.code??"() => [0, 0, 0]"};`},value:t=>`${t.function.definitionId}()`}}})}};var Ke=class extends Qt{constructor(){super({id:"Helper Function",label:"Helper Function",statics:nt.none,nodes:{entry:(t,e)=>{t(new ut({id:"HelperFunctionEntry",label:"Entry",category:{name:"event"},generators:{ports:{outputs:o=>{o({label:"exec",id:"exec",portType:"flow"});for(let l of e.inputs)o({label:l.label,id:l.label,portType:"value",dataType:l.dataType})},inputs:()=>{}},code:o=>`(${Object.entries(o.outputs).filter(([m])=>m!=="exec").map(([,m])=>m.value).join(", ")}) => { ${o.outputs.exec.code.inner} }`}}))},exit:(t,e)=>{t(new ut({id:"HelperFunctionReturn",label:"Return",category:{name:"event"},generators:{ports:{outputs:()=>{},inputs:o=>{o({label:"exec",id:"exec",portType:"flow"});for(let l of e.outputs)o({label:l.label,id:l.label,portType:"value",dataType:l.dataType})}},code:o=>`return { ${Object.entries(o.inputs).map(([m,v])=>`${m}: (${v.value})`).join(", ")} };`}}))}},generator:{code:{body:t=>{let e=`__fn_${t.function.id.replaceAll("-","_")}`,o=t.graphResultOf("HelperFunctionEntry");return`const ${e} = ${o?.code??"() => ({})"};`},value:t=>{let e=`__fn_${t.function.id.replaceAll("-","_")}`,o=Object.entries(t.inputs).map(([,v])=>v.value).join(", "),l=Object.entries(t.outputs).filter(([v])=>v!=="Output").map(([v,y])=>`${v}: ${y.value}`).join(", "),m=t.outputs.Output?.code.inner??"";return l===""?`${e}(${o}); ${m}`:`const { ${l} } = ${e}(${o}); ${m}`}}}})}};var Qe=class extends We{mUserFunction;get userFunction(){return this.mUserFunction}constructor(){let t=new qe,e=new Je,o=new Ke;super(t,e,{generator:{code:l=>{let m="";for(let v of l.dependencies)m+=`${v.code}
 `;return m+=l.entryPoint.code,m},values:{valueId:l=>`v_${l}`,hook:l=>`/*[${l}]*/`}}}),this.mUserFunction=o,this.setDynamicFunction(o),this.addBaseNodeDefinitions()}addBaseNodeDefinitions(){this.addNodeDefinition(new V({id:"Add",label:"Add",category:{name:"operator"},ports:{inputs:[{label:"a",id:"a",portType:"value",dataType:"number"},{label:"b",id:"b",portType:"value",dataType:"number"}],outputs:[{label:"result",id:"result",portType:"value",dataType:"number"}]},generators:{code:t=>`const ${t.outputs.result.value} = ${t.inputs.a.value} + ${t.inputs.b.value};`}})),this.addNodeDefinition(new V({id:"Subtract",label:"Subtract",category:{name:"operator"},ports:{inputs:[{label:"a",id:"a",portType:"value",dataType:"number"},{label:"b",id:"b",portType:"value",dataType:"number"}],outputs:[{label:"result",id:"result",portType:"value",dataType:"number"}]},generators:{code:t=>`const ${t.outputs.result.value} = ${t.inputs.a.value} - ${t.inputs.b.value};`}})),this.addNodeDefinition(new V({id:"Multiply",label:"Multiply",category:{name:"operator"},ports:{inputs:[{label:"a",id:"a",portType:"value",dataType:"number"},{label:"b",id:"b",portType:"value",dataType:"number"}],outputs:[{label:"result",id:"result",portType:"value",dataType:"number"}]},generators:{code:t=>`const ${t.outputs.result.value} = ${t.inputs.a.value} * ${t.inputs.b.value};/*MULTIPLYHOOK_${t.outputs.result.value}*/`}})),this.addNodeDefinition(new V({id:"Divide",label:"Divide",category:{name:"operator"},ports:{inputs:[{label:"a",id:"a",portType:"value",dataType:"number"},{label:"b",id:"b",portType:"value",dataType:"number"}],outputs:[{label:"result",id:"result",portType:"value",dataType:"number"}]},generators:{code:t=>`const ${t.outputs.result.value} = ${t.inputs.a.value} / ${t.inputs.b.value};`}})),this.addNodeDefinition(new V({id:"Modulo",label:"Modulo",category:{name:"operator"},ports:{inputs:[{label:"a",id:"a",portType:"value",dataType:"number"},{label:"b",id:"b",portType:"value",dataType:"number"}],outputs:[{label:"result",id:"result",portType:"value",dataType:"number"}]},generators:{code:t=>`const ${t.outputs.result.value} = ${t.inputs.a.value} % ${t.inputs.b.value};`}})),this.addNodeDefinition(new V({id:"Equal",label:"Equal",category:{name:"operator"},ports:{inputs:[{label:"a",id:"a",portType:"value",dataType:"number"},{label:"b",id:"b",portType:"value",dataType:"number"}],outputs:[{label:"result",id:"result",portType:"value",dataType:"boolean"}]},generators:{code:t=>`const ${t.outputs.result.value} = ${t.inputs.a.value} === ${t.inputs.b.value};`}})),this.addNodeDefinition(new V({id:"Not Equal",label:"Not Equal",category:{name:"operator"},ports:{inputs:[{label:"a",id:"a",portType:"value",dataType:"number"},{label:"b",id:"b",portType:"value",dataType:"number"}],outputs:[{label:"result",id:"result",portType:"value",dataType:"boolean"}]},generators:{code:t=>`const ${t.outputs.result.value} = ${t.inputs.a.value} !== ${t.inputs.b.value};`}})),this.addNodeDefinition(new V({id:"Less Than",label:"Less Than",category:{name:"operator"},ports:{inputs:[{label:"a",id:"a",portType:"value",dataType:"number"},{label:"b",id:"b",portType:"value",dataType:"number"}],outputs:[{label:"result",id:"result",portType:"value",dataType:"boolean"}]},generators:{code:t=>`const ${t.outputs.result.value} = ${t.inputs.a.value} < ${t.inputs.b.value};`}})),this.addNodeDefinition(new V({id:"Greater Than",label:"Greater Than",category:{name:"operator"},ports:{inputs:[{label:"a",id:"a",portType:"value",dataType:"number"},{label:"b",id:"b",portType:"value",dataType:"number"}],outputs:[{label:"result",id:"result",portType:"value",dataType:"boolean"}]},generators:{code:t=>`const ${t.outputs.result.value} = ${t.inputs.a.value} > ${t.inputs.b.value};`}})),this.addNodeDefinition(new V({id:"And",label:"And",category:{name:"operator"},ports:{inputs:[{label:"a",id:"a",portType:"value",dataType:"boolean"},{label:"b",id:"b",portType:"value",dataType:"boolean"}],outputs:[{label:"result",id:"result",portType:"value",dataType:"boolean"}]},generators:{code:t=>`const ${t.outputs.result.value} = ${t.inputs.a.value} && ${t.inputs.b.value};`}})),this.addNodeDefinition(new V({id:"Or",label:"Or",category:{name:"operator"},ports:{inputs:[{label:"a",id:"a",portType:"value",dataType:"boolean"},{label:"b",id:"b",portType:"value",dataType:"boolean"}],outputs:[{label:"result",id:"result",portType:"value",dataType:"boolean"}]},generators:{code:t=>`const ${t.outputs.result.value} = ${t.inputs.a.value} || ${t.inputs.b.value};`}})),this.addNodeDefinition(new V({id:"Not",label:"Not",category:{name:"operator"},ports:{inputs:[{label:"a",id:"a",portType:"value",dataType:"boolean"}],outputs:[{label:"result",id:"result",portType:"value",dataType:"boolean"}]},generators:{code:t=>`const ${t.outputs.result.value} = !${t.inputs.a.value};`}})),this.addNodeDefinition(new V({id:"Number to String",label:"Number to String",category:{name:"type-conversion"},ports:{inputs:[{label:"input",id:"input",portType:"value",dataType:"number"}],outputs:[{label:"output",id:"output",portType:"value",dataType:"string"}]},generators:{code:t=>`const ${t.outputs.output.value} = String(${t.inputs.input.value});`}})),this.addNodeDefinition(new V({id:"String to Number",label:"String to Number",category:{name:"type-conversion"},ports:{inputs:[{label:"input",id:"input",portType:"value",dataType:"string"}],outputs:[{label:"output",id:"output",portType:"value",dataType:"number"}]},generators:{code:t=>`const ${t.outputs.output.value} = Number(${t.inputs.input.value});`}})),this.addNodeDefinition(new V({id:"Boolean to String",label:"Boolean to String",category:{name:"type-conversion"},ports:{inputs:[{label:"input",id:"input",portType:"value",dataType:"boolean"}],outputs:[{label:"output",id:"output",portType:"value",dataType:"string"}]},generators:{code:t=>`const ${t.outputs.output.value} = String(${t.inputs.input.value});`}})),this.addNodeDefinition(new V({id:"If",label:"If",category:{name:"flow"},ports:{inputs:[{label:"exec",id:"exec",portType:"flow"},{label:"condition",id:"condition",portType:"value",dataType:"boolean"}],outputs:[{label:"then",id:"then",portType:"flow"},{label:"else",id:"else",portType:"flow"}]},generators:{code:t=>`if (${t.inputs.condition.value}) {
@@ -2124,7 +2035,7 @@ ${t.outputs.else.code.inner}
 ${t.outputs.body.code.inner}
 }`}})),this.addNodeDefinition(new V({id:"For Loop",label:"For Loop",category:{name:"flow"},ports:{inputs:[{label:"exec",id:"exec",portType:"flow"},{label:"count",id:"count",portType:"value",dataType:"number"}],outputs:[{label:"exec",id:"exec",portType:"flow"},{label:"index",id:"index",portType:"value",dataType:"number"}]},generators:{code:t=>`for (let ${t.outputs.index.value} = 0; ${t.outputs.index.value} < ${t.inputs.count.value}; ${t.outputs.index.value}++) {
 ${t.outputs.exec.code.inner}
-}`}})),this.addNodeDefinition(new V({id:"Console Log",label:"Console Log",category:{name:"Function"},ports:{inputs:[{label:"message",id:"message",portType:"value",dataType:"string"}],outputs:[]},generators:{code:t=>`console.log(${t.inputs.message.value});`}})),this.addNodeDefinition(new V({id:"String Concat",label:"String Concat",category:{name:"Function"},ports:{inputs:[{label:"a",id:"a",portType:"value",dataType:"string"},{label:"b",id:"b",portType:"value",dataType:"string"}],outputs:[{label:"result",id:"result",portType:"value",dataType:"string"}]},generators:{code:t=>`const ${t.outputs.result.value} = ${t.inputs.a.value} + ${t.inputs.b.value};`}}))}};var re=class{mId;mLabel;mNodes;get id(){return this.mId}get label(){return this.mLabel}get nodes(){return this.mNodes}constructor(t,e){this.mId=t,this.mLabel=e,this.mNodes=new Array}addNode(t){this.mNodes.push(t)}};var ke=class extends re{constructor(){super("Math","Math"),this.addNode(new V({id:"Math.PI",label:"Math.PI",category:{name:"value"},ports:{inputs:[],outputs:[{label:"value",id:"value",portType:"value",dataType:"number"}]},generators:{code:t=>`const ${t.outputs.value.value} = Math.PI;`}})),this.addNode(new V({id:"Math.E",label:"Math.E",category:{name:"value"},ports:{inputs:[],outputs:[{label:"value",id:"value",portType:"value",dataType:"number"}]},generators:{code:t=>`const ${t.outputs.value.value} = Math.E;`}})),this.addNode(new V({id:"Math.abs",label:"Math.abs",category:{name:"Function"},ports:{inputs:[{label:"value",id:"value",portType:"value",dataType:"number"}],outputs:[{label:"result",id:"result",portType:"value",dataType:"number"}]},generators:{code:t=>`const ${t.outputs.result.value} = Math.abs(${t.inputs.value.value});`}})),this.addNode(new V({id:"Math.floor",label:"Math.floor",category:{name:"Function"},ports:{inputs:[{label:"value",id:"value",portType:"value",dataType:"number"}],outputs:[{label:"result",id:"result",portType:"value",dataType:"number"}]},generators:{code:t=>`const ${t.outputs.result.value} = Math.floor(${t.inputs.value.value});`}})),this.addNode(new V({id:"Math.random",label:"Math.random",category:{name:"Function"},ports:{inputs:[],outputs:[{label:"result",id:"result",portType:"value",dataType:"number"}]},generators:{code:t=>`const ${t.outputs.result.value} = Math.random();`}})),this.addNode(new V({id:"Math.sin",label:"Math.sin",category:{name:"Function"},ports:{inputs:[{label:"value",id:"value",portType:"value",dataType:"number"}],outputs:[{label:"result",id:"result",portType:"value",dataType:"number"}]},generators:{code:t=>`const ${t.outputs.result.value} = Math.sin(${t.inputs.value.value});`}})),this.addNode(new V({id:"Math.cos",label:"Math.cos",category:{name:"Function"},ports:{inputs:[{label:"value",id:"value",portType:"value",dataType:"number"}],outputs:[{label:"result",id:"result",portType:"value",dataType:"number"}]},generators:{code:t=>`const ${t.outputs.result.value} = Math.cos(${t.inputs.value.value});`}}))}};var tr=class extends re{constructor(){super("Time","Time"),this.addNode(new V({id:"CurrentTime",label:"CurrentTime",category:{name:"value"},ports:{inputs:[],outputs:[{label:"seconds",id:"seconds",portType:"value",dataType:"number"}]},generators:{code:t=>`const ${t.outputs.seconds.value} = (performance.now() / 1000);`}}))}};var er=class{mDependencies;mDocument;mEntryPoint;get code(){return this.mDocument.project.generator.code(this)}get dependencies(){return this.mDependencies}get entryPoint(){return this.mEntryPoint}constructor(t,e,o){this.mDocument=t,this.mEntryPoint=e,this.mDependencies=o}};var rr=class{mFunction;mGraphs;get code(){let t=this.mFunction.project.getFunction(this.mFunction.definitionId);if(!t)throw new A("Function result has an invalid function definition id.",this);return t.codeGenerator.body(this)}get function(){return this.mFunction}get graphs(){return Array.from(this.mGraphs.values())}constructor(t){this.mFunction=t,this.mGraphs=new Map}addGraph(t){this.mGraphs.set(t.entryNode.definitionId,t)}graphResultOf(t){return this.mGraphs.get(t)}};var or=class{mBodyCode;mDependencies;mEntryNode;mExitNode;mNodeIds;mPorts;get code(){return this.mBodyCode}get dependencies(){return this.mDependencies}get entryNode(){return this.mEntryNode}get exitNode(){return this.mExitNode}get nodes(){return this.mNodeIds}get ports(){return this.mPorts}constructor(t){this.mBodyCode=t.bodyCode,this.mDependencies=[...t.dependencies],this.mEntryNode=t.entryNode,this.mExitNode=t.exitNode,this.mNodeIds=t.nodeIds,this.mPorts=t.portValues}};var nr=class{mProject;constructor(t){this.mProject=t}generateDocument(t,e=!1){let o=[...t.functions].find(l=>l.isSystem);if(!o)throw new A("No entry point function found for code generation.",this);return this.generateFunction(o,e)}generateFunction(t,e=!1){return this.buildDocumentResult(t.document,t.getExitNodes(),e)}generateNode(t,e=!1){return this.buildDocumentResult(t.document,[t],e)}buildDocumentResult(t,e,o){if(t.validate().errors.length>0)throw new A("Code generation exited. Code graph validation failed.",this);let m={counter:{nodeIndex:0,portIndex:0},debug:o,nodeDefinitions:new Map},v=this.generateFunctionWithDependencies(m,e,new Set),y=v.shift();return new er(t,y,v)}countNodeEncounter(t,e){let o=new Map,l=new Set,m=new Array(t);for(;m.length>0;){let v=m.pop();if(o.set(v,(o.get(v)??0)+1),!(v===e||l.has(v))){l.add(v);for(let y of v.inputs.flow)for(let D of this.resolveFlowConjunctions(y))m.push(D.node);for(let y of v.inputs.value){let D=this.resolveValueConjunctions(y);D&&m.push(D.node)}}}return o}createScope(t,e){return{emittedNodes:new Set,remaining:this.countNodeEncounter(t,e)}}emitNode(t,e,o,l,m){if(!t.nodeDefinitions.get(o.function)){let a=new Map;for(let r of o.function.nodeDefinitions)a.set(r.id,r);t.nodeDefinitions.set(o.function,a)}let v=t.nodeDefinitions.get(o.function).get(o.definitionId);if(!v)throw new A(`Node definition "${o.definitionId}" not found for node "${o.label}".`,this);v instanceof Mt&&e.dependencies.push(v.function);let y={},D=new Array;for(let a of o.inputs.value){let r=this.resolveInputValue(t,e,a);y[a.definitionId]=r.inputPort,e.ports.set(a,r.inputPort.value),r.emitResult&&D.push(r.emitResult)}let S={};for(let a of o.outputs.list)S[a.definitionId]={value:this.generatePortValue(t,e,a),code:{inner:l[a.definitionId]??""}};let c=v.codeGenerator({inputs:y,outputs:S,code:{next:m??""}}),n=this.getGeneratedNodeId(t,e,o);t.debug&&(c=this.mProject.generator.values.hook(`start-${n}`)+c+this.mProject.generator.values.hook(`end-${n}`));let u=new Array;for(let a of D)u.push(...a.codeOutput);return u.push(c),{codeOutput:u,lastGeneratedNode:o,endFlowPort:null}}findBranchStartPoint(t){let e=this.getNodesInputFlowPorts(t),o=e.length,l=new Map,m=new Array,v=(y,D)=>{let S=(l.has(y)||l.set(y,new Set),l.get(y)),c=S.size;for(let n of D)S.add(n);return S.size>c&&m.push(y),S};for(let[y,D]of e.entries())v(D.node,[y]);for(;m.length>0;){let y=m.shift(),D=l.get(y);for(let S of this.getNodesInputFlowPorts(y))if(v(S.node,D).size===o)return S.node}throw new A("No common branch point found for merge node.",this)}generateFunctionWithDependencies(t,e,o){let l=new Array;if(e.length===0)return l;let m=e.at(0).function;o.add(m);let v=new rr(m);l.push(v);for(let y of e){let D=this.generateNodeCode(t,y);v.addGraph(D);for(let S of D.dependencies)o.has(S)||l.push(...this.generateFunctionWithDependencies(t,S.getExitNodes(),o))}return l.reverse()}generateNodeCode(t,e){let o={dependencies:new Array,nodes:new Map,ports:new Map,scope:this.createScope(e,null)},l=this.walkBackward(t,o,e,null),m=l.codeOutput.join(" ");return new or({bodyCode:m,dependencies:o.dependencies,entryNode:l.lastGeneratedNode,exitNode:e,nodeIds:new Map(o.nodes),portValues:new Map(o.ports)})}generatePortValue(t,e,o){return e.ports.has(o)||e.ports.set(o,this.mProject.generator.values.valueId(t.counter.portIndex++)),e.ports.get(o)}getGeneratedNodeId(t,e,o){if(!e.nodes.has(o)){let m=(++t.counter.nodeIndex).toString(16).toUpperCase().padStart(8,"0");e.nodes.set(o,m)}return e.nodes.get(o)}getNodesInputFlowPorts(t){let e=new Array;for(let o of t.inputs.flow)e.push(...this.resolveFlowConjunctions(o));return[...new Set(e)]}handleFlowMerge(t,e,o,l,m){let v=m.join(" "),y=this.findBranchStartPoint(o),D={},S=e.scope;try{for(let c of l){e.scope=this.createScope(c.node,y);let n=this.walkBackward(t,e,c.node,y);D[n.endFlowPort.definitionId]=n.codeOutput.join(" ")}}finally{e.scope=S}return this.emitNode(t,e,y,D,v)}resolveFlowConjunctions(t){let e=new Array;for(let o of t.connectedPorts){if(o.node.definitionId!==te.DEFINITION_ID){e.push(o);continue}let l=o.node.inputs.flow[0];!l||l.connectedPorts.size===0||e.push(...this.resolveFlowConjunctions(l))}return e}resolveInputValue(t,e,o){let l=this.resolveValueConjunctions(o);if(!l){if(this.mProject.types.isGenericType(o.dataType))throw new A("Generic value inputs must be allways connected",this);return{inputPort:{value:this.mProject.types.getType(o.dataType).convert([...o.directValue]),isDirectValue:!0},emitResult:null}}let m=l.node,v=!m.hasFlowPorts,y=(()=>{if(!m.hasFlowPorts){if(e.scope.emittedNodes.has(m))return null;let D=e.scope.remaining.get(m);if(v&&(D=0),e.scope.remaining.set(m,D),D<=0)return e.scope.emittedNodes.add(m),this.emitNode(t,e,m,{})}return null})();return{inputPort:{value:this.generatePortValue(t,e,l),isDirectValue:!1},emitResult:y}}resolveValueConjunctions(t){if(t.connectedPorts.size===0)return null;let e=t.connectedPorts.values().next().value;if(e.node.definitionId!==ee.DEFINITION_ID)return e;let o=e.node.inputs.value[0];return!o||o.connectedPorts.size===0?null:this.resolveValueConjunctions(o)}walkBackward(t,e,o,l){let m={codeOutput:new Array,lastGeneratedNode:null,endFlowPort:null},v=null,y=o;for(;y!==null&&y!==l;){let D={};v!==null&&(D[v.definitionId]=m.codeOutput.join(" "),m.codeOutput=new Array);let S=m.codeOutput;m=this.emitNode(t,e,y,D),m.codeOutput=[...m.codeOutput,...S];let c=this.getNodesInputFlowPorts(y);if(c.length===0)break;c.length>1&&(m=this.handleFlowMerge(t,e,y,c,m.codeOutput),c=this.getNodesInputFlowPorts(m.lastGeneratedNode)),v=c[0]??null,y=v?.node??null}if(!m.lastGeneratedNode)throw new A(`Walk did not reach an entry node from exit "${o.label}".`,this);if(l&&y!==l)throw new A("Malformed graph. End node not reached",this);return m.endFlowPort=v,m}};var ir=class{mCachedCallable;mDisplay;mElement;mSpecifiedParameters;mTarget;get display(){return this.mDisplay}get element(){return this.mElement||(this.mElement=this.mDisplay.generate()),this.mElement}constructor(t,e){this.mDisplay=t,this.mTarget=e,this.mCachedCallable=null,this.mElement=null,this.mSpecifiedParameters={...this.mDisplay.executor.defaultParameters}}async execute(){this.mCachedCallable&&await this.mDisplay.update(this.element,this.mCachedCallable)}refresh(){let t=this.mTarget instanceof ht?this.mTarget.node.function:this.mTarget,e=(()=>{try{return new nr(t.project).generateFunction(t,!0)}catch{return null}})();if(!e){this.mCachedCallable=null;return}let o=null;if(this.mTarget instanceof ht&&(o=this.resolvePortTarget(e,this.mTarget),!o)){this.mCachedCallable=null;return}let l=this.mDisplay.executor.compile(e,o);if(!this.mDisplay.allowsType(l.type)){this.mCachedCallable=null;return}let m=this.mDisplay.adapterFor(l.type);this.mCachedCallable=async v=>m(await l.execute({...this.mDisplay.executor.defaultParameters,...this.mSpecifiedParameters,...v}))}specifyParameters(t){this.mSpecifiedParameters={...this.mSpecifiedParameters,...t}}resolvePortTarget(t,e){let[o,l]=(()=>{for(let v of t.entryPoint.graphs)if(v.ports.has(e)&&v.nodes.has(e.node))return[v.ports.get(e),v.nodes.get(e.node)];return[null,null]})();if(!o||!l)return null;let m=e.direction==="input"?"start":"end";return{documentPort:e,nodeHook:e.project.generator.values.hook(`${m}-${l}`),value:o}}};var oe=class{mExecutor;mGenerate;mId;mName;mTypeAdapters;mUpdate;get executor(){return this.mExecutor}get id(){return`${this.mId}-${this.mExecutor.function.id}`}get name(){return this.mName}constructor(t,e){this.mId=e.id,this.mName=e.name,this.mExecutor=t,this.mGenerate=e.generate,this.mUpdate=e.update,this.mTypeAdapters=new Map;for(let[o,l]of Object.entries(e.typeAdapter))this.mExecutor.types.has(o)&&this.mTypeAdapters.set(o,l)}adapterFor(t){let e=t;if(!this.mTypeAdapters.has(e))throw new A(`Display "${this.mId}" has no type adapter for type "${t}".`,this);return this.mTypeAdapters.get(e)}allowsType(t){return this.mTypeAdapters.has(t)}createDriver(t){return new ir(this,t)}generate(){return this.mGenerate()}update(t,e){return this.mUpdate(t,e)}};var Te=class f extends oe{static MATRIX_SIZE=3;static VALUE_LENGTH=5;constructor(t){super(t,{id:"matrix",name:"Matrix 3x3",generate:()=>{let e=document.createElement("div");return e.style.boxSizing="border-box",e.style.display="grid",e.style.gap="2px",e.style.gridTemplateColumns=`repeat(${f.MATRIX_SIZE}, minmax(0, 1fr))`,e.style.height="100%",e.style.width="100%",e.style.fontFamily="var(--pn-font-mono)",e.style.fontSize="var(--pn-font-size-sm)",e},typeAdapter:{[et.MAIN]:e=>e.map(o=>this.formatPreviewValue(o)),number:e=>[this.formatPreviewValue(e)],string:e=>[this.formatPreviewValue(e)],boolean:e=>[this.formatPreviewValue(e)]},update:async(e,o)=>{await this.updateMatrixPreview(e,o)}})}formatPreviewValue(t){if(typeof t=="number"){if(!Number.isFinite(t))return t.toString().slice(0,f.VALUE_LENGTH);let e=Math.trunc(Math.abs(t)).toString().length,o=Math.max(0,f.VALUE_LENGTH-e-(t<0?1:0)-1);return t.toFixed(o).slice(0,f.VALUE_LENGTH)}return String(t).slice(0,f.VALUE_LENGTH)}async updateMatrixPreview(t,e){for(;t.children.length<f.MATRIX_SIZE*f.MATRIX_SIZE;){let o=document.createElement("div");o.style.alignItems="center",o.style.background="var(--pn-bg-secondary)",o.style.border="1px solid var(--pn-border-default)",o.style.boxSizing="border-box",o.style.color="var(--pn-text-primary)",o.style.display="flex",o.style.justifyContent="center",o.style.minWidth="0",o.style.overflow="hidden",o.style.padding="2px",o.style.textOverflow="clip",o.style.whiteSpace="pre-line",t.append(o)}for(let o=0;o<f.MATRIX_SIZE;o++)for(let l=0;l<f.MATRIX_SIZE;l++){let m=o*f.MATRIX_SIZE+l,v=f.MATRIX_SIZE===1?0:l/(f.MATRIX_SIZE-1),y=f.MATRIX_SIZE===1?0:o/(f.MATRIX_SIZE-1),D=await Promise.resolve(e({x:v,y}));t.children[m].textContent=D.join(`
+}`}})),this.addNodeDefinition(new V({id:"Console Log",label:"Console Log",category:{name:"Function"},ports:{inputs:[{label:"message",id:"message",portType:"value",dataType:"string"}],outputs:[]},generators:{code:t=>`console.log(${t.inputs.message.value});`}})),this.addNodeDefinition(new V({id:"String Concat",label:"String Concat",category:{name:"Function"},ports:{inputs:[{label:"a",id:"a",portType:"value",dataType:"string"},{label:"b",id:"b",portType:"value",dataType:"string"}],outputs:[{label:"result",id:"result",portType:"value",dataType:"string"}]},generators:{code:t=>`const ${t.outputs.result.value} = ${t.inputs.a.value} + ${t.inputs.b.value};`}}))}};var re=class{mId;mLabel;mNodes;get id(){return this.mId}get label(){return this.mLabel}get nodes(){return this.mNodes}constructor(t,e){this.mId=t,this.mLabel=e,this.mNodes=new Array}addNode(t){this.mNodes.push(t)}};var ke=class extends re{constructor(){super("Math","Math"),this.addNode(new V({id:"Math.PI",label:"Math.PI",category:{name:"value"},ports:{inputs:[],outputs:[{label:"value",id:"value",portType:"value",dataType:"number"}]},generators:{code:t=>`const ${t.outputs.value.value} = Math.PI;`}})),this.addNode(new V({id:"Math.E",label:"Math.E",category:{name:"value"},ports:{inputs:[],outputs:[{label:"value",id:"value",portType:"value",dataType:"number"}]},generators:{code:t=>`const ${t.outputs.value.value} = Math.E;`}})),this.addNode(new V({id:"Math.abs",label:"Math.abs",category:{name:"Function"},ports:{inputs:[{label:"value",id:"value",portType:"value",dataType:"number"}],outputs:[{label:"result",id:"result",portType:"value",dataType:"number"}]},generators:{code:t=>`const ${t.outputs.result.value} = Math.abs(${t.inputs.value.value});`}})),this.addNode(new V({id:"Math.floor",label:"Math.floor",category:{name:"Function"},ports:{inputs:[{label:"value",id:"value",portType:"value",dataType:"number"}],outputs:[{label:"result",id:"result",portType:"value",dataType:"number"}]},generators:{code:t=>`const ${t.outputs.result.value} = Math.floor(${t.inputs.value.value});`}})),this.addNode(new V({id:"Math.random",label:"Math.random",category:{name:"Function"},ports:{inputs:[],outputs:[{label:"result",id:"result",portType:"value",dataType:"number"}]},generators:{code:t=>`const ${t.outputs.result.value} = Math.random();`}})),this.addNode(new V({id:"Math.sin",label:"Math.sin",category:{name:"Function"},ports:{inputs:[{label:"value",id:"value",portType:"value",dataType:"number"}],outputs:[{label:"result",id:"result",portType:"value",dataType:"number"}]},generators:{code:t=>`const ${t.outputs.result.value} = Math.sin(${t.inputs.value.value});`}})),this.addNode(new V({id:"Math.cos",label:"Math.cos",category:{name:"Function"},ports:{inputs:[{label:"value",id:"value",portType:"value",dataType:"number"}],outputs:[{label:"result",id:"result",portType:"value",dataType:"number"}]},generators:{code:t=>`const ${t.outputs.result.value} = Math.cos(${t.inputs.value.value});`}}))}};var tr=class extends re{constructor(){super("Time","Time"),this.addNode(new V({id:"CurrentTime",label:"CurrentTime",category:{name:"value"},ports:{inputs:[],outputs:[{label:"seconds",id:"seconds",portType:"value",dataType:"number"}]},generators:{code:t=>`const ${t.outputs.seconds.value} = (performance.now() / 1000);`}}))}};var er=class{mDependencies;mDocument;mEntryPoint;get code(){return this.mDocument.project.generator.code(this)}get dependencies(){return this.mDependencies}get entryPoint(){return this.mEntryPoint}constructor(t,e,o){this.mDocument=t,this.mEntryPoint=e,this.mDependencies=o}};var rr=class{mFunction;mGraphs;get code(){let t=this.mFunction.project.getFunction(this.mFunction.definitionId);if(!t)throw new A("Function result has an invalid function definition id.",this);return t.codeGenerator.body(this)}get function(){return this.mFunction}get graphs(){return Array.from(this.mGraphs.values())}constructor(t){this.mFunction=t,this.mGraphs=new Map}addGraph(t){this.mGraphs.set(t.entryNode.definitionId,t)}graphResultOf(t){return this.mGraphs.get(t)}};var or=class{mBodyCode;mDependencies;mEntryNode;mExitNode;mNodeIds;mPorts;get code(){return this.mBodyCode}get dependencies(){return this.mDependencies}get entryNode(){return this.mEntryNode}get exitNode(){return this.mExitNode}get nodes(){return this.mNodeIds}get ports(){return this.mPorts}constructor(t){this.mBodyCode=t.bodyCode,this.mDependencies=[...t.dependencies],this.mEntryNode=t.entryNode,this.mExitNode=t.exitNode,this.mNodeIds=t.nodeIds,this.mPorts=t.portValues}};var nr=class{mProject;constructor(t){this.mProject=t}generateDocument(t,e=!1){let o=[...t.functions].find(l=>l.isSystem);if(!o)throw new A("No entry point function found for code generation.",this);return this.generateFunction(o,e)}generateFunction(t,e=!1){return this.buildDocumentResult(t.document,t.getExitNodes(),e)}generateNode(t,e=!1){return this.buildDocumentResult(t.document,[t],e)}buildDocumentResult(t,e,o){if(t.validate().errors.length>0)throw new A("Code generation exited. Code graph validation failed.",this);let m={counter:{nodeIndex:0,portIndex:0},debug:o,nodeDefinitions:new Map},v=this.generateFunctionWithDependencies(m,e,new Set),y=v.shift();return new er(t,y,v)}countNodeEncounter(t,e){let o=new Map,l=new Set,m=new Array(t);for(;m.length>0;){let v=m.pop();if(o.set(v,(o.get(v)??0)+1),!(v===e||l.has(v))){l.add(v);for(let y of v.inputs.flow)for(let D of this.resolveFlowConjunctions(y))m.push(D.node);for(let y of v.inputs.value){let D=this.resolveValueConjunctions(y);D&&m.push(D.node)}}}return o}createScope(t,e){return{emittedNodes:new Set,remaining:this.countNodeEncounter(t,e)}}emitNode(t,e,o,l,m){if(!t.nodeDefinitions.get(o.function)){let a=new Map;for(let r of o.function.nodeDefinitions)a.set(r.id,r);t.nodeDefinitions.set(o.function,a)}let v=t.nodeDefinitions.get(o.function).get(o.definitionId);if(!v)throw new A(`Node definition "${o.definitionId}" not found for node "${o.label}".`,this);v instanceof Mt&&e.dependencies.push(v.function);let y={},D=new Array;for(let a of o.inputs.value){let r=this.resolveInputValue(t,e,a);y[a.definitionId]=r.inputPort,e.ports.set(a,r.inputPort.value),r.emitResult&&D.push(r.emitResult)}let S={};for(let a of o.outputs.list)S[a.definitionId]={value:this.generatePortValue(t,e,a),code:{inner:l[a.definitionId]??""}};let c=v.codeGenerator({inputs:y,outputs:S,code:{next:m??""}}),n=this.getGeneratedNodeId(t,e,o);t.debug&&(c=this.mProject.generator.values.hook(`start-${n}`)+c+this.mProject.generator.values.hook(`end-${n}`));let u=new Array;for(let a of D)u.push(...a.codeOutput);return u.push(c),{codeOutput:u,lastGeneratedNode:o,endFlowPort:null}}findBranchStartPoint(t){let e=this.getNodesInputFlowPorts(t),o=e.length,l=new Map,m=new Array,v=(y,D)=>{let S=(l.has(y)||l.set(y,new Set),l.get(y)),c=S.size;for(let n of D)S.add(n);return S.size>c&&m.push(y),S};for(let[y,D]of e.entries())v(D.node,[y]);for(;m.length>0;){let y=m.shift(),D=l.get(y);for(let S of this.getNodesInputFlowPorts(y))if(v(S.node,D).size===o)return S.node}throw new A("No common branch point found for merge node.",this)}generateFunctionWithDependencies(t,e,o){let l=new Array;if(e.length===0)return l;let m=e.at(0).function;o.add(m);let v=new rr(m);l.push(v);for(let y of e){let D=this.generateNodeCode(t,y);v.addGraph(D);for(let S of D.dependencies)o.has(S)||l.push(...this.generateFunctionWithDependencies(t,S.getExitNodes(),o))}return l.reverse()}generateNodeCode(t,e){let o={dependencies:new Array,nodes:new Map,ports:new Map,scope:this.createScope(e,null)},l=this.walkBackward(t,o,e,null),m=l.codeOutput.join(" ");return new or({bodyCode:m,dependencies:o.dependencies,entryNode:l.lastGeneratedNode,exitNode:e,nodeIds:new Map(o.nodes),portValues:new Map(o.ports)})}generatePortValue(t,e,o){return e.ports.has(o)||e.ports.set(o,this.mProject.generator.values.valueId(t.counter.portIndex++)),e.ports.get(o)}getGeneratedNodeId(t,e,o){if(!e.nodes.has(o)){let m=(++t.counter.nodeIndex).toString(16).toUpperCase().padStart(8,"0");e.nodes.set(o,m)}return e.nodes.get(o)}getNodesInputFlowPorts(t){let e=new Array;for(let o of t.inputs.flow)e.push(...this.resolveFlowConjunctions(o));return[...new Set(e)]}handleFlowMerge(t,e,o,l,m){let v=m.join(" "),y=this.findBranchStartPoint(o),D={},S=e.scope;try{for(let c of l){e.scope=this.createScope(c.node,y);let n=this.walkBackward(t,e,c.node,y);D[n.endFlowPort.definitionId]=n.codeOutput.join(" ")}}finally{e.scope=S}return this.emitNode(t,e,y,D,v)}resolveFlowConjunctions(t){let e=new Array;for(let o of t.connectedPorts){if(o.node.definitionId!==te.DEFINITION_ID){e.push(o);continue}let l=o.node.inputs.flow[0];!l||l.connectedPorts.size===0||e.push(...this.resolveFlowConjunctions(l))}return e}resolveInputValue(t,e,o){let l=this.resolveValueConjunctions(o);if(!l){if(this.mProject.types.isGenericType(o.dataType))throw new A("Generic value inputs must be allways connected",this);return{inputPort:{value:this.mProject.types.getType(o.dataType).convert([...o.directValue]),isDirectValue:!0},emitResult:null}}let m=l.node,v=!m.hasFlowPorts,y=(()=>{if(!m.hasFlowPorts){if(e.scope.emittedNodes.has(m))return null;let D=e.scope.remaining.get(m);if(v&&(D=0),e.scope.remaining.set(m,D),D<=0)return e.scope.emittedNodes.add(m),this.emitNode(t,e,m,{})}return null})();return{inputPort:{value:this.generatePortValue(t,e,l),isDirectValue:!1},emitResult:y}}resolveValueConjunctions(t){if(t.connectedPorts.size===0)return null;let e=t.connectedPorts.values().next().value;if(e.node.definitionId!==ee.DEFINITION_ID)return e;let o=e.node.inputs.value[0];return!o||o.connectedPorts.size===0?null:this.resolveValueConjunctions(o)}walkBackward(t,e,o,l){let m={codeOutput:new Array,lastGeneratedNode:null,endFlowPort:null},v=null,y=o;for(;y!==null&&y!==l;){let D={};v!==null&&(D[v.definitionId]=m.codeOutput.join(" "),m.codeOutput=new Array);let S=m.codeOutput;m=this.emitNode(t,e,y,D),m.codeOutput=[...m.codeOutput,...S];let c=this.getNodesInputFlowPorts(y);if(c.length===0)break;c.length>1&&(m=this.handleFlowMerge(t,e,y,c,m.codeOutput),c=this.getNodesInputFlowPorts(m.lastGeneratedNode)),v=c[0]??null,y=v?.node??null}if(!m.lastGeneratedNode)throw new A(`Walk did not reach an entry node from exit "${o.label}".`,this);if(l&&y!==l)throw new A("Malformed graph. End node not reached",this);return m.endFlowPort=v,m}};var ir=class{mCachedCallable;mDisplay;mElement;mSpecifiedParameters;mTarget;get display(){return this.mDisplay}get element(){return this.mElement||(this.mElement=this.mDisplay.generate()),this.mElement}constructor(t,e){this.mDisplay=t,this.mTarget=e,this.mCachedCallable=null,this.mElement=null,this.mSpecifiedParameters={...this.mDisplay.executor.defaultParameters}}async execute(){this.mCachedCallable&&await this.mDisplay.update(this.element,this.mCachedCallable)}refresh(){let t=this.mTarget instanceof ht?this.mTarget.node.function:this.mTarget,e=(()=>{try{return new nr(t.project).generateFunction(t,!0)}catch{return null}})();if(!e){this.mCachedCallable=null;return}let o=null;if(this.mTarget instanceof ht&&(o=this.resolvePortTarget(e,this.mTarget),!o)){this.mCachedCallable=null;return}let l=this.mDisplay.executor.compile(e,o);if(!this.mDisplay.allowsType(l.type)){this.mCachedCallable=null;return}let m=this.mDisplay.adapterFor(l.type);this.mCachedCallable=async v=>m(await l.execute({...this.mDisplay.executor.defaultParameters,...this.mSpecifiedParameters,...v}))}specifyParameters(t){this.mSpecifiedParameters={...this.mSpecifiedParameters,...t}}resolvePortTarget(t,e){let[o,l]=(()=>{for(let v of t.entryPoint.graphs)if(v.ports.has(e)&&v.nodes.has(e.node))return[v.ports.get(e),v.nodes.get(e.node)];return[null,null]})();if(!o||!l)return null;let m=e.direction==="input"?"start":"end";return{documentPort:e,nodeHook:e.project.generator.values.hook(`${m}-${l}`),value:o}}};var oe=class{mExecutor;mGenerate;mId;mName;mTypeAdapters;mUpdate;get executor(){return this.mExecutor}get id(){return`${this.mId}-${this.mExecutor.function.id}`}get name(){return this.mName}constructor(t,e){this.mId=e.id,this.mName=e.name,this.mExecutor=t,this.mGenerate=e.generate,this.mUpdate=e.update,this.mTypeAdapters=new Map;for(let[o,l]of Object.entries(e.typeAdapter))this.mExecutor.types.has(o)&&this.mTypeAdapters.set(o,l)}adapterFor(t){let e=t;if(!this.mTypeAdapters.has(e))throw new A(`Display "${this.mId}" has no type adapter for type "${t}".`,this);return this.mTypeAdapters.get(e)}allowsType(t){return this.mTypeAdapters.has(t)}createDriver(t){return new ir(this,t)}generate(){return this.mGenerate()}update(t,e){return this.mUpdate(t,e)}};var Te=class f extends oe{static MATRIX_SIZE=3;static VALUE_LENGTH=5;constructor(t){super(t,{id:"matrix",name:"Matrix 3x3",generate:()=>{let e=document.createElement("div");return e.style.boxSizing="border-box",e.style.display="grid",e.style.gap="2px",e.style.gridTemplateColumns=`repeat(${f.MATRIX_SIZE}, minmax(0, 1fr))`,e.style.height="100%",e.style.width="100%",e.style.fontFamily="var(--potatno-font-family)",e.style.fontSize="var(--pn-font-size-sm)",e},typeAdapter:{[et.MAIN]:e=>e.map(o=>this.formatPreviewValue(o)),number:e=>[this.formatPreviewValue(e)],string:e=>[this.formatPreviewValue(e)],boolean:e=>[this.formatPreviewValue(e)]},update:async(e,o)=>{await this.updateMatrixPreview(e,o)}})}formatPreviewValue(t){if(typeof t=="number"){if(!Number.isFinite(t))return t.toString().slice(0,f.VALUE_LENGTH);let e=Math.trunc(Math.abs(t)).toString().length,o=Math.max(0,f.VALUE_LENGTH-e-(t<0?1:0)-1);return t.toFixed(o).slice(0,f.VALUE_LENGTH)}return String(t).slice(0,f.VALUE_LENGTH)}async updateMatrixPreview(t,e){for(;t.children.length<f.MATRIX_SIZE*f.MATRIX_SIZE;){let o=document.createElement("div");o.style.alignItems="center",o.style.background="var(--potatno-color-background-dark)",o.style.border="1px solid var(--potatno-color-border)",o.style.boxSizing="border-box",o.style.color="var(--pn-text-primary)",o.style.display="flex",o.style.justifyContent="center",o.style.minWidth="0",o.style.overflow="hidden",o.style.padding="2px",o.style.textOverflow="clip",o.style.whiteSpace="pre-line",t.append(o)}for(let o=0;o<f.MATRIX_SIZE;o++)for(let l=0;l<f.MATRIX_SIZE;l++){let m=o*f.MATRIX_SIZE+l,v=f.MATRIX_SIZE===1?0:l/(f.MATRIX_SIZE-1),y=f.MATRIX_SIZE===1?0:o/(f.MATRIX_SIZE-1),D=await Promise.resolve(e({x:v,y}));t.children[m].textContent=D.join(`
 `)}}};var De=class f extends oe{static PREVIEW_HEIGHT=48;static PREVIEW_WIDTH=48;constructor(t){super(t,{id:"2dCanvas",name:"Canvas 2D",generate:()=>{let e=document.createElement("canvas");return e.width=f.PREVIEW_WIDTH,e.height=f.PREVIEW_HEIGHT,e.style.width="100%",e.style.height="100%",e.style.imageRendering="pixelated",e},typeAdapter:{[et.MAIN]:e=>e,number:e=>[e,e,e],boolean:e=>{let o=e?1:0;return[o,o,o]}},update:async(e,o)=>{await this.updateCanvasPreview(e,o)}})}async updateCanvasPreview(t,e){let o=t.getContext("2d");if(!o)return;let l=t.width,m=t.height,v=o.createImageData(l,m),y=v.data;for(let D=0;D<m;D++)for(let S=0;S<l;S++){let c=S/l,n=D/m,u=await Promise.resolve(e({x:c,y:n})),a=(D*l+S)*4;y[a]=Math.floor(Math.max(0,Math.min(1,u[0]||0))*255),y[a+1]=Math.floor(Math.max(0,Math.min(1,u[1]||0))*255),y[a+2]=Math.floor(Math.max(0,Math.min(1,u[2]||0))*255),y[a+3]=255}o.putImageData(v,0,0)}};(()=>{let f=new WebSocket("ws://127.0.0.1:8088");f.addEventListener("open",()=>{console.log("Refresh connection established")}),f.addEventListener("message",t=>{console.log("Bundle finished. Start refresh"),t.data==="REFRESH"&&window.location.reload()})})();var xt=new Qe;xt.addImport(new ke);xt.addImport(new tr);var wi=new et(xt.entryPoint,{defaultParameters:{x:0,y:0},types:[et.MAIN,"number","string","boolean"],build:(f,t,e)=>{let o=t.code,l=f.function.id;if(!e){let y=new Function(`${o}
 return ${l};`)();return{type:et.MAIN,execute:D=>y(D.x,D.y)}}let m=o.replace(e.nodeHook,`; return ${e.value};`),v=new Function(`${m}
 return ${l};`)();return{type:e.documentPort.resolvedDataType,execute:y=>v(y.x,y.y)}}}),xi=new et(xt.userFunction,{defaultParameters:{x:0,y:0},types:["number","string","boolean"],build:(f,t,e)=>{if(!e)return{type:"number",execute:()=>0};let o=t.entryPoint.function,l=`__fn_${o.id.replaceAll("-","_")}`,m=o.inputs.map(D=>f.projectTypes.getDefaultValue(D.dataType)),v=t.code.replace(e.nodeHook,`return ${e.value};`),y=new Function(`${v}

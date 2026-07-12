@@ -5,6 +5,15 @@
     overflow: hidden;
 }
 
+.resize-box {
+    height: 100%;
+    background: var(--potatno-color-background);
+
+    /* Globaly restrict to max size of parent. */
+    max-width: 500px;
+    min-width: 200px;
+}
+
 .function-list-content {
     flex: 1;
     overflow-y: auto;

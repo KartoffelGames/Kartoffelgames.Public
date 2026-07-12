@@ -1,34 +1,46 @@
-<div class="function-list-content">
-    $for(fn of this.functions) {
-        <div [className]="this.getEntryClass(this.fn.id)" (click)="this.onFunctionSelect(this.fn.function)">
-            <span class="function-icon">f</span>
-            $if(this.fn.system) {
-                <span class="lock-icon">🔒</span>
-            }
-            <span class="function-name">{{this.fn.label}}</span>
-            $if(!this.fn.system) {
-                <button class="delete-button" (click)="this.onFunctionDelete($event, this.fn.id)">✕</button>
-            }
-        </div>
-    }
-</div>
-$if(this.hasUserFunctionDefinitions) {
-    <div class="add-button-wrapper">
-        <button class="add-button" (click)="this.onAddButtonClick()">
-            <span class="add-icon">+</span>
-            <span>Add Function</span>
-        </button>
-        $if(this.showPopup) {
-            <div class="popup-overlay" (click)="this.closePopup()"></div>
-            <div class="popup">
-                <div class="popup-header">Select Function Type</div>
-                $for(def of this.userFunctionDefinitions) {
-                    <button class="popup-item" (click)="this.onDefinitionSelect(this.def.id)">
-                        <span class="function-icon">f</span>
-                        <span>{{this.def.id}}</span>
-                    </button>
+<potatno-resize-box class="resize-box" right="true">
+    <div class="function-list-content">
+        $for(functionItem of this.documentFunctions) {
+            <div class="function-entry {{ this.functionItem.id === this.activeFunctionId ? 'function-entry active' : '' }}" (click)="this.selectFunction(this.functionItem)">
+                <span class="function-icon">
+                    $if(this.functionItem.isSystem) {
+                        🔒
+                    }
+                    $if(!this.functionItem.isSystem) {
+                        f
+                    }
+                </span>
+
+                <span class="function-name">{{this.functionItem.label}}</span>
+
+                $if(!this.functionItem.isSystem) {
+                    <button class="delete-button" (click)="this.deleteFunction(this.functionItem)">✕</button>
                 }
             </div>
         }
     </div>
-}
+
+    $if(this.userFunctionDefinitions.length > 0) {
+        <div class="add-button-wrapper">
+            <button class="add-button" (click)="this.showPopup = !this.showPopup">
+                <span class="add-icon">+</span>
+                <span>Add Function</span>
+            </button>
+
+            $if(this.showPopup) {
+                <div class="popup-overlay" (click)="this.showPopup = !this.showPopup"></div>
+                <div class="popup">
+                    <div class="popup-header">Select Function Type</div>
+                    $for(functionDefinition of this.userFunctionDefinitions) {
+                        <button class="popup-item" (click)="this.createFunction(this.functionDefinition)">
+                            <span class="function-icon">f</span>
+                            <span>{{this.functionDefinition.label}}</span>
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+    }
+</potatno-resize-box>
+
+

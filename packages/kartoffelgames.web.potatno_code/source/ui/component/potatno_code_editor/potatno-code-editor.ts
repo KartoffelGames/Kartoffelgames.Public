@@ -39,12 +39,6 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
     private mUnsubscribe: PotatnoCodeUiManagerUnsubscribe | null;
 
     /**
-     * Left panel DOM element used for resizing.
-     */
-    @PwbChild('panelLeft')
-    public accessor panelLeft!: HTMLElement;
-
-    /**
      * Right panel DOM element used for resizing.
      */
     @PwbChild('panelRight')
@@ -172,7 +166,7 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
         // move handler checks and silently no-op every resize.
         this.stopPanelResize();
 
-        const lPanelElement: HTMLElement = pPanel === 'left' ? this.panelLeft : this.panelRight;
+        const lPanelElement: HTMLElement = pPanel === 'left' ? this.panelRight : this.panelRight;
         this.mResizeState = { panel: pPanel, startWidth: lPanelElement.offsetWidth, startX: pEvent.clientX };
 
         const lMoveHandler = (pMoveEvent: PointerEvent): void => {

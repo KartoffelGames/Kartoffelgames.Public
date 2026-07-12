@@ -1,10 +1,6 @@
 <div class="editor-layout">
-    <div #panelLeft class="panel-left">
-        <potatno-function-list></potatno-function-list>
-    </div>
-    <div #resizeLeft class="resize-handle-left"
-        (pointerdown)="this.onResizeLeftStart($event)">
-    </div>
+    <potatno-function-list></potatno-function-list>
+    
     <div class="center-area">
         <potatno-node-graph></potatno-node-graph>
         $if(this.hasPreview) {

@@ -52,7 +52,7 @@ export class PotatnoUiManagerGraph {
             definitionId: pDefinitionId,
             id: crypto.randomUUID(),
             isSystem: false,
-            label: `Function ${lDocument.functions.length}`
+            label: `Function_${lDocument.functions.length}`
         });
 
         // And add the function.

@@ -83,12 +83,12 @@
     }
 
     &.right {
-        right: -2px;
+        right: 2px;
         border-right: 2px solid color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
     }
 
     &.bottom {
-        bottom: -2px;
+        bottom: 2px;
         border-bottom: 2px solid color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
     }
 

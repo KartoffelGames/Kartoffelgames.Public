@@ -127,11 +127,21 @@ export class PotatnoResizeBox {
         const lStartX = pEvent.clientX;
         const lStartY = pEvent.clientY;
 
+        // Find if movement should be inverted based on clicked handle.
+        let lVerticalInvertion: number = 1;
+        if(Math.abs(lStartX - lComponentSize.left) < Math.abs(lStartX - lComponentSize.right)){
+            lVerticalInvertion = -1;
+        }
+        let lHorizontalInvertion: number = 1;
+        if(Math.abs(lStartY - lComponentSize.top) < Math.abs(lStartY - lComponentSize.bottom)){
+            lHorizontalInvertion = -1;
+        }
+
         // Resize magic listener (●'◡'●)つ━☆・*。
         const lPointerMoveListener = (pMoveEvent: PointerEvent): void => {
             // Resize from top-left corner: moving left/up increases size.
-            const lMovementChangeX: number = lStartX - pMoveEvent.clientX;
-            const lMovementChangeY: number = lStartY - pMoveEvent.clientY;
+            const lMovementChangeX: number = (pMoveEvent.clientX - lStartX) * lVerticalInvertion;
+            const lMovementChangeY: number = (pMoveEvent.clientY - lStartY) * lHorizontalInvertion;
 
             // Change window size but clamp it doen to a minimum size.
             let lWidth: number = lStartingWidth + lMovementChangeX;

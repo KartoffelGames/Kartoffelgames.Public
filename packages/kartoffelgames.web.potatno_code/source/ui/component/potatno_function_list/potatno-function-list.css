@@ -36,9 +36,11 @@
     text-align: left;
     color: var(--potatno-color-text);
     cursor: pointer;
+    transition: background-color 0.1s;
 
-    &.active {
-        background: var(--potatno-color-background-light);
+    &.active,
+    &:active {
+        background-color: var(--potatno-color-background-light);
     }
 
     .function-item__icon {
@@ -104,6 +106,10 @@
         &:hover {
             background-color: color-mix(in srgb, var(--potatno-color-error) 75%, var(--potatno-color-background));
         }
+
+        &:active {
+            background-color: color-mix(in srgb, var(--potatno-color-error) 50%, var(--potatno-color-background));
+        }
     }
 }
 
@@ -126,11 +132,15 @@
     background-color: var(--potatno-color-background-light);
     cursor: pointer;
 
-    transition: border-color 0.15s, color 0.15s;
+    transition: border-color 0.15s, color 0.15s, background-color 0.15s;
 
     &:hover {
         border-color: var(--potatno-color-accent);
         color: var(--potatno-color-accent);
+    }
+
+    &:active {
+        background-color: var(--potatno-color-background);
     }
 }
 
@@ -169,7 +179,7 @@
         padding: 5px 12px 5px 9px;
         color: var(--potatno-color-text);
         cursor: pointer;
-        transition: color 0.1s;
+        transition: color 0.1s, background-color 0.1s;
 
         /* Only set it to relative so the z-index has an effect */
         position: relative;
@@ -177,6 +187,10 @@
 
         &:hover {
             color: var(--potatno-color-accent);
+        }
+
+        &:active {
+            background-color: var(--potatno-color-background);
         }
 
         .icon {

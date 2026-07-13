@@ -217,9 +217,11 @@ potatno-node-graph {\r
     text-align: left;\r
     color: var(--potatno-color-text);\r
     cursor: pointer;\r
+    transition: background-color 0.1s;\r
 \r
-    &.active {\r
-        background: var(--potatno-color-background-light);\r
+    &.active,\r
+    &:active {\r
+        background-color: var(--potatno-color-background-light);\r
     }\r
 \r
     .function-item__icon {\r
@@ -285,6 +287,10 @@ potatno-node-graph {\r
         &:hover {\r
             background-color: color-mix(in srgb, var(--potatno-color-error) 75%, var(--potatno-color-background));\r
         }\r
+\r
+        &:active {\r
+            background-color: color-mix(in srgb, var(--potatno-color-error) 50%, var(--potatno-color-background));\r
+        }\r
     }\r
 }\r
 \r
@@ -307,11 +313,15 @@ potatno-node-graph {\r
     background-color: var(--potatno-color-background-light);\r
     cursor: pointer;\r
 \r
-    transition: border-color 0.15s, color 0.15s;\r
+    transition: border-color 0.15s, color 0.15s, background-color 0.15s;\r
 \r
     &:hover {\r
         border-color: var(--potatno-color-accent);\r
         color: var(--potatno-color-accent);\r
+    }\r
+\r
+    &:active {\r
+        background-color: var(--potatno-color-background);\r
     }\r
 }\r
 \r
@@ -350,7 +360,7 @@ potatno-node-graph {\r
         padding: 5px 12px 5px 9px;\r
         color: var(--potatno-color-text);\r
         cursor: pointer;\r
-        transition: color 0.1s;\r
+        transition: color 0.1s, background-color 0.1s;\r
 \r
         /* Only set it to relative so the z-index has an effect */\r
         position: relative;\r
@@ -358,6 +368,10 @@ potatno-node-graph {\r
 \r
         &:hover {\r
             color: var(--potatno-color-accent);\r
+        }\r
+\r
+        &:active {\r
+            background-color: var(--potatno-color-background);\r
         }\r
 \r
         .icon {\r

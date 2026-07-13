@@ -24,6 +24,6 @@ $if(this.left) {
     <div class="resize-handle vertical left {{this.top ? 'hasPrevious' : ''}} {{this.bottom ? 'hasNext' : ''}}" (pointerdown)="this.resizeVertical($event)"></div>
 }
 
-<div class="container">
+<div class="container {{this.top ? 'top ' : ''}}{{this.bottom ? 'bottom ' : ''}}{{this.left ? 'left ' : ''}}{{this.right ? 'right' : ''}}">
     $slot
 </div>

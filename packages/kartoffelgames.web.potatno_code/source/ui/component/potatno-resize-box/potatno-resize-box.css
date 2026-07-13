@@ -7,8 +7,26 @@
     display: flex;
     flex-direction: column;
 
+    box-sizing: border-box;
     height: 100%;
     width: 100%;
+
+    /* Adjust for handle width */
+    &.top {
+        padding-top: 2px;
+    }
+
+    &.right {
+        padding-right: 2px;
+    }
+
+    &.bottom {
+        padding-bottom: 2px;
+    }
+
+    &.left {
+        padding-left: 2px;
+    }
 }
 
 .resize-handle {
@@ -78,22 +96,22 @@
      */
 
     &.top {
-        top: -2px;
+        top: 0px;
         border-top: 2px solid color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
     }
 
     &.right {
-        right: 2px;
+        right: 0px;
         border-right: 2px solid color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
     }
 
     &.bottom {
-        bottom: 2px;
+        bottom: 0px;
         border-bottom: 2px solid color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
     }
 
     &.left {
-        left: -2px;
+        left: 0px;
         border-left: 2px solid color-mix(in srgb, var(--potatno-color-text) 30%, var(--potatno-color-background));
     }
 

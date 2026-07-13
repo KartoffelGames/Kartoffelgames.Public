@@ -439,10 +439,10 @@ potatno-node-graph {\r
     width: 280px;
 
     border: 1px solid var(--potatno-color-border);
-    border-radius: 6px;
+    border-radius: 2px;
 
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
-    background-color: var(--potatno-color-background-dark);
+    background-color: var(--potatno-color-background);
     overflow: hidden;
 
     /* Font should cascade into child ... except inputs :( */
@@ -459,7 +459,7 @@ potatno-node-graph {\r
         border-bottom: 1px solid var(--potatno-color-border);
 
         color: var(--potatno-color-accent);
-        background-color: var(--potatno-color-background-light);
+        background-color: var(--potatno-color-background-dark);
 
         font-family: var(--potatno-font-family);
         font-size: var(--potatno-font-size);
@@ -474,6 +474,9 @@ potatno-node-graph {\r
         overflow-x: hidden;
         overflow-y: auto;
         padding: 4px 0;
+
+        scrollbar-color: var(--potatno-color-scrollbar-thumb) var(--potatno-color-scrollbar-track);
+        scrollbar-width: thin;
     }
 
     .selection-popup__result {
@@ -483,7 +486,6 @@ potatno-node-graph {\r
         box-sizing: border-box;
         width: 100%;
         padding: 5px 9px;
-        gap: 8px;
         align-items: center;
         color: var(--potatno-color-accent);
         text-align: left;
@@ -494,16 +496,23 @@ potatno-node-graph {\r
             background-color: var(--potatno-color-background-light);
         }
 
+        &:active {
+            background-color: var(--potatno-color-background-dark);
+        }
+
         .selection-popup__result-icon {
-            flex-shrink: 0;
-            padding: 0 0 0 10px;
-            width: 16px;
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            width: 1ch;
+            height: 25px;
             
             border-left: 3px solid var(--item-color);
         }
 
         .selection-popup__result-label {
             flex: 1;
+            padding: 0 8px 0 0;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;

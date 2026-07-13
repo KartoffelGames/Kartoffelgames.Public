@@ -1,46 +1,37 @@
 <potatno-resize-box class="resize-box" right="true">
-    <div class="function-list-content">
+    <div class="function-list">
         $for(functionItem of this.documentFunctions) {
-            <div class="function-entry {{ this.functionItem.id === this.activeFunctionId ? 'function-entry active' : '' }}" (click)="this.selectFunction(this.functionItem)">
-                <span class="function-icon">
-                    $if(this.functionItem.isSystem) {
-                        🔒
-                    }
-                    $if(!this.functionItem.isSystem) {
-                        f
-                    }
-                </span>
-
-                <span class="function-name">{{this.functionItem.label}}</span>
+            <div class="function-item {{ this.functionItem.id === this.activeFunctionId ? 'active' : '' }}" (click)="this.selectFunction(this.functionItem)">
+                <div class="function-item__icon" data-type="{{ this.functionItem.isSystem ? 's' : 'u' }}" title="{{ this.functionItem.isSystem ? 'System' : 'User' }}"/>
+                <div class="function-item__name">{{this.functionItem.label}}</div>
 
                 $if(!this.functionItem.isSystem) {
-                    <button class="delete-button" (click)="this.deleteFunction(this.functionItem)">✕</button>
+                    <div class="function-item__delete" (click)="this.deleteFunction(this.functionItem)">✕</div>
                 }
             </div>
         }
     </div>
 
     $if(this.userFunctionDefinitions.length > 0) {
-        <div class="add-button-wrapper">
-            <button class="add-button" (click)="this.showPopup = !this.showPopup">
-                <span class="add-icon">+</span>
-                <span>Add Function</span>
-            </button>
-
+        <div class="list-actions">
             $if(this.showPopup) {
-                <div class="popup-overlay" (click)="this.showPopup = !this.showPopup"></div>
                 <div class="popup">
-                    <div class="popup-header">Select Function Type</div>
+                    <div class="popup__header">Select Function Type</div>
                     $for(functionDefinition of this.userFunctionDefinitions) {
-                        <button class="popup-item" (click)="this.createFunction(this.functionDefinition)">
-                            <span class="function-icon">f</span>
-                            <span>{{this.functionDefinition.label}}</span>
-                        </button>
+                        <div class="popup__item" (click)="this.createFunction(this.functionDefinition)">
+                            <div class="icon">ƒ</div>
+                            <div>{{this.functionDefinition.label}}</div>
+                        </div>
                     }
+
+                    <div class="popup__overlay" (click)="this.showPopup = !this.showPopup"></div>
                 </div>
             }
+            
+            <div class="add-action" (click)="this.showPopup = !this.showPopup">
+                <div>+</div>
+                <div>Add Function</div>
+            </div>
         </div>
     }
 </potatno-resize-box>
-
-

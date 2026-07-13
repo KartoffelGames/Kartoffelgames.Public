@@ -1,0 +1,9 @@
+-- General
+border-radius of 2px.
+
+-- List.
+Padding of 9px to left edge.
+Colored border of 3px on left. Full height.
+ - After that, an icon with 10px horizontal padding on each side.
+Between each Item are 10px gaps.
+

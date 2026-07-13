@@ -7,181 +7,192 @@
 
 .resize-box {
     height: 100%;
-    background: var(--potatno-color-background);
+    background-color: var(--potatno-color-background);
 
     /* Globaly restrict to max size of parent. */
     max-width: 500px;
     min-width: 200px;
+
+    /* Hopefully that cascade into all childs. */
+    font-family: var(--potatno-font-family);
+    font-size: var(--potatno-font-size);
 }
 
-.function-list-content {
+.function-list {
     flex: 1;
-    overflow-y: auto;
-    overflow-x: hidden;
-    padding: 4px 0;
+    overflow: hidden auto;
 
     scrollbar-color: var(--potatno-color-scrollbar-thumb) var(--potatno-color-scrollbar-track);
     scrollbar-width: thin;
 }
 
-.function-entry {
+.function-item {
     display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 6px 12px;
-    cursor: pointer;
-    user-select: none;
-    font-family: var(--potatno-font-family);
-    font-size: var(--potatno-font-size);
-    color: var(--potatno-color-accent);
-    background: transparent;
-    border: none;
     box-sizing: border-box;
     width: 100%;
-    text-align: left;
-    transition: background 0.1s;
-}
-
-.function-entry:hover {
-    background: var(--potatno-color-background-light);
-}
-
-.function-entry.active {
-    background: var(--potatno-color-background-light);
-    border-left: 2px solid var(--potatno-color-accent);
-    padding-left: 10px;
-}
-
-.function-icon {
-    font-size: var(--potatno-font-size);
-    color: var(--pn-cat-function);
-    flex-shrink: 0;
-    width: 16px;
-    text-align: center;
-}
-
-.lock-icon {
-    font-size: var(--potatno-font-size-small);
-    color: var(--pn-text-muted);
-    flex-shrink: 0;
-    width: 14px;
-    text-align: center;
-}
-
-.function-name {
-    flex: 1;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.delete-button {
-    display: flex;
+    min-height: 34px;
+    padding: 5px 12px 5px 9px;
     align-items: center;
-    justify-content: center;
-    width: 18px;
-    height: 18px;
-    background: transparent;
-    border: none;
-    border-radius: 3px;
-    color: var(--pn-text-muted);
-    font-size: var(--potatno-font-size-small);
-    cursor: pointer;
-    flex-shrink: 0;
-    transition: background 0.1s, color 0.1s;
-    padding: 0;
-    line-height: 1;
-}
-
-.delete-button:hover {
-    background: var(--potatno-color-error);
+    text-align: left;
     color: var(--potatno-color-text);
+    cursor: pointer;
+
+    &.active {
+        background: var(--potatno-color-background-light);
+    }
+
+    .function-item__icon {
+        display: flex;
+        align-items: center;
+        width: 1ch;
+        height: 25px;
+        padding: 0 10px;
+
+        text-align: center;
+        font-weight: bold;
+
+        /* Border defined to mark selected. */
+        border-left: 3px solid var(--potatno-color-accent);
+        border-color: color-mix(in srgb, var(--potatno-color-text) 25%, var(--potatno-color-background));
+        transition: border-color 0.1s;
+
+        /* Both colors are hardcoded and dont represent any theme */
+        &[data-type=u] {
+            color: #008000;
+        }
+
+        &[data-type=s] {
+            color: #ffd700;
+        }
+
+        /* Add type as text. */
+        &::before {
+            content: attr(data-type);
+            text-transform: uppercase;
+        }
+
+        .function-item:hover & {
+            border-color: var(--potatno-color-text);
+        }
+
+        .function-item.active & {
+            border-color: var(--potatno-color-accent);
+        }
+    }
+
+    .function-item__name {
+        flex: 1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .function-item__delete {
+        display: flex;
+        width: 18px;
+        height: 18px;
+        align-items: center;
+        justify-content: center;
+        border-radius: 2px;
+        font-size: 11px;
+        cursor: pointer;
+
+        /* Cool hover transitions... It literally sucks. */
+        color: var(--potatno-color-text);
+        transition: background-color 0.1s, color 0.1s;
+
+        &:hover {
+            background-color: color-mix(in srgb, var(--potatno-color-error) 75%, var(--potatno-color-background));
+        }
+    }
 }
 
-.add-button-wrapper {
-    flex-shrink: 0;
+.list-actions {
+    position: relative;
     padding: 8px;
     border-top: 1px solid var(--potatno-color-border);
-    position: relative;
 }
 
-.add-button {
+.add-action {
     display: flex;
+    box-sizing: border-box;
     align-items: center;
     justify-content: center;
     gap: 6px;
-    box-sizing: border-box;
-    width: 100%;
-    padding: 6px 12px;
-    background: var(--potatno-color-background-light);
+    padding: 8px 12px;
     border: 1px dashed var(--potatno-color-border);
-    border-radius: 4px;
+    border-radius: 2px;
     color: var(--potatno-color-text);
-    font-family: var(--potatno-font-family);
-    font-size: var(--potatno-font-size);
+    background-color: var(--potatno-color-background-light);
     cursor: pointer;
-    transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
 
-.add-button:hover {
-    background: var(--potatno-color-background-light);
-    border-color: var(--potatno-color-accent);
-    color: var(--potatno-color-accent);
-}
+    transition: border-color 0.15s, color 0.15s;
 
-.add-icon {
-    font-size: var(--potatno-font-size-big);
-    font-weight: bold;
-}
-
-.popup-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 99;
+    &:hover {
+        border-color: var(--potatno-color-accent);
+        color: var(--potatno-color-accent);
+    }
 }
 
 .popup {
     position: absolute;
-    bottom: 100%;
+    bottom: calc(100% + 8px);
     left: 8px;
     right: 8px;
-    margin-bottom: 4px;
-    background: var(--potatno-color-background-light);
+    background-color: var(--potatno-color-background-light);
     border: 1px solid var(--potatno-color-border);
-    border-radius: 6px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
-    z-index: 100;
+    border-radius: 2px;
+    box-shadow: 0 4px 12px var(--potatno-color-shadow);
+
     overflow: hidden;
-}
 
-.popup-header {
-    padding: 8px 12px;
-    font-family: var(--potatno-font-family);
-    font-size: var(--potatno-font-size-small);
-    color: var(--pn-text-muted);
-    border-bottom: 1px solid var(--potatno-color-border);
-    user-select: none;
-}
+    /* Fullview overlay. */
+    .popup__overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: 99;
+    }
 
-.popup-item {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    width: 100%;
-    padding: 8px 12px;
-    background: transparent;
-    border: none;
-    color: var(--potatno-color-text);
-    font-family: var(--potatno-font-family);
-    font-size: var(--potatno-font-size);
-    cursor: pointer;
-    transition: background 0.1s;
-    text-align: left;
-}
+    .popup__header {
+        padding: 6px 12px;
+        color: var(--potatno-color-text);
+        border-bottom: 3px solid var(--potatno-color-border);
+        user-select: none;
+    }
 
-.popup-item:hover {
-    background: var(--potatno-color-background-light);
+    .popup__item {
+        display: flex;
+        align-items: center;
+        padding: 5px 12px 5px 9px;
+        color: var(--potatno-color-text);
+        cursor: pointer;
+        transition: color 0.1s;
+
+        /* Only set it to relative so the z-index has an effect */
+        position: relative;
+        z-index: 100;
+
+        &:hover {
+            color: var(--potatno-color-accent);
+        }
+
+        .icon {
+            box-sizing: border-box;
+            height: 24px;
+
+            /* Manually centering shitty function "icon" by offsetting 2px */
+            padding: 2px 10px 0 10px;
+
+            /* Border defined to mark selected. */
+            border-left: 3px solid color-mix(in srgb, var(--potatno-color-text) 25%, var(--potatno-color-background));
+            transition: border-color 0.1s;
+
+            .popup__item:hover & {
+                border-color: var(--potatno-color-accent);
+            }
+        }
+    }
 }

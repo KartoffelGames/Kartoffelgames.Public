@@ -1,5 +1,6 @@
 -- General
 border-radius of 2px.
+Hover and action transitions are times at 0.15s.
 
 -- List.
 Padding of 9px to left edge.

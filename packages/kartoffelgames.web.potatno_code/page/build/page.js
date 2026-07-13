@@ -217,7 +217,7 @@ potatno-node-graph {\r
     text-align: left;\r
     color: var(--potatno-color-text);\r
     cursor: pointer;\r
-    transition: background-color 0.1s;\r
+    transition: background-color 0.15s;\r
 \r
     &.active,\r
     &:active {\r
@@ -237,7 +237,7 @@ potatno-node-graph {\r
         /* Border defined to mark selected. */\r
         border-left: 3px solid var(--potatno-color-accent);\r
         border-color: color-mix(in srgb, var(--potatno-color-text) 25%, var(--potatno-color-background));\r
-        transition: border-color 0.1s;\r
+        transition: border-color 0.15s;\r
 \r
         /* Both colors are hardcoded and dont represent any theme */\r
         &[data-type=u] {\r
@@ -282,7 +282,7 @@ potatno-node-graph {\r
 \r
         /* Cool hover transitions... It literally sucks. */\r
         color: var(--potatno-color-text);\r
-        transition: background-color 0.1s, color 0.1s;\r
+        transition: background-color 0.15s, color 0.15s;\r
 \r
         &:hover {\r
             background-color: color-mix(in srgb, var(--potatno-color-error) 75%, var(--potatno-color-background));\r
@@ -360,7 +360,7 @@ potatno-node-graph {\r
         padding: 5px 12px 5px 9px;\r
         color: var(--potatno-color-text);\r
         cursor: pointer;\r
-        transition: color 0.1s, background-color 0.1s;\r
+        transition: color 0.15s, background-color 0.15s;\r
 \r
         /* Only set it to relative so the z-index has an effect */\r
         position: relative;\r
@@ -383,7 +383,7 @@ potatno-node-graph {\r
 \r
             /* Border defined to mark selected. */\r
             border-left: 3px solid color-mix(in srgb, var(--potatno-color-text) 25%, var(--potatno-color-background));\r
-            transition: border-color 0.1s;\r
+            transition: border-color 0.15s;\r
 \r
             .popup__item:hover & {\r
                 border-color: var(--potatno-color-accent);\r
@@ -768,7 +768,7 @@ potatno-node-graph {\r
 \r
         .port-handle {\r
             position: relative;\r
-            transition: transform 0.1s ease-in-out;\r
+            transition: transform 0.15s ease-in-out;\r
 \r
             &.flow {\r
                 display: flex;\r
@@ -1578,7 +1578,7 @@ potatno-node-graph {\r
     font-size: var(--potatno-font-size-small);\r
     cursor: pointer;\r
     flex-shrink: 0;\r
-    transition: background 0.1s, color 0.1s;\r
+    transition: background 0.15s, color 0.15s;\r
     padding: 0;\r
     line-height: 1;\r
 }\r

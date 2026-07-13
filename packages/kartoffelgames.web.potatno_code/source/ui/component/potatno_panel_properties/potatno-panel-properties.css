@@ -151,7 +151,7 @@
     font-size: var(--potatno-font-size-small);
     cursor: pointer;
     flex-shrink: 0;
-    transition: background 0.1s, color 0.1s;
+    transition: background 0.15s, color 0.15s;
     padding: 0;
     line-height: 1;
 }

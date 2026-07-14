@@ -21,6 +21,7 @@ export class PotatnoProject<TProjectTypes extends PotatnoProjectTypesDefinition>
     private readonly mPreview: PotatnoPreview<TProjectTypes>;
     private readonly mTypes: TProjectTypes;
     private readonly mUserFunctions: Map<string, PotatnoFunctionDefinition<TProjectTypes>>;
+    private mValidateNamePattern: PotatnoProjectNamePatternValidator;
 
     /**
      * Get the registered entry point definition.
@@ -42,6 +43,15 @@ export class PotatnoProject<TProjectTypes extends PotatnoProjectTypesDefinition>
      */
     public get imports(): ReadonlyArray<PotatnoImportDefinition<TProjectTypes>> {
         return this.mImports;
+    }
+
+    /**
+     * Pattern validator for all names.
+     */
+    public get namePattern(): PotatnoProjectNamePatternValidator {
+        return this.mValidateNamePattern;
+    } set namePattern(pPatternValidator: PotatnoProjectNamePatternValidator) {
+        this.mValidateNamePattern = pPatternValidator;
     }
 
     /**
@@ -92,6 +102,11 @@ export class PotatnoProject<TProjectTypes extends PotatnoProjectTypesDefinition>
 
         // Add endpoint function definition.
         this.mEntryPoint = pEntryFunction;
+
+        // Define a default, allow all pattern validator.
+        this.mValidateNamePattern = () => {
+            return null;
+        };
 
         // Built-in conjunction pass-through nodes are always available in every project.
         this.addNodeDefinition(new FlowConjunctionNodeDefinition());
@@ -176,3 +191,8 @@ export type PotatnoProjectCodeGenerator<TProjectTypes extends PotatnoProjectType
         readonly hook: (pValueId: string) => string;
     };
 };
+
+/**
+ * Pattern validator for names. Return a empty string on success or the error message.
+ */
+type PotatnoProjectNamePatternValidator = (pName: string) => string | null;

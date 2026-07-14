@@ -49,6 +49,15 @@ export class CanvasProject extends PotatnoProject<CanvasProjectTypesDefinition> 
             }
         });
 
+        // Set name validation.
+        this.namePattern = (pName: string): string | null => {
+            if(/^[a-zA-Z][a-zA-Z0-9_]*$/.test(pName)){
+                return null;
+            }
+
+            return 'Must start with a letter, use only letters, digits, underscores';
+        };
+
         // Register function, imports and base nodes.
         this.mUserFunction = lUserFunction;
         this.setDynamicFunction(lUserFunction);

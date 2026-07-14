@@ -83,7 +83,6 @@ export class PotatnoUiManagerGraph {
         return lNode;
     }
 
-
     /**
      * Connect two ports and rebuild dependent state.
      *
@@ -236,6 +235,25 @@ export class PotatnoUiManagerGraph {
 
         // Dispatch changes.
         this.mManager.dispatch(PotatnoCodeUiManagerChangeType.NodeUpdate, pNode);
+    }
+
+    /**
+     * Update unspecified fields of a function.
+     * 
+     * @param pFunction - Function to update.
+     * @param pUpdater - Update method of the function.
+     */
+    public updateFunction(pFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition> | null, pUpdater: (pFunction: PotatnoDocumentFunction<PotatnoProjectTypesDefinition>) => void): void {
+        // Skip function update when no function is set.
+        if (!pFunction) {
+            return;
+        }
+
+        // Simple pass forward.
+        pUpdater(pFunction);
+        
+        // Dispatch changes.
+        this.mManager.dispatch(PotatnoCodeUiManagerChangeType.FunctionUpdate, pFunction);
     }
 
     /**

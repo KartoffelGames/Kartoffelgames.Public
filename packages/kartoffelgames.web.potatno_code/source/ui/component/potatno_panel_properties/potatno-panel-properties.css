@@ -5,6 +5,19 @@
     overflow: hidden;
 }
 
+.resize-box {
+    height: 100%;
+    background-color: var(--potatno-color-background);
+
+    /* Globaly restrict to max size of parent. */
+    max-width: 500px;
+    min-width: 200px;
+
+    /* Hopefully that cascade into all childs. */
+    font-family: var(--potatno-font-family);
+    font-size: var(--potatno-font-size);
+}
+
 .properties-header {
     padding: 10px 12px;
     font-family: var(--potatno-font-family);

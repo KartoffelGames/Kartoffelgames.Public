@@ -1,9 +1,9 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, PwbChild, PwbComponent, PwbExport, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { Component, PwbComponent, PwbExport, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import type { PotatnoDocument } from '../../../document/potatno-document.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
-import { PotatnoCodeUiManagerChangeType, type PotatnoCodeUiManagerUnsubscribe, PotatnoUiManager } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import editorCss from './potatno-code-editor.css' with { type: 'text' };
 import editorTemplate from './potatno-code-editor.html' with { type: 'text' };
 
@@ -14,7 +14,6 @@ import '../potatno_function_list/potatno-function-list.ts';
 import '../potatno_node_graph/potatno-node-graph.ts';
 import '../potatno_panel_properties/potatno-panel-properties.ts';
 import '../potatno_preview/potatno-preview.ts';
-
 
 /**
  * Top-level layout shell for the Potatno-code editor.
@@ -29,20 +28,25 @@ import '../potatno_preview/potatno-preview.ts';
     template: editorTemplate,
     style: editorCss,
 })
-export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDeconstruct {
+export class PotatnoCodeEditor implements IComponentOnDeconstruct {
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
     private mProject: PotatnoProject<PotatnoProjectTypesDefinition> | null;
-    private mResizeMoveHandler: ((pEvent: PointerEvent) => void) | null;
-    private mResizeState: { panel: 'left' | 'right'; startX: number; startWidth: number; } | null;
-    private mResizeUpHandler: (() => void) | null;
-    private mUnsubscribe: PotatnoCodeUiManagerUnsubscribe | null;
+    private readonly mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
 
     /**
-     * Right panel DOM element used for resizing.
+     * Document state backing the editor.
      */
-    @PwbChild('panelRight')
-    public accessor panelRight!: HTMLElement;
+    @PwbExport
+    public get document(): PotatnoDocument<PotatnoProjectTypesDefinition> | null {
+        return this.mManager.graph.document;
+    } set document(pFile: PotatnoDocument<PotatnoProjectTypesDefinition>) {
+        if (!this.mProject) {
+            return;
+        }
+
+        this.mManager.initialize(this.mProject, pFile as PotatnoDocument<PotatnoProjectTypesDefinition>);
+    }
 
     /**
      * Whether the preview panel should currently be shown.
@@ -63,10 +67,12 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
     }
 
     /**
-     * Current document state.
+     * Project configuration backing the editor.
      */
-    public get document(): PotatnoDocument<PotatnoProjectTypesDefinition> | null {
-        return this.mManager.graph.document;
+    @PwbExport
+    public set project(pProject: PotatnoProject<PotatnoProjectTypesDefinition>) {
+        // Cache the project. The manager is initialized once the document arrives via `file`.
+        this.mProject = pProject;
     }
 
     /**
@@ -79,31 +85,10 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
         this.mComponent = pComponent;
         this.mManager = pManager;
         this.mProject = null;
-        this.mResizeMoveHandler = null;
-        this.mResizeState = null;
-        this.mResizeUpHandler = null;
-        this.mUnsubscribe = null;
-    }
 
-    /**
-     * Project configuration backing the editor.
-     */
-    @PwbExport
-    public set project(pProject: PotatnoProject<PotatnoProjectTypesDefinition>) {
-        // Cache the project. The manager is initialized once the document arrives via `file`.
-        this.mProject = pProject;
-    }
-
-    /**
-     * Document state backing the editor.
-     */
-    @PwbExport
-    public set document(pFile: PotatnoDocument<PotatnoProjectTypesDefinition>) {
-        if (!this.mProject) {
-            return;
-        }
-
-        this.mManager.initialize(this.mProject, pFile as PotatnoDocument<PotatnoProjectTypesDefinition>);
+        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
+            this.mComponent.updater.updateAsync();
+        });
     }
 
     /**
@@ -117,97 +102,9 @@ export class PotatnoCodeEditor implements IComponentOnConnect, IComponentOnDecon
     }
 
     /**
-     * Subscribe to the manager so the preview panel toggles with preview availability.
-     */
-    public onConnect(): void {
-        this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
-            this.mComponent.updater.updateAsync();
-        });
-    }
-
-    /**
      * Detach listeners and panel resize handlers.
      */
     public onDeconstruct(): void {
-        this.mUnsubscribe?.();
-        this.mUnsubscribe = null;
-        this.stopPanelResize();
-    }
-
-    /**
-     * Start resizing the left panel.
-     *
-     * @param pEvent - Pointer event from the resize handle.
-     */
-    public onResizeLeftStart(pEvent: PointerEvent): void {
-        pEvent.preventDefault();
-        this.startPanelResize('left', pEvent);
-    }
-
-    /**
-     * Start resizing the right panel.
-     *
-     * @param pEvent - Pointer event from the resize handle.
-     */
-    public onResizeRightStart(pEvent: PointerEvent): void {
-        pEvent.preventDefault();
-        this.startPanelResize('right', pEvent);
-    }
-
-    /**
-     * Start panel resizing for one side.
-     *
-     * @param pPanel - Panel side being resized.
-     * @param pEvent - Pointer event that started resizing.
-     */
-    private startPanelResize(pPanel: 'left' | 'right', pEvent: PointerEvent): void {
-        // Tear down any in-progress resize first. This must happen before the new state is assigned:
-        // stopPanelResize() clears mResizeState, so calling it afterwards would null the state the
-        // move handler checks and silently no-op every resize.
-        this.stopPanelResize();
-
-        const lPanelElement: HTMLElement = pPanel === 'left' ? this.panelRight : this.panelRight;
-        this.mResizeState = { panel: pPanel, startWidth: lPanelElement.offsetWidth, startX: pEvent.clientX };
-
-        const lMoveHandler = (pMoveEvent: PointerEvent): void => {
-            if (!this.mResizeState) {
-                return;
-            }
-
-            const lDelta: number = pPanel === 'left'
-                ? pMoveEvent.clientX - this.mResizeState.startX
-                : this.mResizeState.startX - pMoveEvent.clientX;
-            lPanelElement.style.width = `${Math.max(200, Math.min(500, this.mResizeState.startWidth + lDelta))}px`;
-        };
-
-        const lUpHandler = (): void => {
-            document.removeEventListener('pointermove', lMoveHandler);
-            document.removeEventListener('pointerup', lUpHandler);
-            this.mResizeMoveHandler = null;
-            this.mResizeState = null;
-            this.mResizeUpHandler = null;
-        };
-
-        this.mResizeMoveHandler = lMoveHandler;
-        this.mResizeUpHandler = lUpHandler;
-        document.addEventListener('pointermove', lMoveHandler);
-        document.addEventListener('pointerup', lUpHandler);
-    }
-
-    /**
-     * Stop panel resizing if it is active.
-     */
-    private stopPanelResize(): void {
-        if (this.mResizeMoveHandler) {
-            document.removeEventListener('pointermove', this.mResizeMoveHandler);
-            this.mResizeMoveHandler = null;
-        }
-
-        if (this.mResizeUpHandler) {
-            document.removeEventListener('pointerup', this.mResizeUpHandler);
-            this.mResizeUpHandler = null;
-        }
-
-        this.mResizeState = null;
+        this.mUnsubscribe();
     }
 }

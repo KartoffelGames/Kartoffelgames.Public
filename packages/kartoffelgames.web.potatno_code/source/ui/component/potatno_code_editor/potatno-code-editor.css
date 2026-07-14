@@ -1,92 +1,33 @@
 :host {
-    display: flex;
-    width: 100%;
-    height: 100%;
     font-family: var(--potatno-font-family);
-    color: var(--potatno-color-text);
-    background: var(--potatno-color-background);
-    overflow: hidden;
+    font-size: var(--potatno-font-size);
 }
 
-.editor-layout {
+.editor {
+    position: relative;
     display: flex;
     width: 100%;
     height: 100%;
-    position: relative;
-}
 
-.panel-left {
-    width: var(--pn-panel-width);
-    min-width: var(--pn-panel-min-width);
-    max-width: var(--pn-panel-max-width);
-    background: var(--potatno-color-background-dark);
-    border-right: 1px solid var(--potatno-color-border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    flex-shrink: 0;
-}
+    .editor__center {
+        position: relative;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
 
-.resize-handle-left {
-    width: 4px;
-    cursor: col-resize;
-    background: transparent;
-    flex-shrink: 0;
-    transition: background 0.15s;
-    z-index: 10;
-}
+    .editor__preview {
+        position: absolute;
+        bottom: 12px;
+        right: 12px;
+        z-index: 100;
 
-.resize-handle-left:hover {
-    background: var(--potatno-color-accent);
-}
+        /* Preview should never overflow the graph window. Set gap to 12px on all sides. */
+        max-width: calc(100% - 24px);
+        max-height: calc(100% - 24px);
+    }
 
-.center-area {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    position: relative;
-    overflow: hidden;
-    min-width: 200px;
-}
-
-.preview-wrapper {
-    position: absolute;
-    bottom: 12px;
-    right: 12px;
-    z-index: 100;
-
-    /* Preview should never overflow the graph window. Set gap to 12px on all sides. */
-    max-width: calc(100% - 24px);
-    max-height: calc(100% - 24px);
-}
-
-potatno-node-graph {
-    flex: 1;
-    min-height: 0;
-    min-width: 0;
-}
-
-.resize-handle-right {
-    width: 4px;
-    cursor: col-resize;
-    background: transparent;
-    flex-shrink: 0;
-    transition: background 0.15s;
-    z-index: 10;
-}
-
-.resize-handle-right:hover {
-    background: var(--potatno-color-accent);
-}
-
-.panel-right {
-    width: var(--pn-panel-width);
-    min-width: var(--pn-panel-min-width);
-    max-width: var(--pn-panel-max-width);
-    background: var(--potatno-color-background-dark);
-    border-left: 1px solid var(--potatno-color-border);
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    flex-shrink: 0;
+    .editor__graph {
+        flex: 1;
+    }
 }

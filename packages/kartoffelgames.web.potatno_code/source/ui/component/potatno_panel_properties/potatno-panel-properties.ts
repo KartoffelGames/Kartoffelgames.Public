@@ -1,10 +1,10 @@
 import { Injection } from '@kartoffelgames/core-dependency-injection';
-import { Component, PwbComponent, type IComponentOnConnect, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
+import { Component, PwbComponent, type IComponentOnDeconstruct } from '@kartoffelgames/web-potato-web-builder';
 import type { PotatnoDocumentFunction } from '../../../document/potatno-document-function.ts';
 import { PotatnoFunctionDefinitionStatics } from '../../../project/potatno-function-definition.ts';
 import type { PotatnoProjectTypesDefinition } from '../../../project/potatno-project-types-definition.ts';
 import type { PotatnoProject } from '../../../project/potatno-project.ts';
-import { PotatnoCodeUiManagerChangeType, type PotatnoCodeUiManagerUnsubscribe, PotatnoUiManager, type PotatnoCodeUiManagerPortView } from '../../manager/potatno-ui-manager.ts';
+import { PotatnoCodeUiManagerChangeType, PotatnoUiManager, type PotatnoCodeUiManagerPortView, type PotatnoCodeUiManagerUnsubscribe } from '../../manager/potatno-ui-manager.ts';
 import templateCss from './potatno-panel-properties.css' with { type: 'text' };
 import propertiesTemplate from './potatno-panel-properties.html' with { type: 'text' };
 
@@ -24,7 +24,7 @@ export class PotatnoPanelProperties implements IComponentOnDeconstruct {
     private readonly mComponent: Component;
     private readonly mManager: PotatnoUiManager;
     private mSelectedImportId: string;
-    private mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
+    private readonly mUnsubscribe: PotatnoCodeUiManagerUnsubscribe;
 
     /**
      * Available import ids registered by the project.
@@ -142,7 +142,7 @@ export class PotatnoPanelProperties implements IComponentOnDeconstruct {
         this.mComponent = pComponent;
         this.mManager = pManager;
         this.mSelectedImportId = '';
-        
+
         this.mUnsubscribe = this.mManager.subscribe(PotatnoCodeUiManagerChangeType.Document | PotatnoCodeUiManagerChangeType.Function | PotatnoCodeUiManagerChangeType.SpecialActiveFunction, () => {
             this.mComponent.updater.updateAsync();
         });
@@ -236,7 +236,7 @@ export class PotatnoPanelProperties implements IComponentOnDeconstruct {
     public onInputNameChange(pIndex: number, pEvent: Event): void {
         const lInput: HTMLInputElement = pEvent.target as HTMLInputElement;
         const lNewName: string = lInput.value;
-        const lIsInvalid: boolean = !this.validateName(lNewName) || this.isNameDuplicate(lNewName, 'input', pIndex);
+        const lIsInvalid: boolean = this.isNameDuplicate(lNewName, 'input', pIndex);
         lInput.style.borderColor = lIsInvalid ? 'var(--potatno-color-error)' : '';
         const lInputs: Array<PortEntry> = [...this.functionInputs];
         lInputs[pIndex] = { ...lInputs[pIndex], name: lNewName };
@@ -264,7 +264,7 @@ export class PotatnoPanelProperties implements IComponentOnDeconstruct {
     public onNameChange(pEvent: Event): void {
         const lInput: HTMLInputElement = pEvent.target as HTMLInputElement;
         const lNewName: string = lInput.value;
-        const lIsInvalid: boolean = !this.validateName(lNewName) || this.isNameDuplicate(lNewName, 'function');
+        const lIsInvalid: boolean = this.isNameDuplicate(lNewName, 'function');
         lInput.style.borderColor = lIsInvalid ? 'var(--potatno-color-error)' : '';
         this.mManager.updateFunctionProperties({ name: lNewName });
     }
@@ -278,7 +278,7 @@ export class PotatnoPanelProperties implements IComponentOnDeconstruct {
     public onOutputNameChange(pIndex: number, pEvent: Event): void {
         const lInput: HTMLInputElement = pEvent.target as HTMLInputElement;
         const lNewName: string = lInput.value;
-        const lIsInvalid: boolean = !this.validateName(lNewName) || this.isNameDuplicate(lNewName, 'output', pIndex);
+        const lIsInvalid: boolean = this.isNameDuplicate(lNewName, 'output', pIndex);
         lInput.style.borderColor = lIsInvalid ? 'var(--potatno-color-error)' : '';
         const lOutputs: Array<PortEntry> = [...this.functionOutputs];
         lOutputs[pIndex] = { ...lOutputs[pIndex], name: lNewName };
@@ -372,17 +372,6 @@ export class PotatnoPanelProperties implements IComponentOnDeconstruct {
         }
 
         return `${pBase}_${lCounter}`;
-    }
-
-    /**
-     * Validate that a name matches the required identifier pattern.
-     *
-     * @param pName - The name to validate.
-     *
-     * @returns True if valid.
-     */
-    private validateName(pName: string): boolean {
-        return /^[a-zA-Z][a-zA-Z0-9_]*$/.test(pName);
     }
 }
 

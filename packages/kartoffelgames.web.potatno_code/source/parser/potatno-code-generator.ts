@@ -432,7 +432,7 @@ export class PotatnoCodeGenerator<TProjectTypes extends PotatnoProjectTypesDefin
         if (!pCursor.ports.has(pPort)) {
             // Convert label of port and index into a global valid value id. 
             const lCodeCompliantName: string = this.mProject.generator.value.name(pPort.label);
-            const lCodeValueId: string = this.mProject.generator.value.id(lCodeCompliantName, pPassData.counter.portIndex++)
+            const lCodeValueId: string = this.mProject.generator.value.id(lCodeCompliantName, pPassData.counter.portIndex++);
 
             // Save port with code id.
             pCursor.ports.set(pPort, lCodeValueId);

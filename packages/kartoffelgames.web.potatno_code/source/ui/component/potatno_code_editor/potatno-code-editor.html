@@ -1,16 +1,13 @@
-<div class="editor-layout">
-    <potatno-function-list></potatno-function-list>
-    
-    <div class="center-area">
-        <potatno-node-graph></potatno-node-graph>
+<div class="editor">
+    <potatno-function-list />
+
+    <div class="editor__center">
+        <potatno-node-graph class="editor__graph" />
+
         $if(this.hasPreview) {
-            <potatno-preview class="preview-wrapper"></potatno-preview>
+            <potatno-preview class="editor__preview" />
         }
     </div>
-    <div #resizeRight class="resize-handle-right"
-        (pointerdown)="this.onResizeRightStart($event)">
-    </div>
-    <div #panelRight class="panel-right">
-        <potatno-panel-properties></potatno-panel-properties>
-    </div>
+
+    <potatno-panel-properties />
 </div>
